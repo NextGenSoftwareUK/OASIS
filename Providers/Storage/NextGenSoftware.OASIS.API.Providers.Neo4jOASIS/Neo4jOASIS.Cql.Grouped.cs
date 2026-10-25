@@ -62,6 +62,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
     {
+        NeoCqlReadBudget readBudget = null;
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -73,9 +74,10 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             if (!IsProviderActivated || _driver == null)
                 return GroupedCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             var command = CompileCqlGrouped(plan.Query, maximumGroups, maximumPayloadBytes);
-            var budget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
+            using var budget = readBudget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
             budget.Check();
-            using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
+            await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
+            using var session = readOwner.Driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor = await transaction.RunAsync(command.Query, command.Parameters).ConfigureAwait(false);
@@ -102,6 +104,12 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             budget.Check();
             return new OASISResult<IReadOnlyList<CosmicGroupedRow>>(rows.AsReadOnly()) { IsLoaded = true };
         }
+        catch (Exception cause) when (cancellationToken.IsCancellationRequested)
+        { return GroupedCqlFailure("CQL_QUERY_CANCELLED", "Neo4j CQL read was cancelled.", cause); }
+        catch (Exception cause) when (readBudget?.IsTimedOut == true)
+        { return GroupedCqlFailure("CQL_QUERY_TIMEOUT", "Neo4j CQL read exceeded its cumulative deadline.", cause); }
+        catch (NeoCqlNotReadyException cause)
+        { return GroupedCqlFailure("CQL_PROVIDER_NOT_READY", cause.Message, cause); }
         catch (NeoCqlGroupedException cause) { return GroupedCqlFailure(cause.Code, cause.Message, cause); }
         catch (NeoCqlLimitException cause) { return GroupedCqlFailure("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (NeoCqlTimeoutException cause) { return GroupedCqlFailure("CQL_QUERY_TIMEOUT", cause.Message, cause); }

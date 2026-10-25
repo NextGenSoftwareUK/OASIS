@@ -119,3 +119,126 @@ installation has been made during this audit.
 Primary references: [Neo4j 4.3 async session source](https://github.com/neo4j/neo4j-dotnet-driver/blob/4.3/Neo4j.Driver/Neo4j.Driver/Internal/AsyncSession.cs)
 and [official session close contract](https://neo4j.com/docs/api/dotnet-driver/current/api/Neo4j.Driver.IAsyncSession.CloseAsync.html).
 The latter describes current documentation; pinned 4.3.2 XML was inspected locally.
+
+### Native blocked-response reproduction
+
+Focused gate 48483 reproduced the cancellation gap against the retained Neo4j
+server and actual signed driver. An in-process loopback relay forwarded real Bolt
+setup, then held one server response. Caller cancellation did not finish within
+one second while that response was held. Releasing the exact bytes allowed the
+read to finish with CQL_QUERY_CANCELLED and no published result. This is a real
+blocked transport await, rather than a delayed post-fetch callback.
+
+The probe failed at the intended interruption assertion. Its finally block
+released the response and joined the read before deactivation; the fixture
+journal and owned relay/listener were absent afterward. Evidence:
+TestResults/Neo4jCurrent/neo4j-cql-interruption-current.trx (SHA256
+E6EA596051994CA01FC37042257A2816611F650E87AA13E550E05868F9BA719F) and
+TestResults/CosmicCqlDemo/neo-blocked-cancellation-red.log.
+
+The new regression and focused runner mode remain uncommitted pending the
+production fix. Existing passing cancellation tests do not supersede this red
+result. Source-level evidence also confirms rollback drains unconsumed results
+before closing: [pinned driver transaction implementation](https://github.com/neo4j/neo4j-dotnet-driver/blob/4.3/Neo4j.Driver/Neo4j.Driver/Internal/AsyncTransaction.cs).
+
+### Owned transport integration: warm pass, cold handshake still red
+
+The candidate lifecycle now leases a bounded reusable, exclusive driver for each
+CQL read owner across row, projection, scalar and grouped execution. Its linked
+30-second timer includes pool waits and native I/O. Cancellation closes only the
+owned driver; teardown is joined before a retired slot is replaced. Four pool
+unit controls pass, and all provider source compiles without new dependencies.
+
+Focused native gate 45642 passes both warm-connection cases and fails both cold
+handshake cases. The signed 4.3.2 driver can abort established I/O, but closing it
+does not stop a connection still negotiating its first Bolt response. After the
+relay releases that response, both cold reads return cancellation with no data.
+The stronger four-case probe is retained unchanged; warming connections alone
+would not certify cancellation during reconnects.
+
+Evidence: TestResults/Neo4jCurrent/owned-transport-cold-warm-red.trx,
+read-transport-pool-current.trx and TestResults/CosmicCqlDemo/
+neo-blocked-cancellation-green.log (the filename records the attempted gate,
+not its outcome). Actual result is **2 passed / 2 failed**, no skips. All owned
+reads were joined, the fixture journal removed and ports17788/17687 absent.
+
+The lifecycle and tests remain uncommitted until the cold connection creation
+owner is fixed and broader regressions pass. Inspecting newer public driver
+APIs has not established a drop-in fix for explicit-transaction cancellation;
+no driver package upgrade or source download has been performed. Next work
+must fix connection-creation ownership rather than weaken this acceptance test.
+
+### Patched cold/warm transport gate — 25 October 2026
+
+Gate 95686 completed successfully: all four real Bolt relay cases pass, zero
+skips, in three seconds. Cold and warm reads return CQL_QUERY_CANCELLED, with
+no loaded/result publication, before the held response bytes are released.
+Both caller-only cancellation and the explicit exclusive-driver close controls
+pass. This supersedes the earlier two-cold-case red result for this precise
+probe; it does not certify every query shape or DNS/TCP/TLS cancellation phase.
+
+The runner verified source-driver producer/provider/native consumer identity
+20A42D3B68F7FF531DAD1B755AA9117F048D11A896B22A9969E599213E4E3324,
+plus current Core and Shared producer identities. The integration test project
+now disables transitive build-time OpenAPI generation because its entry point
+belongs to the test platform; shipping HTTP implementations remain linked.
+Concurrent peer SQLite source edits mean this Neo-only result is not SQLite
+source/PDB certification.
+
+Evidence: TestResults/Neo4jCurrent/neo4j-cql-interruption-current.trx,
+SHA256 A0E4E7A182C4EFDEF7541E321AD78A28035896B7B436D559A6E47D456A3773A5;
+TestResults/CosmicCqlDemo/neo-patched-driver-interruption.log.
+Owned runtime stopped, fixture journal absent and TCP listeners17687/17788
+absent after terminal. Full Neo CQL/unit regressions, all-shape interruption,
+deadlines, teardown failure and reuse acceptance remain required before commit.
+
+### All native query shapes — 25 October 2026
+
+Gate81715 passes all10cases, zero skips, four seconds: cold/warm row, projection,
+scalar and grouped cancellation, plus explicit row driver-close controls. Each
+executor returns CQL_QUERY_CANCELLED, IsLoaded=false and default/no result before
+held Bolt bytes are released. Source-driver hash remains20A42D3B...E4E3324.
+TRX SHA25687EBE625105CA564098C79E321368D2194767DEA7F769B636CC25F602A145A12;
+log TestResults/CosmicCqlDemo/neo-all-shape-interruption.log. Owned runtime stopped,
+ports17687/17788 and fixturejournal absent after terminal. No new resources or
+packages; reusable build outputs retained. Full regressions/deadline and broader
+connection phase certification remain open. SQLite edits settled before this
+build; this Neo-only gate makes no SQLite behavior certification claim.
+
+25 October full Neo unit regression:465 executed,464passed/1failed/0skip.
+New factory-failure capacity recovery and failed-close retirement controls passed.
+Existing OriginalConnectivityAndCloseFailuresAreNotSuccess caught premature
+provider deactivation publication. Neo4jOASIS now retains storage/read-pool
+references and activation state until both close tasks acknowledge success.
+The follow-up rebuild stopped at the occupied normal global lease, before any
+build/runtime work. TRX read-transport-full-unit-current.trx preserves the red
+result. Fixed reusable log path neo-read-transport-full-unit.log; no install,
+download or fixture introduced. SDK/cache/provider/unit bin/obj reused (sizes
+unmeasured); compact TRX retained, generated outputs reusable. Updated production
+fix still requires rerun. Full CQL native regression remains pending.
+
+## Neo4j interruption regression checkpoint — 25 October 2026
+
+The pinned source-driver/read-transport lifecycle batch passes full465provider
+unit tests and259nativeCQLtests, zero skips. Native duration4m3s. All10cold/warm
+paused-Bolt cases pass for rows, projections, scalar and grouped reads. Failed
+creation returns pool capacity; failed close reports its error and retires the
+transport. Deactivation retains resource ownership until both close tasks
+acknowledge success. No result publishes on cancellation.
+
+Exact evidence: native TRX SHA256
+6CAAA45E0B7C362CD0BBC53BC2811ADAB56B2D01ABB98FB5FAFEA066FC1A46D6;
+unit TRX SHA256
+A02FB67264B525C91C8CC71ACC75D4664B6CC1E2104BF799E11201DF80556D06.
+Both are under TestResults/Neo4jCurrent; compact build/run log is
+TestResults/CosmicCqlDemo/neo-read-transport-full-regression.log.
+Producer/native driver, Core and Shared hashes verified before execution.
+Owned runtime stopped; graph fixture journal and listeners17687/17788 absent.
+Free disk after gate64605769728bytes; the reusable Neo volume and generated
+outputs remain retained/shared, size attribution unmeasured. No new download,
+installation or environment during this gate. No shared data was deleted.
+
+This is a verified scoped batch, not full CQL completion. Strict deadline latency,
+DNS/TCP/TLS connection phases, broader non-CQL driver regressions, joins,
+federation and the unchecked authorization/scalar/composition roadmap remain.
+The full original COSMIC ORM goal remains active.

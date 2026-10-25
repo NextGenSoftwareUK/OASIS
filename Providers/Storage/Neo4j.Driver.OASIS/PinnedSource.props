@@ -1,0 +1,860 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project>
+  <ItemGroup>
+    <PinnedDriverSource Include="LICENSE">
+      <ExpectedHash>58D1E17FFE5109A7AE296CAAFCADFDBE6A7D176F0BC4AB01E12A689B0499D8BD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="NOTICE">
+      <ExpectedHash>13B229603C24CED7A86087C7F08668C7D464F7E32E9109EE0606ED972DED8483</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="IdentityPubKey.snk">
+      <ExpectedHash>C97EDA1B20B80C1A9CC6F44169FCD8D2670CC10FD94C3A6948F8A26984AA6DE5</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/AccessMode.cs">
+      <ExpectedHash>F54FC99E3A32E61EA273E530638CF9CFED1DA0022ED6F6C747888E207AD71BD5</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/AuthTokens.cs">
+      <ExpectedHash>50333DCB76445775131E72E3EEC4786C2808CBE8372C35C7FB85DFBA914177A6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Bookmark.cs">
+      <ExpectedHash>AD5636A1FD785C5D91CAF8E24154E0E3466D578EBC41F873F38ABA1FB5628FA2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Config.cs">
+      <ExpectedHash>614BAB11853BDCAFB7BBAB9AED6E7FBDC32CB60ED9144AAC7B855737F194B9A7</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/ConfigBuilder.cs">
+      <ExpectedHash>700185415989CCF7CB68720FC80D434AD56625277586FF0936EA52FD102C42E6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/EncryptionLevel.cs">
+      <ExpectedHash>E52586C520EFCFCFB12D937B2B17C9411CF9EE7ED8652D532D49AFBC4E69F111</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Extensions/ResultCursorExtensions.cs">
+      <ExpectedHash>2D39A00105DD000FFD673B40C414A436735AE49E564E1FA40CE5A213F045BE86</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Extensions/ValueExtensions.cs">
+      <ExpectedHash>35BBEEA58F458ACDC801B64855E89FD0DF33111755BFB71F5BBAD353CE366808</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/GraphDatabase.cs">
+      <ExpectedHash>972B44AD9271221465B3403DC76CCEBB9EAE109BE4E02FCEAF7D76E6016FF4A8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IAsyncQueryRunner.cs">
+      <ExpectedHash>92D74AEE4D33F89368DF537C9FAD643CDEBA66A7786E69A11028C146AE5E58E1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IAsyncSession.cs">
+      <ExpectedHash>44F64229E9832C85E8EDCD0D45C40347A31C84D63DE5209355F8BE4CF8B43E5B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IAsyncTransaction.cs">
+      <ExpectedHash>87F37F74A8306E8182D24392270E2583EF6CC14ED83D6DCF08ED399FA778A67A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IAuthToken.cs">
+      <ExpectedHash>AA639ABDFE024D4487A17F60E559942186E1CAB9BE9DF81071CEE04302E7D5EE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IDriver.cs">
+      <ExpectedHash>312EDD1512731D0413126A1C3B3384FE6873EF20D75BF012387F692D5C22533F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/ILogger.cs">
+      <ExpectedHash>71D1385E7D2A726EEA84E9039B9DB9C9C3B5E715F475D5B710AB59F82C813C44</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IRecord.cs">
+      <ExpectedHash>C64DBF3701BB109BA2FC81A50DB66682378ED3D065DB1EBAA9BC1A4B84CD48E4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IResultCursor.cs">
+      <ExpectedHash>74DE4769EE0FF49FE74C244F712B1130591ABC7D56BB9BC9A2F073CB47C4B3DC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/IServerAddressResolver.cs">
+      <ExpectedHash>E11B8C99F7A6ABE44B62CF1BAA2465B7C2B2ED676C9D00D04BF9E0B2DC538AF2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AsyncQueryRunner.cs">
+      <ExpectedHash>B2224BA3C25E4894151080D13E956D13DB304E2F1C5C9D411D0C9B2D41508D6C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AsyncRetryLogic.cs">
+      <ExpectedHash>F78E02220DE46662FB233325A8B0DD1A789B0A32C8E20827DAEDB7F901ADE104</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AsyncSession.cs">
+      <ExpectedHash>53E04B0B046D9BA69A14B19CC6A4601CBA733A1EABF5CB879BF69A3AE532BC37</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AsyncSessionResourceManager.cs">
+      <ExpectedHash>F67A630272090A70321E26568B7B97C3A79F9A8A709BAC0ECFCB2AC319CDA02E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AsyncTransaction.cs">
+      <ExpectedHash>62422CEFE1138386D2CE67AF03A32E6F226DD462F4E33A602497CA4FFE88E42B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/AuthToken.cs">
+      <ExpectedHash>6223894C509D0512FDED15A8D038BB6E5C556392CE101BBC4C14956A24AC38B0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/BufferSettings.cs">
+      <ExpectedHash>722F21317819484D2E22B12E50A45F6453986BE1A146CA1054A33436336EA31B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/ConnectionPool.cs">
+      <ExpectedHash>C159723649A36140622C548983CF9137E759F0670F20D5056E144C4284508D51</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/ConnectionPoolSettings.cs">
+      <ExpectedHash>22FFD6D644E4CE40E72A48BCBCCB47E1698E8DF1F02B561CE707CE660451AA61</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/ConnectionSettings.cs">
+      <ExpectedHash>DCBCF7EB7E68CED669D107B61251A86F1114A0D32D8A7AC814E05E71B897FE11</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/ConnectionValidator.cs">
+      <ExpectedHash>D7EBFEA3A63EC0F6B58ED026FB9D0F2134F07570F7BB3980DF2B1E5471AF2512</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/DelegatedConnection.cs">
+      <ExpectedHash>A71407F099E89677A5E9BF30B4286BDC1A8CA5CFB829ADA374C40E896F553F24</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/IConnection.cs">
+      <ExpectedHash>3ED832A6D74D0A7028002410F36E697D5A71658C48A827BDA8FB9113CA62B497</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/IHostResolver.cs">
+      <ExpectedHash>53398949CAFCD902BFBAE6B86404059A8343F5BD3F6C397DC25E9AC48C3AD7F2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/ISocketClient.cs">
+      <ExpectedHash>84FE6022D0398D42DF8C307F3DBB775F0E295F8B9ED3EF8561567033E0E539EC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/ITcpSocketClient.cs">
+      <ExpectedHash>20C0A4074E9F463DE0BA0BEB2E7147CCE1F7EAE80FAB26A6C00992959D7AD214</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/PooledConnection.cs">
+      <ExpectedHash>9C1EE4C1444E20B62C82092E1C2B90846711AB1BC5990B1C668A16F1E827D8A0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/CachingHostResolver.cs">
+      <ExpectedHash>713A558856565DF836BF51CF3FCA987A70A13FABE2E14782C4E9CFD06140A77D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/DefaultHostResolver.cs">
+      <ExpectedHash>3FA1BFFE662F6414AFE3FF0DD11B2040CA85D2037DDFA25DA17A11A924681D94</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/SystemHostResolver.cs">
+      <ExpectedHash>02C24BE03D6BF8F3615FF19A814D725331FAD2FB259B1155C615346246A1CA8A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/SystemNetCoreHostResolver.cs">
+      <ExpectedHash>5D89D73B6583656A0F740C17B9264A80A1E590ED2CDABF88A80AB5DFBD9AF584</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/SocketClient.cs">
+      <ExpectedHash>0E84402A35C2051106C6D5555D5B0431E4AE2B69455826E0FFB4A0A07F285C94</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/SocketConnection.cs">
+      <ExpectedHash>BDCAE9ED8E3D915DB199D21D2C7283A27FE6B8FF0AF9590E054CA2C231294C4A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/TcpSocketClient.cs">
+      <ExpectedHash>5925C2E46A4E3A7BCD3BFBC6DC9349F76C791A640ED3B26F9CBBCFFC24164B2D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Trust/CertificateTrustManager.cs">
+      <ExpectedHash>A71E1D4825E05D971388713D2B2DC69A7ADFCC0BB0FC263E6C2EE7F70745245E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Trust/ChainTrustManager.cs">
+      <ExpectedHash>5880EF4221AE26F074BC03BC8EFAE4168B0ED72C4B1E99A7E4200C6C8BCCFE6D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Trust/InsecureTrustManager.cs">
+      <ExpectedHash>3B007EDD26FF668594B2DBFC50685993B40156F13D4CB6087FA7CF2E283BF82C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Connector/Trust/PeerTrustManager.cs">
+      <ExpectedHash>DB9CB9BA406937C1EF0EEC7D074AF6390F17DA7EFD030AD5F9BEBAD4873FD3A8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Driver.cs">
+      <ExpectedHash>A2C719200F00ABE0B72624397749BB081674FBD24146A965541829EE1469FE28</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/EncryptionManager.cs">
+      <ExpectedHash>019A2829994E5D114EA380AF78A48C33E6AAF49D08AC767A4F938FEF0C0E130D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/ByteExtensions.cs">
+      <ExpectedHash>A9647A038DF5AB0C2BCD7B092A9F23189AF8BC44AD1C96DE36A6319977DD9C9A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/CollectionExtensions.cs">
+      <ExpectedHash>14EC05206C92572667E826F6C5BDFA62749E2072AA06B63FA84FB7A7522A6C8A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/ConnectionExtensions.cs">
+      <ExpectedHash>9BA6FB4BC051E0C7FCEF8D712090B7A33669B7B41697F30A8B6C68BA383193F8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/ErrorExtensions.cs">
+      <ExpectedHash>9003788876E2C01CA70993EA181E346B423FB5C3D551CA4F1D545682E670EAF8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/NetworkExtensions.cs">
+      <ExpectedHash>F5B408445A5085A77679B4974E032E9F69861C7D560C98DCCF11A1E0235C025B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/StreamExtensions.cs">
+      <ExpectedHash>98D7846996B3E5CA837C350FE50A06D3285F87C50116C245A2304E4619D76FE0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Extensions/TypeExtensions.cs">
+      <ExpectedHash>62556ED1FB47EFE94E22C4BD96BB183BA743D86AC31F8F196EAE19295C60E33D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/FetchSizeUtil.cs">
+      <ExpectedHash>ABDB4AC6CE9A59E6A2BACA74DEA482677F4BE81893C1F1AEBDC3DE0B3AA4A666</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/BookmarkHelper.cs">
+      <ExpectedHash>4A974D9DE816C82D12BC460088284973D4EEEC66871377918E4B182E4B181289</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/CertHelper.cs">
+      <ExpectedHash>D79F33157073529387E03B221FE3355FFE682D4617BE5D6D648C2300D4E192BD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/ExceptionHelper.cs">
+      <ExpectedHash>696272CC4407CC0CD6DD75B0F9A595D2F9FB36888F4FD812E998EDE1F56FF8FE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/RuntimeHelper.cs">
+      <ExpectedHash>8BBF6310D14CE7F9AE1B410B3931ECB8D2BCDB235759E8B310041851201D0602</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/TemporalHelpers.cs">
+      <ExpectedHash>38FFE98273367BBF6283D91EE81B0650E21A7921626A3424997FC03B36162487</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/Throw.cs">
+      <ExpectedHash>BC7FB6C07F9E4DBB666A25FB8300F7D2321A4197F325D2B7935B71428EFB6BE3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Helpers/UniqueIdGenerator.cs">
+      <ExpectedHash>ADCB6184FBAAA9033BE5121F19056533CC1A17BFCE42739177181A5A4F9E81AA</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IConnectionPool.cs">
+      <ExpectedHash>A8419C67BCEF3DDF81961B6CB78646E2FBB85CE56A58558B00A4C658712E7F48</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IConnectionProvider.cs">
+      <ExpectedHash>96BDB1FEF325814375D9A4ABAA630A025330F90D92B70785748450AD451531A3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IConnectionReleaseManager.cs">
+      <ExpectedHash>94565479AA72F87DD25A70B2BA9B837552191BE1FD681ADB6C57655D0EF9D004</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IInternalAsyncSession.cs">
+      <ExpectedHash>B97119F9647619ADB1B1E8A3D12FC88ECD79A7C08B6F3566D3FE6814EB5AB321</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IInternalAsyncTransaction.cs">
+      <ExpectedHash>F2E950DB763F305AAB39C9210D7D5D75D16C462DA8A043C184B2CAC48A0385CC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IInternalDriver.cs">
+      <ExpectedHash>820A855D6226CDAD07A1C10221396C0C0826B6AC2EFA79C4EFE505CAF38AC6E2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IInternalResultCursor.cs">
+      <ExpectedHash>4BBB15A61FD6656F25836D433B42BF1079121EBDD1762417DBC43408A768609F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ChunkReader.cs">
+      <ExpectedHash>E43AFE852D6A1EF50AD14ECFCF7AC6AAC366744A08E7EEB8B00B5E3AFEE96FFC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ChunkWriter.cs">
+      <ExpectedHash>8D9FA10404875C854D8F3842BCC66E09DA08C8EC745863F2EDA958DE65A37AD6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/Constants.cs">
+      <ExpectedHash>AB7F0B0F2349F24EDCB2C64A668DBFC6DFD5B546E4F11487B1A55512CBD8CF6A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IChunkReader.cs">
+      <ExpectedHash>3B340741E895A5A06DD02AEA94A4798344CD80BE07920C94B94067B10540DBF6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IChunkWriter.cs">
+      <ExpectedHash>E2D2DC28B4ACC80C41ED3F10E86F7FF83E2AACBF3492B1C03C882046C762E273</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IMessageFormat.cs">
+      <ExpectedHash>2D7144A8D89491242042E2FA79300F20C3FB53618F8C0201A487FDE2AB42AB4D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IMessageReader.cs">
+      <ExpectedHash>7640326E80D48787550D834527E064ABD39DFFE8D3599A88000757CC9B596539</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IMessageWriter.cs">
+      <ExpectedHash>C8600F561B192B827B5904064FFDCF2AB8B20D6138D736A257F93D31A3D6F439</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IPackStreamReader.cs">
+      <ExpectedHash>3E6CEE36A08F0531FCE61E425EF139CAB130F24567530C67BB33DE4D860177C9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IPackStreamSerializer.cs">
+      <ExpectedHash>8E77C852B95EEF480F156C06ACD6F0FED1EED6622E817BF3569E1E5D182DABF4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/IPackStreamWriter.cs">
+      <ExpectedHash>94D2652AB931BCB1E838E37EEC4B1CA8F561F085F553E0C63EACEF214CB60D50</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageFormat.cs">
+      <ExpectedHash>50EA9A25491708C5FBC32F98AA840AFC75F6F2A77509E32B5240F85982B98C15</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageReader.cs">
+      <ExpectedHash>20D1D8E79A18C5F77E05E48D03D7021DCAFEE8E326CC99DDAF740E03ACBD35B2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/DiscardAllMessageSerializer.cs">
+      <ExpectedHash>2805DFC36FEE47D707CE0E728CD98DFE317CB0ED22FD5D6B6A1B778D7036050B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/FailureMessageSerializer.cs">
+      <ExpectedHash>AC55D82AC90985F90CD317B61A6F15C5D4775EA71E26E6E2AA617D0199A09943</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/IgnoredMessageSerializer.cs">
+      <ExpectedHash>A4C26F74BE85D392F7D3341B1208D90DDE44F3E1A91A7E0EA8D190564B60D139</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/PullAllMessageSerializer.cs">
+      <ExpectedHash>0538A14C3DBCFB95626FC6CB085C57D7753460064139CB6366FB4E6B18084E20</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/RecordMessageSerializer.cs">
+      <ExpectedHash>890DDEF936BE42F85ECF138118EEE15C7D49251857D4D106F0475F6E630EE608</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/ResetMessageSerializer.cs">
+      <ExpectedHash>F62F2FC12CB842BECD2C63F4A25E055B650A114BAE6924118E5BA06CA5A186C6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/SuccessMessageSerializer.cs">
+      <ExpectedHash>42E466DB26C1E022A31A61D337E3709A1735704CAB49F64058A2A4F7F0E9924C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/BeginMessageSerializer.cs">
+      <ExpectedHash>9555410408A7B8C0167E5CBB625ABB3F69EB26B7F1E373A71110A0BDC8C08CE4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/CommitMessageSerializer.cs">
+      <ExpectedHash>3F4AD5C17389C9F40C7203D1A33F906761F80164046174DE33431502BF4C51E8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/GoodbyeMessageSerializer.cs">
+      <ExpectedHash>E168C4A2C2008C43319837C4E7F9A0A1F7AAF12E84BB7EDCD2E9E99AAD9E0C9E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/HelloMessageSerializer.cs">
+      <ExpectedHash>420FE1BD2CB30E9FCDFAF24F1749A1347712F6B439F51DE27D60568CE1974E5F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/RollbackMessageSerializer.cs">
+      <ExpectedHash>9D4BF8AD4BFFBFAA255FAE45ADE7053E51EF16BEC3E4B3BFFEE475BF54629551</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V3/RunWithMetadataMessageSerializer.cs">
+      <ExpectedHash>787B78708F5FF600A36995F520211445CD356DF7D7B76BCE17C5512D2472F9C2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4/DiscardMessageSerializer.cs">
+      <ExpectedHash>D8737A7E0FC9E372AEAA7BA85D185757BE577BBA3392B0CD5CF50847D5D4E0C1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4/PullMessageSerializer.cs">
+      <ExpectedHash>AC49C91EC2506ACE8E3C7C6729B8D01F1C9BF65B2FF8F7A3AA5D2453799F089B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4_1/HelloMessageSerializer.cs">
+      <ExpectedHash>031D9C9A02AC965BE8727CB27AAF6EDA4B6C207BAABD4F310A271855F02BB6DC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4_2/HelloMessageSerializer.cs">
+      <ExpectedHash>B1D4236D482CD1E138985861383474DDCE8F8486D4FA59E3E1C4925EDAD4F3AB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4_3/HelloMessageSerializer.cs">
+      <ExpectedHash>F0E2BD8DE6C985846CA989B3305855F2BD09A6EC26EC3DE361DE8C1DF595C015</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageSerializers/V4_3/RouteMessageSerializer.cs">
+      <ExpectedHash>1950349C8070C679AA06DB857E5F924600BAE4B383AAF962C6E85FA791A12154</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/MessageWriter.cs">
+      <ExpectedHash>9A467FC97D4A26D8A2535AC1892D26499332BA8231EC9607EBB654B1B077EAAD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStream.cs">
+      <ExpectedHash>7B7073283D8C7C08BF7F4AA8ACED822FF4BFD46B5F6B7B487BAB07D9EFE71417</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStreamBitConverter.cs">
+      <ExpectedHash>D2770B57B37B24EE95E221F4A52BC575855A7F9C7D97D2A8F141383AB1A04C21</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStreamReader.cs">
+      <ExpectedHash>2576A5B68FF71EAA129BDF64EF23E667C342D87A39261A385096B5CB3709E856</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStreamReaderBytesIncompatible.cs">
+      <ExpectedHash>0E51BD6DFCAAAE9EAD9A5000E32DA86CCA2A383955FDD670FA97AE46B7E34CE2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStreamWriter.cs">
+      <ExpectedHash>A02A56B209A049E3ED5DC0C6753612C619DBA18435095B65BC7BCFF837B04970</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/PackStreamWriterBytesIncompatible.cs">
+      <ExpectedHash>B1ECC4ABE01679C6E93CE1804D4E7218AC8D09B63D9B33129DEFADC72E7E1D74</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ReadOnlySerializer.cs">
+      <ExpectedHash>C3CC0E88276A1E8771BF1B6B065C6936F32F87598168D3EBDF986482BF74CBAE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/NodeSerializer.cs">
+      <ExpectedHash>83BBB925EF5AEF76C4436878ABD09E7A28EBE380444145FC43462CC555F8D709</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/PathSerializer.cs">
+      <ExpectedHash>C902C8CF22D0A689921C284EEDFEA4DFC33EC1ABA1A9446190C572EA5002D235</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/PointSerializer.cs">
+      <ExpectedHash>AC1D3DE366B2A2DE853B3B3C2AF7C5780181AA5F11220A456F95EE4526247815</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/RelationshipSerializer.cs">
+      <ExpectedHash>AF28FDDD147044C0A026D0AE6297F41F1F22EEA6CD373F6D683D36940FAD80D8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/DurationSerializer.cs">
+      <ExpectedHash>F8D39A317AE7D2A6630F04654ECCE0805B765B034B03188D187149E3A6D79F77</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/LocalDateSerializer.cs">
+      <ExpectedHash>0DDC7421B461E76CF029C2617C5EC8E4C03C6D8619AC81D0FDA484EBF92792D6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/LocalDateTimeSerializer.cs">
+      <ExpectedHash>B034FE5BC03C7E2657B9E53A9A3CF37F9F4E4690D9612292764A78D10A66FD97</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/LocalTimeSerializer.cs">
+      <ExpectedHash>E2CCA558F95F8DB2B004C4DF1B56AF046C48E069C6DB3CFC439B0273F3F72527</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/OffsetTimeSerializer.cs">
+      <ExpectedHash>B2675351BF6F46E3B6F74261C49E47552F10524BE5FFE345D10618E603226E29</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/SystemDateTimeOffsetHandler.cs">
+      <ExpectedHash>2F025D1824661A825B17D55B3152DF787A0D9E40C7E003C208B7B3DB18565E71</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/SystemDateTimeSerializer.cs">
+      <ExpectedHash>04E17A8D0F0415A9C79ECF9A5B2977086D9EAF569F718A24D19CBBC69BC1794F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/SystemTimeSpanSerializer.cs">
+      <ExpectedHash>26F833D1421A2F54896381A4A3023B23E64DA03EE8FA4D1D5AAEFC6514D40346</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/Temporal/ZonedDateTimeSerializer.cs">
+      <ExpectedHash>E63E0BEEB1EB34720BEE05EA55BF13C9355344FC91D32F6088859FCB6C77C11B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/ValueSerializers/UnboundRelationshipSerializer.cs">
+      <ExpectedHash>7AD1B554655CE30ABF6D205364C4204254D66EF38A9463F0B0A167C457C86279</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IO/WriteOnlySerializer.cs">
+      <ExpectedHash>7B62C7DE3A18C9E3CB02C51E4F705A5DC0F61AA9BC1B491347D45BCD38F81D1F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/IPooledConnection.cs">
+      <ExpectedHash>30569E9D13BE74A090B85240F8723568061EDDA37B1C8EBF666EB35D823C1A62</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/InternalBookmark.cs">
+      <ExpectedHash>A7EF32318A41F559E1996CFBB33094B8548ECB2EEA0699E8B77D9645DBBC1A80</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Logging/DriverLoggerUtil.cs">
+      <ExpectedHash>C2209AE4C44ADADC33919A29832C2A9710FA8270F108CED16E53AA5C6D1CA7E7</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Logging/NullLogger.cs">
+      <ExpectedHash>8DE6BA35E7E9679BB4195A353C705EAA709AE00C8D32D28CC01F17B43E767D74</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Logging/PrefixLogger.cs">
+      <ExpectedHash>E6121958ABAEE73DE2091C2D510B668AFD36C6FF2AEF29A5977B75E955935EC6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Logging/ReformattedLogger.cs">
+      <ExpectedHash>7AA2EAEC6E58241E6EA39B443361E9698526F29E2F6BB6732BB72FCAABAA133E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/IBookmarkTracker.cs">
+      <ExpectedHash>921DA975FA3EC7980D36A5CA68CCF520AEE02C7E9480D094B260AA19B35B512D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/IMetadataCollector.cs">
+      <ExpectedHash>48678268F65C94447C65A01259394579178F376AE0F92B21F071555A50FA8303</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/IResponseHandler.cs">
+      <ExpectedHash>FFF2BDBF894FDA0F2969A09E77654F5DBAEE3BBFDF7E969C1838189306EED9F2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/IResponsePipeline.cs">
+      <ExpectedHash>79D48DD563C13FA4DA747C6C4B16C57CBDAFA41EA844E65558BA15FDACBAC50E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/IResponsePipelineError.cs">
+      <ExpectedHash>3E9F319812527DDBDAC24EDEF8FD023B2510E6F12E31100F162A7D82EEE21019</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/BookmarkCollector.cs">
+      <ExpectedHash>BB125C59D5ED773957AD2E01EDA977FB14215F5E435A85208AFA8AA8BB9533C7</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/ConnectionIdCollector.cs">
+      <ExpectedHash>09307F6DC0F0F4F7C18AB1702017BBBBF771D060D2D08B214BF134A6C4957F92</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/CountersCollector.cs">
+      <ExpectedHash>56F578A8B3C57412BD586EA5D8FEE28921B2CD2DD77C43ADC798ADFB1FE74BBA</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/DatabaseInfoCollector.cs">
+      <ExpectedHash>D88AD27D054A72900501E48EB1B99B1321A7102958CE7B876723BBD8923DEEC1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/DurationCollectors.cs">
+      <ExpectedHash>2E94AE22CCD83A651D925ED5C18FA2D3811933EE3037660BC027C9E021B17A14</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/FieldsCollector.cs">
+      <ExpectedHash>F5F1835EA04E80C0021BCC6F489104007CE22001507CE91F245E1627FDBB2F9D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/HasMoreCollector.cs">
+      <ExpectedHash>5EEC424039675F670959EB616619E41F7AAB389A56FFAFC7BF2439502ECDBF84</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/NotificationsCollector.cs">
+      <ExpectedHash>4D99AAA1DF126A17D0EFB06D4B1837A14D9A881D11BA2F8EE2A3C5D8BB916DE0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/PlanCollector.cs">
+      <ExpectedHash>5CEA63E3D102695F2699B2C32E0D19F09909849D610889780B23F32AA5BA40C2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/ProfiledPlanCollector.cs">
+      <ExpectedHash>160AD5D56F5851BE093A70F5FFC3BB0E3706BA5E6490A108BE96CB7F683BDC14</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/QueryIdCollector.cs">
+      <ExpectedHash>6CECA545FECA9D73975990DE46A2229F01C43E39263D725850E2C4370AEA60B3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/RoutingTableCollector.cs">
+      <ExpectedHash>32A11C82266281AA86FFAB3A1578EBF4C7C30BC94169FEEEF900C4DBAD361AF9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/ServerVersionCollector.cs">
+      <ExpectedHash>3BF376A17F0350187DB1743B79B62473430C5ABB93188D56071946D010341FD0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/Metadata/TypeCollector.cs">
+      <ExpectedHash>3235B283C71A37F88D12DF4540D1B43493BE4D2CA0BB4BDC9B4E02F6B3C571D9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/MetadataCollectingResponseHandler.cs">
+      <ExpectedHash>3EC732F8D940015BE2DA554B36451EC124A2A21A148C7B340915646C4472FE85</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/NoOpResponseHandler.cs">
+      <ExpectedHash>F18758AFDD61F4A6FFEDD05CAECAC04AD42518ABC3EF0C3BFE1D769C4F6593C1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/ResponsePipeline.cs">
+      <ExpectedHash>8970D411CD0C3A06A57CC948F01D400A5372E9D4DBA24D02ED8C523EEB6D83BE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/ResponsePipelineError.cs">
+      <ExpectedHash>AE72B8351C36A0865F3346F3CA32EBD4076068DF19589206E23C88E19CCCFFF1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/BeginResponseHandler.cs">
+      <ExpectedHash>7ACC3F8D8D5E27523B970F2962D9A828A4D926835B71D17865A01D273F6AD3A6</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/CommitResponseHandler.cs">
+      <ExpectedHash>A7F019573D8FA3BA763BF3A8CDFAF5887E09A641A6E5CE83C3CF3FD20C7D1D1A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/HelloResponseHandler.cs">
+      <ExpectedHash>B2276F747F4467337662C328DC18D72324DB6F1E76B5F369BFA7237EF6CCE34B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/PullResponseHandler.cs">
+      <ExpectedHash>26505B4AE78EC3D8F04A59D63EE2C18E0E1AF9816F9C2C98F82A99697F7A6CBF</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/ResetResponseHandler.cs">
+      <ExpectedHash>DD218238401A1DA42CFF1756326D6CC11DE01059351978F83C312CF2376CACEB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/RollbackResponseHandler.cs">
+      <ExpectedHash>B5F0F3A60382DEE0CF63D2A55C46D61B8A44D9AC06CE25CA7344B745E0C2BC6B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V3/RunResponseHandler.cs">
+      <ExpectedHash>BC6FDE3A6F52DB0335FF567C0BD1D631E4130015A56318A5009DD342E5648302</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4/DiscardResponseHandler.cs">
+      <ExpectedHash>45310E641B1401172B0AD39E55BA285F7F540A5AC30674FF9AEAA66DBA58B8A5</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4/HelloResponseHandler.cs">
+      <ExpectedHash>66C2C625EFE89A32CF3CA27547191016D87239210AF0F764AC1BC2E943CD94BD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4/PullResponseHandler.cs">
+      <ExpectedHash>4732D6BAA196E01E538295147583DF3FF291F9C950D51EA92412C0584143C690</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4/RunResponseHandler.cs">
+      <ExpectedHash>B01323D2CCBC84AD5D74C74BF804F9E4A99EAA827EC2A4316ED3FB842B08DEAB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4_1/HelloResponseHandler.cs">
+      <ExpectedHash>7FC2B6660F40C5BEC829B31B1F44CF8F7073309B4CC2F366A67D064594BD2861</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4_2/HelloResponseHandler.cs">
+      <ExpectedHash>9CB269ED9533454EFF0127E2FC2B2243E9580AFB82B81447824E5A95A230B8A3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4_3/HelloResponseHandler.cs">
+      <ExpectedHash>DF7423B9A9E40AF23F8E9A92C82E4F5012D3F71DFE3CB7B974DB78EF699F12DE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/MessageHandling/V4_3/RouteResponseHandler.cs">
+      <ExpectedHash>065F61D6188D5A60370E80AE65EF0C65E4F2540787A2D7A4A917067339D717B9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/DiscardAllMessage.cs">
+      <ExpectedHash>2E5C6AF707D7876B59F4555AB9B65A87B273D6C12EDBF467E7CA03EB1BE2B111</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/FailureMessage.cs">
+      <ExpectedHash>753D2001F67D5D6345A9E9D864B71D336C46AD6BC6F63CE8B011F5BDA489D747</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/IMessage.cs">
+      <ExpectedHash>6CF4658DB5E8F407669793EB35649C9BF897B3A3BF62027CD992F86B2D2FE7E4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/IgnoredMessage.cs">
+      <ExpectedHash>C17F9793219C1212FE61215EED0ED1A0F74EE8996A04ED9458470BD2DB26B45B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/PullAllMessage.cs">
+      <ExpectedHash>CA2755E7CCD03A6F57AA3772549E72D3BF2762CE38C9726B767CD6DB8A428134</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/RecordMessage.cs">
+      <ExpectedHash>68E23CA106A1FC90B4048878AC9E6FE900CB6F1E7BC3083CAD085CA8B10FA942</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/ResetMessage.cs">
+      <ExpectedHash>A38346D3D28A24F0590B4B5C725D95C2A4510A0545BE1B7AB6A5FE5290C0EF25</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/SuccessMessage.cs">
+      <ExpectedHash>114C46952543206A5B530BF70232330111269E6885612E8038AB1B9397EF459B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/BeginMessage.cs">
+      <ExpectedHash>51CB3F3D79BFCCE3F68D607C9E2E0E4E7334D72C252D4D4398CB33043815D054</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/CommitMessage.cs">
+      <ExpectedHash>14324A36DFC6F1170D8CC6C7F9D4AE4C2E983D7A852C9617E999D17F369628EB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/GoodbyeMessage.cs">
+      <ExpectedHash>535176A4A7C7B3E77993E74FB62B59BD9A35CE6D7567B213E60AB73CD8BDE665</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/HelloMessage.cs">
+      <ExpectedHash>41059C41A9E19BBA377CF33E601B6D84CEF5D675073A15BEE074272580745B11</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/RollbackMessage.cs">
+      <ExpectedHash>E8E273B89B77AD8C9B482EAFB1DC37F77CA7DFF41FD873D2960919B36A7F241C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/RunWithMetadataMessage.cs">
+      <ExpectedHash>47A22C11A9FEA52344284F73424667AAFFE38A7ED3F52F903339F2222BBB0258</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V3/TransactionStartingMessage.cs">
+      <ExpectedHash>968CAFD69D27A020906897BD6152D061B04BCA637C393B10F75B9D4F62B48928</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4/DiscardMessage.cs">
+      <ExpectedHash>6BE92D92CCC30E847A0C15E9F039150F6C93C83898002CC72489EB7CA1ABC80C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4/PullMessage.cs">
+      <ExpectedHash>E9857350D01994D7A232F3E6D9C6605F802BEE1682AB42E62B2D3E6D4ECF1452</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4/ResultHandleMessage.cs">
+      <ExpectedHash>BB8737CC9280912C0AC172DC5150180827588C9EBF720812ECEB9D5D612F6992</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4_1/HelloMessage.cs">
+      <ExpectedHash>15F945FC75416CE499BDB17EDD96778519AD3184B6615BD7B946ACB8BBCDAD77</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4_2/HelloMessage.cs">
+      <ExpectedHash>D6889A096028C9A343CD0646B5E0F794E661C950E455FB61D0256DAA48DF1EC7</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4_3/HelloMessage.cs">
+      <ExpectedHash>B7AF185BB08D4904FB1E0A4A87F2BCC317A76B087118E80CE6DCB8EF94CF41D4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Messaging/V4_3/RouteMessage.cs">
+      <ExpectedHash>15828F2B4BEAE529D188AD5CF9AD375DA6B259304F81934AA979D0B43E0BB7A1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Metrics/ConnectionPoolMetrics.cs">
+      <ExpectedHash>D7232D750B19F8749A360A5238A6C8CA6145E25CB59ACDE1F7FEEA686097DA20</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Metrics/DefaultMetrics.cs">
+      <ExpectedHash>86E1EF5CDE90E94980E700C24230973982CCF58A929E5856BDFE5EAB319D04E4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Metrics/IConnectionPoolListener.cs">
+      <ExpectedHash>EC2165D3A63F2C508874F5ED24475C2EAA6C537F3B9EF69146D404BBE2D89D42</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Metrics/IMetrics.cs">
+      <ExpectedHash>E79DC50BF2079E39BB6BC82EA095707482B351084D4D06BBC1F493D149732394</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/PassthroughServerAddressResolver.cs">
+      <ExpectedHash>A02FCE90A963C9D226ACFEF3437E150E3F6953492538D580A63884C681F34AD8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/PooledConnectionFactory.cs">
+      <ExpectedHash>B33725B395B0559E609968EA278B3FE0D7DCCDE7D4856D3C909CDA3885F2C6AD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolFactory.cs">
+      <ExpectedHash>C37D25C2C10B7536B76962C588F7C9CB19062E6EF9EF84B60BCFB5CBAD56E2FC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolMessageFormat.cs">
+      <ExpectedHash>3AC7616362390AD3ECEB14636DABB0AE64B28CEDDD739F470D4D04367DCFD49F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV3.cs">
+      <ExpectedHash>577921F2B0BF1BEAA0B69287CBCC20ACC48E43F3AE497D164DBAD854B06531F4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV3MessageFormat.cs">
+      <ExpectedHash>A1974FEC4E27A46D4D497136C3B016C1134DFD1E60160F35B8998255694D5007</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_0.cs">
+      <ExpectedHash>D84E583407EE66169EB800AFF2C82C69058830B9878C065F7484CAAD21088043</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_0MessageFormat.cs">
+      <ExpectedHash>2C730E879C776286C35FC977E505D93748FD02EA9BE566F35BA9356D62A98B8B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_1.cs">
+      <ExpectedHash>DA98FC664DBD05318AC008A3CA7F8150CEE16C5EA6A3731CA0B77C0DC3F8153F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_1MessageFormat.cs">
+      <ExpectedHash>C34F3ED176A9E4734CBB9CCCE37A9968E4FDD7A574082AE54DF1126B41CF5899</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_2.cs">
+      <ExpectedHash>3CE41F0629BD5F94A5208E8C8EB3B32573EFD9A3A7C8A5F9D402FA58510B5575</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_2MessageFormat.cs">
+      <ExpectedHash>EA7B17989ACE8CDBE90B5CF74E5AF69068EF1C500E246824CD23CB4248025A53</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_3.cs">
+      <ExpectedHash>E505839480212AAE72B0F4852EEA9ABD52FAA70D54109E02055C8900AFF272EE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolV4_3MessageFormat.cs">
+      <ExpectedHash>4A8E6A919E047B85B8A623973391616D40C627CE902AF48DBF13B635E092D876</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/BoltProtocolVersion.cs">
+      <ExpectedHash>68BADC9F4DB5AA91AAB50047D5C858C714902F95C7F667ECC724734E5D04D0B1</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Protocol/IBoltProtocol.cs">
+      <ExpectedHash>1E1781E6EC7EBE0846946E2AC04673A563C647BE33A1807D43A15AD2146ECABE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/ConsumableResultCursor.cs">
+      <ExpectedHash>4308FA1D6EC44B1DA79A56BC1DF16081EE0704F2034DB963598CE4C3E2ADED2B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/IResultStream.cs">
+      <ExpectedHash>A7C0BE40E5E7932634726A88E95766DE53EC3476065E3997515F74B17EC1E13F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/IResultStreamBuilder.cs">
+      <ExpectedHash>FCB5719AF31C2373BFAE10ED5638E4D8A4529AC44C5C39AC2766ACAD07E178FA</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/Record.cs">
+      <ExpectedHash>B948208538B16B4AEE20B5383BA16217CE95F503230B93942E9DC54E051F8732</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/ResultCursor.cs">
+      <ExpectedHash>75261A6B07659C209D87C82FB4A4E2602545C063D59252E392A08AF0134C640E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/ResultCursorBuilder.cs">
+      <ExpectedHash>2B983F4DC8E03D0056185DAD4AE37743D9FBEFA7D6E0BEEF6679AE1DCCC3409C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Result/SummaryBuilder.cs">
+      <ExpectedHash>DC85BBAC0700FD34746CB7946E1C873A3ECF490C91D46721BC4E7283097D1E9C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/ClusterConnection.cs">
+      <ExpectedHash>BEA578F5BE1BE27EE64D573B56244F861F0F7430DDC83CCE5F4685CE2532D545</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/ClusterConnectionPool.cs">
+      <ExpectedHash>15008D9A0176F60BB85D0BDE251CE02FBED375AAAF05885F1D0DB793D39F7BE4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/ClusterDiscovery.cs">
+      <ExpectedHash>F231B6EEACCEBBF8F6893AE37103FCA72F0E8633CED17C45A41033327819324D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/ConnectionPoolFactory.cs">
+      <ExpectedHash>AAC18C33447527D95402EF157C3BEE24BDDF36E181EC0902A454C1F9FF8E0ED0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IClusterConnectionPool.cs">
+      <ExpectedHash>45CCD2209F9562742937A880AC2A05534F9F24D5DCA394E78D1BAC3502F1627D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IClusterConnectionPoolManager.cs">
+      <ExpectedHash>5F57D66873A1C61B1E3E0A4C1838D3B43325071FEEC580A2100417F9B76005EA</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IDiscovery.cs">
+      <ExpectedHash>89B676FBEDF0C9FE0E3754EFF876B10D982E59B924CC752B7A8D068321BBED8D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IErrorHandler.cs">
+      <ExpectedHash>11367F093E830957DF98F7079158C244454371CD141BBD4F0095BC03A7ABE3D4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/ILoadBalancingStrategy.cs">
+      <ExpectedHash>4E0854E9F63536CB462EF00DE1284CA510A4898D7CECFB62C3EF32A728FD869B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IRoutingTable.cs">
+      <ExpectedHash>B4D9420078CE3A28BD301D41678A0C724FB299A5DB69AE6C6392ABA9BC95C156</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/IRoutingTableManager.cs">
+      <ExpectedHash>8B73A3E4B7D9F8DF6245E5AAE1A52A2E160059FF582B77067D24C3E977A24F7D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/LeastConnectedLoadBalancingStrategy.cs">
+      <ExpectedHash>6F9B281E5F183C4BBC72723A6438029D5E5FC798D9AD053AB26452EFE05A1D80</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/LoadBalancer.cs">
+      <ExpectedHash>81DCC725517801760C3B8AA4F92A3DE5CB9B05C82CEADA3A6BDD2FE204950B3B</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/RoundRobinArrayIndex.cs">
+      <ExpectedHash>77134008473B7FABF820E4D78984FFF4F43B18BB3438C45DA31D627C0A29AEEB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/RoutingTable.cs">
+      <ExpectedHash>8B91047DAB87D76199FCB5DE3A5A29DD7CD944DBC835B9D821773CB86512B8A3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Routing/RoutingTableManager.cs">
+      <ExpectedHash>EC3E45D05477C069A49D4B0335B03DDBD814CB517EE433DE8E9BBC50AF2C483F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/RoutingSettings.cs">
+      <ExpectedHash>1CAFEE5856DC4ACA910C8BF9E64DAFEAFE7E861555883949888011007EA25C5C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Temporal/TimeZoneMapping.cs">
+      <ExpectedHash>8D2C7142728CC8EFFD9777697A0F0691672513748D4D1E42D3A78E4B260C9870</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Temporal/windowsZones.xml">
+      <ExpectedHash>1108234446C4DD52F8EFD27612F98E1F33355C699D01B0D38EE1882B703E9B80</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/IHasDateComponents.cs">
+      <ExpectedHash>D5B1FC0DF097199C6DB16958633DC2B1F585C1FAE85B92CB1A0FF25C13366D6A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/IHasDateTimeComponents.cs">
+      <ExpectedHash>51803622420FFA991129DA024EDDE15B00ED805554170AE5E4C19EE731FDF6E0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/IHasTimeComponents.cs">
+      <ExpectedHash>A3E08AD986AED1D27788056549DB1D0C234B601A33A09F8F0BE54305069BCBA5</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/ISegment.cs">
+      <ExpectedHash>A46C479DA68D0A88B121DD904571BCCEA751CA954A79E3C82A9354C47BBA07F8</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/IValue.cs">
+      <ExpectedHash>2AADFA8259E3E96EDA0D2FE5EA209ED103EA8C74F5C5D20160DB787A5D0287F2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/Node.cs">
+      <ExpectedHash>276CDD1B2C846A9239160628734ED0BCACD31EE3ED24359C329E6BF0E597699E</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/Path.cs">
+      <ExpectedHash>AE1F3392124FCE3A87D93E5800889837DAF9ED175C9A382A8644CC67C2388470</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/Relationship.cs">
+      <ExpectedHash>A073A59093B9CE98F29EBBF1AAAC5828F6CAA14138FD9CF9BA608E310BB44A5C</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Types/Segment.cs">
+      <ExpectedHash>152203F35F8D1DE42BCAFAB611666EDFEA176A522223481F5F9D4FB8F4BEA8F2</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Util/ConcurrentHashSet.cs">
+      <ExpectedHash>5ED361161E01524B6B4C9823CF48FF0435561BEA169C50F2D92E03368368F8BB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Util/ConcurrentOrderedSet.cs">
+      <ExpectedHash>02BAE0E19C2FB80B7B2CA83AEC93C7A5524EC5FAF02DE874CDC6E9BBDAE0C0DD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Util/ConfigBuilders.cs">
+      <ExpectedHash>4CEDEAFBAD990D051A8F26E06F127C5D2A97A8B8700CF5309AE9D1AA2565F30F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Util/ConnectionContext.cs">
+      <ExpectedHash>42D51A4B4CC70621E79A1106DC26C8E4DFA59F703FFA4C64FB8C81EE3774403D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Internal/Util/ServerVersion.cs">
+      <ExpectedHash>3E56C79C58981A7345C527C0867DC46123355C0078FB252A79DBB213997B5FCE</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Neo4jException.cs">
+      <ExpectedHash>4598FE83F99D72E933CBCCBAA48EA3551E42BD413C33D163CAA4FC85FB395741</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Properties/AssemblyInfo.cs">
+      <ExpectedHash>273036931A367A39B6DE7938C66AF208453CAB8A1DDCA368232213E2A9075888</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Query.cs">
+      <ExpectedHash>79D659A076FE3C33097F6B6AE67DF397A93764E280E761B48554C0FF7E89FFD4</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/ServerAddress.cs">
+      <ExpectedHash>4131AE5E9027CCE50BCBAF4A7777863BEF4C106AC3F4D252A87AD032D53F0C24</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/SessionConfig.cs">
+      <ExpectedHash>3924714B2E4E7B1C0004FC572B32681E24A9D021364B4FE2D28C1E7A4F97BC53</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/ICounters.cs">
+      <ExpectedHash>48A53C6CBD1FAF9DAB323FC5DD0F5B2F8468907DB7046E63F341CB2BCD1E6C7A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IDatabaseInfo.cs">
+      <ExpectedHash>D051CE1FA53C15D8BC27B30489B374297C4448B1CBD2AFF7CE656AA6EF2E3212</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IInputPosition.cs">
+      <ExpectedHash>0B86E9B478E440B3072483C697CE921DDCC48E8006DA5478629EBDC12E71B681</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/INotification.cs">
+      <ExpectedHash>BDBAA1C36A5386CBAC6AF04BFE37F04CDB38C95B4E5004080BE92DE5B830935D</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IPlan.cs">
+      <ExpectedHash>8579EEA81CFE8EA695263EE2DEF3F319E048E84A08870E554E88150D4A5D2AD7</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IProfiledPlan.cs">
+      <ExpectedHash>169CEA5DE06077C7283A96E77D69CCE2EFF1B0E8C010F89349B7B7DD96E8848A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IResultSummary.cs">
+      <ExpectedHash>8DDAEE0EEB7BBC40251C35DB9AFE2ABE76CE1A0BD2F715022B3D8424A160A8E5</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/IServerInfo.cs">
+      <ExpectedHash>5A0CE1C8C7E4D3348295348BBF7C7C5FE63152A588745AE2068149CAC75EC0BB</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Summary/QueryType.cs">
+      <ExpectedHash>8D698EA0AE0E280CEF238ED6006ABBA2D1ABB5C142AB021978D5CABCDE218419</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/TransactionConfig.cs">
+      <ExpectedHash>996353521B049F279BC2917BC4F8212E034945EF3CA44A47F2C66DDA62038130</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/TrustManager.cs">
+      <ExpectedHash>21070ACA9A9E8AA405C9BF06F58FFC2CD9E0BF5228F14A2DE5FC1437664CD2BF</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/Duration.cs">
+      <ExpectedHash>0953648DC72C5922517E33AAB754D15C3FC1C33EC4B306F2E66F35A499018609</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/IEntity.cs">
+      <ExpectedHash>D14F04FD5FC3D3F2E39C25B7A6B3268A2165B8F846AB124615BA507B3BB753DD</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/INode.cs">
+      <ExpectedHash>1954BFDAC3FBFB2C38061E1634BA2EE134E379B0547402BD344B95484D99B8A9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/IPath.cs">
+      <ExpectedHash>C5C6D4D8003255EAFC7CB33F36D2E5FA5744B2B5E670083DC32E8792DA67A126</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/IRelationship.cs">
+      <ExpectedHash>1FA06853F4C16AA0379106F9FD0674E8CAE7ED3B172FC7E5FA10BF1554D1E6B9</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/LocalDate.cs">
+      <ExpectedHash>06209E9B26D45889167DC07FA3388E5D7A02D05FDF7F0B3E097FEF572403B70F</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/LocalDateTime.cs">
+      <ExpectedHash>CA7483C04DACCE0BEB3A111A2CB4079AC917EE416DBE70DF1FF47D9CAFBB6C15</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/LocalTime.cs">
+      <ExpectedHash>44D9A0C52A2C60639B02FBC0978A314D78B0BDEBC45EB42F7BC742A8EAD48205</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/OffsetTime.cs">
+      <ExpectedHash>DF0C4915172F3BCCC3956441973CFDCD0AEF51B5BB8EBE9E117C8183538BE274</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/Point.cs">
+      <ExpectedHash>96E4D6E50FA014D788CB3EC8349BFF7B1A2A84E28CE4F21D33B9C785063FB135</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/TemporalValue.cs">
+      <ExpectedHash>6582E48C1E04511BEB644D193608DDFCC7FC0F75499C96F924BD6163DEE4C97A</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/Zone.cs">
+      <ExpectedHash>0FBB3B1A797FA5E8CF0EE8D5BFCB3EC18E6110B25B46AC27E978090D9C7AEBB0</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/ZoneId.cs">
+      <ExpectedHash>9099FECEE0005389764196F671F9654C9D88753E5A6D5EE1DB5A14AE22895EAC</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/ZoneOffset.cs">
+      <ExpectedHash>03C734EC0C48CBA9881B644A16ED40E9B3907F52C451C5CE33187A01914F9252</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="Upstream/Types/ZonedDateTime.cs">
+      <ExpectedHash>E974A07C8EAF525397897D1D8341DF93C1C7315BBCC2EA8C0DB7B9964C8888B3</ExpectedHash>
+    </PinnedDriverSource>
+  </ItemGroup>
+</Project>

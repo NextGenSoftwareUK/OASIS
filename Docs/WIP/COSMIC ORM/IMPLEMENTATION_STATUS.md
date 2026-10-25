@@ -885,3 +885,29 @@ cohorts retain their recorded scope. Owned fixture/services cleaned up; dependen
 and Development publication remain coordinated with the provider session.
 [Exact evidence](CQL_UINT64_CONTRACT.md#live-uint64-examples2223--24-october2026).
 Next: remaining scalar domains and unchanged joins/federation/policy/certification.
+
+## Neo4j interruption regression checkpoint — 25 October 2026
+
+The pinned source-driver/read-transport lifecycle batch passes full465provider
+unit tests and259nativeCQLtests, zero skips. Native duration4m3s. All10cold/warm
+paused-Bolt cases pass for rows, projections, scalar and grouped reads. Failed
+creation returns pool capacity; failed close reports its error and retires the
+transport. Deactivation retains resource ownership until both close tasks
+acknowledge success. No result publishes on cancellation.
+
+Exact evidence: native TRX SHA256
+6CAAA45E0B7C362CD0BBC53BC2811ADAB56B2D01ABB98FB5FAFEA066FC1A46D6;
+unit TRX SHA256
+A02FB67264B525C91C8CC71ACC75D4664B6CC1E2104BF799E11201DF80556D06.
+Both are under TestResults/Neo4jCurrent; compact build/run log is
+TestResults/CosmicCqlDemo/neo-read-transport-full-regression.log.
+Producer/native driver, Core and Shared hashes verified before execution.
+Owned runtime stopped; graph fixture journal and listeners17687/17788 absent.
+Free disk after gate64605769728bytes; the reusable Neo volume and generated
+outputs remain retained/shared, size attribution unmeasured. No new download,
+installation or environment during this gate. No shared data was deleted.
+
+This is a verified scoped batch, not full CQL completion. Strict deadline latency,
+DNS/TCP/TLS connection phases, broader non-CQL driver regressions, joins,
+federation and the unchecked authorization/scalar/composition roadmap remain.
+The full original COSMIC ORM goal remains active.

@@ -24,6 +24,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
     {
+        NeoCqlReadBudget readBudget = null;
         try
         {
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS)
@@ -67,9 +68,10 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot,"
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
-            var budget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
+            using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
-            using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
+            await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
+            using var session = readOwner.Driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
@@ -91,6 +93,12 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             budget.Check();
             return new OASISResult<IReadOnlyList<IHolon>>(rows) { IsLoaded = true };
         }
+        catch (Exception cause) when (cancellationToken.IsCancellationRequested)
+        { return CqlFailure("CQL_QUERY_CANCELLED", "Neo4j CQL read was cancelled.", cause); }
+        catch (Exception cause) when (readBudget?.IsTimedOut == true)
+        { return CqlFailure("CQL_QUERY_TIMEOUT", "Neo4j CQL read exceeded its cumulative deadline.", cause); }
+        catch (NeoCqlNotReadyException cause)
+        { return CqlFailure("CQL_PROVIDER_NOT_READY", cause.Message, cause); }
         catch (NeoCqlLimitException cause) { return CqlFailure("CQL_QUERY_LIMIT",cause.Message,cause); }
         catch (NeoCqlTimeoutException cause) { return CqlFailure("CQL_QUERY_TIMEOUT",cause.Message,cause); }
         catch (Neo4jException cause) when(cause.Code=="Neo.ClientError.Transaction.TransactionTimedOut"
