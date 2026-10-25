@@ -6,6 +6,8 @@ This public-social adapter supports native Mastodon account IDs and public handl
 
 Search supports public accounts and statuses,including mixed text groups and AND/OR membership,through native bounded paging. A user token with `read:search` is required for complete offset paging; account search sets `resolve=false`. Accounts reuse the canonical public-profile projection and exclude private credentials/email. Omitted type (`Default`) and `All` are unrestricted; explicit types filter projected roots. Controlled tests and public-read regression pass,while live authenticated search remains pending separately; this is not full provider certification.
 
+`LoadStatusBatchAsync(nativeStatusIds)` (and synchronous `LoadStatusBatch`) performs one explicit-ID request using [Mastodon4.3+ `GET /api/v1/statuses?id[]=...`](https://docs.joinmastodon.org/methods/statuses/#index). Supply1–40 distinct native decimal status IDs;40 is this adapter's local admission bound, not a claimed server limit. Input is frozen before activation, returned roots follow input order, and inaccessible/missing statuses may be omitted by the native service. Private reads require the appropriate user token. This returns flat projected statuses, not edit history, reply graphs or a complete collection. `LoadAllHolons` now fails before HTTP rather than misusing that endpoint without IDs. Use the existing explicit `LoadPublicTimelinePage` for cursor-based public timeline reads; it is not substituted for complete private storage.
+
 Initial Release targeting OASIS API v2.3.1 (Current LIVE REST version): \
 https://api.oasisweb4.one
 
