@@ -826,6 +826,53 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Mean", descending = true } },
                 resultTake = 1
             }, grouped: true, unsignedNumericGroups: true);
+
+            // EXAMPLES 38/39 — the same Decimal input declaration works on all
+            // three providers. Tagged response strings preserve every digit.
+            await ShowAsync("38. Decimal Sum / exact price total", new
+            {
+                provider,
+                operation = "Sum",
+                selection = new { metadataPath = new[] { "price" }, valueType = "Decimal" },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Decimal", expected: "2.0000000000000000000000000005");
+
+            await ShowAsync("39. Decimal Average / round once at publication", new
+            {
+                provider,
+                operation = "Average",
+                selection = new { metadataPath = new[] { "price" }, valueType = "Decimal" },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Decimal", expected: "1.0000000000000000000000000002");
+
+            // EXAMPLE 40 — filter literals are JSON strings, so JavaScript
+            // cannot round the exact thresholds before they reach WEB4.
+            await ShowAsync("40. Decimal groups / exact totals and rounded means", new
+            {
+                provider,
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2,
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new[]
+                {
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "price" }, valueType = "Decimal" } },
+                    new { alias = "Mean", operation = "Average",
+                        selection = new { metadataPath = new[] { "price" }, valueType = "Decimal" } }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Total", @operator = "Equal", value = "2.0000000000000000000000000005" },
+                    new { alias = "Mean", @operator = "Equal", value = "1.0000000000000000000000000002" }
+                },
+                resultOrder = new[] { new { alias = "Total", descending = true } },
+                resultTake = 1
+            }, grouped: true, decimalNumericGroups: true);
         }
 
         return completedRequests;
@@ -845,6 +892,7 @@ public static class V1Walkthrough
             bool unsignedProjection = false,
             bool unsignedGroups = false,
             bool unsignedNumericGroups = false,
+            bool decimalNumericGroups = false,
             bool decimalProjection = false,
             bool decimalGroups = false,
             bool doubleProjection = false,
@@ -937,7 +985,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !unsignedNumericGroups && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
+            if (grouped && !decimalNumericGroups && !unsignedNumericGroups && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -987,6 +1035,19 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " lost exact UTC date values, shape or visibility.");
             }
 
+
+            if (decimalNumericGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var row = payload.GetProperty("rows").EnumerateArray().Single();
+
+                if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || payload.GetProperty("columns")[0].GetProperty("valueType").GetString() != "Decimal"
+                    || payload.GetProperty("columns")[1].GetProperty("valueType").GetString() != "Decimal"
+                    || row[0].GetString() != "2.0000000000000000000000000005"
+                    || row[1].GetString() != "1.0000000000000000000000000002")
+                    throw new InvalidOperationException(title + " lost its exact Decimal totals or rounded means.");
+            }
 
             if (unsignedNumericGroups)
             {

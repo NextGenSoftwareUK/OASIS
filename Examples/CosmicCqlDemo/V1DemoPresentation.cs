@@ -86,6 +86,9 @@ public static class V1DemoPresentation
         <option value="unsignedSum">UInt64 Sum / exact unsigned total</option>
         <option value="unsignedAverage">UInt64 Average / exact Decimal fraction</option>
         <option value="unsignedMeanGroups">UInt64 groups / filter exact Decimal means</option>
+        <option value="decimalSum">Decimal Sum / exact price total</option>
+        <option value="decimalAverage">Decimal Average / final ties-to-even rounding</option>
+        <option value="decimalNumericGroups">Decimal groups / exact totals and rounded means</option>
         <option value="decimalSource">Decimal / exact price range</option>
         <option value="decimalGroups">Decimal / grouped prices</option>
         <option value="doubleSource">Double / exact reading range</option>
@@ -153,6 +156,9 @@ const notes = {
 
   min: 'Native Min over typed Int64 metadata. Hidden roots contain long.MinValue/long.MaxValue; visibility excludes them for Alice and Visitor before reduction. Exact values remain decimal strings.',
   sum: 'Native Sum over the complete visible input. Int64 output remains exact decimal text; no browser Number conversion.',
+  decimalSum: 'Sum the first two visible prices exactly. Source Take runs before the native reduction; the tagged Decimal response preserves the final 10^-28 digit.',
+  decimalAverage: 'The mean is halfway between adjacent scale28 Decimal values. Round once at publication using ties-to-even; no source price is converted to binary floating point.',
+  decimalNumericGroups: 'Group the first two visible prices, then filter/order their published Decimal total and mean. Exact filter values are JSON strings; resultTake pages groups independently.',
   unsignedSum: 'Sum keeps UInt64 as tagged decimal text. Take1 selects a representable total; summing multiple near-maximum counters correctly returns overflow.',
   unsignedAverage: 'Two visible UInt64 counters produce an exact Decimal half-unit beyond Int64 and browser Number precision. The response stays text.',
   unsignedMeanGroups: 'Choose two source rows before grouping by stock, then filter/order the exact Decimal mean and take a result group. Source take and resultTake have different roles.',
@@ -240,6 +246,29 @@ function preset() {
     body.selection = { metadataPath: ['extremum'], valueType: 'Int64' };
     delete body.take;
     if (name === 'average') { body.orderBy = 'Name'; body.take = 2; }
+  }
+  if (name === 'decimalSum' || name === 'decimalAverage') {
+    queryRoute += '/scalar';
+    body.operation = name === 'decimalSum' ? 'Sum' : 'Average';
+    body.selection = { metadataPath: ['price'], valueType: 'Decimal' };
+    body.orderBy = 'Name';
+    body.take = 2;
+  }
+  if (name === 'decimalNumericGroups') {
+    queryRoute += '/grouped';
+    body.orderBy = 'Name';
+    body.take = 2;
+    body.keys = [{ alias: 'stock', metadataPath: ['stock'], valueType: 'Int64' }];
+    body.columns = [
+      { alias: 'Total', operation: 'Sum', selection: { metadataPath: ['price'], valueType: 'Decimal' } },
+      { alias: 'Mean', operation: 'Average', selection: { metadataPath: ['price'], valueType: 'Decimal' } }
+    ];
+    body.resultFilters = [
+      { alias: 'Total', operator: 'Equal', value: '2.0000000000000000000000000005' },
+      { alias: 'Mean', operator: 'Equal', value: '1.0000000000000000000000000002' }
+    ];
+    body.resultOrder = [{ alias: 'Total', descending: true }];
+    body.resultTake = 1;
   }
   if (name === 'unsignedSum' || name === 'unsignedAverage') {
     queryRoute += '/scalar';

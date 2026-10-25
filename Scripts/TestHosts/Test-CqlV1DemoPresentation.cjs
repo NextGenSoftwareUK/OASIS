@@ -48,12 +48,30 @@ for (const mode of ['unsignedSum', 'unsignedAverage', 'unsignedMeanGroups']) {
     assert.equal(body.resultTake, 1);
   }
 }
+// Decimal arithmetic uses the same scoped source and exact string thresholds.
+for (const mode of ['decimalSum', 'decimalAverage', 'decimalNumericGroups']) {
+  assert.ok(page.includes('<option value="' + mode + '">'));
+  element('example').value = mode;
+  vm.runInContext('preset()', context);
+  const body = JSON.parse(element('query').value);
+  const grouped = mode === 'decimalNumericGroups';
+  assert.equal(vm.runInContext('queryRoute', context), '/api/data/query-cql/' + (grouped ? 'grouped' : 'scalar'));
+  assert.equal(body.take, 2);
+  assert.equal(grouped ? body.columns[0].selection.valueType : body.selection.valueType, 'Decimal');
+  if (grouped) {
+    assert.deepEqual(body.columns.map(column => column.operation), ['Sum', 'Average']);
+    assert.deepEqual(body.resultFilters.map(filter => filter.value),
+      ['2.0000000000000000000000000005', '1.0000000000000000000000000002']);
+    assert.equal(body.resultOrder[0].alias, 'Total');
+    assert.equal(body.resultTake, 1);
+  } else assert.equal(body.operation, mode === 'decimalSum' ? 'Sum' : 'Average');
+}
 const raw = '{"price":"' + lower + '","integer":9007199254740993}';
 context.raw = raw;
 const formatted = vm.runInContext('pretty(raw)', context);
 assert.ok(formatted.includes('"' + lower + '"'));
 assert.ok(formatted.includes('9007199254740993'));
-const result = { status: 'passed', presets: 9, lexicalExactness: true, runtime: process.version,
+const result = { status: 'passed', presets: 12, lexicalExactness: true, runtime: process.version,
   mode: 'offline-script-behavior-no-browser-or-network' };
 fs.writeFileSync('TestResults/CosmicCqlDemo/v1-decimal-ui-check.json', JSON.stringify(result));
 console.log(JSON.stringify(result));

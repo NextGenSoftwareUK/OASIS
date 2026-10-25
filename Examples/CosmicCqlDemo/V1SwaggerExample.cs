@@ -59,27 +59,38 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
         {
             foreach (var media in operation.RequestBody.Content.Values)
             {
+                media.Examples[grouped ? "DecimalTotalsAndMeans" : "DecimalAverage"] = new OpenApiExample
+                {
+                    Summary = grouped ? "Exact Decimal totals and rounded means with result filters" : "Decimal Average with final ties-to-even rounding",
+                    Value = NumericAggregateExample(grouped, decimalPrices: true)
+                };
+                if (scalar)
+                    media.Examples["DecimalSum"] = new OpenApiExample
+                    {
+                        Summary = "Exact Decimal price total",
+                        Value = NumericAggregateExample(grouped: false, average: false, decimalPrices: true)
+                    };
                 media.Examples["UInt64Average"] = new OpenApiExample
                 {
                     Summary = grouped ? "Grouped UInt64 input with exact Decimal mean" : "UInt64 input with exact Decimal average",
-                    Value = UnsignedAggregateExample(grouped)
+                    Value = NumericAggregateExample(grouped)
                 };
                 if (scalar)
                     media.Examples["UInt64Sum"] = new OpenApiExample
                     {
                         Summary = "UInt64 Sum as exact tagged text",
-                        Value = UnsignedAggregateExample(grouped: false, average: false)
+                        Value = NumericAggregateExample(grouped: false, average: false)
                     };
             }
         }
     }
 
-    private static OpenApiObject UnsignedAggregateExample(bool grouped, bool average = true)
+    private static OpenApiObject NumericAggregateExample(bool grouped, bool average = true, bool decimalPrices = false)
     {
         var selection = new OpenApiObject
         {
-            ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") },
-            ["valueType"] = new OpenApiString("UInt64")
+            ["metadataPath"] = new OpenApiArray { new OpenApiString(decimalPrices ? "price" : "counter") },
+            ["valueType"] = new OpenApiString(decimalPrices ? "Decimal" : "UInt64")
         };
         var request = new OpenApiObject
         {
@@ -92,7 +103,7 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
             } },
             ["orderBy"] = new OpenApiString("Name"),
-            ["take"] = new OpenApiInteger(average ? 2 : 1)
+            ["take"] = new OpenApiInteger(average || decimalPrices ? 2 : 1)
         };
         if (grouped)
         {
@@ -113,6 +124,23 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["alias"] = new OpenApiString("Mean"), ["descending"] = new OpenApiBoolean(true)
             } };
             request["resultTake"] = new OpenApiInteger(1);
+            if (decimalPrices)
+            {
+                ((OpenApiArray)request["columns"]).Insert(0, new OpenApiObject
+                {
+                    ["alias"] = new OpenApiString("Total"),
+                    ["operation"] = new OpenApiString("Sum"),
+                    ["selection"] = selection
+                });
+                request["resultFilters"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["alias"] = new OpenApiString("Total"), ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("2.0000000000000000000000000005") },
+                    new OpenApiObject { ["alias"] = new OpenApiString("Mean"), ["operator"] = new OpenApiString("Equal"),
+                        ["value"] = new OpenApiString("1.0000000000000000000000000002") }
+                };
+                ((OpenApiObject)((OpenApiArray)request["resultOrder"])[0])["alias"] = new OpenApiString("Total");
+            }
         }
         else
         {

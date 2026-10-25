@@ -686,6 +686,20 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.AreEqual("UInt64", unsignedMeanGroups.GetProperty("columns")[0].GetProperty("selection").GetProperty("valueType").GetString());
                             Assert.AreEqual(1, unsignedMeanGroups.GetProperty("resultTake").GetInt32());
 
+                            // Arithmetic examples share the exact Decimal input binder.
+                            var decimalSum = unsignedScalarExamples.GetProperty("DecimalSum").GetProperty("value");
+                            Assert.AreEqual("Sum", decimalSum.GetProperty("operation").GetString());
+                            Assert.AreEqual("Decimal", decimalSum.GetProperty("selection").GetProperty("valueType").GetString());
+                            Assert.AreEqual(2, decimalSum.GetProperty("take").GetInt32());
+                            Assert.AreEqual("Average", unsignedScalarExamples.GetProperty("DecimalAverage")
+                                .GetProperty("value").GetProperty("operation").GetString());
+                            var decimalTotals = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("DecimalTotalsAndMeans").GetProperty("value");
+                            Assert.AreEqual("Decimal", decimalTotals.GetProperty("columns")[0].GetProperty("selection").GetProperty("valueType").GetString());
+                            Assert.AreEqual("2.0000000000000000000000000005", decimalTotals.GetProperty("resultFilters")[0].GetProperty("value").GetString());
+                            Assert.AreEqual("1.0000000000000000000000000002", decimalTotals.GetProperty("resultFilters")[1].GetProperty("value").GetString());
+
                             // Swagger's decimal presets must keep input bounds as strings.
                             var decimalProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
                                 .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")

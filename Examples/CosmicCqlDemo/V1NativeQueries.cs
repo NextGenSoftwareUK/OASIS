@@ -751,6 +751,56 @@ public static class V1NativeQueries
         await output.WriteLineAsync("37. UInt64 groups / filter and order exact means\n");
         await output.WriteLineAsync($"  Mean: {unsignedMeanRow.Mean}\n");
 
+        // 38. Sum prices without converting them to binary floating point.
+        // Source Take chooses participation before the native reduction.
+        var decimalWindow = Value(visible.OrderBy(holon => holon.Name).Take(2));
+
+        await ShowScalarAsync("38. Decimal Sum / exact price total",
+            Value(decimalWindow.Sum(holon =>
+                CosmicQueryMetadata.Value<decimal>(holon, "price"))),
+            2.0000000000000000000000000005m);
+
+        // 39. The mathematical mean lies halfway between adjacent scale28
+        // values. One final ties-to-even round selects the even coefficient.
+        await ShowScalarAsync("39. Decimal Average / round once at publication",
+            Value(decimalWindow.Average(holon =>
+                CosmicQueryMetadata.Value<decimal>(holon, "price"))),
+            1.0000000000000000000000000002m);
+
+        // 40. Filter and order the published Decimal values, then page groups.
+        // The source window and result page have independent meanings.
+        var decimalTotals = Value(decimalWindow
+            .GroupBy(holon => CosmicQueryMetadata.Value<long>(holon, "stock"))
+            .Select(group => new
+            {
+                Total = group.Sum(holon =>
+                    CosmicQueryMetadata.Value<decimal>(holon, "price")),
+                Mean = group.Average(holon =>
+                    CosmicQueryMetadata.Value<decimal>(holon, "price"))
+            })
+            .Where(group => group.Total == 2.0000000000000000000000000005m
+                && group.Mean == 1.0000000000000000000000000002m)
+            .OrderByDescending(group => group.Total)
+            .Take(1));
+
+        var decimalTotalPlan = Value(CosmicGroupedPlanner.Plan(
+            decimalTotals,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var decimalTotalExecution = Value(await manager.ExecuteGroupedQueryAsync(
+            decimalTotalPlan, new[] { adapter }));
+        var decimalTotalRow = decimalTotalExecution.Providers.Single().Rows.Single();
+
+        if (decimalTotalRow.Total != 2.0000000000000000000000000005m
+            || decimalTotalRow.Mean != 1.0000000000000000000000000002m)
+            throw new InvalidOperationException("Decimal grouped arithmetic lost its exact published values.");
+
+        completedQueries++;
+        await output.WriteLineAsync("40. Decimal groups / exact totals and rounded means\n");
+        await output.WriteLineAsync($"  Total: {decimalTotalRow.Total}; Mean: {decimalTotalRow.Mean}\n");
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,
