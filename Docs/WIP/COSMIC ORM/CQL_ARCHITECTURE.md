@@ -649,3 +649,25 @@ The follow-on gate passes18native cancellation/deadline cases,6driver controls
 and465provider unit tests. Full current native regression certification remains
 separate; the descendant contract records the earlier reset failure and exact
 retest evidence.
+
+## Immutable join intent checkpoint — 25 October 2026
+
+Core now captures same-provider `Join` and `LeftJoin` intent through the existing
+projection/path compiler. Scalar and named composite keys have1–8 components;
+DTO member initialization is aligned by alias, without invoking constructors,
+getters, methods or a client evaluator. Exact scalar domains share one registry
+with grouping; implicit numeric conversion does not acquire a join capability.
+
+Both source query objects remain immutable and intact, including filters,
+relationships, source ordering/windows, graph requirements and trusted access.
+Provider scope sets must agree; mixed actors or an unbound side paired with an
+actor-bound side reject. Either source can require the stronger native snapshot.
+Independent left/right input rows/bytes, pair-work and output rows/bytes have
+validated bounds. Null key components are defined not to match.
+
+Both Core frameworks build; fullCore2,627 passes (23new intent controls), zero
+skips. No provider I/O or new environment is involved. This is an intent/compiler
+checkpoint only: join result selection, capabilities, physical planning/attempts,
+native implementations, signed HTTP and demos remain unimplemented. No native
+provider advertises join support, and row/projection execution cannot execute a
+join intent. The unchecked join milestone remains open.

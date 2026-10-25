@@ -1078,3 +1078,28 @@ and [V1Walkthrough.cs](../../../Examples/CosmicCqlDemo/V1Walkthrough.cs) show co
 Single SDK/HTTP flows with planning, result validation and settlement. All 87 SDK
 and 87 HTTP examples pass. The browser Single presets and Swagger FiniteSingle
 examples use the same binary32 contract. Single Sum/Average are not enrolled.
+
+## Join intent — not yet executable
+
+The SDK can capture inner/left join intent. Native execution and HTTP join routes
+are not available yet; this example performs no storage operation:
+
+```csharp
+var owners = CosmicQuery<Holon>.Create();
+var members = CosmicQuery<Holon>.Create();
+
+// Preserve each source's filters and paging before matching the keys.
+var joinIntent = owners.Join(
+    members,
+    owner => owner.Id,
+    member => member.ParentHolonId,
+    CosmicJoinOptions.Create(
+        maximumLeftRows: 100,
+        maximumRightRows: 500,
+        maximumPairs: 1000,
+        maximumResults: 100).Result);
+```
+
+Use `LeftJoin` for left-join intent. Both sources must have the same provider
+scope and trusted access actor. These descriptions do not authorize a storage
+query. Follow [the join contract](CQL_JOIN_CONTRACT.md) for implementation status.
