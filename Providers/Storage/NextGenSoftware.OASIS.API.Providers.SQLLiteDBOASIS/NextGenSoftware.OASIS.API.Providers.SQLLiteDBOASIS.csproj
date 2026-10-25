@@ -82,4 +82,7 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests" />
+  </ItemGroup>
 </Project>

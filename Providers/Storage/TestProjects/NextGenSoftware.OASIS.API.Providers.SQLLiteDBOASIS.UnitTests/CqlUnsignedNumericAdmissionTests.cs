@@ -57,4 +57,33 @@ public sealed class CqlUnsignedNumericAdmissionTests
         var restricted = CosmicScalarPlanner.Admit(plan.Result, ProviderType.SQLLiteDBOASIS, Provider.CqlCapabilities, legacySigned);
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", restricted.ErrorCode);
     }
+    [DataTestMethod]
+    [DataRow(true)] [DataRow(false)]
+    public void FloatingKernelAloneDoesNotEnrollScalarOrGroupedArithmetic(bool single)
+    {
+        var source=CosmicQuery<Holon>.Create();
+        if(single)
+        {
+            var sum=source.Sum(h=>CosmicQueryMetadata.Value<float>(h,"value"));
+            var mean=source.Average(h=>CosmicQueryMetadata.Value<float>(h,"value"));
+            Assert.IsFalse(sum.IsError,sum.Message); Assert.IsFalse(mean.IsError,mean.Message);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(sum.Result).ErrorCode);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(mean.Result).ErrorCode);
+            var groups=source.GroupBy(h=>h.Name).Select(g=>g.Average(h=>CosmicQueryMetadata.Value<float>(h,"value")));
+            Assert.IsFalse(groups.IsError,groups.Message);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlGroupedCapabilities.Admit(groups.Result).ErrorCode);
+        }
+        else
+        {
+            var sum=source.Sum(h=>CosmicQueryMetadata.Value<double>(h,"value"));
+            var mean=source.Average(h=>CosmicQueryMetadata.Value<double>(h,"value"));
+            Assert.IsFalse(sum.IsError,sum.Message); Assert.IsFalse(mean.IsError,mean.Message);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(sum.Result).ErrorCode);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(mean.Result).ErrorCode);
+            var groups=source.GroupBy(h=>h.Name).Select(g=>g.Average(h=>CosmicQueryMetadata.Value<double>(h,"value")));
+            Assert.IsFalse(groups.IsError,groups.Message);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlGroupedCapabilities.Admit(groups.Result).ErrorCode);
+        }
+    }
+
 }
