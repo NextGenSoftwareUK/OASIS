@@ -13,6 +13,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public sealed partial class AWSNativeRunLifecycle
 {
     [TestMethod]
+    public async Task ReadOnlyInspectCurrentCaptureFailureSqlite()
+    {
+        var report=Path.Combine(Work(),"aws-full-native-current.trx");
+        var intent=Path.Combine(Work(),"aws-full-suite.pending.json");
+        var db=Path.Combine(AppContext.BaseDirectory,"TestResults","AWSRoutingFiles","delete-routing.db");
+        static string Hash(string file)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
+        void Original()
+        {
+            Assert.AreEqual("4828E3BDD2A815802DF0584FFDDF7B8923FE73C928A1B44D6E2553FC9CB80B1B",Hash(report));
+            Assert.AreEqual("4318BC3C95825DB4C68329819B6B0CB7DF4E5A03EFBEB51F344A1E9233975C42",Hash(intent));
+            Assert.AreEqual("91CDEEECC747759105DA3D0426A72E80DADBA91DFA0C1F2215AB54B85BC95692",Hash(db));
+            Assert.IsFalse(File.Exists(db+"-wal"));Assert.IsFalse(File.Exists(db+"-shm"));
+        }
+        Original();
+        using var native=new DataContext($"Data Source={db};Mode=ReadOnly;Pooling=False");
+        var rows=native.Holons.AsNoTracking().ToArray();
+        Assert.AreEqual(0,native.Avatars.AsNoTracking().Count());
+        Assert.AreEqual(0,native.AvatarDetails.AsNoTracking().Count());
+        Assert.IsTrue(rows.All(row=>row.Name is "owned-v2-graph-root" or "owned-v2-graph-child" or "owned-v2-graph-leaf"));
+        // Report observed identities/phase evidence, never reconstruct the omitted
+        // original exception or mutate/query through the provider save surface.
+        Original();
+        await DurableJson(Path.Combine(Work(),"aws-current-capture-sqlite-inspection.json"),new {
+            state="original-sqlite-read-only-inspected",readOnly=true,sourceReportSha256=Hash(report),
+            sourceIntentSha256=Hash(intent),sqliteSha256=Hash(db),holonCount=rows.Length,
+            rows=rows.Select(row=>new{row.Id,row.ParentHolonId,row.Name,row.Version,row.DeletedDate,
+                payloadSha256=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(row.PersistentValueJson)))}),
+            nativeDynamoInspected=false,replayedWrites=0,originalInnerExceptionRetained=false });
+        Original();
+    }
+
+    [TestMethod]
     public async Task CleanupOnlyHashVerifiedGeneratedGraphFailure()
     {
         Assert.AreEqual("reviewed-generated-graph-original", Environment.GetEnvironmentVariable("OASIS_AWS_CLEANUP_AUTHORITY"));

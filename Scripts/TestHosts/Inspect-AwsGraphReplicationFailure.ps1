@@ -1,9 +1,27 @@
 #Requires -Version 7.0
-param([switch]$CleanupReviewedOriginal)
+param([switch]$CleanupReviewedOriginal,[switch]$InspectCurrentCaptureSqlite)
 $ErrorActionPreference='Stop'
 $awsInspectRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $awsInspectWork=Join-Path $awsInspectRoot 'TestResults/DynamoHistoryCurrent'
 $awsInspectProject=Join-Path $awsInspectRoot 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
+if($InspectCurrentCaptureSqlite){
+    if($CleanupReviewedOriginal){throw 'Choose exactly one inspection/cleanup mode.'}
+    foreach($name in @('aws-current-capture-sqlite-inspection.json','aws-current-capture-sqlite-inspection.trx')){
+        if(Test-Path (Join-Path $awsInspectWork $name)){throw 'Preserve current original inspection; no overwrite.'}
+    }
+    & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'Read-only current AWS SQLite acknowledgement inspection' -Operation {
+        $lease=[IO.File]::Open('C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\environment.lock',[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+        $previous=$env:OASIS_DYNAMO_HISTORY_WORK
+        try{
+            & dotnet build $awsInspectProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if($LASTEXITCODE -ne 0){throw 'Cached read-only inspector build failed.'}
+            $env:OASIS_DYNAMO_HISTORY_WORK=$awsInspectWork
+            & dotnet test $awsInspectProject --no-build --no-restore --filter 'FullyQualifiedName~AWSNativeRunLifecycle.ReadOnlyInspectCurrentCaptureFailureSqlite' --logger 'trx;LogFileName=aws-current-capture-sqlite-inspection.trx' --results-directory $awsInspectWork
+            if($LASTEXITCODE -ne 0){throw 'Read-only current original inspection failed; preserve originals.'}
+        }finally{$env:OASIS_DYNAMO_HISTORY_WORK=$previous;$lease.Dispose()}
+    }
+    return
+}
 $awsInspectReport=if($CleanupReviewedOriginal){'aws-generated-graph-reviewed-cleanup.trx'}else{'aws-generated-graph-original-inspection.trx'}
 if($CleanupReviewedOriginal){
     if((Get-FileHash (Join-Path $awsInspectWork 'aws-generated-graph-original-inspection.json')).Hash -ne '579A9B90435B848CFF14DB1311D509CEE4273088CD8D8A187139D4D8A880BF1C'){throw 'Exact reviewed inspection required.'}
