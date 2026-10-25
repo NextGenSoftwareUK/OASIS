@@ -45,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 var entries = plan.Nodes.Select(node => DataHelper.ConvertOASISHolonToMongoEntity(node.Snapshot)).ToList();
                 prepared = true;
                 var responses = new List<IHolon>();
+                Dictionary<Guid,IHolon> committedRecords=null;
                 HolonCommittedDelta delta=null;
                 var retainDeltaValues=IsVersionControlEnabled;
                 var conditional = conditionalPlan == null ? null : new Repositories.MongoAtomicHolonWrite(conditionalPlan, actorId,
@@ -94,6 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     // The acknowledgement and delta share the final BSON after-image,
                     // after native serialization and opaque frontier preservation.
                     var actual=bodies.ToDictionary(pair=>pair.Key,pair=>ReadFlatCommittedHolon(pair.Value));
+                    committedRecords=actual;
                     foreach(var node in plan.Nodes)actual[node.Snapshot.Id].Children=node.SelectedChildIds.Select(id=>actual[id]).ToList();
                     responses.AddRange(roots.Select(root=>actual[snapshots[root].Id]));
                 }).ConfigureAwait(false);
@@ -106,11 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     return result;
                 }
                 // A failed preparation/rollback/unknown commit must leave caller identity state unchanged.
-                foreach (var node in conditionalPlan == null ? plan.Nodes : Enumerable.Empty<PlannedHolonWrite>())
-                {
-                    node.Source.Id = node.Snapshot.Id;
-                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
-                }
+                if(conditionalPlan==null)PublishOrdinaryChildOwnership(plan.Nodes,committedRecords);
                 result.Result = responses;
                 result.IsSaved = conditionalPlan == null || conditionalPlan.Operation == ConditionalHolonOperation.Save;
                 result.IsDeleted = conditionalPlan != null && conditionalPlan.Operation != ConditionalHolonOperation.Save;

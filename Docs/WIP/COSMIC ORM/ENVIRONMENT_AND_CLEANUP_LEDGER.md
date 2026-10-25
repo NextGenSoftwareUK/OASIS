@@ -2449,3 +2449,14 @@ Mongo runner63375 terminal exit0; native281PASS0skip3m51, unit502PASS0skip. Fixe
 - TestResults/MongoCurrent/ordinary-child-admission-red.trx; bytes=18430; SHA256=C4BC919B325D6BDAC6D14D7CA8F6EB8BD1661924002712A5B30405044E8FEE64
 - TestResults/MongoCurrent/ordinary-child-admission-green.trx; bytes=758865; SHA256=EDDA57E621EB40266A05079542FCBD82CA60EC47854756141D0ADD2C0BA29B43
 - TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx; bytes=494919; SHA256=B7760D12E2AB960667326BFA859C67FDFC54EDD6DBDFE628B73B58A2EBE4C03C
+
+Mongo ordinary roles native gate: eight new controls reuse owned cosmic_cql_fixture/27029 and existing CQL runner, no new runtime or restore. Intent recorded in CosmicOwnedFixture before each mutation; definite acknowledged writes permit fixture teardown even when semantic assertions fail; unknown writes preserve fixture. Reports remain fixed TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx and CosmicCqlDemo/mongo-ordinary-roles-red.log (sizes pending). Full expected count289 after eight additions; red cohort retained before green overwrite. Existing bin/obj reused, active ownership COSMIC ORM. No duplicate environments.
+
+Role persistence red93833 terminal:289total/281pass/8semanticfail, no skips,4m9s. Original redTRX copied to TestResults/MongoCurrent/ordinary-role-persistence-red.trx before reuse; acknowledged fixture writes permit known-outcome cleanup. Red runner compacted owned Mongo log13349511bytes->65277bytes. Candidate native writer resolves captured logical roles against its CAS-protected BSON; ordinary acknowledgements publish only postcommit and retain manager prepared ownership. Reused leased provider/unit build57848 terminal0, fullunit502PASS. Green native runner reuses same fixed environment/outputs; pending result, no new installs/restores.
+
+Green native289PASS0skip3m58; unit502PASS. Runner35807 teardown pending at evidence capture; no new downloads/installations/restores. Free C drive69104857088bytes (shared machine; attribution of change not inferred). Compact red/green evidence retained:
+- C:\Source\OASIS\TestResults\MongoCurrent\ordinary-role-persistence-red.trx; bytes=536409; SHA256=C8C2ED31DC5E4BAB494D72E1BF629FBDE0DF3BB32D982322CDF57B38481D45A3
+- C:\Source\OASIS\TestResults\MongoCurrent\ordinary-role-persistence-green.trx; bytes=758865; SHA256=411FCD709B478B0844C8B1BC12EBAA3F811963AAAF0F4F0139C8727824DADCBC
+- C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\mongo-cql-native-current.trx; bytes=508791; SHA256=7400F5956AAF2A2D52587B2212779C7688A8658F0C0461908F010AA96EEB159F
+
+Runner35807 verified terminal exit0 after normal teardown. Existing known-outcome fixture disposal completed; owned Mongo log bounded by reusable runner. Reusable runtime/cache/build outputs retained per existing inventory. No broad resource cleanup performed.

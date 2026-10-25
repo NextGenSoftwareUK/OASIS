@@ -44,3 +44,28 @@ Expanded encryption-context verification: the same sync/async cases now cover bo
 See [durable child role implementation boundary](DURABLE_CHILD_ROLE_PLAN.md) for the required manifest, binding and partial-hydration invariants.
 
 These tests do not certify durable role reconstruction after loading generic provider records. A persistent relationship-role contract and hydration rules remain necessary. Mongo/Neo native typed-graph saving, provider-I/O membership ownership, native depth/scope combinations, native STAR body/core persistence and provider-loaded reconstruction require further verification. All other roadmap items, including migrations, committed deltas and CQL, remain tracked by the main roadmap; this checkpoint does not close them.
+
+## MongoDB ordinary role persistence and acknowledgement — 25 October 2026
+
+The single-record native writer now resolves the captured role manifest against
+its exact observed BSON before serialization. That same observation is protected
+by the existing whole-document replacement CAS. Root-only writes preserve stored
+roles even when caller metadata is cleared; selected writes persist their captured
+logical roles. No transaction requirement was added to standalone single writes.
+
+Single and graph ordinary saves share post-commit caller publication. All identities
+and parent edges publish before role acknowledgements; manager-prepared staged
+objects remain manager-owned. Rollback, rejected and unknown writes do not enter
+this publication path. Conditional and committed-replica plans retain their owners.
+
+Eight new native controls first failed against the original implementation:
+289 total /281 pass /8 semantic failures. After the fix, full MongoDB CQL289 and
+unit502 pass, zero skips. The eight controls exercise sync/async single/batch saves,
+root-only preservation, selected empty membership, stored manifests, returned
+manifests and caller observation authority. This does not certify every custom-role
+or failure/interruption permutation; extend that matrix alongside Neo4j work.
+
+Original red evidence: TestResults/MongoCurrent/ordinary-role-persistence-red.trx.
+Green native evidence: TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx.
+Green unit evidence: TestResults/MongoCurrent/ordinary-role-persistence-green.trx.
+Joins/federation and other unchecked roadmap requirements remain open.
