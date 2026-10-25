@@ -745,3 +745,32 @@ provider I/O or new environment was involved. This is packet validation and
 construction only: multi-provider/global-budget execution ownership, durable
 attempts/receipts, native implementations, HTTP and executable join demos remain
 open. The future executor must validate every provider packet before any DTO.
+
+## Generic join execution checkpoint — 25 October 2026
+
+The generic V2 `HolonManager.ExecuteJoinQueryAsync` entry point now uses
+`CosmicJoinExecutor` and the explicit `ICosmicQueryJoinStorageProvider` contract.
+Every actual target is checked for source/join capabilities, concrete identity
+and inherited provider permission before the first durable attempt. Both source
+actors must match inherited admission. Final dispatch rechecks actual capabilities.
+
+One durable physical attempt owns each provider's two-source native join. Seven
+query-wide remaining budgets cover left/right rows, pair work, output rows and
+left/right/output bytes; later providers receive the remaining allowance. Zero
+allowance requires an explicit native probe/error outcome rather than truncation.
+All provider packets validate before any selected DTO is constructed. Failures
+and cancellation return no partial publication; Core never evaluates a join by
+scanning entity results.
+
+Both Core frameworks build and the full Core suite passes **2,731/2,731**, zero
+skips. This adds 27 controls beyond the prior 2,704 checkpoint. The first candidate
+exposed six existing SDK admission regressions: requiring query tariffs during
+preflight incorrectly conflated provider permission with endpoint pricing.
+Preflight now reuses the existing centralized prepared provider permission owner;
+optional SDK tariffs remain compatible, while paid HTTP retains its tariff gate.
+A later-denied-provider regression also proves no earlier read/attempt begins.
+
+This checkpoint is controlled-adapter execution/accounting evidence. **No real
+provider implements or advertises native joins yet.** SQLite, MongoDB and Neo4j
+native matching/proof production, HTTP transport, executable join demos and
+remaining composition/federation/security certification are still open.

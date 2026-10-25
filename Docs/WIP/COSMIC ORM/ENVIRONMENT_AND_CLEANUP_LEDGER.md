@@ -2534,3 +2534,17 @@ Join result-validation slice: existingCore648c44 worktree/SDK10.0.401/localNuGet
 Initial joinresult gate correctlystopped beforebuild because globalleasebusy; no bypass or duplicatebuild. Peer69378 explicitly reportedterminal0/leasefree and heldCore/Sharedprodunchanged. Normalacquisition retriedonlyafterterminal release. Existingfixed log/report reused, no providerwrite/runtimecreated.
 
 Join73238 terminal0/leased:dualCoreframeworksbuild,2704CorePASS0skip12s,32newresultcontrols. No native/provider I/O/newDB/env/install/download/restore. ExactTRX bytes=4339678 SHA256=BAB5EF16565C0F6AB21454AA6B14468BD2A5DB74E34A31A03129B440D01C7B1F. Reusable Core/unit bin+obj andcompactreports retained. Peer AWS test-support edits preserved; Core sourceheldstable duringpeerlease. Shortglobalpublicationlease protectsCore/parentGitSourceLinkmetadata before pairedpinadvance. No execution/nativejoinclaim.
+
+Join execution/accounting slice: reuse Core5f62 worktree/SDK10.0.401/localNuGet/dualCore+unit bin/obj. Newquery-wideremaininglimits/nativeinterface/executor/V2managerentry andcontrolledmockunit tests; actual durable query-attemptowner reused, notnewledger. No nativeproviderI/O/newDB/service/download/install/restore. Peer75366 terminalreleasedsourcefreeze; peerowns save/importsnapshot/HyperDrive rootfix and AWSretainedfixture, thosefilesuntouched. QueryScope owner tariffpreflight tightened for everyselectedtarget beforedispatch, withfullregression checks planned. Normalgloballease dualtargets/fullunits; fixedlog CosmicCqlDemo/join-execution-core.log and CoreCurrent/join-execution-current.trx, sizes/countspending. Preserve reusableoutputs andcompactevidence; no duplicateenvironment.
+
+Execution53952 terminal1:2730total/2724pass/6existingrow-admissionfailures, originalTRX preserved CoreCurrent/join-execution-permission-original-red.trx. Candidate tariff-presence preflight overconstrained generic SDK policies without tariffs; removedit. Centralized existing provider-permission checks in PreparedStorageExecution.RequireProvider, reused by runtime and querypreflight; paidHTTPendpoint stillrequiresHasQueryTariff, no inventedfee/fallback. Addedrowregression provinglaterdenial stopsallfirstattempts. Sameenvironment/leasedproducer rebuild only; no nativewrites or fixtures.
+
+Final join executor gate: dual Core targets built; full unit suite 2,731 passed,
+zero failed/skipped. Fixed evidence: C:/Source/OASIS/TestResults/CosmicCqlDemo/join-execution-final.log
+and C:/Source/OASIS/TestResults/CoreCurrent/join-execution-current.trx. Existing
+SDK/cache/bin/obj reused, no installation/download/restore/provider database or
+service introduced. Original six-regression report preserved separately. Outputs
+remain reusable/shared; sizes unmeasured this checkpoint. Do not delete active
+shared build outputs. Evidence may be regenerated with the same leased bounded
+build/test command; publication uses the global lease to protect SourceLink Git
+metadata. No owned disposable database or process requires teardown in this slice.
