@@ -1,5 +1,15 @@
 # CQL floating scalar implementation contract
 
+## Current scope
+
+Finite Single/Double metadata query, projection, extrema, keys and signed HTTP
+examples are verified on MongoDB, SQLite and Neo4j; see the
+[capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md). The dated implementation
+checkpoints below retain their original scope. Floating Sum/Average remains
+unenrolled: its shared exact reduction foundation is verified, but capture and
+native/HTTP arithmetic still require implementation and certification. See the
+[floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 24 October 2026. Core's finite bit-key codec/group capture passes the full
 2,507-test suite and both configured targets, netstandard2.1/net10.0. SQLite
 Double SDK metadata passes the full1,485-case native suite; Mongo/Neo Double

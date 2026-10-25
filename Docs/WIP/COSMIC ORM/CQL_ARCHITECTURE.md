@@ -1,5 +1,20 @@
 # CQL architecture
 
+## Finite floating aggregate foundation - 25 October 2026
+
+Full Core **3,090 tests** pass without failures/skips; both netstandard2.1/net10.0
+builds pass. Eleven new controls include every exponent, seeded finite bit
+patterns, 256 seeded reductions checked by an independent adjacent-IEEE binary
+search, signed cancellation, underflow, ties and overflow thresholds. One-input
+packets cannot hide source rounding or noncanonical signed digits.
+
+The new generic Core owner normalizes ten/seventy signed base2^30 native limb
+sums into Single/Double, rounding once to nearest/ties-to-even. It preserves
+finite output and canonical zero; it neither scans source rows nor grants an
+adapter capability. Floating query capture/grouping, native translations on all
+three stores, HTTP enrollment and live arithmetic demos remain open. See the
+[floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 Native Decimal/nullable Sum/Average and live signed HTTP are certified on all
 three priority stores. The latest demo passes120SDK/120HTTP queries, including
 examples38-40; see [demo acceptance](CQL_DEMO_RUNBOOK.md). Dated implementation

@@ -4,7 +4,7 @@ Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **3,079** (including UInt64 numeric capture/normalization and input-domain admission),
+- Latest separately verified cohorts: Core **3,090** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,702 native /72 unit**, MongoDB **416 native /550 unit**,
   Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
@@ -102,6 +102,11 @@ implementation; current results remain separate per provider.
 - [ ] Enforce eligibility, authorization and budgets across all targets. Specify provider-failure behavior before dispatch; no accidental partial success.
 
 ## 5. Scalar coverage and authoritative policy
+
+Floating exact packet normalization is verified in fullCore3,090 and both TFMs.
+Capture/native/HTTP enrollment remains open; see the
+[floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 
 Decimal Core capture/scaled-limb normalization and SQLite native arithmetic are
 verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal query integration passes23 focused native cases/full529 units; full416 native acceptance passes without failures or skips. Decimal HTTP/compiler/wire and live120SDK/120HTTP demo acceptance now pass.
