@@ -1,16 +1,24 @@
-# CQL completion roadmap — MongoDB, SQLite and Neo4j
+# CQL completion roadmap - MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core-linked 2,555 unit tests and full SQLite1,513 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Latest Double wire/demo acceptance passes81SDK/81HTTP; earlier Decimal acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+Current checkpoint: **25 October 2026**, published on the task branch through
+`72ea866f8`. Full completion is **not established**.
 
-Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
+- Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
+  support on MongoDB, SQLite and Neo4j within their recorded operator domains.
+- The latest linked compiler/endpoint suite passes **2,595 tests**. Separate
+  latest Single provider cohorts pass SQLite **1,516 native**, Mongo **281 native
+  and 494 unit**, and Neo4j **249 native and 459 unit** tests, with no skips.
+- Fresh live acceptance passes **87 SDK and 87 signed HTTP examples**, with
+  267 settled operations and 262 provider attempts. Six offline browser presets,
+  Swagger examples and the standalone demo build also pass.
+- These are distinct test cohorts, not a simultaneous full-suite certification.
+  Earlier historical entries retain their original scope.
 
-Floating continuation: Core's finite binary64/binary32 key foundation passes both
-configured targets and the full2,507-unit suite, including finite-key facts and8,192
-finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double passes254 native CQL/493 units and Neo Double232 native CQL/457 units; SQLite Single passes1,513 native cases; Mongo/Neo Single and Single wire remain disabled;
-Mongo Single numeric persistence/acknowledgement repair passes493 units and231
-native CQL cases, including3 new actual save/load cases; the newer254-case cohort also verifies
-Double query enrollment. See the
-[floating contract and remaining gates](CQL_FLOATING_SCALAR_CONTRACT.md).
+Next: complete the unchecked child-access, interruption and provider/policy
+certification requirements below, followed by joins/composition and federation.
+Floating Sum/Average are not granted by scalar metadata enrollment. The latest
+Single transport and demo evidence is recorded at the end of this roadmap and in
+[the floating contract](CQL_FLOATING_SCALAR_CONTRACT.md).
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
