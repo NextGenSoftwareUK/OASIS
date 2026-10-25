@@ -2772,3 +2772,13 @@ C:\Source\OASIS\TestResults\CoreCurrent\composition-graph-admission.trx | 461215
 C:\Source\OASIS\TestResults\SQLiteCurrent\composition-owner-captured-property-original-red.trx | 112807 bytes | COSMIC ORM retained evidence.
 
 Final SQLite free C67,142,172,672bytes. Actual-entry cancellation fixture resources were view Holon, backing table CompositionInput and connection-local function composition_observe inside the existing integration-current.db; exact fixture disposal removed database/sidecars and connection closed, no retained UDF/process. All evidence retained, reusable provider outputs unchanged in location.
+
+25 October Mongo composition compiler: reuse installed .NET10.0.401, Mongo provider/unit bin/obj and NuGet assets; no restore/download/new environment. Shared exact selected-predicate BSON owner reused with grouping. Source/stage pipelines compiled but no provider enrollment/snapshot execution owner yet. Leased log TestResults/CosmicCqlDemo/mongo-composition-compiler.log; TRX TestResults/SubscriptionUsageCurrent/composition-compiler-unit.trx, sizes initially unmeasured. Unit gate creates no Mongo DB/process/port. Official Mongo8.3 documentNumber reference consulted; no files downloaded.
+
+Mongo compiler initial519total/518pass/1test-only field-count assertion: native proof projection has4BSON fields including excluded _id. Corrected fixture, no production change; original red retained composition-compiler-unit-original-red.trx. Final unit log mongo-composition-compiler-final.log; then existing native328 regression uses reusable8.3.11 replica27029 and exact cosmic_cql_fixture with existing ownership teardown. Log mongo-composition-compiler-native.log, no nested global lease/new environments/downloads/restores. New composition provider enrollment remains pending.
+
+Mongo compiler final519/519 unit, existing-native328/328 zero skips. Handle70357 terminal success. Reusable runner bounded its owned log and stopped owned replica after acknowledged fixture teardown; no new environment/download/restore. New composition pipeline native acceptance remains pending. Retained evidence measured below, no active process dependency.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\mongo-composition-compiler-final.log | 16284 bytes | COSMIC ORM retained evidence.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\mongo-composition-compiler-native.log | 1520 bytes | COSMIC ORM retained evidence.
+C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\composition-compiler-unit.trx | 784248 bytes | COSMIC ORM retained evidence.
+C:\Source\OASIS\TestResults\SubscriptionUsageCurrent\composition-compiler-unit-original-red.trx | 784976 bytes | COSMIC ORM retained evidence.
