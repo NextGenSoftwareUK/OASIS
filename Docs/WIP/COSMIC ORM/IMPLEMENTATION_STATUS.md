@@ -1,5 +1,20 @@
 # COSMIC ORM implementation status
 
+## Neo4j Decimal query integration - 25 October 2026
+
+Scalar and grouped Decimal/nullable Sum/Average pass **23 focused native tests**,
+with no failures or skips. Exact native group keys support filters, ordering and
+paging; raw seven-word packets are validated before typed publication, including
+off-page errors. Tests cover large cancellation, overflow versus valid means,
+nullable/empty inputs, mixed packets, source windows, privacy, cancellation/reuse,
+stored JSON precision, double-round boundaries and 137 inputs independent of graph
+publication limits. Neo4j retains its declared provider-default read-committed
+consistency; this does not introduce snapshot support.
+
+Full unit acceptance passes **529/529**, including nine new packet controls.
+Full native acceptance also passes **416/416**, with no failures or skips.
+This certifies native SDK arithmetic; Decimal HTTP/demo enrollment remains open.
+
 ## Neo4j Decimal arithmetic component - 25 October 2026
 
 Two real native tests pass without skips: 2,112 signed Decimal key inputs and

@@ -21,9 +21,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) }),
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) })
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) })
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -42,10 +42,13 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             var numeric = plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average;
             var selected = plan.Query.Selector != null;
+            var decimalInput = numeric && (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
             // An empty result window cannot suppress protected relationship
             // validation. Only an unprotected empty query can avoid native I/O.
             var plainEmpty = source.Limit == 0 && !compiled.Translator.HasRelationship;
-            if (plainEmpty && numeric) return CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
+            if (plainEmpty && numeric) return decimalInput
+                ? CosmicDecimalScalarResults.FromParts(plan.Query, new long[7], 0)
+                : CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
             if (plainEmpty) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
             if (!IsProviderActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
@@ -93,7 +96,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 if (observed) throw new InvalidDataException("Neo4j scalar returned multiple native values.");
                 if (numeric)
                 {
-                    numericValue = DecodeCqlNumeric(row.Values);
+                    numericValue = DecodeCqlNumeric(row.Values, decimalInput, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null);
                 }
                 else if (selected)
                 {
@@ -122,7 +125,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             if (!observed) throw new InvalidDataException("Neo4j scalar reduction did not return its empty/nonempty result.");
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
-            if (numeric) return CosmicNumericScalarResults.FromParts(plan.Query, numericValue.High, numericValue.Low, numericValue.Count);
+            if (numeric) return decimalInput
+                ? CosmicDecimalScalarResults.FromParts(plan.Query, numericValue.DecimalParts, numericValue.Count)
+                : CosmicNumericScalarResults.FromParts(plan.Query, numericValue.High, numericValue.Low, numericValue.Count);
             return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, selectedValue, hasSelectedValue)
                 : CosmicScalarResults.FromCount(plan.Query, count);
         }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
@@ -53,10 +54,21 @@ public partial class Neo4jOASIS
             if (coverage.IsError) throw new InvalidDataException(coverage.Message);
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
-                if (aggregate.Count != 3 || !aggregate.TryGetValue("high", out var rawHigh) || rawHigh is not long high
-                    || !aggregate.TryGetValue("low", out var rawLow) || rawLow is not long low)
-                    throw new InvalidDataException("Native grouped numeric limbs must be exact Int64 values.");
-                var normalized = CosmicNumericScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType, high, low, present);
+                OASISResult<object> normalized;
+                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                {
+                    if (aggregate.Count != 2 || !aggregate.TryGetValue("parts", out var rawParts))
+                        throw new InvalidDataException("Native Decimal packet shape is invalid.");
+                    normalized = CosmicDecimalScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType,
+                        ReadDecimalAggregateParts(rawParts), present);
+                }
+                else
+                {
+                    if (aggregate.Count != 3 || !aggregate.TryGetValue("high", out var rawHigh) || rawHigh is not long high
+                        || !aggregate.TryGetValue("low", out var rawLow) || rawLow is not long low)
+                        throw new InvalidDataException("Native grouped numeric limbs must be exact Int64 values.");
+                    normalized = CosmicNumericScalarResults.FromParts(column.Operation.Value, column.Selector.ValueType, high, low, present);
+                }
                 if (normalized.IsError) throw new NeoCqlGroupedException(normalized.ErrorCode, normalized.Message);
                 values[index] = normalized.Result;
             }

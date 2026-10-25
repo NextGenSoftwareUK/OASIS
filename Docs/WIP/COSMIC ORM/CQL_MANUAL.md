@@ -1,8 +1,8 @@
 # CQL developer manual
 
-## SQLite and MongoDB Decimal arithmetic SDK availability
+## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 
-SQLite and MongoDB support exact Decimal/nullable Sum and Average, including grouped
+MongoDB, SQLite and Neo4j support exact Decimal/nullable Sum and Average, including grouped
 result filters/order/pages. From an already scoped and authorized `source`:
 
 ```csharp
@@ -16,8 +16,8 @@ var mean = source.Average(holon =>
 Plan and execute through HolonManager with the actual provider capabilities, as in
 the scalar examples below. The native reduction preserves 28 decimal places and
 rounds once at final publication; a mathematical Sum outside Decimal range fails.
-MongoDB acceptance passes 416 native tests and 550 unit tests without failures
-or skips. Neo4j Decimal arithmetic and Decimal HTTP inputs remain unenrolled.
+MongoDB acceptance passes 416 native/550 unit tests; Neo4j passes 416 native/529
+unit tests, all without failures or skips. Decimal HTTP inputs remain unenrolled.
 [Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
 
 
