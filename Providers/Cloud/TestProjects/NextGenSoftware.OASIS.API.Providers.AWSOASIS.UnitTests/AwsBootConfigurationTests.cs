@@ -12,6 +12,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests;
 [DoNotParallelize]
 public sealed class AwsBootConfigurationTests
 {
+    [DataTestMethod][DataRow("dynamo")][DataRow("aws")][DataRow("s3")]
+    public void StorageProvidersAreDiscoverableAsCloudWithoutActivation(string kind)
+    {
+        NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider provider;
+        IDisposable client;
+        if(kind=="s3"){
+            var native=new Amazon.S3.AmazonS3Client(new BasicAWSCredentials("owned","owned"),new Amazon.S3.AmazonS3Config{ServiceURL="http://127.0.0.1:1",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0});client=native;
+            provider=new NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AWSS3OASIS(native,"synthetic-bucket",()=>new byte[32]);
+        }else{
+            var nativeProvider=kind=="aws"?(NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS)new AWSOASIS("us-east-1","owned","owned","http://127.0.0.1:1"):new NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS("owned","owned","us-east-1","http://127.0.0.1:1");
+            provider=nativeProvider;client=(AmazonDynamoDBClient)typeof(NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
+        }
+        try{
+            var manager=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,new OASISDNA());Assert.IsTrue(manager.RegisterProvider(provider));
+            Assert.AreSame(provider,manager.GetStorageProviders().Single());Assert.AreSame(provider,manager.GetCloudProviders().Single());
+            Assert.IsTrue(manager.IsProviderCloud(provider.ProviderType.Value));Assert.IsFalse(provider.IsProviderActivated);
+        }finally{(provider as IDisposable)?.Dispose();client.Dispose();}
+    }
+
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void HistoryOptionRoundTripsThroughDnaAndProductionFactory(bool enabled)
     {

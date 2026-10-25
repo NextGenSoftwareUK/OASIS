@@ -94,6 +94,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DynamoDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
         }
 
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
@@ -822,6 +824,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 var found=new SearchResults();
                 found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
                 if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
+                if(searchParams.SearchOnlyForCurrentAvatar){
+                    var visible=IOASISStorageProvider.ProjectVisibleHolons(new OASISResult<IEnumerable<IHolon>>{Result=found.SearchResultHolons,IsLoaded=true},searchParams.AvatarId,false);
+                    if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                    found.SearchResultHolons=visible.Result.ToList();
+                }
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
                 result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
             }
@@ -893,6 +900,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
                 result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList();
                 result.LoadedCount=result.Result.Count();
+                if(version!=-1)return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
             }
             catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
             return result;
