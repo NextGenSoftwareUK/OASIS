@@ -117,29 +117,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             }
         }
 
-        /// <summary>
-        /// Parse ActivityPub JSON content and convert to OASIS Holon collection
-        /// </summary>
-        private IEnumerable<IHolon> ParseActivityPubToHolons(string activityPubJson)
-        {
-            try
-            {
-                // Deserialize the complete Holon collection to preserve all properties
-                var holons = JsonSerializer.Deserialize<IEnumerable<Holon>>(activityPubJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-                
-                return holons;
-            }
-            catch (Exception)
-            {
-                // Return null if parsing fails
-                return null;
-            }
-        }
-
 
 
         public void Dispose()
