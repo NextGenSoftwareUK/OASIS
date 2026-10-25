@@ -70,3 +70,9 @@ Mongo's latest full cohort passes 256 native CQL tests and 493 unit tests,
 including verified binary64 and exact integer Single components (12,313 and
 9,700 vectors respectively). Mongo Single query capability remains **not
 enrolled** until original Decimal128 and complete query execution are verified.
+
+Latest Single component gate: Mongo 257 native / 493 unit tests pass including
+1,873 original Decimal128 vectors. Binary64, integer and Decimal128 components
+are verified; full Mongo Single query capability remains disabled pending native
+query integration. SQLite's promotion correction passes full 1,516 native tests
+and Core 2,558 tests; widened Double thresholds are never narrowed to Single.
