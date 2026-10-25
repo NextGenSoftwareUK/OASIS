@@ -34,7 +34,7 @@ public partial class OracleDBOASIS
         var expected=StorageSchema;
         foreach(var table in expected){
             // Include user-declared invisible columns, not system-generated hidden columns.
-            await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION,c.IDENTITY_COLUMN,c.VIRTUAL_COLUMN FROM USER_TAB_COLS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME WHERE c.TABLE_NAME=:TableName AND c.USER_GENERATED='YES'",connection);
+            await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION,c.IDENTITY_COLUMN,c.VIRTUAL_COLUMN,ic.GENERATION_TYPE FROM USER_TAB_COLS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME LEFT JOIN USER_TAB_IDENTITY_COLS ic ON ic.TABLE_NAME=c.TABLE_NAME AND ic.COLUMN_NAME=c.COLUMN_NAME WHERE c.TABLE_NAME=:TableName AND c.USER_GENERATED='YES'",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
             await using var reader=await command.ExecuteReaderAsync();
@@ -50,6 +50,15 @@ public partial class OracleDBOASIS
                 }
                 if(reader.IsDBNull(9)||reader.GetString(9)!="N"||!reader.IsDBNull(10))
                     throw new InvalidDataException($"Oracle schema {table.Key} requires a permanent table; temporary/session-scoped records are not durable provider storage.");
+                // Canonical INSERTs/UPDATEs supply these columns explicitly. Oracle
+                // rejects any explicit value for a virtual column (ORA-54013).
+                // Generated extension columns above remain valid because we omit them.
+                if(reader.GetString(12)=="YES")
+                    throw new InvalidDataException($"Oracle schema {table.Key}.{column} is virtual; canonical record columns must accept explicit stored values.");
+                // BY DEFAULT (including ON NULL) permits supplied values; ALWAYS
+                // does not. Do not reject compatible identity defaults wholesale.
+                if(reader.GetString(11)=="YES"&&(reader.IsDBNull(13)||reader.GetString(13)!="BY DEFAULT"))
+                    throw new InvalidDataException($"Oracle schema {table.Key}.{column} has an incompatible identity generation policy; canonical record columns must accept explicit stored values.");
                 ValidateIdentityCharacterSemantics(table.Key,column,reader.IsDBNull(8)?null:reader.GetString(8));
                 ValidateStorageColumn(table.Key,column,required,reader.GetString(1),reader.GetInt32(2));
                 ValidateStorageColumnProperties(table.Key,column,required,reader.GetString(3),
