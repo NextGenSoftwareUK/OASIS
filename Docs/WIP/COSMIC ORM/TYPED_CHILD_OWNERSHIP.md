@@ -69,3 +69,26 @@ Original red evidence: TestResults/MongoCurrent/ordinary-role-persistence-red.tr
 Green native evidence: TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx.
 Green unit evidence: TestResults/MongoCurrent/ordinary-role-persistence-green.trx.
 Joins/federation and other unchecked roadmap requirements remain open.
+
+## Neo4j ordinary child-selection admission — 25 October 2026
+
+Ordinary single/batch saves now use the same CreateForSave ownership contract as
+Core/Shared, SQLite and MongoDB. Known partial selections reject before session
+creation, even after AcceptChanges. Root-only saves remain admitted. Capture-stage
+failures return HYPERDRIVE_PAYLOAD_INVALID; conditional/replay plans retain their
+existing owners and native transaction/unknown-outcome handling is unchanged.
+
+Red no-I/O controls:8failed/4root-onlypass. Green full unit477 passes, zero skips.
+Fresh full native CQL267 passes, zero skips,8m16s. Four native partial-view cases
+now execute16sync/asyncsingle/batch direct-save probes, comparing all owned record
+properties and HAS_CHILD edges before/after rejection. Existing conditional
+root-only positive controls also pass. Producer/Core/Shared/driver copies match.
+
+The first broad run retained an unwritten fixture after an invalid test seed;
+exact hash-bound reconciliation proved zero native records/references/projections
+before removing only its marker. Three fixtures now allow ordinary capture to
+produce the same logical manifests instead of assigning untrusted JSON. Assertions
+were preserved. Original red and reconciliation evidence remain in TestResults.
+
+This closes this admission batch, not ordinary role acknowledgement or all CQL.
+Eight separate new acknowledgement cases are prepared but not included in267.
