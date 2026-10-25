@@ -20,7 +20,8 @@ public sealed class NeoCqlGroupedTests
         Assert.AreEqual(2, command.Parameters["groupLimit"]);
         Assert.IsTrue(command.Query.IndexOf("LIMIT $groupTake", StringComparison.Ordinal)
             < command.Query.IndexOf("count(*) AS inputs", StringComparison.Ordinal));
-        Assert.IsTrue(command.Query.Contains(" / 4294967296") && command.Query.Contains(" % 4294967296"));
+        var compact = command.Query.Replace(" ", "");
+        Assert.IsTrue(compact.Contains("/4294967296") && compact.Contains("%4294967296"));
         Assert.IsFalse(command.Query.Contains("toFloat"));
     }
 

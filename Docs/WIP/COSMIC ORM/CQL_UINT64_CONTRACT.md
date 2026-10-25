@@ -1,5 +1,17 @@
 # CQL UInt64 metadata
 
+HTTP numeric compiler update: Core3,017 and shipping WEB4 build pass after shared
+UInt64/nullable Average binding. Sum wire values remain exact UInt64 strings;
+Average is Decimal/string or null. Live signed numeric HTTP/demo acceptance is
+still pending; see the current numeric contract and manual.
+
+
+25October Neo4j numeric update: full391 native/520 unit pass0fail/0skip, including
+19new unsigned numeric cases. All three stores now enroll native UInt64 Sum and
+Average, nullable forms and grouped arithmetic. Unsigned numeric HTTP/demo
+acceptance remains a separate in-progress gate.
+
+
 25October numeric update: SQLite unsigned Sum/Average now passes1,679 native/72
 unit; MongoDB passes391 native/539 unit (17new unsigned native controls), all zero
 failures/skips. Both enroll exact scalar/grouped arithmetic through existing

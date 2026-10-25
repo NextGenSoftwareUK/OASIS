@@ -26,27 +26,32 @@ public partial class Neo4jOASIS
         private sealed class Cell
         {
             internal string Value, High, Low;
+            internal Type Type;
             internal bool IsSum => High != null;
             internal string IsNull => IsSum ? "false" : "(" + Value + " IS NULL)";
         }
         private Cell Value(CosmicQueryPath path)
         {
-            if (selectedValue != null) return new Cell { Value = selectedValue(path) };
+            if (selectedValue != null) return new Cell { Value = selectedValue(path), Type = path.ValueType };
             var index = !path.IsMetadata && path.Segments.Count == 1
                 ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Grouped filter requires an exact selected scalar.");
             var column = query.Columns[index];
-            if (column.KeyIndex >= 0) return new Cell { Value = "keys[" + column.KeyIndex + "].v" };
-            if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) return new Cell { Value = "inputs" };
-            if (column.Operation == CosmicScalarOperation.Average) return new Cell { Value = "averageKeys[" + index + "]" };
+            if (column.KeyIndex >= 0) return new Cell { Value = "keys[" + column.KeyIndex + "].v", Type = column.ValueType };
+            if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) return new Cell { Value = "inputs", Type = column.ValueType };
+            if (column.Operation == CosmicScalarOperation.Average) return new Cell { Value = "averageKeys[" + index + "]", Type = column.ValueType };
             var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
             var packet = "aggregates[" + slot + "]";
             if (column.Operation == CosmicScalarOperation.Sum) return new Cell { High = packet + ".high", Low = packet + ".low" };
-            if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) return new Cell { Value = packet + ".value" };
+            if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) return new Cell { Value = packet + ".value", Type = column.ValueType };
             throw new NotSupportedException("Exact normalized Average filtering is not enrolled.");
         }
-        private static (string High, string Low) Parts(Cell cell) => cell.IsSum ? GroupedIntegralParts(cell.High, cell.Low)
-            : GroupedIntegralParts("(" + cell.Value + "/4294967296)", "(" + cell.Value + "%4294967296)");
+        private static (string High, string Low) Parts(Cell cell)
+        {
+            if (cell.IsSum) return GroupedIntegralParts(cell.High, cell.Low);
+            var parts = IntegralParts(cell.Type, cell.Value);
+            return GroupedIntegralParts(parts.High, parts.Low);
+        }
         private static string NullAware(Cell left, Cell right, CosmicQueryComparisonOperator operation, string raw)
         {
             if (operation == CosmicQueryComparisonOperator.Equal)
@@ -78,14 +83,14 @@ public partial class Neo4jOASIS
             {
                 if (path.ScalarKind != CosmicQueryScalarKind.Int64) throw new NotSupportedException("Unsupported mixed grouped scalar.");
                 var boundary = IntegerBoundary(literal, operation, long.MinValue, long.MaxValue);
-                if (boundary.Constant.HasValue) return NullAware(left, new Cell { Value = "0" }, operation, boundary.Constant.Value ? "true" : "false");
-                return Compare(left, new Cell { Value = translator.Bind(boundary.Boundary) }, operation);
+                if (boundary.Constant.HasValue) return NullAware(left, new Cell { Value = "0", Type = typeof(long) }, operation, boundary.Constant.Value ? "true" : "false");
+                return Compare(left, new Cell { Value = translator.Bind(boundary.Boundary), Type = typeof(long) }, operation);
             }
             var value = literal.Kind != CosmicQueryScalarKind.Null
                 && (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(ulong)
                 ? NeoCqlUInt64.Literal(literal.Value) : literal.Kind == CosmicQueryScalarKind.Decimal
                 ? CosmicNumericScalarResults.DecimalOrderKey((decimal)literal.Value) : literal.Kind == CosmicQueryScalarKind.Null ? null : NeoCqlTranslator.Literal(literal);
-            return Compare(left, new Cell { Value = value == null ? "null" : translator.Bind(value) }, operation);
+            return Compare(left, new Cell { Value = value == null ? "null" : translator.Bind(value), Type = path.ValueType }, operation);
         }
         internal string Translate(CosmicQueryPredicate predicate)
         {

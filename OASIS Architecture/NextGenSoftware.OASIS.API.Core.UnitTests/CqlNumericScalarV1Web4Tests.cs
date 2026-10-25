@@ -15,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public partial class CqlV1Web4Tests
 {
     [Theory]
+    [InlineData("UInt64", false, false)]
+    [InlineData("UInt64", true, false)]
+    [InlineData("UInt64", true, true)]
     [InlineData("Int32", false, false)]
     [InlineData("Int64", false, false)]
     [InlineData("Int32", true, false)]
@@ -26,11 +29,13 @@ public partial class CqlV1Web4Tests
         var type = ProviderType.MongoDBOASIS;
         var source = new Source(type);
         var adapter = ScalarAdapter(source, type);
-        var domain = inputType == "Int32" ? (optional ? typeof(int?) : typeof(int)) : (optional ? typeof(long?) : typeof(long));
+        var domain = inputType == "UInt64" ? (optional ? typeof(ulong?) : typeof(ulong))
+            : inputType == "Int32" ? (optional ? typeof(int?) : typeof(int)) : (optional ? typeof(long?) : typeof(long));
         var reads = new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { domain });
         adapter.SetupGet(s => s.ScalarCapabilities).Returns(new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(),
-            new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, reads) }));
-        var value = inputType == "Int32" ? 1.25m : 9007199254740993.125m;
+            new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, reads, new[] { domain }) }));
+        var value = inputType == "UInt64" ? 18446744073709551614.5m
+            : inputType == "Int32" ? 1.25m : 9007199254740993.125m;
         Type? observed = null;
         adapter.Setup(s => s.ExecuteCosmicScalarAsync(It.IsAny<CosmicScalarPlan<Holon, decimal>>(), It.IsAny<CancellationToken>()))
             .Returns((CosmicScalarPlan<Holon, decimal> plan, CancellationToken token) =>

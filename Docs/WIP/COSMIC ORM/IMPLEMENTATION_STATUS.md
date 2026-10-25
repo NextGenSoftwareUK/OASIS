@@ -1,5 +1,29 @@
 # COSMIC ORM implementation status
 
+## UInt64 HTTP compiler/wire checkpoint — 25 October 2026
+
+Full Core **3,017** tests pass0fail/0skip (9new HTTP controls), and the shipping
+WEB4 API builds. The scalar/grouped shared binder now captures required/nullable
+UInt64 Average using existing typed Core overloads. Sum exact string wire tests
+also pass; actor binding, actual provider permissions and usage receipt ownership
+are retained. This is compiler/wire acceptance, not a fresh live signed HTTP demo.
+Native unsigned arithmetic is verified on all three stores; live signed unsigned
+numeric HTTP and updated demos are the next acceptance gate. Full CQL remains open.
+
+
+## Neo4j UInt64 native acceptance — 25 October 2026
+
+All three priority stores now enroll native UInt64/nullable Sum/Average. Neo4j
+full **391 native /520 unit** tests pass without failures/skips (19new native
+numeric controls). Exact bounded INTEGER chunk lowering is shared across scalar,
+grouped reductions and unsigned sum/key comparisons. Full tests include a
+fractional mean near UInt64.MaxValue and mandatory off-page overflow validation.
+The native producer is unchanged by the final whitespace-insensitive unit fix.
+Owned retained Neo4j container stopped after acknowledged teardown; no new
+runtime/download/restore/environment. Shipping unsigned numeric HTTP/demo
+acceptance is still in progress and is not claimed by native results.
+
+
 ## MongoDB UInt64 native acceptance — 25 October 2026
 
 MongoDB now explicitly enrolls UInt64/nullable Sum/Average for scalar and grouped
