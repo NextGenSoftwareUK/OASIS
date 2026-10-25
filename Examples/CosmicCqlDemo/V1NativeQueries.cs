@@ -517,6 +517,62 @@ public static class V1NativeQueries
         foreach (var row in decimalGroupRows)
             await output.WriteLineAsync($"  {row.Price}: {row.Items} item\n");
 
+        // 26. Adjacent binary64 readings remain distinct. Use d literals for
+        // Double; use Decimal instead when the domain requires exact prices.
+        var readingStart = 1.0000000000000004d;
+        var readingEnd = 1.0000000000000009d;
+
+        var doubleSelection = Value(visible
+            .Where(row => CosmicQueryMetadata.Value<double>(row, "reading") >= readingStart
+                && CosmicQueryMetadata.Value<double>(row, "reading") < readingEnd)
+            .OrderBy(row => CosmicQueryMetadata.Value<double>(row, "reading"))
+            .Select(row => new
+            {
+                row.Name,
+                Reading = CosmicQueryMetadata.Value<double>(row, "reading")
+            }));
+
+        var doublePlan = Value(CosmicProjectionPlanner.Plan(doubleSelection, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities,
+                projectionAdapter.ProjectionCapabilities) }));
+
+        var doubleResult = Value(await manager.ExecuteProjectionQueryAsync(doublePlan, new[] { adapter }));
+        var doubleRows = doubleResult.Providers.Single().Rows;
+
+        if (!doubleRows.Select(row => row.Name).SequenceEqual(new[] { "B-owned", "C-public" })
+            || !doubleRows.Select(row => row.Reading).SequenceEqual(new[] { readingStart, readingStart + 2.220446049250313e-16d }))
+            throw new InvalidOperationException("Double source ordering lost precision or visibility.");
+
+        completedQueries++;
+        await output.WriteLineAsync("26. Double reading range / binary64 reading ordering\n");
+        foreach (var row in doubleRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.Reading}");
+        await output.WriteLineAsync();
+
+        // 27. Group by binary64 readings, then filter/order the selected Reading alias.
+        // Native reduction and complete proof validation still include all groups.
+        var doubleGroups = Value(visible
+            .GroupBy(row => CosmicQueryMetadata.Value<double>(row, "reading"))
+            .Select(group => new { Reading = group.Key, Items = group.LongCount() })
+            .Where(row => row.Reading >= readingStart && row.Reading < readingEnd)
+            .OrderBy(row => row.Reading)
+            .Take(2));
+
+        var doubleGroupPlan = Value(CosmicGroupedPlanner.Plan(doubleGroups, provider,
+            new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var doubleGroupResult = Value(await manager.ExecuteGroupedQueryAsync(doubleGroupPlan, new[] { adapter }));
+        var doubleGroupRows = doubleGroupResult.Providers.Single().Rows;
+
+        if (!doubleGroupRows.Select(row => row.Reading).SequenceEqual(new[] { readingStart, readingStart + 2.220446049250313e-16d })
+            || doubleGroupRows.Any(row => row.Items != 1))
+            throw new InvalidOperationException("Double grouped result filtering/order lost exact key identity.");
+
+        completedQueries++;
+        await output.WriteLineAsync("27. Double group keys / typed selected-result filters\n");
+        foreach (var row in doubleGroupRows)
+            await output.WriteLineAsync($"  {row.Reading}: {row.Items} item\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(

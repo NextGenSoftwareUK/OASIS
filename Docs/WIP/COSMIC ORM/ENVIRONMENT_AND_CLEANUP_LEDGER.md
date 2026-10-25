@@ -1443,3 +1443,77 @@ C:/Source/OASIS/TestResults/CosmicCqlDemo/double-wire-full.log (sizes unmeasured
 Consumer identities captured inside lease; no matched producer/source-snapshot
 claim in this unit-only gate. Lease released. Free C67,646,017,536 after.
 Reusable outputs retained; no new disposable service fixture to remove.
+
+## Double live demo continuation — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse existing SDK/cache, Mongo8.3.11 retained27029
+oasisRecoveryRs, WSL Podman oasis-neo4j5.26.12/Bolt17687 exact image previously
+recorded, fixed TestResults/CosmicCqlDemo and Neo4jCurrent outputs and acknowledged
+fixture ownership. No download/install/restore/new environment planned.
+New reading field is synthetic fixture data owned by existing journal; unknown
+outcomes must be reconciled before rerun. Reuse Node24.19.0 for offline script
+checks. Free C last67,646,017,536; sizes unmeasured. Retain compact acceptance,
+source/binary identities and transcript; remove acknowledged fixture/readiness
+through existing runner teardown. Live81SDK/81HTTP expected, not yet verified.
+
+14358 terminal1:Double grouped HTTP example27 rejected400 before native dispatch;
+root missing typed grouped ordering binder. Source26 and all81SDKqueries completed
+before HTTP failure. Original journal SHA E78825690C7CDB2E5EC87DF345CDFC703B393515051D36A223E073D45C0513C2
+preserved at TestResults/Neo4jCurrent/cql-v1-web4-fixture.json; nine graph IDs,
+137scalar IDs/411 acknowledged scalar writes/423 journal entries. Native base
+proof SHA8A60463C4B2DF6CD1A749CB4AE790271E1A9B09D2D3EACD6175E565745954265.
+Retain double-ordering-red-current.trx, CosmicCqlDemo/double-ordering-red-transcript.txt
+and double-demo-native.log. Owned stores/SQLite preserved pending exact-content
+reconciliation, not disposable until all settled outcomes/rows proven.
+New reviewed digest dispatcher verifies207 operations/201 attempts and last
+rejected intent0attempts before any deletion; actual result pending.
+No replay/reset. Core source hold released for peer Karma batch; await its release.
+
+Preserved exact owned artifact measurements: Neo4jCurrent/cql-v1-web4.sqlite
+1,015,808 bytes; cql-v1-web4-fixture.json69,790 bytes;
+double-ordering-red-current.trx6,073 bytes; CosmicCqlDemo/
+double-ordering-red-transcript.txt50,626 bytes. Fixture DB remains preserved,
+not deleted while reconciliation pending; evidence retained permanently for task.
+No service process remains from14358, reusable retained runtime/data unchanged.
+
+Read-only SQLite preflight reused Python3.12 at
+C:/Users/david/AppData/Local/Programs/Python/Python312/python.exe and stdlibsqlite3;
+mode=ro, no schema/data mutation. Exact146 IDs match journal and all5numeric
+roots retain expected fixture tag, binary64 reading and UInt64 counter.
+Journal SHA unchanged. Retain TestResults/Neo4jCurrent/
+double-fixture-sqlite-preflight.json (size unmeasured); this is not the required
+cross-store/durable-outcome reconciliation. No new runtime/environment/cache.
+
+Reconciliation68637 terminal1 was a C# local-name collision before native fixture
+access; corrected verifier variable, no fixture deletion.21528 terminal0 then
+PASS1 reviewed reconciliation:207settled operations/201attempts/201receipts,
+last rejected grouped request0attempt/receipt;438owned records across3stores
+verified before cleanup. Original SHA/archived journal and snapshots retained:
+Neo4jCurrent/cql-v1-web4-{before,reviewed}-double-ordering-reconciliation.json,
+neo4j-cql-v1-web4-reconcile-current.trx and CosmicCqlDemo/
+double-fixture-reconcile.log. Exact1,015,808-byte SQLite fixture and journal now
+absent after acknowledged runner teardown; original evidence retained.
+Initial failed live log copied once to CosmicCqlDemo/double-ordering-red-native.log
+before fixed fresh53891 acceptance. No replay/reset, no new environment/restore.
+Peer Core4ff1d7d12eab33d7b2c92df60299411cd00c6738/parent2983826 published;
+its OracleCurrent/karma-ack-total-final.trx proves full2552 including both
+new complete Double-ordering cases. Reused CoreD0D4DB05, fixed demo source held.
+
+After53891 terminal, planned separate short leased standalone demo build reuses
+C:/Source/OASIS/Examples/CosmicCqlDemo/bin and obj, cached Swashbuckle6.4.0 and
+SDK10.0.401 with no restore/BuildProjectReferences=false. No new runtime/cache/
+environment; generated outputs reusable, sizes unmeasured. Retain compact
+CosmicCqlDemo/double-standalone-build.log; clean no source or shared dependencies.
+
+53891 terminal0:fresh81SDK/81HTTP PASS0skip,261settled/256attempts.
+All5producer/nativeconsumer pairs match and source snapshots unchanged inside
+lease; retained CosmicCqlDemo/v1-{demo-result,binary-identities,source-identities}.json,
+v1-walkthrough.txt, double-demo-native.log; Neo4jCurrent/
+neo4j-cql-v1-demo-current.trx. Four offlinepresets pass in v1-decimal-ui-check.json
+(Node24.19.0,noactualbrowser/networkclaim). Separate leased standalone cached
+demo build terminal0, double-standalone-build.log retained. No restore/install/
+download/newenvironment. Test fixtureSQLite/journal/readiness absent and
+27029/17687/5088listeners absent after verified teardown. Retained reusable
+runtimes/cache/outputs, owned failure evidence preserved; sizes unmeasured
+except measurements already recorded. Free C67,595,939,840 after.
+Source/build hold released; only precise scoped verified files to be committed.

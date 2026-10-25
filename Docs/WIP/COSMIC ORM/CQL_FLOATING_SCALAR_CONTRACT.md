@@ -146,3 +146,44 @@ TestResults/CosmicCqlDemo/double-wire-full.log. The native HTTP unknown-type
 control now uses NotAScalar so additive Double enrollment cannot invalidate it.
 Live all-provider Double HTTP/demo acceptance remains pending; Single remains
 unenrolled.
+
+### Live Double demo finding — grouped ordering binder
+
+First live run14358 reached Mongo HTTP example27 and rejected its selected
+Double ordering with400 CQL_REQUEST_INVALID. Earlier wire controls verified
+capture/filtering but omitted a complete grouped request with resultOrder.
+The single typed ordering binder lacked Double/nullable Double cases; both are
+now added, with full-request positive/nullable regressions. Verification pending
+while the peer's scoped Core/Karma batch owns the next build cohort. Source26
+passed; the live81/81 gate is not yet certified. Failed journal and outcomes are
+preserved for digest-pinned reconciliation before any rerun.
+
+### Double SDK/HTTP/demo acceptance verified — 24 October 2026
+
+The missing Double/nullable Double grouped-ordering binder is repaired at its
+single typed owner. Both complete grouped requests (two filters, count column,
+typed order and output page) pass in full2,552 linked units; retained authoritative
+report TestResults/OracleCurrent/karma-ack-total-final.trx includes these2 controls
+and the peer's8 karma controls, alongside the earlier35 wire/endpoint cases.
+
+Reviewed reconciliation21528 passes before rerun: exact journal SHAE788... and
+native proof SHA8A604... match, all438owned records across3stores and207settled
+operations/201attempts/201receipts verified; original rejected request has no
+native attempt or receipt. No original request was replayed. The shared pinned
+verifier preserves historical grouped recovery and dispatches only known digests.
+
+Fresh53891 terminal0 passes81SDK queries/81signedHTTP examples on all3providers,
+261settled operations/256attempts,0fail/skip. Examples26–27 select/group adjacent
+binary64 readings1.0000000000000004 and1.0000000000000007 with distinct identity.
+Swagger FiniteDouble and four offline Decimal/Double browser presets pass.
+Standalone demo builds from the existing cache, no restore.
+
+Source snapshots remain unchanged; all5 producer/native-consumer pairs match
+inside the global lease. Evidence: CosmicCqlDemo/v1-demo-result.json,
+v1-walkthrough.txt, v1-binary-identities.json, v1-source-identities.json,
+double-demo-native.log, double-standalone-build.log and v1-decimal-ui-check.json;
+Neo4jCurrent/neo4j-cql-v1-demo-current.trx and reviewed Double reconciliation
+artifacts. Fixed SQLite DB/journal/readiness absent; owned Mongo/Bolt/demo
+listeners absent after teardown. This certifies this Double demo slice, not a
+new full combined provider regression or complete CQL. Single and broader
+policy/join/federation/interruption/certification requirements remain open.

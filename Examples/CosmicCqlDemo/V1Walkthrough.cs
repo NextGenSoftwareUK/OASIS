@@ -550,6 +550,49 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Price", descending = false } },
                 resultTake = 2
             }, grouped: true, decimalGroups: true);
+            // EXAMPLE 26 — Double request values are canonical round-trip strings. The
+            // projection response also uses strings, so browsers retain every bit.
+            // These readings differ by 10^-28; JSON numbers would lose precision.
+            await ShowAsync("26. Double source range / exact selected columns", new
+            {
+                provider,
+                filters = scalarFilters.Concat(new object[]
+                {
+                    new { metadataPath = new[] { "reading" }, scalar = "Double",
+                        @operator = "GreaterThanOrEqual", value = "1.0000000000000004" },
+                    new { metadataPath = new[] { "reading" }, scalar = "Double",
+                        @operator = "LessThan", value = "1.0000000000000009" }
+                }).ToArray(),
+                orderBy = "Name",
+                take = 2,
+                columns = new object[]
+                {
+                    new { alias = "Name", field = "Name" },
+                    new { alias = "Reading", metadataPath = new[] { "reading" }, valueType = "Double" }
+                }
+            }, projection: true, doubleProjection: true);
+
+            // EXAMPLE 27 — The selected alias determines Double type. Bounds
+            // remain strings; filtering happens before native group ordering/page.
+            await ShowAsync("27. Double groups / exact alias filters and ordering", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+                keys = new[] { new { alias = "reading", metadataPath = new[] { "reading" }, valueType = "Double" } },
+                columns = new object[]
+                {
+                    new { alias = "Reading", keyAlias = "reading" },
+                    new { alias = "Items", operation = "LongCount" }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Reading", @operator = "GreaterThanOrEqual", value = "1.0000000000000004" },
+                    new { alias = "Reading", @operator = "LessThan", value = "1.0000000000000009" }
+                },
+                resultOrder = new[] { new { alias = "Reading", descending = false } },
+                resultTake = 2
+            }, grouped: true, doubleGroups: true);
         }
 
         return completedRequests;
@@ -569,7 +612,9 @@ public static class V1Walkthrough
             bool unsignedProjection = false,
             bool unsignedGroups = false,
             bool decimalProjection = false,
-            bool decimalGroups = false)
+            bool decimalGroups = false,
+            bool doubleProjection = false,
+            bool doubleGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -608,7 +653,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
             }
 
-            if (projection && !dateProjection && !unsignedProjection && !decimalProjection)
+            if (projection && !dateProjection && !unsignedProjection && !decimalProjection && !doubleProjection)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -620,7 +665,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups)
+            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -705,6 +750,25 @@ public static class V1Walkthrough
                     || (decimalGroups ? rows.Any(row => row[1].GetString() != "1")
                         : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
                     throw new InvalidOperationException(title + " lost exact Decimal prices, shape or visibility.");
+            }
+
+            if (doubleProjection || doubleGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+                var readingIndex = doubleGroups ? 0 : 1;
+                var expectedReadings = new[]
+                {
+                    "1.0000000000000004",
+                    "1.0000000000000007"
+                };
+
+                if (payload.GetProperty("version").GetString() != (doubleGroups ? "cql-grouped-v1" : "cql-projection-v1")
+                    || payload.GetProperty("columns")[readingIndex].GetProperty("valueType").GetString() != "Double"
+                    || !rows.Select(row => row[readingIndex].GetString()).SequenceEqual(expectedReadings)
+                    || (doubleGroups ? rows.Any(row => row[1].GetString() != "1")
+                        : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
+                    throw new InvalidOperationException(title + " lost exact Double readings, shape or visibility.");
             }
 
             completedRequests++;

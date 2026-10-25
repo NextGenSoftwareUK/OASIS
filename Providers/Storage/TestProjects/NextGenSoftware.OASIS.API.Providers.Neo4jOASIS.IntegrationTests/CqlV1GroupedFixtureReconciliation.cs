@@ -15,10 +15,20 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1FixtureReconciliationTests
 {
     [TestMethod]
-    public async Task ReviewedGroupedAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+    public Task ReviewedGroupedAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+        => ReconcileGroupedFixture("7922E8471F658847507790F529639248E810B5D83378B7A305E814C2CDA2CB43",
+            "C37C8AB82D491B8B1721381C7FD1ED67F9B307EBD8BBE72712CFC3892A4F9F22",
+            410, 194, 189, "948d1906-868a-434b-87df-3912cec0ef02", false);
+
+    [TestMethod]
+    public Task ReviewedDoubleOrderingFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+        => ReconcileGroupedFixture("E78825690C7CDB2E5EC87DF345CDFC703B393515051D36A223E073D45C0513C2",
+            "8A60463C4B2DF6CD1A749CB4AE790271E1A9B09D2D3EACD6175E565745954265",
+            423, 207, 201, "e639b4c4-965a-44df-8957-c2e97162c3eb", true);
+
+    private static async Task ReconcileGroupedFixture(string hash, string evidenceHash, int requestCount,
+        int operationCount, int attemptCount, string oversizedKey, bool doubleReadings)
     {
-        const string hash = "7922E8471F658847507790F529639248E810B5D83378B7A305E814C2CDA2CB43";
-        const string evidenceHash = "C37C8AB82D491B8B1721381C7FD1ED67F9B307EBD8BBE72712CFC3892A4F9F22";
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -56,10 +66,9 @@ public sealed partial class CqlV1FixtureReconciliationTests
         // The reviewed journal records client intent and host admission separately.
         // Five auth probes and one oversized request never reserve an operation.
         var journal = fixture.GetProperty("requests").EnumerateArray().ToArray();
-        Assert.AreEqual(410, journal.Length);
+        Assert.AreEqual(requestCount, journal.Length);
         var authKeys = journal.Select(x => x.GetProperty("operation").GetString()).Distinct().Take(5).ToArray();
-        const string oversizedKey = "948d1906-868a-434b-87df-3912cec0ef02";
-        Assert.AreEqual(oversizedKey, journal[^18].GetProperty("operation").GetString());
+        Assert.AreEqual(oversizedKey, journal[doubleReadings ? ^30 : ^18].GetProperty("operation").GetString());
         string OperationId(Guid actor, string key)
         {
             var canonical = JsonSerializer.Serialize(new[] { "WEB4", actor.ToString("D"), key });
@@ -69,13 +78,22 @@ public sealed partial class CqlV1FixtureReconciliationTests
                 && !authKeys.Contains(x.GetProperty("operation").GetString())
                 && x.GetProperty("operation").GetString() != oversizedKey)
             .Select(x => OperationId(x.GetProperty("actor").GetGuid(), x.GetProperty("operation").GetString()!)).Distinct().ToArray();
-        Assert.AreEqual(194, expected.Length);
+        Assert.AreEqual(operationCount, expected.Length);
         var mongo = new MongoClient(uri);
         var operations = await mongo.GetDatabase(usageDb).GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1")
             .Find(Builders<UsageOutboxOperation>.Filter.Empty).ToListAsync();
         CollectionAssert.AreEquivalent(expected, operations.Select(x => x.Id).ToArray());
-        Assert.AreEqual(189, operations.Sum(x => x.ProviderAttempts.Count));
-        Assert.AreEqual(189, operations.Sum(x => x.Receipts.Count));
+        Assert.AreEqual(attemptCount, operations.Sum(x => x.ProviderAttempts.Count));
+        Assert.AreEqual(attemptCount, operations.Sum(x => x.Receipts.Count));
+        if (doubleReadings)
+        {
+            var rejected = journal.Last();
+            var outcome = operations.Single(operation => operation.Id == OperationId(
+                rejected.GetProperty("actor").GetGuid(), rejected.GetProperty("operation").GetString()!));
+            Assert.AreEqual("failed", outcome.ObservedOutcome);
+            Assert.AreEqual(0, outcome.ProviderAttempts.Count);
+            Assert.AreEqual(0, outcome.Receipts.Count);
+        }
         foreach (var operation in operations)
         {
             Assert.AreEqual("WEB4", operation.Service); Assert.AreEqual("settled", operation.State);
@@ -120,6 +138,21 @@ public sealed partial class CqlV1FixtureReconciliationTests
                         if (index < 5)
                         {
                             Assert.AreEqual(tag, holon.MetaData["fixture"].ToString());
+                            if (doubleReadings)
+                            {
+                                foreach (var expectedNumeric in new Dictionary<string, object>
+                                {
+                                    ["reading"] = 1d + index * 2.220446049250313e-16d,
+                                    ["price"] = 1m + index * 0.0000000000000000000000000001m,
+                                    ["counter"] = ulong.MaxValue - (ulong)index
+                                })
+                                {
+                                    var observed = Core.Serialization.StoredRecordJson.SerializeInput(holon.MetaData[expectedNumeric.Key]);
+                                    Assert.IsTrue(Core.Serialization.StoredRecordValueEquality.Equivalent(
+                                        Newtonsoft.Json.Linq.JToken.FromObject(expectedNumeric.Value),
+                                        new Newtonsoft.Json.Linq.JRaw(observed)));
+                                }
+                            }
                             var extremum = index == 0 ? long.MinValue : index == 1 ? long.MaxValue : -9007199254740993L + index;
                             Assert.AreEqual(extremum, long.Parse(holon.MetaData["extremum"].ToString()!, CultureInfo.InvariantCulture));
                         }
@@ -140,8 +173,9 @@ public sealed partial class CqlV1FixtureReconciliationTests
         // No destructive action occurs until every store and durable outcome
         // has been checked and the original ownership journal is unchanged.
         Assert.AreEqual(hash, Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(manifest))));
-        await File.WriteAllBytesAsync(Path.Combine(work, "cql-v1-web4-before-grouped-admission-reconciliation.json"), original);
-        await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-grouped-admission-reconciliation.json"),
+        var incident = doubleReadings ? "double-ordering" : "grouped-admission";
+        await File.WriteAllBytesAsync(Path.Combine(work, "cql-v1-web4-before-" + incident + "-reconciliation.json"), original);
+        await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-" + incident + "-reconciliation.json"),
             JsonSerializer.Serialize(new { hash, evidenceHash, snapshots, operations = operations.Select(x => new { x.Id, x.State, attempts = x.ProviderAttempts.Count, receipts = x.Receipts.Count }) }));
         await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = owned })).ConsumeAsync();
         await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = owned })).ConsumeAsync();
