@@ -1,5 +1,25 @@
 # CQL developer manual
 
+## SQLite Decimal arithmetic SDK availability
+
+SQLite now supports exact Decimal/nullable Sum and Average, including grouped
+result filters/order/pages. From an already scoped and authorized `source`:
+
+```csharp
+var total = source.Sum(holon =>
+    CosmicQueryMetadata.Value<decimal>(holon, "price"));
+
+var mean = source.Average(holon =>
+    CosmicQueryMetadata.Value<decimal?>(holon, "price"));
+```
+
+Plan and execute through HolonManager with the actual SQLite capabilities, as in
+the scalar examples below. The native reduction preserves28 decimal places and
+rounds once at final publication; a mathematical Sum outside Decimal range fails.
+MongoDB/Neo4j Decimal arithmetic and Decimal HTTP inputs are not enrolled yet.
+[Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
+
 ## UInt64 numeric queries — native SDK and HTTP compiler
 
 MongoDB, SQLite and Neo4j now execute native `Sum` and `Average` over UInt64

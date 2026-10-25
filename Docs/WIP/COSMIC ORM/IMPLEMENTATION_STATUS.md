@@ -1,5 +1,29 @@
 # COSMIC ORM implementation status
 
+## SQLite Decimal native acceptance - 25 October 2026
+
+FullCore3,048 and shippingWEB4 build pass;2new boundary tests preserve explicit
+v1 Int32/Int64/UInt64 numeric input enrollment. Mixed integer/Decimal packet
+widths are verified in the full native gate.
+
+SQLite now enrolls native Decimal/nullable Sum/Average for scalar and grouped
+queries, including selected filters/order/pages. Full1,702 native/72 unit tests
+pass without failures/skips, with23 new Decimal controls. They cover boundaries,
+large cancellation, final rounding, overflow versus valid means, nullable/empty
+inputs, source windows, privacy, cancellation/reuse,137inputs independent of graph
+publication limits, exact key comparisons and rejection of unrepresentable JSON.
+
+Seven signed INTEGER sums preserve the existing exact Decimal key domain. Grouped
+filter/order keys normalize that constant-size packet with the same Core owner
+used for returned values. No float cast, entity hydration or manager-side input
+scan is introduced. Existing snapshot/traversal/budget/error ownership remains.
+
+MongoDB/Neo4j native Decimal and Decimal HTTP/demo enrollment remain pending.
+The shared v1 binder explicitly limits Sum/Average inputs to Int32/Int64/UInt64
+and nullable forms, preventing SDK capability expansion from silently changing
+transport enrollment. See [Decimal contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
+
 ## Decimal numeric Core foundation - 25 October 2026
 
 Full Core3,046 and SQLite72/Mongo539/Neo520 unit tests pass without failures/skips;
@@ -144,7 +168,7 @@ its declared features, not completion of every future domain or policy.
 | Generic query ownership | Core/HolonManager contracts, planning, actual-adapter admission and V2 attempt/receipt owner implemented | Continue applying the same owner to remaining features |
 | Native rows and typed projections | Implemented on MongoDB, SQLite and Neo4j | Broader relationship/access/type certification remains below |
 | Relationships and child graphs | Native direct/descendant predicates, bounded expansion, partial-save ownership and provider consistency contracts implemented | Remaining relationship/access certification and authoritative sharing/tenant rules |
-| Scalar aggregates | Count/LongCount/Any, admitted Min/Max and exact Int32/Int64 Sum/Average implemented | Decimal/Double input domains and remaining certification |
+| Scalar aggregates | Count/LongCount/Any, admitted Min/Max, integer Sum/Average on all three stores and Decimal arithmetic on SQLite | MongoDB/Neo4j Decimal, floating input contracts and remaining certification |
 | Grouping | Typed/composite keys, multiple aggregates and selected filters/order/pages implemented | Expanded identity/type/access/consistency matrix |
 | Flat joins | Same-provider inner/left SDK and signed HTTP implemented | Expanded source/consistency/policy matrix and graph-source enrollment |
 | Selected-result composition | Bounded flat native SDK/HTTP stages implemented on all three providers | Graph-source enrollment and broader certification |

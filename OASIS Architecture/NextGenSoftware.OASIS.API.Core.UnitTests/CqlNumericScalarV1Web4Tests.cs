@@ -85,6 +85,8 @@ public partial class CqlV1Web4Tests
 
 
     [Theory]
+    [InlineData("Sum", "Decimal")]
+    [InlineData("Average", "Decimal")]
     [InlineData("Sum", "String")]
     [InlineData("Average", "String")]
     [InlineData("Sum", "Boolean")]

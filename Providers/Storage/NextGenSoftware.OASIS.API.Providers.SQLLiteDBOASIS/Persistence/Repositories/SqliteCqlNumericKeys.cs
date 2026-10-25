@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Microsoft.Data.Sqlite;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
@@ -10,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 internal sealed class SqliteCqlNumericKeys : IDisposable
 {
     internal const string PartsFunction = "cosmic_cql_average_key";
+    internal const string DecimalPartsFunction = "cosmic_cql_decimal_aggregate_key";
     private readonly SqliteConnection connection;
     private readonly Action checkBudget;
     private string failureCode, failureMessage;
@@ -32,16 +34,35 @@ internal sealed class SqliteCqlNumericKeys : IDisposable
             }
             var result = CosmicNumericScalarResults.FromParts(CosmicScalarOperation.Average,
                 type, high, low, count);
-            if (result.IsError)
-            {
-                // Preserve the typed outcome before publishing, even when SQL
-                // excludes this group. SQLite otherwise wraps callback errors.
-                failureCode ??= result.ErrorCode;
-                failureMessage ??= result.Message;
-                return null;
-            }
-            return result.Result == null ? null : CosmicNumericScalarResults.DecimalOrderKey(Convert.ToDecimal(result.Result, CultureInfo.InvariantCulture));
+            return NormalizeKey(result);
         }, isDeterministic: false);
+        connection.CreateFunction<long, long, long, long, long, long, long, long, int, string>(DecimalPartsFunction,
+            (a, b, c, d, e, f, g, count, mode) =>
+            {
+                if (!WithinBudget()) return null;
+                if (mode < 0 || mode > 3)
+                {
+                    failureCode ??= "CQL_DATA_INVALID";
+                    failureMessage ??= "Native Decimal aggregate key requires a declared operation/input domain.";
+                    return null;
+                }
+                return NormalizeKey(CosmicDecimalScalarResults.FromParts(
+                    mode < 2 ? CosmicScalarOperation.Sum : CosmicScalarOperation.Average,
+                    mode % 2 == 0 ? typeof(decimal) : typeof(decimal?), new[] { a, b, c, d, e, f, g }, count));
+            }, isDeterministic: false);
+    }
+
+    private string NormalizeKey(OASISResult<object> result)
+    {
+        // Retain typed errors even when a filter or page excludes this group.
+        // SQLite otherwise wraps callback exceptions as a generic SQL failure.
+        if (result.IsError)
+        {
+            failureCode ??= result.ErrorCode;
+            failureMessage ??= result.Message;
+            return null;
+        }
+        return result.Result == null ? null : CosmicNumericScalarResults.DecimalOrderKey(Convert.ToDecimal(result.Result, CultureInfo.InvariantCulture));
     }
 
     private bool WithinBudget()
@@ -63,6 +84,7 @@ internal sealed class SqliteCqlNumericKeys : IDisposable
     public void Dispose()
     {
         connection.CreateFunction<long, long, long, int, string>(PartsFunction, null);
+        connection.CreateFunction<long, long, long, long, long, long, long, long, int, string>(DecimalPartsFunction, null);
     }
 }
 

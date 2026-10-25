@@ -48,7 +48,9 @@ public partial class HolonRepository
             else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) cell.Value = "inputs";
             else if (column.Operation == CosmicScalarOperation.Sum)
             {
-                cell.High = "a" + index + "h"; cell.Low = "a" + index + "l";
+                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                    cell.Value = GroupNumericKey(column, index);
+                else { cell.High = "a" + index + "h"; cell.Low = "a" + index + "l"; }
             }
             else if (column.Operation == CosmicScalarOperation.Average)
             {
@@ -65,6 +67,13 @@ public partial class HolonRepository
         private static string GroupNumericKey(CosmicGroupedColumn column, int index)
         {
             var input = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            if (input == typeof(decimal))
+            {
+                var decimalMode = (column.Operation == CosmicScalarOperation.Sum ? 0 : 2)
+                    + (Nullable.GetUnderlyingType(column.Selector.ValueType) != null ? 1 : 0);
+                var words = Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(part => "a" + index + "d" + part);
+                return SqliteCqlNumericKeys.DecimalPartsFunction + "(" + string.Join(",", words) + ",a" + index + "n," + decimalMode + ")";
+            }
             var mode = (input == typeof(int) ? 0 : input == typeof(long) ? 2 : input == typeof(ulong) ? 4
                 : throw new NotSupportedException("Grouped average requires a declared integer input domain."))
                 + (Nullable.GetUnderlyingType(column.Selector.ValueType) != null ? 1 : 0);
