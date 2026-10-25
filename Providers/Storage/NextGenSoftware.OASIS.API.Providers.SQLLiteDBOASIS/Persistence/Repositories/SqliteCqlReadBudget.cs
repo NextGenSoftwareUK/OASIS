@@ -50,20 +50,23 @@ internal sealed class SqliteCqlReadBudget : IDisposable
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,Interval,callback,null);
             connection.CreateFunction<byte[], bool>(Utf8Function, ValidUtf8, isDeterministic: true);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, DecimalKey, isDeterministic: false);
-            connection.CreateFunction<string, string>(SqliteCqlDouble.Function, DoubleKey, isDeterministic: false);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, DoubleKey, isDeterministic: false);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, SingleKey, isDeterministic: false);
         }
         catch
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
-            connection.CreateFunction<string, string>(SqliteCqlDouble.Function, null);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
             SQLitePCL.raw.sqlite3_progress_handler(connection.Handle,0,null,null);
             SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,previousLength);
             throw;
         }
     }
     private string DecimalKey(string json) => NumericKey(json, SqliteCqlDecimal.Key);
-    private string DoubleKey(string json) => NumericKey(json, SqliteCqlDouble.Key);
+    private string SingleKey(string json) => NumericKey(json, SqliteCqlFloating.SingleKey);
+    private string DoubleKey(string json) => NumericKey(json, SqliteCqlFloating.DoubleKey);
     private string NumericKey(string json, Func<string, string> encode)
     {
         try
@@ -92,7 +95,8 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         {
             connection.CreateFunction<byte[], bool>(Utf8Function, null);
             connection.CreateFunction<string, string>(SqliteCqlDecimal.Function, null);
-            connection.CreateFunction<string, string>(SqliteCqlDouble.Function, null);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.DoubleFunction, null);
+            connection.CreateFunction<string, string>(SqliteCqlFloating.SingleFunction, null);
         }
         finally
         {

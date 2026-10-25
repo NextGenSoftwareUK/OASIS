@@ -558,3 +558,16 @@ the admission gap missed by isolated filter tests. Fresh SDK/HTTP demos pass
 81/81 across3stores, sources unchanged/all5binarypairs match. Frozen linked
 suite2,552 passes; signed receipts261/attempts256. Single, broader policy,
 composition/federation and final certification remain open.
+
+SQLite now shares SqliteCqlFloating between declared binary32/binary64 native
+intrinsics. Each parses original JSON into the declared precision, canonicalizes
+zero and rejects nonzero underflow before generating the common finite key.
+Typed publication decodes Single keys without rounding a Double-only packet.
+The existing query-scoped budget/cancellation owner covers both intrinsics.
+
+Core's projection domain-registry bound is independently128; selected columns
+remain32. Full primitive+nullable support requires33registry entries and cannot
+be tied to per-query width. Generic nullable Single grouping is admitted, while
+actual provider capabilities remain mandatory. FullCore2,555/focused28/
+fullSQLite1,513 pass with unchanged sources/matched producer/native copies.
+Mongo/Neo Single, Single wire/demos and broader certification remain open.
