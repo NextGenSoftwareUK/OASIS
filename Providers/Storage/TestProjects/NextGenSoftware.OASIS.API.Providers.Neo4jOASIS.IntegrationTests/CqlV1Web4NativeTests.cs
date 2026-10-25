@@ -672,6 +672,20 @@ public sealed partial class CqlV1Web4NativeTests
                                 .GetProperty("examples").GetProperty("ExactUInt64").GetProperty("value");
                             Assert.AreEqual("UInt64", unsignedGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
                             Assert.AreEqual("18446744073709551614", unsignedGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
+                            // Numeric unsigned examples use the shared scalar/grouped binder.
+                            var unsignedScalarExamples = paths.GetProperty("/api/data/query-cql/scalar").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json").GetProperty("examples");
+                            var unsignedAverage = unsignedScalarExamples.GetProperty("UInt64Average").GetProperty("value");
+                            Assert.AreEqual("Average", unsignedAverage.GetProperty("operation").GetString());
+                            Assert.AreEqual("UInt64", unsignedAverage.GetProperty("selection").GetProperty("valueType").GetString());
+                            Assert.AreEqual(2, unsignedAverage.GetProperty("take").GetInt32());
+                            Assert.AreEqual("Sum", unsignedScalarExamples.GetProperty("UInt64Sum").GetProperty("value").GetProperty("operation").GetString());
+                            var unsignedMeanGroups = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("UInt64Average").GetProperty("value");
+                            Assert.AreEqual("UInt64", unsignedMeanGroups.GetProperty("columns")[0].GetProperty("selection").GetProperty("valueType").GetString());
+                            Assert.AreEqual(1, unsignedMeanGroups.GetProperty("resultTake").GetInt32());
+
                             // Swagger's decimal presets must keep input bounds as strings.
                             var decimalProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
                                 .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")

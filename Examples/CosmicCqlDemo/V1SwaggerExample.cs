@@ -54,6 +54,72 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 };
             }
         }
+        var scalar = context.MethodInfo.GetParameters().Any(p => p.ParameterType.Name == "CqlScalarV1Request");
+        if (operation.RequestBody != null && (grouped || scalar))
+        {
+            foreach (var media in operation.RequestBody.Content.Values)
+            {
+                media.Examples["UInt64Average"] = new OpenApiExample
+                {
+                    Summary = grouped ? "Grouped UInt64 input with exact Decimal mean" : "UInt64 input with exact Decimal average",
+                    Value = UnsignedAggregateExample(grouped)
+                };
+                if (scalar)
+                    media.Examples["UInt64Sum"] = new OpenApiExample
+                    {
+                        Summary = "UInt64 Sum as exact tagged text",
+                        Value = UnsignedAggregateExample(grouped: false, average: false)
+                    };
+            }
+        }
+    }
+
+    private static OpenApiObject UnsignedAggregateExample(bool grouped, bool average = true)
+    {
+        var selection = new OpenApiObject
+        {
+            ["metadataPath"] = new OpenApiArray { new OpenApiString("counter") },
+            ["valueType"] = new OpenApiString("UInt64")
+        };
+        var request = new OpenApiObject
+        {
+            ["provider"] = new OpenApiString("MongoDBOASIS"),
+            ["filters"] = new OpenApiArray { new OpenApiObject
+            {
+                ["metadataPath"] = new OpenApiArray { new OpenApiString("fixture") },
+                ["scalar"] = new OpenApiString("String"),
+                ["operator"] = new OpenApiString("Equal"),
+                ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
+            } },
+            ["orderBy"] = new OpenApiString("Name"),
+            ["take"] = new OpenApiInteger(average ? 2 : 1)
+        };
+        if (grouped)
+        {
+            request["keys"] = new OpenApiArray { new OpenApiObject
+            {
+                ["alias"] = new OpenApiString("stock"),
+                ["metadataPath"] = new OpenApiArray { new OpenApiString("stock") },
+                ["valueType"] = new OpenApiString("Int64")
+            } };
+            request["columns"] = new OpenApiArray { new OpenApiObject
+            {
+                ["alias"] = new OpenApiString("Mean"),
+                ["operation"] = new OpenApiString("Average"),
+                ["selection"] = selection
+            } };
+            request["resultOrder"] = new OpenApiArray { new OpenApiObject
+            {
+                ["alias"] = new OpenApiString("Mean"), ["descending"] = new OpenApiBoolean(true)
+            } };
+            request["resultTake"] = new OpenApiInteger(1);
+        }
+        else
+        {
+            request["operation"] = new OpenApiString(average ? "Average" : "Sum");
+            request["selection"] = selection;
+        }
+        return request;
     }
 
     private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices, bool doubleReadings = false, bool singleReadings = false)

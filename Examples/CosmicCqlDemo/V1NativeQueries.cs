@@ -703,6 +703,54 @@ public static class V1NativeQueries
 
         await ShowCompositionAsync("34. Composition / exact values and result paging", exactSelected, "C-public");
 
+        // 35. Sum keeps the full UInt64 domain. Select one source row so the
+        // total is representable; summing several near-maximum counters must fail.
+        var unsignedFirst = Value(visible.OrderBy(holon => holon.Name).Take(1));
+
+        await ShowScalarAsync("35. UInt64 Sum / exact unsigned total",
+            Value(unsignedFirst.Sum(holon =>
+                CosmicQueryMetadata.Value<ulong>(holon, "counter"))),
+            ulong.MaxValue - 2UL);
+
+        // 36. Average may use a numerator larger than UInt64. Its Decimal
+        // result retains the half-unit that a JavaScript Number would lose.
+        var unsignedWindow = Value(visible.OrderBy(holon => holon.Name).Take(2));
+
+        await ShowScalarAsync("36. UInt64 Average / exact Decimal fraction",
+            Value(unsignedWindow.Average(holon =>
+                CosmicQueryMetadata.Value<ulong>(holon, "counter"))),
+            18446744073709551612.5m);
+
+        // 37. Source Take selects participation before grouping. Filter and
+        // order the published Decimal mean, then select a group result page.
+        var unsignedMeans = Value(unsignedWindow
+            .GroupBy(holon => CosmicQueryMetadata.Value<long>(holon, "stock"))
+            .Select(group => new
+            {
+                Mean = group.Average(holon =>
+                    CosmicQueryMetadata.Value<ulong>(holon, "counter"))
+            })
+            .Where(group => group.Mean == 18446744073709551612.5m)
+            .OrderByDescending(group => group.Mean)
+            .Take(1));
+
+        var unsignedMeanPlan = Value(CosmicGroupedPlanner.Plan(
+            unsignedMeans,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var unsignedMeanExecution = Value(await manager.ExecuteGroupedQueryAsync(
+            unsignedMeanPlan, new[] { adapter }));
+        var unsignedMeanRow = unsignedMeanExecution.Providers.Single().Rows.Single();
+
+        if (unsignedMeanRow.Mean != 18446744073709551612.5m)
+            throw new InvalidOperationException("Unsigned grouped mean lost its exact fraction.");
+
+        completedQueries++;
+        await output.WriteLineAsync("37. UInt64 groups / filter and order exact means\n");
+        await output.WriteLineAsync($"  Mean: {unsignedMeanRow.Mean}\n");
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,

@@ -1,5 +1,24 @@
 # COSMIC CQL demo
 
+## Latest: exact unsigned arithmetic on all three stores
+
+The current walkthrough has37 examples/provider and passes111 SDK/111 signed HTTP
+queries on MongoDB, SQLite and Neo4j (318settled operations/310attempts).
+Start with [V1NativeQueries.cs](V1NativeQueries.cs) for spaced, commented C#;
+[V1Walkthrough.cs](V1Walkthrough.cs) shows matching HTTP requests.
+
+- Example35: Sum one visible UInt64 counter and retain every digit.
+- Example36: Average two counters; preserve a Decimal half-unit beyond Int64.
+- Example37: Group source rows, then filter/order/page the exact mean.
+
+Sum rejects overflow. Average can succeed when its numerator exceeds UInt64.
+Browser and Swagger include unsigned arithmetic examples. Keep HTTP values as
+strings; avoid JavaScript Number conversion. Run the existing repository-root
+`Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1` for bounded verification, or add `-Serve`
+for the loopback browser demo. It reuses retained resources and owns teardown.
+Standalone build and9 offline UI checks pass. Earlier sections are historical.
+
+
 ## New v1: MongoDB, SQLite and Neo4j
 
 ```powershell
