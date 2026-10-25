@@ -22,7 +22,14 @@ internal sealed class SqliteCqlNumericKeys : IDisposable
         connection.CreateFunction<long, long, long, int, string>(PartsFunction, (high, low, count, mode) =>
         {
             if (!WithinBudget()) return null;
-            var type = mode switch { 0 => typeof(int), 1 => typeof(int?), 2 => typeof(long), _ => typeof(long?) };
+            var type = mode switch { 0 => typeof(int), 1 => typeof(int?), 2 => typeof(long), 3 => typeof(long?),
+                4 => typeof(ulong), 5 => typeof(ulong?), _ => null };
+            if (type == null)
+            {
+                failureCode ??= "CQL_DATA_INVALID";
+                failureMessage ??= "Native average key requires a declared input domain.";
+                return null;
+            }
             var result = CosmicNumericScalarResults.FromParts(CosmicScalarOperation.Average,
                 type, high, low, count);
             if (result.IsError)

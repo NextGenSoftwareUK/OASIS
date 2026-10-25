@@ -43,8 +43,9 @@ public partial class HolonRepository
                 if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                 {
                     var high = "a" + index + "h"; var low = "a" + index + "l"; var count = "a" + index + "n";
-                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + value + "/4294967296 ELSE 0 END) AS " + high);
-                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + value + "%4294967296 ELSE 0 END) AS " + low);
+                    var parts = IntegralParts(column.Selector.ValueType, value);
+                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.High + " ELSE 0 END) AS " + high);
+                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.Low + " ELSE 0 END) AS " + low);
                     reductions.Add(present + " AS " + count);
                     output.Add(high); output.Add(low); output.Add(count);
                 }
