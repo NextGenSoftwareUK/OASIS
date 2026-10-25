@@ -16,6 +16,7 @@
 // limitations under the License.
 
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Internal.Connector
@@ -31,9 +32,9 @@ namespace Neo4j.Driver.Internal.Connector
 #endif
         }
 
-        public Task<IPAddress[]> ResolveAsync(string hostname)
+        public Task<IPAddress[]> ResolveAsync(string hostname, CancellationToken cancellationToken = default)
         {
-            return Dns.GetHostAddressesAsync(hostname);
+            return Dns.GetHostAddressesAsync(hostname, cancellationToken);
         }
     }
 }

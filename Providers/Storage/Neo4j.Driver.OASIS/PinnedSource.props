@@ -1,4 +1,3 @@
-<?xml version='1.0' encoding='utf-8'?>
 <Project>
   <ItemGroup>
     <PinnedDriverSource Include="LICENSE">
@@ -104,7 +103,7 @@
       <ExpectedHash>3ED832A6D74D0A7028002410F36E697D5A71658C48A827BDA8FB9113CA62B497</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/IHostResolver.cs">
-      <ExpectedHash>53398949CAFCD902BFBAE6B86404059A8343F5BD3F6C397DC25E9AC48C3AD7F2</ExpectedHash>
+      <ExpectedHash>B8023BD7F7D8458DB78A29CC99C5EEEE1814A88BFF70ABD0456F83625599DF4D</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/ISocketClient.cs">
       <ExpectedHash>84FE6022D0398D42DF8C307F3DBB775F0E295F8B9ED3EF8561567033E0E539EC</ExpectedHash>
@@ -116,16 +115,16 @@
       <ExpectedHash>9C1EE4C1444E20B62C82092E1C2B90846711AB1BC5990B1C668A16F1E827D8A0</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/CachingHostResolver.cs">
-      <ExpectedHash>713A558856565DF836BF51CF3FCA987A70A13FABE2E14782C4E9CFD06140A77D</ExpectedHash>
+      <ExpectedHash>4EFD36E4FE8B06CBEDE9CED618FF84755FE8AEEE5B6B3A3408D740718CBCF2E8</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/DefaultHostResolver.cs">
-      <ExpectedHash>3FA1BFFE662F6414AFE3FF0DD11B2040CA85D2037DDFA25DA17A11A924681D94</ExpectedHash>
+      <ExpectedHash>01B127EFE9B4261349A8BDE862317D4F127831591A7DCB8171C46429B9B3CA15</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/SystemHostResolver.cs">
-      <ExpectedHash>02C24BE03D6BF8F3615FF19A814D725331FAD2FB259B1155C615346246A1CA8A</ExpectedHash>
+      <ExpectedHash>FD425DE98D1816C6E83FC22D7F049C572128F242649408CCD1FCB9F8176ADD2D</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/Resolvers/SystemNetCoreHostResolver.cs">
-      <ExpectedHash>5D89D73B6583656A0F740C17B9264A80A1E590ED2CDABF88A80AB5DFBD9AF584</ExpectedHash>
+      <ExpectedHash>480C0C67E39DEEE6172F4827457177CA472C9F75251A8E73F823505A3772C89A</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/SocketClient.cs">
       <ExpectedHash>0E84402A35C2051106C6D5555D5B0431E4AE2B69455826E0FFB4A0A07F285C94</ExpectedHash>
@@ -134,7 +133,7 @@
       <ExpectedHash>BDCAE9ED8E3D915DB199D21D2C7283A27FE6B8FF0AF9590E054CA2C231294C4A</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/TcpSocketClient.cs">
-      <ExpectedHash>5925C2E46A4E3A7BCD3BFBC6DC9349F76C791A640ED3B26F9CBBCFFC24164B2D</ExpectedHash>
+      <ExpectedHash>F8556ADE3BFAACB405F54814698C1CAFD081AFA7B1486F11252A3D04F7E61E86</ExpectedHash>
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Internal/Connector/Trust/CertificateTrustManager.cs">
       <ExpectedHash>A71E1D4825E05D971388713D2B2DC69A7ADFCC0BB0FC263E6C2EE7F70745245E</ExpectedHash>
@@ -855,6 +854,9 @@
     </PinnedDriverSource>
     <PinnedDriverSource Include="Upstream/Types/ZonedDateTime.cs">
       <ExpectedHash>E974A07C8EAF525397897D1D8341DF93C1C7315BBCC2EA8C0DB7B9964C8888B3</ExpectedHash>
+    </PinnedDriverSource>
+    <PinnedDriverSource Include="CompatibilityPublicKey.snk">
+      <ExpectedHash>97C3A47F03F35F1A1D7A663C00DC4593E5067CD762909B64AC15661CD320D2F1</ExpectedHash>
     </PinnedDriverSource>
   </ItemGroup>
 </Project>

@@ -7,9 +7,39 @@
       "patchedSha256": "C159723649A36140622C548983CF9137E759F0670F20D5056E144C4284508D51"
     },
     {
+      "path": "Upstream/Internal/Connector/IHostResolver.cs",
+      "originalSha256": "53398949CAFCD902BFBAE6B86404059A8343F5BD3F6C397DC25E9AC48C3AD7F2",
+      "patchedSha256": "B8023BD7F7D8458DB78A29CC99C5EEEE1814A88BFF70ABD0456F83625599DF4D"
+    },
+    {
+      "path": "Upstream/Internal/Connector/Resolvers/CachingHostResolver.cs",
+      "originalSha256": "713A558856565DF836BF51CF3FCA987A70A13FABE2E14782C4E9CFD06140A77D",
+      "patchedSha256": "4EFD36E4FE8B06CBEDE9CED618FF84755FE8AEEE5B6B3A3408D740718CBCF2E8"
+    },
+    {
+      "path": "Upstream/Internal/Connector/Resolvers/DefaultHostResolver.cs",
+      "originalSha256": "3FA1BFFE662F6414AFE3FF0DD11B2040CA85D2037DDFA25DA17A11A924681D94",
+      "patchedSha256": "01B127EFE9B4261349A8BDE862317D4F127831591A7DCB8171C46429B9B3CA15"
+    },
+    {
+      "path": "Upstream/Internal/Connector/Resolvers/SystemHostResolver.cs",
+      "originalSha256": "02C24BE03D6BF8F3615FF19A814D725331FAD2FB259B1155C615346246A1CA8A",
+      "patchedSha256": "FD425DE98D1816C6E83FC22D7F049C572128F242649408CCD1FCB9F8176ADD2D"
+    },
+    {
+      "path": "Upstream/Internal/Connector/Resolvers/SystemNetCoreHostResolver.cs",
+      "originalSha256": "5D89D73B6583656A0F740C17B9264A80A1E590ED2CDABF88A80AB5DFBD9AF584",
+      "patchedSha256": "480C0C67E39DEEE6172F4827457177CA472C9F75251A8E73F823505A3772C89A"
+    },
+    {
       "path": "Upstream/Internal/Connector/SocketClient.cs",
       "originalSha256": "6B43DDB963D85184992FE37B5E212D425CA76FE7F377B32FE614111356DE36FC",
       "patchedSha256": "0E84402A35C2051106C6D5555D5B0431E4AE2B69455826E0FFB4A0A07F285C94"
+    },
+    {
+      "path": "Upstream/Internal/Connector/TcpSocketClient.cs",
+      "originalSha256": "5925C2E46A4E3A7BCD3BFBC6DC9349F76C791A640ED3B26F9CBBCFFC24164B2D",
+      "patchedSha256": "F8556ADE3BFAACB405F54814698C1CAFD081AFA7B1486F11252A3D04F7E61E86"
     },
     {
       "path": "Upstream/Properties/AssemblyInfo.cs",
@@ -17,5 +47,5 @@
       "patchedSha256": "273036931A367A39B6DE7938C66AF208453CAB8A1DDCA368232213E2A9075888"
     }
   ],
-  "purpose": "Track and close transports during connection initialization; identify patched assembly"
+  "purpose": "Connection creation ownership, cancellable DNS/TCP/TLS and patched assembly identification"
 }

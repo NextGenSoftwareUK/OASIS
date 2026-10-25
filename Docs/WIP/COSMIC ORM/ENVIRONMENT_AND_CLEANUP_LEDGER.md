@@ -2175,3 +2175,110 @@ This is a verified scoped batch, not full CQL completion. Strict deadline latenc
 DNS/TCP/TLS connection phases, broader non-CQL driver regressions, joins,
 federation and the unchecked authorization/scalar/composition roadmap remain.
 The full original COSMIC ORM goal remains active.
+
+25 October deadline acceptance: eight real30-second native deadline cases added
+(cold/warm rows, projections, scalar, grouped), alongside10caller-cancellation
+controls. No shortened test timeout. Reuses Neo container17687 and relay17788,
+SDK10.0.401/runtime10.0.12/cache/provider/native bin/obj; all retained reusable,
+sizesunmeasured. Owner COSMIC ORM. Fixed log neo-native-deadline-current.log and
+Neo4jCurrent/neo4j-cql-interruption-current.trx; compact evidence retained.
+No new download/install/environment. Runner owns exact fixture/runtime teardown.
+Free disk before65075830784bytes; outcome pending. Shipping30sec cases require
+about4minutes native execution; build/runtime lease serialized normally.
+
+25 October new driver-specific test source project:
+C:/Source/OASIS/Providers/Storage/TestProjects/Neo4j.Driver.OASIS.Tests,
+owner COSMIC ORM, created source only (sizeunmeasured), retained. Uses pinned
+upstream friend assembly identity/publicsign key; no private key. Reuses existing
+.NET10 and MSTest3.1.1/TestSdk17.8.0 NuGetcache; no newenvironment/runtime.
+Deterministic held resolver creates no DNS traffic/socket/service. Planned local
+cache-only restore of this project only, then boundedbuild/unit gate underlease.
+Generated project bin/obj disposable after verifiedprocess exit, recreatevia
+restore/build; compact TRX/log retained. Outcome pending.
+
+25 October identity correction: driver-specific friend compilation exposed that
+upstream IdentityPubKey.snk tokenc08b0bc1c355082b differs from shipping signed
+NuGet4.3.2 tokenb646bc66d277ac07. Prior identity compatibility statement was wrong;
+previous passing cohorts used source-built consumers, not binary compatibility
+proof. CompatibilityPublicKey.snk now contains ONLY the288-byte public key read
+from cached Neo4j.Driver.Signed4.3.2/net5.0 DLL. No secret/privatekey/download.
+KeySHA25697C3A47F03F35F1A1D7A663C00DC4593E5067CD762909B64AC15661CD320D2F1.
+Originalupstreamkeypreserved. ExactprovenanceCOMPATIBILITY_IDENTITY.json;
+buildhashguardincludescompatibilitykey, native runner checks exactshipping
+assemblyFullName beforefixturestart, driverunitidentitycontroladded.
+Testproject-onlyofflinecache restorePASS, firstbuildfailedfriendkeymismatch;
+no DNS/nativefixturecreated. Key-correctedbuild/DNSredcontrol pending.
+
+25 October connection-creation fix gate53997: new internal resolver cancellation
+propagates to cancellable net10 DNS, TCP connect and TLS authentication. No
+Task.WhenAny detached native connect remains. Socket/stream publication is
+serialized with shutdown; repeated shutdown cannot reopen an owner. Existing
+upstream license/original-file hashes retained; PATCH.json records9modified
+upstreamfiles, PinnedSource.props guards285originalpaths+compatibilitypublickey.
+Deterministic DNS red test failed at intended ownership assertion; identity test
+passed after key correction. Expanded6drivercontrols first5pass/1test-typeassert
+failure (TaskCanceledException vsOperationCanceledException); assertionfixed.
+New fixtureidentity17789 is driverunit-owned loopback TLS ClientHello listener,
+alwaysdisposed in finally, no serverruntime. DNS tests use no real DNS/socket.
+Project-onlycache restore reused existing packages, no install/download/newenv.
+Gate53997 will rebuild pinnedSDK/provider/consumer, run6driverunits/267nativeCQL/
+465providerunits. Fullnativeincludes8real30secdeadlines so about8minutes.
+Fixed log TestResults/CosmicCqlDemo/neo-connection-full-regression.log; TRXfiles
+reusedinNeo4jCurrent, exactredDNS evidence driver-dns-ownership-red.trx retained.
+Resourcesactive/reusable: existingSDK/cache/Neo volume, producer/testbinobj
+(sizeunmeasured). Ownedcontainer17687/relay17788/TLSlistener17789 teardownchecked
+at terminal; compactevidence retained. No unrelated cleanup. Outcomepending.
+
+25 October gate53997 TERMINAL1: driver6PASS0skip; native249PASS/18FAIL0skip,
+7m58s. All18failure reports originate PausedBoltRelay.DisposeAsync/PumpAsync network
+read ConnectionReset (10054). Teardown exceptions can mask earlier assertions;
+these reports do not prove that interruption assertions passed.
+New connector omitted priorSocket.ShutdownBoth and directlydisposed unread
+socket, changing gracefulteardowntoRST. Restoring explicitShutdownBoth before
+stream/socket disposal at theconnectionowner. No exceptioncatch/testweakening.
+FullnativeTRXretained; no graphfixturejournal remains. RunnerstoppedNeo, no
+providerunit465executedafterfailednativegate. Regression outcomeisNOTgreen.
+Sourceidentity b646 verified; consumerdriverhash678EC6F...A56C0509. Follow-up
+connectorhash/provenancemanifest and native interruption retryrequired.
+
+25 October graceful-shutdown gate61225: uses existingSDK/cache/source project and
+sameNeo17687/relay17788/TLSunit17789 resources. No install/download/newenvironment.
+Driver source/provenancehashupdatedforrestoredTCPShutdownBoth. Planned6driverunits,
+18nativeinterruption and465providerunits; outputpaths reused, sizeunmeasured.
+Fixedlog neo-graceful-interruption-current.log, TRXcurrent files; preserve prior
+fullnativefailurehash76EB006F1084E947E632B98912E5B001E82BEBEEE4B5AD149BA39DA0C2D8DA87.
+Freebefore66042560512bytes. OwnerCOSMICORM. Runner ownsfixture teardown; reusable
+volume/SDK/buildoutputs retained, compactevidence retained. No unrelateddeletion.
+Outcomepending; previous249pass+18failcannotbeclaimedfullgreen.
+
+## Connection creation and native deadlines — 25 October 2026
+
+Gate61225 completed successfully on the corrected shipping assembly identity:
+6driverunits,18nativeinterruption/deadlinecases and465providerunits pass, zero
+skips. Native18duration4m5s. Real30second deadlines cover cold/warm rows,
+projections, scalar and grouped queries; caller cancellation remains covered.
+DNS resolution/cache waits, closed-owner rejection and a held real TLS
+ClientHello are covered by the driver tests. Shutdown is joined before reuse;
+TCPShutdownBoth is preserved before stream/socket disposal.
+
+NativeTRXSHA2562296A0EF80DA02FBA71C115700E77CE2B769CD98FE7A251A7F059069C9DA5E4B;
+driverunitTRXSHA2569B5EDF30184E9B9DC609D7A813629D52385F99F2B142630583EF52A0424B3A3C;
+providerunitTRXSHA2565E565A7A7A2CB4C325478DFF95E1C6F22ED790285A6F7D69E16FBCB2CF439087.
+Currentfiles are in TestResults/Neo4jCurrent. Log:
+TestResults/CosmicCqlDemo/neo-graceful-interruption-current.log.
+Driverproducer/provider/nativeconsumer hash agrees:
+C9A8D3524484B39671FD3CCAD97B7BB3AFEA566B06B93279C6F4C40B304857F3;
+exactassemblyidentity is Neo4j.Driver4.3.2.2/publickeytokenb646bc66d277ac07.
+Upstreamoriginalkeypreserved; CompatibilityPublicKey.snk/public-only288bytes
+is independently hash-pinned. PATCH.json records9modifiedupstreamfiles.
+
+OwnedNeo runtime stopped; listeners17687/17788/17789 and graphfixturejournal
+absent. Freeafter65940660224bytes. ExistingSDK/cache/Neo volume and fixedbuild
+outputs retained/reusable; sizesunmeasured. Newtestsource and compactevidence
+retained; no download/install/newenvironment or unrelated cleanup. OwnerCOSMICORM.
+
+The priorfull267run passed249normalcases but failed18relayteardowncases on the
+pre-ShutdownBoth connector. This new18casegate supersedes those interruption
+failures, but is NOT a freshfull267green cohort. Fullcurrent267/nativeWEB4/non-CQL
+regressions remain pending, alongside joins/federation and the rest of the
+unchecked CQL/ORM roadmap. No fullcompletionclaim; goalremainsactive.

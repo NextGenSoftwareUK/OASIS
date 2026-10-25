@@ -3,7 +3,7 @@
   "archiveBytes": 1012521,
   "repository": "https://github.com/neo4j/neo4j-dotnet-driver",
   "tag": "4.3.2",
-  "patch": "Connection creation ownership and unopened socket close; ten cold/warm native relay controls, 259 native CQL and 465 unit tests pass; broader certification pending",
+  "patch": "Connection creation ownership, cancellable DNS/TCP/TLS and shipping public identity; 18 native interruption, 6 driver unit and 465 provider unit controls pass; full native recertification pending",
   "commit": "5a40b591107331131875fbcd3d7f28fe60504d95",
   "originalFiles": [
     {
