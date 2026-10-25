@@ -55,7 +55,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         continue;
                     }
                     var written=await SavePlannedHolonAsync(node);
-                    if(written.IsError || written.Result==null || !written.IsSaved) {
+                    if(written==null || (!written.IsError && (written.Result==null || !written.IsSaved)))
+                        throw new GoogleFirestoreMutationReconciliationException(node.Snapshot.Id.ToString(),
+                            new InvalidDataException("Firestore writer returned no complete acknowledged save; reconcile before replay."));
+                    if(written.IsError) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
