@@ -93,10 +93,12 @@ MongoDB must preserve the existing original-value Decimal metadata admission.
 Multiplication of an admitted Decimal coefficient by10^28 can retain its at-most
 29 significant digits in Decimal128, despite a large positive exponent. Extract
 each base1e9 digit with exact remainder first, then subtract that remainder and
-divide the exact multiple by1e9. Do not truncate a rounded Decimal128 quotient:
-a near-integer division can cross its truncation boundary at large magnitudes.
-Seven bounded limb sums remain exact. This is a design constraint, not a native
-MongoDB implementation or acceptance claim.
+divide the exact multiple by1e9. Scaling/division by these powers of ten is exact
+for the admitted coefficient/exponent range; the remainder-first form makes the
+integer digit proof explicit. The earlier general warning about rounded division
+does not apply to these power-of-ten steps. General average division still needs
+exact rational normalization. Seven bounded limb sums remain exact. Native query
+enrollment and result-key normalization require separate acceptance.
 
 Grouped filtering/order on MongoDB/Neo4j must normalize the full scaled packet;
 recombining a66-digit numerator into Decimal128/Int64 is invalid. An eight-word
@@ -115,3 +117,40 @@ pass. The generic scalar/grouped HTTP binder now checks its own v1 numeric input
 list before SDK capture. Decimal Sum cannot become public HTTP merely because
 SQLite's SDK profile gains that domain. MongoDB/Neo4j and HTTP live gates remain
 open. Evidence is retained in the resource ledger and implementation status.
+
+## MongoDB packet component acceptance and remaining integration
+
+`DecimalScaledParts` now emits seven exact signed Decimal128 words. A native
+component test covers2,114 CLR values and real server reduction; full539 unit
+tests pass. No native Decimal query capability is advertised. The focused runner
+mode is `-CosmicCqlDecimalKernel` (one test); a later full CQL run expects392 after
+this added case. Earlier391-native evidence retains its original scope.
+
+Remaining grouped normalization algorithm:
+
+1. Normalize seven signed limb sums right-to-left with nonnegative remainders
+   and a floor carry. Prefix the final carry, forming eight words. The carry sign
+   determines the total sign. For negative totals, negate the original seven
+   sums and normalize again to obtain a nonnegative magnitude.
+2. Divide the magnitude by count for Average (one for Sum), using base1e9 long
+   division. Remainder*base+word fits Int64 under count<=2^31-1. Quotient words
+   and the exact remainder must stay separate.
+3. Start at scale28. If the rounded coefficient does not fit96bits, divide the
+   unrounded quotient by10, tracking the most-significant discarded digit and
+   whether any lower digit or original count remainder is nonzero. Try each
+   lower scale without feeding a rounded candidate into the next attempt.
+4. At the original scale, round by comparing twice the count remainder with the
+   denominator. At lower scales use the discarded digit/sticky flag and even
+   coefficient parity. Check the rounded coefficient against2^96-1.
+5. Once the coefficient fits, recombine only that at-most29-significant-digit
+   coefficient into Decimal128 and multiply by the exact power10^-scale. This
+   final native Decimal128 is representable exactly and matches existing grouped
+   numeric comparison/ordering domains. Never recombine the full66-digit scaled
+   numerator into Decimal128.
+6. Mathematical out-of-range Sum and malformed/work proofs must remain errors
+   in the shared raw-packet decoder, including groups outside the result page.
+   Empty nullable averages produce null. Source access, snapshot, traversal and
+   deadlines remain under the existing read owner.
+
+Scalar and grouped profiles currently share numeric input permissions. Complete
+both native paths and final-value/proof agreement before enabling Decimal.
