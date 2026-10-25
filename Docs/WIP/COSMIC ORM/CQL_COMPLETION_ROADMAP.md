@@ -2,12 +2,12 @@
 
 Current checkpoint: **25 October 2026**. Scalar/demo acceptance is published
 through `72ea866f8`; ordinary child-selection/save-state ownership hardening is
-published through parent `f1917a001` (Core `f0290ff`). SQLite SDK flat joins are published in parent `8d1fcb50b` / Core `7280f3b`; MongoDB/Neo4j enrollment and the remaining join gates stay open. Full completion is **not established**.
+published through parent `f1917a001` (Core `f0290ff`). SQLite SDK flat joins are published in parent `8d1fcb50b` / Core `7280f3b`; MongoDB SDK flat joins are now verified below; Neo4j enrollment and the remaining join gates stay open. Full completion is **not established**.
 
 - Single, Double, Decimal, UInt64 and UTC DateTime have certified native query
   support on MongoDB, SQLite and Neo4j within their recorded operator domains.
 - Latest separately verified cohorts: Core **2,734**, Shared **1,189**, normal
-  SQLite **1,615 native**, MongoDB **297 native /502 unit**, Neo4j **275 native
+  SQLite **1,615 native**, MongoDB **328 native /510 unit**, Neo4j **275 native
   /477 unit** and **16 native write-outcome controls**, zero skips. Historical
   sections retain their original counts and scope; these are not one simultaneous
   all-provider certification. The new shared custom-role contract passes eight cases per store (24 total), recorded below.
@@ -59,7 +59,7 @@ Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLE
 ## 3. Joins and composition
 
 Required semantics and acceptance are defined in the
-[native join implementation contract](CQL_JOIN_CONTRACT.md). SQLite SDK flat joins are available; the all-provider and broader join
+[native join implementation contract](CQL_JOIN_CONTRACT.md). MongoDB and SQLite SDK flat joins are available; the all-provider and broader join
 acceptance below remains open.
 
 - [ ] Add bounded same-provider inner/left joins with defined key domains, null semantics and cardinality limits.
@@ -1089,3 +1089,39 @@ only: **MongoDB does not yet implement or advertise native joins**. A single
 snapshot/deadline/native-attempt owner, bounded typed proof decoding and positive/
 negative native integration gates are next. Existing MongoDB native 297 remains
 a separate earlier cohort. No Mongo service, database or new environment was used.
+
+## Verified MongoDB SDK flat joins — 25 October 2026
+
+MongoDB now executes flat inner/left joins through generic V2 HolonManager with
+one snapshot/deadline owner and native matching. The final full native suite
+passes **328/328**, zero skips, including **31 new join cases**; the full MongoDB
+unit gate passes **510/510**. Existing Core **2,734**, SQLite **1,615 native/46 unit**
+and Neo4j **275 native/477 unit** are separate earlier cohorts, not a new combined
+all-provider gate.
+
+Native join evidence covers fanout/unmatched presence, all seven remaining work/
+byte budgets and reuse, required invalid/missing unmatched cells, both-source
+visibility before matching/paging, pre-cancellation, twelve exact scalar key
+domains, composite keys, missing/null ordering through independent source pages,
+a real acknowledged concurrent write between source reads, blocked-read
+cancellation and a cumulative deadline with fresh reuse. The snapshot control
+retains the original match; a subsequent fresh read observes that it disappeared.
+
+The first expanded run passed327/328: timeout classification was correct, but the
+test assumed a third command must start. MongoDB legitimately timed out during
+its second command. The final control observes actual wire `maxTimeMS` budgets
+**30,000 then18,997**, requires strict decrease and retains timeout/no-publication
+assertions. This proves the allowance is not renewed for each command without
+assuming a server clock schedule. Original failure evidence is preserved as
+`TestResults/SubscriptionUsageCurrent/mongo-join-deadline-original-red.trx`.
+
+Final evidence: `TestResults/CosmicCqlDemo/mongo-join-native-final.log` and
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx` (4m29s).
+Core producer/consumer SHA256 both639CB2A585F74AD54282500A0751783F2D09C0AA1E018F009A09E0CBFA904E13;
+MongoDB producer/consumer both6C54E0FEF2EBAA4CBF149AB60D0BBB9CC5C9CD25265D3453532552AE26E75C99.
+Owned MongoDB27029 is stopped after acknowledged fixture teardown; the pinned
+runtime/data remain reusable. No download/install/restore or duplicate environment.
+
+MongoDB and SQLite SDK flat joins are available. Neo4j joins, graph-source joins,
+joined HTTP/browser demos, post-projection/window composition, federation and
+remaining policy/certification gates stay open. Full CQL is not complete.
