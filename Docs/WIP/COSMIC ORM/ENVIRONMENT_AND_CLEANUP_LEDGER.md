@@ -1401,3 +1401,27 @@ double-full-current.trx} and TestResults/CosmicCqlDemo/mongo-double-native.log
 (sizes unmeasured). No in-lease producer/consumer hash snapshot was captured in
 this gate, so no matched-artifact certification is claimed. Lease released for
 peer Oracle priority; no Core/Shared source changes.
+
+## Neo4j Double native continuation — 24 October 2026
+
+Owner COSMIC ORM/CQL session; reusing SDK10.0.401, NuGet cache and existing
+C:/Source/OASIS provider/native/unit bin/obj outputs. Reuse WSL Ubuntu/root Podman
+oasis-neo4j5.26.12 image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd
+on Bolt17687, existing TestResults/Neo4jCurrent and reviewed fixture journal owner.
+No download/install/restore/new environment. Sizes unmeasured; last C free
+68,229,201,920 bytes. Wait for peer Oracle build completion before global lease.
+Retain compact TRX/log/hash evidence; clean acknowledged owned graph fixtures
+and stop owned container through reusable runner, preserve unknown outcomes.
+Native/unit gate pending.
+
+78290 terminal0:fullNeo232native/457units PASS0skip,15 new native/2 packet cases.
+Core353753B9/Shared86216993 matching producer/consumer copies verified by runner;
+native consumer DLL identities captured inside lease at
+C:/Source/OASIS/TestResults/Neo4jCurrent/double-identities-current.json.
+Retain neo4j-cql-native-current.trx, double-full-current.trx in same directory and
+C:/Source/OASIS/TestResults/CosmicCqlDemo/neo-double-native.log (sizes unmeasured).
+No source-before/after snapshot captured. Fixed cql-graph-fixture.json absent,
+Bolt17687 listener absent; runner stopped retained container. No runtime/cache
+removed or new environment/download/restore. Free C before68,190,584,832 and
+after67,940,839,424 bytes at runner observation; generated outputs reusable,
+acknowledged fixture disposable data cleaned by existing owner. Lease released.

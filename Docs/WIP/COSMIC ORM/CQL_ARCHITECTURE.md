@@ -536,3 +536,12 @@ Grouped normalized numeric cells retain their actual CLR type; Decimal and Doubl
 key spaces cannot be compared as if interchangeable. FullCore2,507/focused26/
 fullSQLite1,485 pass, source and producer/consumer identities unchanged inside the
 lease. Mongo/Neo Double, Single queries and floating transport remain open.
+
+MongoDB and Neo4j now also enroll finite Double SDK values. Mongo normalizes
+numeric BSON before all operand consumers; Neo normalizes schema3 integer/raw
+numeric lexemes in Cypher. Both reject nonzero underflow, non-finite values and
+numeric-looking strings, and require finite normalized native Double packets.
+Full Mongo254native/493units and Neo232native/457units pass0skip. The Neo gate
+verifies matching Core/Shared copies; Mongo's preceding gate did not capture
+in-lease identity hashes. These scoped cohorts do not establish final combined
+certification. Single and floating wire/live demos remain open.
