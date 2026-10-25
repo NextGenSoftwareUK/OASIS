@@ -1425,3 +1425,21 @@ Bolt17687 listener absent; runner stopped retained container. No runtime/cache
 removed or new environment/download/restore. Free C before68,190,584,832 and
 after67,940,839,424 bytes at runner observation; generated outputs reusable,
 acknowledged fixture disposable data cleaned by existing owner. Lease released.
+
+## Double HTTP contract continuation — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse existing SDK10.0.401, NuGet cache, Core-linked unit
+project bin/obj and TestResults/CosmicCurrent. No install/download/restore/new
+environment/service. Output sizes unmeasured. Native test transport negative
+control moved to permanently unknown NotAScalar before Double enrollment.
+Full linked-unit gate pending, acquire global lease once peer Oracle releases.
+Retain compact TRX/log, reusable build outputs; no temporary database introduced.
+
+2067 terminal0:full2,542linkedunits PASS0skip,35new Double wire/endpoint cases.
+Reused Core-linked bin/obj and SDK/cache, no restore/install/download/database.
+Retain C:/Source/OASIS/TestResults/CosmicCurrent/double-wire-full-current.trx,
+double-wire-identities-current.json and
+C:/Source/OASIS/TestResults/CosmicCqlDemo/double-wire-full.log (sizes unmeasured).
+Consumer identities captured inside lease; no matched producer/source-snapshot
+claim in this unit-only gate. Lease released. Free C67,646,017,536 after.
+Reusable outputs retained; no new disposable service fixture to remove.
