@@ -1,6 +1,8 @@
+#Requires -Version 7.0
 param(
     [switch]$BootstrapSchema,
     [switch]$Coverage,
+    [switch]$RestartDatabaseBetweenPhases,
     [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
     [switch]$ReconcileConditionalIntent,
     [switch]$ReconcileScopedVisibility,
@@ -29,9 +31,46 @@ $selectedModes=@($BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileK
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
+if($RestartDatabaseBetweenPhases -and !$EncryptedProcess){throw 'Database restart requires the explicit encrypted two-process mode.'}
 if(!$InspectReadConnections -and $ReadConnectionIterations -ne 50){throw 'A custom read workload requires the explicitly read-only inspection mode.'}
 if(!$InspectReadConnections -and $ReadConnectionPath -ne 'Provider'){throw 'A native connection control requires the explicitly read-only inspection mode.'}
 $ErrorActionPreference='Stop'
+function Wait-RetainedOracleReady {
+    $oracleReadyDeadline=[DateTime]::UtcNow.AddSeconds(50)
+    do{
+        $oracleHealth=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Health.Status}}' oasis-oracle-free).Trim()
+        if($LASTEXITCODE -ne 0){throw 'Oracle health inspection failed.'}
+        if($oracleHealth -eq 'healthy'){return}
+        if($oracleHealth -ne 'starting'){throw 'Retained Oracle is not healthy; preserve it for inspection.'}
+        Start-Sleep -Milliseconds 500
+    }while([DateTime]::UtcNow -lt $oracleReadyDeadline)
+    throw 'Retained Oracle readiness timeout; no restart/reset.'
+}
+function Get-OracleProcessRuntimeState {
+    # wsl.exe can marshal shell metacharacters in unquoted native arguments;
+    # use native JSON, not a pipe-delimited template interpreted by bash.
+    $oracleIdentity=& wsl -d Ubuntu -u root -- podman inspect --format '{{.Id}}' oasis-oracle-free
+    if($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($oracleIdentity) -or $oracleIdentity.Trim() -notmatch '^[a-f0-9]{64}$'){throw 'Retained Oracle runtime identity unavailable.'}
+    $oracleStateJson=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .State}}' oasis-oracle-free
+    if($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($oracleStateJson)){throw 'Retained Oracle runtime state unavailable.'}
+    $oracleState=$oracleStateJson|ConvertFrom-Json
+    [pscustomobject]@{ContainerId=$oracleIdentity.Trim();Status=$oracleState.Status;ExitCode=[int]$oracleState.ExitCode;OomKilled=[bool]$oracleState.OOMKilled;StartedAt=$oracleState.StartedAt}
+}
+function Write-OracleProcessBoundary {
+    param([string]$Path,[object]$Value,[switch]$Replace)
+    $oracleNext=$Path+'.next'
+    $oracleBytes=[Text.UTF8Encoding]::new($false).GetBytes(($Value|ConvertTo-Json -Depth 8 -Compress))
+    $oracleStream=[IO.File]::Open($oracleNext,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try{$oracleStream.Write($oracleBytes);$oracleStream.Flush($true)}finally{$oracleStream.Dispose()}
+    [IO.File]::Move($oracleNext,$Path,$Replace.IsPresent)
+    (Get-FileHash -LiteralPath $Path).Hash
+}
+function Assert-OracleProcessWriterOwnership {
+    param([bool]$StartedHere,[string]$ExpectedContainerId,[object]$Actual)
+    if(!$StartedHere -or $Actual.ContainerId -ne $ExpectedContainerId -or $Actual.Status -ne 'running'){
+        throw 'Restart runtime ownership changed before writer admission; no new write or restart is permitted.'
+    }
+}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
 if(!(Test-Path -LiteralPath $work)){throw 'Retained Oracle work directory required; do not recreate an environment.'}
@@ -91,12 +130,26 @@ try{
     elseif($ReconcileCorruptAvatar){if($pending.Count -ne 1 -or $pending[0].Name -ne 'create-race-0.pending.json'){throw 'Exactly the original corrupt avatar journal required.'}}
     elseif($ReconcileProjectionAssertions){if($pending.Count -ne 6){throw 'Exactly the six original projection-assertion journals required; test validates exact names and evidence.'}}
     elseif($pending.Count){throw 'Reconcile original Oracle fixture before another write.'}
+    if($EncryptedProcess){
+        # Admit the ENTIRE two-phase cohort before the first write, not a later
+        # recover report after committing new data. Preserve all previous proof.
+        $oracleProcessNames=@('oracle-encrypted-process-write.trx','oracle-encrypted-process-recover.trx',
+            'encrypted-process-False.written.json','encrypted-process-True.written.json',
+            'encrypted-process-False.verified.json','encrypted-process-True.verified.json',
+            'oracle-encrypted-process-restart.pending.json','oracle-encrypted-process-restart.current.json',
+            'oracle-encrypted-process-restart.pending.json.next','oracle-encrypted-process-restart.current.json.next')
+        foreach($oracleName in $oracleProcessNames){if(Test-Path -LiteralPath (Join-Path $work $oracleName)){throw 'Preserve ALL original process evidence before any new phase; no write/replay.'}}
+    }
     $image=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
     if($LASTEXITCODE -ne 0 -or $image -ne '358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9'){throw 'Approved retained Oracle image/container required; no pull/create.'}
     $bindings=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .HostConfig.PortBindings}}' oasis-oracle-free | ConvertFrom-Json
     if($LASTEXITCODE -ne 0 -or @($bindings.'1521/tcp').Count -ne 1 -or $bindings.'1521/tcp'[0].HostIp -ne '127.0.0.1' -or $bindings.'1521/tcp'[0].HostPort -ne '11521'){throw 'Expected configured loopback Oracle port mapping required.'}
     $mounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-oracle-free | ConvertFrom-Json)
     if($LASTEXITCODE -ne 0 -or $mounts.Count -ne 1 -or $mounts[0].Type -ne 'volume' -or $mounts[0].Name -ne 'oasis-oracle-data' -or $mounts[0].Destination -ne '/opt/oracle/oradata'){throw 'Exact retained Oracle data volume required; no replacement.'}
+    if($RestartDatabaseBetweenPhases){
+        $oracleInitialRuntime=Get-OracleProcessRuntimeState
+        if($oracleInitialRuntime.Status -ne 'exited'){throw 'Restart proof requires an initially stopped runtime owned/started by this invocation; never interrupt an already running service.'}
+    }
     foreach($project in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj')){
         & dotnet build (Join-Path $root $project) --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
@@ -116,15 +169,10 @@ try{
         & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
         if($LASTEXITCODE -ne 0){throw 'Retained Oracle start failed.'};$startedHere=$true
     }elseif($state -ne 'running'){throw 'Unexpected retained Oracle lifecycle state; inspect without resetting.'}
-    $deadline=[DateTime]::UtcNow.AddSeconds(50)
-    do{
-        $health=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Health.Status}}' oasis-oracle-free).Trim()
-        if($LASTEXITCODE -ne 0){throw 'Oracle health inspection failed.'}
-        if($health -eq 'healthy'){break}
-        if($health -ne 'starting'){throw 'Retained Oracle is not healthy; preserve it for inspection.'}
-        Start-Sleep -Milliseconds 500
-    }while([DateTime]::UtcNow -lt $deadline)
-    if($health -ne 'healthy'){throw 'Retained Oracle readiness timeout; no restart/reset.'}
+    Wait-RetainedOracleReady
+    if($RestartDatabaseBetweenPhases){
+        Assert-OracleProcessWriterOwnership -StartedHere $startedHere -ExpectedContainerId $oracleInitialRuntime.ContainerId -Actual (Get-OracleProcessRuntimeState)
+    }
     $secret=(& wsl -d Ubuntu -u root -- podman secret inspect --showsecret oasis-oracle-pwd | ConvertFrom-Json)[0].SecretData
     if([string]::IsNullOrWhiteSpace($secret)){throw 'Retained secret unavailable.'}
     # Use normal SDK connection reuse, bounded for the retained local server.
@@ -151,8 +199,68 @@ try{
             [xml]$phaseTrx=Get-Content -LiteralPath $phaseReport -Raw;$phaseCounts=$phaseTrx.TestRun.ResultSummary.Counters
             if($phaseFile.LastWriteTimeUtc -lt $processStarted -or [int]$phaseCounts.total -ne 2 -or [int]$phaseCounts.passed -ne 2 -or [int]$phaseCounts.notExecuted -ne 0){throw 'Fresh complete2/2 Oracle process phase required.'}
             if($phase -eq 'write' -and @(Get-ChildItem -LiteralPath $work -Filter 'encrypted-process-*.pending.json').Count -ne 2){throw 'Exactly two committed process intents required before recovery.'}
+            if($phase -eq 'write' -and $RestartDatabaseBetweenPhases){
+                if(!$startedHere){throw 'Only this invocation may restart its owned runtime.'}
+                $oracleBeforeStop=Get-OracleProcessRuntimeState
+                if($oracleBeforeStop.ContainerId -ne $oracleInitialRuntime.ContainerId -or $oracleBeforeStop.Status -ne 'running'){throw 'Original Oracle runtime changed before stop; preserve intents.'}
+                $oracleOriginalEvidence=[ordered]@{}
+                foreach($oracleName in @('oracle-encrypted-process-write.trx','encrypted-process-False.pending.json','encrypted-process-True.pending.json','encrypted-process-False.written.json','encrypted-process-True.written.json')){
+                    $oracleOriginalEvidence[$oracleName]=(Get-FileHash -LiteralPath (Join-Path $work $oracleName)).Hash
+                }
+                $oracleProcessIntents=[ordered]@{}
+                foreach($oracleSync in @('False','True')){$oracleProcessIntents[$oracleSync]=Get-Content -LiteralPath (Join-Path $work "encrypted-process-$oracleSync.pending.json") -Raw|ConvertFrom-Json}
+                $oracleWriterIds=@($oracleProcessIntents.Values|ForEach-Object{$_.WriterProcess}|Sort-Object -Unique)
+                if($oracleWriterIds.Count -ne 1){throw 'One original writer testhost is required.'}
+                $oracleWriterProcess=Get-Process -Id $oracleWriterIds[0] -ErrorAction SilentlyContinue
+                if($null -ne $oracleWriterProcess){
+                    # Wait on the actual completed-test host, never sleep/retry writes
+                    # or kill another process to obtain the restart boundary.
+                    if($oracleWriterProcess.ProcessName -ne 'testhost' -or !$oracleWriterProcess.WaitForExit(10000)){throw 'Writer testhost must be terminal before owned database restart.'}
+                }
+                $oracleRestartPending=Join-Path $work 'oracle-encrypted-process-restart.pending.json'
+                $oracleRestartReport=Join-Path $work 'oracle-encrypted-process-restart.current.json'
+                $oracleRestartProof=[ordered]@{state='before-requested-graceful-stop';before=$oracleBeforeStop;image=$image;volume='oasis-oracle-data';port='127.0.0.1:11521';writerProcess=$oracleWriterIds[0];originalIntents=$oracleProcessIntents;originalEvidence=$oracleOriginalEvidence;recoveryVerified=$false;crashPowerLossVerified=$false;hostedVerified=$false;fullProviderVerified=$false;hyperDriveRoutingVerified=$false}
+                $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof
+                & wsl -d Ubuntu -u root -- podman stop --time 30 oasis-oracle-free
+                if($LASTEXITCODE -ne 0){throw 'Oracle stop outcome requires inspection; do not start/replay automatically.'}
+                $oracleStopped=Get-OracleProcessRuntimeState
+                if($oracleStopped.ContainerId -ne $oracleBeforeStop.ContainerId -or $oracleStopped.Status -ne 'exited' -or $oracleStopped.OomKilled -or $oracleStopped.ExitCode -notin @(0,143)){throw 'Requested graceful stop not observed; preserve original outcomes, no automatic restart.'}
+                if((Get-FileHash -LiteralPath $oracleRestartPending).Hash -ne $oracleIntentHash){throw 'Original restart intent changed.'}
+                $oracleRestartProof['state']='requested-stop-observed';$oracleRestartProof['stopped']=$oracleStopped
+                $oracleIntentHash=Write-OracleProcessBoundary -Path $oracleRestartPending -Value $oracleRestartProof -Replace
+                & wsl -d Ubuntu -u root -- podman start oasis-oracle-free
+                if($LASTEXITCODE -ne 0){throw 'Original Oracle restart outcome requires inspection; no reset/replay.'}
+                Wait-RetainedOracleReady
+                $oracleAfterStart=Get-OracleProcessRuntimeState
+                if($oracleAfterStart.ContainerId -ne $oracleBeforeStop.ContainerId -or $oracleAfterStart.Status -ne 'running' -or $oracleAfterStart.StartedAt -eq $oracleBeforeStop.StartedAt){throw 'A real start of the SAME retained Oracle runtime is required.'}
+                $oracleRestartImage=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-oracle-free).Trim()
+                $oracleRestartMounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-oracle-free|ConvertFrom-Json)
+                $oracleRestartBindings=& wsl -d Ubuntu -u root -- podman inspect --format '{{json .HostConfig.PortBindings}}' oasis-oracle-free|ConvertFrom-Json
+                if($LASTEXITCODE -ne 0 -or $oracleRestartImage -ne $image -or $oracleRestartMounts.Count -ne 1 -or $oracleRestartMounts[0].Type -ne 'volume' -or $oracleRestartMounts[0].Name -ne 'oasis-oracle-data' -or $oracleRestartMounts[0].Destination -ne '/opt/oracle/oradata' -or @($oracleRestartBindings.'1521/tcp').Count -ne 1 -or $oracleRestartBindings.'1521/tcp'[0].HostIp -ne '127.0.0.1' -or $oracleRestartBindings.'1521/tcp'[0].HostPort -ne '11521'){throw 'Oracle image/volume/loopback binding changed during restart.'}
+                foreach($oracleEntry in $oracleOriginalEvidence.GetEnumerator()){if((Get-FileHash -LiteralPath (Join-Path $work $oracleEntry.Key)).Hash -ne $oracleEntry.Value){throw 'Original write/process proof changed across restart.'}}
+                $oracleRestartProof['state']='restart-ready-original-recovery-pending';$oracleRestartProof['after']=$oracleAfterStart
+                $oracleReadyHash=Write-OracleProcessBoundary -Path $oracleRestartReport -Value $oracleRestartProof
+                if((Get-FileHash -LiteralPath $oracleRestartPending).Hash -ne $oracleIntentHash){throw 'Original restart intent changed.'}
+                Remove-Item -LiteralPath $oracleRestartPending
+            }
         }
         if(Get-ChildItem -LiteralPath $work -Filter '*.pending.json'){throw 'Original Oracle process fixtures remain unresolved.'}
+        if($RestartDatabaseBetweenPhases){
+            $oracleRecoveryProofs=[ordered]@{}
+            foreach($oracleSync in @('False','True')){
+                $oracleVerifiedPath=Join-Path $work "encrypted-process-$oracleSync.verified.json"
+                $oracleVerified=Get-Content -LiteralPath $oracleVerifiedPath -Raw|ConvertFrom-Json
+                if($oracleVerified.recoveryCommits -ne 0 -or $oracleVerified.schemaProvisionCalls -ne 0 -or !$oracleVerified.usedOldPreparation -or !$oracleVerified.nativeHashesVerifiedBeforeRecovery -or $oracleVerified.readerProcess -eq $oracleVerified.writerProcess -or $oracleVerified.writerProcess -ne $oracleWriterIds[0] -or $oracleVerified.proofHash -ne (Get-FileHash -LiteralPath (Join-Path $work "encrypted-process-$oracleSync.written.json")).Hash){throw 'Exact zero-commit/no-provision original recovery proof required.'}
+                $oracleOriginalIntent=$oracleProcessIntents[$oracleSync]
+                if($oracleVerified.Operation -ne $oracleOriginalIntent.Operation -or $oracleVerified.rootId -ne $oracleOriginalIntent.Root -or $oracleVerified.childId -ne $oracleOriginalIntent.Child -or $oracleVerified.actorId -ne $oracleOriginalIntent.Actor){throw 'Recovered operation/record identities differ from original restart intent.'}
+                $oracleRecoveryProofs[$oracleSync]=(Get-FileHash -LiteralPath $oracleVerifiedPath).Hash
+            }
+            if((Get-FileHash -LiteralPath $oracleRestartReport).Hash -ne $oracleReadyHash){throw 'Original restart-ready proof changed.'}
+            $oracleRestartProof['state']='restart-and-original-recovery-verified';$oracleRestartProof['recoveryVerified']=$true
+            $oracleRestartProof['recoveryReportHash']=(Get-FileHash -LiteralPath (Join-Path $work 'oracle-encrypted-process-recover.trx')).Hash
+            $oracleRestartProof['recoveryProofHashes']=$oracleRecoveryProofs;$oracleRestartProof['completedUtc']=[DateTime]::UtcNow.ToString('O')
+            [void](Write-OracleProcessBoundary -Path $oracleRestartReport -Value $oracleRestartProof -Replace)
+        }
         $passed=$true;return
     }
     $report=if($EncryptedReplay){'oracle-encrypted-replay-native-current.trx'}elseif($PreparationClaims){'oracle-preparation-native-current.trx'}elseif($ReconcileOriginal){'oracle-native-reconciliation-current.trx'}elseif($ReconcileAmbiguity){'oracle-ambiguity-reconciliation.trx'}elseif($ReconcileHistoricalExport){'oracle-history-export-reconciliation.trx'}elseif($ReconcileCorruptAvatar){'oracle-corrupt-avatar-reconciliation.trx'}elseif($ReconcileProjectionAssertions){'oracle-projection-assertion-reconciliation.trx'}else{'oracle-native-current.trx'}
