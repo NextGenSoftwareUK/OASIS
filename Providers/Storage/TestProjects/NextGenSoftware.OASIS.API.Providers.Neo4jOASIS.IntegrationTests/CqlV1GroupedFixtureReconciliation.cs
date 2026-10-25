@@ -26,8 +26,14 @@ public sealed partial class CqlV1FixtureReconciliationTests
             "8A60463C4B2DF6CD1A749CB4AE790271E1A9B09D2D3EACD6175E565745954265",
             423, 207, 201, "e639b4c4-965a-44df-8957-c2e97162c3eb", true);
 
+    [TestMethod]
+    public Task ReviewedSingleProjectionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup()
+        => ReconcileGroupedFixture("38D2CD5321CF87D81051A08AB4EB9A9BC5D9F65D090C9B9E99C08CBCD5E0AD75",
+            "1C0EBAAF1D027314369F34BA87DC545D4E39A2F7839980A2348069F125D5C0AD",
+            424, 208, 203, "733272c8-298f-4ae6-a675-d037d47c68c1", true, true);
+
     private static async Task ReconcileGroupedFixture(string hash, string evidenceHash, int requestCount,
-        int operationCount, int attemptCount, string oversizedKey, bool doubleReadings)
+        int operationCount, int attemptCount, string oversizedKey, bool doubleReadings, bool singleReadings = false)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
@@ -68,7 +74,7 @@ public sealed partial class CqlV1FixtureReconciliationTests
         var journal = fixture.GetProperty("requests").EnumerateArray().ToArray();
         Assert.AreEqual(requestCount, journal.Length);
         var authKeys = journal.Select(x => x.GetProperty("operation").GetString()).Distinct().Take(5).ToArray();
-        Assert.AreEqual(oversizedKey, journal[doubleReadings ? ^30 : ^18].GetProperty("operation").GetString());
+        Assert.AreEqual(oversizedKey, journal[singleReadings ? ^31 : doubleReadings ? ^30 : ^18].GetProperty("operation").GetString());
         string OperationId(Guid actor, string key)
         {
             var canonical = JsonSerializer.Serialize(new[] { "WEB4", actor.ToString("D"), key });
@@ -85,7 +91,7 @@ public sealed partial class CqlV1FixtureReconciliationTests
         CollectionAssert.AreEquivalent(expected, operations.Select(x => x.Id).ToArray());
         Assert.AreEqual(attemptCount, operations.Sum(x => x.ProviderAttempts.Count));
         Assert.AreEqual(attemptCount, operations.Sum(x => x.Receipts.Count));
-        if (doubleReadings)
+        if (doubleReadings && !singleReadings)
         {
             var rejected = journal.Last();
             var outcome = operations.Single(operation => operation.Id == OperationId(
@@ -93,6 +99,17 @@ public sealed partial class CqlV1FixtureReconciliationTests
             Assert.AreEqual("failed", outcome.ObservedOutcome);
             Assert.AreEqual(0, outcome.ProviderAttempts.Count);
             Assert.AreEqual(0, outcome.Receipts.Count);
+        }
+        if (singleReadings)
+        {
+            // The HTTP response succeeded; the client checker failed afterward.
+            // Reconciliation checks that exact intent without reissuing it.
+            var last = journal.Last();
+            var outcome = operations.Single(operation => operation.Id == OperationId(
+                last.GetProperty("actor").GetGuid(), last.GetProperty("operation").GetString()!));
+            Assert.AreEqual(1, outcome.ProviderAttempts.Count);
+            Assert.AreEqual(1, outcome.Receipts.Count);
+            Assert.AreNotEqual("failed", outcome.ObservedOutcome);
         }
         foreach (var operation in operations)
         {
@@ -145,7 +162,9 @@ public sealed partial class CqlV1FixtureReconciliationTests
                                     ["reading"] = 1d + index * 2.220446049250313e-16d,
                                     ["price"] = 1m + index * 0.0000000000000000000000000001m,
                                     ["counter"] = ulong.MaxValue - (ulong)index
-                                })
+                                }.Concat(singleReadings
+                                    ? new Dictionary<string, object> { ["singleReading"] = 1f + index * 1.1920929e-7f }
+                                    : new Dictionary<string, object>()))
                                 {
                                     var observed = Core.Serialization.StoredRecordJson.SerializeInput(holon.MetaData[expectedNumeric.Key]);
                                     Assert.IsTrue(Core.Serialization.StoredRecordValueEquality.Equivalent(
@@ -173,7 +192,7 @@ public sealed partial class CqlV1FixtureReconciliationTests
         // No destructive action occurs until every store and durable outcome
         // has been checked and the original ownership journal is unchanged.
         Assert.AreEqual(hash, Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(manifest))));
-        var incident = doubleReadings ? "double-ordering" : "grouped-admission";
+        var incident = singleReadings ? "single-projection" : doubleReadings ? "double-ordering" : "grouped-admission";
         await File.WriteAllBytesAsync(Path.Combine(work, "cql-v1-web4-before-" + incident + "-reconciliation.json"), original);
         await File.WriteAllTextAsync(Path.Combine(work, "cql-v1-web4-reviewed-" + incident + "-reconciliation.json"),
             JsonSerializer.Serialize(new { hash, evidenceHash, snapshots, operations = operations.Select(x => new { x.Id, x.State, attempts = x.ProviderAttempts.Count, receipts = x.Receipts.Count }) }));

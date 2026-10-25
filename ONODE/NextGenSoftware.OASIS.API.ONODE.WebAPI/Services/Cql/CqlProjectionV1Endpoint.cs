@@ -85,6 +85,7 @@ public static partial class CqlV1Endpoint
         if (type == typeof(DateTime)) return "DateTime";
         if (type == typeof(long)) return "Int64";
         if (type == typeof(ulong)) return "UInt64";
+        if (type == typeof(float)) return "Single";
         if (type == typeof(double)) return "Double";
         if (type == typeof(decimal)) return "Decimal";
         if (type == typeof(int)) return "Int32";
@@ -104,6 +105,8 @@ public static partial class CqlV1Endpoint
             || value is short || value is ushort || value is int || value is uint) return value;
         if (value is long integer) return integer.ToString(CultureInfo.InvariantCulture);
         if (value is ulong unsigned) return unsigned.ToString(CultureInfo.InvariantCulture);
+        if (value is float single && !float.IsNaN(single) && !float.IsInfinity(single))
+            return (single == 0f ? 0f : single).ToString("R", CultureInfo.InvariantCulture);
         if (value is double number && !double.IsNaN(number) && !double.IsInfinity(number))
             return (number == 0d ? 0d : number).ToString("R", CultureInfo.InvariantCulture);
         if (value is decimal exact) return exact.ToString(CultureInfo.InvariantCulture);

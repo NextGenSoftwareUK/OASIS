@@ -552,7 +552,7 @@ public static class V1Walkthrough
             }, grouped: true, decimalGroups: true);
             // EXAMPLE 26 — Double request values are canonical round-trip strings. The
             // projection response also uses strings, so browsers retain every bit.
-            // These readings differ by 10^-28; JSON numbers would lose precision.
+            // These readings differ by one binary64 unit; strings retain exact values.
             await ShowAsync("26. Double source range / exact selected columns", new
             {
                 provider,
@@ -593,6 +593,50 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Reading", descending = false } },
                 resultTake = 2
             }, grouped: true, doubleGroups: true);
+
+            // EXAMPLE 28 — Single request values are canonical round-trip strings. The
+            // projection response also uses strings, so browsers retain every bit.
+            // Strings make the declared binary32 contract explicit to every client.
+            await ShowAsync("28. Single source range / exact selected columns", new
+            {
+                provider,
+                filters = scalarFilters.Concat(new object[]
+                {
+                    new { metadataPath = new[] { "singleReading" }, scalar = "Single",
+                        @operator = "GreaterThanOrEqual", value = "1.0000002" },
+                    new { metadataPath = new[] { "singleReading" }, scalar = "Single",
+                        @operator = "LessThan", value = "1.0000005" }
+                }).ToArray(),
+                orderBy = "Name",
+                take = 2,
+                columns = new object[]
+                {
+                    new { alias = "Name", field = "Name" },
+                    new { alias = "Reading", metadataPath = new[] { "singleReading" }, valueType = "Single" }
+                }
+            }, projection: true, singleProjection: true);
+
+            // EXAMPLE 29 — The selected alias determines Single type. Bounds
+            // remain strings; filtering happens before native group ordering/page.
+            await ShowAsync("29. Single groups / exact alias filters and ordering", new
+            {
+                provider,
+                filters = scalarFilters,
+                maximumGroups = 10,
+                keys = new[] { new { alias = "singleReading", metadataPath = new[] { "singleReading" }, valueType = "Single" } },
+                columns = new object[]
+                {
+                    new { alias = "Reading", keyAlias = "singleReading" },
+                    new { alias = "Items", operation = "LongCount" }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Reading", @operator = "GreaterThanOrEqual", value = "1.0000002" },
+                    new { alias = "Reading", @operator = "LessThan", value = "1.0000005" }
+                },
+                resultOrder = new[] { new { alias = "Reading", descending = false } },
+                resultTake = 2
+            }, grouped: true, singleGroups: true);
         }
 
         return completedRequests;
@@ -614,7 +658,9 @@ public static class V1Walkthrough
             bool decimalProjection = false,
             bool decimalGroups = false,
             bool doubleProjection = false,
-            bool doubleGroups = false)
+            bool doubleGroups = false,
+            bool singleProjection = false,
+            bool singleGroups = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -653,7 +699,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong scalar domain or value.");
             }
 
-            if (projection && !dateProjection && !unsignedProjection && !decimalProjection && !doubleProjection)
+            if (projection && !dateProjection && !unsignedProjection && !decimalProjection && !doubleProjection && !singleProjection)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -665,7 +711,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups)
+            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -769,6 +815,24 @@ public static class V1Walkthrough
                     || (doubleGroups ? rows.Any(row => row[1].GetString() != "1")
                         : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
                     throw new InvalidOperationException(title + " lost exact Double readings, shape or visibility.");
+            }
+            if (singleProjection || singleGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+                var readingIndex = singleGroups ? 0 : 1;
+                var expectedReadings = new[]
+                {
+                    "1.0000002",
+                    "1.0000004"
+                };
+
+                if (payload.GetProperty("version").GetString() != (singleGroups ? "cql-grouped-v1" : "cql-projection-v1")
+                    || payload.GetProperty("columns")[readingIndex].GetProperty("valueType").GetString() != "Single"
+                    || !rows.Select(row => row[readingIndex].GetString()).SequenceEqual(expectedReadings)
+                    || (singleGroups ? rows.Any(row => row[1].GetString() != "1")
+                        : !rows.Select(row => row[0].GetString()).SequenceEqual(new[] { "B-owned", "C-public" })))
+                    throw new InvalidOperationException(title + " lost exact Single readings, shape or visibility.");
             }
 
             completedRequests++;

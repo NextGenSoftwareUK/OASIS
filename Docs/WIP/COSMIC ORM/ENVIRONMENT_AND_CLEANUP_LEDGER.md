@@ -1813,3 +1813,90 @@ No downloads/restores/installs/newenvironments. Reusable SDK/cache/runtime/binob
 retained; source/buildholdreleased. HTTP sourceprep explicitlyoutsideNeo gate
 and unpublished pendingseparatetests. RedTRXSHA256
 4EA2C135FA94DCD181B4E12FA4E59054479E00ED0B41991080C103E2D532A92B.
+
+Single demo sourceprep reuses existing Examples/CosmicCqlDemo, shared native
+fixture seed, fixed demo runners/browser-script checker. Added separate
+singleReading metadata and examples28/29 (target87SDK/87HTTP), plus2browser
+presets. No native execution/build duringpeerCore/Sharedsourcehold. Existing
+Node24.19 offlinechecker tobereused, no downloads. New evidence notyetclaimed;
+fullsignedHTTP/SDKcohort mustverify all three providers and receipts/cleanup.
+
+Offline cachedNode24.19 checkerPASS6presets, exactJSONlexicalretention, no
+browser/networkclaimed. FixedTestResults/CosmicCqlDemo/v1-decimal-ui-check.json
+updated inplace. NextpeerCore/Sharedprivacychangesready/frozen forcoherent
+bothCoreTFM/fullrootunit SingleHTTPgate. ExistingSDK10.0.401/NuGet/binobjreuse,
+no restores. Reports CosmicCurrent/single-wire-full-current.trx and
+CosmicCqlDemo/single-wire-core-full.log; sizesunmeasured. Core/Sharedsources
+ownedbyOraclepeer, notpartofSingleHTTPproductionedits.
+
+1286terminal0:bothCoreTFMs/full2595rootunitsPASS0skip,37newSinglecontrols.
+SourceCore/Shared/ONODE/rootunitsunchanged; Core63D88559producermatchesrootunit
+consumer. Fixedsingle-wire reports/log retained(sizeunmeasured), freeC
+66,149,662,720after. IncludespeerCore/Sharedprivacyfixsource; pin/publication
+ownedbypeer. No install/restore/newenvironment. Build/sourceholdreleased.
+Nextfixedlive87SDK/87HTTPdemo runner internallyownsgloballease: reuseMongo27029
+8.3.11andNeo17687pinned5.26.12, existingCosmicCqlDemo/Neo4jCurrent/SQLiteCurrent
+outputs/fixtureowners. PreservepriorDoubleliveevidence; newlogsingle-live-full.log.
+No native demo started yet whilepeerOCI/Oraclegatesholdbuildoutputs.
+
+FirstSingle live invocation stopped at globalleaseOpenbusy, exit1 BEFORE builds/
+service/fixture writes. No owned runtime or data introduced. Preserve compact
+single-live-full.log (emptyorunmeasured; leaseexceptionwasstderrtooloutput).
+Awaitpeeractualterminal/release before nextinvocation; noleasebypass.
+READMEexamples28/29 now document spacing, f literals, explicitSingle string
+contract and pending87/87gate; older81/81checkpointkeepsverifiedscope.
+Before live Single gate, retained prior Double compact result/binary proof as
+TestResults/CosmicCqlDemo/single-prior-double-result.json and
+single-prior-double-identities.json (sizes measured in tooloutput; no environment
+copies). Original source proof remains v1-source-identities.json until new gate
+refresh; historical Double source/binary proof also retained in prior logs.
+Await peer Core pincommit before builds to avoid assembly metadata drift.
+Prior Double result171bytes, binaryproof2557bytes; also preserved exact prior
+sourceproof570934bytes as single-prior-double-sources.json before replacement.
+Core acdfcbb435af24d69bb7142ef856b13fce60cac2/parent5a46910ad committed/pushed by
+peer with matching dependency pin; next demo gate rebuilds that committed cohort.
+
+79414terminal1:liveHTTPfirstSingleprojectionreturnedtwo rows; stalegeneric
+projectioncheckerexpectedoneInt64rowatV1Walkthrough.cs705. Fixexcludesnew
+singleProjectionflagfromlegacyshapeassertion. Originalfixturepreserved, no
+replay/reset. ReviewedfixtureSHA256
+38D2CD5321CF87D81051A08AB4EB9A9BC5D9F65D090C9B9E99C08CBCD5E0AD75,
+proof1C0EBAAF1D027314369F34BA87DC545D4E39A2F7839980A2348069F125D5C0AD.
+Journal424requests/208derivedreservedintents; expected203attempts/receipts.
+Boundedexistingreconcilerextendedfor exactSinglefixtureandnumericmetadata,
+checksall438providerrows/allsettledoutcomesbeforeownedcleanup. Lastintentmust
+have1attempt/1receipt/nonfailedoutcome. No requestsreissued. NativefixtureSQLite
+andMongoDBs/Neo rows retained untilsuccessfulreconciliation. Reuseenvironment/
+globallease; nextlog single-fixture-reconcile.log, no reinstalls/downloads.
+
+81194terminal0:reviewedSinglefixture reconciliationPASS1/no skips. Exact208
+settledoperations/203attempts/203receipts/all438providerrows verified BEFORE
+ownedcleanup; no logicalrequest reissued. LastsuccessfulSingleprojectionreceipt
+verified. Retained reviewed-single-projection-reconciliation.json andoriginal
+cql-v1-web4-before-single-projection-reconciliation.json inNeo4jCurrent.
+Fixedfixturejournal/SQLiteabsentafterrunnerteardown, retainedservicesstopped.
+FreeC65,943,904,256before/65,861,992,448afterinnergate. Source/buildholdreleased.
+Alsofixedmatchinggroupedcheckerexclusionbeforefreshdemo toavoid same obsolete
+shapeassertion. Source-onlycheckerfix; nativeproviderprecisionworkunchanged.
+'   'On 25 October 2026 the owned failed Single fixture was reconciled and removed; compact evidence remains.'
+Oracle-only fixture review has released Core/Shared/build hold. Starting fresh
+Single87/87 demo from reviewed-clean fixture state, same retained environment.
+Corrected log single-live-corrected.log, original single-live-full.log retained.
+Expected full proof/cleanup unchanged; no reset/replay of failed fixture.
+37983terminal0:fresh87SDK/87signedHTTP PASS,267settledops/262attempts. Sources
+unchanged/all5producer-consumerpairs match; journal/SQLite/WAL/SHM/readiness
+teardowncheckedbyrunner,27029/17687listenersabsent. Sixofflinebrowserpresets
+PASS; SwaggerSingleexamples verifiedduringlivegate. FreeC65,842,610,176after.
+Retain v1-demo-result.json/v1-source-identities.json/v1-binary-identities.json,
+v1-walkthrough.txt/single-live-corrected.log, exact reviewedreconciliationproof.
+No restore/download/newenvironment. Next boundedstandaloneDemo build undernormal
+lease reuses existingbinobj/SDK/cache; logsingle-standalone-build.log.
+
+Standalonebuildattemptstoppedatbusygloballeasebeforebuild; no outputmutation
+ornewresource. Oraclecurrentlyreconcilingitsownfixture/building. Standalone
+projectbuild remains pending; executedSDKsource alreadycompiledinnativehost.
+
+StandaloneDemo buildPASS3.06s/0errors/7warnings, no restore, existingbinobjonly.
+Report single-standalone-build.log retained. FinalUTF8audit repaired two newly
+introduced Windows punctuation bytes in manual/matrix, preserving validUTF8.
+No sourcebehaviorchanges afterlivegate; only docs/encoding corrections.
