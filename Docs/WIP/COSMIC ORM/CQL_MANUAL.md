@@ -1500,3 +1500,37 @@ cancellation without DTO construction.
 native SQLite/MongoDB/Neo4j subqueries and proof decoding, HTTP composition and
 annotated demos. No native provider advertises this new execution shape yet.
 Existing ordinary queries and join demos remain supported.
+
+## Generic V2 composition execution and measured-query guard — 25 October 2026
+
+`HolonManager.ExecuteProjectionCompositionQueryAsync` now uses one generic
+executor and `ICosmicQueryProjectionCompositionStorageProvider` contract.
+Actual provider/column/stage permissions preflight across every target before
+first I/O and are rechecked immediately before native dispatch. All packets
+validate before any DTO construction; native failure/cancellation returns no
+partial result and never falls back to entity hydration or an in-memory query.
+
+Six remaining budgets are shared across providers: input rows, input bytes,
+cumulative stage-row participation, stage proof bytes, published rows and bytes.
+A later provider receives the remainder, including zero. Zero accepts only a
+complete empty proof or an explicit limit error; it never authorizes truncation.
+Named runtime records reuse this execution/validation owner. Existing ordinary
+projection execution cannot bypass the composition contract.
+
+Controlled inherited admission verifies one durable query attempt/receipt per
+provider, actual service pricing and actor binding. A new denial control found
+that an ordinary SDK query under **measurement-required** admission could begin
+without a query tariff. The shared prepared query owner now rejects that case
+before attempt/dispatch on row, scalar, projection, grouped, join and composition
+paths. Signed-native providers retain their own actual receipt contract.
+
+**Compatibility:** an explicit SDK admission whose server policy does not require
+measurement still permits optional query tariffs. No price/receipt is invented.
+Unprepared local trusted SDK calls and non-query storage admission retain their
+existing behavior. Earlier historical optional-SDK-pricing guarantees remain
+valid; measurement permission and provider permission remain distinct.
+
+The new provider contract is exercised with controlled adapters only. **Native
+SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composition
+and executable composition demos remain required.** Existing joined demos are
+separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).

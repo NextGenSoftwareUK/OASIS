@@ -1,11 +1,11 @@
 # COSMIC ORM implementation status
 
-Current: **25 October 2026**. Core/linked WEB4 passes2,841 tests, zero skips.
+Current: **25 October 2026**. Core/linked WEB4 passes2,876 tests, zero skips.
 Native flat joins and annotated31-example/provider C#/HTTP demos are verified
 on MongoDB, SQLite and Neo4j (93SDK/93HTTP,288settled/283attempts at their last
 recorded gate). Selected-result composition now has immutable ordered intent,
-independent admission and complete native-proof validation. Its generic executor
-and provider subqueries remain open; no native execution claim yet. Broader
+independent admission and complete native-proof validation. Its generic V2 executor now passes controlled tests; provider subqueries remain
+open, with no native composition claim yet. Broader
 composition/federation/policy and the full CQL/ORM roadmap remain unfinished.
 Dated sections below preserve historical acceptance and exact evidence scope.
 
@@ -1317,3 +1317,48 @@ new shared admission/verification helpers. It does not claim native composed
 subqueries execute. Evidence: `TestResults/CosmicCqlDemo/composition-proof-final.log`,
 `TestResults/CoreCurrent/composition-proof-current.trx` and
 `TestResults/CosmicCqlDemo/composition-proof-demo-regression.log`.
+
+## Generic V2 composition execution and measured-query guard — 25 October 2026
+
+`HolonManager.ExecuteProjectionCompositionQueryAsync` now uses one generic
+executor and `ICosmicQueryProjectionCompositionStorageProvider` contract.
+Actual provider/column/stage permissions preflight across every target before
+first I/O and are rechecked immediately before native dispatch. All packets
+validate before any DTO construction; native failure/cancellation returns no
+partial result and never falls back to entity hydration or an in-memory query.
+
+Six remaining budgets are shared across providers: input rows, input bytes,
+cumulative stage-row participation, stage proof bytes, published rows and bytes.
+A later provider receives the remainder, including zero. Zero accepts only a
+complete empty proof or an explicit limit error; it never authorizes truncation.
+Named runtime records reuse this execution/validation owner. Existing ordinary
+projection execution cannot bypass the composition contract.
+
+Controlled inherited admission verifies one durable query attempt/receipt per
+provider, actual service pricing and actor binding. A new denial control found
+that an ordinary SDK query under **measurement-required** admission could begin
+without a query tariff. The shared prepared query owner now rejects that case
+before attempt/dispatch on row, scalar, projection, grouped, join and composition
+paths. Signed-native providers retain their own actual receipt contract.
+
+**Compatibility:** an explicit SDK admission whose server policy does not require
+measurement still permits optional query tariffs. No price/receipt is invented.
+Unprepared local trusted SDK calls and non-query storage admission retain their
+existing behavior. Earlier historical optional-SDK-pricing guarantees remain
+valid; measurement permission and provider permission remain distinct.
+
+The new provider contract is exercised with controlled adapters only. **Native
+SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composition
+and executable composition demos remain required.** Existing joined demos are
+separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
+
+Final generic-execution gate passes **2,876/2,876 Core/linked WEB4 tests**, zero
+skips (35 new controls beyond2,841), and both Core frameworks build. Fresh
+unchanged-operator live acceptance passes **93 SDK /93 HTTP**, **288 settled
+operations /283 physical attempts**, dedicated joint1/1 zero skips. Evidence:
+`TestResults/CosmicCqlDemo/composition-executor-policy-final.log`,
+`TestResults/CoreCurrent/composition-executor-current.trx` and
+`TestResults/CosmicCqlDemo/composition-executor-policy-demo.log`.
+This is controlled composition execution plus real existing-operator regression;
+no provider advertises native composition yet. Next: native SQLite subqueries /
+proof decoding, then MongoDB and Neo4j, followed by public transport/examples.
