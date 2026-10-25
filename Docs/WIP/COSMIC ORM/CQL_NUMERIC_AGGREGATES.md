@@ -1,5 +1,26 @@
 # CQL integer Sum/Average contract
 
+## MongoDB unsigned native enrollment — 25 October 2026
+
+MongoDB now explicitly declares UInt64/nullable numeric input permissions for
+Sum/Average and grouped result sorting/filtering. Its existing Decimal128 limb
+reduction and exact Decimal mean normalization are reused. UInt64 has at most20
+digits; the bounded complete numerator has at most29 decimal digits and fits
+Decimal128's34 significant digits. No binary64 or Int64 conversion of the input
+is introduced. Limb decoding still requires exact bounded Int64 packet values.
+
+Full391 native and539 unit tests pass without failures/skips, including17 new
+unsigned native controls. Evidence is recorded in implementation status.
+Tests include UMax boundaries, overflow vs valid averages, nullable missing inputs,
+malformed input rejection, source windows, grouped selected filters/order/pages
+and off-page overflow. Raw adapter groups include validation-only rows marked
+`IsResult=false`; the generic executor owns final result publication.
+
+Use explicit unsigned literals such as `0UL` in UInt64 selected predicates.
+Neo4j unsigned numeric enrollment and unsigned numeric HTTP/demo acceptance are
+still pending. Earlier read/projection UInt64 HTTP support remains separate.
+
+
 ## SQLite unsigned numeric implementation — 25 October 2026
 
 SQLite now explicitly enrolls UInt64/nullable Sum and Average for native scalar

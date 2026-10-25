@@ -4,8 +4,8 @@ Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **3,006** (including UInt64 numeric capture/normalization and input-domain admission),
-  Shared **1,189**, SQLite **1,661 native /72 unit**, MongoDB **374 native /539 unit**,
+- Latest separately verified cohorts: Core **3,008** (including UInt64 numeric capture/normalization and input-domain admission),
+  Shared **1,189**, SQLite **1,679 native /72 unit**, MongoDB **391 native /539 unit**,
   Neo4j **372 native /520 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
@@ -17,7 +17,10 @@ SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK
 - Full CQL/ORM completion remains unproven. Historical checkpoints below retain
   their original scope; remaining certification/policy/federation gates stay open.
 
-Current verified batch: a shared Core participation validator now replaces
+SQLite and MongoDB UInt64 native scalar/grouped Sum/Average are now verified. Neo4j numeric enrollment and unsigned numeric HTTP/demos
+remain open. Additional domains and the full policy/federation scope remain open.
+
+Historical verified batch: a shared Core participation validator now replaces
 MongoDB/Neo4j duplicated checks and fixes missing SQLite numeric group coverage
 validation. Ten original SQLite contradictions reproduced the defect. Full
 Core 2,970/SQLite 71 units and three actual native SQLite corruption/reuse cases
