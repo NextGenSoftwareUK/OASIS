@@ -4,9 +4,9 @@ Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **2,940** (composition including HTTP/admission controls),
-  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **361 native /538 unit**,
-  Neo4j **352 native /519 unit**; zero skips at their recorded checkpoints.
+- Latest separately verified cohorts: Core **2,970** (composition, HTTP/admission and grouped participation controls),
+  Shared **1,189**, SQLite **1,651 native /71 unit**, MongoDB **361 native /538 unit**,
+  Neo4j **362 native /519 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -16,6 +16,14 @@ SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK
   is verified; broader certification and graph-source enrollment remain open.
 - Full CQL/ORM completion remains unproven. Historical checkpoints below retain
   their original scope; remaining certification/policy/federation gates stay open.
+
+Current verified batch: a shared Core participation validator now replaces
+MongoDB/Neo4j duplicated checks and fixes missing SQLite numeric group coverage
+validation. Ten original SQLite contradictions reproduced the defect. Full
+Core 2,970/SQLite 71 units and three actual native SQLite corruption/reuse cases
+pass. Full SQLite acceptance now passes **1,651 tests, zero skips**; MongoDB/Neo4j
+native regressions pass **361/362 tests**, zero skips; fresh provider units pass
+**538/519**. Task-branch publication follows this complete verification batch.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -63,6 +71,10 @@ acceptance below remains open.
 
 ## 4. Federated results and continuity
 
+Required behavior and acceptance are specified in the
+[federation implementation contract](CQL_FEDERATION_CONTRACT.md). This is pending
+implementation; current results remain separate per provider.
+
 - [ ] Define opt-in logical identity deduplication, conflict/freshness selection and provenance; preserve existing grouped results by default.
 - [ ] Implement bounded global ordering/pages with deterministic ties, explicit cursor/consistency semantics, intervening-write behavior and cursor expiry.
 - [ ] Enforce eligibility, authorization and budgets across all targets. Specify provider-failure behavior before dispatch; no accidental partial success.
@@ -73,6 +85,17 @@ acceptance below remains open.
 - [ ] Expose certified new types/shapes through an explicit transport contract; preserve the published v1 surface.
 - [ ] Integrate authoritative shared-recipient and tenant policy. Metadata indexes, client tenant IDs and elevated-role labels cannot alone grant access.
 - [ ] Apply policy equally to children, joins, aggregates, federation and output; test cross-actor/tenant denial on each store.
+
+Policy audit, 25 October: the current query owner/public rule is authoritative
+only for that declared rule. Core `Managers/SocialManager.ShareHolonAsync` shares
+to social providers and records statistics; it is not a shared-recipient ACL.
+No tenant/recipient authority was found in the inspected Core Interfaces/Managers
+`TenantId`/`SharedWith`/`SharedTo`/`SharedBy`/`SharedHolon`/`ShareHolon` search beyond
+that social entry point. This bounded search does not prove absence elsewhere.
+A future shared/tenant contract must define an authenticated authority, grant
+revocation/version consistency and native source/traversal predicates before
+capability enrollment. Metadata or client labels must not supply those grants.
+
 
 ## 6. Completion certification
 
