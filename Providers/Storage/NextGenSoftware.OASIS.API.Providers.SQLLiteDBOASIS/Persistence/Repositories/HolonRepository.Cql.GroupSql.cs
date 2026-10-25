@@ -43,11 +43,25 @@ public partial class HolonRepository
                 if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                 {
                     var high = "a" + index + "h"; var low = "a" + index + "l"; var count = "a" + index + "n";
-                    var parts = IntegralParts(column.Selector.ValueType, value);
-                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.High + " ELSE 0 END) AS " + high);
-                    reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.Low + " ELSE 0 END) AS " + low);
+                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                    {
+                        var words = DecimalParts(value);
+                        for (var part = 0; part < words.Length; part++)
+                        {
+                            var name = "a" + index + "d" + part;
+                            reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + words[part] + " ELSE 0 END) AS " + name);
+                            output.Add(name);
+                        }
+                    }
+                    else
+                    {
+                        var parts = IntegralParts(column.Selector.ValueType, value);
+                        reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.High + " ELSE 0 END) AS " + high);
+                        reductions.Add("sum(CASE WHEN " + state + "=2 THEN " + parts.Low + " ELSE 0 END) AS " + low);
+                        output.Add(high); output.Add(low);
+                    }
                     reductions.Add(present + " AS " + count);
-                    output.Add(high); output.Add(low); output.Add(count);
+                    output.Add(count);
                 }
                 else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
                 {
@@ -80,8 +94,13 @@ public partial class HolonRepository
                 }
                 else if (column.Operation == CosmicScalarOperation.Sum)
                 {
-                    var parts = GroupedIntegralParts("a" + selectedOrder.ColumnIndex + "h", "a" + selectedOrder.ColumnIndex + "l");
-                    resultOrder.Add(parts.High + direction); resultOrder.Add(parts.Low + direction);
+                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                        resultOrder.Add(GroupNumericKey(column, selectedOrder.ColumnIndex) + " COLLATE BINARY" + direction);
+                    else
+                    {
+                        var parts = GroupedIntegralParts("a" + selectedOrder.ColumnIndex + "h", "a" + selectedOrder.ColumnIndex + "l");
+                        resultOrder.Add(parts.High + direction); resultOrder.Add(parts.Low + direction);
+                    }
                 }
                 else if (column.Operation == CosmicScalarOperation.Average)
                     resultOrder.Add(GroupNumericKey(column, selectedOrder.ColumnIndex) + " COLLATE BINARY" + direction);
