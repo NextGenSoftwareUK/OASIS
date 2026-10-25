@@ -5,8 +5,8 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **2,970** (composition, HTTP/admission and grouped participation controls),
-  Shared **1,189**, SQLite **1,651 native /71 unit**, MongoDB **364 native /538 unit**,
-  Neo4j **362 native /519 unit**; zero skips at their recorded checkpoints.
+  Shared **1,189**, SQLite **1,661 native /71 unit**, MongoDB **374 native /538 unit**,
+  Neo4j **372 native /519 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -29,6 +29,19 @@ MongoDB grouped ownership follow-up: full native **364/364**, zero skips,
 5m35s. Three new tests certify snapshot membership/keys/values through concurrent
 reparenting/writes, actual-I/O cancellation, one cumulative deadline and clean
 provider reuse. Broader grouped policy/scalar certification remains open.
+
+Protected empty-window correction in progress: `Take(0)` bypassed native
+relationship validation in scalar, row, graph and projection shortcuts. SQLite
+and Neo4j each reproduced seven scalar plus three shape failures; MongoDB
+reproduced nine of ten cases (its projection path was correct). Protected-aware
+shortcuts, one shared SQLite scope owner and shared Mongo source-window shaping
+now pass **10 SQLite /3 Neo4j /10 MongoDB focused native controls**, zero skips.
+The scalar-only checkpoint separately passed SQLite1,658/71 and Neo369/519.
+Full refreshed acceptance now passes **SQLite1,661/71, Mongo374/538 and
+Neo372/519 native/unit tests**, zero failures/skips. Fresh102SDK/102HTTP demo,
+309settled/301attempts, joint native1/1, source freeze and six binary identities
+also pass. Owned fixtures/services are cleaned; task-branch publication follows. Full
+CQL/ORM completion is still unproven; every other open requirement below remains.
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
@@ -101,6 +114,40 @@ A future shared/tenant contract must define an authenticated authority, grant
 revocation/version consistency and native source/traversal predicates before
 capability enrollment. Metadata or client labels must not supply those grants.
 
+
+### Existing WEB4 sharing authority audit — 25 October
+
+The broader ONODE search found `Helpers/HolonAccess.cs`, `Controllers/ShareController.cs`
+and `WebAPI.UnitTests/HolonAccessTests.cs`. This extends the earlier bounded Core
+search; it does not establish native CQL sharing support.
+
+- `HolonAccess.CanRead` currently admits creator/public access and recipients in
+  `SHARED_AVATAR_IDS`. `SHARED_WITH_<avatar>` flags support lookup; the shared-with-me
+  endpoint rechecks the recipient list, so an index flag alone is not a grant.
+- `ShareAsync` checks creator or Wizard, unions recipients, then loads/saves through
+  HolonManager. Before reuse, verify the actual conditional-save path and binding
+  of issuer authority to the committed grant; no explicit expected revision or
+  revocation contract appears in this helper's public signature.
+- The single-recipient controller action can return test-data success after a
+  failed/unavailable real share when `UseTestDataWhenLiveDataNotAvailable` is enabled.
+  That response cannot prove a persisted authorization grant. CQL enrollment must
+  use real mutation outcomes and reject unknown/failed grant persistence.
+- The stored-list parser accepts older text representations and falls from malformed
+  JSON into comma parsing. Strict native policy enrollment needs a canonical,
+  bounded grant representation and explicit migration, rather than granting from
+  permissively parsed metadata or an index flag.
+- `RecordShares` writes current recipient flags but does not remove old flags.
+  Existing list rechecks remain necessary. No revocation action was found in the
+  inspected ShareController; implement and verify revocation/version consistency
+  before declaring the full sharing requirement complete.
+
+Next policy work must reconcile this existing API with one generic Core authority
+and native source/traversal checks on all three providers. Audit metadata mutation
+permissions before treating stored lists as authoritative; this inspection does
+not establish which other writes are owner-restricted. Preserve current CQL
+owner/public behavior until the stronger contract and migration are verified.
+Tenant membership authority remains a separate unimplemented requirement. No
+sharing production code was changed during the running empty-window regression.
 
 ## 6. Completion certification
 

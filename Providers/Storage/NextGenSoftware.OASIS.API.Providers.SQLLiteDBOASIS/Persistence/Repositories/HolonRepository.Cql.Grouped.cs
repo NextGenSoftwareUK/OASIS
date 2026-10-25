@@ -62,12 +62,7 @@ public partial class HolonRepository
                 {
                     budget.Check();
                     // Mandatory protected scope validation precedes source paging.
-                    if (translator.HasRelationship)
-                    {
-                        await _dbContext.Database.SqlQueryRaw<long>("SELECT count(*) AS Value FROM Holon WHERE " + predicate,
-                            translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
-                        budget.Check(); traversal.Check();
-                    }
+                    await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                     using var command = connection.CreateCommand();
                     command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
                     command.CommandText = sql;
