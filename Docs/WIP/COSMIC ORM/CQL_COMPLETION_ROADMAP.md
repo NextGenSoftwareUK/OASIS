@@ -103,6 +103,10 @@ implementation; current results remain separate per provider.
 
 ## 5. Scalar coverage and authoritative policy
 
+SQLite floating native packet/key component passes11focused native/74fullunit
+tests; scalar/grouped query integration and capability enrollment remain open.
+
+
 Floating exact packet normalization is verified in fullCore3,090 and both TFMs.
 Shared capture/result publication also passes fullCore3,098. Native/HTTP enrollment remains open; see the
 [floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
