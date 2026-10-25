@@ -4,6 +4,12 @@
 
 Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
+Floating continuation: Core's finite binary64/binary32 key foundation passes both
+configured targets and the full2,506-unit suite, including six new facts and8,192
+finite random bit patterns. Provider Double/Single capabilities remain disabled;
+Mongo Single numeric persistence/acknowledgement repair is in progress. See the
+[floating contract and remaining gates](CQL_FLOATING_SCALAR_CONTRACT.md).
+
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
 
 ## 1. Child loading and relationships — first priority
