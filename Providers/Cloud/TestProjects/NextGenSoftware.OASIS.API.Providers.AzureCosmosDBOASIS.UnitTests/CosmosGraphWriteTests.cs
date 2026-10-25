@@ -24,7 +24,9 @@ public class CosmosGraphWriteTests
     public async Task SelectedGraphHonoursChildrenRecursionAndDepth(bool children,bool recursive,int depth,int initial,int count)
     {
         var seen=new List<IHolon>();var repository=new Mock<IHolonRepository>();
-        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns((PlannedHolonWrite plan)=>{IHolon row=plan.Snapshot;seen.Add(row);return Task.FromResult(row);});
+        repository.Setup(r=>r.UpsertPlannedAsync(It.IsAny<PlannedHolonWrite>())).Returns((PlannedHolonWrite plan)=>{
+            plan.Snapshot.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(plan,HolonChildRoleWriteKind.SourceSave,false,null);
+            IHolon row=plan.Snapshot;seen.Add(row);return Task.FromResult(row);});
         var grandchild=new Holon();var child=new Holon {Children=new List<IHolon> {grandchild}};
         var root=new Holon {Children=new List<IHolon> {child}};
         var result=await Provider(repository.Object).SaveHolonsAsync(new[] {root},children,recursive,depth,initial);
