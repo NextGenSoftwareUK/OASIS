@@ -34,13 +34,12 @@ public partial class MongoDBOASIS
             var previous = synchronous ? _holonRepository.GetHolon(entity.HolonId)
                 : await _holonRepository.GetHolonAsync(entity.HolonId).ConfigureAwait(false);
             PreserveCreationAuditFields(entity, previous);
-            var mutation = previous == null
-                ? synchronous ? _holonRepository.Add(entity) : await _holonRepository.AddAsync(entity).ConfigureAwait(false)
-                : synchronous ? _holonRepository.Update(entity, preserveChildren: !children)
-                    : await _holonRepository.UpdateAsync(entity, preserveChildren: !children).ConfigureAwait(false);
+            var mutation = await _holonRepository.SaveCapturedHolonAsync(entity,previous!=null,synchronous,
+                preserveChildren:!children,childRoleWrite:node).ConfigureAwait(false);
             var result = DataHelper.ConvertMongoEntityToOASISHolon(mutation, children);
             if (!result.IsError && result.IsSaved)
-            { node.Source.Id = node.Snapshot.Id; node.Source.ParentHolonId = node.Snapshot.ParentHolonId; }
+            { PublishOrdinaryChildOwnership(new[] { node },
+                new System.Collections.Generic.Dictionary<Guid,IHolon> { [node.Snapshot.Id]=result.Result }); }
             return result;
         }
         catch (Exception cause)

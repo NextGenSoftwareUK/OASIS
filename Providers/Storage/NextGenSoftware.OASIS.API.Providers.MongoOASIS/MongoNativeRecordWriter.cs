@@ -10,13 +10,14 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal static partial class MongoNativeRecordWriter
 {
-    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool preserveChildren=false,bool retainAccountHistory=false) where T:HolonBase
+    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool preserveChildren=false,bool retainAccountHistory=false,PlannedHolonWrite childRoleWrite=null) where T:HolonBase
     {
         var entered=false;var validatingPayload=false;
         try
@@ -60,6 +61,16 @@ internal static partial class MongoNativeRecordWriter
                     "$$ROOT",new BsonDocument("$literal",observed)})}};
             }
             if(!updating && holon.CreatedProviderType==null) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
+            if(childRoleWrite!=null)
+            {
+                if(holon is not Holon selected || selected.HolonId!=childRoleWrite.Snapshot.Id)
+                    throw new ArgumentException("Captured child-role ownership differs from the native record.");
+                // Resolve against the exact BSON protected by this same replacement CAS.
+                // A prior provider lookup is not the authoritative role observation.
+                var previous=observed==null ? null:BsonSerializer.Deserialize<Holon>(observed);
+                selected.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(childRoleWrite,
+                    HolonChildRoleWriteKind.SourceSave,observed!=null,previous?.ChildRoleManifestJson);
+            }
             PrepareIdentity(holon);
             if (typeof(T) == typeof(Holon)) RotateHolonRevision((Holon)(object)holon);
             // Complete serialization before dispatch for inserts AND replacements. The
