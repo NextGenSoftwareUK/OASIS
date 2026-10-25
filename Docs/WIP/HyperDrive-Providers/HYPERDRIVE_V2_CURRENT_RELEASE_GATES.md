@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+25October Oracle-first latest scoped evidence: SQL510native/445unit/10target-policy PASS0skip (current Core4b2d6b7 sources), with required-generated-column admission fixes and guarded existing-schema read-only preflight. Actual localTCP rejects hostedTCPS policy;0provisioning/table-identity changes. OCI133signed-SDK loopback is its separate prior cohort, not hosted provider acceptance. Clean database restart between existing encrypted process phases remains a next local gate; hosted Autonomous/OCI IAM/wallet/certificate/session binding/CRUD/durability/cost and full V2 remain OPEN. Oracle remains top priority before AWS, no100%/percentage/deployment claim. [Current Oracle report](ORACLE_CLIENT_PRIORITY.md), [resource ledger](ENVIRONMENT_INVENTORY.md), pending account/service/profile details in ACTIONS-FOR-DAVID.md. Historical entries below retain their original scope.
+
 ## Verified checkpoint — 24 October: AWS ordinary-write usage evidence
 
 The DynamoDB SDK metering adapter omitted `PutItemRequest` / `PutItemResponse`, although ordinary saves use PutItem. This could omit write-capacity evidence; it does not establish how any prior bill was calculated. The adapter now requests INDEXES capacity and sends the native response through its existing capture projector. No new pricing, fee authorization, quota, subscription, retry or payment path was added.
