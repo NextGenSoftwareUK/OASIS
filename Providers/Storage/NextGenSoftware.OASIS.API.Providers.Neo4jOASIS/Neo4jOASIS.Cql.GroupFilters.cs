@@ -18,8 +18,11 @@ public partial class Neo4jOASIS
     {
         private readonly CosmicGroupedSelection<T, TKey, TResult> query;
         private readonly NeoCqlTranslator translator;
+        private readonly Func<CosmicQueryPath, string> selectedValue;
         internal GroupFilterCompiler(CosmicGroupedSelection<T, TKey, TResult> query, NeoCqlTranslator translator)
         { this.query = query; this.translator = translator; }
+        internal GroupFilterCompiler(NeoCqlTranslator translator, Func<CosmicQueryPath, string> selectedValue)
+        { this.translator = translator; this.selectedValue = selectedValue; }
         private sealed class Cell
         {
             internal string Value, High, Low;
@@ -28,6 +31,7 @@ public partial class Neo4jOASIS
         }
         private Cell Value(CosmicQueryPath path)
         {
+            if (selectedValue != null) return new Cell { Value = selectedValue(path) };
             var index = !path.IsMetadata && path.Segments.Count == 1
                 ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.ValueType == path.ValueType) : -1;
             if (index < 0) throw new NotSupportedException("Grouped filter requires an exact selected scalar.");
