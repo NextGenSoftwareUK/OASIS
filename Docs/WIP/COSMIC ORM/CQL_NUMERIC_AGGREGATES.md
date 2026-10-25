@@ -1,5 +1,42 @@
 # CQL integer Sum/Average contract
 
+## UInt64 HTTP compiler and wire acceptance — 25 October 2026
+
+The shared scalar/grouped selection visitor now binds UInt64 and nullable UInt64
+Average through the existing typed Core overloads. Sum already uses generic
+capture. No reflection, compiled selector or provider-specific HTTP path is added.
+Full Core3,017 tests pass without skips;9new controls cover scalar Average required,
+nullable and empty output, exact UInt64 Sum wire values0/UMax and grouped input/
+result types. Before the fix,5new Average controls failed and4new Sum controls
+passed. The shipping WEB4 API builds successfully with existing assets.
+
+Numeric Sum results are tagged `UInt64` invariant decimal strings; Average results
+are tagged `Decimal` strings or nullable null. The authenticated source binding,
+actual provider capability admission and existing receipt owner are preserved.
+Live signed HTTP/native demonstration is the next gate; mock transport tests and
+shipping compilation do not substitute for that acceptance.
+
+
+## Neo4j unsigned arithmetic — 25 October 2026
+
+Neo4j now enrolls explicit UInt64/nullable scalar/grouped numeric input permissions.
+Its canonical20-digit key is split into two10-digit decimal chunks. With
+`x=upper*10^10+lower` and `10^10=2*2^32+1410065408`, both base-2^32 limbs are
+computed using bounded Int64 arithmetic; the intermediate stays below2^62.
+Scalar/grouped reduction and grouped sum comparisons share that lowering.
+Invalid or missing cells never enter the unsigned substring conversion.
+
+The existing exact average-key compiler already supports the96-bit numerator;
+no floating conversion or alternate client evaluator is introduced. Grouped
+comparison cells retain their declared type so UInt64 keys/literals use the same
+limbs as their aggregate counterparts. Scalar/grouped result normalization stays
+in Core, including range validation and overflow classification.
+
+Full391 native and520 unit cases pass without failures/skips, including19new
+native numeric controls and the two unsigned key/fractional mean checks.
+Unsigned numeric HTTP/demo enrollment remains a separate next gate.
+
+
 ## MongoDB unsigned native enrollment — 25 October 2026
 
 MongoDB now explicitly declares UInt64/nullable numeric input permissions for
@@ -37,7 +74,7 @@ uses the declared unsigned domain (0..UInt64.MaxValue), preserving Decimal means
 Sum overflow remains an error even when the result page would hide the group.
 
 SDK capture examples (execute the resulting plan through the existing scalar or
-grouped HolonManager owner with the actual SQLite adapter capabilities):
+grouped HolonManager owner with the actual provider adapter capabilities):
 
 ```csharp
 // Declare UInt64 explicitly; read permission alone does not grant aggregation.

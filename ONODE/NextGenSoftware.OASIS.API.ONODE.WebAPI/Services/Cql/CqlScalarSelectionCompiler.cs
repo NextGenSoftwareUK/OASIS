@@ -19,7 +19,7 @@ public static partial class CqlV1Compiler
         if (operation == CosmicScalarOperation.Average)
         {
             // The bounded selection visitor already knows the exact CLR input
-            // type. Bind only the four public integer Average overloads;
+            // type. Bind the public exact integer Average overloads;
             // no reflection or compiled selector delegate is involved.
             if (typeof(TValue) == typeof(int))
                 return consumer.Consume(source.Average((Expression<Func<Holon, int>>)(object)selector));
@@ -29,7 +29,11 @@ public static partial class CqlV1Compiler
                 return consumer.Consume(source.Average((Expression<Func<Holon, int?>>)(object)selector));
             if (typeof(TValue) == typeof(long?))
                 return consumer.Consume(source.Average((Expression<Func<Holon, long?>>)(object)selector));
-            throw new ArgumentException("Average requires an Int32/Int64 selection, optionally nullable.");
+            if (typeof(TValue) == typeof(ulong))
+                return consumer.Consume(source.Average((Expression<Func<Holon, ulong>>)(object)selector));
+            if (typeof(TValue) == typeof(ulong?))
+                return consumer.Consume(source.Average((Expression<Func<Holon, ulong?>>)(object)selector));
+            throw new ArgumentException("Average requires an Int32/Int64/UInt64 selection, optionally nullable.");
         }
         var intent = operation switch
         {

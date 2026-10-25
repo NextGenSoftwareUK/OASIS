@@ -66,8 +66,9 @@ public partial class Neo4jOASIS
             var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
-                reductions.Add("sum((" + value + ") / 4294967296) AS " + name + "h");
-                reductions.Add("sum((" + value + ") % 4294967296) AS " + name + "l");
+                var parts = IntegralParts(column.Selector.ValueType, name + "v");
+                reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
+                reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
                 aggregatePackets.Add("{present:" + name + "n,high:" + name + "h,low:" + name + "l}");
             }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)

@@ -1,5 +1,37 @@
 # CQL developer manual
 
+## UInt64 numeric queries — native SDK and HTTP compiler
+
+MongoDB, SQLite and Neo4j now execute native `Sum` and `Average` over UInt64
+metadata, including nullable inputs and grouped filters/order/pages. Declare the
+input explicitly, for example `source.Sum(h =>
+CosmicQueryMetadata.Value<ulong>(h, "counter"))`. Sum retains UInt64 and rejects
+overflow; Average returns Decimal. Nullable Sum returns zero for an empty set,
+while nullable Average returns null. Use exact unsigned literals such as `0UL`
+when writing selected predicates.
+
+The existing authenticated scalar route accepts this description:
+
+```json
+{
+  "provider": "MongoDBOASIS",
+  "operation": "Average",
+  "selection": {
+    "metadataPath": ["counter"],
+    "valueType": "UInt64",
+    "nullable": false
+  }
+}
+```
+
+Use the same signing/admission headers as the existing scalar examples. A Sum
+response uses `valueType: "UInt64"` and an invariant string value; an Average
+response uses `valueType: "Decimal"`. Grouped columns use the same selection and
+operation description. The compiler/wire unit gate and shipping API build pass;
+live unsigned numeric signed HTTP/demo acceptance is still pending. See the
+[numeric contract](CQL_NUMERIC_AGGREGATES.md) for boundaries and evidence.
+
+
 25 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
 
 ## Start with the developer demo
