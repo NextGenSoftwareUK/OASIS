@@ -1130,3 +1130,7 @@ var selection = ownerQuery
 A left-join right-side value such as `member.Version` requires a nullable output.
 Only an identical-domain nullable lift is accepted; numeric conversion or computed
 output requires further capability support. Native execution remains pending.
+
+### Join planning status
+
+Core can now preflight a captured join selection against an already authorized eligible provider snapshot. Join permissions are independent of ordinary query/projection permissions; the actual native adapter must re-admit both source queries and the join contract. This stage performs no storage operation. Do not fabricate capability grants in application or HTTP input. Native matching, packet validation, execution/accounting and join HTTP routes remain pending. Multi-provider source windows retain the existing federation restriction.
