@@ -253,3 +253,20 @@ examples**, with **267 settled operations and 262 provider attempts** across all
 three providers. Sources stayed unchanged and all five binary pairs matched.
 Owned fixtures and listeners were removed after teardown. This is a dedicated
 live demo gate; the full provider regression suites retain their separate scope.
+
+## Examples 30–31: native inner and left joins
+
+The C# walkthrough (`V1NativeQueries.cs`) now shows typed `LeftJoin` and `Join`
+through generic Core/V2 HolonManager on each priority provider. Both inputs keep
+their actor scope and independent filters/order. Example30 retains B-owned and
+D-owned without a right row; C-public matches and preserves9007199254740993
+exactly. Example31 changes the join kind and publishes only the matching pair.
+
+`V1Walkthrough.cs` sends equivalent bounded requests to
+`POST /api/data/query-cql/join`. The browser offers **Left join** and **Inner join**
+presets, and Swagger includes a left-join request. The right output is nullable
+for unmatched rows; `hasRight` independently distinguishes absent rows from
+nullable data. Replace both Swagger fixture tags with the current session tag.
+
+The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
+Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.

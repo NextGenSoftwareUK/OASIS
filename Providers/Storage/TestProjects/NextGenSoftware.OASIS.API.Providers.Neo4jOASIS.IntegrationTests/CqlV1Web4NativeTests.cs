@@ -588,6 +588,12 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/scalar", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
+                            Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/join", out _));
+                            var joinExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlJoinV1Request").GetProperty("example");
+                            Assert.AreEqual("Left", joinExample.GetProperty("kind").GetString());
+                            Assert.AreEqual("C-public", joinExample.GetProperty("right").GetProperty("filters")[1].GetProperty("value").GetString());
+                            Assert.AreEqual("RightPresence", joinExample.GetProperty("columns")[2].GetProperty("source").GetString());
                             // Swagger's unsigned presets must keep input bounds as strings.
                             var unsignedProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
                                 .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
