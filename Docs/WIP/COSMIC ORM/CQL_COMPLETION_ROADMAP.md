@@ -56,6 +56,10 @@ Current verified contracts: [projection/aggregate ownership](CQL_AGGREGATE_IMPLE
 
 ## 3. Joins and composition
 
+Required semantics and acceptance are defined in the
+[native join implementation contract](CQL_JOIN_CONTRACT.md). Joins are not yet
+available; this contract preserves the open implementation scope.
+
 - [ ] Add bounded same-provider inner/left joins with defined key domains, null semantics and cardinality limits.
 - [ ] Implement selected post-projection/post-window composition through native subqueries, preserving operation order.
 - [ ] Cross-provider joins require an explicit bounded distributed plan/accounting contract. No implicit client scan or fallback evaluator.
