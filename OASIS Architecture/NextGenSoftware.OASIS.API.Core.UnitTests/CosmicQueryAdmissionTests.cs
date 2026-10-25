@@ -318,4 +318,15 @@ public class CosmicQueryAdmissionTests
         Assert.Equal(PreparedStorageExecution.RejectedCode, result.ErrorCode);
         NeverRead(adapter.Query);
     }
+    [Fact]
+    public async Task AForbiddenLaterProviderStopsEveryReadAndDurableAttemptAtPreflight()
+    {
+        var store=new Mock<IUsageOutboxStore>(MockBehavior.Strict);
+        var first=Adapter(ProviderType.MongoDBOASIS);
+        var second=Adapter(ProviderType.Neo4jOASIS);
+        var result=await Policy(store,ProviderType.MongoDBOASIS).RunAsync(()=>CosmicQueryExecutor.ExecuteAsync(
+            Plan(ProviderType.MongoDBOASIS,ProviderType.Neo4jOASIS),new[]{first.Query.Object,second.Query.Object}));
+        Assert.Equal(PreparedStorageExecution.RejectedCode,result.ErrorCode);
+        NeverRead(first.Query);NeverRead(second.Query);store.VerifyNoOtherCalls();
+    }
 }
