@@ -1183,3 +1183,28 @@ only reusable cosmic-cql-environment.lock remains, no fixture journal. Runner
 bounded10,123,815-byte raw Mongo log to65,367-byte tail; database/runtime retained.
 Free C after gate69,727,821,824 bytes. No download/install/restore/new environment.
 Build lease released; preserve compact evidence and reusable outputs for Neo work.
+
+2026-10-24 Neo4j Decimal preparation: reuse existing .NET10.0.401/runtime10.0.12,
+Core17/Shared and fixed provider/native/unit bin/obj, retained WSL Ubuntu/root
+Podman oasis-neo4j5.26.12 image/container/volume on17687 (exact identities already
+inventoried above). No install/download/restore/new environment. Native217/unit455
+gate planned under global lease, fixed Neo4jCurrent fixture/journals/TRX and
+CosmicCqlDemo/decimal-neo-full.log. Sizes unmeasured; preserve source, compact
+reports/identity proof and reusable service; disposable fixtures only through the
+existing acknowledged graph-fixture teardown. Stop owned retained service after
+settled tests, never reset unknown outcomes. Native numeric normalization uses
+existing schema3 raw number text; no migration/extension/new database is needed.
+
+Neo Decimal18316 terminal0:217 native CQL/455 full units PASS0skip, including
+2,067 native digit-kernel vectors. Source snapshots unchanged; exact producer and
+consumer paths/hashes in Neo4jCurrent/decimal-identities-current.json:
+CoreC65FBD5F/Shared099240E3/Neo5CC14698 agree across provider/native/unit outputs.
+Retain neo4j-cql-native-current.trx, decimal-unit-current.trx and
+CosmicCqlDemo/decimal-neo-full.log (sizes unmeasured); reusable bin/obj retained.
+Runner free C69,711,290,368 before/69,514,080,256 after. Owned oasis-neo4j exited;
+current native fixtures acknowledged/removed by existing owner. Historical
+reviewed fixture JSON/TRX remain untouched. No install/download/restore or new
+environment; retained service/image/volume stay reusable. A read-only PowerShell
+System.Text.Json probe confirms huge-exponent negative zero parses exactly as0;
+its JsonDocument was disposed, with no files or service created. Slot released
+for peer Google; Core/Shared source hold respected until its gate settles.

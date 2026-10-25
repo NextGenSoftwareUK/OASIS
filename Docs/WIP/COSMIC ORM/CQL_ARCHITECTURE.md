@@ -505,5 +505,10 @@ share that exact value domain. The owner enforces cancellation/deadline and the
 Detached decoding uses Core's exact decoder. No storage migration or extra
 hydration path is involved. Full SQLite1,459 native cases pass; MongoDB's analogous
 native Decimal128 admission/decoder passes228 CQL cases and483 provider units.
-Neo4j/HTTP Decimal metadata enrollment remains pending.
+Neo4j now derives the same keys natively from existing schema3 numeric text,
+using coefficient/scale/exponent string operations and guarded integer scale
+arithmetic. Full217 native CQL/455 units pass, including2,067 kernel vectors.
+Its selected values use the same Core exact decoder. Decimal HTTP/demo enrollment
+remains pending. These are separate scoped provider cohorts, not a simultaneous
+full regression against one producer build.
 [Contract and cohort evidence](CQL_DECIMAL_METADATA_CONTRACT.md).

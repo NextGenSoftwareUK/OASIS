@@ -889,12 +889,13 @@ exponents and values above UInt64.MaxValue fail compilation. Existing enum value
 retain their identities. Live three-provider examples22–23 now pass69SDK/69HTTP acceptance; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
 passing gate from the compiler and native evidence.
 
-## Exact Decimal metadata — SQLite and MongoDB SDK
+## Exact Decimal metadata — MongoDB, SQLite and Neo4j SDK
 
-SQLite and MongoDB support Decimal/nullable Decimal comparisons, membership,
+MongoDB, SQLite and Neo4j support Decimal/nullable Decimal comparisons, membership,
 field comparisons, ordering, projections, Min/Max and grouped keys. SQLite passes
 1,459 native cases including 24 Decimal cases; MongoDB passes 228 native CQL and
-483 unit cases including 23/5 new cases. Neo4j/wire enrollment remains pending;
+483 unit cases including 23/5 new cases. Neo4j passes 217 native CQL and 455 unit
+cases including 12/2 new cases. HTTP/demo enrollment remains pending;
 check the actual provider capability profile.
 
 ```csharp
