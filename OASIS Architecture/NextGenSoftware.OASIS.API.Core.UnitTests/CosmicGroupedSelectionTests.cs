@@ -82,7 +82,7 @@ public sealed class CosmicGroupedSelectionTests
     [Fact]
     public void UnsupportedSumDomainRejects()
         => Assert.True(CosmicQuery<Holon>.Create().GroupBy(h => h.Name)
-            .Select(g => g.Sum(h => CosmicQueryMetadata.Value<double>(h, "money"))).IsError);
+            .Select(g => g.Sum(h => CosmicQueryMetadata.Value<bool>(h, "money"))).IsError);
 
     [Fact]
     public void CompositeKeyMustBeSelectedThroughExplicitFlatMembers()
