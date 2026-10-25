@@ -27,14 +27,26 @@ public class OracleEncryptedProcessNativeTests
     }
     private sealed class Owner(string connection):OracleDBOASIS(connection)
     {
-        public int Commits;
+        public int Commits,Provisions;
+        protected override Task ProvisionStorageSchemaAsync(OracleConnection connection) {
+            Provisions++;
+            throw new InvalidDataException("Process durability requires the original existing schema; no provisioning or repair is permitted.");
+        }
         protected override async Task CommitLifecycleTransactionAsync(OracleTransaction transaction) {
             await base.CommitLifecycleTransactionAsync(transaction);Commits++;
         }
     }
     private sealed record Intent(Guid Operation,Guid Actor,Guid Root,Guid Child,int WriterProcess);
-    private sealed record Proof(Guid RootVersion,Guid ChildVersion,Guid? RootRevision,Guid? ChildRevision,
+    internal sealed record Proof(Guid RootVersion,Guid ChildVersion,Guid? RootRevision,Guid? ChildRevision,
         string RootHash,string ChildHash,string ReceiptHash,string PreparationHash);
+    internal static void ValidateDurableSnapshot(Proof proof,string? root,string? child,string? receipt,string? preparation)
+    {
+        foreach(var pair in new[]{(Name:"root",Value:root,Expected:proof.RootHash),(Name:"child",Value:child,Expected:proof.ChildHash),
+            (Name:"receipt",Value:receipt,Expected:proof.ReceiptHash),(Name:"preparation",Value:preparation,Expected:proof.PreparationHash)}){
+            if(pair.Value==null||Hash(pair.Value)!=pair.Expected)
+                throw new InvalidDataException("Original Oracle "+pair.Name+" is missing or changed; recovery must not dispatch or recreate it.");
+        }
+    }
     private static string Work=>Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
     private static string Journal(bool sync)=>Path.Combine(Work,$"encrypted-process-{sync}.pending.json");
     private static string ProofPath(bool sync)=>Path.Combine(Work,$"encrypted-process-{sync}.written.json");
@@ -72,6 +84,7 @@ public class OracleEncryptedProcessNativeTests
         var provider=new Owner(Connection);await using var verifier=new OracleConnection(Connection);await verifier.OpenAsync();
         try {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            Assert.AreEqual(0,provider.Provisions);
             foreach(var id in new[]{intent.Root,intent.Child})Assert.AreEqual(0,Convert.ToInt32(await Scalar(verifier,"SELECT COUNT(*) FROM OASIS_HOLONS WHERE ID=:Id",id)));
             foreach(var table in new[]{"OASIS_WRITE_PREPARATIONS","OASIS_WRITE_RECEIPTS","OASIS_WRITE_OPERATION_LOCKS"})
                 Assert.AreEqual(0,Convert.ToInt32(await Scalar(verifier,"SELECT COUNT(*) FROM "+table+" WHERE OPERATION_ID=:Id",intent.Operation)));
@@ -94,7 +107,11 @@ public class OracleEncryptedProcessNativeTests
         Assert.AreNotEqual(intent.WriterProcess,Environment.ProcessId,"A genuinely different testhost process is required.");
         var provider=new Owner(Connection);await using var verifier=new OracleConnection(Connection);await verifier.OpenAsync();
         try {
+            // Fence loss/corruption BEFORE activation or a manager Save could provision
+            // missing tables or resubmit a missing original operation. Never repair/replay.
+            await ReadOriginal();
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);var input=Input(intent);var keys=new Resolver();
+            Assert.AreEqual(0,provider.Provisions);
             var replay=await Save(provider,keys,"key-b",intent,input,synchronous);
             Assert.IsFalse(replay.IsError,replay.Message+replay.Exception);Assert.AreEqual(0,provider.Commits);Assert.IsTrue(keys.UsedOldPreparation);
             Assert.AreEqual(proof.RootVersion,input.VersionId);Assert.AreEqual(proof.ChildVersion,input.Children.Single().VersionId);
@@ -102,12 +119,7 @@ public class OracleEncryptedProcessNativeTests
             Assert.AreEqual(proof.ChildRevision,CosmicConcurrency.GetProviderRevisionId(input.Children.Single(),ProviderType.OracleDBOASIS));
             Assert.AreEqual("owned Oracle root secret",input.MetaData["private-note"].ToString());
             Assert.AreEqual("owned Oracle child secret",input.Children.Single().MetaData["private-note"].ToString());
-            var root=(await Scalar(verifier,"SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id",intent.Root))!.ToString()!;
-            var child=(await Scalar(verifier,"SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id",intent.Child))!.ToString()!;
-            var receipt=(await Scalar(verifier,"SELECT RESULT_JSON FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id",intent.Operation))!.ToString()!;
-            var preparation=(await Scalar(verifier,"SELECT PAYLOAD_JSON FROM OASIS_WRITE_PREPARATIONS WHERE OPERATION_ID=:Id",intent.Operation))!.ToString()!;
-            Assert.AreEqual(proof.RootHash,Hash(root));Assert.AreEqual(proof.ChildHash,Hash(child));
-            Assert.AreEqual(proof.ReceiptHash,Hash(receipt));Assert.AreEqual(proof.PreparationHash,Hash(preparation));
+            var (root,child,receipt,preparation)=await ReadOriginal();
             await using(var transaction=(OracleTransaction)await verifier.BeginTransactionAsync()) {
                 await Remove("OASIS_HOLONS","ID","DATA_JSON",intent.Root,root,transaction);
                 await Remove("OASIS_HOLONS","ID","DATA_JSON",intent.Child,child,transaction);
@@ -123,10 +135,21 @@ public class OracleEncryptedProcessNativeTests
                 Assert.AreEqual(0,Convert.ToInt32(await Scalar(verifier,"SELECT COUNT(*) FROM "+table+" WHERE OPERATION_ID=:Id",intent.Operation)));
             await Persist(Path.Combine(Work,$"encrypted-process-{synchronous}.verified.json"),new {
                 intent.Operation,writerProcess=intent.WriterProcess,readerProcess=Environment.ProcessId,verifiedUtc=DateTime.UtcNow,
+                rootId=intent.Root,childId=intent.Child,actorId=intent.Actor,
+                recoveryCommits=provider.Commits,usedOldPreparation=keys.UsedOldPreparation,nativeHashesVerifiedBeforeRecovery=true,
+                schemaProvisionCalls=provider.Provisions,
                 proofHash=Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(ProofPath(synchronous))))
             });
             File.Delete(Journal(synchronous));
         } finally {await provider.DeActivateProviderAsync();}
+        async Task<(string Root,string Child,string Receipt,string Preparation)> ReadOriginal() {
+            var root=(await Scalar(verifier,"SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id",intent.Root))?.ToString();
+            var child=(await Scalar(verifier,"SELECT DATA_JSON FROM OASIS_HOLONS WHERE ID=:Id",intent.Child))?.ToString();
+            var receipt=(await Scalar(verifier,"SELECT RESULT_JSON FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id",intent.Operation))?.ToString();
+            var preparation=(await Scalar(verifier,"SELECT PAYLOAD_JSON FROM OASIS_WRITE_PREPARATIONS WHERE OPERATION_ID=:Id",intent.Operation))?.ToString();
+            ValidateDurableSnapshot(proof,root,child,receipt,preparation);
+            return(root!,child!,receipt!,preparation!);
+        }
         async Task Remove(string table,string identity,string payload,Guid id,string expected,OracleTransaction transaction) {
             await using var command=new OracleCommand("DELETE FROM "+table+" WHERE "+identity+"=:Id AND DBMS_LOB.COMPARE("+payload+",:Payload)=0",verifier){BindByName=true,Transaction=transaction};
             command.Parameters.Add("Id",OracleDbType.Raw).Value=id.ToByteArray();command.Parameters.Add("Payload",OracleDbType.Clob).Value=expected;
