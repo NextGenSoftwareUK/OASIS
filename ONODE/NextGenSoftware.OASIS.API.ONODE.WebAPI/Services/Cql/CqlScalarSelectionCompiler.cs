@@ -20,12 +20,12 @@ public static partial class CqlV1Compiler
         // New numeric inputs require explicit v1 wire and live acceptance first.
         var input = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
         if ((operation == CosmicScalarOperation.Sum || operation == CosmicScalarOperation.Average)
-            && input != typeof(int) && input != typeof(long) && input != typeof(ulong))
-            throw new ArgumentException("CQL v1 numeric inputs are Int32/Int64/UInt64, optionally nullable.");
+            && input != typeof(int) && input != typeof(long) && input != typeof(ulong) && input != typeof(decimal))
+            throw new ArgumentException("CQL v1 numeric inputs are Int32/Int64/UInt64/Decimal, optionally nullable.");
         if (operation == CosmicScalarOperation.Average)
         {
             // The bounded selection visitor already knows the exact CLR input
-            // type. Bind the public exact integer Average overloads;
+            // type. Bind the public exact numeric Average overloads;
             // no reflection or compiled selector delegate is involved.
             if (typeof(TValue) == typeof(int))
                 return consumer.Consume(source.Average((Expression<Func<Holon, int>>)(object)selector));
@@ -39,7 +39,11 @@ public static partial class CqlV1Compiler
                 return consumer.Consume(source.Average((Expression<Func<Holon, ulong>>)(object)selector));
             if (typeof(TValue) == typeof(ulong?))
                 return consumer.Consume(source.Average((Expression<Func<Holon, ulong?>>)(object)selector));
-            throw new ArgumentException("Average requires an Int32/Int64/UInt64 selection, optionally nullable.");
+            if (typeof(TValue) == typeof(decimal))
+                return consumer.Consume(source.Average((Expression<Func<Holon, decimal>>)(object)selector));
+            if (typeof(TValue) == typeof(decimal?))
+                return consumer.Consume(source.Average((Expression<Func<Holon, decimal?>>)(object)selector));
+            throw new ArgumentException("Average requires an Int32/Int64/UInt64/Decimal selection, optionally nullable.");
         }
         var intent = operation switch
         {

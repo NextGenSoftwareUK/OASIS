@@ -28,7 +28,8 @@ UInt64 arithmetic is explicitly enrolled and verified on all three stores, inclu
 111SDK/111signedHTTP demos. SQLite Decimal arithmetic is explicitly enrolled (1,702native/72unit), while
 MongoDB Decimal arithmetic passes23 focused native tests and550 units, with full416 native acceptance passing without failures or skips. Neo4j Decimal arithmetic passes416 native/529 unit tests without failures or skips. The
 [scaled-packet contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md) defines exact reduction
-and rounding. Decimal HTTP arithmetic remains outside published v1 enrollment.
+and rounding. Explicit Decimal HTTP compiler/wire enrollment passes full Core3,079 and the
+shipping WEB4 build; live signed Decimal HTTP/demo acceptance remains pending.
 Decimal Average output does not itself grant Decimal metadata selection.
 All three providers' explicit Decimal enrollment is documented in the
 [Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md). Arbitrary enum types and client functions are
