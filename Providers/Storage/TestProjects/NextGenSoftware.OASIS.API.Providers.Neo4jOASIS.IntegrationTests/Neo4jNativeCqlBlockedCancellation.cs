@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,10 +24,25 @@ public partial class Neo4jNativeCqlTests
     [DataRow(false, false, "grouped")]
     [DataRow(false, true, "grouped")]
     public Task NativeCqlCancellationInterruptsPausedBoltResponseBeforeRelease(bool abortOwnedDriver, bool warmConnection, string shape)
+        => RunPausedReadAsync(abortOwnedDriver, warmConnection, shape, deadlineExpired: false);
+
+    [DataTestMethod]
+    [DataRow(false, "rows")]
+    [DataRow(true, "rows")]
+    [DataRow(false, "projection")]
+    [DataRow(true, "projection")]
+    [DataRow(false, "scalar")]
+    [DataRow(true, "scalar")]
+    [DataRow(false, "grouped")]
+    [DataRow(true, "grouped")]
+    public Task NativeCqlDeadlineInterruptsPausedBoltResponseBeforeRelease(bool warmConnection, string shape)
+        => RunPausedReadAsync(false, warmConnection, shape, deadlineExpired: true);
+
+    private static Task RunPausedReadAsync(bool abortOwnedDriver, bool warmConnection, string shape, bool deadlineExpired)
         => WithNativeGraph(async fixture =>
         {
-            // The relay forwards the actual Bolt handshake, authentication and
-            // schema setup. Only a later server response is deliberately held.
+            // Cold cases hold the initial handshake; warm cases hold a later
+            // response. Both use the real server and preserve the held bytes.
             await using var relay = new PausedBoltRelay();
             using var driver = GraphDatabase.Driver("bolt://127.0.0.1:17788",
                 AuthTokens.Basic("neo4j", "oasis-local-test-only"),
@@ -42,6 +58,7 @@ public partial class Neo4jNativeCqlTests
                 if (warmConnection) await driver.VerifyConnectivityAsync();
                 relay.Arm();
                 // Each public native executor must own interruption, not just row reads.
+                var elapsed = Stopwatch.StartNew();
                 var pending = ExecuteShapeAsync();
 
                 async Task ExecuteShapeAsync()
@@ -74,10 +91,17 @@ public partial class Neo4jNativeCqlTests
                     }
                 }
 
-                static void CheckCancelled<T>(OASISResult<T> result)
+                void CheckCancelled<T>(OASISResult<T> result)
                 {
                     Assert.IsTrue(result.IsError);
-                    Assert.AreEqual("CQL_QUERY_CANCELLED", result.ErrorCode);
+                    Assert.AreEqual(deadlineExpired ? "CQL_QUERY_TIMEOUT" : "CQL_QUERY_CANCELLED", result.ErrorCode);
+                    if (deadlineExpired)
+                    {
+                        // Exercise the shipping 30-second budget, with no injected
+                        // shortened timeout and no caller cancellation.
+                        Assert.IsFalse(cancellation.IsCancellationRequested);
+                        Assert.IsTrue(elapsed.Elapsed >= TimeSpan.FromSeconds(29));
+                    }
                     Assert.IsFalse(result.IsLoaded);
                     Assert.IsTrue(EqualityComparer<T>.Default.Equals(default!, result.Result),
                         "Cancellation must not publish even a partial result.");
@@ -87,7 +111,7 @@ public partial class Neo4jNativeCqlTests
                 try
                 {
                     await relay.Paused.WaitAsync(TimeSpan.FromSeconds(10));
-                    cancellation.Cancel();
+                    if (!deadlineExpired) cancellation.Cancel();
                     if (abortOwnedDriver)
                     {
                         // This driver belongs exclusively to this probe, never
@@ -95,7 +119,8 @@ public partial class Neo4jNativeCqlTests
                         closing = driver.CloseAsync();
                         await closing.WaitAsync(TimeSpan.FromSeconds(3));
                     }
-                    interrupted = await Task.WhenAny(pending, Task.Delay(1000)) == pending;
+                    var maximumWait = deadlineExpired ? TimeSpan.FromSeconds(33) : TimeSpan.FromSeconds(1);
+                    interrupted = await Task.WhenAny(pending, Task.Delay(maximumWait)) == pending;
                 }
                 finally
                 {
@@ -107,7 +132,7 @@ public partial class Neo4jNativeCqlTests
                 }
                 await pending;
                 Assert.IsTrue(interrupted,
-                    "Caller cancellation must finish while the actual Bolt response is still held.");
+                    "Cancellation or the native deadline must finish while the actual Bolt response is still held.");
             }
             finally { await provider.DeActivateProviderAsync(); }
         });

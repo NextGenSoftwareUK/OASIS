@@ -1,5 +1,10 @@
 # COSMIC ORM implementation status
 
+Current: **25 October 2026**. Read the newest connection/deadline checkpoint at
+the end and the CQL completion roadmap for authoritative remaining work. The
+following dated sections preserve historical acceptance; they are not a claim
+that the full CQL or COSMIC ORM programme is complete.
+
 ## 23 October — Neo4j native Select acceptance
 
 Native SDK selection now reuses the generic V2 projection executor and Neo4j's existing source, operand and read-budget owners. Initial fullunit328/native81 pass unskipped, after5new cases proved the missing interface. Final fullunit328/joint native-WEB4 147 pass unskipped on the updated production binary, including18new native projection controls and actual cursor-buffer inspections. Authenticated projection transport/demos, non-count aggregates/grouping and the remaining CQL/ORM gates are still open. [Contract/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
@@ -911,3 +916,35 @@ This is a verified scoped batch, not full CQL completion. Strict deadline latenc
 DNS/TCP/TLS connection phases, broader non-CQL driver regressions, joins,
 federation and the unchecked authorization/scalar/composition roadmap remain.
 The full original COSMIC ORM goal remains active.
+
+## Connection creation and native deadlines — 25 October 2026
+
+Gate61225 completed successfully on the corrected shipping assembly identity:
+6driverunits,18nativeinterruption/deadlinecases and465providerunits pass, zero
+skips. Native18duration4m5s. Real30second deadlines cover cold/warm rows,
+projections, scalar and grouped queries; caller cancellation remains covered.
+DNS resolution/cache waits, closed-owner rejection and a held real TLS
+ClientHello are covered by the driver tests. Shutdown is joined before reuse;
+TCPShutdownBoth is preserved before stream/socket disposal.
+
+NativeTRXSHA2562296A0EF80DA02FBA71C115700E77CE2B769CD98FE7A251A7F059069C9DA5E4B;
+driverunitTRXSHA2569B5EDF30184E9B9DC609D7A813629D52385F99F2B142630583EF52A0424B3A3C;
+providerunitTRXSHA2565E565A7A7A2CB4C325478DFF95E1C6F22ED790285A6F7D69E16FBCB2CF439087.
+Currentfiles are in TestResults/Neo4jCurrent. Log:
+TestResults/CosmicCqlDemo/neo-graceful-interruption-current.log.
+Driverproducer/provider/nativeconsumer hash agrees:
+C9A8D3524484B39671FD3CCAD97B7BB3AFEA566B06B93279C6F4C40B304857F3;
+exactassemblyidentity is Neo4j.Driver4.3.2.2/publickeytokenb646bc66d277ac07.
+Upstreamoriginalkeypreserved; CompatibilityPublicKey.snk/public-only288bytes
+is independently hash-pinned. PATCH.json records9modifiedupstreamfiles.
+
+OwnedNeo runtime stopped; listeners17687/17788/17789 and graphfixturejournal
+absent. Freeafter65940660224bytes. ExistingSDK/cache/Neo volume and fixedbuild
+outputs retained/reusable; sizesunmeasured. Newtestsource and compactevidence
+retained; no download/install/newenvironment or unrelated cleanup. OwnerCOSMICORM.
+
+The priorfull267run passed249normalcases but failed18relayteardowncases on the
+pre-ShutdownBoth connector. This new18casegate supersedes those interruption
+failures, but is NOT a freshfull267green cohort. Fullcurrent267/nativeWEB4/non-CQL
+regressions remain pending, alongside joins/federation and the rest of the
+unchecked CQL/ORM roadmap. No fullcompletionclaim; goalremainsactive.

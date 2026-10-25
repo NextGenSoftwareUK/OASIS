@@ -19,6 +19,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Neo4j.Driver.Internal.Connector
@@ -67,14 +68,11 @@ namespace Neo4j.Driver.Internal.Connector
             return _fallBackResolver.Resolve(hostname);
         }
 
-        public Task<IPAddress[]> ResolveAsync(string hostname)
+        public Task<IPAddress[]> ResolveAsync(string hostname, CancellationToken cancellationToken = default)
         {
-            if (_getHostByNameMethod != null)
-            {
-                return Task.FromResult(Resolve(hostname));
-            }
-
-            return _fallBackResolver.ResolveAsync(hostname);
+            // The asynchronous path must preserve connection-owner cancellation.
+            // A reflected synchronous DNS call cannot satisfy that contract.
+            return _fallBackResolver.ResolveAsync(hostname, cancellationToken);
         }
     }
 }
