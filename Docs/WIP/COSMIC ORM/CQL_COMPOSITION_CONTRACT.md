@@ -291,3 +291,36 @@ Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
 Initial server-error evidence is retained separately. Further composition
 privacy/relationship and outstanding-I/O/deadline controls remain required;
 Neo4j composition and public HTTP/composition demos remain open.
+
+## MongoDB relationship and interruption certification — in progress
+
+The additional six controls exercise direct-child and descendant public/private
+matching, visibility before source paging, outstanding-I/O cancellation and
+shipping30-second deadline expiry. The deadline test observes actual aggregate
+maxTimeMS on the wire and requires decreasing allowances across commands; a
+fresh per-command timeout cannot satisfy it. Every failpoint is disabled in
+finally, the pending task is joined, and a fresh query must succeed afterward.
+The native cohort is359; final outcome will be recorded after terminal teardown.
+No production source changed for these controls.
+
+### Neo4j implementation constraint
+
+Existing `Neo4jOASIS.Cql.JoinCompiler.cs` captures source cells inside one native
+statement and explicitly retains read-committed semantics. Composition should
+likewise carry bounded captured cells through native result stages; repeated
+source queries cannot establish a repeatable snapshot. Keep GraphSnapshot
+unsupported unless a separately implemented and verified guarantee changes it.
+This is a design constraint, not completed Neo4j composition.
+
+
+Final MongoDB relationship/interruption gate: **359/359 native CQL tests**, zero
+skips,5m4s, including31 composition controls overall. Direct/descendant private
+matches are excluded, public matches remain visible, and visibility precedes
+source paging. Outstanding cancellation and the shipping30-second deadline
+return no packet, preserve decreasing native wire budgets and allow fresh reuse.
+Evidence: `TestResults/CosmicCqlDemo/mongo-composition-privacy-interruption-final.log`
+and `TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`.
+Runner42875 completed successfully and acknowledged owned teardown. Provider
+unit evidence remains519/519 from the unchanged-production checkpoint. Next:
+Neo4j native composition, then public composition transport/demos and remaining
+broader CQL certification/policy/federation requirements.
