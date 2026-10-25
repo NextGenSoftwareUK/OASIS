@@ -1,5 +1,11 @@
 # Oracle client readiness — top priority
 
+## Explicit smoke-harness configuration — 25 October UTC
+
+Removed reflective constructor guessing, fake `test` arguments and swallowed construction exceptions from the older integration factory. It now directly uses the provider's explicit connection-string constructor and rejects missing/blank settings before activation. Four isolated controls PASS21ms/0skips; bounded no-restore build PASS, source/PDB and producer-copy identity verified. No database access, cloud request, download or new environment. This is a harness admission fix, NOT additional native/provider feature certification. The older five smoke cases still require journalled owned cleanup before cloud use; they were not executed. Existing strict native502 and controlled445/OCI127 cohorts retain their separate scope.
+
+Oracle remains first priority and is not100%: actual Autonomous Database/OCI access and security/durability/cost gates cannot be established by more local test counts. Await the test tenancy name/user sign-in and protected profile/wallet/service details in ACTIONS-FOR-DAVID.md. Do not guess accounts, create billable resources or call local loopback hosted acceptance. Remaining requirements/options review and full V2 acceptance remain open as recorded below.
+
 ## Cross-process recovery and coherent local sweep — 25 October UTC
 
 Cross-process encrypted write/recovery **2+2PASS**, zero skips: writerPID80032 and readerPID29096 are genuinely different. Both sync/async cases recover the original key-a preparation while key-b is active, retain exact root/child versions/revisions and original native payload/receipt/preparation hashes, and assert **0new recovery commits**. Exact-content owned cleanup and independent absence complete before pending intent removal. This is real encryption plus ODP.NET/local database with a synthetic key resolver, not hosted KMS or crash/power-loss certification.
