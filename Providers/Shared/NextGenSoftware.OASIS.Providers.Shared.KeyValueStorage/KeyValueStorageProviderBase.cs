@@ -1064,6 +1064,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
                 results.SearchResultAvatars.AddRange(avatars.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
                 if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
+                if(searchParams.SearchOnlyForCurrentAvatar){
+                    var scoped=partialCollection==null?new OASISResult<IEnumerable<IHolon>>():OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(partialCollection);
+                    scoped.Result=results.SearchResultHolons;scoped.IsLoaded=true;
+                    var visible=IOASISStorageProvider.ProjectVisibleHolons(scoped,searchParams.AvatarId,false);
+                    if(visible.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(visible);
+                    results.SearchResultHolons=visible.Result.ToList();
+                    if(partialCollection!=null)partialCollection=visible;
+                }
                 results.NumberOfResults = results.SearchResultAvatars.Count + results.SearchResultHolons.Count;
                 var result=Ok<ISearchResults>(results,loadedCount:results.NumberOfResults);
                 if(partialCollection!=null){result.IsWarning=true;result.Message=partialCollection.Message;result.MetaData=partialCollection.MetaData;}
