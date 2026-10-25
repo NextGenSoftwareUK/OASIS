@@ -178,3 +178,21 @@ Implemented MongoDB grouped normalization algorithm:
 Scalar and grouped profiles share explicit numeric input permissions. Both native
 paths and final-value/proof agreement now pass full416 native and550 unit gates.
 The earlier component-only checkpoints above retain their historical scope.
+
+## Neo4j native implementation in progress
+
+The staged compiler decodes the existing sign/complement ordinal Decimal key
+into seven signed base1e9 words. Eight-word carry normalization retains the full
+scaled numerator. Long division and discarded-digit/sticky tracking use Int64
+only; no source value or intermediate is converted to Float. Final values are
+encoded back to the existing Decimal ordinal key for native comparisons.
+
+Two parameter-only native tests pass without failures or skips: 2,112 signed
+key inputs and 138 reduction packets. They cover all 29 scales, signed/zero keys, seeded
+coefficients, cancellation of large sums, ties-to-even, scale reduction,
+double-round boundaries, overflow and maximum participation. These tests create
+no graph data. The first build caught and corrected two C# syntax errors before
+this passing native gate. Full Neo4j units also pass 520/520 without skips.
+Scalar/grouped source compilation, packet decoding,
+query-level certification and explicit capability enrollment remain required.
+No Neo4j Decimal arithmetic availability is claimed by this staged component.
