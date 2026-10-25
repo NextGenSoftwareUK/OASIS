@@ -1718,3 +1718,39 @@ Reports retained at fixed single-query-* paths above; sizeunmeasured. RedTRX
 SHA25629442946C8B8AF122E4BB1896667220387381C7E6288A2D6BCE21D2D7F657757.
 No downloads/restores/new environments. Shared SDK/cache/outputs/runtime/data
 remain reusable with existing owners; compact evidence retained. Lease released.
+
+## Neo Single original decimal-text component preparation — 24 October 2026
+
+Owner COSMIC ORM/CQL. NeoCqlSingle.cs source-only implementation uses original
+schema3 integer/number text, bounded4096tokens and31binary32 midpoint searches.
+Exact factor tables generated in memory via existing System.Numerics; no new
+packages/downloads/environment. Reuse pinned WSL/PodmanNeo5.26.12,17687 and
+existing Neo4jCurrent fixture/build outputs for upcoming tests (not started).
+Source/resource sizeunmeasured. No capability enrollment yet; next native
+component vectors must verify Cypher integer arithmetic/parameters/syntax and
+exact midpoint behavior. Shared output lease remains required for builds.
+
+Prepared Neo4jNativeCqlSingleVectors.cs with209native literal vectors:7finite
+boundaries,192exact midpoint/neighbor/sign controls across8exponentbands,
+3nonzerounder/overflow and7grammar/length controls. Expected values use direct
+CLRbinary32 parsing, not Double; native comparison uses exact decimal digits.
+No fixtures beyond existing acknowledged WithNativeGraph owner; vector values
+are query parameters only. Native transaction timeout30seconds. Fullrunner
+count233prepared (prior232+1); wider cohort counts likewise incremented.
+Not executed yet: peer Oracle currently owns Core/Shared/output lease.
+No Single profile enrollment or published acceptance claim for Neo.
+48304 acquired globallease after prior owner process ended; native component
+verification active. Fixed reports Neo4jCurrent/neo4j-cql-native-current.trx,
+single-kernel-full-current.trx, single-kernel-identities-current.json and
+CosmicCqlDemo/neo-single-kernel-full.log; report sizes unmeasured. Reuses retained
+WSLUbuntu/root Podman oasis-neo4j image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd,
+port17687. Existing source/bin/obj/cache/runtime only, no restore/download.
+Native source/binary proof captured within lease; actual outcome pending.
+
+48304terminal0:233native/457unitPASS0skip including209literalvectors. Source
+snapshotsunchanged; CoreE5145A09/SharedB97E6093/Neo74C00065 producer/native/unit
+identitiesmatch. Existing runner teardown completed; pinnedNeo container exited.
+FreeC66,495,197,184before/66,279,866,368after fullgate. No restore/install/
+download/newenvironment. Fixed reports/log retained, sizesunmeasured. Shared
+bin/obj/runtime/cache retained reusable; fixture cleanup uses existing owner.
+Singlequerycapability remainsdisabled. Globallease/sourceholdreleased.
