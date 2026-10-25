@@ -90,3 +90,19 @@ verified teardown. No installation or restore was required.
   preserve enum identities and the existing v1 surface.
 - Run matched provider/native/HTTP tests and update annotated demos/docs. Do not
   infer completion or enable capabilities from this foundation checkpoint.
+
+## Mongo Double SDK enrollment verified — 24 October 2026
+
+The native operand owner normalizes BSON int/long/Decimal128/Double to the
+explicitly requested finite IEEE binary64 domain before predicates, ordering,
+projection, grouping or extrema. Conversion failure and nonzero underflow use an
+invalid object state, preserving the distinction from nullable null/missing.
+Non-numeric BSON never becomes numeric by parsing strings. Both signed zeros
+publish canonical positive zero. Existing exact integer/Decimal paths are unchanged.
+
+Double comparisons, membership and field comparisons share that normalized
+operand. Detached publication requires finite native BSON Double. Sum/Average
+input domains remain Int32/Int64; this does not enroll floating arithmetic.
+Native tests cover predicate families, binary64 boundaries/subnormals, adjacent
+values, nullable groups and malformed/nonfinite/underflow/overflow rejection.
+Actual79326 terminal0: full254 native CQL and493 unit tests pass, zero failures/skips. The native cohort includes23 new Double cases. Evidence: TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx and double-full-current.trx; TestResults/CosmicCqlDemo/mongo-double-native.log. The reusable runner stopped its owned Mongo service and bounded the11,095,999-byte raw log to65,103 bytes. No new runtime/download/restore was needed. This gate did not capture producer/consumer identity hashes inside the lease; a matched-artifact claim is deferred to final certification. Neo Double, all Single query paths and floating HTTP/demos remain open.

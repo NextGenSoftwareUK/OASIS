@@ -69,7 +69,7 @@ internal sealed partial class MongoCqlTranslator
         BsonValue Cell(BsonValue raw)
         {
             var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
-            var value = path.IsMetadata && type == typeof(DateTime) ? MetadataDate(raw, path.Segments) : raw;
+            var value = MetadataOperand(raw, path);
             var valid = type == typeof(Guid) ? GuidDomain(value) : Domain(value, path.ValueType, path.IsMetadata);
             if (path.IsMetadata && type == typeof(DateTime))
             {
