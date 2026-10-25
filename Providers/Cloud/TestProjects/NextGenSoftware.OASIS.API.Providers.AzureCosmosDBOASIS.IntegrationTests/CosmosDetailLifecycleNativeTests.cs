@@ -57,7 +57,14 @@ public partial class AzureCosmosDBOASISIntegrationTests
         if(soft){Assert.IsNotNull(json);var document=JObject.Parse(json);Assert.AreEqual(2,document["Version"]!.Value<int>());
             var current=OasisJson.DeserializeStored<AvatarDetail>(CosmosEmbeddedHistory.CanonicalPayload(document).ToString());Assert.IsTrue(current.IsDeleted);Assert.IsFalse(current.IsActive);
             Assert.AreEqual(name,document[CosmosEmbeddedHistory.PropertyName]!["records"]![0]!["Username"]!.Value<string>());
-            var hard=await storage.DeleteAvatarDetailAsync(id,false);Assert.IsFalse(hard.IsError,hard.Exception?.ToString());
+            var repeated=selector==1?storage.DeleteAvatarDetailByUsername(name,true)
+                :selector==2?await storage.DeleteAvatarDetailByEmailAsync(avatar.Email,true):await storage.DeleteAvatarDetailAsync(id,true);
+            Assert.IsFalse(repeated.IsError,repeated.Message+repeated.Exception);Assert.IsTrue(repeated.IsDeleted);Assert.IsFalse(repeated.IsSaved);
+            Assert.AreEqual(json,await details.ReadDocumentAsync(id.ToString(),partition),"Repeat soft deletion must preserve the original payload/history/native revision.");
+            Assert.IsTrue((await storage.LoadAvatarDetailAsync(id)).IsError,"Ordinary reads must still hide the tombstone.");
+            var hard=selector==1?storage.DeleteAvatarDetailByUsername(name,false)
+                :selector==2?await storage.DeleteAvatarDetailByEmailAsync(avatar.Email,false):await storage.DeleteAvatarDetailAsync(id,false);
+            Assert.IsFalse(hard.IsError,hard.Message+hard.Exception);
         }else Assert.IsNull(json);
         Assert.IsNull(await details.ReadDocumentAsync(id.ToString(),partition));
         await profile.DeleteUnchangedDocumentAsync(id.ToString(),avatar,partition);Assert.IsNull(await profile.ReadDocumentAsync(id.ToString(),partition));File.Delete(path);
