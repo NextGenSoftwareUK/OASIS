@@ -966,7 +966,7 @@ HolonManager as in the earlier projection examples. Binary64 rounding is part of
 this declared type; exact integer/decimal queries retain their corresponding
 Int64/UInt64/Decimal domains. Nonzero underflow cannot match zero; overflow and
 foreign JSON types reject required selection. The same SDK Double shape is now supported by MongoDB and Neo4j with each actual
-provider capability profile. Single and floating HTTP/demo enrollment remain pending.
+provider capability profile. Single remains pending; Double SDK/HTTP/live demos are verified.
 [Domain, budgets and evidence](CQL_FLOATING_SCALAR_CONTRACT.md).
 
 ### Double HTTP values
@@ -992,4 +992,4 @@ normalizing signed zero to0. Canonical spelling is required: use5E-324 rather
 than5e-324, and0 rather than0.0. NaN, infinity, overflow, nonzero underflow and
 over-precise text that would round are rejected. JSON number tokens are rejected
 for this wire type. Double is binary64; use Decimal for exact decimal prices.
-The compiler/endpoint gate passes2,542 tests; live Double demos are pending.
+The full linked suite passes2,552 tests, including the complete Double grouped-order request. Live acceptance passes81SDK/81signedHTTP examples on all three providers. See demo examples26–27 and Swagger FiniteDouble.

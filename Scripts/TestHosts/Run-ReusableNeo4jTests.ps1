@@ -62,6 +62,7 @@ try {
         $reviewedAdmissionFilter = switch ($reviewedHash) {
             '40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4' { 'FullyQualifiedName~ReviewedUtcAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
             'E10085F949323BD01594034C97936352E4799F2E362107ECEC5EFDE54117023A' { 'FullyQualifiedName~ReviewedDecimalAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
+            'E78825690C7CDB2E5EC87DF345CDFC703B393515051D36A223E073D45C0513C2' { 'FullyQualifiedName~ReviewedDoubleOrderingFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
             default { throw 'Unreviewed admission fixture digest; preserve the database and journal.' }
         }
     }

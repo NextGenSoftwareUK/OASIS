@@ -163,6 +163,8 @@ public static partial class CqlV1Compiler
         if (type == typeof(Guid?)) return Bind<Guid?>();
         if (type == typeof(DateTime)) return Bind<DateTime>();
         if (type == typeof(DateTime?)) return Bind<DateTime?>();
+        if (type == typeof(double)) return Bind<double>();
+        if (type == typeof(double?)) return Bind<double?>();
         if (type == typeof(decimal)) return Bind<decimal>();
         if (type == typeof(decimal?)) return Bind<decimal?>();
         if (type == typeof(byte)) return Bind<byte>();

@@ -7,7 +7,7 @@
 .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
 ```
 
-Console runs **25 C# SDK queries and 25 C# HTTP examples per provider (75 of each total)** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
+Console runs **27 C# SDK queries and 27 C# HTTP examples per provider (81 of each total)** on all three native databases. Serve then opens **http://127.0.0.1:5088/demo** after `TestResults/CosmicCqlDemo/v1-session.json` appears. Switch provider, user and example; edit spaced JSON and inspect formatted results/settlement. Repeat a key to show no replay.
 
 Swagger `/swagger` has a prefilled v1 request, synthetic Alice authorization and an editable required Idempotency-Key. Use a new key for a new intent. **Finish demo & clean up** awaits requests, checks settlement and removes owned data. Reuses the retained native environment; failed fixtures remain for inspection. Synthetic tokens last one hour; no production account or charge.
 
@@ -39,7 +39,7 @@ Read the source in this order:
 Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holons participate in change tracking, conditional saves and committed deltas. Example 7 demonstrates an unsupported query being rejected before provider execution.
 
 
-The current walkthrough has **twenty-five** spaced/commented examples per provider: 75 SDK queries and 75 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
+The current walkthrough has **twenty-seven** spaced/commented examples per provider: 81 SDK queries and 81 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
 Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
@@ -206,3 +206,15 @@ stopped. The initial obsolete Decimal-rejection control was changed to Double;
 its original outcomes were verified before exact cleanup, with failure evidence
 preserved. This is joint demo acceptance, not a new full native regression of all
 three providers.
+
+## Examples 26–27: finite Double readings
+
+The fixture stores reading =1d+i*2.220446049250313e-16d. The source example
+selects B-owned/C-public with canonical values1.0000000000000004 and
+1.0000000000000007. The grouped example filters/orders the selected Reading
+alias and publishes one item per distinct binary64 key. SDK uses double/d
+literals; HTTP uses canonical invariant round-trip strings. Use Decimal for
+exact decimal prices; Double is appropriate for binary64 measurements.
+
+Browser presets Double / exact reading range and Double / grouped readings,
+plus Swagger FiniteDouble examples, use the same bounds. Live acceptance passes81SDK/81signedHTTP,261settled operations/256attempts, zero failures/skips across all three providers. Source snapshots unchanged and all five binary pairs match. Four offline browser presets and standalone cached demo build pass.
