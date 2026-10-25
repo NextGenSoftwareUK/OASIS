@@ -11,16 +11,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests;
 [TestClass]
 public sealed class GoogleSaveCountTests
 {
-    private sealed class Controlled(string mode,Action first):GoogleCloudOASIS("owned-count",enableStorage:false,enableFirestore:false,enableBigQuery:false)
+    private sealed class Controlled(string mode,Action first,int failAt=2):GoogleCloudOASIS("owned-count",enableStorage:false,enableFirestore:false,enableBigQuery:false)
     {
         public int Calls;private Guid _first;
         protected override async Task<OASISResult<IHolon>> SavePlannedHolonAsync(PlannedHolonWrite write){
             Calls++;await Task.Yield();
-            if(Calls==2){
+            if(Calls==failAt){
                 if(mode=="reject")return new(){IsError=true,Exception=new InvalidDataException("owned known rejection")};
                 if(mode=="unknown")return new(){IsError=true,Exception=new GoogleFirestoreMutationReconciliationException("owned/document",new IOException("owned unknown acknowledgement"))};
                 if(mode=="postack")return new(){IsError=true,SavedCount=73,Exception=new GoogleFirestorePartialMutationException(new[]{_first,write.Snapshot.Id},new IOException("owned acknowledged publication failure"))};
                 if(mode=="unack")return new(){Result=write.Snapshot,IsSaved=false};
+                if(mode=="null")return null!;
+                if(mode=="missing")return new(){IsSaved=true};
             }
             write.Snapshot.Version=1;write.Snapshot.VersionId=Guid.NewGuid();
             // Match the real Firestore writer's acknowledged role document.
@@ -28,6 +30,22 @@ public sealed class GoogleSaveCountTests
             if(Calls==1){_first=write.Snapshot.Id;first();}
             return new(){Result=write.Snapshot,IsSaved=true,SavedCount=73};
         }
+    }
+    [DataTestMethod]
+    [DataRow("null",false,1)][DataRow("missing",false,1)][DataRow("unack",false,1)]
+    [DataRow("null",true,1)][DataRow("missing",true,1)][DataRow("unack",true,1)]
+    [DataRow("null",false,2)][DataRow("missing",false,2)][DataRow("unack",false,2)]
+    [DataRow("null",true,2)][DataRow("missing",true,2)][DataRow("unack",true,2)]
+    public async Task MalformedNativeAcknowledgementStopsEvenWhenContinueOnError(string mode,bool synchronous,int failAt)
+    {
+        var rows=Enumerable.Range(0,3).Select(_=>new Holon{Id=Guid.NewGuid()}).ToArray();
+        var provider=new Controlled(mode,()=>{},failAt);
+        var result=synchronous?provider.SaveHolons(rows,continueOnError:true):await provider.SaveHolonsAsync(rows,continueOnError:true);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+        Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception),result.Exception?.ToString());
+        Assert.AreEqual(failAt,provider.Calls,"An uncertain acknowledgement must stop later writes.");
+        Assert.AreEqual(failAt-1,result.SavedCount,"Malformed acknowledgement is not proof of another committed record.");
+        Assert.AreEqual(0,rows[failAt-1].Version);Assert.AreEqual(0,rows[2].Version);
     }
     [DataTestMethod]
     [DataRow("success",false)][DataRow("reject",false)][DataRow("unknown",false)][DataRow("postack",false)][DataRow("unack",false)][DataRow("caller",false)]
