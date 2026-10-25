@@ -551,3 +551,10 @@ writer. A single finite parse/re-encode owner supplies source/group literals;
 selected Double values use canonical round-trip strings. Existing enum values
 are preserved and Double is appended as7. The full2,542 linked-unit gate passes,
 including35 new controls; live native Double HTTP/demo acceptance remains open.
+
+Double's runtime grouped ordering now binds the exact selected Double/nullable
+type through the same Core owner. Complete HTTP query-shape regressions close
+the admission gap missed by isolated filter tests. Fresh SDK/HTTP demos pass
+81/81 across3stores, sources unchanged/all5binarypairs match. Frozen linked
+suite2,552 passes; signed receipts261/attempts256. Single, broader policy,
+composition/federation and final certification remain open.

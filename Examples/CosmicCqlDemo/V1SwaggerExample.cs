@@ -42,18 +42,23 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                     Summary = grouped ? "Exact Decimal price groups and alias filters" : "Exact Decimal price range and selected columns",
                     Value = ExactNumericExample(grouped, decimalPrices: true)
                 };
+                media.Examples["FiniteDouble"] = new OpenApiExample
+                {
+                    Summary = grouped ? "Finite Double reading groups and alias filters" : "Finite Double reading range and selected columns",
+                    Value = ExactNumericExample(grouped, decimalPrices: false, doubleReadings: true)
+                };
             }
         }
     }
 
-    private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices)
+    private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices, bool doubleReadings = false)
     {
         // One shape owner keeps source and selected-result examples consistent.
-        var scalar = decimalPrices ? "Decimal" : "UInt64";
-        var path = decimalPrices ? "price" : "counter";
-        var alias = decimalPrices ? "Price" : "Counter";
-        var minimum = decimalPrices ? "1.0000000000000000000000000002" : "18446744073709551612";
-        var maximum = decimalPrices ? "1.0000000000000000000000000004" : "18446744073709551614";
+        var scalar = doubleReadings ? "Double" : decimalPrices ? "Decimal" : "UInt64";
+        var path = doubleReadings ? "reading" : decimalPrices ? "price" : "counter";
+        var alias = doubleReadings ? "Reading" : decimalPrices ? "Price" : "Counter";
+        var minimum = doubleReadings ? "1.0000000000000004" : decimalPrices ? "1.0000000000000000000000000002" : "18446744073709551612";
+        var maximum = doubleReadings ? "1.0000000000000009" : decimalPrices ? "1.0000000000000000000000000004" : "18446744073709551614";
 
         OpenApiObject Filter(string scalarType, string metadataKey, string operation, string value) => new()
         {
