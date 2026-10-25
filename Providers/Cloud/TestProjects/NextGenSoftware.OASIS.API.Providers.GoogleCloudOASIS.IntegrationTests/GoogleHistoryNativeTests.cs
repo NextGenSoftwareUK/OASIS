@@ -204,7 +204,7 @@ public partial class GoogleHistoryNativeTests
             async Task Save(Holon row){var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);}
             await Save(root);await Save(child);child.Name="child2";await Save(child);child.Name="child3";await Save(child);
             var oldName=root.Name;root.Name="current-root";root.ParentHolonId=newParent;root.CreatedByAvatarId=Guid.NewGuid();root.MetaData["owned-query"]="changed";await Save(root);
-            void CheckRoot(IHolon selected){Assert.AreEqual(id,selected.Id);Assert.AreEqual(1,selected.Version);Assert.AreEqual(oldParent,selected.ParentHolonId);Assert.AreEqual(owner,selected.CreatedByAvatarId);Assert.AreEqual(3,selected.Children.Single().Version);Assert.AreEqual("child3",selected.Children.Single().Name);}
+            void CheckRoot(IHolon selected,bool includeChild=true){Assert.AreEqual(id,selected.Id);Assert.AreEqual(1,selected.Version);Assert.AreEqual(oldParent,selected.ParentHolonId);Assert.AreEqual(owner,selected.CreatedByAvatarId);if(includeChild){Assert.AreEqual(3,selected.Children.Single().Version);Assert.AreEqual("child3",selected.Children.Single().Name);}else Assert.AreEqual(0,selected.Children.Count());}
             var point=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true,version:1);Assert.IsFalse(point.IsError,point.Exception?.ToString());Assert.AreEqual(1,point.LoadedCount);CheckRoot(point.Result);
             var listed=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,version:1);Assert.IsFalse(listed.IsError,listed.Message);CheckRoot(listed.Result.Single(row=>row.Id==id));
             var parent=await provider.LoadHolonsForParentAsync(oldParent,loadChildrenFromProvider:true,version:1);Assert.IsFalse(parent.IsError,parent.Message);Assert.AreEqual(1,parent.LoadedCount);CheckRoot(parent.Result.Single());
@@ -216,7 +216,8 @@ public partial class GoogleHistoryNativeTests
             var metadata=await provider.LoadHolonsByMetaDataAsync("owned-query",id.ToString(),loadChildrenFromProvider:true,version:1);Assert.IsFalse(metadata.IsError,metadata.Message);CheckRoot(metadata.Result.Single());
             var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){{"owned-query",id.ToString()}},SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery=oldName,SearchHolons=true}}},version:1);
             Assert.IsFalse(search.IsError,search.Exception?.ToString());CheckRoot(search.Result.SearchResultHolons.Single());
-            var owned=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(owned.IsError,owned.Message);Assert.AreEqual(1,owned.LoadedCount);CheckRoot(owned.Result.Single());
+            // Scoped export must not expose the creator-less child; unscoped point/list/parent/search above still retain it.
+            var owned=await provider.ExportAllDataForAvatarByIdAsync(owner,1);Assert.IsFalse(owned.IsError,owned.Message);Assert.AreEqual(1,owned.LoadedCount);CheckRoot(owned.Result.Single(),false);
             var exported=provider.ExportAll(1);Assert.IsFalse(exported.IsError,exported.Message);CheckRoot(exported.Result.Single(row=>row.Id==id));
             var absent=await provider.LoadAllHolonsAsync(loadChildren:false,version:99);Assert.IsFalse(absent.IsError,absent.Message);Assert.AreEqual(0,absent.LoadedCount);Assert.IsFalse(absent.Result.Any());
             foreach(var key in new[]{id,childId}){

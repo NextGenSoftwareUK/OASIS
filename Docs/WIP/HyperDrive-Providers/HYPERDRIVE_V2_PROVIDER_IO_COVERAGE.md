@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## 2026-10-25 Google scoped graph visibility evidence
+
+Current-avatar search and GUID/username/email owned exports now reuse Core's descendant visibility projector rather than only filtering roots. Local official SDK proves current/historical root versions, independent child versions, foreign-subtree pruning, unchanged unscoped native data and rejected projected saves. Matched full480 controlled/95 history-native/79 regression-native tests pass with zero skips. Exact hashes, original failed-fixture reconciliation and legacy cleanup hardening are in `FIRESTORE_RECORD_HISTORY.md`. No hosted/full-interface/global V2 acceptance claim; existing environment reused without download or restore.
+
 ## Latest scoped evidence — 25 October
 
 | Priority provider | Verified local evidence | Still required |

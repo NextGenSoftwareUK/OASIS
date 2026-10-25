@@ -18,12 +18,21 @@ public class GoogleNativeDetailTests
         var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
         Assert.AreEqual(0,(await db.Collection("avatarDetails").Limit(1).GetSnapshotAsync()).Count,"Refusing existing test data.");
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
-        var ids=new List<Guid>();
+        var detailId=Guid.NewGuid();var duplicateDetailId=Guid.NewGuid();var verified=false;
         var holonId=Guid.NewGuid();
         var childId=Guid.NewGuid();
         var avatarId=Guid.NewGuid();var duplicateAvatarId=Guid.NewGuid();
         var importedIds=new[] {Guid.NewGuid(),Guid.NewGuid()};
         var graphIds=new[] {Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid()};
+        var work=Environment.GetEnvironmentVariable("OASIS_FIRESTORE_HISTORY_WORK")??throw new InvalidOperationException("Owned durable runner required.");
+        Assert.AreEqual(Path.GetFullPath("C:/Source/OASIS/TestResults/GoogleCurrent"),Path.GetFullPath(work));
+        var journal=Path.Combine(work,"google-native-detail.pending.json");Assert.IsFalse(File.Exists(journal));
+        var references=new[]{db.Collection("avatars").Document(avatarId.ToString()),db.Collection("avatars").Document(duplicateAvatarId.ToString())}
+            .Concat(new[]{detailId,duplicateDetailId,avatarId,duplicateAvatarId}.Select(id=>db.Collection("avatarDetails").Document(id.ToString())))
+            .Concat(new[]{holonId,childId}.Concat(importedIds).Concat(graphIds).Select(id=>db.Collection("holons").Document(id.ToString()))).ToArray();
+        foreach(var reference in references)Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);
+        using(var intent=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await System.Text.Json.JsonSerializer.SerializeAsync(intent,new{resources=references.Select(reference=>reference.Path).ToArray(),state="before-owned-native-detail-roundtrip"});intent.Flush(true);}
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
             var dbField=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
@@ -53,9 +62,9 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(2,(await provider.LoadAllAvatarsAsync()).Result.Count());
             var emptyHolons=await provider.LoadAllHolonsAsync();Assert.IsFalse(emptyHolons.IsError,emptyHolons.Message);Assert.AreEqual(0,emptyHolons.Result.Count());
             var empty=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.AreEqual(0,empty.Result.Count());
-            var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
+            var detail=new AvatarDetail {Id=detailId,IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
-            detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"});ids.Add(detail.Id);
+            detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"});
             for(var index=0;index<2;index++)detail.KarmaAkashicRecords.Add(new KarmaAkashicRecord{
                 AvatarId=detail.Id,Date=new DateTime(2026,10,20,0,0,0,DateTimeKind.Utc).AddSeconds(index),
                 Karma=index==0?39:10,TotalKarma=index==0?39:29,KarmaSourceTitle="Firestore native",KarmaSourceDesc="owned history",
@@ -91,7 +100,7 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(detail.Id,provider.LoadAvatarDetailByEmail(detail.Email).Result.Id);
             Assert.AreEqual(detail.Id,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username.ToUpperInvariant())).Result.Id);
             Assert.AreEqual(detail.Id,provider.LoadAvatarDetailByEmail(detail.Email.ToUpperInvariant()).Result.Id);
-            var duplicate=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username=detail.Username.ToUpperInvariant(),Email=detail.Email.ToUpperInvariant()};ids.Add(duplicate.Id);
+            var duplicate=new AvatarDetail {Id=duplicateDetailId,IsActive=true,Username=detail.Username.ToUpperInvariant(),Email=detail.Email.ToUpperInvariant()};
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(duplicate)).IsError);
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarDetailByEmailAsync(detail.Email)).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).ErrorCode);
@@ -189,7 +198,7 @@ public class GoogleNativeDetailTests
             var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
             var exported=await provider.ExportAllDataForAvatarByIdAsync(avatarId);
-            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(childId,exported.Result.Single().Children.Single().Id);
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(holonId,exported.Result.Single().Id);Assert.AreEqual(0,exported.Result.Single().Children.Count());
             var unowned=await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid());
             Assert.IsFalse(unowned.IsError,unowned.Message);Assert.AreEqual(0,unowned.Result.Count());
             Assert.AreEqual(2,(await provider.ExportAllAsync()).Result.Count());
@@ -198,10 +207,10 @@ public class GoogleNativeDetailTests
             var byUsername=provider.ExportAllDataForAvatarByUsername("OWNED-AVATAR");
             Assert.IsFalse(byUsername.IsError,byUsername.Message);Assert.AreEqual(holonId,byUsername.Result.Single().Id);
             var byEmail=await provider.ExportAllDataForAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID");
-            Assert.IsFalse(byEmail.IsError,byEmail.Message);Assert.AreEqual(childId,byEmail.Result.Single().Children.Single().Id);
+            Assert.IsFalse(byEmail.IsError,byEmail.Message);Assert.AreEqual(holonId,byEmail.Result.Single().Id);Assert.AreEqual(0,byEmail.Result.Single().Children.Count());
             var pairedDetail=new AvatarDetail {Id=avatarId,IsActive=true,XP=444,Karma=555,
                 MetaData=new Dictionary<string,object> {{"paired-field","paired-value"}}};
-            pairedDetail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="paired seed"});ids.Add(avatarId);
+            pairedDetail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="paired seed"});
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(pairedDetail)).IsError);
             var deleted=await provider.DeleteAvatarByUsernameAsync("OWNED-AVATAR");Assert.IsFalse(deleted.IsError,deleted.Message);
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committedTombstone));
@@ -257,7 +266,6 @@ public class GoogleNativeDetailTests
             Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=duplicateAvatarId,IsActive=true,Username="replica-owned"})).IsError);
-            ids.Add(duplicateAvatarId);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=duplicateAvatarId,IsActive=true,XP=777,Karma=888})).IsError);
             var exact=new AvatarTombstone(duplicateAvatarId,new DateTime(2026,10,15,1,2,3,DateTimeKind.Utc),Guid.NewGuid());
             var applied=provider.ApplyAvatarTombstone(exact);Assert.IsFalse(applied.IsError,applied.Message);
@@ -268,8 +276,18 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(exact.DeletedAtUtc,replica.DeletedDate);Assert.AreEqual(exact.DeletedByAvatarId,replica.DeletedByAvatarId);
             Assert.AreEqual(777,replica.XP);Assert.AreEqual(888L,replica.Karma);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
+            verified=true;
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds.Concat(graphIds)) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {
+            try{if(verified){
+                var cleanup=db.StartBatch();var count=0;
+                foreach(var reference in references){var original=await reference.GetSnapshotAsync();if(!original.Exists)continue;
+                    Assert.AreEqual(reference.Id,original.GetValue<string>("id"));cleanup.Delete(reference,Precondition.LastUpdated(original.UpdateTime!.Value));count++;}
+                if(count>0)Assert.AreEqual(count,(await cleanup.CommitAsync()).Count);
+                foreach(var reference in references)Assert.IsFalse((await reference.GetSnapshotAsync()).Exists);
+                File.Delete(journal);
+            }}finally{await provider.DeActivateProviderAsync();}
+        }
     }
 
     private static async Task VerifySqliteDeleteReplicationAsync(GoogleCloudOASIS google,FirestoreDb db)
