@@ -578,3 +578,12 @@ or hydrated-row filtering.12,313native vectors/full255native/493units pass.
 The full Single operand must additionally preserve originalInt64/Decimal128
 precision; converting those toDouble first is not an acceptable shortcut.
 No Single capability is granted until those domains and query owners are verified.
+
+Mongo Single now has an independently verified exact integer component. It keeps
+Int32/Int64 values in Decimal128 through magnitude, spacing and ties-even rounding;
+only the final binary32-normalized value widens to Double. The binary64 and
+integer components share the rounding owner. Independent BigInteger reference
+tests verify 9,700 integer vectors; the prior 12,313 binary64 vectors also pass.
+Full Mongo acceptance is 256 native tests and 493 unit tests, zero skips.
+Single capability remains disabled until Decimal128 and complete query shapes
+are verified.
