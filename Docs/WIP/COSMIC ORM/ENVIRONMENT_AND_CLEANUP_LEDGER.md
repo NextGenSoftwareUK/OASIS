@@ -2601,3 +2601,27 @@ shared outputs requires verified inactive ownership. Native snapshot/proof owner
 and runtime certification remain pending. Existing peer resources untouched.
 
 Retained Mongo compiler evidence: TestResults/CosmicMongoCurrent/join-compiler-unit.trx 770,769 bytes; TestResults/CosmicCqlDemo/mongo-join-compiler-tests.log 16,006 bytes. Fixed paths reused; no new DB/service/port dependency. Required compact evidence preserved; regenerable via recorded leased no-restore producer/consumer unit gate.
+
+Mongo native join execution slice: reuse existing provider/unit/native outputs, SDK10.0.401/runtime10.0.12 and local NuGet cache. New repository owner uses one snapshot session and cumulative 30-second deadline for source proofs/matching; no new environment. First leased producer+unit build uses fixed TestResults/CosmicCqlDemo/mongo-join-owner-unit.log and CosmicMongoCurrent/join-owner-unit.trx; sizes pending. No restore/download/install or native DB before runner admission. Subsequent runtime will reuse existing owned Mongo8.3.11 on27029/replica oasisRecoveryRs with cosmic_cql_fixture and existing retention fences; never touch system27017.
+
+Owner unit gate90877 terminal0:510unit pass, provider build passes; initial provider compile stopped on enum/property name collision, qualified Core.Enums.ProviderType before successful build. Native consumer build passes; expected CQL native cohort advanced297 to310 for13new cases. Reusing owned runtime/data and cosmic_cql_fixture teardown (all fixture writes acknowledged before query; unknown write outcomes retained). Full native runner wrapped once by normal global lease, fixed CosmicCqlDemo/mongo-join-native.log and SubscriptionUsageCurrent/mongo-cql-native-current.trx. No nested lease, no restore/download/install. Port27029 verified absent before admission; C:free64.37GiB measured before runtime.
+
+Actual91398 terminal0: full Mongo native310/310 pass0skip plus replica initialization1. Runner stopped owned27029 and bounded raw13,323,308-byte log to65,262-byte retained tail; DB/runtime preserved reusable. Thirteen new join cases passed on unchanged owner binary. Expanded18test-only cases cover12keydomains,2missing/null pages,composite keys,actual concurrent snapshot write and2interruption/deadline cases; native consumer builds. Expected suite328. Same runtime C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe v8.3.11; data C:/Source/OASIS/TestResults/SubscriptionUsageCurrent/mongo-data reused, size unmeasured. Full leased runner uses existing cosmic_cql_fixture admission/acknowledgement fence, no new environment/restore/download/install. Fixed mongo-join-native-expanded.log and existing nativeTRX retained; output sizes pending.
+
+Expanded11124 terminal1:328native/327pass/1failed, original report preserved SubscriptionUsageCurrent/mongo-join-deadline-original-red.trx. Sole failure was test-only assumption that timeout must start third command; actual22.193s result already CQL_QUERY_TIMEOUT. Replaced assumed count with actual CommandStartedEvent maxTimeMS observations: at least2native commands, each1..30000ms and strictly decreasing budgets. Result/timeout/cancellation assertions retained; no production fallback/change. One monitored MongoClient pool (max30) uses existing CosmicCqlGraph URI/db solely in the existing testhost; ephemeral process-owned pool/subscriber released on testhost exit, no new service/environment/DB. All fixture writes acknowledged and normal teardown completed; runner retired27029/logbounded13,799,834 to65,367bytes. Same environment reused for final gate.
+
+Final38952 terminal0: full Mongo native328/328 plus initialization1 pass0skip,
+4m29s; unit510 passed separately on same production sources. No production source
+changed after the initial310 gate; expanded tests and direct maxTimeMS wire
+observation completed acceptance. Observed native budgets30000/18997ms, original
+redTRX retained. Producer/native consumer Core639CB2A5 and Mongo6C54E0FE hashes
+match in full in join contract. Owned27029 listener absent after terminal runtime
+teardown. All test fixtures had acknowledged writes; WithMongoGraph awaited
+exact cosmic_cql_fixture drop on completion. No unknown write outcome retained.
+Existing Mongo runtime/data, SDK/cache/bin/obj retained shared/reusable; no new
+install/download/restore/environment. Monitored event-client pool was owned by
+completed testhost, no persistent service/port. Runner bounded14,266,682-byte raw
+log to65,327-byte retained tail. C: free69,098,323,968 bytes after final gate.
+Required evidence retained at fixed paths; exact measured report/data sizes below.
+
+Measured retained resources: SubscriptionUsageCurrent/mongo-cql-native-current.trx575,310bytes; mongo-join-deadline-original-red.trx578,512bytes; CosmicCqlDemo/mongo-join-native-final.log1,519bytes. Reusable SubscriptionUsageCurrent/mongo-data442,075,357bytes after stopped runtime; preserve for shared pinned test environment, recreate only through admitted existing runner. No cleanup of shared data performed. Exact fixture DB drops were part of acknowledged native teardown. Reports regenerate through recorded global-leased runner; original failure evidence retained.
