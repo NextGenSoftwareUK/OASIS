@@ -1915,3 +1915,263 @@ Official source/API pages read through web tool, no local source checkout create
 Purpose: distinguish actual pinned driver from transitive candidates before
 blocked-I/O cancellation work. Cleanup: retain shared packages and consumer
 outputs until normal verified build cleanup; do not remove unrelated caches.
+
+## Native blocked Bolt cancellation probe preparation - 25 October 2026
+
+Owner COSMIC ORM/CQL. New source Neo4jNativeCqlBlockedCancellation.cs uses an
+owned in-process TCP relay at127.0.0.1:17788 forwarding existing17687. No package,
+external process, download or new environment. Size unmeasured. The test arms
+a one-response gate after real activation, requests caller cancellation and
+requires completion within1second BEFORE releasing actual held Bolt bytes.
+Finally releases bytes and joins the read within10seconds before deactivation;
+relay sockets/tasks are disposed and existing fixture owner handles known data.
+Port17788 must be absent before/after and cannot be silently substituted.
+Preparation only while peer Oracle gate owns outputs; native execution pending.
+Existing pinned driver source confirms CloseAsync calls rollback, which drains
+unconsumed results first. This is not an independent transport-abort contract.
+Focused reusable Neo runner mode CosmicCqlInterruption prepared; expected1probe.
+Full native count250 includes the new currently-unverified cancellation test.
+No separate environment or manual DLL copies. Planned fixed log
+CosmicCqlDemo/neo-blocked-cancellation-red.log, TRX
+Neo4jCurrent/neo4j-cql-interruption-current.trx; sizes unmeasured. Relay17788
+absent at preflight. Native read uses existing known graph fixture/teardown.
+
+48483 terminal1: focused1native probe failed at intended blocked-response
+interruption assertion (4seconds total). Relay17788 forwarded real17687 traffic;
+finally released held bytes/joined read before fixture teardown. Resultcancelled
+with no published rows afterrelease. Graphfixturejournal and17788/17687listeners
+absent afterward; retainedNeo container stopped by runner. TRXSHA256
+E6EA596051994CA01FC37042257A2816611F650E87AA13E550E05868F9BA719F retained
+with fixed redlog (sizesunmeasured). No new install/download/restore/environment.
+Owned sockets/tasks disposed; cache/runtime/binobj retained reusable. Newtest/
+runner changes remain uncommitted until productionfix and green acceptance.
+Source/build hold released; no Core/Shared source edits. Official driver source
+was read in memory via GitHub API/raw source, no local download artifacts.
+
+Owned-driver abort control added to native blocked Bolt probe: second data case
+closes ONLY its dedicated test driver after cancellation, bounds close3seconds,
+and joins close/read after release even on failure. Original fixture driver is
+separate and remains available for cleanup/writes. Purpose: establish whether
+public IDriver.CloseAsync supports safe per-read transport ownership without
+internal APIs/new dependencies. Focusedexpected2cases, same17788relay/17687Neo.
+Log neo-owned-abort-probe.log; current originalredcase remains expectedfail.
+No production changes or dependency downloads. Ports must be absent afterward.
+
+8431 terminal1: ordinary caller cancellation RED; dedicated IDriver.CloseAsync
+control PASS while realBoltresponse remainedheld. Both cases joined/cleaned
+ownedreads/sockets;17788/17687absent afterward. This supports exclusive read
+transport ownership using existing public4.3.2 API, no new dependency needed.
+Prepared bounded reusable NeoCqlReadTransportPool and4unit cases for isolation,
+reuse, capacity cancellation, abort joining and shutdown. Not yet integrated into
+CQL execution; original blocked caller probe remainsred. Pool driver slots are
+lazy/reused in-memory objects, not new runtimes/environments. All async close
+tasks retained and awaited; no asyncvoid or unobserved teardown. No downloads.
+Pool-unit gate attempt stopped at busy globallease BEFORE build/test; no shared
+output mutation. Proposed fixed log neo-read-transport-unit.log and TRX
+Neo4jCurrent/read-transport-pool-current.trx; reports pending, sizes unmeasured.
+Existing cached SDK/Neo producer/unit binobj will be reused after release.
+Current NeoCqlReadTransportPool.cs and4unit tests are unverified, uncommitted,
+and not wired into CQL query execution. Original blocked-cancellation test stays
+red until integration; no new production capability is claimed.
+Neo read-owner integration source prepared across rows/projection/scalar/grouped
+queries. Sixteen lazy reusable driver slots, one native connection per exclusive
+owner; caller/deadline token aborts only that driver, close is joined before slot
+reuse, provider deactivation closes read pool and storage driver. Existing SDK
+and all cached dependencies reused; no new environment or package. Cumulative
+30second budget now owns linked timer/token through pool waits and native I/O.
+Production source unverified until unit/native gates. Next focused4pool unit
+controls undernormallease, existingNeo/unitbinobj, fixedread-transport log/TRX.
+
+First pool gate: Neo producer/integrated execution source compiled successfully;
+unit compile failed because Moq is not a dependency of this test project. No
+package installed/restored. Reused existing Neo4jLifecycleTests.DriverProbe via
+DispatchProxy for4pool controls; original buildredlog preserved. This keeps one
+existing test framework/environment and avoids unnecessary package allocation.
+Pool gate nowPASS4controls, producercompiles, no new dependencies. All4CQL
+shapes sourceintegrated; focusednative4case probe nowcovers cold handshake and
+warm transaction responses with ordinary cancellation and owned-driver control.
+Existing17788relay/17687service reused, fixedneo-blocked-cancellation-green.log
+and neo4j-cql-interruption-current.trx. Oldred evidence alreadypreserved; no
+new SDK/environment/download/restore. Native outcomes pending.
+
+45642terminal1:4native cases,2warmPASS/2coldRED. Colddrivercreation not aborted
+by publicdriver.CloseAsync; exactwirebytes released and read/close joined before
+teardown. Bothcaller/manualabort coldcases failed intendedearlycompletion
+assertion. Ownedgraphjournal/17788/17687absentafterteardown. Saved
+Neo4jCurrent/owned-transport-cold-warm-red.trx; logs retain actualfailedoutcome.
+Pool4unitsPASS separately; allproductionprovider source compiled. No package
+upgrade/restore/install/download/newenv. Publicdriver5.28.4/6.x source inspected
+inmemory only to evaluate creation-cancellation ownership, no source tree cloned.
+Current pool/integration/native/unit/script changes uncommitted pending fullfix.
+## Pinned driver source patch - 25 October 2026
+Owner COSMIC ORM/CQL. Native cold-handshake failures require a fix in driver
+connection-creation ownership: signed4.3.2 registers connections only after Init.
+Existing cache4.3.2/4.2.0 inspected; newer public API/source inspection did not
+establish a drop-in explicit-transaction cancellation fix. Last-resort source
+import only, no new runtime/environment: upstream Neo4j/neo4j-dotnet-driver
+commit5a40b591107331131875fbcd3d7f28fe60504d95 (tag4.3.2), Apache2 license.
+Planned archive C:/Source/OASIS/TestResults/Neo4jCurrent/neo4j-driver-4.3.2.zip;
+source C:/Source/OASIS/Providers/Storage/Neo4j.Driver.OASIS/Upstream plus LICENSE,
+NOTICE, public identity key and exact provenance/hashes. Sizes/hash pending.
+No private signing key or credentials imported. Retain source for reproducible
+build/patch review; remove owned archive only after exact extraction/hash checks.
+No process/port dependency for extraction. Reuse SDK10.0.401 and package cache.
+Source import completed: archive 1012521 bytes SHA256 BDF21044246125ADBA752ED7C0A23E6C5AD1D21E13D9C744868323A9D381E674; extracted 285 files/955266 bytes. Archive removed after281source-file validation and provenance recording. Free C before=65900920832 after=65898340352. Source active/preserved, no builds/restores yet.
+Prepared net10 source-driver project with no PackageReferences, explicit original
+assembly identity4.3.2.2 and distinct OASIS informational/file version. Uses only
+upstream public identity key/PublicSign, no private key. Three upstream files
+modified: pool tracks creation beforeInit and closes it without duplicate count;
+socket close marks unopened owner closed; description identifies patched build.
+Original source hashes retained. First restore/build reuses installed SDK/refpack
+and local NuGet cache only; no network package source. Generated driver bin/obj
+owned/reusable, sizepending. Log neo-source-driver-build.log, no runtime ports.
+
+Source driver initialbuildPASS1.8s/0errors/8warnings. Assembly identity remains
+Neo4j.Driver4.3.2.2 with originalpublickeytoken; no privatekey imported. Added
+285file build-time hash manifest/281compile-item bound and3file patch manifest.
+Provider explicitly project-references source driver and excludes old signed/
+unsigned transitiveDLLassets. ReusableNeo runner builds source driver before
+provider/consumer. Next offline restore provider/native/unit graphs from existing
+C:/Users/david/.nuget/packages only, then source-driver+Neo compilation. No new
+package download expected; restore/buildlogs fixedneo-source-driver-integration.log.
+Generatedassets/binobj reusable and owned as already recorded, sizespending.
+
+Offline restore firstfailed on unrelatedNET8/9referencepacks. Constrained cached
+net10 graph restorePASS forprovider/native/unit and dependencyassets; Coreboth
+configuredtargets--no-dependenciesrestorePASS. Verified siblingUtilities/
+ErrorHandling/Logging/CLI.Engine assets net10/error0. No new targetingpacks/
+package downloads. Initialfailedrestorelog preserved asneo-source-driver-restore-red.log.
+Source manifestcount guard initially included SDKgeneratedCompileitems; corrected
+tocount markedupstream281items only, stillhashes all285pinned source/resources.
+No upstreamcode/hash weakening. Peerwasnotified andsharedassetsrepaired.
+
+Dependency-owner review found zero Neo4jClient/Neo4jOgm/Driver.Simple usages in
+provider/bootloader source. Removed unused package references instead of keeping
+DLL asset-exclusion rules. Provider now has one explicit pinned driver project
+reference; shared cache packages retained because other projects may own them.
+No cache deletion, no framework/runtime installation. Provider graph must be
+restored offline for this final dependency change before native acceptance.
+
+Dual-target assets repair completed from localcache: eight referencedCore/library
+projects have netstandard2.1+net10 assets. Core BOTHtargets compilePASS; Neo
+provider referencing source driver compilePASS. No new frameworkpack/SDK or
+NuGet download. ReusableNeo runner now verifies actual source-driver SHA256 in
+provider AND native consumer before any fixture run. Next focused4cold/warm
+controls use patcheddriver; fixedneo-patched-driver-interruption.log/TRXpaths.
+Source955266bytes/285files+smallproject/provenance metadata retained; archive
+removed asrecorded. Generatedbinobj reusable, sizesunmeasured. No unowneddata
+cleanup. Nativeports17687/17788mustteardown afterprobe.
+
+Added driver-local Git attributes preserving exact upstream/license/publickey
+bytes across Windows/Linux checkout; prevents autocrlf from invalidating pinned
+source hashes. Project/provenance text stays UTF8/LF. SourceSDKbuildprovenance
+passed; pending native invocation stoppedatbusygloballease before runtime start.
+Shareddual-target repair/Corebothcompile arecomplete, no new targetingpacks.
+
+### 25 October — patched driver build gate
+
+Owner: COSMIC ORM cancellation task. Reused the existing .NET 10 SDK, NuGet
+cache, source-driver project and fixed provider/native bin/obj paths (sizes
+unmeasured; active/reusable). Gate 73524 compiled the driver and providers but
+failed before native execution: transitive Microsoft.Extensions.ApiDescription.Server
+6.0.5 attempted OpenAPI generation from the integration-test executable, which
+has no application IHost entry point. The test project now explicitly disables
+build-time document generation; linked shipping HTTP endpoints remain tested.
+No database, relay or runtime fixture started, and no installation/download was
+performed. The subsequent attempt stopped immediately at the occupied global
+build lease. Retain existing compact TRX evidence; regenerate build outputs with
+the reusable Neo4j runner under the lease. Native patched-driver acceptance is
+still pending. No cleanup was performed on shared outputs.
+
+### Patched cold/warm transport gate — 25 October 2026
+
+Gate 95686 completed successfully: all four real Bolt relay cases pass, zero
+skips, in three seconds. Cold and warm reads return CQL_QUERY_CANCELLED, with
+no loaded/result publication, before the held response bytes are released.
+Both caller-only cancellation and the explicit exclusive-driver close controls
+pass. This supersedes the earlier two-cold-case red result for this precise
+probe; it does not certify every query shape or DNS/TCP/TLS cancellation phase.
+
+The runner verified source-driver producer/provider/native consumer identity
+20A42D3B68F7FF531DAD1B755AA9117F048D11A896B22A9969E599213E4E3324,
+plus current Core and Shared producer identities. The integration test project
+now disables transitive build-time OpenAPI generation because its entry point
+belongs to the test platform; shipping HTTP implementations remain linked.
+Concurrent peer SQLite source edits mean this Neo-only result is not SQLite
+source/PDB certification.
+
+Evidence: TestResults/Neo4jCurrent/neo4j-cql-interruption-current.trx,
+SHA256 A0E4E7A182C4EFDEF7541E321AD78A28035896B7B436D559A6E47D456A3773A5;
+TestResults/CosmicCqlDemo/neo-patched-driver-interruption.log.
+Owned runtime stopped, fixture journal absent and TCP listeners17687/17788
+absent after terminal. Full Neo CQL/unit regressions, all-shape interruption,
+deadlines, teardown failure and reuse acceptance remain required before commit.
+
+25 October all-shape gate81715 reuses the same SDK/cache/Neo container and fixed
+native bin/obj outputs, real Bolt17687 and in-process relay17788; no new environment
+or download. Six new cases extend cold/warm interruption to projection, scalar
+and grouped execution (10 total). Fixed log: TestResults/CosmicCqlDemo/
+neo-all-shape-interruption.log; fixed TRX reused after preserving prior four-case
+hash in the contract. Sizes unmeasured. Owner COSMIC ORM; runtime/fixture teardown
+is runner-owned, logs retained, shared dependencies active/reusable. Outcome pending.
+
+### All native query shapes — 25 October 2026
+
+Gate81715 passes all10cases, zero skips, four seconds: cold/warm row, projection,
+scalar and grouped cancellation, plus explicit row driver-close controls. Each
+executor returns CQL_QUERY_CANCELLED, IsLoaded=false and default/no result before
+held Bolt bytes are released. Source-driver hash remains20A42D3B...E4E3324.
+TRX SHA25687EBE625105CA564098C79E321368D2194767DEA7F769B636CC25F602A145A12;
+log TestResults/CosmicCqlDemo/neo-all-shape-interruption.log. Owned runtime stopped,
+ports17687/17788 and fixturejournal absent after terminal. No new resources or
+packages; reusable build outputs retained. Full regressions/deadline and broader
+connection phase certification remain open. SQLite edits settled before this
+build; this Neo-only gate makes no SQLite behavior certification claim.
+
+25 October full Neo unit regression:465 executed,464passed/1failed/0skip.
+New factory-failure capacity recovery and failed-close retirement controls passed.
+Existing OriginalConnectivityAndCloseFailuresAreNotSuccess caught premature
+provider deactivation publication. Neo4jOASIS now retains storage/read-pool
+references and activation state until both close tasks acknowledge success.
+The follow-up rebuild stopped at the occupied normal global lease, before any
+build/runtime work. TRX read-transport-full-unit-current.trx preserves the red
+result. Fixed reusable log path neo-read-transport-full-unit.log; no install,
+download or fixture introduced. SDK/cache/provider/unit bin/obj reused (sizes
+unmeasured); compact TRX retained, generated outputs reusable. Updated production
+fix still requires rerun. Full CQL native regression remains pending.
+
+25 October gate56428: normal shared lease, source-driver/provider/native reusable
+outputs and existing Neo4j container reused; no new installs/downloads. Full465
+Neo unit tests PASS0skip after deactivation-acknowledgement ownership fix. Full259
+native CQL cohort is running next in the same lease. Fixed evidence paths:
+TestResults/CosmicCqlDemo/neo-read-transport-full-regression.log and Neo4jCurrent/
+read-transport-full-unit-current.trx, plus reusable native CQL TRX. Output sizes
+unmeasured. Owned runtime/graph fixture teardown remains runner-owned; shared
+SDK/cache/source retained, compact evidence retained. No SQLite integration
+consumer build or SQLite fixture touched by this Neo runner.
+
+## Neo4j interruption regression checkpoint — 25 October 2026
+
+The pinned source-driver/read-transport lifecycle batch passes full465provider
+unit tests and259nativeCQLtests, zero skips. Native duration4m3s. All10cold/warm
+paused-Bolt cases pass for rows, projections, scalar and grouped reads. Failed
+creation returns pool capacity; failed close reports its error and retires the
+transport. Deactivation retains resource ownership until both close tasks
+acknowledge success. No result publishes on cancellation.
+
+Exact evidence: native TRX SHA256
+6CAAA45E0B7C362CD0BBC53BC2811ADAB56B2D01ABB98FB5FAFEA066FC1A46D6;
+unit TRX SHA256
+A02FB67264B525C91C8CC71ACC75D4664B6CC1E2104BF799E11201DF80556D06.
+Both are under TestResults/Neo4jCurrent; compact build/run log is
+TestResults/CosmicCqlDemo/neo-read-transport-full-regression.log.
+Producer/native driver, Core and Shared hashes verified before execution.
+Owned runtime stopped; graph fixture journal and listeners17687/17788 absent.
+Free disk after gate64605769728bytes; the reusable Neo volume and generated
+outputs remain retained/shared, size attribution unmeasured. No new download,
+installation or environment during this gate. No shared data was deleted.
+
+This is a verified scoped batch, not full CQL completion. Strict deadline latency,
+DNS/TCP/TLS connection phases, broader non-CQL driver regressions, joins,
+federation and the unchecked authorization/scalar/composition roadmap remain.
+The full original COSMIC ORM goal remains active.

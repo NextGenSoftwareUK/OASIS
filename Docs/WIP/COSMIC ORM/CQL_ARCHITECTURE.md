@@ -614,3 +614,23 @@ nullable Single types for result filters and ordering. Central wire formatting
 returns canonical strings and rejects nonfinite packets. The 2,595 compiler and
 endpoint tests, plus 87 SDK and 87 signed HTTP examples, verify this flow across
 all three providers.
+
+## Neo4j CQL read transport ownership — 25 October 2026
+
+Rows, projections, scalar aggregates and grouped reads lease an exclusive driver
+from one bounded16-slot provider pool. Slots are lazy and reuse their driver
+between successive reads. A linked caller/deadline/shutdown token closes only
+that slot, preserving other reads and the provider's separate write driver.
+The30-second deadline includes capacity waiting and native awaits. A cancelled
+slot joins its close task before capacity is returned, then gets a fresh driver;
+late cancellation registrations are disposed before reuse. Close failures remain
+errors, and provider deactivation publishes inactive state only after both read
+pool and storage-driver teardown acknowledge success.
+
+The source-pinned OASIS driver patch registers connections before initialization,
+so driver shutdown also owns cold Bolt handshakes. It preserves upstream license,
+provenance and public assembly identity; build-time hashes fence285pinned files.
+Native cold/warm paused-response tests pass10/10 for all four query shapes;
+provider unit tests pass465/465. Full native regression and additional connection
+phase/deadline certification remain separate gates. See the descendant contract
+for exact evidence and the driver project's README for patch provenance.
