@@ -1,5 +1,20 @@
 # COSMIC ORM implementation status
 
+## Neo4j Decimal arithmetic component - 25 October 2026
+
+Two real native tests pass without skips: 2,112 signed Decimal key inputs and
+138 final-reduction packets. Full Neo4j units pass **520/520**. The compiler uses
+seven signed source words, eight-word carry normalization and exact Int64 long
+division/rounding, returning the existing Decimal ordinal comparison key. No
+Float conversion, graph writes or selected-holon hydration is involved.
+
+This is component acceptance. Native scalar/grouped query lowering, packet
+validation, query-level tests and explicit Decimal capability enrollment remain
+required. Neo4j does not yet advertise Decimal Sum/Average. HTTP Decimal inputs
+and live Decimal demos also remain open. The owned container stopped normally;
+existing runtimes/assets/data are retained. See the
+[Decimal contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
 ## MongoDB Decimal native acceptance - 25 October 2026
 
 Native scalar and grouped Decimal/nullable Sum/Average are implemented. The
