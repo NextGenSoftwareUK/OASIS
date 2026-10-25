@@ -680,6 +680,107 @@ public static class V1Walkthrough
                     maximumResults = 25
                 }, join: true, leftJoin: leftJoin);
             }
+            // EXAMPLES32–34 — source and selected-result windows are separate.
+            // The same protected source page contains C-public and D-owned.
+            // Aliases refer only to selected columns; Int64 values use strings.
+            var compositionSource = new
+            {
+                filters = new object[]
+                {
+                    new
+                    {
+                        metadataPath = new[] { "fixture" },
+                        scalar = "String",
+                        @operator = "Equal",
+                        value = fixtureTag
+                    }
+                },
+                orderBy = "Name",
+                skip = 1,
+                take = 2,
+                columns = new object[]
+                {
+                    new { alias = "Name", field = "Name" },
+                    new
+                    {
+                        alias = "Precision",
+                        metadataPath = new[] { "precision" },
+                        valueType = "Int64"
+                    }
+                }
+            };
+
+            //32: filtering after the SOURCE page keeps D-owned.
+            await ShowAsync("32. Composition / filter the selected source page", new
+            {
+                provider,
+                source = compositionSource,
+                stages = new object[]
+                {
+                    new
+                    {
+                        operation = "Where",
+                        filters = new[]
+                        {
+                            new { alias = "Name", @operator = "NotEqual", value = "C-public" }
+                        }
+                    },
+                    new
+                    {
+                        operation = "OrderBy",
+                        order = new[]
+                        {
+                            new { alias = "Precision", descending = true },
+                            new { alias = "Name", descending = false }
+                        }
+                    },
+                    new { operation = "Take", count = 1 }
+                }
+            }, composition: true, compositionExpected: new[] { "D-owned" });
+
+            //33: paging the selected values BEFORE filtering returns no rows.
+            await ShowAsync("33. Composition / page before filter returns no rows", new
+            {
+                provider,
+                source = compositionSource,
+                stages = new object[]
+                {
+                    new { operation = "Take", count = 1 },
+                    new
+                    {
+                        operation = "Where",
+                        filters = new[]
+                        {
+                            new { alias = "Name", @operator = "NotEqual", value = "C-public" }
+                        }
+                    }
+                }
+            }, composition: true, compositionExpected: Array.Empty<string>());
+
+            //34: exact Int64 equality, a new result order, then result paging.
+            await ShowAsync("34. Composition / exact values and result paging", new
+            {
+                provider,
+                source = compositionSource,
+                stages = new object[]
+                {
+                    new
+                    {
+                        operation = "Where",
+                        filters = new[]
+                        {
+                            new { alias = "Precision", @operator = "Equal", value = "9007199254740993" }
+                        }
+                    },
+                    new
+                    {
+                        operation = "OrderBy",
+                        order = new[] { new { alias = "Name", descending = true } }
+                    },
+                    new { operation = "Skip", count = 1 },
+                    new { operation = "Take", count = 1 }
+                }
+            }, composition: true, compositionExpected: new[] { "C-public" });
         }
 
         return completedRequests;
@@ -705,7 +806,9 @@ public static class V1Walkthrough
             bool singleProjection = false,
             bool singleGroups = false,
             bool join = false,
-            bool leftJoin = false)
+            bool leftJoin = false,
+            bool composition = false,
+            string[]? compositionExpected = null)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -714,7 +817,7 @@ public static class V1Walkthrough
             // uncertain; do not silently repeat the request with a fresh key.
             var operationKey = Guid.NewGuid().ToString("D");
 
-            var route = join ? "/api/data/query-cql/join" : grouped ? "/api/data/query-cql/grouped"
+            var route = composition ? "/api/data/query-cql/composition" : join ? "/api/data/query-cql/join" : grouped ? "/api/data/query-cql/grouped"
                 : projection ? "/api/data/query-cql/projection"
                 : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
 
@@ -735,6 +838,17 @@ public static class V1Walkthrough
                 throw new InvalidOperationException($"{title}: HTTP {(int)response.StatusCode}: {responseText}");
 
             using var result = JsonDocument.Parse(responseText);
+            if (composition)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+
+                if (payload.GetProperty("version").GetString() != "cql-composition-v1"
+                    || !rows.Select(row => row[0].GetString()).SequenceEqual(compositionExpected!)
+                    || rows.Any(row => row[1].GetString() != "9007199254740993"))
+                    throw new InvalidOperationException(title + " lost stage order, visibility or exact Int64 cells.");
+            }
+
             if (join)
             {
                 var payload = result.RootElement.GetProperty("result");

@@ -663,7 +663,73 @@ public static class V1NativeQueries
 
         await ShowJoinAsync("31. Inner join / matching pairs only", innerSelection, "C-public");
 
+        // 32. The SOURCE page contains C-public and D-owned. Select captures
+        // detached scalar cells; this Where runs AFTER that source window.
+        // Every source cell is validated even if a later stage removes its row.
+        var selectedWindow = Value(visible
+            .OrderBy(holon => holon.Name)
+            .Skip(1)
+            .Take(2)
+            .Select(holon => new CompositionDemoRow
+            {
+                Name = holon.Name,
+                Precision = CosmicQueryMetadata.Value<long>(holon, "precision")
+            }));
+
+        var filteredWindow = Value(selectedWindow
+            .Where(row => row.Name != "C-public")
+            .OrderByDescending(row => row.Precision)
+            .ThenBy(row => row.Name)
+            .Take(1));
+
+        await ShowCompositionAsync("32. Composition / filter the selected source page", filteredWindow, "D-owned");
+
+        // 33. Moving Take BEFORE Where changes the answer. C-public is selected
+        // first, then removed. The native provider must preserve this order;
+        // moving the predicate into the source would incorrectly return D-owned.
+        var pageBeforeFilter = Value(selectedWindow
+            .Take(1)
+            .Where(row => row.Name != "C-public"));
+
+        await ShowCompositionAsync("33. Composition / page before filter returns no rows", pageBeforeFilter);
+
+        // 34. Int64 selected comparisons retain all digits. This second result
+        // ordering starts a new stage, then Skip/Take selects C-public.
+        var exactSelected = Value(selectedWindow
+            .Where(row => row.Precision == 9007199254740993L)
+            .OrderByDescending(row => row.Name)
+            .Skip(1)
+            .Take(1));
+
+        await ShowCompositionAsync("34. Composition / exact values and result paging", exactSelected, "C-public");
+
         return completedQueries;
+
+        async Task ShowCompositionAsync(string title,
+            CosmicProjectionQuery<Holon, CompositionDemoRow> query, params string[] expected)
+        {
+            if (adapter is not ICosmicQueryProjectionCompositionStorageProvider native)
+                throw new InvalidOperationException("This provider has no native composition contract.");
+
+            var plan = Value(CosmicProjectionCompositionPlanner.Plan(
+                query,
+                provider,
+                new[] { new CosmicProjectionCompositionTarget(provider, native.QueryCapabilities,
+                    native.ProjectionCapabilities, native.CompositionCapabilities) }));
+
+            var execution = Value(await manager.ExecuteProjectionCompositionQueryAsync(plan, new[] { adapter }));
+            var rows = execution.Providers.Single().Rows;
+
+            if (!rows.Select(row => row.Name).SequenceEqual(expected)
+                || rows.Any(row => row.Precision != 9007199254740993L))
+                throw new InvalidOperationException(title + " lost stage order, exact cells or visibility.");
+
+            completedQueries++;
+            await output.WriteLineAsync(title + "\n");
+            if (rows.Count == 0) await output.WriteLineAsync("  (no rows)\n");
+            foreach (var row in rows)
+                await output.WriteLineAsync($"  {row.Name}: precision={row.Precision}\n");
+        }
 
         async Task ShowJoinAsync(
             string title,
@@ -746,6 +812,13 @@ public static class V1NativeQueries
             await output.WriteLineAsync(title);
             await output.WriteLineAsync("\n  " + string.Join("\n  ", names) + "\n");
         }
+    }
+
+    // These DTOs are constructed only after the complete native proof passes.
+    public sealed class CompositionDemoRow
+    {
+        public string Name { get; set; } = string.Empty;
+        public long Precision { get; set; }
     }
 
     // A detached application DTO, constructed only after all native proofs pass.
