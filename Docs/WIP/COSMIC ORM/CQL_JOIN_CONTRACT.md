@@ -312,3 +312,63 @@ only: **MongoDB does not yet implement or advertise native joins**. A single
 snapshot/deadline/native-attempt owner, bounded typed proof decoding and positive/
 negative native integration gates are next. Existing MongoDB native 297 remains
 a separate earlier cohort. No Mongo service, database or new environment was used.
+
+## MongoDB flat-join snapshot owner — 25 October 2026 (verification pending)
+
+The MongoDB adapter now routes flat inner/left join plans through one repository
+owner. It re-admits actual source/join capabilities and remaining limits before
+compilation/activation checks. One snapshot session and cumulative 30-second
+cancellation/deadline budget own membership validation, both complete source
+proof streams and native `$lookup` matching. Each command uses simple collation,
+a one-document cursor batch, no disk spilling and its remaining deadline.
+
+Both source proof streams validate exact counts, bounded shapes, logical identity,
+actor visibility, scalar domains and detached byte budgets before native matching.
+Required invalid metadata in an unmatched source still fails. Ordering presence
+states are preserved for Core's missing/null/scalar bucket validation. Pair IDs
+must belong to those snapshot proofs; selected cells are copied from their proofs
+without entity hydration or client-side pair evaluation. Pair work, output count
+and payload limits reject overflow; raw packets return to Core's existing
+all-buffer validation barrier before DTO construction.
+
+The profile enrolls flat SDK joins; graph sources and explicit graph-snapshot
+capability enrollment remain open, despite flat reads using a shared snapshot.
+MongoDB native integration verification is pending in this checkpoint; compilation
+and the existing 510-unit gate alone do not certify runtime matching. Neo4j joins,
+HTTP transport, graph/composition/federation and final CQL gates remain open.
+
+## Verified MongoDB SDK flat joins — 25 October 2026
+
+MongoDB now executes flat inner/left joins through generic V2 HolonManager with
+one snapshot/deadline owner and native matching. The final full native suite
+passes **328/328**, zero skips, including **31 new join cases**; the full MongoDB
+unit gate passes **510/510**. Existing Core **2,734**, SQLite **1,615 native/46 unit**
+and Neo4j **275 native/477 unit** are separate earlier cohorts, not a new combined
+all-provider gate.
+
+Native join evidence covers fanout/unmatched presence, all seven remaining work/
+byte budgets and reuse, required invalid/missing unmatched cells, both-source
+visibility before matching/paging, pre-cancellation, twelve exact scalar key
+domains, composite keys, missing/null ordering through independent source pages,
+a real acknowledged concurrent write between source reads, blocked-read
+cancellation and a cumulative deadline with fresh reuse. The snapshot control
+retains the original match; a subsequent fresh read observes that it disappeared.
+
+The first expanded run passed327/328: timeout classification was correct, but the
+test assumed a third command must start. MongoDB legitimately timed out during
+its second command. The final control observes actual wire `maxTimeMS` budgets
+**30,000 then18,997**, requires strict decrease and retains timeout/no-publication
+assertions. This proves the allowance is not renewed for each command without
+assuming a server clock schedule. Original failure evidence is preserved as
+`TestResults/SubscriptionUsageCurrent/mongo-join-deadline-original-red.trx`.
+
+Final evidence: `TestResults/CosmicCqlDemo/mongo-join-native-final.log` and
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx` (4m29s).
+Core producer/consumer SHA256 both639CB2A585F74AD54282500A0751783F2D09C0AA1E018F009A09E0CBFA904E13;
+MongoDB producer/consumer both6C54E0FEF2EBAA4CBF149AB60D0BBB9CC5C9CD25265D3453532552AE26E75C99.
+Owned MongoDB27029 is stopped after acknowledged fixture teardown; the pinned
+runtime/data remain reusable. No download/install/restore or duplicate environment.
+
+MongoDB and SQLite SDK flat joins are available. Neo4j joins, graph-source joins,
+joined HTTP/browser demos, post-projection/window composition, federation and
+remaining policy/certification gates stay open. Full CQL is not complete.
