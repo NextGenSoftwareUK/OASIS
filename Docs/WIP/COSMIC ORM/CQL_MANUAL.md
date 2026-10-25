@@ -1034,3 +1034,9 @@ The original Single storage domain is validated before widening. `0.1d` and
 Integral-to-Int64 membership widening is also supported. Nullability changes and
 enum-domain conversions are rejected. SQLite has native regression coverage;
 this compiler support does not grant uncertified providers a Single capability.
+
+Single and nullable Single metadata queries are now certified through the Mongo
+SDK as well as SQLite. Use `Value<float>` / `Value<float?>` for the declared
+domain; normalization follows binary32 rounding before predicates and grouping.
+Finite nonzero underflow and overflow are invalid data, not null. Single HTTP
+transport/examples and Neo4j enrollment are still pending.
