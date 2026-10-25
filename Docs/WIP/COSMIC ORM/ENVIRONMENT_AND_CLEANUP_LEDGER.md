@@ -2667,3 +2667,16 @@ CosmicCqlDemo/neo-join-owner-full.log1,540bytes. Regenerate with the same global
 leased bounded unit gate and Run-ReusableNeo4jTests.ps1 -CosmicCql; retain compact
 evidence and reuse the stopped environment. Unrelated Mongo-Test-Traffic files,
 private Core and peer work are untouched. Publication uses short normal lease.
+
+Join runtime binding/WEB4 prerequisite slice: reuse privateCore7280 worktree, SDK10.0.401/runtime10.0.12/local NuGet and dual Core/unit bin/obj. Runtime named key/output records reuse one shared join source/key capture path and the existing complete-packet barrier; no native/provider I/O or new data/environment. Normal lease for bounded no-restore dual Core/unit build/test; fixed CosmicCqlDemo/join-record-core.log and CoreCurrent/join-record-current.trx retained, sizes pending. No download/install/restore/temporary DB. Other provider/HyperDrive/save files untouched; no additional agents.
+
+Runtime record43300 terminal0:2753Core pass0skip (19newcontrols); linked WEB4
+compiler3647 terminal0:2771Core pass0skip (18additionalcontrols). Both Core TFMs
+built in the same leased bounded no-restore environment; no production Core source
+changed after that producer build, only linked WebAPI model/compiler/test sources.
+No native provider/service/DB used; three adapter identities are controlled tests,
+not a native transport claim. Fixed CoreCurrent/join-record-current.trx4,444,718bytes
+and CosmicCqlDemo/join-record-core.log92,730bytes retained. SDK/cache/bin/obj remain
+shared/reusable; no install/download/restore/new environment. Request compiler is
+not registered as an HTTP action yet. Scoped Core+paired pin/gitlink publication
+will use normal global lease; peer save/import/HyperDrive sources untouched.
