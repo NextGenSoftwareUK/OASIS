@@ -17,8 +17,27 @@ Plan and execute through HolonManager with the actual provider capabilities, as 
 the scalar examples below. The native reduction preserves 28 decimal places and
 rounds once at final publication; a mathematical Sum outside Decimal range fails.
 MongoDB acceptance passes 416 native/550 unit tests; Neo4j passes 416 native/529
-unit tests, all without failures or skips. Decimal HTTP inputs remain unenrolled.
+unit tests, all without failures or skips. Decimal HTTP compiler/wire tests and
+the shipping WEB4 build pass; live signed Decimal demo acceptance remains pending.
 [Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
+The scalar HTTP request body uses the same explicit type:
+
+```json
+{
+  "operation": "Sum",
+  "selection": {
+    "metadataPath": ["price"],
+    "valueType": "Decimal"
+  }
+}
+```
+
+Use `Average` for the mean and add `"nullable": true` to the selection when
+missing/null prices should be ignored. Decimal values in responses are tagged
+text, preserving precision for JavaScript clients. Grouped Sum/Average selections
+use the same declaration. Live signed Decimal examples are the next demo gate.
+
 
 
 ## UInt64 numeric queries — native SDK and HTTP compiler

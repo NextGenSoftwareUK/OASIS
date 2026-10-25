@@ -1,5 +1,15 @@
 # COSMIC ORM implementation status
 
+## Decimal HTTP compiler/wire acceptance - 25 October 2026
+
+Full Core **3,079/3,079** tests pass without failures/skips, including22 new
+Decimal HTTP controls; the shipping WEB4 API builds. The scalar/grouped shared
+binder explicitly enrolls required/nullable Decimal Sum/Average using public
+Core expression overloads. Tests verify exact string output, input domain,
+nullable/empty values, actor binding, receipts, grouped capture and denial when
+only Decimal read permission is granted. This is compiler/wire acceptance;
+updated live signed Decimal HTTP and SDK demos remain pending.
+
 ## Neo4j Decimal query integration - 25 October 2026
 
 Scalar and grouped Decimal/nullable Sum/Average pass **23 focused native tests**,
