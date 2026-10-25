@@ -93,6 +93,9 @@ public static class V1DemoPresentation
         <option value="unsignedGroups">UInt64 / grouped keys</option>
         <option value="utcSource">UTC dates / source range</option>
         <option value="utcGroups">UTC dates / grouped keys</option>
+        <option value="compositionFilter">Composition / filter after source page</option>
+        <option value="compositionTake">Composition / page before filter</option>
+        <option value="compositionExact">Composition / exact values and result page</option>
         <option value="leftJoin">Left join / unmatched rows and exact values</option>
         <option value="innerJoin">Inner join / matching pairs only</option>
         <option value="groupedAverage">GroupBy / filter exact Decimal means</option>
@@ -139,6 +142,9 @@ let session, last;
 let queryRoute = "/api/data/query-cql";
 const el = id => document.getElementById(id);
 const notes = {
+  compositionFilter: 'The source page is C-public and D-owned. Filtering the selected Name removes C-public, so D-owned remains. Every selected source cell is validated before any row is removed.',
+  compositionTake: 'The same source page is used, but Take(1) runs before Where. C-public is selected then removed: no rows remain. Reordering these stages would change the answer.',
+  compositionExact: 'Compare the selected Precision alias to exact Int64 text, order selected names descending, then Skip(1)/Take(1). C-public remains; no JavaScript numeric rounding occurs.',
   leftJoin: 'Join two independently filtered source windows in the selected provider. A left join keeps B-owned and D-owned with hasRight=false and null precision; C-public matches. Both inputs enforce your signed actor. Int64 values remain exact strings.',
   innerJoin: 'Use the same two source windows with an inner join: only C-public matches. Matching happens natively in the selected provider. Limits reject excess work rather than silently truncate results.',
 
@@ -419,6 +425,30 @@ function preset() {
       maximumRightRows: 100,
       maximumPairs: 1000,
       maximumResults: 25
+    });
+  }
+  if (name === 'compositionFilter' || name === 'compositionTake' || name === 'compositionExact') {
+    const provider = body.provider;
+    const filters = body.filters;
+    for (const key of Object.keys(body)) delete body[key];
+
+    queryRoute += '/composition';
+    const where = { operation: 'Where', filters: [{ alias: 'Name', operator: 'NotEqual', value: 'C-public' }] };
+    const take = { operation: 'Take', count: 1 };
+    const stages = name === 'compositionTake' ? [take, where] : name === 'compositionExact' ? [
+      { operation: 'Where', filters: [{ alias: 'Precision', operator: 'Equal', value: '9007199254740993' }] },
+      { operation: 'OrderBy', order: [{ alias: 'Name', descending: true }] },
+      { operation: 'Skip', count: 1 }, take
+    ] : [where, { operation: 'OrderBy', order: [{ alias: 'Precision', descending: true }, { alias: 'Name' }] }, take];
+
+    Object.assign(body, {
+      provider,
+      source: {
+        filters, orderBy: 'Name', skip: 1, take: 2,
+        columns: [ { alias: 'Name', field: 'Name' },
+          { alias: 'Precision', metadataPath: ['precision'], valueType: 'Int64' } ]
+      },
+      stages
     });
   }
   el('route').textContent = queryRoute;

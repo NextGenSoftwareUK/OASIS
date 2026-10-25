@@ -162,11 +162,11 @@ public sealed partial class CqlV1Web4NativeTests
                     var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(20) };
 
-                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false,bool projection = false,bool join = false)
+                    async Task<HttpResponseMessage> Send(object body, Guid actor, string? operationKey = null, string? tokenOverride = null,bool expectContinue = false,bool scalar = false,bool projection = false,bool join = false,bool composition = false)
                     {
                         var operation = operationKey ?? Guid.NewGuid().ToString("D");
                         await Journal("before-http-request", new { actor, operation });
-                        using var request = new HttpRequestMessage(HttpMethod.Post, join ? "/api/data/query-cql/join" : projection ? "/api/data/query-cql/projection" : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
+                        using var request = new HttpRequestMessage(HttpMethod.Post, composition ? "/api/data/query-cql/composition" : join ? "/api/data/query-cql/join" : projection ? "/api/data/query-cql/projection" : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql")
                         {
                             Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
                         };
@@ -288,6 +288,68 @@ public sealed partial class CqlV1Web4NativeTests
                         // root. Any right-side policy leak would create matches.
                         await Joined(alice, "Left", 3, hiddenRight: true);
                         await Joined(outsider, "Left", 1, hiddenRight: true);
+
+                        // Composition preserves stage order and actor visibility on
+                        // all three stores, with one receipt and no replayed I/O.
+                        async Task Composed(Guid actor, bool takeFirst, params string[] expectedNames)
+                        {
+                            var filter = new { operation = "Where", filters = new[]
+                                { new { alias = "Name", @operator = "NotEqual", value = "B-owned" } } };
+                            var take = new { operation = "Take", count = 1 };
+                            var body = new
+                            {
+                                provider = provider.ToString(),
+                                source = new
+                                {
+                                    filters = new[] { new { metadataPath = new[] { "fixture" }, scalar = "String", @operator = "Equal", value = tag } },
+                                    orderBy = "Name", take = 3,
+                                    columns = new object[]
+                                    {
+                                        new { alias = "Name", field = "Name" },
+                                        new { alias = "Precision", metadataPath = new[] { "precision" }, valueType = "Int64" }
+                                    }
+                                },
+                                stages = takeFirst ? new object[] { take, filter } : new object[] { filter, take }
+                            };
+                            var logical = Guid.NewGuid().ToString("D");
+                            using var response = await Send(body, actor, logical, composition: true);
+                            var text = await response.Content.ReadAsStringAsync();
+                            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                            Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                            var operationId = response.Headers.GetValues("X-OASIS-Operation-Id").Single();
+                            var operation = await outbox.GetAsync(operationId, CancellationToken.None);
+                            Assert.AreEqual(1, operation.ProviderAttempts.Count); Assert.AreEqual(1, operation.Receipts.Count);
+                            Assert.AreEqual(0.002m, operation.Receipts.Single().ActualCostUsd);
+                            using var json = JsonDocument.Parse(text);
+                            var result = json.RootElement.GetProperty("result");
+                            Assert.AreEqual("cql-composition-v1", result.GetProperty("version").GetString());
+                            Assert.AreEqual(provider.ToString(), result.GetProperty("provider").GetString());
+                            var rows = result.GetProperty("rows").EnumerateArray().ToArray();
+                            CollectionAssert.AreEqual(expectedNames, rows.Select(row => row[0].GetString()).ToArray());
+                            Assert.IsTrue(rows.All(row => row[1].GetString() == "9007199254740993"));
+                            using var replay = await Send(body, actor, logical, composition: true);
+                            Assert.AreEqual(HttpStatusCode.Conflict, replay.StatusCode);
+                            var retained = await outbox.GetAsync(operationId, CancellationToken.None);
+                            Assert.AreEqual(1, retained.ProviderAttempts.Count); Assert.AreEqual(1, retained.Receipts.Count);
+                        }
+                        await Composed(alice, false, "C-public");
+                        await Composed(alice, true);
+                        await Composed(outsider, false, "C-public");
+
+                        // Unknown stage members must be rejected by the real MVC
+                        // binder, with affirmative zero-dispatch settlement.
+                        using (var malformed = await Send(new
+                        {
+                            provider = provider.ToString(),
+                            source = new { columns = new[] { new { alias = "Name", field = "Name" } } },
+                            stages = new[] { new { operation = "Take", count = 1, nativeSql = "untrusted" } }
+                        }, alice, composition: true))
+                        {
+                            Assert.AreEqual(HttpStatusCode.BadRequest, malformed.StatusCode);
+                            Assert.AreEqual("settled", malformed.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
+                            var rejected = await outbox.GetAsync(malformed.Headers.GetValues("X-OASIS-Operation-Id").Single(), CancellationToken.None);
+                            Assert.AreEqual(0, rejected.ProviderAttempts.Count); Assert.AreEqual(0, rejected.Receipts.Count);
+                        }
 
                         // Native selection must apply visibility before paging and return
                         // exact scalar cells, without hydrating source entities.
@@ -589,6 +651,11 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/scalar", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/projection", out _));
                             Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/join", out _));
+                            Assert.IsTrue(paths.TryGetProperty("/api/data/query-cql/composition", out _));
+                            var compositionExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlCompositionV1Request").GetProperty("example");
+                            Assert.AreEqual("Where", compositionExample.GetProperty("stages")[0].GetProperty("operation").GetString());
+                            Assert.AreEqual("Int64", compositionExample.GetProperty("source").GetProperty("columns")[1].GetProperty("valueType").GetString());
                             var joinExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlJoinV1Request").GetProperty("example");
                             Assert.AreEqual("Left", joinExample.GetProperty("kind").GetString());

@@ -99,3 +99,5 @@ This certifies selected typed collection/CQL roots. Untyped collection decryptio
 ## Hosted provider admission — 22 October 2026
 
 The .NET 10 executor now applies inherited PreparedStorageExecution to actual native invocations, matching storage/query identities and waiting for durable provider-attempt admission before I/O. It rechecks lifetime and identity after persistence; cancellation or expired scopes cannot turn a pending admitted read into unmetered execution. Native error/result behavior remains explicit. Full Core 1,651 passes; [scope, tests and remaining HTTP/visibility gates](CQL_V1_MILESTONE_1.md). Trusted local and portable use is not automatically authenticated by this seam.
+
+25 October2026: bounded selected-result composition is available through SDK and `POST /api/data/query-cql/composition` on MongoDB, SQLite and Neo4j. [Request contract, limits and examples](CQL_COMPOSITION_HTTP_CONTRACT.md); [annotated34-example/provider demo](CQL_DEMO_RUNBOOK.md). Latest native walkthrough passes102SDK/102HTTP (309settled/301attempts); full CQL/ORM completion remains governed by unchecked roadmap requirements.

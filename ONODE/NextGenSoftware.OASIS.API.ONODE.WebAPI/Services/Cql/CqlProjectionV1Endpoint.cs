@@ -43,24 +43,8 @@ public static partial class CqlV1Endpoint
             if (result.IsError) return QueryFailure(http, result.ErrorCode);
             var output = result.Result.Providers.Single();
             if (output.Provider != selected) return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Projection provenance differs from its admitted provider.");
-            var columns = intent.Columns.Select(column => new
-            {
-                alias = column.Alias,
-                valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.Path.ValueType) ?? column.Path.ValueType),
-                nullable = !column.Path.ValueType.IsValueType || Nullable.GetUnderlyingType(column.Path.ValueType) != null
-            }).ToArray();
-            var rows = new List<object[]>();
-            foreach (var record in output.Rows)
-            {
-                deadline.Token.ThrowIfCancellationRequested();
-                var values = new object[record.Values.Count];
-                for (var index = 0; index < values.Length; index++)
-                {
-                    deadline.Token.ThrowIfCancellationRequested();
-                    values[index] = ProjectionWireValue(record.Values[index]);
-                }
-                rows.Add(values);
-            }
+            var columns = SelectedWireColumns(intent.Columns);
+            var rows = SelectedWireRows(output.Rows, deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
             var response = JsonResponse(new OASISResult<object>(new
             { version = "cql-projection-v1", provider = selected.ToString(), columns, rows }) { IsLoaded = true });
@@ -75,6 +59,31 @@ public static partial class CqlV1Endpoint
         catch (ResponseLimitException) { return Failure(413, "CQL_RESPONSE_LIMIT", "Projection response exceeds the public output limit."); }
         catch (OperationCanceledException) { return Failure(http.RequestAborted.IsCancellationRequested ? 499 : 504, "CQL_QUERY_CANCELLED", "The projection query was cancelled."); }
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The projection did not complete. Retain the usage operation ID for reconciliation."); }
+    }
+
+    private static object SelectedWireColumns(IReadOnlyList<CosmicProjectionColumn> columns)
+        => columns.Select(column => new
+        {
+            alias = column.Alias,
+            valueType = ProjectionWireType(Nullable.GetUnderlyingType(column.Path.ValueType) ?? column.Path.ValueType),
+            nullable = !column.Path.ValueType.IsValueType || Nullable.GetUnderlyingType(column.Path.ValueType) != null
+        }).ToArray();
+
+    private static List<object[]> SelectedWireRows(IEnumerable<CosmicProjectionRecord> records, CancellationToken token)
+    {
+        var rows = new List<object[]>();
+        foreach (var record in records)
+        {
+            token.ThrowIfCancellationRequested();
+            var values = new object[record.Values.Count];
+            for (var index = 0; index < values.Length; index++)
+            {
+                token.ThrowIfCancellationRequested();
+                values[index] = ProjectionWireValue(record.Values[index]);
+            }
+            rows.Add(values);
+        }
+        return rows;
     }
 
     private static string ProjectionWireType(Type type)
