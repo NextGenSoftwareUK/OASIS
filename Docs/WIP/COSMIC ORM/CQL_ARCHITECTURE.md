@@ -1,5 +1,15 @@
 # CQL architecture
 
+## Neo4j Decimal query checkpoint - 25 October 2026
+
+Scalar/grouped Decimal Sum/Average integration passes 23 focused native tests
+and the full 529-unit suite, with no skips. Full acceptance passes **416 native /529 units**, without failures or skips. Seven signed Int64 sums preserve exact scaled28 values; native rounded
+ordinal keys drive group filtering/order while raw packets retain all off-page
+error proofs. Existing read ownership, source windows and interruption behavior
+remain in force. Neo4j provider-default consistency remains read committed.
+Decimal HTTP inputs and live demos remain unenrolled. See the
+[Decimal contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
 ## MongoDB Decimal query integration - 25 October 2026
 
 Scalar/grouped Decimal and nullable Sum/Average now have native seven-word

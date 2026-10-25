@@ -39,6 +39,7 @@ public partial class Neo4jOASIS
         var identities = new List<string>();
         var reductions = new List<string>();
         var aggregatePackets = new List<string>();
+        var numericInputs = new List<string>();
         string Invalid(CosmicQueryPath path, string state)
             => path.ValueType.IsValueType && Nullable.GetUnderlyingType(path.ValueType) == null
                 ? state + "<>2" : state + "=3";
@@ -66,10 +67,21 @@ public partial class Neo4jOASIS
             var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
-                var parts = IntegralParts(column.Selector.ValueType, name + "v");
-                reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
-                reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
-                aggregatePackets.Add("{present:" + name + "n,high:" + name + "h,low:" + name + "l}");
+                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                {
+                    numericInputs.Add("CASE WHEN " + name + "s=2 THEN " + DecimalAggregateParts(name + "v")
+                        + " ELSE [0,0,0,0,0,0,0] END AS " + name + "parts");
+                    for (var part = 0; part < 7; part++)
+                        reductions.Add("sum(" + name + "parts[" + part + "]) AS " + name + "d" + part);
+                    aggregatePackets.Add("{present:" + name + "n,parts:[" + string.Join(",", Enumerable.Range(0,7).Select(part => name + "d" + part)) + "]}");
+                }
+                else
+                {
+                    var parts = IntegralParts(column.Selector.ValueType, name + "v");
+                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.High + " ELSE 0 END) AS " + name + "h");
+                    reductions.Add("sum(CASE WHEN " + name + "s=2 THEN " + parts.Low + " ELSE 0 END) AS " + name + "l");
+                    aggregatePackets.Add("{present:" + name + "n,high:" + name + "h,low:" + name + "l}");
+                }
             }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
             {
@@ -138,8 +150,13 @@ public partial class Neo4jOASIS
                 {
                     // Lexicographic floor quotient/remainder is the exact total
                     // order, without recombining into an overflowing Int64 or Double.
-                    var parts = GroupedIntegralParts(packet + ".high", packet + ".low");
-                    Sort(parts.High, resultOrdering.Descending); Sort(parts.Low, resultOrdering.Descending);
+                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                        Sort("averageKeys[" + resultOrdering.ColumnIndex + "]", resultOrdering.Descending);
+                    else
+                    {
+                        var parts = GroupedIntegralParts(packet + ".high", packet + ".low");
+                        Sort(parts.High, resultOrdering.Descending); Sort(parts.Low, resultOrdering.Descending);
+                    }
                 }
                 else if (column.Operation == CosmicScalarOperation.Average)
                     Sort("averageKeys[" + resultOrdering.ColumnIndex + "]", resultOrdering.Descending);
@@ -152,15 +169,20 @@ public partial class Neo4jOASIS
         {
             var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
             var packet = "aggregates[" + slot + "]";
-            meanKeys.Add(query.Columns[index].Operation == CosmicScalarOperation.Average
-                ? GroupedAverageKey(packet + ".high", packet + ".low", packet + ".present") : "null");
+            var column = query.Columns[index];
+            var decimalInput = column.Selector != null && (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal);
+            meanKeys.Add(decimalInput && column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average
+                ? DecimalAggregateKey(packet + ".parts", packet + ".present", column.Operation == CosmicScalarOperation.Average)
+                : column.Operation == CosmicScalarOperation.Average
+                    ? GroupedAverageKey(packet + ".high", packet + ".low", packet + ".present") : "null");
         }
         var cypher = "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + failure
             + ",false AS traversalCycle,false AS traversalLimit LIMIT 1" + traversal
             + " UNION ALL " + compiled.EligibleSource + "WHERE (" + compiled.DescendantPredicate
             + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
             + "WITH h,p" + sortValues + " ORDER BY " + sourceOrder + " SKIP $groupOffset LIMIT $groupTake "
-            + "WITH " + string.Join(",", input) + " WITH *,CASE WHEN " + string.Join(" OR ", bad.Select(x => "(" + x + ")"))
+            + "WITH " + string.Join(",", input) + (numericInputs.Count == 0 ? "" : " WITH *," + string.Join(",", numericInputs))
+            + " WITH *,CASE WHEN " + string.Join(" OR ", bad.Select(x => "(" + x + ")"))
             + " THEN 1 ELSE 0 END AS bad "
             + "WITH " + string.Join(",", identities) + ",count(*) AS inputs,sum(bad) AS invalid"
             + (reductions.Count == 0 ? "" : "," + string.Join(",", reductions))
