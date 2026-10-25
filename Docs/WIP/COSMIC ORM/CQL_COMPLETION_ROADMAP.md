@@ -5,15 +5,15 @@ signed HTTP and annotated31-example/provider demos are implemented on MongoDB,
 SQLite and Neo4j. Latest published demo baseline is `b1c2ae263`.
 
 - Latest separately verified cohorts: Core **2,877** (composition including graph-source admission guard),
-  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **328 native /519 unit**,
+  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **353 native /519 unit**,
   Neo4j **320 native /492 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **93 SDK /93 HTTP**, **288 settled operations
   /283 attempts**. Six join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
 - Selected-result composition captures immutable stages and independently admits
-  complete proof/work contracts, with **SQLite native execution verified**. Ordinary
-  projection execution rejects composed stages. MongoDB/Neo4j native subquery/
-  proof owners and public composition transport remain next.
+  complete proof/work contracts, with **SQLite and MongoDB native execution verified**. Ordinary
+  projection execution rejects composed stages. Neo4j native execution, further
+  composition certification and public composition transport remain next.
 - Full CQL/ORM completion remains unproven. Historical checkpoints below retain
   their original scope; remaining certification/policy/federation gates stay open.
 
@@ -1511,3 +1511,34 @@ Evidence: `TestResults/CosmicCqlDemo/mongo-composition-compiler-final.log`,
 `TestResults/SubscriptionUsageCurrent/composition-compiler-unit.trx`.
 This does not certify new composition pipelines against MongoDB yet: the
 snapshot execution/decoding owner and native composition controls are next.
+
+## MongoDB composition rank producer correction — 25 October2026
+
+Native testing found that `$documentNumber` rejects compound sortBy. The rank
+producer now uses `$sum: 1` with a `documents: [unbounded,current]` window.
+This retains the complete native source/selected ordering and prior-rank ties;
+there is no client sorting or fallback. The initial338-case native run passed335
+and failed the3 ordered composition controls with the exact server error.
+The corrected expanded353-case native gate is in progress, including12 exact
+selected-domain filter/sort controls,2 required-value/Take0 controls and a
+concurrent source/stage mutation control. The execution owner uses one snapshot,
+one deadline and all six remaining budgets. Final acceptance is recorded after
+that gate; public composition transport and Neo4j composition remain open.
+
+Mongo window contract: [setWindowFields documents windows](https://www.mongodb.com/docs/manual/reference/operator/aggregation/setwindowfields/).
+
+MongoDB snapshot composition acceptance: **353/353 native CQL tests** (25 new
+composition controls) and **519/519 provider unit tests**, zero skips. The native
+run took4m39s. This verifies stage order, repeated-key stability, all six budgets,
+pre-cancellation/reuse,12 exact scalar filter/sort domains, required-value errors
+outside Take0 and concurrent mutation between source/stage reads. All source and
+stage commands share one snapshot/session/deadline; cumulative native document
+counts retain compound tie ordering. No entity hydration or fallback evaluation.
+
+Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`,
+`TestResults/CosmicCqlDemo/mongo-composition-owner-unit.log` and
+`TestResults/SubscriptionUsageCurrent/composition-owner-unit.trx`.
+Initial server-error evidence is retained separately. Further composition
+privacy/relationship and outstanding-I/O/deadline controls remain required;
+Neo4j composition and public HTTP/composition demos remain open.

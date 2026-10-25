@@ -54,7 +54,7 @@ internal sealed partial class MongoCqlTranslator
         page.Add(new("$setWindowFields", new BsonDocument
         {
             { "sortBy", sourceSort },
-            { "output", new BsonDocument { { "rank", new BsonDocument("$documentNumber", new BsonDocument()) }, { "nativeCount", CompositionCount() } } }
+            { "output", new BsonDocument { { "rank", CompositionRank() }, { "nativeCount", CompositionCount() } } }
         }));
         page.Add(new("$sort", (BsonDocument)sourceSort.DeepClone()));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
@@ -89,7 +89,7 @@ internal sealed partial class MongoCqlTranslator
                     var sort = new BsonDocument { { "k" + item.ColumnIndex + ".value", item.Descending ? -1 : 1 }, { "rank", 1 } };
                     current.Add(new("$setWindowFields", new BsonDocument
                     {
-                        { "sortBy", sort }, { "output", new BsonDocument("nextRank", new BsonDocument("$documentNumber", new BsonDocument())) }
+                        { "sortBy", sort }, { "output", new BsonDocument("nextRank", CompositionRank()) }
                     }));
                     current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
                     current.Add(new("$unset", "nextRank"));
@@ -115,6 +115,13 @@ internal sealed partial class MongoCqlTranslator
         }
         return new MongoCqlCompositionCommand(command, stages.ToArray());
     }
+    // $documentNumber accepts only one sort field. A cumulative documents
+    // window counts exact positions while retaining native compound tie keys.
+    private static BsonDocument CompositionRank() => new()
+    {
+        { "$sum", 1 },
+        { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) }
+    };
     private static BsonDocument CompositionCount() => new()
     {
         { "$count", new BsonDocument() },
