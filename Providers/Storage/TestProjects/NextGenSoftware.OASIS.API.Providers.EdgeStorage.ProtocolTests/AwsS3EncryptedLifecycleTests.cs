@@ -31,6 +31,7 @@ public class AwsS3EncryptedLifecycleTests
         public int Writes, Deletes;
         public Action BeforeListReply;
         public Action AfterFirstWrite;
+        public Action<string> BeforeGetReply;
         private static string Revision(string value) => "\"" + Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant() + "\"";
         private static HttpResponseMessage Failure(HttpStatusCode status, string code) => new(status)
         { Content = new StringContent($"<Error><Code>{code}</Code><Message>controlled</Message></Error>", Encoding.UTF8, "application/xml") };
@@ -85,7 +86,7 @@ public class AwsS3EncryptedLifecycleTests
                     Assert.AreEqual(HttpMethod.Get, request.Method);
                     if (!present) return Failure(HttpStatusCode.NotFound, "NoSuchKey");
                     var get = FakeService.Text(existing); get.Content.Headers.ContentLength = Encoding.UTF8.GetByteCount(existing);
-                    get.Headers.TryAddWithoutValidation("ETag", Revision(existing)); return get;
+                    get.Headers.TryAddWithoutValidation("ETag", Revision(existing)); BeforeGetReply?.Invoke(key); return get;
                 }
             });
             Client = new AmazonS3Client(new BasicAWSCredentials("synthetic-key", "synthetic-secret"), new AmazonS3Config
@@ -105,6 +106,38 @@ public class AwsS3EncryptedLifecycleTests
             }
         }
         public void Dispose() { Client.Dispose(); _http.Dispose(); Objects.Clear(); }
+    }
+
+    public static IEnumerable<object[]> AvatarSelectorRaces()
+    {foreach(var sync in new[]{false,true})foreach(var email in new[]{false,true})foreach(var soft in new[]{false,true})foreach(var rename in new[]{false,true})yield return new object[]{sync,email,soft,rename};}
+
+    [DataTestMethod][DynamicData(nameof(AvatarSelectorRaces),DynamicDataSourceType.Method)]
+    public async Task Avatar_alias_deletion_preserves_changed_encrypted_winner_over_official_sdk(bool sync,bool email,bool soft,bool rename)
+    {
+        using var store=new Store();var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            using var provider=store.Open(key);provider.IsVersionControlEnabled=false;
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var avatar=new Avatar{Id=Guid.NewGuid(),Username="private-original",Email="private-original@example.invalid",FirstName="original",IsActive=true};
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=avatar.Id,XP=123,IsActive=true})).IsError);
+            string recordKey=null;store.BeforeGetReply=read=>recordKey=read;
+            Assert.IsFalse((await provider.LoadAvatarAsync(avatar.Id)).IsError);store.BeforeGetReply=null;Assert.IsNotNull(recordKey);
+            var original=store.Objects.ToArray();
+            avatar.FirstName="independent winner";if(rename){avatar.Username="private-renamed";avatar.Email="private-renamed@example.invalid";}
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            var winner=store.Objects.ToArray();store.Objects.Clear();foreach(var item in original)store.Objects.Add(item.Key,item.Value);
+            var writes=store.Writes;var deletes=store.Deletes;var changed=false;
+            store.BeforeGetReply=read=>{if(read!=recordKey)return;store.BeforeGetReply=null;changed=true;
+                store.Objects.Clear();foreach(var item in winner)store.Objects.Add(item.Key,item.Value);};
+            var result=email?sync?provider.DeleteAvatarByEmail("private-original@example.invalid",soft):await provider.DeleteAvatarByEmailAsync("private-original@example.invalid",soft)
+                :sync?provider.DeleteAvatarByUsername("private-original",soft):await provider.DeleteAvatarByUsernameAsync("private-original",soft);
+            Assert.IsTrue(changed);Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.Result);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
+            Assert.AreEqual(writes,store.Writes);Assert.AreEqual(deletes,store.Deletes);Assert.AreEqual(winner.Length,store.Objects.Count);
+            foreach(var item in winner)Assert.AreEqual(item.Value,store.Objects[item.Key]);
+            store.AssertPrivate("private-original","private-renamed","independent winner");
+        }finally{CryptographicOperations.ZeroMemory(key);}
     }
 
     [DataTestMethod]
