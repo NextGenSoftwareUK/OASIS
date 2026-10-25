@@ -61,11 +61,20 @@ internal sealed partial class MongoCqlTranslator
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 numeric.Add(name + "number", Choose(present, new BsonDocument("$toDecimal", "$" + name + ".v"), zero));
-                high.Add(name + "high", new BsonDocument("$trunc", new BsonArray
-                    { Op("$divide", "$" + name + "number", limb), Literal(0) }));
-                reduction.Add(name + "high", new BsonDocument("$sum", "$" + name + "high"));
-                reduction.Add(name + "low", new BsonDocument("$sum", Op("$subtract", "$" + name + "number",
-                    Op("$multiply", "$" + name + "high", limb))));
+                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                {
+                    high.Add(name + "parts", DecimalScaledParts("$" + name + "number"));
+                    for (var part = 0; part < CosmicDecimalScalarResults.LimbCount; part++)
+                        reduction.Add(name + "d" + part, new BsonDocument("$sum", Op("$arrayElemAt", "$" + name + "parts", Literal(part))));
+                }
+                else
+                {
+                    high.Add(name + "high", new BsonDocument("$trunc", new BsonArray
+                        { Op("$divide", "$" + name + "number", limb), Literal(0) }));
+                    reduction.Add(name + "high", new BsonDocument("$sum", "$" + name + "high"));
+                    reduction.Add(name + "low", new BsonDocument("$sum", Op("$subtract", "$" + name + "number",
+                        Op("$multiply", "$" + name + "high", limb))));
+                }
             }
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
             {
@@ -86,8 +95,15 @@ internal sealed partial class MongoCqlTranslator
         page.Add(new("$group", reduction));
         var means = new BsonDocument();
         for (var index = 0; index < query.Columns.Count; index++)
-            if (query.Columns[index].Operation == CosmicScalarOperation.Average)
-                means.Add("cqlGroupAverage" + index, GroupedAverageValue(index));
+        {
+            var column = query.Columns[index];
+            var decimalInput = column.Selector != null
+                && (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal);
+            if (column.Operation == CosmicScalarOperation.Average)
+                means.Add("cqlGroupAverage" + index, decimalInput ? GroupedDecimalValue(index, average: true) : GroupedAverageValue(index));
+            else if (column.Operation == CosmicScalarOperation.Sum && decimalInput)
+                means.Add("cqlDecimalSum" + index, GroupedDecimalValue(index, average: false));
+        }
         if (means.ElementCount != 0) page.Add(new("$set", means));
         // Compute global participation before the group output sentinel. Neither
         // excess work nor excess groups can silently become a partial success.
@@ -110,7 +126,7 @@ internal sealed partial class MongoCqlTranslator
             else if (column.Operation == CosmicScalarOperation.Sum)
                 // Bounded Int64 input has at most29 decimal digits in total.
                 // Decimal128 arithmetic is exact here, including cancelling sums.
-                value = GroupedSumValue(ordering.ColumnIndex);
+                value = GroupedSumValue(column, ordering.ColumnIndex);
             else if (column.Operation == CosmicScalarOperation.Average)
                 value = "$cqlGroupAverage" + ordering.ColumnIndex;
             else throw new NotSupportedException("Exact native ordering is not enrolled for this aggregate.");

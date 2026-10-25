@@ -1,16 +1,12 @@
 # CQL integer Sum/Average contract
 
-## MongoDB Decimal scaled-packet component - 25 October 2026
+## MongoDB Decimal query integration - 25 October 2026
 
-The native expression now preserves an admitted Decimal as seven signed base1e9
-words in scaled28 units. One real MongoDB test passes2,114 independent CLR
-vectors covering all29scales, signs, negative zero and maximum coefficients;
-server seven-column sums also match the independent reference. Full Mongo units
-539 pass without skips. This is component acceptance, not Decimal query enrollment
-or a new full392-native-suite claim. Current scalar/grouped profiles still reject
-Decimal arithmetic. Source/decoder integration and grouped final normalization
-remain required before enrollment.
-
+Scalar/grouped Decimal and nullable Sum/Average now have native seven-word
+reductions and exact rounded native group filter/order values. Focused23 native
+cases and full550 units pass without skips. Full416 native tests pass without failures or skips; native SDK enrollment is verified. HTTP Decimal inputs
+and Neo4j Decimal arithmetic remain pending. See the
+[exact reduction and rounding contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
 
 ## SQLite Decimal native acceptance - 25 October 2026
 
