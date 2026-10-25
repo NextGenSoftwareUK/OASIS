@@ -16,6 +16,12 @@ public static partial class CqlV1Compiler
     internal static TResult BindScalar<TValue, TResult>(CosmicQuery<Holon> source, CosmicScalarOperation operation,
         Expression<Func<Holon, TValue>> selector, IScalarConsumer<TResult> consumer)
     {
+        // Transport enrollment is independent of a native adapter's SDK domains.
+        // New numeric inputs require explicit v1 wire and live acceptance first.
+        var input = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+        if ((operation == CosmicScalarOperation.Sum || operation == CosmicScalarOperation.Average)
+            && input != typeof(int) && input != typeof(long) && input != typeof(ulong))
+            throw new ArgumentException("CQL v1 numeric inputs are Int32/Int64/UInt64, optionally nullable.");
         if (operation == CosmicScalarOperation.Average)
         {
             // The bounded selection visitor already knows the exact CLR input

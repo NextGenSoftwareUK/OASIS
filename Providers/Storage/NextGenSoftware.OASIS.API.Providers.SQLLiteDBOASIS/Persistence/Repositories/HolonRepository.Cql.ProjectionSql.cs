@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -70,6 +71,19 @@ public partial class HolonRepository
             return ("(" + value + "/4294967296)", "(" + value + "%4294967296)");
         }
 
+        private static string[] DecimalParts(string value)
+        {
+            // Decimal keys carry a sign plus57 scaled digits. Sign-dependent
+            // padding restores seven full base1e9 words before complement decode.
+            var negative = "substr(" + value + ",1,1)='0'";
+            var digits = "((CASE WHEN " + negative + " THEN '999999' ELSE '000000' END)||substr(" + value + ",2))";
+            return Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(index =>
+            {
+                var word = "CAST(substr(" + digits + "," + (index * 9 + 1) + ",9) AS INTEGER)";
+                return "(CASE WHEN " + negative + " THEN " + word + "-999999999 ELSE " + word + " END)";
+            }).ToArray();
+        }
+
         internal string TranslateNumericAggregate(CosmicQueryPath path, string predicate, string ordering)
         {
             var operand = ProjectionOperand(path, "cqlnumeric", comparable: true);
@@ -77,7 +91,10 @@ public partial class HolonRepository
             var invalid = optional ? "s=3" : "s<>2";
             var maximum = CosmicNumericScalarResults.MaximumParticipatingValues;
             var sentinel = ((long)maximum + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
-            var parts = IntegralParts(path.ValueType, "v");
+            var decimalInput = (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(decimal);
+            var fields = decimalInput ? DecimalParts("v").Select((value, index) => (Name: "p" + index, Value: value)).ToArray()
+                : new[] { (Name: "high", Value: IntegralParts(path.ValueType, "v").High),
+                    (Name: "low", Value: IntegralParts(path.ValueType, "v").Low) };
             // The extra input is a work-limit sentinel, never a truncated success.
             // Even max+1 rows keep both signed limb sums within Int64. Validate
             // all mandatory traversal scopes separately before the source page.
@@ -86,9 +103,8 @@ public partial class HolonRepository
                 + " bounded AS (SELECT s,v FROM selected LIMIT " + sentinel + "),"
                 + " aggregated AS (SELECT count(*) AS inputs,COALESCE(sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END),0) AS invalid,"
                 + "COALESCE(sum(CASE WHEN s=2 THEN 1 ELSE 0 END),0) AS present,"
-                + "COALESCE(sum(CASE WHEN s=2 THEN " + parts.High + " ELSE 0 END),0) AS high,"
-                + "COALESCE(sum(CASE WHEN s=2 THEN " + parts.Low + " ELSE 0 END),0) AS low FROM bounded) "
-                + "SELECT invalid,present,high,low,CASE WHEN inputs>"
+                + string.Join(",", fields.Select(field => "COALESCE(sum(CASE WHEN s=2 THEN " + field.Value + " ELSE 0 END),0) AS " + field.Name))
+                + " FROM bounded) SELECT invalid,present," + string.Join(",", fields.Select(field => field.Name)) + ",CASE WHEN inputs>"
                 + maximum.ToString(System.Globalization.CultureInfo.InvariantCulture) + " THEN 1 ELSE 0 END AS overWork FROM aggregated";
         }
 

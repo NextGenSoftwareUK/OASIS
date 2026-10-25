@@ -1,5 +1,25 @@
 # CQL integer Sum/Average contract
 
+## SQLite Decimal native acceptance - 25 October 2026
+
+SQLite now enrolls native Decimal/nullable Sum/Average for scalar and grouped
+queries, including selected filters/order/pages. Full1,702 native/72 unit tests
+pass without failures/skips, with23 new Decimal controls. They cover boundaries,
+large cancellation, final rounding, overflow versus valid means, nullable/empty
+inputs, source windows, privacy, cancellation/reuse,137inputs independent of graph
+publication limits, exact key comparisons and rejection of unrepresentable JSON.
+
+Seven signed INTEGER sums preserve the existing exact Decimal key domain. Grouped
+filter/order keys normalize that constant-size packet with the same Core owner
+used for returned values. No float cast, entity hydration or manager-side input
+scan is introduced. Existing snapshot/traversal/budget/error ownership remains.
+
+MongoDB/Neo4j native Decimal and Decimal HTTP/demo enrollment remain pending.
+The shared v1 binder explicitly limits Sum/Average inputs to Int32/Int64/UInt64
+and nullable forms, preventing SDK capability expansion from silently changing
+transport enrollment. See [Decimal contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
+
+
 ## Decimal numeric Core foundation - 25 October 2026
 
 Full Core3,046 and SQLite72/Mongo539/Neo520 unit tests pass without failures/skips;
