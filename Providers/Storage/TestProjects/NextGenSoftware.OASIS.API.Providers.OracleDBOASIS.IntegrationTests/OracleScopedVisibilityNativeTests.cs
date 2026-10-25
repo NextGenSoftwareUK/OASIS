@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Oracle.ManagedDataAccess.Client;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 
@@ -18,7 +19,7 @@ public sealed partial class OracleNativeAcceptanceTests
         Assert.IsFalse(File.Exists(journal));
         var actor=Guid.NewGuid();var parent=Guid.NewGuid();
         var conditionalOperation=Guid.NewGuid();
-        var root=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent,CreatedByAvatarId=actor,Name="owned visibility root"};
+        var root=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent,CreatedByAvatarId=actor,Name="owned visibility root",MetaData=new(){{"scope",actor.ToString("D")}}};
         var owned=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=actor,Name="owned visibility child"};
         var visible=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),IsPublic=true,Name="owned public visibility fixture"};
         var hidden=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),Name="owned private visibility fixture"};
@@ -62,6 +63,10 @@ public sealed partial class OracleNativeAcceptanceTests
             Assert.AreEqual(leaf.Id,complete.Result.Children.Single(child=>child.Id==hidden.Id).Children.Single().Id);
             Assert.AreEqual(3,root.Children.Count,"The caller's acknowledged source graph remains intact.");
 
+            var query=new SearchParams{SearchOnlyForCurrentAvatar=true,AvatarId=actor,FilterByMetaData=new(){{"scope",actor.ToString("D")}}};
+            var search=sync?provider.Search(query):await provider.SearchAsync(query);
+            foreach(var row in originals)Assert.AreEqual(row.Json,await Read(verifier,"OASIS_HOLONS",row.Id),"Search projection must not mutate canonical records.");
+
             await using(var transaction=verifier.BeginTransaction())
             {
                 foreach(var row in originals)
@@ -75,6 +80,11 @@ public sealed partial class OracleNativeAcceptanceTests
             }
             foreach(var row in originals)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
             File.Delete(journal);
+            // Assert output after exact fixture teardown, so a privacy regression retains evidence, not test data.
+            Assert.IsFalse(search.IsError,search.Exception?.ToString());Assert.AreEqual(1,search.LoadedCount);
+            var searchRoot=(Holon)search.Result.SearchResultHolons.Single();
+            CollectionAssert.AreEqual(new[]{owned.Id},searchRoot.Children.Select(child=>child.Id).ToArray());
+            Assert.AreEqual(root.ChildRoleManifestJson,searchRoot.ChildRoleManifestJson);
         }
         finally{await provider.DeActivateProviderAsync();}
     }
