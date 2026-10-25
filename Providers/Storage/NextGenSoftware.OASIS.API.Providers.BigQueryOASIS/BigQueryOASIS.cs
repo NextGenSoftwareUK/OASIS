@@ -513,6 +513,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
+            // Admit collection options before resolving an alias: resolution is
+            // itself a potentially billable native query, not local validation.
+            try
+            {
+                ValidateGraphDepth(maxChildDepth,curentChildDepth);
+                if(version<0)throw new ArgumentOutOfRangeException(nameof(version));
+            }
+            catch(Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result,"BigQuery parent-key read options are invalid.",ex);
+                return result;
+            }
             if (Guid.TryParse(providerKey, out var id))
                 return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
 
