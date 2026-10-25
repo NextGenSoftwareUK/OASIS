@@ -6212,3 +6212,7 @@ Matched471controlled/87history-native/79regression-nativePASS0skips5s/8s/26s aft
 
 Invalid negative depth/version options now reject before a non-GUID parent alias can issue its potentiallybillablelookupquery. Baseline6genuinefail/6protectedcontrols; full872/872controlledPASS0skip5s. ExistingValidateGraphDepth reused, originalargumentcause/no result/count retained, no extraSDKrequest/retry/validaliassemanticchange. ReportBigQueryCurrent/parent-key-admission-current.trx1317976bytesSHA1372773C5FF84903F5D94D395DBAB35AF40A5F351896EE41564FDD7667A94D3A. No hostedjob/dataset/feeproof; nativeSQL/IAM/concurrency/limits/security/durability/fullinterface/V2 gates remainOPEN. Scope/evidence/resources in BIGQUERY_PROVIDER_IMPLEMENTATION_AUDIT.md/inventory.
 
+## 2026-10-25 cloud storage discovery repaired
+
+Cosmos/Firestore/BigQuery now appear exactly once in GetCloudProviders/IsProviderCloud without activation. Explicit unique Storage+Cloud capabilities preserve legacy primary categories and storage interfaces; shared framework-neutral assertions reused. Three genuine baseline failures -> full Cosmos483/Firestore472/BigQuery873controlledPASS0skip2s/4s/5s, batch65633terminal0. Metadata-only constructor edits, no SDK request/new environment/download/restore/deployment. Earlier native persistence proof retains its exact older cohort; no fresh native or hosted readiness claim. IAM/security/cost/durability/full-interface/globalV2 gates remain OPEN. Hashes/resources in respective audits/inventory.
+

@@ -1,5 +1,9 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## 25 October — cloud capability discovery
+
+BigQuery explicitly advertises unique Storage+Cloud capabilities, preserving StorageLocalAndNetwork primary category and storage discovery. One framework-neutral assertion helper is reused across Cosmos/Firestore/BigQuery; all three baseline discovery cases genuinely failed before repair. Full current BigQuery873/873controlledPASS0skip5s. BigQueryCurrent/cloud-discovery-current.trx SHA25622FA232948CB0B2D7E88410C7DF011FC7106A5FFB7D282612AE91F2FE7A2E69A. No activation/network/job/new environment. Discovery does not certify configured credentials, native SQL/IAM/cost/security/durability/full interfaces/V2; no deployment. Prior872 admission proof remains its own cohort.
+
 ## 25 October — parent-key admission before potentially billable lookup
 
 Six genuine controlled failures showed non-GUID parent aliases issued one SDK query before rejecting negative MaxChildDepth/CurrentChildDepth/Version; six GUID-selector controls already rejected before query. The string parent boundary now reuses ValidateGraphDepth and rejects negative versions before any alias resolution, returning the original ArgumentOutOfRangeException through OASISResult with no loaded payload/count. Valid GUID/alias, historical-child selection and parent identity semantics are unchanged; no extra query/retry/helper/fallback was added.

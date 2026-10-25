@@ -51,6 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
             ProviderDescription = "Google BigQuery storage through the official managed client";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BigQueryOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
         }
 
         public string GetProviderVersion()=>typeof(BigQueryOASIS).Assembly.GetName().Version!.ToString();
