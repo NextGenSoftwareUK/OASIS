@@ -41,3 +41,9 @@ acceptance passes69SDK/69HTTP examples; the earlier63/63 date demo retains its o
 Current contracts: [UInt64](CQL_UINT64_CONTRACT.md), [UTC dates](CQL_UTC_DATETIME_CONTRACT.md),
 [numeric aggregates](CQL_NUMERIC_AGGREGATES.md), [manual](CQL_MANUAL.md),
 [remaining roadmap](CQL_COMPLETION_ROADMAP.md).
+
+
+Decimal source predicates, selected/nullable schemas and grouped alias literals
+pass23 new wire controls inside the full2,500 linked-unit cohort. Request/result
+values use exact invariant strings. Live Decimal HTTP/browser/Swagger/demo
+acceptance remains pending; this does not grant Decimal Sum/Average inputs.

@@ -1208,3 +1208,21 @@ environment; retained service/image/volume stay reusable. A read-only PowerShell
 System.Text.Json probe confirms huge-exponent negative zero parses exactly as0;
 its JsonDocument was disposed, with no files or service created. Slot released
 for peer Google; Core/Shared source hold respected until its gate settles.
+
+Decimal HTTP preparation reuses WEB4 Cql service/model source and the linked
+Core.UnitTests project at OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests.
+Twenty-three controls prepared; full suite planned2,500 cases under next lease.
+Existing CoreUnit bin/obj and CosmicCurrent TRX/log locations will be reused,
+sizes unmeasured. No Core production edits, no environment/download/restore or
+new service. Do not build shared outputs until peer Google slot releases. SDK,
+HTTP, browser and Swagger Decimal examples remain future source/test work.
+
+Wire9594 terminal0:full2,500 linkedCore units PASS0skip,23 new Decimal controls;
+source snapshots unchanged. Reused C:/Source/OASIS/OASIS Architecture/
+NextGenSoftware.OASIS.API.Core.UnitTests/bin/Debug/net10.0 and its obj directory;
+CoreC65FBD5F/unitDC44A998. Exact paths/hashes and source proof retained in
+C:/Source/OASIS/TestResults/CosmicCurrent/decimal-wire-identities-current.json,
+with decimal-wire-full-current.trx and CosmicCqlDemo/decimal-wire-full.log
+(sizes unmeasured). Free C69,563,281,408 after. No service/install/download/restore;
+Core production unchanged. Preserve reusable outputs and compact evidence. Slot
+released; live three-provider Decimal demo remains next, on the same environment.
