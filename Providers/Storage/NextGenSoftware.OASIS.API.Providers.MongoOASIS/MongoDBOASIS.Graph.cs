@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     result.IsSaved = true;
                     return result;
                 }
-                var plan = conditionalPlan == null ? capturedGraph ?? HolonGraphWritePlan.Create(roots, saveChildren, recursive, maxChildDepth, initialDepth)
+                var plan = conditionalPlan == null ? capturedGraph ?? HolonGraphWritePlan.CreateForSave(roots, saveChildren, recursive, maxChildDepth, initialDepth)
                     : (Roots: roots, Nodes: conditionalPlan.Nodes.ToList());
                 // Preserve Mongo's embedded selected-child representation, but never alias caller nodes.
                 var snapshots = plan.Nodes.ToDictionary(node => node.Source, node => node.Snapshot, new HolonReferenceComparer());

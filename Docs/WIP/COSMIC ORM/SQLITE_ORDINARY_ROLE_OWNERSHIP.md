@@ -99,3 +99,16 @@ These are separate verified cohorts, not a single all-provider full regression.
 The earlier red evidence above is retained as history and is superseded for this
 specific boundary. MongoDB/Neo4j ordinary-save admission and native negative/positive
 controls are next; joins, federation and other unchecked roadmap items remain open.
+
+### MongoDB ordinary admission verification completed
+
+The native runner terminated successfully: full281 native CQL cases pass, zero
+skips, 3m51s. Its four existing partial-view cases now exercise all direct
+sync/async single/batch saves (16 probes), both legacy/no-manifest and manifested
+records, child-type and access-filtered selections. Each probe records intent
+before submission and proves the complete stored Holon BSON remains unchanged.
+Existing manager root-only positive controls still pass. Full unit502 passes,
+including eight new controls first reproduced red against the original code.
+Only ordinary single/batch planning changed to CreateForSave; conditional/replay
+plans remain intact. Single-record role persistence/acknowledgement and Neo4j
+ordinary guard work remain open; this is admission certification only.
