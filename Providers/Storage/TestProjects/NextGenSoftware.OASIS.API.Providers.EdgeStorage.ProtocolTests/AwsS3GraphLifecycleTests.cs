@@ -14,6 +14,56 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 public class AwsS3GraphLifecycleTests
 {
     [DataTestMethod]
+    [DataRow(false, false, 0)] [DataRow(true, false, 0)]
+    [DataRow(false, true, 0)] [DataRow(true, true, 0)]
+    [DataRow(false, false, 1)] [DataRow(true, false, 1)]
+    [DataRow(false, true, 1)] [DataRow(true, true, 1)]
+    [DataRow(false, false, 2)] [DataRow(true, false, 2)]
+    [DataRow(false, true, 2)] [DataRow(true, true, 2)]
+    public async Task Save_depth_preserves_existing_writer_selection_over_real_sdk(bool sync, bool batch, int depth)
+    {
+        using var store = new AwsS3EncryptedLifecycleTests.Store();
+        var key = RandomNumberGenerator.GetBytes(32);
+        try
+        {
+            using var provider = store.Open(key);
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var nodes = Enumerable.Range(0, 4).Select(index => new Holon { Name = "private-depth-" + index }).ToArray();
+            for (var index = 0; index < nodes.Length - 1; index++) nodes[index].Children.Add(nodes[index + 1]);
+            if (batch)
+            {
+                var saved = sync ? provider.SaveHolons(new[] { nodes[0] }, maxChildDepth: depth)
+                    : await provider.SaveHolonsAsync(new[] { nodes[0] }, maxChildDepth: depth);
+                Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+            }
+            else
+            {
+                var saved = sync ? provider.SaveHolon(nodes[0], maxChildDepth: depth)
+                    : await provider.SaveHolonAsync(nodes[0], maxChildDepth: depth);
+                Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+            }
+            // CallerPublicationTests explicitly preserves this writer's historical
+            // root-one contract. Do not silently redefine it during S3 acceptance.
+            var selected = depth == 0 ? nodes.Length : depth;
+            var loaded = await provider.LoadAllHolonsAsync(loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message + loaded.Exception);
+            Assert.AreEqual(selected, loaded.Result.Count(), "The existing writer counts its root as level one.");
+            for (var index = 0; index < nodes.Length; index++)
+                if (index < selected)
+                {
+                    Assert.AreNotEqual(Guid.Empty, nodes[index].Id);
+                    if (index > 0) Assert.AreEqual(nodes[index - 1].Id, nodes[index].ParentHolonId);
+                }
+                else
+                {
+                    Assert.AreEqual(Guid.Empty, nodes[index].Id);
+                    Assert.AreEqual(Guid.Empty, nodes[index].ParentHolonId);
+                }
+        }
+        finally { CryptographicOperations.ZeroMemory(key); }
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
     public async Task Export_version_is_independent_of_avatar_identity_over_real_sdk(bool sync,bool email)
     {

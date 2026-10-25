@@ -1,6 +1,14 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
-## Current native refresh — one originating replication failure, preserved
+## Current status — 25 October 2026
+
+Latest localAWS acceptance is **138/138PASS**, with verified ownedcleanup and same-runtime teardown (details in the later CURRENT native acceptance section). Previous replication failures below are historical, independently reconciled and preserved; do not mistake them for the latest gate. Hosted AWS/S3 and broader provider/V2 completion remain OPEN.
+
+S3 depth audit in progress: shared writer CaptureSaveForest intentionally counts root as one, unlike read traversal/Coreplanner rootzero. Existing CallerPublicationTests.SharedPreflightPreservesExistingDepthSelection explicitly locks writer1->rootonly and2->root+child, so the initial suspicion of depth1 becoming unlimited was WRONG: the preceding guard forbids childselection. Do not change this established contract merely to force a new assumption/test green. Added12officialSDK-controlled sync/async single/batch depth0/1/2 characterization cases preserving actual writerselection and unselectedcallerIDs; notyetcompiled/executed while peerMongoacceptance uses sharedbuildslot. Cross-provider read/write/replication depth normalization remains a documented compatibility/design gap requiring a scoped contract review, not silently patched here. No production behavior changed.
+
+Access revalidated25October: process AWS_REGION/AWS_DEFAULT_REGION/AWS_PROFILE/AWS_SHARED_CREDENTIALS_FILE/AWS_CONFIG_FILE/AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY and OASIS_AWS_S3_STORAGE_ENCRYPTION_KEY allunset; default C:/Users/david/.aws/config and credentials absent in this check. Presenceonly/no secretvalues read or printed. This is not exhaustive account/credential discovery. Existing hostedAWS/S3 actionlist remains applicable; no cloudbucket/account created or billablerequest attempted. PeerMongo batch48873 acquired sharedlease for focusedDecimal/fullunits/fullnativeCQL; wait for its terminal before compiling preparedS3controls. Their source is present but NOTverified/merged/deployed; no newruntime/download/environment is justified.
+
+## Historical native refresh — originating replication failure, now reconciled
 
 Against published Core5f62a69, the retained official-SDK Dynamo suite passed **177/177, 41s, zero skips**. The subsequent full AWS suite returned **105 passed /33 failed**: one originating `V2ReplicatesSelectedGraphWithGeneratedIdentities(False)` primary-success/replica-warning failure and32 fixture-preservation fences. Do not present this as33 independent defects or a passing full AWS gate. No cleanup/replay occurred; same server was stopped.
 
