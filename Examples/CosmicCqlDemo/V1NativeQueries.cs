@@ -573,6 +573,62 @@ public static class V1NativeQueries
         foreach (var row in doubleGroupRows)
             await output.WriteLineAsync($"  {row.Reading}: {row.Items} item\n");
 
+        // 28. Adjacent binary32 readings remain distinct. Use f literals for
+        // Single; use Decimal instead when the domain requires exact prices.
+        var singleStart = 1.0000002f;
+        var singleEnd = 1.0000005f;
+
+        var singleSelection = Value(visible
+            .Where(row => CosmicQueryMetadata.Value<float>(row, "singleReading") >= singleStart
+                && CosmicQueryMetadata.Value<float>(row, "singleReading") < singleEnd)
+            .OrderBy(row => CosmicQueryMetadata.Value<float>(row, "singleReading"))
+            .Select(row => new
+            {
+                row.Name,
+                Reading = CosmicQueryMetadata.Value<float>(row, "singleReading")
+            }));
+
+        var singlePlan = Value(CosmicProjectionPlanner.Plan(singleSelection, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities,
+                projectionAdapter.ProjectionCapabilities) }));
+
+        var singleResult = Value(await manager.ExecuteProjectionQueryAsync(singlePlan, new[] { adapter }));
+        var singleRows = singleResult.Providers.Single().Rows;
+
+        if (!singleRows.Select(row => row.Name).SequenceEqual(new[] { "B-owned", "C-public" })
+            || !singleRows.Select(row => row.Reading).SequenceEqual(new[] { singleStart, singleStart + 1.1920929e-7f }))
+            throw new InvalidOperationException("Single source ordering lost precision or visibility.");
+
+        completedQueries++;
+        await output.WriteLineAsync("28. Single reading range / binary32 reading ordering\n");
+        foreach (var row in singleRows)
+            await output.WriteLineAsync($"  {row.Name}: {row.Reading}");
+        await output.WriteLineAsync();
+
+        // 29. Group by binary32 readings, then filter/order the selected Reading alias.
+        // Native reduction and complete proof validation still include all groups.
+        var singleGroups = Value(visible
+            .GroupBy(row => CosmicQueryMetadata.Value<float>(row, "singleReading"))
+            .Select(group => new { Reading = group.Key, Items = group.LongCount() })
+            .Where(row => row.Reading >= singleStart && row.Reading < singleEnd)
+            .OrderBy(row => row.Reading)
+            .Take(2));
+
+        var singleGroupPlan = Value(CosmicGroupedPlanner.Plan(singleGroups, provider,
+            new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var singleGroupResult = Value(await manager.ExecuteGroupedQueryAsync(singleGroupPlan, new[] { adapter }));
+        var singleGroupRows = singleGroupResult.Providers.Single().Rows;
+
+        if (!singleGroupRows.Select(row => row.Reading).SequenceEqual(new[] { singleStart, singleStart + 1.1920929e-7f })
+            || singleGroupRows.Any(row => row.Items != 1))
+            throw new InvalidOperationException("Single grouped result filtering/order lost exact key identity.");
+
+        completedQueries++;
+        await output.WriteLineAsync("29. Single group keys / typed selected-result filters\n");
+        foreach (var row in singleGroupRows)
+            await output.WriteLineAsync($"  {row.Reading}: {row.Items} item\n");
+
         return completedQueries;
 
         async Task ShowScalarAsync<TResult>(

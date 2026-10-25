@@ -103,6 +103,7 @@ public static partial class CqlV1Compiler
         // Int64 and Decimal use invariant strings to preserve precision through JavaScript clients.
         else if (type == typeof(long) && json.ValueKind == JsonValueKind.String &&
             long.TryParse(json.GetString(), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var integer)) value = integer;
+        else if (type == typeof(float) && TrySingle(json, out var finiteSingle)) value = finiteSingle;
         else if (type == typeof(double) && TryDouble(json, out var finiteDouble)) value = finiteDouble;
         else if (type == typeof(decimal) && TryDecimal(json, out var number)) value = number;
         else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var count)) value = count;
@@ -110,7 +111,7 @@ public static partial class CqlV1Compiler
             Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
         else if (type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
         else if (type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
-        else throw new ArgumentException("Value must match the exact grouped scalar type; Int64, UInt64, Decimal and Double require invariant strings.");
+        else throw new ArgumentException("Value must match the exact grouped scalar type; Int64, UInt64, Decimal, Double and Single require invariant strings.");
         if (value == null && type == column.ValueType && type.IsValueType)
             throw new ArgumentException("This grouped column cannot be null.");
         Expression literal = value == null ? Expression.Constant(null, column.ValueType)
@@ -163,6 +164,8 @@ public static partial class CqlV1Compiler
         if (type == typeof(Guid?)) return Bind<Guid?>();
         if (type == typeof(DateTime)) return Bind<DateTime>();
         if (type == typeof(DateTime?)) return Bind<DateTime?>();
+        if (type == typeof(float)) return Bind<float>();
+        if (type == typeof(float?)) return Bind<float?>();
         if (type == typeof(double)) return Bind<double>();
         if (type == typeof(double?)) return Bind<double?>();
         if (type == typeof(decimal)) return Bind<decimal>();
