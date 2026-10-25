@@ -781,6 +781,51 @@ public static class V1Walkthrough
                     new { operation = "Take", count = 1 }
                 }
             }, composition: true, compositionExpected: new[] { "C-public" });
+            // EXAMPLES 35/36 — exact unsigned arithmetic uses the same route.
+            // UInt64 Sum is a tagged string. Average returns a Decimal string.
+            var unsignedFilters = new object[]
+            {
+                new { metadataPath = new[] { "fixture" }, scalar = "String", @operator = "Equal", value = fixtureTag }
+            };
+
+            await ShowAsync("35. UInt64 Sum / exact unsigned total", new
+            {
+                provider,
+                operation = "Sum",
+                selection = new { metadataPath = new[] { "counter" }, valueType = "UInt64" },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 1
+            }, scalar: true, valueType: "UInt64", expected: "18446744073709551613");
+
+            await ShowAsync("36. UInt64 Average / exact Decimal fraction", new
+            {
+                provider,
+                operation = "Average",
+                selection = new { metadataPath = new[] { "counter" }, valueType = "UInt64" },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Decimal", expected: "18446744073709551612.5");
+
+            // EXAMPLE 37 — source Take and grouped resultTake are independent.
+            // The threshold is text to preserve its exact half-unit in JSON.
+            await ShowAsync("37. UInt64 groups / filter and order exact means", new
+            {
+                provider,
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2,
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new[]
+                {
+                    new { alias = "Mean", operation = "Average",
+                        selection = new { metadataPath = new[] { "counter" }, valueType = "UInt64" } }
+                },
+                resultFilters = new[] { new { alias = "Mean", @operator = "Equal", value = "18446744073709551612.5" } },
+                resultOrder = new[] { new { alias = "Mean", descending = true } },
+                resultTake = 1
+            }, grouped: true, unsignedNumericGroups: true);
         }
 
         return completedRequests;
@@ -799,6 +844,7 @@ public static class V1Walkthrough
             bool dateGroups = false,
             bool unsignedProjection = false,
             bool unsignedGroups = false,
+            bool unsignedNumericGroups = false,
             bool decimalProjection = false,
             bool decimalGroups = false,
             bool doubleProjection = false,
@@ -891,7 +937,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
+            if (grouped && !unsignedNumericGroups && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -941,6 +987,17 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " lost exact UTC date values, shape or visibility.");
             }
 
+
+            if (unsignedNumericGroups)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+
+                if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || payload.GetProperty("columns")[0].GetProperty("valueType").GetString() != "Decimal"
+                    || rows.Length != 1 || rows[0][0].GetString() != "18446744073709551612.5")
+                    throw new InvalidOperationException(title + " lost the exact unsigned grouped mean.");
+            }
 
             if (unsignedProjection || unsignedGroups)
             {

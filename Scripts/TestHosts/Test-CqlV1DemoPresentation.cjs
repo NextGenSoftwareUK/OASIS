@@ -33,12 +33,27 @@ for (const mode of ['decimalSource', 'decimalGroups', 'doubleSource', 'doubleGro
     assert.equal(body.resultTake, 2);
   }
 }
+// Numeric presets must retain unsigned input types and exact Decimal thresholds.
+for (const mode of ['unsignedSum', 'unsignedAverage', 'unsignedMeanGroups']) {
+  assert.ok(page.includes('<option value="' + mode + '">'));
+  element('example').value = mode;
+  vm.runInContext('preset()', context);
+  const body = JSON.parse(element('query').value);
+  const grouped = mode === 'unsignedMeanGroups';
+  assert.equal(vm.runInContext('queryRoute', context), '/api/data/query-cql/' + (grouped ? 'grouped' : 'scalar'));
+  assert.equal(grouped ? body.columns[0].selection.valueType : body.selection.valueType, 'UInt64');
+  assert.equal(body.take, mode === 'unsignedSum' ? 1 : 2);
+  if (grouped) {
+    assert.equal(body.resultFilters[0].value, '18446744073709551612.5');
+    assert.equal(body.resultTake, 1);
+  }
+}
 const raw = '{"price":"' + lower + '","integer":9007199254740993}';
 context.raw = raw;
 const formatted = vm.runInContext('pretty(raw)', context);
 assert.ok(formatted.includes('"' + lower + '"'));
 assert.ok(formatted.includes('9007199254740993'));
-const result = { status: 'passed', presets: 6, lexicalExactness: true, runtime: process.version,
+const result = { status: 'passed', presets: 9, lexicalExactness: true, runtime: process.version,
   mode: 'offline-script-behavior-no-browser-or-network' };
 fs.writeFileSync('TestResults/CosmicCqlDemo/v1-decimal-ui-check.json', JSON.stringify(result));
 console.log(JSON.stringify(result));

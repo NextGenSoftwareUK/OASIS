@@ -83,6 +83,9 @@ public static class V1DemoPresentation
         <option value="max">Max / protected reduction</option>
         <option value="sum">Sum / exact signed total</option>
         <option value="average">Average / Decimal fraction</option>
+        <option value="unsignedSum">UInt64 Sum / exact unsigned total</option>
+        <option value="unsignedAverage">UInt64 Average / exact Decimal fraction</option>
+        <option value="unsignedMeanGroups">UInt64 groups / filter exact Decimal means</option>
         <option value="decimalSource">Decimal / exact price range</option>
         <option value="decimalGroups">Decimal / grouped prices</option>
         <option value="doubleSource">Double / exact reading range</option>
@@ -150,6 +153,9 @@ const notes = {
 
   min: 'Native Min over typed Int64 metadata. Hidden roots contain long.MinValue/long.MaxValue; visibility excludes them for Alice and Visitor before reduction. Exact values remain decimal strings.',
   sum: 'Native Sum over the complete visible input. Int64 output remains exact decimal text; no browser Number conversion.',
+  unsignedSum: 'Sum keeps UInt64 as tagged decimal text. Take1 selects a representable total; summing multiple near-maximum counters correctly returns overflow.',
+  unsignedAverage: 'Two visible UInt64 counters produce an exact Decimal half-unit beyond Int64 and browser Number precision. The response stays text.',
+  unsignedMeanGroups: 'Choose two source rows before grouping by stock, then filter/order the exact Decimal mean and take a result group. Source take and resultTake have different roles.',
   average: 'Native Average over the first two ordered names. Int64 input returns an exact Decimal fraction as text; the half-unit survives beyond binary64 precision.',
   max: 'Native Max uses the same typed selector and protected source. Choose a provider without changing query semantics; no client entity scan is used.',
   longCount: 'Native LongCount over the complete visible source: Alice 3, Bob 3, Visitor 1. Omitted take has no row-page cap. Int64 values are always decimal strings; keep them as text or BigInt.',
@@ -234,6 +240,23 @@ function preset() {
     body.selection = { metadataPath: ['extremum'], valueType: 'Int64' };
     delete body.take;
     if (name === 'average') { body.orderBy = 'Name'; body.take = 2; }
+  }
+  if (name === 'unsignedSum' || name === 'unsignedAverage') {
+    queryRoute += '/scalar';
+    body.operation = name === 'unsignedSum' ? 'Sum' : 'Average';
+    body.selection = { metadataPath: ['counter'], valueType: 'UInt64' };
+    body.orderBy = 'Name';
+    body.take = name === 'unsignedSum' ? 1 : 2;
+  }
+  if (name === 'unsignedMeanGroups') {
+    queryRoute += '/grouped';
+    body.orderBy = 'Name';
+    body.take = 2;
+    body.keys = [{ alias: 'stock', metadataPath: ['stock'], valueType: 'Int64' }];
+    body.columns = [{ alias: 'Mean', operation: 'Average', selection: { metadataPath: ['counter'], valueType: 'UInt64' } }];
+    body.resultFilters = [{ alias: 'Mean', operator: 'Equal', value: '18446744073709551612.5' }];
+    body.resultOrder = [{ alias: 'Mean', descending: true }];
+    body.resultTake = 1;
   }
   if (name === 'projection') {
     queryRoute += '/projection';
