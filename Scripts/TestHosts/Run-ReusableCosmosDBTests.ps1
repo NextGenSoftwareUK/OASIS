@@ -35,6 +35,7 @@ try {
     if($CollectionIdentities){$reportName='cosmos-collection-id-native-current.trx'}
     if($AllVersionExports){$reportName='cosmos-all-version-export-native-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $work $reportName)) {throw 'Preserve and hash-verify the existing Cosmos DB report before another run; refusing to overwrite verification evidence.'}
+    if(!@($diagnosticModes).Count -and (Get-ChildItem -LiteralPath $work -Filter 'partial-graph-*.cleanup.json')){throw 'Preserve the prior partial-graph cleanup digests before another full native run.'}
     if(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Cosmos SDK outage endpoint8082 occupied.'}
     $state=(& wsl.exe -d Ubuntu -u root -- podman inspect oasis-cosmos --format '{{.State.Status}} {{.Image}}') -join ''
     if($LASTEXITCODE -ne 0 -or $state.Trim() -notin @('created b4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56','exited b4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56')) {throw 'Expected preserved stopped Cosmos DB container/image; refusing replacement or interference.'}
@@ -75,7 +76,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($ReconcileScalarFixture -or $InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{66}
+    $expected=if($ReconcileScalarFixture -or $InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{68}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {

@@ -81,6 +81,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         continue;
                     }
                     var written=await SavePlannedHolonAsync(node);
+                    if(written==null || !written.IsError && (!written.IsSaved || written.Result==null))
+                        throw new CosmosMutationReconciliationException(node.Snapshot.Id.ToString(),
+                            new System.IO.InvalidDataException("Cosmos DB planned write returned no complete authoritative acknowledgement."));
                     if(written.IsError || written.Result==null) {
                         failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
@@ -100,6 +103,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=node.Snapshot.Id.ToString();
                     }
                 }
+                if(failures.Count==0)
+                    foreach(var node in plan.Nodes)HolonChildRolePersistence.PublishAcknowledgedSelection(node);
                 result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;
                 if(failures.Count>0) {
                     result.IsError=true;
