@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -15,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
-    private async Task<OASISResult<bool>> DeleteCurrentAvatarAsync(string key,bool soft)
+    private async Task<OASISResult<bool>> DeleteCurrentAvatarAsync(string key,bool soft,IAvatar expectedAvatar=null)
     {
         var result=new OASISResult<bool>(false);
         var acknowledged=new List<string>();Guid id=Guid.Empty;
@@ -30,6 +31,15 @@ public partial class AzureCosmosDBOASIS
             }
             var avatar=await avatarRepository.GetByIdAsync(id.ToString());
             if(avatar==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos avatar not found.";return result;}
+            // Reuse the existing pre-read before any paired mutation, but do not
+            // adopt a renamed/changed profile after an alias selected its intent.
+            if(expectedAvatar!=null)
+            {
+                if(!StoredRecordPayloadEquality.Equivalent(StoredRecordJson.CaptureInputToken<IAvatar>(expectedAvatar),
+                    StoredRecordJson.CaptureInputToken<IAvatar>(avatar)))
+                    throw new StorageLifecycleConflictException("Cosmos avatar changed after its lifecycle selector observation.");
+                avatar=expectedAvatar;
+            }
             var detail=await avatarDetailRepository.GetByIdAsync(id.ToString());
             if(soft)
             {
@@ -71,9 +81,9 @@ public partial class AzureCosmosDBOASIS
 
     private async Task<OASISResult<bool>> DeleteCurrentAvatarSelectorAsync(string selector,bool email,bool soft)
     {
-        var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0).ConfigureAwait(false);
+        var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0,includeInactive:true).ConfigureAwait(false);
         if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
-        return await DeleteCurrentAvatarAsync(loaded.Result.Id.ToString(),soft);
+        return await DeleteCurrentAvatarAsync(loaded.Result.Id.ToString(),soft,loaded.Result);
     }
 
     private async Task<OASISResult<IHolon>> DeleteCurrentHolonAsync(string key)

@@ -11,6 +11,42 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 
 public partial class AzureCosmosDBOASISIntegrationTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task NativeAvatarSelectorsRepeatAndPurgePairedTombstones(bool sync,bool email)
+    {
+        var id=Guid.NewGuid();var name="owned-profile-selector-"+id.ToString("N");var address=name+"@example.invalid";
+        var partition=new PartitionKey(id.ToString());
+        var path=$"C:/Source/OASIS/TestResults/CosmosDBCurrent/profile-selector-{sync}-{email}.pending.json";
+        var profiles=new CosmosDbClient(_client.GetContainer(DatabaseName,"avatarItems"));
+        var details=new CosmosDbClient(_client.GetContainer(DatabaseName,"avatarDetailItems"));
+        Assert.IsFalse(File.Exists(path));Assert.IsNull(await profiles.ReadDocumentAsync(id.ToString(),partition));
+        Assert.IsNull(await details.ReadDocumentAsync(id.ToString(),partition));
+        using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await stream.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{id,name,sync,email,state="before-owned-paired-selector-lifecycle"}));stream.Flush(true);}
+        _provider.IsVersionControlEnabled=true;
+        Assert.IsFalse((await _provider.SaveAvatarAsync(new Avatar{Id=id,Username=name,Email=address,IsActive=true})).IsError);
+        Assert.IsFalse((await _provider.SaveAvatarDetailAsync(new AvatarDetail{Id=id,Username=name,Email=address,IsActive=true,XP=321})).IsError);
+        IOASISStorageProvider storage=_provider;
+        Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> Delete(bool soft)=>email
+            ?(sync?Task.FromResult(storage.DeleteAvatarByEmail(address.ToUpperInvariant(),soft)):storage.DeleteAvatarByEmailAsync(address.ToUpperInvariant(),soft))
+            :(sync?Task.FromResult(storage.DeleteAvatarByUsername(name.ToUpperInvariant(),soft)):storage.DeleteAvatarByUsernameAsync(name.ToUpperInvariant(),soft));
+        var first=await Delete(true);Assert.IsFalse(first.IsError,first.Message+first.Exception);Assert.IsTrue(first.IsDeleted);
+        var profile=await profiles.ReadDocumentAsync(id.ToString(),partition);
+        var detail=await details.ReadDocumentAsync(id.ToString(),partition);
+        Assert.IsNotNull(profile);Assert.IsNotNull(detail);
+        Assert.AreEqual(2,JObject.Parse(profile)["Version"]!.Value<int>());
+        Assert.AreEqual(2,JObject.Parse(detail)["Version"]!.Value<int>());
+        Assert.IsTrue((await storage.LoadAvatarAsync(id)).IsError);Assert.IsTrue((await storage.LoadAvatarDetailAsync(id)).IsError);
+        var repeated=await Delete(true);Assert.IsFalse(repeated.IsError,repeated.Message+repeated.Exception);
+        Assert.IsFalse(repeated.IsSaved);Assert.IsTrue(repeated.IsDeleted);
+        Assert.AreEqual(profile,await profiles.ReadDocumentAsync(id.ToString(),partition));
+        Assert.AreEqual(detail,await details.ReadDocumentAsync(id.ToString(),partition));
+        var purged=await Delete(false);Assert.IsFalse(purged.IsError,purged.Message+purged.Exception);Assert.IsTrue(purged.IsDeleted);
+        Assert.IsNull(await profiles.ReadDocumentAsync(id.ToString(),partition));Assert.IsNull(await details.ReadDocumentAsync(id.ToString(),partition));
+        File.Delete(path);
+    }
+
     [DataTestMethod][DataRow(0)][DataRow(1)][DataRow(2)][DataRow(3)]
     public async Task NativeRepositoryDeleteOverloadsUseConditionalOwnerAndRejectStaleEntity(int kind)
     {
