@@ -356,3 +356,45 @@ those are next. Existing read-committed/snapshot admission remains unchanged.
 Evidence: `TestResults/CosmicCqlDemo/neo-composition-compiler-final.log`,
 `TestResults/Neo4jCurrent/neo4j-cql-native-current.trx` and
 `TestResults/Neo4jCurrent/composition-compiler-unit.trx`.
+
+## Neo4j composition execution owner — implementation in verification
+
+25 October2026: Neo4j now implements the generic composition provider contract.
+Actual capability/readmission precedes native I/O. The existing leased native
+read transport,30-second cumulative cancellation/deadline owner and read
+transaction execute the single captured-source statement. Joins and composition
+share one detached-source decoder and exact scalar/UTF-8 byte validation owner.
+
+The new decoder requires a unique leading count/work header, complete ordered
+source proofs, contiguous stage headers/positions, valid unique source identity
+references and unchanged native counts/work. Empty stages are explicit. All six
+remaining budgets are enforced before publication. Core independently verifies
+complete stage membership/order before constructing detached results; structurally
+valid but false native membership cannot bypass that barrier. Read committed
+remains the guarantee; graph-source composition is still rejected explicitly.
+
+The full unit gate passes519/519, zero skips (20 new decoder controls). The
+352-case native gate is in progress, with24 new provider/HolonManager cases.
+Further native privacy/relationship, empty-source zero-budget and outstanding-I/O
+interruption controls remain required. Public composition transport/demos remain
+open; this entry does not claim full CQL completion.
+
+
+Neo4j SDK composition checkpoint final: **352/352 native CQL tests** and
+**519/519 provider unit tests**, zero skips. Native duration9m19s. The24 new
+provider/HolonManager cases verify stage order/windows, stable repeated-key
+sorting, all six budgets/reuse, pre-cancellation,12 exact selected-domain
+filter/sort round trips and required-value errors outside Take0. Existing join
+regression passes after the shared detached-source decoder extraction. Twenty
+new unit controls reject malformed/incomplete proofs and false membership.
+Evidence: `TestResults/CosmicCqlDemo/neo-composition-owner-native.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx`,
+`TestResults/CosmicCqlDemo/neo-composition-owner-unit-final.log` and
+`TestResults/Neo4jCurrent/composition-owner-unit.trx`.
+
+All three providers now execute generic SDK composition through HolonManager.
+Neo4j uses one captured-source statement under read committed; it does not grant
+a repeatable snapshot. Further Neo4j composition privacy/relationship, empty-source
+zero-budget and outstanding-I/O interruption controls remain required. Public HTTP
+composition and annotated live composition demos are next after certification;
+full CQL/ORM roadmap completion remains unproven.

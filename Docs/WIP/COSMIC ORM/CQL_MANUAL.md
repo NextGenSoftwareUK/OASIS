@@ -1535,9 +1535,9 @@ SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composit
 and executable composition demos remain required.** Existing joined demos are
 separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
 
-## SQLite and MongoDB SDK: filter and page after Select
+## SQLite, MongoDB and Neo4j SDK: filter and page after Select
 
-The selected-result pipeline runs natively on SQLite and MongoDB. The20-row source window
+The selected-result pipeline runs natively on SQLite, MongoDB and Neo4j. The20-row source window
 is applied before the selected stock filter. Every selected source row must have
 valid Int64 `stock` metadata, including rows removed by a later filter/page.
 
@@ -1592,8 +1592,10 @@ foreach (var row in result.Result.Providers.Single().Rows)
 
 Use HyperDrive V2. For MongoDB, change the named scope to
 `ProviderType.MongoDBOASIS` and cast the activated MongoDB provider instead of
-`sqliteProvider`; the planner and manager calls are identical. Neo4j and public
-HTTP composition are not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
+`sqliteProvider`; the planner and manager calls are identical. For Neo4j, use
+`ProviderType.Neo4jOASIS` and the activated Neo4j provider. Neo4j captures source
+values once in a native statement under read committed; SQLite/MongoDB use their
+verified snapshot owners. Public HTTP composition is not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
 and output are independent rejection limits; they never silently truncate data.
 [Contract and verification status](CQL_COMPOSITION_CONTRACT.md).
 
@@ -1632,3 +1634,24 @@ privacy/relationship and outstanding-I/O/deadline controls remain required;
 Neo4j composition and public HTTP/composition demos remain open.
 
 25 October MongoDB composition privacy/interruption certification passes **359/359 native**, zero skips (31 composition controls). Unit checkpoint remains519/519; production unchanged. See [final native evidence and remaining scope](CQL_COMPOSITION_CONTRACT.md). Neo4j composition and public composition transport/demos remain open.
+
+## Neo4j SDK composition acceptance — 25 October2026
+
+Neo4j SDK composition checkpoint final: **352/352 native CQL tests** and
+**519/519 provider unit tests**, zero skips. Native duration9m19s. The24 new
+provider/HolonManager cases verify stage order/windows, stable repeated-key
+sorting, all six budgets/reuse, pre-cancellation,12 exact selected-domain
+filter/sort round trips and required-value errors outside Take0. Existing join
+regression passes after the shared detached-source decoder extraction. Twenty
+new unit controls reject malformed/incomplete proofs and false membership.
+Evidence: `TestResults/CosmicCqlDemo/neo-composition-owner-native.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx`,
+`TestResults/CosmicCqlDemo/neo-composition-owner-unit-final.log` and
+`TestResults/Neo4jCurrent/composition-owner-unit.trx`.
+
+All three providers now execute generic SDK composition through HolonManager.
+Neo4j uses one captured-source statement under read committed; it does not grant
+a repeatable snapshot. Further Neo4j composition privacy/relationship, empty-source
+zero-budget and outstanding-I/O interruption controls remain required. Public HTTP
+composition and annotated live composition demos are next after certification;
+full CQL/ORM roadmap completion remains unproven.
