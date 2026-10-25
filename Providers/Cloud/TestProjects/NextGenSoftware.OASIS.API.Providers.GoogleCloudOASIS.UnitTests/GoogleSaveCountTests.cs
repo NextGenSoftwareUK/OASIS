@@ -23,6 +23,8 @@ public sealed class GoogleSaveCountTests
                 if(mode=="unack")return new(){Result=write.Snapshot,IsSaved=false};
             }
             write.Snapshot.Version=1;write.Snapshot.VersionId=Guid.NewGuid();
+            // Match the real Firestore writer's acknowledged role document.
+            write.Snapshot.ChildRoleManifestJson=HolonChildRolePersistence.Resolve(write,HolonChildRoleWriteKind.SourceSave,false,null);
             if(Calls==1){_first=write.Snapshot.Id;first();}
             return new(){Result=write.Snapshot,IsSaved=true,SavedCount=73};
         }
@@ -35,7 +37,7 @@ public sealed class GoogleSaveCountTests
         var rows=Enumerable.Range(0,3).Select(_=>new Holon{Id=Guid.NewGuid()}).ToArray();
         var provider=new Controlled(mode,()=>{if(mode=="caller")rows[0].Name="owned caller edit";});
         var result=synchronous?provider.SaveHolons(rows,continueOnError:mode is "unknown" or "postack"):await provider.SaveHolonsAsync(rows,continueOnError:mode is "unknown" or "postack");
-        Assert.AreEqual(mode!="success",result.IsError);Assert.AreEqual(mode=="success",result.IsSaved);
+        Assert.AreEqual(mode!="success",result.IsError,result.Exception?.ToString());Assert.AreEqual(mode=="success",result.IsSaved);
         Assert.AreEqual(mode=="success"?3:mode=="postack"?2:1,result.SavedCount);
         Assert.AreEqual(mode=="success"?3:mode=="caller"?1:2,provider.Calls);
         if(mode=="unack")Assert.AreEqual(0,rows[1].Version,"An unacknowledged payload is not a successful save.");
@@ -48,7 +50,7 @@ public sealed class GoogleSaveCountTests
     {
         var provider=new Controlled(mode,()=>{});var rows=Enumerable.Range(0,3).Select(_=>new Holon{Id=Guid.NewGuid()}).ToArray();
         var result=synchronous?provider.Import(rows):await provider.ImportAsync(rows);
-        Assert.AreEqual(mode=="success",result.Result);Assert.AreEqual(mode=="success",result.IsSaved);Assert.AreEqual(mode=="success"?3:mode=="postack"?2:1,result.SavedCount);
+        Assert.AreEqual(mode=="success",result.Result,result.Exception?.ToString());Assert.AreEqual(mode=="success",result.IsSaved);Assert.AreEqual(mode=="success"?3:mode=="postack"?2:1,result.SavedCount);
         if(mode!="success")Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));
     }
     [DataTestMethod][DataRow(false)][DataRow(true)]
