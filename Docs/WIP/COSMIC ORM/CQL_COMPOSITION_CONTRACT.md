@@ -1,7 +1,7 @@
 # CQL selected-result composition contract
 
-25 October 2026. Immutable capture is implemented; native subquery execution is
-not yet enrolled. This preserves the original full roadmap scope.
+25 October 2026. Immutable capture, independent admission and complete proof
+validation are implemented; native execution is not yet enrolled. This preserves the original full roadmap scope.
 
 ## Operation ownership
 
@@ -68,3 +68,49 @@ certify native execution of the new composed stages. Evidence:
 `TestResults/CosmicCqlDemo/projection-composition-demo-regression.log` and
 `TestResults/CoreCurrent/projection-composition-current.trx`. Owned fixtures are
 removed and test services stopped normally.
+
+## Composition admission and complete proof — 25 October 2026
+
+Core adds separate `CosmicProjectionCompositionCapabilities` and target/plan/
+actual-readmission owners. Source permissions, projection columns, selected
+filter operators/domains, ordering domains and paging stages are independently
+required. Every selected provider preflights; actual provider identity and its
+current capabilities must match again before native execution. Capabilities and
+eligible-target snapshots are frozen. Ordinary projection permissions still
+cannot authorize composed execution.
+
+Complete composition packets carry all participating input cells/access/source
+ordering, native identity membership for every result stage, final native rows
+and explicit source/cumulative-stage counts. Core validates all input before a
+later filter/page can hide malformed or private data. It checks every stage's
+native membership/order, stable ties from the previous stage, exact final
+source payloads and count agreement before constructing any DTO. The verifier
+uses shared scalar predicate semantics; it rejects a wrong native result and
+never publishes reference-computed replacement rows. Joined payload validation
+shares exact cell identity, including signed zero and Decimal representation.
+
+Input rows/bytes, cumulative stage-row participation, stage proof bytes and
+published rows/bytes have independent limits. Cancellation is checked through
+cell validation, stage evaluation, stable ordering and publication. The generic
+multi-provider executor must retain all-buffer validation before construction.
+
+Both Core frameworks build; full Core/linked WEB4 passes **2,841/2,841**, zero
+skips:21 admission and21 proof controls beyond2,799. Tests cover independent
+stage/operator/type permission, actual downgrade/foreign identity, source/column
+permissions, snapshot isolation from caller mutation, full off-page validation,
+filter/window order, stable sort ties, changed identities/payload, private data,
+nullable/runtime outputs, signed zero/Decimal bits, independent budgets and
+cancellation without DTO construction.
+
+**Still open:** generic physical-attempt execution/remaining global budgets,
+native SQLite/MongoDB/Neo4j subqueries and proof decoding, HTTP composition and
+annotated demos. No native provider advertises this new execution shape yet.
+Existing ordinary queries and join demos remain supported.
+
+Final unchanged-operator regression on the new Core producer passes **93 SDK /
+93 HTTP**, **288 settled /283 physical attempts**, dedicated joint1/1 zero
+skips. This exercises existing grouped filters and join payloads through their
+new shared admission/verification helpers. It does not claim native composed
+subqueries execute. Evidence: `TestResults/CosmicCqlDemo/composition-proof-final.log`,
+`TestResults/CoreCurrent/composition-proof-current.trx` and
+`TestResults/CosmicCqlDemo/composition-proof-demo-regression.log`.
