@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
@@ -18,9 +19,10 @@ public partial class Neo4jOASIS
 
     // Row and scalar shapes share the same native ownership/access/membership
     // source. Result shaping must not copy or weaken those predicates.
-    private static NeoCqlSource CompileCqlSource<T>(CosmicQuery<T> query) where T : IHolon
+    private static NeoCqlSource CompileCqlSource<T>(CosmicQuery<T> query, Dictionary<string,object> sharedParameters=null) where T : IHolon
     {
-        var translator = new NeoCqlTranslator(query.ReadAccess);
+        var translator = sharedParameters==null ? new NeoCqlTranslator(query.ReadAccess)
+            : new NeoCqlTranslator("h","p",sharedParameters,query.ReadAccess);
         var predicates = query.Predicates.Select(node => (Node: node, Sql: translator.Translate(node))).ToArray();
         var parentPredicate = predicates.Any(item => item.Node is not CosmicQueryAnyDescendant)
             ? string.Join(" AND ", predicates.Where(item => item.Node is not CosmicQueryAnyDescendant).Select(item => item.Sql)) : "true";
@@ -30,7 +32,7 @@ public partial class Neo4jOASIS
             + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
             + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
             + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid ";
-        translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
+        if(!translator.Parameters.ContainsKey("schema"))translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
         return new NeoCqlSource
         {
             Translator = translator, Source = source, DescendantPredicate = descendantPredicate,

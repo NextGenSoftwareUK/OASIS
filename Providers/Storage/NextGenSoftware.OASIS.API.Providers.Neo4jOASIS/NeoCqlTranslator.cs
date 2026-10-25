@@ -14,7 +14,7 @@ internal sealed partial class NeoCqlTranslator
     private readonly string _projection;
     private readonly CosmicQueryReadAccess _access;
     internal NeoCqlTranslator(CosmicQueryReadAccess access=null):this("h","p",new Dictionary<string,object>(StringComparer.Ordinal),access){}
-    private NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access)
+    internal NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access)
     {_node=node;_projection=projection;Parameters=parameters;_access=access;}
     internal string Bind(object value)
     {
