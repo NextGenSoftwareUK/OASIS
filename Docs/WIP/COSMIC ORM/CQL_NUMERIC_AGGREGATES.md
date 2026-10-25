@@ -1,5 +1,56 @@
 # CQL integer Sum/Average contract
 
+## SQLite unsigned numeric implementation — 25 October 2026
+
+SQLite now explicitly enrolls UInt64/nullable Sum and Average for native scalar
+and grouped queries. Full Core3,008 / SQLite native1,679 / SQLite unit72 pass without failures/skips. This section supersedes the
+earlier foundation-only status for SQLite. MongoDB/Neo4j numeric enrollment and
+unsigned numeric HTTP/demo acceptance remain pending.
+
+The existing canonical 20-digit UInt64 value is split into two bounded decimal
+chunks, then converted to base-2^32 limbs using INTEGER-only SQL arithmetic.
+Scalar reduction, grouped reduction and grouped comparisons share this owner;
+values above Int64.MaxValue never pass through SQLite REAL. Grouped average sort
+keys explicitly identify unsigned input modes. Shared grouped result validation
+uses the declared unsigned domain (0..UInt64.MaxValue), preserving Decimal means.
+Sum overflow remains an error even when the result page would hide the group.
+
+SDK capture examples (execute the resulting plan through the existing scalar or
+grouped HolonManager owner with the actual SQLite adapter capabilities):
+
+```csharp
+// Declare UInt64 explicitly; read permission alone does not grant aggregation.
+var source = CosmicQuery<Holon>.Create();
+
+var total = source.Sum(
+    holon => CosmicQueryMetadata.Value<ulong>(holon, "counter"));
+
+// Nullable input ignores missing values. An entirely missing set yields null.
+var mean = source.Average(
+    holon => CosmicQueryMetadata.Value<ulong?>(holon, "counter"));
+
+var grouped = source
+    .GroupBy(holon => holon.Name)
+    .Select(group => new
+    {
+        Total = group.Sum(
+            holon => CosmicQueryMetadata.Value<ulong>(holon, "counter")),
+
+        Mean = group.Average(
+            holon => CosmicQueryMetadata.Value<ulong>(holon, "counter"))
+    });
+```
+
+`Total` retains UInt64; `Mean` is Decimal. Arithmetic never wraps on overflow.
+Use the manual's authenticated source/access binding for application queries;
+these examples illustrate numeric capture, not a visibility-policy bypass.
+
+New native cases cover boundary values, exact means, overflow, null/empty inputs,
+source windows, invalid input domains, grouped filters/order/pages and comparison
+against an unsigned group key. Full regression results are recorded in the
+implementation status and cleanup ledger after terminal verification.
+
+
 Current status, 25 October 2026: exact Int32/Int64 and nullable Sum/Average
 are implemented on SQLite, MongoDB and Neo4j, including grouped reduction,
 selected grouped filters/order/pages, signed HTTP transport and annotated demos.

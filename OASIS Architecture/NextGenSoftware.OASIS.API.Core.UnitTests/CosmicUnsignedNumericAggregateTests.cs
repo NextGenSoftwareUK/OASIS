@@ -7,6 +7,16 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed class CosmicUnsignedNumericAggregateTests
 {
+    [Theory]
+    [InlineData(typeof(ulong))]
+    [InlineData(typeof(ulong?))]
+    public void GroupedUnsignedSumResultCanDeclareExplicitOrderingPermission(Type type)
+    {
+        var permission = new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type);
+        Assert.Equal(type, permission.ValueType);
+        Assert.Equal(CosmicScalarOperation.Sum, permission.Operation);
+    }
+
     [Fact]
     public void UnsignedSumCapturePreservesSourceAndNullableDomain()
     {

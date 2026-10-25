@@ -51,6 +51,25 @@ public partial class HolonRepository
             return string.Join(", ", sql);
         }
 
+        private static (string High, string Low) IntegralParts(Type declared, string value)
+        {
+            var type = Nullable.GetUnderlyingType(declared) ?? declared;
+            if (type == typeof(ulong))
+            {
+                // UInt64 is a canonical 20-digit key. Its two decimal chunks
+                // each fit Int64. This intermediate stays below 2^62, so every
+                // operation remains SQLite INTEGER, including above Int64.MaxValue.
+                var upper = "CAST(substr(" + value + ",1,10) AS INTEGER)";
+                var lower = "CAST(substr(" + value + ",11,10) AS INTEGER)";
+                var remainder = "(" + upper + "*1410065408+" + lower + ")";
+                return ("(" + upper + "*2+" + remainder + "/4294967296)", "(" + remainder + "%4294967296)");
+            }
+            if (!type.IsEnum && type != typeof(byte) && type != typeof(sbyte) && type != typeof(short)
+                && type != typeof(ushort) && type != typeof(int) && type != typeof(uint) && type != typeof(long))
+                throw new NotSupportedException("Native integral parts require an exact integer domain.");
+            return ("(" + value + "/4294967296)", "(" + value + "%4294967296)");
+        }
+
         internal string TranslateNumericAggregate(CosmicQueryPath path, string predicate, string ordering)
         {
             var operand = ProjectionOperand(path, "cqlnumeric", comparable: true);
@@ -58,6 +77,7 @@ public partial class HolonRepository
             var invalid = optional ? "s=3" : "s<>2";
             var maximum = CosmicNumericScalarResults.MaximumParticipatingValues;
             var sentinel = ((long)maximum + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var parts = IntegralParts(path.ValueType, "v");
             // The extra input is a work-limit sentinel, never a truncated success.
             // Even max+1 rows keep both signed limb sums within Int64. Validate
             // all mandatory traversal scopes separately before the source page.
@@ -66,8 +86,8 @@ public partial class HolonRepository
                 + " bounded AS (SELECT s,v FROM selected LIMIT " + sentinel + "),"
                 + " aggregated AS (SELECT count(*) AS inputs,COALESCE(sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END),0) AS invalid,"
                 + "COALESCE(sum(CASE WHEN s=2 THEN 1 ELSE 0 END),0) AS present,"
-                + "COALESCE(sum(CASE WHEN s=2 THEN v / 4294967296 ELSE 0 END),0) AS high,"
-                + "COALESCE(sum(CASE WHEN s=2 THEN v % 4294967296 ELSE 0 END),0) AS low FROM bounded) "
+                + "COALESCE(sum(CASE WHEN s=2 THEN " + parts.High + " ELSE 0 END),0) AS high,"
+                + "COALESCE(sum(CASE WHEN s=2 THEN " + parts.Low + " ELSE 0 END),0) AS low FROM bounded) "
                 + "SELECT invalid,present,high,low,CASE WHEN inputs>"
                 + maximum.ToString(System.Globalization.CultureInfo.InvariantCulture) + " THEN 1 ELSE 0 END AS overWork FROM aggregated";
         }

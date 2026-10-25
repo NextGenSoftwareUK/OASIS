@@ -25,8 +25,11 @@ public partial class HolonRepository
                 "(CASE WHEN " + remainder + "<0 THEN " + remainder + "+4294967296 ELSE " + remainder + " END)");
         }
         private static (string High, string Low) GroupedParts(GroupFilterCell cell)
-            => cell.IsSum ? GroupedIntegralParts(cell.High, cell.Low)
-                : GroupedIntegralParts("(" + cell.Value + "/4294967296)", "(" + cell.Value + "%4294967296)");
+        {
+            if (cell.IsSum) return GroupedIntegralParts(cell.High, cell.Low);
+            var parts = IntegralParts(cell.Type, cell.Value);
+            return GroupedIntegralParts(parts.High, parts.Low);
+        }
         private static string GroupCollation(Type declared)
         {
             var type = Nullable.GetUnderlyingType(declared) ?? declared;
@@ -62,7 +65,9 @@ public partial class HolonRepository
         private static string GroupNumericKey(CosmicGroupedColumn column, int index)
         {
             var input = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
-            var mode = (input == typeof(long) ? 2 : 0) + (Nullable.GetUnderlyingType(column.Selector.ValueType) != null ? 1 : 0);
+            var mode = (input == typeof(int) ? 0 : input == typeof(long) ? 2 : input == typeof(ulong) ? 4
+                : throw new NotSupportedException("Grouped average requires a declared integer input domain."))
+                + (Nullable.GetUnderlyingType(column.Selector.ValueType) != null ? 1 : 0);
             return SqliteCqlNumericKeys.PartsFunction + "(a" + index + "h,a" + index + "l,a" + index + "n," + mode + ")";
         }
         private static string ComparisonSymbol(CosmicQueryComparisonOperator operation) => operation switch

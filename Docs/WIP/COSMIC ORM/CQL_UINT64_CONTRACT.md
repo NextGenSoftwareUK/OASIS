@@ -1,5 +1,26 @@
 # CQL UInt64 metadata
 
+## SQLite unsigned numeric implementation — 25 October 2026
+
+SQLite now explicitly enrolls UInt64/nullable Sum and Average for native scalar
+and grouped queries. Full Core3,008 / SQLite native1,679 / SQLite unit72 pass without failures/skips. This section supersedes the
+earlier foundation-only status for SQLite. MongoDB/Neo4j numeric enrollment and
+unsigned numeric HTTP/demo acceptance remain pending.
+
+The existing canonical 20-digit UInt64 value is split into two bounded decimal
+chunks, then converted to base-2^32 limbs using INTEGER-only SQL arithmetic.
+Scalar reduction, grouped reduction and grouped comparisons share this owner;
+values above Int64.MaxValue never pass through SQLite REAL. Grouped average sort
+keys explicitly identify unsigned input modes. Shared grouped result validation
+uses the declared unsigned domain (0..UInt64.MaxValue), preserving Decimal means.
+Sum overflow remains an error even when the result page would hide the group.
+
+New native cases cover boundary values, exact means, overflow, null/empty inputs,
+source windows, invalid input domains, grouped filters/order/pages and comparison
+against an unsigned group key. Full regression results are recorded in the
+implementation status and cleanup ledger after terminal verification.
+
+
 24 October2026. UInt64 native support is verified on SQLite (1,435 integration),
 MongoDB (205 CQL/478 units) and Neo4j (205 CQL/453 units). The additive HTTP wire
 passes2,474 Core controls, including20 unsigned cases. UInt64 live HTTP/demo

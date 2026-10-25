@@ -1,5 +1,18 @@
 # COSMIC ORM implementation status
 
+## Active SQLite UInt64 certification — 25 October 2026
+
+SQLite now enrolls exact native UInt64/nullable Sum/Average, including grouped
+filters/order/pages. Shared grouped result permission and Average validation own
+the complete unsigned domain. Full regression: **Core3,008 / SQLite native1,679 /
+SQLite unit72**, all zero failures/skips. Core dual-framework builds pass. Native
+suite includes18 new boundary/overflow/null/window/invalid/grouped cases.
+Evidence: `TestResults/CosmicCqlDemo/sqlite-unsigned-group-domain-final.log` and
+`unsigned-group-domain-final-{1,3,4}.trx` in CoreCurrent/SQLiteCurrent. Owned fixed
+SQLite database/WAL/SHM are absent after terminal teardown. MongoDB/Neo4j unsigned
+arithmetic and numeric HTTP/demo enrollment remain pending. This checkpoint is
+for the task branch; no Development integration is claimed.
+
 Current: **25 October 2026**. CQL supports native rows, typed projections,
 relationships/child graphs, enrolled scalar/grouped aggregates, flat same-provider
 joins and selected-result composition on MongoDB, SQLite and Neo4j. Generic
