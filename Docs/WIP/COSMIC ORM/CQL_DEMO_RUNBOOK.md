@@ -1,5 +1,26 @@
 # CQL demos: native v1 and typed coffee ORM
 
+## Decimal live demo acceptance - 25 October 2026
+
+The walkthrough now has **40 examples per provider**. **120 SDK /120 signed HTTP**
+queries pass on MongoDB, SQLite and Neo4j, with **327 settled operations /319
+provider attempts**. The joint native gate passes1/1 without skips (1m8s).
+Source snapshots are unchanged and all six producer/consumer identities match.
+All12offline browser preset checks pass. Owned services stopped normally; the
+owned SQLite database/sidecars and readiness manifest are absent.
+
+Examples38-40 demonstrate exact Decimal Sum, a final ties-to-even Average and
+grouped filters/order/pages. Browser presets are `decimalSum`, `decimalAverage`
+and `decimalNumericGroups`; Swagger includes `DecimalSum`, `DecimalAverage` and
+`DecimalTotalsAndMeans`. Exact thresholds and results remain strings for clients.
+
+Evidence: TestResults/CosmicCqlDemo/decimal-numeric-demo.log, v1-demo-result.json,
+v1-walkthrough.txt, v1-source-identities.json, v1-binary-identities.json and
+v1-decimal-ui-check.json; native TRX: TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx.
+Standalone demo build also passes. Full CQL/ORM remains
+open; this checkpoint does not close policy, federation or other numeric domains.
+
+
 ## UInt64 live demo acceptance - 25 October 2026
 
 The walkthrough now has **37 examples per provider**: **111 SDK /111 signed HTTP**
