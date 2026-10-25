@@ -148,4 +148,71 @@ public partial class Neo4jNativeCqlTests
             Assert.IsTrue(result.IsError); Assert.AreEqual("CQL_DATA_INVALID", result.ErrorCode); Assert.IsNull(result.Result);
         }, width: 0, configure: root => { if (malformed) root.MetaData["required"] = "wrong-domain"; });
 
+    [DataTestMethod]
+    [DataRow(false, false)] [DataRow(false, true)]
+    [DataRow(true, false)] [DataRow(true, true)]
+    public Task NativeCompositionRelationshipsProtectPrivateMatchesAndSourcePaging(bool descendants, bool publicMatch)
+    {
+        var actor = Guid.NewGuid(); var other = Guid.NewGuid();
+        return WithNativeGraph(async fixture =>
+        {
+            var id = fixture.Root.Id; var label = publicMatch ? "public" : "secret";
+            var source = CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(h => h.Id == id).Result;
+            var related = descendants
+                ? source.WhereAnyDescendant(child => child.Name == label, CosmicQueryTraversalOptions.Create(2, 10).Result)
+                : source.WhereAnyChild(child => child.Name == label);
+            var query = related.Select(h => h.Name).Take(1).Result;
+            var result = await GraphManager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                CompositionPlan(query), new[] { fixture.Provider });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            Assert.AreEqual(publicMatch ? 1 : 0, result.Result.Providers.Single().Rows.Count);
+
+            var visible = CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+                .Where(h => h.ParentHolonId == id).OrderByDescending(h => h.Name).Take(1).Select(h => h.Id).Take(1).Result;
+            var childRead = await GraphManager(fixture.Provider).ExecuteProjectionCompositionQueryAsync(
+                CompositionPlan(visible), new[] { fixture.Provider });
+            Assert.IsFalse(childRead.IsError, childRead.Message + childRead.Exception);
+            Assert.AreEqual(fixture.Root.Children.Last().Id, childRead.Result.Providers.Single().Rows.Single());
+        }, configure: root =>
+        {
+            root.CreatedByAvatarId = actor;
+            foreach (var child in root.Children)
+            { child.CreatedByAvatarId = other; child.IsPublic = false; child.Name = "secret"; }
+            root.Children.Last().Name = "public"; root.Children.Last().IsPublic = true;
+            var grandchild = root.Children.First().Children.Single();
+            grandchild.CreatedByAvatarId = other; grandchild.IsPublic = false; grandchild.Name = "secret";
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeCompositionZeroBudgetsRequireProvenEmptyParticipation(bool absent)
+        => WithNativeGraph(async fixture =>
+        {
+            var id = absent ? Guid.NewGuid() : fixture.Root.Id;
+            var query = CosmicQuery<Holon>.Create().Where(h => h.Id == id).Select(h => h.Name).Take(0).Result;
+            var result = await fixture.Provider.ExecuteCosmicProjectionCompositionAsync(CompositionPlan(query),
+                new CosmicProjectionCompositionExecutionLimits(0, 0, 0, 0, 0, 0));
+            if (!absent)
+            {
+                Assert.IsTrue(result.IsError); Assert.AreEqual("CQL_QUERY_LIMIT", result.ErrorCode); Assert.IsNull(result.Result);
+                return;
+            }
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            Assert.AreEqual(0, result.Result.Input.Count); Assert.AreEqual(0, result.Result.Rows.Count);
+            Assert.AreEqual(0L, result.Result.StageRows);
+            var detached = CosmicProjectionCompositionResults.Materialize(query, result.Result);
+            Assert.IsFalse(detached.IsError, detached.Message); Assert.AreEqual(0, detached.Result.Count);
+        }, width: 0);
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeCompositionCancellationInterruptsPausedBoltResponse(bool warm)
+        => RunPausedReadAsync(false, warm, "composition", false);
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public Task NativeCompositionDeadlineInterruptsPausedBoltResponse(bool warm)
+        => RunPausedReadAsync(false, warm, "composition", true);
 }
