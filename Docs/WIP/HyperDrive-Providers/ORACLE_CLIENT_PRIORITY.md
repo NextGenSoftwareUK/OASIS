@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Scoped search privacy defect fixed and locally verified
+
+Oracle SQL scoped search previously filtered roots but returned foreign-owned public/private descendant branches. New eight-case sync/async/current/historical/children control reproduced **4 FAIL / 4 PASS** before production changes. The existing Core detached visibility projection is now reused by SQL and shared key-value search (including OCI), retaining original stored membership observations and scoped partial-read redaction rather than adding another policy. Final coherent results, zero skips: **453 SQL unit, 510 native SQL (36s), 133 signed OCI SDK (17s), 1,181 Shared controls (9s)**. Both Core target frameworks build and the peer's full **2,595 Core controls** pass with the same Core source. Four existing native scoped fixtures and two existing signed OCI SDK record fixtures now include search checks; stored native rows/encrypted objects remain unchanged, hidden branches are not hoisted, and filtered membership cannot be saved as a complete replacement. No cloud acceptance or Oracle100% claim follows from these controls.
+
+Original red evidence: `TestResults/OracleCurrent/oracle-search-visibility-red.trx`, 16,938 bytes, SHA256 `B4C45A62F7A71655E02B2C1918AAB051C3FC24F7560F0BB5A3D3BAED5E958D5A`. Green full unit evidence: `TestResults/OracleCurrent/oracle-search-visibility-green.trx`. Existing environments/output directories reused; no install, restore or duplicate database. Resource outcomes remain in ENVIRONMENT_INVENTORY.md.
+
+Final Core744/63D88559 and Shared56/CDE06E6E producer/consumer copies match across all three Oracle consumers. Provider15/native51/OCI-test10 source/PDB proof passes. Native fixture cleanup complete, no pending journals or11521/18661 listeners, retained database stopped143/OOMfalse. Hosted credentials are still absent in inspected process variables/default OCI profile; Autonomous/OCI IAM/wallet/TLS/durability/cost and remaining interface/options/full V2 gates remain open. Oracle stays first before AWS.
+
 ## Clean requested-stop/start persistence verified — 25 October UTC
 
 Fresh gate **2writer PASS2s +2recovery PASS2s +9pure recovery guards PASS21ms**, zero skips. This closes the next LOCAL clean-restart gate recorded below, not crash/power-loss or hosted durability.
