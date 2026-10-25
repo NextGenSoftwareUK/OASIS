@@ -1,5 +1,27 @@
 # COSMIC ORM implementation status
 
+## UInt64 live demo acceptance - 25 October 2026
+
+The walkthrough now has **37 examples per provider**: **111 SDK /111 signed HTTP**
+queries pass on MongoDB, SQLite and Neo4j, with318 settled operations/310 attempts.
+The joint native demo passes1/1 without skips. Source snapshots remain unchanged;
+six producer/consumer identities match under the build lease. Standalone demo
+builds and9 offline browser preset checks pass. Owned services stopped normally.
+
+Examples35-37 show exact UInt64 Sum, Decimal Average retaining the fraction
+18446744073709551612.5, and grouped mean filters/order/pages. Browser presets:
+`unsignedSum`, `unsignedAverage`, `unsignedMeanGroups`. Swagger adds named UInt64
+Sum/Average examples. These close the unsigned numeric live-demo gate, while
+other numeric input domains, sharing/tenant policy, graph-source composition and
+federation remain open.
+
+Evidence in TestResults/CosmicCqlDemo: unsigned-numeric-demo.log,
+v1-demo-result.json, v1-walkthrough.txt, v1-source-identities.json,
+v1-binary-identities.json, unsigned-numeric-demo-build.log and
+v1-decimal-ui-check.json. Native report:
+TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx.
+
+
 ## UInt64 HTTP compiler/wire checkpoint — 25 October 2026
 
 Full Core **3,017** tests pass0fail/0skip (9new HTTP controls), and the shipping
@@ -85,7 +107,7 @@ not included. See the [empty-window contract](CQL_SCALAR_HTTP_CONTRACT.md#empty-
 [full roadmap](CQL_COMPLETION_ROADMAP.md) and
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
-New numeric foundation (Core `e8f7c64`): UInt64/nullable Sum/Average Core capture,
+Historical numeric foundation checkpoint (Core `e8f7c64`): UInt64/nullable Sum/Average Core capture,
 exact packet normalization and explicit input-domain admission now pass dual
 framework builds and full **3,006 Core tests**. Provider unit gates pass
 **SQLite72 /Mongo539 /Neo520**; all actual native profiles still reject unsigned
@@ -102,13 +124,13 @@ its declared features, not completion of every future domain or policy.
 | Requirement | Current state | Remaining gate |
 |---|---|---|
 | Generic query ownership | Core/HolonManager contracts, planning, actual-adapter admission and V2 attempt/receipt owner implemented | Continue applying the same owner to remaining features |
-| Native rows and typed projections | Implemented on MongoDB, SQLite and Neo4j | Finish protected empty-window full regression; broader policy remains below |
+| Native rows and typed projections | Implemented on MongoDB, SQLite and Neo4j | Broader relationship/access/type certification remains below |
 | Relationships and child graphs | Native direct/descendant predicates, bounded expansion, partial-save ownership and provider consistency contracts implemented | Remaining relationship/access certification and authoritative sharing/tenant rules |
-| Scalar aggregates | Count/LongCount/Any, admitted Min/Max and exact Int32/Int64 Sum/Average implemented | Additional declared numeric input domains and remaining certification |
+| Scalar aggregates | Count/LongCount/Any, admitted Min/Max and exact Int32/Int64 Sum/Average implemented | Decimal/Double input domains and remaining certification |
 | Grouping | Typed/composite keys, multiple aggregates and selected filters/order/pages implemented | Expanded identity/type/access/consistency matrix |
 | Flat joins | Same-provider inner/left SDK and signed HTTP implemented | Expanded source/consistency/policy matrix and graph-source enrollment |
 | Selected-result composition | Bounded flat native SDK/HTTP stages implemented on all three providers | Graph-source enrollment and broader certification |
-| Hosted transport and demos | Signed bounded HTTP, browser/Swagger and 34 SDK/HTTP examples per provider verified | Update/recertify examples as remaining features are enrolled |
+| Hosted transport and demos | Signed bounded HTTP, browser/Swagger and 37 SDK/HTTP examples per provider verified | Update/recertify examples as remaining features are enrolled |
 | Read policy | Authenticated owner/public binding implemented | Authoritative recipient/tenant grants and revocation/version consistency |
 | Federation | [Contract specified](CQL_FEDERATION_CONTRACT.md); current provider results remain separate | Implement identity/conflict/provenance, global pages/cursors and distributed joins |
 | Final acceptance | Separate Core/provider/hosted evidence retained | Complete every open gate, coherent final regression, docs/resource reconciliation and scoped integration |

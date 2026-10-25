@@ -27,8 +27,8 @@ The existing authenticated scalar route accepts this description:
 Use the same signing/admission headers as the existing scalar examples. A Sum
 response uses `valueType: "UInt64"` and an invariant string value; an Average
 response uses `valueType: "Decimal"`. Grouped columns use the same selection and
-operation description. The compiler/wire unit gate and shipping API build pass;
-live unsigned numeric signed HTTP/demo acceptance is still pending. See the
+operation description. The compiler/wire unit gate, shipping API build and live signed demo pass:
+111SDK/111HTTP examples across all three stores, including numeric examples35-37. See the
 [numeric contract](CQL_NUMERIC_AGGREGATES.md) for boundaries and evidence.
 
 
