@@ -550,3 +550,12 @@ source snapshots unchanged and producer/native/Core-unit copies match.
 Fixed SQLite DB/WAL/SHM absent after teardown; no installs/restores needed.
 Core efad088 is published with paired parent gitlink/manifest.
 Mongo/Neo Single, Single HTTP/demos and all unchecked broader gates remain open.
+
+## Mongo Single binary64 component — 24 October 2026
+
+The native power-of-two/ties-even component now passes12,313vectors against CLR
+binary32 conversion inside full255Mongo native CQL/493units,0skip.
+Source snapshots unchanged; Core/Shared/Mongo producer copies match both native
+and unit consumers. This does not enable Single queries: exactInt64/Decimal128
+source normalization and complete native query acceptance remain required.
+Neo Single, Single HTTP/demos and all broader unchecked gates remain open.
