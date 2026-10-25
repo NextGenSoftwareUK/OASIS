@@ -61,6 +61,19 @@ public static partial class CqlV1Compiler
         if (value == 0d) value = 0d;
         return value.ToString("R", CultureInfo.InvariantCulture) == text;
     }
+    // Canonical binary32 strings prevent silent rounding of over-precise input.
+    private static bool TrySingle(JsonElement json, out float value)
+    {
+        value = 0f;
+        if (json.ValueKind != JsonValueKind.String) return false;
+        var text = json.GetString();
+        if (text.Length is < 1 or > 24 || !float.TryParse(text,
+            NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent,
+            CultureInfo.InvariantCulture, out value) || float.IsNaN(value) || float.IsInfinity(value))
+            return false;
+        if (value == 0f) value = 0f;
+        return value.ToString("R", CultureInfo.InvariantCulture) == text;
+    }
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
 
     public static ProviderType? RequestedProvider(string name)
@@ -235,7 +248,7 @@ public static partial class CqlV1Compiler
             var type = filter.Scalar switch
             {
                 CqlV1Scalar.String => typeof(string), CqlV1Scalar.Integer => typeof(long),
-                CqlV1Scalar.UInt64 => typeof(ulong), CqlV1Scalar.Decimal => typeof(decimal), CqlV1Scalar.Double => typeof(double),
+                CqlV1Scalar.UInt64 => typeof(ulong), CqlV1Scalar.Decimal => typeof(decimal), CqlV1Scalar.Double => typeof(double), CqlV1Scalar.Single => typeof(float),
                 CqlV1Scalar.Boolean => typeof(bool), CqlV1Scalar.DateTime => typeof(DateTime), _ => typeof(Guid)
             };
             path = Expression.Call(typeof(CosmicQueryMetadata), "Value", new[] { type }, parameter, segments);
@@ -262,6 +275,7 @@ public static partial class CqlV1Compiler
         else if (path.Type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
         else if (path.Type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
         else if (path.Type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
+        else if (path.Type == typeof(float) && TrySingle(json, out var finiteSingle)) value = finiteSingle;
         else if (path.Type == typeof(double) && TryDouble(json, out var finiteDouble)) value = finiteDouble;
         else if (path.Type == typeof(decimal) && TryDecimal(json, out var exactDecimal)) value = exactDecimal;
         else if (path.Type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;

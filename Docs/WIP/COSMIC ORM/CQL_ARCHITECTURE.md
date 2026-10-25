@@ -606,3 +606,11 @@ before widening the chosen finite value. Predicate/order/projection/grouped
 owners use that declared-domain operand. Detached decoding requires an exact
 widened Single packet, avoiding result-side rounding. Final249native/459unit
 cohort certifies the integration; Single transport remains separately pending.
+
+Single uses the additive HTTP type ID 8; Double remains 7. Canonical finite
+binary32 strings enter the generic typed compiler, while native providers own
+stored-domain normalization. Selected and grouped aliases retain Single or
+nullable Single types for result filters and ordering. Central wire formatting
+returns canonical strings and rejects nonfinite packets. The 2,595 compiler and
+endpoint tests, plus 87 SDK and 87 signed HTTP examples, verify this flow across
+all three providers.

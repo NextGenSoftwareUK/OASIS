@@ -1038,5 +1038,31 @@ this compiler support does not grant uncertified providers a Single capability.
 Single and nullable Single metadata queries are now certified through Mongo,
 SQLite and Neo4j SDKs. Use `Value<float>` / `Value<float?>` for the declared
 domain; normalization follows binary32 rounding before predicates and grouping.
-Finite nonzero underflow and overflow are invalid data, not null. Single HTTP
-transport/examples are still pending.
+Finite nonzero underflow and overflow are invalid data, not null. Single HTTP transport/examples are verified on all three providers.
+
+### Single HTTP values
+
+The additive `Single` scalar and selected value type preserve the declared
+binary32 domain. Request literals and selected output use canonical strings:
+
+```json
+{
+  "metadataPath": ["singleReading"],
+  "scalar": "Single",
+  "operator": "GreaterThanOrEqual",
+  "value": "1.0000002"
+}
+```
+
+Select a metadata column with `"valueType": "Single"`; set `"nullable": true`
+for nullable Single. Grouped keys use the same selected-column declaration.
+Selected group aliases inherit that type for result filters and ordering.
+Use `"0"` for zero. Numbers must use their invariant finite Single round-trip
+spelling; excess precision and nonfinite or noncanonical values are rejected.
+Compiler/endpoint tests and fresh live Single demos pass across all three providers.
+
+Examples 28–29 in [V1NativeQueries.cs](../../../Examples/CosmicCqlDemo/V1NativeQueries.cs)
+and [V1Walkthrough.cs](../../../Examples/CosmicCqlDemo/V1Walkthrough.cs) show complete
+Single SDK/HTTP flows with planning, result validation and settlement. All 87 SDK
+and 87 HTTP examples pass. The browser Single presets and Swagger FiniteSingle
+examples use the same binary32 contract. Single Sum/Average are not enrolled.

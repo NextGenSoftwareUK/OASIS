@@ -87,6 +87,8 @@ public static class V1DemoPresentation
         <option value="decimalGroups">Decimal / grouped prices</option>
         <option value="doubleSource">Double / exact reading range</option>
         <option value="doubleGroups">Double / grouped readings</option>
+        <option value="singleSource">Single / binary32 reading range</option>
+        <option value="singleGroups">Single / grouped binary32 readings</option>
         <option value="unsignedSource">UInt64 / exact source range</option>
         <option value="unsignedGroups">UInt64 / grouped keys</option>
         <option value="utcSource">UTC dates / source range</option>
@@ -145,6 +147,8 @@ const notes = {
   decimalGroups: 'Group exact Decimal prices, then filter/order selected Price aliases before paging. No floating-point conversion is used.',
   doubleSource: 'Exact Double readings differ by one binary64 unit. Both request bounds and selected readings are strings; source rows are ordered by Name.',
   doubleGroups: 'Group exact Double readings, then filter/order selected Reading aliases before paging. Values retain their declared binary64 meaning.',
+  singleSource: 'Declare Single for binary32 readings. Canonical strings retain their Single precision through filtering and selected output.',
+  singleGroups: 'Group binary32 readings and filter/order the selected alias before paging. Use Single when that is the stored domain.',
   unsignedSource: 'UInt64 inputs and outputs stay digit strings. These counters exceed Int64 and JavaScript integer precision; the source projection orders by Name.',
   unsignedGroups: 'Filter exact UInt64 aliases after grouping, then order/page them natively. No Number() conversion or floating-point key is used.',
   utcSource: 'Declare DateTime source predicates with uppercase Z and0..7 fractional digits. These adjacent100ns values retain UTC kind and exact date text; offset/local/over-precision inputs are rejected.',
@@ -301,6 +305,31 @@ function preset() {
     body.resultFilters = [
       { alias: 'Reading', operator: 'GreaterThanOrEqual', value: '1.0000000000000004' },
       { alias: 'Reading', operator: 'LessThan', value: '1.0000000000000009' }
+    ];
+    body.resultOrder = [{ alias: 'Reading', descending: false }];
+    body.resultTake = 2;
+  }
+  if (name === 'singleSource') {
+    queryRoute += '/projection';
+    body.take = 2;
+    body.filters.push(
+      metadata(['singleReading'], 'Single', 'GreaterThanOrEqual', '1.0000002'),
+      metadata(['singleReading'], 'Single', 'LessThan', '1.0000005')
+    );
+    body.columns = [
+      { alias: 'Name', field: 'Name' },
+      { alias: 'Reading', metadataPath: ['singleReading'], valueType: 'Single' }
+    ];
+  }
+  if (name === 'singleGroups') {
+    queryRoute += '/grouped';
+    delete body.take;
+    body.maximumGroups = 10;
+    body.keys = [{ alias: 'reading', metadataPath: ['singleReading'], valueType: 'Single' }];
+    body.columns = [{ alias: 'Reading', keyAlias: 'reading' }, { alias: 'Items', operation: 'LongCount' }];
+    body.resultFilters = [
+      { alias: 'Reading', operator: 'GreaterThanOrEqual', value: '1.0000002' },
+      { alias: 'Reading', operator: 'LessThan', value: '1.0000005' }
     ];
     body.resultOrder = [{ alias: 'Reading', descending: false }];
     body.resultTake = 2;

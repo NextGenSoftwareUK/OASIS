@@ -47,18 +47,23 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                     Summary = grouped ? "Finite Double reading groups and alias filters" : "Finite Double reading range and selected columns",
                     Value = ExactNumericExample(grouped, decimalPrices: false, doubleReadings: true)
                 };
+                media.Examples["FiniteSingle"] = new OpenApiExample
+                {
+                    Summary = grouped ? "Finite Single reading groups and alias filters" : "Finite Single reading range and selected columns",
+                    Value = ExactNumericExample(grouped, decimalPrices: false, singleReadings: true)
+                };
             }
         }
     }
 
-    private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices, bool doubleReadings = false)
+    private static OpenApiObject ExactNumericExample(bool grouped, bool decimalPrices, bool doubleReadings = false, bool singleReadings = false)
     {
         // One shape owner keeps source and selected-result examples consistent.
-        var scalar = doubleReadings ? "Double" : decimalPrices ? "Decimal" : "UInt64";
-        var path = doubleReadings ? "reading" : decimalPrices ? "price" : "counter";
-        var alias = doubleReadings ? "Reading" : decimalPrices ? "Price" : "Counter";
-        var minimum = doubleReadings ? "1.0000000000000004" : decimalPrices ? "1.0000000000000000000000000002" : "18446744073709551612";
-        var maximum = doubleReadings ? "1.0000000000000009" : decimalPrices ? "1.0000000000000000000000000004" : "18446744073709551614";
+        var scalar = singleReadings ? "Single" : doubleReadings ? "Double" : decimalPrices ? "Decimal" : "UInt64";
+        var path = singleReadings ? "singleReading" : doubleReadings ? "reading" : decimalPrices ? "price" : "counter";
+        var alias = singleReadings ? "Reading" : doubleReadings ? "Reading" : decimalPrices ? "Price" : "Counter";
+        var minimum = singleReadings ? "1.0000002" : doubleReadings ? "1.0000000000000004" : decimalPrices ? "1.0000000000000000000000000002" : "18446744073709551612";
+        var maximum = singleReadings ? "1.0000005" : doubleReadings ? "1.0000000000000009" : decimalPrices ? "1.0000000000000000000000000004" : "18446744073709551614";
 
         OpenApiObject Filter(string scalarType, string metadataKey, string operation, string value) => new()
         {

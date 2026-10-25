@@ -656,3 +656,52 @@ neo4j-cql-native-current.trx, single-query-full-current.trx,
 single-query-identities-current.json and TestResults/CosmicCqlDemo/
 neo-single-query-final.log. Single HTTP/compiler/demo changes are separate
 unverified preparation; all broader unchecked roadmap acceptance remains open.
+
+## Single wire compiler/endpoint gate — 25 October 2026
+
+Gate1286 passes both CoreTFM builds and full2,595linked tests, zero failures/skips.
+Thirty-seven new Single controls cover canonical string literals, overprecision/
+nonfinite/underflow refusal, selected outputs, grouped/nullable aliases and
+complete grouped result ordering/paging. Single is additive enum8; Double stays7.
+Source snapshots unchanged and Core63D88559 producer matches rootunit consumer.
+This cohort includes the parallel provider session's then-uncommitted Core/Shared
+search privacy fix; its publication is owned separately by that session.
+
+Request Single values must be canonical invariant finite binary32 round-trip
+strings, for example "1.0000002". Selected output also uses strings with explicit
+Single type. Canonicalzero is "0"; numeric JSON values, signedzero spelling,
+noncanonical exponent spellings and overprecise inputs are refused. Existing
+scalar enum identities remain stable. Evidence: TestResults/CosmicCurrent/
+single-wire-full-current.trx andsingle-wire-identities-current.json;
+TestResults/CosmicCqlDemo/single-wire-core-full.log. Live native Single HTTP/SDK
+demos remain pending; compiler/endpoint units alone do not establish that gate.
+
+## Single three-provider live demos - 25 October 2026
+
+Gate 37983 passed **87 SDK and 87 signed HTTP examples** across MongoDB, SQLite
+and Neo4j, with 267 settled operations and 262 provider attempts. Examples 28-29
+query binary32 readings and group, filter and order selected Single aliases.
+HTTP returns canonical strings such as `"1.0000002"` and `"1.0000004"`. All six
+browser presets passed the offline check; Swagger FiniteSingle examples were
+verified in the live host. The standalone demo project also builds without restore.
+
+All five producer/consumer binary pairs matched and source snapshots stayed
+unchanged inside the build lease. The fixture journal, SQLite/WAL/SHM and
+readiness files were removed; owned listeners on 27029 and 17687 were absent.
+Shared runtimes and data directories remain reusable.
+
+Evidence in `TestResults/CosmicCqlDemo/`: `v1-demo-result.json`,
+`v1-source-identities.json`, `v1-binary-identities.json`, `v1-walkthrough.txt`,
+`single-live-corrected.log` and `single-standalone-build.log`.
+
+The initial run failed because a client checker applied an older one-row Int64
+assertion to a two-row Single projection. Both projection and grouped checker
+branches were corrected. Reconciliation gate 81194 verified all 208 settled
+operations, 203 attempts/receipts and 438 provider records before exact cleanup,
+without replaying requests. Failure and reconciliation evidence are retained;
+the prior 81/81 Double proof is preserved in `single-prior-double-*` files.
+
+Single transport and live demos are verified. Joins, federation, expanded policy
+and interruption certification, and every other unchecked roadmap requirement
+remain open. This dedicated demo gate does not replace full provider regression
+suites.
