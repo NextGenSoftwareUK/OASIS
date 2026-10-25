@@ -5,8 +5,8 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has37 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **3,048** (including UInt64 numeric capture/normalization and input-domain admission),
-  Shared **1,189**, SQLite **1,702 native /72 unit**, MongoDB **391 native /539 unit**,
-  Neo4j **391 native /520 unit**; zero skips at their recorded checkpoints.
+  Shared **1,189**, SQLite **1,702 native /72 unit**, MongoDB **416 native /550 unit**,
+  Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **111 SDK /111 HTTP**, **318 settled operations
   /310 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -104,7 +104,7 @@ implementation; current results remain separate per provider.
 ## 5. Scalar coverage and authoritative policy
 
 Decimal Core capture/scaled-limb normalization and SQLite native arithmetic are
-verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal lowering/enrollment remains open.
+verified (1,702native/72unit). MongoDB native Decimal integration passes23 focused native controls and550 units; full416 native acceptance passes without failures or skips. Neo4j Decimal query integration passes23 focused native cases/full529 units; full416 native acceptance passes without failures or skips. Decimal HTTP/demo enrollment remains open.
 See [contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md). UInt64 native/HTTP/demo gates
 are complete, while this broader scalar requirement stays unchecked.
 
