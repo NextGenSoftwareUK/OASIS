@@ -8,6 +8,23 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 public sealed partial class OracleNativeAcceptanceTests
 {
     private const string RestrictedSchema="OASIS_PRIV_TEST";
+    private sealed class LiveDriverLostAckOwner(string connection):OracleLiveSchemaPreflight.ExistingSchemaOwner(connection)
+    {
+        internal int Commits;
+        internal string? IntentToEdit,EditedIntent;
+        protected override async Task CommitLifecycleTransactionAsync(OracleTransaction transaction)
+        {
+            await base.CommitLifecycleTransactionAsync(transaction);Commits++;
+            if(IntentToEdit!=null){
+                if(Commits==1){
+                    var document=System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(IntentToEdit))!;document["owned-control-tamper"]=true;
+                    EditedIntent=document.ToJsonString();await File.WriteAllTextAsync(IntentToEdit,EditedIntent);
+                }
+                return;
+            }
+            throw new IOException("Owned live-driver postcommit response withholding.");
+        }
+    }
     private sealed record RestrictedSchemaIdentity(string User,int UserId,string Database,string Container,string Tablespace);
 
     internal static string RestrictedTestConnectionString(OracleConnectionStringBuilder settings)
@@ -132,6 +149,56 @@ public sealed partial class OracleNativeAcceptanceTests
             foreach(var row in new[]{("OASIS_AVATARS",id),("OASIS_AVATAR_DETAILS",id),("OASIS_HOLONS",holonId)})Assert.IsNull(await Read(native,row.Item1,row.Item2));
             Console.WriteLine("LOCAL read-only schema preflight proof, not hosted TLS: "+proof);
             Assert.AreEqual(proof,await File.ReadAllTextAsync(proofPath));File.Delete(proofPath);
+            await OracleLiveRecordAcceptance.RunLocalControlAsync(connection,database,RestrictedSchema,service,work);
+            var recordProofPath=Path.Combine(work,"oracle-live-records.current.json");var recordProof=await File.ReadAllTextAsync(recordProofPath);
+            using(var parsed=JsonDocument.Parse(recordProof)){
+                Assert.AreEqual("verified-record-lifecycle",parsed.RootElement.GetProperty("state").GetString());
+                Assert.IsTrue(parsed.RootElement.GetProperty("crudVerified").GetBoolean());Assert.IsFalse(parsed.RootElement.GetProperty("tcpsRequired").GetBoolean());
+                Assert.IsFalse(parsed.RootElement.GetProperty("fullProviderVerified").GetBoolean());Assert.AreEqual(9,parsed.RootElement.GetProperty("publicMutationCalls").GetInt32());
+                Assert.AreEqual(0,parsed.RootElement.GetProperty("provisioningCalls").GetInt32());Assert.AreEqual(0,parsed.RootElement.GetProperty("currentNativeRecordsRemaining").GetInt32());
+                foreach(var ownedRow in new[]{("OASIS_AVATARS",parsed.RootElement.GetProperty("actor").GetGuid()),("OASIS_AVATAR_DETAILS",parsed.RootElement.GetProperty("actor").GetGuid()),("OASIS_HOLONS",parsed.RootElement.GetProperty("rootId").GetGuid()),("OASIS_HOLONS",parsed.RootElement.GetProperty("childId").GetGuid())})Assert.IsNull(await Read(native,ownedRow.Item1,ownedRow.Item2));
+            }
+            Assert.AreEqual(objectIds,(string)(await Scalar("SELECT LISTAGG(OBJECT_ID,',') WITHIN GROUP(ORDER BY OBJECT_NAME) FROM USER_OBJECTS WHERE OBJECT_TYPE='TABLE'"))!);
+            Assert.IsFalse(File.Exists(Path.Combine(work,"oracle-live-records.pending.json")));
+            Console.WriteLine("LOCAL bounded provider record proof, not hosted TLS: "+recordProof);
+            Assert.AreEqual(recordProof,await File.ReadAllTextAsync(recordProofPath));File.Delete(recordProofPath);
+            if(synchronous){
+                foreach(var tamper in new[]{false,true}){
+                var liveIntent=Path.Combine(work,"oracle-live-records.pending.json");
+                var lostOwner=new LiveDriverLostAckOwner(connection){IntentToEdit=tamper?liveIntent:null};
+                InvalidDataException? unknown=null;
+                try{await OracleLiveRecordAcceptance.RunLocalControlAsync(connection,database,RestrictedSchema,service,work,_=>lostOwner);}
+                catch(InvalidDataException failure){unknown=failure;}
+                if(unknown==null){
+                    var unexpectedProof=await File.ReadAllTextAsync(recordProofPath);using var unexpected=JsonDocument.Parse(unexpectedProof);
+                    Assert.AreEqual(0,unexpected.RootElement.GetProperty("currentNativeRecordsRemaining").GetInt32());
+                    foreach(var absent in new[]{("OASIS_AVATARS",unexpected.RootElement.GetProperty("actor").GetGuid()),("OASIS_AVATAR_DETAILS",unexpected.RootElement.GetProperty("actor").GetGuid()),("OASIS_HOLONS",unexpected.RootElement.GetProperty("rootId").GetGuid()),("OASIS_HOLONS",unexpected.RootElement.GetProperty("childId").GetGuid())})Assert.IsNull(await Read(native,absent.Item1,absent.Item2));
+                    Console.WriteLine("LOCAL driver incorrectly continued after synthetic intent edit; independently verified owned row absence: "+unexpectedProof);
+                    Console.WriteLine("Original edited synthetic intent: "+lostOwner.EditedIntent);
+                    Assert.AreEqual(unexpectedProof,await File.ReadAllTextAsync(recordProofPath));File.Delete(recordProofPath);
+                    Assert.Fail("Modified intent was overwritten and the driver continued instead of preserving original evidence.");
+                }
+                if(tamper)StringAssert.Contains(unknown.Message,"intent changed");
+                else Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(unknown));
+                Assert.AreEqual(1,lostOwner.Commits,"No write retry or error cleanup may follow a lost acknowledgement.");Assert.AreEqual(0,lostOwner.ProvisionCalls);
+                var originalIntent=await File.ReadAllTextAsync(liveIntent);if(tamper)Assert.AreEqual(lostOwner.EditedIntent,originalIntent);
+                using var parsed=JsonDocument.Parse(originalIntent);var actor=parsed.RootElement.GetProperty("actor").GetGuid();
+                Assert.AreEqual("before-create-avatar",parsed.RootElement.GetProperty("state").GetString());Assert.AreEqual(1,parsed.RootElement.GetProperty("admittedPublicMutationCalls").GetInt32());
+                var original=await Read(native,"OASIS_AVATARS",actor);Assert.IsNotNull(original);
+                using(var stored=JsonDocument.Parse(original)){
+                    Assert.AreEqual(actor,stored.RootElement.GetProperty("Id").GetGuid());Assert.AreEqual(1,stored.RootElement.GetProperty("Version").GetInt32());
+                    Assert.AreEqual(parsed.RootElement.GetProperty("name").GetString(),stored.RootElement.GetProperty("Username").GetString());
+                }
+                foreach(var absent in new[]{("OASIS_AVATAR_DETAILS",actor),("OASIS_HOLONS",parsed.RootElement.GetProperty("rootId").GetGuid()),("OASIS_HOLONS",parsed.RootElement.GetProperty("childId").GetGuid())})Assert.IsNull(await Read(native,absent.Item1,absent.Item2));
+                Assert.IsFalse(File.Exists(recordProofPath));Assert.AreEqual(originalIntent,await File.ReadAllTextAsync(liveIntent));
+                Console.WriteLine("LOCAL original driver fault fixture observed before exact cleanup: "+JsonSerializer.Serialize(new{actor,tamper,SHA256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(original))),commits=lostOwner.Commits,replay=false}));
+                await using(var transaction=native.BeginTransaction()){
+                    await using var delete=new OracleCommand("DELETE FROM OASIS_AVATARS WHERE ID=:Id AND DBMS_LOB.COMPARE(DATA_JSON,:Expected)=0",native){BindByName=true,Transaction=transaction};
+                    delete.Parameters.Add("Id",OracleDbType.Raw).Value=actor.ToByteArray();delete.Parameters.Add("Expected",OracleDbType.Clob).Value=original;Assert.AreEqual(1,await delete.ExecuteNonQueryAsync());transaction.Commit();
+                }
+                Assert.IsNull(await Read(native,"OASIS_AVATARS",actor));Assert.AreEqual(originalIntent,await File.ReadAllTextAsync(liveIntent));File.Delete(liveIntent);
+                }
+            }
         }
         finally{await provider.DeActivateProviderAsync();}
     }
