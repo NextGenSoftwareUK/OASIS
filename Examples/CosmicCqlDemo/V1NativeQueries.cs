@@ -629,7 +629,71 @@ public static class V1NativeQueries
         foreach (var row in singleGroupRows)
             await output.WriteLineAsync($"  {row.Reading}: {row.Items} item\n");
 
+        // 30. A left join preserves every visible left row. The independently
+        // filtered right input contains only C-public, so B-owned/D-owned have
+        // no partner. Nullable output represents absence without losing Int64.
+        var joinLeft = Value(visible.OrderBy(holon => holon.Name).ThenBy(holon => holon.Id));
+        var joinRight = Value(visible
+            .Where(holon => holon.Name == "C-public")
+            .OrderBy(holon => holon.Name)
+            .ThenBy(holon => holon.Id));
+
+        var leftSelection = Value(joinLeft
+            .LeftJoin(joinRight, left => left.Name, right => right.Name)
+            .Select((left, right) => new JoinDemoRow
+            {
+                Name = left.Name,
+                Precision = (long?)CosmicQueryMetadata.Value<long>(right, "precision"),
+                Present = right != null
+            }));
+
+        await ShowJoinAsync("30. Left join / unmatched rows and exact values", leftSelection,
+            "B-owned", "C-public", "D-owned");
+
+        // 31. Changing only the join kind removes unmatched left rows. Both
+        // inputs retain their actor policy, provider scope and source windows.
+        var innerSelection = Value(joinLeft
+            .Join(joinRight, left => left.Name, right => right.Name)
+            .Select((left, right) => new JoinDemoRow
+            {
+                Name = left.Name,
+                Precision = (long?)CosmicQueryMetadata.Value<long>(right, "precision"),
+                Present = right != null
+            }));
+
+        await ShowJoinAsync("31. Inner join / matching pairs only", innerSelection, "C-public");
+
         return completedQueries;
+
+        async Task ShowJoinAsync(
+            string title,
+            CosmicJoinSelection<Holon, Holon, string, JoinDemoRow> selection,
+            params string[] expectedNames)
+        {
+            // Join support is an explicit adapter capability. Planning and
+            // execution use the same generic Core/HolonManager on every store.
+            if (adapter is not ICosmicQueryJoinStorageProvider joinAdapter)
+                throw new InvalidOperationException("This provider has no native join contract.");
+
+            var plan = Value(CosmicJoinPlanner.Plan(
+                selection,
+                provider,
+                new[] { new CosmicJoinTarget(provider, adapter.QueryCapabilities, joinAdapter.JoinCapabilities) }));
+
+            var execution = Value(await manager.ExecuteJoinQueryAsync(plan, new[] { adapter }));
+            var rows = execution.Providers.Single().Rows;
+
+            if (!rows.Select(row => row.Value.Name).SequenceEqual(expectedNames)
+                || rows.Any(row => row.HasRight != row.Value.Present
+                    || row.Value.Precision != (row.HasRight ? 9007199254740993L : (long?)null)))
+                throw new InvalidOperationException(title + " lost join identity, presence or exact Int64 values.");
+
+            completedQueries++;
+            await output.WriteLineAsync(title + "\n");
+
+            foreach (var row in rows)
+                await output.WriteLineAsync($"  {row.Value.Name}: hasRight={row.HasRight}, precision={row.Value.Precision?.ToString() ?? "(absent)"}\n");
+        }
 
         async Task ShowScalarAsync<TResult>(
             string title,
@@ -682,6 +746,14 @@ public static class V1NativeQueries
             await output.WriteLineAsync(title);
             await output.WriteLineAsync("\n  " + string.Join("\n  ", names) + "\n");
         }
+    }
+
+    // A detached application DTO, constructed only after all native proofs pass.
+    public sealed class JoinDemoRow
+    {
+        public string Name { get; set; } = string.Empty;
+        public long? Precision { get; set; }
+        public bool Present { get; set; }
     }
 
     // Application code should handle OASISResult errors at its own boundary.
