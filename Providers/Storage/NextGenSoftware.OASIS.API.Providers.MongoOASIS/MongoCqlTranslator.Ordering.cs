@@ -24,7 +24,7 @@ internal sealed partial class MongoCqlTranslator
         BsonValue Key(BsonValue raw)
         {
             var type=Nullable.GetUnderlyingType(path.ValueType)??path.ValueType;
-            var value=path.IsMetadata && type==typeof(DateTime)?MetadataDate(raw,path.Segments):raw;
+            var value=MetadataOperand(raw, path);
             var valid=Domain(value,path.ValueType,path.IsMetadata);
             var rank=Choose(Op("$eq",Type(raw),Literal("missing")),Literal(0),
                 Choose(Op("$eq",Type(raw),Literal("null")),Literal(1),Choose(valid,Literal(2),Literal(3))));

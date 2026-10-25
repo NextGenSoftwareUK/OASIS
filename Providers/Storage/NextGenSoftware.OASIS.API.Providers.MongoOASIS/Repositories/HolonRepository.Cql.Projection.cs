@@ -128,6 +128,8 @@ public partial class HolonRepository
                 return (ulong)number;
             throw new InvalidDataException("Selected UInt64 is fractional or outside its declared range.");
         }
+        if (type == typeof(double) && value.IsDouble && !double.IsNaN(value.AsDouble) && !double.IsInfinity(value.AsDouble))
+            return value.AsDouble == 0d ? 0d : value.AsDouble;
         if (type == typeof(decimal) && (value.IsDecimal128 || value.IsInt32 || value.IsInt64))
             return DecodeExactNativeDecimal(value);
         if (value.IsInt32 || value.IsInt64)
