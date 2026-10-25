@@ -8,7 +8,7 @@ input branches. Twenty-two new controls cover exact string output, nullable/empt
 results, original selector types, actor binding, usage receipts, grouped capture
 and rejection of read-only numeric permissions. All pass within the full
 **3,079-test Core suite**, without failures or skips. The shipping WEB4 build
-passes. Live signed Decimal HTTP/demo verification remains pending.
+passes. Live signed Decimal acceptance passes120SDK/120HTTP examples across all three stores.
 
 The extension uses the existing tagged Decimal text output. Clients should send
 exact Decimal comparison literals as strings; JavaScript Number cannot preserve
