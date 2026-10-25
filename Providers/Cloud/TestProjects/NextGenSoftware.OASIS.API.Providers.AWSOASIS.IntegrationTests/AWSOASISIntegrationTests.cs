@@ -315,7 +315,7 @@ public partial class AWSOASISIntegrationTests
         var owned=await _provider.ExportAllDataForAvatarByIdAsync(owner);
         Assert.IsFalse(owned.IsError,owned.Message);
         Assert.AreEqual(children[0].Id,owned.Result.Single().Id);
-        Assert.AreEqual(grandchild.Id,owned.Result.Single().Children.Single().Id);
+        Assert.AreEqual(0,owned.Result.Single().Children.Count,"Avatar-scoped export must not expose the unowned grandchild.");
         var ownerAvatar=new Avatar {Id=owner,Username="owned-export-"+marker,Email=marker+"@example.invalid"};
         var savedOwner=await _provider.SaveAvatarAsync(ownerAvatar);
         Assert.IsFalse(savedOwner.IsError,savedOwner.Message);
@@ -334,7 +334,7 @@ public partial class AWSOASISIntegrationTests
             {
                 Assert.IsFalse(exported.IsError,exported.Message);
                 CollectionAssert.AreEquivalent(new[] {children[0].Id},exported.Result.Select(row=>row.Id).ToArray());
-                Assert.AreEqual(grandchild.Id,exported.Result.Single().Children.Single().Id);
+                Assert.AreEqual(0,exported.Result.Single().Children.Count,"All avatar export selectors must hide unowned descendants.");
             }
             var missing=synchronous
                 ? _provider.ExportAllDataForAvatarByEmail("missing-"+ownerAvatar.Email)
