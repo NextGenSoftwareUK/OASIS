@@ -1054,8 +1054,10 @@ public sealed partial class OracleNativeAcceptanceTests
         }finally{await provider.DeActivateProviderAsync();}
     }
 
-    [TestMethod]
-    public async Task SharedGraphPlanPersistsThreeLevelsAndPublishesParentIds()
+    [DataTestMethod]
+    [DataRow(false,false,false)][DataRow(false,false,true)][DataRow(false,true,false)][DataRow(false,true,true)]
+    [DataRow(true,false,false)][DataRow(true,false,true)][DataRow(true,true,false)][DataRow(true,true,true)]
+    public async Task SharedGraphPlanPersistsThreeLevelsAndPublishesParentIds(bool synchronous,bool batch,bool onProvider)
     {
         var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;var work=Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!;
         var journal=Path.Combine(work,"graph-three-level.pending.json");Assert.IsFalse(File.Exists(journal));
@@ -1064,7 +1066,14 @@ public sealed partial class OracleNativeAcceptanceTests
         try{
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);await using var verifier=new OracleConnection(connection);await verifier.OpenAsync();foreach(var row in rows)Assert.IsNull(await Read(verifier,"OASIS_HOLONS",row.Id));
             using(var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{ids=rows.Select(row=>row.Id).ToArray(),state="before-native-three-level-graph"}));file.Flush(true);}
-            var saved=await provider.SaveHolonAsync(root);Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreSame(root,saved.Result);Assert.AreEqual(root.Id,child.ParentHolonId);Assert.AreEqual(child.Id,leaf.ParentHolonId);
+            if(batch){
+                var saved=synchronous?provider.SaveHolons(new[]{root},curentChildDepth:0,saveChildrenOnProvider:onProvider):await provider.SaveHolonsAsync(new[]{root},curentChildDepth:0,saveChildrenOnProvider:onProvider);
+                Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(3,saved.SavedCount);Assert.AreSame(root,saved.Result.Single());
+            }else{
+                var saved=synchronous?provider.SaveHolon(root,saveChildrenOnProvider:onProvider):await provider.SaveHolonAsync(root,saveChildrenOnProvider:onProvider);
+                Assert.IsFalse(saved.IsError,saved.Exception?.ToString());Assert.IsTrue(saved.IsSaved);Assert.AreEqual(3,saved.SavedCount);Assert.AreSame(root,saved.Result);
+            }
+            Assert.AreEqual(root.Id,child.ParentHolonId);Assert.AreEqual(child.Id,leaf.ParentHolonId);
             foreach(var row in rows){Assert.AreEqual(1,row.Version);var actual=await Read(verifier,"OASIS_HOLONS",row.Id);Assert.IsNotNull(actual);using var document=JsonDocument.Parse(actual);Assert.AreEqual(row.ParentHolonId,document.RootElement.GetProperty("ParentHolonId").GetGuid());}
             var deep=await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);Assert.IsFalse(deep.IsError,deep.Exception?.ToString());Assert.AreEqual(leaf.Id,deep.Result.Children.Single().Children.Single().Id);
             var shallow=await provider.LoadHolonAsync(root.Id,maxChildDepth:1,loadChildrenFromProvider:true);Assert.AreEqual(0,shallow.Result.Children.Single().Children.Count);

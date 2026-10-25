@@ -55,6 +55,11 @@ public class OracleObjectConfigurationTests
             using var provider=OracleObjectStorageProviderFactory.Create(settings);
             Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(history,provider.IsVersionControlEnabled);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OracleObjectStorageOASIS,provider.ProviderType.Value);
+            var registry=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,new OASISDNA());
+            Assert.IsTrue(registry.RegisterProvider(provider));
+            Assert.AreSame(provider,registry.GetStorageProviders().Single());
+            Assert.AreSame(provider,registry.GetCloudProviders().Single(),"OCI Object Storage must be discoverable as a Cloud provider without activation.");
+            Assert.IsTrue(registry.IsProviderCloud(provider.ProviderType.Value));
             // Construction retains the configured variable name, not the caller's mutable settings object.
             settings.StorageEncryptionKeyEnvironmentVariable="invalid\0variable";
             var activated=await provider.ActivateProviderAsync();

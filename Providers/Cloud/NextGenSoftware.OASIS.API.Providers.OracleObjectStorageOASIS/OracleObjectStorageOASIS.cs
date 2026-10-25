@@ -29,6 +29,8 @@ public sealed class OracleObjectStorageOASIS : KeyValueStorageProviderBase,IDisp
         ProviderDescription="Oracle OCI Object Storage with encrypted OASIS records and opaque keyed indexes";
         ProviderType=new EnumValue<ProviderType>(Core.Enums.ProviderType.OracleObjectStorageOASIS);
         ProviderCategory=new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
     }
 
     public void Dispose()
