@@ -1,4 +1,5 @@
 param(
+    [switch]$BootstrapSchema,
     [switch]$Coverage,
     [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
     [switch]$ReconcileConditionalIntent,
@@ -23,7 +24,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
@@ -38,6 +39,7 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
 $previousAmbiguity=$env:OASIS_ORACLE_RECONCILE_AMBIGUITY
 $previousSchemaUpgrade=$env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE
+$previousBootstrap=$env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST
 $previousReadIterations=$env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS
 $previousReadPath=$env:OASIS_ORACLE_READ_CONNECTION_PATH
 $previousReadReconciliation=$env:OASIS_ORACLE_RECONCILE_READ_OUTAGE
@@ -135,6 +137,7 @@ try{
     $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=if($ReconcileReadOutage){'1'}else{$null}
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=if($ReconcileAmbiguity){'1'}else{$null}
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=if($UpgradeIdentityCharacters){'1'}else{$null}
+    $env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST=if($BootstrapSchema){'1'}else{$null}
     if($EncryptedProcess){
         $processStarted=[DateTime]::UtcNow
         $processProject=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj'
@@ -190,6 +193,7 @@ try{
     if($ReconcileConditionalIntent){$report='oracle-conditional-intent-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownConditionalIntentFixture'}
     if($ReconcileKarmaNullOutcome){$report='oracle-karma-null-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaNullOutcomeWithoutReplayingMutation'}
     if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
+    if($BootstrapSchema){$report='oracle-bootstrap-native-current.trx';$filter='FullyQualifiedName~OracleBootstrapNativeTests'}
     if($Coverage){$report='oracle-native-coverage-current.trx'}
     if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
@@ -205,6 +209,7 @@ try{
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){12}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{502}
     if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
+    if($BootstrapSchema){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     if($Coverage){
         if((Get-FileHash -LiteralPath $coverageAssembly).Hash -ne $coverageOriginalHash){throw 'Coverage instrumentation was not restored; preserve outputs and rebuild before reuse.'}
@@ -218,6 +223,7 @@ try{
     $env:ORACLEDBOASIS_CONNECTIONSTRING=$previousConnection;$env:OASIS_ORACLE_TEST_WORK=$previousWork;$env:OASIS_ORACLE_RESUME_CANONICAL=$previousResume;$secret=$null
     $env:OASIS_ORACLE_RECONCILE_AMBIGUITY=$previousAmbiguity
     $env:OASIS_ORACLE_ALLOW_TEST_IDENTITY_SCHEMA_UPGRADE=$previousSchemaUpgrade
+    $env:OASIS_ORACLE_ALLOW_BOOTSTRAP_TEST=$previousBootstrap
     $env:OASIS_ORACLE_READ_CONNECTION_ITERATIONS=$previousReadIterations
     $env:OASIS_ORACLE_READ_CONNECTION_PATH=$previousReadPath
     $env:OASIS_ORACLE_RECONCILE_READ_OUTAGE=$previousReadReconciliation
