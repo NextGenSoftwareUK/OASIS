@@ -4,9 +4,9 @@ Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has34 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **2,970** (composition, HTTP/admission and grouped participation controls),
-  Shared **1,189**, SQLite **1,661 native /71 unit**, MongoDB **374 native /538 unit**,
-  Neo4j **372 native /519 unit**; zero skips at their recorded checkpoints.
+- Latest separately verified cohorts: Core **3,006** (including UInt64 numeric capture/normalization and input-domain admission),
+  Shared **1,189**, SQLite **1,661 native /72 unit**, MongoDB **374 native /539 unit**,
+  Neo4j **372 native /520 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **102 SDK /102 HTTP**, **309 settled operations
   /301 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -148,6 +148,17 @@ not establish which other writes are owner-restricted. Preserve current CQL
 owner/public behavior until the stronger contract and migration are verified.
 Tenant membership authority remains a separate unimplemented requirement. No
 sharing production code was changed during the running empty-window regression.
+
+### UInt64 arithmetic foundation — 25 October
+
+Core capture/normalization and immutable per-operation input restrictions pass
+both frameworks and **3,006 tests** (36new). Existing provider numeric declarations
+remain signed-only; public profile/readmission controls pass SQLite72/Mongo539/
+Neo520 units. No native unsigned arithmetic or HTTP enrollment is claimed.
+Next implement scalar/grouped exact unsigned limbs and average kernels on each
+store, certify boundary/null/overflow/access/window/interruption behavior, then
+expose the verified domains through annotated transport/demo examples. The scalar
+coverage checkbox remains open. [Contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
 
 ## 6. Completion certification
 
