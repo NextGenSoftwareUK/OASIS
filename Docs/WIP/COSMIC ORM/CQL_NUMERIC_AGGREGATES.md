@@ -1,5 +1,23 @@
 # CQL integer Sum/Average contract
 
+## Decimal numeric Core foundation - 25 October 2026
+
+Full Core3,046 and SQLite72/Mongo539/Neo520 unit tests pass without failures/skips;
+Core netstandard2.1/net10.0 builds pass. Thirty new controls include2,048 seeded
+reference samples. Separate prior native/demo checkpoints retain their scope.
+
+Core now captures Decimal/nullable Sum/Average and normalizes a constant-size
+seven-limb scaled28 native packet. Final rounding is nearest/ties-to-even from
+the exact rational; mathematical out-of-range sums fail explicitly. Cancellation
+can retain tiny values after oversized intermediates. The legacy integer packet
+rejects Decimal intents. Existing native profiles remain unenrolled; provider
+unit gates prove that read permissions and caller claims cannot upgrade them.
+
+See [the Decimal aggregate contract](CQL_DECIMAL_AGGREGATE_CONTRACT.md). Native
+translation/grouped keys on all three stores, HTTP enrollment and live Decimal
+arithmetic demos remain pending. This does not change verified UInt64 execution.
+
+
 ## UInt64 live demo acceptance - 25 October 2026
 
 The walkthrough now has **37 examples per provider**: **111 SDK /111 signed HTTP**
