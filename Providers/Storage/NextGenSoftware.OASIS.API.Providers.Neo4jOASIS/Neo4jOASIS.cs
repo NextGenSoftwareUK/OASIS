@@ -31,12 +31,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public bool IsVersionControlEnabled { get; set; }
         private IDriver _driver;
         private readonly Func<IDriver> _driverFactory;
+        private readonly Func<IDriver> _cqlReadDriverFactory;
+        private NeoCqlReadTransportPool _cqlReadTransports;
         private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
 
         public Neo4jOASIS(string host, string username, string password)
             : this(host, username, password, null) { }
 
-        internal Neo4jOASIS(string host, string username, string password, Func<IDriver> driverFactory)
+        internal Neo4jOASIS(string host, string username, string password, Func<IDriver> driverFactory, Func<IDriver> cqlReadDriverFactory = null)
         {
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
@@ -48,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             Password = password;
             
             _driverFactory = driverFactory ?? CreateDriver;
+            _cqlReadDriverFactory = cqlReadDriverFactory ?? driverFactory;
             _driver = _driverFactory();
         }
 
@@ -55,6 +58,43 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         {
             return GraphDatabase.Driver(ConnectionUri(Host), AuthTokens.Basic(Username, Password));
         }
+
+        private async Task<NeoCqlReadTransportPool.Lease> LeaseCqlReadAsync(CancellationToken cancellationToken)
+        {
+            NeoCqlReadTransportPool pool;
+            await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (!IsProviderActivated || _driver == null) throw new NeoCqlNotReadyException();
+                if (_cqlReadTransports == null)
+                {
+                    var factory = _cqlReadDriverFactory;
+                    if (factory == null)
+                    {
+                        // Freeze connection identity for this activation. Each
+                        // read owner has one connection, reused by later leases.
+                        var uri = ConnectionUri(Host);
+                        var auth = AuthTokens.Basic(Username, Password);
+                        factory = () => GraphDatabase.Driver(uri, auth,
+                            config => config.WithMaxConnectionPoolSize(1));
+                    }
+                    _cqlReadTransports = new NeoCqlReadTransportPool(factory);
+                }
+                pool = _cqlReadTransports;
+            }
+            finally { _lifecycleGate.Release(); }
+            return await pool.AcquireAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task CloseReadPoolAsync(NeoCqlReadTransportPool pool)
+        {
+            if (pool != null) await pool.DisposeAsync().ConfigureAwait(false);
+        }
+        private static async Task CloseStorageDriverAsync(IDriver driver)
+        {
+            if (driver != null) await driver.CloseAsync().ConfigureAwait(false);
+        }
+        private sealed class NeoCqlNotReadyException() : Exception("Neo4j is not activated for CQL reads.");
 
         internal static Uri ConnectionUri(string host)
         {
@@ -98,7 +138,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             await _lifecycleGate.WaitAsync();
             try
             {
-                if (_driver != null) await _driver.CloseAsync();
+                var reads = _cqlReadTransports;
+                var storage = _driver;
+                // Keep ownership until both close operations acknowledge teardown.
+                // A failure must retain the resource and cannot publish deactivation.
+                await Task.WhenAll(CloseReadPoolAsync(reads), CloseStorageDriverAsync(storage)).ConfigureAwait(false);
+                _cqlReadTransports = null;
                 _driver = null;
                 IsProviderActivated = false;
                 return new OASISResult<bool>(true);

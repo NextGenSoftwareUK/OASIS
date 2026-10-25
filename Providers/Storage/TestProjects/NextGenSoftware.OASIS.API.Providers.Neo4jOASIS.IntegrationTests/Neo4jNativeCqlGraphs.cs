@@ -112,7 +112,7 @@ public partial class Neo4jNativeCqlTests
         var nodes=new List<IHolon>{fixture.Root};
         for(var index=0;index<nodes.Count;index++)nodes.AddRange(nodes[index].AllChildren);
         fixture.Ids.AddRange(nodes.Select(node=>node.Id));
-        var hooked=GraphNativeHook.Wrap(driver,async()=>
+        IDriver Hook(IDriver ownedDriver) => GraphNativeHook.Wrap(ownedDriver,async()=>
         {
             var action=fixture.BeforeChild;fixture.BeforeChild=null;
             if(action!=null)await action();
@@ -121,7 +121,9 @@ public partial class Neo4jNativeCqlTests
             var action=fixture.AfterRootRow;fixture.AfterRootRow=null;
             if(action!=null)await action();
         },record=>fixture.InspectRootRow?.Invoke(record));
-        fixture.Provider=new Provider(uri,"neo4j","oasis-local-test-only",()=>hooked){IsVersionControlEnabled=false};
+        fixture.Provider=new Provider(uri,"neo4j","oasis-local-test-only",()=>Hook(driver),
+            () => Hook(GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"),
+                config => config.WithMaxConnectionPoolSize(1)))){IsVersionControlEnabled=false};
         await File.WriteAllTextAsync(manifest,JsonSerializer.Serialize(new{ids=fixture.Ids,operations=fixture.Operations,stage="before-create"}));
         try
         {
