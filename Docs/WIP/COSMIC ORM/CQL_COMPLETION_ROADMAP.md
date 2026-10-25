@@ -860,3 +860,13 @@ were preserved. Original red and reconciliation evidence remain in TestResults.
 
 This closes this admission batch, not ordinary role acknowledgement or all CQL.
 Eight separate new acknowledgement cases are prepared but not included in267.
+
+### Final Neo4j acknowledgement verification
+
+The candidate above is now verified by full native CQL275/275 (8m21), focused
+roles8/8, strengthened native outcomes16/16 and refreshed units477/477, zero skips.
+The final275 and outcomes/unit batches ran under explicit whole-runner global
+producer/consumer leases. Core/Shared/pinned-driver copies matched producers.
+Session66975 terminated0; fixture marker absent and reusable container exited.
+The earlier pending275 statement is superseded by this result. Cohorts remain
+separately recorded; this does not certify every custom-role/federation/join gate.
