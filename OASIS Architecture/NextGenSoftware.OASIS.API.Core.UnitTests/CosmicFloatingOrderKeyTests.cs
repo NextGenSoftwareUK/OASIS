@@ -1,12 +1,21 @@
 using System;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed class CosmicFloatingOrderKeyTests
 {
+    [Fact]
+    public void DoubleGroupingCapturesTheDeclaredNullableKeyWithoutEnrollingProviders()
+    {
+        var result = CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<double?>(h, "reading"));
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(typeof(double?), result.Result.Key.Columns[0].Path.ValueType);
+    }
+
     [Fact]
     public void DoubleKeysRoundTrip4096FiniteBitPatternsWithoutDecimalConversion()
     {

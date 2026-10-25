@@ -1,8 +1,9 @@
 # CQL floating scalar implementation contract
 
-24 October 2026. Foundation only: Core's finite bit-key codec passes the full
-2,506-test suite and both configured targets, netstandard2.1/net10.0. No provider
-currently advertises Double/Single CQL metadata. Native adapters, transport and
+24 October 2026. Core's finite bit-key codec/group capture passes the full
+2,507-test suite and both configured targets, netstandard2.1/net10.0. SQLite
+Double SDK metadata passes the full1,485-case native suite; Mongo/Neo Double
+and all Single query enrollment remain open. Remaining native adapters, transport and
 live examples remain open; the Decimal acceptance scope is unchanged.
 
 ## One finite value-key owner
@@ -55,6 +56,31 @@ CosmicCqlDemo/floating-storage-native-final.log. Native fixtures cleaned and
 owned service stopped; no new environment/download/restore was needed.
 
 ## Remaining enrollment gates
+
+### SQLite Double SDK slice verified
+
+The prepared adapter interprets JSON numeric tokens as finite IEEE binary64,
+including the rounding inherent in an explicitly Double-valued query. This does
+not change integer or Decimal query semantics. Nonzero underflow cannot become a
+matching zero; overflow and foreign JSON types remain outside the value domain.
+
+`cosmic_cql_double_key` runs inside SQLite's predicate/order/reduction pipeline,
+using the original token and the shared Core16-character key. The same connection
+read-budget owner registers/unregisters it and checks cancellation, deadline and
+the4,096-character scalar-token limit before publication, even for excluded rows.
+Projection, extrema and grouping decode through Core's finite-key owner. There
+is no hydrated-row filtering or REAL-based substitute path.
+
+Core now captures Double/nullable Double group keys without granting a provider
+capability. The first gates pass2,507 full Core tests and26 focused native Double
+cases. Actual40902 terminal0 also passes fullSQLite1,485 regression,0fail/skip;
+Mongo/Neo Double, all Single query paths and floating transport/live demos remain
+open. Source snapshots are unchanged; native/producer pairs match Core57A3770B,
+Shared6D182110 andSQLite02B743C3. Evidence:
+CosmicCurrent/double-sqlite-core-current.trx, SQLiteCurrent/double-focused-current.trx,
+SQLiteCurrent/double-full-current.trx and double-identities-current.json;
+CosmicCqlDemo/double-sqlite-full.log. Owned fixed DB/WAL/SHM are absent after
+verified teardown. No installation or restore was required.
 
 - Define and verify the finite persisted value domain on all three stores,
   including binary32 normalization, native comparisons/order and typed decoding.

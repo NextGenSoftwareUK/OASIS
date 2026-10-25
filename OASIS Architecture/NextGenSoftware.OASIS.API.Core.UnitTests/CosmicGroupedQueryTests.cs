@@ -100,8 +100,8 @@ public sealed class CosmicGroupedQueryTests
     }
 
     [Fact]
-    public void UnsupportedDoubleKeyCannotBorrowIntegerEquality()
-        => Assert.True(CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<double>(h, "money")).IsError);
+    public void UnsupportedSingleKeyCannotBorrowIntegerEquality()
+        => Assert.True(CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<float>(h, "money")).IsError);
 
     [Fact]
     public void SourceFailureIsPreserved()
