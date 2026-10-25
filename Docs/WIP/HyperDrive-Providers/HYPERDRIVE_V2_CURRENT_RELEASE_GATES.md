@@ -6208,3 +6208,7 @@ FullEdge/S3protocol138/138PASS0skips2s; includes12new sync/async single/batch sa
 
 Matched471controlled/87history-native/79regression-nativePASS0skips5s/8s/26s after Core+SQLiteackrepairs; checkpointimport/read/exactrevisioncleanupPASS, ownedsyntheticfixturescleaned,pending0/emulatorstopped/ports18080–18083closed. Provider+unit+integrationDLLSHAall6E81C6FDD159C2B4DF6734322B5010DB65E843B09B7A3D6B86C844A68DA92375; Core9256B0.../Shared5CECEC...source/PDB/copiesverified. Samepinnedruntime/export/cache/output,no download/restore/newenvironment/devdeployment. Exact3currentreporthashes/sizesandpreservedpriorcohort in FIRESTORE_RECORD_HISTORY.md/inventory. This is localSDKregression, not hostedGoogleIAM/index/security/pricing/durability/GCS/BigQuery/fullprovider/V2completion.
 
+## 2026-10-25 BigQuery parent-alias admission gap closed in controls
+
+Invalid negative depth/version options now reject before a non-GUID parent alias can issue its potentiallybillablelookupquery. Baseline6genuinefail/6protectedcontrols; full872/872controlledPASS0skip5s. ExistingValidateGraphDepth reused, originalargumentcause/no result/count retained, no extraSDKrequest/retry/validaliassemanticchange. ReportBigQueryCurrent/parent-key-admission-current.trx1317976bytesSHA1372773C5FF84903F5D94D395DBAB35AF40A5F351896EE41564FDD7667A94D3A. No hostedjob/dataset/feeproof; nativeSQL/IAM/concurrency/limits/security/durability/fullinterface/V2 gates remainOPEN. Scope/evidence/resources in BIGQUERY_PROVIDER_IMPLEMENTATION_AUDIT.md/inventory.
+

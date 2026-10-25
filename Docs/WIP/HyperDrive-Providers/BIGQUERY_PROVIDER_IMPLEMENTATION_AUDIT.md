@@ -1,5 +1,13 @@
 # BigQuery provider — implementation audit,24 October 2026
 
+## 25 October — parent-key admission before potentially billable lookup
+
+Six genuine controlled failures showed non-GUID parent aliases issued one SDK query before rejecting negative MaxChildDepth/CurrentChildDepth/Version; six GUID-selector controls already rejected before query. The string parent boundary now reuses ValidateGraphDepth and rejects negative versions before any alias resolution, returning the original ArgumentOutOfRangeException through OASISResult with no loaded payload/count. Valid GUID/alias, historical-child selection and parent identity semantics are unchanged; no extra query/retry/helper/fallback was added.
+
+Baseline12=6FAIL/6PASS370ms, exact zero-I/O expectation retained. Full final **872/872controlledPASS0skips5seconds**, actual73092terminal0. Producerbuild0errors14warnings,consumer0errors6warnings, same SDK/cachedoutputs/currentCore/Shared underexistingbuildlease. Evidence TestResults/BigQueryCurrent/parent-key-admission-red.trx23192bytes SHA256A78484D672F94CB68A5F99BC76FC7D47CA649DB3332C1516201F11F35654F57B; parent-key-admission-current.trx1317976bytes1372773C5FF84903F5D94D395DBAB35AF40A5F351896EE41564FDD7667A94D3A. Controlled officialBigQueryClient query boundary, NOT hosted job or native SQL/IAM/fee proof; no real dataset/job/request/cloudfees/runtime/newenvironment/download/restore. The prevented query could be billable on hosted service; no numeric saving or zero-cost certification claimed.
+
+Existing hostedSQL/concurrency/uniqueness/limits/security/encryption/billing/durability/fullinterface/V2 gates remainOPEN. This closes one actual provider admission gap, not BigQuery100% or GoogleCloud100%. Source tests/mocks otherwise unchanged; no production credentials/cloud data touched. Resource lifecycle in ENVIRONMENT_INVENTORY.md.
+
 ## Selected caller graph admission/acknowledgement — 24 October
 
 Full860controlled tests PASS0skip8seconds against matched Core2a307fe964bde6589d99ea1790a78f763b620092 code and shared publisher. Graph writes now use common CreateForSave admission before any SDK observation, then record complete selected membership only after all native acknowledgements and unchanged-caller publication. Existing4scoped interface controls now attempt save after AcceptChanges and prove explicit rejection with unchanged SDK read count/no stored mutation. Native-source Core restrictions are reused rather than copied; structural receipt validation does not grant caller write authority. Source/PDB/copies and exact hashes in inventory.
