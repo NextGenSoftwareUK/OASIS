@@ -1,5 +1,28 @@
 # Shared canonical record-history codec
 
+## 25 October — reject empty identity before avatar-scoped export
+
+The shared S3/OCI/Redis owner accepted Guid.Empty as an avatar export identity and selected records whose CreatedByAvatarId was also empty. The existing scoped-export entry now returns terminal HYPERDRIVE_PAYLOAD_INVALID/ArgumentException BEFORE any listing/read. Valid avatar IDs, independent root versions, all-version export(-1), and the separate unscoped ExportAll entry are unchanged. No new SDK call, pricing rule, authorization bypass, retry or storage format was introduced; higher-level authentication remains the host's responsibility.
+
+Corrected public-save-seeded baseline: **6/6 genuine failures122ms**, confirming successful unowned-record export before the guard. Initial direct concrete-JSON seeding produced a FORMAT-related result and six ErrorCode assertion failures; that earlier report is preserved under .fixture-format-<SHA> and is NOT evidence of the leak. Test fixture now seeds through SaveHolonAsync and resets I/O counters before the call. Earlier preliminary greens were hash-MOVED in place before final matched verification, not overwritten or relabelled.
+
+Final **1211SharedPASS9s +160EdgeS3PASS1s +133OCI SDK-regressionPASS14s +4Redis nativePASS682ms +1readonlynativepreflightPASS101ms**, all zero skips. Six new S3 signed/encrypted SDK controls prove zero additional native requests and byte-identical object maps for sync/async × current/version1/allversions. Existing two native Redis schedules now reject all three invalid scoped exports and preserve full raw native bytes, while valid unscoped history export and alias hardpurge still pass. These native cases retain count4 (not inflated). Hosted IAM/TLS/KMS/fees/durability and all-provider/V2 acceptance remain OPEN.
+
+All four consumers verified the SAME dependency copies/PDB source documents: Core761 SHA854AC7B78219530F6C20C1EA607A25B8EE0D83C9758042ECBF5A5EB82AD1A502 and Shared56 SHA911EDC8ACF380B50224A3A11FD472CDFB0DC241041B8162CFE1710C6580DB84D. Final cohort includes peer's newly compiled floating foundation; earlier9256Core results remain separate. No peer source/pin modified by this batch.
+
+Reports under C:/Source/OASIS/TestResults:
+
+| Relative report | Bytes | SHA256 |
+|---|---:|---|
+| SharedCurrent/export-identity-red.trx | 13870 | 35908E7ACCACC0C0DBEF20F4381F4806A41A22BCE554101937FAA9BA821CA3BB |
+| SharedCurrent/export-identity-current.trx | 1844681 | 38795A875E805AAF5D267B340EB489DE0CF6F044612CB51A038FCFB84BC5D91B |
+| S3Current/export-identity-current.trx | 247339 | 2E0DEA4B85F76EE45B2B01383D0E9102D6A6140766AD42E60D068B0962641006 |
+| OCICurrent/export-identity-current.trx | 214683 | 123DB655F0F6940A1B7A1CAD9F8C1135FA0CA27BE40529938E6A21A9E229E991 |
+| RedisCurrent/redis-private-provider-current.trx | 7873 | 1DA9E9F626D02B4CF5F20C51ADB3645AB7F2A083C0C48858FEA9026980363441 |
+| RedisCurrent/redis-private-preflight.trx | 2886 | 960E9AD6CFF4A1D358B0C538142B56DAFF83F3D70415601D3E3389FDF65DA1CC |
+
+Same retained Redis8.2.2 image/container/key/data and existing cached builds reused, no downloads/restores/new environment. Seven prior Redis proofs hash-MOVED in place; conditional fixture cleanup proves DBsize0, journals0, EXITED0 and port18679absent. Volume133768bytes (prior107711; net26057bytes, not a host reclaim claim), SizeRw11565bytes. Cfree67928842240bytes after is concurrent measurement. Other inheritors need refreshed native gates; no dev deployment.
+
 ## 25 October — retained Redis native adapter refresh
 
 Redis8.2.2 uses the shared deletion owner directly. Current encrypted native fixture passed **1/1 readonly empty-store preflight +4/4 encrypted/legacy-admission cases**, zero skips (145ms/790ms), then **35/35 Redis controlled tests PASS677ms**. The two existing healthy lifecycle schedules now hard-purge through synchronous uppercase username / asynchronous uppercase email, not GUID alone, and independently verify profile/detail/history/index absence plus survival of an unrelated sentinel before exact sentinel teardown. This is native healthy-selector/decryption/conditional-transport compatibility evidence; the forced alias-change schedules remain Shared controlled/S3 signed-HTTP evidence, NOT native Redis race injection.
