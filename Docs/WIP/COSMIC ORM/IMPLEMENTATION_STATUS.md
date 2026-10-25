@@ -1604,3 +1604,37 @@ This closes bounded flat selected-result composition across SDK/HTTP on the
 three providers. Graph-source composition is explicitly unadmitted. Broader
 CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
+
+## MongoDB grouped comparable/typed identity — 25 October2026
+
+Audit found a decoder gap: native `_id.kN` fields were required but their values
+were ignored, and grouped extremum `{k,v}` packets decoded v without checking k.
+These comparable fields control native grouping/filter/order/page behavior, so
+contradiction with the selected typed key/value must be an invalid result.
+
+One shared decoder helper now validates every grouped key component and grouped
+Min/Max comparable against the existing exact typed decoder, before result-page
+membership can omit a row. Null identity must agree in both directions. Native
+GUID comparables have one lowercase N form while admitted stored text/standard
+UUID/legacy UUID payloads retain their logical GUID interpretation. Logical
+numeric equality permits equal Decimal scales, signed zero and admitted BSON
+integer widths; it does not replace the separate payload-bit identity contract.
+
+The new red gate proves12 contradictory packets were previously accepted;
+seven valid controls passed. Corrected full Mongo units pass538/538, zero skips
+(19new). Two native mixed-representation GUID key/extremum controls plus the
+existing359 native CQL cases are running. This is grouped decoder consistency;
+it does not claim complete grouping/policy/federation certification.
+
+
+Mongo grouped identity final: **538/538 unit tests** and **361/361 native CQL
+tests**, zero skips; native5m6s. Nineteen new unit controls include12 originally
+accepted contradictions and7 valid normalization controls. Two new native cases
+verify logical GUID grouping and Min/Max across uppercase text and standard/
+legacy UUID storage. This fixes decoder consistency without widening capabilities.
+Evidence: `TestResults/CosmicCqlDemo/mongo-group-identity-red.log`,
+`TestResults/SubscriptionUsageCurrent/group-identity-original-red.trx`,
+`TestResults/CosmicCqlDemo/mongo-group-identity-final.log`,
+`TestResults/SubscriptionUsageCurrent/group-identity-unit.trx` and
+`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`.
+Broader all-provider grouping/access/snapshot certification remains open.

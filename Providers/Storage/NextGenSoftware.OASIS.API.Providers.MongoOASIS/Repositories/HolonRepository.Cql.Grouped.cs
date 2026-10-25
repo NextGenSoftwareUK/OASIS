@@ -46,6 +46,8 @@ public partial class HolonRepository
         }
         // Reuse the projection owner's exact domain and null-state decoder.
         var keys = ReadNativeCqlProjectionRow(new BsonDocument("cells", keyCells), query.Grouping.Key.Columns).Values.ToArray();
+        for (var index = 0; index < keys.Length; index++)
+            ValidateNativeComparable(identity.AsBsonDocument["k" + index], keys[index], query.Grouping.Key.Columns[index].Path.ValueType);
         var values = new object[query.Columns.Count];
         var expectedFields = 5 + count;
         for (var index = 0; index < values.Length; index++)
@@ -86,10 +88,11 @@ public partial class HolonRepository
                 else
                 {
                     if (!selected.IsBsonDocument || selected.AsBsonDocument.ElementCount != 2
-                        || !selected.AsBsonDocument.Contains("k") || !selected.AsBsonDocument.TryGetValue("v", out var value))
+                        || !selected.AsBsonDocument.TryGetValue("k", out var comparable) || !selected.AsBsonDocument.TryGetValue("v", out var value))
                         throw new InvalidDataException("Native group extremum packet is invalid.");
                     values[index] = DecodeNativeProjectionCell(value,
                         Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType);
+                    ValidateNativeComparable(comparable, values[index], column.Selector.ValueType);
                 }
             }
             else throw new InvalidDataException("Native group aggregate is unknown.");
@@ -98,5 +101,29 @@ public partial class HolonRepository
         if (!document.TryGetValue("resultMember", out var member) || !member.IsBoolean)
             throw new InvalidDataException("Native group page membership must be Boolean.");
         return new CosmicGroupedRow(inputs, member.AsBoolean, keys, values);
+    }
+
+    // Comparable keys drive native grouping, filters and paging; typed cells
+    // drive publication. They must describe the same logical scalar, including
+    // on rows excluded by result filtering/paging. Payload bit identity is a
+    // separate contract: equal Decimal scales and signed zeros share a key.
+    private static void ValidateNativeComparable(BsonValue comparable, object value, Type declared)
+    {
+        if (value == null)
+        {
+            if (!comparable.IsBsonNull) throw new InvalidDataException("Native comparable identity contradicts a null typed value.");
+            return;
+        }
+        var type = Nullable.GetUnderlyingType(declared) ?? declared;
+        if (type == typeof(Guid))
+        {
+            // ComparableGuid emits exactly lowercase N text across admitted
+            // stored UUID/text representations. Do not guess alternate formats.
+            if (!comparable.IsString || comparable.AsString != ((Guid)value).ToString("N"))
+                throw new InvalidDataException("Native comparable GUID contradicts its normalized typed identity.");
+            return;
+        }
+        if (comparable.IsBsonNull || !Equals(DecodeNativeProjectionCell(comparable, type), value))
+            throw new InvalidDataException("Native comparable identity contradicts its typed scalar value.");
     }
 }
