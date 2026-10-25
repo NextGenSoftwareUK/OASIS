@@ -1,5 +1,18 @@
 # SQLite storage verification, gifts and schema
 
+## Request snapshots and truthful acknowledgement counts — 25 October
+
+Two further native-read boundary findings are now fixed at the existing owners:
+
+| Invariant | Reproduction | Correction |
+|---|---|---|
+| Ordinary saves report acknowledged selected records |16native cases all reported0 despite independently observed1/2/3/5committed records across sync/async, single/batch, child selection and on-provider flag choices. | Set `SavedCount` from the committed graph models only AFTER the transaction commit returns. Failure/uncertain paths are unchanged. This is a logical record count, not SQL requests, physical history writes or billable usage. |
+| Search uses its original request across native reads |24actual native-read-delegation cases changed caller owner, text/parent/metadata, field mask, metadata, parent or scope flag; every case returned wrong IDs or counts. | Validate, snapshot with existing Core `StoredRecordJson.Project<SearchParams>`, then revalidate before activation/I/O, matching the existing Mongo/Oracle/cloud approach. No new snapshot format or backend fallback. |
+
+Focused 40/40 native PASS (5s), 39/39 units PASS (4s), and full **1,570/1,570 native PASS (196s)**, zero skips. Full report `TestResults/SQLiteCurrent/query-snapshot-count-full-native.trx`, SHA256 `D3F44DB82624E2517613FD7E7D3CD738F4E5E95F0DB2588DD0BC808E610B0E63`. Two explicitly historical reconciliation cases are excluded from the normal suite, not counted as passing or skipped. The callback delegates the actual SQLite repository result before changing the caller request; it does not fake rows or claim SQLite provides asynchronous network I/O. Every case verifies original native IDs and unchanged database/WAL bytes, and uses the fixed owned fixture/intent/baseline fences. Earlier 1,530 evidence remains its separate source cohort. Final fixture database/WAL/SHM, intent and baseline are absent. Ordinary child-role persistence/publication still needs independent follow-up; these fixes do not certify that contract or full V2.
+
+The first snapshot attempt stopped on the count defect BEFORE query evaluation:1metadata failure+23fixture fences, NOT24query races. Its one committed synthetic row was hash-fenced/read-only inspected and the exact owned database retired after a compact proof. Actual24query reds were obtained only after the count fix. Original reports and resource lifecycle are preserved in [the ledger](ENVIRONMENT_INVENTORY.md). No hosted request, dependency restore, download or duplicate environment was used.
+
 ## Scoped graph privacy and ordinary-save admission — 25 October
 
 Real SQLite tests reproduced two independent defects:

@@ -9,6 +9,43 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public sealed class SQLiteScopedGraphReconciliation
 {
     [Fact][Trait("Category","Reconciliation")]
+    public async Task InspectOriginalSavedCountAdmissionBeforeOwnedTeardown()
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1")))root=root.Parent;
+        Assert.NotNull(root);var work=Path.Combine(root!.FullName,"TestResults/SQLiteCurrent");
+        using var lease=new FileStream(Path.Combine(work,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var db=Path.Combine(work,"integration-current.db");var intent=Path.Combine(work,"scoped-visibility.pending.json");var report=Path.Combine(work,"query-snapshot-red.trx");
+        static string Hash(byte[] bytes)=>Convert.ToHexString(SHA256.HashData(bytes));
+        Assert.Equal("BB350744F552BEC3AAE304111CFAEF30C0CCABE733795252A160CE067F703E47",Hash(await File.ReadAllBytesAsync(db)));
+        Assert.Equal("E9572E7791BE27A0AD53D682DC4F886D17EB0188040C7F80F8C52E51BE11EDA5",Hash(await File.ReadAllBytesAsync(intent)));
+        Assert.Equal("DA36A6F9733463F68A621EC04AED4867D2785E89C8E01A24FC1D171BE28C451C",Hash(await File.ReadAllBytesAsync(report)));
+        var xml=System.Xml.Linq.XDocument.Load(report);System.Xml.Linq.XNamespace ns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010";
+        var errors=xml.Descendants(ns+"Message").Select(value=>value.Value).ToArray();
+        Assert.Single(errors.Where(value=>value.Contains("Expected saved.SavedCount to be 1, but found 0")));
+        Assert.Equal(23,errors.Count(value=>value.Contains("Existing fixture DB/intent requires inspection")));
+        using var pending=JsonDocument.Parse(await File.ReadAllBytesAsync(intent));
+        var owner=pending.RootElement.GetProperty("owner").GetGuid();var ids=pending.RootElement.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
+        Assert.Equal(5,ids.Length);Assert.Equal("before-owned-query-snapshot-native-writes",pending.RootElement.GetProperty("state").GetString());
+        object observation;
+        using(var native=new DataContext($"Data Source={db};Mode=ReadOnly;Pooling=False")){
+            var rows=native.Holons.AsNoTracking().Select(row=>new{row.Id,row.Name,row.Description,row.Version,row.CreatedByAvatarId,row.ParentHolonId,row.PersistentValueJson}).ToArray();
+            Assert.Single(rows);var row=rows[0];Assert.Equal(ids[0],Guid.Parse(row.Id));Assert.Equal(owner,Guid.Parse(row.CreatedByAvatarId));
+            Assert.Equal("oak",row.Name);Assert.Equal("other",row.Description);Assert.Equal(3,row.Version);Assert.NotEqual(Guid.Empty,Guid.Parse(row.ParentHolonId));
+            Assert.Equal(0,native.Avatars.Count());Assert.Equal(0,native.AvatarDetails.Count());
+            observation=new{row.Id,row.Name,row.Version,row.CreatedByAvatarId,row.ParentHolonId,persistentValueSha256=Hash(System.Text.Encoding.UTF8.GetBytes(row.PersistentValueJson))};
+        }
+        Assert.False(File.Exists(db+"-wal"));Assert.False(File.Exists(db+"-shm"));
+        Assert.Equal("BB350744F552BEC3AAE304111CFAEF30C0CCABE733795252A160CE067F703E47",Hash(await File.ReadAllBytesAsync(db)));
+        Assert.Equal("E9572E7791BE27A0AD53D682DC4F886D17EB0188040C7F80F8C52E51BE11EDA5",Hash(await File.ReadAllBytesAsync(intent)));
+        await using(var file=new FileStream(Path.Combine(work,"query-snapshot-savedcount-original-reconciled.json"),FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough)){
+            await JsonSerializer.SerializeAsync(file,new{state="original-successful-native-row-reconciled",reportedSavedCount=0,observedNativeCount=1,observation,noReplay=true,readOnly=true});file.Flush(true);
+        }
+        File.Delete(db);Assert.False(File.Exists(db));File.Delete(intent);Assert.False(File.Exists(intent));
+        Assert.Equal("DA36A6F9733463F68A621EC04AED4867D2785E89C8E01A24FC1D171BE28C451C",Hash(await File.ReadAllBytesAsync(report)));
+    }
+
+    [Fact][Trait("Category","Reconciliation")]
     public async Task InspectOriginalAcceptedPartialSaveBeforeOwnedTeardown()
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
