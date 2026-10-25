@@ -47,6 +47,12 @@ Joins, composition requiring post-window subqueries, federated global cursors, b
 ## Partial typed child roles
 
 Type-filtered loads now hydrate registered child-role collections with the selected typed members. Persisted role order and the full stored membership remain intact; omitted members are not passed to factories. Registered factories receive admitted/decrypted metadata before tracking. A partial view supports root-only edits (`saveChildren: false`); local AcceptChanges cannot grant permission to replace hidden or unloaded membership.
+The same protection applies to direct ordinary `SaveHolon` and `SaveHolons`
+provider calls, both synchronous and asynchronous, on MongoDB, SQLite and Neo4j.
+Keep `saveChildren: false` when editing a filtered or depth-limited view. To save
+child membership, first load the complete intended selection through the supported
+loading API. Copying `ChildRoleManifestJson` from another object does not grant
+observation authority; let loading and successful saves maintain that state.
 
 For trusted custom materializers, `HolonChildRoleHydration.ApplySelectedView(owner, fullStoredManifest, selectedIds, resolveSelected)` explicitly hydrates a partial view. Supply exact selected IDs; a missing selected record is an error, not an empty role. Keep the owner unpublished until success and discard it after any failure. This method does not authorize the selected data or read storage. The owner must retain its full `ChildRoleManifestJson` observation before `ApplySelectedView`; the API rejects a missing observation before factories or callbacks. `ApplyFullySelected` remains the complete-membership operation. Visibility-scoped graph composition now requires GraphReadAccess capability at planning and actual-adapter admission; Mongo, SQLite and Neo declare it. HTTP uses explicit bounded graph DTOs. Native child predicates and detached/typed policy checks are implemented; full stored relationship observations remain internal state and must not be serialized as public graph output.
 

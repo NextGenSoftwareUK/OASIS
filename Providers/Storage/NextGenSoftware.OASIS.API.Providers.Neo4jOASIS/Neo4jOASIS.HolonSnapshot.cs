@@ -299,6 +299,18 @@ public partial class Neo4jOASIS
                                 sources[index].IsNewHolon=false;sources[index].ParentHolonId=staged[index].ParentHolonId;
                                 if(archiveVersions){sources[index].Version=staged[index].Version;sources[index].VersionId=staged[index].VersionId;sources[index].PreviousVersionId=staged[index].PreviousVersionId;}
                             }
+                            // All identities and parent edges must be visible before
+                            // acknowledging any captured logical collection. Manager
+                            // transport records retain their private manager owner.
+                            foreach(var node in plan.Nodes)
+                            {
+                                if(HolonChangeTracking.TryGetPreparedChildSelection(node.Source,out _))continue;
+                                if(node.Source is Holon owner)
+                                {
+                                    owner.ChildRoleManifestJson=((Holon)acknowledged[node.Snapshot.Id]).ChildRoleManifestJson;
+                                    HolonChildRolePersistence.PublishAcknowledgedSelection(node);
+                                }
+                            }
                         }
                     }
                 }
