@@ -16,7 +16,7 @@ public partial class HolonRepository
         Func<BsonDocument, TValue> decode, TValue empty, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (command.IsEmpty) return empty;
+        if (command.IsEmpty && !command.RequiresMembership && !command.HasTraversalEnvelope) return empty;
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         var elapsed = System.Diagnostics.Stopwatch.StartNew();

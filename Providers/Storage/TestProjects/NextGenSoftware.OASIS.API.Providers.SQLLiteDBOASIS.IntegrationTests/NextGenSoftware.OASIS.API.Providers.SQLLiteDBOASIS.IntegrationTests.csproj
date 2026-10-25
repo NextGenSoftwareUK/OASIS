@@ -35,4 +35,5 @@
     <None Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core.UnitTests\Fixtures\CqlMinMaxVectors.json" Link="Fixtures\CqlMinMaxVectors.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup><None Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlNumericAggregateVectors.json" Link="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlEmptyWindowAcceptance.cs" Link="Fixtures/CqlEmptyWindowAcceptance.cs" /></ItemGroup>
 </Project>

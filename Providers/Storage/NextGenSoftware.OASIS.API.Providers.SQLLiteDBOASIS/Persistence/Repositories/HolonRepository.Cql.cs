@@ -39,7 +39,7 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$limit", fetch));
             translator.Parameters.Add(new SqliteParameter("$offset",plan.Query.Offset));
             cancellationToken.ThrowIfCancellationRequested();
-            if(fetch==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
             // native hook/limit. Nested EF enumeration uses the same logical scope.
             using var exclusive=_dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -50,18 +50,19 @@ public partial class HolonRepository
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
                 using var traversal=translator.HasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
-                if ((plan.Query.GraphOptions != null || translator.HasTraversal) && _dbContext.Database.CurrentTransaction != null &&
+                if ((plan.Query.GraphOptions != null || translator.HasRelationship) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
-                using var graphTransaction = (plan.Query.GraphOptions != null || translator.HasTraversal) && _dbContext.Database.CurrentTransaction == null
+                using var graphTransaction = (plan.Query.GraphOptions != null || translator.HasRelationship) && _dbContext.Database.CurrentTransaction == null
                     ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
                 using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
                 try
                 {
                     budget.Check();
+                    await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                     var query=_dbContext.Holons.FromSqlRaw("SELECT * FROM Holon WHERE "+predicate+" ORDER BY "+ordering+" LIMIT $limit OFFSET $offset",
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
@@ -410,5 +411,16 @@ public partial class HolonRepository
             var comparisonSql = "COALESCE((" + column + " " + operation + " " + parameter + "), 0)";
             return comparison.Operator == CosmicQueryComparisonOperator.NotEqual ? "(NOT " + comparisonSql + ")" : "(" + comparisonSql + ")";
         }
+    }
+    // Relationship validation belongs outside every result window. Share the
+    // existing native scope read across rows, projections, scalars and groups.
+    private async Task ValidateCqlRelationshipScopeAsync(CqlSqlTranslator translator, string predicate,
+        SqliteCqlReadBudget budget, SqliteCqlTraversalGuard traversal, CancellationToken cancellationToken)
+    {
+        if (!translator.HasRelationship) return;
+        await _dbContext.Database.SqlQueryRaw<long>("SELECT count(*) AS Value FROM Holon WHERE " + predicate,
+            translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+        budget.Check();
+        traversal.Check();
     }
 }

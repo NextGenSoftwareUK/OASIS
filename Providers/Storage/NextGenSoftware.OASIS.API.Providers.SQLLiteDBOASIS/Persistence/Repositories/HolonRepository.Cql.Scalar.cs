@@ -31,7 +31,9 @@ public partial class HolonRepository
             cancellationToken.ThrowIfCancellationRequested();
             var selected = plan.Query.Selector != null;
             var numeric = plan.Query.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
-            if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
+            // Empty output cannot suppress protected relationship validation.
+            // Plain empty queries still avoid opening an unnecessary connection.
+            if (source.Limit == 0 && !translator.HasRelationship) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
 
             // Count cardinality is independent of ordering. Count the complete
@@ -66,12 +68,7 @@ public partial class HolonRepository
                     OASISResult<TResult> result;
                     if (selected)
                     {
-                        if (translator.HasRelationship)
-                        {
-                            await _dbContext.Database.SqlQueryRaw<long>("SELECT count(*) AS Value FROM Holon WHERE " + predicate,
-                                translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
-                            budget.Check(); traversal.Check();
-                        }
+                        await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                         using var command = connection.CreateCommand();
                         command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
                         command.CommandText = sql;

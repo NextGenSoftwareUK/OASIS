@@ -20,7 +20,7 @@ public partial class HolonRepository
         CosmicQueryReadAccess readAccess)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if(command.FetchCount==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+        if(command.FetchCount==0 && !command.RequiresMembership && !command.HasTraversalEnvelope)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         var elapsed=Stopwatch.StartNew();

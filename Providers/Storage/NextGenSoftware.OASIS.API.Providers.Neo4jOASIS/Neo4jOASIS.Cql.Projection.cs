@@ -57,7 +57,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             translator.Parameters.Add("projectionLimit", fetch); translator.Parameters.Add("projectionOffset", source.Offset);
             translator.Parameters.Add("projectionBytes", maximumPayloadBytes);
             cancellationToken.ThrowIfCancellationRequested();
-            if (fetch == 0) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
             if (!IsProviderActivated || _driver == null) return ProjectionCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             // Invalid ownership/traversal branches remain outside the page and

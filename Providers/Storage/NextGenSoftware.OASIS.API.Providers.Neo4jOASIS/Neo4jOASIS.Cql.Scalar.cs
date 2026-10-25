@@ -40,8 +40,11 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             var numeric = plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average;
             var selected = plan.Query.Selector != null;
-            if (source.Limit == 0 && numeric) return CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
-            if (source.Limit == 0) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
+            // An empty result window cannot suppress protected relationship
+            // validation. Only an unprotected empty query can avoid native I/O.
+            var plainEmpty = source.Limit == 0 && !compiled.Translator.HasRelationship;
+            if (plainEmpty && numeric) return CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
+            if (plainEmpty) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
                 : CosmicScalarResults.FromCount(plan.Query, 0);
             if (!IsProviderActivated || _driver == null) return ScalarCqlFailure<TResult>("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
