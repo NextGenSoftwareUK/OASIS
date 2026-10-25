@@ -182,7 +182,7 @@ public class RetainedSolidPodTests
         var key=ProtectedData.Unprotect(await File.ReadAllBytesAsync(Environment.GetEnvironmentVariable("OASIS_SOLID_NATIVE_KEY_PATH")!),null,DataProtectionScope.CurrentUser);
         try{
             using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(10)};
-            using var provider=new SOLIDOASIS(root,"",key);
+            using var provider=new SOLIDOASIS(root,"",key){IsVersionControlEnabled=true};
             var owner=Guid.NewGuid();
             var grand=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-grand",Version=9,CreatedByAvatarId=owner};
             var child=new Holon{Id=Guid.NewGuid(),Name="native-private-graph-child",Version=2,CreatedByAvatarId=owner,Children=new List<IHolon>{grand}};
@@ -233,6 +233,19 @@ public class RetainedSolidPodTests
             var exported=synchronous?provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
             Assert.False(exported.IsError,exported.Exception?.ToString());Assert.Equal(3,exported.Result.Count());
             Assert.Contains(exported.Result,row=>row.Id==child.Id&&row.Name==child.Name);
+            var beforeExports=new Dictionary<Uri,string>();foreach(var uri in resources)beforeExports.Add(uri,await client.GetStringAsync(uri));
+            var allVersions=synchronous?provider.ExportAll(-1):await provider.ExportAllAsync(-1);
+            var scopedVersions=synchronous?provider.ExportAllDataForAvatarById(owner,-1):await provider.ExportAllDataForAvatarByIdAsync(owner,-1);
+            var historical=synchronous?provider.ExportAllDataForAvatarById(owner,5):await provider.ExportAllDataForAvatarByIdAsync(owner,5);
+            Assert.False(allVersions.IsError,allVersions.Exception?.ToString());Assert.False(scopedVersions.IsError,scopedVersions.Exception?.ToString());
+            var expectedVersions=new[]{(graph.Id,5),(graph.Id,6),(graph.Id,7),(child.Id,2),(child.Id,3),(grand.Id,9),(grand.Id,10)};
+            foreach(var result in new[]{allVersions,scopedVersions}){
+                Assert.True(result.IsLoaded);Assert.Equal(expectedVersions.Length,result.LoadedCount);
+                Assert.Equal(expectedVersions.OrderBy(pair=>pair.Item1).ThenBy(pair=>pair.Item2),result.Result.Select(row=>(row.Id,row.Version)).OrderBy(pair=>pair.Id).ThenBy(pair=>pair.Version));
+                Assert.All(result.Result,row=>Assert.Equal(owner,row.CreatedByAvatarId));
+            }
+            Assert.False(historical.IsError,historical.Exception?.ToString());Assert.Equal(graph.Id,Assert.Single(historical.Result).Id);Assert.Equal(5,historical.Result.Single().Version);
+            foreach(var item in beforeExports)Assert.Equal(item.Value,await client.GetStringAsync(item.Key));
             var childAfterImport=await client.GetStringAsync(childResource);
             ((NamedGraphOwner)graph).Components.Clear();
             var unlinked=synchronous?provider.SaveHolon(graph):await provider.SaveHolonAsync(graph);
