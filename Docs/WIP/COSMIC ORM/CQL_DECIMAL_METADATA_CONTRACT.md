@@ -2,8 +2,8 @@
 
 24 October2026. Core codec/capture verified; SQLite implementation has passed its
 full1,459-case native gate, including24 Decimal cases. MongoDB passes228 native
-CQL and483 unit cases, including23/5 new cases. Neo4j metadata Decimal and live
-wire/examples remain open. This does not imply Decimal Sum/Average input
+CQL and483 unit cases, including23/5 new cases. Neo4j passes217 native CQL/455
+units, including12/2 new cases. Live wire/examples remain open. This does not imply Decimal Sum/Average input
 enrollment; the existing numeric aggregate input contract stays Int32/Int64.
 
 ## One exact value domain
@@ -85,3 +85,22 @@ TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx,
 decimal-unit-current.trx and decimal-identities-current.json; final log:
 TestResults/CosmicCqlDemo/decimal-mongo-full.log. Owned fixture/services cleaned;
 no new runtime/install/restore. Neo4j and wire/demo Decimal enrollment remain open.
+
+## Neo4j native implementation and verification
+
+The native translator derives the Core58-character ordinal key from schema3 JSON
+number text. Singleton Cypher comprehensions bind intermediate digit/scale values
+without changing row cardinality. Leading/trailing zeros and exponent notation
+normalize before the96-bit coefficient and scale<=28 checks. Exponent arithmetic
+is fenced against native integer overflow; arbitrary-exponent zero is canonical.
+No numeric value is converted through binary64. Projection/group/extrema results
+decode through the same Core canonical-key decoder. Twelve new native cases
+include2,067 direct kernel vectors and native selection/domain/grouping/ordering;
+two unit tests check exact bindings and strict detached decoding. Actual18316
+terminal0 passes the full217 native CQL and455 unit cases, zero skips. Source
+snapshots are unchanged; native/unit consumers match CoreC65FBD5F, Shared099240E3
+and Neo5CC14698. Evidence: TestResults/Neo4jCurrent/neo4j-cql-native-current.trx,
+decimal-unit-current.trx and decimal-identities-current.json; log:
+TestResults/CosmicCqlDemo/decimal-neo-full.log. Owned retained service is exited;
+current fixture teardown completed, historical reviewed evidence is preserved.
+HTTP/demo enrollment remains open.

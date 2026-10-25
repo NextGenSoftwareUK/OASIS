@@ -50,6 +50,11 @@ internal sealed partial class NeoCqlTranslator
             var unsigned = NeoCqlUInt64.Operand(kind, value, Bind);
             guard = unsigned.Guard; value = unsigned.Value;
         }
+        else if (type == typeof(decimal))
+        {
+            var number = NeoCqlDecimal.Operand(kind, value, Bind);
+            guard = number.Guard; value = number.Value;
+        }
         else if (type == typeof(bool)) guard = kind + "='boolean'";
         else if (type == typeof(Guid))
         {
@@ -83,7 +88,9 @@ internal sealed partial class NeoCqlTranslator
         _ => throw new NotSupportedException("Neo4j CQL literal domain is unsupported.") };
     private static object Literal(CosmicQueryLiteral literal, Type declared)
         => (Nullable.GetUnderlyingType(declared) ?? declared) == typeof(ulong)
-            ? NeoCqlUInt64.Literal(literal.Value) : Literal(literal);
+            ? NeoCqlUInt64.Literal(literal.Value)
+            : (Nullable.GetUnderlyingType(declared) ?? declared) == typeof(decimal)
+                ? NeoCqlDecimal.Literal(literal.Value) : Literal(literal);
     private static string Total(string predicate) => "coalesce((" + predicate + "),false)";
 
     internal IReadOnlyList<(string Expression,bool Descending)> TranslateOrdering(IReadOnlyList<CosmicQueryOrdering> orderings)
