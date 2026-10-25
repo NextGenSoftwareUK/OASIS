@@ -19,10 +19,25 @@ public sealed partial class OracleNativeAcceptanceTests
     private sealed class KarmaProjectionOwner(string connection):OracleDBOASIS(connection)
     {
         public Func<IHolon,Task>? BeforeHolonSave;
+        public Guid LedgerId;
+        public bool LedgerAcknowledged;
+        public bool GuardActive;
+        public int PostCommitLedgerReads;
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
+        {
+            if(id==LedgerId&&LedgerAcknowledged&&GuardActive){
+                PostCommitLedgerReads++;
+                return Task.FromResult(new OASISResult<IHolon>{IsError=true,Message="Owned postcommit ledger-read trap; never replay the original award.",Exception=new IOException("owned postcommit read outage")});
+            }
+            return base.LoadHolonAsync(id,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version);
+        }
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
         {
             if(BeforeHolonSave!=null)await BeforeHolonSave(holon);
-            return await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+            var result=await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+            // Empty settings bootstrap is not an award/deduction acknowledgement.
+            if(holon.Id==LedgerId&&holon.MetaData?.ContainsKey("lastKarmaAmount")==true&&!result.IsError&&result.IsSaved)LedgerAcknowledged=true;
+            return result;
         }
     }
 
@@ -72,7 +87,7 @@ public sealed partial class OracleNativeAcceptanceTests
         var journal=Path.Combine(work,"v2-karma-manager.pending.json");
         Assert.IsFalse(File.Exists(journal));var id=Guid.NewGuid();var name="owned-native-karma-"+id.ToString("N");
         var ledgerId=new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"settings:{id}:karma")));
-        var provider=new KarmaProjectionOwner(connection){IsVersionControlEnabled=true};
+        var provider=new KarmaProjectionOwner(connection){IsVersionControlEnabled=true,LedgerId=ledgerId};
         await using var native=new OracleConnection(connection);await native.OpenAsync();
         await using(var privileges=new OracleCommand("SELECT COUNT(*) FROM SESSION_PRIVS WHERE PRIVILEGE<>'CREATE SESSION'",native))
             Assert.AreEqual(0,Convert.ToInt32(await privileges.ExecuteScalarAsync()));
@@ -118,7 +133,12 @@ public sealed partial class OracleNativeAcceptanceTests
             }
             var totals=new long[]{500,1000,500,0};
             for(var stage=0;stage<4;stage++){
-                var result=await Mutate(stage>=2,stage%2==1);Assert.IsNotNull(result,"Original manager outcome missing; preserve journal, no replay.");
+                provider.LedgerAcknowledged=false; // Admit the NEXT operation's precommit authoritative reads.
+                provider.GuardActive=true;
+                var result=await Mutate(stage>=2,stage%2==1);
+                provider.GuardActive=false; // Independent post-operation verification reads remain authoritative.
+                Assert.IsNotNull(result,"Original manager outcome missing; preserve journal, no replay.");
+                Assert.AreEqual(0,provider.PostCommitLedgerReads,"Use this operation's real acknowledged total, not a second ledger query.");
                 Assert.AreEqual(id,result.AvatarId);Assert.AreEqual(ProviderType.OracleDBOASIS,result.Provider.Value);Assert.AreEqual(totals[stage],result.TotalKarma);
                 var detail=await provider.LoadAvatarDetailAsync(id);Assert.IsFalse(detail.IsError,detail.Message);
                 Assert.AreEqual(totals[stage],detail.Result.Karma);Assert.AreEqual(222L,detail.Result.XP);Assert.AreEqual(stage+1,detail.Result.KarmaAkashicRecords.Count);
@@ -141,9 +161,13 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.AreSame(provider,providers.CurrentStorageProvider);
                 manager=Manager(); // Fresh domain manager must recover durable state, not its predecessor's cache.
             }
+            provider.LedgerAcknowledged=false;
+            provider.GuardActive=true;
             var defaultAward=synchronous?manager.AddKarmaToAvatar(id,KarmaTypePositive.Walking100Steps,KarmaSourceType.Game,"owned","native Oracle default").Result
                 :await manager.AddKarmaToAvatarAsync(id,KarmaTypePositive.Walking100Steps,KarmaSourceType.Game,"owned","native Oracle default");
+            provider.GuardActive=false;
             Assert.IsNotNull(defaultAward);Assert.AreEqual(ProviderType.OracleDBOASIS,defaultAward.Provider.Value);Assert.AreEqual(10L,defaultAward.TotalKarma);
+            Assert.AreEqual(0,provider.PostCommitLedgerReads);
             var finalDetail=await provider.LoadAvatarDetailAsync(id);Assert.IsFalse(finalDetail.IsError,finalDetail.Message);
             Assert.AreEqual(10L,finalDetail.Result.Karma);Assert.AreEqual(222L,finalDetail.Result.XP);Assert.AreEqual(5,finalDetail.Result.KarmaAkashicRecords.Count);
             Assert.AreSame(provider,providers.CurrentStorageProvider);
