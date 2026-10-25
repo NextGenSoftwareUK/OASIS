@@ -50,6 +50,11 @@ internal sealed partial class NeoCqlTranslator
             var unsigned = NeoCqlUInt64.Operand(kind, value, Bind);
             guard = unsigned.Guard; value = unsigned.Value;
         }
+        else if (type == typeof(float))
+        {
+            var number = NeoCqlSingle.Operand(kind, value, Bind);
+            guard = number.Guard; value = number.Value;
+        }
         else if (type == typeof(double))
         {
             var number = NeoCqlDouble.Operand(kind, value, Bind);

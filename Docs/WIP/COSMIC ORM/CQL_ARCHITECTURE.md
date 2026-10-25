@@ -597,3 +597,12 @@ value checks. Projection envelopes preserve raw missing/null state and reject
 invalid conversions. The detached decoder accepts only finite Double packets
 that equal an exact widened Single. Native281/unit494 acceptance verifies this
 contract; see CQL_FLOATING_SCALAR_CONTRACT.md for evidence and remaining scope.
+
+### Neo4j Single normalization ownership
+
+Schema3 preserves original JSON number lexemes and integral values. The native
+Single operand compares those exact decimal values with binary32 midpoints
+before widening the chosen finite value. Predicate/order/projection/grouped
+owners use that declared-domain operand. Detached decoding requires an exact
+widened Single packet, avoiding result-side rounding. Final249native/459unit
+cohort certifies the integration; Single transport remains separately pending.

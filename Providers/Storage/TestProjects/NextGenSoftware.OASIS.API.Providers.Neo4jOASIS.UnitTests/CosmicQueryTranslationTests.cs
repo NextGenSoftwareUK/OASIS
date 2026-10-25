@@ -50,7 +50,7 @@ public class CosmicQueryTranslationTests
     [TestMethod]
     public void UnsupportedDomainsRejectDuringSharedAdmission()
     {
-        var built = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<float>(h, "amount") > 1f);
+        var built = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<ConsoleColor>(h, "amount") == ConsoleColor.Red);
         Assert.IsFalse(built.IsError, built.Message);
         Assert.IsTrue(NeoCqlContract.Capabilities.Admit(built.Result).IsError);
     }
