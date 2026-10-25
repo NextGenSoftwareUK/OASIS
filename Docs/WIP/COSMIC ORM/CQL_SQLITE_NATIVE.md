@@ -173,3 +173,76 @@ The compiler remains internal and no join capability is advertised. The next
 required work is native serializable transaction ownership, source/proof decoding,
 all seven byte/work limits and graph/traversal checks before provider enrollment.
 MongoDB/Neo4j implementation and join transport/demos remain open.
+
+## SQLite native flat-join owner — 25 October 2026
+
+`SQLLiteDBOASIS` now implements `ICosmicQueryJoinStorageProvider`. Its independent
+join profile admits inner/left flat sources and the existing exact scalar
+key/output domains. Graph-source and explicit graph-snapshot enrollment remain
+open; they are rejected by capability admission. Every flat join still executes
+both sources and matching under one serializable native transaction, or reuses a
+serializable caller-owned transaction without committing or disposing it.
+
+The native owner translates both sources before opening the connection. It owns
+the EF concurrency scope, native cancellation/deadline/length/progress budget and
+protected relationship guard. Required relationship validation runs outside the
+source pages. It reads complete bounded source proofs before issuing native pair
+matching, then decodes pairs by their native source positions. It does not scan
+entities or calculate pair membership in C#. All three statements use the same
+snapshot, and outer SQL ordering explicitly preserves source/pair sequence.
+
+Native window counts report source and bounded pair cardinality. Each input,
+pair/output count and left/right/output byte allowance rejects overflow, including
+zero remaining allowances. An invalid scalar in an unmatched source still fails
+before publication. Complete raw packets return through generic HolonManager's
+existing admission/durable-attempt owner. Core validates every provider packet
+before any selected DTO constructor runs.
+
+### Ordering presence proofs
+
+`CosmicJoinInputRow.OrderingStates` freezes one state for every ordering value:
+0 means absent metadata, 1 explicit null, 2 a valid scalar. The existing constructor
+for plain values represents null as explicit null; native metadata ordering that
+observes absence must use the explicit state-array overload. Buffers are copied.
+Core checks state/value/path agreement, repeated-path presence and snapshot
+presence agreement. It compares presence buckets before values, respecting each
+source direction and the ascending identity tie-break. This preserves the
+published CQL distinction between missing and explicit null through source pages.
+Absent sort values are legal even for non-nullable path declarations; required
+key and selected-value reads retain their required-domain checks.
+
+### Remaining join acceptance
+
+Provider-native graph-source validation, interruption/deadline and read-only
+boundary expansion, MongoDB/Neo4j native joins, HTTP requests, executable multi-store
+join demos, post-projection/window composition and distributed/federated joins
+remain open. Flat SQLite enrollment does not close the full join milestone or
+CQL completion roadmap. Verification counts follow separately after the final gate.
+
+## Verified native SQLite flat joins — 25 October 2026
+
+Final leased certification passes both Core targets and full **Core 2,734**,
+normal **SQLite integration 1,615**, and **SQLite unit 46**, zero failures/skips.
+The native integration suite includes **29 new join cases**: inner/left fanout,
+all seven remaining budgets with fresh reuse, malformed/missing unmatched input,
+both-source visibility, cancellation, twelve scalar key domains, composite keys,
+missing/null ordering through independent source pages, and a caller-owned
+snapshot retaining a matching pair after an acknowledged concurrent mutation.
+The caller keeps transaction ownership; a fresh read observes the changed pair.
+Three additional Core cases lock ordering-presence proof ownership/validation.
+
+The original broad integration invocation also selected two historical
+`Category=Reconciliation` tools whose exact old fixtures are absent. That run
+reported 1,614 pass /2 failures; the corrected normal gate explicitly excludes
+that category and passes 1,615/1,615 after the final extra snapshot case. Neither
+historical tool is counted as a skipped acceptance case or a passing regression.
+Evidence: `TestResults/CosmicCqlDemo/sqlite-join-certification.log`,
+`TestResults/CoreCurrent/join-ordering-current.trx`, and
+`TestResults/SQLiteCurrent/sqlite-join-{normal-full,unit}.trx`.
+
+Core producer and native consumer DLL SHA256 both equal
+`639CB2A585F74AD54282500A0751783F2D09C0AA1E018F009A09E0CBFA904E13`.
+The fixed SQLite database/WAL/SHM and pending fixture markers are absent after
+terminal teardown. No dependencies or new environment were installed/restored.
+This publishes SQLite SDK flat joins only; the remaining join gates above remain
+open. Existing MongoDB/Neo4j suites are separate earlier cohorts.

@@ -2565,3 +2565,24 @@ is now installed by the host. One later test fixture selected a null-key right
 row ahead of coffee; made its intended filtered window explicit. No production
 fallback or weaker guard introduced. Free C: 69,108,912,128 bytes measured before
 test build; no install/restore/download. Next snapshot/proof owner remains pending.
+
+SQLite join snapshot slice: existing SDK10.0.401/cache/provider+integration bin/obj and fixed TestResults/SQLiteCurrent/integration-current.db reused. Fixture constructor takes environment.lock and refuses preexisting DB or pending manifest; dispose removes exact DB/WAL/SHM only after provider teardown. No download/install/restore. New selected integration tests use normal provider schema. Leased producer/consumer build+tests planned; retain fixed sqlite-join-native.log/TRX evidence; sizes unmeasured. Existing shared outputs preserved.
+
+Join ordering proof correction: existing Core/provider/unit/integration outputs reused under one global build lease. Explicit missing/null/value ordering states preserve original CQL source-window semantics; no client sort. Native 25-case gate already passed before this correction; expanded Core and full SQLite native regressions now planned. Same fixed logs/TRX reused, no new environment or dependencies. Previous native failures were static capability initialization order (fixed with dependent holder) and unsupported mutable captured row.Id in a test (captured scalar id instead); no store failure fixture retained by the normal completed teardown.
+
+Actual56460 terminal1: dual Core build and full Core2734 pass; broad SQLite1616 executed/1614pass/2 historical Category=Reconciliation helpers failed on missing original reviewed fixtures. No acceptance-case failures; do not claim that command green. Normal regression rerun explicitly excludes reconciliation category. Ordering proof audit additionally preserves absent non-nullable sort buckets and explicit outer SQL ordering; expanded native caller-owned snapshot/concurrent acknowledged write control uses existing fixed DB in WAL mode, no duplicate DB. Fixture teardown remains exact and pending manifest fenced. Same environment/lease/bounded outputs reused.
+
+Actual82792 terminal0: Core2734/normal SQLite1615/unit46 pass0skip; both Core
+TFMs build, provider/native/unit consumers built under the one global lease.
+Historical reconciliation helpers were explicitly excluded from the normal gate,
+not silently skipped. No source changed during the final gate. Core producer and
+integration consumer SHA256639CB2A585F74AD54282500A0751783F2D09C0AA1E018F009A09E0CBFA904E13
+match. After terminal disposal, fixed integration-current.db/WAL/SHM and pending
+markers absent. Reusable SDK/cache/bin/obj retained shared/active; no new install,
+restore/download or retained DB. C: free after=69,111,783,424 bytes; prior measured
+69,108,912,128 bytes. Fixed compact reports retained, sizes recorded separately
+below; regenerate through the same leased bounded no-restore build/test batch.
+Short publication lease protects Core/parent SourceLink Git state; scoped commit
+preserves unrelated Mongo-Test-Traffic documents and peer save/import changes.
+
+Retained final evidence sizes: CoreCurrent/join-ordering-current.trx 4,386,158 bytes; SQLiteCurrent/sqlite-join-normal-full.trx 2,970,228 bytes; SQLiteCurrent/sqlite-join-unit.trx 70,289 bytes; CosmicCqlDemo/sqlite-join-certification.log 350,846 bytes. Reusable fixed paths, no per-run directory. Required evidence retained; regenerable with recorded leased build/test batch.

@@ -1035,3 +1035,31 @@ The compiler remains internal and no join capability is advertised. The next
 required work is native serializable transaction ownership, source/proof decoding,
 all seven byte/work limits and graph/traversal checks before provider enrollment.
 MongoDB/Neo4j implementation and join transport/demos remain open.
+
+## Verified native SQLite flat joins — 25 October 2026
+
+Final leased certification passes both Core targets and full **Core 2,734**,
+normal **SQLite integration 1,615**, and **SQLite unit 46**, zero failures/skips.
+The native integration suite includes **29 new join cases**: inner/left fanout,
+all seven remaining budgets with fresh reuse, malformed/missing unmatched input,
+both-source visibility, cancellation, twelve scalar key domains, composite keys,
+missing/null ordering through independent source pages, and a caller-owned
+snapshot retaining a matching pair after an acknowledged concurrent mutation.
+The caller keeps transaction ownership; a fresh read observes the changed pair.
+Three additional Core cases lock ordering-presence proof ownership/validation.
+
+The original broad integration invocation also selected two historical
+`Category=Reconciliation` tools whose exact old fixtures are absent. That run
+reported 1,614 pass /2 failures; the corrected normal gate explicitly excludes
+that category and passes 1,615/1,615 after the final extra snapshot case. Neither
+historical tool is counted as a skipped acceptance case or a passing regression.
+Evidence: `TestResults/CosmicCqlDemo/sqlite-join-certification.log`,
+`TestResults/CoreCurrent/join-ordering-current.trx`, and
+`TestResults/SQLiteCurrent/sqlite-join-{normal-full,unit}.trx`.
+
+Core producer and native consumer DLL SHA256 both equal
+`639CB2A585F74AD54282500A0751783F2D09C0AA1E018F009A09E0CBFA904E13`.
+The fixed SQLite database/WAL/SHM and pending fixture markers are absent after
+terminal teardown. No dependencies or new environment were installed/restored.
+This publishes SQLite SDK flat joins only; the remaining join gates above remain
+open. Existing MongoDB/Neo4j suites are separate earlier cohorts.
