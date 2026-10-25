@@ -62,7 +62,8 @@ Required semantics and acceptance are defined in the
 [native join implementation contract](CQL_JOIN_CONTRACT.md). MongoDB, SQLite and Neo4j SDK flat joins are available; the broader join
 acceptance below remains open.
 
-- [ ] Add bounded same-provider inner/left joins with defined key domains, null semantics and cardinality limits.
+- [x] Add bounded same-provider flat inner/left joins with defined key domains, null semantics and cardinality limits; native SDK, signed HTTP and93/93 annotated demos now verified on all three providers.
+- [ ] Complete remaining expanded join source/consistency/policy certification and any declared graph-source enrollment.
 - [ ] Implement selected post-projection/post-window composition through native subqueries, preserving operation order.
 - [ ] Cross-provider joins require an explicit bounded distributed plan/accounting contract. No implicit client scan or fallback evaluator.
 
@@ -1290,3 +1291,27 @@ no additional producer changes followed the signed three-provider HTTP gate.
 Reports: `TestResults/SubscriptionUsageCurrent/join-null-order-unit.trx` and
 `TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`.
 Interactive join examples and the broader roadmap remain open.
+
+## Annotated join demos verified — 25 October 2026
+
+Examples30/31 now demonstrate left/inner joins in the shared C# walkthrough,
+signed HTTP walkthrough, browser presets and generated Swagger. C# uses the
+generic Core/V2 planner/executor on every provider; HTTP binds actor policy to
+both independent sources. Comments explain absence, nullable right outputs,
+exact Int64 values and native matching. Browser presets retain editable,
+indented JSON and separate explanations.
+
+Fresh dedicated native demo passes **93 SDK /93 HTTP**, **288 settled operations
+/283 physical attempts**, joint test1/1 zero skips. Actual generated Swagger
+join route/schema checks pass. Production browser JavaScript and six provider/
+kind presets pass offline; that is request-generation evidence, not rendered
+browser interaction. Standalone demo build passes with zero errors.
+
+Run `Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1` for verification, or add `-Serve`
+and open `http://127.0.0.1:5088/demo` (Swagger at `/swagger`). Use **Finish demo**
+for verified settlement/cleanup. The console transcript is
+`TestResults/CosmicCqlDemo/v1-walkthrough.txt`; summary `v1-demo-result.json`;
+log `join-demo-native.log`. The earlier87/87 cohort remains historical.
+
+Owned fixtures are removed and test ports stopped. Broader composition,
+federation, expanded policy/scalar and final certification gates remain open.
