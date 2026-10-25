@@ -1,5 +1,13 @@
 # Oracle client readiness — top priority
 
+## Integrity failures under continuation options — 25 October 2026
+
+The existing native corruption matrix now explicitly exercises both `continueOnError` values for point, all-holon and parent reads, sync/async and current/historical roots. Four corruptions cover canonical/index deletion disagreement (including tombstones), type mismatch and parent mismatch. Export routes have no continuation option and remain single cases rather than inflated duplicates. All **112 integrity cases PASS**, within full **569/569 native PASS, 35s, zero skips**.
+
+No production catch/fallback was added: corruption is an integrity failure, not a recoverable independent-record transport outage. Continuing must not turn corrupt indexed selection into empty/not-found or successful partial output. Each native case independently confirms the original bytes/indexes unchanged, conditionally removes only its exact observed synthetic row, proves absence and then checks the error/zero loaded counts. This does not certify continuation after every SDK transport error or full hosted/API/V2 behavior.
+
+Report `TestResults/OracleCurrent/oracle-native-current.trx`, 916,171 bytes, SHA256 `7F0C0AED4ADA29751FC446FA6FCC0A78F9A113CFE87787E8C598F4596AFC1A93`. Strict Core744/Shared56/provider15/native53 source/PDB and producer-consumer checks passed. Pending journals zero, retained Oracle stopped, port11521 absent. Earlier463 unit and133 OCI results remain distinct cohorts, not rerun/relabelled here. Same reusable environment, no download/restore/new database or deployment.
+
 ## Completion gate recheck — 25 October 2026
 
 Current-source refresh completed after acquiring the existing shared build lease: **521/521 native PASS, 34s, zero skips**. Report `TestResults/OracleCurrent/oracle-native-current.trx`, 838,203 bytes, SHA256 `72BDDA618FBF3787648571CE2BD3BDECE20BE9BAD531C205F18DBE3A78EEC634`. Existing cached Shared/provider/test builds passed; Core 744 and Shared 56 source documents matched their compiled PDBs. No production Oracle change was needed for this refresh. Pending journals are zero, retained database exited 143 without OOM, and loopback port 11521 is no longer listening. This is a fresh local regression result, not a rerun of the separate unit/OCI cohorts or hosted acceptance.
