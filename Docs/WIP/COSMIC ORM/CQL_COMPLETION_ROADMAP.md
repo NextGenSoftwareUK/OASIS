@@ -5,7 +5,7 @@ signed HTTP and annotated31-example/provider demos are implemented on MongoDB,
 SQLite and Neo4j. Latest published demo baseline is `b1c2ae263`.
 
 - Latest separately verified cohorts: Core **2,877** (composition including graph-source admission guard),
-  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **353 native /519 unit**,
+  Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **359 native /519 unit**,
   Neo4j **320 native /492 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **93 SDK /93 HTTP**, **288 settled operations
   /283 attempts**. Six join browser presets pass offline, generated Swagger
@@ -1542,3 +1542,5 @@ Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
 Initial server-error evidence is retained separately. Further composition
 privacy/relationship and outstanding-I/O/deadline controls remain required;
 Neo4j composition and public HTTP/composition demos remain open.
+
+25 October MongoDB composition privacy/interruption certification passes **359/359 native**, zero skips (31 composition controls). Unit checkpoint remains519/519; production unchanged. See [final native evidence and remaining scope](CQL_COMPOSITION_CONTRACT.md). Neo4j composition and public composition transport/demos remain open.
