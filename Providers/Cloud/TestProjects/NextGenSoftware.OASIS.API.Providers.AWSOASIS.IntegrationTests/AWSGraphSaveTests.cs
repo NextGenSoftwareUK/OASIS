@@ -99,7 +99,8 @@ public partial class AWSOASISIntegrationTests
                 root.Children=new List<IHolon> {child};child.Children=new List<IHolon> {leaf};
                 var request=new Core.StorageOperationRequest {Operation="SaveHolon",Payload=root,SaveChildren=true,Recursive=true,PreferredProvider=primary.Value};
                 var saved=synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
-                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);Assert.IsTrue(saved.IsSaved);
+                var diagnostic=$"primary={primary.Value}; {saved.Message}; cause={saved.Exception}";
+                Assert.IsFalse(saved.IsError,diagnostic);Assert.IsFalse(saved.IsWarning,diagnostic);Assert.IsTrue(saved.IsSaved);
                 Assert.AreNotEqual(Guid.Empty,root.Id);Assert.AreNotEqual(Guid.Empty,child.Id);Assert.AreNotEqual(Guid.Empty,leaf.Id);
                 foreach(var store in new IOASISStorageProvider[] {_provider,sqlite})
                 {
