@@ -44,6 +44,22 @@ attempt count must not be conflated. Current positive/negative native evidence
 and pending full regressions are tracked in the
 [empty-window contract](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope).
 
+## Aggregate input domains are independent permissions
+
+`CosmicScalarSelectionCapability` now separates exact read paths from the input
+types permitted for one aggregate operation. Its existing two-argument numeric
+constructor remains signed Int32/Int64, including nullable forms; new Core domain
+knowledge cannot upgrade that promise. An additive immutable input-type list
+supports explicit enrollment only when the provider's native reduction is ready.
+Both scalar and grouped planning/readmission use this same check. Min/Max retain
+their existing read-domain permissions unless explicitly restricted.
+
+The UInt64 Core foundation captures exact unsigned Sum/Average and validates
+bounded unsigned accumulator packets. Actual MongoDB/SQLite/Neo4j profiles still
+deny unsigned arithmetic; their read/Min/Max support is independent. Native limb
+translation, grouped average kernels and end-to-end certification precede provider
+and HTTP enrollment. [Contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
+
 ## Layers and ownership
 
 ```mermaid

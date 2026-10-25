@@ -6,6 +6,17 @@ passes2,474 Core controls, including20 unsigned cases. UInt64 live HTTP/demo
 acceptance now passes69SDK/69HTTP examples. Historical checkpoints below retain their original scope.
 
 
+## Numeric expansion status — 25 October
+
+Core now captures UInt64/nullable Sum and Average and normalizes exact bounded
+unsigned limb packets. Full Core3,006 and SQLite72/Mongo539/Neo520 unit suites
+pass without skips. Actual native numeric capabilities remain restricted to
+Int32/Int64; reading UInt64 metadata does not grant unsigned arithmetic. The
+new explicit input-domain constructor and shared scalar/grouped admission make
+that separation enforceable. Native unsigned scalar/grouped reduction and
+HTTP/demo enrollment are still pending. See the
+[numeric foundation](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
+
 ## Core capture
 
 UInt64 and nullable UInt64 retain their declared CLR path/key types. Literal
