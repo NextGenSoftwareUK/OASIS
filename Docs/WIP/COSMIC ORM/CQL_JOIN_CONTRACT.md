@@ -372,3 +372,39 @@ runtime/data remain reusable. No download/install/restore or duplicate environme
 MongoDB and SQLite SDK flat joins are available. Neo4j joins, graph-source joins,
 joined HTTP/browser demos, post-projection/window composition, federation and
 remaining policy/certification gates stay open. Full CQL is not complete.
+
+## Neo4j native join compiler checkpoint — 25 October 2026
+
+Neo4j now compiles one bounded Cypher statement that captures each source's
+protected filter/order/window and scalar proofs once, then matches those captured
+maps natively. Input capture aggregates inside independent subqueries, so an empty
+source cannot erase the other source's proofs. Inner/left matching excludes null
+key components and preserves native source positions; pair overflow retains a
+detection row. Complete source counts and bounded pair counts are explicit output
+proofs. Source ownership/traversal error branches remain outside source pages.
+
+Both translators share the same bound-parameter dictionary and existing900-entry
+budget. Metadata names retain encoded bound paths; no parameter renaming/string
+replacement or user-supplied Cypher is used. Native lower payload bounds suppress
+oversized scalar buffers and gate matching; exact decoded UTF-8/work validation
+belongs to the upcoming read owner. Matching never uses a client evaluator.
+
+Provider builds and the full Neo4j unit suite pass **483/483**, zero skips, with
+six new compiler controls. The existing retained Neo4j5.26.12 environment passes
+**four scoped native compiler cases**: inner/left fanout and either source empty.
+This is not a new full287 native regression claim. Earlier full275 and scoped
+custom-role cohorts retain their own recorded scope.
+
+The normal runner now offers exclusive `-CosmicCqlJoinCompiler`, using the same
+build identity checks, retained environment and fixture teardown. Broader family
+expected counts include these four new cases but are not claimed executed here.
+Evidence: `TestResults/CosmicCqlDemo/neo-join-compiler-unit.log`,
+`TestResults/Neo4jCurrent/join-compiler-unit.trx`,
+`TestResults/CosmicCqlDemo/neo-join-compiler-native.log` and
+`TestResults/Neo4jCurrent/neo4j-join-compiler-current.trx`.
+
+**Neo4j does not yet implement or advertise the public native join interface.**
+The execution/read owner, typed proof decoder, all seven limit/error controls,
+policy/interruption/key-domain native matrix and SDK enrollment are next. Native
+source capture retains Neo4j's read-committed contract; it does not grant a
+repeatable snapshot. Graph joins, HTTP transport and the full roadmap remain open.
