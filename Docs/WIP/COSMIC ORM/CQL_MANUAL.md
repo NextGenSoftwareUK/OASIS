@@ -1655,3 +1655,5 @@ a repeatable snapshot. Further Neo4j composition privacy/relationship, empty-sou
 zero-budget and outstanding-I/O interruption controls remain required. Public HTTP
 composition and annotated live composition demos are next after certification;
 full CQL/ORM roadmap completion remains unproven.
+
+25 October Neo4j focused composition certification passes **42/42 native**, zero skips, including privacy, zero-budget and cold/warm in-flight cancellation/deadline recovery on the same provider. Prior full352 native/519unit evidence is separate; full362 has not been rerun. See [contract and native evidence](CQL_COMPOSITION_CONTRACT.md). Public HTTP composition and annotated demos are next.

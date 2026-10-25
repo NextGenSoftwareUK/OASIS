@@ -44,13 +44,19 @@ public partial class Neo4jNativeCqlTests
             // Cold cases hold the initial handshake; warm cases hold a later
             // response. Both use the real server and preserve the held bytes.
             await using var relay = new PausedBoltRelay();
-            using var driver = GraphDatabase.Driver("bolt://127.0.0.1:17788",
+            IDriver CreateReadDriver() => GraphDatabase.Driver("bolt://127.0.0.1:17788",
                 AuthTokens.Basic("neo4j", "oasis-local-test-only"),
                 config => config.WithMaxConnectionPoolSize(1));
+            using var driver = CreateReadDriver();
+            // Transfer the prepared cold/warm driver exactly once. The pool owns
+            // cancellation teardown; each later factory call creates a new owned
+            // transport instead of returning the disposed prepared instance.
+            IDriver? preparedDriver = driver;
+            IDriver NextReadDriver() => Interlocked.Exchange(ref preparedDriver, null) ?? CreateReadDriver();
             using var storage = GraphDatabase.Driver("bolt://127.0.0.1:17687",
                 AuthTokens.Basic("neo4j", "oasis-local-test-only"));
             var provider = new Provider("bolt://127.0.0.1:17687", "neo4j",
-                "oasis-local-test-only", () => storage, () => driver);
+                "oasis-local-test-only", () => storage, NextReadDriver);
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             try
             {
@@ -89,6 +95,11 @@ public partial class Neo4jNativeCqlTests
                             CheckCancelled(await provider.ExecuteCosmicJoinAsync(
                                 JoinPlan(source.Join(source,h=>h.Name,h=>h.Name).Select((l,r)=>l.Name).Result),
                                 new CosmicJoinExecutionLimits(10,10,100,100,10000,10000,10000),cancellation.Token));
+                            break;
+                        case "composition":
+                            CheckCancelled(await provider.ExecuteCosmicProjectionCompositionAsync(
+                                CompositionPlan(source.Select(h => h.Name).Take(1).Result),
+                                new CosmicProjectionCompositionExecutionLimits(10, 10000, 100, 10000, 10, 10000), cancellation.Token));
                             break;
                         default:
                             Assert.Fail("Unknown interruption shape: " + shape);
@@ -138,6 +149,18 @@ public partial class Neo4jNativeCqlTests
                 await pending;
                 Assert.IsTrue(interrupted,
                     "Cancellation or the native deadline must finish while the actual Bolt response is still held.");
+                if (shape == "composition")
+                {
+                    // The same activated provider must admit a fresh read after
+                    // its interrupted transport lease has been joined/released.
+                    var query = CosmicQuery<Holon>.Create().Select(h => h.Name).Take(1).Result;
+                    var fresh = await provider.ExecuteCosmicProjectionCompositionAsync(CompositionPlan(query),
+                        new CosmicProjectionCompositionExecutionLimits(10, 10000, 100, 10000, 10, 10000));
+                    Assert.IsFalse(fresh.IsError, fresh.Message + fresh.Exception);
+                    var detached = CosmicProjectionCompositionResults.Materialize(query, fresh.Result);
+                    Assert.IsFalse(detached.IsError, detached.Message);
+                    Assert.AreEqual(1, detached.Result.Count);
+                }
             }
             finally { await provider.DeActivateProviderAsync(); }
         });

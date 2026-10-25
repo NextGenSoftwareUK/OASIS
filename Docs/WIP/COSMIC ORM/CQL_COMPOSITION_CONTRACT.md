@@ -398,3 +398,38 @@ a repeatable snapshot. Further Neo4j composition privacy/relationship, empty-sou
 zero-budget and outstanding-I/O interruption controls remain required. Public HTTP
 composition and annotated live composition demos are next after certification;
 full CQL/ORM roadmap completion remains unproven.
+
+## Neo4j focused composition certification — in progress
+
+The reusable `-CosmicCqlComposition` mode selects42 native cases:8 compiler,
+24 provider/HolonManager and10 additional privacy/empty-budget/interruption
+controls. It verifies direct-child/descendant private/public matching, source
+visibility and zero remaining budgets (empty participation succeeds; a real
+source cannot be hidden by Take0). Cold/warm real Bolt holds exercise caller
+cancellation and the shipping30-second deadline, then the same activated
+provider must successfully perform a fresh composition query.
+
+This is a focused cohort; prior352 native/519unit full regression evidence
+remains separate. Future full native count362 and dependent mode counts derive
+from one runner value. No new full362 acceptance is claimed here.
+
+
+Neo4j focused composition certification final: **42/42 native cases**, zero
+skips,1m21s. This includes8 compiler,24 provider/HolonManager and10 additional
+privacy/zero-budget/interruption controls. Hidden private child/descendant
+matches stay excluded; descending source paging places the hidden child first
+before visibility, so the public-only result proves filtering precedes paging.
+Zero remaining budgets accept proven-empty participation and reject a real
+source even with Take0. Cold/warm cancellation and the shipping30-second
+native deadline complete while Bolt bytes remain held; the same activated
+provider succeeds on a fresh composition query afterward.
+
+The initial38pass/4fail run exposed a fixture factory returning a disposed
+singleton after cancellation. The corrected fixture transfers its prepared
+cold/warm driver once and creates fresh owned replacement transports. Production
+pool/executor code is unchanged; original red evidence is preserved.
+Evidence: `TestResults/CosmicCqlDemo/neo-composition-certification-final.log` and
+`TestResults/Neo4jCurrent/neo4j-composition-certification-current.trx`.
+Prior full352 native/519unit evidence remains a separate checkpoint; no fresh
+full362 regression is claimed. Next: public HTTP composition and annotated
+SDK/HTTP/browser demos, then remaining broader CQL certification and policy work.
