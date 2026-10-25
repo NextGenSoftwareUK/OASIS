@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class ExportSelectorVersionTests
 {
+    [DataTestMethod][DataRow(-1,false)][DataRow(-1,true)][DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)]
+    public async Task EmptyAvatarExportIdentityRejectsBeforeListingUnownedRecords(int version,bool sync)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        var unowned=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=Guid.Empty,Name="must-not-export-as-an-avatar",Version=1};
+        Assert.IsFalse((await provider.SaveHolonAsync(unowned,saveChildren:false)).IsError);
+        backend.ListCalls=backend.GetCalls=backend.PutCalls=backend.DeleteCalls=0;
+        var result=sync?provider.ExportAllDataForAvatarById(Guid.Empty,version):await provider.ExportAllDataForAvatarByIdAsync(Guid.Empty,version);
+        Assert.IsTrue(result.IsError,"An empty avatar identity must not select unowned records.");
+        Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);
+        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        Assert.AreEqual(0,backend.ListCalls);Assert.AreEqual(0,backend.GetCalls);Assert.AreEqual(0,backend.PutCalls);Assert.AreEqual(0,backend.DeleteCalls);
+        Assert.AreEqual(1,backend.Items.Count);
+    }
+
     [DataTestMethod][DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)]
     [DataRow(2,false)][DataRow(2,true)][DataRow(3,false)][DataRow(3,true)]
     [DataRow(4,false)][DataRow(4,true)]

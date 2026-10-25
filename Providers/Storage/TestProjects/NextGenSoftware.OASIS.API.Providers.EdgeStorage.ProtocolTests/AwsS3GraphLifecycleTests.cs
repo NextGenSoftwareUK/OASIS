@@ -13,6 +13,23 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class AwsS3GraphLifecycleTests
 {
+    [DataTestMethod][DataRow(-1,false)][DataRow(-1,true)][DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)]
+    public async Task Empty_avatar_export_identity_rejects_before_signed_storage_request(int version,bool sync)
+    {
+        using var store=new AwsS3EncryptedLifecycleTests.Store();var key=RandomNumberGenerator.GetBytes(32);
+        try{
+            using var provider=store.Open(key);Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var unowned=new Holon{Id=Guid.NewGuid(),Name="private-unowned-record",CreatedByAvatarId=Guid.Empty};
+            Assert.IsFalse((await provider.SaveHolonAsync(unowned,saveChildren:false)).IsError);
+            var before=store.Objects.ToArray();var requests=store.Requests;
+            var result=sync?provider.ExportAllDataForAvatarById(Guid.Empty,version):await provider.ExportAllDataForAvatarByIdAsync(Guid.Empty,version);
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+            Assert.AreEqual(requests,store.Requests,"Invalid identity must fail before any potentially billable native request.");
+            Assert.AreEqual(before.Length,store.Objects.Count);foreach(var item in before)Assert.AreEqual(item.Value,store.Objects[item.Key]);
+        }finally{CryptographicOperations.ZeroMemory(key);}
+    }
+
     [DataTestMethod]
     [DataRow(false, false, 0)] [DataRow(true, false, 0)]
     [DataRow(false, true, 0)] [DataRow(true, true, 0)]
