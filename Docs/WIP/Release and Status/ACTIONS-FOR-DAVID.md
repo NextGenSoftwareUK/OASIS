@@ -1,8 +1,9 @@
 # Actions for David
 
-## Pending retained SOLID init-wrapper approval — 24 October 2026
+## Approved retained SOLID init-wrapper change — 24 October 2026
 
-- [ ] Approve reconfiguring ONLY the existing `oasis-solid` container definition with Podman's built-in `--init`, preserving pinned image58bee7c3..., existing oasis-solid-data volume, protected identity and loopback127.0.0.1:13000. No download/new environment/data reset is requested; inherited `/usr/bin/catatonit` already exists. Approval is pending in chat; no reconfiguration has occurred. Startup readiness is now measured before the first request (20.284s observed), and the authenticated read passes. Shutdown still ignores30second SIGTERM grace and requiresSIGKILL/exit137; Node is PID1/initfalse. The [official Node Docker guidance](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md) recommends an init wrapper for signal handling. This is the next configuration test, not an already-proven graceful-shutdown fix. Details: [SOLID authentication](../HyperDrive-Providers/SOLID_AUTHENTICATION.md), resource ledger in the same task folder.
+- [x] David approved reconfiguring ONLY the existing `oasis-solid` container definition with Podman's built-in `--init` (reply: “sure”), preserving pinned image58bee7c3..., existing oasis-solid-data volume, protected identity and loopback127.0.0.1:13000. No further approval action is pending from David for this change. No download/new environment/data reset is authorized or needed; inherited `/usr/bin/catatonit` already exists.
+- [x] Agent applied and verified the approved same-definition init change: PID1 podman-init/PID2 node; frozen authenticated read PASS; shutdown1008ms, exited143/OOMfalse, no SIGKILL. Volume/identity hashes match. This closes the observed read-only shutdown issue, not write-drain/crash durability or full provider/V2 acceptance. Details: [SOLID authentication](../HyperDrive-Providers/SOLID_AUTHENTICATION.md), resource ledger in the same task folder.
 
 ## Pending ActivityPub paged account-search acceptance — 24 October 2026
 

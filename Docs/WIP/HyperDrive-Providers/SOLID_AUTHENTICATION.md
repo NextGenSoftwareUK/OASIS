@@ -1,5 +1,9 @@
 # SOLID private authentication — scoped native verification
 
+## Approved init change — verified 25 October UTC
+
+Recreated only the same stopped container definition with existing catatonit and `--init`, preserving pinned image, volume, protected identity, hostname, limits and loopback binding. Before-start streaming volume digest and protected-file hashes match. Runtime now shows PID1 `podman-init`, PID2 `node`. One frozen discovery/authenticated ACL read passed; stop completed in1008ms, final `exited 143 false`, without SIGKILL. Listener readiness13152ms. Receipt: `TestResults/SolidCurrent/solid-init-reconfiguration.json`; outcome: `solid-readiness-current.json` and `solid-ready-read-current.trx`; pre-init reports retained unchanged. Initial post-create environment/user representation guards stopped before start; verification-only reconciliation corrected those comparisons, with no second recreation. This closes the observed PID1 signal/shutdown problem for this read-only cohort, NOT write-drain/crash durability, current-Core compatibility, all interfaces or full V2. Earlier pending-approval/shutdown-open text below is historical.
+
 ## 24 October — startup admission repaired; current-source native gate passed
 
 The broken test-host invariant was treating container RUNNING as application readiness. On the retained runtime, Linux port13000 was absent through18.135s and first observed LISTEN at20.284s; the earlier immediate request failed during startup. Waiting for the actual listener, not sleeping a fixed duration or retrying an authenticated request, produced1frozen discovery/authenticated-ACL-readPASS. That frozen proof alone is not current-source certification.
