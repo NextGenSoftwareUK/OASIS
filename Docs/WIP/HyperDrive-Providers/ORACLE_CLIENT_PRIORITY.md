@@ -1,5 +1,32 @@
 # Oracle client readiness — top priority
 
+## Latest verified Oracle-first checkpoint — 25 October UTC
+
+Full **502/502 retained native PASS (29seconds),445/445 SQL unit PASS,127/127 OCI signed-SDK loopback PASS,2/2 proxy-pool controls PASS**, zero skipped. Original failure below is reconciled, not erased: exact original nine synthetic payloads were hash-verified and conditionally removed in one transaction; independent reads proved absence; original529B intent retired unchanged. Reconciliation1PASS439ms. FailedTRX preserved as `.karma-null-failed-CF0E9040`.
+
+Two fixes: the single native holon deletion owner now rejects empty IDs before configuration/connection (12 genuine red cases,12valid controls); the restricted-schema TEST helper now reuses a bounded normal SDK pool, correcting its remaining forced-unpooled listener churn. No server limit/production config/retry/fallback was added. The full native cohort verifies healthy-path domain karma/detail history again, not arbitrary partial-commit recovery under every outage.
+
+Current-source PE/PDB checks and producer/consumer copies verified Core744/Shared56/Oracle15/unit31/native45/OCI5/unit6. Oracle provider SHA256219EDF0C5FFB2FF41B67423C2D95BAA0C4A87CDB592E5BA12E475A50E490C7D7. Final nativeTRX801831B SHA256D873C5D64A26662CCC890A46EE059CC164A1694981ED134A80D5E2CC873A69A3. Full compact evidence/resource lifecycle in ENVIRONMENT_INVENTORY.md. Database stopped143/OOMfalse, pending0,11521/18661 listeners absent. Same runtime/SDK/cache/volume; no download/restore/new environment/cloud request. Task branch only; not deployed.
+
+**Not100%:** hosted Autonomous/OCI access/IAM/wallet/TLS/security/durability/fees and full provider/V2 acceptance remain open. The async avatar karma API's legacy null/error surface after a partial ledger/projection failure also needs explicit fault-contract coverage; this pooling repair is not that proof. Oracle remains ahead of AWS. Historical red/open candidate text below is superseded only where this checkpoint supplies evidence.
+
+## Current completion gates — 24 October, resumed Oracle-first work
+
+**Latest native regression is RED:460PASS/42FAIL of502, zero skipped,34seconds.** New empty-ID admission controls genuinely reproduced12failures then full445units passed after the single deletion-owner fix. The native failure is a separate V2 karma-manager outcome: first two awards projected to AvatarDetail1000; original third deduction durably changed ledger to500 but AvatarManager returned null before updating AvatarDetail. Seven original settings/projection holons remain, including yearly projection at its earlier version. The second karma case and40missing-delete cases then stop on preserved original journal/scope, not42independent storage defects. Original report SHA256CF0E90401A5B5356B839B5350CA82CE63C7BB8E010B7E72513D79144FFA12F1D; original529B journal SHA25666B120080F1F2DDF7E468CCB38545131F168CA92FD019F048706EFF2B6E8B546. Original null/error cause not captured by the async legacy signature; do NOT call it an empty-delete regression or assume a transient cause. Read-only inspection verified original nine synthetic rows; no mutation replay/reset/cleanup. Oracle is not merge-ready; preserve and reconcile original outcome before another write cohort.
+
+Follow-up read-only server evidence identifies TNS12516 admission failures at01:52:47.984/.995UTC inside the failing karma interval, after listener handler blocked at load199. Restricted-schema helper still forced unpooled connections; candidate now uses bounded normal pooling Min0/Max16, matching the main runner. This is a test-host connection-lifecycle correction, not a production server limit/retry/fallback. Exact-content original reconciliation and two pure proxy-settings controls prepared; neither executed yet. Original async error payload remains unavailable; server evidence is not a reconstruction of every application exception. Full native regression must pass again. API partial-ledger/projection failure behavior and hosted/V2 gates are not certified by a pooling change.
+
+| Required scope | Evidence / remaining gate |
+|---|---|
+| Oracle Database real SDK implementation | Official ODP.NET; latest completed local cohort445 controlled/502 retained native. Counts are not a completeness denominator. |
+| Public storage contract/options | Empty holon delete IDs now reject across sync/async hard/soft aliases; continue body/option/fault review and partial-ledger/projection failure contract coverage. |
+| OCI Object Storage real SDK |127 signed-SDK loopback controls; actual hosted bucket/provider acceptance remains open. |
+| Autonomous Database | Existing isolated connection/wallet/test identity still required; local Oracle Free cannot prove hosted wallet/TLS/IAM. |
+| Hosted durability/security/fees | Requires approved existing cloud access and cost limits in ACTIONS-FOR-DAVID.md. No provisioning or paid request authorization inferred. |
+| Full V2 failover/replication/load balancing | Separate acceptance still open; follows native provider completeness per the goal. |
+
+Oracle remains the immediate priority before AWS. This table is the current checkpoint; historical open/failing/passing cohorts below are retained evidence, not all simultaneously current. No provider-wide100% claim.
+
 ## 24 October — conditional admission/replay local gate closed
 
 Latest fresh full retained ODP.NET native **502/502PASS, zero skipped,71seconds**; Core2477/Shared1181alsoPASS. Core17ba4f44a75f93d9704907419dbbd8767737298c separates conditional intent validation from ordinary process-local observation authority. Known partial views still reject before native I/O, including explicit roles/AcceptChanges; exact complete copied-ack graphs can bind original receipts and subsequent revision-bound updates. Omitted/flattened stored-role controls reject without granting ordinary replacement authority. Existing native replay/update/stale/reused-ID/delete/historical replay phases all passed, not merely the memory control.
