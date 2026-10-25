@@ -1127,3 +1127,37 @@ ports are no longer listening. No install/download/restore or duplicate environm
 requests/browser demos, graph-source joins, post-selection/window composition,
 distributed joins/federation and remaining policy/certification gates are still
 open. This checkpoint does not close the full join milestone or CQL roadmap.
+
+## Runtime join bindings and WEB4 request compilation — 25 October 2026
+
+Core adds bounded `JoinColumns` / `LeftJoinColumns` key capture using existing
+`CosmicProjectionSelection<T>` bindings. Expression and runtime keys share one
+source/scope/actor/key-domain validation owner. Composite aliases/types must match;
+key capture retains both original source objects/windows/access and freezes the
+binding lists. No key DTO is constructed and no selector delegate is evaluated.
+
+`CosmicJoinBinding.Left`, `.Right` and `.Presence` bind output aliases to one
+captured join. Right value types on a left join require explicit `allowMissing`
+lifting; the original source path stays required. A missing right row and nullable
+data in a present row remain distinct through `HasRight`. `SelectColumns` produces
+immutable `CosmicProjectionRecord` rows only after the existing complete-packet /
+all-provider validation barrier. Foreign-owner, duplicate or excessive bindings
+reject. The runtime path does not introduce an evaluator or provider fallback.
+
+WEB4 adds a strict proposed join request model and a pure `CompileJoin` binding
+owner. It reuses the existing typed selection/source compilers; both sources get
+the host actor and provider. Client actor/per-source provider/executable expression
+properties reject. Public bounds are1–8 keys,1–32 outputs,1–1000 rows per input,
+1–10000 matched/output pairs and1–100 published results; all three payload limits
+are fixed at1MiB. Source windows remain independent of these error limits.
+
+Both Core frameworks build and the full Core/linked production compiler suite
+passes **2,771/2,771**, zero skips:19 new runtime-record controls and18 new WEB4
+compiler controls beyond2,734. Three controlled adapter identities exercise the
+existing generic executor; this is not a fresh native three-provider transport
+certification. Latest native SDK cohorts remain SQLite1615, Mongo328 and Neo320.
+
+The request compiler is a transport prerequisite only. **No join HTTP action or
+route is registered yet.** Endpoint admission, route/tariff classification, wire
+serialization, signed native end-to-end verification and annotated HTTP/browser
+examples remain required. The broader join/CQL roadmap stays open.

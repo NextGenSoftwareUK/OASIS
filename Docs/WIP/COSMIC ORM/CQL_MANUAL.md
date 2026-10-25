@@ -1298,3 +1298,44 @@ not yet available; current join examples use the C# SDK.
 
 Verification: Neo4j full native320/320, full unit492/492, zero skips, including
 actual cold/warm read interruption and shipping30-second deadlines.
+
+## Runtime-named SDK join columns — 25 October 2026
+
+Use named bindings when the selected key/output columns are chosen at runtime.
+They use the same native plans and execution owner as lambda-shaped joins.
+
+```csharp
+// These sources may already have filters, windows and trusted read access.
+var nameKey = CosmicProjectionSelection<Holon>.Create("name", h => h.Name).Result;
+
+var captured = left.LeftJoinColumns(right, new[] { nameKey }, new[] { nameKey });
+if (captured.IsError)
+    throw new InvalidOperationException(captured.Message);
+
+var join = captured.Result;
+var columns = new[]
+{
+    CosmicJoinBinding.Left(join, "product", (Holon h) => h.Name).Result,
+
+    // Lift the output to int? so an absent right row is representable.
+    // A present right row must still have a valid required Version.
+    CosmicJoinBinding.Right(join, "revision", (Holon h) => h.Version,
+        allowMissing: true).Result,
+
+    CosmicJoinBinding.Presence(join, "exists").Result
+};
+
+var selection = join.SelectColumns(columns);
+if (selection.IsError)
+    throw new InvalidOperationException(selection.Message);
+
+// Plan/execute with the actual adapter capabilities, as in the earlier examples.
+// Each published row is CosmicJoinResult<CosmicProjectionRecord>:
+// row.Value["product"], row.Value["revision"], row.HasRight.
+```
+
+Check each binding's OASISResult when accepting user-selected paths. Binding lists
+are bounded/frozen, aliases must be unique, and outputs belong to the exact captured
+join. Exact key types and component aliases must match on both sides. Arbitrary
+methods/conversions are not evaluated. Full Core2,771 passes; native HTTP join
+transport and browser examples are still pending.

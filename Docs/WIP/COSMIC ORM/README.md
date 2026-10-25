@@ -102,3 +102,5 @@ Local reports and fixture archives are under `TestResults/CosmicMongoCurrent/`; 
 - [CQL native execution pipeline](CQL_EXECUTION_PIPELINE.md) — shared adapter contract, full-target preflight, budgets and provider provenance.
 
 - [CQL typed scalar metadata](CQL_SCALAR_METADATA.md) — SQLite type, null, comparison, membership and string semantics.
+
+- [Join HTTP compiler contract and remaining endpoint gates](CQL_JOIN_HTTP_CONTRACT.md) — runtime Core bindings/model/compiler verified; no HTTP route registered yet.
