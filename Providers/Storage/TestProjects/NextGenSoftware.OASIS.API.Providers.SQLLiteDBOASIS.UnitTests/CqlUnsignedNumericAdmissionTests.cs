@@ -25,6 +25,15 @@ public sealed class CqlUnsignedNumericAdmissionTests
         Assert.IsFalse(grouped.IsError, grouped.Message);
         Assert.IsFalse(Provider.CqlGroupedCapabilities.Admit(grouped.Result).IsError);
 
+        // Decimal capture/normalization alone cannot upgrade a native profile.
+        var decimalSum = source.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "price"));
+        Assert.IsFalse(decimalSum.IsError, decimalSum.Message);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Provider.CqlScalarCapabilities.Admit(decimalSum.Result).ErrorCode);
+        var decimalGroups = source.GroupBy(h => h.Name).Select(g => g.Sum(h => CosmicQueryMetadata.Value<decimal>(h, "price")));
+        Assert.IsFalse(decimalGroups.IsError, decimalGroups.Message);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Provider.CqlGroupedCapabilities.Admit(decimalGroups.Result).ErrorCode);
+
+
         // Broad read permission alone still cannot enroll unsigned arithmetic.
         var legacySigned = new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
         {
