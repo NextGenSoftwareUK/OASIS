@@ -70,6 +70,7 @@ try {
     if ($CqlV1Web4Reconcile) {
         $reviewedHash = (Get-FileHash -LiteralPath (Join-Path $work 'cql-v1-web4-fixture.json')).Hash
         $reviewedAdmissionFilter = switch ($reviewedHash) {
+            'E062B6BA6D240DE26CCD74D2F7DF0B4A9C2B923C569EEBA0BC7175BEA7ADA73F' { 'FullyQualifiedName~ReviewedUnobservedRoleSeedVerifiesPartialCreationBeforeExactCleanup' }
             '40825B94368E61714BA913B81D3CB7050A8ECCC2C3EADFA7F9CD7E6EAD3454B4' { 'FullyQualifiedName~ReviewedUtcAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
             'E10085F949323BD01594034C97936352E4799F2E362107ECEC5EFDE54117023A' { 'FullyQualifiedName~ReviewedDecimalAdmissionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }
             '38D2CD5321CF87D81051A08AB4EB9A9BC5D9F65D090C9B9E99C08CBCD5E0AD75' { 'FullyQualifiedName~ReviewedSingleProjectionFixtureVerifiesAllOutcomesAndOwnedRowsBeforeCleanup' }

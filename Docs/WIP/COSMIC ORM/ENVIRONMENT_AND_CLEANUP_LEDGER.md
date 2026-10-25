@@ -2318,3 +2318,48 @@ No download/install/newenvironment or unrelateddeletion. OwnerCOSMICORM.
 FreshSDK/HTTPdemo and broadernon-CQLregression acceptance remain separate gates.
 Joins, federation, remaining scalar/operator/access and grouped-certification
 requirements remain on the full roadmap. This is not full CQL/ORM completion.
+
+25 October fresh hosted demo: reuse same Mongo8.3.11 replica-set fixture27029,
+Neo5.26.12 container17687, SQLite fixed cql-v1-web4.sqlite and existing .NET10/
+NuGetcache/provider/native outputs. No install/download/newenvironment.
+OwnerCOSMICORM. Prior87SDK/87HTTPreport and source/binary evidence hashes preserved
+in TestResults/CosmicCqlDemo/pre-transport-demo-checkpoint.json (compact, size
+unmeasured), no duplicate large source-map copy. New runner fences cs/csproj/props/
+publickey/windowsZones sources including source driver and six binary pairs.
+Fixedlog neo-transport-live-demo.log; current v1-*reports/transcript reused.
+Allownruntime/fixturecleanup is runner-owned after terminal outcomes; no reset of
+retained failed fixture permitted. SharedSDK/cache/volumeoutputs reusable; compact
+reports retained. SQLite peer sources settled before gate; frozen separate
+SQLiteintegrationconsumer output remains untouched. Outcome pending.
+
+25 October demo19161 TERMINAL1 beforeHTTP: newSQLiteordinaryselectionguard
+rejectedfixture's hand-written persisted rolemanifest lackingstoreobservation.
+Fresh87SDK/HTTPnotreached; oldreportpreserved/hashfenced. ExactmarkerE062B6BA6D240DE26CCD74D2F7DF0B4A9C2B923C569EEBA0BC7175BEA7ADA73F
+stagebefore-create; originalfailureTRX9E2D50C429A563CDC95D21DEE4106D0C8A8D3B5F9D66463552EF4377F4A3AEA8.
+Expectedacknowledgedpartialseed:Mongo9holons,SQLite3roots,Neo0;137scalarIDsnotwritten,
+requests/scalarWritesempty. Pendingexact nativeverification beforeanycleanup.
+PreserveNeo4jCurrent/cql-v1-web4-fixture.json +cql-v1-web4.sqlite/WAL/SHM andowned
+Mongo cosmic_cql_v1_web4_storage/usage namespaces; noreset/replay. Exactreviewed
+reconciliationtestadded; allownruntime stoppedbyrunner, resourcespreservedfailure.
+SQLiteordinaryrelationshipmanifest persistence/ackgap is beingowned bypeer;
+noSQLproductioneditsfromthissession. Rootfixturerequireslogicalchildren, notforged
+storedobservations. Newjoincontract documentsopenmilestone, nojoincapabilityclaim.
+
+25 October reconciliation49390 TERMINAL0:1nativePASS2seconds. Exactoriginal
+marker/failureTRX hashes verified; native reads confirmed9Mongo-owned holons,
+3SQLite-owned roots,0Neo holons, usageDBabsent and allotherMongo collections empty.
+No query/save replay. Beforecleanup retained originalintent6114bytes and12record
+snapshot-hashproof2139bytes at C:/Source/OASIS/TestResults/Neo4jCurrent/
+cql-v1-role-seed-original.json andcql-v1-role-seed-reconciliation.json.
+ReconcileTRXSHA2569698C2C38DE3779EAC1640DE6EBA5E63057D5CD1AF7D83F8EF4CFCBF586BF8A4.
+RemovedonlyownedMongo cosmic_cql_v1_web4_storage and, afterprocess exit, exact
+C:/Source/OASIS/TestResults/Neo4jCurrent/cql-v1-web4.sqlite (704512bytes).
+WAL/SHMalreadyabsent; fixturemarkerretiredbyrunner. Cleanupreceipt retained at
+C:/Source/OASIS/TestResults/Neo4jCurrent/cql-v1-web4-cleanup.json. Allownedports
+27029/17687/17788/17789absent; systemMongo27017not touched. Lifecycle nowremoved
+forfailedfixture, compactevidencepreserved; recreateonlywithcorrectedfreshdemo.
+No install/download/newenvironment. Initial9177inspection failedXMLBOMparsing
+beforeDBreads; byte-streamXMLreaderfixedthenreconciliationpassed. Currentfresh
+demo87SDK/87HTTPstillpendingSQLiteordinaryrolepersistence/rootfixturefix.
+SQLitecount/snapshot44e5ff5c9handoffcomplete; thissessionownsSQLroles+Mongoordinary
+selection guard audit. No production fixclaim before red/green native tests.
