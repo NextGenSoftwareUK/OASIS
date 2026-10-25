@@ -46,7 +46,7 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$projectionLimit", fetch));
             translator.Parameters.Add(new SqliteParameter("$projectionOffset", source.Offset));
             cancellationToken.ThrowIfCancellationRequested();
-            if (fetch == 0) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -68,12 +68,7 @@ public partial class HolonRepository
                     budget.Check();
                     // Mandatory scope validation must finish before the source
                     // window can hide another root's malformed traversal.
-                    if (translator.HasRelationship)
-                    {
-                        await _dbContext.Database.SqlQueryRaw<long>("SELECT count(*) AS Value FROM Holon WHERE " + predicate,
-                            translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
-                        budget.Check(); traversal.Check();
-                    }
+                    await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                     using var command = connection.CreateCommand();
                     command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
                     command.CommandText = "/* COSMIC projection */ SELECT " + columns + " FROM Holon WHERE " + predicate

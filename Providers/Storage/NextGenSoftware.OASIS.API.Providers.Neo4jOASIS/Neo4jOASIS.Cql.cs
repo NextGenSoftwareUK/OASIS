@@ -44,7 +44,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
-            if(fetch==0)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             if (!IsProviderActivated || _driver == null) return CqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             // Validation is outside the page branch: SKIP must never hide an invalid
             // projection. Both branches execute inside one native read query.

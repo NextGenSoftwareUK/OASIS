@@ -1,33 +1,60 @@
 # COSMIC ORM implementation status
 
-Current: **25 October 2026**. Native flat joins and bounded selected-result
-composition are implemented on MongoDB, SQLite and Neo4j through generic Core
-contracts, with signed HTTP transport and annotated **34-example/provider**
-C#/HTTP demos. Latest live demo: **102 SDK /102 HTTP**, 309 settled operations
-and 301 provider attempts. Full CQL/ORM completion remains unproven.
+Current: **25 October 2026**. CQL supports native rows, typed projections,
+relationships/child graphs, enrolled scalar/grouped aggregates, flat same-provider
+joins and selected-result composition on MongoDB, SQLite and Neo4j. Generic
+Core/HolonManager owns capture, admission and V2 execution/receipts. Full CQL/ORM
+completion remains unproven; the gates below preserve the remaining scope.
 
-Latest separate suites: Core **2,970**, Shared **1,189**, SQLite **1,651 native
-/71 unit**, MongoDB **364 native /538 unit**, Neo4j **362 full native /519 unit**. The full 362-case native suite now includes
-the previously separate composition additions. These are separate checkpoints, not
-one coherent current-source run. The newest shared participation guard passes
-Core/SQLite units and **three native SQLite corruption/reuse controls**; full
-SQLite acceptance also passes **1,651 tests, zero skips**. MongoDB native
-regression now passes **364 tests, zero skips** (5m35s), including grouped
-snapshot/reparenting, actual-I/O cancellation and cumulative-deadline/reuse probes. Neo4j full native
-regression passes **362 tests, zero skips** (10m24s). Fresh MongoDB/Neo4j unit
-suites also pass **538/519**, zero skips. Build-lease contract checks pass.
+The current protected empty-window batch fixes `Take(0)` bypassing mandatory
+relationship validation in scalar, row, graph and projection paths. Thirty new
+native cases across the three stores check error precedence, valid empty output
+without sentinel publication and later provider reuse. SQLite shares one native
+relationship-scope owner; Mongo shares its selected-window compiler; Neo4j retains
+its existing validation branches through translator relationship state.
 
-The participation guard rejects a grouped aggregate whose present-value count
-contradicts its containing group or required selector. Core owns the invariant;
-all three provider decoders use it. This batch is verified for task-branch publication. Published participation parent
-checkpoint: `7637f6d2a` on `fix/hyperdrive-v2-providers`; Development integration
-is not included in this batch.
+Fresh full native/unit acceptance for this batch, all zero failures/skips:
 
-Remaining scope includes expanded grouped/join/relationship certification,
-authoritative sharing/tenant policy, additional scalar domains, graph-source
-composition enrollment and bounded federation. See the
-[completion roadmap](CQL_COMPLETION_ROADMAP.md). Dated sections below preserve
-historical evidence and must not override this current summary.
+| Provider | Native | Unit |
+|---|---:|---:|
+| SQLite | 1,661 | 71 |
+| MongoDB | 374 | 538 |
+| Neo4j | 372 | 519 |
+
+Separate unchanged Core **2,970** and Shared **1,189** cohorts remain recorded;
+they are not a new combined run. Fresh developer demo: **34 examples per provider, 102 SDK /102 signed HTTP**,
+309 settled operations/301 attempts; joint native test1/1, zero skips. Demo source
+snapshot is unchanged and six tested producer/consumer identities agree.
+
+Previous published task checkpoint: `f865d334b`, Core `499ec8e`, on
+`fix/hyperdrive-v2-providers`. This batch completed native/unit/demo verification and resource reconciliation;
+it is ready for task-branch publication. Development integration is
+not included. See the [empty-window contract](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope),
+[full roadmap](CQL_COMPLETION_ROADMAP.md) and
+[resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Current CQL completion gates
+
+These statuses preserve the full roadmap; a passing native suite is evidence for
+its declared features, not completion of every future domain or policy.
+
+| Requirement | Current state | Remaining gate |
+|---|---|---|
+| Generic query ownership | Core/HolonManager contracts, planning, actual-adapter admission and V2 attempt/receipt owner implemented | Continue applying the same owner to remaining features |
+| Native rows and typed projections | Implemented on MongoDB, SQLite and Neo4j | Finish protected empty-window full regression; broader policy remains below |
+| Relationships and child graphs | Native direct/descendant predicates, bounded expansion, partial-save ownership and provider consistency contracts implemented | Remaining relationship/access certification and authoritative sharing/tenant rules |
+| Scalar aggregates | Count/LongCount/Any, admitted Min/Max and exact Int32/Int64 Sum/Average implemented | Additional declared numeric input domains and remaining certification |
+| Grouping | Typed/composite keys, multiple aggregates and selected filters/order/pages implemented | Expanded identity/type/access/consistency matrix |
+| Flat joins | Same-provider inner/left SDK and signed HTTP implemented | Expanded source/consistency/policy matrix and graph-source enrollment |
+| Selected-result composition | Bounded flat native SDK/HTTP stages implemented on all three providers | Graph-source enrollment and broader certification |
+| Hosted transport and demos | Signed bounded HTTP, browser/Swagger and 34 SDK/HTTP examples per provider verified | Update/recertify examples as remaining features are enrolled |
+| Read policy | Authenticated owner/public binding implemented | Authoritative recipient/tenant grants and revocation/version consistency |
+| Federation | [Contract specified](CQL_FEDERATION_CONTRACT.md); current provider results remain separate | Implement identity/conflict/provenance, global pages/cursors and distributed joins |
+| Final acceptance | Separate Core/provider/hosted evidence retained | Complete every open gate, coherent final regression, docs/resource reconciliation and scoped integration |
+
+See [the complete roadmap](CQL_COMPLETION_ROADMAP.md) for the original acceptance
+criteria. Broader COSMIC ORM history, replication recovery, migration and placement
+remain part of the active goal beyond this CQL table.
 
 ## 23 October — Neo4j native Select acceptance
 

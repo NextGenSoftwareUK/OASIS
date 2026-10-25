@@ -49,6 +49,16 @@ Apply grouped predicates and ordering **before** result Skip/Take. Source window
 
 Expanded join certification, graph-source composition enrollment, federated global cursors, broader scalar domains and authoritative shared-recipient/tenant policy remain separate unfinished requirements. See [the completion roadmap](CQL_COMPLETION_ROADMAP.md) for acceptance criteria and scoped evidence; supported examples are not a claim that the full roadmap is complete.
 
+## Empty windows still validate protected relationships
+
+`Take(0)` produces no selected rows, but a relationship or descendant predicate
+still carries mandatory native validation. Exceeding its traversal budget or
+encountering a cycle returns an error before empty Count/Any/Min/Max/Sum/Average
+semantics are applied. Always check `OASISResult.IsError`; an empty output window
+is not a promise of zero database work. This applies to ordinary rows, graphs
+and projections as well as scalars. A valid empty query must return no sentinel
+row. [Contract and current verification](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope).
+
 ## Partial typed child roles
 
 Type-filtered loads now hydrate registered child-role collections with the selected typed members. Persisted role order and the full stored membership remain intact; omitted members are not passed to factories. Registered factories receive admitted/decrypted metadata before tracking. A partial view supports root-only edits (`saveChildren: false`); local AcceptChanges cannot grant permission to replace hidden or unloaded membership.

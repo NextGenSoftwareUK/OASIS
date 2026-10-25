@@ -27,7 +27,7 @@ public partial class HolonRepository
         }
         try
         {
-            using var session=command.RequiresMembership && command.FetchCount!=0
+            using var session=command.RequiresMembership
                 ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false)
                 : null;
             return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,deadline.Token).ConfigureAwait(false);
@@ -40,7 +40,7 @@ public partial class HolonRepository
         int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
         Action<int> reserveNativeBytes=null)
     {
-        if(command.FetchCount==0)return Array.Empty<IHolon>();
+        if(command.FetchCount==0 && !command.RequiresMembership && !command.HasTraversalEnvelope)return Array.Empty<IHolon>();
         if(command.RequiresMembership)
         {
             if(session==null)throw new InvalidOperationException("Mongo relationship validation requires its native snapshot owner.");
