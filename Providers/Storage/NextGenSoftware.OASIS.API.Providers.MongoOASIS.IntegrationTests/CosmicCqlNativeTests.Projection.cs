@@ -245,9 +245,9 @@ public sealed partial class CosmicCqlNativeTests
             Assert.False(empty.IsError, empty.Message); Assert.Empty(empty.Result);
             var cancelled = await adapter.ExecuteCosmicProjectionAsync(plan, cancellationToken: new CancellationToken(true));
             Assert.Equal("CQL_QUERY_CANCELLED", cancelled.ErrorCode);
-            var source = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<float>(h, "unsupported")).Result;
+            var source = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<ConsoleColor>(h, "unsupported")).Result;
             var borrowed = CosmicProjectionPlanner.Plan(source, ProviderType.MongoDBOASIS, new[] { new CosmicProjectionTarget(
-                ProviderType.MongoDBOASIS, adapter.QueryCapabilities, new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(float) })) }).Result;
+                ProviderType.MongoDBOASIS, adapter.QueryCapabilities, new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(ConsoleColor) })) }).Result;
             var rejected = await adapter.ExecuteCosmicProjectionAsync(borrowed);
             Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", rejected.ErrorCode);
         }, width: 0);

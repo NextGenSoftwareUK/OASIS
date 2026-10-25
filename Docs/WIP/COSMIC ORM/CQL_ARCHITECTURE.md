@@ -587,3 +587,13 @@ tests verify 9,700 integer vectors; the prior 12,313 binary64 vectors also pass.
 Full Mongo acceptance is 256 native tests and 493 unit tests, zero skips.
 Single capability remains disabled until Decimal128 and complete query shapes
 are verified.
+
+### Mongo Single normalization ownership
+
+Original BSON type selects the native binary32 conversion owner before any
+widening. Decimal128 and Int64 never first convert to Double. One lexical
+binding per scalar operand prevents repeated conversion inside domain/state/
+value checks. Projection envelopes preserve raw missing/null state and reject
+invalid conversions. The detached decoder accepts only finite Double packets
+that equal an exact widened Single. Native281/unit494 acceptance verifies this
+contract; see CQL_FLOATING_SCALAR_CONTRACT.md for evidence and remaining scope.

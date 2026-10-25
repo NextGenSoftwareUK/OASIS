@@ -1672,3 +1672,49 @@ NuGet cache and bin/obj retained reusable, no downloads/restores/new environment
 Owner COSMIC ORM/CQL; compact reports retained for regression evidence, generated
 bin/obj reusable and regenerable from the pinned source; do not delete shared
 outputs during another session's build. Global lease and source hold released.
+
+## Mongo Single query-owner integration preparation — 24 October 2026
+
+Owner COSMIC ORM/CQL. Source-only changes reuse the existing repository,
+Mongo components and cached SDK/package/build environment recorded above.
+No build, restore, install, new service or fixture in this preparation step.
+Original BSON dispatch now feeds one bound normalized operand to predicate,
+ordering and projection owners. Detached Single packet tests require an exact
+widened finite binary32 value; no decoder rounding. Public capability is still
+disabled until complete native query gates. New packet test source is retained
+under MongoDBOASIS.UnitTests/MongoCqlSinglePacketTests.cs; size unmeasured.
+Peer Oracle owns the current build lease; no shared-output mutation attempted.
+
+Prepared CosmicCqlNativeTests.Single.cs query-level cases (23 expanded cases):
+predicates, exact persisted boundaries, invalid domains, nullable grouping,
+ordering/paging/extrema. Source-only; no native execution yet and capabilities
+remain disabled. Existing fixture owner will manage acknowledged test writes.
+These new cases must not be treated as passing evidence until the native gate.
+
+Mongo Single candidate profile now locally enrolls float/nullable only for the
+upcoming verification cohort; not published or accepted. Retargeted unsupported
+borrowed-capability controls to ConsoleColor. Prepared24newnative/1packetunit
+cases: expected281native/494units. Mixed-domain test covers originalInt32/Int64/
+Decimal128/Double, exact midpoint sides and promoted Double literals/membership.
+Expected verification reuses SubscriptionUsageCurrent fixtures,27029 and cached
+outputs under globallease after Oracle releases. Reports use single-query-* and
+CosmicCqlDemo/mongo-single-query-full.log; sizes unmeasured, retain evidence.
+
+59084 terminal1:281native executed,276passed/5failed/0skipped. All five failures
+are the copied test assertion at Single.cs:66 requiring exact widened Double
+persistence; storage contract instead preserves the Single numeric round trip.
+Corrected assertion compares the parsed Single; query/projection assertions
+remain exact Single. Preserve single-query-red-current.trx and original
+mongo-single-query-full.log before retry. Unit phase was not reached.
+Acknowledged fixture teardown completed; Mongo rawlog12,520,468->65,368bytes.
+No new resources. Next same leased full281native/494unit cohort; reuse fixed
+DB/service/output paths. No capability publication until green.
+
+33648terminal0: full281native/494unit PASS0skip; no further source changes during
+gate. Source snapshots unchanged; CoreE5145A09/Shared7BC991A8/Mongo7759FD3B match
+native+unit copies. Existing fixture teardown passed,27029absent after stop.
+RawMongo log12,649,843->65,385bytes after teardown; free C66,520,993,792.
+Reports retained at fixed single-query-* paths above; sizeunmeasured. RedTRX
+SHA25629442946C8B8AF122E4BB1896667220387381C7E6288A2D6BCE21D2D7F657757.
+No downloads/restores/new environments. Shared SDK/cache/outputs/runtime/data
+remain reusable with existing owners; compact evidence retained. Lease released.

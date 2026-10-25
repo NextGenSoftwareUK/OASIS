@@ -310,3 +310,30 @@ Gate 26125 passes both Core builds, 2,558 Core tests, 31 focused / 1,516 full
 SQLite tests, no skips. Evidence: CosmicCurrent/single-promotion-core-current.trx,
 SQLiteCurrent/single-promotion-{focused,full}-current.trx and
 single-promotion-identities-current.json, under TestResults.
+
+## Mongo Single query gate — 24 October 2026
+
+Single/nullable Single native query support now passes gate33648:281native
+CQL tests and494provider units, zero failures/skips. Twenty-four new native
+cases cover predicates/membership/field comparison, persisted Single boundaries,
+invalid numeric/foreign domains, nullable grouping, order/paging/extrema and
+original Int32/Int64/Decimal128/Double projection with promoted literals.
+A detached packet test rejects nonfinite or nonexact widened Single results.
+
+The translator dispatches on original BSON type, normalizes once in a native
+lexical binding and reuses that value in predicates, ordering and projection.
+Missing/null raw state remains separate from invalid numeric sentinels.
+Selected decoding verifies exact widened binary32 rather than rounding packets.
+The stored JSON numeric round trip may differ from exact widened Single; the
+query owner normalizes it. Red59084 had five copied storage assertions that
+incorrectly required Double identity; all were corrected to the established
+Single round-trip invariant without weakening exact query/output assertions.
+
+Evidence: TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx,
+single-query-full-current.trx, single-query-identities-current.json and
+TestResults/CosmicCqlDemo/mongo-single-query-corrected.log. Red evidence retained
+as single-query-red-current.trx / mongo-single-query-full.log. CoreE5145A09,
+Shared7BC991A8 andMongo7759FD3B match native and unit consumers; source snapshots
+unchanged. Owned fixture cleanup passed and27029listener absent after teardown.
+Neo Single, Single HTTP/demo integration and every unchecked broader roadmap
+requirement remain open. This cohort does not certify joins or federation.

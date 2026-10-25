@@ -84,7 +84,7 @@ internal sealed partial class MongoCqlTranslator
         if(type==typeof(DateTime))return Op("$and",Op("$eq",Type(value),Literal("long")),
             Op("$gte",value,Literal(DateTime.MinValue.Ticks)),Op("$lte",value,Literal(DateTime.MaxValue.Ticks)));
         if(type==typeof(string)||type==typeof(Guid))return Op("$eq",Type(value),Literal("string"));
-        if(type==typeof(double))return Op("$and",Op("$eq",Type(value),Literal("double")),
+        if(type==typeof(double)||type==typeof(float))return Op("$and",Op("$eq",Type(value),Literal("double")),
             Op("$gte",value,Literal(-double.MaxValue)),Op("$lte",value,Literal(double.MaxValue)));
         if(type==typeof(decimal))
         {
@@ -153,7 +153,7 @@ internal sealed partial class MongoCqlTranslator
             Choose(Op("$eq",Type(value),Literal("null")),Literal(BsonNull.Value),Literal(new BsonDocument())));
     }
     private static BsonValue At(CosmicQueryPath path,Func<BsonValue,BsonValue> predicate,string prefix="cqlm")
-        =>path.IsMetadata?Metadata(path.Segments,value=>predicate(MetadataOperand(value,path)),prefix):predicate(Canonical(path));
+        =>path.IsMetadata?Metadata(path.Segments,value=>WithMetadataOperand(value,path,predicate,prefix),prefix):predicate(Canonical(path));
     private static BsonValue ComparableGuid(BsonValue value)
     {
         var text = new BsonDocument("$replaceAll", new BsonDocument {

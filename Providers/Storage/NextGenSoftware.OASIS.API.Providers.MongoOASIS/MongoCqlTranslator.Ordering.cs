@@ -21,16 +21,15 @@ internal sealed partial class MongoCqlTranslator
 {
     private static BsonValue OrderingKey(CosmicQueryPath path,string prefix)
     {
-        BsonValue Key(BsonValue raw)
+        BsonValue Key(BsonValue raw) => WithMetadataOperand(raw, path, value =>
         {
             var type=Nullable.GetUnderlyingType(path.ValueType)??path.ValueType;
-            var value=MetadataOperand(raw, path);
             var valid=Domain(value,path.ValueType,path.IsMetadata);
             var rank=Choose(Op("$eq",Type(raw),Literal("missing")),Literal(0),
                 Choose(Op("$eq",Type(raw),Literal("null")),Literal(1),Choose(valid,Literal(2),Literal(3))));
             var scalar=Choose(valid,type==typeof(Guid)?ComparableGuid(value):value,Literal(BsonNull.Value));
             return new BsonDocument{{"rank",rank},{"value",scalar}};
-        }
+        }, prefix);
         return path.IsMetadata?Metadata(path.Segments,Key,prefix):Key(Canonical(path));
     }
 

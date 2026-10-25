@@ -128,6 +128,14 @@ public partial class HolonRepository
                 return (ulong)number;
             throw new InvalidDataException("Selected UInt64 is fractional or outside its declared range.");
         }
+        if (type == typeof(float) && value.IsDouble)
+        {
+            var number = value.AsDouble;
+            var single = (float)number;
+            if (!float.IsNaN(single) && !float.IsInfinity(single) && (double)single == number)
+                return single == 0f ? 0f : single;
+            throw new InvalidDataException("Selected Single packet is not an exact widened binary32 value.");
+        }
         if (type == typeof(double) && value.IsDouble && !double.IsNaN(value.AsDouble) && !double.IsInfinity(value.AsDouble))
             return value.AsDouble == 0d ? 0d : value.AsDouble;
         if (type == typeof(decimal) && (value.IsDecimal128 || value.IsInt32 || value.IsInt64))

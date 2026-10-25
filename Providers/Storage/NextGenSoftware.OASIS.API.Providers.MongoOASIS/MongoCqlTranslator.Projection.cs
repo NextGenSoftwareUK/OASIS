@@ -66,10 +66,9 @@ internal sealed partial class MongoCqlTranslator
 
     private static BsonValue ProjectionCell(CosmicQueryPath path, string prefix)
     {
-        BsonValue Cell(BsonValue raw)
+        BsonValue Cell(BsonValue raw) => WithMetadataOperand(raw, path, value =>
         {
             var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
-            var value = MetadataOperand(raw, path);
             var valid = type == typeof(Guid) ? GuidDomain(value) : Domain(value, path.ValueType, path.IsMetadata);
             if (path.IsMetadata && type == typeof(DateTime))
             {
@@ -87,7 +86,7 @@ internal sealed partial class MongoCqlTranslator
             var state = Choose(Op("$eq", Type(raw), Literal("missing")), Literal(0),
                 Choose(Op("$eq", Type(raw), Literal("null")), Literal(1), Choose(valid, Literal(2), Literal(3))));
             return new BsonDocument { { "s", state }, { "v", Choose(valid, value, Literal(BsonNull.Value)) } };
-        }
+        }, prefix);
         return path.IsMetadata ? ProjectionMetadata(path.Segments, Cell, prefix) : Cell(Canonical(path));
     }
 
