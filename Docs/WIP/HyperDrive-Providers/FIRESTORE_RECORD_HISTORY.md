@@ -1,5 +1,13 @@
 # Firestore record history — integration in progress
 
+## 24 October — partial graph admission and complete acknowledgement repaired
+
+Fresh matched cohort **447controlled,87history-native and79regression-native PASS, zero skipped** (6s/10s/32s). Firestore ordinary graph saves now reuse existing shared CreateForSave and complete-success PublishAcknowledgedSelection. Eight genuine pre-fix cases dispatched incomplete graphs to the native writer; two complete acknowledgements lost next-save observation; two partial-ack controls already rejected completeness. No new storage format/helper/SDK call/retry or atomic-ordinary-graph claim.
+
+Two new sync/async officialFirestoreSDK cases prove complete successful native saves retain observation, actual root-only reads preserve full stored role manifests but cannot replace omitted children even afterAcceptChanges, and rejected saves leave BOTH independent native updateTime/data_json observations unchanged. Four owned GUIDrows conditionally deleted with LastUpdated preconditions and independent absence before journal removal. The native history gate now requires87, not the prior85. Existing durability checkpoint import/read/conditionalproofcleanup also passed; same emulator1.22.0/Firestore3.7.0/project/export, no new environment/download/restore/cloudspend.
+
+First candidate full447=443PASS/4FAIL exposed four old mock-success fixtures omitting persisted role observations. Cause preserved in google-ack-fixture-before.trx; only mocks corrected using the same Resolve owner as real Firestore writes, assertions retained/diagnostics strengthened. Native builds refreshed producer assemblies; priorunit copy differed, so consumer was rebuilt normally and full447 rerun against matching final binaries—no manualcopy or hiddenfallback. Source/PDB/copies match Core743/Shared56/provider26/unit27/integration35. Pending0/Java1284absent/ports18080–18083absent, originalreports/logs preserved .pre-partial-selection; exact hashes/resource sizes in ENVIRONMENT_INVENTORY.md. Hosted IAM/indexes/security/fees/durability, optional GCS/BigQuery and all-provider/V2 acceptance remainOPEN, **not100%GoogleCloud**.
+
 ## 24 October — deleted detail visibility repaired and verified
 
 Current matched cohort: **435 unit,85 history-native and79 regression-native PASS,zero skips**. Sixteen of64 controlled cases first reproduced deleted details leaking through current reads when IsActive remained true. One shared detail predicate now requires non-null,active AND not deleted; ID/username/email and collection routes reuse it. No extra query,retry,codec or persistence path was added.

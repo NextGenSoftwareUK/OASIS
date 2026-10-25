@@ -1,5 +1,9 @@
 # Shared canonical record-history codec
 
+## 24 October — Google/Firestore ordinary graph adapter migrated and verified
+
+Google SaveHolons now uses existing CreateForSave plus complete-success PublishAcknowledgedSelection, with no new Core/Shared helper/format/native request. Ten genuine failures fixed; two partial-ack negative controls retained. Final matched447controlled/87history-native/79regression-nativePASS0skip, including actual incomplete native reads afterAcceptChanges, unchanged native payload/revisions on rejection, complete-ack observation and exact synthetic cleanup. Four old mock-success acknowledgements corrected to carry the actual writer's resolved role manifest, not weakened guard/assertions. Native runner strengthens current-source proof and87case gate. Other structuralCreate caller adapters still need individual migration/native verification; receipt/replica structural readers must not be blindly converted or granted authority. HostedGoogleCloud/optionalGCS/BigQuery/fullV2 remainOPEN.
+
 ## 24 October — Dynamo/AWS ordinary graph adapter migrated and verified
 
 Dynamo SaveHolons now reuses existing CreateForSave plus complete-success PublishAcknowledgedSelection, inherited by AWS alias. Eight partial-selection admission and two acknowledgement-observation cases genuinely failed before repair; final full647unit/38alias/138retainednativePASS0skip, with two additional failed-child/no-complete-observation controls. No new Core/Shared changes or alternate SDK path. Native's two old scan-count assertions were corrected to current visible-root contract after original136/138failure was hash-fenced/reconciled, not hidden. Fresh baseline/cleanup1eachPASS, originalfailedruncleanup1PASS, pending0/stopped. Other adapters still using structuralCreate at caller mutation boundaries remain an open migration/verification gate; this does not certify all providers or hostedAWS/V2.
