@@ -1272,3 +1272,29 @@ results. Both bound sources require the same authorized actor/policy.
 
 Native evidence: full MongoDB328/328 and unit510/510, zero skips. Graph sources,
 joined HTTP transport and Neo4j joins are not enrolled by this SDK checkpoint.
+
+## Neo4j SDK flat joins — 25 October 2026
+
+Neo4j supports the same `Join` / `LeftJoin` / detached `Select` SDK pattern as
+MongoDB and SQLite. Use an activated shipping `Neo4jOASIS` provider and
+`ProviderType.Neo4jOASIS` scope; construct the plan from that adapter's actual
+source and join capabilities. Call the same generic V2
+`manager.ExecuteJoinQueryAsync(plan, adapters)` entry point.
+
+The [commented SQLite join example](#native-sqlite-joins--implementation-checkpoint-25-october-2026)
+shows the complete capture, capability-planning, error-checking and iteration
+steps. Change the provider scope/adapter to Neo4j; result presence remains
+`row.HasRight`, independently of nullable selected values. Composite keys and
+the enrolled exact scalar domains use the same Core syntax on all three stores.
+Both input windows run before matching, and overflow rejects rather than
+truncates a successful response.
+
+Neo4j captures both source value sets inside one native statement and matches
+those captured maps. Its guarantee is read committed; it does not promise a
+repeatable snapshot. Graph-source joins/shared-snapshot requests remain
+unsupported and reject during capability admission. MongoDB/SQLite flat joins
+use their native snapshot owners. Joined HTTP requests and browser presets are
+not yet available; current join examples use the C# SDK.
+
+Verification: Neo4j full native320/320, full unit492/492, zero skips, including
+actual cold/warm read interruption and shipping30-second deadlines.

@@ -85,6 +85,11 @@ public partial class Neo4jNativeCqlTests
                                     .Select(g => new { g.Key, Count = g.Count() }).Result),
                                 cancellationToken: cancellation.Token));
                             break;
+                        case "join":
+                            CheckCancelled(await provider.ExecuteCosmicJoinAsync(
+                                JoinPlan(source.Join(source,h=>h.Name,h=>h.Name).Select((l,r)=>l.Name).Result),
+                                new CosmicJoinExecutionLimits(10,10,100,100,10000,10000,10000),cancellation.Token));
+                            break;
                         default:
                             Assert.Fail("Unknown interruption shape: " + shape);
                             break;
