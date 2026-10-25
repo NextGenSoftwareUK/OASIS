@@ -30,6 +30,7 @@ public class AwsS3EncryptedLifecycleTests
         public bool LoseCreateAcknowledgement;
         public int Writes, Deletes;
         public Action BeforeListReply;
+        public Action AfterFirstWrite;
         private static string Revision(string value) => "\"" + Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant() + "\"";
         private static HttpResponseMessage Failure(HttpStatusCode status, string code) => new(status)
         { Content = new StringContent($"<Error><Code>{code}</Code><Message>controlled</Message></Error>", Encoding.UTF8, "application/xml") };
@@ -73,6 +74,7 @@ public class AwsS3EncryptedLifecycleTests
                         var checksum = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
                         Assert.AreEqual(checksum, request.Headers.GetValues("x-amz-checksum-sha256").Single());
                         Objects[key] = value;
+                        if (Writes == 1) AfterFirstWrite?.Invoke();
                         if (LoseCreateAcknowledgement && Writes == 1) return Failure(HttpStatusCode.ServiceUnavailable, "ServiceUnavailable");
                         var response = FakeService.Status(HttpStatusCode.OK);
                         response.Headers.TryAddWithoutValidation("ETag", Revision(value));
