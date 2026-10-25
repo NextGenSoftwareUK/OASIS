@@ -1617,3 +1617,58 @@ Literal vectors not persisted; acknowledged fixture teardown passed and owned
 27029listener absent. Runner bounded11,633,529rawlogbytes to65,375 after shutdown;
 runtime/data retained reusable. Free C67,179,864,064 after. No download/restore/
 new environment or Core/Shared source edits. Single capability remains disabled.
+
+## Mongo Single Decimal128 component — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse SDK10.0.401, cached packages, existing Mongo8.3.11
+27029/oasisRecoveryRs in SubscriptionUsageCurrent/mongo-data and current provider/
+unit/native bin/obj. No download/install/restore/new environment. Free C67,062,820,864
+before; sizes unmeasured. Exact midpoint factor table generated in memory from
+BigInteger powers, no external dataset. Native31-step bit-order search compares
+originalDecimal128 against exact midpoint prefixes/remainders, not Double.
+Prepared1873 Decimal128/foreign vectors are readonly aggregation literals,
+bounded30seconds; count actual pending. Prior12313Double/9700integer vectors
+remain in full257native/493unit regression. Single query capabilities still
+disabled pending complete query-owner integration. Await peer Oracle release
+before global lease; retain compact evidence and clean only acknowledged fixture.
+
+SQLite promotion red gate41532 reuses SDK/cache, fixed
+C:/Source/OASIS/TestResults/SQLiteCurrent/integration-current.db/-wal/-shm and
+existing native bin/obj (no restore). New synthetic3row Single-neighbor dataset
+uses existing acknowledged cleanup owner. Three regression cases cover eight
+promoted Double comparisons, membership and grouped filters. Exact source
+literals must retain Double precision after lossless Single widening.
+Retain SQLiteCurrent/single-promotion-red.trx and CosmicCqlDemo/
+single-promotion-red.log; production SQLite unchanged during red gate.
+No new environment/runtime/service/download. Outcome pending.
+
+41532 terminal1: three promotion regressions reproduced (wrong row equality;
+group proof disagreement; promoted membership rejected by original compiler).
+SQLite literals now encode original Double precision in common floating keyspace,
+rather than converting back toSingle. Core exact same-wire lossless membership
+capture accepts Single->Double/integer->Int64 while preserving nullability/enum/
+fraction guards, with3new Core cases. Production Core edit only
+Queries/CosmicQueryExpression.cs; no Shared/Oracle changes.
+Next bothCoreTFMs/full2558linked/focused3/full1516SQLite gate under one lease,
+same existing fixed fixture. Decimal kernel15900 already257native/493unit green;
+source/Core changes require new cohort before publication. No new environments.
+
+15900 terminal0: Decimal component 1,873 vectors, full Mongo257/native493unit
+PASS0skip. Source snapshots unchanged; producer/native/unit copies match
+Core0CF79D7B, SharedC2115227, Mongo47D123D2. Owned27029 stopped; acknowledged
+fixture teardown complete. Raw log11,701,045 bytes bounded to65,385 after stop.
+Free C67,088,023,552 after. Preserve fixed single-decimal-* evidence and
+single-integer-native-baseline.trx (452,307bytes, SHA256
+006AD4DC7FE2F7E280E2F8EE7E3B6C345FDAC3F54A742EF8924B8F364A03F993).
+
+26125 terminal0: both Core TFMs/full2558Core/focused31/full1516SQLite PASS0skip.
+Sources unchanged; CoreE5145A09/Shared65B7C604/SQLite8FB7EE46 producer/native
+copies match; Core-unit identity verified. Fixed integration-current.db/WAL/SHM
+absent after teardown. Free C66,681,438,208 after. Retain TestResults/
+CosmicCurrent/single-promotion-core-current.trx, SQLiteCurrent/
+single-promotion-{focused,full}-current.trx, single-promotion-identities-current.json
+and CosmicCqlDemo/single-promotion-full.log (sizes unmeasured). Existing SDK,
+NuGet cache and bin/obj retained reusable, no downloads/restores/new environments.
+Owner COSMIC ORM/CQL; compact reports retained for regression evidence, generated
+bin/obj reusable and regenerable from the pinned source; do not delete shared
+outputs during another session's build. Global lease and source hold released.

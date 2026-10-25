@@ -285,3 +285,28 @@ is retained separately as single-binary64-native-baseline.trx.
 This closes the integer normalization component, not Single query enrollment.
 Original Decimal128 normalization, complete predicate/projection/grouped query
 acceptance, Neo4j Single and Single HTTP/demo coverage remain open.
+
+## Exact Decimal128 conversion and promoted comparison literals
+
+Mongo's Single Decimal128 component compares original decimal values against
+exact binary32 midpoint boundaries using native aggregation, including ties to
+even. It never converts Decimal128 to Double first. The 1,873-vector gate covers
+midpoint neighborhoods, boundary/foreign values and random decimal inputs.
+Full 257 native / 493 unit tests pass (gate 15900). Evidence is retained under
+TestResults/SubscriptionUsageCurrent/single-decimal-* and
+TestResults/CosmicCqlDemo/mongo-single-decimal-full.log. This is a conversion
+component; Mongo Single query capability remains disabled.
+
+A Single path widened to Double must compare against the unchanged Double
+literal. For example, `(double)Value<float>(h, "reading") == 0.1d` does not match
+a stored 0.1f, whose exact widened value differs. SQLite now uses the shared
+Double ordering key for the literal while normalizing the stored value to Single.
+This applies equally to row comparisons, membership and grouped filters.
+Core permits lossless Single-to-Double and integral-to-Int64 membership casts
+with matching nullability; the original path domain remains authoritative.
+Enum-domain changes, nullable changes and fractional-domain casts stay rejected.
+
+Gate 26125 passes both Core builds, 2,558 Core tests, 31 focused / 1,516 full
+SQLite tests, no skips. Evidence: CosmicCurrent/single-promotion-core-current.trx,
+SQLiteCurrent/single-promotion-{focused,full}-current.trx and
+single-promotion-identities-current.json, under TestResults.

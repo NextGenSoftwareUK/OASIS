@@ -568,3 +568,19 @@ rounding refactor retains all 12,313 binary64 vectors. Full Mongo native 256 and
 unit 493 suites pass with no failures/skips, unchanged sources and matching
 producer/native/unit binaries. Original Decimal128 normalization and full Single
 query acceptance remain open; no Single capability has been enabled.
+
+## Single decimal conversion and promotion gates — 24 October 2026
+
+Mongo original Decimal128-to-Single normalization passes 1,873 native vectors
+without intermediate Double conversion. Gate 15900: full 257 Mongo native and
+493 unit tests pass, no failures/skips, unchanged sources and matched binaries.
+Single query enrollment still requires complete query-owner integration.
+
+SQLite promoted Double thresholds now retain their original precision rather
+than narrowing back to Single. Core captures supported lossless same-wire
+membership promotions while preserving stored-domain and nullability guards.
+The three new native regressions were red before the fix (41532). Gate 26125
+finished successfully: both Core TFMs build, 2,558 Core tests, 31 focused Single
+and 1,516 full SQLite tests pass with no failures/skips. Source snapshots are
+unchanged and producer/consumer identities match. Neo Single, Single transport
+and demos, and every broader unchecked acceptance requirement remain open.

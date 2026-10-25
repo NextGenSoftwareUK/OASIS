@@ -241,7 +241,7 @@ public partial class HolonRepository
                 }
                 object value = comparison.Literal.Value;
                 if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(decimal)) value = CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
-                if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(float)) value = CosmicFloatingScalarResults.SingleOrderKey(Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture));
+                if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(float)) value = CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture));
                 if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(double)) value = CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture));
                 if ((Nullable.GetUnderlyingType(comparison.Path.ValueType) ?? comparison.Path.ValueType) == typeof(ulong)) value = SqliteCqlUInt64.Literal(value);
                 if (comparison.Path.ScalarKind == CosmicQueryScalarKind.Boolean) value = (bool)value ? 1L : 0L;
@@ -296,7 +296,7 @@ public partial class HolonRepository
                 else if (type == typeof(bool)) value = (bool)value ? 1L : 0L;
                 else if (type == typeof(ulong)) value = SqliteCqlUInt64.Literal(value);
                 else if (type == typeof(decimal)) value = CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
-                else if (type == typeof(float)) value = CosmicFloatingScalarResults.SingleOrderKey(Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture));
+                else if (type == typeof(float)) value = CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture));
                 else if (type == typeof(double)) value = CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture));
                 parameters.Add(Bind(value));
             }

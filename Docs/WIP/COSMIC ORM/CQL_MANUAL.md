@@ -1015,3 +1015,22 @@ near-halfway result. Nonzero underflow and overflow reject the declared domain.
 This is SQLite SDK support. MongoDB/Neo4j Single and Single HTTP/demo enrollment
 remain pending. Single Sum/Average inputs are not granted. The full SQLite gate
 passes1,513 cases and the linked Core suite2,555, zero failures/skips.
+
+### Lossless numeric membership promotion
+
+For a provider with certified Single metadata support, a Double collection can
+be compared against an explicitly widened Single path:
+
+```csharp
+var exactMembers = new[] { (double)0.1f };
+
+var query = CosmicQuery<Holon>.Create()
+    .Where(h => exactMembers.Contains(
+        (double)CosmicQueryMetadata.Value<float>(h, "reading")));
+```
+
+The original Single storage domain is validated before widening. `0.1d` and
+`(double)0.1f` are different values; collection literals retain their precision.
+Integral-to-Int64 membership widening is also supported. Nullability changes and
+enum-domain conversions are rejected. SQLite has native regression coverage;
+this compiler support does not grant uncertified providers a Single capability.
