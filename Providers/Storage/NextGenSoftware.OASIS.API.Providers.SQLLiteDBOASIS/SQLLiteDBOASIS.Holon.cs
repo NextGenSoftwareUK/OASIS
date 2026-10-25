@@ -119,6 +119,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 // The repository owns root revision selection; child versions remain independent.
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(
                     searchParams,version,maxChildDepth,supportsHistory:true);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(
+                    searchParams,version,maxChildDepth,supportsHistory:true);
             }
             catch(Exception cause) when(cause is ArgumentException or NotSupportedException)
             {

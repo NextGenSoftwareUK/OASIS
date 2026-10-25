@@ -1,5 +1,24 @@
 # Oracle client readiness — top priority
 
+## Completion gate recheck — 25 October 2026
+
+Current-source refresh completed after acquiring the existing shared build lease: **521/521 native PASS, 34s, zero skips**. Report `TestResults/OracleCurrent/oracle-native-current.trx`, 838,203 bytes, SHA256 `72BDDA618FBF3787648571CE2BD3BDECE20BE9BAD531C205F18DBE3A78EEC634`. Existing cached Shared/provider/test builds passed; Core 744 and Shared 56 source documents matched their compiled PDBs. No production Oracle change was needed for this refresh. Pending journals are zero, retained database exited 143 without OOM, and loopback port 11521 is no longer listening. This is a fresh local regression result, not a rerun of the separate unit/OCI cohorts or hosted acceptance.
+
+Oracle remains the first priority, before AWS. Do not substitute additional SQLite or other-provider work for these gates, or equate passing test counts with completion.
+
+| Gate | Current evidence | Still required |
+|---|---|---|
+| Oracle Database native implementation | Latest recorded 521 native / 463 unit tests pass; interface map below | Review uncovered requirements against actual client configuration; retain separate advanced preparation/restart evidence |
+| OCI Object Storage implementation | Latest recorded 133 signed-SDK controls pass | Real approved bucket/profile acceptance; loopback signing is not hosted verification |
+| Autonomous Database acceptance | Guarded existing-schema preflight and public CRUD runner prepared | Protected connection/wallet, approved database/schema/service, then actual hosted execution |
+| Security and durability | Local schema/privacy/uncertain-outcome controls | Provider-session identity/TLS/wallet policy, hosted durability and approved IAM evidence |
+| Costs and retention | Explicit request/storage/retained-version warnings | Approved cloud limits and measured hosted usage; logical deletion is not physical erasure |
+| Authenticated WEB4 / HyperDrive V2 | Separate local capability evidence only | Actual authenticated routes plus cross-provider failover, replication and load balancing |
+
+This recheck found no process configuration for `ORACLEDBOASIS_CONNECTIONSTRING`, `OCI_CONFIG_FILE`, `OCI_CONFIG_PROFILE` or `OASIS_ORACLE_OBJECT_STORAGE_ENCRYPTION_KEY`, and no default `C:/Users/david/.oci/config`. This does not prove that no nondefault protected profile exists: supply its path/name if already configured. No pending Oracle test journals were present. No cloud calls, credentials, downloads, restores, runtime starts or new environments were introduced by the recheck.
+
+Required user inputs remain in [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#pending-oracle-cloud-test-access--added-23-october-2026). Never send secrets in chat. Oracle cannot truthfully be certified 100% while these hosted and end-to-end gates remain unverified.
+
 ## Post-acknowledgement duplicate-key classification — 25 October
 
 Native24case baseline reproduced4failures: a real SDK ORA1exception injected after a DISTINCT successful avatar/detail commit was downgraded to a known create conflict. Existing12899controls remained passing. The generic canonical writer now permits known duplicate-key classification only before DML acknowledgement; after acknowledgement the original error/recordID remain inside `OracleLifecycleReconciliationException`. This prevents a misleading failure classification that could otherwise encourage replay of an already committed operation. No retry/fallback/second writer added.
