@@ -132,10 +132,10 @@ public partial class SQLLiteDBOASISIntegrationTests
         File.Exists(_databasePath).Should().BeFalse();
         var cancelled = await adapter.ExecuteCosmicProjectionAsync(empty, cancellationToken: new CancellationToken(true));
         cancelled.ErrorCode.Should().Be("CQL_QUERY_CANCELLED");
-        var unsupported = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<float>(h, "unsupported")).Result;
+        var unsupported = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<DayOfWeek>(h, "unsupported")).Result;
         var borrowed = CosmicProjectionPlanner.Plan(unsupported, adapter.QueryProviderType,
             new[] { new CosmicProjectionTarget(adapter.QueryProviderType, adapter.QueryCapabilities,
-                new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(float) })) }).Result;
+                new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), new[] { typeof(DayOfWeek) })) }).Result;
         var rejected = await adapter.ExecuteCosmicProjectionAsync(borrowed);
         rejected.ErrorCode.Should().Be("CQL_CAPABILITY_UNSUPPORTED");
         File.Exists(_databasePath).Should().BeFalse();

@@ -62,4 +62,32 @@ public class CosmicProjectionPlanningTests
             new[] { new CosmicProjectionTarget(ProviderType.Neo4jOASIS, Rows, capability) }).ErrorCode);
         Assert.Throws<ArgumentException>(() => new CosmicProjectionCapabilities(fields, Array.Empty<Type>(), maximumColumns: 33));
     }
+
+    [Fact]
+    public void CompletePrimitiveRegistryDoesNotIncreaseSelectedColumnBudget()
+    {
+        var values = new[] { typeof(bool), typeof(Guid), typeof(DateTime), typeof(int), typeof(long),
+            typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(uint), typeof(ulong),
+            typeof(decimal), typeof(double), typeof(float), typeof(HolonType), typeof(ProviderType) };
+        var domains = new[] { typeof(string) }.Concat(values.SelectMany(type =>
+            new[] { type, typeof(Nullable<>).MakeGenericType(type) })).ToArray();
+        Assert.Equal(33, domains.Length);
+        var capability = new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), domains, maximumColumns: 1);
+        domains[0] = typeof(object);
+        Assert.Contains(typeof(string), capability.MetadataTypes);
+        var one = CosmicQuery<Holon>.Create().Select(h => CosmicQueryMetadata.Value<float>(h, "reading")).Result;
+        Assert.False(capability.Admit(one).IsError);
+        var two = CosmicQuery<Holon>.Create().Select(h => new
+            { First = CosmicQueryMetadata.Value<float>(h, "first"), Second = CosmicQueryMetadata.Value<float>(h, "second") }).Result;
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", capability.Admit(two).ErrorCode);
+    }
+
+    [Fact]
+    public void ProjectionRegistryRetainsAnIndependentFiniteDescriptionBound()
+    {
+        var excessive = typeof(string).Assembly.GetExportedTypes()
+            .Take(CosmicProjectionCapabilities.MaximumMetadataDomains + 1).ToArray();
+        Assert.Equal(CosmicProjectionCapabilities.MaximumMetadataDomains + 1, excessive.Length);
+        Assert.Throws<ArgumentException>(() => new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(), excessive));
+    }
 }

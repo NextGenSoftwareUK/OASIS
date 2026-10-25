@@ -18,7 +18,7 @@ public partial class HolonRepository
                     + " THEN 2 ELSE 3 END", _ => "1", prefix + "s") + " LIMIT 1)";
                 var state = "CASE WHEN " + count + ">1 THEN 3 ELSE COALESCE(" + kind + ",0) END";
                 var metadataType = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
-                var normalized = comparable || metadataType == typeof(ulong) || metadataType == typeof(decimal) || metadataType == typeof(double);
+                var normalized = comparable || metadataType == typeof(ulong) || metadataType == typeof(decimal) || metadataType == typeof(double) || metadataType == typeof(float);
                 var value = "(" + MetadataSubquery(path.Segments, alias => normalized ? MetadataColumn(alias, path.ValueType)
                     : alias + ".value", _ => "1", prefix + "v") + " LIMIT 1)";
                 return (state, value);

@@ -9,6 +9,14 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class CosmicFloatingOrderKeyTests
 {
     [Fact]
+    public void SingleGroupingCapturesTheDeclaredNullableKeyWithoutEnrollingProviders()
+    {
+        var result = CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<float?>(h, "reading"));
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(typeof(float?), result.Result.Key.Columns[0].Path.ValueType);
+    }
+
+    [Fact]
     public void DoubleGroupingCapturesTheDeclaredNullableKeyWithoutEnrollingProviders()
     {
         var result = CosmicQuery<Holon>.Create().GroupBy(h => CosmicQueryMetadata.Value<double?>(h, "reading"));
