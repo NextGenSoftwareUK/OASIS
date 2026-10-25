@@ -1534,3 +1534,79 @@ The new provider contract is exercised with controlled adapters only. **Native
 SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composition
 and executable composition demos remain required.** Existing joined demos are
 separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
+
+## SQLite SDK: filter and page after Select
+
+The selected-result pipeline runs natively on SQLite. The20-row source window
+is applied before the selected stock filter. Every selected source row must have
+valid Int64 `stock` metadata, including rows removed by a later filter/page.
+
+```csharp
+var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
+var access = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
+
+var selected = CosmicQuery<Holon>.Create(scope)
+    .WithReadAccess(access)
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Select(holon => new
+    {
+        Label = holon.Name,
+        Stock = CosmicQueryMetadata.Value<long>(holon, "stock")
+    })
+    .Where(row => row.Stock > 0)
+    .OrderByDescending(row => row.Stock)
+    .ThenBy(row => row.Label)
+    .Skip(5)
+    .Take(10);
+
+if (selected.IsError)
+    throw new InvalidOperationException(selected.Message);
+
+var native = (ICosmicQueryProjectionCompositionStorageProvider)sqliteProvider;
+var plan = CosmicProjectionCompositionPlanner.Plan(
+    selected.Result,
+    native.QueryProviderType,
+    new[]
+    {
+        new CosmicProjectionCompositionTarget(
+            native.QueryProviderType,
+            native.QueryCapabilities,
+            native.ProjectionCapabilities,
+            native.CompositionCapabilities)
+    });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteProjectionCompositionQueryAsync(
+    plan.Result,
+    new[] { native });
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message);
+
+foreach (var row in result.Result.Providers.Single().Rows)
+    Console.WriteLine($"{row.Label}: {row.Stock}");
+```
+
+Use HyperDrive V2. MongoDB/Neo4j and the public HTTP composition description are
+not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
+and output are independent rejection limits; they never silently truncate data.
+[Contract and verification status](CQL_COMPOSITION_CONTRACT.md).
+
+Final SQLite composition acceptance passes **1,648/1,648 normal native integration
+tests**, **55/55 provider unit tests** and **2,877/2,877 Core/linked WEB4 tests**,
+zero skips. The native suite adds33 composition cases beyond1,615; unit SQL adds
+nine beyond46. Historical exact-fixture `Category=Reconciliation` helpers are
+excluded from normal acceptance, not skipped acceptance cases. Full native run
+is3m4s. Actual SQL-entry cancellation, read-only connections and constructor-
+throwing source entities pass alongside the initial30 cases.
+
+Both Core frameworks build. Exact owned SQLite DB/sidecars and pending markers
+are absent after teardown. Evidence: `TestResults/CosmicCqlDemo/sqlite-composition-full.log`,
+`TestResults/SQLiteCurrent/composition-owner-full.trx`,
+`TestResults/SQLiteCurrent/composition-compiler-unit.trx` and
+`TestResults/CoreCurrent/composition-graph-admission.trx`.
+This certifies the native SQLite SDK slice; MongoDB/Neo4j composition and public
+HTTP/examples remain open. Earlier93/93 demo evidence remains a separate cohort.
