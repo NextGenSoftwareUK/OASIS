@@ -1103,3 +1103,30 @@ var joinIntent = owners.Join(
 Use `LeftJoin` for left-join intent. Both sources must have the same provider
 scope and trusted access actor. These descriptions do not authorize a storage
 query. Follow [the join contract](CQL_JOIN_CONTRACT.md) for implementation status.
+
+### Describing a left-join result
+
+This captures a result description only; it does not execute a query:
+
+```csharp
+var ownerQuery = CosmicQuery<Holon>.Create();
+var memberQuery = CosmicQuery<Holon>.Create();
+
+var selection = ownerQuery
+    .LeftJoin(memberQuery, owner => owner.Id, member => member.ParentHolonId)
+    .Select((owner, member) => new
+    {
+        OwnerName = owner.Name,
+
+        // Presence differs from a present member whose fields contain null.
+        MemberPresent = member != null,
+        MemberName = member.Name,
+
+        // An unmatched member has no version; it must not become zero.
+        MemberVersion = (int?)member.Version
+    });
+```
+
+A left-join right-side value such as `member.Version` requires a nullable output.
+Only an identical-domain nullable lift is accepted; numeric conversion or computed
+output requires further capability support. Native execution remains pending.
