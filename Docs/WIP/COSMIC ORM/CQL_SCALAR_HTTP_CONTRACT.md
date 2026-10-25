@@ -1,8 +1,24 @@
 # CQL scalar HTTP contract
 
+## Decimal input compiler and wire acceptance - 25 October 2026
+
+Native Decimal Sum/Average is certified on MongoDB, SQLite and Neo4j. The shared
+scalar/grouped HTTP selection binder now has explicit required/nullable Decimal
+input branches. Twenty-two new controls cover exact string output, nullable/empty
+results, original selector types, actor binding, usage receipts, grouped capture
+and rejection of read-only numeric permissions. All pass within the full
+**3,079-test Core suite**, without failures or skips. The shipping WEB4 build
+passes. Live signed Decimal HTTP/demo verification remains pending.
+
+The extension uses the existing tagged Decimal text output. Clients should send
+exact Decimal comparison literals as strings; JavaScript Number cannot preserve
+all admitted Decimal values. No arbitrary expression evaluation, client scan or
+implicit provider substitution is added. Actual-adapter arithmetic admission and
+native source/access/work ownership remain mandatory.
+
 Current status, 25 October 2026: all seven scalar operations below are
 implemented on MongoDB, SQLite and Neo4j. The latest shared walkthrough passes
-102 SDK/102 signed HTTP examples across those providers. Later dated test counts
+111 SDK/111 signed HTTP examples across those providers. Later dated test counts
 retain their original scope; the [completion roadmap](CQL_COMPLETION_ROADMAP.md)
 tracks current cohorts and remaining work. The new empty-window correctness
 batch is described separately below.

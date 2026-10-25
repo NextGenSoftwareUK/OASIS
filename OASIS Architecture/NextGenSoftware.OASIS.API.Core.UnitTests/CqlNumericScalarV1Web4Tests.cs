@@ -85,13 +85,11 @@ public partial class CqlV1Web4Tests
 
 
     [Theory]
-    [InlineData("Sum", "Decimal")]
-    [InlineData("Average", "Decimal")]
     [InlineData("Sum", "String")]
     [InlineData("Average", "String")]
     [InlineData("Sum", "Boolean")]
     [InlineData("Average", "Boolean")]
-    public async Task NumericHttpRejectsNonIntegerSelectorsBeforeDispatch(string operation, string valueType)
+    public async Task NumericHttpRejectsUnsupportedSelectorsBeforeDispatch(string operation, string valueType)
     {
         var type = ProviderType.MongoDBOASIS;
         var source = new Source(type);

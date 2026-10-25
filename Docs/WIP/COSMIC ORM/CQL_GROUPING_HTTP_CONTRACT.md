@@ -1,5 +1,21 @@
 # CQL grouped HTTP contract
 
+## Decimal input compiler and wire acceptance - 25 October 2026
+
+Native Decimal Sum/Average is certified on MongoDB, SQLite and Neo4j. The shared
+scalar/grouped HTTP selection binder now has explicit required/nullable Decimal
+input branches. Twenty-two new controls cover exact string output, nullable/empty
+results, original selector types, actor binding, usage receipts, grouped capture
+and rejection of read-only numeric permissions. All pass within the full
+**3,079-test Core suite**, without failures or skips. The shipping WEB4 build
+passes. Live signed Decimal HTTP/demo verification remains pending.
+
+The extension uses the existing tagged Decimal text output. Clients should send
+exact Decimal comparison literals as strings; JavaScript Number cannot preserve
+all admitted Decimal values. No arbitrary expression evaluation, client scan or
+implicit provider substitution is added. Actual-adapter arithmetic admission and
+native source/access/work ownership remain mandatory.
+
 24 October 2026. The protected POST route is `/api/data/query-cql/grouped`. It uses the existing CQL authorization/resource filter, authenticated actor, provider eligibility and durable physical-attempt accounting. Controlled endpoint tests pass for all three provider types; the baseline live demo acceptance is recorded below. Result ordering has separate controlled evidence below.
 
 ## Request
