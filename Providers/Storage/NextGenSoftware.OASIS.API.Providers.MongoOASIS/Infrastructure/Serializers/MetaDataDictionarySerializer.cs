@@ -259,6 +259,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                 writer.WriteInt64((long)value);
             else if (valueType == typeof(double))
                 writer.WriteDouble((double)value);
+            else if (valueType == typeof(float))
+            {
+                var single = (float)value;
+                if (float.IsNaN(single) || float.IsInfinity(single))
+                    throw new BsonSerializationException("Nonfinite Single metadata cannot be serialized.");
+                // BSON has no Single primitive. Preserve the same canonical
+                // numeric spelling as stored JSON snapshots, and its exact
+                // binary32 round-trip. Direct widening changes that spelling
+                // and can invalidate the save acknowledgement's value proof.
+                writer.WriteDouble(double.Parse(single.ToString("R", System.Globalization.CultureInfo.InvariantCulture),
+                    System.Globalization.CultureInfo.InvariantCulture));
+            }
             else if (valueType == typeof(ulong))
                 writer.WriteDecimal128((decimal)(ulong)value);
             else if (valueType == typeof(decimal))

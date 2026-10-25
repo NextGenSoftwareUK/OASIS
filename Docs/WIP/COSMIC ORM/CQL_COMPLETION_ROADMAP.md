@@ -1,13 +1,15 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core-linked 2,500 unit tests including23 Decimal wire controls and full SQLite 1,459 native tests, including24 exact Decimal metadata cases. Decimal wire/demo acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core-linked 2,506 unit tests including23 Decimal wire controls and6 finite floating-key facts and full SQLite 1,459 native tests, including24 exact Decimal metadata cases. Decimal wire/demo acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
 Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Floating continuation: Core's finite binary64/binary32 key foundation passes both
 configured targets and the full2,506-unit suite, including six new facts and8,192
 finite random bit patterns. Provider Double/Single capabilities remain disabled;
-Mongo Single numeric persistence/acknowledgement repair is in progress. See the
+Mongo Single numeric persistence/acknowledgement repair passes493 units and231
+native CQL cases, including3 new actual save/load cases; no floating query
+capability is enabled yet. See the
 [floating contract and remaining gates](CQL_FLOATING_SCALAR_CONTRACT.md).
 
 Scope: generic Core/HolonManager contracts, native execution on these three providers, hosted authorization/accounting, tests and documentation. Preserve v1 compatibility and Hyperdrive V2 ownership. Other providers, legacy Hyperdrive changes and unrestricted arbitrary C# execution are outside this focused programme.
