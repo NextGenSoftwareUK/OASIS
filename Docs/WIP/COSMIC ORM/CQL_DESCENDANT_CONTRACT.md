@@ -91,3 +91,31 @@ SQLite48 andMongo64 pass current controls. SQLite cancels after actual native re
 All4newNeo controls pass: cancellation after actual Fetch without publication and successful reuse, a31-second cursor-delivery delay classified by the30-second budget, and both new-owner reparent variants. Read committed permits the already-fetched old result; fresh queries must reflect current membership. The joint114 run initially passed112 with an HTTP/1 transport incident and dependent retained-namespace guard; those are not failed Neo traversal controls. Exact-hash fixture reconciliation now passes: 133 settled operations and two absent trailing operation IDs were verified before cleanup. The fresh joint 114-case run and full Core 1,834-case run pass with zero skips. Strict interruption of an outstanding native driver await remains a separate open gate.
 
 These post-read controls do not prove prompt cancellation of an already-blocked Neo driver await. The retained driver4.2 exposes no cancellation token on the inspected async query/cursor methods; current budget checks surround awaits. Strict in-flight await/deadline latency and interruption ownership remain an explicit open audit gate. Do not describe the delayed-delivery classification test as proof of a hard wall-clock abort.
+
+## Remaining blocked-I/O cancellation audit - 25 October 2026
+
+Neo4j CQL creates a cumulative 30-second read budget and a server transaction
+timeout. Its budget checks surround cursor delivery, but the awaited driver
+BeginTransactionAsync, RunAsync and FetchAsync calls do not receive a caller
+cancellation token. Existing tests prove cancellation after an actual fetch and
+a 31-second delayed delivery returning timeout; they do not prove interruption
+of an indefinitely blocked driver await. Strict cancellation remains unchecked.
+
+The actual native test consumer resolves **Neo4j.Driver.Signed 4.3.2**, not the
+also-cached unsigned 4.2.0. Its DLL matches the cached net5.0 signed DLL at SHA256
+27D1AE1380B2073633D1A5D933FF6C5F2741133F3029DE450123CB0017CC6BB9.
+Neo4jClient 4.1.18 and Neo4jOgm 0.21.8 bring the driver dependencies transitively.
+The pinned XML API exposes async close/rollback, but does not establish that
+concurrent close safely interrupts a blocked call. Do not implement detached
+Task.WhenAny cancellation, global driver disposal or privilege-dependent server
+termination as an implicit substitute for that missing lifecycle guarantee.
+
+Next acceptance requires native blocked-call cancellation/deadline tests for
+rows, projections, scalar and grouped queries, no partial publication, bounded
+teardown and subsequent owner reuse. Verify the driver cancellation/teardown
+contract before changing execution ownership. No dependency change or runtime
+installation has been made during this audit.
+
+Primary references: [Neo4j 4.3 async session source](https://github.com/neo4j/neo4j-dotnet-driver/blob/4.3/Neo4j.Driver/Neo4j.Driver/Internal/AsyncSession.cs)
+and [official session close contract](https://neo4j.com/docs/api/dotnet-driver/current/api/Neo4j.Driver.IAsyncSession.CloseAsync.html).
+The latter describes current documentation; pinned 4.3.2 XML was inspected locally.

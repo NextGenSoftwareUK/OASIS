@@ -1900,3 +1900,18 @@ StandaloneDemo buildPASS3.06s/0errors/7warnings, no restore, existingbinobjonly.
 Report single-standalone-build.log retained. FinalUTF8audit repaired two newly
 introduced Windows punctuation bytes in manual/matrix, preserving validUTF8.
 No sourcebehaviorchanges afterlivegate; only docs/encoding corrections.
+
+## Cancellation API audit - 25 October 2026
+
+Owner COSMIC ORM/CQL; read-only reuse of existing caches and native consumer.
+C:/Users/david/.nuget/packages/neo4j.driver.signed/4.3.2/lib/net5.0/
+Neo4j.Driver.dll (410624 bytes) and XML (228588 bytes) inspected; DLL SHA256
+27D1AE1380B2073633D1A5D933FF6C5F2741133F3029DE450123CB0017CC6BB9 matches
+existing Neo integration consumer bin/Debug/net10.0/Neo4j.Driver.dll.
+Also inspected inherited cached neo4j.driver/4.2.0, neo4j.driver.simple/4.2.0
+and signed/netstandard2.0 metadata; sizes otherwise unmeasured. No downloads,
+restores, installs or services started. Existing reusable dependencies preserved.
+Official source/API pages read through web tool, no local source checkout created.
+Purpose: distinguish actual pinned driver from transitive candidates before
+blocked-I/O cancellation work. Cleanup: retain shared packages and consumer
+outputs until normal verified build cleanup; do not remove unrelated caches.
