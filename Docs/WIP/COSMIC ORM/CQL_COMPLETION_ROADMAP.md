@@ -783,3 +783,32 @@ unskipped on867182ad8. This closes the earlier full-cohort recertification gap
 for that transport patch; fresh hosted demos and non-CQL regressions remain
 separate. [Exact evidence and remaining boundaries](CQL_DESCENDANT_CONTRACT.md).
 The full roadmap, including joins/federation and the original ORM scope, remains active.
+
+## Ordinary save ownership hardening — 25 October 2026
+
+Published parent checkpoint `18a05b148` / Core `f0290ff` fixes prepared logical
+child-role ownership and SQLite ordinary persistence/acknowledgement. Verified
+Core2,604, Shared1,189, normal SQLite1,578 and fresh87SDK/87HTTP examples; six
+producer/consumer pairs match and source remained unchanged. These are separate
+cohorts. See [ownership evidence](SQLITE_ORDINARY_ROLE_OWNERSHIP.md).
+
+Next MongoDB ordinary single/batch admission now has eight red/green controls;
+full Mongo unit502 passes after switching only ordinary entry points to
+`CreateForSave`. Conditional/replay plans retain their existing owners. Native
+CQL regression is running with exact stored-BSON preservation checks for direct
+sync/async single/batch partial-view saves. This is not yet a native-pass claim.
+Mongo single-record role persistence and acknowledgement, Neo4j ordinary guards,
+and every unchecked advanced query/roadmap requirement remain open.
+
+### MongoDB ordinary admission verification completed
+
+The native runner terminated successfully: full281 native CQL cases pass, zero
+skips, 3m51s. Its four existing partial-view cases now exercise all direct
+sync/async single/batch saves (16 probes), both legacy/no-manifest and manifested
+records, child-type and access-filtered selections. Each probe records intent
+before submission and proves the complete stored Holon BSON remains unchanged.
+Existing manager root-only positive controls still pass. Full unit502 passes,
+including eight new controls first reproduced red against the original code.
+Only ordinary single/batch planning changed to CreateForSave; conditional/replay
+plans remain intact. Single-record role persistence/acknowledgement and Neo4j
+ordinary guard work remain open; this is admission certification only.

@@ -17,7 +17,7 @@ public partial class MongoDBOASIS
         {
             // One detached admission owns scalar values and selected membership. Routing
             // cannot inspect caller getters again to choose the native mutation owner.
-            var graph = HolonGraphWritePlan.Create(new[] { source }, children, recursive, depth, 0);
+            var graph = HolonGraphWritePlan.CreateForSave(new[] { source }, children, recursive, depth, 0);
             admitted = true;
             if (graph.Nodes.Count > 1)
             {
