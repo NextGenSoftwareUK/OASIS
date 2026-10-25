@@ -57,11 +57,17 @@ their existing read-domain permissions unless explicitly restricted.
 The UInt64 Core foundation captures exact unsigned Sum/Average and validates
 bounded unsigned accumulator packets. SQLite native unsigned arithmetic is
 verified (1,679 native/72 unit); MongoDB explicit enrollment passes391 full
-native/539 unit cases (17 new unsigned native controls). Neo4j still denies unsigned
-arithmetic. Read/Min/Max permissions remain independent; numeric HTTP/demo
+native/539 unit cases (17 new unsigned native controls). Neo4j now passes391 native/520 unit cases with exact INTEGER-only chunk
+lowering shared across scalar/grouped reductions and sum comparisons. Read/Min/Max permissions remain independent; numeric HTTP/demo
 enrollment requires separate certification. SQLite shares its exact integer chunk
 lowering; MongoDB reuses Decimal128-to-limb reduction and exact mean normalization.
 Shared grouped result validation preserves the declared unsigned bounds. [Contract](CQL_NUMERIC_AGGREGATES.md#uint64-core-foundation--25-october-2026).
+
+The shared HTTP scalar/grouped selection visitor now binds UInt64/nullable
+Average through typed Core overloads. Core3,017 passes, including9new exact wire/
+type/access/receipt controls; shipping WEB4 builds. Sum retains tagged UInt64
+strings, Average tagged Decimal strings/null. Live signed numeric demo acceptance
+is still pending and is separate from compiler/mocked-wire evidence.
 
 ## Layers and ownership
 

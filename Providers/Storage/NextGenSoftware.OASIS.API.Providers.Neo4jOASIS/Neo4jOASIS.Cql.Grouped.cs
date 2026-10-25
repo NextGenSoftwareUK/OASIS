@@ -30,7 +30,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             {
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Count, typeof(int)),
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.LongCount, typeof(long))
-            }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?) }
+            }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) }
                 .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type)))
                 .Concat(new[] { typeof(decimal), typeof(decimal?) }.Select(type =>
                     new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Average, type))).ToArray();

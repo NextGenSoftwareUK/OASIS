@@ -39,12 +39,31 @@ public partial class Neo4jOASIS
         return new NeoCqlNumericValue(highInteger, lowInteger, count);
     }
 
+    private static (string High, string Low) IntegralParts(Type declared, string value)
+    {
+        var type = Nullable.GetUnderlyingType(declared) ?? declared;
+        if (type == typeof(ulong))
+        {
+            // The canonical key has exactly20 digits. Each decimal chunk and
+            // upper*1410065408+lower fit Int64, even at UInt64.MaxValue.
+            var upper = "toInteger(substring(" + value + ",0,10))";
+            var lower = "toInteger(substring(" + value + ",10,10))";
+            var remainder = "(" + upper + "*1410065408+" + lower + ")";
+            return ("(" + upper + "*2+" + remainder + "/4294967296)", "(" + remainder + "%4294967296)");
+        }
+        if (!type.IsEnum && type != typeof(byte) && type != typeof(sbyte) && type != typeof(short)
+            && type != typeof(ushort) && type != typeof(int) && type != typeof(uint) && type != typeof(long))
+            throw new NotSupportedException("Native integral parts require an exact integer domain.");
+        return ("(" + value + "/4294967296)", "(" + value + "%4294967296)");
+    }
+
     private static string CompileCqlNumeric<T, TResult>(NeoCqlSource compiled, CosmicScalarQuery<T, TResult> query) where T : IHolon
     {
         if (query.Selector == null || (query.Operation != CosmicScalarOperation.Sum && query.Operation != CosmicScalarOperation.Average))
             throw new NotSupportedException("An admitted integer numeric aggregate is required.");
         var translator = compiled.Translator;
         var cell = translator.TranslateProjectionPath(query.Selector);
+        var parts = IntegralParts(query.Selector.ValueType, "selectedValue");
         var keys = translator.TranslateOrdering(query.Source.Orderings);
         var aliases = keys.Select((_, index) => "cqlNumericSort" + index).ToArray();
         var keyValues = string.Concat(keys.Select((key, index) => "," + key.Expression + " AS " + aliases[index]));
@@ -69,10 +88,10 @@ public partial class Neo4jOASIS
             + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
             + "WITH h,p" + keyValues + " ORDER BY " + order + " SKIP $numericOffset LIMIT $numericTake "
             + "WITH " + cell.State + " AS selectedState," + cell.Value + " AS selectedValue "
-            + "WITH selectedState,CASE WHEN selectedState=2 THEN selectedValue ELSE 0 END AS number "
             + "WITH count(*) AS inputs,sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END) AS invalid,"
             + "sum(CASE WHEN selectedState=2 THEN 1 ELSE 0 END) AS present,"
-            + "sum(number / 4294967296) AS high,sum(number % 4294967296) AS low "
+            + "sum(CASE WHEN selectedState=2 THEN " + parts.High + " ELSE 0 END) AS high,"
+            + "sum(CASE WHEN selectedState=2 THEN " + parts.Low + " ELSE 0 END) AS low "
             + "RETURN high,low,present,inputs,invalid=0 AS valid,false AS traversalCycle,false AS traversalLimit } "
             + "RETURN high,low,present,inputs,valid,traversalCycle,traversalLimit";
     }
