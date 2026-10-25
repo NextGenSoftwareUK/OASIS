@@ -2625,3 +2625,20 @@ log to65,327-byte retained tail. C: free69,098,323,968 bytes after final gate.
 Required evidence retained at fixed paths; exact measured report/data sizes below.
 
 Measured retained resources: SubscriptionUsageCurrent/mongo-cql-native-current.trx575,310bytes; mongo-join-deadline-original-red.trx578,512bytes; CosmicCqlDemo/mongo-join-native-final.log1,519bytes. Reusable SubscriptionUsageCurrent/mongo-data442,075,357bytes after stopped runtime; preserve for shared pinned test environment, recreate only through admitted existing runner. No cleanup of shared data performed. Exact fixture DB drops were part of acknowledged native teardown. Reports regenerate through recorded global-leased runner; original failure evidence retained.
+
+Neo4j join compiler slice: reuse retained task checkout, SDK10.0.401/runtime10.0.12, local NuGet cache and fixed Neo provider/unit/native bin/obj. Shared parameter dictionary preserves one900binding budget; single native statement captures bounded input proofs then matches maps, no snapshot grant/client evaluator. Initial provider+unit builds under normal global lease; fixed CosmicCqlDemo/neo-join-compiler-unit.log and Neo4jCurrent/join-compiler-unit.trx retained, sizes pending. No restore/install/download/container start/database before native runner admission. Existing retained Neo5.26.12 image/container reused later, no duplicate environment.
+
+Neo compiler unit final gate terminal0:483/483 pass0skip,6newcontrols. Initial482/483 had a test expecting raw hostile metadata name rather than its existing encoded PathKey; assertion corrected to bound encoded key. Native compiler target4cases now uses existing retained oasis-neo4j image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd under Ubuntu/root Podman, Bolt17687, same fixed Neo4jCurrent fixtures/manifests. New exclusive runner selector reuses normal producer/consumer identity checks and teardown, no duplicateenvironment. Full family expected counts advanced by4, not claimed rerun. Single global lease wraps whole native runner. No install/download/restore. Fixed CosmicCqlDemo/neo-join-compiler-native.log and Neo4jCurrent/neo4j-join-compiler-current.trx retained; sizes/outcomes pending.
+
+Neo compiler native2490 terminal0: four scoped native compiler cases pass0skip
+(6seconds); full unit483 pass0skip separately. Existing runner checked pinned
+source-driver/Core/Shared producer identities, rebuilt bounded consumers, started
+retained Neo4j and stopped it normally. Free C: before69,089,841,152 bytes /
+after69,038,878,720 bytes. No install/download/restore/new environment. Fixed
+fixture manifests and exact owned graph rows removed by acknowledged teardown;
+retained container/image/volume and reusable outputs preserved. Broader expected
+counts updated for four new methods, not represented as a new full native gate.
+Required compact evidence retained at existing fixed paths; exact report sizes
+and stopped-container state verified below. No unrelated fixtures/data removed.
+
+Verified stopped Neo container identity: exited6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd; cql-graph-fixture.json absent. Retained Neo4jCurrent/join-compiler-unit.trx730,539bytes; neo4j-join-compiler-current.trx7,343bytes; CosmicCqlDemo/neo-join-compiler-native.log1,432bytes. Same reusable fixed paths. Regenerate using leased bounded provider/unit gate and Run-ReusableNeo4jTests.ps1 -CosmicCqlJoinCompiler; keep pinned container/volume/shared SDK outputs until coordinated verified cleanup.
