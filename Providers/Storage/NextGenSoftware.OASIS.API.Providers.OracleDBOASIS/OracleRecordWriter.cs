@@ -69,7 +69,9 @@ public partial class OracleDBOASIS
             // A received statement-size rejection is not a lost commit response.
             // The identical error number after DML acknowledgement remains uncertain.
             throw new InvalidDataException("Oracle canonical statement rejected a value exceeding native column capacity; the original statement was not committed.",cause);
-        }catch(OracleException cause)when(creating&&cause.Number==1){
+        }catch(OracleException cause)when(creating&&!canonicalWriteAcknowledged&&cause.Number==1){
+            // Only an unacknowledged INSERT's duplicate identity is a known rejection.
+            // The same error after DML acknowledgement belongs to commit reconciliation below.
             throw new InvalidDataException("Oracle create-only record conflicted with an existing native identity.",cause);
         }catch(Exception cause)when(dispatched){throw new OracleLifecycleReconciliationException(proposed.Id,cause);}
     }

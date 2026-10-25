@@ -77,11 +77,13 @@ public sealed partial class OracleNativeAcceptanceTests
         finally{await provider.DeActivateProviderAsync();}
     }
 
-    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
-    public async Task NativeCommitPhaseCapacityErrorRemainsUncertain(bool detail,bool synchronous)
+    [DataTestMethod]
+    [DataRow(false,false,false)][DataRow(false,true,false)][DataRow(true,false,false)][DataRow(true,true,false)]
+    [DataRow(false,false,true)][DataRow(false,true,true)][DataRow(true,false,true)][DataRow(true,true,true)]
+    public async Task NativeCommitPhaseCapacityErrorRemainsUncertain(bool detail,bool synchronous,bool duplicateKey)
     {
         var connection=Environment.GetEnvironmentVariable("ORACLEDBOASIS_CONNECTIONSTRING")!;
-        var journal=Path.Combine(Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!,$"capacity-commit-{detail}-{synchronous}.pending.json");
+        var journal=Path.Combine(Environment.GetEnvironmentVariable("OASIS_ORACLE_TEST_WORK")!,$"capacity-commit-{detail}-{synchronous}-{duplicateKey}.pending.json");
         Assert.IsFalse(File.Exists(journal));var rejected=Guid.NewGuid();var committed=Guid.NewGuid();var name="owned-capacity-commit-"+committed.ToString("N");
         var table=detail?"OASIS_AVATAR_DETAILS":"OASIS_AVATARS";
         var provider=new CapacityCommitOwner(connection);
@@ -94,7 +96,13 @@ public sealed partial class OracleNativeAcceptanceTests
                 await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new{rejected,committed,table,name,detail,synchronous,state="before-owned-commit-phase-fault"}));file.Flush(true);
             }
             OracleException original;
-            if(detail)original=CapacityCause((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=rejected,Username=new string('a',257),Email="owned@example.invalid"})).Exception);
+            if(duplicateKey){
+                // Obtain a real SDK/native error without inserting another record or creating schema objects.
+                await using var duplicate=new OracleCommand("BEGIN RAISE DUP_VAL_ON_INDEX; END;",verifier);
+                original=await Assert.ThrowsExceptionAsync<OracleException>(async()=>{await duplicate.ExecuteNonQueryAsync();});
+                Assert.AreEqual(1,original.Number);
+            }
+            else if(detail)original=CapacityCause((await provider.SaveAvatarDetailAsync(new AvatarDetail{Id=rejected,Username=new string('a',257),Email="owned@example.invalid"})).Exception);
             else original=CapacityCause((await provider.SaveAvatarAsync(new Avatar{Id=rejected,Username=new string('a',257),Email="owned@example.invalid"})).Exception);
             Assert.IsNull(await Read(verifier,table,rejected));
             // Fault injection on a DISTINCT operation after a real successful commit.
