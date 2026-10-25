@@ -172,6 +172,23 @@ public sealed class CosmicJoinExecutorTests
     }
 
     [Theory]
+    [InlineData(ProviderType.MongoDBOASIS)] [InlineData(ProviderType.SQLLiteDBOASIS)] [InlineData(ProviderType.Neo4jOASIS)]
+    public async Task NamedRuntimeRecordsUseTheSameExecutionAndValidationOwner(ProviderType provider)
+    {
+        var native=new Native(provider);var join=Plan(null,provider).Query.Join;
+        var selected=join.SelectColumns(new[]{
+            CosmicJoinBinding.Left(join,"label",(NextGenSoftware.OASIS.API.Core.Holons.Holon h)=>h.Description).Result,
+            CosmicJoinBinding.Right(join,"revision",(NextGenSoftware.OASIS.API.Core.Holons.Holon h)=>h.Version,allowMissing:true).Result,
+            CosmicJoinBinding.Presence(join,"present").Result}).Result;
+        var plan=CosmicJoinPlanner.Plan(selected,provider,new[]{new CosmicJoinTarget(provider,Sources,Capabilities)});
+        Assert.False(plan.IsError,plan.Message);
+        var result=await CosmicJoinExecutor.ExecuteAsync(plan.Result,new[]{native});
+        Assert.False(result.IsError,result.Message);Assert.Equal(1,native.Calls);
+        var row=result.Result.Providers.Single().Rows.Single();
+        Assert.True(row.HasRight);Assert.Equal("coffee",row.Value["label"]);Assert.Equal(7,row.Value["revision"]);Assert.Equal(true,row.Value["present"]);
+    }
+
+    [Theory]
     [InlineData(NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,true)]
     [InlineData(NextGenSoftware.OASIS.API.DNA.HyperDriveModes.Legacy,false)]
     public async Task ManagerExposesJoinExecutionOnlyInV2(string mode,bool supported)
