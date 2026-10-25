@@ -6,7 +6,7 @@ SQLite and Neo4j. Latest published demo baseline is `b1c2ae263`.
 
 - Latest separately verified cohorts: Core **2,877** (composition including graph-source admission guard),
   Shared **1,189**, SQLite **1,648 native /55 unit**, MongoDB **359 native /519 unit**,
-  Neo4j **320 native /492 unit**; zero skips at their recorded checkpoints.
+  Neo4j **328 native /499 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **93 SDK /93 HTTP**, **288 settled operations
   /283 attempts**. Six join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -1544,3 +1544,35 @@ privacy/relationship and outstanding-I/O/deadline controls remain required;
 Neo4j composition and public HTTP/composition demos remain open.
 
 25 October MongoDB composition privacy/interruption certification passes **359/359 native**, zero skips (31 composition controls). Unit checkpoint remains519/519; production unchanged. See [final native evidence and remaining scope](CQL_COMPOSITION_CONTRACT.md). Neo4j composition and public composition transport/demos remain open.
+
+## Neo4j composition compiler — implementation in verification
+
+25 October2026: one shared detached-source compiler now serves joins and the
+new composition compiler. The source is captured once; selected result stages
+operate on captured scalar cells inside the same native statement. Selected
+filters share the existing exact grouped predicate translator. Client aliases
+resolve to positional cells and literals remain parameters. Result sorts have
+explicit CQL null ranks and preserve prior-stage rank on ties.
+
+Source overflow sentinels and invalid-source proofs survive Take0. Source/work/
+proof admission guards retain exceeded counts in the header while suppressing
+further stage work. Explicit stage headers represent empty results. Complete
+source proofs sort before stage identities. A strict packet decoder, existing
+read/deadline/attempt owner integration, capability enrollment and expanded
+native acceptance remain required; this compiler does not advertise execution.
+Neo4j read committed remains explicit; GraphSnapshot is not granted.
+
+Seven new unit controls and eight actual native Cypher controls are being
+verified with the full existing query regression. Public composition transport
+and annotated live composition demos remain open.
+
+
+Neo4j compiler checkpoint final: **328/328 native CQL tests** (eight new actual
+Cypher composition controls) and **499/499 provider unit tests** (seven new),
+zero skips. Full native duration9m14s. This verifies the compiler plus the existing
+join/group regression after shared detached-source/predicate extraction. It does
+**not** certify a composition packet decoder or provider execution enrollment;
+those are next. Existing read-committed/snapshot admission remains unchanged.
+Evidence: `TestResults/CosmicCqlDemo/neo-composition-compiler-final.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx` and
+`TestResults/Neo4jCurrent/composition-compiler-unit.trx`.
