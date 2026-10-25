@@ -10,19 +10,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
-    internal sealed class NeoCqlJoinDecoder<TLeft,TRight,TKey,TResult> where TLeft:IHolon where TRight:IHolon
+    internal sealed class NeoCqlJoinDecoder<TLeft,TRight,TKey,TResult> : NeoCqlDetachedSourceDecoder where TLeft:IHolon where TRight:IHolon
     {
         private readonly CosmicJoinSelection<TLeft,TRight,TKey,TResult> query;
         private readonly CosmicJoinExecutionLimits limits;
-        private readonly Action check;
         private readonly List<CosmicJoinInputRow> left=new(),right=new();
         private readonly List<CosmicJoinRow> pairs=new();
         private long leftCount,rightCount,pairCount,leftBytes,rightBytes,outputBytes;
         private long previousKind=-1;
-        private static readonly Encoding Utf8=new UTF8Encoding(false,true);
 
-        internal NeoCqlJoinDecoder(CosmicJoinSelection<TLeft,TRight,TKey,TResult> query,CosmicJoinExecutionLimits limits,Action check)
-        { this.query=query;this.limits=limits;this.check=check; }
+        internal NeoCqlJoinDecoder(CosmicJoinSelection<TLeft,TRight,TKey,TResult> query,CosmicJoinExecutionLimits limits,Action check) : base(check)
+        { this.query=query;this.limits=limits; }
 
         internal void Add(IReadOnlyDictionary<string,object> record)
         {
@@ -74,76 +72,16 @@ public partial class Neo4jOASIS
         }
 
         private CosmicJoinInputRow Source<T>(object raw,CosmicQuery<T> intent,bool isLeft,ref long bytes,int maximumBytes) where T:IHolon
-        {
-            if(raw is not IDictionary<string,object> source || source.Count!=12)throw Invalid("Native join source shape is invalid.");
-            if(Flag(source,"cycle"))throw Invalid("Native join traversal encountered a cycle.");
-            if(Flag(source,"traversalLimit") || Flag(source,"payloadLimit"))throw new NeoCqlLimitException("Native join source exceeds its traversal/payload bound.");
-            if(!Flag(source,"valid") || !Flag(source,"domainValid"))throw Invalid("Native join source ownership or scalar domain is invalid.");
-            if(!source.TryGetValue("id",out var rawId) || !source.TryGetValue("creator",out var rawCreator))throw Invalid("Native join identity proof is missing.");
-            var id=(Guid)DecodeNativeProjectionValue(rawId,typeof(Guid));
-            var creator=(Guid)DecodeNativeProjectionValue(rawCreator,typeof(Guid));
-            var visible=Flag(source,"visible");
-            if(id==Guid.Empty || intent.ReadAccess!=null && !visible && creator!=intent.ReadAccess.ActorId)
-                throw Invalid("Native join source identity/access is invalid.");
-            var lower=Number(source,"bytes");
-            if(lower<0)throw Invalid("Native join byte proof is invalid.");
-            if(lower>maximumBytes)throw new NeoCqlLimitException("Native join source exceeds remaining bytes.");
-            var keys=query.Join.Keys.Select(key=>isLeft?key.Left:key.Right).ToArray();
-            var columns=query.Columns.Where(column=>column.Source==(isLeft?CosmicJoinColumnSource.Left:CosmicJoinColumnSource.Right)).ToArray();
-            var measured=checked(bytes+48);
-            var keyValues=Cells("keys",keys.Select(path=>path.ValueType).ToArray(),false,out _);
-            var selected=Cells("values",columns.Select(column=>column.Path.ValueType).ToArray(),false,out _);
-            var order=Cells("ordering",intent.Orderings.Select(item=>item.Path.ValueType).ToArray(),true,out var states);
-            if(measured>maximumBytes)throw new NeoCqlLimitException("Native join source exceeds remaining bytes.");
-            bytes=measured;
-            return new CosmicJoinInputRow(id,visible,creator,keyValues,selected,order,states);
-
-            object[] Cells(string name,Type[] domains,bool allowAbsent,out int[] states)
-            {
-                if(!source.TryGetValue(name,out var native) || native is not IReadOnlyList<object> cells || cells.Count!=domains.Length)
-                    throw Invalid("Native join cell buffer width is invalid.");
-                var values=new object[domains.Length];states=new int[domains.Length];
-                for(var index=0;index<values.Length;index++)
-                {
-                    check();
-                    if(cells[index] is not IDictionary<string,object> cell || cell.Count!=2 || !cell.TryGetValue("s",out var rawState)
-                        || rawState is not long state || state is <0 or >2 || !cell.TryGetValue("v",out var value))
-                        throw Invalid("Native join cell domain is invalid.");
-                    states[index]=(int)state;var declared=domains[index];
-                    if(state<2)
-                    {
-                        if(value!=null || !allowAbsent && declared.IsValueType && Nullable.GetUnderlyingType(declared)==null)
-                            throw Invalid("A required native join cell is missing/null.");
-                    }
-                    else values[index]=DecodeNativeProjectionValue(value,Nullable.GetUnderlyingType(declared)??declared);
-                    Reserve(values[index],ref measured,maximumBytes);
-                }
-                return values;
-            }
-        }
+            => Source(raw, intent.ReadAccess,
+                query.Join.Keys.Select(key => (isLeft ? key.Left : key.Right).ValueType).ToArray(),
+                query.Columns.Where(column => column.Source == (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right))
+                    .Select(column => column.Path.ValueType).ToArray(),
+                intent.Orderings.Select(item => item.Path.ValueType).ToArray(), ref bytes, maximumBytes);
 
         private static void Observe(long count,int actual,int maximum,ref long observed)
         {
             if(count>maximum || actual>=maximum)throw new NeoCqlLimitException("Native join source exceeds remaining rows.");
             if(actual>0 && observed!=count)throw Invalid("Native join source count changed.");observed=count;
         }
-        private void Reserve(object value,ref long bytes,int maximum)
-        {
-            check();
-            try{bytes=checked(bytes+16+(value is string text?Utf8.GetByteCount(text):16));}
-            catch(EncoderFallbackException cause){throw new InvalidDataException("Native join string is not valid UTF-8.",cause);}
-            if(bytes>maximum)throw new NeoCqlLimitException("Native join exceeds its remaining byte budget.");
-        }
-        private static long Number(IEnumerable<KeyValuePair<string,object>> fields,string name)
-        {
-            foreach(var field in fields)if(field.Key==name && field.Value is long number)return number;
-            throw Invalid("Native join requires an exact integer "+name+".");
-        }
-        private static bool Flag(IDictionary<string,object> fields,string name)
-        {
-            if(fields.TryGetValue(name,out var value) && value is bool flag)return flag;
-            throw Invalid("Native join requires a Boolean "+name+".");
-        }
-        private static InvalidDataException Invalid(string message)=>new(message);
     }
 }
