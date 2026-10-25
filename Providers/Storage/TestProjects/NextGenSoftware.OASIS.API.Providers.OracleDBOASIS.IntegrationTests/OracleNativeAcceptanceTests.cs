@@ -802,8 +802,11 @@ public sealed partial class OracleNativeAcceptanceTests
                 Assert.AreEqual(0,(await provider.LoadAllHolonsAsync(version:99)).Result.Count());
                 var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{SearchOnlyForCurrentAvatar=false,FilterByMetaData=new(){["owned.fixture"]="literal-dot"}},version:1);
                 Assert.IsFalse(search.IsError,search.Exception?.ToString());Assert.AreEqual(1,search.Result.SearchResultHolons.Single(row=>row.Id==id).Version);Assert.AreEqual(5,search.Result.SearchResultHolons.Single(row=>row.Id==id).Children.Single().Version);
-                foreach(var exportedRoot in new[]{await provider.ExportAllAsync(1),await provider.ExportAllDataForAvatarByIdAsync(id,1),await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,1),await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,1)}){
-                    Assert.IsFalse(exportedRoot.IsError,exportedRoot.Exception?.ToString());Assert.AreEqual(5,exportedRoot.Result.Single(row=>row.Id==id).Children.Single().Version);
+                var unscopedExport=await provider.ExportAllAsync(1);
+                Assert.IsFalse(unscopedExport.IsError,unscopedExport.Exception?.ToString());Assert.AreEqual(5,unscopedExport.Result.Single(row=>row.Id==id).Children.Single().Version);
+                foreach(var exportedRoot in new[]{await provider.ExportAllDataForAvatarByIdAsync(id,1),await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,1),await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,1)}){
+                    Assert.IsFalse(exportedRoot.IsError,exportedRoot.Exception?.ToString());
+                    Assert.AreEqual(0,exportedRoot.Result.Single(row=>row.Id==id).Children.Count,"The independent child has no avatar owner, so avatar-scoped exports must not expose it.");
                 }
                 var historicalCredential=await provider.LoadAvatarByVerificationTokenAsync(name+"-original-token",1);Assert.IsTrue(historicalCredential.IsError);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(historicalCredential.Exception);
                 Assert.IsNull((await provider.LoadAvatarByVerificationTokenAsync(name+"-original-token")).Result);

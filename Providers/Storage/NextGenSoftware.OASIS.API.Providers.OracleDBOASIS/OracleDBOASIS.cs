@@ -752,13 +752,15 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
             try
             {
                 if(version < -1)throw new ArgumentOutOfRangeException(nameof(version));
+                if(avatarId==Guid.Empty)throw new ArgumentException("Avatar export requires a nonempty avatar identity.",nameof(avatarId));
                 if(version==-1){
                     var all=await ExportAllAsync(version);if(all.IsError)return all;
                     RecordsLoaded(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList());return result;
                 }
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);
-                    RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>row.CreatedByAvatarId==avatarId),true,true,0,0,true));return result;
+                    RecordsLoaded(result,await ProjectHolonRootsAsync(selected.Where(row=>row.CreatedByAvatarId==avatarId),true,true,0,0,true));
+                    return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
                 }
                 const string sql = "SELECT ID,DATA_JSON FROM OASIS_HOLONS WHERE IS_DELETED=0 AND JSON_VALUE(DATA_JSON,'$.CreatedByAvatarId')=:AvatarId";
                 await using var conn = new OracleConnection(_connectionString);
@@ -769,6 +771,7 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = await ReadRecordVersionAsync<Holon>(new Guid((byte[])reader.GetValue(0)),reader.GetString(1),0); if (h != null&&!h.IsDeleted) holons.Add(h); }
                 RecordsLoaded(result,await ProjectHolonRootsAsync(holons,true,true,0,0,true));
+                return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

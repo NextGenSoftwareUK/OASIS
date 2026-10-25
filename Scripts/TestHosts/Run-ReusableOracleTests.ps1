@@ -5,7 +5,7 @@ param(
     [switch]$RestartDatabaseBetweenPhases,
     [switch]$ReconcileKarmaNullOutcome,[switch]$ReconcileKarmaReadGuard,
     [switch]$ReconcileConditionalIntent,
-    [switch]$ReconcileScopedVisibility,
+    [switch]$ReconcileScopedVisibility,[switch]$ReconcileExportVisibility,
     [switch]$ReconcileAcknowledgementViews,
     [switch]$AllVersionExports,
     [switch]$PointReadSelectors,
@@ -28,7 +28,7 @@ param(
 )
 $selectedModes=@($BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
-    $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileAmbiguity,
+    $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileExportVisibility,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
 if($selectedModes -gt 1){throw 'Choose one original reconciliation mode.'}
 if($RestartDatabaseBetweenPhases -and !$EncryptedProcess){throw 'Database restart requires the explicit encrypted two-process mode.'}
@@ -93,7 +93,12 @@ try{
         $coverageArgs=@('--collect','XPlat Code Coverage','--settings',(Join-Path $PSScriptRoot 'OracleNativeCoverage.runsettings'))
     }
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
-    if($ReconcileKarmaReadGuard){
+    if($ReconcileExportVisibility){
+        if($pending.Count -ne 1 -or $pending[0].Name -ne 'canonical-records.pending.json' -or
+           (Get-FileHash $pending[0].FullName).Hash -ne '18F3900D400A7640D9B0BD4173940DEBDD46FCD531EC0CDBCA1A311CF245AEAE' -or
+           (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne '93B3C03959D69651074FD6E1F428CF1F97A90CFA57FC5C8EC0FF0C4D4E1B407B'){throw 'Exact original export visibility fixture/report required; no replay.'}
+    }
+    elseif($ReconcileKarmaReadGuard){
         if($pending.Count -ne 1 -or $pending[0].Name -ne 'v2-karma-manager.pending.json' -or
            (Get-FileHash $pending[0].FullName).Hash -ne '3559342641A0F2B4E9A4A3C35CA7DFBBB5D6AA22A24B3F4F7CF8BED8AEFA0B60' -or
            (Get-FileHash (Join-Path $work 'oracle-native-current.trx')).Hash -ne 'A3386A636906BA05DC3F1A914714534BBF65C8682B5368AFC613CA14C74890D5'){throw 'Exact original read-guard fixture evidence required; no replay.'}
@@ -303,6 +308,7 @@ try{
     if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
     if($BootstrapSchema){$report='oracle-bootstrap-native-current.trx';$filter='FullyQualifiedName~OracleBootstrapNativeTests'}
     if($Coverage){$report='oracle-native-coverage-current.trx'}
+    if($ReconcileExportVisibility){$report='oracle-export-visibility-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAvatarExportVisibilityFixture'}
     if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $testResults /m:2 /nr:false @coverageArgs
@@ -318,6 +324,7 @@ try{
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){20}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){20}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){64}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{510}
     if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
     if($BootstrapSchema){$expected=1}
+    if($ReconcileExportVisibility){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}
     if($Coverage){
         if((Get-FileHash -LiteralPath $coverageAssembly).Hash -ne $coverageOriginalHash){throw 'Coverage instrumentation was not restored; preserve outputs and rebuild before reuse.'}
