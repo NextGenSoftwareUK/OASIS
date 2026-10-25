@@ -1,5 +1,28 @@
 # COSMIC ORM implementation status
 
+## MongoDB Decimal native acceptance - 25 October 2026
+
+Native scalar and grouped Decimal/nullable Sum/Average are implemented. The
+focused query gate passes **23/23**, and full MongoDB units pass **550/550**,
+with no skips. The full **416/416 native CQL regression passes**, with no failures or skips.
+This certifies native SDK arithmetic; HTTP Decimal inputs remain unenrolled.
+
+Seven signed base1e9 sums preserve the exact scaled28 numerator. Grouped
+comparison/order values use eight-word carry normalization, bounded long division
+and discarded-digit/sticky tracking to round once to a legal Decimal coefficient.
+Only the final at-most29-significant-digit coefficient is recombined into
+Decimal128. Raw packet validation still rejects malformed participation and
+out-of-range sums, including groups omitted by result paging. No entity scan,
+binary floating conversion or server JavaScript is introduced.
+
+The 23 native controls cover nullable/empty inputs, signs, large cancellation,
+overflow versus valid means, mixed integer/Decimal groups, selected filters,
+ordering/paging, source windows, privacy, cancellation/reuse,137 inputs independent
+of graph publication limits, original stored precision and double-round boundaries.
+Separate native component acceptance covers2 tests:2,114 scaled input vectors
+and138 final-normalization packets. HTTP Decimal enrollment, live Decimal demos
+and Neo4j Decimal arithmetic remain pending.
+
 ## MongoDB Decimal scaled-packet component - 25 October 2026
 
 The native expression now preserves an admitted Decimal as seven signed base1e9
