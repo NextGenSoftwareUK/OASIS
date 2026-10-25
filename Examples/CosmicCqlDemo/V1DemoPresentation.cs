@@ -93,6 +93,8 @@ public static class V1DemoPresentation
         <option value="unsignedGroups">UInt64 / grouped keys</option>
         <option value="utcSource">UTC dates / source range</option>
         <option value="utcGroups">UTC dates / grouped keys</option>
+        <option value="leftJoin">Left join / unmatched rows and exact values</option>
+        <option value="innerJoin">Inner join / matching pairs only</option>
         <option value="groupedAverage">GroupBy / filter exact Decimal means</option>
         <option value="groupedFilter">GroupBy / filter exact totals</option>
         <option value="groupedPage">GroupBy / independent result page</option>
@@ -137,6 +139,9 @@ let session, last;
 let queryRoute = "/api/data/query-cql";
 const el = id => document.getElementById(id);
 const notes = {
+  leftJoin: 'Join two independently filtered source windows in the selected provider. A left join keeps B-owned and D-owned with hasRight=false and null precision; C-public matches. Both inputs enforce your signed actor. Int64 values remain exact strings.',
+  innerJoin: 'Use the same two source windows with an inner join: only C-public matches. Matching happens natively in the selected provider. Limits reject excess work rather than silently truncate results.',
+
   min: 'Native Min over typed Int64 metadata. Hidden roots contain long.MinValue/long.MaxValue; visibility excludes them for Alice and Visitor before reduction. Exact values remain decimal strings.',
   sum: 'Native Sum over the complete visible input. Int64 output remains exact decimal text; no browser Number conversion.',
   average: 'Native Average over the first two ordered names. Int64 input returns an exact Decimal fraction as text; the half-unit survives beyond binary64 precision.',
@@ -392,6 +397,29 @@ function preset() {
     if (name === 'groupedFilter') {
       body.resultFilters = [{ alias: 'Total', operator: 'GreaterThan', value: '-9007199254740991' }];
     }
+  }
+  if (name === 'leftJoin' || name === 'innerJoin') {
+    const provider = body.provider;
+    const filters = body.filters;
+    for (const key of Object.keys(body)) delete body[key];
+
+    queryRoute += '/join';
+    Object.assign(body, {
+      provider,
+      kind: name === 'leftJoin' ? 'Left' : 'Inner',
+      left: { filters },
+      right: { filters: [...filters, { field: 'Name', operator: 'Equal', value: 'C-public' }] },
+      keys: [{ alias: 'name', left: { field: 'Name' }, right: { field: 'Name' } }],
+      columns: [
+        { alias: 'name', source: 'Left', selection: { field: 'Name' } },
+        { alias: 'precision', source: 'Right', allowMissing: true, selection: { metadataPath: ['precision'], valueType: 'Int64' } },
+        { alias: 'present', source: 'RightPresence' }
+      ],
+      maximumLeftRows: 100,
+      maximumRightRows: 100,
+      maximumPairs: 1000,
+      maximumResults: 25
+    });
   }
   el('route').textContent = queryRoute;
   if (!body.provider) delete body.provider;

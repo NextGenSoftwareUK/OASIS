@@ -119,6 +119,54 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type.Name == "CqlJoinV1Request")
+        {
+            // Copy the live /demo/session tag into BOTH independent sources.
+            // The signed actor is supplied by WEB4, never by the request body.
+            OpenApiObject FixtureFilter() => new()
+            {
+                ["metadataPath"] = new OpenApiArray { new OpenApiString("fixture") },
+                ["scalar"] = new OpenApiString("String"),
+                ["operator"] = new OpenApiString("Equal"),
+                ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
+            };
+            OpenApiObject NamePath() => new() { ["field"] = new OpenApiString("Name") };
+
+            schema.Example = new OpenApiObject
+            {
+                ["provider"] = new OpenApiString("MongoDBOASIS"),
+                ["kind"] = new OpenApiString("Left"),
+                ["left"] = new OpenApiObject { ["filters"] = new OpenApiArray { FixtureFilter() } },
+                ["right"] = new OpenApiObject
+                {
+                    ["filters"] = new OpenApiArray
+                    {
+                        FixtureFilter(),
+                        new OpenApiObject { ["field"] = new OpenApiString("Name"),
+                            ["operator"] = new OpenApiString("Equal"), ["value"] = new OpenApiString("C-public") }
+                    }
+                },
+                ["keys"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["alias"] = new OpenApiString("name"), ["left"] = NamePath(), ["right"] = NamePath() }
+                },
+                ["columns"] = new OpenApiArray
+                {
+                    new OpenApiObject { ["alias"] = new OpenApiString("name"), ["source"] = new OpenApiString("Left"), ["selection"] = NamePath() },
+                    new OpenApiObject
+                    {
+                        ["alias"] = new OpenApiString("precision"), ["source"] = new OpenApiString("Right"),
+                        ["allowMissing"] = new OpenApiBoolean(true),
+                        ["selection"] = new OpenApiObject { ["metadataPath"] = new OpenApiArray { new OpenApiString("precision") },
+                            ["valueType"] = new OpenApiString("Int64") }
+                    },
+                    new OpenApiObject { ["alias"] = new OpenApiString("present"), ["source"] = new OpenApiString("RightPresence") }
+                },
+                ["maximumResults"] = new OpenApiInteger(25)
+            };
+            return;
+        }
+
         if (context.Type.Name == "CqlGroupedV1Request")
         {
             // Date keys keep exact UTC identity. These selected-result bounds

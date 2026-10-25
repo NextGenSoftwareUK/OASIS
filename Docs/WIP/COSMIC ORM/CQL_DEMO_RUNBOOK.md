@@ -161,3 +161,20 @@ The underlying signed HTTP gate passes129tests with137-input native counts on al
 ## Projection demo update — 23 October
 
 The next console/serve verification expects10C#SDK examples and10C#HTTP examples per provider (30/30total). Example10 shows typed native Select and the selected-column HTTP route, with exact Int64 text, nullable and nested values. Browser presets and Swagger include the projection route/schema. The expanded walkthrough verification now passes30SDK/30HTTP with broad147native regression (195settled/190physicalattempts); the endpoint itself already passes fullCore2,059 and signed native three-store acceptance. Use the existing reusable runner/environment; do not create another database/runtime. [Current contract/evidence](CQL_PROJECTION_HTTP_CONTRACT.md).
+
+## Examples 30–31: native inner and left joins
+
+The C# walkthrough (`V1NativeQueries.cs`) now shows typed `LeftJoin` and `Join`
+through generic Core/V2 HolonManager on each priority provider. Both inputs keep
+their actor scope and independent filters/order. Example30 retains B-owned and
+D-owned without a right row; C-public matches and preserves9007199254740993
+exactly. Example31 changes the join kind and publishes only the matching pair.
+
+`V1Walkthrough.cs` sends equivalent bounded requests to
+`POST /api/data/query-cql/join`. The browser offers **Left join** and **Inner join**
+presets, and Swagger includes a left-join request. The right output is nullable
+for unmatched rows; `hasRight` independently distinguishes absent rows from
+nullable data. Replace both Swagger fixture tags with the current session tag.
+
+The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
+Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.

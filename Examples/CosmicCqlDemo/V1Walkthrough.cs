@@ -637,6 +637,49 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Reading", descending = false } },
                 resultTake = 2
             }, grouped: true, singleGroups: true);
+            // EXAMPLES 30/31 — The two inputs have independent filters/windows.
+            // A left join retains unmatched visible rows; an inner join removes
+            // them. The server binds the same signed actor to BOTH inputs.
+            foreach (var leftJoin in new[] { true, false })
+            {
+                await ShowAsync(leftJoin
+                    ? "30. Left join / unmatched presence and exact Int64"
+                    : "31. Inner join / matching pairs only", new
+                {
+                    provider,
+                    kind = leftJoin ? "Left" : "Inner",
+
+                    left = new { filters = scalarFilters },
+                    right = new
+                    {
+                        filters = scalarFilters.Concat(new object[]
+                        {
+                            new { field = "Name", @operator = "Equal", value = "C-public" }
+                        }).ToArray()
+                    },
+
+                    keys = new[]
+                    {
+                        new { alias = "name", left = new { field = "Name" }, right = new { field = "Name" } }
+                    },
+
+                    columns = new object[]
+                    {
+                        new { alias = "name", source = "Left", selection = new { field = "Name" } },
+                        new
+                        {
+                            alias = "precision", source = "Right", allowMissing = true,
+                            selection = new { metadataPath = new[] { "precision" }, valueType = "Int64" }
+                        },
+                        new { alias = "present", source = "RightPresence" }
+                    },
+
+                    maximumLeftRows = 100,
+                    maximumRightRows = 100,
+                    maximumPairs = 1000,
+                    maximumResults = 25
+                }, join: true, leftJoin: leftJoin);
+            }
         }
 
         return completedRequests;
@@ -660,7 +703,9 @@ public static class V1Walkthrough
             bool doubleProjection = false,
             bool doubleGroups = false,
             bool singleProjection = false,
-            bool singleGroups = false)
+            bool singleGroups = false,
+            bool join = false,
+            bool leftJoin = false)
         {
             var options = new JsonSerializerOptions { WriteIndented = true };
             var body = JsonSerializer.Serialize(query, options);
@@ -669,7 +714,7 @@ public static class V1Walkthrough
             // uncertain; do not silently repeat the request with a fresh key.
             var operationKey = Guid.NewGuid().ToString("D");
 
-            var route = grouped ? "/api/data/query-cql/grouped"
+            var route = join ? "/api/data/query-cql/join" : grouped ? "/api/data/query-cql/grouped"
                 : projection ? "/api/data/query-cql/projection"
                 : scalar ? "/api/data/query-cql/scalar" : "/api/data/query-cql";
 
@@ -690,6 +735,27 @@ public static class V1Walkthrough
                 throw new InvalidOperationException($"{title}: HTTP {(int)response.StatusCode}: {responseText}");
 
             using var result = JsonDocument.Parse(responseText);
+            if (join)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var rows = payload.GetProperty("rows").EnumerateArray().ToArray();
+                var expectedNames = leftJoin ? new[] { "B-owned", "C-public", "D-owned" } : new[] { "C-public" };
+
+                if (payload.GetProperty("version").GetString() != "cql-join-v1"
+                    || payload.GetProperty("columns")[1].GetProperty("valueType").GetString() != "Int64"
+                    || !rows.Select(row => row.GetProperty("values")[0].GetString()).SequenceEqual(expectedNames))
+                    throw new InvalidOperationException(title + " returned the wrong joined shape or identity.");
+
+                foreach (var row in rows)
+                {
+                    var present = row.GetProperty("hasRight").GetBoolean();
+                    var values = row.GetProperty("values");
+                    if (present != values[2].GetBoolean()
+                        || (present ? values[1].GetString() != "9007199254740993" : values[1].ValueKind != JsonValueKind.Null))
+                        throw new InvalidOperationException(title + " lost exact values or unmatched presence.");
+                }
+            }
+
             if (scalar)
             {
                 var payload = result.RootElement.GetProperty("result");
