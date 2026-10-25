@@ -12,6 +12,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.UnitTests;
 [TestClass]
 public class BigQueryCollectionTests
 {
+    public static IEnumerable<object[]> InvalidParentKeyOptions()
+    {
+        foreach(var sync in new[]{false,true})
+            foreach(var guid in new[]{false,true})
+                foreach(var invalid in new[]{"maximum","initial","version"})
+                    yield return new object[]{sync,guid,invalid};
+    }
+    [DataTestMethod][DynamicData(nameof(InvalidParentKeyOptions),DynamicDataSourceType.Method)]
+    public async Task ParentKeyInvalidOptionsRejectBeforeAnySdkQuery(bool sync,bool guid,string invalid)
+    {
+        var reads=0;var provider=Create(new Rows{Selected=Array.Empty<string>(),BeforeRead=()=>reads++});
+        var key=guid?Guid.NewGuid().ToString():"owned-parent-alias";
+        var result=sync?provider.LoadHolonsForParent(key,maxChildDepth:invalid=="maximum"?-1:0,
+                curentChildDepth:invalid=="initial"?-1:0,version:invalid=="version"?-1:0)
+            :await provider.LoadHolonsForParentAsync(key,maxChildDepth:invalid=="maximum"?-1:0,
+                curentChildDepth:invalid=="initial"?-1:0,version:invalid=="version"?-1:0);
+        Assert.AreEqual(0,reads,"Invalid options must not incur a native lookup job before admission.");
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);
+        Assert.IsNull(result.Result);Assert.IsInstanceOfType<ArgumentOutOfRangeException>(result.Exception);
+    }
+
     public static IEnumerable<object[]> EmptyMetadataCases(){foreach(var sync in new[]{false,true})foreach(var any in new[]{false,true})foreach(var absent in new[]{false,true})yield return new object[]{sync,any,absent};}
     [DataTestMethod][DynamicData(nameof(EmptyMetadataCases),DynamicDataSourceType.Method)]
     public async Task EmptyMetadataFilterLoadsAllEvenWhenRecordMetadataIsNull(bool sync,bool any,bool absent)
