@@ -19,6 +19,10 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | Sum/Average inputs | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed | Int32/Int64, nullable allowed |
 | Average result, selected filters/order | Exact Decimal normalization | Exact Decimal normalization | Exact Decimal normalization |
 
+The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
+shared finite bit-key codec and Mongo Single persistence prerequisites. They do
+not enable Double/Single selectors or expand these capability claims.
+
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.
 All three providers' explicit Decimal enrollment is documented in the
