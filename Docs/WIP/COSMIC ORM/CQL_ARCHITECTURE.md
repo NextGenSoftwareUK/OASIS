@@ -545,3 +545,9 @@ Full Mongo254native/493units and Neo232native/457units pass0skip. The Neo gate
 verifies matching Core/Shared copies; Mongo's preceding gate did not capture
 in-lease identity hashes. These scoped cohorts do not establish final combined
 certification. Single and floating wire/live demos remain open.
+
+Double HTTP uses the existing bounded compiler and shared selected-output
+writer. A single finite parse/re-encode owner supplies source/group literals;
+selected Double values use canonical round-trip strings. Existing enum values
+are preserved and Double is appended as7. The full2,542 linked-unit gate passes,
+including35 new controls; live native Double HTTP/demo acceptance remains open.

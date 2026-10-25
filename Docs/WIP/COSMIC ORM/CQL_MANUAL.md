@@ -968,3 +968,28 @@ Int64/UInt64/Decimal domains. Nonzero underflow cannot match zero; overflow and
 foreign JSON types reject required selection. The same SDK Double shape is now supported by MongoDB and Neo4j with each actual
 provider capability profile. Single and floating HTTP/demo enrollment remain pending.
 [Domain, budgets and evidence](CQL_FLOATING_SCALAR_CONTRACT.md).
+
+### Double HTTP values
+
+Use a canonical finite round-trip string in source filters:
+
+```json
+{
+  "metadataPath": ["reading"],
+  "scalar": "Double",
+  "operator": "GreaterThanOrEqual",
+  "value": "0.1"
+}
+```
+
+Select with `{"alias":"Reading","metadataPath":["reading"],"valueType":"Double"}`.
+Use `nullable:true` for an optional selected value. Group keys use the same
+selection; filters over a selected Double alias use the same string literal
+contract. Selected/Min/Max/grouped responses return Double values as strings.
+
+Encode finite C# values with `ToString("R", CultureInfo.InvariantCulture)`,
+normalizing signed zero to0. Canonical spelling is required: use5E-324 rather
+than5e-324, and0 rather than0.0. NaN, infinity, overflow, nonzero underflow and
+over-precise text that would round are rejected. JSON number tokens are rejected
+for this wire type. Double is binary64; use Decimal for exact decimal prices.
+The compiler/endpoint gate passes2,542 tests; live Double demos are pending.

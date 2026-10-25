@@ -519,3 +519,12 @@ cohorts retain their recorded scope. Owned fixture/services cleaned up; dependen
 and Development publication remain coordinated with the provider session.
 [Exact evidence](CQL_UINT64_CONTRACT.md#live-uint64-examples2223--24-october2026).
 Next: remaining scalar domains and unchanged joins/federation/policy/certification.
+
+## Double wire checkpoint — 24 October 2026
+
+Source, selected/nullable and grouped alias Double contracts now pass35 new
+compiler/endpoint controls inside full2,542 linked-unit tests,0fail/skip.
+Canonical finite round-trip request/response strings preserve binary64 values;
+old enum identities are unchanged. Native unknown-type controls now use
+NotAScalar. Live three-provider Double demos, Single and all unchecked broader
+acceptance gates remain open. See floating contract for evidence.

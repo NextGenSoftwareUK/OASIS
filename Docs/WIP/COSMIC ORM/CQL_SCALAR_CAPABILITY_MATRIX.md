@@ -53,3 +53,10 @@ pass23 new wire controls inside the full2,500 linked-unit cohort. Request/result
 values use exact invariant strings. Live Decimal HTTP/SDK/Swagger
 acceptance passes75SDK/75HTTP examples on all three providers; browser script
 behavior passes the reusable offline check (no interactive browser run claimed); this does not grant Decimal Sum/Average inputs.
+
+Double source filters, selected/nullable schemas and grouped alias literals now
+pass35 new compiler/endpoint controls inside the full2,542 linked-unit cohort.
+Request/response values are canonical invariant finite binary64 round-trip
+strings. Existing enum identities remain stable (Double appended as7).
+Live all-provider Double HTTP/demo acceptance remains pending; no Single or
+floating Sum/Average capability is granted.

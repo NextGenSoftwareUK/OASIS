@@ -265,10 +265,10 @@ public sealed partial class CqlV1Web4NativeTests
                             Provider = provider.ToString(), Columns = new[] { new { Alias = "same", Field = "Name" }, new { Alias = "same", Field = "Id" } }
                         }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, invalidColumns.StatusCode);
                         if (provider == ProviderType.Neo4jOASIS)
-                            using (var unsupportedDouble = await Send(new
+                            using (var unsupportedScalar = await Send(new
                             {
-                                Provider = provider.ToString(), Columns = new[] { new { Alias = "amount", MetadataPath = new[] { "amount" }, ValueType = "Double" } }
-                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedDouble.StatusCode);
+                                Provider = provider.ToString(), Columns = new[] { new { Alias = "amount", MetadataPath = new[] { "amount" }, ValueType = "NotAScalar" } }
+                            }, alice, projection: true)) Assert.AreEqual(HttpStatusCode.BadRequest, unsupportedScalar.StatusCode);
 
                         // Scalar requests share signed admission and exact durable receipts.
                         // The fixture marker applies only to its five roots: Alice sees3,

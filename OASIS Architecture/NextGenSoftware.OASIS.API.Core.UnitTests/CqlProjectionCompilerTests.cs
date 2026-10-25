@@ -90,7 +90,7 @@ public class CqlProjectionCompilerTests
             new CqlProjectionV1Column { Alias = "x", Field = "Name", MetadataPath = new[] { "name" }, ValueType = "String" },
             new CqlProjectionV1Column { Alias = "x", MetadataPath = Array.Empty<string>(), ValueType = "String" },
             new CqlProjectionV1Column { Alias = "x", MetadataPath = new[] { "value" }, ValueType = "System.Int64" },
-            new CqlProjectionV1Column { Alias = "x", MetadataPath = new[] { "value" }, ValueType = "Double" }
+            new CqlProjectionV1Column { Alias = "x", MetadataPath = new[] { "value" }, ValueType = "NotAScalar" }
         };
         foreach (var column in invalid)
             Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(Request(column), Guid.NewGuid(), null));
