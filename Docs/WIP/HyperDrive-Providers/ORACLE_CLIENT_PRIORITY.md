@@ -1,5 +1,17 @@
 # Oracle client readiness — top priority
 
+## Cross-process recovery and coherent local sweep — 25 October UTC
+
+Cross-process encrypted write/recovery **2+2PASS**, zero skips: writerPID80032 and readerPID29096 are genuinely different. Both sync/async cases recover the original key-a preparation while key-b is active, retain exact root/child versions/revisions and original native payload/receipt/preparation hashes, and assert **0new recovery commits**. Exact-content owned cleanup and independent absence complete before pending intent removal. This is real encryption plus ODP.NET/local database with a synthetic key resolver, not hosted KMS or crash/power-loss certification.
+
+Fresh coherent regression on current local producers: **Core2555PASS12s,SQLnative502PASS35s,SQLunit445PASS850ms,OCI signed-SDK loopback127PASS13s**, all0skip. Source/PDB and producer/consumer copies match Core744/0CF79D7B, Shared56/2035A9B1, root-unit177, SQL15/native47/unit32, OCI5/unit9. The earlier process/bootstrap/protected cohorts have their own recorded binary hashes; they are not silently relabelled as this exact rebuilt cohort. No production code was changed in this verification-only batch. No Development/master deployment.
+
+The documented LOCAL bootstrap/protected/cross-process and standard storage/controlled OCI gates are now green. That is NOT Oracle100% or proof of every hosted option/fault/security condition. **Remaining:** live Autonomous Database and OCI Object Storage provider acceptance with actual tenant/profile/wallet/IAM/TLS, hosted durability/cost authorization/verification, remaining requirements-to-option evidence review and full V2 failover/replication/load balancing after the provider implementation phase. Do not convert passing counts or code coverage into a completion percentage.
+
+Cloud access was checked rather than assumed: available in-app browser had no existing tabs; opening cloud.oracle.com reached public Sign In with blank **Cloud Account Name**, not a tenancy console. No account guess, credential entry, key/access change, resource creation or billable cloud API operation. Test tenancy name or user sign-in is requested; the visible Oracle tab is left as handoff. Default local OCI profile/current process configuration is absent in inspected locations; nondefault configuration is not ruled out. Non-secret paths/account details and protected setup checklist are in [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#pending-oracle-cloud-test-access--added-23-october-2026). Never send private keys/passwords/wallet secrets in chat.
+
+Same retained environment, no installs/downloads/restores. Oracle stopped143/OOMfalse, pending0,11521/18661absent. Compact evidence, archive hashes and resource lifecycle are in ENVIRONMENT_INVENTORY.md. Oracle remains the first priority; main provider goal remains active.
+
 ## Initial/partial bootstrap and protected contracts verified — 25 October UTC
 
 New explicit local bootstrap gate **1PASS2s**, admission **2PASS35ms**, refreshed protected-preparation **6PASS2s**, encrypted replay **4PASS2s**, matched SQL controls **445PASS851ms**, zero skips. Same retained real Oracle/ODP.NET instance and cached SDK; no download/restore/new database/runtime/cloud request. The older502/coverage/OCI cohorts remain separate, not silently recertified by these focused suites.
