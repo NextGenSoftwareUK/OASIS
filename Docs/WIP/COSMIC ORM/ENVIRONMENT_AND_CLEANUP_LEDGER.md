@@ -2642,3 +2642,28 @@ Required compact evidence retained at existing fixed paths; exact report sizes
 and stopped-container state verified below. No unrelated fixtures/data removed.
 
 Verified stopped Neo container identity: exited6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd; cql-graph-fixture.json absent. Retained Neo4jCurrent/join-compiler-unit.trx730,539bytes; neo4j-join-compiler-current.trx7,343bytes; CosmicCqlDemo/neo-join-compiler-native.log1,432bytes. Same reusable fixed paths. Regenerate using leased bounded provider/unit gate and Run-ReusableNeo4jTests.ps1 -CosmicCqlJoinCompiler; keep pinned container/volume/shared SDK outputs until coordinated verified cleanup.
+
+Neo4j join owner/decoder slice: existing checkout/SDK10.0.401/runtime10.0.12/localNuGet and provider/unit/native bin/obj reused. New owner reuses shipping bounded CQL transport lease/read-only transaction and30sec deadline; typed incremental decoder checks independent counts/positions/domains/visibility/bytes before packet acknowledgement. No new installation/download/restore/environment. Unit gate writes fixed CosmicCqlDemo/neo-join-owner-unit.log, Neo4jCurrent/join-owner-unit.trx; sizes pending. Added13native acceptance cases plus existing4compiler cases; exclusive existing runner gains -CosmicCqlJoins expected17, broader counts +13 not claimed executed. Retained stopped Neo5.26.12 container/native fixture policy unchanged.
+
+Native7540 terminal0: focused17/17 pass0skip (4compiler+13SDK),9seconds; unit491/491 passed separately. Fixture teardown and retained container stop completed. Added20test-only native controls (12keydomains,2ordering pages,composite,entity-free execution,4cold/warm realBolt interruption) and1pure no-snapshot-grant unit control. Same existing relay17788/native17687/container and fixtures reused, no newenv/install/restore/download. Expanded target37 and normalCQL320 expected. Unit final gate followed by native selective runner under explicit normal leases; fixed neo-join-owner-unit.log/TRX and neo-join-owner-expanded.log/TRX reused, sizes pending.
+
+Actual40943 terminal0: unit492/492 and focused native37/37 pass0skip (1m24 native). Native cases include12keydomains,7budgets,visibility,invalidunmatchedcells,entity-free generic source types,composite keys,missing/null pages andcold/warm realBolt cancellation/deadline. Same source-driver/Core/Shared identities verified. Container stopped after acknowledged teardown. Full normal CQL320 is next under normal lease, fixed CosmicCqlDemo/neo-join-owner-full.log and Neo4jCurrent/neo4j-cql-native-current.trx. Source held unchanged through gate; same retained environment/outputs, no restore/download/install. Free C: before69,044,228,096 after68,762,959,872 bytes for selected runner; reusable build/Neo storage outputs retained, no newDB/worktree.
+
+Full Neo82393 terminal0: normal CQL320/320 pass0skip,9m23s; full unit492 and
+focused37 passed separately on unchanged production sources. All producer/native
+identities matched during leased runner: Core639CB2A5, Shared91714E81, pinned
+source driverA6C87EF9; Neo producer and consumer both
+35E5E456AB0E4AFB40FF311F15499B4882A18D6FE792E3E93B45928B030F3223.
+After teardown, exact retained container image6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd
+is exited; cql-graph-fixture.json absent; ports17687/17788 not listening. Exact
+owned row/receipt/version cleanup completed through acknowledged existing helper;
+no unknown write fixture retained. No install/download/restore/new environment.
+Reusable SDK/cache/bin/obj/container/image/volume retained shared/reusable.
+C: free before68,796,346,368 /after68,345,688,064 bytes; normal rebuilt outputs
+and retained Neo storage used, no unreviewed broad cleanup. Required fixed evidence:
+Neo4jCurrent/neo4j-cql-native-current.trx520,091bytes;
+Neo4jCurrent/join-owner-unit.trx743,796bytes;
+CosmicCqlDemo/neo-join-owner-full.log1,540bytes. Regenerate with the same globally
+leased bounded unit gate and Run-ReusableNeo4jTests.ps1 -CosmicCql; retain compact
+evidence and reuse the stopped environment. Unrelated Mongo-Test-Traffic files,
+private Core and peer work are untouched. Publication uses short normal lease.

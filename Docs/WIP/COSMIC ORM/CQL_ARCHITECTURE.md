@@ -855,3 +855,42 @@ runtime/data remain reusable. No download/install/restore or duplicate environme
 MongoDB and SQLite SDK flat joins are available. Neo4j joins, graph-source joins,
 joined HTTP/browser demos, post-projection/window composition, federation and
 remaining policy/certification gates stay open. Full CQL is not complete.
+
+## Verified Neo4j SDK flat joins — 25 October 2026
+
+Neo4j now executes flat inner/left joins through generic V2 HolonManager. The
+final full native CQL suite passes **320/320**, zero skips (9m23s), including
+**33 new SDK join cases** and the four previously verified compiler cases.
+The complete unit suite passes **492/492**. Focused join certification passes
+37/37. Core2,734, SQLite1,615native/46unit and MongoDB328native/510unit remain
+separate earlier cohorts, not a new combined all-provider run.
+
+Join controls verify fanout/unmatched presence, all seven remaining budgets with
+fresh reuse, invalid/missing required data in unmatched sources, visibility on
+both inputs before matching/pages, twelve exact key domains, composite keys,
+missing/null ordering through pages, generic source types whose constructors
+throw, and actual cold/warm Bolt interruption. Shipping30-second deadlines and
+caller cancellation complete while real relay bytes remain held; no shortened
+test timeout or alternate query path is used. A pure capability control verifies
+that graph-source/shared-snapshot permissions remain disabled.
+
+The one-statement native capture retains **read-committed** consistency. Both
+inputs are captured once; native matching refers to those captured values and
+positions. This does not create a repeatable snapshot. MongoDB and SQLite use
+their own snapshot owners for flat joins. All three adapters use the same generic
+join plan, remaining-limit, durable-attempt and Core preconstruction validation
+contracts. No provider hydrates source entities to evaluate the join.
+
+Final evidence: `TestResults/CosmicCqlDemo/neo-join-owner-full.log`,
+`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx` and
+`TestResults/Neo4jCurrent/join-owner-unit.trx`.
+Neo4j producer/native consumer SHA256 both
+35E5E456AB0E4AFB40FF311F15499B4882A18D6FE792E3E93B45928B030F3223;
+Core639CB2A5/Shared91714E81/pinned driverA6C87EF9 identities also match.
+Retained container is stopped, owned fixture manifest absent and native/relay
+ports are no longer listening. No install/download/restore or duplicate environment.
+
+**SDK flat joins are now available on MongoDB, SQLite and Neo4j.** Joined HTTP
+requests/browser demos, graph-source joins, post-selection/window composition,
+distributed joins/federation and remaining policy/certification gates are still
+open. This checkpoint does not close the full join milestone or CQL roadmap.
