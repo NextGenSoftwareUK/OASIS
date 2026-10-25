@@ -25,6 +25,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
     {
+        NeoCqlReadBudget readBudget = null;
         try
         {
             var admission = CosmicProjectionPlanner.Admit(plan, Core.Enums.ProviderType.Neo4jOASIS, CqlCapabilities, CqlProjectionCapabilities);
@@ -76,9 +77,10 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
                 + "cqlSelectBytes > $projectionBytes AS payloadLimit,"
                 + "CASE WHEN cqlSelectBytes > $projectionBytes THEN [] ELSE cqlSelectCells END AS cells" + returnedKeys
                 + " } RETURN id,valid,traversalCycle,traversalLimit,payloadLimit,cells" + returnedKeys + " ORDER BY " + finalOrder;
-            var budget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
+            using var budget = readBudget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
             budget.Check();
-            using var session = _driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
+            await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
+            using var session = readOwner.Driver.AsyncSession(config => config.WithDefaultAccessMode(AccessMode.Read).WithFetchSize(1));
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
@@ -104,6 +106,12 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             budget.Check();
             return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(rows.AsReadOnly()) { IsLoaded = true };
         }
+        catch (Exception cause) when (cancellationToken.IsCancellationRequested)
+        { return ProjectionCqlFailure("CQL_QUERY_CANCELLED", "Neo4j CQL read was cancelled.", cause); }
+        catch (Exception cause) when (readBudget?.IsTimedOut == true)
+        { return ProjectionCqlFailure("CQL_QUERY_TIMEOUT", "Neo4j CQL read exceeded its cumulative deadline.", cause); }
+        catch (NeoCqlNotReadyException cause)
+        { return ProjectionCqlFailure("CQL_PROVIDER_NOT_READY", cause.Message, cause); }
         catch (NeoCqlLimitException cause) { return ProjectionCqlFailure("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (NeoCqlTimeoutException cause) { return ProjectionCqlFailure("CQL_QUERY_TIMEOUT", cause.Message, cause); }
         catch (Neo4jException cause) when (cause.Code == "Neo.ClientError.Transaction.TransactionTimedOut"

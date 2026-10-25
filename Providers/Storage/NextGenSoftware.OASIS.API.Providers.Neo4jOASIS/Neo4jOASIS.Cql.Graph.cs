@@ -99,18 +99,27 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private sealed class NeoCqlReadBudget
+    private sealed class NeoCqlReadBudget : IDisposable
     {
         private readonly Stopwatch elapsed=Stopwatch.StartNew();
         private readonly CancellationToken cancellation;
         private readonly int maximumBytes;
+        private readonly CancellationTokenSource deadline;
+        internal CancellationToken Token => deadline.Token;
+        internal bool IsTimedOut => deadline.IsCancellationRequested && !cancellation.IsCancellationRequested;
         private long bytes;
         internal NeoCqlReadBudget(int maximumBytes,CancellationToken cancellation)
-        {this.maximumBytes=maximumBytes;this.cancellation=cancellation;}
+        {
+            this.maximumBytes=maximumBytes;
+            this.cancellation=cancellation;
+            deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            deadline.CancelAfter(TimeSpan.FromSeconds(30));
+        }
+        public void Dispose() => deadline.Dispose();
         internal void Check()
         {
             cancellation.ThrowIfCancellationRequested();
-            if(elapsed.Elapsed>=TimeSpan.FromSeconds(30))throw new NeoCqlTimeoutException();
+            if(IsTimedOut || elapsed.Elapsed>=TimeSpan.FromSeconds(30))throw new NeoCqlTimeoutException();
         }
         private static readonly Encoding ProjectionUtf8 = new UTF8Encoding(false, true);
         internal void ReserveProjection(IReadOnlyList<object> cells)

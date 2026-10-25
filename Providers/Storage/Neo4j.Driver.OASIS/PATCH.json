@@ -1,0 +1,21 @@
+{
+  "upstreamCommit": "5a40b591107331131875fbcd3d7f28fe60504d95",
+  "modifiedFiles": [
+    {
+      "path": "Upstream/Internal/ConnectionPool.cs",
+      "originalSha256": "6DF16660E66186FA0E12F99526A0F7D39D2950B724BBEBFD4A5A235440788271",
+      "patchedSha256": "C159723649A36140622C548983CF9137E759F0670F20D5056E144C4284508D51"
+    },
+    {
+      "path": "Upstream/Internal/Connector/SocketClient.cs",
+      "originalSha256": "6B43DDB963D85184992FE37B5E212D425CA76FE7F377B32FE614111356DE36FC",
+      "patchedSha256": "0E84402A35C2051106C6D5555D5B0431E4AE2B69455826E0FFB4A0A07F285C94"
+    },
+    {
+      "path": "Upstream/Properties/AssemblyInfo.cs",
+      "originalSha256": "C16E559F5407DBA1D884DAC4D820316D3C5EB6F170C3E2D69B83C6B79BF77052",
+      "patchedSha256": "273036931A367A39B6DE7938C66AF208453CAB8A1DDCA368232213E2A9075888"
+    }
+  ],
+  "purpose": "Track and close transports during connection initialization; identify patched assembly"
+}

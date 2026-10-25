@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Neo4jClient" Version="4.1.18" />
-    <PackageReference Include="Neo4jOgm" Version="0.21.8" />
+    <!-- One explicit, pinned driver source owner. Legacy ORM packages are unused. -->
+    <ProjectReference Include="../Neo4j.Driver.OASIS/Neo4j.Driver.OASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
