@@ -1517,3 +1517,41 @@ download/newenvironment. Test fixtureSQLite/journal/readiness absent and
 runtimes/cache/outputs, owned failure evidence preserved; sizes unmeasured
 except measurements already recorded. Free C67,595,939,840 after.
 Source/build hold released; only precise scoped verified files to be committed.
+
+## SQLite Single continuation — 24 October 2026
+
+Owner COSMIC ORM/CQL. Reuse SDK10.0.401, NuGet cache, fixed
+TestResults/SQLiteCurrent/integration-current.db/-wal/-shm and existing Core/
+SQLite/unit/native bin/obj outputs. No restore/install/download/newenvironment.
+Sizes unmeasured; free C last67,595,939,840.28native Single cases prepared; shared
+floating intrinsic parses original numeric tokens directly to binary32 to avoid
+double rounding. Core group whitelist edit DEFERRED during peer Oracle coverage:
+crossed messages caused a temporary one-line edit, restored original LF committed
+bytes SHA5B5527B7EA25E0730EF7964D464C8F82F5EBCFB9DF9F3C217A3F550B9003916E
+before any build; peer final source proof must verify exact original.
+Core/SQLite gate pending release of peer source/build hold. Reuse lease once for
+producer+consumer batch; retain compact logs/TRX/identities and clean only owned
+acknowledged fixture after teardown. No native service or new external data.
+
+70373 terminal1:bothCoreTFMs build/full2553linkedunit PASS; focusedSingle9pass/
+19fail before value evaluation because projection registry capped32domains,
+complete primitive+nullable roster33. Retain SQLiteCurrent/
+single-registry-red-current.trx and CosmicCqlDemo/single-registry-red.log.
+Root fix separates bounded128-domain descriptor registry from unchanged32-column
+query budget, with2new tests.40087 correctiveleasedgate:full2555Core and focused28
+native Single PASS0skip, full1513native regression live. Core source edits only
+Queries/CosmicGroupedQuery.cs and CosmicProjectionPlanning.cs; no Karma/Shared
+edits. Source/binary identity proof and fixture teardown pending terminal.
+
+40087 terminal0:bothCoreTFMs/full2555Core/focused28/full1513SQLite PASS0skip.
+Source snapshots unchanged and native copies match Core1191F0FB/Shared43C05C54/
+SQLite25CB1EFE; Core netstandard9C1767CC and root linked-unit Core also verified.
+Retain SQLiteCurrent/single-{focused,full}-current.trx,
+single-identities-current.json; CosmicCurrent/single-sqlite-full-current.trx;
+CosmicCqlDemo/single-sqlite-full.log (sizes unmeasured). Fixed owned SQLite
+DB/WAL/SHM absent; free C67,370,868,736 after. No install/download/restore/new
+environment or service introduced. Reusable SDK/cache/output retained, prior
+single-registry-red evidence preserved. Core2existingfilecommit
+efad088d6e1d1fcdc0af2bfea0adf964280bfa78 pushed/remoteverified; paired parent pin
+required before publication. Source/build hold released, indexes held briefly
+for scoped parent batch only. Shared/Karma/Oracle source unchanged.

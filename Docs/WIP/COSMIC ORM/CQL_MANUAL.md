@@ -993,3 +993,25 @@ than5e-324, and0 rather than0.0. NaN, infinity, overflow, nonzero underflow and
 over-precise text that would round are rejected. JSON number tokens are rejected
 for this wire type. Double is binary64; use Decimal for exact decimal prices.
 The full linked suite passes2,552 tests, including the complete Double grouped-order request. Live acceptance passes81SDK/81signedHTTP examples on all three providers. See demo examples26–27 and Swagger FiniteDouble.
+
+### Single SDK metadata on SQLite
+
+Use float selectors and f literals for finite binary32 measurements:
+
+```csharp
+var readings = CosmicQuery<Holon>.Create()
+    .Where(row => CosmicQueryMetadata.Value<float>(row, "reading") >= 0.1f)
+    .OrderBy(row => CosmicQueryMetadata.Value<float>(row, "reading"))
+    .Take(10)
+    .Select(row => CosmicQueryMetadata.Value<float>(row, "reading"));
+```
+
+Handle the OASISResult, plan with the actual SQLite capabilities, and execute
+through HolonManager as in the projection examples. Nullable float?, grouped
+keys/filter/order and selected Min/Max are supported. Binary32 rounding happens
+directly from the stored numeric token; a binary64 intermediate cannot change a
+near-halfway result. Nonzero underflow and overflow reject the declared domain.
+
+This is SQLite SDK support. MongoDB/Neo4j Single and Single HTTP/demo enrollment
+remain pending. Single Sum/Average inputs are not granted. The full SQLite gate
+passes1,513 cases and the linked Core suite2,555, zero failures/skips.

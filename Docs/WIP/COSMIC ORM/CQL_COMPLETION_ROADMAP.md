@@ -1,13 +1,12 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core-linked 2,552 unit tests and full SQLite1,485 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Latest Double wire/demo acceptance passes81SDK/81HTTP; earlier Decimal acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core-linked 2,555 unit tests and full SQLite1,513 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Latest Double wire/demo acceptance passes81SDK/81HTTP; earlier Decimal acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
 Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
 Floating continuation: Core's finite binary64/binary32 key foundation passes both
 configured targets and the full2,507-unit suite, including finite-key facts and8,192
-finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double passes254 native CQL/493 units and Neo Double232 native CQL/457 units; all
-Single query capabilities remain disabled;
+finite random bit patterns. SQLite Double SDK queries pass1,485 full native cases; Mongo Double passes254 native CQL/493 units and Neo Double232 native CQL/457 units; SQLite Single passes1,513 native cases; Mongo/Neo Single and Single wire remain disabled;
 Mongo Single numeric persistence/acknowledgement repair passes493 units and231
 native CQL cases, including3 new actual save/load cases; the newer254-case cohort also verifies
 Double query enrollment. See the
@@ -539,3 +538,15 @@ All5producer/consumer pairs match and sources unchanged inside lease. Four
 offline browser presets/Swagger examples and standalone cached demo build pass;
 fixtures/readiness/owned listeners absent after teardown. Single and all broader
 unchecked acceptance remain open. This is not a full combined provider rerun.
+
+## SQLite Single gate verified — 24 October 2026
+
+Core primitive/nullable type registry now has an independent128-domain bound,
+preserving32selected columns; two tests lock the distinction. Nullable Single
+group keys are captured generically without enrolling other providers.
+Shared native floating normalization parses raw tokens directly to binary32.
+BothCoreTFMs/full2,555linkedunits and focused28/full1,513SQLite pass0skip;
+source snapshots unchanged and producer/native/Core-unit copies match.
+Fixed SQLite DB/WAL/SHM absent after teardown; no installs/restores needed.
+Core efad088 is published with paired parent gitlink/manifest.
+Mongo/Neo Single, Single HTTP/demos and all unchecked broader gates remain open.

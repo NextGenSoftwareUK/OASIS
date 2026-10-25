@@ -31,7 +31,7 @@ public partial class HolonRepository
         {
             var type = Nullable.GetUnderlyingType(declared) ?? declared;
             return type == typeof(Guid) ? " COLLATE NOCASE"
-                : type == typeof(string) || type == typeof(DateTime) || type == typeof(double) ? " COLLATE BINARY" : "";
+                : type == typeof(string) || type == typeof(DateTime) || (type == typeof(double) || type == typeof(float)) ? " COLLATE BINARY" : "";
         }
         private GroupFilterCell GroupCell<T, TKey, TResult>(CosmicGroupedSelection<T, TKey, TResult> query,
             CosmicQueryPath path) where T : IHolon
@@ -55,7 +55,7 @@ public partial class HolonRepository
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) cell.Value = "a" + index + "v";
             else throw new NotSupportedException("Unknown grouped filter operation.");
             var scalar = Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType;
-            if (!cell.IsSum && (scalar == typeof(decimal) || scalar == typeof(double))) cell.NormalizedNumericKey = true;
+            if (!cell.IsSum && (scalar == typeof(decimal) || scalar == typeof(double) || scalar == typeof(float))) cell.NormalizedNumericKey = true;
             if (!cell.IsSum) cell.Value += GroupCollation(column.ValueType);
             return cell;
         }
@@ -123,7 +123,10 @@ public partial class HolonRepository
                 value = SqliteCqlUInt64.Literal(value);
             if (left.NormalizedNumericKey && value != null)
             {
-                var key = (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(double)
+                var scalarType = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
+                var key = scalarType == typeof(float)
+                    ? CosmicFloatingScalarResults.SingleOrderKey(Convert.ToSingle(value, System.Globalization.CultureInfo.InvariantCulture))
+                    : scalarType == typeof(double)
                     ? CosmicFloatingScalarResults.DoubleOrderKey(Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture))
                     : CosmicNumericScalarResults.DecimalOrderKey((decimal)value);
                 return GroupComparison(left, new GroupFilterCell { Value = Bind(key),
