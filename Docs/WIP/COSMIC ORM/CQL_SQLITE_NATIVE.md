@@ -1,5 +1,25 @@
 # CQL SQLite native execution — work in progress
 
+## SQLite floating native component - 25 October 2026
+
+Eleven real SQLite component tests and all74 provider unit tests pass without
+failures/skips. The native aggregate consumes canonical finite value keys and
+retains only ten/seventy signed base2^30 sums per active group. A strict90/570-byte
+versioned packet avoids expanding every floating aggregate into70SQL columns.
+The key callback uses the shared Core normalizer and existing floating ordinal
+key owner. Original source-domain proofs remain mandatory.
+
+Tests cover every exponent and seeded inputs, exact cancellation of oversized
+intermediates, overflow versus a valid mean, final ties/subnormals, nullable and
+empty packets, malformed shape/version/domain/count, foreign Double keys in a
+Single aggregate, SQL-hidden errors, cancellation/cause retention and connection
+reuse. Idempotent teardown prevents an old owner from unregistering a new scope.
+
+This is component acceptance, not full CQL enrollment. Source/window/graph/access
+compilation, scalar/grouped packet publication, complete provider certification
+and actual capability enrollment remain pending. The74-unit gate independently
+proves the current provider still rejects floating scalar/grouped execution.
+
 Current documentation: [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [three-provider demos](CQL_DEMO_RUNBOOK.md), [WEB4 v1 contract](CQL_V1_HTTP_CONTRACT.md). Historical checkpoints retain their original scope/counts.
 
 This is a native leaf-row adapter milestone, not complete CQL or WEB4 authorization. Current metadata-extended acceptance is focused17/17 and full SQLite832/832, zero skips; prior cohorts below retain their own epochs.
