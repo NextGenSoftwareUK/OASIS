@@ -22,4 +22,7 @@
   <ItemGroup>
     <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.Google.cs" Link="Production\CloudProviderFactory.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CloudStorageDiscoveryAssertions.cs" Link="TestSupport/CloudStorageDiscoveryAssertions.cs" />
+  </ItemGroup>
 </Project>

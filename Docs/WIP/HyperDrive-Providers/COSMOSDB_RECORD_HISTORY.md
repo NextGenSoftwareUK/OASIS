@@ -1,5 +1,13 @@
 # Cosmos DB retained record history
 
+## 25 October — explicit cloud discovery capability repaired
+
+Cosmos, Firestore and BigQuery each genuinely failed the common GetCloudProviders/IsProviderCloud discovery assertion before this fix. Constructors now add unique Storage+Cloud capabilities while preserving legacy primary categories, storage interfaces and nonactivation. One framework-neutral assertion helper is linked into the three existing unit projects; no manager fallback/type-name inference or duplicated SDK logic.
+
+Full current controlled suites: Cosmos483/483PASS2s, Firestore472/472PASS4s, BigQuery873/873PASS5s, all zero skips, batch65633terminal0. CosmosCurrent/cloud-discovery-current.trx SHA25637E1D65DD23BF8BE3BBA14E973EFD4CA4CA76A28C2D0F570860EB69699CA15EB; red proof retained. Initial helper compilation incorrectly treated RegisterProvider's bool as OASISResult; corrected before execution and separate from the three genuine capability failures. Same caches/outputs, no restore/download/activation/network/service/new environment.
+
+Metadata-only constructor edits do not change persistence or configuration. Earlier68native acceptance remains its exact older binary cohort; no fresh native claim for this change. Capability means supported service, NOT configured credentials/current access/cost readiness. Hosted IAM/TLS/RU pricing/durability/exhaustive interfaces/V2 remain OPEN. Detailed hashes/resources in inventory, no dev deployment.
+
 ## 24 October — known native acknowledgement counts repaired and verified
 
 Fresh matched **482controlled +68officialSDK/retained-emulator native PASS, zero skipped** (3s/110s). Twenty genuine undercounts across point/avatar/detail and first/later graph failures fixed;22negative controls already passed. One provider-local typed-evidence reader is reused by point and graph owners, avoiding duplicated inference. Counts come from native Acknowledged=true/document identity or a successful native return, not an untrusted SavedCount scalar. Point failures bind the captured requested identity (or a valid native-assigned identity when callerIDwasempty); graph failures bind ONLY the current dispatch, never another planned/future row. Duplicate/nested exception evidence is deduplicated. Original causes/reconciliation flags retained, source publication still fails safely, no next mutation dispatch or retry.
