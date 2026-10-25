@@ -20,8 +20,10 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
-                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities),
-                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities)
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) }),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?) })
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;

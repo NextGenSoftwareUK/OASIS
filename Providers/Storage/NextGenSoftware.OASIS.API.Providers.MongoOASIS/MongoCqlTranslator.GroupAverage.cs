@@ -69,8 +69,8 @@ internal sealed partial class MongoCqlTranslator
 
         // For metadata, count is one: division is exact over the entire
         // admitted Decimal range. For grouped averages, Count<=2^31-1
-        // and |total|<2^94 imply an integral quotient with at
-        // most19 digits. Its distance from a non-equal integer is >=1/count,
+        // and |total|<2^95 imply an integral quotient with at
+        // most20 digits. Its distance from a non-equal integer is >=1/count,
         // far greater than Decimal128's division error at this magnitude.
         // Truncation therefore extracts the exact integer quotient. All later
         // quotients are single digits with the same stronger error margin.

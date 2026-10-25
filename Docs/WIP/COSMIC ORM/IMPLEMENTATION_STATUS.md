@@ -1,5 +1,20 @@
 # COSMIC ORM implementation status
 
+## MongoDB UInt64 native acceptance — 25 October 2026
+
+MongoDB now explicitly enrolls UInt64/nullable Sum/Average for scalar and grouped
+execution, including selected grouped filters/order/pages. The existing exact
+Decimal128 limb/mean owners are reused. Full **391 native /539 unit** tests pass,
+zero failures/skips;17 new unsigned native controls cover domain boundaries,
+overflow vs valid means, nullable and empty input, malformed values, windows,
+grouped paging and off-page overflow. Producer/unit/native consumer hashes agree.
+The runner now exposes exclusive `-CosmicCqlUnsignedNumeric` with17 expected
+cases; full `-CosmicCql` requires391. Evidence and lifecycle details are in the
+resource ledger. Owned27029 runtime stopped after acknowledged fixture teardown;
+shared data/runtime remain reusable. No install/download/restore/environment.
+Neo4j unsigned arithmetic and unsigned numeric HTTP/demo enrollment remain open.
+
+
 ## Active SQLite UInt64 certification — 25 October 2026
 
 SQLite now enrolls exact native UInt64/nullable Sum/Average, including grouped
