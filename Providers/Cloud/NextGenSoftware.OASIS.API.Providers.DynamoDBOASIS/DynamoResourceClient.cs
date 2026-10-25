@@ -82,6 +82,7 @@ internal sealed class DynamoResourceCapture(Func<string> provider, string region
         switch (request)
         {
             case GetItemRequest value: operation = "GetItem"; value.ReturnConsumedCapacity = ReturnConsumedCapacity.INDEXES; tables = new[] { value.TableName }; break;
+            case PutItemRequest value: operation = "PutItem"; value.ReturnConsumedCapacity = ReturnConsumedCapacity.INDEXES; tables = new[] { value.TableName }; break;
             case ScanRequest value: operation = "Scan"; value.ReturnConsumedCapacity = ReturnConsumedCapacity.INDEXES; tables = new[] { value.TableName }; break;
             case UpdateItemRequest value: operation = "UpdateItem"; value.ReturnConsumedCapacity = ReturnConsumedCapacity.INDEXES; tables = new[] { value.TableName }; break;
             case DeleteItemRequest value: operation = "DeleteItem"; value.ReturnConsumedCapacity = ReturnConsumedCapacity.INDEXES; tables = new[] { value.TableName }; break;
@@ -112,7 +113,7 @@ internal sealed class DynamoResourceCapture(Func<string> provider, string region
                 (response as TransactWriteItemsResponse)?.ConsumedCapacity, DateTime.UtcNow);
             else
             {
-                var capacity = response switch { GetItemResponse value => value.ConsumedCapacity, ScanResponse value => value.ConsumedCapacity,
+                var capacity = response switch { GetItemResponse value => value.ConsumedCapacity, PutItemResponse value => value.ConsumedCapacity, ScanResponse value => value.ConsumedCapacity,
                     UpdateItemResponse value => value.ConsumedCapacity, DeleteItemResponse value => value.ConsumedCapacity, _ => null };
                 rows = DynamoCapacityUsage.Capture(provider, scope.RequestId, nativeId, region, tables[0], capacity, DateTime.UtcNow);
             }

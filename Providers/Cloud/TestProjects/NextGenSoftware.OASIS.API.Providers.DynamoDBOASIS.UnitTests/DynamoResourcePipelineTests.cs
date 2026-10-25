@@ -15,20 +15,42 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
 [TestClass]
 public class DynamoResourcePipelineTests
 {
-    private sealed class Service(string body, bool failure = false) : HttpMessageHandler
+    private sealed class Service(string body, bool failure = false, bool requireCapacity = true) : HttpMessageHandler
     {
         internal int Calls;
+        internal string? RequestedCapacity;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Interlocked.Increment(ref Calls);
             Assert.AreEqual("dynamodb.eu-west-1.amazonaws.com", request.RequestUri!.Host);
             StringAssert.StartsWith(request.Headers.GetValues("Authorization").Single(), "AWS4-HMAC-SHA256 ");
             using var wire = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
-            Assert.AreEqual("INDEXES", wire.RootElement.GetProperty("ReturnConsumedCapacity").GetString());
+            RequestedCapacity=wire.RootElement.TryGetProperty("ReturnConsumedCapacity",out var capacity)?capacity.GetString():null;
+            if(requireCapacity)Assert.AreEqual("INDEXES", RequestedCapacity);
             var response = new HttpResponseMessage(failure ? HttpStatusCode.BadRequest : HttpStatusCode.OK)
             { Content = new StringContent(body, Encoding.UTF8, "application/x-amz-json-1.0") };
             response.Headers.TryAddWithoutValidation("x-amzn-RequestId", "native-original"); return response;
         }
+    }
+
+    [DataTestMethod, DataRow(0), DataRow(1), DataRow(2), DataRow(3)]
+    public async Task OrdinaryPutItemCapturesMissingZeroPositiveAndFailedWriteUsage(int mode)
+    {
+        var body=mode==3?"{\"__type\":\"ValidationException\",\"message\":\"owned rejection\"}":
+            mode==0?"{}":"{\"ConsumedCapacity\":{\"TableName\":\"OasisHolons\",\"WriteCapacityUnits\":"+(mode==1?"0":"1.5")+"}}";
+        using var service=new Service(body,mode==3,requireCapacity:false);
+        var (provider,client)=Create(service);using var owned=client;
+        var rows=new List<NativeResourceUsageObservation>();Exception? failure=null;
+        try{
+            await provider.ObserveNativeResourceUsageAsync("put-original",()=>client.PutItemAsync(new PutItemRequest{
+                TableName="OasisHolons",Item=new(){["id"]=new(){S="synthetic"}}}),
+                (operation,evidence)=>{Assert.AreEqual("PutItem",operation);rows.AddRange(evidence);return Task.CompletedTask;});
+        }catch(Exception cause){failure=cause;}
+        if(mode==3)Assert.IsInstanceOfType<AmazonDynamoDBException>(failure);else Assert.IsNull(failure,failure?.ToString());
+        Assert.AreEqual(1,service.Calls);Assert.AreEqual("INDEXES",service.RequestedCapacity);
+        var row=rows.Single();Assert.AreEqual(mode is 0 or 3?(decimal?)null:mode==1?0m:1.5m,row.Quantity);
+        Assert.AreEqual("put-original",row.ProviderRequestId);Assert.AreEqual("native-original",row.NativeRequestId);
+        Assert.AreEqual("eu-west-1/table/OasisHolons",row.ResourceScope);
     }
     private static (DynamoDBOASIS Provider, AmazonDynamoDBClient Client) Create(Service service)
     {

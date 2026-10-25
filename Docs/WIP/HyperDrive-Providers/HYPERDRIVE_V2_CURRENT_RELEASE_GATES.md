@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## Verified checkpoint — 24 October: AWS ordinary-write usage evidence
+
+The DynamoDB SDK metering adapter omitted `PutItemRequest` / `PutItemResponse`, although ordinary saves use PutItem. This could omit write-capacity evidence; it does not establish how any prior bill was calculated. The adapter now requests INDEXES capacity and sends the native response through its existing capture projector. No new pricing, fee authorization, quota, subscription, retry or payment path was added.
+
+Four signed-SDK regression cases failed before the repair. Final matched suites passed with zero skips: **651 DynamoDB controlled, 38 AWS controlled, 173 retained-service native**. The two new native cases use real production clients for DynamoDBOASIS and AWSOASIS, observe ordinary-save GetItem/PutItem usage, independently read their original records, conditionally delete the exact observed payloads, and confirm absence. Missing quantities remain unknown, not zero/free; explicit native zero remains distinct. Request identity, native request identity, provider and resource scope are preserved. Official AWSSDK.DynamoDBv2 3.7.400.15 and the existing DynamoDB Local 1.25.1 were reused.
+
+The first native attempt stopped at its 30-second readiness gate before any tests/writes. A separate read-only diagnostic observed Linux LISTEN at 11.149s and the exact Windows loopback response at 11.349s; a fresh verification subsequently passed the unchanged readiness gate and all native tests. The original startup delay remains unexplained, not a fixed reliability claim. Original failure and prior reports are preserved in ENVIRONMENT_INVENTORY.md. Runtime stopped143/OOMfalse; no pending journals or 18000–18001 listeners remained. Core/Shared/provider PDB sources and consumer copies matched. This is local SDK evidence, **not hosted AWS IAM/KMS/pricing, S3 cloud acceptance, complete billing-flow or full HyperDrive V2 certification**. No dev deployment or sponsored spending enabled.
+
 ## Verified checkpoint — 24 October: Oracle / Firestore acknowledgement boundaries
 
 | Provider | Final controlled tests | Final real-SDK local tests | Repaired boundary |
