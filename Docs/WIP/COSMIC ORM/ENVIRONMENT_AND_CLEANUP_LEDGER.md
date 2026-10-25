@@ -2723,3 +2723,17 @@ C:\Source\OASIS\TestResults\CosmicCqlDemo\projection-composition-core-final.log 
 C:\Source\OASIS\TestResults\CosmicCqlDemo\projection-composition-demo-regression.log | 170426 bytes | retained evidence, COSMIC ORM owner; no active process dependency.
 C:\Source\OASIS\TestResults\CoreCurrent\projection-composition-current.trx | 4488526 bytes | retained evidence, COSMIC ORM owner; no active process dependency.
 C:\Source\OASIS\TestResults\CoreCurrent\projection-composition-original-red.trx | 4490336 bytes | retained evidence, COSMIC ORM owner; no active process dependency.
+
+25 October composition admission: reuses Core dual targets and Core.UnitTests bin/obj; installed .NET10.0.401, existing assets, no restores/downloads/environments. New shared selected-predicate admission preserves grouped behavior and independent selected stage/domain/operator permissions. Leased log TestResults/CosmicCqlDemo/composition-admission-core.log, TRX TestResults/CoreCurrent/composition-admission-current.trx, sizes initially unmeasured. No native test fixtures/services for this gate.
+
+Composition complete-proof gate extends same Core environment/output paths. Shared selected predicate verifier and exact payload-cell identity reused by grouped/join/composition owners. New log TestResults/CosmicCqlDemo/composition-proof-core.log; TRX TestResults/CoreCurrent/composition-proof-current.trx, sizes initially unmeasured. Native enrollment/executor remains pending. Full dual-target/Core consumer rebuild serialized under global lease, no restore/download/new services or fixtures.
+
+Composition admission/proof initial gates pass2820 and2841 Core tests, zero skips, both target frameworks built. Added per-cell/per-sort-key cancellation checkpoints after review; final complete build/test uses same fixed outputs, log composition-proof-final.log. Then native unchanged-operator93/93 regression reuses owned existing CQL demo environment, log composition-proof-demo-regression.log. Core build lease released before internally leased demo runner, never nested. No new installs/downloads/restores/environments.
+
+Composition admission/proof final2841/2841 zero skips; new-source ordinary query regression93SDK/93HTTP,288settled/283attempts, joint1/1 zero skips. Handle75414 terminal success, fixture manifest absent and27029/17687/5088 absent after teardown. Free C67,429,195,776bytes. Shared/reusable environment preserved, no install/download/restore or new environment. Exact evidence retained below; no live process dependency.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\composition-admission-core.log | 301191 bytes | COSMIC ORM retained verification evidence.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\composition-proof-core.log | 301187 bytes | COSMIC ORM retained verification evidence.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\composition-proof-final.log | 301293 bytes | COSMIC ORM retained verification evidence.
+C:\Source\OASIS\TestResults\CosmicCqlDemo\composition-proof-demo-regression.log | 170426 bytes | COSMIC ORM retained verification evidence.
+C:\Source\OASIS\TestResults\CoreCurrent\composition-admission-current.trx | 4521994 bytes | COSMIC ORM retained verification evidence.
+C:\Source\OASIS\TestResults\CoreCurrent\composition-proof-current.trx | 4555383 bytes | COSMIC ORM retained verification evidence.
