@@ -7,19 +7,20 @@ C#/HTTP demos. Latest live demo: **102 SDK /102 HTTP**, 309 settled operations
 and 301 provider attempts. Full CQL/ORM completion remains unproven.
 
 Latest separate suites: Core **2,970**, Shared **1,189**, SQLite **1,651 native
-/71 unit**, MongoDB **361 native /538 unit**, Neo4j **362 full native /519 unit**. The full 362-case native suite now includes
+/71 unit**, MongoDB **364 native /538 unit**, Neo4j **362 full native /519 unit**. The full 362-case native suite now includes
 the previously separate composition additions. These are separate checkpoints, not
 one coherent current-source run. The newest shared participation guard passes
 Core/SQLite units and **three native SQLite corruption/reuse controls**; full
 SQLite acceptance also passes **1,651 tests, zero skips**. MongoDB native
-regression also passes **361 tests, zero skips** (5m7s). Neo4j full native
+regression now passes **364 tests, zero skips** (5m35s), including grouped
+snapshot/reparenting, actual-I/O cancellation and cumulative-deadline/reuse probes. Neo4j full native
 regression passes **362 tests, zero skips** (10m24s). Fresh MongoDB/Neo4j unit
 suites also pass **538/519**, zero skips. Build-lease contract checks pass.
 
 The participation guard rejects a grouped aggregate whose present-value count
 contradicts its containing group or required selector. Core owns the invariant;
-all three provider decoders use it. This batch is verified for task-branch publication. Previous published parent
-checkpoint: `369f07354` on `fix/hyperdrive-v2-providers`; Development integration
+all three provider decoders use it. This batch is verified for task-branch publication. Published participation parent
+checkpoint: `7637f6d2a` on `fix/hyperdrive-v2-providers`; Development integration
 is not included in this batch.
 
 Remaining scope includes expanded grouped/join/relationship certification,
