@@ -1015,3 +1015,23 @@ This checkpoint is controlled-adapter execution/accounting evidence. **No real
 provider implements or advertises native joins yet.** SQLite, MongoDB and Neo4j
 native matching/proof production, HTTP transport, executable join demos and
 remaining composition/federation/security certification are still open.
+
+## SQLite native join SQL compiler — 25 October 2026
+
+SQLite now compiles each join source's protected predicates, deterministic
+ordering and independent window into SQL, sharing the existing 900-parameter
+budget. Native INNER/LEFT JOIN emits ordered source-position pairs. Null or
+missing key components never match. Source and pair limits retain one detection
+row so a future decoder can reject overflow rather than publish truncation.
+Selected cells and ordering/key proofs reuse the existing exact projection-domain
+guards; input proofs are separate from fanout pairs to avoid repeated large cells.
+
+The provider builds and its complete **46-test unit suite passes**, including
+seven new tests running generated joins against real in-memory SQLite with the
+production UTF-8/progress/length budget owner. These establish matching, fanout,
+null semantics, source-window order and zero/one remaining pair sentinels. This
+is a separate compiler cohort, not a new full 1,578-test integration result.
+The compiler remains internal and no join capability is advertised. The next
+required work is native serializable transaction ownership, source/proof decoding,
+all seven byte/work limits and graph/traversal checks before provider enrollment.
+MongoDB/Neo4j implementation and join transport/demos remain open.

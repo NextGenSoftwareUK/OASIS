@@ -8,7 +8,7 @@ public partial class HolonRepository
 {
     private sealed partial class CqlSqlTranslator
     {
-        private (string State, string Value) ProjectionOperand(CosmicQueryPath path, string prefix, bool comparable = false)
+        internal (string State, string Value) ProjectionOperand(CosmicQueryPath path, string prefix, bool comparable = false)
         {
             if (path.IsMetadata)
             {
