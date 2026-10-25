@@ -104,6 +104,7 @@ public sealed partial class CqlV1Web4NativeTests
                             // detached date output on every native provider.
                             ["counter"] = ulong.MaxValue - (ulong)i,
                             ["price"] = 1m + i * 0.0000000000000000000000000001m,
+                            ["reading"] = 1d + i * 2.220446049250313e-16d,
                             ["observedAt"] = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc).AddTicks(i),
                             // Hidden roots carry stronger extrema; signed Min/Max
                             // must apply actor visibility before native reduction.
@@ -537,6 +538,17 @@ public sealed partial class CqlV1Web4NativeTests
                                 .GetProperty("examples").GetProperty("ExactDecimal").GetProperty("value");
                             Assert.AreEqual("Decimal", decimalGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
                             Assert.AreEqual("1.0000000000000000000000000004", decimalGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
+                            // Swagger's double presets must keep input bounds as strings.
+                            var doubleProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("FiniteDouble").GetProperty("value");
+                            Assert.AreEqual("Double", doubleProjection.GetProperty("columns")[1].GetProperty("valueType").GetString());
+                            Assert.AreEqual("1.0000000000000004", doubleProjection.GetProperty("filters")[1].GetProperty("value").GetString());
+                            var doubleGroups = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples").GetProperty("FiniteDouble").GetProperty("value");
+                            Assert.AreEqual("Double", doubleGroups.GetProperty("keys")[0].GetProperty("valueType").GetString());
+                            Assert.AreEqual("1.0000000000000009", doubleGroups.GetProperty("resultFilters")[1].GetProperty("value").GetString());
                             var example = swagger.RootElement.GetProperty("components").GetProperty("schemas")
                                 .GetProperty("CqlScalarV1Request").GetProperty("example");
                             Assert.AreEqual("Average", example.GetProperty("operation").GetString());

@@ -1,6 +1,6 @@
 # CQL completion roadmap — MongoDB, SQLite and Neo4j
 
-24 October 2026. Current verified checkpoint: Core-linked 2,507 unit tests and full SQLite1,485 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Decimal wire/demo acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
+24 October 2026. Current verified checkpoint: Core-linked 2,552 unit tests and full SQLite1,485 native tests, including26 finite Double cases plus earlier exact Decimal/UInt64 coverage. Latest Double wire/demo acceptance passes81SDK/81HTTP; earlier Decimal acceptance passes75SDK/75HTTP; see [Decimal contract/evidence](CQL_DECIMAL_METADATA_CONTRACT.md). Earlier distinct cohorts include grouped native implementations on MongoDB, SQLite and Neo4j; integrated signed demo75 SDK queries/75 HTTP examples with255 settled operations and250 attempts;256 Neo4j/WEB4 regression cases. These are distinct evidence scopes, not a combined full-suite certification. See [grouped HTTP evidence](CQL_GROUPING_HTTP_CONTRACT.md).
 
 Next implementation: remaining scalar coverage and the expanded provider/policy certification matrix. MongoDB Decimal now passes228 native CQL/483 units; SQLite passes1,459 full native cases; Neo4j Decimal passes217 native CQL/455 units. Neo4j SDK DateTime previously passed192 native CQL cases/354 units. Native and HTTP grouped filters/order/pages, including exact normalized Average, pass the57/57 live demo on all three providers; the latest Neo4j/WEB4 regression passes256 cases. UTC HTTP predicates and examples20–21 are now verified. Distinct full provider regression cohorts retain their own recorded scope. Original requirements remain below; historical sections preserve their original cohorts and must not override this checklist. Full CQL/COSMIC ORM completion is not established.
 
@@ -528,3 +528,14 @@ Canonical finite round-trip request/response strings preserve binary64 values;
 old enum identities are unchanged. Native unknown-type controls now use
 NotAScalar. Live three-provider Double demos, Single and all unchecked broader
 acceptance gates remain open. See floating contract for evidence.
+
+## Double live demo gate verified — 24 October 2026
+
+Complete Double grouped-order capture now has2 regressions inside full2,552
+linked units (including peer8karma controls). Exact reviewed failed fixture
+reconciliation passed207settled/201attempts without replay. Fresh81SDK/81HTTP
+acceptance passes on MongoDB/SQLite/Neo4j with261settled/256attempts,0fail/skip.
+All5producer/consumer pairs match and sources unchanged inside lease. Four
+offline browser presets/Swagger examples and standalone cached demo build pass;
+fixtures/readiness/owned listeners absent after teardown. Single and all broader
+unchecked acceptance remain open. This is not a full combined provider rerun.

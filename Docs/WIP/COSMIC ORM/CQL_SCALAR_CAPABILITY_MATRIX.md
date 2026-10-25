@@ -22,7 +22,7 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
 shared finite bit-key codec and Mongo Single persistence prerequisites. Double SDK enrollment passes full native gates on all three providers.
-Single query profiles and floating HTTP/demo enrollment remain open.
+Single query profiles remain open; Double HTTP/demo acceptance now passes81SDK/81HTTP on all three providers.
 
 UInt64/Decimal metadata does not grant those types as Sum/Average inputs.
 Decimal Average output does not itself grant Decimal metadata selection.
@@ -58,5 +58,5 @@ Double source filters, selected/nullable schemas and grouped alias literals now
 pass35 new compiler/endpoint controls inside the full2,542 linked-unit cohort.
 Request/response values are canonical invariant finite binary64 round-trip
 strings. Existing enum identities remain stable (Double appended as7).
-Live all-provider Double HTTP/demo acceptance remains pending; no Single or
+Live all-provider Double HTTP/demo acceptance passes81SDK/81HTTP; no Single or
 floating Sum/Average capability is granted.

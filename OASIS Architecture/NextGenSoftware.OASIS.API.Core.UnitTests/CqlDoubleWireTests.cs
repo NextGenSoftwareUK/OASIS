@@ -73,4 +73,22 @@ public sealed class CqlDoubleWireTests
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.Compile(Source(doc.RootElement), Guid.NewGuid(), null));
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileGrouped(Group(doc.RootElement), Guid.NewGuid(), null));
     }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void CompleteDoubleGroupRequestPreservesFiltersOrderingAndPage(bool nullable)
+    {
+        var request = Group(JsonSerializer.SerializeToElement("1.0000000000000004"), nullable);
+        request.Columns = request.Columns.Concat(new[] { new CqlGroupedV1Column
+            { Alias = "Items", Operation = "LongCount" } }).ToArray();
+        request.ResultFilters = request.ResultFilters.Concat(new[] { new CqlGroupedV1Filter
+            { Alias = "Counter", Operator = CqlV1Operator.LessThan,
+                Value = JsonSerializer.SerializeToElement("1.0000000000000009") } }).ToArray();
+        request.ResultOrder = new[] { new CqlGroupedV1Ordering { Alias = "Counter" } };
+        request.ResultTake = 2;
+        var query = CqlV1Compiler.CompileGrouped(request, Guid.NewGuid(), null);
+        Assert.Equal(2, query.Columns.Count);
+        Assert.Equal(2, query.ResultPredicates.Count);
+        Assert.Single(query.Orderings);
+    }
+
 }
