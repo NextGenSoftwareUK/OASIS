@@ -1894,3 +1894,28 @@ These are bounded source findings, not a completed runtime authorization audit.
 CQL recipient/tenant policy must stay unenrolled until its stored grants cannot be
 forged through the public mutation surfaces. The new Core owned-save SDK facade
 is available for migration but does not itself prove transport enrollment.
+
+## Owned batch authorization — 26 October 2026
+
+Generic `SaveOwnedHolonsAsync` shares the single-root ownership/revision kernel
+and submits one pinned conditional selected batch. All selected roots, including
+unchanged input, pass authorization before mutation. Combined graph limits are
+checked before provider I/O. Core3,291/3,291 (six new cases), focused19/19,
+dual Core targets and shipping WEB4 builds pass. A no-op control first reproduced
+acceptance of outside-plan revision conditions; validation now precedes no-write
+success.
+
+Final native proof passes MongoDB, SQLite and Neo4j: later foreign roots prevent
+all writes; valid batches succeed; a stale member prevents the other valid edit
+from committing. Existing138SDK/138signedHTTP examples and345settled CQL
+operations pass. Source freeze and all six producer/consumer binary pairs match;
+Core unit/WEB4 copies match5F49EA60. Owned Neo process18748 exited; task ports
+and fixture/readiness files are absent. Evidence:
+`TestResults/CosmicCqlDemo/owned-batch-evidence.json`, fixed owned-batch logs,
+`TestResults/CoreCurrent/owned-batch-full.trx` and current v1 identity/result JSON.
+Corec82b371c265859c25045d99b1ee1dde6c7b00621 is published on the task branch.
+
+Existing hosted bulk/single saves, gRPC, authenticated GraphQL actor binding,
+trusted-role policy and hosted write admission/pricing remain open. This generic
+SDK completion does not enroll recipient/tenant CQL policies or complete the
+full ORM/CQL roadmap.

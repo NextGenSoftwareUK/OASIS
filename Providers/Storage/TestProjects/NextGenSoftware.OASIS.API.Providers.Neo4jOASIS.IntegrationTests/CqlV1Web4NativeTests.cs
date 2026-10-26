@@ -59,6 +59,7 @@ public sealed partial class CqlV1Web4NativeTests
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
         var ownedWritesProvidersVerified = 0;
+        var ownedBatchProvidersVerified = 0;
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -284,6 +285,53 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.IsFalse(winner.IsError, winner.Message);
                 Assert.AreEqual(originalName, winner.Result.Name);
                 Assert.IsTrue(JsonSerializer.SerializeToElement(winner.Result.MetaData["owned-write-control"]).GetBoolean());
+                // All roots must pass ownership before any batch mutation.
+                // The later foreign root must leave the first root untouched.
+                var batchFirst = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                var batchForeign = await manager.LoadHolonAsync(ids[2], loadChildren: false);
+                Assert.IsFalse(batchFirst.IsError, batchFirst.Message);
+                Assert.IsFalse(batchForeign.IsError, batchForeign.Message);
+                var beforeBatch = CosmicConcurrency.GetProviderRevisionId(batchFirst.Result, pair.Key);
+                batchFirst.Result.MetaData["owned-batch-control"] = "denied";
+                batchForeign.Result.CreatedByAvatarId = bob;
+                var forbiddenBatch = await manager.SaveOwnedHolonsAsync(
+                    new[] { batchFirst.Result, batchForeign.Result }, bob,
+                    new CosmicWriteOptions(await OwnedIntent()), saveChildren: false);
+                Assert.IsTrue(forbiddenBatch.IsError);
+                Assert.AreEqual("COSMIC_WRITE_FORBIDDEN", forbiddenBatch.ErrorCode);
+
+                batchFirst = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                var batchSecond = await manager.LoadHolonAsync(ids[1], loadChildren: false);
+                Assert.IsFalse(batchFirst.IsError, batchFirst.Message);
+                Assert.IsFalse(batchSecond.IsError, batchSecond.Message);
+                Assert.AreEqual(beforeBatch, CosmicConcurrency.GetProviderRevisionId(batchFirst.Result, pair.Key));
+                Assert.IsFalse(batchFirst.Result.MetaData.ContainsKey("owned-batch-control"));
+
+                var staleBatchFirst = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(batchFirst.Result);
+                batchFirst.Result.MetaData["owned-batch-control"] = "committed";
+                batchSecond.Result.MetaData["owned-batch-control"] = "committed";
+                var savedBatch = await manager.SaveOwnedHolonsAsync(
+                    new[] { batchFirst.Result, batchSecond.Result }, bob,
+                    new CosmicWriteOptions(await OwnedIntent()), saveChildren: false);
+                Assert.IsFalse(savedBatch.IsError, savedBatch.Message + savedBatch.Exception);
+                Assert.IsTrue(savedBatch.IsSaved);
+
+                // A stale member must reject the entire native transaction,
+                // including an otherwise valid edit of the other root.
+                var secondRevision = CosmicConcurrency.GetProviderRevisionId(batchSecond.Result, pair.Key);
+                staleBatchFirst.Name = "stale batch overwrite";
+                batchSecond.Result.MetaData["owned-batch-control"] = "must not commit";
+                var staleBatch = await manager.SaveOwnedHolonsAsync(
+                    new[] { staleBatchFirst, batchSecond.Result }, bob,
+                    new CosmicWriteOptions(await OwnedIntent()), saveChildren: false);
+                Assert.IsTrue(staleBatch.IsError);
+                Assert.AreEqual(CosmicConcurrencyException.Code, staleBatch.ErrorCode);
+                var secondWinner = await manager.LoadHolonAsync(ids[1], loadChildren: false);
+                Assert.IsFalse(secondWinner.IsError, secondWinner.Message);
+                Assert.AreEqual(secondRevision, CosmicConcurrency.GetProviderRevisionId(secondWinner.Result, pair.Key));
+                Assert.AreEqual("committed", secondWinner.Result.MetaData["owned-batch-control"].ToString());
+
+                ownedBatchProvidersVerified++;
                 ownedWritesProvidersVerified++;
                 sharingProvidersVerified++;
             }
@@ -953,7 +1001,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));
