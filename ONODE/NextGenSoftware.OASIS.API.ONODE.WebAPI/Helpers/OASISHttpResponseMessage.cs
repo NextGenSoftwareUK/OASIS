@@ -15,6 +15,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             _routingPolicy = policy ?? throw new System.ArgumentNullException(nameof(policy));
             return this;
         }
+        // Result projection must retain the request's captured routing policy.
+        internal OASISHttpResponseMessage<TTarget> WithResult<TTarget>(OASISResult<TTarget> result)
+            => new OASISHttpResponseMessage<TTarget>
+            {
+                Result = result, StatusCode = StatusCode,
+                ShowDetailedSettings = ShowDetailedSettings, _routingPolicy = _routingPolicy
+            };
         public bool ShowDetailedSettings { get; set; }
         public OASISResult<T> Result { get; set; }
         public string OASISVersion
