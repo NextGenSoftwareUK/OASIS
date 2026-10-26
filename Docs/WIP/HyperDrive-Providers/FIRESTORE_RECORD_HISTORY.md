@@ -1,5 +1,9 @@
 # Firestore record history — integration in progress
 
+## 25 October: all-version owned-export visibility follow-up
+
+The earlier scoped-graph fix deliberately left Version=-1 untouched; that limitation is now repaired. Owned historical roots are independently projected through the EXISTING Core visibility policy, pruning foreign embedded children without merging duplicate root IDs across versions, hydrating current children or altering unscoped export payloads. Two genuine pre-fix controlled failures reproduced the leak. Current matched **482/482 full controlled tests pass**, zero skips; `TestResults/GoogleCurrent/all-version-privacy-final.trx`742963bytes SHA256 `2C7F8464CA705D58ECBB0C7A8969A157DE7BBE1DB9338F488E977E351542C9D2`. Core761/B50488A4 and Shared56/0F75D15A source/PDB/copies match. Companion Oracle571native/466unit and Shared1213unit/S3protocol160/OCI133/Dynamo665 controls pass in this cohort. Previous Firestore95history+79regression native results retain their earlier exact scope/build; no fresh Firestore native/hosted acceptance is claimed by this follow-up. No SDK request/format/configuration/encryption/Core edit or new emulator/environment/download.
+
 ## 2026-10-25 scoped graph privacy: verified local SDK cohort
 
 Owned exports and current-avatar search previously filtered roots but left foreign descendants attached. They now reuse Core `IOASISStorageProvider.ProjectVisibleHolons`; foreign subtrees are pruned without hoisting owned grandchildren or mutating the unscoped source graph. Positive versions select roots only; visible descendants retain independent current versions. Flat all-version export behavior is unchanged.

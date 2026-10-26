@@ -57,7 +57,7 @@ public partial class GoogleCloudOASIS
             var loaded=version==-1?await ExportAllAsync(version):await LoadAllHolonsAsync(loadChildren:false,version:version);
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
-            if(version==-1){result.Result=records.Where(row=>row.CreatedByAvatarId==owner).ToList();result.LoadedCount=result.Result.Count();result.IsLoaded=true;return result;}
+            if(version==-1){result.Result=records.Where(row=>row.CreatedByAvatarId==owner).ToList();result.LoadedCount=result.Result.Count();result.IsLoaded=true;return IOASISStorageProvider.ProjectVisibleHolons(result,owner,false);}
             var current=version>0?await LoadAllHolonsAsync(loadChildren:false,version:0):loaded;
             if(current.IsError)return current;
             var project=HolonGraphProjection.Create(current.Result,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));

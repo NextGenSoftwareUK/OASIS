@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## 2026-10-25 all-version SDK companions complete
+
+Matched S3protocol160/OCI133/Dynamo665/Google482 controlled suites PASS0skip; all four Core761/B50488A4 +Shared56/0F75D15A source/copy checks pass. Oracle571native/466unit +Shared1213unit remain matched green. Exact report hashes in respective provider audits/inventory. This supersedes the earlier companion-pending note immediately below, not native/hosted gates: AWS138/Dynamo177/Firestore95+79 native suites retain earlier cohorts pending fresh runs. All-version visibility batch can be checkpointed on the task branch; no Development integration/hosted/global V2 completion claimed. Required dependencies restored once into existing shared cache, total928142738bytes; no new environment/runtime/service introduced.
+
+## 2026-10-25 all-version owned-export privacy
+
+Version=-1 owned exports now reuse Core visibility per stored root in Oracle, DynamoDB/AWS, GoogleCloud and Shared/S3/OCI. Eight genuine baseline failures proved foreign-child leakage; no cross-version hydration/merge or unscoped export change. Current matched Oracle571native/466unit +Shared1213unit pass0skip; Core761/B50488A4 +Shared56/0F75D15A source/copies verified. Original failed native cohorts and reviewed exact fixture reconciliation remain preserved, including tooling-only Unicode/grouping failures; source fixture preflight passes. Oracle pending0/runtime stopped/owned WSL keepalive absent. Detailed hashes/scope in ORACLE_CLIENT_PRIORITY.md and inventory. Dynamo665/Google482 controlled green are the earlier companion cohort, not refreshed to this exact compiled Core/Shared yet. S3/OCI SDK companions and hosted acceptance remain pending; no whole-provider/global V2/production deployment claim.
+
 ## 2026-10-25 Google scoped graph privacy gate
 
 Owned exports/current-avatar searches now prune foreign descendants through the existing shared Core visibility projector. Eight genuine red controls -> full480/480 controlled pass; official SDK retained Firestore95/95 history and79/79 regression pass, zero skipped. Current Core761/Shared56 source identity passes both consumers. Root-only historical version semantics and unscoped graphs retained; native raw content/revisions unchanged after projection and rejected save. Two stale native expectations corrected; exact original recovery and legacy failure-cleanup deficiency documented transparently in `FIRESTORE_RECORD_HISTORY.md`, including report hashes. Same runtime/cache, pending0, no downloads/new environment/deployment. Hosted/security/cost/durability/full-interface/global V2 gates remain OPEN; not whole-provider completion.

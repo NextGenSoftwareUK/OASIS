@@ -7,6 +7,7 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
     <Compile Include="../../../Shared/TestSupport/SdkHandlerHttpClientFactory.cs" Link="Shared/SdkHandlerHttpClientFactory.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
