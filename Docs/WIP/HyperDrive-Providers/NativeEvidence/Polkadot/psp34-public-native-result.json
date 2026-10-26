@@ -1,0 +1,62 @@
+{
+  "scope": "Public C# PSP34 collection reads on retained local runtime; no mutations or public-chain certification",
+  "gateSession": 15400,
+  "terminalExitCode": 0,
+  "reports": [
+    {
+      "path": "psp34-public-native-current.trx.gz",
+      "rawBytes": 6114,
+      "gzipBytes": 1476,
+      "rawSha256": "57ddb11a3a271df136d842d7617f3e0104635844cf190c101c73b50fd45a24e1",
+      "counters": {
+        "total": "3",
+        "executed": "3",
+        "passed": "3",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "psp34-post-native-current.trx.gz",
+      "rawBytes": 450573,
+      "gzipBytes": 63420,
+      "rawSha256": "eb9205f5def4734649ee0ddb115d59fd4852cf32c4062524dd497d79e64bc227",
+      "counters": {
+        "total": "293",
+        "executed": "293",
+        "passed": "293",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "sourceSha256": {
+    "Scripts/TestHosts/Run-ReusablePolkadotRecordTests.ps1": "7383c1c2c77d70f4ad390f94d919857f59a533397f09765a61f4d3508876b359",
+    "Scripts/TestHosts/Test-PolkadotPendingFences.ps1": "ef699765c0df84ef12954f02af007de330762944e4533a047c5d715c261b8ea8",
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/PolkadotNftPublicReadNativeTests.cs": "38919bb9fdfd551d46f68863cec63a6d46f7f4fa6c8698a4f2c34e354357f03f"
+  },
+  "pendingFenceCases": 35,
+  "producerIdentities": "psp34-public-native-producer-identities.json"
+}

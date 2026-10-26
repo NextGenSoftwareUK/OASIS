@@ -2023,3 +2023,37 @@ conditional create API, while the gRPC recursive envelope also supports selected
 existing graphs. Retain original revision tokens and operation IDs. Full deployed
 GraphQL schema/startup, other gRPC methods and delete boundaries remain separate
 open work. See [retained transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md#signed-save-gate--passed).
+
+## Generic creator-owned conditional deletion (V2)
+
+`HolonManager.DeleteOwnedHolonAsync` deletes one record after observing its stored
+creator on a pinned authority. The host supplies the authenticated actor, a stable
+operation ID and exactly that record's original provider revision. It delegates to
+the existing tracked conditional-delete engine; it does not refresh a stale
+caller condition, select children for deletion or retry on a replica.
+
+```csharp
+// originalRevision came from the caller's earlier read on this provider.
+// actorId comes from host authentication, never a submitted creator field.
+var conditions = new Dictionary<Guid, Guid?>
+{
+    [recordId] = originalRevision
+};
+
+var result = await manager.DeleteOwnedHolonAsync(
+    recordId,
+    actorId,
+    new CosmicWriteOptions(operationId, conditions),
+    softDelete: true,
+    providerType: ProviderType.SQLLiteDBOASIS);
+```
+
+Missing/create-only revision conditions reject before I/O; an all-zero GUID is a
+real legacy revision token. A foreign stored creator rejects before any mutation.
+Use `IsDeleted` and the returned error code to distinguish acknowledgement from
+conflict/unknown failure. Retain the operation identity for reconciliation; do
+not generate a new identity merely because the caller lost a response.
+
+This is a creator-only SDK facade. It does not authenticate users itself or grant
+an administrator override. Existing transport delete routes still need migration,
+and native three-provider enrollment for this new facade is not yet claimed.

@@ -18,8 +18,21 @@ $paths = @('local-record-contract-pending.json','local-record-owner-pending.json
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
 $cases = 0
-foreach ($runner in @('Run-ReusablePolkadotNativeTests.ps1','Run-ReusablePolkadotRecordTests.ps1')) {
+$runners = @(
+    @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{} },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftDeploy=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRead=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftReconcile=$true } }
+)
+foreach ($entry in $runners) {
+    $runner=$entry.Name
+    $arguments=$entry.Arguments
     foreach ($path in $paths) {
+        # Reconciliation may inspect its own original, but may not bypass other
+        # unresolved sequences. Its read-only path is verified by the native gate.
+        if ($arguments.ContainsKey('NftReconcile') -and $path.EndsWith('psp34-deployment-pending.json')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)
@@ -31,7 +44,7 @@ foreach ($runner in @('Run-ReusablePolkadotNativeTests.ps1','Run-ReusablePolkado
             Microsoft.PowerShell.Management\Test-Path @arguments
         }.GetNewClosure())
         $rejected = $false
-        try { & (Join-Path $PSScriptRoot $runner) }
+        try { & (Join-Path $PSScriptRoot $runner) @arguments }
         catch {
             if ($_.Exception.Message -notmatch '^Pending (original|public storage sequence) exists') { throw }
             $rejected = $true
