@@ -188,10 +188,10 @@ mod oasis_token_escrow {
             }
         }
         fn revert() -> ! {
-            ink::env::return_value(
-                ink::env::ReturnFlags::REVERT,
-                &Result::<(), Error>::Err(Error::TokenCallFailed),
-            )
+            ink::env::return_value(ink::env::ReturnFlags::REVERT, &Self::failure_result())
+        }
+        fn failure_result() -> ink::MessageResult<Result<(), Error>> {
+            Ok(Err(Error::TokenCallFailed))
         }
 
         #[cfg(test)]
@@ -211,6 +211,11 @@ mod oasis_token_escrow {
     #[cfg(test)]
     mod tests {
         use super::*;
+        #[ink::test]
+        fn manual_revert_preserves_the_ink_language_result_wrapper() {
+            use scale::Encode;
+            assert_eq!(OasisTokenEscrow::failure_result().encode(), vec![0, 1, 5]);
+        }
         #[ink::test]
         fn invalid_deposits_do_not_call_tokens_or_create_state() {
             let mut escrow = OasisTokenEscrow::new();
