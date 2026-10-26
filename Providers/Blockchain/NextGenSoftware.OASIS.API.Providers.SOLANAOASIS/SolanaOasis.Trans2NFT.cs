@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
@@ -48,76 +48,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 public partial class SolanaOASIS
 {
 
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate = "Error occurred in SendTransactionByEmailAsync (with token) method in SolanaOASIS while sending transaction. Reason: ";
-
-        try
-        {
-            // Get wallet addresses for avatars by email
-            var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, fromAvatarEmail);
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager.Instance, Core.Enums.ProviderType.SolanaOASIS, toAvatarEmail);
-
-            if (fromWalletResult.IsError || toWalletResult.IsError || string.IsNullOrWhiteSpace(fromWalletResult.Result) || string.IsNullOrWhiteSpace(toWalletResult.Result))
-            {
-                OASISErrorHandling.HandleError(ref result, "Error getting wallet addresses for avatars");
-                return result;
-            }
-
-            var fromWallet = fromWalletResult.Result;
-            var toWallet = toWalletResult.Result;
-
-            // If token is provided, use SPL token transfer; otherwise use native SOL transfer
-            if (!string.IsNullOrWhiteSpace(token))
-            {
-                var fromPublicKey = new PublicKey(fromWallet);
-                var toPublicKey = new PublicKey(toWallet);
-                var tokenMint = new PublicKey(token);
-                var tokenAmount = (ulong)(amount * 1_000_000_000m);
-                
-                var fromTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPublicKey, tokenMint);
-                var toTokenAccount = AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPublicKey, tokenMint);
-                
-                var blockHashResult = await _rpcClient.GetLatestBlockHashAsync();
-                if (!blockHashResult.WasSuccessful)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get latest block hash: {blockHashResult.Reason}");
-                    return result;
-                }
-                
-                var transferInstruction = TokenProgram.Transfer(fromTokenAccount, toTokenAccount, tokenAmount, fromPublicKey);
-                
-                byte[] tx = new TransactionBuilder()
-                    .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
-                    .SetFeePayer(fromPublicKey)
-                    .AddInstruction(transferInstruction)
-                    .Build(_oasisSolanaAccount);
-                
-                var sendResult = await _rpcClient.SendTransactionAsync(tx);
-                if (!sendResult.WasSuccessful)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to send token transaction: {sendResult.Reason}");
-                    return result;
-                }
-                
-                result.Result = new TransactionResponse { TransactionResult = sendResult.Result };
-                result.IsError = false;
-                result.Message = "Token transaction sent successfully";
-            }
-            else
-            {
-                // Use native SOL transfer (delegate to existing method)
-                result = await SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount);
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessageTemplate}{ex.Message}", ex);
-        }
-        
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        => SendAvatarTransactionAsync(AvatarTransferSelector.Email, fromAvatarEmail, toAvatarEmail, amount, token);
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
     {
