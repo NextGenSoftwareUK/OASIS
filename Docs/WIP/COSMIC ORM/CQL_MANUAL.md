@@ -1886,3 +1886,11 @@ uses that owner and rejects malformed grants before sharing mutations. Valid
 legacy text requires explicit admission; malformed JSON never changes grammars.
 See the [contract and migration limits](CQL_SHARING_WRITE_CONTRACT.md). This does
 not enroll recipient/tenant access in CQL or replace authenticated issuer checks.
+
+## Creator-owned graph saves from a trusted host
+
+Core SaveOwnedHolonAsync is an opt-in V2 SDK boundary for checking every selected
+record rather than only a graph root. It preserves caller revision conditions and
+uses the existing provider CAS operations. See the [SDK example, native evidence
+and transport/accounting limits](CQL_OWNED_GRAPH_WRITE_CONTRACT.md). Ordinary
+Save methods and public transports have not all migrated to this boundary.

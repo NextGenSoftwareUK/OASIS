@@ -58,6 +58,7 @@ public sealed partial class CqlV1Web4NativeTests
         var scalarWrites = new List<string>();
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
+        var ownedWritesProvidersVerified = 0;
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -239,6 +240,51 @@ public sealed partial class CqlV1Web4NativeTests
                 var repaired = await manager.SaveHolonAsync(unchanged.Result, bob,
                     await SharingIntent(malformedRevision), saveChildren: false);
                 Assert.IsFalse(repaired.IsError, repaired.Message + repaired.Exception);
+                // The V2 owned-write facade must authorize the whole selected
+                // graph, including a child whose payload forges its creator.
+                async Task<Guid> OwnedIntent()
+                {
+                    var operation = Guid.NewGuid();
+                    sharingOperations.Add(operation.ToString("D"));
+                    await Journal("before-owned-graph-write", new { provider = pair.Key.ToString(), operation });
+                    return operation;
+                }
+                var ownedRoot = await manager.LoadHolonAsync(ids[0], loadChildren: true, loadChildrenFromProvider: true);
+                Assert.IsFalse(ownedRoot.IsError, ownedRoot.Message);
+                var beforeOwnedRevision = CosmicConcurrency.GetProviderRevisionId(ownedRoot.Result, pair.Key)!.Value;
+                var originalName = ownedRoot.Result.Name;
+                var forgedChild = new Holon { Id = ids[2], ParentHolonId = ids[0],
+                    CreatedByAvatarId = bob, Name = "forged foreign child edit" };
+                ownedRoot.Result.Children.Add(forgedChild);
+                var rejectedGraph = await manager.SaveOwnedHolonAsync(ownedRoot.Result, bob,
+                    new CosmicWriteOptions(await OwnedIntent(), new Dictionary<Guid, Guid?>
+                    { [ids[0]] = beforeOwnedRevision, [ids[2]] = Guid.NewGuid() }));
+                Assert.IsTrue(rejectedGraph.IsError);
+                Assert.AreEqual("COSMIC_WRITE_FORBIDDEN", rejectedGraph.ErrorCode);
+                var untouchedRoot = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(untouchedRoot.IsError, untouchedRoot.Message);
+                Assert.AreEqual(beforeOwnedRevision, CosmicConcurrency.GetProviderRevisionId(untouchedRoot.Result, pair.Key));
+                var untouchedChild = await manager.LoadHolonAsync(ids[2], loadChildren: false);
+                Assert.IsFalse(untouchedChild.IsError, untouchedChild.Message);
+                Assert.AreEqual("B-owned", untouchedChild.Result.Name);
+                Assert.AreEqual(alice, untouchedChild.Result.CreatedByAvatarId);
+
+                var staleOwned = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(untouchedRoot.Result);
+                untouchedRoot.Result.MetaData["owned-write-control"] = true;
+                var ownedSaved = await manager.SaveOwnedHolonAsync(untouchedRoot.Result, bob,
+                    new CosmicWriteOptions(await OwnedIntent()), saveChildren: false);
+                Assert.IsFalse(ownedSaved.IsError, ownedSaved.Message + ownedSaved.Exception);
+                Assert.IsTrue(ownedSaved.IsSaved);
+                staleOwned.Name = "stale owned overwrite";
+                var ownedConflict = await manager.SaveOwnedHolonAsync(staleOwned, bob,
+                    new CosmicWriteOptions(await OwnedIntent()), saveChildren: false);
+                Assert.IsTrue(ownedConflict.IsError);
+                Assert.AreEqual(CosmicConcurrencyException.Code, ownedConflict.ErrorCode);
+                var winner = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(winner.IsError, winner.Message);
+                Assert.AreEqual(originalName, winner.Result.Name);
+                Assert.IsTrue(JsonSerializer.SerializeToElement(winner.Result.MetaData["owned-write-control"]).GetBoolean());
+                ownedWritesProvidersVerified++;
                 sharingProvidersVerified++;
             }
 
@@ -907,7 +953,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));
