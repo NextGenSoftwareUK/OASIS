@@ -13,14 +13,16 @@ not OS-process crash certification.
 
 Core's new pinned preparation routing and stored-only reconstruction workflow
 and protected conditional-delete enrollment, including inherited request protection,
-pass 3,497 unit tests; both Core targets build. Exact preparation/receipt read
-tariffs have 404 passing real-Mongo usage tests. Latest WEB4 unit evidence is
-285 passed with one unrelated Stripe sandbox credential skip. See
+have a 3,497-test SDK regression checkpoint; both current Core targets build.
+The new authenticated hosted recovery boundary has 305 passing WEB4 tests with
+one unrelated Stripe sandbox skip, and 408 passing real-Mongo usage tests. See
 [protected preparation contracts and evidence](WRITE_PREPARATION.md) and
 [current implementation status](IMPLEMENTATION_STATUS.md) for scoped cohorts.
 
-Remaining priority: authenticated hosted recovery, explicit authorized durable
-intent enrollment for hosted writes/deletes, startup/admission validation, and
+The [hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) is implemented with
+application grants and startup pricing/composition checks, but its signed native
+HTTP acceptance remains open. Remaining priority: that certification, explicit
+authorized durable intent enrollment for hosted writes/deletes, and
 actual process interruption/restart. Recipient/tenant query scope, federation
 certification and the broader ORM roadmap remain open. Provider reactivation
 does not close the process-restart requirement.

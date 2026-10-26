@@ -465,8 +465,8 @@ try{
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
         # Both labels execute this same project/filter: 400 prior cases plus
-        # four exact-price receipt/preparation recovery read controls.
-        $expectedUsage=404
+        # four exact-price read controls and four recovery route enrollment controls.
+        $expectedUsage=408
         if([int]$counts.total -ne $expectedUsage -or [int]$counts.passed -ne $expectedUsage -or [int]$counts.notExecuted -ne 0){throw "Expected$expectedUsage passing usage recovery cases without skips."}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}

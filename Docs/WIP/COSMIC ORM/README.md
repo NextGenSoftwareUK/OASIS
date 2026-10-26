@@ -1,5 +1,7 @@
 # COSMIC ORM work
 
+Latest staged host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including its required application policy, two-read pricing and explicit remaining native HTTP acceptance.
+
 Start with [implementation status](IMPLEMENTATION_STATUS.md), the [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) and the [source integration boundary](INTEGRATION_BOUNDARY.md). They identify verified scope, unfinished acceptance criteria and publication constraints.
 
 These are working documents. Dated reports retain historical evidence; earlier counts and findings do not override current status. Legacy Hyperdrive is documented only. Implementation targets V2.

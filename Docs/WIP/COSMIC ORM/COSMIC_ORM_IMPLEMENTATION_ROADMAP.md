@@ -6,15 +6,18 @@ The latest CQL/provider checkpoint is maintained in the
 [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and
 [implementation status](IMPLEMENTATION_STATUS.md). Core's pinned preparation
 lookup, stored-only recovery and protected conditional-delete workflow, including
-request protection inheritance, have 3,497 passing unit tests and both
-target builds; ordinary read pricing has 404 passing real-Mongo usage cases.
-Latest WEB4 unit evidence is 285 passed / one unrelated Stripe sandbox skip.
+request protection inheritance, have a 3,497-test SDK regression checkpoint.
+Both current Core targets build; recovery pricing/configuration has 408 passing
+real-Mongo usage cases. Latest WEB4 unit evidence is 305 passed / one unrelated
+Stripe sandbox skip, including the new authenticated recovery boundary.
 The signed three-provider delete matrix, actual lost native acknowledgement
 receipt recovery, and preparation retrieval after provider reconnection are
 verified on MongoDB, SQLite and Neo4j. Retained native cohort:453 settlements /
 496 attempts. These scoped results do not close the eight-stage roadmap.
-Authenticated hosted recovery, explicit authorized durable original-intent
-enrollment and actual OS-process interruption/restart remain next; see the
+The hosted recovery endpoint and its grant/admission/startup controls are
+implemented, with signed native HTTP acceptance still open. That certification,
+automatic authorized hosted original-intent enrollment and actual OS-process
+interruption/restart remain next; see the
 [preparation contract and evidence](WRITE_PREPARATION.md) and
 [delete acceptance history](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
 
