@@ -12,6 +12,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public sealed partial class CosmicDataControllerHttpTests
 {
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task ProviderKeyDeleteBindsLogicalIdentityOwnerAndOriginalRevision(bool wrongIdentity, bool foreignOwner)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            var id = Guid.NewGuid();
+            var revision = Guid.NewGuid();
+            var operation = Guid.NewGuid();
+            var stored = new Holon { Id = wrongIdentity ? Guid.NewGuid() : id,
+                CreatedByAvatarId = foreignOwner ? Guid.NewGuid() : actor };
+            CosmicConcurrency.SetProviderRevisionId(stored, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            provider.Setup(value => value.LoadHolonAsync("native-key", false, true, 0, true, false, 0))
+                .ReturnsAsync(new OASISResult<IHolon>(stored) { IsLoaded = true });
+            using var request = new HttpRequestMessage(HttpMethod.Delete, "/api/data/delete-holon-by-providerkey/native-key?softDelete=false");
+            request.Headers.Add(HolonWriteEndpoint.HolonIdHeader, id.ToString("D"));
+            request.Headers.Add(HolonWriteEndpoint.OperationHeader, operation.ToString("D"));
+            request.Headers.Add(HolonWriteEndpoint.ExpectedRevisionHeader, revision.ToString("D"));
+            using var response = await client.SendAsync(request);
+            Assert.Equal(wrongIdentity ? HttpStatusCode.BadRequest : foreignOwner ? HttpStatusCode.Forbidden : HttpStatusCode.Conflict, response.StatusCode);
+            var writes = provider.Invocations.Where(call => call.Method.Name == "ExecuteConditionalHolonWriteAsync").ToArray();
+            if (wrongIdentity || foreignOwner) Assert.Empty(writes);
+            else
+            {
+                var write = Assert.IsType<ConditionalHolonWriteRequest>(Assert.Single(writes).Arguments[0]);
+                Assert.Equal(id, Assert.Single(write.Roots).Id);
+                Assert.Equal(operation, write.Write.OperationId);
+                Assert.Equal(actor, write.Write.ActorId);
+                Assert.Equal(revision, Assert.Single(write.Write.Conditions).ExpectedRevisionId);
+                Assert.Equal(ConditionalHolonOperation.HardDelete, write.Operation);
+            }
+            Assert.DoesNotContain(provider.Invocations, call => call.Method.Name == "DeleteHolonAsync");
+        });
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("invalid")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    public async Task ProviderKeyDeleteRequiresLogicalIdentityBeforeStorage(string? header)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, "/api/data/delete-holon-by-providerkey/native-key");
+            if (header != null) request.Headers.Add(HolonWriteEndpoint.HolonIdHeader, header);
+            request.Headers.Add(HolonWriteEndpoint.OperationHeader, Guid.NewGuid().ToString("D"));
+            request.Headers.Add(HolonWriteEndpoint.ExpectedRevisionHeader, Guid.NewGuid().ToString("D"));
+            using var response = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.DoesNotContain(provider.Invocations, call => call.Method.Name.Contains("LoadHolon") ||
+                call.Method.Name.Contains("DeleteHolon") || call.Method.Name.Contains("Conditional"));
+        });
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
