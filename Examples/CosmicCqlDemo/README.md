@@ -368,3 +368,5 @@ nullable data. Replace both Swagger fixture tags with the current session tag.
 
 The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
 Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.
+
+Latest native cursor acceptance: twenty signed shipping-controller requests, eighteen settlements/thirty-two attempts, duplicate-claim rejection, pinned scope, host restart and key rotation/revocation pass. Full cohort523operations599attempts, unchanged sources/sevenbinarypairs. The presenter UI examples above remain separate; use the CQL manual's opt-in cursor enrollment/request sequence. Actual OS-process cursor persistence and broader distributed features remain open.

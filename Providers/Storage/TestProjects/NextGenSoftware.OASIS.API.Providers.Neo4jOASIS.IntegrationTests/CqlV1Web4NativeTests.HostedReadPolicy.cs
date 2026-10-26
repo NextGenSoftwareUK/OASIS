@@ -71,13 +71,15 @@ public sealed partial class CqlV1Web4NativeTests
         => ShippingReadHost(sources, policy, new[] { provider }, outbox, authority, secret);
 
     private static WebApplication ShippingReadHost(ShippingProviders sources, ShippingPolicy policy,
-        ProviderType[] providers, MongoUsageOutboxStore outbox, Authority authority, string secret)
+        ProviderType[] providers, MongoUsageOutboxStore outbox, Authority authority, string secret,
+        ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlFederationCursorHost? cursors = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddSingleton<ShippingProviders>(sources);
         builder.Services.AddSingleton<ShippingPolicy>(policy);
+        if (cursors != null) builder.Services.AddSingleton(cursors);
         ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlReadPolicyEnrollment.AddConfiguredCqlReadAccessPolicy(
             builder.Services, new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>
             { ["CQL_REQUIRE_AUTHORITATIVE_READ_POLICY"]="true" }).Build());
