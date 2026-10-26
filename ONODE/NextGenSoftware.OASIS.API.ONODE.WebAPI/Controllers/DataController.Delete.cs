@@ -38,6 +38,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpDelete("delete-holon")]
         public async Task<OASISHttpResponseMessage<IHolon>> DeleteHolon(DeleteHolonRequest request)
         {
+            var caller = Avatar;
+            var actor = caller?.Id ?? Guid.Empty;
+            var wizard = caller?.AvatarType?.Value == AvatarType.Wizard;
+            var engineMode = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode;
+            var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(engineMode);
+            OASISHttpResponseMessage<IHolon> Respond(OASISResult<IHolon> result)
+            {
+                var status = HolonWriteEndpoint.Status(result);
+                Response.StatusCode = (int)status;
+                return HttpResponseHelper.FormatResponse(result, status, request?.ShowDetailedSettings ?? false);
+            }
+            if (mode.IsError) return Respond(mode);
+            if (engineMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            {
+                var bound = HolonWriteEndpoint.BindDeleteRevision(request, Request.Headers[HolonWriteEndpoint.ExpectedRevisionHeader]);
+                if (bound.IsError) return Respond(bound);
+                var intent = HolonWriteEndpoint.ValidateIntent<IHolon>(request, actor,
+                    Request.Headers[HolonWriteEndpoint.OperationHeader],
+                    HttpContext.RequestServices.GetService(typeof(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes)) != null);
+                if (intent.IsError) return Respond(intent);
+                var configuration = ConfigureOASISEngine<IHolon>(request);
+                if (configuration.IsError || configuration.Response?.Result?.IsError == true)
+                {
+                    if (!string.IsNullOrEmpty(configuration.Response?.Result?.ErrorCode))
+                    {
+                        Response.StatusCode = (int)configuration.Response.StatusCode;
+                        return configuration.Response;
+                    }
+                    return Respond(HolonWriteEndpoint.ConfigurationError<IHolon>(configuration.Response?.Result?.Message));
+                }
+                var context = HolonManager.CreateRequestContext(configuration.RequestRoutingPolicy.ToOverrides(), configuration.RequestProviderType);
+                if (context.IsError) return Respond(RequestContextError<IHolon>(context));
+                var deleted = await HolonWriteEndpoint.DeleteAsync(context.Result.Manager, request, actor, wizard,
+                    Request.Headers[HolonWriteEndpoint.OperationHeader]);
+                return Respond(deleted).BindRoutingPolicy(context.Result.Policy);
+            }
+
             OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
             if (configResult.IsError && configResult.Response != null)

@@ -59,6 +59,8 @@ message DeleteHolonGrpcRequest {
   bool   soft_delete = 2;
   string provider_type = 3;
   bool   set_globally = 4;
+  string operation_id = 5;
+  string expected_revision = 6; // required original token for V2, including all-zero GUID
 }
 
 message SaveDataGrpcRequest {
@@ -79,6 +81,11 @@ message LoadDataGrpcRequest {
 message OASISDataResponse {
   bool   is_error = 1;
   string message = 2;
+  string error_code = 3;
+  bool is_deleted = 4;
+  string committed_delta_json = 5;
+  int32 error_count = 6;
+  map<string, string> result_metadata = 7;
 }
 
 message HolonMessage {

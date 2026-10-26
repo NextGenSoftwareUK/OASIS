@@ -8,7 +8,8 @@ Missing actor/identity/revision rejects before I/O; a foreign owner cannot mutat
 Both soft/hard paths, stale conditions across a default-provider change and full
 failure evidence have controls. Full Core **3,385** / WEB4 **250** tests pass with
 zero skips; portable and shipping builds pass. This addition is SDK-only: existing
-transport deletes still need migration and native acceptance. See
+logical-ID transport adapters now pass 264 WEB4 tests; provider-key binding and
+native deletion acceptance remain open. See
 [the contract](CQL_TRANSPORT_WRITE_AUTHORITY.md).
 
 ## Signed save transports — 26 October 2026
