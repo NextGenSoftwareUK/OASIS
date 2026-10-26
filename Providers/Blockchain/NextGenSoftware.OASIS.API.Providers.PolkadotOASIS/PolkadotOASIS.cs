@@ -35,7 +35,7 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
-    public partial class PolkadotOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
+    public partial class PolkadotOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         private readonly string _privateKey;
         private readonly string _contractAddress;
         private readonly string _bridgePoolAddress;
+        private readonly PolkadotConfiguredRecordBackend _recordStorage;
         private bool _isActivated;
         private bool _isDisposed;
         private int _rpcRequestId;
@@ -73,7 +74,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         /// <summary>Explicit pool destination; never inferred from the chain name or a fabricated address.</summary>
         public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress)
+            : this(rpcEndpoint, chainId, privateKey, bridgePoolAddress, PolkadotStorageConfiguration.FromEnvironment()) { }
+
+        public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress, PolkadotStorageConfiguration storage)
+            : this(new PolkadotConfiguredRecordBackend(storage), rpcEndpoint, chainId, privateKey, bridgePoolAddress) { }
+
+        private PolkadotOASIS(PolkadotConfiguredRecordBackend backend, string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress)
+            : base(backend)
         {
+            _recordStorage = backend;
+            backend.Bind(configuration => CreateRecordBackend(configuration.ContractAccountId, configuration.CodeHash, configuration.OwnerAccountId), EnsureRecordActivation);
             this.ProviderName = "PolkadotOASIS";
             this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS);

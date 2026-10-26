@@ -570,7 +570,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             // Resolve the current identity, then select ONLY the detail root's version.
             // Profile and detail histories have independent version counters.
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            return avatar.IsError ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IAvatarDetail>(avatar) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
@@ -579,7 +579,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             if(version<0)return InvalidVersion<IAvatarDetail>(version);
             var avatar = await LoadAvatarByEmailAsync(avatarEmail);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            return avatar.IsError ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IAvatarDetail>(avatar) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
