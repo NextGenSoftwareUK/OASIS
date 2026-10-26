@@ -114,6 +114,38 @@ public class PolkadotNftMutationTests
         Assert.AreEqual(Token,(string)method.Invoke(null,new object[]{Token})!);
     }
 
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task RealSdkNormalizesSs58AndChecksCollectionAliasesBeforeSigning(bool conflict)
+    {
+        var prior=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Providers","Blockchain","NextGenSoftware.OASIS.API.Providers.PolkadotOASIS","SdkBridge","node_modules")))root=root.Parent;
+        Assert.IsNotNull(root,"Reuse the repository's provisioned SDK dependencies; do not install a second copy in the test output.");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(root.FullName,"Providers","Blockchain","NextGenSoftware.OASIS.API.Providers.PolkadotOASIS","SdkBridge","bridge.mjs"));
+        try {
+            using var provider=new Provider();
+            var type=typeof(PolkadotOASIS).GetNestedType("NftIntent",BindingFlags.NonPublic)!;
+            var constructor=type.GetConstructors().Single();
+            var parameters=constructor.GetParameters();
+            var values=parameters.Select(parameter=>parameter.HasDefaultValue?parameter.DefaultValue:null).ToArray();
+            values[0]="transfer";values[1]="161uVTfpLKVVoX217rxpbSxuJ2C4BVYemHM7bnxXbsiVNqYX";
+            values[2]=Token;values[3]="5CT5jwBEAhveEjgiSCQbkaKcKcUyF3VJ8qNXM9rXsuQyn3Kd";
+            values[4]=Recipient;values[5]=Sender;
+            values[Array.FindIndex(parameters,parameter=>parameter.Name=="ContractAlias")]=conflict?Recipient:Contract;
+            var intent=constructor.Invoke(values);
+            var method=typeof(PolkadotOASIS).GetMethod("NormalizeNftIntentAccountsAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var pending=(Task)method.Invoke(provider,new[]{intent,(object)CancellationToken.None})!;
+            if(conflict)await Assert.ThrowsExceptionAsync<ArgumentException>(async()=>await pending);
+            else {
+                await pending;
+                var normalized=pending.GetType().GetProperty("Result")!.GetValue(pending)!;
+                Assert.AreEqual(Sender,type.GetProperty("Sender")!.GetValue(normalized));
+                Assert.AreEqual(Contract,type.GetProperty("Contract")!.GetValue(normalized));
+                Assert.AreEqual(Contract,type.GetProperty("ContractAlias")!.GetValue(normalized));
+            }
+        } finally { Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",prior); }
+    }
+
     private static void Activate(PolkadotOASIS provider) {
         typeof(PolkadotOASIS).GetField("_isActivated",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,true);
         typeof(PolkadotOASIS).GetProperty("ReportedGenesisHash")!.SetValue(provider,"0x"+new string('a',64));
