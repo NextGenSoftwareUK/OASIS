@@ -27,7 +27,7 @@ try {
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-deployment-pending.json')) { throw 'Pending original exists: token escrow deployment. Reconcile read-only, never replay.' }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-test-token-deployment-pending.json')) { throw 'Pending original exists: PSP22 acceptance asset deployment. Reconcile read-only, never replay.' }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-v1-deployment-pending.json')) { throw 'Pending original exists: retired token escrow deployment. Reconcile read-only, never replay.' }
-    foreach ($name in @('psp22-public-approval-pending.jsonl','psp22-public-pending.jsonl')) {
+    foreach ($name in @('psp22-public-approval-pending.jsonl','psp22-public-pending.jsonl','psp22-public-postfix-approval-pending.jsonl','psp22-public-postfix-pending.jsonl')) {
         if (Test-Path -LiteralPath (Join-Path $repo ('Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/' + $name))) { throw 'Pending original exists: public token custody. Reconcile read-only, never replay.' }
     }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-lifecycle-pending.jsonl')) { throw 'Pending original exists: native PSP22 escrow lifecycle. Reconcile read-only, never replay.' }

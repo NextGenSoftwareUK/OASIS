@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: public PSP22 escrow uninterrupted post-fix acceptance
+
+Public C# token Lock/Unlock now have a fresh successful response cycle on the SAME retained native token, reviewed escrow and runtime: gate42605PASS1/1,45s; separate read-only recovery23233PASS1/1,15s; ordinary373/373PASS0skip21s. Existing first-cohort originals/failure evidence remain unchanged. Exact typed decimal conversion, one durable owner acknowledgement per operation, native finalized effects, common signed-field recovery and final full balance/zero allowance/released deposit are proven. Source-verified Core781/Shared56 identities match. Pending fences804 and mode exclusions105PASS. Runtime stopped/ports absent; no downloads, restores or duplicate environment.
+
+Actual approval+lock+release FRAME fees0.011625452190localtestUNIT; separate storage deposits are not included and no public sponsorship/fiat charge is certified. This closes the earlier uninterrupted public C# response gate after fixing missing submit classification. Hosted wallet/admission/billing, native pallet Assets custody, cross-runtime/full relevant interfaces and full V2 matrices remain OPEN. [Original hashes, fees and limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [reused resources and teardown](ENVIRONMENT_INVENTORY.md). This is not whole-provider100% certification or a dev deployment.
+
 ## 26 October: native escrow v0.2 constructor/deployment accepted
 
 Retained-node simulation and one original instantiateWithCode finalized at0x57c45516efaf35ef1737dfcaea6ea8c67f44dcf4e3687f3eb49bdcfced2b21a7; exact original/call/payer/code/Instantiated event/collection verified. Separate explicit reconciliation reused the same original without signing or replay. Initial native beneficiary-query/owner/supply snapshot confirms new ABI and empty state. SDK37/37 and pending fences175PASS. No new runtime/environment/wallet/download/funding; old0.1instance preserved, owned node stopped/ports absent.
