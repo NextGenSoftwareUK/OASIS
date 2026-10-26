@@ -1,0 +1,33 @@
+{
+  "RootCommit": "83da680c837b3db5e0b0ac28c43bf8d212732f0c",
+  "CoreCommit": "60f783418b80e285fa926ca384c55eef2b0bb3cd",
+  "Dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E306633AF28F5C381C556295DDE518F17A94989C43F279B0823F5890D710EE82",
+      "SourceDocuments": 780
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "FA6AEEC583F64062F5BA9B28C006BA37C50CAA6C953F752E7F9502178DFB6430",
+      "SourceDocuments": 56
+    }
+  ],
+  "ProviderSha256": "8A6D2C69450EC46E1FC7842E11CC240EAAEE11DDB4459FB720C993A852BB520D",
+  "NativeConsumerSha256": "E2E40BDC2DBDD3E46DAE76AA67C652830CC09684863D38EA1CC2C8E95A13B99E",
+  "Scope": "native escrow consumer, captured during gate before ordinary restore",
+  "FinalDependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E306633AF28F5C381C556295DDE518F17A94989C43F279B0823F5890D710EE82",
+      "SourceDocuments": 780
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "FA6AEEC583F64062F5BA9B28C006BA37C50CAA6C953F752E7F9502178DFB6430",
+      "SourceDocuments": 56
+    }
+  ],
+  "OrdinaryConsumerSha256": "95EAB7A6114E2A3ED7662CAA9E9E2A1C5E7F4ECC4C61F9784E379D3006696754",
+  "OrdinaryPassed": 358
+}

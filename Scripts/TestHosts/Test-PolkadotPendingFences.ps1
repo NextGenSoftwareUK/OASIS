@@ -21,6 +21,8 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-custody-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-deployment-pending.json'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-lifecycle-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-public-pending.jsonl'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -37,6 +39,10 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowConstructor=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowDeploy=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowReconcile=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowLifecycle=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowLifecycleRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowPublic=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
@@ -53,6 +59,8 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('NftPublicRecover') -and $path.EndsWith('psp34-public-mutation-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftCustodyRecover') -and $path.EndsWith('psp34-custody-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftEscrowReconcile') -and $path.EndsWith('psp34-escrow-deployment-pending.json')) { continue }
+        if ($arguments.ContainsKey('NftEscrowLifecycleRecover') -and $path.EndsWith('psp34-escrow-lifecycle-pending.jsonl')) { continue }
+        if ($arguments.ContainsKey('NftEscrowPublicRecover') -and $path.EndsWith('psp34-escrow-public-pending.jsonl')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)
