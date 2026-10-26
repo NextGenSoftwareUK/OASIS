@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
-internal sealed class NearSdkService
+internal sealed partial class NearSdkService
 {
     private readonly string _rpcEndpoint;
     private readonly string _networkId;
@@ -335,9 +335,14 @@ internal sealed class NearSdkService
             throw new InvalidOperationException("NEAR accountId and privateKey are required for storage writes.");
     }
 
-    private async Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+    private Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+        =>InvokeCoreAsync(operation,args,cancellationToken,null);
+
+    private async Task<JsonDocument> InvokeCoreAsync(string operation,object args,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        var submitting=operation=="submitNativePreparation";
+        if(submitting&&preparationServer==null)throw new InvalidOperationException("NEAR original submission requires the existing owned preparation server.");
         var request = new Dictionary<string, object>
         {
             ["operation"] = operation,
@@ -350,6 +355,7 @@ internal sealed class NearSdkService
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
                 request[property.Name] = property.GetValue(args);
+        if(operation is "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")request.Remove("privateKey");
 
         var startInfo = new ProcessStartInfo
         {
@@ -364,33 +370,63 @@ internal sealed class NearSdkService
             CreateNoWindow = true
         };
         startInfo.ArgumentList.Add(_bridgePath);
+        startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        preparationServer?.ConfigureChild(startInfo,Path.Combine(AppContext.BaseDirectory,"NearSdkBridge","prepared-submission.mjs"));
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if(preparationServer!=null||operation is "prepareNativeAction" or "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")
+            deadline.CancelAfter(TimeSpan.FromSeconds(45));
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start the official NEAR SDK bridge.");
-        await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request));
-        process.StandardInput.Close();
+        var serving=preparationServer?.ServeAsync(deadline.Token);
+        var servingObserved=false;
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
-        try{await process.WaitForExitAsync(cancellationToken);}
-        catch(OperationCanceledException)
+        try
         {
-            // Only observations/local key operations supply cancellation. Never cancel/replay a submitted mutation.
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(),deadline.Token);
+            process.StandardInput.Close();
+            await process.WaitForExitAsync(deadline.Token);
+            var stdout=await stdoutTask;var stderr=await stderrTask;
+            if(string.IsNullOrWhiteSpace(stdout))throw new InvalidOperationException($"NEAR SDK bridge returned no response (exit {process.ExitCode}): {stderr}");
+            using var envelope=JsonDocument.Parse(stdout);
+            if(process.ExitCode!=0||!envelope.RootElement.TryGetProperty("ok",out var ok)||!ok.GetBoolean())
+            {
+                if(serving!=null){
+                    deadline.Cancel();
+                    try{await serving;}
+                    catch(OperationCanceledException cancelled) when(cancelled.CancellationToken==deadline.Token&&!cancellationToken.IsCancellationRequested){}
+                    finally{servingObserved=true;}
+                }
+                var error=envelope.RootElement.TryGetProperty("error",out var value)?value.GetString():stderr;
+                if(operation=="putRecordChecked"&&envelope.RootElement.TryGetProperty("checkedWritePhase",out var phase)&&phase.ValueKind==JsonValueKind.String&&phase.GetString()=="before-submission")
+                    throw new NearRecordAdmissionException($"NEAR checked-write admission failed: {error}");
+                throw new InvalidOperationException($"NEAR SDK operation failed: {error}");
+            }
+            var result=envelope.RootElement.GetProperty("result");
+            if(serving!=null){
+                try{await serving;}finally{servingObserved=true;}
+                if(preparationServer.PreparedTransactionId==null||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
+                    ||!result.GetProperty("persisted").GetBoolean()||!result.GetProperty("submitted").GetBoolean())
+                    throw new InvalidDataException("NEAR submission reply differs from the durably acknowledged original.");
+            }
+            return JsonDocument.Parse(result.GetRawText());
+        }
+        catch(Exception failure) when(submitting&&preparationServer.PreparedTransactionId!=null&&failure is not Core.Interfaces.INativeMutationReconciliationRequired)
+        {
+            throw new NearMutationUncertainException(preparationServer.PreparedTransactionId,failure);
+        }
+        finally
+        {
+            deadline.Cancel();
             if(!process.HasExited)process.Kill(entireProcessTree:true);
             await process.WaitForExitAsync();
-            await Task.WhenAll(stdoutTask,stderrTask);
-            throw;
+            try{await Task.WhenAll(stdoutTask,stderrTask);}catch(Exception error) when(error is IOException or DecoderFallbackException){}
+            if(serving!=null){
+                try{await serving;}
+                catch(OperationCanceledException) when(deadline.IsCancellationRequested){}
+                catch(Exception) when(servingObserved){}
+            }
         }
-        var stdout = await stdoutTask;
-        var stderr = await stderrTask;
-        if (string.IsNullOrWhiteSpace(stdout))
-            throw new InvalidOperationException($"NEAR SDK bridge returned no response (exit {process.ExitCode}): {stderr}");
-        using var envelope = JsonDocument.Parse(stdout);
-        if (process.ExitCode != 0 || !envelope.RootElement.TryGetProperty("ok", out var ok) || !ok.GetBoolean())
-        {
-            var error = envelope.RootElement.TryGetProperty("error", out var value) ? value.GetString() : stderr;
-            if(operation=="putRecordChecked"&&envelope.RootElement.TryGetProperty("checkedWritePhase",out var phase)&&phase.ValueKind==JsonValueKind.String&&phase.GetString()=="before-submission")
-                throw new NearRecordAdmissionException($"NEAR checked-write admission failed: {error}");
-            throw new InvalidOperationException($"NEAR SDK operation failed: {error}");
-        }
-        return JsonDocument.Parse(envelope.RootElement.GetProperty("result").GetRawText());
     }
 }
 
