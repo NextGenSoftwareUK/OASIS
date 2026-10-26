@@ -1584,3 +1584,10 @@ configuration and gives invalid V2 engine options an actual400/error envelope.
 Known Legacy mode is unchanged. The controlled HTTP matrix now has23cases;
 see the [REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for readiness,
 configuration errors and remaining native/billing certification.
+
+
+Ordinary read/single-save/batch-save attempts now support explicit server-owned
+service tariffs in the existing prepared ledger. Query tariffs do not price
+writes; configured save routes require bounded complete profiles. See
+[storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
+price-versus-native-invoice distinction and remaining joined settlement proof.
