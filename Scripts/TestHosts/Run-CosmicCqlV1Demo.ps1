@@ -91,7 +91,7 @@ try {
         if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
-        if ($report.shippingRestRequests -ne 36 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 33) {
+        if ($report.shippingRestRequests -ne 63 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
             throw 'Shipping REST/native storage settlement proof is incomplete.'
         }
         if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {

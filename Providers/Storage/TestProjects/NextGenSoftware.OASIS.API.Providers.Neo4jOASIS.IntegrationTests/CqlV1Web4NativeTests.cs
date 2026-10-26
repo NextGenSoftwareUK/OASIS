@@ -1042,7 +1042,7 @@ public sealed partial class CqlV1Web4NativeTests
             // after the read demo, so these private records cannot change it.
             var shippingRestRequests = await VerifyShippingRestAsync(providers, outbox, authority,
                 secret, restActor, restIds, ids[0], tag, Journal, sharingOperations);
-            Assert.AreEqual(36, shippingRestRequests);
+            Assert.AreEqual(63, shippingRestRequests);
             var shippingTransportRequests = await VerifyShippingTransportsAsync(providers, outbox, authority,
                 secret, transportActor, transportIds, ids[0], tag, Journal, sharingOperations);
             Assert.AreEqual(48, shippingTransportRequests);
