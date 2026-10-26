@@ -1,3 +1,7 @@
+## Hosted delete authorization and pinned-authority failures - 26 October 2026
+
+Fourteen new controls pass: ten for captured authenticated actor/Wizard role, logical/key identity and unchanged original conditional intent; four ensuring an unavailable authority cannot borrow ownership from an available failover replica. Full Core3416 PASS/0skip; WEB4281 PASS/1unrelated Stripe sandbox credentialskip/0fail. These are controlled-provider host/SDK tests, separate from the preceding signed native delete cohort. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
 ## Signed native REST logical/key deletion - 26 October 2026
 
 Twenty-seven new signed REST deletion cases pass on MongoDB, SQLite and Neo4j, including zero-I/O intent validation, key-to-ID binding, stored ownership, stale conditions, persisted soft deletion, physical key hard deletion/delta and preservation of unselected children. The complete native cohort has63 REST+48 GraphQL/gRPC requests,453 settled operations and496 physical attempts. Source/binary identity and owned teardown checks pass. [Contract and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
