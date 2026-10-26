@@ -1,18 +1,19 @@
 # Transport write authority implementation gates
 
-Source audit: 26 October 2026. These gates remain open; the verified REST routing
-checkpoint does not enroll GraphQL or gRPC writes.
+Updated 26 October 2026. The focused signed GraphQL/gRPC save subgate now passes
+on MongoDB, SQLite and Neo4j, through configured admission and durable settlement.
+Broader transport/startup/read/delete gates remain open.
 
 ## Current authoritative findings
 
 | Surface | Current source | Required correction |
 |---|---|---|
-| gRPC `DataGrpcService.SaveHolon` | Activates a requested provider, acquires the default manager, calls actor-less ordinary save | Capture authenticated actor before awaits; validate stable conditional intent before activation; use request-owned manager and shared owned-save boundary |
-| gRPC `SaveHolonGrpcRequest` | No operation identity or revision map | Add new protobuf field numbers for operation ID and expected provider revisions; never renumber existing fields |
-| gRPC `HolonMessage` | Flat root fields only, despite request child flags | Define recursive children and stored child-role observation contract before claiming graph parity; validate IDs/types rather than silently converting malformed inputs into creates |
-| gRPC `HolonResponse` | Error boolean/message only | Preserve machine-readable error code, operation result and committed delta; define conflict/unknown-outcome mapping |
-| GraphQL `Mutation.SaveHolon` | Creates a new root from three strings; uses ordinary actor-less save | Bind request actor explicitly, accept stable operation intent and conditional create semantics; this is not currently a submitted graph-update method |
-| gRPC/GraphQL sharing | Both delegate grant mutation to `HolonAccess` | Preserve pinned authority, authenticated actor snapshot and full provider failure evidence; manager acquisition must not activate before admitted execution |
+| gRPC `DataGrpcService.SaveHolon` | V2 uses authenticated request identity and the shared conditional owned-save boundary | Broader alias/startup and unknown-outcome acceptance |
+| gRPC `SaveHolonGrpcRequest` | Added operation ID, revision map and recursive JSON envelope without renumbering old fields | Extend remaining read/delete surfaces consistently |
+| gRPC `HolonMessage` | Flat Legacy representation; V2 uses the shared recursive `holon_json` contract | Read routing/access migration; keep wire versions explicit |
+| gRPC `HolonResponse` | Error code/count, acknowledged state, recursive record, delta and metadata | Broader read/delete/unknown-outcome enrollment |
+| GraphQL `Mutation.SaveHolon` | Authenticated conditional create with operation/provider and optional create-only ID | Graph-update/delta envelope and full deployed schema acceptance remain open |
+| gRPC/GraphQL sharing | Shared helper pins authority and preserves provider error evidence | Manager acquisition and transport-wide admitted lifecycle still need verification |
 
 Sources are `GrpcServices/DataGrpcService.cs`, `Protos/data.proto`,
 `GraphQL/Mutation.cs` and `Helpers/HolonAccess.cs` under the shipping WEB4 project.
@@ -280,3 +281,24 @@ acknowledged graph state and exact owned footprint verified before cleanup.
 No request was replayed. Required proof is retained in
 `Verification/signed-transport-committed-*`. Fresh full signed native acceptance
 remains pending after this correction; this is not a completion claim.
+
+## Signed save gate — passed
+
+Native run 43815 passes on MongoDB, SQLite and Neo4j: 24 signed GraphQL/gRPC
+requests through real JWT validation, configured storage admission and the shared
+reservation/outbox/settlement pipeline. It verifies creates, create-only conflicts,
+selected-child updates, stale revisions, forged stored ownership, missing intent,
+malformed payloads, deltas and zero-execution evidence. Combined with the existing
+CQL/REST suite: 402 settled operations and 436 physical attempts/receipts.
+
+Sources stay unchanged; seven producer/native-consumer pairs match. Refreshed
+Core3,372 /WEB4250 tests pass with zero skips, and both unit hosts' Core copies
+plus the WEB4 unit host's shipping assembly match that exact native cohort.
+Required safe result/binary/unit summaries, compressed source identities and
+original TRXs are in `Verification/signed-transports-final*`. Exact owned fixtures
+and services are removed. The earlier usage387 gate and portable/shipping builds
+also passed; historical failed originals were reconciled without replay.
+
+This closes the focused signed save-transport gate. Full startup/schema/alias,
+other methods, authenticated conditional delete, authoritative recipient/tenant
+queries, federation and the broader ORM roadmap remain open.
