@@ -20,7 +20,7 @@ public sealed class SolanaHistoryTransferTests
     public async Task HistoryReadsExactSdkTransferDataAndRejectsUnverifiableDetails(string mode)
     {
         var rpc=DispatchProxy.Create<IRpcClient,TransferRpc>();var proxy=(TransferRpc)(object)rpc;proxy.Mode=mode;
-        var operatorAccount=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",operatorAccount.PrivateKey.Key,operatorAccount.PublicKey.Key);
+        var operatorAccount=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",operatorAccount.PrivateKey.Key,operatorAccount.PublicKey.Key,null,SolanaReadFixture.WithCancellation(rpc));
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=proxy.Sender.PublicKey.Key});
         if(mode is "valid" or "failed" or "multiple" or "inner" or "seeded")
