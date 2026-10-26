@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR exact token custody: source/SDK gate only — 26 October
+
+35contract controlsPASS; retained official SDK2 typecheck/validation/actual Wasm buildPASS. Candidate534212bytes/hash3390da66..., alloldexports retained/4newcustody exports; active638719code untouched. Implements exact deposit/owner/replay/supply semantics and reserved custody records; does not certify C# LockToken routing or live custody. Requires actual adapter/capability wiring, durable local code-upgrade/data preservation and native acceptance next. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); no Dev promotion.
+
 ## NEAR public NFT/wallet native lifecycle — 26 October
 
 393unitPASS; actual public mint/lock/unlock/NFT bridge/self-transfer/burn and native send/deposit/withdraw/history passed1native case38s with18physical originals. Each persisted before send, all18read-only recovered, NFT burned/4owned ciphertext records verified then removed. Frozen mint intent now covers activation awaits. Evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); retained environment reused and node stopped. Same-account/custom-contract proof only: independent owners, native fungible tokens/avatar schedules, hosted fee/auth and real-loss/full V2 remain open.
