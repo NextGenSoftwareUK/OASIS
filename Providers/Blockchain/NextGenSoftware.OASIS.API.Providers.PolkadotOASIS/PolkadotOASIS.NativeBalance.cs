@@ -24,7 +24,7 @@ public partial class PolkadotOASIS
     {
         var input = JsonSerializer.Serialize(request);
         using var requestDocument = JsonDocument.Parse(input);
-        var submitsOriginal = requestDocument.RootElement.GetProperty("operation").GetString() is "submitNativePreparation" or "submitAssetPreparation";
+        var submitsOriginal = requestDocument.RootElement.GetProperty("operation").GetString() is "submitNativePreparation" or "submitAssetPreparation" or "submitRecordPreparation";
         if (submitsOriginal && preparationServer == null)
             throw new InvalidOperationException("Original submission requires an owned durable preparation server.");
         var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")
@@ -69,6 +69,8 @@ public partial class PolkadotOASIS
                     catch(OperationCanceledException cancelled) when(cancelled.CancellationToken==deadline.Token&&!cancellationToken.IsCancellationRequested) { }
                     finally {servingObserved=true;}
                 }
+                if (envelope.RootElement.TryGetProperty("contractError", out var contractError) && contractError.GetString() == "Conflict")
+                    throw new NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException("Polkadot record changed after its native observation.");
                 throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
             }
             var result=envelope.RootElement.GetProperty("result");
