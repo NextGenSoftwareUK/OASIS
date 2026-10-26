@@ -30,7 +30,7 @@ public class NearTokenEscrowTests
             Directory.CreateDirectory(root);if(Directory.EnumerateFileSystemEntries(root).Any())throw new InvalidOperationException("Preserve existing owned fixture before reuse");
             prior=names.Select(Environment.GetEnvironmentVariable).ToArray();Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures","token-escrow.mjs"));Environment.SetEnvironmentVariable(names[1],root);
             object? deposit=releasing||mode=="duplicate"?new{protocol=1,lock_id=Deposit.ToString("N"),symbol="OWN",owner_id=mode=="foreign"?"attacker.near":"holder.near",amount="250000000",released=mode=="released"}:null;
-            using var file=new FileStream(Path.Combine(root,"state.json"),FileMode.CreateNew);file.Write(JsonSerializer.SerializeToUtf8Bytes(new{ownerToken,mode,deposit,balance=releasing?"750000000":"1000000000",frozen=releasing,calls=0}));
+            using var file=new FileStream(Path.Combine(root,"state.json"),FileMode.CreateNew);file.Write(JsonSerializer.SerializeToUtf8Bytes(new{ownerToken,mode,deposit,balance=releasing?"750000000":"1000000000",frozen=releasing,calls=0,nftLockId=releasing?new string('3',32):null,nftDeposit=releasing?new{protocol=1,lock_id=new string('3',32),token_id="owned-nft",owner_id="holder.near",released=false}:null}));
         }
         public int NativeCalls{get{using var state=JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"state.json")));return state.RootElement.GetProperty("calls").GetInt32();}}
         public string[] Methods=>File.Exists(Path.Combine(root,"calls.ndjson"))?File.ReadAllLines(Path.Combine(root,"calls.ndjson")).Select(line=>{using var row=JsonDocument.Parse(line);return row.RootElement.GetProperty("method").GetString()??"";}).ToArray():Array.Empty<string>();
@@ -93,6 +93,15 @@ public class NearTokenEscrowTests
         try{await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));request.NFTTokenAddress="changed";request.LockedByAvatarId=Guid.NewGuid();provider.Release.SetResult();
             var result=await pending.WaitAsync(TimeSpan.FromSeconds(10));Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(Actor,provider.SeenActor);Assert.AreEqual(1,fixture.NativeCalls);
         }finally{provider.Release.TrySetResult();}
+    }
+
+    [DataTestMethod][DataRow(false,"nft-protocol")][DataRow(true,"nft-protocol")][DataRow(false,"post-nft-id")][DataRow(true,"post-nft-id")]
+    public async Task NftDepositProtocolAndReadbackAreRequired(bool unlocking,string mode){
+        using var fixture=new Fixture(mode,unlocking);var provider=new Provider();
+        var result=unlocking?await provider.UnlockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{NFTTokenAddress="owned-nft",UnlockedByAvatarId=Actor})
+            :await provider.LockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.LockWeb3NFTRequest{NFTTokenAddress="owned-nft",LockedByAvatarId=Actor});
+        Assert.IsTrue(result.IsError);Assert.AreEqual(mode=="nft-protocol"?0:1,fixture.NativeCalls);
+        if(mode=="post-nft-id"){Assert.IsInstanceOfType(result.Exception,typeof(NativeTransactionFollowupException));Assert.AreEqual("controlled-token-escrow-original",((NativeTransactionFollowupException)result.Exception).OriginalTransactionId);}
     }
 
 }

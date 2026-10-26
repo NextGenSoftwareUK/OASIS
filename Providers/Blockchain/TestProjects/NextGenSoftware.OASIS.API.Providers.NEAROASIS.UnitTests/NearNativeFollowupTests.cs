@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
@@ -8,9 +9,18 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class NearNativeFollowupTests
 {
+    private sealed class NftState:IDisposable
+    {
+        private readonly string root=Path.Combine(AppContext.BaseDirectory,"TestResults","NearNftFollowupCurrent"),prior=Environment.GetEnvironmentVariable("OASIS_NEAR_NFT_FOLLOWUP_ROOT");
+        private readonly Guid owner=Guid.NewGuid();
+        public NftState(bool locked){Directory.CreateDirectory(root);if(Directory.EnumerateFileSystemEntries(root).Any())throw new InvalidOperationException("Preserve prior NFT fixture");using var file=new FileStream(Path.Combine(root,"state.json"),FileMode.CreateNew);file.Write(JsonSerializer.SerializeToUtf8Bytes(new{owner,locked,id=locked?new string('1',32):null,calls=0}));Environment.SetEnvironmentVariable("OASIS_NEAR_NFT_FOLLOWUP_ROOT",root);}
+        public void Dispose(){try{var files=Directory.GetFileSystemEntries(root);if(files.Length!=1||Path.GetFileName(files[0])!="state.json")throw new InvalidOperationException("Unexpected NFT fixture preserved");using var doc=JsonDocument.Parse(File.ReadAllText(files[0]));Assert.AreEqual(owner.ToString("D"),doc.RootElement.GetProperty("owner").GetString());File.Delete(files[0]);}finally{Environment.SetEnvironmentVariable("OASIS_NEAR_NFT_FOLLOWUP_ROOT",prior);}}
+    }
+
     [DataTestMethod][DataRow("send")][DataRow("deposit")][DataRow("withdraw")][DataRow("lock")][DataRow("lock-mismatch")][DataRow("withdraw-nft")][DataRow("deposit-nft")][DataRow("deposit-transfer-failed")][DataRow("lock-success")]
     public async Task EveryAcknowledgedNativeFollowupFailureKeepsOriginalAndReconciliationMarker(string operation)
     {
+        using var state=new NftState(operation.StartsWith("deposit"));
         var names=new[]{"OASIS_NEAR_SDK_BRIDGE","OASIS_NEAR_TOKEN_TEST_ACCOUNT","OASIS_NEAR_NFT_TEST_MODE","OASIS_NEAR_STORAGE_ENCRYPTION_KEY"};
         var prior=names.Select(Environment.GetEnvironmentVariable).ToArray();
         try{
@@ -34,9 +44,10 @@ public class NearNativeFollowupTests
             if(operation=="deposit-transfer-failed"){Assert.IsInstanceOfType(error.InnerException,typeof(NativeTransactionFollowupException));Assert.AreEqual("controlled-original-nft-transaction",((NativeTransactionFollowupException)error.InnerException).OriginalTransactionId);}
         }finally{for(var i=0;i<names.Length;i++)Environment.SetEnvironmentVariable(names[i],prior[i]);}
     }
-    [DataTestMethod][DataRow("valid")][DataRow("hash")][DataRow("signer")][DataRow("contract")][DataRow("token")][DataRow("method")][DataRow("unlock")][DataRow("extra-arg")][DataRow("deposit")][DataRow("multi")][DataRow("pending")][DataRow("failed")]
+    [DataTestMethod][DataRow("valid")][DataRow("hash")][DataRow("signer")][DataRow("contract")][DataRow("token")][DataRow("method")][DataRow("unlock")][DataRow("extra-arg")][DataRow("deposit")][DataRow("multi")][DataRow("pending")][DataRow("failed")][DataRow("stale")][DataRow("id-format")][DataRow("missing-id")][DataRow("protocol")]
     public async Task NftDepositRequiresItsExactSuccessfulSourceLockBeforeMutation(string mode)
     {
+        using var state=new NftState(true);
         var names=new[]{"OASIS_NEAR_SDK_BRIDGE","OASIS_NEAR_NFT_SOURCE_MODE","OASIS_NEAR_NFT_TEST_MODE"};var prior=names.Select(Environment.GetEnvironmentVariable).ToArray();
         try{
             Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-followup.mjs"));Environment.SetEnvironmentVariable(names[1],mode);Environment.SetEnvironmentVariable(names[2],"missing");
