@@ -1577,3 +1577,10 @@ activation follows the physical-attempt owner. Error-only bulk responses retain
 codes/status without payload mapping. See the
 [conditional REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for proof
 scope and remaining joined startup/native-store/billing gates.
+
+
+Save routing now rejects absent/blank/unsupported engine modes before
+configuration and gives invalid V2 engine options an actual400/error envelope.
+Known Legacy mode is unchanged. The controlled HTTP matrix now has23cases;
+see the [REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for readiness,
+configuration errors and remaining native/billing certification.
