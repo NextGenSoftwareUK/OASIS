@@ -124,3 +124,26 @@ No partial source can be interpreted as an empty source.
 See the [completion roadmap](CQL_COMPLETION_ROADMAP.md),
 [execution ownership](CQL_EXECUTION_PIPELINE.md) and
 [same-provider join contract](CQL_JOIN_CONTRACT.md).
+
+## 26 October: implemented planning foundation
+
+`CosmicFederationOptions.Create` captures explicit identity/consistency choices,
+independent global Skip/Take, and bounded input rows, per-provider rows, bytes,
+work, provider attempts and duration. `CosmicFederationPlanner.Plan` resolves and
+snapshots the eligible scope once, pins each target into an ordinary native query
+plan, and rejects the entire plan when any target is unavailable, incapable or
+outside the authoritative read policy. Source windows remain per-provider;
+global windows remain separate. Explicit provider priority must name the exact
+resolved provider set and cannot claim freshness.
+
+This is admission only: no federation executor or merged result is exposed yet.
+RequireAgreement, repeatable snapshots and graph federation explicitly reject
+until their execution/proof contracts exist. Ordinary multi-provider window
+rejection remains intact outside the explicit federation planner.
+
+Verification: dual-target Core build succeeded and all 3,556 Core unit tests
+passed, including ten new federation planning cases. Evidence is retained in
+`Verification/federation-planning-core.trx.gz` and
+`Verification/federation-planning-identities.json`. Native execution, global
+ordering/reconciliation, cumulative budget enforcement, cursor security,
+distributed joins and SDK/HTTP demonstrations remain required acceptance work.
