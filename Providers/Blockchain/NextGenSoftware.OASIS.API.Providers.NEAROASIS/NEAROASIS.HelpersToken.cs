@@ -23,13 +23,24 @@ public partial class NEAROASIS
         LockNFTAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request) =>
-        SetNftLockAsync(request?.NFTTokenAddress, true);
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, true,request?.LockedByAvatarId??Guid.Empty);
 
     public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request) =>
         UnlockNFTAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request) =>
-        SetNftLockAsync(request?.NFTTokenAddress, false);
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, false,request?.UnlockedByAvatarId??Guid.Empty);
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetAvatarNftLockAsync(string tokenId,bool locked,Guid actor)
+    {
+        if(actor==Guid.Empty)return await SetNftLockAsync(tokenId,locked);
+        var result=new OASISResult<IWeb3NFTTransactionResponse>();
+        try {
+            if(string.IsNullOrWhiteSpace(tokenId))throw new ArgumentException("NFT token id is required.");
+            var signer=await ResolveLockSignerAsync(actor,null,null);
+            return await SetNftLockAsync(tokenId,locked,signer.Account,signer.Key);
+        }catch(Exception failure){OASISErrorHandling.HandleError(ref result,failure.Message,failure);return result;}
+    }
 
     private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetNftLockAsync(string tokenId, bool locked,
         string signerAccountId = null, string signerPrivateKey = null)

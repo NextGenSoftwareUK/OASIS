@@ -24,31 +24,6 @@ public partial class NEAROASIS
     public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         =>SetTokenLockAsync(false,request?.TokenAddress,request?.LockId??Guid.Empty,0,request?.EscrowContractAddress,request?.UnlockedByAvatarId??Guid.Empty,null,null);
 
-    protected virtual Task<OASISResult<IProviderWallet>> LoadTokenSigningWalletAsync(Guid actor)
-        =>WalletManager.GetAvatarDefaultWalletByIdAsync(actor,Core.Enums.ProviderType.NEAROASIS,showPrivateKeys:true);
-
-    private async Task<(string Account,string Key)> ResolveTokenLockSignerAsync(Guid actor,string requestedFrom,string suppliedKey)
-    {
-        if(!string.IsNullOrWhiteSpace(suppliedKey)){
-            if(string.IsNullOrWhiteSpace(requestedFrom))throw new ArgumentException("An explicit private key requires its actual NEAR account address.");
-            var known=await ResolveNearExplicitKeyAsync(suppliedKey,null);
-            return await ResolveNearSignerAsync(requestedFrom,suppliedKey,null,known);
-        }
-        if(actor!=Guid.Empty){
-            var loaded=await LoadTokenSigningWalletAsync(actor);
-            if(loaded==null||loaded.IsError||loaded.IsWarning||loaded.Result==null||loaded.Result.AvatarId!=actor
-                ||loaded.Result.ProviderType!=Core.Enums.ProviderType.NEAROASIS||string.IsNullOrWhiteSpace(loaded.Result.PrivateKey)
-                ||string.IsNullOrWhiteSpace(loaded.Result.WalletAddress))
-                throw new InvalidOperationException("The exact requesting avatar's NEAR signing wallet is required.",loaded?.Exception);
-            if(!string.IsNullOrWhiteSpace(requestedFrom)&&requestedFrom!=loaded.Result.WalletAddress)
-                throw new ArgumentException("Requested source account differs from the avatar's signing wallet.");
-            return await ResolveNearSignerAsync(loaded.Result.WalletAddress,loaded.Result.PrivateKey,loaded.Result.PublicKey);
-        }
-        if(!string.IsNullOrWhiteSpace(requestedFrom)&&requestedFrom!=_accountId)
-            throw new ArgumentException("An independent NEAR account requires its own signing wallet/key.");
-        return await ResolveNearSignerAsync(_accountId,null,null);
-    }
-
     private static BigInteger ExactTokenUnits(string value,bool positive=false)
     {
         if(string.IsNullOrEmpty(value)||value.Length>78||!BigInteger.TryParse(value,NumberStyles.None,CultureInfo.InvariantCulture,out var amount)
@@ -81,7 +56,7 @@ public partial class NEAROASIS
                     throw new ArgumentException("Explicit custody requires an original deposit ID, positive lock amount and matching configured escrow contract.");
                 if(locking)units=ToTokenUnits(amount);
             }
-            var signer=await ResolveTokenLockSignerAsync(actor,from,key);
+            var signer=await ResolveLockSignerAsync(actor,from,key);
             if(!await EnsureSdkActiveAsync(result))return result;
             if(!custody){
                 var token=await _sdk.ViewAsync("token_get",new{symbol});
