@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR NFT avatar wallet routing — 26 October
+
+Public NFT lock/unlock now honor existing actor IDs through the shared NEAR signing-wallet resolver. Seven new controls and full433unitPASS cover exact avatar signing, foreign/warning wallet rejection and caller mutation during activation. Source/PDB/dependencies captured; same environment/no native mutation. Source-lock receipt binding for NFT bridge deposits remains open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR public token custody native gate — 26 October
 
 426unitPASS and1nativePASS20s. Public exact lock/release, burn/supply conservation, release-while-frozen, native frozen-lock rejection and pre-sign replay rejection verified. Eight durably retained originals read back keylessly (7success,1expected failure), final supply/balance0, released tombstone preserved. Same retained node stopped; compact evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). Independent holders, hosted fee/auth and remaining full provider/V2 gates remain open; no Dev promotion.
