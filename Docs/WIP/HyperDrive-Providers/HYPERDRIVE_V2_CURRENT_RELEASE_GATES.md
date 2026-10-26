@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## 2026-10-25 AWS/Dynamo native follow-up complete
+
+Dynamo181/181realnativeSDKPASS0skip59s, including4newDynamo/AWS-alias historical embedded privacy cases. Separate fullAWS138/138PASS0skip94s, baseline1PASS/conditionalcleanup1PASS3s;81ownedrows independentlyabsent, pending0/portsabsent/runtime stopped. Core761/B50488A4 and respectiveShared082E67C0(Dynamo)/8C1C7A80(AWS) source/copies pass, not one identical binarycohort. Earliercontrols0F75D15A retain ownscope. Exact reports/resources in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md/inventory. No newruntime/reset/hostedrequest/Developmentdeployment; hostedAWS/S3 security/cost/fullinterface/allprovider/globalV2 gates remainOPEN.
+
 ## 2026-10-25 all-version SDK companions complete
 
 Matched S3protocol160/OCI133/Dynamo665/Google482 controlled suites PASS0skip; all four Core761/B50488A4 +Shared56/0F75D15A source/copy checks pass. Oracle571native/466unit +Shared1213unit remain matched green. Exact report hashes in respective provider audits/inventory. This supersedes the earlier companion-pending note immediately below, not native/hosted gates: AWS138/Dynamo177/Firestore95+79 native suites retain earlier cohorts pending fresh runs. All-version visibility batch can be checkpointed on the task branch; no Development integration/hosted/global V2 completion claimed. Required dependencies restored once into existing shared cache, total928142738bytes; no new environment/runtime/service introduced.
