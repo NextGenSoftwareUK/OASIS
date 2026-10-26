@@ -1,281 +1,318 @@
 #![cfg_attr(not(feature = "std"), no_std, no_main)]
 
+/// Opaque encrypted record cells. Canonical OASIS serialization, encryption,
+/// query indexes and history belong to the shared provider layer, not this ABI.
 #[ink::contract]
 mod oasis {
-    use ink::prelude::string::String;
-    use ink::prelude::vec::Vec;
-    use ink::storage::Mapping;
+    use ink::{prelude::vec::Vec, storage::Mapping};
 
-    /// Avatar structure
-    #[derive(Debug, Clone, scale::Encode, scale::Decode)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-    pub struct Avatar {
-        pub id: String,
-        pub username: String,
-        pub email: String,
-        pub first_name: String,
-        pub last_name: String,
-        pub created_date: u64,
-        pub modified_date: u64,
+    #[derive(Debug, Clone, PartialEq, Eq, scale::Encode, scale::Decode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout)
+    )]
+    pub struct Cell {
+        pub value: Vec<u8>,
+        pub revision: u64,
     }
 
-    /// AvatarDetail structure
-    #[derive(Debug, Clone, scale::Encode, scale::Decode)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-    pub struct AvatarDetail {
-        pub id: String,
-        pub username: String,
-        pub email: String,
-        pub karma_akashic_records: String,
-        pub xp: u64,
-        pub level: u64,
-        pub created_date: u64,
-        pub modified_date: u64,
+    pub enum Expected {
+        Any,
+        Missing,
+        Revision(u64),
     }
 
-    /// Holon structure
-    #[derive(Debug, Clone, scale::Encode, scale::Decode)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-    pub struct Holon {
-        pub id: String,
-        pub name: String,
-        pub description: String,
-        pub parent_id: String,
-        pub holon_type: u8,
-        pub created_date: u64,
-        pub modified_date: u64,
+    pub enum Error {
+        Unauthorized,
+        InvalidKey,
+        ValueTooLarge,
+        Conflict,
+        Exhausted,
+        InvalidPage,
+    }
+
+    #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub struct Page {
+        pub generation: u64,
+        pub keys: Vec<Vec<u8>>,
+        pub next: Option<u64>,
     }
 
     #[ink(storage)]
     pub struct Oasis {
-        avatars: Mapping<String, Avatar>,
-        avatars_by_username: Mapping<String, String>, // username -> avatar_id
-        avatars_by_email: Mapping<String, String>, // email -> avatar_id
-        avatar_details: Mapping<String, AvatarDetail>,
-        avatar_details_by_username: Mapping<String, String>, // username -> avatar_detail_id
-        holons: Mapping<String, Holon>,
-        holons_by_parent: Mapping<String, Vec<String>>, // parent_id -> vec of holon_ids
         owner: AccountId,
+        cells: Mapping<Vec<u8>, Cell>,
+        slots: Mapping<u64, Vec<u8>>,
+        positions: Mapping<Vec<u8>, u64>,
+        count: u64,
+        generation: u64,
     }
 
     #[ink(event)]
-    pub struct AvatarCreated {
+    pub struct Mutation {
         #[ink(topic)]
-        avatar_id: String,
-        username: String,
-    }
-
-    #[ink(event)]
-    pub struct AvatarDetailCreated {
-        #[ink(topic)]
-        avatar_id: String,
-        username: String,
-    }
-
-    #[ink(event)]
-    pub struct HolonCreated {
-        #[ink(topic)]
-        holon_id: String,
-        name: String,
+        operation: [u8; 32],
+        key: Vec<u8>,
+        revision: u64,
+        deleted: bool,
     }
 
     impl Oasis {
-        #[ink(constructor)]
+        #[ink(constructor, selector = 0x00000001)]
         pub fn new() -> Self {
             Self {
-                avatars: Mapping::default(),
-                avatars_by_username: Mapping::default(),
-                avatars_by_email: Mapping::default(),
-                avatar_details: Mapping::default(),
-                avatar_details_by_username: Mapping::default(),
-                holons: Mapping::default(),
-                holons_by_parent: Mapping::default(),
                 owner: Self::env().caller(),
+                cells: Mapping::default(),
+                slots: Mapping::default(),
+                positions: Mapping::default(),
+                count: 0,
+                generation: 0,
             }
         }
 
-        /// Entry function: Oasis_getAvatarByEmail (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_avatar_by_email(&self, email: String) -> Option<Avatar> {
-            let avatar_id = self.avatars_by_email.get(&email)?;
-            self.avatars.get(&avatar_id)
+        fn validate(key: &[u8]) -> Result<(), Error> {
+            if key.is_empty() || key.len() > 1024 {
+                Err(Error::InvalidKey)
+            } else {
+                Ok(())
+            }
         }
 
-        /// Entry function: Oasis_getAvatarByUsername (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_avatar_by_username(&self, username: String) -> Option<Avatar> {
-            let avatar_id = self.avatars_by_username.get(&username)?;
-            self.avatars.get(&avatar_id)
-        }
-
-        /// Entry function: Oasis_getAllAvatars (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_all_avatars(&self) -> Vec<Avatar> {
-            // In production, would maintain a list of all avatar IDs
-            Vec::new()
-        }
-
-        /// Entry function: Oasis_getAvatarDetail (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_avatar_detail(&self, avatar_id: String) -> Option<AvatarDetail> {
-            self.avatar_details.get(&avatar_id)
-        }
-
-        /// Entry function: Oasis_getAvatarDetailByUsername (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_avatar_detail_by_username(&self, username: String) -> Option<AvatarDetail> {
-            let avatar_detail_id = self.avatar_details_by_username.get(&username)?;
-            self.avatar_details.get(&avatar_detail_id)
-        }
-
-        /// Entry function: Oasis_getAvatarDetailByEmail (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_avatar_detail_by_email(&self, email: String) -> Option<AvatarDetail> {
-            // Would need email -> avatar_detail_id mapping
-            None
-        }
-
-        /// Entry function: Oasis_getAllAvatarDetails (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_all_avatar_details(&self) -> Vec<AvatarDetail> {
-            // In production, would maintain a list of all avatar detail IDs
-            Vec::new()
-        }
-
-        /// Entry function: Oasis_getHolon (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_holon(&self, holon_id: String) -> Option<Holon> {
-            self.holons.get(&holon_id)
-        }
-
-        /// Entry function: Oasis_getHolonByProviderKey (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_holon_by_provider_key(&self, provider_key: String) -> Option<Holon> {
-            self.holons.get(&provider_key)
-        }
-
-        /// Entry function: Oasis_getHolonsForParent (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_holons_for_parent(&self, parent_id: String) -> Vec<Holon> {
-            let holon_ids = self.holons_by_parent.get(&parent_id).unwrap_or_default();
-            holon_ids
-                .iter()
-                .filter_map(|id| self.holons.get(id))
-                .collect()
-        }
-
-        /// Entry function: Oasis_getHolonsByMetaData (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_holons_by_metadata(&self, _meta_key: String, _meta_value: String) -> Vec<Holon> {
-            // In production, would maintain metadata index
-            Vec::new()
-        }
-
-        /// Entry function: Oasis_getAllHolons (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_all_holons(&self) -> Vec<Holon> {
-            // In production, would maintain a list of all holon IDs
-            Vec::new()
-        }
-
-        /// Entry function: Oasis_search (called via state_call RPC)
-        #[ink(message)]
-        pub fn search(&self, _query: String) -> Vec<Holon> {
-            // In production, would implement full-text search
-            Vec::new()
-        }
-
-        /// Entry function: Oasis_getNFT (called via state_call RPC)
-        #[ink(message)]
-        pub fn get_nft(&self, _token_address: String) -> Option<String> {
-            // NFT implementation would go here
-            None
-        }
-
-        /// Entry function: Oasis_saveAvatarDetail (called via extrinsic)
-        #[ink(message)]
-        pub fn save_avatar_detail(
-            &mut self,
-            avatar_id: String,
-            username: String,
-            email: String,
-            karma_akashic_records: String,
-            xp: u64,
-            level: u64,
-        ) {
-            let now = self.env().block_timestamp();
-            let avatar_detail = AvatarDetail {
-                id: avatar_id.clone(),
-                username: username.clone(),
-                email,
-                karma_akashic_records,
-                xp,
-                level,
-                created_date: now,
-                modified_date: now,
+        fn authorize(&self, key: &[u8], expected: Expected) -> Result<Option<Cell>, Error> {
+            if self.env().caller() != self.owner {
+                return Err(Error::Unauthorized);
+            }
+            Self::validate(key)?;
+            let cell = self.cells.get(key.to_vec());
+            let matches = match expected {
+                Expected::Any => true,
+                Expected::Missing => cell.is_none(),
+                Expected::Revision(revision) => cell.as_ref().map(|v| v.revision) == Some(revision),
             };
-
-            self.avatar_details.insert(&avatar_id, &avatar_detail);
-            self.avatar_details_by_username.insert(&username, &avatar_id);
-
-            self.env().emit_event(AvatarDetailCreated {
-                avatar_id,
-                username,
-            });
+            if matches {
+                Ok(cell)
+            } else {
+                Err(Error::Conflict)
+            }
         }
 
-        /// Entry function: Oasis_deleteAvatar (called via extrinsic)
-        #[ink(message)]
-        pub fn delete_avatar(&mut self, avatar_id: String) {
-            self.avatars.remove(&avatar_id);
+        #[ink(message, selector = 0x00000002)]
+        pub fn get(&self, key: Vec<u8>) -> Result<Option<Cell>, Error> {
+            Self::validate(&key)?;
+            Ok(self.cells.get(key))
         }
 
-        /// Entry function: Oasis_saveHolon (called via extrinsic)
-        #[ink(message)]
-        pub fn save_holon(
+        /// The 8 KiB cell bound keeps encoded cells/messages within ink's
+        /// default 16 KiB static buffer. Larger records require shared framing.
+        #[ink(message, selector = 0x00000003)]
+        pub fn put(
             &mut self,
-            holon_id: String,
-            name: String,
-            description: String,
-            parent_id: String,
-            holon_type: u8,
-        ) {
-            let now = self.env().block_timestamp();
-            let holon = Holon {
-                id: holon_id.clone(),
-                name: name.clone(),
-                description,
-                parent_id: parent_id.clone(),
-                holon_type,
-                created_date: now,
-                modified_date: now,
+            key: Vec<u8>,
+            value: Vec<u8>,
+            expected: Expected,
+            operation: [u8; 32],
+        ) -> Result<u64, Error> {
+            let previous = self.authorize(&key, expected)?;
+            if value.len() > 8192 {
+                return Err(Error::ValueTooLarge);
+            }
+            let revision = self.generation.checked_add(1).ok_or(Error::Exhausted)?;
+            let count = if previous.is_none() {
+                self.count.checked_add(1).ok_or(Error::Exhausted)?
+            } else {
+                self.count
             };
-
-            self.holons.insert(&holon_id, &holon);
-
-            // Add to parent index
-            let mut parent_holons = self.holons_by_parent.get(&parent_id).unwrap_or_default();
-            parent_holons.push(holon_id.clone());
-            self.holons_by_parent.insert(&parent_id, &parent_holons);
-
-            self.env().emit_event(HolonCreated {
-                holon_id,
-                name,
-                parent_id,
+            // Every fallible admission check precedes the first storage write.
+            if previous.is_none() {
+                self.slots.insert(self.count, &key);
+                self.positions.insert(&key, &self.count);
+            }
+            self.cells.insert(&key, &Cell { value, revision });
+            self.count = count;
+            self.generation = revision;
+            self.env().emit_event(Mutation {
+                operation,
+                key,
+                revision,
+                deleted: false,
             });
+            Ok(revision)
         }
 
-        /// Entry function: Oasis_deleteHolon (called via extrinsic)
-        #[ink(message)]
-        pub fn delete_holon(&mut self, holon_id: String) {
-            self.holons.remove(&holon_id);
+        #[ink(message, selector = 0x00000004)]
+        pub fn delete(
+            &mut self,
+            key: Vec<u8>,
+            expected: Expected,
+            operation: [u8; 32],
+        ) -> Result<Option<u64>, Error> {
+            if self.authorize(&key, expected)?.is_none() {
+                return Ok(None);
+            }
+            let revision = self.generation.checked_add(1).ok_or(Error::Exhausted)?;
+            let position = self.positions.get(&key).expect("cell has index");
+            let last = self
+                .count
+                .checked_sub(1)
+                .expect("cell implies nonempty index");
+            let last_key = self.slots.get(last).expect("dense index");
+            if position != last {
+                self.slots.insert(position, &last_key);
+                self.positions.insert(&last_key, &position);
+            }
+            self.slots.remove(last);
+            self.positions.remove(&key);
+            self.cells.remove(&key);
+            self.count = last;
+            self.generation = revision;
+            self.env().emit_event(Mutation {
+                operation,
+                key,
+                revision,
+                deleted: true,
+            });
+            Ok(Some(revision))
+        }
+
+        /// Scan at most eight slots: even maximal keys fit the default buffer.
+        /// Clients must pin one finalized block for a multi-page read.
+        #[ink(message, selector = 0x00000005)]
+        pub fn keys(&self, prefix: Vec<u8>, start: u64, limit: u8) -> Result<Page, Error> {
+            if prefix.len() > 1024 || start > self.count || limit == 0 || limit > 8 {
+                return Err(Error::InvalidPage);
+            }
+            let end = start.saturating_add(u64::from(limit)).min(self.count);
+            let mut keys = Vec::new();
+            for slot in start..end {
+                let key = self.slots.get(slot).expect("dense index");
+                if key.starts_with(&prefix) {
+                    keys.push(key);
+                }
+            }
+            Ok(Page {
+                generation: self.generation,
+                keys,
+                next: if end < self.count { Some(end) } else { None },
+            })
         }
     }
 
-    impl Default for Oasis {
-        fn default() -> Self {
-            Self::new()
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        fn key(n: u8) -> Vec<u8> {
+            ink::prelude::vec![n]
+        }
+
+        #[ink::test]
+        fn conditional_writes_and_aba() {
+            let mut db = Oasis::new();
+            assert_eq!(db.put(key(1), key(2), Expected::Missing, [1; 32]), Ok(1));
+            assert_eq!(
+                db.put(key(1), key(3), Expected::Missing, [2; 32]),
+                Err(Error::Conflict)
+            );
+            assert_eq!(
+                db.delete(key(1), Expected::Revision(1), [3; 32]),
+                Ok(Some(2))
+            );
+            assert_eq!(db.put(key(1), key(4), Expected::Missing, [4; 32]), Ok(3));
+            assert_eq!(
+                db.delete(key(1), Expected::Revision(1), [5; 32]),
+                Err(Error::Conflict)
+            );
+            assert_eq!(db.get(key(1)).unwrap().unwrap().value, key(4));
+        }
+
+        #[ink::test]
+        fn deletion_keeps_dense_pages() {
+            let mut db = Oasis::new();
+            for n in 1..=4 {
+                db.put(key(n), key(n), Expected::Missing, [n; 32]).unwrap();
+            }
+            db.delete(key(2), Expected::Any, [5; 32]).unwrap();
+            let first = db.keys(Vec::new(), 0, 2).unwrap();
+            assert_eq!(first.keys, ink::prelude::vec![key(1), key(4)]);
+            assert_eq!(first.next, Some(2));
+            assert_eq!(
+                db.keys(Vec::new(), 2, 2).unwrap().keys,
+                ink::prelude::vec![key(3)]
+            );
+            assert_eq!(
+                db.keys(key(3), 0, 8).unwrap().keys,
+                ink::prelude::vec![key(3)]
+            );
+        }
+
+        #[ink::test]
+        fn admission_has_no_partial_writes() {
+            let mut db = Oasis::new();
+            assert_eq!(
+                db.put(Vec::new(), key(1), Expected::Any, [0; 32]),
+                Err(Error::InvalidKey)
+            );
+            assert_eq!(
+                db.put(key(1), ink::prelude::vec![0;8193], Expected::Any, [0; 32]),
+                Err(Error::ValueTooLarge)
+            );
+            db.generation = u64::MAX;
+            assert_eq!(
+                db.put(key(1), key(2), Expected::Any, [0; 32]),
+                Err(Error::Exhausted)
+            );
+            assert_eq!(db.count, 0);
+            assert_eq!(db.get(key(1)), Ok(None));
+        }
+
+        #[ink::test]
+        fn only_owner_can_mutate() {
+            let mut db = Oasis::new();
+            let accounts = ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
+            ink::env::test::set_caller::<ink::env::DefaultEnvironment>(accounts.bob);
+            assert_eq!(
+                db.put(key(1), key(2), Expected::Any, [0; 32]),
+                Err(Error::Unauthorized)
+            );
+            assert_eq!(
+                db.delete(key(1), Expected::Any, [0; 32]),
+                Err(Error::Unauthorized)
+            );
+        }
+
+        #[ink::test]
+        fn missing_delete_and_invalid_pages_are_read_only() {
+            let mut db = Oasis::new();
+            assert_eq!(db.delete(key(1), Expected::Missing, [0; 32]), Ok(None));
+            assert_eq!(
+                db.delete(key(1), Expected::Revision(1), [0; 32]),
+                Err(Error::Conflict)
+            );
+            assert_eq!(db.keys(Vec::new(), 0, 0), Err(Error::InvalidPage));
+            assert_eq!(db.keys(Vec::new(), 0, 9), Err(Error::InvalidPage));
+            assert_eq!(db.keys(Vec::new(), 1, 1), Err(Error::InvalidPage));
+            assert_eq!(db.generation, 0);
+            assert_eq!(ink::env::test::recorded_events().count(), 0);
+        }
+
+        #[ink::test]
+        fn delete_overflow_preserves_record_and_index() {
+            let mut db = Oasis::new();
+            db.put(key(1), key(2), Expected::Missing, [0; 32]).unwrap();
+            db.generation = u64::MAX;
+            assert_eq!(
+                db.delete(key(1), Expected::Any, [0; 32]),
+                Err(Error::Exhausted)
+            );
+            assert_eq!(db.get(key(1)).unwrap().unwrap().revision, 1);
+            assert_eq!(
+                db.keys(Vec::new(), 0, 8).unwrap().keys,
+                ink::prelude::vec![key(1)]
+            );
         }
     }
 }
-
