@@ -86,6 +86,8 @@ export async function verifyRecordPreparation(api, preparation) {
   await readRecordContract(api, { ...preparation, action: 'verify', origin: sender });
   return { verified: true, transactionHash: decoded.hash.toHex(), sender, chainId: genesis,
     contractAddress: address, contractCodeHash: preparation.contractCodeHash, action: preparation.action,
+    keyBase64: preparation.keyBase64, operationTagBase64: preparation.operationTagBase64,
+    expectation: preparation.expectation, ...(preparation.revision != null ? { revision: preparation.revision } : {}),
     signingCheckpointHash: payload.blockHash, gasLimit: preparation.gasLimit,
     storageDepositLimit: preparation.storageDepositLimit, feeCoverage: 'identity-and-execution-limits-not-total-fee-cap' };
 }

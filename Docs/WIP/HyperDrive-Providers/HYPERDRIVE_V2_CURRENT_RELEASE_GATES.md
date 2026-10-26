@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: Polkadot contract SDK stateful execution gate
+
+Pinned ink/Wasm conditional-cell contract, public SCALE codec, finalized code-pinned get/list/verify, ordinary-owner preparation/signature verification, durable-ack-before-original-submission and finalized effect recovery are now implemented in the SDK bridge. Current20controlled tests PASS0skip2.86s. Native shipping SDK3originals (create/revision-delete/missing-delete) finalized with exact durable acknowledgement and matching events/absence proof; repeat reads recover SAME originals without resubmission. Earlier native contract6originals/restart,4native readbridge and2native preparation gates remain separate evidence. This is native SDK progress, not C# provider or complete HyperDrive acceptance.
+
+No duplicate runtime/environment/SDK installation; same two necessary owner instances share one uploaded code blob. Exact synthetic keys cleaned, all original receipts retained and node stopped. Record-fixture actualtransactionfees so far0.020682034722localtestUNIT; storage deposits separate, no public/fiat/completefee-cap claim. Source publish/import closure17modules and existing Docker SDK verifier pass; actual.NETpublish/C#backend/encryption/framing/nativeinterfaces, productionruntime, durableoutbox/faultinjection/completefee/V2 gates remain OPEN. [Native report](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md). No dev merge.
+
 ## 26 October: SQLite import acknowledgement and evidence gate
 
 16genuine baseline failures fixed. SQLite Import now preserves activation/save error codes, details, metadata, warnings and partial-save counts through the existing copier; returns success only for confirmed IsSaved; admits null before activation; and delegates one public SaveHolons call with stop-on-error. Cold activation retained. Repository/public save ALREADY share one atomic graph writer; no alternative writer/schema/retry introduced. Final90/90 full unit PASS0skip5s includes2actual native sync/async imports on SQLite3.53.3, independently verifying3rows, generated identities/parents and point reads. RAM-only shared-memory connections, no new file/service/download. One fixture compile error corrected before baseline, not counted as a provider failure.

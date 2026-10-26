@@ -60,6 +60,7 @@
     <None Include="SdkBridge\record-contract-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-codec.mjs" />
     <None Include="SdkBridge\record-contract-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-read.mjs" />
     <None Include="SdkBridge\record-contract-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-mutation.mjs" />
+    <None Include="SdkBridge\record-contract-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-outcome.mjs" />
     <None Include="SdkBridge\native-transfer.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\native-transfer.mjs" />
     <None Include="SdkBridge\asset-operation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-operation.mjs" />
     <None Include="SdkBridge\asset-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-outcome.mjs" />
