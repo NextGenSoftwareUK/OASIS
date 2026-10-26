@@ -4,10 +4,11 @@ import { TypeRegistry } from '@polkadot/types/create';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { registerPsp34Types } from './psp34-contract-codec.mjs';
-import { readPsp34Collection } from './psp34-contract-read.mjs';
+import { readPsp34Collection, readPsp34EscrowState } from './psp34-contract-read.mjs';
 
 const request = { contractAddress: '0x' + '11'.repeat(32), origin: '0x' + '22'.repeat(32), contractCodeHash: '0x' + '33'.repeat(32) };
-function fixture({ missing=false, wrongCode=false, invalidUtf8=false, flags=0, dispatchFailure=false }={}) {
+function fixture({ missing=false, wrongCode=false, invalidUtf8=false, flags=0, dispatchFailure=false,
+  escrow=false,owner=null,beneficiary=null,supply='0' }={}) {
   const registry=new TypeRegistry();registerPsp34Types(registry);
   const counts={heads:0,snapshots:0,calls:0};
   const finalized={toHex:()=> '0x'+'44'.repeat(32)};
@@ -18,7 +19,16 @@ function fixture({ missing=false, wrongCode=false, invalidUtf8=false, flags=0, d
       assert.equal(value,0);assert.equal(gas,null);assert.equal(deposit,null);
       if(dispatchFailure)return {result:{isErr:true,asErr:{toString:()=> 'NativeDispatchFailure'}}};
       let type,result;
-      if(input==='0xffa27a5f'){type='OasisPsp34Id';result={Bytes:'0x010203'};}
+      if(escrow){
+        const selector=input.slice(0,10);
+        if(selector==='0x628413fe'){assert.equal(input.length,10);type='u128';result=supply;}
+        else{
+          assert.ok(['0x1168624d','0x00000014'].includes(selector));
+          assert.equal(registry.createType('OasisPsp34Id',Buffer.from(input.slice(10),'hex')).value.toString(),'18446744073709551620');
+          type='Option<AccountId32>';result=selector==='0x00000014'?beneficiary:owner;
+        }
+      }
+      else if(input==='0xffa27a5f'){type='OasisPsp34Id';result={Bytes:'0x010203'};}
       else {
         assert.equal(input.slice(0,10),'0xf19d48d1');
         const args=registry.createType('(OasisPsp34Id,Bytes)',Buffer.from(input.slice(10),'hex'));
@@ -44,6 +54,32 @@ test('collection identity and metadata share one finalized code-pinned snapshot'
   assert.deepEqual(result.attributes,{name:'Living tree',symbol:'TREE',description:'',image:null});
   assert.equal(result.contractAddress,request.contractAddress);assert.equal(result.codeHash,request.contractCodeHash);
   assert.deepEqual(f.counts,{heads:1,snapshots:1,calls:5});
+});
+
+test('escrow owner beneficiary and supply share one code-pinned snapshot without identity coercion',async()=>{
+  for(const occupied of [false,true]){
+    const f=fixture({escrow:true,owner:occupied?request.contractAddress:null,
+      beneficiary:occupied?request.origin:null,supply:occupied?'1':'0'});
+    const tokenId={U128:'18446744073709551620'};
+    const result=await readPsp34EscrowState(f.api,{...request,tokenId});
+    assert.deepEqual(result.tokenId,tokenId);assert.equal(result.owner,occupied?request.contractAddress:null);
+    assert.equal(result.escrowBeneficiary,occupied?request.origin:null);assert.equal(result.totalSupply,occupied?'1':'0');
+    assert.deepEqual(f.counts,{heads:1,snapshots:1,calls:3});
+  }
+});
+
+test('invalid escrow token IDs fail before native access',async()=>{
+  const f=fixture({escrow:true});
+  await assert.rejects(readPsp34EscrowState(f.api,{...request,tokenId:{U128:1}}));
+  assert.deepEqual(f.counts,{heads:0,snapshots:0,calls:0});
+});
+
+test('missing and foreign-code escrow cannot become a successful empty beneficiary',async()=>{
+  for(const options of [{missing:true},{wrongCode:true}]){
+    const f=fixture({...options,escrow:true});
+    await assert.rejects(readPsp34EscrowState(f.api,{...request,tokenId:{U128:'18446744073709551620'}}));
+    assert.equal(f.counts.calls,0);
+  }
 });
 test('absent or wrong-code collections never become empty successful NFT records',async()=>{
   for(const options of [{missing:true},{wrongCode:true}]){

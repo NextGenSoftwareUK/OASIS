@@ -1,5 +1,27 @@
 import { openPinnedContractQuery } from './pinned-contract-query.mjs';
 import { encodePsp34Message, decodePsp34Result } from './psp34-contract-codec.mjs';
+import { encodeOasisPsp34EscrowQuery } from './oasis-psp34-mutation-codec.mjs';
+import { nftTokenId } from './psp34-contract-mutation.mjs';
+
+// Explicit v0.2 capability: owner, active beneficiary and supply at one snapshot.
+// An older contract cannot silently fall back to owner/minter metadata.
+export async function readPsp34EscrowState(api, request) {
+  request = structuredClone(request);
+  const id = nftTokenId(request.tokenId);
+  const ownerCall = encodePsp34Message(api.registry, 'ownerOf', [id]);
+  const beneficiaryCall = encodeOasisPsp34EscrowQuery(api.registry, id);
+  const supplyCall = encodePsp34Message(api.registry, 'totalSupply', []);
+  const view = await openPinnedContractQuery(api, request);
+  const owner = decodePsp34Result(api.registry, 'ownerOf',
+    await view.query(ownerCall));
+  const beneficiary = decodePsp34Result(api.registry, 'ownerOf',
+    await view.query(beneficiaryCall));
+  const supply = decodePsp34Result(api.registry, 'totalSupply',
+    await view.query(supplyCall));
+  const account = value => value.isNone ? null : api.createType('AccountId32', value.unwrap()).toHex();
+  return { ...view.identity, tokenId: request.tokenId, owner: account(owner),
+    escrowBeneficiary: account(beneficiary), totalSupply: supply.toString() };
+}
 
 // Public collection metadata has no implicit token ID. Every attribute and the
 // collection identity are observed at the SAME finalized code-pinned snapshot.
