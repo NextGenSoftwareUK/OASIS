@@ -1,5 +1,17 @@
 # Provider-key deletion acceptance contract
 
+## Read-only recovery SDK - native verified
+
+Core `b3d4df4` defines IConditionalHolonWriteRecoveryStorageProvider. MongoDB, SQLite and Neo4j implement it by reading durable receipts and reusing existing exact-intent validators. Status is bound to the original request's actor, operation, authority, selected graph and fingerprint. Results contain no stored graph or private field values. Absent is not proof of rejection or permission to replay; invalid/unavailable evidence returns an error.
+
+Native run65539 passes all three stores: three original creates plus soft/hard deletes per provider (15 actual original writes), absent lookups before execution, committed receipt lookup after provider deactivation/reactivation, repeated equal status reads, foreign-actor rejection, summary redaction and retained/current deletion-state checks. Reads never re-execute an original. All IDs and original requests were journalled before writes. This is provider connection/lifecycle restart evidence, not OS process restart or a lost native commit acknowledgement fault.
+
+The existing full native CQL/REST/GraphQL/gRPC cohort remains green:453 settled operations/496 physical attempts. Direct SDK recovery writes do not add HTTP usage settlements. Source snapshots stayed unchanged and seven producer/consumer pairs matched; owned services stopped and exact fixture/SQLite files are absent. Evidence: Verification/conditional-recovery-*.
+
+Regression gates: Core3420/0skip, Neo4j559/0skip (including seven new recovery cases), SQLite90/0skip. SQLite root test assets were restored from the existing cache without downloads. Core builds both targets; matching unit Core dependency identities are preserved. SQLite uses a separate ReadOnly nonpooled file connection; ephemeral private-memory stores explicitly reject durable recovery. MongoDB observes the primary with majority read concern. Neo4j uses MATCH only without claims/locks.
+
+Generic routing/pricing, authenticated host integration, actual commit-acknowledgement fault injection, OS restart and durable recovery of original hosted intent remain open. Do not expose this trusted SDK surface as an unauthenticated status endpoint. Historical draft notes below are superseded by this checkpoint.
+
 ## Current verified gate - 26 October 2026
 
 Signed REST logical-ID/provider-key deletion now passes on MongoDB, SQLite and Neo4j. Per provider, nine new cases verify missing logical identity/operation/revision before provider execution, key-to-ID mismatch, foreign creator denial, stale logical/key revisions, acknowledged logical soft deletion and acknowledged native-key hard deletion with committed delta. Persisted deletion state/actor, physical absence, original revision preservation after rejection, and unchanged unselected-child state/revision are checked.
@@ -110,3 +122,13 @@ Source owners inspected: Core Interfaces/Providers/IConditionalHolonStorageProvi
 Core now has an uncommitted IConditionalHolonWriteRecoveryStorageProvider contract requiring the original ConditionalHolonWriteRequest. Its immutable redacted result distinguishes Absent from Committed and carries the original actor/authority/operation binding; unavailable or invalid evidence must be returned as an OASISResult error. This permits reuse of exact receipt fingerprint/topology validation. Both Core target builds pass after explicitly qualifying System.Enum for the portable target. No provider advertises this capability yet, and no status host endpoint is implemented or certified. The preceding audit describes the published capability gap; this source draft does not close it.
 
 Receipt execution lookups cannot be called as status reads: Neo4j's execution reader uses MERGE and claim locks, SQLite's write path reserves an IMMEDIATE writer transaction, and Mongo preparation touches operation fencing. Recovery must use read-only lookup and reuse the existing pure receipt decoder/validator. It must never execute the original mutation merely to retrieve a receipt.
+
+Neo4j provider source now implements the draft recovery capability with MATCH-only lookup, duplicate receipt rejection and the existing ConditionalHolonReceipt decoder. Preparation-only state returns Absent (not rejection/retry permission); a valid completed envelope returns Committed plus redacted delta summary. Seven controlled-provider tests are prepared. This source is not yet compiled or advertised in a published provider build; MongoDB/SQLite, routing/host integration and native restart/fault acceptance remain open. Compilation waits for the peer's bounded Core/Shared consumer freeze to return.
+
+## Recovery provider source/build checkpoint
+
+Neo4j provider/consumer builds pass; all seven new recovery controls and full559 unit tests pass with zero skips. The test host's missing generated assets were restored from the existing local package cache only, without downloads. Evidence: Verification/neo-recovery-{focused,full}.trx.gz.
+
+MongoDB recovery now builds with primary/majority reads of the existing CosmicWriteReceipt collection and the shared pure receipt validator. SQLite recovery also builds: a separate nonpooled ReadOnly file connection runs SELECT only and invokes the existing SQLite receipt fingerprint/envelope/graph/delta validator. It does not save, detach context entities, reserve an IMMEDIATE writer transaction, create a missing database, or observe uncommitted writer-context receipts. Private in-memory authorities explicitly reject durable recovery rather than fabricate an absent result.
+
+These implementations and the additive Core contract remain uncommitted. MongoDB/SQLite unit/native validation, Neo4j actual receipt/restart/fault validation, generic routing/admission, and authenticated host integration remain pending. A compilation result is not native recovery certification.
