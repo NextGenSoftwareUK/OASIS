@@ -5,12 +5,13 @@ set -euo pipefail
 # This compiles only; it never starts a node, signs, uploads or deploys code.
 repo="$(cd -- "$(dirname -- "$0")/../.." && pwd)"
 contract="$repo/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/oasis"
-[[ $# -le 1 ]] || { echo 'Expected only records, psp34 or psp34-escrow.' >&2; exit 1; }
+[[ $# -le 1 ]] || { echo 'Expected only records, psp34, psp34-escrow or token-escrow.' >&2; exit 1; }
 case "${1:-records}" in
     records) manifest="$contract/Cargo.toml"; crate='oasis_records'; name='oasis-records' ;;
     psp34) manifest="$contract/../psp34/Cargo.toml"; crate='oasis_psp34'; name='oasis-psp34' ;;
     psp34-escrow) manifest="$contract/../psp34/Cargo.toml"; crate='oasis_psp34'; name='oasis-psp34-escrow' ;;
-    *) echo 'Unknown contract target; expected records, psp34 or psp34-escrow.' >&2; exit 1 ;;
+    token-escrow) manifest="$contract/../token-escrow/Cargo.toml"; crate='oasis_token_escrow'; name='oasis-token-escrow' ;;
+    *) echo 'Unknown contract target; expected records, psp34, psp34-escrow or token-escrow.' >&2; exit 1 ;;
 esac
 target="$repo/TestResults/PolkadotCurrent/record-contract-target"
 rustup="${OASIS_RUSTUP:-$HOME/.cargo/bin/rustup}"

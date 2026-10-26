@@ -24,6 +24,7 @@ try {
     $publicNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
     $custodyNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-custody-pending.jsonl'
     $escrowDeploymentPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-deployment-pending.json'
+    if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-deployment-pending.json')) { throw 'Pending original exists: token escrow deployment. Reconcile read-only, never replay.' }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-public-pending.jsonl')) { throw 'Pending original exists: public native escrow. Reconcile read-only, never replay.' }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-lifecycle-pending.jsonl')) { throw 'Pending original exists: native escrow lifecycle. Reconcile read-only, never replay.' }
     foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation, $assetApi, $assetTransfer) + $recordPending + @($publicStoragePending, $nftDeploymentPending, $nftMutationPending, $publicNftPending, $custodyNftPending,$escrowDeploymentPending)) {
