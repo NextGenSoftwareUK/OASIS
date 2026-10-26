@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR public token custody native gate — 26 October
+
+426unitPASS and1nativePASS20s. Public exact lock/release, burn/supply conservation, release-while-frozen, native frozen-lock rejection and pre-sign replay rejection verified. Eight durably retained originals read back keylessly (7success,1expected failure), final supply/balance0, released tombstone preserved. Same retained node stopped; compact evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). Independent holders, hosted fee/auth and remaining full provider/V2 gates remain open; no Dev promotion.
+
 ## NEAR native custody code upgrade — 26 October
 
 Pinned candidate3390da66... deployed by one durably retained signed original, native FINAL/Success. All2523state entries have identical before/after digest; token escrow protocol1 reads back. Owned node stopped and temporary local diagnostic limit restored. Compact signed-original/receipt proof retained; no reset/install/download. Public custody and remaining provider/hosted/V2 acceptance still open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
