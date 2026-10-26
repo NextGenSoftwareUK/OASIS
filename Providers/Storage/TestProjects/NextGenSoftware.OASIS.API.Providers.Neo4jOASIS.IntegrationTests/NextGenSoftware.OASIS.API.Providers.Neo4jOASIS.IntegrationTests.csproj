@@ -31,6 +31,7 @@
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Services\Cql\CqlProjectionV1Endpoint.cs" Link="Web4\CqlProjectionV1Endpoint.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Web4/HolonAccess.cs" />
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />

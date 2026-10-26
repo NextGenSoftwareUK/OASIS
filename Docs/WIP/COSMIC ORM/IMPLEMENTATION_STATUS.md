@@ -1,5 +1,27 @@
 # COSMIC ORM implementation status
 
+## Conditional sharing mutation acceptance — 25 October 2026
+
+The existing WEB4 helper now persists grants and revocation through the same
+COSMIC conditional-write owner. Six original regressions reproduce the old defects;
+12new controlled tests now pass within fullCore3,166, zero skips. Both final Core
+regression and shippingWEB4 compilation pass. Conflict/unknown outcome errors are
+preserved, unsupported providers cannot downgrade, only the root is loaded/saved,
+and derived revoked index flags are removed. The existing four-argument helper
+signature remains. The REST sharing action no longer reports test-data success
+for failed persistence.
+
+Actual MongoDB/SQLite/Neo4j grant→revoke→stale-grant rejection passes on all three
+stores, together with138SDK/138signedHTTP CQL queries,345settled operations and
+337attempts. Source snapshots/six binary identities match; owned fixtures/services
+are removed/stopped. Native sharing operation IDs are journaled before dispatch;
+only their receipts are removed on successful cleanup.
+
+This fixes mutation correctness, not full CQL recipient/tenant authorization.
+Canonical grant parsing/migration, atomic issuer authority across transports and
+native policy enrollment remain open. [Contract/evidence](CQL_SHARING_WRITE_CONTRACT.md).
+
+
 ## Floating arithmetic live demo acceptance — 25 October 2026
 
 The annotated walkthrough now contains **46 examples per provider**. Fresh joint
