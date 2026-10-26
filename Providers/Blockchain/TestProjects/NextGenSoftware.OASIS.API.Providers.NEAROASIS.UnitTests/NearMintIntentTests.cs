@@ -46,6 +46,24 @@ public class NearMintIntentTests
         }finally{provider?.Release.TrySetResult();Environment.SetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE",previous);}
     }
 
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public async Task NftMintKeepsCallerAndNestedMetadataAcrossActivation(bool synchronous,bool explicitRecipient)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE");PausedActivation? provider=null;
+        try{
+            Environment.SetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","mint-intent.mjs"));provider=new PausedActivation();
+            var request=new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb3NFTRequest{
+                Symbol=explicitRecipient?"owned-original-target":"owned-original-default",SendToAddressAfterMinting=explicitRecipient?"receiver.near":null!,
+                Title="original title",Description="original description",MetaData=new(){{"zone","north"}},Tags=new(){"original"}};
+            var pending=synchronous?Task.Run(()=>provider.MintNFT(request)):provider.MintNFTAsync(request);
+            await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            request.Title="changed";request.Description="changed";request.Symbol="changed";request.SendToAddressAfterMinting="changed.near";
+            request.MetaData["zone"]="south";request.Tags.Add("changed");provider.Release.SetResult();
+            var result=await pending.WaitAsync(TimeSpan.FromSeconds(10));Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);
+            Assert.AreEqual("controlled-original-mint-transaction",result.Result.TransactionResult);Assert.AreEqual("original title",result.Result.Web3NFT.Title);
+        }finally{provider?.Release.TrySetResult();Environment.SetEnvironmentVariable("OASIS_NEAR_SDK_BRIDGE",previous);}
+    }
+
     [DataTestMethod,DataRow("0.000000001"),DataRow("1.000000001"),DataRow("0"),DataRow("-1")]
     public async Task InvalidPrecisionAndNonpositiveMintStopBeforeActivation(string amount)
     {

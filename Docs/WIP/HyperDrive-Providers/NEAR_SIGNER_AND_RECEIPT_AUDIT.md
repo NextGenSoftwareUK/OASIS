@@ -1,5 +1,32 @@
 # NEAR signer and receipt audit
 
+## Public NFT, bridge, wallet and history lifecycle accepted — 26 October
+
+NFT mint now freezes all used scalar/nested request fields into the existing Web3NFT snapshot BEFORE activation can yield. It reuses the existing metadata serializer and copies dictionaries/lists once. Four sync/async/default/explicit-recipient controls mutate the original request and nested metadata while activation is paused; original intent reaches the SDK. Full393/393unit PASS0skip20s, including the earlier wallet/NFT follow-up fault controls. No duplicate manager/store or alternate serializer.
+
+Native51831terminal0PASS1/1,38seconds reused SAME near-sandbox2.6.2, official near-api-js7.3.1, retained ledger/deployed custom OASIS contract/test.near signer and DPAPI encryption key. Actual public methods exercised: MintNFT/LoadOnChainNFTData, LockNFT/UnlockNFT, WithdrawNFT/DepositNFT (correct supplied source receipt), SendNFT (within deposit), BurnNFT, SendTransaction, Deposit, Withdraw and GetTransactions. Existing IPreparedNativeStorageProvider/OwnedPreparationScope/NativeStorageCorrelation own each physical action; one logical deposit correctly persists3originals and each native wallet transfer+history persists2. File-backed synthetic admission Flush(true) precedes every ACK/send. This is not Mongo/hosted billing proof.
+
+| Native action family | Originals | Checked behavior |
+|---|---:|---|
+| NFT mint |1|UTF8 title/metadata and configured owner read back|
+| NFT lock/unlock |4|Public lock/unlock plus bridge lock/unlock read back actual state|
+| NFT self-transfer and burn |2|Ownership verified; synthetic NFT absent after burn|
+| Native self-transfers |3|Public send/deposit/withdraw each1yocto|
+| Encrypted history puts |4|Public history query and signed-original ciphertext equality|
+| Exact owned history deletes |4|Current ciphertext rechecked before deletion; all4keys absent|
+
+All18originals independently recovered/read-only observed with an INVALID signing key. All native outcomes Final/Success;18distinct identities retained, no skipped mutation or simulated SDK response. For cleanup, the4current ciphertexts are derived from the verified signed put actions and compared byte-for-byte before deletion, not inferred disposable from names. Complete proof fsynced before exact18-ID equality and retiring pending/append journals. Synthetic NFT311cc713cc47401ebebc905ce2345977 burned. Parent history receipt IDs: NFTtransferDF7NXcC6pxdvgPHxnUuacXR4SYBN1mhoUzoCVJb6LoTG; native sendCvoHSMXY1AQF45d3UBmpK1V8Ss1r4ukmZpChtHhcbbwU; deposit e1SU8y67UAbSfiMpopn4LgiEiPKPtBg2a11V3Agr7Lm; withdrawal4AiXGvc9fCED5ZWJYzHraoHiWDR4x5Hc8TrNgcYHb83k. Full signed-original/outcome manifest: NativeEvidence/near-prepared-lifecycle.complete.json.
+
+**Fees:** transaction+receipt tokens_burnt20605410896208100000000yocto=0.0206054108962081localtestNEAR across18originals. This component excludes independent storage/deposit/refund/complete-outlay certification and fiat/sponsored settlement. No public network/funds/new wallet/funding/deployment/runtime/install/download/restore. Self-account coverage does not prove independent-owner wallets, external NEAR deployment, or NEP-171 conformance; this is the retained custom OASIS contract.
+
+Initial native test source omitted required burn request key-selector members: first runner stopped before executing any native test; owned node550 stopped with0pending/attempts. A subsequent offline compile exposed the remaining required selectors and stopped BEFORE node startup. All required selectors are now explicitly empty to select the configured retained signer (its real key signs); no fake key. Final source compiled before native startup. Build-failure log7801bytes/SHA2569c4644f1cd3ef274624152756fa4b5c21c5b6f141840441793df88b1cda18379 removed after exact path/owner/no-process verification, since no native originals existed in that failed phase. Current compact native log10917bytes retained. No original replay or duplicate environment.
+
+Core5AFD3922571637ADA9C9A09988B43558D116D93FD9B6F079281DCD3CEF897E98/781documents and Shared77ADEA5235A568A8182934512B583930DB7029EF015C4161633560D09D6A86E1/56 match all3consumer outputs and current source/PDBs. Provider20/unit38/integration12source documents independently verified against their own PDB/PE. SDK and mint-fixture copies match sources. Identities retained in NativeEvidence/near-prepared-lifecycle-binaries.json2364bytes. Native complete95908bytes/TRX4217bytes moved with SHA256 equality; full393unit TRX losslessly compressed87029bytes and raw removed. Completed-cohort guard and8ambiguous-mode guards reject BEFORE WSL startup. Exact owned node548 stopped; independent no near-sandbox/listeners3030/24567. Original ledger305469696bytes retained reusable; inventory records all output sizes and free space.
+
+Source follow-up: LockToken currently forwards only TokenAddress to issuer-global token_set_locked. The shared request also exposes FromWalletAddress/FromWalletPrivateKey and amount/escrow selectors; their authority/semantic mapping must be explicitly verified or implemented before certifying that interface. This NFT/wallet milestone does not cover it.
+
+OPEN: independent-owner/signer admitted coverage, fungible-token/public avatar and remaining interface schedules, forced real ACK/response loss/process death, Mongo/hosted authority/reservation/full native fee maxima/settlement and full cross-provider V2. Correct source-receipt linkage was used here; unrelated-source rejection/manager ownership requires its own evidence. No Dev promotion or full-provider completion claimed.
+
 ## Public encrypted storage, exact bytes and acknowledged follow-ups — 26 October
 
 **Fixed shipping defects.** Checked-record transport now uses the SAME canonical argsBase64/Uint8Array path as ordinary calls: C# serializes encrypted/current/archive arguments once and the SDK signs those exact bytes. The original checked bridge parsed an object then SDK-stringified it, changing C# escapes such as \u002B/\u003C; signed-intent verification correctly rejected that mismatch before persistence. A targeted real-SDK source case reproduced22PASS/1FAIL, then31/31PASS including all8existing checked-protocol controls. Exact escapes and large JSON scalars survive unchanged. No loose equality/fallback/raw-args alternate path was introduced. Protocol1/network/base64 preflight still precedes signer allocation.

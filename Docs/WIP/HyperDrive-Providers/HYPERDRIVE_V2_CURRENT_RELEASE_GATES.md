@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR public NFT/wallet native lifecycle — 26 October
+
+393unitPASS; actual public mint/lock/unlock/NFT bridge/self-transfer/burn and native send/deposit/withdraw/history passed1native case38s with18physical originals. Each persisted before send, all18read-only recovered, NFT burned/4owned ciphertext records verified then removed. Frozen mint intent now covers activation awaits. Evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); retained environment reused and node stopped. Same-account/custom-contract proof only: independent owners, native fungible tokens/avatar schedules, hosted fee/auth and real-loss/full V2 remain open.
+
 ## NEAR public encrypted storage and native follow-up repair — 26 October
 
 389unit/31SDK checks PASS; actual public save/history/CAS-conflict/tombstone writes produced5known originals, then exact-ciphertext/keyless reconciliation passed and submitted only3remaining fixture deletes. All8verified, fixturesabsent; first5never replayed. Preserve provenance: initial0-ACK byte-mismatch run and later test-only rawJSON history assertion failed; both reports retained. Main assertion fix compiled, not fresh-replayed. Fixed exact checked calldata transport plus lost wallet/NFT follow-up IDs and incorrect NFT lock read-back handling. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md) for originals/fees/limits. Full hosted/native-loss/NFT/V2/provider gates remain OPEN; no Dev merge.

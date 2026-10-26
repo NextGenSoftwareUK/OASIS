@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 const repo='/mnt/c/Source/OASIS',retained='/var/tmp/oasis-near-evidence';
 const endpoint='http://127.0.0.1:3030',chain='oasis-near-local',account='test.near';
-if(process.env.OASIS_NEAR_PREPARED_STORAGE_RECOVERY!=='1'&&existsSync(`${repo}/TestResults/NearRuntime/${process.env.OASIS_NEAR_PREPARED_STORAGE==='1'?'near-prepared-storage':process.env.OASIS_NEAR_PREPARED_ORDINARY==='1'?'near-prepared-ordinary':process.env.OASIS_NEAR_PREPARED_ACTION==='1'?'near-prepared-native':process.env.OASIS_NEAR_ORDINARY_WRITE==='1'?'near-ordinary-storage':'near-signed-ack'}.pending.json`))throw new Error('Original signed acknowledgement pending; no replay');
+if(process.env.OASIS_NEAR_PREPARED_STORAGE_RECOVERY!=='1'&&existsSync(`${repo}/TestResults/NearRuntime/${process.env.OASIS_NEAR_PREPARED_LIFECYCLE==='1'?'near-prepared-lifecycle':process.env.OASIS_NEAR_PREPARED_STORAGE==='1'?'near-prepared-storage':process.env.OASIS_NEAR_PREPARED_ORDINARY==='1'?'near-prepared-ordinary':process.env.OASIS_NEAR_PREPARED_ACTION==='1'?'near-prepared-native':process.env.OASIS_NEAR_ORDINARY_WRITE==='1'?'near-ordinary-storage':'near-signed-ack'}.pending.json`))throw new Error('Original signed acknowledgement pending; no replay');
 async function rpc(method,params){
   const response=await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({jsonrpc:'2.0',id:'signed-ack-admission',method,params}),signal:AbortSignal.timeout(15000)});
@@ -26,6 +26,6 @@ const child=spawnSync('/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell
   ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',
     'C:\\Source\\OASIS\\Scripts\\TestHosts\\near-local\\run-dotnet-evidence.ps1',
     '-SettingsFromStdin','-RepositoryRoot','C:\\Source\\OASIS',
-    process.env.OASIS_NEAR_PREPARED_STORAGE_RECOVERY==='1'?'-ReconcilePreparedStorage':process.env.OASIS_NEAR_PREPARED_STORAGE==='1'?'-PreparedStorageActions':process.env.OASIS_NEAR_PREPARED_ORDINARY==='1'?'-PreparedOrdinaryActions':process.env.OASIS_NEAR_PREPARED_ACTION==='1'?'-PreparedNativeActions':process.env.OASIS_NEAR_ORDINARY_WRITE==='1'?'-OrdinaryRecordWrites':process.env.OASIS_NEAR_CHECKED_WRITE==='1'?'-CheckedRecordWrites':'-SignedAcknowledgements'],
+    process.env.OASIS_NEAR_PREPARED_LIFECYCLE==='1'?'-PreparedLifecycleActions':process.env.OASIS_NEAR_PREPARED_STORAGE_RECOVERY==='1'?'-ReconcilePreparedStorage':process.env.OASIS_NEAR_PREPARED_STORAGE==='1'?'-PreparedStorageActions':process.env.OASIS_NEAR_PREPARED_ORDINARY==='1'?'-PreparedOrdinaryActions':process.env.OASIS_NEAR_PREPARED_ACTION==='1'?'-PreparedNativeActions':process.env.OASIS_NEAR_ORDINARY_WRITE==='1'?'-OrdinaryRecordWrites':process.env.OASIS_NEAR_CHECKED_WRITE==='1'?'-CheckedRecordWrites':'-SignedAcknowledgements'],
   {input:JSON.stringify(settings),stdio:['pipe','inherit','inherit']});
 if(child.error||child.status!==0)throw new Error('Signed acknowledgement native verification failed; preserve original journal, no replay');
