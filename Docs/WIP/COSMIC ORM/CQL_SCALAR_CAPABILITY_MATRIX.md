@@ -1,5 +1,18 @@
 # CQL scalar capability matrix
 
+## Latest floating HTTP/demo acceptance — 25 October 2026
+
+Required/nullable Single/Double Sum/Average now use the shared WEB4 scalar/grouped
+binder. All56new endpoint tests and full3,154Core tests pass; shipping WEB4 builds.
+Fresh signed live acceptance passes138SDK/138HTTP queries across MongoDB, SQLite
+and Neo4j,345settled operations/337attempts. Examples41–46 and six matching browser
+presets demonstrate scalar and grouped filtering/order/pages; all18offline preset
+checks pass. Source snapshots are unchanged and six producer/native copies match.
+This supersedes earlier pending HTTP/floating enrollment notes below. Neo4j still
+uses ProviderDefault; ProviderSnapshot is unsupported. Broader policy/federation
+and certification requirements remain open. See [demo evidence](CQL_V1_DEMO_VERIFICATION.md).
+
+
 25 October2026. This table separates stored metadata domains from aggregate result
 types. A query must still pass actual-provider admission and execution budgets.
 Historical test cohorts are not interchangeable with a new full-suite gate.
