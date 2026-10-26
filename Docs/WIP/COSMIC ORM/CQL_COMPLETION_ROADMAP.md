@@ -1,5 +1,23 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
+## Creator-owned graph save SDK boundary — 25 October 2026
+
+Generic Core now offers V2 `SaveOwnedHolonAsync`, reusing the existing detached
+save-plan selection, atomic conditional provider writes and publication owner.
+It authorizes every existing selected identity, pins reads to the write authority,
+binds caller revision claims, rejects blind/stale updates and bounds selected
+nodes. Eleven controlled cases pass within fullCore3,228; both Core targets build.
+Actual MongoDB/SQLite/Neo4j tests deny forged foreign-child updates, accept valid
+owned writes and reject stale tokens. The138SDK/138HTTP CQL walkthrough still
+passes,345settled/337attempts; source snapshots/six binary identities match.
+
+This is an explicit SDK boundary, not a claim that REST/GraphQL/gRPC graph-save
+routes or their prepared read/write accounting have migrated. The existing REST
+root-only guard remains an open risk for selected child writes. The sharing helper's
+initial read must also be pinned before full issuer authority is claimed. CQL
+recipient/tenant policy remains unenrolled. [Contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md).
+
+
 ## Generic whole-set grant validation — 25 October 2026
 
 Core `HolonReadGrants` now owns bounded recipient parsing and canonical encoding;
