@@ -172,3 +172,22 @@ be enforced during streaming. A subsequent target failure discards earlier
 buffered output without erasing its already-settled physical attempt receipts.
 
 Cumulative budget verification: Core dual-target build passed; full suite 3,569 passed, zero skips, including 13 budget cases for shared row/byte/work/output/attempt limits, concurrent charging, oversized arithmetic claims, cancellation, monotonic deadline and terminal rejection. Evidence: Verification/federation-budget-core.trx.gz and federation-budget-identities.json. Native integration remains pending; these unit results do not establish a working federated query path.
+
+### 26 October: native input capture stage
+
+The internal `CosmicFederationInputCapture` now snapshots actual adapters,
+readmits all selected targets and inherited physical-attempt ownership before
+any dispatch, then calls the ordinary `CosmicQueryExecutor` once per target.
+It preserves each source window, detached row validation and read-access checks.
+The cumulative deadline is linked into native cancellation; canonical UTF-8 input
+bytes and rows share the federation budget. A later error discards the complete
+input result without retrying earlier reads. The budget instance survives capture
+for subsequent merge/output accounting.
+
+The audit also found ordinary row execution discarded a native warning and
+published its rows as complete. The common executor now rejects that envelope
+with CQL_PROVIDER_RESULT_INVALID, so federation cannot promote a warned source
+into a complete input set. New focused tests cover this boundary alongside
+preflight, detachment, later failure, cumulative input limits and cancellation.
+Verification passed: Core dual-target build and all 3,579 unit tests, zero skips, including ten new input cases. Retained evidence: Verification/federation-input-core.trx.gz and federation-input-identities.json. Native billing/provider certification has not been run for federation. This stage is internal;
+merged global results and a public federation endpoint remain unimplemented.
