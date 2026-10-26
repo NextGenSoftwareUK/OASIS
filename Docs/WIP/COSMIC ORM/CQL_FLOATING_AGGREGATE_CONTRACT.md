@@ -214,7 +214,7 @@ stopped, owned attachment11232exited and Bolt17687is absent. Exact evidence:
 TestResults/CosmicCqlDemo/neo-floating-scalar-evidence.json. Neo4j grouped arithmetic and floating HTTP remain unadmitted.
 
 
-## Neo4j grouped finalizer plan — implementation remains open
+## Neo4j grouped finalizer — native component verified
 
 Reuse signed base2^30 normalization and integer long division before selecting
 an IEEE quantum. Each native limb sum is bounded by (2^30-1)*Int32.MaxValue;
@@ -226,6 +226,16 @@ its exact Average remainder, then round once and multiply only the final exact
 coefficient by a bound power of two. Canonical zero stays positive; overflow
 and empty nullable means require explicit proof/publication handling.
 
-This plan is not provider enrollment or verification. It must pass native
-comparison with Core, then grouped query/off-page/selection and admission tests
-before replacing the current independent grouped numeric whitelist.
+The Int64 finalizer is implemented and passes two native cases/5,127packets
+(712Single/4,415Double), zero failures/skips. Sum and Average match Core bit-for-bit
+for every exponent, seeded reductions, signed overflow midpoints, subnormals,
+ties and maximum participation. Fixed256packet parameter-only transactions each
+retain the30second limit and roll back without graph writes; no error-triggered
+retry or runtime fallback is used.
+
+Four Core/Shared/Neo/sourceDriver producer/native copies match. Same retained
+image stopped, owned attachment34620exited and Bolt17687is absent. Evidence:
+TestResults/CosmicCqlDemo/neo-floating-kernel-evidence.json. This is component proof,
+not a new full456native/541unit cohort or grouped enrollment. Grouped compile/read,
+off-page/selection and admission integration remain before the independent
+numeric whitelist can enroll floating inputs.
