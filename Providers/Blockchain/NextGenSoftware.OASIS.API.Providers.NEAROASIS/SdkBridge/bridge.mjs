@@ -5,6 +5,8 @@ import { collectEntries } from "./entries-page.mjs";
 import { submitCheckedRecord } from "./checked-write.mjs";
 import { decodeCallArguments } from "./call-arguments.mjs";
 import { submitNativeAction } from "./native-mutation.mjs";
+import {pathToFileURL} from 'node:url';
+import {prepareNearAction,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation} from './native-preparation.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -24,8 +26,29 @@ function accountFor(input, provider) {
 }
 
 async function execute(input) {
+  if(input.operation==='submitNativePreparation'&&(!process.env.OASIS_NATIVE_PREPARATION_PIPE||!process.env.OASIS_NATIVE_PREPARATION_MODULE))
+    throw new Error('Existing owned native preparation pipe/module required before submission.');
   const provider = providerFor(input);
   switch (input.operation) {
+    case 'prepareNativeAction':
+      if(input.request?.chainId!==input.networkId||input.request?.sender!==input.accountId)throw new Error('Native request differs from configured signer/network.');
+      return await prepareNearAction(accountFor(input,provider),input.request);
+    case 'verifyNativePreparation':
+      return await verifyNearPreparation(provider,input.preparation,input.networkId);
+    case 'recoverNativePreparation': {
+      const original=await recoverNearPreparation(input.preparation,input.networkId);
+      await verifyNearPreparation(provider,original,input.networkId);
+      return original;
+    }
+    case 'preparedNativeOutcome': {
+      const identity=await verifyNearPreparation(provider,input.preparation,input.networkId);
+      return {outcome:await provider.viewTransactionStatus({txHash:identity.transactionHash,accountId:identity.sender,waitUntil:'NONE'})};
+    }
+    case 'submitNativePreparation': {
+      const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+      return await submitNearPreparation(provider,input.preparation,input.networkId,preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE),
+        exactNearSubmission(input.rpcEndpoint,input.preparation.signedTransactionBase64));
+    }
     case "probe": {
       const status = await provider.viewNodeStatus();
       const networkId = await provider.getNetworkId();

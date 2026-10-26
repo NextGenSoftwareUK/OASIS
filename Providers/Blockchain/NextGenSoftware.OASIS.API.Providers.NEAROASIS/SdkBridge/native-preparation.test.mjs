@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {once} from 'node:events';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {KeyPair,KeyPairSigner,createTransaction,actions,baseEncode,SignedTransaction} from 'near-api-js';
 import {preparationProtocol,nativeActionIntent,prepareNearAction,verifyNearSignedOriginal,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation} from './native-preparation.mjs';
@@ -11,6 +13,13 @@ const block=new Uint8Array(32).fill(7),checkpoint=baseEncode(block),chain='contr
 const request=()=>({chainId:chain,sender:'sender.near',recipient:'contract.near',kind:'functionCall',depositUnits:'0',gasUnits:'100000000000000',
   methodName:'put',argsBase64:Buffer.from('{"precision":9223372036854775807,"unicode":"Café"}').toString('base64')});
 const provider=()=>({getNetworkId:async()=>chain,viewBlock:async query=>({header:{hash:checkpoint,height:query.finality?12:10}})});
+test('shipping SDK entry rejects unowned submission before endpoint/RPC work',()=>{
+  const env={...process.env};delete env.OASIS_NATIVE_PREPARATION_PIPE;delete env.OASIS_NATIVE_PREPARATION_MODULE;
+  const child=spawnSync(process.execPath,[fileURLToPath(new URL('./bridge.mjs',import.meta.url))],{
+    input:JSON.stringify({operation:'submitNativePreparation',rpcEndpoint:'invalid-endpoint',networkId:chain}),env,encoding:'utf8',timeout:5000});
+  assert.equal(child.status,1);const envelope=JSON.parse(child.stdout);
+  assert.equal(envelope.ok,false);assert.match(envelope.error,/owned native preparation/);
+});
 async function signedOriginal(customActions=[actions.functionCall('put',Buffer.from(request().argsBase64,'base64'),100000000000000n,0n)],signingKey=key){
   const {signedTransaction:signed}=await KeyPairSigner.fromSecretKey(signingKey.toString()).signTransaction(createTransaction('sender.near',signingKey.getPublicKey(),'contract.near',9007199254740993n,customActions,block));
   const unsigned=Buffer.from(signed.transaction.encode());
