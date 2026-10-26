@@ -47,7 +47,7 @@ public sealed partial class CqlV1Web4NativeTests
                 var routedAbsentPreparation = await manager.ReadHolonWritePreparationAsync(request.Write.OperationId, actor, pair.Key);
                 Assert.IsFalse(routedAbsentPreparation.IsError, routedAbsentPreparation.Message + routedAbsentPreparation.Exception);
                 Assert.IsNull(routedAbsentPreparation.Result);
-                if (request.Operation != ConditionalHolonOperation.SoftDelete)
+                if (request.Operation == ConditionalHolonOperation.Save)
                 {
                 var preparation = new HolonWritePreparation(request.Write.OperationId, actor, pair.Key,
                     request.Roots.Select(root => new ProtectedHolonPreparation(root.Id,
@@ -79,17 +79,38 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 if (request.Operation == ConditionalHolonOperation.HardDelete)
                 {
-                    var uncertain = await ExecuteWithLostCommitAcknowledgement(pair.Key, pair.Value, request, sqlitePath);
-                    Assert.AreEqual(1, uncertain.Commits, "Exactly one real commit preceded acknowledgement loss.");
-                    Assert.IsTrue(uncertain.Result.IsError);
-                    Assert.IsFalse(uncertain.Result.IsDeleted);
-                    Assert.AreEqual(request.Write.OperationId.ToString("D"), uncertain.Result.MetaData["COSMIC.OperationId"]);
-                    Assert.AreEqual("COSMIC_WRITE_RECONCILIATION_REQUIRED", uncertain.Result.ErrorCode);
-                    Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(uncertain.Result.Exception));
+                    var boundary = System.Reflection.DispatchProxy.Create<IRecoveryMutationBoundary, RecoveryMutationBoundary>();
+                    var probe = (RecoveryMutationBoundary)(object)boundary;
+                    probe.Target = pair.Value;
+                    probe.Authority = pair.Key;
+                    probe.SqlitePath = sqlitePath;
+
+                    var protectedManager = new Sources(providers).CreateManager(boundary);
+                    protectedManager.PreparationEncryptionPolicy = protection;
+                    var detached = StoredRecordJson.Deserialize<IHolon>(StoredRecordJson.Serialize(request.Roots.Single()));
+                    var before = StoredRecordJson.Serialize(detached);
+                    var options = new CosmicWriteOptions(request.Write.OperationId,
+                        request.Write.Conditions.ToDictionary(value => value.HolonId, value => value.ExpectedRevisionId));
+                    var uncertain = await protectedManager.DeleteHolonAsync(detached, actor, options, false, pair.Key);
+
+                    Assert.AreEqual(1, probe.Executions, "The public manager must execute exactly one mutation.");
+                    Assert.AreEqual(1, probe.Commits, "Exactly one real commit preceded acknowledgement loss.");
+                    Assert.IsTrue(uncertain.IsError);
+                    Assert.IsFalse(uncertain.IsDeleted);
+                    Assert.AreEqual(request.Write.OperationId.ToString("D"), uncertain.MetaData["COSMIC.OperationId"]);
+                    Assert.AreEqual("COSMIC_WRITE_RECONCILIATION_REQUIRED", uncertain.ErrorCode);
+                    Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(uncertain.Exception));
+                    Assert.AreEqual(before, StoredRecordJson.Serialize(detached), "Unknown acknowledgement must preserve the caller snapshot.");
                     Assert.IsFalse(request.Roots.Single().IsDeleted, "An uncertain acknowledgement must not publish deletion into the caller.");
+
+                    var stored = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
+                    Assert.IsFalse(stored.IsError, stored.Message + stored.Exception);
+                    Assert.IsNotNull(stored.Result);
+                    Assert.IsFalse(stored.Result.Records.Single().Envelope.Contains("private recovery fixture", StringComparison.Ordinal));
+                    storedPreparations.Add(request.Write.OperationId, stored.Result);
                     originals.Add(request);
                     await journal("recovery-acknowledgement-lost", new { provider = pair.Key.ToString(),
-                        operation = request.Write.OperationId, commits = uncertain.Commits, code = uncertain.Result.ErrorCode });
+                        operation = request.Write.OperationId, commits = probe.Commits, code = uncertain.ErrorCode });
                     return null;
                 }
                 var result = await writer.ExecuteConditionalHolonWriteAsync(request);
@@ -139,14 +160,14 @@ public sealed partial class CqlV1Web4NativeTests
                 var routedPreparation = await manager.ReadHolonWritePreparationAsync(original.Write.OperationId, actor, pair.Key);
                 Assert.IsFalse(routedPreparation.IsError, routedPreparation.Message + routedPreparation.Exception);
                 Assert.AreEqual(JsonSerializer.Serialize(stored.Result), JsonSerializer.Serialize(routedPreparation.Result));
-                if (original.Operation == ConditionalHolonOperation.SoftDelete)
+                if (original.Operation != ConditionalHolonOperation.Save)
                 {
                     var storedStatus = await manager.RecoverConditionalHolonWriteOutcomeAsync(original.Write.OperationId, actor, pair.Key,
                         _ => protection, (name, assembly) => name == typeof(Holon).FullName
                             && assembly == typeof(Holon).Assembly.GetName().Name ? typeof(Holon) : null!);
                     Assert.IsFalse(storedStatus.IsError, storedStatus.Message + storedStatus.Exception);
                     Assert.AreEqual(ConditionalHolonReceiptState.Committed, storedStatus.Result.ReceiptState);
-                    Assert.AreEqual(ConditionalHolonOperation.SoftDelete, storedStatus.Result.Operation);
+                    Assert.AreEqual(original.Operation, storedStatus.Result.Operation);
                 }
                 var foreignPreparation = await preparations.ReadHolonWritePreparationAsync(original.Write.OperationId, Guid.NewGuid());
                 Assert.IsTrue(foreignPreparation.IsError);

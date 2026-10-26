@@ -1,6 +1,6 @@
 # Authenticated hosted operation recovery
 
-26 October 2026. Hosted protection enrollment and signed native HTTP recovery are verified on MongoDB, SQLite and Neo4j. The full ORM/CQL roadmap, protected hard-delete acknowledgement-loss and actual process-restart acceptance remain open.
+26 October 2026. Hosted protection enrollment, signed native HTTP recovery and protected public-manager hard-delete acknowledgement-loss are verified on MongoDB, SQLite and Neo4j. The full ORM/CQL roadmap and actual process-restart acceptance remain open.
 
 ## Request
 
@@ -59,4 +59,8 @@ The signed native cohort now passes **78 REST requests**, **48 GraphQL/gRPC requ
 
 Sources stayed unchanged, seven producer/consumer pairs matched, owned services stopped and the exact fixture/SQLite files were removed. [Native TRX](Verification/hosted-protection-native.trx.gz), [native result](Verification/hosted-protection-result.json), [source identities](Verification/hosted-protection-source.json.gz), [binary identities](Verification/hosted-protection-binaries.json). The bounded demo runner verifies exact counts; interactive mode also permits additional presenter queries, with four direct guard controls covering both modes.
 
-Remaining: protected hard-delete acknowledgement-loss certification, actual process interruption/restart, operator retention/reconciliation, and the broader tenant/query/federation acceptance. Successful hard-delete HTTP recovery is verified; the existing injected hard-delete commit-loss controls still use the direct provider fixture and must not be presented as the protected hosted fault gate.
+The protected public-manager hard-delete fault gate now also passes on all three providers. A test-only capability proxy forwards preparation claims unchanged and injects acknowledgement loss only at conditional mutation execution. The native transaction commits once, the public manager reports reconciliation required without changing the caller snapshot, and the durable preparation contains an authenticated envelope. After provider reactivation, stored-only recovery reconstructs the original hard-delete operation and finds its committed receipt without replay. This replaces the earlier opaque-preparation hard-delete fixture; opaque save envelopes remain storage-conformance controls.
+
+The complete native cohort again passed with the same 465 settlements / 517 attempts, unchanged sources and seven matching producer/consumer pairs. Owned services stopped and the exact fixture/SQLite files were removed. [Fault-gate TRX](Verification/protected-hard-delete-native.trx.gz), [result](Verification/protected-hard-delete-result.json), [source identities](Verification/protected-hard-delete-source.json.gz), [binary identities](Verification/protected-hard-delete-binaries.json).
+
+Remaining: actual process interruption/restart, operator retention/reconciliation, and broader tenant/query/federation acceptance. The injected failure crosses the public manager boundary; a separate injected signed-HTTP failure scenario and explicit per-transport envelope inspection are not claimed by this gate. Provider reactivation is not an operating-system process restart.

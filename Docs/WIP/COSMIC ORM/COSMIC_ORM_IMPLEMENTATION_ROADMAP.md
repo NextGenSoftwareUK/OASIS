@@ -313,3 +313,7 @@ Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on ma
 ### Stage7 MongoDB adoption checkpoint — 20 October 2026
 
 MongoDB now implements atomic committed-delta capture using the shared Core model and Shared receipt codec. SQLite and MongoDB expose the conditional-delta capability; authorized stored-value access, wider provider rollout, ordinary CRUD/replicas and retention/operator workflows remain required. See [MongoDB acceptance and scope](MONGO_COMMITTED_DELTAS.md).
+
+## 26 October: protected public-manager hard-delete fault gate verified
+
+MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment followed by exactly one native mutation commit with acknowledgement loss. Caller snapshot remains unchanged; after provider reactivation stored-only recovery authenticates the original preparation and finds the committed hard-delete receipt without replay. Complete native cohort: 465 settlements / 517 attempts; sources unchanged; seven producer/consumer identities match; owned fixture removed. Evidence and remaining process-restart/transport/tenant/federation work: [hosted recovery](HOSTED_OPERATION_RECOVERY.md). The overall roadmap remains open.

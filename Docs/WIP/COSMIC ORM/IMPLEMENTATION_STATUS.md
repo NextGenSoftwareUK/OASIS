@@ -1,3 +1,5 @@
+26 October checkpoint: protected public-manager hard-delete acknowledgement-loss PASS on all three providers; stored-only authenticated recovery, caller unchanged, one native commit. Full native465 settlements/517attempts; seven binary pairs match and sources unchanged. See HOSTED_OPERATION_RECOVERY.md and Verification/protected-hard-delete-*. Actual OS-process restart and broader roadmap remain open.
+
 ## Hosted write enrollment and signed recovery - 26 October 2026
 
 Configured app grants now protect every selected record on request-owned save/batch/delete managers, including new assigned IDs and runtime contract admission, without fallback on denial. REST aliases/provider-key deletion and the GraphQL/gRPC wrapper share this enrollment. Core3501PASS0skip/WEB4313PASS1StripeSkip/bothCoretargets+shippingbuildPASS. Signed native save/soft/hard recovery passes MongoDB/SQLite/Neo4j; foreign/anonymous controls and exactbilling verified. Currentcohort465settlements517attempts/12recoveryssettlements, unchangedsource/sevenmatchedpairs/ownedteardown. [Contract and evidence](HOSTED_OPERATION_RECOVERY.md).
