@@ -118,7 +118,7 @@ public partial class DynamoHistoryNativeTests
         }finally{field.SetValue(provider,original);await provider.DeActivateProviderAsync();}
     }
     private static AmazonDynamoDBConfig Configuration()=>new(){ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0};
-    private static AmazonDynamoDBClient Client()=>new(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),
+    internal static AmazonDynamoDBClient Client()=>new(new BasicAWSCredentials("ownedhistorytest","ownedhistorytest"),
         Configuration());
     private sealed class FaultClient:AmazonDynamoDBClient
     {
@@ -195,7 +195,7 @@ public partial class DynamoHistoryNativeTests
         var task=(Task)typeof(DynamoDBOASIS).GetMethod("WriteRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(row.GetType()).Invoke(provider,new object?[]{new PutItemRequest{TableName=table,Item=item},true,(Action)(()=>{}),null})!;
         await task;return (IHolonBase)task.GetType().GetProperty("Result")!.GetValue(task)!;
     }
-    private static async Task RemoveOwned(AmazonDynamoDBClient client,string table,Guid id,string expected)
+    internal static async Task RemoveOwned(AmazonDynamoDBClient client,string table,Guid id,string expected)
     {
         var key=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString()}}};
         var deleted=await client.DeleteItemAsync(new DeleteItemRequest{TableName=table,Key=key,ConditionExpression="data_json = :expected",ExpressionAttributeValues=new(){{":expected",new(){S=expected}}},ReturnValues=ReturnValue.ALL_OLD});
