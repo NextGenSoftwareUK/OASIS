@@ -2211,3 +2211,30 @@ HTTP, configured route/alias admission coverage, pre-boundary provider activatio
 explicit read/write tariffs, gRPC and GraphQL actor binding remain open. See
 [CQL REST conditional write contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md)
 for payloads, alias headers, statuses, exact verification scope and remaining gates.
+
+
+## Actual REST HTTP and admission ownership — 26 October 2026
+
+V2 save intent is checked before configuration/manager acquisition. A configured
+host rejects an alias without inherited admission; invalid intent cannot apply
+SetGlobally changes. Admitted provider activation belongs to the physical
+attempt owner. Error-only bulk responses copy flags without mapping a null
+payload. Existing legacy execution remains unchanged.
+
+Five functional HTTP baseline failures were reproduced, then fixed. Nine real
+shipping MVC/Kestrel controls now pass, including actual403/409/503 status and
+error codes, forbidden/outage settings restoration, alias admission rejection
+and attempt-before-activation ordering. Normal WEB4 units200/200 pass (excluding
+operator Mongo soak/external Stripe integration); full Core3,302/3,302 pass.
+Final separate native gate passes all three service boundaries,138SDK/138signed
+CQL HTTP examples and345settled CQL operations. Sources and six native binary
+pairs match; shipping WEB4 DLL matches its actual HTTP consumer5D3049F6.
+Owned native process30016 exited and fixture ports/files are absent. See
+`TestResults/CosmicCqlDemo/hosted-http-evidence.json` and the
+[REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md).
+
+Controlled MVC uses mocked storage/authenticated avatar; separate native service
+proof does not establish the joined deployed startup/JWT/DataController/native
+store/admission/settlement flow. That joined gate, explicit ownership-read/write
+pricing, remaining request-option/cold-start mode certification, gRPC saves and
+GraphQL actor binding remain open before recipient/tenant query enrollment.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -42,6 +42,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      {
          var callerId = Avatar?.Id ?? Guid.Empty;
          var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
+         var isV2Write = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+         if (isV2Write)
+         {
+             var intent = HolonWriteEndpoint.ValidateIntent<IHolon>(request, callerId,
+                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                 HttpContext.RequestServices.GetService(typeof(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes)) != null);
+             if (intent.IsError)
+             {
+                 var status = HolonWriteEndpoint.Status(intent);
+                 Response.StatusCode = (int)status;
+                 return HttpResponseHelper.FormatResponse(intent, status, request.ShowDetailedSettings);
+             }
+         }
          OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
          if (configResult.IsError && configResult.Response != null)
@@ -49,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
          try
          {
-         if (HolonManager.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+         if (isV2Write)
          {
              var written = await HolonWriteEndpoint.SaveAsync(HolonManager, request, callerId, callerIsWizard,
                  Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
