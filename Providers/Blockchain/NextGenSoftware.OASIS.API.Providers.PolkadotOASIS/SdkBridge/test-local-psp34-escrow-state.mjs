@@ -4,9 +4,11 @@ import { resolve } from 'node:path';
 import { ApiPromise } from '@polkadot/api';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { readPsp34EscrowState } from './psp34-contract-read.mjs';
-assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1');assert.equal(process.argv.length, 2);
+assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1');
+assert.ok(process.argv.length === 2 || (process.argv.length === 3 && process.argv[2] === '--public'));
+const publicFixture = process.argv[2] === '--public';
 const folder = resolve(import.meta.dirname, '../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot');
-for (const name of ['psp34-escrow-deployment-pending.json', 'psp34-escrow-lifecycle-pending.jsonl'])
+for (const name of ['psp34-escrow-deployment-pending.json', 'psp34-escrow-lifecycle-pending.jsonl', 'psp34-escrow-public-pending.jsonl'])
   assert.equal(existsSync(resolve(folder, name)), false, 'Unresolved originals prevent final-state certification.');
 const deployed = JSON.parse(readFileSync(resolve(folder, 'psp34-escrow-deployment.completed.json'), 'utf8'));
 assert.equal(deployed.nativeDeploymentVerified, true);
@@ -14,10 +16,10 @@ const api = await ApiPromise.create({ provider: new ReadOnlyHttpProvider('http:/
 try {
   assert.equal(api.genesisHash.toHex(), '0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208');
   const state = await readPsp34EscrowState(api, { contractAddress: deployed.address, contractCodeHash: deployed.codeHash,
-    origin: deployed.sender, tokenId: { U128: '18446744073709551620' } });
+    origin: deployed.sender, tokenId: { U128: publicFixture ? '18446744073709551621' : '18446744073709551620' } });
   assert.equal(state.owner, null);assert.equal(state.escrowBeneficiary, null);assert.equal(state.totalSupply, '0');
   const proof = { ...state, submitted: false, signingKeysUsed: false, nativeBeneficiaryQueryVerified: true,
     scope: 'empty token/beneficiary and supply at this finalized snapshot; not lock/unlock lifecycle acceptance' };
-  writeFileSync(resolve(folder, 'psp34-escrow-state-current.json'), JSON.stringify(proof, null, 2) + '\n');
+  writeFileSync(resolve(folder, publicFixture ? 'psp34-escrow-public-state-current.json' : 'psp34-escrow-state-current.json'), JSON.stringify(proof, null, 2) + '\n');
   console.log(JSON.stringify(proof));
 } finally { await api.disconnect(); }
