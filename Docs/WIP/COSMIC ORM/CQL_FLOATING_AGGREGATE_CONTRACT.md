@@ -136,3 +136,30 @@ six Core/Shared/Mongo producer/native/unit assembly copies match. Owned Mongo
 TestResults/CosmicCqlDemo/mongo-floating-scalar-evidence.json.
 This enrolls only SDK scalar arithmetic. Mongo floating grouped aggregates,
 selected group comparisons/order and floating HTTP/demos remain pending.
+
+
+## MongoDB grouped final-value component — native verification passed
+
+The prepared native normalizer carries signed base2^30 sums into nonnegative
+magnitude words, divides by participation for Average, and selects the exact
+IEEE quantum from the integer quotient's bit length. It reconstructs only a
+bounded prefix (at most82bits for Double), preserving discarded guard/sticky
+bits and the exact mean remainder before ties-to-even rounding. Decimal128 is
+used only for exact bounded integer carries/division/prefixes, never as a
+conversion of source floating values or the complete large numerator.
+
+The selected rounded coefficient and power of two produce an exact representable
+native floating value; canonical zero is positive. Finite overflow/empty mean
+use the component's null sentinel, to be checked with original raw proof packets
+by the eventual query owner. Existing shared Core publication remains authoritative.
+This component does not enroll grouped capabilities or replace off-page validation.
+
+Two native kernel cases are prepared, covering every exponent, seeded mixed
+reductions, cancellation, rounding ties, overflow and maximum participation.
+Initial compile found one missing closing parenthesis, corrected before native
+execution. Final gate21862 passes both cases:706Single/4,409Double packets,
+5,115total; Sum and Average both match Core bit-for-bit. Three producer/native
+Core/Shared/Mongo DLLpairs match. Owned27029 is absent after runner teardown.
+Evidence: TestResults/CosmicCqlDemo/mongo-floating-kernel-evidence.json.
+This is component acceptance, not a new full456native/560unit run. Grouped query
+compilation, raw proof validation and explicit capability enrollment remain next.
