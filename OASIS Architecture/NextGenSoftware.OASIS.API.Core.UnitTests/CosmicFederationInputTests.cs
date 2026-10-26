@@ -178,4 +178,36 @@ public class CosmicFederationInputTests
         Assert.Equal("CQL_FEDERATION_EXECUTION_INVALID", duplicate.ErrorCode);
         Assert.Equal(0, mongo.Calls);
     }
+
+    [Fact]
+    public async Task EachTargetsPrivateRowsUseOnlyItsOwnAuthoritativeCatalogue()
+    {
+        var actor = Guid.NewGuid();
+        var mongoRow = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), Name = "mongo private" };
+        var sqliteRow = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), Name = "sqlite private" };
+        var capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.Membership,
+            new CosmicQueryFieldCapability("Id", typeof(Guid), CosmicQueryComparisonOperator.Equal));
+        var mongo = new Adapter(ProviderType.MongoDBOASIS)
+        { QueryCapabilities = capabilities, Handler = _ => Task.FromResult(Rows(mongoRow)) };
+        var sqlite = new Adapter(ProviderType.SQLLiteDBOASIS)
+        { QueryCapabilities = capabilities, Handler = _ => Task.FromResult(Rows(sqliteRow)) };
+        var bindings = new[]
+        {
+            new CosmicFederationReadPolicy(mongo.QueryProviderType,
+                CosmicQueryReadAccess.AuthoritativeRecords(actor, mongo.QueryProviderType, new[] { mongoRow.Id }).Result),
+            new CosmicFederationReadPolicy(sqlite.QueryProviderType,
+                CosmicQueryReadAccess.AuthoritativeRecords(actor, sqlite.QueryProviderType, new[] { sqliteRow.Id }).Result)
+        };
+        var plan = CosmicFederationPlanner.Plan(CosmicQuery<Holon>.Create(CosmicQueryScope.AllEligible),
+            CosmicFederationOptions.Create().Result, mongo.QueryProviderType,
+            new[] { new CosmicQueryTarget(mongo.QueryProviderType, capabilities), new CosmicQueryTarget(sqlite.QueryProviderType, capabilities) }, bindings);
+        Assert.False(plan.IsError, plan.Message);
+        var accepted = await CosmicFederationInputCapture.CaptureAsync(plan.Result, new[] { mongo, sqlite });
+        Assert.False(accepted.IsError, accepted.Message);
+        Assert.Equal(new[] { mongoRow.Id, sqliteRow.Id }, accepted.Result.Providers.Select(group => Assert.Single(group.Rows).Id));
+        sqlite.Handler = _ => Task.FromResult(Rows(mongoRow));
+        var wrongAuthority = await CosmicFederationInputCapture.CaptureAsync(plan.Result, new[] { mongo, sqlite });
+        Assert.Equal("CQL_VISIBILITY_VIOLATION", wrongAuthority.ErrorCode);
+        Assert.Null(wrongAuthority.Result);
+    }
 }
