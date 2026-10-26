@@ -112,7 +112,14 @@ public class AwsS3EncryptedLifecycleTests
     {foreach(var sync in new[]{false,true})foreach(var email in new[]{false,true})foreach(var soft in new[]{false,true})foreach(var rename in new[]{false,true})yield return new object[]{sync,email,soft,rename};}
 
     [DataTestMethod][DynamicData(nameof(AvatarSelectorRaces),DynamicDataSourceType.Method)]
-    public async Task Avatar_alias_deletion_preserves_changed_encrypted_winner_over_official_sdk(bool sync,bool email,bool soft,bool rename)
+    public Task Avatar_alias_deletion_preserves_changed_encrypted_winner_over_official_sdk(bool sync,bool email,bool soft,bool rename)
+        => AliasDeletionPreservesChangedWinner(sync,email,soft,rename,false);
+
+    [DataTestMethod][DynamicData(nameof(AvatarSelectorRaces),DynamicDataSourceType.Method)]
+    public Task Detail_alias_deletion_preserves_changed_encrypted_winner_over_official_sdk(bool sync,bool email,bool soft,bool rename)
+        => AliasDeletionPreservesChangedWinner(sync,email,soft,rename,true);
+
+    private async Task AliasDeletionPreservesChangedWinner(bool sync,bool email,bool soft,bool rename,bool detail)
     {
         using var store=new Store();var key=RandomNumberGenerator.GetBytes(32);
         try{
@@ -130,8 +137,11 @@ public class AwsS3EncryptedLifecycleTests
             var writes=store.Writes;var deletes=store.Deletes;var changed=false;
             store.BeforeGetReply=read=>{if(read!=recordKey)return;store.BeforeGetReply=null;changed=true;
                 store.Objects.Clear();foreach(var item in winner)store.Objects.Add(item.Key,item.Value);};
-            var result=email?sync?provider.DeleteAvatarByEmail("private-original@example.invalid",soft):await provider.DeleteAvatarByEmailAsync("private-original@example.invalid",soft)
-                :sync?provider.DeleteAvatarByUsername("private-original",soft):await provider.DeleteAvatarByUsernameAsync("private-original",soft);
+            var result=detail
+                ?email?sync?provider.DeleteAvatarDetailByEmail("private-original@example.invalid",soft):await provider.DeleteAvatarDetailByEmailAsync("private-original@example.invalid",soft)
+                    :sync?provider.DeleteAvatarDetailByUsername("private-original",soft):await provider.DeleteAvatarDetailByUsernameAsync("private-original",soft)
+                :email?sync?provider.DeleteAvatarByEmail("private-original@example.invalid",soft):await provider.DeleteAvatarByEmailAsync("private-original@example.invalid",soft)
+                    :sync?provider.DeleteAvatarByUsername("private-original",soft):await provider.DeleteAvatarByUsernameAsync("private-original",soft);
             Assert.IsTrue(changed);Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.Result);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,result.ErrorCode);
             Assert.AreEqual(writes,store.Writes);Assert.AreEqual(deletes,store.Deletes);Assert.AreEqual(winner.Length,store.Objects.Count);
