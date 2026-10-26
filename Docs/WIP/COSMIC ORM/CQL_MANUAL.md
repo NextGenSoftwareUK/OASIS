@@ -2153,3 +2153,38 @@ X-COSMIC-Expected-Revision: 33333333-3333-3333-3333-333333333333
 A missing/malformed logical identity rejects before storage. A key-to-ID mismatch returns400, a foreign stored creator returns403, and a stale revision returns409. Do not infer ownership from the key or choose another provider after a failed authority observation. An all-zero revision GUID is a real revision token; it does not mean create-only. Configured paid hosts must explicitly enroll the exact route and provide `LoadHolonByProviderKey` and `DeleteHolon` tariffs. Missing tariffs reject before provider execution.
 
 Verification scope: the SDK and six MVC route cases pass; signed native GraphQL/gRPC deletion passes on all three target stores. The 27-case signed REST deletion matrix also passes across all three providers, including missing intent, stale conditions and persisted soft/key hard deletion. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md) for the current gate rather than treating this usage example as additional runtime proof.
+
+
+## Read-only recovery of a conditional operation
+
+Advanced trusted SDK callers can inspect a retained original provider request through HolonManager. Preserve the exact ConditionalHolonWriteRequest sent to the authority, including original actor, operation, conditions and selected graph. A fresh query result or reconstructed current holon does not replace it.
+
+```csharp
+// The trusted caller retained this exact original provider intent.
+// The actor comes from authentication, not an untrusted request body.
+var recovery = await manager.ReadConditionalHolonWriteOutcomeAsync(
+    originalProviderRequest,
+    authenticatedActorId);
+
+if (recovery.IsError)
+{
+    // Unavailable or invalid evidence remains unresolved. Do not retry the write.
+    throw new InvalidOperationException($"{recovery.ErrorCode}: {recovery.Message}");
+}
+
+if (recovery.Result.ReceiptState == ConditionalHolonReceiptState.Committed)
+{
+    // The original receipt is verified. This does not execute the mutation again
+    // or automatically publish a fresh tracked entity into the caller.
+    var deltaSummary = recovery.Result.CommittedDeltaSummaryJson;
+}
+else
+{
+    // Absent is an observation, not proof of rejection or permission to replay.
+    // Keep the original operation and evidence for further reconciliation.
+}
+```
+
+The original provider authority is required even if the current default changes. Unsupported providers fail before execution. MongoDB, file-backed SQLite and Neo4j have native receipt/reconnection coverage; private in-memory SQLite cannot provide durable recovery. A configured admission policy needs the exact ReadConditionalHolonWriteOutcome tariff; a general CQL query price does not grant this operation.
+
+There is no authenticated recovery HTTP endpoint yet, and ordinary high-level save/delete calls do not yet provide a durable hosted original-intent recovery workflow. Native acknowledgement-loss and OS-process restart acceptance remain open. See [recovery evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).

@@ -1,3 +1,9 @@
+## Generic routed recovery SDK - verified
+
+Core `1832d0b` routes original-bound read-only operation recovery through HolonManager/HyperDrive. Actor, authority, detached intent, provider capability and returned binding controls pass. Full Core3433 and usage402 tests pass without skips; native routed receipts pass on MongoDB/SQLite/Neo4j with the unchanged453-settlement/496-attempt cohort. Sources, seven producer/consumer pairs and cleanup are verified. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Authenticated host recovery and durable original hosted intent remain unimplemented; actual lost native acknowledgement and OS-process restart gates remain open. The full roadmap is incomplete.
+
 ## Three-provider read-only operation recovery SDK - native verified
 
 Core `b3d4df4` and MongoDB/SQLite/Neo4j provide exact-original conditional receipt lookup without re-execution. Native create/soft-delete/hard-delete receipts survive provider reconnection; absent, repeated, foreign-actor and redaction cases pass on all three stores. Core3420, Neo4j559 and SQLite90 tests pass without skips. Existing453-settlement/496-attempt signed cohort remains green; required source/binary/teardown evidence is preserved. [Scope and remaining recovery gates](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
