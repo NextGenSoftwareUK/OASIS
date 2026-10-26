@@ -13,6 +13,10 @@ public static partial class CqlV1Compiler
 {
     public static CosmicJoinSelection<Holon,Holon,CosmicProjectionRecord,CosmicProjectionRecord> CompileJoin(
         CqlJoinV1Request request,Guid actor,ProviderType? provider)
+        =>CompileJoin(request,actor,provider,null);
+
+    public static CosmicJoinSelection<Holon,Holon,CosmicProjectionRecord,CosmicProjectionRecord> CompileJoin(
+        CqlJoinV1Request request,Guid actor,ProviderType? provider,CosmicQueryReadAccess access)
     {
         if(request==null || request.Left==null || request.Right==null || request.Keys==null || request.Keys.Length is <1 or >8
             || request.Columns==null || request.Columns.Length is <1 or >32 || request.MaximumLeftRows is <1 or >1000
@@ -21,7 +25,7 @@ public static partial class CqlV1Compiler
         var kind=request.Kind switch {"Inner"=>CosmicJoinKind.Inner,"Left"=>CosmicJoinKind.Left,
             _=>throw new ArgumentException("Join kind must be Inner or Left.")};
         CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
-            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take);
+            source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
         var left=Source(request.Left);var right=Source(request.Right);
         var leftKeys=request.Keys.Select(key=>
         {

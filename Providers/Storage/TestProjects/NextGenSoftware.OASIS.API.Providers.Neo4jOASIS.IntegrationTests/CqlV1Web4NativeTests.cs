@@ -161,6 +161,9 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(mode == null || mode is "console" or "serve", "Explicit demo mode required.");
             foreach (var actor in new[] { alice, bob, outsider })
                 authority.Tokens.Add(Token(actor, key, lifetimeMinutes: mode == null ? 5 : 60), actor);
+            var hostedReadPolicyRequests = await VerifyShippingReadPolicy(providers, outbox, authority, secret,
+                outsider, ids, childIds, tag, Journal);
+            Assert.AreEqual(30, hostedReadPolicyRequests);
             var demo = mode == null ? null : new V1DemoSession
             {
                 FixtureTag = tag, Ids = ids,
@@ -439,6 +442,7 @@ public sealed partial class CqlV1Web4NativeTests
                             .Select(row => row.GetProperty("name").GetString()!).ToArray();
                     }
 
+                    var beforeRejectedAuthentication = authority.Started.Count;
                     using (var anonymous = await Send(new { }, Guid.Empty)) Assert.AreEqual(HttpStatusCode.Unauthorized, anonymous.StatusCode);
                     using (var forged = await Send(new { }, alice, tokenOverride: Token(alice,
                                new SymmetricSecurityKey(RandomNumberGenerator.GetBytes(32)))))
@@ -449,7 +453,7 @@ public sealed partial class CqlV1Web4NativeTests
                         Assert.AreEqual(HttpStatusCode.Unauthorized, expired.StatusCode);
                     using (var claims = await Send(new { }, alice, tokenOverride: Token(alice, key, claimId: bob)))
                         Assert.AreEqual(HttpStatusCode.Unauthorized, claims.StatusCode);
-                    Assert.AreEqual(0, authority.Started.Count, "Invalid authentication must never reserve or dispatch.");
+                    Assert.AreEqual(beforeRejectedAuthentication, authority.Started.Count, "Invalid authentication must never reserve or dispatch.");
 
                     foreach (var provider in providers.Keys)
                     {
@@ -1071,6 +1075,7 @@ public sealed partial class CqlV1Web4NativeTests
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     recoveryProvidersVerified, processRestartProvidersVerified = recoveryProvidersVerified,
+                    hostedReadPolicyRequests, hostedReadPolicyProvidersVerified = providers.Count,
                     shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),

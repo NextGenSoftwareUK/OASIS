@@ -93,6 +93,7 @@ try {
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
         if ($report.processRestartProvidersVerified -ne 3) { throw 'Actual process-interruption recovery proof is incomplete.' }
+        if ($report.hostedReadPolicyProvidersVerified -ne 3 -or $report.hostedReadPolicyRequests -ne 30) { throw 'Shipping authoritative read-policy proof is incomplete.' }
         if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
@@ -105,8 +106,8 @@ try {
         # Interactive presenters may run additional queries before Finish.
         # Bounded verification retains exact totals; both require all recovery cases.
         if ($report.settledRecoveryOperations -ne 12 -or
-            (!$Serve -and ($report.settledOperations -ne 465 -or $report.providerAttempts -ne 517)) -or
-            ($Serve -and ($report.settledOperations -lt 465 -or $report.providerAttempts -lt 517))) {
+            (!$Serve -and ($report.settledOperations -ne 492 -or $report.providerAttempts -ne 541)) -or
+            ($Serve -and ($report.settledOperations -lt 492 -or $report.providerAttempts -lt 541))) {
             throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 
