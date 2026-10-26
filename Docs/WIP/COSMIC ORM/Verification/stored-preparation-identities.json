@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-26",
+  "gate": "stored-preparation-core-full",
+  "executed": 3449,
+  "passed": 3449,
+  "skipped": 0,
+  "files": [
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonConditionalPreparation.cs",
+      "bytes": 9171,
+      "sha256": "E4CAA295DC079B0CA55C3EEA51B9D6611AB6A186D6DDF6F414994445520C64FA"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Managers\\HolonManager\\HolonConditionalPreparation.Recovery.cs",
+      "bytes": 13940,
+      "sha256": "CF35F6FE852D08EBDCC15D64DB2D0EE9C7C9068438E39EA964725A019D1FA357"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Serialization\\StoredRecordJson.cs",
+      "bytes": 28557,
+      "sha256": "9476F0072D69F953249E077FC5F76645560EA32E179AA417548ECA1E8F2C8156"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CosmicStoredPreparationStatusTests.cs",
+      "bytes": 9278,
+      "sha256": "C002D690A66ABE2C152F26DBEDC2C6032FA0C973418D764D0980310EB84CACD1"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\netstandard2.1\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3028992,
+      "sha256": "A64952404798114C5E80BAD06F72A7FDF31F033FE46258E93AE6E72BA272D6AF"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3443200,
+      "sha256": "03C5F43D23C89A80B5BC35DD9D236A5F4E7A18F4DC82521FECDE369E1E1C359A"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3443200,
+      "sha256": "03C5F43D23C89A80B5BC35DD9D236A5F4E7A18F4DC82521FECDE369E1E1C359A"
+    }
+  ]
+}
