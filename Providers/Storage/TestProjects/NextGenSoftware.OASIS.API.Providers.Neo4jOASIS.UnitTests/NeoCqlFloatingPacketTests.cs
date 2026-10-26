@@ -54,22 +54,23 @@ public sealed class NeoCqlFloatingPacketTests
 
     [DataTestMethod]
     [DataRow(true)] [DataRow(false)]
-    public void ScalarEnrollmentCannotSilentlyEnrollPlainGroupedArithmetic(bool single)
+    public void ScalarAndGroupedArithmeticHaveIndependentExplicitEnrollment(bool single)
     {
         var source = CosmicQuery<Holon>.Create();
+        Assert.AreNotSame(Neo4jOASIS.CqlScalarCapabilities, Neo4jOASIS.CqlGroupedCapabilities.AggregateCapabilities);
         if (single)
         {
             var scalar = source.Sum(h => CosmicQueryMetadata.Value<float>(h, "reading")).Result;
             Assert.IsFalse(Neo4jOASIS.CqlScalarCapabilities.Admit(scalar).IsError);
             var grouped = source.GroupBy(h => h.Name).Select(g => g.Sum(h => CosmicQueryMetadata.Value<float>(h, "reading"))).Result;
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Neo4jOASIS.CqlGroupedCapabilities.Admit(grouped).ErrorCode);
+            Assert.IsFalse(Neo4jOASIS.CqlGroupedCapabilities.Admit(grouped).IsError);
         }
         else
         {
             var scalar = source.Average(h => CosmicQueryMetadata.Value<double?>(h, "reading")).Result;
             Assert.IsFalse(Neo4jOASIS.CqlScalarCapabilities.Admit(scalar).IsError);
             var grouped = source.GroupBy(h => h.Name).Select(g => g.Average(h => CosmicQueryMetadata.Value<double?>(h, "reading"))).Result;
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Neo4jOASIS.CqlGroupedCapabilities.Admit(grouped).ErrorCode);
+            Assert.IsFalse(Neo4jOASIS.CqlGroupedCapabilities.Admit(grouped).IsError);
         }
     }
 }

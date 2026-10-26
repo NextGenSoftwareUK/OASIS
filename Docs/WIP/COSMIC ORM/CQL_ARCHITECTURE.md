@@ -1496,3 +1496,8 @@ Neo4j floating scalar compilation now reduces admitted values into ten/seventy n
 ## Neo4j floating final-value component - 25 October 2026
 
 Neo4j floating grouped final-value normalization is now native-verified against Core (2cases/5,127packets). Signed base2^30 carry normalization and integer long division retain the complete reduction. Prefix division precedes coefficient recombination, so every Int64 intermediate is bounded while the final coefficient retains24/53bits. Original quotient guard/sticky bits plus exact Average remainder decide ties-to-even, then only the final coefficient is widened/scaled. Native selected-value compilation and raw proof validation remain unintegrated; grouped input admission stays unchanged.
+
+
+## Neo4j grouped floating SDK acceptance - 25 October 2026
+
+All three target adapters now support native SDK floating scalar/grouped Sum/Average. Neo4j grouping computes exact selected values using the verified Int64 finalizer, retains raw packed10/70word arrays for off-page validation and reuses the scalar word-domain reader before Core normalization. Independent grouped input/result lists now explicitly enroll required/nullable Single/Double; selected predicates/order/pages use the same normalized values.490native/552matched units pass with eight matching copies. Native source-window/access/traversal/transaction/budget owners remain; no client input scan or fallback. HTTP enrollment/demos remain pending.
