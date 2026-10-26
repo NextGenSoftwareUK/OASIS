@@ -30,7 +30,7 @@ public class SolanaCollectionTests
         var proxy=(HistoryProxy)(object)rpc;
         proxy.Writer=account.PublicKey.Key;
         var key=RandomNumberGenerator.GetBytes(32);
-        var repository=new SolanaRepository(account,rpc,()=> (byte[])key.Clone());
+        var repository=new SolanaRepository(account,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
         var id=Guid.NewGuid();
         string Memo<T>(T dto) => Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes((string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T)).Invoke(repository,new object[] {dto!})!));
         proxy.Memos["new"]=Memo(new SolanaAvatarDto {Id=id,Version=2,IsDeleted=deleted});
@@ -64,7 +64,7 @@ public class SolanaCollectionTests
         var proxy=(HistoryProxy)(object)rpc;
         proxy.Scenario=scenario; proxy.Writer=account.PublicKey.Key;
         var key=RandomNumberGenerator.GetBytes(32);
-        var repository=new SolanaRepository(account,rpc,()=> (byte[])key.Clone());
+        var repository=new SolanaRepository(account,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
         var id=Guid.NewGuid();
         string Memo<T>(T dto) => Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes((string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T)).Invoke(repository,new object[] {dto!})!));
         proxy.Memos["new"]=Memo(new SolanaAvatarDto {Id=id,Version=2,UserName="actual stored avatar",IsDeleted=scenario=="deleted"});

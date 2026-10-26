@@ -19,7 +19,7 @@ public sealed class SolanaHistoryWireTests
     {
         using var handler=new WireHandler(response);using var http=new HttpClient(handler){BaseAddress=new Uri("http://127.0.0.1:1")};
         var owner=new Account();var rpc=ClientFactory.GetClient("http://127.0.0.1:1",null,http,null);
-        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key,handler);
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=owner.PublicKey.Key});
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsNotNull(result.Exception);Assert.AreEqual(1,handler.Calls);
@@ -35,7 +35,7 @@ public sealed class SolanaHistoryWireTests
         using var handler=new WireHandler("{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":[{\"signature\":\""+signature+"\",\"slot\":20,\"err\":"+error+",\"memo\":null,\"blockTime\":1700000000,\"confirmationStatus\":\"finalized\"}]}");
         using var http=new HttpClient(handler){BaseAddress=new Uri("http://127.0.0.1:1")};var owner=new Account();
         var rpc=ClientFactory.GetClient("http://127.0.0.1:1",null,http,null);
-        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key,handler);
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=owner.PublicKey.Key});
         Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(1,result.Result.Count);
@@ -59,8 +59,10 @@ public sealed class SolanaHistoryWireTests
             if(parsed.RootElement.GetProperty("method").GetString()=="getTransaction")
             {
                 using var history=JsonDocument.Parse(response);var row=history.RootElement.GetProperty("result")[0];
-                var detail=System.Text.Json.JsonSerializer.Serialize(new{jsonrpc="2.0",id=0,result=new{slot=20,
-                    transaction=new{signatures=new[]{row.GetProperty("signature").GetString()},message=new{accountKeys=Array.Empty<string>(),instructions=Array.Empty<object>()}},
+                var detail=System.Text.Json.JsonSerializer.Serialize(new{jsonrpc="2.0",id=parsed.RootElement.GetProperty("id").GetInt32(),result=new{slot=20,version="legacy",
+                    transaction=new{signatures=new[]{row.GetProperty("signature").GetString()},message=new{
+                        header=new{numRequiredSignatures=1,numReadonlySignedAccounts=0,numReadonlyUnsignedAccounts=0},
+                        accountKeys=new[]{new Account().PublicKey.Key},instructions=Array.Empty<object>()}},
                     meta=new{err=row.GetProperty("err")}}});
                 return new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(detail,Encoding.UTF8,"application/json")};
             }

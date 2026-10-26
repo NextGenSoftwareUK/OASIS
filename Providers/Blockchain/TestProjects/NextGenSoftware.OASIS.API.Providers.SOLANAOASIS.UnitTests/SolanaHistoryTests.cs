@@ -15,7 +15,7 @@ public sealed class SolanaHistoryTests
     public async Task PaginationUsesNativeCursorAndNeverReturnsPartialSuccessOnFailure(string mode)
     {
         var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,HistoryRpc>();var proxy=(HistoryRpc)(object)rpc;proxy.Mode=mode;
-        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key,null,SolanaReadFixture.WithCancellation(rpc));
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=owner.PublicKey.Key});
         Assert.AreEqual(2,proxy.Calls);Assert.AreEqual("page999",proxy.Before);
@@ -28,7 +28,7 @@ public sealed class SolanaHistoryTests
     public async Task NativeHistoryPreservesSignaturesFailureAndInclusiveSlotRange(bool synchronous)
     {
         var owner=new Account();var rpc=DispatchProxy.Create<IRpcClient,HistoryRpc>();var proxy=(HistoryRpc)(object)rpc;
-        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key,null,SolanaReadFixture.WithCancellation(rpc));
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var request=new GetWeb3TransactionsRequest{WalletAddress=owner.PublicKey.Key,FromBlock=10,ToBlock=20};
         var result=synchronous ? provider.GetTransactions(request):await provider.GetTransactionsAsync(request);

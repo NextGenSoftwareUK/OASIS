@@ -63,10 +63,10 @@ public partial class SolanaRepository
         for(var index=commit.Count-1;index>=0;index--)
         {
             if(!visited.Add(signature))throw new System.IO.InvalidDataException("Solana memo chain contains a repeated transaction reference.");
-            var response=await rpcClient.GetTransactionAsync(signature,Commitment.Finalized);
-            if(response==null || !response.WasSuccessful || response.HttpStatusCode!=HttpStatusCode.OK)
+            var response=await transactionReader(signature);
+            if(response==null)
                 throw new InvalidOperationException("Finalized Solana memo chunk is unavailable; no partial record returned.");
-            var part=new UTF8Encoding(false,true).GetString(ValidateStoredTransaction(response.Result,signature,oasisAccount.PublicKey.Key));
+            var part=new UTF8Encoding(false,true).GetString(ValidateStoredTransaction(response,signature,oasisAccount.PublicKey.Key));
             var frame=SolanaMemoFrames.ParseChunk(part);
             if(frame.WriteId!=commit.WriteId || frame.Index!=index || frame.Count!=commit.Count
                 || frame.Length!=commit.Length || frame.Hash!=commit.Hash)

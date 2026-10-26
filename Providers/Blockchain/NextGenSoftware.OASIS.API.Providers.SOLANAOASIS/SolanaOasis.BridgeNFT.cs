@@ -52,62 +52,21 @@ public partial class SolanaOASIS
         var result = new OASISResult<BridgeTransactionStatus>();
         try
         {
-            if (!IsProviderActivated)
+            token.ThrowIfCancellationRequested();
+            RequireNativeBase58(transactionHash,64);
+            // A slot in a merely confirmed transaction is not finality. This reader
+            // explicitly requests finalized data and throws on RPC/HTTP/format errors.
+            // A finalized result:null also includes not-yet-finalized transactions;
+            // query native history status before distinguishing Pending from NotFound.
+            var transaction = await _transactionReader(transactionHash,token);
+            if (transaction == null)
             {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
+                var pending = await Infrastructure.SolanaTransactionReader.ExistsPendingAsync(
+                    _rpcEndpoint,transactionHash,_nativeFeeReadHandler,token);
+                result.Result = pending ? BridgeTransactionStatus.Pending : BridgeTransactionStatus.NotFound;
             }
-
-            if (string.IsNullOrWhiteSpace(transactionHash))
-            {
-                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                return result;
-            }
-
-            // Check transaction status using RPC
-            var transactionResult = await _rpcClient.GetTransactionAsync(transactionHash);
-            
-            if (!transactionResult.WasSuccessful)
-            {
-                // Transaction might not be found or failed
-                result.Result = BridgeTransactionStatus.NotFound;
-                result.IsError = false;
-                return result;
-            }
-
-            if (transactionResult.Result != null)
-            {
-                var transaction = transactionResult.Result;
-                if (transaction.Meta != null && transaction.Meta.Error != null)
-                {
-                    result.Result = BridgeTransactionStatus.Canceled;
-                }
-                else if (transaction.Meta != null && transaction.Meta.Error == null)
-                {
-                    // Check if transaction is finalized
-                    if (transaction.Slot > 0)
-                    {
-                        result.Result = BridgeTransactionStatus.Completed;
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.Pending;
-                    }
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.Pending;
-                }
-            }
-            else
-            {
-                result.Result = BridgeTransactionStatus.NotFound;
-            }
-
+            else result.Result = transaction.Meta.Error != null ? BridgeTransactionStatus.Canceled : BridgeTransactionStatus.Completed;
+            result.IsLoaded = true;
             result.IsError = false;
         }
         catch (Exception ex)
