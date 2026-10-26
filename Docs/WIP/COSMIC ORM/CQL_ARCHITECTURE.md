@@ -1660,3 +1660,18 @@ CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment 
 ## Authorization policy lifetime ownership
 
 CQL and operation-recovery readiness borrow disposable DI scopes for composition checks. They do not authorize actors or select storage at startup. Scoped policies end with the check; singleton policies remain container-owned. Request handlers resolve their own request-scoped policy rather than retaining a startup instance. Recovery's root-container lifetime regressions and the full 320-case shipping WEB4 pass are documented in [hosted operation recovery](HOSTED_OPERATION_RECOVERY.md). The earlier native matrix is a separate cohort.
+
+## Bounded SDK federation — 26 October 2026
+
+Core now owns explicit federation options/planning, all-adapter preflight,
+complete input capture and global row merging through CosmicFederationExecutor.
+Input capture calls the existing CosmicQueryExecutor, which retains native
+admission and CosmicQueryAttemptOwner receipt ownership. The same cumulative
+budget continues through identity resolution, exact ordering and global paging.
+ProviderPriority returns observed copies and a deterministic choice, without a
+causal freshness claim. Ordinary per-provider execution retains its existing API.
+
+The SDK merge passes 3,591 Core tests but has not yet passed the real-provider or
+HTTP federation acceptance gate. Cursor continuity, causal agreement, distributed
+snapshots and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md for
+the precise contract and remaining gates; CQL_MANUAL.md has the SDK example.

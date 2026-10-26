@@ -1,7 +1,7 @@
 # CQL federation implementation contract
 
 25 October 2026. This specifies remaining implementation and acceptance work.
-Federated global results, cursors and distributed joins are **not implemented**.
+Bounded complete-source SDK row federation is implemented with unit verification below. Authenticated cursors, distributed joins, HTTP enrollment and native federation acceptance remain **unimplemented or unverified**.
 Current multi-provider execution returns separate provider results. That behavior
 remains the default; federation requires an explicit new intent and capability.
 
@@ -191,3 +191,34 @@ into a complete input set. New focused tests cover this boundary alongside
 preflight, detachment, later failure, cumulative input limits and cancellation.
 Verification passed: Core dual-target build and all 3,579 unit tests, zero skips, including ten new input cases. Retained evidence: Verification/federation-input-core.trx.gz and federation-input-identities.json. Native billing/provider certification has not been run for federation. This stage is internal;
 merged global results and a public federation endpoint remain unimplemented.
+
+## 26 October: global SDK row execution
+
+`CosmicFederationExecutor.ExecuteAsync` now joins the admitted complete input
+stage to a bounded global merge. It validates every ordering cell, including
+priority-losing copies, before identity selection and global paging. Common
+ordering uses explicit missing/null/value states, exact scalar domains, Unicode
+scalar ordering and ID/provider tie-breaks. Numeric metadata conversions that
+lose precision reject. UTC dates and canonical GUIDs retain their declared types.
+No source filter, source order or source window is replaced by client evaluation.
+
+PreserveCopies keeps physical copies separate. ProviderPriority selects from the
+exact admitted priority list before applying global ordering and Skip/Take. Each
+result retains its observed copies, selected provider and selection reason;
+CausalAgreementEstablished is false. Neither provider revision strings, clocks
+nor Version numbers establish cross-provider freshness. RequireAgreement and
+repeatable snapshots remain rejected at planning.
+
+One cumulative budget spans native input, key decoding, identity resolution,
+merge sorting and complete canonical output (including observed copy provenance).
+A limit, cancellation or bad late cell returns no result. Explicit bounded merge
+sort preserves the original budget error instead of wrapping comparer exceptions.
+The result reports observed input count and resolved count before its global page.
+
+Verification: dual-target Core build passed; full Core suite 3,591 passed, zero
+skips, including twelve new merge cases. The initial two fake-capability failures
+were corrected by declaring long? explicitly, as native providers already do.
+Retained evidence: Verification/federation-merge-{core,initial}.trx.gz and
+federation-merge-identities.json. This is SDK/unit verification only. Actual
+MongoDB/SQLite/Neo4j federation, billing receipts, HTTP, cursors, causal agreement,
+repeatable consistency and distributed joins remain required acceptance work.
