@@ -1869,3 +1869,11 @@ This closes bounded flat selected-result composition across SDK/HTTP on the
 three providers. Graph-source composition is explicitly unadmitted. Broader
 CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
+
+## Sharing writes and CQL visibility
+
+WEB4 helpers support conditional ShareAsync/RevokeAsync mutations; see the
+[sharing write contract and examples](CQL_SHARING_WRITE_CONTRACT.md). A successful
+share does not widen the current CQL owner/public profile. Native recipient/tenant
+policy support remains unenrolled. Handle conflicts and uncertain outcomes as
+errors; do not retry through an ordinary save.
