@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## 2026-10-25 S3 listing integrity and OCI input admission
+
+S3's real SDK controls reproduced14false-list/public-absence failures; shared transport now rejects contradictory reported counts and unrequested grouped prefixes, preserving omitted-count/valid-empty behavior. Full180S3protocol+41AWSunits PASS0skip, same cached SDK/in-memory HTTP, no hosted call/runtime/download/restore. OCI separately reproduced20invalid physical-name admission failures; full155signed-SDK controls PASS0skip including valid1024-byte Unicode wire cases. Exact hashes and source/copy identities are in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md, ORACLE_CLIENT_PRIORITY.md and ENVIRONMENT_INVENTORY.md. These are distinct component/cohort proofs, not refreshed Dynamo/Oracle Database native or hosted/full-provider/globalV2 certification. User Oracle/AWS cloud access remains pending. EVM owned HTTP cancellation controls239Web3/169Ethereum are green; native EVM startup diagnostic remains policy-blocked, with explicit repeat authorization requested and not assumed.
+
 ## 2026-10-25 AWS/Dynamo native follow-up complete
 
 Dynamo181/181realnativeSDKPASS0skip59s, including4newDynamo/AWS-alias historical embedded privacy cases. Separate fullAWS138/138PASS0skip94s, baseline1PASS/conditionalcleanup1PASS3s;81ownedrows independentlyabsent, pending0/portsabsent/runtime stopped. Core761/B50488A4 and respectiveShared082E67C0(Dynamo)/8C1C7A80(AWS) source/copies pass, not one identical binarycohort. Earliercontrols0F75D15A retain ownscope. Exact reports/resources in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md/inventory. No newruntime/reset/hostedrequest/Developmentdeployment; hostedAWS/S3 security/cost/fullinterface/allprovider/globalV2 gates remainOPEN.
