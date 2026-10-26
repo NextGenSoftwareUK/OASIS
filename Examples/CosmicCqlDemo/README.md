@@ -1,8 +1,30 @@
 # COSMIC CQL demo
 
-## Decimal arithmetic walkthrough
+## Floating arithmetic walkthrough
 
-The current walkthrough contains **40 examples per provider**, with matching C#
+The walkthrough now contains **46 examples per provider**. Examples 41–43 use
+Double; 44–46 use Single. Each sequence shows Sum, nullable Average and grouped
+Sum/Average with result filters, ordering and paging. The same C# and HTTP code
+runs against MongoDB, SQLite and Neo4j.
+
+Source `OrderBy(...).Take(2)` chooses the two participating readings before
+reduction. Group result `Take(1)` applies after aggregate filters and ordering.
+Both domains accumulate exactly and round once using ties to even; Average keeps
+the floating domain and its nullable result. Canonical HTTP result/filter strings
+preserve precision in JavaScript. This differs intentionally from sequential
+floating addition, which rounds after every step.
+
+Read the spaced/commented [C# examples](V1NativeQueries.cs) first, then the matching
+[HTTP requests](V1Walkthrough.cs). Browser presets `doubleSum`, `doubleAverage`,
+`doubleNumericGroups`, `singleSum`, `singleAverage` and `singleNumericGroups` show
+the same operations in the editable request form. All 18 offline preset checks
+and the standalone demo build pass. Live **138 SDK /138 signed HTTP** verification passes across all three providers,
+with345settled operations/337attempts, unchanged source snapshots and six matched
+producer/consumer identities. Owned services and fixtures were cleaned up.
+
+## Previous checkpoint: Decimal arithmetic walkthrough
+
+That checkpoint contains **40 examples per provider**, with matching C#
 and signed HTTP requests for MongoDB, SQLite and Neo4j. Live verification passes **120 SDK /120 signed HTTP** queries, with327settled
 operations/319attempts. All six binary identities match and source snapshots stay
 unchanged; owned services stop normally.

@@ -1,5 +1,31 @@
 # CQL v1 developer demo verification
 
+## Floating arithmetic live demo acceptance — 25 October 2026
+
+The annotated walkthrough now contains **46 examples per provider**. Fresh joint
+acceptance passes **138 SDK /138 signed HTTP queries** across MongoDB, SQLite and
+Neo4j, with **345 settled operations /337 provider attempts**. The dedicated native
+gate passes 1/1, zero skips (1m55s). All six producer/consumer identities match and
+the CQL source snapshots remain unchanged. The standalone demo build and all
+18 offline browser preset checks pass.
+
+Examples 41–43 demonstrate Double Sum, nullable Average and grouped arithmetic;
+44–46 repeat the contract for Single. Source windows choose participation before
+reduction; grouped result filters/order/pages operate on the final rounded values.
+Canonical wire strings preserve declared precision. The expected halfway means
+exercise ties-to-even rather than sequential floating addition.
+
+Owned Mongo/Neo services stopped; attachment 16080 is absent, ports 27029/17687/
+5088 have no listener, and owned SQLite files, fixture manifest and readiness file
+are absent. Reusable environments/data remain retained. Full CQL/ORM acceptance
+still has open certification, authorization and federation requirements.
+
+Evidence: `TestResults/CosmicCqlDemo/floating-demo-native.log`, `v1-demo-result.json`,
+`v1-walkthrough.txt`, `v1-source-identities.json`, `v1-binary-identities.json`,
+`floating-demo-build.log`, `v1-decimal-ui-check.json` (now 18 presets), and
+`TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx`.
+
+
 ## Decimal live demo acceptance - 25 October 2026
 
 The walkthrough now has **40 examples per provider**. **120 SDK /120 signed HTTP**

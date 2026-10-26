@@ -801,6 +801,112 @@ public static class V1NativeQueries
         await output.WriteLineAsync("40. Decimal groups / exact totals and rounded means\n");
         await output.WriteLineAsync($"  Total: {decimalTotalRow.Total}; Mean: {decimalTotalRow.Mean}\n");
 
+        // 41–43. Floating arithmetic retains the declared Double domain.
+        // The ordered source window selects B-owned and C-public BEFORE reduction.
+        // Exact binary accumulation rounds once, with midpoint ties to even.
+        var doubleArithmetic = Value(visible.OrderBy(holon => holon.Name).Take(2));
+
+        await ShowScalarAsync("41. Double Sum / exact accumulation, one final round",
+            Value(doubleArithmetic.Sum(holon =>
+                CosmicQueryMetadata.Value<double>(holon, "reading"))),
+            2.000000000000001d);
+
+        // Nullable input preserves a nullable result; an empty Average is null.
+        // With these two participating readings, the halfway mean rounds down
+        // to the adjacent representable value with an even significand.
+        await ShowScalarAsync("42. Double nullable Average / ties to even",
+            Value(doubleArithmetic.Average(holon =>
+                CosmicQueryMetadata.Value<double?>(holon, "reading"))),
+            (double?)1.0000000000000004d);
+
+        // Filter/order the published aggregate values, then page the groups.
+        // Source Take(2) and result Take(1) deliberately have different roles.
+        var doubleArithmeticGroups = Value(doubleArithmetic
+            .GroupBy(holon => CosmicQueryMetadata.Value<long>(holon, "stock"))
+            .Select(group => new
+            {
+                Total = group.Sum(holon =>
+                    CosmicQueryMetadata.Value<double>(holon, "reading")),
+
+                Mean = group.Average(holon =>
+                    CosmicQueryMetadata.Value<double?>(holon, "reading"))
+            })
+            .Where(group => group.Total == 2.000000000000001d && group.Mean == 1.0000000000000004d)
+            .OrderByDescending(group => group.Mean)
+            .Take(1));
+
+        var doubleArithmeticPlan = Value(CosmicGroupedPlanner.Plan(
+            doubleArithmeticGroups,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var doubleArithmeticExecution = Value(await manager.ExecuteGroupedQueryAsync(
+            doubleArithmeticPlan, new[] { adapter }));
+
+        var doubleArithmeticRow = doubleArithmeticExecution.Providers.Single().Rows.Single();
+
+        if (doubleArithmeticRow.Total != 2.000000000000001d || doubleArithmeticRow.Mean != 1.0000000000000004d)
+            throw new InvalidOperationException("Double grouped arithmetic lost its rounded values.");
+
+        completedQueries++;
+
+        await output.WriteLineAsync("43. Double groups / filter, order and page rounded results\n");
+        await output.WriteLineAsync($"  Total: {doubleArithmeticRow.Total}; Mean: {doubleArithmeticRow.Mean}\n");
+
+        // 44–46. Floating arithmetic retains the declared Single domain.
+        // The ordered source window selects B-owned and C-public BEFORE reduction.
+        // Exact binary accumulation rounds once, with midpoint ties to even.
+        var floatArithmetic = Value(visible.OrderBy(holon => holon.Name).Take(2));
+
+        await ShowScalarAsync("44. Single Sum / exact accumulation, one final round",
+            Value(floatArithmetic.Sum(holon =>
+                CosmicQueryMetadata.Value<float>(holon, "singleReading"))),
+            2.0000005f);
+
+        // Nullable input preserves a nullable result; an empty Average is null.
+        // With these two participating readings, the halfway mean rounds down
+        // to the adjacent representable value with an even significand.
+        await ShowScalarAsync("45. Single nullable Average / ties to even",
+            Value(floatArithmetic.Average(holon =>
+                CosmicQueryMetadata.Value<float?>(holon, "singleReading"))),
+            (float?)1.0000002f);
+
+        // Filter/order the published aggregate values, then page the groups.
+        // Source Take(2) and result Take(1) deliberately have different roles.
+        var floatArithmeticGroups = Value(floatArithmetic
+            .GroupBy(holon => CosmicQueryMetadata.Value<long>(holon, "stock"))
+            .Select(group => new
+            {
+                Total = group.Sum(holon =>
+                    CosmicQueryMetadata.Value<float>(holon, "singleReading")),
+
+                Mean = group.Average(holon =>
+                    CosmicQueryMetadata.Value<float?>(holon, "singleReading"))
+            })
+            .Where(group => group.Total == 2.0000005f && group.Mean == 1.0000002f)
+            .OrderByDescending(group => group.Mean)
+            .Take(1));
+
+        var floatArithmeticPlan = Value(CosmicGroupedPlanner.Plan(
+            floatArithmeticGroups,
+            provider,
+            new[] { new CosmicGroupedTarget(provider,
+                adapter.QueryCapabilities, groupedAdapter.GroupedCapabilities) }));
+
+        var floatArithmeticExecution = Value(await manager.ExecuteGroupedQueryAsync(
+            floatArithmeticPlan, new[] { adapter }));
+
+        var floatArithmeticRow = floatArithmeticExecution.Providers.Single().Rows.Single();
+
+        if (floatArithmeticRow.Total != 2.0000005f || floatArithmeticRow.Mean != 1.0000002f)
+            throw new InvalidOperationException("Single grouped arithmetic lost its rounded values.");
+
+        completedQueries++;
+
+        await output.WriteLineAsync("46. Single groups / filter, order and page rounded results\n");
+        await output.WriteLineAsync($"  Total: {floatArithmeticRow.Total}; Mean: {floatArithmeticRow.Mean}\n");
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,

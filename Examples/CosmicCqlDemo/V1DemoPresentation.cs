@@ -91,6 +91,12 @@ public static class V1DemoPresentation
         <option value="decimalNumericGroups">Decimal groups / exact totals and rounded means</option>
         <option value="decimalSource">Decimal / exact price range</option>
         <option value="decimalGroups">Decimal / grouped prices</option>
+        <option value="doubleSum">Double Sum / round once</option>
+        <option value="doubleAverage">Double nullable Average / ties to even</option>
+        <option value="doubleNumericGroups">Double groups / rounded totals and means</option>
+        <option value="singleSum">Single Sum / round once</option>
+        <option value="singleAverage">Single nullable Average / ties to even</option>
+        <option value="singleNumericGroups">Single groups / rounded totals and means</option>
         <option value="doubleSource">Double / exact reading range</option>
         <option value="doubleGroups">Double / grouped readings</option>
         <option value="singleSource">Single / binary32 reading range</option>
@@ -168,6 +174,12 @@ const notes = {
   count: 'Count after Skip 1 / Take 1: Alice and Bob receive Int32 1, Visitor 0. Source windows apply before the terminal.',
   decimalSource: 'Exact Decimal prices differ by 10^-28. Both request bounds and selected prices are strings; source rows are ordered by Name.',
   decimalGroups: 'Group exact Decimal prices, then filter/order selected Price aliases before paging. No floating-point conversion is used.',
+  doubleSum: 'Reduce two visible Double readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
+  doubleAverage: 'Reduce two visible Double readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
+  doubleNumericGroups: 'Reduce two visible Double readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
+  singleSum: 'Reduce two visible Single readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
+  singleAverage: 'Reduce two visible Single readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
+  singleNumericGroups: 'Reduce two visible Single readings exactly and round once; nullable Average retains its floating type. Source and result pages are independent.',
   doubleSource: 'Exact Double readings differ by one binary64 unit. Both request bounds and selected readings are strings; source rows are ordered by Name.',
   doubleGroups: 'Group exact Double readings, then filter/order selected Reading aliases before paging. Values retain their declared binary64 meaning.',
   singleSource: 'Declare Single for binary32 readings. Canonical strings retain their Single precision through filtering and selected output.',
@@ -346,6 +358,35 @@ function preset() {
     ];
     body.resultOrder = [{ alias: 'Price', descending: false }];
     body.resultTake = 2;
+  }
+  // Floating aggregate inputs retain their declared binary domain. Keep
+  // selected-result thresholds as canonical strings through the JSON editor.
+  if (['doubleSum', 'doubleAverage', 'doubleNumericGroups',
+       'singleSum', 'singleAverage', 'singleNumericGroups'].includes(name)) {
+    const single = name.startsWith('single');
+    const valueType = single ? 'Single' : 'Double';
+    const metadataPath = [single ? 'singleReading' : 'reading'];
+    const grouped = name.endsWith('NumericGroups');
+    body.take = 2; // Source window: the first two visible readings by Name.
+
+    if (grouped) {
+      queryRoute += '/grouped';
+      body.keys = [{ alias: 'stock', metadataPath: ['stock'], valueType: 'Int64' }];
+      body.columns = [
+        { alias: 'Total', operation: 'Sum', selection: { metadataPath, valueType, nullable: false } },
+        { alias: 'Mean', operation: 'Average', selection: { metadataPath, valueType, nullable: true } }
+      ];
+      body.resultFilters = [
+        { alias: 'Total', operator: 'Equal', value: single ? '2.0000005' : '2.000000000000001' },
+        { alias: 'Mean', operator: 'Equal', value: single ? '1.0000002' : '1.0000000000000004' }
+      ];
+      body.resultOrder = [{ alias: 'Mean', descending: true }];
+      body.resultTake = 1; // Result page: after grouping and selected filters.
+    } else {
+      queryRoute += '/scalar';
+      body.operation = name.endsWith('Sum') ? 'Sum' : 'Average';
+      body.selection = { metadataPath, valueType, nullable: body.operation === 'Average' };
+    }
   }
   if (name === 'doubleSource') {
     queryRoute += '/projection';

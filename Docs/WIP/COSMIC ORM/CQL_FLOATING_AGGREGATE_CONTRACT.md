@@ -2,7 +2,9 @@
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
 (netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite, MongoDB and Neo4j scalar/grouped SDK floating arithmetic is certified
-below. Floating HTTP enrollment and annotated live demos remain pending.
+below. Floating HTTP binding passes 56 focused and 3,154 full Core tests, and shipping
+WEB4 compilation passes. The annotated 46-example walkthrough passes138SDK/138signedHTTP queries
+across all three stores,345settled operations/337attempts; see demo verification.
 Existing floating metadata filters/projection/extrema remain separate features.
 
 ## Exact native reduction
