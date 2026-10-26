@@ -103,12 +103,15 @@ implementation; current results remain separate per provider.
 
 ## 5. Scalar coverage and authoritative policy
 
-SQLite floating native SDK integration passes48focused queries and the clean
-1,763production integration/74unit gate. MongoDB/Neo4j and HTTP enrollment remain open.
+All three target stores now verify native Single/Double scalar/grouped arithmetic:
+SQLite1,763production integration/74unit, Mongo490native/571unit and
+Neo490native/552unit at their recorded checkpoints. Shared HTTP binding passes
+Core3,154; the46-example demo passes138SDK/138signedHTTP across the three stores.
 
 
 Floating exact packet normalization is verified in fullCore3,090 and both TFMs.
-Shared capture/result publication also passes fullCore3,098. Native/HTTP enrollment remains open; see the
+Shared capture/result publication passes fullCore3,098; later HTTP coverage
+passes fullCore3,154. Native and signed HTTP floating enrollment now pass; see the
 [floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 
@@ -167,6 +170,32 @@ not establish which other writes are owner-restricted. Preserve current CQL
 owner/public behavior until the stronger contract and migration are verified.
 Tenant membership authority remains a separate unimplemented requirement. No
 sharing production code was changed during the running empty-window regression.
+
+### Sharing mutation invariant audit — 25 October follow-up
+
+Current source confirms a concrete gap, beyond the earlier public-signature audit:
+`HolonAccess.ShareAsync` calls the ordinary `SaveHolonAsync(holon, caller.Id)`
+overload. `HolonManager-Tracking.cs` supplies no `CosmicWriteOptions` through that
+overload; `SaveTrackedAsync` only creates `plan.Conditions(...)` when options are
+present. Consequently the helper does not request conditional grant persistence.
+Two concurrent union operations can each read the same list and overwrite one
+another. A CQL shared-recipient profile cannot rely on that mutation path yet.
+
+The same audit confirms that `DataController.Save.cs` checks existing ownership
+using `HolonWriteOwnership`, but then forwards the submitted holon to the ordinary
+save overload. This is an application-level load/check/write sequence, not evidence
+of an atomic owner/version predicate. It must be reconciled with authoritative ACL
+mutation before policy enrollment. Trusted SDK actors remain a separate boundary;
+this inspection does not prove all remote transports restrict metadata writes.
+
+Implementation order: certify conditional owner/revision grant updates and
+revocation on Mongo/SQLite/Neo; move canonical grant interpretation into one generic
+Core owner with an explicit migration for legacy recipient text; then admit native
+root/traversal/join/aggregate predicates and detached output checks under the same
+snapshot/version policy. Test stale/concurrent union versus revoke, forged index
+flags, malformed/oversized lists and unknown persistence outcomes. Tenant authority
+requires its own authenticated membership/version source; client TenantId is not it.
+This audit changes no sharing behavior and does not claim that policy support ships.
 
 ### UInt64 arithmetic foundation — 25 October
 
