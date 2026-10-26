@@ -17,6 +17,39 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlV1Web4NativeTests
 {
+    // Keep preparation claims healthy. Inject only at the mutation capability,
+    // so a successful journal commit cannot accidentally consume the fault.
+    public interface IRecoveryMutationBoundary : IOASISDBStorageProvider,
+        IConditionalHolonDeltaStorageProvider, IConditionalHolonWriteRecoveryStorageProvider,
+        IHolonWritePreparationRecoveryStorageProvider { }
+
+    public class RecoveryMutationBoundary : DispatchProxy
+    {
+        public IOASISStorageProvider Target = null!;
+        public ProviderType Authority;
+        public string SqlitePath = "";
+        public int Executions;
+        public int Commits;
+
+        protected override object? Invoke(MethodInfo? method, object?[]? args)
+        {
+            if (method!.Name == nameof(IConditionalHolonStorageProvider.ExecuteConditionalHolonWriteAsync))
+                return Execute((ConditionalHolonWriteRequest)args![0]!);
+
+            try { return method.Invoke(Target, args); }
+            catch (TargetInvocationException cause) when (cause.InnerException != null)
+            { ExceptionDispatchInfo.Capture(cause.InnerException).Throw(); throw; }
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> Execute(ConditionalHolonWriteRequest request)
+        {
+            Executions++;
+            var result = await ExecuteWithLostCommitAcknowledgement(Authority, Target, request, SqlitePath);
+            Commits += result.Commits;
+            return result.Result;
+        }
+    }
+
     private sealed class RecoveryLostSqliteCommit(Action committed, Exception failure) : DbTransactionInterceptor
     {
         public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)

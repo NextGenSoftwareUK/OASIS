@@ -2118,3 +2118,7 @@ V2 saveHolon now binds the HTTP actor, stable operation intent and explicit prov
 ## gRPC V2 envelope checkpoint — 26 October 2026
 
 Operation/revision/recursive-holon input and error/delta/metadata output now use the existing REST serializer and hosted conditional-write owner. Ambiguous old/new inputs, invalid revisions and cross-provider conditional graph flags reject explicitly. FullWEB4250testsPASS0skip, shippingbuildPASS; includes2realHTTP2shippingservicecallswithcontrolledauth. Requiredreport Verification/grpc-write-full.trx.gz. Signed GraphQL/gRPC native/admission/settlement acceptance and broader read-routing/access migration remain open. Core289fa01unchanged.
+
+## 26 October: protected public-manager hard-delete fault gate verified
+
+MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment followed by exactly one native mutation commit with acknowledgement loss. Caller snapshot remains unchanged; after provider reactivation stored-only recovery authenticates the original preparation and finds the committed hard-delete receipt without replay. Complete native cohort: 465 settlements / 517 attempts; sources unchanged; seven producer/consumer identities match; owned fixture removed. Evidence and remaining process-restart/transport/tenant/federation work: [hosted recovery](HOSTED_OPERATION_RECOVERY.md). The overall roadmap remains open.
