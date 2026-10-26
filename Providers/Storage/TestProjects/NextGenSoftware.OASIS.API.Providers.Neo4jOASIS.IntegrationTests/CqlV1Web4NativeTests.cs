@@ -26,6 +26,11 @@ public sealed partial class CqlV1Web4NativeTests
     [TestMethod]
     public async Task SignedHttpQueriesUseNativeVisibilityPagingAndDurableReceiptsOnAllThreeProviders()
     {
+        if (Environment.GetEnvironmentVariable("OASIS_COSMIC_RESTART_PHASE") is { } restartPhase)
+        {
+            await RunRecoveryProcessPhase(restartPhase);
+            return;
+        }
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string storageDb = "cosmic_cql_v1_web4_storage", usageDb = "cosmic_cql_v1_web4_usage";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -59,7 +64,7 @@ public sealed partial class CqlV1Web4NativeTests
         var restIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
         var transportActor = Guid.NewGuid();
         var transportIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
-        var recoveryIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
+        var recoveryIds = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToArray();
         var scalarWrites = new List<string>();
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
@@ -1063,7 +1068,8 @@ public sealed partial class CqlV1Web4NativeTests
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
-                    recoveryProvidersVerified, shippingRestRequests, shippingRestProvidersVerified = providers.Count,
+                    recoveryProvidersVerified, processRestartProvidersVerified = recoveryProvidersVerified,
+                    shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
                     settledTransportOperations = operations.Count(operation => operation.UserId == transportActor.ToString("D")),

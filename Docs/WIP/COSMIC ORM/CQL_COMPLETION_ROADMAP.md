@@ -2122,3 +2122,7 @@ Operation/revision/recursive-holon input and error/delta/metadata output now use
 ## 26 October: protected public-manager hard-delete fault gate verified
 
 MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment followed by exactly one native mutation commit with acknowledgement loss. Caller snapshot remains unchanged; after provider reactivation stored-only recovery authenticates the original preparation and finds the committed hard-delete receipt without replay. Complete native cohort: 465 settlements / 517 attempts; sources unchanged; seven producer/consumer identities match; owned fixture removed. Evidence and remaining process-restart/transport/tenant/federation work: [hosted recovery](HOSTED_OPERATION_RECOVERY.md). The overall roadmap remains open.
+
+## 26 October: actual writer-process interruption and fresh-process recovery verified
+
+MongoDB, SQLite and Neo4j pass abrupt writer termination after the native hard-delete commit, followed by authenticated stored-only recovery in a separate process. Each original operation retains its identity; writer/reader PIDs differ; no replay. Full native465 settlements/517attempts; sources unchanged; seven binary pairs match; owned services and fixtures cleaned. See [hosted recovery evidence and remaining acceptance](HOSTED_OPERATION_RECOVERY.md). Operator retention/reconciliation and broader tenant/query/federation work remain open.
