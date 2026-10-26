@@ -1,6 +1,6 @@
 import { NearBindgen, call, initialize, near, view, UnorderedMap } from "near-sdk-js";
 import { writeCheckedRecord, CheckedRecordWrite } from "./checked-record";
-import { lockTokenDeposit, releaseTokenDeposit, readTokenDeposit, burnSpendableToken, requireApplicationRecordKey } from "./token-escrow";
+import { lockNftDeposit, releaseNftDeposit, readNftDeposit, lockTokenDeposit, releaseTokenDeposit, readTokenDeposit, burnSpendableToken, requireApplicationRecordKey } from "./token-escrow";
 
 @NearBindgen({ requireInit: true })
 export class OasisStorage {
@@ -101,17 +101,21 @@ export class OasisStorage {
     if (value === null) throw new Error(`NFT ${token_id} does not exist`);
     const nft = JSON.parse(value);
     if (near.predecessorAccountId() !== nft.owner_id) throw new Error(`Only the owner may burn NFT ${token_id}`);
+    if (nft.locked) throw new Error("Locked NFT cannot be burned");
     this.nfts.remove(token_id);
   }
 
+  @view({})
+  nft_escrow_protocol(): number { return 1; }
+
+  @view({})
+  nft_lock_get({ lock_id }: { lock_id: string }): object | null { return readNftDeposit(this.records, lock_id); }
+
   @call({})
-  nft_set_locked({ token_id, locked }: { token_id: string; locked: boolean }): void {
-    const value = this.nfts.get(token_id);
-    if (value === null) throw new Error(`NFT ${token_id} does not exist`);
-    const nft = JSON.parse(value);
-    if (near.predecessorAccountId() !== nft.owner_id) throw new Error(`Only the owner may change the lock for NFT ${token_id}`);
-    nft.locked = locked;
-    this.nfts.set(token_id, JSON.stringify(nft));
+  nft_set_locked({ token_id, locked, lock_id }: { token_id: string; locked: boolean; lock_id: string }): void {
+    if (typeof locked !== "boolean") throw new Error("Explicit NFT custody state required");
+    if (locked) lockNftDeposit(this.nfts, this.records, near.predecessorAccountId(), token_id, lock_id);
+    else releaseNftDeposit(this.nfts, this.records, near.predecessorAccountId(), token_id, lock_id);
   }
 
   @call({})

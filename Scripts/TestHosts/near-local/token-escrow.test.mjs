@@ -6,7 +6,7 @@ const require=createRequire(process.env.OASIS_NEAR_TEST_MODULE_MANIFEST??import.
 const ts=require('typescript');
 const source=readFileSync(new URL('./contract/src/token-escrow.ts',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
-const {tokenEscrowPrefix,lockTokenDeposit,releaseTokenDeposit,readTokenDeposit,burnSpendableToken,requireApplicationRecordKey}=await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'));
+const {nftEscrowPrefix,lockNftDeposit,releaseNftDeposit,readNftDeposit,tokenEscrowPrefix,lockTokenDeposit,releaseTokenDeposit,readTokenDeposit,burnSpendableToken,requireApplicationRecordKey}=await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'));
 const owner='holder.near',symbol='OWN',id='1'.repeat(32);
 function map(entries=[]){const values=new Map(entries),writes=[];return {values,writes,get:key=>values.get(key)??null,set(key,value){writes.push([key,value]);values.set(key,value);}};}
 function fixture({amount='10',frozen=false}={}){
@@ -66,4 +66,36 @@ test('shipping entry points bind custody owner to native predecessor, not caller
  for(const [name,write] of [['put','this.records.set'],['delete_record','this.records.remove']]){
   const method=declaration.members.find(m=>m.name?.getText(file)===name);const calls=method.body.statements.map(s=>s.expression?.expression?.getText(file));assert.ok(calls.indexOf('requireApplicationRecordKey')>=0);assert.ok(calls.indexOf('requireApplicationRecordKey')<calls.indexOf(write));
  }
+});
+
+function nftFixture(){const nfts=map([['TREE',JSON.stringify({token_id:'TREE',owner_id:owner,metadata_json:'{}',locked:false})]]),records=map();return {nfts,tokens:nfts,records,nft:()=>JSON.parse(nfts.get('TREE')),lock:(deposit=id)=>lockNftDeposit(nfts,records,owner,'TREE',deposit),release:(deposit=id)=>releaseNftDeposit(nfts,records,owner,'TREE',deposit)};}
+test('NFT lock binds native owner/token/current ID and release leaves tombstone',()=>{
+ const f=nftFixture();f.lock();assert.equal(f.nft().locked,true);assert.equal(f.nft().lock_id,id);
+ assert.deepEqual(readNftDeposit(f.records,id),{protocol:1,lock_id:id,token_id:'TREE',owner_id:owner,released:false});
+ f.release();assert.equal(f.nft().locked,false);assert.equal(readNftDeposit(f.records,id).released,true);unchanged(f,()=>f.release());unchanged(f,()=>f.lock());
+});
+test('old NFT source cannot release a later lock cycle',()=>{
+ const f=nftFixture();f.lock();f.release();const newer='2'.repeat(32);f.lock(newer);unchanged(f,()=>f.release(id));assert.equal(f.nft().lock_id,newer);f.release(newer);
+});
+test('NFT replay tombstone survives burn/remint of same token name',()=>{
+ const f=nftFixture();f.lock();f.release();f.nfts.values.delete('TREE');f.nfts.set('TREE',JSON.stringify({token_id:'TREE',owner_id:owner,metadata_json:'{}',locked:false}));
+ unchanged(f,()=>f.lock(id));f.lock('2'.repeat(32));unchanged(f,()=>f.release(id));
+});
+for(const mode of ['foreign-lock','foreign-release','wrong-token','wrong-id','double-lock','missing-id','nonboolean-record','wrong-current-id','extra-record'])test('NFT '+mode+' rejects before every write',()=>{
+ const f=nftFixture();
+ if(mode==='foreign-lock'){unchanged(f,()=>lockNftDeposit(f.nfts,f.records,'attacker.near','TREE',id));return;}
+ if(mode==='missing-id'){unchanged(f,()=>f.lock(''));return;}
+ f.lock();
+ if(mode==='nonboolean-record'||mode==='extra-record'){const d=readNftDeposit(f.records,id);if(mode==='nonboolean-record')d.released='false';else d.extra=true;f.records.set(nftEscrowPrefix+id,JSON.stringify(d));}
+ if(mode==='wrong-current-id'){const n=f.nft();n.lock_id='2'.repeat(32);f.nfts.set('TREE',JSON.stringify(n));}
+ unchanged(f,()=>mode==='foreign-release'?releaseNftDeposit(f.nfts,f.records,'attacker.near','TREE',id):mode==='wrong-token'?releaseNftDeposit(f.nfts,f.records,owner,'OTHER',id):mode==='wrong-id'?f.release('2'.repeat(32)):mode==='double-lock'?f.lock('2'.repeat(32)):f.release());
+});
+test('NFT custody records reject generic storage overwrite/delete',()=>assert.throws(()=>requireApplicationRecordKey(nftEscrowPrefix+id)));
+
+test('NFT shipping lock/release use native predecessor and locked burn throws before removal',()=>{
+ const text=readFileSync(new URL('./contract/src/contract.ts',import.meta.url),'utf8');const file=ts.createSourceFile('contract.ts',text,ts.ScriptTarget.ES2022,true,ts.ScriptKind.TS);
+ const declaration=file.statements.find(s=>ts.isClassDeclaration(s)&&s.name?.text==='OasisStorage');const method=declaration.members.find(m=>m.name?.getText(file)==='nft_set_locked');
+ const calls=[];function visit(node){if(ts.isCallExpression(node)&&['lockNftDeposit','releaseNftDeposit'].includes(node.expression.getText(file)))calls.push(node);ts.forEachChild(node,visit);}visit(method);
+ assert.equal(calls.length,2);for(const call of calls){assert.equal(call.arguments[2].getText(file),'near.predecessorAccountId()');assert.equal(call.arguments[4].getText(file),'lock_id');}
+ const burn=declaration.members.find(m=>m.name?.getText(file)==='nft_burn');const guard=burn.body.statements.findIndex(s=>ts.isIfStatement(s)&&s.expression.getText(file)==='nft.locked'&&ts.isThrowStatement(s.thenStatement));const removal=burn.body.statements.findIndex(s=>s.expression?.expression?.getText(file)==='this.nfts.remove');assert.ok(guard>=0&&guard<removal);
 });
