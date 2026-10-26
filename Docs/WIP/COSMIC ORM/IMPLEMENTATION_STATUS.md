@@ -1,3 +1,9 @@
+## Signed native REST logical/key deletion - 26 October 2026
+
+Twenty-seven new signed REST deletion cases pass on MongoDB, SQLite and Neo4j, including zero-I/O intent validation, key-to-ID binding, stored ownership, stale conditions, persisted soft deletion, physical key hard deletion/delta and preservation of unselected children. The complete native cohort has63 REST+48 GraphQL/gRPC requests,453 settled operations and496 physical attempts. Source/binary identity and owned teardown checks pass. [Contract and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Wizard, concurrent provider scope, unavailable-primary/replica, unknown-outcome recovery and full startup/schema gates remain open. This does not complete the broader ORM roadmap.
+
 ## Signed native GraphQL/gRPC deletion - 2026-10-26
 
 The fresh native gate passes across MongoDB, SQLite and Neo4j: 24 signed deletion requests added to24 existing transport saves, with426 settled operations and466 physical attempts across the full joined cohort. Missing intent, foreign owner, stale revision, persisted GraphQL soft deletion and acknowledged gRPC hard deletion/delta are verified. Source snapshots are unchanged; seven producer/consumer pairs match; owned services stopped and fixtures removed. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
