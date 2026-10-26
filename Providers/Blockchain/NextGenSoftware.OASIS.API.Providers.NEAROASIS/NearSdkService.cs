@@ -319,7 +319,7 @@ internal sealed partial class NearSdkService
         return outcome.Clone();
     }
 
-    internal async Task VerifyNftLockSourceAsync(string transactionHash,string tokenId,CancellationToken token=default)
+    internal async Task<string> VerifyNftLockSourceAsync(string transactionHash,string tokenId,CancellationToken token=default)
     {
         var outcome=await ReadTransactionOutcomeAsync(transactionHash,_accountId,token);
         if(ClassifyTransactionOutcome(outcome)!="Completed")throw new InvalidDataException("Source NFT lock must be finalized successfully.");
@@ -328,7 +328,17 @@ internal sealed partial class NearSdkService
             throw new InvalidDataException("Source NFT lock signer or contract differs from the configured owner.");
         var gas=transaction.GetProperty("actions")[0].GetProperty("FunctionCall").GetProperty("gas").GetUInt64();
         if(gas==0)throw new InvalidDataException("Source NFT lock gas is invalid.");
-        ValidateMutationAction(transaction,new MutationIntent("FunctionCall","0","nft_set_locked",JsonSerializer.SerializeToElement(new{token_id=tokenId,locked=true}),gas));
+        using var args=JsonDocument.Parse(Convert.FromBase64String(transaction.GetProperty("actions")[0].GetProperty("FunctionCall").GetProperty("args").GetString()));
+        var id=RequireNftLockId(args.RootElement.GetProperty("lock_id").GetString());
+        ValidateMutationAction(transaction,new MutationIntent("FunctionCall","0","nft_set_locked",JsonSerializer.SerializeToElement(new{token_id=tokenId,locked=true,lock_id=id}),gas));
+        return id;
+    }
+
+    internal static string RequireNftLockId(string id)
+    {
+        if(!Guid.TryParseExact(id,"N",out var value)||value==Guid.Empty||value.ToString("N")!=id)
+            throw new InvalidDataException("Canonical nonempty native NFT deposit ID required.");
+        return id;
     }
 
     internal static string ClassifyTransactionOutcome(JsonElement outcome)

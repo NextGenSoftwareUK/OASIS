@@ -13,7 +13,9 @@ else if(input.operation==='derivePublicKey'){
  if(['token_get','token_balance'].includes(input.methodName)&&input.args.symbol!=='OWN')throw new Error('Read selected another token');
  if(input.methodName==='token_balance'&&input.args.account_id!=='holder.near')throw new Error('Read selected another holder balance');
  switch(input.methodName){
-  case 'nft_token':if(input.args.token_id!=='owned-nft')throw new Error('NFT identity changed');result={metadata_json:'{}',owner_id:'holder.near',locked:state.frozen};break;
+  case 'nft_escrow_protocol':result=state.mode==='nft-protocol'?2:1;break;
+  case 'nft_lock_get':result=state.nftDeposit?.lock_id===input.args.lock_id?structuredClone(state.nftDeposit):null;if(state.calls&&result&&state.mode==='post-nft-id')result.lock_id='f'.repeat(32);break;
+  case 'nft_token':if(input.args.token_id!=='owned-nft')throw new Error('NFT identity changed');result={token_id:input.args.token_id,metadata_json:'{}',owner_id:'holder.near',locked:state.frozen,...(state.nftLockId?{lock_id:state.nftLockId}:{})};break;
   case 'token_escrow_protocol':result=state.mode==='protocol'?2:1;break;
   case 'token_lock_get':{
    result=state.deposit===null?null:structuredClone(state.deposit);
@@ -34,6 +36,7 @@ else if(input.operation==='derivePublicKey'){
  if(state.mode!=='reject'){
   if(input.methodName==='token_lock'){state.deposit={protocol:1,lock_id:args.lock_id,symbol:args.symbol,owner_id:input.accountId,amount:args.amount,released:false};state.balance=(BigInt(state.balance)-BigInt(args.amount)).toString();}
   else if(input.methodName==='token_release'){state.deposit.released=true;state.balance=(BigInt(state.balance)+BigInt(state.deposit.amount)).toString();}
+  else if(input.methodName==='nft_set_locked'){if(!/^[0-9a-f]{32}$/.test(args.lock_id))throw new Error('Exact NFT lock ID required');state.nftLockId=args.lock_id;state.frozen=args.locked;state.nftDeposit={protocol:1,lock_id:args.lock_id,token_id:args.token_id,owner_id:input.accountId,released:!args.locked};}
   else state.frozen=args.locked;
  }
  writeFileSync(path,JSON.stringify(state));
