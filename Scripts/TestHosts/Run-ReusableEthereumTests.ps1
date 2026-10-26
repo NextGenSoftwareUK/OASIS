@@ -46,16 +46,20 @@ try {
     $web3Project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests.csproj'
     & dotnet build $web3Project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Web3Core consumer build failed.'}
+    foreach($consumerProject in @($project,$web3Project)){
+        & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput (Join-Path (Split-Path $consumerProject) 'bin/Debug/net10.0') -VerifySourceDocuments
+    }
     $env:LOCAL_CHAIN_ID='31337'
     $owned=Start-Process -FilePath $node -ArgumentList @($cli,'node','--hostname','127.0.0.1','--port','18545','--config',(Join-Path $runtime 'hardhat.config.cjs')) -WorkingDirectory $runtime -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'evm-current.log') -RedirectStandardError (Join-Path $work 'evm-current.err')
     $deadline=[DateTime]::UtcNow.AddSeconds(20)
     $ready=$false
+    $readinessObservation='No JSON-RPC response observed.'
     do {
         if($owned.HasExited){throw 'Owned EVM exited at startup.'}
-        try {$reply=Invoke-RestMethod -Uri 'http://127.0.0.1:18545' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' -TimeoutSec 2; $ready=$reply.result -eq '0x7a69'} catch {$ready=$false}
+        try {$reply=Invoke-RestMethod -Uri 'http://127.0.0.1:18545' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' -TimeoutSec 2; $ready=$reply.result -eq '0x7a69'; $readinessObservation="Observed chain id: $($reply.result)"} catch {$ready=$false; $readinessObservation=$_.Exception.GetType().Name+': '+$_.Exception.Message}
         if(!$ready){Start-Sleep -Milliseconds 200}
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
-    if(!$ready){throw 'Local EVM did not expose expected chain31337.'}
+    if(!$ready){throw "Local EVM did not expose expected chain31337. Last observation: $readinessObservation. Inspect retained evm-current.log / evm-current.err; no native test was started."}
     $env:ETHEREUMOASIS_TEST_RPC='http://127.0.0.1:18545'
     $env:ETHEREUMOASIS_TEST_CHAIN_ID='31337'
     # Public Hardhat deterministic DEVELOPMENT key. Never use/fund on a public chain.
