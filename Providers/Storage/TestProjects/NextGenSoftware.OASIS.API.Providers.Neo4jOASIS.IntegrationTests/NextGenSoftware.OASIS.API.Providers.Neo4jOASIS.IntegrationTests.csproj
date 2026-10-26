@@ -16,6 +16,8 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs" Link="Web4/CqlCompositionV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlFederationV1Request.cs" Link="Web4/CqlFederationV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationV1Endpoint.cs" Link="Web4/CqlFederationV1Endpoint.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs" Link="Web4/CqlSelectedV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs" Link="Web4/CqlCompositionV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Endpoint.cs" Link="Web4/CqlCompositionV1Endpoint.cs" />

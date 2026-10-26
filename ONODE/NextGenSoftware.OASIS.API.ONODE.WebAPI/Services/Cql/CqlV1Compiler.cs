@@ -108,9 +108,20 @@ public static partial class CqlV1Compiler
             request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
     }
 
+    // Only the federation planner may bind this unbound business intent to its
+    // complete captured target policies before any native execution.
+    internal static CosmicQuery<Holon> CompileFederationSource(CqlV1Request request, Guid actor)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+            throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
+        return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
+            null, request.OrderBy, request.Descending, request.Skip, request.Take, bindAccess: false);
+    }
+
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
-        CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null)
+        CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
+        bool bindAccess=true)
     {
         if(access!=null)
         {
@@ -146,8 +157,8 @@ public static partial class CqlV1Compiler
 
         // Mandatory access restriction enters the SAME native plan before filters, ordering
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
-        var query = Add(CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault),
-            actor,access);
+        var query = CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault);
+        if (bindAccess) query = Add(query, actor, access);
         if(graphDescription!=null)
         {
             var graph=graphDescription;

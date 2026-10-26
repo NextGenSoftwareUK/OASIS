@@ -300,3 +300,5 @@ Verification/federation-materialization-{core,initial,row-omission}.trx.gz and
 federation-materialization-identities.json. Earlier14native SDK scenarios predate
 this finalizer and the per-target policy extension. Native manager/hosted
 federation authorization, HTTP, billing, cursors and distributed joins remain open.
+
+26 October HTTP implementation checkpoint: POST /api/data/query-cql/federation now uses existing compiler intent, complete per-target authorization, V2 manager materialization, shared attempt/tariff owner and explicit public leaf projection. It checks actual JSON size as well as canonical bytes. Core dual-target/shipping WEB4 build,3,636 Core tests and320 existing WEB4 tests pass (one Stripe sandbox skip). Nineteen new endpoint cases include three-target receipts and no dispatch after late policy denial. Signed real-provider federation HTTP/billing and native policy/materialization/demo acceptance remain open. Full schema/example/evidence: CQL_FEDERATION_HTTP_CONTRACT.md.
