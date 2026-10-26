@@ -29,7 +29,7 @@ public partial class PolkadotOASIS
     private const string NativeNftIdKey="polkadot:token-id";
     private sealed record NftIntent(string Action,string Contract,string TokenId,string Sender,string To,
         string ExpectedFrom,string PublicKey,string PrivateKey,string Mnemonic,string[][] Attributes,
-        string Title="",string Symbol="",string Description="",string ImageUrl="",bool DeliveredAtMint=false,Guid MinterAvatarId=default,string ContractAlias=null)
+        string Title="",string Symbol="",string Description="",string ImageUrl="",bool DeliveredAtMint=false,Guid MinterAvatarId=default,string ContractAlias=null,string SourceCustodyTransaction=null)
     {
         public override string ToString()=>$"{Action} NFT intent";
     }
@@ -41,6 +41,8 @@ public partial class PolkadotOASIS
             if(_nftConfiguration==null)throw new InvalidOperationException("Configure the reviewed PSP34 code hash before NFT mutations.");
             intent=await freeze(owner).ConfigureAwait(false);
             intent=await NormalizeNftIntentAccountsAsync(intent,owner.Token).ConfigureAwait(false);
+            if(intent.SourceCustodyTransaction!=null)
+                await VerifyNftCustodySourceAsync(intent,owner.Token).ConfigureAwait(false);
             return await PrepareNftIntentAsync(intent,owner).ConfigureAwait(false);
         },NativeMutationKind.Nft).ConfigureAwait(false);
         var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.Wallet.Responses.ITransactionResponse,IWeb3NFTTransactionResponse>(operation);
@@ -220,6 +222,24 @@ public partial class PolkadotOASIS
         if(alias!=null&&alias!=contract)throw new ArgumentException("Conflicting NFT collection contract addresses.");
         return intent with { Contract=contract,Sender=sender,To=to,ExpectedFrom=from,ContractAlias=alias };
     }
+    private async Task VerifyNftCustodySourceAsync(NftIntent intent,CancellationToken token)
+    {
+        if(!IsGenesisHash(intent.SourceCustodyTransaction))throw new ArgumentException("Exact local finalized custody transaction hash required.");
+        using var id=JsonDocument.Parse(intent.TokenId);
+        var proof=await InvokePolkadotSdkAsync(new { operation="nftOutcome",custodyReceipt=true,endpoint=_rpcEndpoint,
+            genesisHash=ReportedGenesisHash,transactionHash=intent.SourceCustodyTransaction.ToLowerInvariant(),
+            contractAddress=intent.Contract,contractCodeHash=_nftConfiguration.CodeHash,
+            tokenId=id.RootElement.Clone(),custody=intent.Sender },token).ConfigureAwait(false);
+        if(!proof.GetProperty("custodyReceiptVerified").GetBoolean()||!proof.GetProperty("finalized").GetBoolean()
+            ||!proof.GetProperty("dispatchSucceeded").GetBoolean()||!proof.GetProperty("nftEffectMatchesRequest").GetBoolean()
+            ||proof.GetProperty("transactionHash").GetString()!=intent.SourceCustodyTransaction.ToLowerInvariant()
+            ||proof.GetProperty("contractAddress").GetString()!=intent.Contract
+            ||proof.GetProperty("contractCodeHash").GetString()!=_nftConfiguration.CodeHash
+            ||proof.GetProperty("custody").GetString()!=intent.Sender||proof.GetProperty("to").GetString()!=intent.Sender
+            ||!JsonElement.DeepEquals(proof.GetProperty("tokenId"),id.RootElement))
+            throw new InvalidDataException("Source NFT custody proof differs from the frozen release intent.");
+    }
+
     private static string NewNativeNftId()=>JsonSerializer.Serialize(new Dictionary<string,string>{["U128"]=
         new BigInteger(RandomNumberGenerator.GetBytes(16),isUnsigned:true,isBigEndian:true).ToString(CultureInfo.InvariantCulture)});
     private static string CanonicalNftTokenId(string value)

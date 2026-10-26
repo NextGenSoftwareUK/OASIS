@@ -3,6 +3,7 @@ import { encodePsp34Arguments } from './psp34-contract-codec.mjs';
 import { canonicalBase64 } from './verify-preparation.mjs';
 import { readFinalizedExtrinsicContext, dispatchAndFeeReceipt } from './finalized-receipt.mjs';
 import { validateOutcomeRange, readVerifiedOriginalRange } from './original-outcome.mjs';
+import { readTransactionStatus, validateStatusRequest } from './transaction-status.mjs';
 
 function exact(registry, type, raw) {
   const value = registry.createType(type, raw);
@@ -62,12 +63,21 @@ export async function readVerifiedNftReceipt(api, identity, request) {
 }
 
 export function validateNftOutcome(request) {
+  if (request.custodyReceipt === true) {
+    validateStatusRequest(request);
+    for (const field of ['contractAddress', 'contractCodeHash', 'custody'])
+      if (typeof request[field] !== 'string' || !/^0x[0-9a-f]{64}$/.test(request[field]))
+        throw new Error('Canonical reviewed collection, code and custody identities required.');
+    nftTokenId(request.tokenId);
+    return;
+  }
   validateOutcomeRange({ fromBlockNumber: request.fromBlockNumber ?? '0', maximumBlocks: request.maximumBlocks });
 }
 
 export async function readOriginalNftOutcome(api, request) {
   request = structuredClone(request);
   validateNftOutcome(request);
+  if (request.custodyReceipt === true) return readNftCustodyReceipt(api, request);
   const identity = await verifyNftPreparation(api, request.preparation);
   let fromBlockNumber = request.fromBlockNumber;
   if (fromBlockNumber == null) {
@@ -78,4 +88,21 @@ export async function readOriginalNftOutcome(api, request) {
   }
   return readVerifiedOriginalRange(api, identity, { fromBlockNumber, maximumBlocks: request.maximumBlocks }, undefined,
     (reader, identifiers) => readVerifiedNftReceipt(reader, identity, identifiers));
+}
+
+// A source reference is a local finalized custody-transfer proof, not an
+// arbitrary hash, a cross-chain authorization or permission to mint a copy.
+export async function readNftCustodyReceipt(api, request) {
+  validateNftOutcome({ ...request, custodyReceipt: true });
+  const status = await readTransactionStatus(api, request);
+  if (!status.dispatchSucceeded) throw new Error('Source NFT custody transaction failed.');
+  const context = await readFinalizedExtrinsicContext(api, status);
+  const at = await api.at(status.blockHash);
+  const info = await at.query.contracts.contractInfoOf(request.contractAddress);
+  if (info.isNone || info.unwrap().codeHash.toHex().toLowerCase() !== request.contractCodeHash)
+    throw new Error('Source NFT custody transaction does not prove the reviewed contract code.');
+  const effect = exactNftEffect(api, { action: 'transfer', contractAddress: request.contractAddress,
+    tokenId: request.tokenId, to: request.custody }, context.own, true);
+  return { ...status, ...effect, contractAddress: request.contractAddress, contractCodeHash: request.contractCodeHash,
+    tokenId: request.tokenId, custody: request.custody, custodyReceiptVerified: true };
 }
