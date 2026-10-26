@@ -1,5 +1,26 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: signed record contract CRUD and restart gate
+
+`Run-ReusablePolkadotRecordTests.ps1` now proves one retained contract using the existing official SDK/signature verifier, original-only submission and finalized canonical receipt/event readers. Contract `5ESNt37LSXvXuyWxfWai8aghbkCP8QgDaykAcgsN94eY9cx6`, codeHash `0x7c102aaaaef5fec4e9f8f035c0542c7c6ca23f8c4e6b8de5e0498862debef0fa`, artifact SHA256 `16aafeccc5c9ee3d40b994bc9f9307a04ef1cee68ce5e9cbcc05d1ce94108ed3`. The same local genesis/spec100/12decimal UNIT is used; this is not public-network acceptance.
+
+Six original signed calls finalized successfully: deployment, create, revision1 update, revision2 delete, recreation with revision4, and exact conditional cleanup. Native contract events bind operation tag/key/revision/deletion; signature, original hash, canonical finality and fee payer are verified. Point reads and prefix enumeration verify live cells; final key count0/generation5. Unauthorized-origin put and stale-revision delete are rejected in native simulations with the exact application errors and unchanged state. No zero-fee or pool-hash-only success.
+
+The first post-create read exposed a genuine SDK codec bug: a one-argument Bytes type was supplied an array wrapper, truncating multi-byte keys. The codec now passes its raw argument directly; the multi-byte vector regression passes. The already-finalized deployment/create were independently inspected read-only (original value0x11/revision1), then verified/reused without replay. Original receipts remain preserved. No pending original remains. One graceful restart of the same ledger then passed the complete receipt/code/final-state check without new submissions; the retained empty contract is reused on subsequent runs.
+
+**Fees:** actual finalized transaction fees total **12,183,149,676baseunits = 0.012183149676 local test UNIT**. This is neither DOT nor a fiat quote. Storage deposits are separate from transaction fees; the earlier0.506275UNIT deployment simulation is not substituted for settled deposit accounting. Complete provider fee/deposit budgeting and recovery remain open. No real-money funds used.
+
+| Original action | Transaction hash | Actual transaction fee, local baseunits |
+|---|---|---:|
+| deploy | `0x8e097354fc6c5e10c0bb4c34aafaacc7af4ff4c629e87a1ff2188ec70ab2b1c7` | 2663318979 |
+| create | `0x03ae30a05d09e5e080fb6b8ccfa378fd9c8d8f399dc9b44d113612874d1fa383` | 1922651508 |
+| update | `0xefb6586f6fb551246f634442d9947e669fd6e1de973ab4afec3607ffa7c13632` | 1582161342 |
+| delete | `0x27c1de99336cb8c1ea387eda7434268146c21f566e263b5da5390ccff9e624a8` | 2046270146 |
+| recreate | `0xa122fb5254a6a7706ce275ac8a1fe1931141d34be86ea46f917dfc3241792725` | 1922549889 |
+| cleanup | `0x01eba20d26b18c5e2f90c396f46dbe6e7a64430915a935074548890e3db1a8ab` | 2046197812 |
+
+Native runner PASS terminal0, repeated current/restart runs are read-only. Four codec cases PASS0skip after repair. Exact flushed original completion paths/sizes/hashes and stopped-runtime details are in [inventory](ENVIRONMENT_INVENTORY.md). OPEN: wiring this protocol into the production shared encrypted-record/query/history backend and all relevant provider interfaces, production runtime support, unknown-outcome recovery fault tests, full fee/deposit evidence and HyperDriveV2 integration. These scoped native results do not certify the complete provider.
+
 ## 26 October: conditional record contract and SCALE implementation
 
 The undeployable plaintext draft is replaced by a pinned ink5.1.1 conditional opaque-cell contract, Cargo manifest and lockfile. Seven off-chain Rust cases pass, including shared byte vectors independently exercised by four public polkadot-js codec cases. The SDK codec admits exact binary bounds and bigint revisions, distinguishes ink language errors from application conflicts, and rejects trailing/noncanonical acknowledgements. First codec baseline caught a real raw-Bytes/SCALE ambiguity; raw binary arguments now pass as explicit hex values to the public registry API. No private SDK hooks or new npm dependency.
@@ -10,7 +31,7 @@ Native read-only constructor simulation now PASSES on retained genesis `0xe8cf5d
 
 This implements the retained pallet-contracts/Wasm test target; it does not resolve the production Hub/pallet-revive target decision recorded below. The same node was resumed only for contractsApi.instantiate simulation, then verified ownedPID379 stoppedSIGINT/originalhandle89614terminal0; ports19944/19945 absent. No signing, native deployment, account, chain reset, fee spend or runtime installation occurred. Existing Rust1.88/Wasm, Rust1.81 formatter, Cargo registry, Binaryen120/Unity124 and Node/SDK junction are reused; actual resources and single missing-dependency downloads are recorded in [inventory](ENVIRONMENT_INVENTORY.md).
 
-Still OPEN: signed deployment and native stateful CRUD acceptance, real signed contract preparation/finalized acknowledgements and recovery, wiring the existing shared encrypted-record/query/history backend, removal of legacy generic storage assumptions, all relevant provider interfaces, production runtime support and HyperDriveV2 routing proofs. This is concrete implementation progress, not complete-provider certification.
+Signed deployment and bounded native cell CRUD are now proven by the later gate above. Still OPEN: production signed contract preparation and recovery integration, wiring the existing shared encrypted-record/query/history backend, removal of legacy generic storage assumptions, all relevant provider interfaces, production runtime support and HyperDriveV2 routing proofs. This is concrete implementation progress, not complete-provider certification.
 
 ## 26 October: import result evidence and confirmed completion
 
