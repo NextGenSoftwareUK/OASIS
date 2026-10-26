@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.Common;
 
@@ -198,6 +200,46 @@ public class PolkadotNftMutationTests
         }
     }
 
+    [DataTestMethod][DataRow("accepted",false)][DataRow("accepted",true)][DataRow("wrong-token",false)]
+    [DataRow("missing-native-id",false)][DataRow("wrong-record",false)][DataRow("wrong-provider",false)]
+    [DataRow("wrong-collection",false)]
+    public async Task LockResolvesStoredNativeIdentityAndUsesAuthorizedWallet(string outcome,bool sync)
+    {
+        var priorBridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var priorOutcome=Environment.GetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",outcome);
+        try {
+            using var provider=new Provider();Activate(provider);
+            if(outcome=="missing-native-id")provider.StoredNft.TokenId=null!;
+            if(outcome=="wrong-record")provider.StoredNft.Id=Guid.NewGuid();
+            if(outcome=="wrong-provider")provider.StoredNft.OnChainProvider=new(ProviderType.EthereumOASIS);
+            var request=new LockWeb3NFTRequest { Web3NFTId=Avatar,LockedByAvatarId=Avatar,
+                NFTTokenAddress=outcome=="wrong-collection"?Recipient:Contract };
+            var store=DispatchProxy.Create<IUsageOutboxStore,PolkadotOwnedTransferTests.AttemptObserver>();
+            var result=await provider.ExecutePreparedNativeOperationAsync(()=>sync?Task.FromResult(provider.LockNFT(request)):provider.LockNFTAsync(request),
+                PolkadotOwnedTransferTests.Handle(store),"owned-original",Sender);
+            var submitted=outcome is "accepted" or "wrong-token";
+            Assert.AreEqual(submitted?1:0,((PolkadotOwnedTransferTests.AttemptObserver)(object)store).Calls);
+            Assert.AreEqual(outcome!="accepted",result.IsError,result.Exception?.ToString());
+            Assert.AreEqual(1,provider.NftLoads);
+            Assert.AreEqual(outcome is "missing-native-id" or "wrong-record" or "wrong-provider"?0:1,provider.WalletLoads);
+            if(outcome=="wrong-token")Assert.IsInstanceOfType(result.Exception,typeof(INativeMutationReconciliationRequired));
+            if(outcome=="accepted")Assert.AreEqual(Token,result.Result.Web3NFT.TokenId);
+        } finally {
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",priorBridge);
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",priorOutcome);
+        }
+    }
+
+    [TestMethod]
+    public async Task LockDoesNotReadStoredRecordsOrWalletsWithoutAdmission()
+    {
+        using var provider=new Provider();
+        var result=await provider.LockNFTAsync(new LockWeb3NFTRequest { Web3NFTId=Avatar,LockedByAvatarId=Avatar,NFTTokenAddress=Contract });
+        Assert.IsTrue(result.IsError);Assert.AreEqual(0,provider.NftLoads);Assert.AreEqual(0,provider.WalletLoads);
+    }
+
     private static void Activate(PolkadotOASIS provider) {
         typeof(PolkadotOASIS).GetField("_isActivated",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,true);
         typeof(PolkadotOASIS).GetProperty("ReportedGenesisHash")!.SetValue(provider,"0x"+new string('a',64));
@@ -205,6 +247,12 @@ public class PolkadotNftMutationTests
     private sealed class Provider():PolkadotOASIS("http://127.0.0.1:1","fixture","fixture",Recipient,null,new PolkadotNftConfiguration(Code,Sender))
     {
         public int WalletLoads;
+        public int NftLoads;
+        public Web3NFT StoredNft=new() { Id=Avatar,TokenId=Token,NFTTokenAddress=Contract,
+            OnChainProvider=new(Core.Enums.ProviderType.PolkadotOASIS),NFTStandardType=new(NFTStandardType.PSP34) };
+        protected override Task<OASISResult<IWeb3NFT>> ResolveStoredWeb3NftAsync(Guid id) {
+            NftLoads++;return Task.FromResult(new OASISResult<IWeb3NFT>{Result=StoredNft});
+        }
         protected override Task<OASISResult<IProviderWallet>> ResolveAssetMintWalletAsync(Guid avatarId) {
             WalletLoads++;return Task.FromResult(new OASISResult<IProviderWallet>{Result=new ProviderWallet{
                 AvatarId=avatarId,ProviderType=Core.Enums.ProviderType.PolkadotOASIS,WalletAddress=Sender,PublicKey=Sender,PrivateKey="fixture"}});
