@@ -10,7 +10,7 @@ const definitions = {
 
 const messages = Object.freeze({
   new: { selector: '00000001', args: '()', result: null },
-  get: { selector: '00000002', args: '(Bytes)', result: 'Option<OasisRecordCell>' },
+  get: { selector: '00000002', args: 'Bytes', result: 'Option<OasisRecordCell>' },
   put: { selector: '00000003', args: '(Bytes,Bytes,OasisRecordExpected,[u8;32])', result: 'u64' },
   delete: { selector: '00000004', args: '(Bytes,OasisRecordExpected,[u8;32])', result: 'Option<u64>' },
   keys: { selector: '00000005', args: '(Bytes,u64,u8)', result: 'OasisRecordPage' }
@@ -52,7 +52,7 @@ export function encodeRecordMessage(registry, name, args) {
   if (name === 'keys' && (!validU64(args[1]) || !Number.isInteger(args[2]) || args[2] < 1 || args[2] > 8)) {
     throw new Error('Invalid contract page bounds.');
   }
-  const encoded = registry.createType(spec.args, normalized).toU8a();
+  const encoded = registry.createType(spec.args, name === 'get' ? normalized[0] : normalized).toU8a();
   return '0x' + spec.selector + Buffer.from(encoded).toString('hex');
 }
 

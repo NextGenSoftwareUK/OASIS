@@ -9,6 +9,7 @@ test('selectors and SCALE arguments match explicit Rust ABI vectors', () => {
   const r = registry();
   assert.equal(encodeRecordMessage(r, 'new', []), '0x00000001');
   assert.equal(encodeRecordMessage(r, 'get', [Uint8Array.of(0xab)]), '0x0000000204ab');
+  assert.equal(encodeRecordMessage(r, 'get', [Uint8Array.of(1, 2, 3)]), '0x000000020c010203');
   assert.equal(encodeRecordMessage(r, 'put', [Uint8Array.of(0xab), Uint8Array.of(0xcd), { Revision: 258n }, new Uint8Array(32)]),
     '0x0000000304ab04cd020201000000000000' + '00'.repeat(32));
   assert.equal(encodeRecordMessage(r, 'delete', [Uint8Array.of(0xab), 'Missing', new Uint8Array(32)]),
