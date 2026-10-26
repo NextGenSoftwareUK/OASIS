@@ -1814,3 +1814,6 @@ validation, binding the exact next key to durable usage idempotency, atomic repl
 rejection, cumulative remaining-budget execution, publication and signed/native
 paging acceptance remain unimplemented. HTTP still rejects Cursor input. The
 prior505/567 native federation checkpoint is separate and predates this codec.
+
+26 October durable request-key binding prerequisite verified: UsageExecutionHandle.IsBoundToRequest(service, avatar, key) reuses UsageCanonical.OperationId against the captured durable owner, independent of later options mutation. Admission and binding share key validation. Ten strict memory-only controls reject foreign keys/avatars/services, invalid key lengths/control characters and empty avatars without authority/outbox calls. Core dual-target build/all3,685 tests pass, zero skips. Evidence: Verification/federation-request-binding-core.trx.gz and federation-request-binding-identities.json. HTTP cursor redemption, priced-handle binding coverage, cumulative budgets and signed/native paging acceptance remain open.
+
