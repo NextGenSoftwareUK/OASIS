@@ -1514,3 +1514,12 @@ Neo4j floating grouped final-value normalization is now native-verified against 
 ## Neo4j grouped floating SDK acceptance - 25 October 2026
 
 All three target adapters now support native SDK floating scalar/grouped Sum/Average. Neo4j grouping computes exact selected values using the verified Int64 finalizer, retains raw packed10/70word arrays for off-page validation and reuses the scalar word-domain reader before Core normalization. Independent grouped input/result lists now explicitly enroll required/nullable Single/Double; selected predicates/order/pages use the same normalized values.490native/552matched units pass with eight matching copies. Native source-window/access/traversal/transaction/budget owners remain; no client input scan or fallback. HTTP enrollment/demos remain pending.
+
+## Conditional sharing mutation boundary — 25 October 2026
+
+The WEB4 sharing helper now uses existing HolonManager conditional-write options
+for root-only grant/revoke mutations, binding accepted provider revisions and
+caller/operation identity. The single-recipient REST action preserves real
+failures. All three native stores reject a stale grant after revocation. CQL
+owner/public predicates are unchanged; full shared-recipient/tenant authority
+is still an open requirement. See [sharing contract](CQL_SHARING_WRITE_CONTRACT.md).

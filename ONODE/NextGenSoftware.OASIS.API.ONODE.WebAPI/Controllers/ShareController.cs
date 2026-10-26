@@ -54,47 +54,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                OASISResult<bool> result = null;
-                try
-                {
-                    result = await ShareHolonInternalAsync(holonId, new[] { avatarId });
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
-
-                // Return test data if setting is enabled and result is null, has error
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError))
-                {
-                    return new OASISResult<bool>
-                    {
-                        Result = true,
-                        IsError = false,
-                        Message = "Holon shared successfully (using test data)"
-                    };
-                }
-
-                return result;
+                // Authorization grants must reflect a real persistence outcome.
+                return await ShareHolonInternalAsync(holonId, new[] { avatarId });
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<bool>
-                    {
-                        Result = true,
-                        IsError = false,
-                        Message = "Holon shared successfully (using test data)"
-                    };
-                }
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error sharing holon: {ex.Message}",
-                    Exception = ex
-                };
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_SHARE_FAILED", Message = "Sharing could not be completed.",
+                    Exception = exception };
             }
         }
 
