@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
     public static class HolonAccess
     {
         /// <summary>JSON array of avatar IDs the holon is shared with. Source of truth for read access.</summary>
-        public const string SharedAvatarIdsMetaKey = "SHARED_AVATAR_IDS";
+        public const string SharedAvatarIdsMetaKey = HolonReadGrants.MetadataKey;
 
         /// <summary>
         /// One flag per recipient so "shared with me" is an exact-match metadata lookup, since
@@ -34,53 +35,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
         public static HashSet<Guid> GetSharedAvatarIds(IHolon holon)
         {
-            var ids = new HashSet<Guid>();
-            if (holon?.MetaData == null || !holon.MetaData.TryGetValue(SharedAvatarIdsMetaKey, out var raw) || raw == null)
-                return ids;
-
-            switch (raw)
-            {
-                case IEnumerable<Guid> guids:
-                    ids.UnionWith(guids);
-                    break;
-                case JsonElement { ValueKind: JsonValueKind.Array } array:
-                    foreach (var item in array.EnumerateArray())
-                        if (item.ValueKind == JsonValueKind.String && Guid.TryParse(item.GetString(), out var g))
-                            ids.Add(g);
-                    break;
-                case JsonElement { ValueKind: JsonValueKind.String } str:
-                    AddFromText(str.GetString(), ids);
-                    break;
-                default:
-                    AddFromText(raw.ToString(), ids);
-                    break;
-            }
-
-            ids.Remove(Guid.Empty);
-            return ids;
-        }
-
-        // Stored as a JSON array by ShareController, but older writers used a comma-separated list.
-        private static void AddFromText(string text, HashSet<Guid> ids)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return;
-            text = text.Trim();
-            if (text.StartsWith("[", StringComparison.Ordinal))
-            {
-                try
-                {
-                    foreach (var g in JsonSerializer.Deserialize<Guid[]>(text) ?? Array.Empty<Guid>())
-                        ids.Add(g);
-                    return;
-                }
-                catch (JsonException)
-                {
-                    // Fall through to the comma-separated parser.
-                }
-            }
-            foreach (var token in text.Trim('[', ']').Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                if (Guid.TryParse(token.Trim('"'), out var g))
-                    ids.Add(g);
+            // Existing WEB4 explicitly admits the bounded legacy text grammar.
+            // New policy consumers use Core's default strict mode until migrated.
+            var parsed = HolonReadGrants.Read(holon, allowLegacyText: true);
+            return parsed.IsError ? new HashSet<Guid>() : new HashSet<Guid>(parsed.Result);
         }
 
         /// <summary>
@@ -115,8 +73,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN", Message = "Unauthorized. Sign in to change sharing." };
 
-            var recipients = avatarIds?.Where(id => id != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
-            if (recipients.Count == 0 || holonId == Guid.Empty)
+            var input = avatarIds?.Take(HolonReadGrants.MaximumRecipients + 1).ToArray() ?? Array.Empty<Guid>();
+            var recipients = input.Where(id => id != Guid.Empty).Distinct().ToList();
+            if (recipients.Count == 0 || holonId == Guid.Empty || input.Length > HolonReadGrants.MaximumRecipients)
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_INPUT_INVALID",
                     Message = "At least one valid avatar id and a nonempty holon id must be supplied." };
@@ -136,9 +95,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN",
                     Message = "Unauthorized. You can only change sharing on holons that you created." };
 
-            var sharedIds = GetSharedAvatarIds(holon);
+            var parsed = HolonReadGrants.Read(holon, allowLegacyText: true);
+            if (parsed.IsError)
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = parsed.ErrorCode, Message = parsed.Message, Exception = parsed.Exception };
+            var sharedIds = new HashSet<Guid>(parsed.Result);
             if (revoke) sharedIds.ExceptWith(recipients);
             else sharedIds.UnionWith(recipients);
+            if (sharedIds.Count > HolonReadGrants.MaximumRecipients)
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = HolonReadGrants.InvalidCode, Message = "Recipient limit exceeded." };
             RecordShares(holon, sharedIds);
 
             // Conditions bind the accepted provider revision from this load.
@@ -169,15 +135,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         /// <summary>Records the share list and the per-recipient index flags on the holon's metadata.</summary>
         public static void RecordShares(IHolon holon, IEnumerable<Guid> sharedIds)
         {
+            if (holon == null) throw new ArgumentNullException(nameof(holon));
+            if (sharedIds == null) throw new ArgumentNullException(nameof(sharedIds));
+            var input = sharedIds.Take(HolonReadGrants.MaximumRecipients + 1).ToArray();
+            if (input.Length > HolonReadGrants.MaximumRecipients)
+                throw new ArgumentException("Recipient limit exceeded.", nameof(sharedIds));
+            var encoded = HolonReadGrants.Encode(input.Where(id => id != Guid.Empty));
+            if (encoded.IsError) throw new ArgumentException(encoded.Message, nameof(sharedIds));
+            var all = input.Where(id => id != Guid.Empty).Distinct().OrderBy(id => id).ToArray();
             holon.MetaData ??= new Dictionary<string, object>();
-            var all = sharedIds.Where(id => id != Guid.Empty).Distinct().OrderBy(id => id).ToList();
             // Indexes are derived lookup hints, never independent grants. Remove
             // revoked entries before rebuilding the current canonical set.
             foreach (var key in holon.MetaData.Keys.Where(key =>
                 key.StartsWith("SHARED_WITH_", StringComparison.Ordinal)
                 && Guid.TryParseExact(key.Substring("SHARED_WITH_".Length), "N", out _)).ToArray())
                 holon.MetaData.Remove(key);
-            holon.MetaData[SharedAvatarIdsMetaKey] = JsonSerializer.Serialize(all);
+            holon.MetaData[SharedAvatarIdsMetaKey] = encoded.Result;
             foreach (var id in all)
                 holon.MetaData[SharedWithIndexKey(id)] = SharedWithIndexValue;
         }

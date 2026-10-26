@@ -52,6 +52,28 @@ control use the overload above, optionally with ExpectedRevisions. A stale grant
 must fail after a newer revocation; the helper never reloads and silently retries.
 REST revocation and a public stable-intent transport contract are not added here.
 
+## Reusing the generic representation contract
+
+```csharp
+// Uses the generic Core component; no provider-specific parser is needed.
+var grants = HolonReadGrants.Read(loadedHolon);
+
+if (grants.IsError)
+{
+    // Deny recipient-based access. Do not use a partial list or rewrite the data.
+    return grants;
+}
+
+// For an explicit migration of known legacy text, the trusted host can call
+// Read(loadedHolon, allowLegacyText: true), then Encode(grants.Result).
+// Persist that canonical value only after owner/issuer checks and with CAS.
+```
+
+Missing grant metadata means no recipients. Present null, malformed or unsupported
+metadata is an error. The creator/public rule remains independent of recipient
+parsing. Valid parser output alone never authenticates a caller or authorizes a
+write; raw storage credentials and client tenant/role labels are not grant proofs.
+
 ## Evidence and remaining gates
 
 Six original controlled tests fail before the fix and pass afterward. The expanded
@@ -64,8 +86,26 @@ source snapshots match; owned services/fixtures are cleaned up. Reports:
 `TestResults/CosmicCqlDemo/sharing-native.log`, `sharing-write-final.log`,
 `sharing-evidence.json`, and `TestResults/CoreCurrent/sharing-write-final.trx`.
 
-Remaining policy work includes one generic Core canonical grant owner, explicit
-legacy-list migration, malformed/oversized grant rejection, atomic issuer authority
+The generic Core representation owner is now `HolonReadGrants`: bounded whole-set
+validation and canonical encoding, reused by WEB4. Default reads admit array/typed
+GUID representations; legacy single-GUID/comma text needs `allowLegacyText: true`.
+Malformed JSON never enters the legacy grammar. Incoming GUIDs must be nonempty
+D-format text, and all entries must validate. Lists are bounded to1,024 inputs
+and text to40,960characters; canonical encoding sorts/deduplicates IDs. Returned
+recipient snapshots are immutable. Arbitrary object stringification is rejected.
+
+WEB4 explicitly admits valid legacy text; its next authorized conditional sharing
+mutation writes canonical JSON. Malformed existing metadata fails grant/revocation
+without saving. Repair requires a separate explicit owner-controlled conditional
+mutation. The native fixture verifies that sequence on all three stores.
+
+Remaining policy work includes a maintained migration/operator surface, atomic issuer authority
 across remote mutation paths, authoritative tenant membership and consistent native
-root/traversal/join/aggregate/output checks. Existing permissive recipient parsing
-is not adequate evidence for enrolling a stronger CQL access profile.
+root/traversal/join/aggregate/output checks. Correct parsing alone is not issuer authorization and does not enroll a stronger
+CQL access profile.
+
+Latest generic parser acceptance:10originalREDcases nowPASS; finalfullCore3,217
+PASS0skip, bothCoreTFMs/WEB4compilePASS. All3native malformedgrant/repair checks
+and138SDK/138HTTP345settled337attemptsPASS. Core906f64d3source is published;
+parentdependency pin/gitlink move together. Exactreports/hashes and final additional
+Corecopies: TestResults/CosmicCqlDemo/grant-parser-evidence.json.

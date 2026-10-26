@@ -202,6 +202,43 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.IsFalse(NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.CanRead(final.Result, alice));
                 Assert.IsFalse(final.Result.MetaData.ContainsKey(
                     NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.SharedWithIndexKey(alice)));
+                // A trusted fixture writer simulates malformed historical metadata.
+                // Readers must not extract the valid first ID from an invalid list.
+                final.Result.MetaData[HolonReadGrants.MetadataKey] = "[\"" + alice.ToString("D") + "\",true]";
+                var malformedWrite = await manager.SaveHolonAsync(final.Result, bob,
+                    await SharingIntent(CosmicConcurrency.GetProviderRevisionId(final.Result, pair.Key)!.Value),
+                    saveChildren: false);
+                Assert.IsFalse(malformedWrite.IsError, malformedWrite.Message + malformedWrite.Exception);
+                var malformed = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(malformed.IsError, malformed.Message);
+                Assert.AreEqual(HolonReadGrants.InvalidCode, HolonReadGrants.Read(malformed.Result).ErrorCode);
+                Assert.IsFalse(NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.CanRead(malformed.Result, alice));
+                var malformedRevision = CosmicConcurrency.GetProviderRevisionId(malformed.Result, pair.Key)!.Value;
+
+                foreach (var revokeMalformed in new[] { false, true })
+                {
+                    var options = await SharingIntent(malformedRevision);
+                    var rejected = revokeMalformed
+                        ? await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.RevokeAsync(
+                            manager, ids[0], new[] { alice }, actor, options)
+                        : await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.ShareAsync(
+                            manager, ids[0], new[] { alice }, actor, options);
+                    Assert.IsTrue(rejected.IsError);
+                    Assert.AreEqual(HolonReadGrants.InvalidCode, rejected.ErrorCode);
+                }
+
+                var unchanged = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(unchanged.IsError, unchanged.Message);
+                Assert.AreEqual(malformedRevision, CosmicConcurrency.GetProviderRevisionId(unchanged.Result, pair.Key));
+                Assert.AreEqual(malformed.Result.MetaData[HolonReadGrants.MetadataKey].ToString(),
+                    unchanged.Result.MetaData[HolonReadGrants.MetadataKey].ToString());
+
+                // Repair is an explicit owner-controlled conditional mutation,
+                // never an incidental side effect of granting another recipient.
+                NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.RecordShares(unchanged.Result, Array.Empty<Guid>());
+                var repaired = await manager.SaveHolonAsync(unchanged.Result, bob,
+                    await SharingIntent(malformedRevision), saveChildren: false);
+                Assert.IsFalse(repaired.IsError, repaired.Message + repaired.Exception);
                 sharingProvidersVerified++;
             }
 
