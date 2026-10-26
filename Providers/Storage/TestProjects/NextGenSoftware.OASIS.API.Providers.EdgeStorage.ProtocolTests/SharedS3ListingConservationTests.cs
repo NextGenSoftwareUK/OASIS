@@ -13,15 +13,75 @@ namespace NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests;
 [TestClass]
 public class SharedS3ListingConservationTests
 {
-    [DataTestMethod][DataRow(false)][DataRow(true)]
-    public async Task Public_avatar_collection_cannot_report_false_absence_from_a_contradictory_page(bool synchronous)
+    [DataTestMethod]
+    [DataRow("omitted",false)][DataRow("omitted",true)]
+    [DataRow("matching",false)][DataRow("matching",true)]
+    [DataRow("encoded-matching",false)][DataRow("encoded-matching",true)]
+    [DataRow("encoded-percent",false)][DataRow("encoded-percent",true)]
+    [DataRow("literal-plus",false)][DataRow("literal-plus",true)]
+    [DataRow("bad-percent",false)][DataRow("bad-percent",true)]
+    [DataRow("bad-utf8",false)][DataRow("bad-utf8",true)]
+    [DataRow("unknown-encoding",false)][DataRow("unknown-encoding",true)]
+    [DataRow("encoded-duplicate",false)][DataRow("encoded-duplicate",true)]
+    [DataRow("foreign-prefix",false)][DataRow("foreign-prefix",true)]
+    [DataRow("empty-prefix",false)][DataRow("empty-prefix",true)]
+    [DataRow("foreign-token",false)][DataRow("foreign-token",true)]
+    [DataRow("unexpected-start",false)][DataRow("unexpected-start",true)]
+    [DataRow("unexpected-delimiter",false)][DataRow("unexpected-delimiter",true)]
+    public async Task Completed_listing_must_match_its_requested_selection_and_cursor(string mode,bool priorPage)
+    {
+        var calls=0;var valid=mode is "omitted" or "matching" or "encoded-matching" or "encoded-percent" or "literal-plus";
+        var encoded=mode.StartsWith("encoded-",StringComparison.Ordinal)||mode is "literal-plus" or "bad-percent" or "bad-utf8";
+        var logical=mode=="encoded-percent"?"avatars%2F/":mode=="literal-plus"?"avatars+/":"avatars/";
+        var physical="scope/"+logical;
+        string Encoded(string value)=>Uri.EscapeDataString(value).Replace("%2B",mode=="literal-plus"?"+":"%2B",StringComparison.Ordinal);
+        using var service=new FakeService((request,body)=>{
+            calls++;var first=priorPage && calls==1;
+            Assert.IsTrue(request.RequestUri.Query.Contains("list-type=2",StringComparison.Ordinal));
+            if(calls==2)Assert.IsTrue(request.RequestUri.Query.Contains("continuation-token=next",StringComparison.Ordinal));
+            var prefix=encoded?$"<Prefix>{Encoded(physical)}</Prefix>"
+                :first||mode=="matching"?"<Prefix>scope/avatars/</Prefix>"
+                :mode=="foreign-prefix"?"<Prefix>scope/other/</Prefix>":mode=="empty-prefix"?"<Prefix></Prefix>":"";
+            if(!first && mode=="bad-percent")prefix="<Prefix>scope%2Favatars%2</Prefix>";
+            if(!first && mode=="bad-utf8")prefix="<Prefix>scope%2Favatars%FF%2F</Prefix>";
+            var encoding=encoded?"<EncodingType>url</EncodingType>":!first&&mode=="unknown-encoding"?"<EncodingType>gzip</EncodingType>":"";
+            var token=!first&&mode=="foreign-token"?"<ContinuationToken>foreign</ContinuationToken>"
+                :calls==2&&mode=="matching"?"<ContinuationToken>next</ContinuationToken>":"";
+            var start=!first&&mode=="unexpected-start"?"<StartAfter>scope/avatars/skip</StartAfter>":"";
+            var delimiter=!first&&mode=="unexpected-delimiter"?"<Delimiter>/</Delimiter>":"";
+            var contents=first?$"<Contents><Key>{(encoded?Encoded(physical+"key"):physical+"key")}</Key><Size>1</Size></Contents>":"";
+            var count=first?1:0;
+            if(!first && mode=="encoded-duplicate"){
+                var alias="<Contents><Key>scope%2favatars%2fkey</Key><Size>1</Size></Contents>";
+                contents=priorPage?alias:alias+"<Contents><Key>%73cope%2Favatars%2Fkey</Key><Size>1</Size></Contents>";
+                count=priorPage?1:2;
+            }
+            var flag=first?"<IsTruncated>true</IsTruncated><NextContinuationToken>next</NextContinuationToken>":"<IsTruncated>false</IsTruncated>";
+            return FakeService.Text($"<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>test-bucket</Name>{prefix}{encoding}{token}{start}{delimiter}{flag}<KeyCount>{count}</KeyCount>{contents}</ListBucketResult>");
+        });
+        using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
+            ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,
+            HttpClientFactory=new HandlerHttpClientFactory(service)});
+        var backend=new Backend(client,"test-bucket","scope/");
+        if(!valid)await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>backend.ListKeysAsync(logical));
+        else{
+            var result=await backend.ListKeysAsync(logical);
+            CollectionAssert.AreEqual(priorPage?new[]{logical+"key"}:Array.Empty<string>(),result.ToArray());
+        }
+        Assert.AreEqual(priorPage?2:1,calls,"A mismatched page cannot be retried or published as complete.");
+    }
+
+    [DataTestMethod][DataRow("count",false)][DataRow("count",true)]
+    [DataRow("prefix",false)][DataRow("prefix",true)][DataRow("start",false)][DataRow("start",true)]
+    public async Task Public_avatar_collection_cannot_report_false_absence_from_a_contradictory_page(string mode,bool synchronous)
     {
         var calls=0;
         using var service=new FakeService((request,body)=>{
             calls++;
             Assert.IsTrue(request.RequestUri.Query.Contains("list-type=2",StringComparison.Ordinal));
             Assert.IsTrue(request.Headers.GetValues("Authorization").Single().StartsWith("AWS4-HMAC-SHA256 ",StringComparison.Ordinal));
-            return FakeService.Text("<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>test-bucket</Name><KeyCount>1</KeyCount><IsTruncated>false</IsTruncated></ListBucketResult>");
+            var scope=mode=="prefix"?"<Prefix>scope/foreign/</Prefix>":mode=="start"?"<StartAfter>scope/skipped</StartAfter>":"";
+            return FakeService.Text($"<ListBucketResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"><Name>test-bucket</Name><KeyCount>{(mode=="count"?1:0)}</KeyCount>{scope}<IsTruncated>false</IsTruncated></ListBucketResult>");
         });
         using var client=new AmazonS3Client(new BasicAWSCredentials("synthetic-key","synthetic-secret"),new AmazonS3Config{
             ServiceURL="https://s3.us-east-1.amazonaws.com",AuthenticationRegion="us-east-1",ForcePathStyle=true,MaxErrorRetry=0,
@@ -30,7 +90,7 @@ public class SharedS3ListingConservationTests
         try{
             using var provider=new NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AWSS3OASIS(client,"test-bucket",()=>key.ToArray(),"scope/");
             var result=synchronous?provider.LoadAllAvatars():await provider.LoadAllAvatarsAsync();
-            Assert.IsTrue(result.IsError,"A claimed object with no payload cannot become successful absence.");
+            Assert.IsTrue(result.IsError,"A contradictory page cannot become successful absence.");
             Assert.IsNull(result.Result);
             Assert.AreEqual(0,result.LoadedCount);
             Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
