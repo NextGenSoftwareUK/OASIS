@@ -1,5 +1,43 @@
 # CQL developer manual
 
+## Request-owned routing for V2 storage writes
+
+The canonical WEB4 single/batch graph-save routes now capture routing settings
+for the request. `SetGlobally=false` does not temporarily change the singleton.
+`DEFAULT` inherits the captured runtime setting; an explicit ordered provider
+list belongs to that request. Detailed responses report the same captured policy.
+An explicit `SetGlobally=true` publishes validated routing settings atomically;
+an older request finishing cannot restore a previous global snapshot.
+
+Core callers can create the same isolated context over registered providers:
+
+```csharp
+using NextGenSoftware.OASIS.API.Core.Configuration;
+
+// Capture once. This does not activate providers or grant data access.
+var request = manager.CreateRequestContext(
+    new ProviderRoutingOverrides(autoReplicationEnabled: false),
+    ProviderType.SQLLiteDBOASIS);
+
+if (request.IsError)
+    throw new InvalidOperationException(request.Message, request.Exception);
+
+// Use request.Result.Manager for the operation and request.Result.Policy
+// for its routing description. Keep normal actor/revision checks unchanged.
+var requestManager = request.Result.Manager;
+```
+
+The provider must already be registered. An explicit operation provider wins
+over configured manager affinity; otherwise affinity wins over the captured
+default. A captured missing default stays missing even if another request later
+publishes one. Conditional writes retain one authority and never acquire permission
+to retry a rejected write on another provider. `All` is invalid for these writes;
+CQL all-provider query scope remains a separate query feature.
+
+This migration currently covers canonical V2 graph saves and delegating aliases.
+Other routes and deep DNA/security/strategy snapshots remain tracked in
+[configuration ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
+
 ## Saving complete child graphs through WEB4
 
 For an existing graph, retain the provider revision for every selected record.

@@ -35,6 +35,8 @@ try {
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonJsonContracts.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/OASISHttpResponseMessage.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISConfigResult.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Save.cs',

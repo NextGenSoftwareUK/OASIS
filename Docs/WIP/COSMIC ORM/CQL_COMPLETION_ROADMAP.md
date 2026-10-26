@@ -2027,3 +2027,23 @@ and `TestResults/CosmicCqlDemo/storage-pricing-evidence.json`.
 This closes the explicit pricing kernel, not the joined shipping DataController
 HTTP/native-store/admission/outbox settlement gate. That proof remains next;
 gRPC/GraphQL authority migration and broader CQL/ORM acceptance remain open.
+
+## Verified request-routing checkpoint — 26 October 2026
+
+Canonical V2 WEB4 single/batch graph writes now use immutable request-owned
+routing contexts. Global publication is atomic; request completion cannot restore
+an older global policy. Captured preferred identity includes a missing default.
+Performance and load-balancer history remain shared; construction performs no
+provider activation or extra persistent event subscriptions.
+
+Core netstandard2.1/net10.0 and shipping WEB4 builds pass. Full suites: 3,368 Core
+and 231 WEB4 tests, no failures/skips. Fresh three-provider native acceptance:
+138 SDK /138 HTTP walkthrough queries,36 shipping REST requests,378 settled
+operations/403 attempts. Source freeze held and all seven binary pairs matched.
+Required compressed reports and safe source/binary summaries are retained in
+`Verification/configuration-*`. Core implementation is published as `2cb7f88`.
+
+This closes this routing checkpoint, not the roadmap. Non-migrated routes,
+cross-route concurrency, deep DNA/security/strategy ownership, gRPC/GraphQL
+identity, recipient/tenant queries, federation and remaining ORM work stay open.
+See [request policy ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
