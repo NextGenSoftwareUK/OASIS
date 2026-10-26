@@ -1644,3 +1644,7 @@ The focused signed three-provider gate passes24transportrequests, alongside the
 existing CQL/REST suite:402settledoperations/436attempts. Seven producer/native
 copies and three refreshed unit-consumer copies match; source freeze holds.
 This does not certify full deployed GraphQL startup or other gRPC/delete paths.
+
+## 26 October: authoritative access SDK and native policy verification
+
+Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.

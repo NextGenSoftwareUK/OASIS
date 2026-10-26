@@ -8,8 +8,9 @@ protected preparation retrieval are implemented on all three stores. Actual
 hard-delete commits followed by injected acknowledgement loss recover through
 read-only receipts without replay. The latest retained native cohort has
 465 settled operations / 517 physical attempts, unchanged sources and seven
-matching producer/consumer pairs. These are application-boundary fault tests,
-not OS-process crash certification.
+matching producer/consumer pairs. Actual writer-process termination after commit
+and authenticated recovery in a distinct fresh process now also pass on all three
+providers; compact original-operation/PID proof is retained in Verification.
 
 Core's new pinned preparation routing and stored-only reconstruction workflow
 and protected conditional-delete enrollment, including inherited request protection,
@@ -22,10 +23,10 @@ one unrelated Stripe sandbox skip, and 408 passing real-Mongo usage tests. See
 The [hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) now includes
 authorized write enrollment and signed native HTTP acceptance for saves and both
 delete kinds on all three stores, including foreign/anonymous rejection and exact
-read billing. Remaining priority: protected hard-delete acknowledgement loss and
-actual process interruption/restart. Recipient/tenant query scope, federation
-certification and the broader ORM roadmap remain open. Provider reactivation
-does not close the process-restart requirement.
+read billing. Protected public-manager hard-delete acknowledgement loss and
+post-commit writer-process interruption/fresh-process recovery are verified.
+Recipient/tenant query scope, federation certification and the broader ORM roadmap
+remain open. Provider reactivation alone is not process-restart evidence.
 
 ## Earlier owned-delete SDK checkpoint — 26 October 2026
 
@@ -2126,3 +2127,7 @@ MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment foll
 ## 26 October: actual writer-process interruption and fresh-process recovery verified
 
 MongoDB, SQLite and Neo4j pass abrupt writer termination after the native hard-delete commit, followed by authenticated stored-only recovery in a separate process. Each original operation retains its identity; writer/reader PIDs differ; no replay. Full native465 settlements/517attempts; sources unchanged; seven binary pairs match; owned services and fixtures cleaned. See [hosted recovery evidence and remaining acceptance](HOSTED_OPERATION_RECOVERY.md). Operator retention/reconciliation and broader tenant/query/federation work remain open.
+
+## 26 October: authoritative access SDK and native policy verification
+
+Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.

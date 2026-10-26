@@ -79,7 +79,7 @@ public partial class HolonRepository
                             var visible = (bool)DecodeProjectionCell(reader.GetValue(2), typeof(bool));
                             var creator = reader.IsDBNull(3) ? Guid.Empty : (Guid)DecodeProjectionCell(reader.GetValue(3), typeof(Guid));
                             if (id == Guid.Empty || position <= 0 || input.ContainsKey(position) || !identities.Add(id)
-                                || plan.Query.Source.ReadAccess != null && !visible && creator != plan.Query.Source.ReadAccess.ActorId)
+                                || plan.Query.Source.ReadAccess != null && !plan.Query.Source.ReadAccess.CanRead(id,visible,creator))
                                 throw new InvalidDataException("Composition source identity/access proof is invalid.");
                             inputBytes = checked(inputBytes + 48); var offset = 4;
                             object Cell(Type declared, bool allowAbsent = false)

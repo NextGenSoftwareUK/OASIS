@@ -60,7 +60,7 @@ public partial class HolonRepository
                         var visible = (bool)DecodeNativeProjectionCell(rawVisible, typeof(bool));
                         var creator = (Guid)DecodeNativeProjectionCell(rawCreator, typeof(Guid));
                         if (id == Guid.Empty || byId.ContainsKey(id) || CompositionCount(data, "rank") != input.Count + 1
-                            || query.Source.ReadAccess != null && !visible && creator != query.Source.ReadAccess.ActorId)
+                            || query.Source.ReadAccess != null && !query.Source.ReadAccess.CanRead(id,visible,creator))
                             throw new InvalidDataException("Composition source identity/access/rank proof is invalid.");
                         inputBytes = checked(inputBytes + 48);
                         var values = Cells("values", query.Columns.Select(column => column.Path.ValueType).ToArray(), false, out _);

@@ -106,7 +106,7 @@ public partial class HolonRepository
                         var visible = (bool)DecodeNativeProjectionCell(visibleCell, typeof(bool));
                         var creator = (Guid)DecodeNativeProjectionCell(creatorCell, typeof(Guid));
                         if (id == Guid.Empty || result.ContainsKey(id)
-                            || intent.ReadAccess != null && !visible && creator != intent.ReadAccess.ActorId)
+                            || intent.ReadAccess != null && !intent.ReadAccess.CanRead(id,visible,creator))
                             throw new InvalidDataException("Native join source identity/access proof is invalid.");
                         measured = checked(measured + 48);
                         var keys = Cells("keys", paths.Select(path => path.ValueType).ToArray(), false, out _);
