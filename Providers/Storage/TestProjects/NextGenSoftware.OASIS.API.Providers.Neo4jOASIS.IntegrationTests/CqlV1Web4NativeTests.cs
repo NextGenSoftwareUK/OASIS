@@ -60,6 +60,7 @@ public sealed partial class CqlV1Web4NativeTests
         var sharingProvidersVerified = 0;
         var ownedWritesProvidersVerified = 0;
         var ownedBatchProvidersVerified = 0;
+        var hostedWriteBoundariesVerified = 0;
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -331,6 +332,49 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(secondRevision, CosmicConcurrency.GetProviderRevisionId(secondWinner.Result, pair.Key));
                 Assert.AreEqual("committed", secondWinner.Result.MetaData["owned-batch-control"].ToString());
 
+                // Invoke the actual WEB4 save boundary with its wire DTOs. These
+                // are native service controls, separate from the signed CQL HTTP
+                // walkthrough and not a claim of full DataController HTTP proof.
+                var hostedRoot = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                var hostedForeign = await manager.LoadHolonAsync(ids[2], loadChildren: false);
+                Assert.IsFalse(hostedRoot.IsError, hostedRoot.Message);
+                Assert.IsFalse(hostedForeign.IsError, hostedForeign.Message);
+                hostedForeign.Result.CreatedByAvatarId = bob;
+                var deniedHosted = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonWriteEndpoint.SaveBatchAsync(
+                    manager, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.SaveHolonsRequest
+                    {
+                        Holons = new()
+                        {
+                            NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(hostedRoot.Result),
+                            NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(hostedForeign.Result)
+                        },
+                        OperationId = await OwnedIntent(), SaveChildren = false, ProviderType = pair.Key.ToString()
+                    }, bob, false);
+                Assert.AreEqual("COSMIC_WRITE_FORBIDDEN", deniedHosted.ErrorCode);
+                Assert.AreEqual(HttpStatusCode.Forbidden,
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonWriteEndpoint.Status(deniedHosted));
+
+                var hostedStale = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(hostedRoot.Result);
+                hostedRoot.Result.MetaData["hosted-write-control"] = "committed";
+                var hostedSaved = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonWriteEndpoint.SaveAsync(
+                    manager, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.SaveHolonRequest
+                    {
+                        Holon = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(hostedRoot.Result),
+                        SaveChildren = false, ProviderType = pair.Key.ToString()
+                    }, bob, false, (await OwnedIntent()).ToString("D"));
+                Assert.IsFalse(hostedSaved.IsError, hostedSaved.Message + hostedSaved.Exception);
+                Assert.IsTrue(hostedSaved.IsSaved);
+                hostedStale.Name = "stale hosted overwrite";
+                var hostedConflict = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonWriteEndpoint.SaveAsync(
+                    manager, new NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.SaveHolonRequest
+                    {
+                        Holon = hostedStale, OperationId = await OwnedIntent(),
+                        SaveChildren = false, ProviderType = pair.Key.ToString()
+                    }, bob, false);
+                Assert.AreEqual(CosmicConcurrencyException.Code, hostedConflict.ErrorCode);
+                Assert.AreEqual(HttpStatusCode.Conflict,
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonWriteEndpoint.Status(hostedConflict));
+                hostedWriteBoundariesVerified++;
                 ownedBatchProvidersVerified++;
                 ownedWritesProvidersVerified++;
                 sharingProvidersVerified++;
@@ -1001,7 +1045,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));

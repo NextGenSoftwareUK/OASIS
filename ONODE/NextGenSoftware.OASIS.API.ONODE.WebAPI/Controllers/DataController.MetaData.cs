@@ -305,11 +305,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> SaveHolons(SaveHolonsRequest request)
         {
+            var callerId = Avatar?.Id ?? Guid.Empty;
+            var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
             var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
 
             OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
+
+            if (OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            {
+                try
+                {
+                    var written = await HolonWriteEndpoint.SaveBatchAsync(HolonManager, request, callerId, callerIsWizard,
+                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+                    OASISResultHelper<IHolon, Holon>.CopyResult(written, response.Result);
+                    if (written.Result != null)
+                        response.Result.Result = Mapper.Convert<IHolon, Holon>(written.Result)?.ToList();
+                    var status = HolonWriteEndpoint.Status(written);
+                    Response.StatusCode = (int)status;
+                    return HttpResponseHelper.FormatResponse(response, status, request.ShowDetailedSettings);
+                }
+                finally
+                {
+                    ResetOASISSettings(request, configResult);
+                }
+            }
 
             // For non-Wizards, verify ownership of any holon being updated (non-empty Id)
             if (Avatar?.AvatarType?.Value != AvatarType.Wizard)

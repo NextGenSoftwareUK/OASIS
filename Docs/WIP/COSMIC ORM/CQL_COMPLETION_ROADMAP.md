@@ -1919,3 +1919,22 @@ Existing hosted bulk/single saves, gRPC, authenticated GraphQL actor binding,
 trusted-role policy and hosted write admission/pricing remain open. This generic
 SDK completion does not enroll recipient/tenant CQL policies or complete the
 full ORM/CQL roadmap.
+
+## REST conditional write migration — 26 October 2026
+
+Existing V2 single/bulk save actions now use the shared WEB4 write boundary:
+server caller/role snapshots, stable body/header intent, generic selected-node
+creator authorization, conditional trusted-Wizard writes, HTTP/error-code
+mapping and V2 bulk finally cleanup. Legacy save paths remain unchanged.
+Eleven new linked service/DTO cases pass in fullCore3,302/3,302, zero skips;
+shipping WEB4 builds. Three-provider service-native verification passes (foreign batch denial,
+header-based save, stale conflict), plus138SDK/138signedCQL HTTP examples and
+345settled operations. Source freeze and six binary pairs match; owned services
+and fixture files are cleaned. Evidence:
+`TestResults/CosmicCqlDemo/hosted-write-evidence.json`.
+
+This is not full hosted production certification. Actual shipping DataController
+HTTP, configured route/alias admission coverage, pre-boundary provider activation,
+explicit read/write tariffs, gRPC and GraphQL actor binding remain open. See
+[CQL REST conditional write contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md)
+for payloads, alias headers, statuses, exact verification scope and remaining gates.
