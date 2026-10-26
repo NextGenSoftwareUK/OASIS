@@ -14,6 +14,8 @@ param(
     [Parameter(ParameterSetName = 'NftLifecycleRecover')][switch]$NftLifecycleRecover,
     [Parameter(ParameterSetName = 'NftIntentRecovery')][switch]$NftIntentRecovery,
     [Parameter(ParameterSetName = 'NftCustodySource')][switch]$NftCustodySource,
+    [Parameter(ParameterSetName = 'NftCustody')][switch]$NftCustody,
+    [Parameter(ParameterSetName = 'NftCustodyRecover')][switch]$NftCustodyRecover,
     [Parameter(ParameterSetName = 'NftPublicMutation')][switch]$NftPublicMutation,
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
@@ -27,12 +29,14 @@ $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers
 if (!(Test-Path -LiteralPath $evidence -PathType Container)) { throw 'Reuse the retained environment.' }
 $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
 $publicEvidence = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot'
-$recordEvidence = if ($CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) { $publicEvidence } else { $evidence }
+$custodyGate = $NftCustody -or $NftCustodyRecover
+$recordEvidence = if ($custodyGate -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) { $publicEvidence } else { $evidence }
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
 $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
 $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
 $priorRecovery = $env:OASIS_POLKADOT_RECORD_RECOVERY
 $priorNftRecovery = $env:OASIS_POLKADOT_NFT_PUBLIC_RECOVERY
+$priorCustodyRecovery = $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY
 try {
     $nftDeploymentPending = Join-Path $publicEvidence 'psp34-deployment-pending.json'
     if ((Test-Path -LiteralPath $nftDeploymentPending) -and !$NftReconcile) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
@@ -40,6 +44,8 @@ try {
     if ((Test-Path -LiteralPath $nftMutationPending) -and !$NftLifecycleRecover) { throw 'Pending original exists: NFT mutation. Reconcile read-only, never replay.' }
     $publicNftPending = Join-Path $publicEvidence 'psp34-public-mutation-pending.jsonl'
     if ((Test-Path -LiteralPath $publicNftPending) -and !$NftPublicRecover) { throw 'Pending original exists: public NFT mutation. Reconcile read-only, never replay.' }
+    $custodyPending = Join-Path $publicEvidence 'psp34-custody-pending.jsonl'
+    if ((Test-Path -LiteralPath $custodyPending) -and !$NftCustodyRecover) { throw 'Pending original exists: NFT custody. Reconcile read-only, never replay.' }
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
         'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json','record-csharp-pending.json','public-storage-pending.jsonl')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
@@ -50,7 +56,8 @@ try {
     $env:OASIS_POLKADOT_RECORD_RECOVERY = if ($RecoverCompleted) { '1' } else { $null }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
     $env:OASIS_POLKADOT_NFT_PUBLIC_RECOVERY = if ($NftPublicRecover) { '1' } else { $null }
-    if ($CSharpBackend -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) {
+    $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY = if ($NftCustodyRecover) { '1' } else { $null }
+    if ($custodyGate -or $CSharpBackend -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) {
         # Caller must hold the global provider build lease for this whole runner.
         $env:OASIS_POLKADOT_SDK_BRIDGE = Join-Path $sdk 'bridge.mjs'
         $env:OASIS_POLKADOT_RECORD_EVIDENCE = $recordEvidence
@@ -62,8 +69,8 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Provider build failed; no restore/download attempted.' }
             & dotnet build $unit --no-restore /p:IncludePolkadotRecordNativeTests=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
             if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
-            $nativeClass = if ($NftPublicMutation -or $NftPublicRecover) { 'PolkadotNftPublicMutationNativeTests' } elseif ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
-            $reportName = if ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
+            $nativeClass = if ($custodyGate) { 'PolkadotNftCustodyNativeTests' } elseif ($NftPublicMutation -or $NftPublicRecover) { 'PolkadotNftPublicMutationNativeTests' } elseif ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
+            $reportName = if ($NftCustodyRecover) { 'psp34-custody-recovery-current.trx' } elseif ($NftCustody) { 'psp34-custody-native-current.trx' } elseif ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
             & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$nativeClass" --logger "trx;LogFileName=$reportName" --results-directory $recordEvidence --verbosity quiet -- MSTest.DeploymentEnabled=false
             if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
             [xml]$report = Get-Content -LiteralPath (Join-Path $recordEvidence $reportName)
@@ -98,5 +105,6 @@ try {
     $env:OASIS_POLKADOT_RECORD_EVIDENCE = $priorEvidence
     $env:OASIS_POLKADOT_RECORD_RECOVERY = $priorRecovery
     $env:OASIS_POLKADOT_NFT_PUBLIC_RECOVERY = $priorNftRecovery
+    $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY = $priorCustodyRecovery
     $lease.Dispose()
 }
