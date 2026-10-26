@@ -57,6 +57,8 @@ public sealed partial class CqlV1Web4NativeTests
         var scalarIds = Enumerable.Range(0,137).Select(_=>Guid.NewGuid()).ToArray();
         var restActor = Guid.NewGuid();
         var restIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
+        var transportActor = Guid.NewGuid();
+        var transportIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
         var scalarWrites = new List<string>();
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
@@ -72,7 +74,8 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, restActor, restIds, scalarWrites, sharingOperations, tag, requests = journal }));
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds,
+                    restActor, restIds, transportActor, transportIds, scalarWrites, sharingOperations, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
         }
@@ -1040,6 +1043,9 @@ public sealed partial class CqlV1Web4NativeTests
             var shippingRestRequests = await VerifyShippingRestAsync(providers, outbox, authority,
                 secret, restActor, restIds, ids[0], tag, Journal, sharingOperations);
             Assert.AreEqual(36, shippingRestRequests);
+            var shippingTransportRequests = await VerifyShippingTransportsAsync(providers, outbox, authority,
+                secret, transportActor, transportIds, ids[0], tag, Journal, sharingOperations);
+            Assert.AreEqual(24, shippingTransportRequests);
             if (mode != null)
             {
                 // Shutdown waits for in-flight requests. Never erase an unsettled
@@ -1054,8 +1060,10 @@ public sealed partial class CqlV1Web4NativeTests
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     shippingRestRequests, shippingRestProvidersVerified = providers.Count,
+                    shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D")),
-                    settledCqlOperations = operations.Count(operation => operation.UserId != restActor.ToString("D")),
+                    settledTransportOperations = operations.Count(operation => operation.UserId == transportActor.ToString("D")),
+                    settledCqlOperations = operations.Count(operation => operation.UserId != restActor.ToString("D") && operation.UserId != transportActor.ToString("D")),
                     settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
@@ -1073,7 +1081,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Concat(restIds).Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Concat(restIds).Concat(transportIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.OperationId IN $operations DETACH DELETE r",

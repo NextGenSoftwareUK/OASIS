@@ -34,6 +34,11 @@ try {
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedHolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/GrpcHolonWriteContract.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GraphQL',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GrpcServices/DataGrpcService.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Protos/data.proto',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonJsonContracts.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/OASISHttpResponseMessage.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISConfigResult.cs',
@@ -57,7 +62,7 @@ try {
                 Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File |
                     Where-Object {
                         $_.FullName -notmatch '\\(bin|obj)\\' -and
-                        ($_.Extension -in '.cs', '.csproj', '.props', '.snk' -or $_.Name -eq 'windowsZones.xml')
+                        ($_.Extension -in '.cs', '.csproj', '.props', '.proto', '.snk' -or $_.Name -eq 'windowsZones.xml')
                     }
             } | Get-FileHash | Select-Object Path,Hash) | ConvertTo-Json -Compress
         }
@@ -86,6 +91,9 @@ try {
         }
         if ($report.shippingRestRequests -ne 36 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 33) {
             throw 'Shipping REST/native storage settlement proof is incomplete.'
+        }
+        if ($report.shippingTransportRequests -ne 24 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 24) {
+            throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
         }
 
         # Capture the tested producer/consumer identities before releasing the

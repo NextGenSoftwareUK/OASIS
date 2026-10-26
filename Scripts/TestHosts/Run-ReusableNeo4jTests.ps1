@@ -76,6 +76,7 @@ try {
         $reviewedHash = (Get-FileHash -LiteralPath (Join-Path $work 'cql-v1-web4-fixture.json')).Hash
         $reviewedAdmissionFilter = switch ($reviewedHash) {
             '7A7912DA384210819E6AAC6BA871ADEF4BC10A752EE241F191FDB259C502991B' { 'FullyQualifiedName~ReviewedShippingRestGraphProjectionFixturePreservesChildrenBeforeExactCleanup' }
+            '4859E1760E50FF1D9F7425A866BCF0145F0D8520F5BB58F04DFDD5D77E120858' { 'FullyQualifiedName~ReviewedSignedTransportEnumFixturePreservesOriginalsBeforeExactCleanup' }
             '9857D397D00B79429E57B8FDA1F866AF9EEDFB9088C098BB2C1654F52A3503B3' { 'FullyQualifiedName~ReviewedShippingRestPreparationFixturePreservesTerminalEvidenceBeforeExactCleanup' }
             'CC64F69E5607C5011DCE0D857F1FF6C3AD9611FA5372594C14A3868E30C87D73' { 'FullyQualifiedName~ReviewedOwnedWriteBooleanAssertionPreservesProofBeforeExactCleanup' }
             'A2C3C7ACD6AB15EC2CD69A11ED3EF5AC31F83D0549CFC5586AC27F2E5293C518' { 'FullyQualifiedName~ReviewedSuccessfulJoinWireFixtureVerifiesTerminalOwnershipBeforeCleanup' }

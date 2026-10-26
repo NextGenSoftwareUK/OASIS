@@ -19,7 +19,7 @@ public class GrpcHolonWriteContractTests
             OperationId = Guid.NewGuid().ToString("D"), ProviderType = "Neo4jOASIS",
             SaveChildren = true, Recursive = true, MaxChildDepth = 2,
             HolonJson = $$"""
-            {"id":"{{id}}","name":"root","childRoleManifestJson":"stored-observation",
+            {"id":"{{id}}","name":"root","holonType":"Quest","childRoleManifestJson":"stored-observation",
              "metaData":{"largeInteger":9007199254740993,"fraction":0.1234567890123456789},
              "children":[{"id":"{{childId}}","name":"child","childRoleManifestJson":"child-observation"}]}
             """
@@ -30,6 +30,7 @@ public class GrpcHolonWriteContractTests
         var decoded = GrpcHolonWriteContract.Decode(SaveHolonGrpcRequest.Parser.ParseFrom(wire.ToByteArray()));
 
         Assert.False(decoded.IsError, decoded.Message);
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Enums.HolonType.Quest, decoded.Result.Holon.HolonType);
         Assert.Equal(Guid.Parse(wire.OperationId), decoded.Result.OperationId);
         Assert.Equal(Guid.Empty, decoded.Result.ExpectedRevisions[id]);
         Assert.Null(decoded.Result.ExpectedRevisions[childId]);
