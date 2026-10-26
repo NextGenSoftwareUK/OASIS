@@ -210,7 +210,8 @@ public partial class NEAROASIS
     private async Task RecordWalletTransactionAsync(string transactionHash, string from, string to, decimal amount,
         string description, Core.Enums.TransactionCategory category = Core.Enums.TransactionCategory.Other)
     {
-        if (string.IsNullOrWhiteSpace(transactionHash)) return;
+        ArgumentException.ThrowIfNullOrWhiteSpace(transactionHash);
+        try{
         var id = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(transactionHash)).Take(16).ToArray());
         var created = DateTime.UtcNow;
         foreach (var entry in new[]
@@ -232,6 +233,7 @@ public partial class NEAROASIS
             };
             await _sdk.PutAsync($"wallet-transaction:{entry.Address}:{transactionHash}", OasisJson.Serialize(transaction));
         }
+        }catch(Exception failure){throw new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,transactionHash,failure);}
     }
 
     public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => GenerateKeyPairAsync().GetAwaiter().GetResult();

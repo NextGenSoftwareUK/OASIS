@@ -22,8 +22,8 @@ else if(input.operation==='call'&&input.methodName==='token_burn'){
   result={transactionHash:'controlled-original-token-transaction'};
 }
 else if(input.operation==='view'&&input.methodName==='nft_token')result=process.env.OASIS_NEAR_NFT_TEST_MODE==='missing'?null:
-  {token_id:input.args.token_id,owner_id:'service.near',metadata_json:'{}',locked:false};
-else if(input.operation==='call'&&['nft_transfer','nft_burn'].includes(input.methodName))result={transactionHash:'controlled-original-nft-transaction'};
+  {token_id:input.args.token_id,owner_id:'service.near',metadata_json:'{}',locked:process.env.OASIS_NEAR_NFT_TEST_MODE==='locked'};
+else if(input.operation==='call'&&['nft_transfer','nft_burn','nft_set_locked'].includes(input.methodName))result={transactionHash:input.methodName==='nft_set_locked'&&process.env.OASIS_NEAR_NFT_TEST_MODE==='transfer-failed'?'controlled-original-unlock':'controlled-original-nft-transaction'};
 else throw new Error('Unexpected fixture operation; wallet followup must not precede verified ownership.');
 if(result?.transactionHash)result.outcome={transaction_outcome:{id:result.transactionHash},
   transaction:{signer_id:input.accountId,receiver_id:input.operation==='transfer'?input.receiverId:input.targetContractId,

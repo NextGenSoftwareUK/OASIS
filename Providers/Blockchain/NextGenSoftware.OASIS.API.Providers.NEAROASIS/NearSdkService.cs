@@ -114,7 +114,7 @@ internal sealed partial class NearSdkService
         var args=PrepareCheckedRecordArguments(observed,plaintext,archiveKey,archivePlaintext);
         EnsureWritable();
         try{
-            using var response=await InvokeAsync("putRecordChecked",new{args});
+            using var response=await InvokeAsync("putRecordChecked",new{argsBase64=Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(args))});
             return ReadCheckedRecordOutcome(response.RootElement);
         }
         catch(NearRecordAdmissionException){throw;}
@@ -368,8 +368,7 @@ internal sealed partial class NearSdkService
             intent["depositUnits"]=operation=="putRecordChecked"?"0":CanonicalNativeAmount(input.GetProperty("depositYocto").GetString());
             intent["methodName"]=operation=="putRecordChecked"?"put_record_checked":input.GetProperty("methodName").GetString();
             intent["gasUnits"]="100000000000000";
-            intent["argsBase64"]=operation=="putRecordChecked"?Convert.ToBase64String(Encoding.UTF8.GetBytes(input.GetProperty("args").GetRawText()))
-                :input.GetProperty("argsBase64").GetString();
+            intent["argsBase64"]=input.GetProperty("argsBase64").GetString();
         }
         return JsonSerializer.Serialize(new{sender,intent});
     }

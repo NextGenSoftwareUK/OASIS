@@ -1,5 +1,6 @@
-param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements,[switch]$VerifyCheckedWrites,[switch]$VerifyOrdinaryWrites,[switch]$VerifyPreparedActions,[switch]$VerifyPreparedOrdinary)
+param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements,[switch]$VerifyCheckedWrites,[switch]$VerifyOrdinaryWrites,[switch]$VerifyPreparedActions,[switch]$VerifyPreparedOrdinary,[switch]$VerifyPreparedStorage)
 $ErrorActionPreference='Stop'
+if($VerifyPreparedStorage -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions -or $VerifyPreparedOrdinary)){throw 'Choose one explicit native verification scope.'}
 if($VerifyPreparedOrdinary -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions)){throw 'Choose one explicit native verification scope.'}
 if($VerifyPreparedActions -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites)){throw 'Choose one explicit native verification scope.'}
 if($VerifyOrdinaryWrites -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites)){throw 'Choose one explicit native verification scope.'}
@@ -11,10 +12,11 @@ if($VerifyPreparedActions -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WI
 if($VerifyOrdinaryWrites -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-ordinary-storage.complete.json'))){
     throw 'Original ordinary storage cohort is already complete; reconcile its retained receipts, never replay.'
 }
-if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and !$VerifyCheckedWrites -and !$VerifyOrdinaryWrites -and !$VerifyPreparedActions -and !$VerifyPreparedOrdinary -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
+if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and !$VerifyCheckedWrites -and !$VerifyOrdinaryWrites -and !$VerifyPreparedActions -and !$VerifyPreparedOrdinary -and !$VerifyPreparedStorage -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
     throw 'Preserve and hash-verify the original NEAR native report before another run; no node or mutation started.'
 }
 if($VerifyPreparedOrdinary -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-ordinary.complete.json'))){throw 'Original prepared ordinary cohort is complete; reconcile only, never replay.'}
+if($VerifyPreparedStorage -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-storage.complete.json'))){throw 'Original prepared storage cohort is complete; reconcile only, never replay.'}
 $rootWsl=(& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')).Trim()
 if($LASTEXITCODE -ne 0 -or $rootWsl -ne '/mnt/c/Source/OASIS'){throw 'Unexpected retained NEAR repository root.'}
 # No downloads, dependency installs, compilation/deployment of the contract or chain reset.
@@ -32,7 +34,7 @@ flock -n 9 || { echo 'Retained NEAR environment is already owned.' >&2; exit 1; 
 test -z "$(pgrep -x near-sandbox || true)" || { echo 'Existing NEAR process must be inspected, not duplicated.' >&2; exit 1; }
 test -z "$(ss -H -ltn 'sport = :3030 or sport = :24567')" || { echo 'Retained NEAR ports are occupied.' >&2; exit 1; }
 pending_original() {
-  if test -n "$(find "$root" -maxdepth 1 -name '*.pending.json' -print -quit)" || test -e "$repo/TestResults/NearRuntime/near-checked-sdk.pending.json" || test -e "$repo/TestResults/NearRuntime/near-signed-ack.pending.json" || test -e "$repo/TestResults/NearRuntime/near-ordinary-storage.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.attempts.jsonl"; then return 0; fi
+  if test -n "$(find "$root" -maxdepth 1 -name '*.pending.json' -print -quit)" || test -e "$repo/TestResults/NearRuntime/near-checked-sdk.pending.json" || test -e "$repo/TestResults/NearRuntime/near-signed-ack.pending.json" || test -e "$repo/TestResults/NearRuntime/near-ordinary-storage.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-storage.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-storage.attempts.jsonl"; then return 0; fi
   # A negative-fixture submission is also an original mutation, not just the C# writes.
   # Invalid/unreadable state must preserve the node rather than permit another run.
   if ! "$node" -e 'const f=require("node:fs"),p=process.argv[1];if(f.existsSync(p)&&JSON.parse(f.readFileSync(p,"utf8")).state!=="verified-failed")process.exit(1)' "$root/failed-status-current.json"; then return 0; fi
@@ -41,7 +43,7 @@ pending_original() {
 if test "$OASIS_NEAR_READ_ONLY_INSPECTION" != 1 && pending_original; then echo 'Original NEAR mutation evidence remains; reconcile before startup.' >&2; exit 1; fi
 test "$(sha256sum "$root/ledger/genesis.json" | cut -d' ' -f1)" = 44cd89e1518e944f19aec5e2508550f33170ee9196158ec73012fd8e203a6713
 cmp "$root/run-evidence.mjs" "$repo/Scripts/TestHosts/near-local/run-evidence.mjs"
-"$node" -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")),expected=process.env.OASIS_NEAR_READ_ONLY_INSPECTION==="1"||process.env.OASIS_NEAR_SIGNED_ACK==="1"||process.env.OASIS_NEAR_CHECKED_WRITE==="1"||process.env.OASIS_NEAR_ORDINARY_WRITE==="1"||process.env.OASIS_NEAR_PREPARED_ACTION==="1"||process.env.OASIS_NEAR_PREPARED_ORDINARY==="1"?5:50;if(c.gc_num_epochs_to_keep!==expected)throw new Error("Unexpected retained NEAR retention for selected scope.")' "$root/ledger/config.json"
+"$node" -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")),expected=process.env.OASIS_NEAR_READ_ONLY_INSPECTION==="1"||process.env.OASIS_NEAR_SIGNED_ACK==="1"||process.env.OASIS_NEAR_CHECKED_WRITE==="1"||process.env.OASIS_NEAR_ORDINARY_WRITE==="1"||process.env.OASIS_NEAR_PREPARED_ACTION==="1"||process.env.OASIS_NEAR_PREPARED_ORDINARY==="1"||process.env.OASIS_NEAR_PREPARED_STORAGE==="1"?5:50;if(c.gc_num_epochs_to_keep!==expected)throw new Error("Unexpected retained NEAR retention for selected scope.")' "$root/ledger/config.json"
 pid=''
 cleanup() {
   code=$?
@@ -66,6 +68,7 @@ if test "$OASIS_NEAR_CHECKED_WRITE" = 1; then node_log="$root/node-checked-compa
 if test "$OASIS_NEAR_ORDINARY_WRITE" = 1; then node_log="$root/node-ordinary-storage.log"; test ! -e "$node_log" || { echo 'Preserve original ordinary-storage node log before another run.' >&2; exit 1; }; fi
 if test "$OASIS_NEAR_PREPARED_ACTION" = 1; then node_log="$root/node-prepared-native.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-native node log before another run.' >&2; exit 1; }; fi
 if test "$OASIS_NEAR_PREPARED_ORDINARY" = 1; then node_log="$root/node-prepared-ordinary.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-ordinary node log before another run.' >&2; exit 1; }; fi
+if test "$OASIS_NEAR_PREPARED_STORAGE" = 1; then node_log="$root/node-prepared-storage.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-storage node log before another run.' >&2; exit 1; }; fi
 "$runtime" --home "$root/ledger" run --rpc-addr 127.0.0.1:3030 --network-addr 127.0.0.1:24567 >"$node_log" 2>&1 &
 pid=$!
 echo "Resumed retained NEAR node PID $pid (loopback only)."
@@ -82,7 +85,7 @@ export OASIS_NEAR_REUSABLE_CHAIN_ID=oasis-near-local
 export OASIS_NEAR_REUSABLE_CONTRACT_ID=test.near
 export OASIS_NEAR_REUSABLE_SIGNER_PATH="$root/ledger/validator_key.json"
 cd "$root"
-if test "$OASIS_NEAR_SIGNED_ACK" = 1 || test "$OASIS_NEAR_CHECKED_WRITE" = 1 || test "$OASIS_NEAR_ORDINARY_WRITE" = 1 || test "$OASIS_NEAR_PREPARED_ACTION" = 1 || test "$OASIS_NEAR_PREPARED_ORDINARY" = 1; then
+if test "$OASIS_NEAR_SIGNED_ACK" = 1 || test "$OASIS_NEAR_CHECKED_WRITE" = 1 || test "$OASIS_NEAR_ORDINARY_WRITE" = 1 || test "$OASIS_NEAR_PREPARED_ACTION" = 1 || test "$OASIS_NEAR_PREPARED_ORDINARY" = 1 || test "$OASIS_NEAR_PREPARED_STORAGE" = 1; then
   "$node" "$repo/Scripts/TestHosts/near-local/run-signed-ack.mjs"
 elif test "$OASIS_NEAR_READ_ONLY_INSPECTION" = 1; then
   "$node" "$repo/Scripts/TestHosts/near-local/inspect-interrupted.mjs"
@@ -95,11 +98,12 @@ fi
 $inspectionValue=if($InspectInterruptedRun){'1'}else{'0'}
 $storageInspectionValue=if($InspectStorageRecords){'1'}else{'0'}
 $signedAckValue=if($VerifySignedAcknowledgements){'1'}else{'0'}
+$preparedStorageValue=if($VerifyPreparedStorage){'1'}else{'0'}
 $preparedOrdinaryValue=if($VerifyPreparedOrdinary){'1'}else{'0'}
 $preparedActionValue=if($VerifyPreparedActions){'1'}else{'0'}
 $ordinaryWriteValue=if($VerifyOrdinaryWrites){'1'}else{'0'}
 $checkedWriteValue=if($VerifyCheckedWrites){'1'}else{'0'}
-$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`nexport OASIS_NEAR_CHECKED_WRITE=$checkedWriteValue`nexport OASIS_NEAR_ORDINARY_WRITE=$ordinaryWriteValue`nexport OASIS_NEAR_PREPARED_ACTION=$preparedActionValue`nexport OASIS_NEAR_PREPARED_ORDINARY=$preparedOrdinaryValue`n"+$nearShell
+$nearShell="export OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`nexport OASIS_NEAR_CHECKED_WRITE=$checkedWriteValue`nexport OASIS_NEAR_ORDINARY_WRITE=$ordinaryWriteValue`nexport OASIS_NEAR_PREPARED_ACTION=$preparedActionValue`nexport OASIS_NEAR_PREPARED_ORDINARY=$preparedOrdinaryValue`nexport OASIS_NEAR_PREPARED_STORAGE=$preparedStorageValue`n"+$nearShell
 $nearEncoded=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($nearShell -replace "`r`n","`n")))
 & wsl.exe -d Ubuntu -- bash -lc "printf '%s' '$nearEncoded' | base64 -d | bash"
 if($LASTEXITCODE -ne 0){throw 'Retained NEAR verification did not pass; inspect original evidence before rerunning.'}

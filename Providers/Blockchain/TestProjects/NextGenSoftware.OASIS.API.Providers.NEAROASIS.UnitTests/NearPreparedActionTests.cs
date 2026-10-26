@@ -85,7 +85,7 @@ public class NearPreparedActionTests
             var sdk=typeof(NEAROASIS).GetField("_sdk",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
             var store=DispatchProxy.Create<IUsageOutboxStore,Owner>();var owner=(Owner)(object)store;owner.Fail=mode=="owner-failure";
             var handle=Handle(store);var args=operation=="transfer"?(object)new{receiverId="receiver.near",amountYocto="1",accountId="sender.near"}:
-                operation=="putRecordChecked"?new{args=new{key="holon:controlled",value="ciphertext"}}:
+                operation=="putRecordChecked"?new{argsBase64=Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"key\":\"holon:controlled\",\"value\":\"A\\u002BB\"}"))}:
                 new{targetContractId="contract.near",methodName="put",depositYocto="0",argsBase64=Convert.ToBase64String(Encoding.UTF8.GetBytes("{\"precise\":9223372036854775807}")),accountId="sender.near"};
             var method=sdk.GetType().GetMethod("InvokeAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
             Task<JsonDocument> Invoke()=> (Task<JsonDocument>)method.Invoke(sdk,new[]{(object)operation,args,CancellationToken.None})!;
