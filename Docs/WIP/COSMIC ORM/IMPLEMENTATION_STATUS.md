@@ -1,3 +1,9 @@
+## Three-provider read-only operation recovery SDK - native verified
+
+Core `b3d4df4` and MongoDB/SQLite/Neo4j provide exact-original conditional receipt lookup without re-execution. Native create/soft-delete/hard-delete receipts survive provider reconnection; absent, repeated, foreign-actor and redaction cases pass on all three stores. Core3420, Neo4j559 and SQLite90 tests pass without skips. Existing453-settlement/496-attempt signed cohort remains green; required source/binary/teardown evidence is preserved. [Scope and remaining recovery gates](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+This does not yet provide generic routed/admitted recovery or authenticated host status. Actual lost native acknowledgement, OS process restart and durable original hosted intent remain to implement/verify.
+
 ## Read-only conditional-operation recovery gap - source verified
 
 The generic conditional-write capability currently exposes execution but no read-only status lookup for an original operation. Providers retain internal receipts, yet an authenticated host cannot generically reconcile an uncertain delete through that interface without re-entering mutation. A new receipt/status capability must bind actor, authority and original operation and distinguish committed, absent and unavailable evidence without assuming absence proves rejection. Service-attempt charges and uncertain mutation state remain separate. [Required recovery behavior](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
