@@ -82,3 +82,45 @@ the admitted CQL walkthrough, not the separate direct-SDK authorization checks.
 Source snapshots and six binary identities match; owned services/fixtures are
 cleaned. Core1740b696e0963698938f11e518cce597c299124d is published. See
 TestResults/CosmicCqlDemo/owned-save-evidence.json for paths and hashes.
+
+## Hosted migration audit — 26 October 2026 (implementation pending)
+
+The migration must cover both `DataController.Save.cs:SaveHolon` and
+`DataController.MetaData.cs:SaveHolons`, including their delegating routes.
+Bulk saving currently permits an update after an inconclusive root lookup:
+its rejection requires a non-error result with a foreign creator. It checks no
+selected descendants. Its ownership loop also runs before the try/catch and
+settings reset, so a forbidden return or lookup exception can leave configured
+global settings applied. The single route uses the stricter root helper and a
+finally reset, but still does not authorize the selected graph. Neither DTO
+currently declares conditional operation/revision intent. These are source
+findings, not a claim of a demonstrated deployed exploit.
+
+Required regression controls before transport enrollment:
+
+- A foreign selected descendant is denied even when its submitted creator is
+  forged to match the actor; excluded descendants cause no lookup/write.
+- An error, warning, wrong ID or uncertain missing root/child never authorizes
+  a write. Authoritative absence remains create-only.
+- Bulk authorization finishes for the complete selected set before the first
+  mutation; do not implement bulk by sequential single-root commits. Overlapping
+  graphs and duplicate IDs need the same generic plan/conflict owner.
+- Caller identity and trusted role are captured before the first await.
+  Existing server Wizard semantics need an explicit conditional policy; the
+  creator-only SDK facade does not itself grant an administrator bypass.
+- Every configured-settings exit resets in finally, including ownership denial,
+  thrown lookups and failed conditional writes.
+- Stable operation intent and caller expected provider revisions survive the
+  wire boundary; fresh authorization reads must never replace stale client
+  preconditions. Inherited admission must belong to the authenticated actor.
+- Physical ownership reads and writes are each admitted and evidenced. The
+  current PreparedStorageExecution uses a fresh route sequence per invocation;
+  it is not inherently restricted to one operation. Its ordinary non-query path
+  begins an attempt but does not generate a query tariff receipt. Therefore a
+  successful CQL tariff test cannot establish complete hosted-save accounting.
+- Verify actual production routes with MongoDB, SQLite and Neo4j, including
+  forbidden/error responses with zero mutations and correct attempt settlement.
+
+Do not enroll recipient/tenant query access on the strength of a single-route
+patch: bulk, gRPC and authenticated GraphQL actor binding remain in scope.
+Legacy defects are documentation-only under the agreed V2 implementation scope.
