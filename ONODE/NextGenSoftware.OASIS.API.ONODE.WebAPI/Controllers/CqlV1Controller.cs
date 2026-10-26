@@ -37,4 +37,8 @@ public sealed class CqlV1Controller : ControllerBase
     [HttpPost("composition")]
     [RequestSizeLimit(32768)]
     public Task<IActionResult> Composition(CqlCompositionV1Request request) => CqlV1Endpoint.ExecuteCompositionAsync(HttpContext, request, providers);
+
+    [HttpPost("federation")]
+    [RequestSizeLimit(32768)]
+    public Task<IActionResult> Federation(CqlFederationV1Request request) => CqlV1Endpoint.ExecuteFederationAsync(HttpContext, request, providers);
 }
