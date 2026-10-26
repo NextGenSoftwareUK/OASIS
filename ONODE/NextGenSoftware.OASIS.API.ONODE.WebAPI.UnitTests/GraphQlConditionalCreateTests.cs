@@ -37,7 +37,7 @@ public class GraphQlConditionalCreateTests
                 .AddMutationType(new ObjectType<Mutation>(descriptor =>
                 {
                     descriptor.BindFieldsExplicitly();
-                    descriptor.Field(value => value.SaveHolon(default!, default!, default!, default!, default, default!));
+                    descriptor.Field(value => value.SaveHolon(default!, default!, default!, default!, default, default!, default));
                 }))
                 .AddType<NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL.Types.HolonType>();
             await using var provider = services.BuildServiceProvider();

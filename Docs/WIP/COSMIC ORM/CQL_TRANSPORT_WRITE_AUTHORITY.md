@@ -164,3 +164,63 @@ fixture, not a signed JWT certification. Signed native acceptance and configured
 transport admission/settlement remain open on all three providers.
 
 Final evidence checkpoint: gate40497terminal0; portable Core and shipping WEB4 builds pass, WEB4231/231PASS0skip. Core289fa01 published. No new native cohort was run for this failure-projection change; the preceding routing native cohort is separately retained and is not relabelled as this revision's evidence. GraphQL/gRPC migration and native transport enrollment remain open.
+
+## Signed native transport acceptance in progress
+
+The existing retained three-provider fixture now journals a separate transport
+actor and three exact record IDs before any transport seed/write. It adds 24
+signed HTTP/2 requests through the shipping GraphQL save resolver and gRPC
+service, the real JWT validator, and the existing configured reservation,
+admission, outbox, tariff and settlement owners. Controls cover GraphQL create,
+create-only conflict and missing intent; gRPC selected-child update, stale
+revision, forged stored ownership, missing intent and malformed JSON. Exact
+physical attempt counts, receipt counts, costs and succeeded/failed outcomes are
+asserted rather than inferred from transport status. Execution is still pending;
+full WEB4 250 tests and shipping/native builds passed before launch.
+
+The GraphQL create resolver also accepts an optional nonempty client `id`, bound
+to an explicit create-only revision condition. This enables stable, pre-journalled
+migration identities without turning the resolver into an update API. Omitting it
+retains Core's operation-derived new identity behavior.
+
+A gRPC domain error can legitimately have HTTP 200 and grpc-status 0. The response
+owner now marks that failed domain outcome explicitly for shared usage settlement;
+the ledger must not infer application success from those transport statuses.
+V2 read/write response projections use this same explicit outcome mark.
+
+The native runner now freezes GraphQL, gRPC, protobuf and shared hosted-boundary
+sources too, and requires all 24 transport operations to settle across all three
+providers. Any failure preserves its manifest, exact operations and data for
+same-original inspection; it must not be reset or retried as a fresh fixture.
+
+### First signed cohort: preserved failure
+
+The first expanded cohort stopped after all existing CQL/REST checks and three
+signed MongoDB GraphQL requests passed. Its first gRPC selected-graph update
+returned before provider execution: zero attempts instead of the expected three.
+The original failed TRX is retained as
+`Verification/signed-transports-native-first-red.trx.gz`; the fixture manifest
+has SHA256 `4859E1760E50FF1D9F7425A866BCF0145F0D8520F5BB58F04DFDD5D77E120858`.
+No successful native gRPC claim is made.
+
+A matching unit input now includes REST-style string `holonType` values. The
+gRPC serializer lacked the string-enum converter used by the producing REST
+serializer. After the peer released its live offline Rust build lease, that unit
+control genuinely reproduced JSON rejection. Adding the existing string-enum
+converter at the gRPC options owner fixes the mismatch. Shipping build and all
+250 WEB4 tests now pass; the original unit failure is retained as
+`Verification/grpc-native-wire-red.trx.gz`.
+
+`ReviewedSignedTransportEnumFixturePreservesOriginalsBeforeExactCleanup` is
+prepared to inspect only this exact manifest, all 382 terminal operations, the
+four original transport requests and their costs/outcomes, provider record
+identity/ownership/fixture tags, untouched gRPC graph and conditional receipts.
+It writes compact reviewed proof before allowing exact owned cleanup. It does
+not replay any request. The existing reconciliation runner selects it only for
+the reviewed manifest hash. Reconciliation passed (one test, four seconds): all
+382 originals were terminal, the four transport rows matched, the rejected gRPC
+graph was unchanged, and exact identity/ownership/tag/receipt checks passed.
+Reviewed proof was written before removing the exact owned fixture. No request
+was replayed. Compact proof and the original reconciliation TRX are retained in
+`Verification/signed-transport-original-*`. Fresh native acceptance after the
+decoder correction remains pending.

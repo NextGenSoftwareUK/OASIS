@@ -141,7 +141,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             string holonType,
             [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
             Guid? operationId = null,
-            string providerType = "Default")
+            string providerType = "Default",
+            Guid? id = null)
         {
             var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
             var engine = Helpers.HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
@@ -151,15 +152,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             {
                 if (!System.Enum.TryParse<HolonType>(holonType, true, out var selectedType) ||
                     !System.Enum.IsDefined(typeof(HolonType), selectedType) ||
-                    selectedType == HolonType.All || selectedType == HolonType.Default)
+                    selectedType == HolonType.All || selectedType == HolonType.Default || id == Guid.Empty)
                     throw new GraphQLException(ErrorBuilder.New().SetCode("COSMIC_WRITE_INTENT_INVALID")
                         .SetMessage("Supply a concrete holon type.").Build());
 
                 var written = await Helpers.HostedHolonWriteEndpoint.SaveAsync(httpContextAccessor?.HttpContext,
                     dna.OASIS.HyperDriveMode, new Models.Data.SaveHolonRequest
                     {
-                        Holon = new Holon { Name = name, Description = description, HolonType = selectedType },
-                        OperationId = operationId, ProviderType = providerType, SaveChildren = false
+                        Holon = new Holon { Id = id ?? Guid.Empty, Name = name, Description = description, HolonType = selectedType },
+                        OperationId = operationId, ProviderType = providerType, SaveChildren = false,
+                        ExpectedRevisions = id.HasValue ? new Dictionary<Guid, Guid?> { [id.Value] = null } : null
                     }, () => new HolonManager(null, dna, ProviderManager.Instance));
                 if (written.IsError)
                     throw new GraphQLException(ErrorBuilder.New().SetCode(written.ErrorCode ?? "COSMIC_WRITE_FAILED")

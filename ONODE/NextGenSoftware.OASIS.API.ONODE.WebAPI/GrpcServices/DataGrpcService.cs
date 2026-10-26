@@ -31,17 +31,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             {
                 var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
                 var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
-                if (mode.IsError) return GrpcHolonWriteContract.Encode(mode);
+                if (mode.IsError) return GrpcHolonWriteContract.Encode(mode, context.GetHttpContext());
                 if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
                 {
                     var decoded = GrpcHolonWriteContract.Decode(request);
                     if (decoded.IsError)
-                        return new HolonResponse { IsError = true, ErrorCode = decoded.ErrorCode,
-                            Message = decoded.Message, ErrorCount = decoded.ErrorCount };
+                        return GrpcHolonWriteContract.Encode(
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Models.Data.SaveHolonRequest, IHolon>(decoded),
+                            context.GetHttpContext());
                     var written = await HostedHolonWriteEndpoint.SaveAsync(context.GetHttpContext(),
                         dna.OASIS.HyperDriveMode, decoded.Result,
                         () => new HolonManager(null, dna, ProviderManager.Instance));
-                    return GrpcHolonWriteContract.Encode(written);
+                    return GrpcHolonWriteContract.Encode(written, context.GetHttpContext());
                 }
 
                 await ActivateProviderIfSpecifiedAsync(request.ProviderType, request.SetGlobally);
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 
                 if (manager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
                 {
-                    var response = GrpcHolonWriteContract.Encode(result);
+                    var response = GrpcHolonWriteContract.Encode(result, context.GetHttpContext());
                     if (!result.IsError && result.Result != null) response.Holon = MapHolon(result.Result);
                     return response;
                 }
