@@ -1,5 +1,15 @@
 # Provider-key deletion acceptance contract
 
+## Current verified gate - 26 October 2026
+
+Signed REST logical-ID/provider-key deletion now passes on MongoDB, SQLite and Neo4j. Per provider, nine new cases verify missing logical identity/operation/revision before provider execution, key-to-ID mismatch, foreign creator denial, stale logical/key revisions, acknowledged logical soft deletion and acknowledged native-key hard deletion with committed delta. Persisted deletion state/actor, physical absence, original revision preservation after rejection, and unchanged unselected-child state/revision are checked.
+
+The full joined cohort passes:63 signed REST requests (27 new deletes),48 GraphQL/gRPC requests,138 SDK queries and138 signed CQL walkthrough requests;453 settled operations and496 physical attempts. Settlement breakdown:345 CQL,60 REST and48 GraphQL/gRPC. Three REST requests exercise replay/changed-body behavior and do not add settlements. Every new delete checks exact attempt/receipt counts, outcome, actor, provider and tariff.
+
+Run30646 exited0 with one native matrix test passed, zero skips. Sources stayed unchanged; seven producer/consumer identities matched under the build lease. Owned Mongo/Neo4j services stopped; exact manifest and SQLite fixture were checked absent. Required evidence is under Verification/signed-rest-delete-*.
+
+Remaining acceptance includes authenticated Wizard cases, unavailable-primary/replica and concurrent provider-scope changes, unknown-outcome/recovery across transport, full startup/schema enrollment and the wider ORM roadmap. Earlier source-only notes below are historical and superseded by this runtime gate.
+
 Status: implementation in progress, 2026-10-26. Core SDK gate is verified at `5e483cb`; HTTP/native acceptance below is still pending. This supplements the existing roadmap rather than replacing its remaining scope.
 
 ## HTTP intent
@@ -56,3 +66,9 @@ Run98189 passed across MongoDB, SQLite and Neo4j. The focused shipping GraphQL s
 Combined native cohort: 48 signed GraphQL/gRPC requests (24 existing saves plus24 deletes);36 signed REST save requests;138 SDK and138 signed CQL walkthrough cases;426 settled operations and466 physical attempts (345 CQL,33 REST and48 transport settlements). Source snapshots stayed unchanged and seven producer/consumer binary identities matched while the build lease was held. The native test passed with zero skips. Owned Mongo/Neo4j services stopped; exact manifest and SQLite fixture are absent after verified cleanup. Required evidence is preserved under Verification/signed-delete-*.
 
 This certifies the stated GraphQL/gRPC delete cases only. Signed REST logical-ID/provider-key deletion, Wizard/provider-scope concurrency, unavailable-primary behavior and unknown-outcome transport recovery remain open. It is not full startup/GraphQL schema or full roadmap certification. Existing SDK/MVC tests remain separate evidence cohorts.
+
+## REST source extension pending verification
+
+Seven cases per provider are prepared in the existing signed REST fixture: missing logical ID, native key resolving to another intended ID, foreign stored creator, stale logical revision, stale key revision, acknowledged logical soft deletion, and acknowledged key hard deletion with committed delta. The host enrolls only the exact observed key path and canonical logical path, using explicit read/delete tariffs. Existing journalled records are reused; no new fixture identities or databases are introduced. Expected counts are updated to57 REST requests and54 settlements. These tests have not been compiled/run yet while the peer owns the producer freeze; the earlier signed GraphQL/gRPC acceptance remains the verified result.
+
+REST pending matrix now has nine cases per provider (27 total), adding missing operation and missing original revision with zero provider attempts. It also verifies that root-only deletion preserves the unselected child's deletion state and provider revision. Expected joined totals are63 REST requests/60 REST settlements,453 total settlements and496 physical attempts. These remain unverified source expectations until the native gate executes.
