@@ -205,3 +205,8 @@ remaining policy/certification gates stay open. Full CQL is not complete.
 ## MongoDB floating scalar milestone - 25 October 2026
 
 MongoDB SDK scalar Single/Double Sum/Average now passes36focused native controls,454full native CQL tests and560matched units, zero skips. Native source values remain binary; ten/seventy Int64 digit sums feed shared Core exact rounding. Scalar packets require exact declared widths, Int64 words, participation and work proofs. Six Core/Shared/Mongo producer/native/unit copies match. Scalar capabilities explicitly enroll floating input domains; grouped capabilities and HTTP do not. See CQL_FLOATING_AGGREGATE_CONTRACT.md and TestResults/CosmicCqlDemo/mongo-floating-scalar-evidence.json. Owned27029stopped and28,232,479byte raw log bounded to65,311byte tail, raw0, data/runtime reused.
+
+
+## MongoDB grouped floating SDK acceptance - 25 October 2026
+
+Required/nullable Single/Double grouped Sum/Average now supports exact selected predicates/order/pages. Native word arrays retain complete raw proofs through off-page validation; Core independently normalizes before validating membership/rank.34new grouped controls,490full native and571matched units pass0skip; six producer/consumer identities match. Full kernel vectors include5,127packets with signed overflow-midpoint boundaries. No floating HTTP enrollment; see CQL_FLOATING_AGGREGATE_CONTRACT.md.

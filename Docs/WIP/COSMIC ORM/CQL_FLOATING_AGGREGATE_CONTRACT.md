@@ -1,7 +1,7 @@
 # CQL finite floating aggregate contract
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
-(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite native SDK integration is now certified below. MongoDB/Neo4j native
+(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite and MongoDB native SDK integration are certified below. Neo4j native
 translation/enrollment and floating HTTP/demos remain pending.
 Existing floating metadata filters/projection/extrema remain separate features.
 
@@ -163,3 +163,26 @@ Core/Shared/Mongo DLLpairs match. Owned27029 is absent after runner teardown.
 Evidence: TestResults/CosmicCqlDemo/mongo-floating-kernel-evidence.json.
 This is component acceptance, not a new full456native/560unit run. Grouped query
 compilation, raw proof validation and explicit capability enrollment remain next.
+
+
+## MongoDB grouped query integration — focused acceptance
+
+The grouped compiler reduces the admitted binary values into Int64 words,
+then packs each slot as one10/70word array plus participation. It computes final
+rounded Sum/Average values before native selected predicates/order/paging.
+Original identity, source-window, access, snapshot and cumulative budget owners
+remain. All raw packets survive result filtering; Core independently normalizes
+and validates complete group membership/rank before publication.
+
+All34focused grouped controls and571full units pass without failures/skips.
+The three original mixed-fixture rejections were correct Decimal input admission:
+those fixtures now persist Decimal1.25m, which is valid for each declared input
+domain; no production contract was weakened. The complete490native regression and571matched full units also pass, zero
+failures/skips. Six Core/Shared/Mongo producer/native/unit copies match, owned
+27029 is absent, and the raw log is bounded after teardown. The full native
+cohort includes5,127final-normalization packets, adding exact overflow-midpoint
+checks one source unit either side in each sign/domain. Exact reports/hashes:
+TestResults/CosmicCqlDemo/mongo-floating-grouped-evidence.json. Floating HTTP and Neo4j native
+arithmetic remain pending.
+
+Current rollout: SQLite and MongoDB SDK scalar/grouped Single/Double Sum/Average, selected filters/order/pages are verified. Earlier scalar/component-only sections retain their checkpoint scope. Neo4j native arithmetic and floating HTTP/demos remain open.

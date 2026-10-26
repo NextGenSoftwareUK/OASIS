@@ -1476,3 +1476,8 @@ policy, federation and the remaining ORM roadmap still require work.
 ## MongoDB floating scalar milestone - 25 October 2026
 
 MongoDB scalar floating arithmetic now uses the shared Core floating finalizer after native10/70word Int64 reduction and strict count/domain/packet decoding. The compiler consumes the admitted binary value rather than converting it to Decimal128. Scalar enrollment is independent of grouped/filter/order enrollment. Complete454native/560matched unit tests pass, with matching producer/consumer identities; see CQL_FLOATING_AGGREGATE_CONTRACT.md.
+
+
+## MongoDB grouped floating SDK acceptance - 25 October 2026
+
+Mongo native grouped floating arithmetic reduces admitted binary inputs into Int64 words, packs one10/70word array plus participation per slot, and computes the final rounded value for native predicates/order/pages. The existing bounded raw-group owner retains off-page packets; shared Core normalization/participation/membership validation prevents a false selected success. Full490native/571matched units pass with six matching copies. No Core/provider-specific client scan or fallback was added. HTTP/Neo4j floating arithmetic remain pending.
