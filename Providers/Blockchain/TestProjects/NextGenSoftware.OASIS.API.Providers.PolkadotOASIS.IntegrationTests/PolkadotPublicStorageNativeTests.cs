@@ -20,7 +20,11 @@ public class PolkadotPublicStorageNativeTests
         Assert.AreEqual(expected,Path.GetFullPath(directory));
         var pending=Path.Combine(directory,"public-storage-pending.jsonl");
         var completed=Path.Combine(directory,"public-storage.completed.json");
-        Assert.IsFalse(File.Exists(pending),"Preserve/reconcile every original in the pending sequence; never replay.");
+        var recoveringCompleted=File.Exists(completed);
+        if(Environment.GetEnvironmentVariable("OASIS_POLKADOT_RECORD_RECOVERY")=="1")
+            Assert.IsTrue(recoveringCompleted,"Read-only recovery must never enter the write branch.");
+        Assert.IsFalse(File.Exists(pending)&&!recoveringCompleted,
+            "Preserve/reconcile every original in an incomplete sequence; never replay.");
         using var setupFile=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(directory,"reusable-record-store.json")));
         var setup=setupFile.RootElement;
         const string genesis="0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208";
@@ -41,7 +45,7 @@ public class PolkadotPublicStorageNativeTests
             if(result.IsError)throw result.Exception??new InvalidOperationException(result.Message);
             return result.Result;
         }
-        if(File.Exists(completed)) {
+        if(recoveringCompleted) {
             using var prior=JsonDocument.Parse(await File.ReadAllTextAsync(completed));
             foreach(var item in prior.RootElement.GetProperty("originals").EnumerateArray()) originals.Add(item.Clone());
         } else {
@@ -96,18 +100,20 @@ public class PolkadotPublicStorageNativeTests
         Assert.IsTrue(originals.Count>=10,"Canonical avatar/detail/holon lifecycle must acknowledge all physical cells.");
         Assert.AreEqual(0,(await raw.ListKeysAsync("")).Count);
         Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
-        if(!File.Exists(completed)) {
+        if(!recoveringCompleted) {
             var bytes=JsonSerializer.SerializeToUtf8Bytes(new{avatarId,holonId,originals,receipts});
             using(var output=new FileStream(completed,FileMode.CreateNew,FileAccess.Write,FileShare.None)){output.Write(bytes);output.Flush(flushToDisk:true);}
+        }
+        if(File.Exists(pending)) {
             var lines=await File.ReadAllLinesAsync(pending);
             Assert.AreEqual(originals.Count,lines.Length);
             for(var i=0;i<lines.Length;i++) {
                 using var stored=JsonDocument.Parse(lines[i]);
-                Assert.AreEqual(originals[i].GetRawText(),stored.RootElement.GetRawText(),
+                Assert.IsTrue(JsonElement.DeepEquals(originals[i],stored.RootElement),
                     "Preserve the complete acknowledged original, not only its transaction hash.");
             }
             File.Delete(pending); // All exact originals remain in the flushed completed sequence.
         }
-        Console.WriteLine($"Canonical public storage native gate: {originals.Count} exact originals verified; synthetic records/indexes removed.");
+        Console.WriteLine($"Canonical public storage native gate: {originals.Count} exact originals verified; synthetic records/indexes removed; fresh durable acknowledgements {(recoveringCompleted?0:originals.Count)}.");
     }
 }
