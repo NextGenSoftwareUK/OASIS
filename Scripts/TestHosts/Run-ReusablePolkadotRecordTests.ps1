@@ -41,7 +41,8 @@ param(
     [Parameter(ParameterSetName = 'NftPublicMutation')][switch]$NftPublicMutation,
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
-    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
+    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted,
+    [ValidateSet('1','2')][string]$TokenPublicCohort='1'
 )
 $ErrorActionPreference = 'Stop'
 # Group related token SDK modes rather than exceeding PowerShell's 32-set
@@ -71,9 +72,13 @@ $priorCustodyRecovery = $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY
 $priorEscrowRecovery = $env:OASIS_POLKADOT_NFT_ESCROW_RECOVERY
 $priorTokenRecovery = $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY
 $priorTokenRelease = $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE
+$priorTokenCohort = $env:OASIS_POLKADOT_TOKEN_PUBLIC_COHORT
 try {
-    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp22-public-approval-pending.jsonl')) -and !$TokenPublicApprovalRecover) { throw 'Pending original exists: public token approval. Reconcile read-only, never replay.' }
-    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp22-public-pending.jsonl')) -and !$TokenPublicRecover -and !$TokenPublicReleaseVerifiedLock) { throw 'Pending original exists: public token custody. Reconcile read-only, never replay.' }
+    $tokenPrefix=if($TokenPublicCohort -eq '1'){'psp22-public'}else{'psp22-public-postfix'}
+    foreach($prefix in @('psp22-public','psp22-public-postfix')) {
+        if ((Test-Path -LiteralPath (Join-Path $publicEvidence ($prefix+'-approval-pending.jsonl'))) -and !($TokenPublicApprovalRecover -and $prefix -eq $tokenPrefix)) { throw 'Pending original exists: public token approval. Reconcile read-only, never replay.' }
+        if ((Test-Path -LiteralPath (Join-Path $publicEvidence ($prefix+'-pending.jsonl'))) -and !(($TokenPublicRecover -or $TokenPublicReleaseVerifiedLock) -and $prefix -eq $tokenPrefix)) { throw 'Pending original exists: public token custody. Reconcile read-only, never replay.' }
+    }
     $nftDeploymentPending = Join-Path $publicEvidence 'psp34-deployment-pending.json'
     if ((Test-Path -LiteralPath $nftDeploymentPending) -and !$NftReconcile) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
     $escrowDeploymentPending = Join-Path $publicEvidence 'psp34-escrow-deployment-pending.json'
@@ -105,6 +110,7 @@ try {
     $env:OASIS_POLKADOT_NFT_ESCROW_RECOVERY = if ($NftEscrowPublicRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY = if ($TokenPublicRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE = if ($TokenPublicReleaseVerifiedLock) { '1' } else { $null }
+    $env:OASIS_POLKADOT_TOKEN_PUBLIC_COHORT = $TokenPublicCohort
     if ($tokenPublicGate -or $escrowPublicGate -or $custodyGate -or $CSharpBackend -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) {
         # Caller must hold the global provider build lease for this whole runner.
         $env:OASIS_POLKADOT_SDK_BRIDGE = Join-Path $sdk 'bridge.mjs'
@@ -119,6 +125,7 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
             $nativeClass = if ($tokenPublicGate) { 'PolkadotTokenEscrowNativeTests' } elseif ($escrowPublicGate) { 'PolkadotNftEscrowNativeTests' } elseif ($custodyGate) { 'PolkadotNftCustodyNativeTests' } elseif ($NftPublicMutation -or $NftPublicRecover) { 'PolkadotNftPublicMutationNativeTests' } elseif ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
             $reportName = if ($TokenPublicReleaseVerifiedLock) { 'psp22-public-release-current.trx' } elseif ($TokenPublicRecover) { 'psp22-public-recovery-current.trx' } elseif ($TokenPublic) { 'psp22-public-native-current.trx' } elseif ($NftEscrowPublicRecover) { 'psp34-escrow-public-recovery-current.trx' } elseif ($NftEscrowPublic) { 'psp34-escrow-public-native-current.trx' } elseif ($NftCustodyRecover) { 'psp34-custody-recovery-current.trx' } elseif ($NftCustody) { 'psp34-custody-native-current.trx' } elseif ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
+            if($tokenPublicGate -and $TokenPublicCohort -eq '2'){$reportName=$reportName.Replace('psp22-public-','psp22-public-postfix-')}
             & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$nativeClass" --logger "trx;LogFileName=$reportName" --results-directory $recordEvidence --verbosity quiet -- MSTest.DeploymentEnabled=false
             if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
             [xml]$report = Get-Content -LiteralPath (Join-Path $recordEvidence $reportName)
@@ -178,5 +185,6 @@ try {
     $env:OASIS_POLKADOT_NFT_ESCROW_RECOVERY = $priorEscrowRecovery
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY = $priorTokenRecovery
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE = $priorTokenRelease
+    $env:OASIS_POLKADOT_TOKEN_PUBLIC_COHORT = $priorTokenCohort
     $lease.Dispose()
 }

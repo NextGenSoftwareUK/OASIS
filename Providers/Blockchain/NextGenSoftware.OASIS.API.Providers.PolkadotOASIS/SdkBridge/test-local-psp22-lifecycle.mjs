@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, openSync, writeFileSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { publicPsp22Fixture } from './native-psp22-public-fixture.mjs';
 import { ApiPromise } from '@polkadot/api';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { withExplicitSigner, signOriginalCall } from './native-transfer.mjs';
@@ -23,7 +24,8 @@ const mode = process.argv[2]; assert.ok(['--execute', '--reconcile', '--approve-
 const approvalOnly = mode === '--approve-public' || mode === '--reconcile-public-approval';
 const executing = mode === '--execute' || mode === '--approve-public';
 const folder = resolve(import.meta.dirname, '../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot');
-const prefix = approvalOnly ? 'psp22-public-approval' : 'psp22-escrow-lifecycle';
+const publicFixture=publicPsp22Fixture();
+const prefix = approvalOnly ? publicFixture.prefix+'-approval' : 'psp22-escrow-lifecycle';
 const pending = resolve(folder, prefix + '-pending.jsonl');
 const completed = resolve(folder, prefix + '.completed.json');
 if (executing) assert.equal(existsSync(pending) || existsSync(completed), false, 'Existing originals require read-only reconciliation.');
@@ -32,7 +34,7 @@ const token = JSON.parse(readFileSync(resolve(folder, 'psp22-test-token-deployme
 const escrow = JSON.parse(readFileSync(resolve(folder, 'psp22-escrow-deployment.completed.json'), 'utf8'));
 const sender = token.sender, foreign = '0x8ee504148e75c34e8f051899b3c6e4241ff18dc1c9211260b6a6a434bedb485f';
 assert.equal(sender, '0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c');
-const depositId = approvalOnly ? '0x' + createHash('sha256').update('e7b3473198cc497d9f115d5b8dd87fb1').digest('hex') : '0x' + '11'.repeat(32);
+const depositId = approvalOnly ? '0x' + createHash('sha256').update(publicFixture.lockId).digest('hex') : '0x' + '11'.repeat(32);
 const amountUnits = '18446744073709551620';
 // Deliberately failing native tests need room for nested writes before their
 // outer revert. This local test-only limit is NOT a production fee allowance.
