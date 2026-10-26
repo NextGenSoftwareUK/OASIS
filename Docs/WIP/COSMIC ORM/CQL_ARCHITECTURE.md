@@ -1471,3 +1471,8 @@ CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
 
 25 October Mongo grouped native decoding now validates the comparable identity used by grouping/order/filter/page against each typed key or Min/Max payload. One decoder helper owns logical equality and the single normalized GUID comparable form, separately from payload-bit identity. Unit538/native361 pass unskipped; [evidence](CQL_GROUPING_CONTRACT.md). No capability expansion follows from this repair.
+
+
+## MongoDB floating scalar milestone - 25 October 2026
+
+MongoDB scalar floating arithmetic now uses the shared Core floating finalizer after native10/70word Int64 reduction and strict count/domain/packet decoding. The compiler consumes the admitted binary value rather than converting it to Decimal128. Scalar enrollment is independent of grouped/filter/order enrollment. Complete454native/560matched unit tests pass, with matching producer/consumer identities; see CQL_FLOATING_AGGREGATE_CONTRACT.md.

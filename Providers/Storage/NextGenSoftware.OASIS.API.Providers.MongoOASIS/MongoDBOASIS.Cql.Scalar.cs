@@ -21,9 +21,9 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) }),
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) })
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) })
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -44,6 +44,8 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             {
                 var numeric = await repository.ExecuteNativeCqlNumericAsync(translator.CompileNumeric(plan.Query),
                     plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                if (numeric.FloatingParts != null)
+                    return CosmicFloatingAggregateResults.FromParts(plan.Query, numeric.FloatingParts, numeric.Count);
                 return numeric.DecimalParts != null
                     ? CosmicDecimalScalarResults.FromParts(plan.Query, numeric.DecimalParts, numeric.Count)
                     : CosmicNumericScalarResults.FromParts(plan.Query, numeric.High, numeric.Low, numeric.Count);
