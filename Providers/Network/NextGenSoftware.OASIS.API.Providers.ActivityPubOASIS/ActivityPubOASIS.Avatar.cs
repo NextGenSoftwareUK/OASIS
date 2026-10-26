@@ -158,130 +158,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        private static OASISResult<T> RejectNativeAccountCollection<T>()
         {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load all avatars from ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts";
-                
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    // Parse ActivityPub JSON and create Avatar collection
-                    // Parse ActivityPub JSON and create Avatar object
-                    var avatar = ParseActivityPubToAvatar(content);
-                    if (avatar != null)
-                    {
-                        // Convert single IAvatar to IEnumerable<IAvatar>
-                        response.Result = new List<IAvatar> { avatar };
-                        response.Message = "Avatar loaded from ActivityPub successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse ActivityPub JSON response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load all avatars from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from ActivityPub: {ex.Message}");
-            }
-
-            return response;
+            const string message="Mastodon provides explicit account-ID batches, not a complete account collection or geographic record index. Use LoadAccountBatch/LoadAccountDetailBatch with native IDs; no request was sent.";
+            var result=new OASISResult<T>();
+            OASISErrorHandling.HandleError(ref result,message,new NotSupportedException(message));return result;
         }
-
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-        {
-            return LoadAllAvatarsAsync(version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load all avatar details from accounts endpoint; parse each as AvatarDetail (do not build from Avatar)
-                var apiUrl = $"{_instanceUrl}/api/v1/accounts";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var list = new List<IAvatarDetail>();
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(content);
-                        var root = doc.RootElement;
-                        if (root.ValueKind == JsonValueKind.Array)
-                        {
-                            foreach (var item in root.EnumerateArray())
-                            {
-                                var detail = ParseActivityPubToAvatarDetail(item.GetRawText());
-                                if (detail != null) list.Add(detail);
-                            }
-                        }
-                        else
-                        {
-                            var detail = ParseActivityPubToAvatarDetail(content);
-                            if (detail != null) list.Add(detail);
-                        }
-                    }
-                    catch
-                    {
-                        var detail = ParseActivityPubToAvatarDetail(content);
-                        if (detail != null) list.Add(detail);
-                    }
-                    response.Result = list;
-                    response.IsError = false;
-                    response.Message = $"Loaded {list.Count} avatar details from ActivityPub";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
-
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            return LoadAllAvatarDetailsAsync(version).Result;
-        }
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version=0)
+            =>Task.FromResult(RejectNativeAccountCollection<IEnumerable<IAvatar>>());
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version=0)
+            =>RejectNativeAccountCollection<IEnumerable<IAvatar>>();
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version=0)
+            =>Task.FromResult(RejectNativeAccountCollection<IEnumerable<IAvatarDetail>>());
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version=0)
+            =>RejectNativeAccountCollection<IEnumerable<IAvatarDetail>>();
 
         public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
             => Task.FromResult(RejectPrivateRecordStorage<IAvatar>());

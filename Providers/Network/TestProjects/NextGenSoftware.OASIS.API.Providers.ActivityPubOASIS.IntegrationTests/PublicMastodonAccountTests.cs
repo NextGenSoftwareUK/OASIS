@@ -7,6 +7,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 public class PublicMastodonAccountTests
 {
     [Theory][InlineData(false)][InlineData(true)]
+    public async Task PublicAccountAndDetailBatchesMatchIndependentNativeResponse(bool synchronous)
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        const string instance="https://mastodon.social";
+        using var client=new HttpClient{Timeout=TimeSpan.FromSeconds(15)};
+        using var lookup=await client.GetAsync(instance+"/api/v1/accounts/lookup?acct=Mastodon");lookup.EnsureSuccessStatusCode();
+        using var selected=JsonDocument.Parse(await lookup.Content.ReadAsStringAsync());var id=selected.RootElement.GetProperty("id").GetString()!;
+        using var response=await client.GetAsync(instance+"/api/v1/accounts?id%5B%5D="+Uri.EscapeDataString(id));response.EnsureSuccessStatusCode();
+        using var native=JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.Equal(1,native.RootElement.GetArrayLength());
+        var expected=native.RootElement[0];Assert.Equal(id,expected.GetProperty("id").GetString());
+        using var provider=new ActivityPubOASIS(instance,"");
+        var accounts=synchronous?provider.LoadAccountBatch(new[]{id}):await provider.LoadAccountBatchAsync(new[]{id}).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(accounts.IsError,accounts.Exception?.ToString());Assert.True(accounts.IsLoaded);Assert.Equal(1,accounts.LoadedCount);
+        var avatar=Assert.Single(accounts.Result);Assert.Equal(id,avatar.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        Assert.Equal(expected.GetProperty("acct").GetString(),avatar.Username);Assert.Equal(expected.GetProperty("url").GetString(),avatar.MetaData["MastodonProfileUrl"]);
+        Assert.NotEqual(Guid.Empty,avatar.Id);Assert.True(string.IsNullOrEmpty(avatar.Email));Assert.True(string.IsNullOrEmpty(avatar.Password));
+        var details=synchronous?provider.LoadAccountDetailBatch(new[]{id}):await provider.LoadAccountDetailBatchAsync(new[]{id}).WaitAsync(TimeSpan.FromSeconds(20));
+        Assert.False(details.IsError,details.Exception?.ToString());Assert.True(details.IsLoaded);Assert.Equal(1,details.LoadedCount);
+        var detail=Assert.Single(details.Result);Assert.Equal(avatar.Id,detail.Id);Assert.Equal(avatar.Username,detail.Username);
+        Assert.Equal(id,detail.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);Assert.Equal(avatar.MetaData["MastodonProfileUrl"],detail.MetaData["MastodonProfileUrl"]);
+        Assert.True(string.IsNullOrEmpty(detail.Email));
+    }
+
+    [Theory][InlineData(false)][InlineData(true)]
     public async Task PublicStatusBatchMatchesIndependentNativeResponse(bool synchronous)
     {
         Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));

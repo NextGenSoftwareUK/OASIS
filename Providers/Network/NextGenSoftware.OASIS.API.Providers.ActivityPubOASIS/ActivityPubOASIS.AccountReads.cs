@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -50,10 +51,23 @@ public partial class ActivityPubOASIS
         return new MastodonPublicProfile(projectedId,id,username,acct,profileUri.AbsoluteUri,origin,displayName);
     }
     private Task<OASISResult<IAvatarDetail>> ReadMastodonDetailAsync(string selector,int version)
-        => ReadMastodonProfileAsync<IAvatarDetail>(selector,false,version,profile=>{
-            var detail=new AvatarDetail{Id=profile.ProjectionId,Username=profile.Acct};
-            PopulatePublicProfile(detail,profile);return detail;
-        });
+        => ReadMastodonProfileAsync<IAvatarDetail>(selector,false,version,ProjectMastodonDetail);
+    private static IAvatarDetail ProjectMastodonDetail(MastodonPublicProfile profile)
+    {
+        var detail=new AvatarDetail{Id=profile.ProjectionId,Username=profile.Acct};
+        PopulatePublicProfile(detail,profile);return detail;
+    }
+
+    /// <summary>Explicit Mastodon4.3+ account IDs, not an all-account directory.
+    /// Missing/unconfirmed accounts may be omitted. The40-ID bound is local admission policy.</summary>
+    public Task<OASISResult<IReadOnlyList<IAvatar>>> LoadAccountBatchAsync(IEnumerable<string> nativeAccountIds)
+        =>ReadMastodonBatchAsync<IAvatar>(nativeAccountIds,"/api/v1/accounts",row=>ProjectMastodonAccount(ReadMastodonPublicProfile(row)));
+    public OASISResult<IReadOnlyList<IAvatar>> LoadAccountBatch(IEnumerable<string> nativeAccountIds)
+        =>LoadAccountBatchAsync(nativeAccountIds).GetAwaiter().GetResult();
+    public Task<OASISResult<IReadOnlyList<IAvatarDetail>>> LoadAccountDetailBatchAsync(IEnumerable<string> nativeAccountIds)
+        =>ReadMastodonBatchAsync<IAvatarDetail>(nativeAccountIds,"/api/v1/accounts",row=>ProjectMastodonDetail(ReadMastodonPublicProfile(row)));
+    public OASISResult<IReadOnlyList<IAvatarDetail>> LoadAccountDetailBatch(IEnumerable<string> nativeAccountIds)
+        =>LoadAccountDetailBatchAsync(nativeAccountIds).GetAwaiter().GetResult();
     private static void PopulatePublicProfile(IHolonBase target,MastodonPublicProfile profile)
     {
         target.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS]=profile.NativeId;
