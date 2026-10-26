@@ -57,6 +57,8 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/HolonWriteIntentRequest.cs" Link="Production/HolonWriteIntentRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonRequest.cs" Link="Production/SaveHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonsRequest.cs" Link="Production/SaveHolonsRequest.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/DeleteHolonRequest.cs" Link="Production/DeleteHolonRequest.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseLoadHolonRequest.cs" Link="Production/BaseLoadHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Production/BaseHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Production/OASISRequest.cs" />
   </ItemGroup>

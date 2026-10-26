@@ -1,3 +1,11 @@
+## Provider-key owned deletion SDK — 2026-10-26
+
+Core `5e483cb` adds `LoadHolonForWriteByProviderKeyAsync(key, actor, provider)` and `DeleteOwnedHolonByProviderKeyAsync(key, id, actor, options, softDelete, provider)`. The key observation uses one pinned V2 authority. Deletion requires an explicit logical ID, authenticated host actor and exactly one original non-null revision condition. A key resolving to another ID is rejected, even if the caller owns that record. Stored creator authorization precedes conditional mutation. Soft/hard deletion retains the original revision and captured authority after defaults change. Invalid/oversized keys reject before provider access. Legacy rejects without repair.
+
+Verification: 19 focused cases; 3,412 full Core tests passed, zero skips; net10.0 and netstandard2.1 Core builds passed. Production-source test links now include the delete request model and its base class. Eight numeric compatibility tests cover the peer-requested append-only `NFTStandardType.PSP34 = 7`. Evidence: `Verification/provider-key-owned-delete.trx.gz` and `Verification/provider-key-full.trx.gz`.
+
+The REST provider-key route migration, explicit key-read/delete operation tariffs, and signed native delete acceptance remain open. This SDK gate is not proof of those transport/provider scenarios.
+
 ## HTTP storage operation pricing — 2026-10-26
 
 Core `60adf1c` fixes an admission gap shared by GraphQL, gRPC and other selected HTTP storage routes. A query tariff cannot authorize an ordinary storage operation. The HTTP factory now always requires an exact ordinary operation tariff before provider execution; explicit SDK optional-price policies retain their existing contract. URL classification no longer controls this runtime invariant.
