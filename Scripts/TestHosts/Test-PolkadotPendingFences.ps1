@@ -23,6 +23,7 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{} },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftDeploy=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRead=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPreparation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftReconcile=$true } }
 )

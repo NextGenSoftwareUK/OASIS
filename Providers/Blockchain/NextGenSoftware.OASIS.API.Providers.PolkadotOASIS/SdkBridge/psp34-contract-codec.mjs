@@ -52,12 +52,18 @@ function normalize(kind, value) {
 export function registerPsp34Types(registry) { registry.register(definitions); }
 export function encodePsp34Message(registry, name, args) {
   const [selector, kinds] = specification(name);
+  return '0x' + selector + Buffer.from(encodePsp34Arguments(registry, kinds, args)).toString('hex');
+}
+// Shared primitive argument encoder for the published ABI and reviewed OASIS
+// extensions. Custom selectors are deliberately absent from the standard map.
+export function encodePsp34Arguments(registry, kinds, args) {
+  if (!Array.isArray(kinds) || kinds.some(kind => !Object.hasOwn(types, kind))) throw new Error('Unknown PSP34 argument type.');
   if (!Array.isArray(args) || args.length !== kinds.length) throw new Error('Incorrect PSP34 argument count.');
   registerPsp34Types(registry);
   // Encode each argument independently: a raw Bytes value must not be mistaken
   // for already SCALE-encoded input by the registry's overloaded constructor.
   const encoded = kinds.map((kind, index) => registry.createType(types[kind], normalize(kind, args[index])).toU8a());
-  return '0x' + selector + Buffer.concat(encoded.map(value => Buffer.from(value))).toString('hex');
+  return Buffer.concat(encoded.map(value => Buffer.from(value)));
 }
 export function decodePsp34Result(registry, name, bytes) {
   const [, , type] = specification(name);
