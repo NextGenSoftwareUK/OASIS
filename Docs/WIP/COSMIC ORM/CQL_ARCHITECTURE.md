@@ -1532,3 +1532,11 @@ and rejects malformed persisted grants before conditional mutations. Legacy text
 is explicitly admitted by the existing WEB4 adapter; JSON failures never change
 grammars. This component is representation validation, not an authenticated grant
 authority. CQL native recipient/tenant policy remains a separate open gate.
+
+## V2 creator-owned SDK graph writes
+
+SaveOwnedHolonAsync reuses HolonSavePlan rather than maintaining another graph
+walker. It captures caller revisions before awaiting pinned ownership reads, then
+uses existing atomic conditional writes on that same authority. Default trusted
+Save APIs are unchanged. Public transport/prepared-accounting migration is still
+required; see the [owned graph contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md).
