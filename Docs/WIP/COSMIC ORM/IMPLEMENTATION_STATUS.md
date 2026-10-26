@@ -1,6 +1,23 @@
 # COSMIC ORM implementation status
 
-## Joined shipping REST/native write settlement — 26 October 2026
+## Signed save transports — 26 October 2026
+
+The focused shipping GraphQL/gRPC save gate passes on all three stores with real
+JWT validation, configured admission, exact physical attempt/receipt/cost checks
+and durable settlement. Combined with CQL/REST: **402 settled operations,
+436 attempts**, including **24 signed GraphQL/gRPC requests**. Sources stay frozen,
+seven binary pairs match, and owned fixtures/services are removed. Core3,372,
+WEB4250 and usage387 tests pass with no skips. Both Core targets and shipping
+WEB4 build. Required proof is retained in `Verification/signed-transports-final*`.
+
+Root fixes included recursive enum compatibility and completing buffered response
+writers before envelope inspection/acknowledgement release. Failed originals were
+verified before exact cleanup; no committed operation was replayed. The next
+priority is authenticated conditional deletion across transports and aliases,
+followed by remaining read/configuration/startup and recipient/tenant/federation
+gates. Full CQL/ORM completion is not claimed.
+
+## Prior joined shipping REST/native write settlement — 26 October 2026
 
 Core **3,342** and normal WEB4 **221** tests pass with zero skips. The native
 MongoDB/SQLite/Neo4j runner passes **36 signed shipping REST requests**, including
