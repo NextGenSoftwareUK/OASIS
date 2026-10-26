@@ -361,3 +361,48 @@ rotation, expiry, continuation idempotency/replay prevention, cumulative remaini
 budgets and signed/native paging acceptance remain required. Provider-specific
 contract/deployment identities and the original HTTP scope intent also belong in
 the host's final protected binding. HTTP currently continues to reject Cursor.
+
+### Continuation workflow constraints (not yet implemented)
+
+The prepared codec carries a fixed next-request key and lineage. The HTTP flow
+must require that exact key and verify its binding to the admitted usage handle,
+so the existing durable idempotency owner rejects concurrent/replayed redemption.
+A caller-chosen new key must not reset remaining budgets. Invalid/expired or
+policy-mismatched state must produce affirmative no-provider-execution evidence.
+
+Moving continuations will reread the same bounded source windows under fresh
+target authorization; every physical read needs a new admitted receipt. This is
+an explicit next read, never a replay to resolve an uncertain previous outcome.
+Resolved providers stay pinned. Remaining per-target/global rows, bytes, work,
+attempts and active execution time must decrease; client think time is separate
+from the fixed absolute cursor expiry. No depleted target may silently disappear.
+
+The host must bind original HTTP scope/intent and deployed provider contracts in
+addition to the Core plan digest. Its configured shared Data Protection key owner
+must survive intended replicas/restarts and enforce rotation/revocation. The
+codec does not configure those keys. Response publication must remain behind the
+existing durable usage-settlement buffer. Signed/native replay, expiry, mutation,
+revocation, budget and recovery tests remain acceptance requirements.
+
+## Protected continuation-state codec — 26 October 2026
+
+An internal WEB4 codec now uses host-supplied ASP.NET Data Protection with a
+versioned purpose and fixed182byte binary payload. It authenticates/encrypts
+actor, intent/deployment digests, lineage, exact next-request key, issue/expiry,
+global offset, pinned provider scope and remaining global/per-target budgets.
+Input arrays are snapshotted; unused slots and layout/version are canonical.
+Expiry is at most five minutes; foreign actors/deployments, future/expired state,
+wrong key owner/purpose, tampering and malformed/oversized tokens fail closed.
+
+No default key provider, filesystem key ring or HTTP enrollment is created.
+Production key persistence/sharing/rotation/revocation belong to the host. Tests
+use memory-only ephemeral keys. Full Core3,675 tests pass, including21codec cases;
+the shipping WEB4 build passes. Evidence:
+Verification/federation-cursor-codec-core.trx.gz and
+federation-cursor-codec-identities.json.
+
+This is protected state only, not a redemption protocol. Fresh-policy/intent
+validation, binding the exact next key to durable usage idempotency, atomic replay
+rejection, cumulative remaining-budget execution, publication and signed/native
+paging acceptance remain unimplemented. HTTP still rejects Cursor input. The
+prior505/567 native federation checkpoint is separate and predates this codec.

@@ -1791,3 +1791,26 @@ rotation, expiry, continuation idempotency/replay prevention, cumulative remaini
 budgets and signed/native paging acceptance remain required. Provider-specific
 contract/deployment identities and the original HTTP scope intent also belong in
 the host's final protected binding. HTTP currently continues to reject Cursor.
+
+## Protected continuation-state codec — 26 October 2026
+
+An internal WEB4 codec now uses host-supplied ASP.NET Data Protection with a
+versioned purpose and fixed182byte binary payload. It authenticates/encrypts
+actor, intent/deployment digests, lineage, exact next-request key, issue/expiry,
+global offset, pinned provider scope and remaining global/per-target budgets.
+Input arrays are snapshotted; unused slots and layout/version are canonical.
+Expiry is at most five minutes; foreign actors/deployments, future/expired state,
+wrong key owner/purpose, tampering and malformed/oversized tokens fail closed.
+
+No default key provider, filesystem key ring or HTTP enrollment is created.
+Production key persistence/sharing/rotation/revocation belong to the host. Tests
+use memory-only ephemeral keys. Full Core3,675 tests pass, including21codec cases;
+the shipping WEB4 build passes. Evidence:
+Verification/federation-cursor-codec-core.trx.gz and
+federation-cursor-codec-identities.json.
+
+This is protected state only, not a redemption protocol. Fresh-policy/intent
+validation, binding the exact next key to durable usage idempotency, atomic replay
+rejection, cumulative remaining-budget execution, publication and signed/native
+paging acceptance remain unimplemented. HTTP still rejects Cursor input. The
+prior505/567 native federation checkpoint is separate and predates this codec.

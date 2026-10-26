@@ -44,6 +44,7 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlV1Request.cs" Link="Production/CqlV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlFederationV1Request.cs" Link="Production/CqlFederationV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationV1Endpoint.cs" Link="Production/CqlFederationV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorCodec.cs" Link="Production/CqlFederationCursorCodec.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs" Link="Production/CqlScalarV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlProjectionV1Request.cs" Link="Production/CqlProjectionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Compiler.cs" Link="Production/CqlProjectionV1Compiler.cs" />
