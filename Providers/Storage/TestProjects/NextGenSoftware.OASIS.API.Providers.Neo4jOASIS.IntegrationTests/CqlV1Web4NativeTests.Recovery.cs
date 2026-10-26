@@ -33,6 +33,9 @@ public sealed partial class CqlV1Web4NativeTests
                 var absentPreparation = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
                 Assert.IsFalse(absentPreparation.IsError, absentPreparation.Message + absentPreparation.Exception);
                 Assert.IsNull(absentPreparation.Result);
+                var routedAbsentPreparation = await manager.ReadHolonWritePreparationAsync(request.Write.OperationId, actor, pair.Key);
+                Assert.IsFalse(routedAbsentPreparation.IsError, routedAbsentPreparation.Message + routedAbsentPreparation.Exception);
+                Assert.IsNull(routedAbsentPreparation.Result);
                 var preparation = new HolonWritePreparation(request.Write.OperationId, actor, pair.Key,
                     request.Roots.Select(root => new ProtectedHolonPreparation(root.Id,
                         "oasis-preparation1:owned-status-" + request.Write.OperationId.ToString("D"))).ToArray());
@@ -98,6 +101,9 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.IsFalse(stored.IsError, stored.Message + stored.Exception);
                 Assert.IsNotNull(stored.Result);
                 Assert.AreEqual(JsonSerializer.Serialize(storedPreparations[original.Write.OperationId]), JsonSerializer.Serialize(stored.Result));
+                var routedPreparation = await manager.ReadHolonWritePreparationAsync(original.Write.OperationId, actor, pair.Key);
+                Assert.IsFalse(routedPreparation.IsError, routedPreparation.Message + routedPreparation.Exception);
+                Assert.AreEqual(JsonSerializer.Serialize(stored.Result), JsonSerializer.Serialize(routedPreparation.Result));
                 var foreignPreparation = await preparations.ReadHolonWritePreparationAsync(original.Write.OperationId, Guid.NewGuid());
                 Assert.IsTrue(foreignPreparation.IsError);
                 Assert.AreEqual("COSMIC_PREPARATION_ACTOR_MISMATCH", foreignPreparation.ErrorCode);
