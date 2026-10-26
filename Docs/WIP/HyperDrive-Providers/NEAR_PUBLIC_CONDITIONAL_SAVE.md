@@ -1,5 +1,11 @@
 # NEAR public conditional record saves
 
+## 26 October: import result evidence and confirmed completion
+
+Fixed NEAR and Polkadot import wrappers to reuse the existing Core result copier: preserve native exception/error code, details, warnings, metadata, partial acknowledgements and SavedCount. NEAR no longer enumerates a returned save payload after acknowledgement just to construct a message. Shared key-value and both chain wrappers return true only for a non-error confirmed IsSaved. Polkadot delegates one stop-on-error save without redundant pre-activation; no duplicate SDK/storage path or retry added.
+
+One linked assertion fixture reproduced22genuine failures across30sync/async schedules (Shared2fail8pass, NEAR10fail, Polkadot10fail), including uncertain native-exception preservation and unconfirmed save rejection. Final full Shared1239/NEAR333/Polkadot233/S3protocol228 PASS0skip7s/17s/12s/2s on matched Core769BE5/Shared56284E source/copies/PDB. These are controlled wrapper/SDK-HTTP regression gates, not fresh native-chain or hosted-cloud acceptance. NEAR interrupted native19/unknown ordinary writes and other relevant-interface/native/security/fee/V2 gates remain OPEN. Exact report hashes, reused outputs, last-resort cache recovery and blocked empty-directory cleanup are in [resource inventory](ENVIRONMENT_INVENTORY.md). No dev merge or complete-provider claim.
+
 ## Current export checkpoint — 23 October 2026, native interruption still OPEN
 
 Independent identity/export versions and owned-export success counters repaired;20new controls/full240 unit PASS0skip. Four owner-filter cases traverse encrypted C# storage entries with controlled Node IPC, NOT native SDK. Prepared native version/export assertions compile but have not run. Latest native19 report is interrupted15pass/4fail/SHA AA17152..., not the older19pass report below. Read-only retained inspection confirms unchanged1156rows/inventory05707.../contract638719..., node stopped/config5; it does not settle individual uncertain ordinary writes. Preserve originals and reconcile before another full native mutation suite. No reset/replay/download/new environment/deployment or whole-provider claim. Details: NEAR_IDENTITY_LOOKUP_VERIFICATION.md and ENVIRONMENT_INVENTORY.md.

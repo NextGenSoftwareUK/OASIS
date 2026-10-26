@@ -1,5 +1,69 @@
 # Reusable environments and disk inventory
 
+## 26 October: import envelope repair — final resource reconciliation
+
+Provider session owns this scoped change. Original functional baselines: Shared2FAIL/8PASS60ms, NEAR10FAIL259ms, Polkadot10FAIL135ms (22genuine failures/30cases); failed compile/restores below are NOT behavioral evidence. Final28992terminal0: Shared1239PASS7s, NEAR333PASS17s, Polkadot233PASS12s; separate S3 protocol gate228PASS2s, all zero skipped. Same SDK/IPC/control fixtures, no native chain/server/account/ledger/testDB or paid operation. Existing Core result copier reused; one source-linked assertion fixture shared among three consumers. Native NEAR interrupted19/outstanding ordinary-write outcomes remain OPEN and unchanged.
+
+Source/copy/PDB proof: Core769 BE5C06BBB5CF807F3CE3531774CB962ED72CE7215455D698FE109A6B83C40F27; Shared56 284E2606A149E5A4C7F43A73ED9B791C2803728575DF33D7EB40094EE64D3DCB; NEAR18 75A1EC342B13D649F642EA4E70DEE21F1E473A2F9A87FD110EC22C8AE7E7009B; Polkadot22 5AE238123F23191205850B23D8248B47DBE20CCF9E710539634FD7D08EF6D4AF. Consumer source documents Shared81/NEAR36/Polkadot21/S3protocol19 checked; all four Core/Shared copies match. No Core code change by this session; peer pricing commit29a7725 is a prerequisite cohort, not this session's native billing proof. Source/output slot explicitly released after checks, no live dotnet process then.
+
+Retained compact reports (each original filename fenced; no overwrite):
+
+| Exact path under C:/Source/OASIS/TestResults/ | Bytes | SHA256 |
+| --- | ---: | --- |
+| SharedCurrent/import-envelope-red.trx |18132|F143D6CCEB39ACB864665C32F0AB76B20475E607BCB86EDFAD4B28644BB71CF3|
+| NearRuntime/import-envelope-red.trx |29221|A7F0445EBDC953141E61365986E34F3E20C0D7FCD29BC946C36314218F837984|
+| PolkadotCurrent/import-envelope-red.trx |25071|8E17CCAD1ECFDB0332350DBFEE51B3B1E16006C1AA1E65E408CB2752473BF219|
+| SharedCurrent/import-envelope-current.trx |1887845|D56E69A5E64B464228316B19F6F7FC66036FC464AB78C2940068E58839B9D2AF|
+| NearRuntime/import-envelope-current.trx |501740|05A02760F727721FE6E5B58807FC3AD7D251296C3C297CB291154F513FF20E8A|
+| PolkadotCurrent/import-envelope-current.trx |359796|649E940E83DA26B52C57A18E05222FCBEA1327B633DE9532F0D201496BF3BE16|
+| S3Current/import-envelope-current.trx |356711|A07712E97FF865E34B60A77BBADC590413E9FAD5BDCBAF9C2659FF1F4D2D0DCC|
+
+Existing fixed build directories reused, final measured bin/obj bytes (not allocation deltas), prefix C:/Source/OASIS/:
+
+| Project path | bin | obj |
+| --- | ---: | ---: |
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage |13079629|1814871|
+| Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests |46948828|2268975|
+| Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS |13672081|1573497|
+| Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests |46557409|1311576|
+| Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS |33525460|3331768|
+| Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests |244969868|3411868|
+| Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.EdgeStorage.ProtocolTests |52651902|1587473|
+
+Retain one reusable output/cache per existing project for follow-up; regenerate cached --no-restore builds and --no-build tests under global lease. No private per-run environment/worktree. Windows Node reused at C:/Program Files/nodejs/node.exe v24.19.0 for controlled IPC, inherited/shared, runtime aggregate size unmeasured; no Node install. NearPublication fixed fixture path independently absent after cleanup, no native records introduced. Before/after global free observations C74187628544→73808347136B include concurrent work; no sole attribution or claimed recovery.
+
+Polkadot recovery: cache-only restore removed obsolete Neo4j dependency intent but failed two current minimums. One explicit multi-source URL was interpreted as a local path and failed before download; existing registered official nuget.org/offline configuration then restored successfully. Same projects/global cache, no standalone installer or duplicate runtime. Nine newly present package directories observed during recovery total9408058B; this snapshot is NOT proof of exclusive download attribution. Three are in final Polkadot assets; two more referenced by existing BootLoader assets; remaining four provenance not established. Do not delete shared packages based on this snapshot alone.
+
+| Exact identity beneath C:/Users/david/.nuget/packages/ | Bytes | Observed dependency link |
+| --- | ---: | --- |
+| grpc.net.client/2.32.0 |488793|Uncertain graph/session attribution|
+| microsoft.aspnetcore.webutilities/10.0.0 |380158|Polkadot final assets|
+| microsoft.extensions.dependencyinjection/5.0.0 |603943|Uncertain graph/session attribution|
+| microsoft.extensions.dependencyinjection.abstractions/5.0.0 |397192|Uncertain graph/session attribution|
+| microsoft.extensions.http/10.0.0 |1597776|Existing BootLoader assets|
+| microsoft.extensions.http/3.0.3 |396442|Uncertain graph/session attribution|
+| microsoft.extensions.objectpool/10.0.0 |307974|Existing BootLoader assets|
+| microsoft.net.http.headers/10.0.0 |379177|Polkadot final assets|
+| system.diagnostics.eventlog/10.0.8 |4856603|Polkadot final assets|
+
+Versions retained in canonical reusable NuGet cache; package archives inside that cache and managed HTTP-cache copies are dependencies, not separately downloaded task archives. HTTP-cache byte delta unmeasured. No source/pin downgrade, obsolete Neo4j package reinstall or repeated environment setup. Missing shared dependencies were a last resort, not a fresh install of the SDK stack.
+
+Cleanup outcome: automatic execution review rejected the planned removal command BEFORE execution with generic blocked-by-policy/no further reason. No alternate deletion mechanism/retry used. Exact three deployment paths listed below remain RETAINED/disposable after teardown; fresh read-only hidden-file/reparse checks confirm zero files/zero payload bytes and no descendant reparse points. No bytes reclaimed; no test reports/source/cache removed. No native unknown outcome was cleaned or replayed. Record retained empty directories as remaining cleanup, not successful removal.
+
+## 26 October: planned NEAR/shared import envelope repair
+
+Owned disposable test deployment directories identified after terminal50428/71492/28992: C:/Source/OASIS/TestResults/SharedCurrent/Deploy_david 20261026T021320; C:/Source/OASIS/TestResults/NearRuntime/Deploy_david 20261026T021328; C:/Source/OASIS/TestResults/PolkadotCurrent/Deploy_david 20261026T021633. Creation timestamps match this baseline batch; each has zero files/zero payload bytes, only empty adapter directories. Plan exact resolved-target/reparse/process checks then removal; retain all TRX/source/output/cache and historical directories. Existing NearPublication fixture path under NEAR unit bin independently absent after tests; dynamic temporary PID marker basename was not retained, source test deletes it in finally after proving its controlled process exited. Named-pipe probes are Windows kernel handles, disposed by existing tests; per-case names/sizes not retained. This is explicit bounded fixture evidence, not a retrospective complete inventory of historical tests.
+
+Same linked wrapper assertion also prepared for priority Polkadot (ten cases, existing producer/unit project/cache). Its Import duplicates activation, continues after save errors, drops native exception/metadata/counts and returns success without IsSaved. Controlled activation override prevents any accidental RPC during baseline; verify the repaired thin wrapper delegates one stop-on-error save without pre-activation. No native process or record introduced; original native Polkadot evidence remains a separate gate. TestResults/PolkadotCurrent report names fenced before use; exact output/cache sizes unmeasured before run, no restore planned.
+
+Baseline50428: Shared2FAIL/8PASS60ms and NEAR10FAIL259ms, genuine functional failures before production changes; reports preserved. Polkadot producer compiled, consumer stopped at stale assets referencing removed Neo4j.Driver4.4.0/Simple4.3.2/EventLog10.0.8 cache files; this is NOT behavioral baseline evidence. Its old assets also list missing ASP.NET/Extensions10.0.0 packages. Plan cache-only --no-dependencies restore of existing Polkadot producer/unit assets from C:/Users/david/.nuget/packages to recompute CURRENT project graph, no new environment or remote feeds/downloads. Preserve source/version intent, inspect actual outcome before deciding if any missing dependency truly needs download. Existing Shared/NEAR packages all present, no restore there.
+
+Offline current-graph refresh failed NU1102 only for Microsoft.AspNetCore.WebUtilities>=10.0.0 and System.Diagnostics.EventLog>=10.0.8; obsolete Neo4j packages are no longer required, so do NOT restore them. Exact required versions absent from global and NuGet HTTP caches; cached8.0.20/10.0.0 do not satisfy current minimums. Last-resort restore now authorized by standing user policy: use same two existing Polkadot projects, --no-dependencies, shared global+official NuGet sources, bounded workers/no node reuse, no installer/clone/runtime. May restore their missing exact transitive packages too; enumerate newly introduced identities and measure actual bytes afterward. Before this step free C73871212544B. Preserve pinned project intent, retain one canonical shared cache, no per-run environment or standalone download archive.
+
+Owner: provider session. Existing NEAR Import drops detailed error/code/counters/metadata and re-enumerates the returned saved payload to count roots; Shared Import can return true without IsSaved. Prepare one linked ImportResultEnvelopeAssertions source and ten sync/async cases per existing NEAR/shared MSTest consumer, covering failure, confirmed save, unconfirmed result, partial acknowledgement and zero-count confirmed result. Reuse Core OASISResultHelper; no new serializer, SDK, transport or storage path. Controlled overridden SaveHolons only for wrapper contract, NOT live native billing/storage proof. Existing near-api-js7.3.1 SDK junction inspected read-only at C:/Source/OASIS/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/node_modules -> C:/Source/OASIS-hyperdrive-v2-gaps/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/node_modules; inherited/reusable, aggregate size unmeasured. Existing stopped WSL /var/tmp/oasis-near-evidence top-level inventory inspected only; no node start, key access, ledger reset or writes. Original interrupted native report/1156-row inventory/unknown outcomes remain preserved and OPEN, not replayed by these controls.
+
+Planned reuse same Shared/NEAR producer and unit bin/obj/cache (sizes unmeasured before action), fixed TestResults/SharedCurrent and TestResults/NearRuntime report names with original-report fencing. No download/restore/runtime/environment/testDB introduced. Preserve failed baseline as compact evidence; no synthetic native dataset cleanup needed, in-memory probes only. Source/tests prepared while peer owns Core pricing and Shared output slot; do not compile or edit Shared production until release and global build lease. Existing source files remain task-owned; caches/output reusable, reports retained; regenerate with cached project builds/tests, no duplicate checkout.
+
 ## 26 October: ActivityPub account-batch final resource reconciliation
 
 Session28769terminal0, provider session owner:290controlledPASS127ms +12GET-only public-nativePASS13s, zero skips. Source/copy/PDB proof Core7685F49/Shared56BB013239; provider12/unit21/native6 checked, provider+both copies SHA435580BCE23B0BAEF9AE328D3618DE0EB179EFF790C9396D8A0895382DE22291. No shipping Core change, no download/install/new SDK/runtime/account/token/server/remote write. Cached-only restore outcomes and exact8057798B shared package identities below remain reusable/shared, not cleanup-owned. Initial missing-cache compilation was not a behavioral regression; subsequent original10fail baseline retained.

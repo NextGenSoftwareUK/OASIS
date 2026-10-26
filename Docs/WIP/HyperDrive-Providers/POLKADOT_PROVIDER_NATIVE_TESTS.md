@@ -1,5 +1,11 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: import result evidence and confirmed completion
+
+Fixed NEAR and Polkadot import wrappers to reuse the existing Core result copier: preserve native exception/error code, details, warnings, metadata, partial acknowledgements and SavedCount. NEAR no longer enumerates a returned save payload after acknowledgement just to construct a message. Shared key-value and both chain wrappers return true only for a non-error confirmed IsSaved. Polkadot delegates one stop-on-error save without redundant pre-activation; no duplicate SDK/storage path or retry added.
+
+One linked assertion fixture reproduced22genuine failures across30sync/async schedules (Shared2fail8pass, NEAR10fail, Polkadot10fail), including uncertain native-exception preservation and unconfirmed save rejection. Final full Shared1239/NEAR333/Polkadot233/S3protocol228 PASS0skip7s/17s/12s/2s on matched Core769BE5/Shared56284E source/copies/PDB. These are controlled wrapper/SDK-HTTP regression gates, not fresh native-chain or hosted-cloud acceptance. NEAR interrupted native19/unknown ordinary writes and other relevant-interface/native/security/fee/V2 gates remain OPEN. Exact report hashes, reused outputs, last-resort cache recovery and blocked empty-directory cleanup are in [resource inventory](ENVIRONMENT_INVENTORY.md). No dev merge or complete-provider claim.
+
 ## Detail identity boundary — controlled223 green, 2026-10-20
 
 Username/email avatar-detail wrappers previously selected first duplicate, dropped upstream ErrorCode/Exception/ErrorCount and did not publish IsLoaded. Replaced BOTH duplicated selectors with EXISTING Shared StoredRecordIdentityLookup (already used by NEAR), preserving provider-owned versioned collection loading. Twelve sync/async×username/email×duplicate/upstream/unique regression cases all FAILED before correction; full **223/223 controlled passed17s0skip** after fix. Exactly1collection call/version7 retained; duplicate returns AmbiguousIdentity/no record, upstream exception/code/count preserved, unique success loaded. Native contract-backed profiles remain unavailable; this boundary fix is NOT native storage certification. No native node/download/install/SDKchange; free C67,765,702,656bytes,123GBtarget unmet.

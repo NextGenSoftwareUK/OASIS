@@ -54,12 +54,10 @@ public partial class NEAROASIS
     public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
         var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
-        return new OASISResult<bool>(!saved.IsError)
-        {
-            IsError = saved.IsError,
-            Message = saved.IsError ? saved.Message : $"Imported {saved.Result.Count()} holons into NEAR contract storage.",
-            Exception = saved.Exception
-        };
+        var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+        result.Result=!saved.IsError&&saved.IsSaved;
+        if(result.Result)result.Message=$"Imported {saved.SavedCount} holons into NEAR contract storage.";
+        return result;
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
