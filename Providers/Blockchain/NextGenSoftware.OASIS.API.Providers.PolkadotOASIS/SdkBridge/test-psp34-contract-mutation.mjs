@@ -15,6 +15,37 @@ test('JSON mutation data preserves exact u128/byte identity and base64 metadata'
   value.action = 'burn';delete value.attributes;delete value.to;
   assert.equal(nftMutationData(registry, value), '0x00000011050c0001ff');
 });
+
+test('native escrow destinations and owner witnesses cannot be redirected before signing', async () => {
+  for (const action of ['lock', 'unlock']) {
+    const value = request();value.action = action;delete value.attributes;
+    value.to = action === 'lock' ? contract : account;
+    value.expectedFrom = action === 'lock' ? account : contract;
+    await validateNftMutation(value);
+    assert.equal(nftMutationData(new TypeRegistry(), value).slice(0, 10), action === 'lock' ? '0x00000012' : '0x00000013');
+    await assert.rejects(validateNftMutation({ ...value, to: '0x' + '11'.repeat(32) }), /deterministic/);
+    await assert.rejects(validateNftMutation({ ...value, expectedFrom: undefined }), /witness/);
+  }
+});
+
+test('unlock requires the observed active beneficiary before contract signing access', async () => {
+  for (const observedBeneficiary of [null, contract]) {
+    const registry = new TypeRegistry();let queries = 0;
+    const value = request();value.action = 'unlock';delete value.attributes;
+    value.to = account;value.expectedFrom = contract;
+    const at = { query: { contracts: { contractInfoOf: async () => ({ isNone: false,
+      unwrap: () => ({ codeHash: { toHex: () => hash } }) }) } },
+      call: { contractsApi: { call: async () => {
+        const owner = registry.createType('Result<Option<AccountId32>,OasisPsp34LangError>', { Ok: queries++ === 0 ? contract : observedBeneficiary });
+        return { result: { isErr: false, asOk: { flags: { get: () => registry.createType('u32', 0) },
+          data: registry.createType('Bytes', owner.toHex()) } } };
+      } } } };
+    const api = { registry, createType: (...args) => registry.createType(...args),
+      rpc: { chain: { getFinalizedHead: async () => ({ toHex: () => hash }) } }, at: async () => at };
+    await assert.rejects(prepareNftMutation(api, value), /beneficiary/);
+    assert.equal(queries, 2);
+  }
+});
 test('bad input is rejected before native metadata, state, signing or submission access', async () => {
   let accesses = 0;
   const api = new Proxy({}, { get() { accesses++;throw new Error('Unexpected native access'); } });

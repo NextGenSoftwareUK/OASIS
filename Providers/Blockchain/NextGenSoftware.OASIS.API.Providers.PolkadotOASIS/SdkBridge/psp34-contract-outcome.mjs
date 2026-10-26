@@ -14,7 +14,7 @@ function exact(registry, type, raw) {
 // The reviewed code emits mint AttributeSet events in request order, then one
 // Transfer; transfer/burn emit one Transfer. Never treat dispatch alone as effect.
 export function exactNftEffect(api, identity, own, dispatchSucceeded) {
-  if (!['mint', 'transfer', 'burn'].includes(identity.action)) throw new Error('Unknown NFT effect action.');
+  if (!['mint', 'transfer', 'burn', 'lock', 'unlock'].includes(identity.action)) throw new Error('Unknown NFT effect action.');
   if (!dispatchSucceeded) return { applied: false, nftEffectMatchesRequest: false, from: null, to: null };
   const encodedId = encodePsp34Arguments(api.registry, ['id'], [nftTokenId(identity.tokenId)]);
   const events = own.filter(event => event.section === 'contracts' && event.method === 'ContractEmitted'
