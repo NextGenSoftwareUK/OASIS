@@ -173,6 +173,8 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(13, hostedFederation.Requests);
             Assert.AreEqual(12, hostedFederation.Settled);
             Assert.AreEqual(23, hostedFederation.Attempts);
+            var hostedCursors = await VerifyShippingFederationCursors(providers, outbox, authority, secret,
+                outsider, ids, federationEncryptedId, tag, Journal);
             var demo = mode == null ? null : new V1DemoSession
             {
                 FixtureTag = tag, Ids = ids,
@@ -1109,6 +1111,12 @@ public sealed partial class CqlV1Web4NativeTests
                     federationProviderAttempts = hostedFederation.Attempts,
                     hostedFederationProvidersVerified = providers.Count,
                     hostedFederationEncryptedRecordId = federationEncryptedId.ToString("D"),
+                    hostedCursorRequests = hostedCursors.Requests,
+                    settledCursorOperations = hostedCursors.Settled,
+                    cursorProviderAttempts = hostedCursors.Attempts,
+                    cursorDuplicateRejections = hostedCursors.Duplicates,
+                    cursorProvidersVerified = providers.Count,
+                    cursorHostRestarts = 2, cursorKeyRotations = 1, cursorKeyRevocations = 1,
                     shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
