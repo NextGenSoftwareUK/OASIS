@@ -1549,3 +1549,14 @@ shares routing ownership with owned-graph authorization reads. It supplies no lo
 or authorization grant. WEB4 sharing now retains that authority through CAS and
 snapshots caller identity/role before I/O. Generic public graph-write migration
 and CQL recipient/tenant policy remain separate gates.
+
+### Owned batch write boundary (26 October 2026)
+
+The generic SDK now exposes `HolonManager.SaveOwnedHolonsAsync` alongside
+`SaveOwnedHolonAsync`. Both use one selected-plan ownership/revision validator;
+bulk authorizes every selected node before one conditional transaction. The
+limit covers roots plus selected descendants, and no-op input is still
+authorized. See [owned graph write contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md)
+for the spaced C# example, failure semantics and verification. Hosted REST,
+gRPC and trusted-role policy migration remains open; this API alone does not
+enroll recipient/tenant queries or supply admission/pricing.

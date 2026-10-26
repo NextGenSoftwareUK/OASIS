@@ -1903,3 +1903,14 @@ editing, then pass that same Authority to the conditional Save. See the
 [example and limits](CQL_SHARING_WRITE_CONTRACT.md#same-authority-observation-and-caller-snapshot--26-october-2026-utc).
 An unavailable authority is an error; a replica cannot supply a different grant
 list for the operation. This is not a lock or a public CQL access capability.
+
+### Owned batch write boundary (26 October 2026)
+
+The generic SDK now exposes `HolonManager.SaveOwnedHolonsAsync` alongside
+`SaveOwnedHolonAsync`. Both use one selected-plan ownership/revision validator;
+bulk authorizes every selected node before one conditional transaction. The
+limit covers roots plus selected descendants, and no-op input is still
+authorized. See [owned graph write contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md)
+for the spaced C# example, failure semantics and verification. Hosted REST,
+gRPC and trusted-role policy migration remains open; this API alone does not
+enroll recipient/tenant queries or supply admission/pricing.
