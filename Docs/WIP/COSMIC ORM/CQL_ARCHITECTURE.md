@@ -1763,3 +1763,31 @@ and federation-hosted-controller-identity.json. Core3,636 tests and the existing
 shipping320tests/one Stripe sandbox skip are separate prior regression gates.
 Authenticated cursors, causal agreement/repeatable distributed snapshots,
 distributed joins and full remaining ORM roadmap acceptance remain open.
+
+## Canonical continuation intent binding — 26 October 2026
+
+`CosmicFederationIntentFingerprint.Create(plan)` now computes a streaming,
+culture-independent SHA256 identity for the complete admitted intent. It binds
+model/engine artifact identities, original/resolved provider scopes, source and
+global windows, ordering, predicate kinds and exact scalar representations,
+identity priority, consistency and every budget ceiling. Every target's actual
+mandatory predicate is included, so authoritative record IDs and actors are bound
+rather than only a provider name. Equivalent sorted grant catalogues bind equally.
+
+The visitor accepts only known immutable CQL nodes and never constructs entities
+or executes provider queries. JSON framing separates path segments and node
+boundaries. The encoding is streamed directly into the hash with a1MiB hard bound;
+excess returns CQL_FEDERATION_BINDING_LIMIT and no digest. Model/engine artifact
+changes deliberately invalidate bindings instead of assuming compatible semantics.
+
+Dual-target Core build and all3,654 tests pass, including18culture/snapshot,
+policy/actor/catalogue, scope/priority, windows/budgets, traversal/predicate,
+no-materialization and size-limit cases. Evidence:
+Verification/federation-binding-core.trx.gz and federation-binding-identities.json.
+
+This is an unkeyed intent digest, not authentication or an authorization grant.
+It is not accepted as a cursor. Protected host-owned token state, key ownership/
+rotation, expiry, continuation idempotency/replay prevention, cumulative remaining
+budgets and signed/native paging acceptance remain required. Provider-specific
+contract/deployment identities and the original HTTP scope intent also belong in
+the host's final protected binding. HTTP currently continues to reject Cursor.

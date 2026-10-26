@@ -2211,3 +2211,5 @@ and federation-hosted-controller-identity.json. Core3,636 tests and the existing
 shipping320tests/one Stripe sandbox skip are separate prior regression gates.
 Authenticated cursors, causal agreement/repeatable distributed snapshots,
 distributed joins and full remaining ORM roadmap acceptance remain open.
+
+26 October cursor prerequisite: generic canonical full-plan/target-policy fingerprint implemented, streaming1MiB cap, Core dual-target/all3,654 tests pass. This unkeyed digest is not an authenticated cursor. Protected token/key/expiry/replay/remaining-budget workflow and signed/native continuation acceptance remain open, as do causal agreement/distributed joins and remaining ORM gates (CQL_FEDERATION_CONTRACT.md).
