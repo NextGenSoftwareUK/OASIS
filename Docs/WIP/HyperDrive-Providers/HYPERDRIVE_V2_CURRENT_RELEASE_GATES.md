@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR native custody code upgrade — 26 October
+
+Pinned candidate3390da66... deployed by one durably retained signed original, native FINAL/Success. All2523state entries have identical before/after digest; token escrow protocol1 reads back. Owned node stopped and temporary local diagnostic limit restored. Compact signed-original/receipt proof retained; no reset/install/download. Public custody and remaining provider/hosted/V2 acceptance still open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR token custody adapter controlled gate — 26 October
 
 Existing escrow capability, WalletManager resolution and exact public lock/release routing implemented. Provider build and 426 unit cases passed; final fixture identity checks passed the targeted 33 cases again. Exact preflight/read-back and original-ID preservation are covered by controlled process fixtures. This is not live custody: active native code has not been upgraded. Durable deployment/state preservation and native token acceptance remain next; no Dev promotion. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).

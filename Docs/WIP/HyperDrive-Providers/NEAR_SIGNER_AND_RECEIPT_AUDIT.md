@@ -1,5 +1,21 @@
 # NEAR signer and receipt audit
 
+## Retained native token escrow code upgrade verified — 26 October
+
+Actual code-only upgrade transaction CeGGa9jNRCvvXFHfBpq4Nbim1tKHS7uoDEdfSiZxEkTr finalized successfully in the same near-sandbox2.6.2 environment using official SDK7.3.1. Signed Borsh and32byte signing digest were exclusively persisted and fsynced (including directory) BEFORE one exact submission. Independent deployed code SHA256 is3390da66ecaa7c09e6ebdd897a7139ae2be53644deb69ccbe953bf944c6c5b31; native token_escrow_protocol returns1. No init/reset. Before/after full native state both2523entries with SHA256e3f864bdf44f2f05fb28abaf0e4df1519e9c638d4fef3817e886e6b8adf71f3e.
+
+First attempt stopped BEFORE signing because whole-state diagnostic limit50000 was too small; node515 stopped and its7469byte log preserved by SHA613ad7a9... in-place rename. Under environment flock, second attempt temporarily raised only trie_viewer_state_size_limit to2097152; owned node527 stopped after successful proof and50000 restored. No gas limit change, new ledger/runtime/download/funding or production configuration.
+
+NativeEvidence/near-token-escrow-upgrade.complete.json.gz315599bytes losslessly preserves714904byte complete proof/rawSHAe79f2688b3ea1b2f6d06f4062d1bbec80ffac1d03162639fb1c9b58776bb7d6f. It contains the full signed original and native outcome. Original pending marker was retired only after exact original equality, final-success/state equality and durable compressed-copy verification. Complete original remains in retained environment; no replay. Native transaction+receipt tokens_burnt3872087788191600000000yocto=0.0038720877881916localtestNEAR; not complete storage/deposit/refund or fiat sponsored-settlement certification.
+
+Compiled candidate file is now deployed, but local build/oasis_storage.wasm file still retains the previous638719... artifact; do not deploy that stale file. Candidate remains build/oasis_token_escrow_candidate.wasm until reviewed artifact promotion. Public token lock/release/native supply/foreign/replay/independent-owner acceptance remains NEXT. This upgrade is not full NEAR/provider/V2 completion.
+
+## Durable deployment codec SDK gate — 26 October
+
+The explicit oasis.near.code-deployment.preparation.v1 format retains complete signed Borsh once plus its actual32byte SHA256 signing message, fitting candidate-sized534212byte code under the existing1MiB envelope. It shares canonical signature/checkpoint and persistence-before-submit verification. Ordinary native-action format remains strict; deployment recovery is explicit, never guessed. A single code-only action must target its signer, with admitted code length/hash checked before signing. No init/reset.
+
+Official installed near-api-js7.3.1 controls33/33PASS, zero failures/skips, about3.5seconds: actual SDK signatures/Borsh, large code, keyless recovery, altered originals, wrong intent, failed persistence preventing submission and response loss retaining original ID. Evidence: NativeEvidence/near-deployment-codec-current.xml. No native deployment, contract change, new runtime, download or funds. Durable runner integration and independent before/after code/state proof remain next; live custody is still open.
+
 ## NEAR C# token custody adapter — 26 October (controlled gate)
 
 The provider now implements the existing IOASISIdBoundTokenEscrowProvider capability and honors the injected WalletManager. Explicit amount/LockId/escrow requests use token_lock/token_release with exact amount, original deposit identity and native signing owner. Invalid or partial custody selectors reject rather than becoming issuer-wide freeze. Selector-free requests retain the separate issuer-freeze operation, with issuer and final-state verification. Request fields are captured before asynchronous activation; actor wallets resolve through the existing WalletManager, with provider, avatar, source and key checks.

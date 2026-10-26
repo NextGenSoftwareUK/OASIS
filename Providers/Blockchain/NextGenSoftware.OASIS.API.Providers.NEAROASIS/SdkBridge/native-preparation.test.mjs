@@ -170,3 +170,38 @@ test('checked writes preserve exact escaped C# JSON bytes instead of SDK reseria
   });
   assert.equal(inspected,1);
 });
+
+import {deploymentProtocol,prepareNearDeployment,verifyNearDeploymentOriginal,recoverNearDeployment,submitNearDeployment} from './native-preparation.mjs';
+const deploymentCode=Buffer.alloc(534212,42);
+const deploymentRequest=()=>({chainId:chain,sender:'sender.near',recipient:'sender.near',kind:'deployContract',codeBytes:deploymentCode.length,
+  codeSha256:createHash('sha256').update(deploymentCode).digest('hex')});
+function deploymentAccount(){return {accountId:'sender.near',provider:provider(),createSignedTransaction:async options=>
+  (await signer.signTransaction(createTransaction('sender.near',key.getPublicKey(),options.receiverId,1n,options.actions,block))).signedTransaction};}
+test('real SDK code-only original fits existing envelope and recovers without signing',async()=>{
+  const original=await prepareNearDeployment(deploymentAccount(),deploymentRequest(),deploymentCode);
+  assert.equal(original.protocol,deploymentProtocol);assert.equal(Buffer.from(original.signDocBase64,'base64').length,32);
+  assert.ok(Buffer.byteLength(JSON.stringify(original))<1048576);
+  const common={...original};delete common.intent;delete common.protocol;
+  const recovered=await recoverNearDeployment(common,chain);
+  assert.deepEqual(recovered.intent,original.intent);
+  assert.equal(recovered.signedTransactionBase64,original.signedTransactionBase64);
+  assert.throws(()=>verifyNearSignedOriginal(original,chain));
+  assert.throws(()=>verifyNearDeploymentOriginal(original,chain,{...original.intent,codeSha256:'0'.repeat(64)}));
+});
+for(const field of ['protocol','chainId','sender','transactionHash','signature','signDocBase64','signedTransactionBase64'])test('deployment rejects changed '+field,async()=>{
+ const original=await prepareNearDeployment(deploymentAccount(),deploymentRequest(),deploymentCode);
+ original[field]=field.endsWith('Base64')?'AQ==':'changed';assert.throws(()=>verifyNearDeploymentOriginal(original,chain));
+});
+test('deployment enforces exact code and self-account before signing',async()=>{
+ const account=deploymentAccount();account.createSignedTransaction=()=>{throw new Error('must not sign');};
+ await assert.rejects(prepareNearDeployment(account,{...deploymentRequest(),recipient:'other.near'},deploymentCode),/differs/);
+ await assert.rejects(prepareNearDeployment(account,deploymentRequest(),Buffer.from('other')),/differs/);
+});
+test('deployment persistence failure never submits; response loss retains original',async()=>{
+ const original=await prepareNearDeployment(deploymentAccount(),deploymentRequest(),deploymentCode);let sends=0;
+ await assert.rejects(submitNearDeployment(provider(),original,chain,async()=>{throw new Error('disk');},async()=>{sends++;}),/disk/);assert.equal(sends,0);
+ let persisted=false;
+ await assert.rejects(submitNearDeployment(provider(),original,chain,async saved=>{assert.equal(saved.transactionHash,original.transactionHash);persisted=true;},async()=>{
+   assert.ok(persisted);sends++;throw new Error('lost');}),error=>error.originalTransactionId===original.transactionHash&&error.reconciliationRequired);
+ assert.equal(sends,1);
+});
