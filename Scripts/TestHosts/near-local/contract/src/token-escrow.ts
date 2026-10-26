@@ -1,6 +1,7 @@
 import type { RecordMap } from "./checked-record";
 
 export const tokenEscrowPrefix = "token-escrow:";
+export const nftEscrowPrefix = "nft-escrow:";
 export interface TokenDeposit {
   protocol: number; lock_id: string; symbol: string; owner_id: string; amount: string; released: boolean;
 }
@@ -68,5 +69,37 @@ export function burnSpendableToken(tokens: RecordMap, owner: string, symbol: str
   token.supply=(units(token.supply)-quantity).toString();tokens.set(symbol,JSON.stringify(token));
 }
 export function requireApplicationRecordKey(key: string): void {
-  if(typeof key!=="string"||!key||key.startsWith(tokenEscrowPrefix))throw new Error("Reserved token custody records cannot be written through generic storage");
+  if(typeof key!=="string"||!key||(key.startsWith(tokenEscrowPrefix)||key.startsWith(nftEscrowPrefix)))throw new Error("Reserved token custody records cannot be written through generic storage");
+}
+
+export interface NftDeposit {
+  protocol: number; lock_id: string; token_id: string; owner_id: string; released: boolean;
+}
+function readNft(nfts: RecordMap, tokenId: string): any {
+  symbolName(tokenId);const raw=nfts.get(tokenId);if(raw===null)throw new Error("NFT does not exist");
+  const nft=JSON.parse(raw);
+  if(!nft||nft.token_id!==tokenId||typeof nft.locked!=="boolean")throw new Error("Invalid native NFT state");
+  ownerId(nft.owner_id);return nft;
+}
+export function readNftDeposit(records: RecordMap,id: string): NftDeposit|null {
+  const raw=records.get(nftEscrowPrefix+lockId(id));if(raw===null)return null;
+  const deposit=JSON.parse(raw),fields=["protocol","lock_id","token_id","owner_id","released"];
+  if(!deposit||typeof deposit!=="object"||Array.isArray(deposit)||Object.keys(deposit).length!==fields.length
+    ||fields.some(key=>!Object.prototype.hasOwnProperty.call(deposit,key))||deposit.protocol!==1||deposit.lock_id!==id||typeof deposit.released!=="boolean")throw new Error("Invalid native NFT deposit state");
+  symbolName(deposit.token_id);ownerId(deposit.owner_id);return deposit;
+}
+export function lockNftDeposit(nfts: RecordMap,records: RecordMap,owner: string,tokenId: string,id: string): void {
+  ownerId(owner);lockId(id);const nft=readNft(nfts,tokenId);
+  if(nft.owner_id!==owner||nft.locked||records.get(nftEscrowPrefix+id)!==null)throw new Error("Unlocked owned NFT and unused deposit ID required");
+  const deposit:NftDeposit={protocol:1,lock_id:id,token_id:tokenId,owner_id:owner,released:false};
+  nft.locked=true;nft.lock_id=id;
+  nfts.set(tokenId,JSON.stringify(nft));records.set(nftEscrowPrefix+id,JSON.stringify(deposit));
+}
+export function releaseNftDeposit(nfts: RecordMap,records: RecordMap,owner: string,tokenId: string,id: string): void {
+  ownerId(owner);const nft=readNft(nfts,tokenId),deposit=readNftDeposit(records,id);
+  if(nft.owner_id!==owner||!nft.locked||nft.lock_id!==id||deposit===null||deposit.owner_id!==owner||deposit.token_id!==tokenId||deposit.released)
+    throw new Error("Current unreleased owned NFT deposit required");
+  nft.locked=false;deposit.released=true;
+  // Native receipt owns atomic rollback. Released records survive NFT burn/remint.
+  nfts.set(tokenId,JSON.stringify(nft));records.set(nftEscrowPrefix+id,JSON.stringify(deposit));
 }

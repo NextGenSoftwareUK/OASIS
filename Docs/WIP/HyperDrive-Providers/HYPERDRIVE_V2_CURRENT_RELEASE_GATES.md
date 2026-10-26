@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR NFT unique-deposit source gate — 26 October
+
+49source controlsPASS: current native NFT lock ID, owner/token binding, released tombstones across burn/remint, stale-cycle rejection and locked-burn protection. Existing validators/records/owners reused. Active contract unchanged; new ABI requires C# mapping, actual SDK compilation, durable upgrade and native acceptance. No live replay-protection claim. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR NFT source-lock receipt gate — 26 October
 
 445unitPASS0skip27s. A supplied NFT deposit source must be finalized successfully and bind its exact hash/configured signer/contract/single lock action/token/locked=true arguments before any unlock. Existing SDK reader/action validator reused;12new controlled cases. No native bridge completion claim; lock-cycle replay still needs a native unique deposit invariant. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
