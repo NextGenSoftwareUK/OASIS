@@ -2,10 +2,18 @@
 
 ## Current checkpoint — 26 October 2026
 
-Core is published at `5ec9ccc`, adding a creator-owned conditional-delete SDK
-facade with 13 new controls. Full Core **3,385** / WEB4 **250** tests and
-portable/shipping builds pass. Transport delete migration and native acceptance
-for that new facade remain open.
+Core is published at `5e483cb`. Logical-ID and provider-key creator-owned
+conditional-delete SDK boundaries are implemented. Latest full Core: **3,412**
+passed, zero skips; both Core targets build. Latest shipping WEB4 gate remains
+**264**; latest real-Mongo usage gate is **390**. These are separate verification
+cohorts, not a new combined native certification.
+
+HTTP admission now requires an explicit ordinary-operation tariff regardless of
+transport path (`60adf1c`). Three regressions reproduced the old query-price bypass
+and pass after the shared factory correction. Provider-key SDK adds 19 controls
+for key-to-ID agreement, owner, stale conditions, pinned authority and invalid keys.
+The HTTP provider-key route and native deletion acceptance remain open; see the
+[provider-key contract and required matrix](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
 
 The completed signed-save gate is pinned separately to Core `361f3d6`:
 Core 3,372 / WEB4 250 / usage-protocol 387 tests passed. Signed MongoDB
