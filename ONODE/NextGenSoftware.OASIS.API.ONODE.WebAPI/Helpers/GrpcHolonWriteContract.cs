@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc;
@@ -19,6 +22,7 @@ internal static class GrpcHolonWriteContract
     private static JsonSerializerOptions CreateOptions()
     {
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        options.Converters.Add(new JsonStringEnumConverter());
         HolonJsonContracts.Configure(options);
         return options;
     }
@@ -67,8 +71,11 @@ internal static class GrpcHolonWriteContract
         catch (JsonException) { return Invalid("The recursive holon JSON is invalid or exceeds the wire depth limit."); }
     }
 
-    internal static HolonResponse Encode(OASISResult<IHolon> result)
+    internal static HolonResponse Encode(OASISResult<IHolon> result, HttpContext context = null)
     {
+        // gRPC domain failures use an HTTP 200 response and grpc-status 0.
+        // Preserve their failed outcome for the shared settlement owner.
+        if (context != null && result.IsError) Web4UsageMeasurement.MarkFailed(context);
         var response = new HolonResponse
         {
             IsError = result.IsError, ErrorCode = result.ErrorCode ?? string.Empty,

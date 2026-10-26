@@ -287,12 +287,16 @@ public sealed partial class CqlV1Web4NativeTests
     }
 
     private static WebApplication RestHost(ProviderType provider, IOASISStorageProvider storage,
-        MongoUsageOutboxStore outbox, Authority authority, string secret)
+        MongoUsageOutboxStore outbox, Authority authority, string secret, bool transportMode = false)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
-        var paths = new[] { "/api/data/save-holon", "/api/data/save-holons" };
+        if (transportMode)
+            builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
+                endpoint => endpoint.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2));
+        else builder.WebHost.UseUrls("http://127.0.0.1:0");
+        var paths = transportMode ? new[] { "/graphql", "/oasis.web4.DataService/SaveHolon" }
+            : new[] { "/api/data/save-holon", "/api/data/save-holons" };
         var deployment = new StorageAdmissionDeployment
         {
             NativeProviders = Array.Empty<NativeStorageAdmissionBinding>(), OrdinaryProviders = new[] { provider },
@@ -302,7 +306,8 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 MeterCategory = "cosmic.write", PricingCatalogueVersion = "owned-storage-v1",
                 ReservedUnits = 6, EstimatedCostUsd = 0.018m, FixedCostUsd = 0,
-                RequiresProviderMeasurement = true, MaximumProviderAttempts = 6, MaximumNativeFeeCostUsd = 0
+                RequiresProviderMeasurement = true, MaximumProviderAttempts = 6, MaximumNativeFeeCostUsd = 0,
+                UsesGraphQlResponseEnvelope = path == "/graphql"
             })).ToArray()
         };
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -316,6 +321,7 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions { Service = "WEB4", EndpointPolicy = select });
         builder.Services.AddSingleton<Web4UsageExecution>();
+        if (transportMode) AddShippingTransportServices(builder.Services);
         builder.Services.AddControllers(options => options.Filters.Add<UsageResultFilter>())
             .AddJsonOptions(options =>
             {
@@ -340,6 +346,7 @@ public sealed partial class CqlV1Web4NativeTests
         app.UseMiddleware<Web4UsageLedgerMiddleware>();
         app.UseConfiguredStorageAdmission();
         app.MapControllers();
+        if (transportMode) MapShippingTransports(app);
         return app;
     }
 }
