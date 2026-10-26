@@ -7,22 +7,22 @@ verified on MongoDB, SQLite and Neo4j. Read-only receipt recovery and original
 protected preparation retrieval are implemented on all three stores. Actual
 hard-delete commits followed by injected acknowledgement loss recover through
 read-only receipts without replay. The latest retained native cohort has
-453 settled operations / 496 physical attempts, unchanged sources and seven
+465 settled operations / 517 physical attempts, unchanged sources and seven
 matching producer/consumer pairs. These are application-boundary fault tests,
 not OS-process crash certification.
 
 Core's new pinned preparation routing and stored-only reconstruction workflow
 and protected conditional-delete enrollment, including inherited request protection,
-have a 3,497-test SDK regression checkpoint; both current Core targets build.
-The new authenticated hosted recovery boundary has 305 passing WEB4 tests with
+have a 3,501-test SDK regression checkpoint; both current Core targets build.
+The new authenticated hosted recovery boundary has 313 passing WEB4 tests with
 one unrelated Stripe sandbox skip, and 408 passing real-Mongo usage tests. See
 [protected preparation contracts and evidence](WRITE_PREPARATION.md) and
 [current implementation status](IMPLEMENTATION_STATUS.md) for scoped cohorts.
 
-The [hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) is implemented with
-application grants and startup pricing/composition checks, but its signed native
-HTTP acceptance remains open. Remaining priority: that certification, explicit
-authorized durable intent enrollment for hosted writes/deletes, and
+The [hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) now includes
+authorized write enrollment and signed native HTTP acceptance for saves and both
+delete kinds on all three stores, including foreign/anonymous rejection and exact
+read billing. Remaining priority: protected hard-delete acknowledgement loss and
 actual process interruption/restart. Recipient/tenant query scope, federation
 certification and the broader ORM roadmap remain open. Provider reactivation
 does not close the process-restart requirement.

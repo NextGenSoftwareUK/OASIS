@@ -1046,7 +1046,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(3, recoveryProvidersVerified);
             var shippingRestRequests = await VerifyShippingRestAsync(providers, outbox, authority,
                 secret, restActor, restIds, ids[0], tag, Journal, sharingOperations);
-            Assert.AreEqual(63, shippingRestRequests);
+            Assert.AreEqual(78, shippingRestRequests);
             var shippingTransportRequests = await VerifyShippingTransportsAsync(providers, outbox, authority,
                 secret, transportActor, transportIds, ids[0], tag, Journal, sharingOperations);
             Assert.AreEqual(48, shippingTransportRequests);
@@ -1065,9 +1065,10 @@ public sealed partial class CqlV1Web4NativeTests
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     recoveryProvidersVerified, shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
-                    settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D")),
+                    settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
                     settledTransportOperations = operations.Count(operation => operation.UserId == transportActor.ToString("D")),
-                    settledCqlOperations = operations.Count(operation => operation.UserId != restActor.ToString("D") && operation.UserId != transportActor.ToString("D")),
+                    settledCqlOperations = operations.Count(operation => operation.UserId != restActor.ToString("D") && operation.UserId != transportActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
+                    settledRecoveryOperations = operations.Count(operation => operation.Endpoint == "POST " + CosmicOperationRecoveryRoutes.Recover),
                     settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));

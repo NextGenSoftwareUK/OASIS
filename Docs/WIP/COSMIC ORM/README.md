@@ -1,6 +1,6 @@
 # COSMIC ORM work
 
-Latest staged host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including its required application policy, two-read pricing and explicit remaining native HTTP acceptance.
+Latest host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including per-record write enrollment, two-read pricing, signed three-provider acceptance and remaining fault/restart gates.
 
 Start with [implementation status](IMPLEMENTATION_STATUS.md), the [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) and the [source integration boundary](INTEGRATION_BOUNDARY.md). They identify verified scope, unfinished acceptance criteria and publication constraints.
 

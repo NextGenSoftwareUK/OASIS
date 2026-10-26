@@ -1,3 +1,9 @@
+## Hosted write enrollment and signed recovery - 26 October 2026
+
+Configured app grants now protect every selected record on request-owned save/batch/delete managers, including new assigned IDs and runtime contract admission, without fallback on denial. REST aliases/provider-key deletion and the GraphQL/gRPC wrapper share this enrollment. Core3501PASS0skip/WEB4313PASS1StripeSkip/bothCoretargets+shippingbuildPASS. Signed native save/soft/hard recovery passes MongoDB/SQLite/Neo4j; foreign/anonymous controls and exactbilling verified. Currentcohort465settlements517attempts/12recoveryssettlements, unchangedsource/sevenmatchedpairs/ownedteardown. [Contract and evidence](HOSTED_OPERATION_RECOVERY.md).
+
+Next: protected hard-delete acknowledgement-loss and actual process-restart gates, then remaining recipient/tenant query scope, federation, retention and broader ORM roadmap. Fullroadmap remains incomplete.
+
 ## Authenticated recovery boundary milestone - 26 October 2026
 
 Added POST /api/data/recover-conditional-operation with authenticated actor capture, required priced exact-route admission, explicit actor/authority application grants, per-record authorized key contexts and bounded concrete type catalogues. Startup rejects enrolled recovery without policy or both prices/two-read budget. ShippingWEB4/bothCoretargets build; WEB4305PASS/1existingStripeSandboxSkip/0fail and realMongoUsage408PASS0skip. Matchingproducer/consumer/source evidence retained. [Contract and remaining acceptance](HOSTED_OPERATION_RECOVERY.md).

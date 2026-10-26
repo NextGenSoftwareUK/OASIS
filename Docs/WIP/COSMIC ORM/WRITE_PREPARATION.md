@@ -1,6 +1,8 @@
 # Durable conditional-write preparation
 
-The [authenticated hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) is now implemented with explicit application authorization, priced exact-route admission and startup checks. Its current acceptance is WEB4 unit/configuration tests; signed native HTTP certification and automatic hosted write policy enrollment remain open. Earlier native SDK evidence below does not certify that new endpoint.
+The [authenticated hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) now includes per-selected-record write protection enrollment and signed HTTP acceptance on MongoDB, SQLite and Neo4j: **465 settlements / 517 attempts**, including 12 recovery settlements. Full Core **3,501** and WEB4 **313 plus one existing Stripe skip** pass. Protected hard-delete acknowledgement loss and actual process restart remain separate gates; older SDK fault evidence is not a substitute.
+
+The new `PreparationPolicyResolver` receives immutable assigned-ID/runtime-type context, supports new records and independent selected-node protection contexts, and is captured by request managers. Denied/null results stop before preparation claims without falling back to global policy. The callback never receives a mutable staged entity and is excluded from JSON. Existing policy precedence is unchanged when no resolver is configured. [Core tests](Verification/hosted-protection-core.trx.gz), [WEB4 tests](Verification/hosted-protection-web4.trx.gz), [signed native result](Verification/hosted-protection-result.json).
 
 ## Request-owned protection configuration
 

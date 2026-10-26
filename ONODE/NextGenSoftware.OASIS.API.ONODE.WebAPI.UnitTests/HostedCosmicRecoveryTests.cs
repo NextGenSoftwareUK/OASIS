@@ -17,7 +17,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
-public class HostedCosmicRecoveryTests
+public partial class HostedCosmicRecoveryTests
 {
     [Theory][InlineData("not-enrolled")][InlineData("missing-policy")][InlineData("configured")]
     public async Task ReadinessRequiresPolicyForEnrolledRecoveryWithoutResolvingKeysOrActors(string mode)

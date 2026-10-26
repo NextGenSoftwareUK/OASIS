@@ -71,7 +71,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var context = HolonManager.CreateRequestContext(configuration.RequestRoutingPolicy.ToOverrides(), configuration.RequestProviderType);
                 if (context.IsError) return Respond(RequestContextError<IHolon>(context));
                 var deleted = await HolonWriteEndpoint.DeleteAsync(context.Result.Manager, request, actor, wizard,
-                    Request.Headers[HolonWriteEndpoint.OperationHeader]);
+                    Request.Headers[HolonWriteEndpoint.OperationHeader],
+                    HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
                 return Respond(deleted).BindRoutingPolicy(context.Result.Policy);
             }
 

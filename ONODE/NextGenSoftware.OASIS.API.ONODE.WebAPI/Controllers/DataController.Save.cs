@@ -91,7 +91,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                  return HttpResponseHelper.FormatResponse(error, HolonWriteEndpoint.Status(error), request.ShowDetailedSettings);
              }
              var written = await HolonWriteEndpoint.SaveAsync(context.Result.Manager, request, callerId, callerIsWizard,
-                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                 HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
              var status = HolonWriteEndpoint.Status(written);
              Response.StatusCode = (int)status;
              return HttpResponseHelper.FormatResponse(written, status, request.ShowDetailedSettings).BindRoutingPolicy(context.Result.Policy);

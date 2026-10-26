@@ -41,7 +41,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
     }
 
-    private sealed record RestResponse(string Key, string Payload, string OperationId, JsonElement Body);
+    private sealed record RestResponse(string Key, string Payload, string OperationId, JsonElement Body, Guid IntentId);
 
     private static async Task<int> VerifyShippingRestAsync(
         Dictionary<ProviderType, IOASISStorageProvider> providers, MongoUsageOutboxStore outbox,
@@ -117,7 +117,7 @@ public sealed partial class CqlV1Web4NativeTests
                     Guid Revision(IHolon value) => CosmicConcurrency.GetProviderRevisionId(value, pair.Key)!.Value;
                     async Task<RestResponse> Send(object payload, Guid intent, HttpStatusCode expected,
                         int attempts, decimal cost, string path = "/api/data/save-holon", HttpClient? caller = null,
-                        HttpMethod? method = null, IReadOnlyDictionary<string, string>? headers = null)
+                        HttpMethod? method = null, IReadOnlyDictionary<string, string>? headers = null, Guid? admittedActor = null)
                     {
                         var key = "rest-" + Guid.NewGuid().ToString("N");
                         var raw = payload is string text ? text : JsonSerializer.Serialize(payload, jsonOptions);
@@ -136,7 +136,7 @@ public sealed partial class CqlV1Web4NativeTests
                         var operationId = operationHeaders!.Single();
                         var operation = await outbox.GetAsync(operationId, CancellationToken.None);
                         Assert.AreEqual("settled", operation.State, "Preserve uncertain operations instead of resetting the fixture.");
-                        Assert.AreEqual(actor.ToString("D"), operation.UserId);
+                        Assert.AreEqual((admittedActor ?? actor).ToString("D"), operation.UserId);
                         Assert.AreEqual(attempts, operation.ProviderAttempts.Count);
                         Assert.AreEqual(attempts, operation.Receipts.Count);
                         Assert.AreEqual(cost, authority.Settlements[operationId].ActualCostUsd);
@@ -154,7 +154,7 @@ public sealed partial class CqlV1Web4NativeTests
                         }
                         using var body = JsonDocument.Parse(responseText);
                         requests++;
-                        return new RestResponse(key, raw, operationId, body.RootElement.Clone());
+                        return new RestResponse(key, raw, operationId, body.RootElement.Clone(), intent);
                     }
 
                     // Both model rejection and action preflight must release the
@@ -321,6 +321,42 @@ public sealed partial class CqlV1Web4NativeTests
                     Assert.IsFalse(unchangedChild.IsDeleted, "Root-only deletion must not delete unselected children.");
                     Assert.AreEqual(retainedChildRevision, Revision(unchangedChild));
 
+                    // Three fresh priced observations recover original save,
+                    // soft-delete and hard-delete receipts without re-execution.
+                    foreach (var originalIntent in new[] { firstIntent, soft.IntentId, hard.IntentId })
+                    {
+                        var recovery = await Send(new { operationId = originalIntent, providerType = pair.Key.ToString() },
+                            Guid.Empty, HttpStatusCode.OK, 2, 0.006m, CosmicOperationRecoveryRoutes.Recover);
+                        var outcome = recovery.Body.GetProperty("result").GetProperty("result");
+                        Assert.AreEqual(originalIntent, outcome.GetProperty("operationId").GetGuid());
+                        Assert.AreEqual("Committed", outcome.GetProperty("receiptState").GetString());
+                    }
+                    var foreignActor = Guid.NewGuid();
+                    var foreignBearer = Token(foreignActor, new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)), lifetimeMinutes: 15);
+                    authority.Tokens.Add(foreignBearer, foreignActor);
+                    using (var foreignClient = new HttpClient { BaseAddress = client.BaseAddress })
+                    {
+                        foreignClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", foreignBearer);
+                        await Send(new { operationId = firstIntent, providerType = pair.Key.ToString() }, Guid.Empty,
+                            HttpStatusCode.Forbidden, 1, 0.003m, CosmicOperationRecoveryRoutes.Recover,
+                            caller: foreignClient, admittedActor: foreignActor);
+                    }
+                    var beforeAnonymous = authority.Started.Count;
+                    var anonymousKey = "anonymous-recovery-" + Guid.NewGuid().ToString("N");
+                    await journal("before-anonymous-recovery", new { provider = pair.Key.ToString(), key = anonymousKey, original = firstIntent });
+                    using (var anonymous = new HttpClient { BaseAddress = client.BaseAddress })
+                    using (var request = new HttpRequestMessage(HttpMethod.Post, CosmicOperationRecoveryRoutes.Recover)
+                    { Content = new StringContent(JsonSerializer.Serialize(new { operationId = firstIntent, providerType = pair.Key.ToString() }), Encoding.UTF8, "application/json") })
+                    {
+                        request.Headers.Add("Idempotency-Key", anonymousKey);
+                        using var rejected = await anonymous.SendAsync(request);
+                        Assert.AreEqual(HttpStatusCode.Unauthorized, rejected.StatusCode);
+                    }
+                    requests++;
+                    Assert.AreEqual(beforeAnonymous, authority.Started.Count);
+                    Assert.IsTrue((await Read(initial.Id)).IsDeleted);
+                    Assert.IsNull((await pair.Value.LoadHolonAsync(second.Id, false, true, 0, true, false, 0)).Result);
+
                 }
                 finally { await app.StopAsync(); }
             }
@@ -351,6 +387,7 @@ public sealed partial class CqlV1Web4NativeTests
         var paths = transportMode ? new[] { "/graphql", "/oasis.web4.DataService/SaveHolon", "/oasis.web4.DataService/DeleteHolon" }
             : new[] { "/api/data/save-holon", "/api/data/save-holons" };
         var routes = paths.Select(path => (Method: "POST", Path: path)).ToList();
+        if (!transportMode) routes.Add(("POST", CosmicOperationRecoveryRoutes.Recover));
         if (deleteKey != null)
         {
             routes.Add(("DELETE", "/api/data/delete-holon"));
@@ -365,7 +402,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 MeterCategory = "cosmic.write", PricingCatalogueVersion = "owned-storage-v1",
                 ReservedUnits = 6, EstimatedCostUsd = 0.018m, FixedCostUsd = 0,
-                RequiresProviderMeasurement = true, MaximumProviderAttempts = 6, MaximumNativeFeeCostUsd = 0,
+                RequiresProviderMeasurement = true, MaximumProviderAttempts = route.Path == CosmicOperationRecoveryRoutes.Recover ? 2 : 6, MaximumNativeFeeCostUsd = 0,
                 UsesGraphQlResponseEnvelope = route.Path == "/graphql"
             })).ToArray()
         };
@@ -380,6 +417,8 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions { Service = "WEB4", EndpointPolicy = select });
         builder.Services.AddSingleton<Web4UsageExecution>();
+        builder.Services.AddSingleton<ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic.ICosmicOperationRecoveryPolicy>(new ShippingProtection(provider));
+        builder.Services.AddHostedService<ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic.CosmicRecoveryReadiness>();
         if (transportMode) AddShippingTransportServices(builder.Services);
         builder.Services.AddControllers(options => options.Filters.Add<UsageResultFilter>())
             .AddJsonOptions(options =>
