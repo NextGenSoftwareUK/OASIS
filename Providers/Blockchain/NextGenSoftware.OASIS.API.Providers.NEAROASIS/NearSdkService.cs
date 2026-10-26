@@ -296,6 +296,9 @@ internal sealed partial class NearSdkService
 
     public async Task<string> GetTransactionStatusAsync(string transactionHash, string signerAccountId = null,
         CancellationToken cancellationToken = default)
+        =>ClassifyTransactionOutcome(await ReadTransactionOutcomeAsync(transactionHash,signerAccountId,cancellationToken));
+
+    private async Task<JsonElement> ReadTransactionOutcomeAsync(string transactionHash,string signerAccountId,CancellationToken cancellationToken)
     {
         if(string.IsNullOrWhiteSpace(transactionHash))throw new ArgumentException("A transaction hash is required.",nameof(transactionHash));
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -312,7 +315,20 @@ internal sealed partial class NearSdkService
         var outcome=response.RootElement.GetProperty("outcome");
         if(outcome.GetProperty("transaction_outcome").GetProperty("id").GetString()!=transactionHash)
             throw new InvalidDataException("NEAR status outcome does not match the requested transaction.");
-        return ClassifyTransactionOutcome(outcome);
+        _=ClassifyTransactionOutcome(outcome);
+        return outcome.Clone();
+    }
+
+    internal async Task VerifyNftLockSourceAsync(string transactionHash,string tokenId,CancellationToken token=default)
+    {
+        var outcome=await ReadTransactionOutcomeAsync(transactionHash,_accountId,token);
+        if(ClassifyTransactionOutcome(outcome)!="Completed")throw new InvalidDataException("Source NFT lock must be finalized successfully.");
+        var transaction=outcome.GetProperty("transaction");
+        if(transaction.GetProperty("signer_id").GetString()!=_accountId||transaction.GetProperty("receiver_id").GetString()!=_contractId)
+            throw new InvalidDataException("Source NFT lock signer or contract differs from the configured owner.");
+        var gas=transaction.GetProperty("actions")[0].GetProperty("FunctionCall").GetProperty("gas").GetUInt64();
+        if(gas==0)throw new InvalidDataException("Source NFT lock gas is invalid.");
+        ValidateMutationAction(transaction,new MutationIntent("FunctionCall","0","nft_set_locked",JsonSerializer.SerializeToElement(new{token_id=tokenId,locked=true}),gas));
     }
 
     internal static string ClassifyTransactionOutcome(JsonElement outcome)

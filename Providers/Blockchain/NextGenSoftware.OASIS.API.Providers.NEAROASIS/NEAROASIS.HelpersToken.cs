@@ -81,11 +81,11 @@ public partial class NEAROASIS
     {
         if (!string.IsNullOrWhiteSpace(sourceTransactionHash))
         {
-            var sourceStatus = await GetTransactionStatusAsync(sourceTransactionHash);
-            if (sourceStatus.IsError || sourceStatus.Result != BridgeTransactionStatus.Completed)
-                return ToBridgeResult(null, true, sourceStatus.IsError
-                    ? sourceStatus.Message
-                    : $"Source NEAR transaction {sourceTransactionHash} is not final.",sourceStatus.Exception);
+            try {
+                var active=new OASISResult<BridgeTransactionResponse>();
+                if(!await EnsureSdkActiveAsync(active))return ToBridgeResult(null,true,active.Message,active.Exception);
+                await _sdk.VerifyNftLockSourceAsync(sourceTransactionHash,tokenId);
+            }catch(Exception failure){return ToBridgeResult(null,true,failure.Message,failure);}
         }
         var unlocked = await SetNftLockAsync(tokenId, false);
         if (unlocked.IsError) return ToBridgeResult(null, true, unlocked.Message,unlocked.Exception);
