@@ -6,9 +6,12 @@ import { blake2AsHex } from '@polkadot/util-crypto';
 
 // Compile-format gate only; native code upload/dry-run remains mandatory.
 const kind = process.argv[2] ?? 'records';
-assert.ok(['records', 'psp34', 'psp34-escrow', 'token-escrow'].includes(kind), 'Expected explicit records, psp34, psp34-escrow or token-escrow artifact.');
+const artifacts = Object.freeze({ records: 'oasis-records', psp34: 'oasis-psp34', 'psp34-escrow': 'oasis-psp34-escrow',
+  'token-escrow': 'oasis-token-escrow', 'token-escrow-v1': 'oasis-token-escrow-v1',
+  'psp22-test-token': 'oasis-native-psp22-test-token' });
+assert.ok(Object.hasOwn(artifacts, kind), 'Expected an explicit reviewed artifact kind.');
 assert.equal(process.argv.length <= 3, true, 'Unexpected artifact-verifier arguments.');
-const name = kind === 'records' ? 'oasis-records' : kind === 'token-escrow' ? 'oasis-token-escrow' : kind === 'psp34-escrow' ? 'oasis-psp34-escrow' : 'oasis-psp34';
+const name = artifacts[kind];
 const path = resolve(import.meta.dirname, `../../../../TestResults/PolkadotCurrent/record-contract-target/${name}.wasm`);
 const bytes = readFileSync(path);
 const module = new WebAssembly.Module(bytes);
@@ -20,18 +23,19 @@ const allowed = new Set(['seal1/get_storage', 'seal0/input', 'seal0/deposit_even
   'seal1/clear_storage', 'seal0/seal_return', 'seal0/caller', 'seal0/value_transferred', 'seal0/hash_blake2_256']);
 // Collection ID uses the actual account; NFT existence checks use ink5's
 // contains_storage_v1 binding. Neither import widens the record contract gate.
-if (kind === 'psp34' || kind === 'psp34-escrow' || kind === 'token-escrow') {
+if (kind === 'psp34' || kind === 'psp34-escrow' || kind === 'token-escrow' || kind === 'token-escrow-v1') {
   allowed.add('seal0/address');
   allowed.add('seal1/contains_storage');
 }
 // Only PSP22 custody performs nested standard token calls. Do not permit that
 // capability on record/NFT contracts by widening their existing import gate.
-if (kind === 'token-escrow') allowed.add('seal2/call');
+if (kind === 'token-escrow' || kind === 'token-escrow-v1') allowed.add('seal2/call');
 for (const item of imports.filter(item => item.kind !== 'memory')) {
   assert.equal(item.kind, 'function');
   assert.equal(allowed.has(`${item.module}/${item.name}`), true, `Unexpected contract import ${item.module}/${item.name}`);
 }
-const sourceFolder = kind === 'psp34-escrow' ? 'contracts/psp34' : kind === 'token-escrow' ? 'contracts/token-escrow' : null;
+const sourceFolder = { 'psp34-escrow': 'contracts/psp34', 'token-escrow': 'contracts/token-escrow',
+  'psp22-test-token': 'contracts/native-psp22-test-token' }[kind];
 const sources = sourceFolder ? Object.fromEntries(['lib.rs', 'Cargo.toml', 'Cargo.lock'].map(file => {
   const name = `${sourceFolder}/${file}`;
   return [name, createHash('sha256').update(readFileSync(resolve(import.meta.dirname, '..', name))).digest('hex')];

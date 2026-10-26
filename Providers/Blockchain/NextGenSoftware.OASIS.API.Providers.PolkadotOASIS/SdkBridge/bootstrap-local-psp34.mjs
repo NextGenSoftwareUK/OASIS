@@ -14,13 +14,17 @@ import { readVerifiedOriginalRange } from './original-outcome.mjs';
 import { readFinalizedReceipt, readFinalizedExtrinsicContext } from './finalized-receipt.mjs';
 import { readPsp34Collection } from './psp34-contract-read.mjs';
 import { readTokenEscrowDeposit } from './psp22-escrow-read.mjs';
+import { nativePsp22Fixture, nativeTestTokenConstructor, readNativeTestToken } from './native-psp22-test-token.mjs';
 
 assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1', 'Explicit retained local opt-in required.');
-assert.ok(process.argv.length === 3 || (process.argv.length === 4 && ['--escrow', '--token-escrow'].includes(process.argv[3])));
-const tokenEscrow = process.argv[3] === '--token-escrow';
-const prefix = tokenEscrow ? 'psp22-escrow' : process.argv[3] === '--escrow' ? 'psp34-escrow' : 'psp34';
+assert.ok(process.argv.length === 3 || (process.argv.length === 4 && ['--escrow', '--token-escrow', '--token-escrow-v1', '--psp22-test-token'].includes(process.argv[3])));
+const retiredTokenEscrow = process.argv[3] === '--token-escrow-v1';
+const tokenEscrow = retiredTokenEscrow || process.argv[3] === '--token-escrow';
+const testToken = process.argv[3] === '--psp22-test-token';
+const prefix = retiredTokenEscrow ? 'psp22-escrow-v1' : testToken ? nativePsp22Fixture.prefix : tokenEscrow ? 'psp22-escrow' : process.argv[3] === '--escrow' ? 'psp34-escrow' : 'psp34';
 const mode = process.argv[2];
 assert.ok(['--deploy', '--reconcile'].includes(mode), 'Explicit deployment or same-original reconciliation required.');
+if (retiredTokenEscrow) assert.equal(mode, '--reconcile', 'Retired escrow is read-only recovery only.');
 const root = resolve(import.meta.dirname, '../../../..');
 const evidence = resolve(root, 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot');
 const pending = resolve(evidence, `${prefix}-deployment-pending.json`);
@@ -30,25 +34,28 @@ if (mode === '--reconcile' && !existsSync(pending) && !existsSync(completed))
   throw new Error('No existing original to reconcile; this mode cannot deploy.');
 const cohort = JSON.parse(readFileSync(resolve(evidence, `${prefix}-wasm-current.json`), 'utf8'));
 const fixture = JSON.parse(readFileSync(resolve(evidence, `${prefix}-constructor-simulation-current.json`), 'utf8'));
-const artifact = tokenEscrow ? 'oasis-token-escrow' : `oasis-${prefix}`;
+const artifact = retiredTokenEscrow ? 'oasis-token-escrow-v1' : testToken ? nativePsp22Fixture.artifact : tokenEscrow ? 'oasis-token-escrow' : `oasis-${prefix}`;
 const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/${artifact}.wasm`));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(sha(code), cohort.sha256);
 assert.equal(blake2AsHex(code, 256), cohort.codeHash);
 assert.equal(fixture.codeHash, cohort.codeHash);
-for (const [path, hash] of Object.entries(cohort.sources ?? {}))
+// Historical recovery validates the retained artifact against the signed native
+// deployment, not against a different current implementation's source files.
+for (const [path, hash] of Object.entries(retiredTokenEscrow ? {} : cohort.sources ?? {}))
   assert.equal(sha(readFileSync(resolve(import.meta.dirname, '..', path))), hash, `Source cohort differs: ${path}`);
 const durable = (path, value) => {
   const fd = openSync(path, 'wx', 0o600);
   try { writeFileSync(fd, JSON.stringify(value, null, 2) + '\n'); fsyncSync(fd); }
   finally { closeSync(fd); }
 };
-const protocol = tokenEscrow ? 'oasis.polkadot.local-token-escrow-deployment.v1' : 'oasis.polkadot.local-psp34-deployment.v1';
+const protocol = testToken ? 'oasis.polkadot.local-psp22-test-token-deployment.v1'
+  : tokenEscrow ? 'oasis.polkadot.local-token-escrow-deployment.v1' : 'oasis.polkadot.local-psp34-deployment.v1';
 const api = await ApiPromise.create({ provider: new HttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
 let pair;
 try {
   assert.equal(api.genesisHash.toHex(), '0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208');
-  const data = tokenEscrow ? '0x00000001' : encodeOasisPsp34Constructor(api.registry,
+  const data = testToken ? nativeTestTokenConstructor(api.registry) : tokenEscrow ? '0x00000001' : encodeOasisPsp34Constructor(api.registry,
     Object.fromEntries(Object.entries(fixture.fields).map(([key, value]) => [key, Buffer.from(value, 'utf8')])));
   assert.equal(data, fixture.data);
   const sender = fixture.sender;
@@ -109,10 +116,24 @@ try {
   assert.equal(api.createType('AccountId32', instances[0].data[1]).toHex(), fixture.address);
   const at = await api.at(receipt.blockHash);
   assert.equal((await at.query.contracts.contractInfoOf(fixture.address)).unwrap().codeHash.toHex(), cohort.codeHash);
-  const collection = tokenEscrow ? await readTokenEscrowDeposit(api,
+  const collection = testToken ? await readNativeTestToken(api,
+    { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash, owner: sender, spender: sender })
+    : tokenEscrow ? await readTokenEscrowDeposit(api,
     { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash, depositId: '0x' + '11'.repeat(32) })
     : await readPsp34Collection(api, { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash });
-  if (tokenEscrow) assert.equal(collection.deposit, null);
+  if (testToken) {
+    assert.equal(fixture.initialSupply, nativePsp22Fixture.supply);
+    assert.equal(collection.totalSupply, fixture.initialSupply); assert.equal(collection.decimals, 12);
+    const emitted = own.filter(event => event.section === 'contracts' && event.method === 'ContractEmitted'
+      && api.createType('AccountId32', event.data[0].toString()).toHex() === fixture.address);
+    assert.equal(emitted.length, 1);
+    const raw = emitted[0].data[1].toU8a(true);
+    const minted = api.registry.createType('(Option<AccountId32>,Option<AccountId32>,u128)', raw);
+    assert.deepEqual(Buffer.from(minted.toU8a()), Buffer.from(raw));
+    assert.equal(minted[0].isNone, true); assert.equal(minted[1].isSome, true);
+    assert.equal(minted[1].unwrap().toHex(), sender); assert.equal(minted[2].toString(), fixture.initialSupply);
+  }
+  else if (tokenEscrow) assert.equal(collection.deposit, null);
   else {
     assert.deepEqual(collection.attributes, fixture.fields);
     assert.deepEqual(collection.collectionId, { bytes: fixture.address });
@@ -127,6 +148,7 @@ try {
   console.log(JSON.stringify({ address: fixture.address, codeHash: cohort.codeHash,
     transactionHash: receipt.transactionHash, actualFeeUnits: receipt.actualFeeUnits,
     storageDepositLimit: stored.storageDepositLimit, nativeDeploymentVerified: true,
-    sdkCollectionReadVerified: !tokenEscrow, sdkEmptyTokenDepositReadVerified: tokenEscrow,
+    sdkCollectionReadVerified: !tokenEscrow && !testToken, sdkEmptyTokenDepositReadVerified: tokenEscrow,
+    sdkTestTokenReadVerified: testToken,
     mode, reusable: true, publicFunds: false }));
 } finally { pair?.lock(); await api.disconnect(); }

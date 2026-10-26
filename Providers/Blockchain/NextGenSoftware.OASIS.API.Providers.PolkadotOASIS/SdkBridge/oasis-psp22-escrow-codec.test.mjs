@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TypeRegistry } from '@polkadot/types/create';
 import { readTokenEscrowDeposit } from './psp22-escrow-read.mjs';
+import { validateTokenEscrowMutation, prepareTokenEscrowMutation, verifyTokenEscrowPreparation,
+  recoverTokenEscrowPreparation } from './psp22-escrow-mutation.mjs';
+import { tokenEscrowEventSignature, exactTokenEscrowEffect } from './psp22-escrow-outcome.mjs';
 import { encodeTokenEscrowMutation, decodeTokenEscrowMutation, encodeTokenEscrowDepositQuery,
   registerTokenEscrowTypes, decodeTokenEscrowResult } from './oasis-psp22-escrow-codec.mjs';
 const registry = new TypeRegistry();
@@ -85,4 +88,85 @@ test('missing or substituted contract cannot become a successful empty token dep
     await assert.rejects(readTokenEscrowDeposit(api, { contractAddress: token, contractCodeHash: token, origin: id, depositId: id }),
       missing ? /does not exist at finalized snapshot/ : /differs from the explicitly pinned artifact/);
   }
+});
+const escrowRequest = () => ({ action: 'lock', depositId: id, tokenAddress: token, amountUnits: '18446744073709551620',
+  contractAddress: '0x' + '33'.repeat(32), contractCodeHash: '0x' + '44'.repeat(32),
+  sender: id, recipient: '0x' + '33'.repeat(32), privateKey: '0x' + '02'.repeat(32) });
+test('public preparation shape retains explicit token and rejects redirected unlock amounts', async () => {
+  await validateTokenEscrowMutation(escrowRequest());
+  const unlock = { ...escrowRequest(), action: 'unlock' }; delete unlock.amountUnits;
+  await validateTokenEscrowMutation(unlock);
+  await assert.rejects(validateTokenEscrowMutation({ ...unlock, amountUnits: '1' }), /complete original deposit/);
+  await assert.rejects(validateTokenEscrowMutation({ ...unlock, to: token }), /complete original deposit/);
+});
+test('malformed escrow preparation fails before RPC, signing or submission access', async () => {
+  let accesses = 0;
+  const api = new Proxy({}, { get() { accesses++; throw new Error('Unexpected native access'); } });
+  for (const extra of [{ action: 'freeze' }, { depositId: 'guid' }, { amountUnits: 1 }, { amountUnits: '1.1' },
+    { tokenAddress: '1' }, { recipient: token }, { contractAddress: token }, { memo: 'silently discard' },
+    { privateKey: '' }, { contractCodeHash: 'unknown' }, { sender: id.toUpperCase() }])
+    await assert.rejects(prepareTokenEscrowMutation(api, { ...escrowRequest(), ...extra }));
+  assert.equal(accesses, 0);
+});
+test('duplicate deposits and foreign/released/missing unlocks fail before signing boundary', async () => {
+  for (const [action, observed] of [['lock', { owner: id, token, amount: '42', released: true }],
+    ['unlock', null], ['unlock', { owner: token, token, amount: '42', released: false }],
+    ['unlock', { owner: id, token: id, amount: '42', released: false }],
+    ['unlock', { owner: id, token, amount: '42', released: true }]]) {
+    registerTokenEscrowTypes(registry); let calls = 0, signingAccess = 0;
+    const api = { registry, createType: (...args) => registry.createType(...args),
+      rpc: { chain: { getFinalizedHead: async () => ({ toHex: () => id }) } },
+      get tx() { signingAccess++; throw new Error('Unexpected signing access'); },
+      at: async () => ({ query: { contracts: { contractInfoOf: async () => ({ isNone: false,
+        unwrap: () => ({ codeHash: { toHex: () => escrowRequest().contractCodeHash } }) }) } },
+        call: { contractsApi: { call: async () => { calls++;
+          const encoded = registry.createType('Result<Option<OasisTokenEscrowDeposit>,OasisTokenEscrowLangError>', { Ok: observed });
+          return { result: { isErr: false, asOk: { flags: { get: () => registry.createType('u32', 0) },
+            data: registry.createType('Bytes', encoded.toHex()) } } };
+        } } } }) };
+    const request = { ...escrowRequest(), action }; if (action === 'unlock') delete request.amountUnits;
+    await assert.rejects(prepareTokenEscrowMutation(api, request), /does not authorize/);
+    assert.equal(calls, 1); assert.equal(signingAccess, 0);
+  }
+});
+test('preparation/recovery protocol or code identity cannot be guessed before native access', async () => {
+  let accesses = 0; const api = new Proxy({}, { get() { accesses++; throw new Error('Unexpected native access'); } });
+  await assert.rejects(verifyTokenEscrowPreparation(api, { protocol: 'other' }), /Versioned/);
+  await assert.rejects(recoverTokenEscrowPreparation(api, { contractCodeHash: 'guessed' }), /reviewed escrow code/);
+  assert.equal(accesses, 0);
+});
+function escrowEvent(identity, change = {}) {
+  const value = { ...identity, ...change };
+  const data = registry.createType('(H256,AccountId32,AccountId32,u128)',
+    [value.depositId, value.sender, value.tokenAddress, value.amountUnits]);
+  return { event: { section: 'contracts', method: 'ContractEmitted', data: [registry.createType('AccountId32', value.contractAddress),
+    registry.createType('Bytes', data.toHex())] },
+    topics: [tokenEscrowEventSignature(value.action), value.depositId, value.sender].map(topic => registry.createType('H256', topic)) };
+}
+const effectApi = { registry, createType: (...args) => registry.createType(...args) };
+test('native effect requires exact action signature, deposit, owner, token and u128 amount', () => {
+  for (const action of ['lock', 'unlock']) {
+    const identity = { ...escrowRequest(), action };
+    assert.deepEqual(exactTokenEscrowEffect(effectApi, identity, [escrowEvent(identity)], true),
+      { applied: true, tokenEscrowEffectMatchesRequest: true, released: action === 'unlock' });
+  }
+});
+test('identical event payload cannot confuse lock and unlock acknowledgement', () => {
+  const identity = escrowRequest();
+  const record = escrowEvent(identity, { action: 'unlock' });
+  assert.throws(() => exactTokenEscrowEffect(effectApi, identity, [record], true), /signature/);
+});
+test('wrong emitter, duplicate events, substituted amounts or indexed identities cannot acknowledge custody', () => {
+  const identity = escrowRequest();
+  for (const change of [{ depositId: token }, { sender: token }, { tokenAddress: id },
+    { amountUnits: '18446744073709551621' }, { contractAddress: token }])
+    assert.throws(() => exactTokenEscrowEffect(effectApi, identity, [escrowEvent(identity, change)], true));
+  assert.throws(() => exactTokenEscrowEffect(effectApi, identity, [escrowEvent(identity), escrowEvent(identity)], true), /Exactly one/);
+  const noTopics = escrowEvent(identity); noTopics.topics = [];
+  assert.throws(() => exactTokenEscrowEffect(effectApi, identity, [noTopics], true), /signature/);
+});
+test('dispatch failure remains known non-success and unknown action never becomes an effect', () => {
+  assert.deepEqual(exactTokenEscrowEffect(effectApi, escrowRequest(), [], false),
+    { applied: false, tokenEscrowEffectMatchesRequest: false });
+  assert.throws(() => exactTokenEscrowEffect(effectApi, { action: 'freeze' }, [], true), /Explicit/);
 });
