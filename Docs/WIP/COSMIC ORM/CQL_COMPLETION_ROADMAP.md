@@ -2,8 +2,13 @@
 
 ## Current checkpoint — 26 October 2026
 
-Core is published at `361f3d6`; the latest transport follow-up is
-`b70ed648c`. Full Core 3,372 / WEB4 250 / usage-protocol 387 tests and shipping builds pass. Signed MongoDB
+Core is published at `5ec9ccc`, adding a creator-owned conditional-delete SDK
+facade with 13 new controls. Full Core **3,385** / WEB4 **250** tests and
+portable/shipping builds pass. Transport delete migration and native acceptance
+for that new facade remain open.
+
+The completed signed-save gate is pinned separately to Core `361f3d6`:
+Core 3,372 / WEB4 250 / usage-protocol 387 tests passed. Signed MongoDB
 GraphQL create/conflict/missing-intent checks passed; the first native gRPC graph
 request exposed string-enum decoding rejection before any provider attempt.
 That failure was reproduced in a unit test and fixed at the serializer owner.

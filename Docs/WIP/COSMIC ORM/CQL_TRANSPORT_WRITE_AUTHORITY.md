@@ -302,3 +302,27 @@ also passed; historical failed originals were reconciled without replay.
 This closes the focused signed save-transport gate. Full startup/schema/alias,
 other methods, authenticated conditional delete, authoritative recipient/tenant
 queries, federation and the broader ORM roadmap remain open.
+
+## Generic owned-delete SDK checkpoint in progress
+
+`DeleteOwnedHolonAsync(id, actor, options, softDelete, provider)` now provides the
+missing common permission boundary over existing conditional tracked deletion.
+It requires V2, nonempty actor/record/intent and one original non-create-only
+revision before touching providers. A pinned authoritative read supplies stored
+ownership; the original caller condition and observed authority then pass to the
+existing deletion engine. Provider failure counts/metadata remain intact.
+
+Thirteen focused controls pass: soft/hard acknowledgement, foreign-owner denial,
+stale token retained across a provider-default change, identity/actor/condition
+rejection before I/O, legacy rejection, no failed mutation acknowledgement and
+provider failure evidence preservation. Full/portable/downstream gates are in
+progress. This SDK addition does not yet secure REST/GraphQL/gRPC delete routes;
+those adapters and signed native acceptance remain the next gate.
+
+Owned-delete SDK gate 55301 passed: portable/shipping builds, full Core **3,385**
+and WEB4 **250** tests, with no skips. Core `5ec9ccc` is published. The 13 focused
+controls are included in the retained full Core report
+`Verification/owned-delete-core-full.trx.gz`. This checkpoint is SDK-only;
+transport adapters and native owned-delete acceptance remain open. The earlier
+complete signed-save proof remains pinned to Core `361f3d6`; it is separate from
+the new deletion work.
