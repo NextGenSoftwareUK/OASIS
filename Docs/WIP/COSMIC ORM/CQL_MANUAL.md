@@ -2075,3 +2075,81 @@ code/count and committed delta. All use the HTTP-authenticated actor.
 Shipping build and 264 WEB4 tests pass. Provider-key aliases and signed native
 acceptance for these delete adapters remain open. See
 [the transport matrix](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+
+
+## Conditional deletion after a CQL read
+
+A query result is an observation, not permission to overwrite newer data. Capture its provider revision and use the same explicit provider for deletion. The host authenticates the actor; do not accept an actor ID from an untrusted request body.
+
+```csharp
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+
+// Keep the provider used by the original query explicit.
+var provider = ProviderType.MongoDBOASIS;
+var originalRevision = CosmicConcurrency.GetProviderRevisionId(holon, provider)
+    ?? throw new InvalidOperationException("The query result has no provider revision.");
+
+// One logical delete has one stable operation ID and the original condition.
+var operationId = Guid.NewGuid();
+var options = new CosmicWriteOptions(
+    operationId,
+    new Dictionary<Guid, Guid?>
+    {
+        [holon.Id] = originalRevision
+    });
+
+// Stored ownership is checked before the atomic conditional soft delete.
+var deleted = await manager.DeleteOwnedHolonAsync(
+    holon.Id,
+    authenticatedActorId,
+    options,
+    softDelete: true,
+    providerType: provider);
+
+if (deleted.IsError)
+{
+    // Surface conflicts to the caller. Do not replace the original revision
+    // with a new read and silently retry the deletion.
+    throw new InvalidOperationException($"{deleted.ErrorCode}: {deleted.Message}");
+}
+```
+
+For a native key, pass both identities. The key must resolve to that logical holon on the selected authority:
+
+```csharp
+var deletedByKey = await manager.DeleteOwnedHolonByProviderKeyAsync(
+    nativeKey,
+    holon.Id,
+    authenticatedActorId,
+    options,
+    softDelete: false,
+    providerType: provider);
+```
+
+These are alternative examples of one delete, not two calls to execute in sequence. Hard deletion removes the record; use it only when that is the intended operation. A successful result has `IsDeleted == true`. Preserve error codes and committed-delta metadata when returning the result from a host.
+
+### Authenticated REST provider-key deletion
+
+V2 preserves the route `/api/data/delete-holon-by-providerkey/{providerKey}`. Supply the URL-encoded native key, optional `providerType` query scope, authenticated bearer, stable idempotency key and three intent headers:
+
+| Header | Value |
+| --- | --- |
+| X-COSMIC-Holon-Id | Intended logical holon ID, canonical nonempty GUID |
+| X-COSMIC-Operation-Id | Stable logical delete operation ID, canonical nonempty GUID |
+| X-COSMIC-Expected-Revision | Original selected-provider revision, canonical GUID |
+
+For example, with your own IDs, original revision, native key and bearer:
+
+```http
+DELETE /api/data/delete-holon-by-providerkey/NATIVE_KEY?softDelete=false&providerType=MongoDBOASIS
+Authorization: Bearer YOUR_BEARER
+Idempotency-Key: YOUR_STABLE_HTTP_REQUEST_KEY
+X-COSMIC-Holon-Id: 11111111-1111-1111-1111-111111111111
+X-COSMIC-Operation-Id: 22222222-2222-2222-2222-222222222222
+X-COSMIC-Expected-Revision: 33333333-3333-3333-3333-333333333333
+```
+
+A missing/malformed logical identity rejects before storage. A key-to-ID mismatch returns400, a foreign stored creator returns403, and a stale revision returns409. Do not infer ownership from the key or choose another provider after a failed authority observation. An all-zero revision GUID is a real revision token; it does not mean create-only. Configured paid hosts must explicitly enroll the exact route and provide `LoadHolonByProviderKey` and `DeleteHolon` tariffs. Missing tariffs reject before provider execution.
+
+Verification scope: the SDK and six MVC route cases pass; signed native GraphQL/gRPC deletion passes on all three target stores. The prepared signed REST deletion matrix is still pending execution. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md) for the current gate rather than treating this usage example as additional runtime proof.
