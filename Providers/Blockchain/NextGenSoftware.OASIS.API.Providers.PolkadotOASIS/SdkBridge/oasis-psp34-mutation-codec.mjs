@@ -1,6 +1,6 @@
 // Explicit oasis-psp34 v0.1.0 extensions. Mint/burn are NOT standard PSP34 ABI.
 // Reuse standard token/account encoding; no signing, RPC or submission here.
-import { encodePsp34Arguments, encodePsp34Message, decodePsp34Result } from './psp34-contract-codec.mjs';
+import { encodePsp34Arguments, encodePsp34Message, decodePsp34Result, registerPsp34Types } from './psp34-contract-codec.mjs';
 
 function tokenBound(token) {
   if (token?.Bytes instanceof Uint8Array && token.Bytes.length > 1024)
@@ -40,4 +40,29 @@ export function decodeOasisPsp34MutationResult(registry, action, bytes) {
   if (!['mint', 'transfer', 'burn'].includes(action)) throw new Error('Unknown OASIS PSP34 mutation.');
   // All three return the same Result<(),PSP34Error> inside ink's language result.
   return decodePsp34Result(registry, 'transfer', bytes);
+}
+
+// Recover intent from the EXACT signed call, not an unpersisted JSON sidecar.
+export function decodeOasisPsp34Mutation(registry, input) {
+  if (typeof input !== 'string' || !/^0x(?:[0-9a-f]{2}){4,}$/.test(input)) throw new Error('Canonical NFT call bytes required.');
+  const specification = { '00000010': ['mint', '(AccountId32,OasisPsp34Id,Vec<(Bytes,Bytes)>)'],
+    '3128d61b': ['transfer', '(AccountId32,OasisPsp34Id,Bytes)'], '00000011': ['burn', 'OasisPsp34Id'] }[input.slice(2, 10)];
+  if (!specification) throw new Error('Signed call is not a reviewed NFT mutation selector.');
+  registerPsp34Types(registry);
+  const [action, type] = specification;
+  const raw = Buffer.from(input.slice(10), 'hex'), args = registry.createType(type, raw);
+  if (!Buffer.from(args.toU8a()).equals(raw)) throw new Error('Noncanonical NFT call or trailing data.');
+  const id = action === 'burn' ? args : args[1];
+  const variant = ['U8', 'U16', 'U32', 'U64', 'U128', 'Bytes'][id.index];
+  const tokenId = { [variant]: variant === 'Bytes' ? id.value.toHex() : id.value.toString() };
+  if (action === 'transfer' && args[2].toU8a(true).length !== 0)
+    throw new Error('Reviewed NFT transfer recovery cannot discard receiver callback data.');
+  const to = action === 'burn' ? undefined : args[0].toHex();
+  const attributes = action === 'mint' ? [...args[2]].map(pair =>
+    [Buffer.from(pair[0].toU8a(true)).toString('base64'), Buffer.from(pair[1].toU8a(true)).toString('base64')]) : undefined;
+  const typed = variant === 'Bytes' ? { Bytes: Uint8Array.from(Buffer.from(tokenId.Bytes.slice(2), 'hex')) } : tokenId;
+  const binary = attributes?.map(([key, value]) => [Uint8Array.from(Buffer.from(key, 'base64')), Uint8Array.from(Buffer.from(value, 'base64'))]);
+  if (encodeOasisPsp34Mutation(registry, action, typed, to, binary) !== input)
+    throw new Error('Recovered NFT intent does not round-trip the reviewed ABI.');
+  return { action, tokenId, ...(to !== undefined ? { to } : {}), ...(attributes !== undefined ? { attributes } : {}) };
 }

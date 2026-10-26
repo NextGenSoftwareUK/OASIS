@@ -14,15 +14,15 @@ public partial class PolkadotOASIS
     /// Repeating this call is not a recovery mechanism; reconcile the retained original instead.</summary>
     public Task<JsonElement> SubmitNativeTokenTransferPreparationAsync(JsonElement preparation,
         UsageExecutionHandle execution,string clientRequestId,string expectedSender,CancellationToken token=default)
-        => SubmitOriginalPreparationAsync(preparation, execution, clientRequestId, expectedSender, false, token);
+        => SubmitOriginalPreparationAsync(preparation, execution, clientRequestId, expectedSender, NativeMutationKind.Native, token);
 
     private async Task<JsonElement> SubmitOriginalPreparationAsync(JsonElement preparation,
-        UsageExecutionHandle execution,string clientRequestId,string expectedSender,bool asset,CancellationToken token)
+        UsageExecutionHandle execution,string clientRequestId,string expectedSender,NativeMutationKind kind,CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var original=preparation.Clone();
-        using var server=CreatePreparationServer(execution,clientRequestId,expectedSender,original.GetProperty("transactionHash").GetString(),asset);
-        return await InvokePolkadotSdkAsync(new{operation=asset ? "submitAssetPreparation" : "submitNativePreparation",endpoint=_rpcEndpoint,
+        using var server=CreatePreparationServer(execution,clientRequestId,expectedSender,original.GetProperty("transactionHash").GetString(),kind);
+        return await InvokePolkadotSdkAsync(new{operation=MutationOperations(kind).Submit,endpoint=_rpcEndpoint,
             genesisHash=ReportedGenesisHash,preparation=original},token,server);
     }
 
@@ -38,9 +38,9 @@ public partial class PolkadotOASIS
     }
 
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,string clientRequestId,string expectedSender,string expectedTransactionId)
-        => CreatePreparationServer(execution,clientRequestId,expectedSender,expectedTransactionId,false);
+        => CreatePreparationServer(execution,clientRequestId,expectedSender,expectedTransactionId,NativeMutationKind.Native);
 
-    private PreparedSubmissionServer CreatePreparationServer(UsageExecutionHandle execution,string clientRequestId,string expectedSender,string expectedTransactionId,bool asset)
+    private PreparedSubmissionServer CreatePreparationServer(UsageExecutionHandle execution,string clientRequestId,string expectedSender,string expectedTransactionId,NativeMutationKind kind)
     {
         ArgumentNullException.ThrowIfNull(execution);
         if(!_isActivated||!IsGenesisHash(ReportedGenesisHash))throw new InvalidOperationException("Activate the verified network before durable preparation.");
@@ -52,7 +52,7 @@ public partial class PolkadotOASIS
         return new PreparedSubmissionServer(execution.NativePreparationPersistence("PolkadotOASIS",null,clientRequestId,
             ReportedGenesisHash,expectedSender,async(evidence,token)=>{
                 token.ThrowIfCancellationRequested();
-                var verified=await VerifyOriginalPreparationAsync(evidence,asset,token);
+                var verified=await VerifyOriginalPreparationAsync(evidence,kind,token);
                 token.ThrowIfCancellationRequested();
                 if(verified.IsError)throw verified.Exception??new InvalidOperationException(verified.Message);
             }),expectedTransactionId);

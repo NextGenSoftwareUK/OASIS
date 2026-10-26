@@ -1,0 +1,12 @@
+{
+  "NextGenSoftware.OASIS.API.Core.dll": {
+    "producer": "OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "sha256": "19b08ed1b9cc5ad326abf714d0fc91cddf98840f312518abb2bc9f5b0e1023c8",
+    "consumerSha256": "19b08ed1b9cc5ad326abf714d0fc91cddf98840f312518abb2bc9f5b0e1023c8"
+  },
+  "NextGenSoftware.OASIS.API.ONODE.Core.dll": {
+    "producer": "ONODE\\NextGenSoftware.OASIS.API.ONODE.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.Core.dll",
+    "sha256": "f86f33c5eab8e8023318874741308e81d45ca97d2a7c51b2a22343b1dac4c823",
+    "consumerSha256": "f86f33c5eab8e8023318874741308e81d45ca97d2a7c51b2a22343b1dac4c823"
+  }
+}

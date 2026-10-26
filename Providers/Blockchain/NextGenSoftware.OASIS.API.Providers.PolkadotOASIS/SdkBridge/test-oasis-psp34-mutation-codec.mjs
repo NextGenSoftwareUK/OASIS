@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TypeRegistry } from '@polkadot/types/create';
-import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult } from './oasis-psp34-mutation-codec.mjs';
+import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult, decodeOasisPsp34Mutation } from './oasis-psp34-mutation-codec.mjs';
 const account = '0x' + 'ab'.repeat(32);
 test('mint extension has exact account, variant and independent metadata byte encoding', () => {
   assert.equal(encodeOasisPsp34Mutation(new TypeRegistry(), 'mint', { U8: '7' }, account,
@@ -34,4 +34,21 @@ test('native application/language errors and trailing data cannot acknowledge a 
     assert.throws(() => decodeOasisPsp34MutationResult(registry, action, new Uint8Array([1, 1])), /language failure/);
     assert.throws(() => decodeOasisPsp34MutationResult(registry, action, new Uint8Array([0, 0, 0])), /trailing/);
   }
+});
+test('signed ABI recovery preserves all three actions and exact binary/u128 identities', () => {
+  const registry = new TypeRegistry();
+  for (const [action, id, to, metadata] of [
+    ['mint', { U128: '18446744073709551617' }, account, [[new Uint8Array([1]), new Uint8Array()]]],
+    ['transfer', { Bytes: new Uint8Array([0, 255]) }, account, undefined],
+    ['burn', { U8: '7' }, undefined, undefined]]) {
+    const input = encodeOasisPsp34Mutation(registry, action, id, to, metadata);
+    const recovered = decodeOasisPsp34Mutation(registry, input);
+    assert.equal(recovered.action, action);assert.equal(recovered.to, to);
+    assert.deepEqual(recovered.tokenId, id.Bytes ? { Bytes: '0x00ff' } : id);
+    if (metadata) assert.deepEqual(recovered.attributes, [['AQ==', '']]);
+    assert.throws(() => decodeOasisPsp34Mutation(registry, input + '00'), /trailing|Noncanonical/);
+  }
+  assert.throws(() => decodeOasisPsp34Mutation(registry, '0x00000001'), /reviewed/);
+  const withData = '0x3128d61b' + 'ab'.repeat(32) + '000104ff';
+  assert.throws(() => decodeOasisPsp34Mutation(registry, withData), /callback data/);
 });

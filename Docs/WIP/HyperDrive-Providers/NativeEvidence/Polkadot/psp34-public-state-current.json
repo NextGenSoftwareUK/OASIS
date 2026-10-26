@@ -1,0 +1,16 @@
+{
+  "blockHash": "0xf953e4a05fb4408e6002ef2d6b1a5bb39a21e69c5419f23d05f926b83581f48c",
+  "contractAddress": "0x6c8b9e8643c72ec5fc1f406e8cb1eb4d92d810c69a742d7af154b4b987b94c85",
+  "codeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
+  "tokenIds": [
+    {
+      "U128": "18446744073709551618"
+    },
+    {
+      "U128": "297464926049021133170545886313941135625"
+    }
+  ],
+  "allOwnersAbsent": true,
+  "totalSupply": "0",
+  "submitted": false
+}

@@ -17,7 +17,7 @@ import { readPsp34Collection } from './psp34-contract-read.mjs';
 import { validatePinnedContractQuery } from './pinned-contract-query.mjs';
 import { prepareRecordMutation, verifyRecordPreparation, validateRecordMutation } from './record-contract-mutation.mjs';
 import { readOriginalRecordOutcome, validateRecordOutcome } from './record-contract-outcome.mjs';
-import { prepareNftMutation, verifyNftPreparation, validateNftMutation } from './psp34-contract-mutation.mjs';
+import { prepareNftMutation, verifyNftPreparation, validateNftMutation, recoverNftPreparation, validateNftRecovery } from './psp34-contract-mutation.mjs';
 import { readOriginalNftOutcome, validateNftOutcome } from './psp34-contract-outcome.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
@@ -27,13 +27,14 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
   if (request.operation === 'recordRead') validateRecordRead(request);
   if (request.operation === 'psp34ReadCollection') validatePinnedContractQuery(request);
   if (request.operation === 'prepareRecordMutation') await validateRecordMutation(request);
   if (request.operation === 'recordOutcome') validateRecordOutcome(request);
   if (request.operation === 'prepareNftMutation') await validateNftMutation(request);
   if (request.operation === 'nftOutcome') validateNftOutcome(request);
+  if (request.operation === 'recoverNftPreparation') validateNftRecovery(request);
   if (['generateKeyPair', 'createAccount'].includes(request.operation)) validateGenerationRequest(request);
   if (request.operation === 'restoreAccount') await validateRestorationMaterial(request.recoveryMaterial);
   if (request.operation === 'transactionStatus') validateStatusRequest(request);
@@ -57,7 +58,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -66,7 +67,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'prepareNftMutation') {
+  if (request.operation === 'recoverNftPreparation') {
+    stage = 'NFT intent reconstruction from verified retained signed bytes';
+    process.stdout.write(JSON.stringify({ ok: true, result: await recoverNftPreparation(api, request) }));
+  } else if (request.operation === 'prepareNftMutation') {
     stage = 'NFT mutation simulation and original signing';
     process.stdout.write(JSON.stringify({ ok: true, result: await prepareNftMutation(api, request) }));
   } else if (request.operation === 'verifyNftPreparation') {

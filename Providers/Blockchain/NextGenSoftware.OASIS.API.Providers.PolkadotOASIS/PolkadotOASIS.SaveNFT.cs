@@ -75,93 +75,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT transfers
-                OASISErrorHandling.HandleError(ref response, "SendNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SendNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+            =>SendOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         {
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT minting
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in MintNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+            =>MintOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
         {
             return BurnNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
-        {
-            var response = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-                // Polkadot uses Substrate framework for NFTs
-                // Use Polkadot.js SDK or Substrate API for NFT burning
-                OASISErrorHandling.HandleError(ref response, "BurnNFTAsync requires Polkadot.js SDK or Substrate API integration");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in BurnNFTAsync: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+            =>BurnOwnedNftAsync(request);
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)
         {
@@ -206,6 +137,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             return new Web3NFT {
                 NFTTokenAddress=address,Title=Attribute("name")??string.Empty,Symbol=Attribute("symbol")??string.Empty,
                 Description=Attribute("description")??string.Empty,ImageUrl=Attribute("image")??string.Empty,
+                OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS),
+                NFTStandardType=new EnumValue<NFTStandardType>(NFTStandardType.PSP34),
                 MetaData=new Dictionary<string,string> {
                     ["polkadot:collection-id"]=observed.GetProperty("collectionId").GetRawText(),
                     ["polkadot:block-hash"]=observed.GetProperty("blockHash").GetString(),

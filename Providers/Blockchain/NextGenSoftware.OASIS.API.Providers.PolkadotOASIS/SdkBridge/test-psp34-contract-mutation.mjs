@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TypeRegistry } from '@polkadot/types/create';
-import { validateNftMutation, nftMutationData, prepareNftMutation, verifyNftPreparation } from './psp34-contract-mutation.mjs';
+import { validateNftMutation, nftMutationData, prepareNftMutation, verifyNftPreparation, encodeNftOwnerWitness, unwrapNftCall } from './psp34-contract-mutation.mjs';
 import { encodePsp34Arguments } from './psp34-contract-codec.mjs';
 const account = '0x' + 'ab'.repeat(32), contract = '0x' + 'cd'.repeat(32), hash = '0x' + 'ef'.repeat(32);
 const request = () => ({ action: 'mint', tokenId: { U128: '18446744073709551617' }, to: account,
@@ -23,11 +23,28 @@ test('bad input is rejected before native metadata, state, signing or submission
     value => value.contractCodeHash = 'guessed-code', value => value.sender = 'inferred-account',
     value => value.recipient = account, value => value.memo = 'discard-me',
     value => value.privateKey = '', value => value.attributes = [['bmFtZQ==', 'not base64']],
+    value => value.expectedFrom = account,
     value => value.attributes = [['bmFtZQ==', ''], ['bmFtZQ==', 'VHJlZQ==']]]) {
     const value = request();change(value);
     await assert.rejects(prepareNftMutation(api, value));
   }
   assert.equal(accesses, 0);
+});
+test('requested source-owner mismatch is rejected before signing the real contract call', async () => {
+  const registry = new TypeRegistry();let ownerQueries = 0;
+  const value = request();value.action = 'burn';delete value.attributes;delete value.to;value.expectedFrom = account;
+  const at = { query: { contracts: { contractInfoOf: async () => ({ isNone: false,
+    unwrap: () => ({ codeHash: { toHex: () => hash } }) }) } },
+    call: { contractsApi: { call: async () => {
+      ownerQueries++;
+      const owner = registry.createType('Result<Option<AccountId32>,OasisPsp34LangError>', { Ok: contract });
+      return { result: { isErr: false, asOk: { flags: { get: () => registry.createType('u32', 0) },
+        data: registry.createType('Bytes', owner.toHex()) } } };
+    } } } };
+  const api = { registry, createType: (...args) => registry.createType(...args),
+    rpc: { chain: { getFinalizedHead: async () => ({ toHex: () => hash }) } }, at: async () => at };
+  await assert.rejects(prepareNftMutation(api, value), /Observed NFT owner differs/);
+  assert.equal(ownerQueries, 1);
 });
 test('non-mint calls cannot discard mint-only attributes or burn recipient', async () => {
   for (const action of ['transfer', 'burn']) {
@@ -44,4 +61,16 @@ test('shared primitive encoder rejects unknown types and malformed type/argument
   const registry = new TypeRegistry();
   for (const kinds of [null, ['invented'], ['toString']]) assert.throws(() => encodePsp34Arguments(registry, kinds, []));
   assert.throws(() => encodePsp34Arguments(registry, ['account'], []));
+});
+test('signed source-owner witness is strictly domain-separated and atomically wraps one NFT call', () => {
+  const inner = { section: 'contracts', method: 'call' };
+  const bytes = Buffer.from(encodeNftOwnerWitness(account).slice(2), 'hex');
+  const remark = raw => ({ section: 'system', method: 'remarkWithEvent', args: [{ toU8a: () => raw }] });
+  const wrap = calls => ({ method: { section: 'utility', method: 'batchAll', args: [calls] } });
+  assert.deepEqual(unwrapNftCall(wrap([inner, remark(bytes)])), { call: inner, expectedFrom: account });
+  assert.deepEqual(unwrapNftCall({ method: inner }), { call: inner });
+  for (const calls of [[inner], [inner, remark(bytes), inner], [inner, remark(bytes.subarray(1))],
+    [inner, remark(Buffer.alloc(bytes.length))], [{ section: 'utility', method: 'batchAll' }, remark(bytes)],
+    [inner, { ...remark(bytes), method: 'remark' }]]) assert.throws(() => unwrapNftCall(wrap(calls)));
+  assert.throws(() => encodeNftOwnerWitness('inferred-owner'));
 });
