@@ -15,10 +15,12 @@ public class GraphQlBootConfigurationCollection { }
 public class GraphQlConditionalCreateTests
 {
     [Theory]
-    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED")]
-    [InlineData(true, "COSMIC_WRITE_INTENT_INVALID")]
+    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED", false)]
+    [InlineData(true, "COSMIC_WRITE_INTENT_INVALID", false)]
+    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED", true)]
+    [InlineData(true, "COSMIC_EXPECTED_REVISION_REQUIRED", true)]
     public async Task SchemaExecutesShippingSaveResolverAndReturnsConditionalAdmissionErrors(
-        bool authenticated, string expectedCode)
+        bool authenticated, string expectedCode, bool deletion)
     {
         var previous = OASISBootLoader.OASISBootLoader.OASISDNA;
         try
@@ -38,14 +40,17 @@ public class GraphQlConditionalCreateTests
                 {
                     descriptor.BindFieldsExplicitly();
                     descriptor.Field(value => value.SaveHolon(default!, default!, default!, default!, default, default!, default));
+                    descriptor.Field(value => value.DeleteHolon(default, default!, default, default, default, default!));
                 }))
                 .AddType<NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL.Types.HolonType>();
             await using var provider = services.BuildServiceProvider();
             context.RequestServices = provider;
             var executor = await provider.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync();
 
-            var result = await executor.ExecuteAsync(
-                "mutation { saveHolon(name: \"coffee\", description: \"demo\", holonType: \"Quest\") { id } }");
+            var query = deletion
+                ? $"mutation {{ deleteHolon(id: \"{Guid.NewGuid():D}\", operationId: \"{Guid.NewGuid():D}\") }}"
+                : "mutation { saveHolon(name: \"coffee\", description: \"demo\", holonType: \"Quest\") { id } }";
+            var result = await executor.ExecuteAsync(query);
 
             Assert.Contains(expectedCode, result.ToJson());
             Assert.DoesNotContain("HC0018", result.ToJson());

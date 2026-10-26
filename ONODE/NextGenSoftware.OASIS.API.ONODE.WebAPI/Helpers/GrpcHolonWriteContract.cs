@@ -71,7 +71,47 @@ internal static class GrpcHolonWriteContract
         catch (JsonException) { return Invalid("The recursive holon JSON is invalid or exceeds the wire depth limit."); }
     }
 
-    internal static HolonResponse Encode(OASISResult<IHolon> result, HttpContext context = null)
+    internal static OASISResult<DeleteHolonRequest> DecodeDelete(DeleteHolonGrpcRequest wire)
+    {
+        OASISResult<DeleteHolonRequest> InvalidDelete(string message) =>
+            new OASISResult<DeleteHolonRequest> { IsError = true, ErrorCount = 1,
+                ErrorCode = "COSMIC_WRITE_INTENT_INVALID", Message = message };
+        if (wire == null || !Guid.TryParseExact(wire.Id, "D", out var id) || id == Guid.Empty)
+            return InvalidDelete("Supply a canonical nonempty record identity for deletion.");
+        Guid? operation = null;
+        if (wire.OperationId.Length != 0)
+        {
+            if (!Guid.TryParseExact(wire.OperationId, "D", out var parsed) || parsed == Guid.Empty)
+                return InvalidDelete("Supply a canonical nonempty operation identity.");
+            operation = parsed;
+        }
+        Dictionary<Guid, Guid?> conditions = null;
+        if (wire.ExpectedRevision.Length != 0)
+        {
+            if (!Guid.TryParseExact(wire.ExpectedRevision, "D", out var revision))
+                return InvalidDelete("Supply the canonical original provider revision.");
+            conditions = new Dictionary<Guid, Guid?> { [id] = revision };
+        }
+        return new OASISResult<DeleteHolonRequest>(new DeleteHolonRequest
+        {
+            Id = id, SoftDelete = wire.SoftDelete, ProviderType = wire.ProviderType,
+            SetGlobally = wire.SetGlobally, OperationId = operation, ExpectedRevisions = conditions
+        });
+    }
+
+    internal static OASISDataResponse EncodeDelete(OASISResult<IHolon> result, HttpContext context = null)
+    {
+        var encoded = Encode(result, context, includeRecord: false);
+        var response = new OASISDataResponse
+        {
+            IsError = encoded.IsError, ErrorCode = encoded.ErrorCode, ErrorCount = encoded.ErrorCount,
+            Message = encoded.Message, IsDeleted = result.IsDeleted, CommittedDeltaJson = encoded.CommittedDeltaJson
+        };
+        response.ResultMetadata.Add(encoded.ResultMetadata);
+        return response;
+    }
+
+    internal static HolonResponse Encode(OASISResult<IHolon> result, HttpContext context = null, bool includeRecord = true)
     {
         // gRPC domain failures use an HTTP 200 response and grpc-status 0.
         // Preserve their failed outcome for the shared settlement owner.
@@ -81,7 +121,7 @@ internal static class GrpcHolonWriteContract
             IsError = result.IsError, ErrorCode = result.ErrorCode ?? string.Empty,
             Message = result.Message ?? string.Empty, IsSaved = result.IsSaved, ErrorCount = result.ErrorCount
         };
-        if (!result.IsError && result.Result != null)
+        if (includeRecord && !result.IsError && result.Result != null)
             response.HolonJson = JsonSerializer.Serialize<IHolon>(result.Result, JsonOptions);
         if (result.MetaData != null)
         {

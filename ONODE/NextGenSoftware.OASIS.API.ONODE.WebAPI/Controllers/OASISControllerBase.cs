@@ -315,7 +315,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private (OASISConfigResult<T>, ProviderType) ConfigureOASISEngineInternal<T>(OASISRequest request)
         {
             OASISConfigResult<T> result = new OASISConfigResult<T>();
-            var scopedWrite = request is Models.Data.HolonWriteIntentRequest &&
+            var scopedWrite = request is Models.Data.IHolonWriteIntentRequest &&
                 OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
             if (scopedWrite)
             {

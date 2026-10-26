@@ -2057,3 +2057,21 @@ not generate a new identity merely because the caller lost a response.
 This is a creator-only SDK facade. It does not authenticate users itself or grant
 an administrator override. Existing transport delete routes still need migration,
 and native three-provider enrollment for this new facade is not yet claimed.
+
+### Conditional deletion through logical-ID transports
+
+For V2 REST, send `DELETE /api/data/delete-holon` with a body containing `id`,
+`operationId`, `expectedRevisions` and `softDelete`. URL aliases may instead carry
+`X-COSMIC-Operation-Id` and `X-COSMIC-Expected-Revision`; body/header values must
+agree. The server checks stored ownership, preserves the original revision and
+uses conditional deletion on one authority. Existing server Wizard policy still
+requires a conditional revision. A submitted role flag is ignored.
+
+GraphQL exposes `deleteHolon(id, softDelete, operationId, expectedRevision,
+providerType)`. gRPC `DeleteHolonGrpcRequest` adds `operation_id` and
+`expected_revision`; the response reports actual `is_deleted`, original error
+code/count and committed delta. All use the HTTP-authenticated actor.
+
+Shipping build and 264 WEB4 tests pass. Provider-key aliases and signed native
+acceptance for these delete adapters remain open. See
+[the transport matrix](CQL_TRANSPORT_WRITE_AUTHORITY.md).

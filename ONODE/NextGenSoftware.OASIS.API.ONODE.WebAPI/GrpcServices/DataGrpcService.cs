@@ -140,6 +140,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
+                var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+                var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+                if (mode.IsError) return GrpcHolonWriteContract.EncodeDelete(mode, context.GetHttpContext());
+                if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var decoded = GrpcHolonWriteContract.DecodeDelete(request);
+                    if (decoded.IsError)
+                        return GrpcHolonWriteContract.EncodeDelete(
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Models.Data.DeleteHolonRequest, IHolon>(decoded),
+                            context.GetHttpContext());
+                    var deleted = await HostedHolonWriteEndpoint.DeleteAsync(context.GetHttpContext(),
+                        dna.OASIS.HyperDriveMode, decoded.Result,
+                        () => new HolonManager(null, dna, ProviderManager.Instance));
+                    return GrpcHolonWriteContract.EncodeDelete(deleted, context.GetHttpContext());
+                }
+
                 await ActivateProviderIfSpecifiedAsync(request.ProviderType, request.SetGlobally);
 
                 if (!Guid.TryParse(request.Id, out var id))

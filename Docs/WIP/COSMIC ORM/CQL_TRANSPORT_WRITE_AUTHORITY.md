@@ -64,15 +64,16 @@ Legacy paths are documented only. This work targets HyperDrive V2.
 
 ## Remaining delete boundary (source audit)
 
-`Mutation.DeleteHolon` and `DataGrpcService.DeleteHolon` currently call ordinary
-`DeleteHolonAsync(id, Guid.Empty, ...)`. The V2 ordinary SDK path routes hard
-deletion directly or prepares a tombstone without a host ownership check. This
-is not an authenticated transport boundary. The existing conditional tracked
-`DeleteHolonAsync(IHolon, actor, CosmicWriteOptions, ...)` can preserve revision
-intent, but transport callers still need authenticated actor capture and a
-pinned stored-owner observation before invoking it. Do not enroll recipient or
-tenant query policy on the assumption that migrating saves also secured deletes.
-Verify REST delete aliases in the same matrix; document Legacy equivalents only.
+The original audit found GraphQL/gRPC ordinary deletion with an empty actor.
+Their V2 logical-ID paths and canonical REST aliases now use authenticated,
+revision-bound conditional deletion (see the checkpoint below). The old calls
+remain only in unchanged Legacy branches.
+
+REST provider-key deletion still needs a pinned native-key observation and logical
+identity/revision binding; its earlier ordinary read/delete flow is not enrolled
+by the new logical-ID paths. Native deletion/admission proof is also still open.
+Do not enroll recipient/tenant query policy on the assumption that migrating
+saves or adding an SDK facade secured the complete delete matrix.
 
 ## GraphQL conditional-create migration
 
@@ -326,3 +327,37 @@ controls are included in the retained full Core report
 transport adapters and native owned-delete acceptance remain open. The earlier
 complete signed-save proof remains pinned to Core `361f3d6`; it is separate from
 the new deletion work.
+
+## Transport conditional deletion checkpoint in progress
+
+Canonical REST deletion and all five logical-ID route shapes now use the shared
+write-intent validator, immutable request routing and Core owned deletion. The
+request keeps its existing `BaseLoadHolonRequest` inheritance; a common intent
+interface adds conditional semantics without changing that public base type.
+
+Supply `operationId` and `expectedRevisions` in the canonical delete body, or use
+`X-COSMIC-Operation-Id` and `X-COSMIC-Expected-Revision` for URL aliases. Headers
+must agree with supplied body conditions. The revision header is one canonical
+GUID; an all-zero GUID is a real revision. Missing/create-only revisions reject
+before storage. Identity, role and soft/hard choice are captured before awaits.
+
+GraphQL `deleteHolon` now accepts `operationId`, `expectedRevision` and
+`providerType`, binds the HTTP actor and retains its boolean acknowledgement
+surface. gRPC adds `operation_id` (field5) and `expected_revision` (field6) without
+renumbering old fields. Its `OASISDataResponse` now carries `error_code`,
+`is_deleted`, `committed_delta_json`, `error_count` and `result_metadata` in
+fields3–7. Domain failures explicitly mark the shared usage outcome as failed.
+
+The existing server-authenticated Wizard policy remains conditional and pinned;
+client-submitted actor/role flags cannot select it. Ordinary callers use the
+creator-owned Core facade. Existing Legacy engine branches remain unchanged.
+
+Sixteen focused controls pass through real MVC aliases, the shipping GraphQL
+schema and real HTTP/2 gRPC calls. They include forged identity/role and
+missing/disagreeing revision rejection. Two additional wire controls preserve
+zero versus absent revision tokens and deletion delta acknowledgements. Full
+WEB4 gates pass all **264** tests without skips; the shipping build passes.
+Required full evidence is `Verification/transport-delete-full.trx.gz`.
+Provider-key deletion is not yet migrated, and
+signed native deletion/admission acceptance is still open; this does not close
+the entire transport delete matrix.
