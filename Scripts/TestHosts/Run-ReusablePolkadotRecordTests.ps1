@@ -16,6 +16,9 @@ param(
     [Parameter(ParameterSetName = 'NftCustodySource')][switch]$NftCustodySource,
     [Parameter(ParameterSetName = 'NftCustody')][switch]$NftCustody,
     [Parameter(ParameterSetName = 'NftCustodyRecover')][switch]$NftCustodyRecover,
+    [Parameter(ParameterSetName = 'NftEscrowConstructor')][switch]$NftEscrowConstructor,
+    [Parameter(ParameterSetName = 'NftEscrowDeploy')][switch]$NftEscrowDeploy,
+    [Parameter(ParameterSetName = 'NftEscrowReconcile')][switch]$NftEscrowReconcile,
     [Parameter(ParameterSetName = 'NftPublicMutation')][switch]$NftPublicMutation,
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
@@ -40,6 +43,8 @@ $priorCustodyRecovery = $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY
 try {
     $nftDeploymentPending = Join-Path $publicEvidence 'psp34-deployment-pending.json'
     if ((Test-Path -LiteralPath $nftDeploymentPending) -and !$NftReconcile) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
+    $escrowDeploymentPending = Join-Path $publicEvidence 'psp34-escrow-deployment-pending.json'
+    if ((Test-Path -LiteralPath $escrowDeploymentPending) -and !$NftEscrowReconcile) { throw 'Pending original exists: native escrow deployment. Reconcile read-only, never replay.' }
     $nftMutationPending = Join-Path $publicEvidence 'psp34-mutation-pending.jsonl'
     if ((Test-Path -LiteralPath $nftMutationPending) -and !$NftLifecycleRecover) { throw 'Pending original exists: NFT mutation. Reconcile read-only, never replay.' }
     $publicNftPending = Join-Path $publicEvidence 'psp34-public-mutation-pending.jsonl'
@@ -81,10 +86,14 @@ try {
     }
     Push-Location $sdk
     try {
-        if ($NftCustodySource -or $NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation -or $NftLifecycle -or $NftLifecycleRecover -or $NftIntentRecovery) { & node verify-record-contract-artifact.mjs psp34 }
+        if ($NftEscrowConstructor -or $NftEscrowDeploy -or $NftEscrowReconcile) { & node verify-record-contract-artifact.mjs psp34-escrow }
+        elseif ($NftCustodySource -or $NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation -or $NftLifecycle -or $NftLifecycleRecover -or $NftIntentRecovery) { & node verify-record-contract-artifact.mjs psp34 }
         else { & node verify-record-contract-artifact.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($NftCustodySource) { & node test-local-psp34-custody-source.mjs }
+        if ($NftEscrowConstructor) { & node test-local-psp34-constructor.mjs --escrow }
+        elseif ($NftEscrowDeploy) { & node bootstrap-local-psp34.mjs --deploy --escrow }
+        elseif ($NftEscrowReconcile) { & node bootstrap-local-psp34.mjs --reconcile --escrow }
+        elseif ($NftCustodySource) { & node test-local-psp34-custody-source.mjs }
         elseif ($NftIntentRecovery) { & node test-local-psp34-recovery.mjs }
         elseif ($NftLifecycle) { & node test-local-psp34-lifecycle.mjs --execute }
         elseif ($NftLifecycleRecover) { & node test-local-psp34-lifecycle.mjs --reconcile }

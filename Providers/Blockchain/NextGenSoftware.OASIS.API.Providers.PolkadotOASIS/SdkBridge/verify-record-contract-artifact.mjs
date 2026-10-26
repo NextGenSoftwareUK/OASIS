@@ -28,5 +28,7 @@ for (const item of imports.filter(item => item.kind !== 'memory')) {
   assert.equal(item.kind, 'function');
   assert.equal(allowed.has(`${item.module}/${item.name}`), true, `Unexpected contract import ${item.module}/${item.name}`);
 }
-console.log(JSON.stringify({ path, kind, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), codeHash: blake2AsHex(bytes, 256),
+const sources = kind === 'psp34-escrow' ? Object.fromEntries(['contracts/psp34/lib.rs', 'contracts/psp34/Cargo.toml',
+  'contracts/psp34/Cargo.lock'].map(name => [name, createHash('sha256').update(readFileSync(resolve(import.meta.dirname, '..', name))).digest('hex')])) : undefined;
+console.log(JSON.stringify({ path, kind, sources, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), codeHash: blake2AsHex(bytes, 256),
   exports, imports, formatVerified: true, nativeDeploymentVerified: false }));

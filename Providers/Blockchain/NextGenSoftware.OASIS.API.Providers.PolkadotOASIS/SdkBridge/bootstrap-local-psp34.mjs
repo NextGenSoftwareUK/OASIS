@@ -15,19 +15,20 @@ import { readFinalizedReceipt, readFinalizedExtrinsicContext } from './finalized
 import { readPsp34Collection } from './psp34-contract-read.mjs';
 
 assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1', 'Explicit retained local opt-in required.');
-assert.equal(process.argv.length, 3);
+assert.ok(process.argv.length === 3 || (process.argv.length === 4 && process.argv[3] === '--escrow'));
+const prefix = process.argv[3] === '--escrow' ? 'psp34-escrow' : 'psp34';
 const mode = process.argv[2];
 assert.ok(['--deploy', '--reconcile'].includes(mode), 'Explicit deployment or same-original reconciliation required.');
 const root = resolve(import.meta.dirname, '../../../..');
 const evidence = resolve(root, 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot');
-const pending = resolve(evidence, 'psp34-deployment-pending.json');
-const completed = resolve(evidence, 'psp34-deployment.completed.json');
+const pending = resolve(evidence, `${prefix}-deployment-pending.json`);
+const completed = resolve(evidence, `${prefix}-deployment.completed.json`);
 if (mode === '--deploy' && existsSync(pending)) throw new Error('Pending original exists; reconcile only, never replay.');
 if (mode === '--reconcile' && !existsSync(pending) && !existsSync(completed))
   throw new Error('No existing original to reconcile; this mode cannot deploy.');
-const cohort = JSON.parse(readFileSync(resolve(evidence, 'psp34-wasm-current.json'), 'utf8'));
-const fixture = JSON.parse(readFileSync(resolve(evidence, 'psp34-constructor-simulation-current.json'), 'utf8'));
-const code = readFileSync(resolve(root, 'TestResults/PolkadotCurrent/record-contract-target/oasis-psp34.wasm'));
+const cohort = JSON.parse(readFileSync(resolve(evidence, `${prefix}-wasm-current.json`), 'utf8'));
+const fixture = JSON.parse(readFileSync(resolve(evidence, `${prefix}-constructor-simulation-current.json`), 'utf8'));
+const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/oasis-${prefix}.wasm`));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(sha(code), cohort.sha256);
 assert.equal(blake2AsHex(code, 256), cohort.codeHash);
