@@ -70,6 +70,23 @@ excluded groups; overflow cannot hide behind a filter or `Take(0)`.
 HTTP floating arithmetic remains unenrolled. The current40-example SDK/HTTP
 walkthrough does not yet demonstrate these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
+## Neo4j Single/Double scalar arithmetic SDK availability
+
+Neo4j supports required/nullable Single and Double scalar `Sum` and `Average`.
+Use the same metadata selectors and generic scalar planner/HolonManager execution
+shown above with Neo4j's actual capabilities. Results retain `float`/`double`;
+integer and Decimal averages retain Decimal. Native Int64 word sums feed Core's
+exact final rounding, including subnormals, cancellation and finite overflow.
+
+Use Neo4j's declared `ProviderDefault` graph consistency. An explicit
+`ProviderSnapshot` request remains unsupported and is rejected during admission.
+Grouped floating arithmetic and floating HTTP remain unenrolled. The grouped
+profile owns its numeric input whitelist independently of scalar enrollment.
+
+Acceptance passes36focused cases,454full native CQL tests and541matched full
+units, zero failures/skips. Eight producer/consumer copies match, including the
+pinned source driver; two controls prove independent grouped admission. See the [contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 ## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 
 MongoDB, SQLite and Neo4j support exact Decimal/nullable Sum and Average, including grouped

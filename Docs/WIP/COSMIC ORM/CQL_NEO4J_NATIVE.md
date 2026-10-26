@@ -264,3 +264,8 @@ open. This checkpoint does not close the full join milestone or CQL roadmap.
 ## Floating digit component and owned WSL runtime - 25 October 2026
 
 Run-ReusableNeo4jTests.ps1 -CosmicCqlFloatingParts under the global build lease passes2native cases/5,786vectors, zero skips. Parameter-only transactions roll back; no fixture nodes are created. Neo5.26.12 and source driver4.3.2.2 are reused; four producer/native copies match. This does not enroll floating arithmetic. The runner now owns podman start--attach through a hidden WSL process, retaining WSL for the service lifetime rather than relying on detached background services. Successful teardown stops the same pinned container and waits for its attached process to exit;69300verified attachment35360absent, Bolt17687absent and original image/data stopped. Fixed stdout/err logs remain in TestResults/Neo4jCurrent/neo4j-attached-current.log and .err.log. No global WSL shutdown or new runtime/environment is used.
+
+
+## Neo4j scalar floating SDK acceptance - 25 October 2026
+
+Native SDK scalar Single/Double Sum/Average now passes36focused cases,454full native CQL tests and541matched units (0skips). Eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. Native10/70word Int64 sums retain independent work/participation/valid/traversal proofs; Core owns exact final rounding. ProviderDefault consistency is used and unsupported ProviderSnapshot remains rejected. Grouped numeric admission owns its own whitelist, keeping unfinished floating groups unadmitted. Same retained image/data stopped and attachment11232exited; no new restore/runtime/image/env in this batch. See CQL_FLOATING_AGGREGATE_CONTRACT.md.

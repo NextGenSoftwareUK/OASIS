@@ -6,7 +6,7 @@ SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK
 
 - Latest separately verified cohorts: Core **3,098** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **490 native /571 matched unit**,
-  Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
+  Neo4j **454 native /541 matched unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
   /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -1769,3 +1769,5 @@ Mongo grouped floating prerequisite now native-verified:2kernel tests/5,115packe
 Mongo grouped floating integration complete at the declared native SDK scope:34new controls, full490native/571matched units pass0skip; sixmatching producer/consumer copies and ownedruntime teardown verified. Raw off-page arithmetic proofs survive filters/pages. Full native includes5,127normalization packets with explicit overflow midpoints. Next: Neo4j scalar/grouped floating arithmetic, then floating HTTP and annotated live demos; policy/federation and remaining ORM gates remain open.
 
 Neo4j floating prerequisite:2native digit cases/5,786vectors pass0skip, four matching producer/native copies, no graphwrites. The owned attached WSL/container lifecycle is verified stopped after the run. This is not a new full418native/529unit cohort or arithmetic enrollment. Next: exact final-value normalization plus scalar/grouped compile/read/capability integration, then floating HTTP/demos.
+
+Neo4j scalar floating milestone:36focused cases,454full native/541matched units pass0skip; eightmatching Core/Shared/Neo/sourceDriver producer/native/unit copies. Grouped capability ownership is now independent, preventing scalar enrollment from admitting unfinished plain groups. ProviderDefault consistency used; unsupported ProviderSnapshot still rejects. Next: Neo4j grouped finalization/compile/read/selection/capabilities, then floating HTTP and annotated live demos. Broader policy/federation and ORM gates remain open.
