@@ -1,3 +1,11 @@
+## Provider-key HTTP deletion and explicit operation pricing - 2026-10-26
+
+Core `6dfd238` adds exact LoadHolonByProviderKey/DeleteHolon tariffs and route-specific startup requirements. Save-only profiles retain their existing three-operation requirements; GraphQL/gRPC/delete routes require the relevant operations. All fifteen provider/operation rows fit the bounded catalogue. Runtime HTTP admission remains fail-closed independent of route classification.
+
+The V2 provider-key HTTP alias now delegates the canonical scoped conditional-delete boundary with an explicit X-COSMIC-Holon-Id header, operation ID, original revision and optional providerType query. Native key and logical ID must agree, including Wizard observations; stored ownership and original conditional revision remain authoritative. Generic response projection retains request routing policy and handles missing error payloads without a mapper exception. Legacy is unchanged.
+
+Verified cohort: usage **400 passed/0 skipped**; Core **3412 passed/0 skipped**; WEB4 **271 passed/1 unrelated Stripe sandbox credential skip/0 failures**; shipping WEB4 and portable Core builds passed. Six new MVC and ten configuration cases are included. Compressed red/green evidence and complete contract are linked from [provider-key acceptance](PROVIDER_KEY_DELETE_ACCEPTANCE.md). Signed native delete acceptance remains pending; the overall roadmap is incomplete.
+
 ## Provider-key owned deletion SDK — 2026-10-26
 
 Core `5e483cb` adds `LoadHolonForWriteByProviderKeyAsync(key, actor, provider)` and `DeleteOwnedHolonByProviderKeyAsync(key, id, actor, options, softDelete, provider)`. The key observation uses one pinned V2 authority. Deletion requires an explicit logical ID, authenticated host actor and exactly one original non-null revision condition. A key resolving to another ID is rejected, even if the caller owns that record. Stored creator authorization precedes conditional mutation. Soft/hard deletion retains the original revision and captured authority after defaults change. Invalid/oversized keys reject before provider access. Legacy rejects without repair.

@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
     public static class HolonWriteEndpoint
     {
         public const string OperationHeader = "X-COSMIC-Operation-Id";
+        public const string HolonIdHeader = "X-COSMIC-Holon-Id";
         public const string ExpectedRevisionHeader = "X-COSMIC-Expected-Revision";
 
         public static OASISResult<T> ValidateEngineMode<T>(string mode) =>
@@ -65,14 +66,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             if (invalid != null) return Error<IHolon>(invalid.Value.Code, invalid.Value.Message);
             var id = request.Id;
             var softDelete = request.SoftDelete;
+            var key = request.ProviderKey;
             if (!trustedWizard)
-                return await manager.DeleteOwnedHolonAsync(id, actor, options, softDelete, provider);
+                return key == null
+                    ? await manager.DeleteOwnedHolonAsync(id, actor, options, softDelete, provider)
+                    : await manager.DeleteOwnedHolonByProviderKeyAsync(key, id, actor, options, softDelete, provider);
 
             // Preserve the existing server-authenticated Wizard policy while
             // retaining a real observation, caller revision and pinned authority.
-            var observed = await manager.LoadHolonForWriteAsync(id, actor, provider);
+            var observed = key == null
+                ? await manager.LoadHolonForWriteAsync(id, actor, provider)
+                : await manager.LoadHolonForWriteByProviderKeyAsync(key, actor, provider);
             if (observed.IsError)
                 return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonAuthorityRead, IHolon>(observed);
+            if (observed.Result.Record.Id != id)
+                return Error<IHolon>("COSMIC_WRITE_INTENT_INVALID", "The native key and logical record identity do not agree.");
             return await manager.DeleteHolonAsync(observed.Result.Record, actor, options,
                 softDelete, observed.Result.Authority);
         }
@@ -141,6 +149,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 return ("COSMIC_WRITE_INTENT_INVALID", "A bounded nonempty batch is required.");
             if (request is DeleteHolonRequest deletion)
             {
+                if (deletion.ProviderKey != null && (string.IsNullOrWhiteSpace(deletion.ProviderKey) || deletion.ProviderKey.Length > 4096))
+                    return ("COSMIC_WRITE_INTENT_INVALID", "A bounded nonempty native key is required.");
                 if (deletion.Id == Guid.Empty)
                     return ("COSMIC_WRITE_INTENT_INVALID", "A nonempty record identity is required for deletion.");
                 if (deletion.ExpectedRevisions == null || deletion.ExpectedRevisions.Count != 1 ||
