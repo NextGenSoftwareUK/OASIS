@@ -1,3 +1,5 @@
+26 October checkpoint: hosted authoritative read-policy enrollment verified all6CQLfamilies/all3providers. FullCore3530PASS/WEB4313PASS+existingStripeSkip;30signedshippingrequests/fullnative492settlements541attempts; sourceunchanged7native+3unitbinarypairs. Docs CQL_HOSTED_READ_POLICY.md / Verification/hosted-read-policy-*. Grant discovery/scalableauthI-O/tenantreadiness/federation/fullORMremainOPEN.
+
 26 October checkpoint: authoritative actor/provider-bound record catalogue SDK implemented; private-row paging/graph/join/composition verified all3. DualCoretargets/full3514PASS/native465settlements517attempts/sourceunchanged7binarypairs. Hosted authoritative tenant/recipient enrollment and fullroadmap remain OPEN. See CQL_AUTHORITATIVE_ACCESS.md and Verification/authoritative-access-*.
 
 26 October checkpoint: actual writer-process interruption after native hard-delete commit + fresh-process protected recovery PASS all3providers. Full native465settlements/517attempts, source unchanged/sevenbinarypairs, services/fixtures clean. Evidence HOSTED_OPERATION_RECOVERY.md and Verification/process-restart-*. Overall roadmap remains open.

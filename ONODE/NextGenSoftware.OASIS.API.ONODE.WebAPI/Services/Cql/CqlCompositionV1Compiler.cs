@@ -13,11 +13,15 @@ public static partial class CqlV1Compiler
 {
     public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileComposition(
         CqlCompositionV1Request request, Guid actor, ProviderType? provider)
+        =>CompileComposition(request,actor,provider,null);
+
+    public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileComposition(
+        CqlCompositionV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
         if (request?.Source == null || request.Source.Provider != null || request.Source.Graph != null
             || request.Stages == null || request.Stages.Length is < 1 or > 16)
             throw new ArgumentException("Composition requires one source without nested provider/graph overrides and1–16 ordered stages.");
-        var query = CompileProjection(request.Source, actor, provider);
+        var query = CompileProjection(request.Source, actor, provider,access);
         var filterCount = 0; var orderCount = 0;
         foreach (var stage in request.Stages)
         {
