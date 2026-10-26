@@ -8,6 +8,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public partial class CosmicTypedQueryTests
 {
+    [Fact]
+    public async Task FederationManagerResumesAccountingThroughTypedMaterialization()
+    {
+        var adapter = new Adapter();
+        var options = CosmicFederationOptions.Create(maximumRowsPerProvider: 3,
+            maximumProviderAttempts: 3).Result;
+        var plan = FederationPlan<TypedRow>(new[] { adapter }, options);
+        var manager = Manager();
+        var first = await manager.ExecuteFederationQueryAsync(plan, new[] { adapter });
+        Assert.False(first.IsError, first.Message);
+        var state = first.Result.RemainingBudget;
+        Assert.NotNull(state);
+        var next = await manager.ExecuteFederationQueryWithBudgetAsync(plan, new[] { adapter }, state);
+        Assert.False(next.IsError, next.Message);
+        var row = Assert.IsType<TypedRow>(Assert.Single(next.Result.Rows).Selected.Row);
+        Assert.Equal(7, row.Rating);
+        Assert.False(HolonChangeTracking.HasChanges(row));
+        Assert.Equal(1, next.Result.RemainingBudget.Attempts);
+        Assert.Equal(1, next.Result.RemainingBudget.ProviderRows[adapter.Provider]);
+        Assert.True(next.Result.RemainingBudget.Work < state.Work);
+        Assert.True(next.Result.RemainingBudget.OutputBytes < state.OutputBytes);
+        Assert.Equal(2, adapter.Calls);
+    }
+
     private static CosmicFederationPlan<T> FederationPlan<T>(Adapter[] adapters, CosmicFederationOptions? options = null)
         where T : Core.Interfaces.IHolon
     {

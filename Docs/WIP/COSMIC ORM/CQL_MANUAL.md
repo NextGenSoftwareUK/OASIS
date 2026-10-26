@@ -2296,3 +2296,46 @@ Signed federation HTTP/native acceptance now passes on all3providers:13requests/
 Trusted hosts can call CosmicFederationIntentFingerprint.Create(plan) to bind the exact admitted plan for later protected continuation state. The SHA256 digest is unkeyed; never accept it as a client authorization token. It binds actual target grant predicates and all windows/budgets and rejects encodings over1MiB without returning a prefix digest. Engine/model redeployment changes the binding. Authenticated continuation is still unimplemented; HTTP Cursor remains rejected.
 
 The protected cursor codec is internal groundwork only: it uses host-supplied Data Protection and rejects tampered/expired/foreign state. It creates no key store and is not enrolled in HTTP. Do not send Cursor yet; complete redemption/replay/budget integration and native acceptance are still pending.
+
+## Cumulative accounting for a new moving federation read
+
+Successful SDK federation results now include `RemainingBudget`, captured after
+source reads, reconciliation, global ordering/paging, typed materialization and
+canonical row output. Pass it explicitly to a subsequent read:
+
+```csharp
+// The plan keeps the original ceilings and complete provider scope.
+// Each call is a new moving read and needs its own provider admission.
+var first = await manager.ExecuteFederationQueryAsync(
+    plan,
+    adapters,
+    cancellationToken);
+
+if (first.IsError)
+    throw new InvalidOperationException(first.Message);
+
+// Advance the plan's global page separately when building the next page.
+// Keep the original budget ceilings; do not replace them with fresh limits.
+var next = await manager.ExecuteFederationQueryWithBudgetAsync(
+    nextPagePlan,
+    adapters,
+    first.Result.RemainingBudget,
+    cancellationToken);
+```
+
+`CosmicFederationExecutor.ExecuteWithBudgetAsync` supplies the corresponding raw
+executor operation. Scope and original budget ceilings must match the saved
+accounting. A depleted target, insufficient attempts for the complete set, or
+exhausted global bytes/work/output/time rejects before the first provider read.
+The ordinary executor bounds each target by its remaining row allowance. Errors
+publish neither partial rows nor a success continuation snapshot.
+
+`CosmicFederationRemainingBudget.Restore` validates a bounded server-side vector
+and returns `OASISResult<T>`; it does not authenticate client data or grant access.
+An HTTP host must protect state, bind actor/intent/deployment/expiry and the exact
+next key to durable admission, and refresh every target's authorization. These
+HTTP cursor requirements remain unimplemented, so the route still rejects cursor
+input. SDK accounting alone does not prevent a caller replaying an old snapshot.
+Moving reads may duplicate/skip rows after intervening writes; no repeatable
+snapshot is claimed. Active execution time accumulates; client think time still
+needs the independently protected absolute expiry.
