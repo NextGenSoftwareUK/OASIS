@@ -418,7 +418,9 @@ internal sealed partial class NearSdkService
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
                 request[property.Name] = property.GetValue(args);
-        if(operation is "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")request.Remove("privateKey");
+        // Only these operations construct a native signature. Observation, key
+        // generation and submission of an already signed original need no service key.
+        if(operation is not ("transfer" or "call" or "putRecordChecked" or "prepareNativeAction"))request.Remove("privateKey");
 
         var startInfo = new ProcessStartInfo
         {
@@ -435,6 +437,8 @@ internal sealed partial class NearSdkService
         startInfo.ArgumentList.Add(_bridgePath);
         startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
         startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        startInfo.Environment.Remove("NEAROASIS_PRIVATEKEY");
+        startInfo.Environment.Remove("OASIS_NEAR_STORAGE_ENCRYPTION_KEY");
         preparationServer?.ConfigureChild(startInfo,Path.Combine(AppContext.BaseDirectory,"NearSdkBridge","prepared-submission.mjs"));
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         if(preparationServer!=null||operation is "prepareNativeAction" or "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")

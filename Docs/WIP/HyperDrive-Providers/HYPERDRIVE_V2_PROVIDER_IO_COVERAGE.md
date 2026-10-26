@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## 26 October: NEAR non-signing worker authority
+
+Final470controlled casesPASS after real request-key and ambient-environment regressions were reproduced. Non-signing requests and signed-original submission no longer receive a configured signing-key field; all SDK children omit the known NEAR private/storage keys from inherited environment. Explicit operation inputs and parent-side crypto remain. No fresh native acceptance claimed from this IPC gate; prior scoped native23-original proof is retained separately. [Authority audit and remaining independent-payer gap](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## 26 October: NEAR current implementation and evidence boundary
 
 Latest scoped checkpoint is bdc8358e5:453controlled testsPASS, with native NFT deposit-ID mapping now implemented in C# and49contract source controlsPASS. This is not a453-case native result. Earlier retained native evidence independently verifies18NFT/wallet/history originals,8token-custody originals (7success/1expected rejection), and a durable token-escrow code upgrade preserving2523state entries. All use the same retained environment and installed official SDKs; the old row describing fresh deployment/initialization on every run is historical, not the current workflow.

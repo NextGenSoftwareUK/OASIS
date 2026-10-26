@@ -1,0 +1,50 @@
+{
+  "sourceDocumentsVerified": {
+    "Core": 787,
+    "Shared": 56,
+    "provider": 21,
+    "unit": 40
+  },
+  "dependenciesAtCapture": {
+    "Core": "a41d737bda952fc336ed874fbb12998c300b424174b80f7085080118a480c39e",
+    "Shared": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+  },
+  "outputs": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS": {
+      "assemblySha256": "22f3a2a9b0d861325d6ce0b37688b2fbc3772e134b6a21d53d96b93a68315397",
+      "sizes": {
+        "bin": 7707942,
+        "obj": 970377
+      }
+    },
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests": {
+      "assemblySha256": "c235ed0d0c6a402e70fe7bc854614d4a011fee031ec217334b07fa7f14026913",
+      "sizes": {
+        "bin": 46855297,
+        "obj": 1180245
+      }
+    }
+  },
+  "fixtureHashes": {
+    "worker-authority.mjs": "dacd8c0b4566dc0abbe19b50889c9b8ee594c72f63e495a2d26c36244593075c",
+    "prepared-action.mjs": "db33ff1675819f616981bd40bafea6f08be1142ef0a8bf1687d7cb4bc1a19e46"
+  },
+  "nativeOperations": 0,
+  "finalUnitPassed": 470,
+  "requestBaseline": {
+    "failed": 10,
+    "passed": 7
+  },
+  "environmentBaseline": {
+    "failed": 17,
+    "passed": 0
+  },
+  "reports": {
+    "near-worker-authority-red.trx.gz": 4094,
+    "near-worker-authority-current.trx.gz": 104501,
+    "near-worker-environment-red.trx.gz": 4451,
+    "near-worker-environment-current.trx.gz": 104686
+  },
+  "baselineProviderSourceSha256": "9c5d9d209817010c0e7d1a5a8d29c24cc7ff7462adb3cf12d0dafbf998a4e424",
+  "fixedProviderSourceSha256": "f29e92663d01a228a5239fde1f8603594a468f41870f238281c1b90d5a1fc40c"
+}
