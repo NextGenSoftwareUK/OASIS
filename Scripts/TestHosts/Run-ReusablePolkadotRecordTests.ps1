@@ -5,9 +5,11 @@ param(
     [Parameter(ParameterSetName = 'OwnerBootstrap')][switch]$OwnerBootstrap,
     [Parameter(ParameterSetName = 'Execution')][switch]$Execution,
     [Parameter(ParameterSetName = 'CSharpBackend')][switch]$CSharpBackend,
-    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage
+    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
+    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
 )
 $ErrorActionPreference = 'Stop'
+if ($RecoverCompleted -and !$CSharpStorage) { throw 'RecoverCompleted requires CSharpStorage; no other suite may enter recovery.' }
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $evidence = Join-Path $repo 'TestResults/PolkadotCurrent'
 $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge'
@@ -18,12 +20,16 @@ $recordEvidence = if ($CSharpStorage) { $publicEvidence } else { $evidence }
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
 $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
 $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
+$priorRecovery = $env:OASIS_POLKADOT_RECORD_RECOVERY
 try {
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
         'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json','record-csharp-pending.json','public-storage-pending.jsonl')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
     }
-    if (Test-Path -LiteralPath (Join-Path $publicEvidence 'public-storage-pending.jsonl')) { throw 'Pending public storage sequence exists; reconcile read-only.' }
+    $completedPublic = Join-Path $publicEvidence 'public-storage.completed.json'
+    if ($RecoverCompleted -and !(Test-Path -LiteralPath $completedPublic)) { throw 'Read-only recovery requires the existing completed sequence; never start fresh writes.' }
+    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'public-storage-pending.jsonl')) -and !$RecoverCompleted) { throw 'Pending public storage sequence exists; reconcile read-only.' }
+    $env:OASIS_POLKADOT_RECORD_RECOVERY = if ($RecoverCompleted) { '1' } else { $null }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
     if ($CSharpBackend -or $CSharpStorage) {
         # Caller must hold the global provider build lease for this whole runner.
@@ -61,5 +67,6 @@ try {
     $env:OASIS_POLKADOT_LOCAL_NATIVE = $prior
     $env:OASIS_POLKADOT_SDK_BRIDGE = $priorBridge
     $env:OASIS_POLKADOT_RECORD_EVIDENCE = $priorEvidence
+    $env:OASIS_POLKADOT_RECORD_RECOVERY = $priorRecovery
     $lease.Dispose()
 }
