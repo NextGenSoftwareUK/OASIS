@@ -22,6 +22,8 @@ $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
 $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
 $priorRecovery = $env:OASIS_POLKADOT_RECORD_RECOVERY
 try {
+    $nftDeploymentPending = Join-Path $publicEvidence 'psp34-deployment-pending.json'
+    if (Test-Path -LiteralPath $nftDeploymentPending) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
         'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json','record-csharp-pending.json','public-storage-pending.jsonl')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }

@@ -16,6 +16,7 @@ $paths = @('local-record-contract-pending.json','local-record-owner-pending.json
     'local-record-sdk-pending.json','record-csharp-pending.json') |
     ForEach-Object { Join-Path $evidence $_ }
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
 $cases = 0
 foreach ($runner in @('Run-ReusablePolkadotNativeTests.ps1','Run-ReusablePolkadotRecordTests.ps1')) {
     foreach ($path in $paths) {
