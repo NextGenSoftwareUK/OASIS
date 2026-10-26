@@ -1,5 +1,19 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: shipping durable record submission and original-outcome recovery
+
+`submitRecordPreparation` reuses the existing owned preparation channel and exact-original one-shot submission capability, selecting the strict record-intent verifier. Missing transport rejects before RPC; failed persistence receives no submission. Pool acceptance explicitly remains unfinalized/reconciliation-required. `recordOutcome` performs bounded read-only canonical original lookup, verifies signer/fee payer/pinned contract code, and binds event operation tag/key/revision/deletion to the exact signed intent. Corrupt/duplicate/wrong/stale acknowledgement is not success. Revision-conditioned deletes require their Mutation event; a non-revision missing delete may succeed only with zero matching events AND native absence at the finalized receipt block. A later same-block recreation makes that proof unavailable and conservatively requires reconciliation, never retry.
+
+Controlled20/20PASS0skip2.86s. Native shipping SDK3originals PASS: prepared through shipping bridge, create-exclusive/fsync parent journal acknowledged through EXISTING shared prepared-submission.mjs transport, original-only submission, then shipping original-outcome lookup. Synthetic Node parent exercises the same wire protocol; **this is not yet C# PreparedSubmissionServer/Mongo-outbox/HTTP/billing acceptance**. Three flushed completions remain; pending removed only after exact final identity/effect evidence. Repeated -Execution recovers all three originals read-only with no signing/resubmission and independently confirms final key absence. Same node/ledger/explicit-owner instance; no new contract/dependency/environment. NodePID402 verified/stoppedSIGINT, original32947terminal0.
+
+| Shipping SDK original | Transaction | Actual transaction fee, local baseunits |
+|---|---|---:|
+| create | `0x7781a1db269f015050357bfd2f1b061e1ccd9005341bf648de17fd2fe195c18f` | 1922187859 |
+| revision-delete | `0x83f06271980e1303cc4b927ba982e3bccd161ac4467e1e4a2409af01d1d9ccc6` | 2045797922 |
+| missing-delete | `0xff052289ea749804d177fc8f0f96b0ffc94ae4554eff33602f5c4175cd0ca7fd` | 1136659403 |
+
+This cohort paid0.005104645184localtestUNIT in transaction fees; all record fixtures so far0.020682034722testUNIT. Storage deposits/refunds remain separate and unproven as a complete operation-cost envelope, not silently charged/netted as transaction fees. No public funds. Source publish-manifest closure17modules and existing Docker SDK source/import/pin verifier PASS. **OPEN:** C# conditional/encrypted backend and submission guard/owner plumbing, operation outbox/unknown-outcome failure injection, larger-record framing, relevant full provider interfaces, productionruntime, full fees and HyperDriveV2 gates. Do not advertise complete Polkadot storage from these SDK-cell results.
+
 ## 26 October: production record mutation preparation and signature binding
 
 The existing bridge now exposes `prepareRecordMutation` and `verifyRecordPreparation`. Preparation validates explicit signer/contract/code identity, canonical binary sizes, exact expectation/revision and32byte operation tag, simulates the real contract before signing, and reuses existing sr25519 signing and native fee-estimate helpers. Verification reuses the existing full original-signature/document/extrinsic verifier and binds the declared contract/key/value/expectation/tag plus gas/deposit limits to the exact signed contracts.call. It checks the actual finalized code identity. This is not permission to replay or a complete total-fee cap. No record submission operation is enabled yet; the C# durable owner/execution path remains required.
