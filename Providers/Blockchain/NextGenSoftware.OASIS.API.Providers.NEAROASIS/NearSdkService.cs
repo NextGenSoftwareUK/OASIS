@@ -84,8 +84,7 @@ internal sealed class NearSdkService
         using var codec=OpenStorageCodec();
         var encrypted=codec.Encrypt(StorageContext(key),value);
         EnsureWritable();
-        using var response = await InvokeAsync("put", new { key, value=encrypted });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        return await CallAsync("put",new { key, value=encrypted }).ConfigureAwait(false);
     }
 
     private Dictionary<string,object> PrepareCheckedRecordArguments(StoredSnapshot observed,string plaintext,string archiveKey,string archivePlaintext)
@@ -148,8 +147,7 @@ internal sealed class NearSdkService
         using var codec=OpenStorageCodec();
         _=StorageContext(key);
         EnsureWritable();
-        using var response = await InvokeAsync("delete", new { key });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        return await CallAsync("delete_record",new { key }).ConfigureAwait(false);
     }
 
     private static EncryptedRecordCodec OpenStorageCodec()

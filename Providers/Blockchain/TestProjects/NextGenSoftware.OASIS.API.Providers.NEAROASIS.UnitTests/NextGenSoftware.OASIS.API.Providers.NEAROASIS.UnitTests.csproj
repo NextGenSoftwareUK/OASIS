@@ -27,6 +27,7 @@
     <None Include="Fixtures\status-observation.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\record-publication.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\storage-snapshot.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\storage-mutation-outcome.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
