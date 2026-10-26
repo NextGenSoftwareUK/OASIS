@@ -138,8 +138,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         public async Task<IHolon?> SaveHolon(
             string name,
             string description,
-            string holonType)
+            string holonType,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
+            Guid? operationId = null,
+            string providerType = "Default")
         {
+            var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+            var engine = Helpers.HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+            if (engine.IsError)
+                throw new GraphQLException(ErrorBuilder.New().SetCode(engine.ErrorCode).SetMessage(engine.Message).Build());
+            if (dna?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+            {
+                if (!System.Enum.TryParse<HolonType>(holonType, true, out var selectedType) ||
+                    !System.Enum.IsDefined(typeof(HolonType), selectedType) ||
+                    selectedType == HolonType.All || selectedType == HolonType.Default)
+                    throw new GraphQLException(ErrorBuilder.New().SetCode("COSMIC_WRITE_INTENT_INVALID")
+                        .SetMessage("Supply a concrete holon type.").Build());
+
+                var written = await Helpers.HostedHolonWriteEndpoint.SaveAsync(httpContextAccessor?.HttpContext,
+                    dna.OASIS.HyperDriveMode, new Models.Data.SaveHolonRequest
+                    {
+                        Holon = new Holon { Name = name, Description = description, HolonType = selectedType },
+                        OperationId = operationId, ProviderType = providerType, SaveChildren = false
+                    }, () => new HolonManager(null, dna, ProviderManager.Instance));
+                if (written.IsError)
+                    throw new GraphQLException(ErrorBuilder.New().SetCode(written.ErrorCode ?? "COSMIC_WRITE_FAILED")
+                        .SetMessage(written.Message ?? "The conditional write failed.").Build());
+                return written.Result;
+            }
+
             var manager = CreateHolonManager();
             var holon = new Holon
             {

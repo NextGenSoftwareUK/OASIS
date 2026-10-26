@@ -61,4 +61,48 @@ GraphQL/gRPC transport migrations above. Legacy behavior remains unchanged.
 
 Legacy paths are documented only. This work targets HyperDrive V2.
 
+## GraphQL conditional-create migration
+
+The V2 `saveHolon` resolver now accepts `operationId` and `providerType` in
+addition to its existing name/description/type fields. It captures the caller
+from the authenticated HTTP context and delegates to `HostedHolonWriteEndpoint`,
+which validates intent before lazy manager acquisition, creates a request-owned
+routing context, then invokes the same owned conditional-save boundary as REST.
+An `X-COSMIC-Operation-Id` header may supply the stable operation identity under
+the existing agreement rules. Unknown engine modes and non-concrete holon types
+reject. Provider errors become GraphQL errors with the original error code.
+
+```graphql
+mutation {
+  saveHolon(
+    name: "Coffee order"
+    description: "Conditional create"
+    holonType: "Quest"
+    operationId: "49751220-5f5a-4b31-8b20-678bd1ef2ddc"
+    providerType: "SQLLiteDBOASIS"
+  ) {
+    id
+    name
+  }
+}
+```
+
+Use a new operation identity for a new logical create and retain it when
+reconciling that same intent. Core already derives new record identities from
+conditional operation identity; the resolver does not invent another identity
+scheme. This method remains create-only; it does not accept an existing graph.
+
+Real schema execution exposed implicit `IHolon` member discovery, including
+mutation methods and unsupported celestial input graphs. `GraphQL.Types.HolonType`
+now binds its declared fields explicitly. The original schema failures are
+retained in `Verification/graphql-schema-discovery-red.trx.gz`.
+
+Current controls cover actor/missing intent/invalid provider/unknown engine before
+manager acquisition, one actor/operation/provider-bound conditional create, and
+shipping resolver execution through a focused GraphQL schema. Full signed hosted
+GraphQL/native acceptance, configured transport admission/settlement, explicit
+delta responses and gRPC migration remain open. Configured hosts without admitted
+execution reject rather than bypass reservation policy. This example therefore
+does not claim deployment enrollment on such a host.
+
 Final evidence checkpoint: gate40497terminal0; portable Core and shipping WEB4 builds pass, WEB4231/231PASS0skip. Core289fa01 published. No new native cohort was run for this failure-projection change; the preceding routing native cohort is separately retained and is not relabelled as this revision's evidence. GraphQL/gRPC migration and native transport enrollment remain open.
