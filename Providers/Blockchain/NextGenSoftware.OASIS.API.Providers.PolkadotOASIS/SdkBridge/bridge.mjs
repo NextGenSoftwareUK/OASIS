@@ -146,7 +146,9 @@ try {
   for (const secret of [request?.privateKey, request?.mnemonic, request?.recoveryMaterial])
     if (typeof secret === 'string' && secret) reason = reason.replaceAll(secret, '[signing secret]');
   reason = reason.replace(/(?:0x)?[0-9a-f]{64,}/gi, '[binary identity]');
-  process.stdout.write(JSON.stringify({ ok: false, error: `Polkadot SDK operation failed during ${stage} (${kind}): ${reason}` }));
+  const contractError = ['Unauthorized', 'InvalidKey', 'ValueTooLarge', 'Conflict', 'Exhausted', 'InvalidPage'].includes(error?.contractError)
+    ? error.contractError : undefined;
+  process.stdout.write(JSON.stringify({ ok: false, error: `Polkadot SDK operation failed during ${stage} (${kind}): ${reason}`, contractError }));
   process.exitCode = 1;
 } finally {
   if (api) await api.disconnect();

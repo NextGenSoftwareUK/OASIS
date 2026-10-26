@@ -12,7 +12,10 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (request.operation === 'transactionStatus') {
+if (request.operation === 'prepareRecordMutation') {
+  process.stdout.write(JSON.stringify({ ok: false, error: 'controlled pre-sign conflict', contractError: 'Conflict' }));
+  process.exitCode = 1;
+} else if (request.operation === 'transactionStatus') {
   const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
   if (mode === 'status-error') { process.stdout.write(JSON.stringify({ok:false,error:'controlled unresolved status'})); process.exitCode=1; }
   else emit({transactionHash:mode === 'status-wrong-hash' ? chain : request.transactionHash,

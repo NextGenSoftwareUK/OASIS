@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: C# Polkadot conditional adapter compile/regression gate
+
+Native conditional-cell adapter/factory now reuses the existing provider SDK process runner, OwnedPreparationScope and PreparedSubmissionServer. Reads validate identity/binary/revision boundaries; dense enumeration is sorted for shared consumers; writes require a durable owner, retain original identity after ACK and poll only finalized original outcomes. Structured pre-sign contract conflicts use existing StorageLifecycleConflictException, not string guessing. Record submissions join the existing process/pipe/uncertainty handling. Full Polkadot247/247 PASS0skip14s; includes8new adapter and6record-transport/conflict controls. Core/Shared source unchanged and source/output slot returned. No fresh native chain writes in this C# gate.
+
+Provider24source documents SHA90D865ACF22DC32D7FA1BC46A7A23A4664315C85A614715D8D3499AD86ED630F matches unit copy; unit22source documents checked. Core76935CCF509/Shared56EC7989AD match current copied producers/PDB/source. All19actual copied SDK files match sources. Cache-only restores recreated missing obj from existing packages; no download/newenvironment. OPEN: C# native round trips/realoutbox, wrapping/wiring shared private-record lifecycle, framing/fullinterfaces/fees/faultinjection/productionruntime/V2. Public legacy storage paths are not yet migrated or certified. [Evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: Polkadot contract SDK stateful execution gate
 
 Pinned ink/Wasm conditional-cell contract, public SCALE codec, finalized code-pinned get/list/verify, ordinary-owner preparation/signature verification, durable-ack-before-original-submission and finalized effect recovery are now implemented in the SDK bridge. Current20controlled tests PASS0skip2.86s. Native shipping SDK3originals (create/revision-delete/missing-delete) finalized with exact durable acknowledgement and matching events/absence proof; repeat reads recover SAME originals without resubmission. Earlier native contract6originals/restart,4native readbridge and2native preparation gates remain separate evidence. This is native SDK progress, not C# provider or complete HyperDrive acceptance.
