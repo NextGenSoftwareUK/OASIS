@@ -1,5 +1,15 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## S3 listing integrity — 25 October 2026, controlled SDK verification complete
+
+Source review found that the shared S3 backend ignores a supplied `KeyCount` and nonempty `CommonPrefixes`. Its requests do not specify a delimiter, so publishing grouped results as the full key set would lose objects. A declared positive count with no decoded objects could also become false absence. [AWS defines KeyCount and delimiter grouping separately](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html). Existing explicit completion/cursor checks must remain intact.
+
+Twenty real-SDK signer/XML controls in `SharedS3ListingConservationTests.cs` cover18backend first/second-page cases plus2sync/async public avatar collections. Baseline: **14failed/6valid controls passed**, zero skips. The shared backend now rejects nonempty grouped prefixes for its delimiter-free request and, when `KeyCount` is actually present, requires it to match the returned objects. The pinned SDK's own `IsSetKeyCount()` distinguishes omission from explicit zero, following the existing completion-flag binding; no second XML parser, retry or alternate query path was added. Ordinary omitted-count responses and valid empty pages retain their behavior. Errors use the existing shared provider path, returning null/error/zero-loaded rather than false absence.
+
+Final full **180/180 S3 protocol +41/41 AWS unit tests PASS**, zero skips,3s/~1s. These use the actual official signer/XML decoder with existing in-memory HTTP, not hosted AWS or a new emulator. Core761/B50488A4, SharedKV56/EDE0A2CE, S3producer4/EDC45A3B, AWSS3producer4/61888376, Protocol19/733C3E17 and AWSunit14/6724E5F8 compiled-source identities verified; provider copies match both consumers. No DynamoDB code/runtime/native proof was changed or relabelled by this S3 repair.
+
+Reports in `TestResults/S3Current`: red `list-count-red.trx`42,339bytes SHA256 `4BD90F36D28B0AE5117349E223443AEE0CFF8DCAA56C0AA5B549C3A904F1DB39`; full `list-count-current.trx`279,691bytes SHA256 `4F7B88B8B2A4BEA909E498DE59C7EEB2B3622483DB3B4FF50EC9F798135ABEEE`; AWS `list-count-aws-controls.trx`60,343bytes SHA256 `3E621A89A85EEE8C1FD6DE82F896DAC289C97E08BBBCE14FC31C7993676187E7`. Pending intents0; existing driver fixture directory contains only its0-byte reusable lock. All92package dependencies were already cached; no restore, download, service, bucket or environment was created. Exact resource lifecycle is in ENVIRONMENT_INVENTORY.md. Hosted IAM/TLS/KMS/durability/cost/full-interface/V2 gates remain open; this is not full-provider completion.
+
 ## 25 October: full AWS native refresh complete
 
 Fresh full **138/138 AWS native PASS**, zero skipped,94s; empty-baseline1PASS and exact-cleanup1PASS3s. Existing real DynamoDBLocal↔SQLite routing/failover/round-robin/replication/generated-graph/lifecycle/history coverage passes. This is NOT everyprovider/configuration or hostedAWS/S3 IAM/TLS/KMS/cost acceptance.
