@@ -27,6 +27,70 @@ public sealed class CosmicHostedGlobalStateCollection { }
 [Collection("COSMIC hosted global state")]
 public sealed class CosmicDataControllerHttpTests
 {
+    [Theory]
+    [InlineData(false, null)]
+    [InlineData(true, null)]
+    [InlineData(false, "")]
+    [InlineData(true, "")]
+    [InlineData(false, "unsupported-mode")]
+    [InlineData(true, "unsupported-mode")]
+    public async Task UnknownEngineModeNeverSelectsAnUnconditionalWrite(bool bulk, string? mode)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            if (mode == null) Boot.OASISDNA = null!;
+            else Boot.OASISDNA.OASIS.HyperDriveMode = mode;
+            var record = new { name = "cold-start intent" };
+            object body = bulk
+                ? new { holons = new[] { record }, operationId = Guid.NewGuid() }
+                : new { holon = record, operationId = Guid.NewGuid() };
+
+            using var response = await client.PostAsJsonAsync(
+                bulk ? "/api/data/save-holons" : "/api/data/save-holon", body);
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal("COSMIC_WRITE_ENGINE_MODE_REQUIRED",
+                json.RootElement.GetProperty("result").GetProperty("errorCode").GetString());
+            Assert.Empty(provider.Invocations.Where(call => call.Method.Name.Contains("Load") ||
+                call.Method.Name.Contains("Save") || call.Method.Name.Contains("Conditional")));
+        });
+    }
+
+    [Theory]
+    [InlineData(false, "autoReplicationMode")]
+    [InlineData(true, "autoReplicationMode")]
+    [InlineData(false, "autoFailOverMode")]
+    [InlineData(true, "autoFailOverMode")]
+    [InlineData(false, "autoLoadBalanceMode")]
+    [InlineData(true, "autoLoadBalanceMode")]
+    [InlineData(false, "autoFailOverProviders")]
+    [InlineData(true, "autoFailOverProviders")]
+    public async Task InvalidEngineOptionsReturnActualBadRequestWithoutChangingSettings(bool bulk, string field)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            ProviderManager.Instance.IsAutoReplicationEnabled = true;
+            var body = new Dictionary<string, object>
+            {
+                [bulk ? "holons" : "holon"] = bulk ? new[] { new { name = "invalid options" } } : new { name = "invalid options" },
+                ["operationId"] = Guid.NewGuid(), ["setGlobally"] = true,
+                [field] = "not-an-accepted-value"
+            };
+            using var response = await client.PostAsJsonAsync(
+                bulk ? "/api/data/save-holons" : "/api/data/save-holon", body);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.True(ProviderManager.Instance.IsAutoReplicationEnabled);
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal("COSMIC_WRITE_CONFIGURATION_INVALID",
+                json.RootElement.GetProperty("result").GetProperty("errorCode").GetString());
+            Assert.True(json.RootElement.GetProperty("result").GetProperty("isError").GetBoolean());
+            Assert.Empty(provider.Invocations.Where(call => call.Method.Name.Contains("Load") ||
+                call.Method.Name.Contains("Save") || call.Method.Name.Contains("Conditional")));
+        });
+    }
+
     [Fact]
     public async Task AdmittedExplicitProviderActivatesOnlyAfterItsPhysicalAttemptBegins()
     {

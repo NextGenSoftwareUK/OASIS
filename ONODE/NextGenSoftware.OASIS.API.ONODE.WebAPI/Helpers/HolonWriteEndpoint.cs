@@ -19,6 +19,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
     {
         public const string OperationHeader = "X-COSMIC-Operation-Id";
 
+        public static OASISResult<T> ValidateEngineMode<T>(string mode) =>
+            mode == HyperDriveModes.V2 || mode == HyperDriveModes.Legacy
+                ? new OASISResult<T>()
+                : Error<T>("COSMIC_WRITE_ENGINE_MODE_REQUIRED", "An explicit supported engine mode is required before saving.");
+
+        public static OASISResult<T> ConfigurationError<T>(string message) =>
+            Error<T>("COSMIC_WRITE_CONFIGURATION_INVALID", message ?? "The save configuration is invalid.");
+
         /// <summary>Validate hosted intent before configuration or manager acquisition.
         /// Configured hosts must not let an unenrolled alias bypass admission.</summary>
         public static OASISResult<T> ValidateIntent<T>(HolonWriteIntentRequest request,
@@ -109,7 +117,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 "COSMIC_WRITE_ACTOR_REQUIRED" => HttpStatusCode.Unauthorized,
                 "COSMIC_WRITE_FORBIDDEN" => HttpStatusCode.Forbidden,
                 "COSMIC_CONCURRENCY_CONFLICT" => HttpStatusCode.Conflict,
-                "COSMIC_WRITE_INTENT_INVALID" or "COSMIC_EXPECTED_REVISION_REQUIRED" => HttpStatusCode.BadRequest,
+                "COSMIC_WRITE_INTENT_INVALID" or "COSMIC_WRITE_CONFIGURATION_INVALID" or
+                    "COSMIC_EXPECTED_REVISION_REQUIRED" => HttpStatusCode.BadRequest,
                 _ => HttpStatusCode.ServiceUnavailable
             };
 
