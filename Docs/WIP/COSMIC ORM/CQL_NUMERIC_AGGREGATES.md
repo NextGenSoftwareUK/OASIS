@@ -429,3 +429,8 @@ Actual session70730 terminated successfully: **236 Neo4j/WEB4 native regression 
 Core/Shared/provider/CQL wire/compiler/demo C# hashes remained unchanged during the run. Actual producer/native host DLL pairs match Core`ABD06B39...`, Shared`E78803F0...`, MongoDB`C022AAB5...`, SQLite`BDBC9D35...` and Neo4j`E1E4AE41...`. Exact paths, sizes and hashes: `TestResults/CosmicCqlDemo/group-average-demo-artifacts.json` and `group-average-demo-source-hashes.json`. Fresh result/transcript/log: `v1-demo-result.json`, `v1-walkthrough.txt`, `group-average-demo-native.log`; native report: `TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx`.
 
 Readiness/graph markers are absent; owned27029/17687/5088 listeners are absent and the retained Neo4j image is stopped. The236-case gate is Neo4j/WEB4 plus joint live acceptance, not a rerun of the entire MongoDB191-case or SQLite1409-case native suites. Those earlier cohorts retain their recorded scope. Wider scalar domains, Neo4j DateTime, joins/composition/federation, authoritative policy and remaining roadmap certification remain open.
+
+
+## MongoDB floating scalar milestone - 25 October 2026
+
+MongoDB SDK scalar Sum/Average over required/nullable Single/Double is verified:36focused controls,454full native and560matched units, zero skips. Exact cancellation preserves a smallest subnormal; finite overflow reports CQL_SCALAR_OVERFLOW while a mean can remain finite. Original source scope/windows/access/consistency ownership remains. Mongo floating grouped/selected result arithmetic and HTTP are still unsupported. See CQL_FLOATING_AGGREGATE_CONTRACT.md.

@@ -5,7 +5,7 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **3,098** (including UInt64 numeric capture/normalization and input-domain admission),
-  Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **416 native /550 unit**,
+  Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **454 native /560 matched unit**,
   Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
   /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
@@ -1761,3 +1761,5 @@ CQL relationship/join/group/scalar certification, authoritative tenant/sharing
 policy, federation and the remaining ORM roadmap still require work.
 
 25 October Mongo grouped identity consistency repair passes538unit/361native, zero skips. Native comparable grouping/extremum fields now must agree with decoded typed values, including off-page rows. [Root cause and red/green evidence](CQL_GROUPING_CONTRACT.md). Expanded all-provider grouping/policy gates remain open.
+
+25October2026 Mongo scalar floating milestone:36new controls,454full native/560matched units pass0skip; six producer/consumer copies match and owned runtime stops cleanly. Only scalar Single/Double Sum/Average enrolled. Next: Mongo grouped arithmetic/final selected result keys, Neo4j arithmetic, then floating HTTP and annotated live demos. No full-roadmap completion claim.

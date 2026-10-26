@@ -17,8 +17,8 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | Single/nullable Single metadata selectors | Verified 1,516 full native cohort, including 31 Single cases | Verified 281 native / 494 unit cohort, including 24 Single query cases | Verified 249 native / 459 unit cohort, including 16 Single query cases |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
-| Sum/Average inputs | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal, nullable allowed | Int32/Int64/UInt64/Decimal, nullable allowed |
-| Average result, selected filters/order | Exact Decimal or finite Single/Double normalization | Exact Decimal normalization | Exact Decimal normalization |
+| Sum/Average inputs | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal; Single/Double scalar only; nullable allowed | Int32/Int64/UInt64/Decimal, nullable allowed |
+| Average result, selected filters/order | Exact Decimal or finite Single/Double normalization | Exact Decimal; finite Single/Double scalar results only | Exact Decimal normalization |
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
 shared finite bit-key codec and Mongo Single persistence prerequisites. Double SDK enrollment passes full native gates on all three providers.
@@ -114,3 +114,5 @@ retain their original domains. See [transport evidence](CQL_DESCENDANT_CONTRACT.
 SQLite floating arithmetic passes1,763production integration/74unit tests, zero
 skips. Other adapters and HTTP numeric input enrollment remain pending; see the
 [floating aggregate contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+MongoDB Single/Double scalar Sum/Average pass36focused controls,454full native/560matched full unit tests, zero skips. This does not enroll floating grouped selection/filter/order or HTTP. Six producer/consumer copies match; see the floating aggregate contract.

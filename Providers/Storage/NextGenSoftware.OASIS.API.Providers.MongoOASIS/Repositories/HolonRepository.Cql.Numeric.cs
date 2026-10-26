@@ -14,29 +14,49 @@ internal sealed class MongoCqlNumericValue
     internal long Low { get; }
     internal long Count { get; }
     internal long[] DecimalParts { get; }
+    internal long[] FloatingParts { get; }
     internal MongoCqlNumericValue(long high, long low, long count) { High = high; Low = low; Count = count; }
-    internal MongoCqlNumericValue(long[] parts, long count) { DecimalParts = (long[])parts.Clone(); Count = count; }
+    internal MongoCqlNumericValue(long[] parts, long count, bool floating = false)
+    {
+        if (floating) FloatingParts = (long[])parts.Clone(); else DecimalParts = (long[])parts.Clone();
+        Count = count;
+    }
 }
 
 public partial class HolonRepository
 {
     internal Task<MongoCqlNumericValue> ExecuteNativeCqlNumericAsync(MongoCqlScalarCommand command, Type inputType, CancellationToken cancellationToken)
     {
-        var decimalInput = (Nullable.GetUnderlyingType(inputType) ?? inputType) == typeof(decimal);
-        return ExecuteNativeCqlScalarAsync(command, doc => ReadNativeCqlNumeric(doc, command.HasTraversalEnvelope, decimalInput, Nullable.GetUnderlyingType(inputType) == null),
-            decimalInput ? new MongoCqlNumericValue(new long[CosmicDecimalScalarResults.LimbCount], 0) : new MongoCqlNumericValue(0, 0, 0), cancellationToken);
+        var type = Nullable.GetUnderlyingType(inputType) ?? inputType;
+        var decimalInput = type == typeof(decimal);
+        var floatingWidth = type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount
+            : type == typeof(double) ? CosmicFloatingAggregateResults.DoubleLimbCount : 0;
+        var empty = floatingWidth != 0 ? new MongoCqlNumericValue(new long[floatingWidth], 0, floating: true)
+            : decimalInput ? new MongoCqlNumericValue(new long[CosmicDecimalScalarResults.LimbCount], 0) : new MongoCqlNumericValue(0, 0, 0);
+        return ExecuteNativeCqlScalarAsync(command, doc => ReadNativeCqlNumeric(doc, command.HasTraversalEnvelope,
+            decimalInput, Nullable.GetUnderlyingType(inputType) == null, floatingWidth), empty, cancellationToken);
     }
 
-    internal static MongoCqlNumericValue ReadNativeCqlNumeric(BsonDocument document, bool traverses, bool decimalInput = false, bool required = false)
+    internal static MongoCqlNumericValue ReadNativeCqlNumeric(BsonDocument document, bool traverses, bool decimalInput = false, bool required = false, int floatingWidth = 0)
     {
+        if (floatingWidth != 0 && floatingWidth != CosmicFloatingAggregateResults.SingleLimbCount
+            && floatingWidth != CosmicFloatingAggregateResults.DoubleLimbCount || floatingWidth != 0 && decimalInput)
+            throw new InvalidDataException("A single declared numeric packet domain is required.");
         document = UnwrapNativeSelectedScalar(document, traverses);
-        if (document.ElementCount != (decimalInput ? 4 : 5) || !document.TryGetValue("inputs", out var inputs) || !Integer(inputs)
+        if (document.ElementCount != (decimalInput || floatingWidth != 0 ? 4 : 5) || !document.TryGetValue("inputs", out var inputs) || !Integer(inputs)
             || !document.TryGetValue("invalid", out var invalid) || !Integer(invalid)
             || !document.TryGetValue("present", out var present) || !Integer(present))
             throw new InvalidDataException("Native numeric reduction requires its exact declared packet shape.");
         if (invalid.ToInt64() != 0 || inputs.ToInt64() < 0 || present.ToInt64() < 0 || present.ToInt64() > inputs.ToInt64() || required && present.ToInt64() != inputs.ToInt64())
             throw new InvalidDataException("Native numeric reduction contains invalid participating values/counts.");
         if (inputs.ToInt64() > CosmicNumericScalarResults.MaximumParticipatingValues) throw new MongoCqlLimitException();
+        if (floatingWidth != 0)
+        {
+            if (!document.TryGetValue("parts", out var words) || !words.IsBsonArray
+                || words.AsBsonArray.Count != floatingWidth || words.AsBsonArray.Any(part => !part.IsInt64))
+                throw new InvalidDataException("Floating reduction requires its declared exact Int64 limb sums.");
+            return new MongoCqlNumericValue(words.AsBsonArray.Select(part => part.AsInt64).ToArray(), present.ToInt64(), floating: true);
+        }
         if (decimalInput)
         {
             if (!document.TryGetValue("parts", out var parts) || !parts.IsBsonArray

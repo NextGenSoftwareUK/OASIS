@@ -20,10 +20,29 @@ this deliberately differs from sequential accumulation. Finite overflow errors
 rather than returning infinity, and empty nullable averages return null.
 
 Acceptance passes **1,763 production integration /74 unit tests**, zero skips,
-including48 new query controls. MongoDB/Neo4j floating arithmetic and HTTP
-Single/Double arithmetic inputs remain unenrolled. Existing floating metadata
+including48 new query controls. MongoDB scalar support is described below; Neo4j
+floating arithmetic and HTTP Single/Double arithmetic inputs remain unenrolled. Existing floating metadata
 queries and the40-example three-provider demo retain their separate scope.
 [Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+## MongoDB Single/Double scalar arithmetic SDK availability
+
+MongoDB now supports required/nullable Single and Double scalar `Sum` and
+`Average`. Use the same `source.Sum(...)` and `source.Average(...)` expressions
+shown above, with MongoDB's actual scalar capabilities and the generic
+HolonManager planner/execution entry point. Results retain `float`/`double`,
+including nullable forms; integer and Decimal averages still return Decimal.
+
+Native reduction retains exact binary digits and rounds once at final publication.
+For example, summing `double.MaxValue`, `double.MaxValue`, their two negatives,
+and `double.Epsilon` returns `double.Epsilon`. Summing two maximum values reports
+`CQL_SCALAR_OVERFLOW`, while averaging them returns `double.MaxValue`.
+
+Acceptance passes36focused controls,454full native CQL tests and560matched
+full units without failures/skips; six producer/consumer assembly copies match.
+MongoDB floating **grouped** aggregates and HTTP floating arithmetic remain
+unenrolled. The current40-example SDK/HTTP walkthrough does not yet demonstrate
+these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 ## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 
