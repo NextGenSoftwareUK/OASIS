@@ -42,47 +42,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
     // NFT-specific lock/unlock methods
     public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
     {
-        return LockNFTAsync(request).Result;
+        return LockNFTAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = "" ?? "0x0000000000000000000000000000000000000000";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = string.Empty,
-                ToWalletAddress = bridgePoolAddress,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
+        =>LockStoredNftAsync(request?.Web3NFTId??Guid.Empty,request?.LockedByAvatarId??Guid.Empty,request?.NFTTokenAddress);
 
     public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
     {
