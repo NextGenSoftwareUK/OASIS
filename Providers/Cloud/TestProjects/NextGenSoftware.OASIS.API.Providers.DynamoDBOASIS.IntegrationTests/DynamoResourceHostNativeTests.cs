@@ -156,6 +156,20 @@ public sealed class DynamoResourceHostNativeTests
                 Assert.IsFalse(savedProfile.IsError,savedProfile.Exception?.ToString());Assert.IsTrue(savedProfile.IsSaved);
                 var savedDetail=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.SaveAvatarDetail(detail)):provider.SaveAvatarDetailAsync(detail));
                 Assert.IsFalse(savedDetail.IsError,savedDetail.Exception?.ToString());Assert.IsTrue(savedDetail.IsSaved);
+                var profileReads=new Func<Task<OASISResult<IAvatar>>>[]{
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatar(avatarId)):provider.LoadAvatarAsync(avatarId),
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatarByUsername(profile.Username)):provider.LoadAvatarByUsernameAsync(profile.Username),
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatarByEmail(profile.Email)):provider.LoadAvatarByEmailAsync(profile.Email)};
+                foreach(var read in profileReads){var found=await Execute(policy,provider,read);
+                    Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.IsTrue(found.IsLoaded);Assert.AreEqual(1,found.LoadedCount);
+                    Assert.AreEqual(avatarId,found.Result.Id);Assert.AreEqual(profile.Username,found.Result.Username);Assert.AreEqual(profile.Email,found.Result.Email);}
+                var detailReads=new Func<Task<OASISResult<IAvatarDetail>>>[]{
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatarDetail(avatarId)):provider.LoadAvatarDetailAsync(avatarId),
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatarDetailByUsername(profile.Username)):provider.LoadAvatarDetailByUsernameAsync(profile.Username),
+                    ()=>synchronous?Task.FromResult(provider.LoadAvatarDetailByEmail(profile.Email)):provider.LoadAvatarDetailByEmailAsync(profile.Email)};
+                foreach(var read in detailReads){var found=await Execute(policy,provider,read);
+                    Assert.IsFalse(found.IsError,found.Exception?.ToString());Assert.IsTrue(found.IsLoaded);Assert.AreEqual(1,found.LoadedCount);
+                    Assert.AreEqual(avatarId,found.Result.Id);Assert.AreEqual(23,found.Result.Karma);Assert.AreEqual(71,found.Result.XP);}
                 var soft=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.DeleteAvatar(avatarId,true)):provider.DeleteAvatarAsync(avatarId,true));
                 Assert.IsFalse(soft.IsError,soft.Exception?.ToString());Assert.IsTrue(soft.Result);Assert.IsTrue(soft.IsDeleted);
                 var detailItem=await verifier.GetItemAsync(new(){TableName="OasisAvatarDetails",Key=avatarKey,ConsistentRead=true});
@@ -164,18 +178,21 @@ public sealed class DynamoResourceHostNativeTests
                 var hard=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.DeleteAvatar(avatarId,false)):provider.DeleteAvatarAsync(avatarId,false));
                 Assert.IsFalse(hard.IsError,hard.Exception?.ToString());Assert.IsTrue(hard.Result);Assert.IsTrue(hard.IsDeleted);
                 foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})Assert.AreEqual(0,(await verifier.GetItemAsync(new(){TableName=table,Key=avatarKey,ConsistentRead=true})).Item.Count);
-                var all=await store.GetAsync(execution.OperationId,default);Assert.AreEqual(9,all.ProviderAttempts.Count);
+                var all=await store.GetAsync(execution.OperationId,default);Assert.AreEqual(15,all.ProviderAttempts.Count);
                 var expectedOperations=new[]{new[]{"GetItem","PutItem"},new[]{"GetItem","PutItem"},new[]{"GetItem"},Array.Empty<string>(),new[]{"GetItem","DeleteItem"},
-                    new[]{"GetItem","PutItem"},new[]{"GetItem","PutItem"},new[]{"GetItem","GetItem","TransactWriteItems"},new[]{"GetItem","GetItem","TransactWriteItems"}};
+                    new[]{"GetItem","PutItem"},new[]{"GetItem","PutItem"},new[]{"GetItem"},Array.Empty<string>(),Array.Empty<string>(),
+                    new[]{"GetItem"},Array.Empty<string>(),Array.Empty<string>(),new[]{"GetItem","GetItem","TransactWriteItems"},new[]{"GetItem","GetItem","TransactWriteItems"}};
                 for(var scopeIndex=0;scopeIndex<all.ProviderAttempts.Count;scopeIndex++){
                     var scope=all.ProviderAttempts[scopeIndex];var measured=all.ResourceObservations.Where(batch=>batch.ClientRequestId==scope.ClientRequestId).OrderBy(batch=>batch.Sequence).ToArray();
                     Assert.IsTrue(scope.ResourceCaptureExpected);Assert.AreEqual(measured.Length,scope.ResourceCaptureCount);Assert.IsTrue(measured.Length>0);
                     CollectionAssert.AreEqual(Enumerable.Range(1,measured.Length).ToArray(),measured.Select(batch=>batch.Sequence).ToArray());
-                    if(scopeIndex==3)Assert.IsTrue(measured.All(batch=>batch.NativeOperation=="Scan"));
+                    if(expectedOperations[scopeIndex].Length==0)Assert.IsTrue(measured.All(batch=>batch.NativeOperation=="Scan"));
                     else CollectionAssert.AreEqual(expectedOperations[scopeIndex],measured.Select(batch=>batch.NativeOperation).ToArray());
                     foreach(var measuredBatch in measured){Assert.AreEqual(type.ToString(),measuredBatch.Provider);Assert.AreEqual(scope.ProviderRequestId,measuredBatch.ProviderRequestId);
                         Assert.IsTrue(measuredBatch.Observations.Count>0);foreach(var row in measuredBatch.Observations)row.Validate(type.ToString(),scope.ProviderRequestId,requireComplete:true);}
-                    if(scopeIndex>=7){var transaction=measured.Single(batch=>batch.NativeOperation=="TransactWriteItems");
+                    if(scopeIndex is >=7 and <=12){var table=scopeIndex<=9?"OasisAvatars":"OasisAvatarDetails";
+                        Assert.IsTrue(measured.SelectMany(batch=>batch.Observations).All(row=>row.ResourceScope=="us-east-1/table/"+table));}
+                    if(scopeIndex>=13){var transaction=measured.Single(batch=>batch.NativeOperation=="TransactWriteItems");
                         Assert.IsTrue(transaction.Observations.Any(row=>row.ResourceScope=="us-east-1/table/OasisAvatars"));
                         Assert.IsTrue(transaction.Observations.Any(row=>row.ResourceScope=="us-east-1/table/OasisAvatarDetails"));}
                 }
