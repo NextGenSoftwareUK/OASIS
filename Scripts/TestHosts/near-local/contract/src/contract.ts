@@ -1,5 +1,6 @@
 import { NearBindgen, call, initialize, near, view, UnorderedMap } from "near-sdk-js";
 import { writeCheckedRecord, CheckedRecordWrite } from "./checked-record";
+import { lockTokenDeposit, releaseTokenDeposit, readTokenDeposit, burnSpendableToken, requireApplicationRecordKey } from "./token-escrow";
 
 @NearBindgen({ requireInit: true })
 export class OasisStorage {
@@ -21,6 +22,7 @@ export class OasisStorage {
   @call({})
   put({ key, value }: { key: string; value: string }): void {
     this.requireContractOwner();
+    requireApplicationRecordKey(key);
     this.records.set(key, value);
   }
 
@@ -36,6 +38,7 @@ export class OasisStorage {
   @call({})
   delete_record({ key }: { key: string }): void {
     this.requireContractOwner();
+    requireApplicationRecordKey(key);
     this.records.remove(key);
   }
 
@@ -158,18 +161,26 @@ export class OasisStorage {
     this.tokens.set(symbol, JSON.stringify(token));
   }
 
+  @view({})
+  token_escrow_protocol(): number { return 1; }
+
+  @view({})
+  token_lock_get({ lock_id }: { lock_id: string }): object | null {
+    return readTokenDeposit(this.records, lock_id);
+  }
+
+  @call({})
+  token_lock({ symbol, lock_id, amount }: { symbol: string; lock_id: string; amount: string }): void {
+    lockTokenDeposit(this.tokens, this.records, near.predecessorAccountId(), symbol, lock_id, amount);
+  }
+
+  @call({})
+  token_release({ symbol, lock_id }: { symbol: string; lock_id: string }): void {
+    releaseTokenDeposit(this.tokens, this.records, near.predecessorAccountId(), symbol, lock_id);
+  }
+
   @call({})
   token_burn({ symbol, amount }: { symbol: string; amount: string }): void {
-    const value = this.tokens.get(symbol);
-    if (value === null) throw new Error(`Token ${symbol} does not exist`);
-    const token = JSON.parse(value);
-    if (token.locked) throw new Error(`Token ${symbol} is locked`);
-    const holder = near.predecessorAccountId();
-    const quantity = BigInt(amount);
-    const balance = BigInt(token.balances[holder] ?? "0");
-    if (quantity <= 0n || quantity > balance) throw new Error("Positive burn amount within holder balance required");
-    token.balances[holder] = (balance - quantity).toString();
-    token.supply = Object.values(token.balances).reduce((sum: bigint, value: string) => sum + BigInt(value), 0n).toString();
-    this.tokens.set(symbol, JSON.stringify(token));
+    burnSpendableToken(this.tokens, near.predecessorAccountId(), symbol, amount);
   }
 }
