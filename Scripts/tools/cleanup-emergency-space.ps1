@@ -15,7 +15,7 @@ Features:
 - Optional hibernation disable
 - Optional recycle bin purge
 - Exact reviewed Downloads/report/build selections (never whole Downloads/TestResults)
-- In-distro WSL cache cleanup by default (pip, conda package cache, unreferenced nix store, apt, journal)
+- In-distro WSL cache cleanup by default (pip, conda package cache, old nix generations + unreferenced store, apt, journal)
 - WSL trim + compaction by default, shutting WSL down automatically (-AllowWslShutdown:$false to refuse while WSL runs)
 
 Usage:
@@ -361,7 +361,8 @@ function Remove-MergedWorktrees {
 $wslUserCacheCommands = @(
     'if [ -x "$HOME/miniforge3/bin/conda" ]; then "$HOME/miniforge3/bin/conda" clean --all --yes; fi',
     'rm -rf -- "$HOME/.cache/pip"',
-    'if command -v nix-collect-garbage >/dev/null; then nix-collect-garbage; fi'
+    # -d drops old nix generations (no rollback) so their packages are reclaimed too.
+    'if command -v nix-collect-garbage >/dev/null; then nix-collect-garbage -d; fi'
 )
 $wslRootCacheCommands = @(
     'apt-get clean',
