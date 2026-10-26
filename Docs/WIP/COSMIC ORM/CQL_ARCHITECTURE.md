@@ -1481,3 +1481,8 @@ MongoDB scalar floating arithmetic now uses the shared Core floating finalizer a
 ## MongoDB grouped floating SDK acceptance - 25 October 2026
 
 Mongo native grouped floating arithmetic reduces admitted binary inputs into Int64 words, packs one10/70word array plus participation per slot, and computes the final rounded value for native predicates/order/pages. The existing bounded raw-group owner retains off-page packets; shared Core normalization/participation/membership validation prevents a false selected success. Full490native/571matched units pass with six matching copies. No Core/provider-specific client scan or fallback was added. HTTP/Neo4j floating arithmetic remain pending.
+
+
+## Neo4j floating native prerequisite - 25 October 2026
+
+Neo4j native digit extraction is verified independently against IEEE fields (2cases/5,786vectors). The helper binds finite power-of-two tables and computes exact signed base2^30 words in Cypher, retaining the existing Core10/70word contract. No client input scan, Decimal conversion or provider capability enrollment is introduced. Scalar/grouped compile/read/final-value integration remain next.
