@@ -269,3 +269,8 @@ Run-ReusableNeo4jTests.ps1 -CosmicCqlFloatingParts under the global build lease 
 ## Neo4j scalar floating SDK acceptance - 25 October 2026
 
 Native SDK scalar Single/Double Sum/Average now passes36focused cases,454full native CQL tests and541matched units (0skips). Eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. Native10/70word Int64 sums retain independent work/participation/valid/traversal proofs; Core owns exact final rounding. ProviderDefault consistency is used and unsupported ProviderSnapshot remains rejected. Grouped numeric admission owns its own whitelist, keeping unfinished floating groups unadmitted. Same retained image/data stopped and attachment11232exited; no new restore/runtime/image/env in this batch. See CQL_FLOATING_AGGREGATE_CONTRACT.md.
+
+
+## Neo4j floating final-value component - 25 October 2026
+
+Native grouped-result normalization prerequisite passes2cases/5,127packets, zero skips9s. It uses Int64 carries/division and guard/sticky rounding; divides prefix words before recombining a coefficient, preventing82-bit intermediate overflow. Sum/Average match Core for every exponent, random reductions, signed overflow midpoints and maximum participation. Fixed256packet parameter-only transactions roll back without graph writes; no query-error retry or fallback. Four producer/native pairs match and owned attachment34620/container/Bolt17687are stopped. No grouped capability enrollment or new full456/541claim; see CQL_FLOATING_AGGREGATE_CONTRACT.md.

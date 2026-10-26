@@ -1491,3 +1491,8 @@ Neo4j native digit extraction is verified independently against IEEE fields (2ca
 ## Neo4j scalar floating SDK acceptance - 25 October 2026
 
 Neo4j floating scalar compilation now reduces admitted values into ten/seventy native Int64 words and validates exact domains/counts before generic Core normalization. The plain unprotected empty shortcut uses the matching typed zero packet; protected scope/traversal proof remains outside pagination. Grouped aggregate admission owns an independent input whitelist, so extending scalar support cannot accidentally enroll an unfinished group compiler.454native/541matched units pass with eight matching producer/consumer copies. ProviderDefault read consistency remains explicit; floating grouped arithmetic is pending.
+
+
+## Neo4j floating final-value component - 25 October 2026
+
+Neo4j floating grouped final-value normalization is now native-verified against Core (2cases/5,127packets). Signed base2^30 carry normalization and integer long division retain the complete reduction. Prefix division precedes coefficient recombination, so every Int64 intermediate is bounded while the final coefficient retains24/53bits. Original quotient guard/sticky bits plus exact Average remainder decide ties-to-even, then only the final coefficient is widened/scaled. Native selected-value compilation and raw proof validation remain unintegrated; grouped input admission stays unchanged.
