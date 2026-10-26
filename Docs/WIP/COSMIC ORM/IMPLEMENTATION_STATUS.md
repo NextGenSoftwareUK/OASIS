@@ -1,3 +1,9 @@
+## Pinned preparation routing and stored-only SDK recovery - 26 October 2026
+
+HolonManager/HyperDrive now route original-bound preparation lookup without claims/mutation/replication. A new SDK workflow authenticates stored protected intent with trusted policy/type callbacks before read-only receipt lookup. Full Core3478, usage404 plus separate replica-init control, both Core targets and native three-provider routed/direct equivalence pass. Sources and seven binary pairs match; owned fixture/service teardown verified. Native453 settlements/496 attempts unchanged. See [contract, example and retained evidence](WRITE_PREPARATION.md).
+
+Authenticated hosted recovery, explicit authorized durable writer/delete intent enrollment, startup validation, and actual OS-process interruption/restart remain open. Full ORM/CQL roadmap is incomplete.
+
 ## Three-provider preparation retrieval - 26 October 2026
 
 Read-only original preparation lookup is implemented for MongoDB, SQLite and Neo4j through an additive provider capability. Full Shared1242/Mongo575/SQLite95/Neo566 unit tests pass with zero skips/failures; both Core targets build. Native fifteen-operation preparation retrieval after reconnection and foreign-actor rejection passes, with the existing lost-acknowledgement recovery and 453-settlement/496-attempt cohort green. Sources/binary pairs/owned teardown verified. See [contract and retained evidence](WRITE_PREPARATION.md).

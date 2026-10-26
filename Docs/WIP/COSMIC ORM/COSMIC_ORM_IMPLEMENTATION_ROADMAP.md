@@ -4,13 +4,18 @@
 
 The latest CQL/provider checkpoint is maintained in the
 [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and
-[implementation status](IMPLEMENTATION_STATUS.md). Core `5e483cb` has 3,412 passing
-unit tests and both target builds. HTTP operation-pricing isolation has 390 passing
-real-Mongo usage cases at the preceding Core cohort. The latest WEB4 gate is 264.
-These scoped results do not close the eight-stage roadmap or replace signed native
-acceptance. Provider-key transport deletion, explicit key-read/delete tariffs and
-the signed three-provider delete matrix are next; see the
-[provider-key deletion acceptance contract](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+[implementation status](IMPLEMENTATION_STATUS.md). Core's pinned preparation
+lookup and stored-only recovery workflow has 3,478 passing unit tests and both
+target builds; ordinary read pricing has 404 passing real-Mongo usage cases.
+Latest WEB4 unit evidence is 285 passed / one unrelated Stripe sandbox skip.
+The signed three-provider delete matrix, actual lost native acknowledgement
+receipt recovery, and preparation retrieval after provider reconnection are
+verified on MongoDB, SQLite and Neo4j. Retained native cohort:453 settlements /
+496 attempts. These scoped results do not close the eight-stage roadmap.
+Authenticated hosted recovery, explicit authorized durable original-intent
+enrollment and actual OS-process interruption/restart remain next; see the
+[preparation contract and evidence](WRITE_PREPARATION.md) and
+[delete acceptance history](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
 
 Date: 19 October 2026. Design and acceptance plan. The first tracking/save-ownership batch is implemented and locally verified; see [current status and test evidence](IMPLEMENTATION_STATUS.md). Later stages remain open.
 
