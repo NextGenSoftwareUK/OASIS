@@ -1702,3 +1702,5 @@ federation-native-source.json.gz, federation-native-binaries.json and
 federation-native-result.json. The reusable runner requires all fourteen scenarios
 and all three providers before it accepts success. No new environment/download
 was used; fixture teardown and cleanup are recorded in the resource ledger.
+
+26 October target-specific authorization: the generic federation planner snapshots complete per-target read policies and validates one actor/matching authorities before native source windows. Capture checks each target actor against inherited usage admission before any physical attempt. Existing source policies cannot be replaced; output checks stay target-specific. Core3,607 tests pass. Hosted policy service enrollment and multi-provider signed billing remain pending (CQL_FEDERATION_CONTRACT.md).

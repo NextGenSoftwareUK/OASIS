@@ -2277,3 +2277,12 @@ continuation cursor is promised. See CQL_FEDERATION_CONTRACT.md for remaining
 production acceptance, error behavior and identity semantics.
 
 Native SDK federation verification now covers exact decimal, UInt64, Single, Double, Int64, UTC ticks, GUID and nullable metadata ordering. Single/Double ordering uses the declared IEEE domain with exact ties-to-even normalization; it does not sort unrounded JSON numbers. See CQL_FEDERATION_CONTRACT.md for source/binary/test evidence and remaining federation HTTP, billing, cursor and distributed join gates.
+
+For provider-specific trusted grants, pass a fifth planner argument containing
+one `CosmicFederationReadPolicy(provider, access)` for every resolved provider.
+Use the same authenticated actor in every policy and a matching authority for
+each AuthoritativeRecords catalogue. Start with an unbound source intent; an
+existing source access policy cannot be replaced. The planner applies target
+policies before each native source window. This overload has Core unit coverage;
+its hosted/native authorization acceptance remains pending. Never construct the
+catalogues directly from caller-selected IDs or metadata search hits.
