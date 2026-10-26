@@ -1,3 +1,9 @@
+## HTTP storage operation pricing — 2026-10-26
+
+Core `60adf1c` fixes an admission gap shared by GraphQL, gRPC and other selected HTTP storage routes. A query tariff cannot authorize an ordinary storage operation. The HTTP factory now always requires an exact ordinary operation tariff before provider execution; explicit SDK optional-price policies retain their existing contract. URL classification no longer controls this runtime invariant.
+
+Evidence: three new real-Mongo cases failed before the fix (387 passed, 3 failed), then all 390 usage tests passed with zero skips. Compressed reports: `Verification/http-storage-tariff-red.trx.gz` and `Verification/http-storage-tariff-green.trx.gz`. The reusable runner now requires exactly 390 passing cases. This does not certify native deletion or provider-key transport acceptance: those remain in progress. Current provider-key manager edits are uncommitted and were present during the build; they are excluded from the pricing commit.
+
 # COSMIC ORM implementation status
 
 ## Creator-owned conditional-delete SDK â€” 26 October 2026
