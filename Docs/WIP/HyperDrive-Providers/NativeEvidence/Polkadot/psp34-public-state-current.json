@@ -1,5 +1,5 @@
 {
-  "blockHash": "0x4e9986d7a892b5b0ea2af5cd010df8d80c75b02bd63e4278854bdc25818e111e",
+  "blockHash": "0xcfe8cc4b1a9c9bf6061785bc735e0399df99d9406a35d3954f4f91592c6219de",
   "contractAddress": "0x6c8b9e8643c72ec5fc1f406e8cb1eb4d92d810c69a742d7af154b4b987b94c85",
   "codeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
   "tokenIds": [
@@ -11,6 +11,9 @@
     },
     {
       "U128": "18446744073709551619"
+    },
+    {
+      "U128": "18446744073709551622"
     }
   ],
   "allOwnersAbsent": true,

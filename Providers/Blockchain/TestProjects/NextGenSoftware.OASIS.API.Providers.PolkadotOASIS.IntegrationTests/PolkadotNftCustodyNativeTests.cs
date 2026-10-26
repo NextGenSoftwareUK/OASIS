@@ -32,14 +32,17 @@ public class PolkadotNftCustodyNativeTests
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var bridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")!;
         var folder=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bridge)!,"../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
-        var pending=Path.Combine(folder,"psp34-custody-pending.jsonl");
-        var completed=Path.Combine(folder,"psp34-custody.completed.json");
+        var bridgeMode=Environment.GetEnvironmentVariable("OASIS_POLKADOT_NFT_BRIDGE_NATIVE")=="1";
+        var prefix=bridgeMode?"psp34-bridge":"psp34-custody";
+        var nativeId=bridgeMode?"{\"U128\":\"18446744073709551622\"}":NativeId;
+        var pending=Path.Combine(folder,prefix+"-pending.jsonl");
+        var completed=Path.Combine(folder,prefix+".completed.json");
         using var deployment=JsonDocument.Parse(File.ReadAllText(Path.Combine(folder,"psp34-deployment.completed.json")));
         var collection=deployment.RootElement.GetProperty("address").GetString()!;
         var code=deployment.RootElement.GetProperty("codeHash").GetString()!;
         var records=new List<AttemptRecord>();
         var recovering=File.Exists(completed)||File.Exists(pending);
-        Assert.IsTrue(recovering,"The v0.1 service-pool fixture is now recovery-only; use the native v0.2 escrow fixture for new lock/unlock operations.");
+        Assert.IsTrue(bridgeMode||recovering,"The v0.1 service-pool fixture is now recovery-only; use the native v0.2 escrow fixture for new lock/unlock operations.");
         if(Environment.GetEnvironmentVariable("OASIS_POLKADOT_NFT_CUSTODY_RECOVERY")=="1")
             Assert.IsTrue(recovering,"Explicit recovery cannot start writes.");
         if(File.Exists(completed)) {
@@ -49,7 +52,7 @@ public class PolkadotNftCustodyNativeTests
         using var provider=new LocalProvider(code,collection);
         var activated=await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);
         if(!recovering)for(var step=0;step<4;step++) {
-            var record=new AttemptRecord { Action=step==0?"mint":step==3?"burn":"transfer",TokenId=NativeId,
+            var record=new AttemptRecord { Action=step==0?"mint":step==3?"burn":"transfer",TokenId=nativeId,
                 From=step==0?null:step==2?Pool:Holder,To=step==3?null:step==1?Pool:Holder };
             var store=DispatchProxy.Create<IUsageOutboxStore,FlushedOwner>();
             var owner=(FlushedOwner)(object)store;owner.Journal=pending;owner.Record=record;
@@ -60,26 +63,33 @@ public class PolkadotNftCustodyNativeTests
                 store,new Web4UsageLedgerOptions(),null,null});
             async Task<string> Invoke() {
                 if(step==2) {
-                    var released=await provider.DepositNFTAsync(collection,NativeId,Holder,records[1].Attempt.ProviderRequestId);
+                    var released=await provider.DepositNFTAsync(collection,nativeId,Holder,records[1].Attempt.ProviderRequestId);
                     Assert.IsFalse(released.IsError,released.Exception?.ToString()??released.Message);
                     Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,released.Result.Status);
                     return released.Result.TransactionId;
                 }
+                if(step==1&&bridgeMode) {
+                    var withdrawn=await provider.WithdrawNFTAsync(collection,nativeId,Holder,"0x"+string.Concat(Enumerable.Repeat("02",32)));
+                    Assert.IsFalse(withdrawn.IsError,withdrawn.Exception?.ToString()??withdrawn.Message);
+                    Assert.IsTrue(withdrawn.Result.IsSuccessful);
+                    Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,withdrawn.Result.Status);
+                    return withdrawn.Result.TransactionId;
+                }
                 var result=step==0?await provider.MintNFTAsync(new MintWeb3NFTRequest {
                     MintedByAvatarId=Avatar,CollectionPublicKey=collection,NumberToMint=1,Amount=1,NFTStandardType=NFTStandardType.PSP34,
-                    Title="Retained custody fixture",MetaData=new(){{"polkadot:token-id",NativeId}}
+                    Title="Retained custody fixture",MetaData=new(){{"polkadot:token-id",nativeId}}
                 }):step==1?await provider.LockNFTAsync(new LockWeb3NFTRequest {
                     LockedByAvatarId=Avatar,Web3NFTId=StoredId,NFTTokenAddress=collection
                 }):await provider.BurnNFTAsync(new BurnWeb3NFTRequest {
-                    BurntByAvatarId=Avatar,NFTTokenAddress=collection,TokenId=NativeId,OwnerPublicKey=Holder,
+                    BurntByAvatarId=Avatar,NFTTokenAddress=collection,TokenId=nativeId,OwnerPublicKey=Holder,
                     OwnerPrivateKey="0x"+string.Concat(Enumerable.Repeat("02",32)),OwnerSeedPhrase=null!
                 });
                 Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);
-                Assert.IsTrue(result.IsSaved);Assert.AreEqual(NativeId,result.Result.Web3NFT.TokenId);
+                Assert.IsTrue(result.IsSaved);Assert.AreEqual(nativeId,result.Result.Web3NFT.TokenId);
                 return result.Result.TransactionResult;
             }
             using var timeout=new CancellationTokenSource(TimeSpan.FromMinutes(3));
-            var hash=await provider.ExecutePreparedNativeOperationAsync(Invoke,execution,$"nft-custody-v1-{step}",step==2?Pool:Holder,timeout.Token);
+            var hash=await provider.ExecutePreparedNativeOperationAsync(Invoke,execution,$"{prefix}-v1-{step}",step==2?Pool:Holder,timeout.Token);
             Assert.AreEqual(1,owner.Calls);Assert.AreEqual(record.Attempt.ProviderRequestId,hash);
             records.Add(record);
         }
@@ -89,7 +99,7 @@ public class PolkadotNftCustodyNativeTests
             var recovered=await provider.RecoverNftPreparationAsync(record.Attempt);Assert.IsFalse(recovered.IsError,recovered.Message);
             var original=recovered.Result;
             Assert.AreEqual(record.Action,original.GetProperty("action").GetString());
-            using var id=JsonDocument.Parse(NativeId);Assert.IsTrue(JsonElement.DeepEquals(id.RootElement,original.GetProperty("tokenId")));
+            using var id=JsonDocument.Parse(nativeId);Assert.IsTrue(JsonElement.DeepEquals(id.RootElement,original.GetProperty("tokenId")));
             var outcome=await provider.ReadOriginalNftOutcomeAsync(original,maximumBlocks:32);
             Assert.IsFalse(outcome.IsError,outcome.Message);Assert.IsTrue(outcome.Result.GetProperty("found").GetBoolean());
             var receipt=outcome.Result.GetProperty("receipt");
@@ -101,7 +111,7 @@ public class PolkadotNftCustodyNativeTests
         if(!File.Exists(completed)) {
             using var file=new FileStream(completed,FileMode.CreateNew,FileAccess.Write,FileShare.None);
             file.Write(JsonSerializer.SerializeToUtf8Bytes(new { records,receipts,syntheticStoredNftLookup=true,
-                syntheticWalletLookup=true,fileBackedAdmissionOnly=true,hostedAdmissionVerified=false,unlockVerified=false }));file.Flush(true);
+                syntheticWalletLookup=true,fileBackedAdmissionOnly=true,hostedAdmissionVerified=false,unlockVerified=false,publicWithdrawVerified=bridgeMode,localSourceProvenReleaseVerified=bridgeMode,crossChainSettlementVerified=false }));file.Flush(true);
         }
         if(File.Exists(pending)) {
             CollectionAssert.AreEqual(records.Select(row=>row.Attempt.ProviderRequestId).ToArray(),

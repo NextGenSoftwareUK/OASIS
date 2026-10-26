@@ -22,6 +22,16 @@ if (existsSync(resolve(folder, 'psp34-custody.completed.json'))) {
   assert.equal(ids.some(value => JSON.stringify(value) === JSON.stringify(id)), false);
   ids.push(id);
 }
+if (existsSync(resolve(folder, 'psp34-bridge.completed.json'))) {
+  assert.equal(existsSync(resolve(folder, 'psp34-bridge-pending.jsonl')), false);
+  const bridge = JSON.parse(readFileSync(resolve(folder, 'psp34-bridge.completed.json'), 'utf8'));
+  assert.equal(bridge.records.length, 4);
+  assert.equal(bridge.publicWithdrawVerified, true);
+  assert.equal(bridge.localSourceProvenReleaseVerified, true);
+  const id=JSON.parse(bridge.records[0].TokenId);
+  assert.equal(ids.some(value => JSON.stringify(value) === JSON.stringify(id)), false);
+  ids.push(id);
+}
 const api = await ApiPromise.create({ provider: new ReadOnlyHttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
 try {
   assert.equal(api.genesisHash.toHex(), '0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208');
