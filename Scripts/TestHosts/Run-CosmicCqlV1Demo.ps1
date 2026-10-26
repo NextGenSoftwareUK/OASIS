@@ -34,6 +34,8 @@ try {
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonJsonContracts.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Save.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.MetaData.cs',
@@ -80,6 +82,9 @@ try {
         if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
+        if ($report.shippingRestRequests -ne 36 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 33) {
+            throw 'Shipping REST/native storage settlement proof is incomplete.'
+        }
 
         # Capture the tested producer/consumer identities before releasing the
         # global build lease. Another task may rebuild Shared immediately after it.
@@ -90,7 +95,8 @@ try {
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
-            'Providers/Storage/Neo4j.Driver.OASIS'
+            'Providers/Storage/Neo4j.Driver.OASIS',
+            'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI'
         )
         $names = @(
             'NextGenSoftware.OASIS.API.Core',
@@ -98,7 +104,8 @@ try {
             'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS',
             'NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
             'NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
-            'Neo4j.Driver'
+            'Neo4j.Driver',
+            'NextGenSoftware.OASIS.API.ONODE.WebAPI'
         )
         $identities = for ($index = 0; $index -lt $names.Count; $index++) {
             $producer = Join-Path $taskRoot "$($producers[$index])/bin/Debug/net10.0/$($names[$index]).dll"

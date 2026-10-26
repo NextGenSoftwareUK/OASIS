@@ -1,5 +1,22 @@
 # CQL architecture
 
+## Conditional serialized graph planning — 26 October 2026
+
+Generic `HolonSavePlan` now distinguishes explicit conditional intent from
+ordinary process-local hydration authority. A complete serialized graph may bind
+its exact materialized stored roles to a conditional plan; incomplete and
+mismatched views remain rejected. No observation authority is published during
+admission. All owned and ordinary conditional sync/async single/batch saves use
+that same owner, with native CAS retaining the final revision decision.
+
+The WEB4 serializer supplies the ordinary recursive `IHolon` wire contract and
+retains child membership observations. It does not choose providers or perform
+ownership checks. Prepared admission records durable affirmative no-execution
+evidence for requests that end before provider preparation; uncertain preparation
+cannot become a zero-execution claim. Existing reservation, outbox and settlement
+owners remain shared across CQL and storage writes. Current joined native
+certification is tracked in [storage accounting](CQL_STORAGE_WRITE_ACCOUNTING.md).
+
 ## Latest floating HTTP/demo acceptance — 25 October 2026
 
 Required/nullable Single/Double Sum/Average now use the shared WEB4 scalar/grouped

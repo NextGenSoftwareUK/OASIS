@@ -1,5 +1,22 @@
 # CQL v1 developer demo verification
 
+## Shipping REST/native settlement — verified 26 October 2026
+
+The retained demo runner now also certifies36 signed requests through the actual
+shipping DataController on MongoDB, SQLite and Neo4j. It checks single/batch saves,
+selected-child ownership, depth limits, fully recursive child mutation, replay and
+stale conflicts, exact service receipts and durable Mongo settlement. There are
+33 settled REST operations plus345 settled CQL operations/403 combined attempts.
+The existing138SDK/138signedCQL examples remain unchanged.
+
+The result report separates REST and CQL counts. Source snapshots are unchanged
+and seven producer/consumer identities match, including the shipping WEB4 assembly.
+FullCore3,342/normalWEB4221 pass without skips. Services stop and owned fixtures
+are cleaned;31idleMSBuildworkers were also gracefully shut down after verifying
+no active build. No runtime, download or separate environment was introduced.
+See `TestResults/CosmicCqlDemo/joined-final-evidence.json` and
+[accounting scope/fixture limitations](CQL_STORAGE_WRITE_ACCOUNTING.md).
+
 ## Floating Swagger examples — verified 25 October 2026
 
 Swagger now includes `SingleSum`, `SingleAverage`, `SingleTotalsAndMeans`,
