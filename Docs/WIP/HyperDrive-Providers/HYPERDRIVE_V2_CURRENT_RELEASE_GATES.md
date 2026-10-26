@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## 26 October: NEAR ordinary encrypted put/delete acknowledgements
+
+Two direct storage paths accepted hash-only responses and used separate SDK callFunctionRaw signing.24new controlled cases reproduced22real failures/2valid controls. Both now delegate the existing CallAsync→InvokeMutationAsync owner (exact signer/receiver/action/method/args/deposit/gas and FINAL execution) and shared official SDK submitNativeAction with retries0; obsolete raw put/delete branches removed. Final357/357controlledPASS0skip18s.
+
+Native42936PASS1/1,3s on retained near-sandbox2.6.2/SDK7.3.1/contract/validator/DPAPI key: actual encrypted put and delete, exact decrypted readback, ciphertext lacks plaintext, independent original statuses FINAL/Success and final key absent. Native receipts expose total tokens_burnt2452593695665800000000yocto (0.0024525936956658localtestNEAR); storage deposits/refunds and complete outlay remain separate. Runtime stopped/ports absent; originals retained under task NativeEvidence; replay guard tested before WSL startup. Original unit/integration projects restored cache-only after cleanup removed outputs, no downloads/new environment.
+
+Core781/Shared56 source identities verified; native test recompiled after adding only published-evidence replay guard, not rerun. Historical full19/current Windows transaction reports were absent after cleanup and are not reconstructed or relabelled. Durable pre-broadcast signing/outbox recovery, unknown-outcome fault gates, public record lifecycle/full interfaces, hosted auth/fee pricing and fullV2 remain OPEN. [Audit and exact originals](NEAR_SIGNER_AND_RECEIPT_AUDIT.md), [resource ledger](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: public NFT bridge local custody gate
 
 Native47562PASS1/1,68s: four real originals mint→public WithdrawNFTAsync→source-proven DepositNFTAsync→burn on the retained collection/node. Separate52769READ-ONLY recoveryPASS1/1,24s; independent four native IDs absent/collection supply0; ordinary373/373PASS0skip20s. Same fsynced admitted-owner fixture, one acknowledgement each, exact original sender/token/from/to and native effects. Core781/Shared56 source identities verified. Fences886/mode exclusions105PASS; owned node stopped/ports absent, no restore/download/new environment.
