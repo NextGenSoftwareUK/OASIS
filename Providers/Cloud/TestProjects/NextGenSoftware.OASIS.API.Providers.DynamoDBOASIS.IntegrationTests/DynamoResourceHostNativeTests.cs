@@ -44,7 +44,15 @@ public sealed class DynamoResourceHostNativeTests
     public Task OfficialSdkWriteAndItsReadKeepEveryNativeObservationWithoutReplayOrInventedPrice(bool aws,bool synchronous)
         => CaptureNativeOperation(aws,synchronous,true);
 
-    private async Task CaptureNativeOperation(bool aws,bool synchronous,bool write)
+    [DataTestMethod][DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+    public Task OfficialSdkUpdateHistoryScanAndDeleteKeepEveryClosedResourceScope(bool aws,bool synchronous)
+        => CaptureNativeOperation(aws,synchronous,true,true);
+
+    private static Task<OASISResult<T>> Execute<T>(PreparedStorageExecution policy,IOASISStorageProvider provider,Func<Task<OASISResult<T>>> operation)
+        =>(Task<OASISResult<T>>)typeof(PreparedStorageExecution).GetMethod("ExecuteAsync",BindingFlags.Instance|BindingFlags.NonPublic)!
+            .MakeGenericMethod(typeof(T)).Invoke(policy,new object[]{provider,operation})!;
+
+    private async Task CaptureNativeOperation(bool aws,bool synchronous,bool write,bool lifecycle=false)
     {
         Assert.AreEqual("http://127.0.0.1:18000",Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
         var uri=Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI");Assert.IsFalse(string.IsNullOrWhiteSpace(uri));
@@ -52,7 +60,7 @@ public sealed class DynamoResourceHostNativeTests
         Assert.AreEqual("oasisRecoveryRs",url.ReplicaSetName);Assert.IsNull(url.Username);
         var work=Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_DYNAMO_HISTORY_WORK")!);
         Assert.IsTrue(work.EndsWith(Path.Combine("TestResults","DynamoHistoryCurrent"),StringComparison.OrdinalIgnoreCase));
-        var journal=Path.Combine(work,$"dynamo-resource-host-{(write?"write-":"")}{aws}-{synchronous}.pending.json");
+        var journal=Path.Combine(work,$"dynamo-resource-host-{(lifecycle?"lifecycle-":write?"write-":"")}{aws}-{synchronous}.pending.json");
         var cleanupJournal=journal+".verified-cleanup.json";
         Assert.IsFalse(File.Exists(journal),"Preserve and reconcile the original fixture; never replay a pending admission.");
         Assert.IsFalse(File.Exists(cleanupJournal),"Preserve the original exact native cleanup evidence.");
@@ -63,10 +71,11 @@ public sealed class DynamoResourceHostNativeTests
         var store=new MongoUsageOutboxStore(uri!,Database);await store.InitializeAsync(default);
         var user=Guid.NewGuid().ToString("D");var key="resource-join-"+Guid.NewGuid().ToString("N");
         var id=Guid.NewGuid();var marker="owned-resource-host-"+id.ToString("N");
-        var endpoint=write?"POST /synthetic-owned-holon":"GET /synthetic-missing-holon";
+        var avatarId=lifecycle?Guid.NewGuid():Guid.Empty;
+        var endpoint=lifecycle?"POST /synthetic-owned-holon-lifecycle":write?"POST /synthetic-owned-holon":"GET /synthetic-missing-holon";
         byte[]? journalBytes=null;
         var authority=new Authority(user,operationId=>{
-            var bytes=JsonSerializer.SerializeToUtf8Bytes(new{OperationId=operationId,UserId=user,Database,Service,aws,synchronous,write,NativeRecordId=id,Marker=marker,
+            var bytes=JsonSerializer.SerializeToUtf8Bytes(new{OperationId=operationId,UserId=user,Database,Service,aws,synchronous,write,lifecycle,NativeRecordId=id,Marker=marker,NativeAvatarId=avatarId,
                 TestAssemblySha256=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(DynamoResourceHostNativeTests).Assembly.Location)))});
             if(journalBytes==null){using var file=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.None);file.Write(bytes);file.Flush(true);journalBytes=bytes;}
             else CollectionAssert.AreEqual(journalBytes,File.ReadAllBytes(journal));
@@ -80,18 +89,18 @@ public sealed class DynamoResourceHostNativeTests
         provider.IsVersionControlEnabled=true;
         using var verifier=DynamoHistoryNativeTests.Client();
         var recordKey=new Dictionary<string,AttributeValue>{{"id",new(){S=id.ToString("D")}}};
-        var verified=false;string? nativeOriginal=null;
+        var verified=false;var nativeDeleted=false;string? nativeOriginal=null;
         try{
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Exception?.ToString());
             var policy=new PreparedStorageExecution(execution,"native-sdk-resource-join",new Dictionary<ProviderType,string>(),new[]{type});
             Assert.AreEqual(0,(await verifier.GetItemAsync(new(){TableName="OasisHolons",Key=recordKey,ConsistentRead=true})).Item.Count);
             var input=new Holon{Id=id,Name=marker,CreatedByAvatarId=Guid.Parse(user)};
+            if(lifecycle)input.MetaData=new(){{"resource-host-lifecycle",marker}};
             Func<Task<OASISResult<IHolon>>> operation=write
                 ?()=>synchronous?Task.FromResult(provider.SaveHolon(input,saveChildren:false)):provider.SaveHolonAsync(input,saveChildren:false)
                 :()=>synchronous?Task.FromResult(provider.LoadHolon(id,loadChildren:false)):provider.LoadHolonAsync(id,loadChildren:false);
             // OUR Core boundary; never reflection into SDK internals or replacement of its client.
-            var execute=typeof(PreparedStorageExecution).GetMethod("ExecuteAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(IHolon));
-            var result=await (Task<OASISResult<IHolon>>)execute.Invoke(policy,new object[]{provider,operation})!;
+            var result=await Execute(policy,provider,operation);
             if(write){
                 Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,result.SavedCount);Assert.AreSame(input,result.Result);
                 var native=await verifier.GetItemAsync(new(){TableName="OasisHolons",Key=recordKey,ConsistentRead=true});
@@ -126,6 +135,52 @@ public sealed class DynamoResourceHostNativeTests
                     put.Where(row=>row.View=="Breakdown"&&row.Unit=="capacity-units").Sum(row=>row.Quantity));
             }
             Assert.IsTrue(captured.ResourceObservationBytes>0);Assert.IsNull(captured.Settlement);Assert.AreEqual(0,captured.Receipts.Count);
+            if(lifecycle){
+                input.Description="joined-lifecycle-version-two";
+                var updated=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.SaveHolon(input,saveChildren:false)):provider.SaveHolonAsync(input,saveChildren:false));
+                Assert.IsFalse(updated.IsError,updated.Exception?.ToString());Assert.IsTrue(updated.IsSaved);Assert.AreEqual(2,input.Version);
+                var archived=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.LoadHolon(id,loadChildren:false,version:1)):provider.LoadHolonAsync(id,loadChildren:false,version:1));
+                Assert.IsFalse(archived.IsError,archived.Exception?.ToString());Assert.AreEqual(1,archived.Result.Version);
+                Assert.AreEqual(id,archived.Result.Id);Assert.AreNotEqual(input.Description,archived.Result.Description);
+                var selected=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.LoadHolonsByMetaData("resource-host-lifecycle",marker,loadChildren:false))
+                    :provider.LoadHolonsByMetaDataAsync("resource-host-lifecycle",marker,loadChildren:false));
+                Assert.IsFalse(selected.IsError,selected.Exception?.ToString());Assert.AreEqual(id,selected.Result.Single().Id);Assert.AreEqual(2,selected.Result.Single().Version);
+                var deleted=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.DeleteHolon(id)):provider.DeleteHolonAsync(id));
+                Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.IsDeleted);Assert.AreEqual(1,deleted.DeletedCount);
+                Assert.AreEqual(0,(await verifier.GetItemAsync(new(){TableName="OasisHolons",Key=recordKey,ConsistentRead=true})).Item.Count);nativeDeleted=true;
+                var avatarKey=new Dictionary<string,AttributeValue>{{"id",new(){S=avatarId.ToString("D")}}};
+                foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})Assert.AreEqual(0,(await verifier.GetItemAsync(new(){TableName=table,Key=avatarKey,ConsistentRead=true})).Item.Count);
+                var profile=new Avatar{Id=avatarId,Username=marker+"-avatar",Email=marker+"@example.invalid",IsActive=true,CreatedByAvatarId=Guid.Parse(user)};
+                var detail=new AvatarDetail{Id=avatarId,Username=profile.Username,Email=profile.Email,IsActive=true,Karma=23,XP=71};
+                var savedProfile=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.SaveAvatar(profile)):provider.SaveAvatarAsync(profile));
+                Assert.IsFalse(savedProfile.IsError,savedProfile.Exception?.ToString());Assert.IsTrue(savedProfile.IsSaved);
+                var savedDetail=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.SaveAvatarDetail(detail)):provider.SaveAvatarDetailAsync(detail));
+                Assert.IsFalse(savedDetail.IsError,savedDetail.Exception?.ToString());Assert.IsTrue(savedDetail.IsSaved);
+                var soft=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.DeleteAvatar(avatarId,true)):provider.DeleteAvatarAsync(avatarId,true));
+                Assert.IsFalse(soft.IsError,soft.Exception?.ToString());Assert.IsTrue(soft.Result);Assert.IsTrue(soft.IsDeleted);
+                var detailItem=await verifier.GetItemAsync(new(){TableName="OasisAvatarDetails",Key=avatarKey,ConsistentRead=true});
+                var retained=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<AvatarDetail>(detailItem.Item["data_json"].S);
+                Assert.IsTrue(retained.IsDeleted);Assert.IsFalse(retained.IsActive);Assert.AreEqual(23,retained.Karma);Assert.AreEqual(71,retained.XP);
+                var hard=await Execute(policy,provider,()=>synchronous?Task.FromResult(provider.DeleteAvatar(avatarId,false)):provider.DeleteAvatarAsync(avatarId,false));
+                Assert.IsFalse(hard.IsError,hard.Exception?.ToString());Assert.IsTrue(hard.Result);Assert.IsTrue(hard.IsDeleted);
+                foreach(var table in new[]{"OasisAvatars","OasisAvatarDetails"})Assert.AreEqual(0,(await verifier.GetItemAsync(new(){TableName=table,Key=avatarKey,ConsistentRead=true})).Item.Count);
+                var all=await store.GetAsync(execution.OperationId,default);Assert.AreEqual(9,all.ProviderAttempts.Count);
+                var expectedOperations=new[]{new[]{"GetItem","PutItem"},new[]{"GetItem","PutItem"},new[]{"GetItem"},Array.Empty<string>(),new[]{"GetItem","DeleteItem"},
+                    new[]{"GetItem","PutItem"},new[]{"GetItem","PutItem"},new[]{"GetItem","GetItem","TransactWriteItems"},new[]{"GetItem","GetItem","TransactWriteItems"}};
+                for(var scopeIndex=0;scopeIndex<all.ProviderAttempts.Count;scopeIndex++){
+                    var scope=all.ProviderAttempts[scopeIndex];var measured=all.ResourceObservations.Where(batch=>batch.ClientRequestId==scope.ClientRequestId).OrderBy(batch=>batch.Sequence).ToArray();
+                    Assert.IsTrue(scope.ResourceCaptureExpected);Assert.AreEqual(measured.Length,scope.ResourceCaptureCount);Assert.IsTrue(measured.Length>0);
+                    CollectionAssert.AreEqual(Enumerable.Range(1,measured.Length).ToArray(),measured.Select(batch=>batch.Sequence).ToArray());
+                    if(scopeIndex==3)Assert.IsTrue(measured.All(batch=>batch.NativeOperation=="Scan"));
+                    else CollectionAssert.AreEqual(expectedOperations[scopeIndex],measured.Select(batch=>batch.NativeOperation).ToArray());
+                    foreach(var measuredBatch in measured){Assert.AreEqual(type.ToString(),measuredBatch.Provider);Assert.AreEqual(scope.ProviderRequestId,measuredBatch.ProviderRequestId);
+                        Assert.IsTrue(measuredBatch.Observations.Count>0);foreach(var row in measuredBatch.Observations)row.Validate(type.ToString(),scope.ProviderRequestId,requireComplete:true);}
+                    if(scopeIndex>=7){var transaction=measured.Single(batch=>batch.NativeOperation=="TransactWriteItems");
+                        Assert.IsTrue(transaction.Observations.Any(row=>row.ResourceScope=="us-east-1/table/OasisAvatars"));
+                        Assert.IsTrue(transaction.Observations.Any(row=>row.ResourceScope=="us-east-1/table/OasisAvatarDetails"));}
+                }
+                expectedBatches=all.ResourceObservations.Count;
+            }
             await execution.CompleteOrReconcileAsync(write?"succeeded":"failed");
             var unresolved=await store.GetAsync(execution.OperationId,default);
             Assert.AreEqual("recovery-required",unresolved.State);Assert.AreEqual(write?"succeeded":"failed",unresolved.ObservedOutcome);
@@ -138,7 +193,7 @@ public sealed class DynamoResourceHostNativeTests
         }
         if(verified){
             byte[]? cleanupBytes=null;
-            if(write){
+            if(write&&!nativeDeleted){
                 Assert.IsNotNull(nativeOriginal);
                 cleanupBytes=JsonSerializer.SerializeToUtf8Bytes(new{Id=id,Marker=marker,Table="OasisHolons",ExpectedNativeJson=nativeOriginal,
                     NativeJsonSha256=Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nativeOriginal)))});
