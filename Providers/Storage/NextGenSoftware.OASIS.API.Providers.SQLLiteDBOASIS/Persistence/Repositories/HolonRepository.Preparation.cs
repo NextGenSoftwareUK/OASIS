@@ -93,26 +93,7 @@ public partial class HolonRepository
     }
 
     private static HolonWritePreparation ReadPreparation(HolonWritePreparation candidate, string payload)
-    {
-        using var document = JsonDocument.Parse(payload, new JsonDocumentOptions { MaxDepth = 4 });
-        var root = document.RootElement;
-        if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() < 1 || root.GetArrayLength() > HolonWritePreparation.MaximumRecords)
-            throw new InvalidDataException("Stored preparation record count is invalid.");
-        var records = new List<ProtectedHolonPreparation>();
-        foreach (var item in root.EnumerateArray())
-        {
-            if (item.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Stored preparation record must be an object.");
-            var fields = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var field in item.EnumerateObject()) if (!fields.Add(field.Name)) throw new InvalidDataException("Stored preparation has duplicate fields.");
-            if (!fields.SetEquals(new[] { "id", "envelope" }) || item.GetProperty("id").ValueKind != JsonValueKind.String
-                || item.GetProperty("envelope").ValueKind != JsonValueKind.String)
-                throw new InvalidDataException("Stored preparation schema is invalid.");
-            var text = item.GetProperty("id").GetString();
-            if (!Guid.TryParseExact(text, "D", out var id) || text != id.ToString("D")) throw new InvalidDataException("Stored preparation identity is invalid.");
-            records.Add(new ProtectedHolonPreparation(id, item.GetProperty("envelope").GetString()));
-        }
-        return new HolonWritePreparation(candidate.OperationId, candidate.ActorId, candidate.Authority, records);
-    }
+        => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ProtectedPreparationJson.Read(candidate, payload);
     private static OASISResult<HolonWritePreparation> PreparationError(string code, string message, Exception error = null)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };
 }

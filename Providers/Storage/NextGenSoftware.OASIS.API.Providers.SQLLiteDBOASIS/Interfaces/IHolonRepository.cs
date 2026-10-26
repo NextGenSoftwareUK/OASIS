@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
     {
         Task<OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync();
         OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate, System.Threading.CancellationToken cancellationToken);
+        Task<OASISResult<HolonWritePreparation>> ReadHolonWritePreparationAsync(Guid operationId, Guid actorId, System.Threading.CancellationToken cancellationToken = default);
         NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(
             ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment, System.Threading.CancellationToken cancellationToken);
         OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
