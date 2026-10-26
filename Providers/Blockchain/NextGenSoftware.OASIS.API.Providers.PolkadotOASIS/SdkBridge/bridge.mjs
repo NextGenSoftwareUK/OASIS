@@ -20,6 +20,11 @@ import { prepareRecordMutation, verifyRecordPreparation, validateRecordMutation 
 import { readOriginalRecordOutcome, validateRecordOutcome } from './record-contract-outcome.mjs';
 import { prepareNftMutation, verifyNftPreparation, validateNftMutation, recoverNftPreparation, validateNftRecovery } from './psp34-contract-mutation.mjs';
 import { readOriginalNftOutcome, validateNftOutcome } from './psp34-contract-outcome.mjs';
+import { validateTokenEscrowApiRequest, prepareTokenEscrowApiMutation } from './psp22-escrow-api.mjs';
+import { verifyTokenEscrowPreparation, recoverTokenEscrowPreparation, validateTokenEscrowRecovery } from './psp22-escrow-mutation.mjs';
+import { readOriginalTokenEscrowOutcome } from './psp22-escrow-outcome.mjs';
+const tokenEscrowOperations = new Set(['prepareTokenEscrowMutation', 'verifyTokenEscrowPreparation',
+  'submitTokenEscrowPreparation', 'tokenEscrowOutcome', 'recoverTokenEscrowPreparation']);
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -32,7 +37,10 @@ try {
     // Pure SDK decoding: no endpoint, signing material or RPC is needed.
     process.stdout.write(JSON.stringify({ ok: true, result: await canonicalAccountIdentities(request.addresses) }));
   } else {
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!tokenEscrowOperations.has(request.operation) && !['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (request.operation === 'prepareTokenEscrowMutation') await validateTokenEscrowApiRequest(request);
+  if (request.operation === 'recoverTokenEscrowPreparation') validateTokenEscrowRecovery(request);
+  if (request.operation === 'tokenEscrowOutcome') validateOutcomeRange({ fromBlockNumber: request.fromBlockNumber ?? '0', maximumBlocks: request.maximumBlocks });
   if (request.operation === 'recordRead') validateRecordRead(request);
   if (request.operation === 'psp34ReadCollection') validatePinnedContractQuery(request);
   if (request.operation === 'prepareRecordMutation') await validateRecordMutation(request);
@@ -47,7 +55,7 @@ try {
   if (request.operation === 'assetOutcome') validateAssetOutcomeRequest(request);
   if (request.operation === 'originalOutcome') validateOutcomeRange(request);
   if (request.operation === 'finalizedReceipt') validateReceiptRequest(request);
-  if (['persistNativePreparation', 'submitNativePreparation', 'submitAssetPreparation', 'submitRecordPreparation', 'submitNftPreparation'].includes(request.operation) && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
+  if (['persistNativePreparation', 'submitNativePreparation', 'submitAssetPreparation', 'submitRecordPreparation', 'submitNftPreparation', 'submitTokenEscrowPreparation'].includes(request.operation) && (!process.env.OASIS_NATIVE_PREPARATION_PIPE || !process.env.OASIS_NATIVE_PREPARATION_MODULE))
     throw new Error('Owned persistence transport is required; no preparation acknowledgement can be invented.');
   const endpoint = new URL(request.endpoint);
   if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password)
@@ -63,7 +71,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) {
+  if (!tokenEscrowOperations.has(request.operation) && !['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -72,7 +80,19 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'recoverNftPreparation') {
+  if (request.operation === 'prepareTokenEscrowMutation') {
+    stage = 'token escrow simulation and original signing';
+    process.stdout.write(JSON.stringify({ ok: true, result: await prepareTokenEscrowApiMutation(api, request) }));
+  } else if (request.operation === 'verifyTokenEscrowPreparation') {
+    stage = 'token escrow signed original verification';
+    process.stdout.write(JSON.stringify({ ok: true, result: await verifyTokenEscrowPreparation(api, request.preparation) }));
+  } else if (request.operation === 'recoverTokenEscrowPreparation') {
+    stage = 'token escrow reconstruction from retained signed original';
+    process.stdout.write(JSON.stringify({ ok: true, result: await recoverTokenEscrowPreparation(api, request) }));
+  } else if (request.operation === 'tokenEscrowOutcome') {
+    stage = 'token escrow original finalized effect verification';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readOriginalTokenEscrowOutcome(api, request) }));
+  } else if (request.operation === 'recoverNftPreparation') {
     stage = 'NFT intent reconstruction from verified retained signed bytes';
     process.stdout.write(JSON.stringify({ ok: true, result: await recoverNftPreparation(api, request) }));
   } else if (request.operation === 'prepareNftMutation') {
@@ -130,13 +150,14 @@ try {
   } else if (request.operation === 'finalizedReceipt') {
     stage = 'finalized canonical dispatch and native fee receipt';
     process.stdout.write(JSON.stringify({ ok: true, result: await readFinalizedReceipt(api, request) }));
-  } else if (['submitNativePreparation', 'submitAssetPreparation', 'submitRecordPreparation', 'submitNftPreparation'].includes(request.operation)) {
+  } else if (['submitNativePreparation', 'submitAssetPreparation', 'submitRecordPreparation', 'submitNftPreparation', 'submitTokenEscrowPreparation'].includes(request.operation)) {
     stage = 'verified original persistence and one-shot submission';
     const { preparationClient } = await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
     const persist = preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
     const result = await submitOriginalPreparation(api, request.preparation, persist,
       originalSubmission(endpoint.href, request.preparation.signedTransactionBase64),
-      request.operation === 'submitNftPreparation' ? verifyNftPreparation
+      request.operation === 'submitTokenEscrowPreparation' ? verifyTokenEscrowPreparation
+        : request.operation === 'submitNftPreparation' ? verifyNftPreparation
         : request.operation === 'submitAssetPreparation' ? verifyAssetPreparation
         : request.operation === 'submitRecordPreparation' ? verifyRecordPreparation : verifyNativePreparation);
     process.stdout.write(JSON.stringify({ ok: true, result }));

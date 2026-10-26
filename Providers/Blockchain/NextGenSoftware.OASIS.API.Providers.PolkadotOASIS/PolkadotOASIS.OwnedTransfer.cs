@@ -15,11 +15,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 public partial class PolkadotOASIS
 {
     private readonly AsyncLocal<NativeTransferExecution> _nativeTransferExecution = new();
-    private enum NativeMutationKind { Native, Asset, Nft }
+    private enum NativeMutationKind { Native, Asset, Nft, TokenEscrow }
     private static (string Verify,string Submit,string Outcome) MutationOperations(NativeMutationKind kind)=>kind switch {
         NativeMutationKind.Native=>("verifyNativePreparation","submitNativePreparation","originalOutcome"),
         NativeMutationKind.Asset=>("verifyAssetPreparation","submitAssetPreparation","assetOutcome"),
         NativeMutationKind.Nft=>("verifyNftPreparation","submitNftPreparation","nftOutcome"),
+        NativeMutationKind.TokenEscrow=>("verifyTokenEscrowPreparation","submitTokenEscrowPreparation","tokenEscrowOutcome"),
         _=>throw new ArgumentOutOfRangeException(nameof(kind))
     };
 
@@ -91,12 +92,16 @@ public partial class PolkadotOASIS
                         throw new PolkadotNativeMutationReconciliationException(submittedOriginal,
                             new InvalidOperationException("Finalized asset effects differ from the requested action/asset/account/amount; reconcile observed effects, never replay."));
                     if(kind==NativeMutationKind.Nft)ValidateFinalizedNftEffect(original,receipt);
+                    if(kind==NativeMutationKind.TokenEscrow)ValidateFinalizedTokenEscrowEffect(original,receipt);
                     result.Result.TransactionResult = submittedOriginal;
-                    result.Message = kind==NativeMutationKind.Nft
+                    result.Message = kind==NativeMutationKind.TokenEscrow
+                        ? "Token escrow finalized with exact deposit/owner/token/amount effects; storage and billing settlement remain separate."
+                        : kind==NativeMutationKind.Nft
                         ? "NFT mutation finalized with exact verified effects; storage deposit effects and billing settlement remain separate."
                         : kind==NativeMutationKind.Asset
                         ? "Asset mutation finalized with exact verified effects; gas-only fee evidence is not full asset native outlay or billing settlement."
                         : "Native transfer finalized with successful dispatch and verified native fee evidence; billing settlement is separate.";
+                    if(kind==NativeMutationKind.TokenEscrow)result.IsSaved=true;
                     return result;
                 }
                 cursor = outcome.GetProperty("nextBlockNumber").GetString();

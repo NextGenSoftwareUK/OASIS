@@ -24,7 +24,7 @@ public partial class PolkadotOASIS
     {
         var input = JsonSerializer.Serialize(request);
         using var requestDocument = JsonDocument.Parse(input);
-        var submitsOriginal = requestDocument.RootElement.GetProperty("operation").GetString() is "submitNativePreparation" or "submitAssetPreparation" or "submitRecordPreparation" or "submitNftPreparation";
+        var submitsOriginal = requestDocument.RootElement.GetProperty("operation").GetString() is "submitNativePreparation" or "submitAssetPreparation" or "submitRecordPreparation" or "submitNftPreparation" or "submitTokenEscrowPreparation";
         if (submitsOriginal && preparationServer == null)
             throw new InvalidOperationException("Original submission requires an owned durable preparation server.");
         var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")

@@ -3,7 +3,7 @@ import { validateExplicitSigner, withExplicitSigner, signOriginalCall, withOrigi
 import { verifySignedPreparation } from './verify-preparation.mjs';
 import { validatePinnedContractQuery, openPinnedContractQuery } from './pinned-contract-query.mjs';
 import { readTokenEscrowDeposit } from './psp22-escrow-read.mjs';
-import { encodeTokenEscrowMutation, decodeTokenEscrowMutation, decodeTokenEscrowResult } from './oasis-psp22-escrow-codec.mjs';
+import { encodeTokenEscrowMutation, decodeTokenEscrowMutation, decodeTokenEscrowResult, encodeTokenEscrowDepositQuery } from './oasis-psp22-escrow-codec.mjs';
 
 const protocol = 'oasis.polkadot.psp22-escrow.preparation.v1';
 function data(registry, request) {
@@ -19,8 +19,9 @@ function token(request) {
       || request.tokenAddress === '0x' + '00'.repeat(32))
     throw new Error('Explicit canonical nonzero PSP22 token account required.');
 }
-export async function validateTokenEscrowMutation(request) {
-  data(new TypeRegistry(), request); token(request);
+export async function validateTokenEscrowIdentity(request) {
+  if (!['lock', 'unlock'].includes(request.action)) throw new Error('Explicit token escrow action required.');
+  encodeTokenEscrowDepositQuery(request.depositId); token(request);
   validatePinnedContractQuery({ ...request, origin: request.sender });
   for (const field of ['sender', 'recipient', 'contractAddress'])
     if (!/^0x[0-9a-f]{64}$/.test(request[field])) throw new Error('Canonical escrow account identities required.');
@@ -28,6 +29,11 @@ export async function validateTokenEscrowMutation(request) {
     throw new Error('Escrow signing recipient must be the reviewed escrow, distinct from the PSP22 token.');
   if (request.memo != null && request.memo !== '') throw new Error('Escrow ABI has no memo argument.');
   await validateExplicitSigner(request);
+}
+export async function validateTokenEscrowMutation(request) {
+  if (request.amount !== undefined) throw new Error('Raw escrow preparation requires explicit base units, not a discarded decimal amount.');
+  data(new TypeRegistry(), request);
+  await validateTokenEscrowIdentity(request);
 }
 
 export async function prepareTokenEscrowMutation(api, request) {
@@ -50,6 +56,7 @@ export async function prepareTokenEscrowMutation(api, request) {
     const tx = api.tx.contracts.call(request.contractAddress, 0, gasLimit, storageDepositLimit, encoded);
     const intent = { action: request.action, depositId: request.depositId, tokenAddress: request.tokenAddress,
       ...(request.action === 'lock' ? { amountUnits: request.amountUnits } : {}),
+      expectedAmountUnits: request.action === 'lock' ? request.amountUnits : observed.deposit.amountUnits,
       sender, contractAddress: request.contractAddress, contractCodeHash: request.contractCodeHash.toLowerCase(), gasLimit, storageDepositLimit };
     const prepared = await signOriginalCall(api, tx, pair, protocol, intent);
     await verifyTokenEscrowPreparation(api, prepared);
@@ -88,6 +95,8 @@ export async function verifyTokenEscrowPreparation(api, preparation) {
       throw new Error('Signed release does not identify the original owned token deposit.');
     amountUnits = observed.deposit.amountUnits;
   } else await openPinnedContractQuery(api, { ...preparation, origin: sender });
+  if (preparation.expectedAmountUnits !== undefined && preparation.expectedAmountUnits !== amountUnits)
+    throw new Error('Declared escrow amount differs from the signed lock or immutable original deposit.');
   return { verified: true, transactionHash: decoded.hash.toHex(), sender, chainId: genesis,
     action: preparation.action, depositId: preparation.depositId, tokenAddress: preparation.tokenAddress, amountUnits,
     contractAddress: original.address, contractCodeHash: preparation.contractCodeHash.toLowerCase(),
@@ -95,10 +104,12 @@ export async function verifyTokenEscrowPreparation(api, preparation) {
     feeCoverage: 'identity-and-execution-limits-not-total-fee-cap' };
 }
 
-export async function recoverTokenEscrowPreparation(api, request) {
-  request = structuredClone(request);
+export function validateTokenEscrowRecovery(request) {
   if (typeof request.contractCodeHash !== 'string' || !/^0x[0-9a-f]{64}$/.test(request.contractCodeHash))
     throw new Error('Explicit reviewed escrow code hash required for recovery.');
+}
+export async function recoverTokenEscrowPreparation(api, request) {
+  request = structuredClone(request); validateTokenEscrowRecovery(request);
   const original = request.preparation;
   const { decoded, sender, genesis } = await verifySignedPreparation(api, original, protocol);
   const call = directCall(api, decoded);
@@ -113,6 +124,6 @@ export async function recoverTokenEscrowPreparation(api, request) {
     signedTransactionBase64: original.signedTransactionBase64, signDocBase64: original.signDocBase64, signature: original.signature,
     contractAddress: call.address, contractCodeHash: request.contractCodeHash, gasLimit: call.gasLimit,
     storageDepositLimit: call.storageDepositLimit, recoveredFromSignedOriginal: true, reconciliationRequired: true };
-  await verifyTokenEscrowPreparation(api, recovered);
-  return recovered;
+  const identity = await verifyTokenEscrowPreparation(api, recovered);
+  return { ...recovered, expectedAmountUnits: identity.amountUnits };
 }

@@ -29,7 +29,7 @@ public partial class PolkadotOASIS
     private Task<OASISResult<IWeb3NFTTransactionResponse>> ChangeStoredNftEscrowAsync(Guid id,Guid avatar,string collection,bool unlock)
         =>ExecuteOwnedNftAsync(async owner=>{
             if(id==Guid.Empty||avatar==Guid.Empty)throw new ArgumentException("Stored NFT ID and authenticated escrow avatar are required.");
-            var requestedCollection=NftAccount(collection);
+            var requestedCollection=NativeAccount(collection);
             var loaded=await ResolveStoredWeb3NftAsync(id).ConfigureAwait(false);
             owner.Token.ThrowIfCancellationRequested();
             if(loaded.IsError||loaded.Result==null)throw loaded.Exception??new InvalidOperationException(loaded.Message);
@@ -41,13 +41,13 @@ public partial class PolkadotOASIS
                 ||!string.Equals(genesis,ReportedGenesisHash,StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("Stored NFT must identify the activated genesis hash; no cross-network locator substitution is permitted.");
             // Freeze the stored locator before awaiting the signing-wallet lookup.
-            var contract=NftAccount(nft.NFTTokenAddress);var token=CanonicalNftTokenId(nft.TokenId);
+            var contract=NativeAccount(nft.NFTTokenAddress);var token=CanonicalNftTokenId(nft.TokenId);
             var wallet=await ResolveAssetMintWalletAsync(avatar).ConfigureAwait(false);
             owner.Token.ThrowIfCancellationRequested();
             if(wallet.IsError||wallet.Result==null)throw wallet.Exception??new InvalidOperationException(wallet.Message);
             if(wallet.Result.AvatarId!=avatar||wallet.Result.ProviderType!=Core.Enums.ProviderType.PolkadotOASIS)
                 throw new InvalidOperationException("Escrow wallet does not belong to the requested avatar/provider.");
-            var sender=NftAccount(wallet.Result.WalletAddress);
+            var sender=NativeAccount(wallet.Result.WalletAddress);
             // Native v0.2 escrow binds the beneficiary in contract state. The
             // configured service-pool key cannot authorize this wallet's unlock.
             return new NftIntent(unlock?"unlock":"lock",contract,token,sender,unlock?sender:contract,unlock?contract:sender,

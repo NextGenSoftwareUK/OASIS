@@ -6,6 +6,12 @@ export function validatePinnedContractQuery(request) {
       throw new Error('Explicit canonical contract/origin/code identity required.');
   }
 }
+export function contractReadBytes(response) {
+  if (response.result.isErr) throw new Error(`Native contract read failed: ${response.result.asErr.toString()}`);
+  const result = response.result.asOk;
+  if (result.flags.get('bits').toNumber() !== 0) throw new Error('Contract read reverted or returned unsupported flags.');
+  return result.data.toU8a(true);
+}
 export async function openPinnedContractQuery(api, request) {
   validatePinnedContractQuery(request);
   const address = api.createType('AccountId32', request.contractAddress).toHex();
@@ -24,11 +30,7 @@ export async function openPinnedContractQuery(api, request) {
     query: async input => {
       if (typeof input !== 'string' || !/^0x(?:[0-9a-fA-F]{2}){4,}$/.test(input))
         throw new Error('Reviewed contract selector and canonical input bytes required.');
-      const response = await at.call.contractsApi.call(origin, address, 0, null, null, input);
-      if (response.result.isErr) throw new Error(`Native contract read failed: ${response.result.asErr.toString()}`);
-      const result = response.result.asOk;
-      if (result.flags.get('bits').toNumber() !== 0) throw new Error('Contract read reverted or returned unsupported flags.');
-      return result.data.toU8a(true);
+      return contractReadBytes(await at.call.contractsApi.call(origin, address, 0, null, null, input));
     }
   };
 }

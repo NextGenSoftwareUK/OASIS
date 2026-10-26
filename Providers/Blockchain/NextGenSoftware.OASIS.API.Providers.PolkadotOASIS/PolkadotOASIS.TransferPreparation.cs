@@ -38,6 +38,12 @@ public partial class PolkadotOASIS
                 ||identity.GetProperty("contractCodeHash").GetString()!=_nftConfiguration.CodeHash
                 ||original.GetProperty("contractCodeHash").GetString()!=_nftConfiguration.CodeHash))
                 throw new InvalidDataException("NFT original differs from the configured reviewed implementation.");
+            if(kind==NativeMutationKind.TokenEscrow&&(_tokenEscrowConfiguration==null
+                ||identity.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash
+                ||original.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash
+                ||identity.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId
+                ||original.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId))
+                throw new InvalidDataException("Token escrow original differs from the explicitly configured reviewed contract.");
             result.Result = identity;
             result.Message = "Original signed operation verified; no submission or fee authorization.";
         }
