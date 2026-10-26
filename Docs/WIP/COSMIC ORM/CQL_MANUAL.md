@@ -25,10 +25,10 @@ floating arithmetic and HTTP Single/Double arithmetic inputs remain unenrolled. 
 queries and the40-example three-provider demo retain their separate scope.
 [Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
-## MongoDB Single/Double scalar arithmetic SDK availability
+## MongoDB Single/Double arithmetic SDK availability
 
-MongoDB now supports required/nullable Single and Double scalar `Sum` and
-`Average`. Use the same `source.Sum(...)` and `source.Average(...)` expressions
+MongoDB now supports required/nullable Single and Double scalar and grouped
+`Sum` and `Average`, including grouped result filters, ordering and paging. Use the same `source.Sum(...)` and `source.Average(...)` expressions
 shown above, with MongoDB's actual scalar capabilities and the generic
 HolonManager planner/execution entry point. Results retain `float`/`double`,
 including nullable forms; integer and Decimal averages still return Decimal.
@@ -38,11 +38,37 @@ For example, summing `double.MaxValue`, `double.MaxValue`, their two negatives,
 and `double.Epsilon` returns `double.Epsilon`. Summing two maximum values reports
 `CQL_SCALAR_OVERFLOW`, while averaging them returns `double.MaxValue`.
 
-Acceptance passes36focused controls,454full native CQL tests and560matched
-full units without failures/skips; six producer/consumer assembly copies match.
-MongoDB floating **grouped** aggregates and HTTP floating arithmetic remain
-unenrolled. The current40-example SDK/HTTP walkthrough does not yet demonstrate
-these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+Acceptance passes36scalar and34grouped focused controls,490full native CQL
+tests and571matched full units without failures/skips; six producer/consumer
+assembly copies match.
+Grouped selected filters/order/pages and off-page validation are included in
+that complete acceptance cohort. For an already scoped
+source, a grouped request can select and filter the rounded mean:
+
+```csharp
+var summary = source
+    .GroupBy(holon => CosmicQueryMetadata.Value<string>(holon, "sensor"))
+    .Select(group => new
+    {
+        Sensor = group.Key,
+
+        Total = group.Sum(holon =>
+            CosmicQueryMetadata.Value<double>(holon, "reading")),
+
+        Mean = group.Average(holon =>
+            CosmicQueryMetadata.Value<double?>(holon, "reading"))
+    })
+    .Where(row => row.Mean >= 20d)
+    .OrderByDescending(row => row.Mean)
+    .Take(10);
+```
+
+Plan and execute with actual Mongo grouped capabilities using the generic
+HolonManager entry point shown below. Every raw group is validated, including
+excluded groups; overflow cannot hide behind a filter or `Take(0)`.
+
+HTTP floating arithmetic remains unenrolled. The current40-example SDK/HTTP
+walkthrough does not yet demonstrate these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 ## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 
