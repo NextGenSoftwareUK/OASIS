@@ -1,0 +1,127 @@
+{
+  "status": "compiled-verified-intermediates-cleaned",
+  "sources": {
+    "contract.ts": {
+      "previousMirrorSha256": "85567dde8adca88c89af53e2bf800d1fe2863b023abb76da8614470c578f8cb2",
+      "sourceSha256": "03265f50bb8047b6d6565db9714e317f4daf606daea6787d05fcb01528673fe9",
+      "bytes": 8328
+    },
+    "token-escrow.ts": {
+      "previousMirrorSha256": "21d835bded893602ace0cf24d9a4de2104d2138ff470e58fc41ced36c15e4043",
+      "sourceSha256": "21f84f734bdf4e62a5ce74bcd11302e91ab0be3a1986065c5ae779478ae5e2a2",
+      "bytes": 7763
+    },
+    "checked-record.ts": {
+      "previousMirrorSha256": "0f2c787fa6022888a01d55d95ec032b307307cbfb54b0c2eed93175baf6d0c9a",
+      "sourceSha256": "0f2c787fa6022888a01d55d95ec032b307307cbfb54b0c2eed93175baf6d0c9a",
+      "bytes": 2112
+    }
+  },
+  "inheritedHeaders": {
+    "code.h": {
+      "bytes": 319376,
+      "sha256": "82c23da1b2e16e47856617adf809d6e8d248a9a0304c43cf1608ea70b839f8b0"
+    },
+    "methods.h": {
+      "bytes": 778,
+      "sha256": "b95687c872272700cfab58f4b09e8a2e76a864300daaa8a6319dac9c0ffb906f"
+    },
+    "builder.c": {
+      "bytes": 47799,
+      "sha256": "e8d9b0429dd88cdf125e3b44e00b89dd8e2d58d4b6a2ba6b76583284255a6ee5"
+    }
+  },
+  "nativeMutations": 0,
+  "downloads": 0,
+  "candidate": "/var/tmp/oasis-near-evidence/build/oasis_nft_escrow_candidate.wasm",
+  "sha256": "86e566d1e51bdac93aa0f47a511bb581ab33f29f939cb4b6ac5a7fd0595945dd",
+  "bytes": 536635,
+  "exportsOld": [
+    "OasisStorage",
+    "delete_record",
+    "entries",
+    "entries_page",
+    "get",
+    "init",
+    "memory",
+    "nft_burn",
+    "nft_mint",
+    "nft_set_locked",
+    "nft_token",
+    "nft_transfer",
+    "put",
+    "put_record_checked",
+    "record_write_protocol",
+    "token_balance",
+    "token_burn",
+    "token_escrow_protocol",
+    "token_get",
+    "token_lock",
+    "token_lock_get",
+    "token_mint",
+    "token_release",
+    "token_set_locked",
+    "token_transfer"
+  ],
+  "exportsNew": [
+    "OasisStorage",
+    "delete_record",
+    "entries",
+    "entries_page",
+    "get",
+    "init",
+    "memory",
+    "nft_burn",
+    "nft_escrow_protocol",
+    "nft_lock_get",
+    "nft_mint",
+    "nft_set_locked",
+    "nft_token",
+    "nft_transfer",
+    "put",
+    "put_record_checked",
+    "record_write_protocol",
+    "token_balance",
+    "token_burn",
+    "token_escrow_protocol",
+    "token_get",
+    "token_lock",
+    "token_lock_get",
+    "token_mint",
+    "token_release",
+    "token_set_locked",
+    "token_transfer"
+  ],
+  "activeUnchanged": true,
+  "node": "v22.22.2",
+  "sdk": "2.0.0",
+  "typescript": "4.7.4",
+  "removedIntermediates": [
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/oasis_nft_escrow_candidate.js",
+      "bytes": 126973,
+      "sha256": "9fdf3c88e3d81ccdd9aedb4efd27dfd0f21b7e491d79002f6bc8bbce98bb90aa"
+    },
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/oasis_nft_escrow_candidate.js.map",
+      "bytes": 289260,
+      "sha256": "602ef3770191d7a0cbf047084a8e9573375fdd398f4312ef8a4b6a4e12348e93"
+    },
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/code.h",
+      "bytes": 333647,
+      "sha256": "d409157888f6b5d4ca5071017f8267d4f168495a0daf65e9c98a322566cf2049"
+    },
+    {
+      "path": "/var/tmp/oasis-near-evidence/build/methods.h",
+      "bytes": 851,
+      "sha256": "7169c74488e62d03830819e2f83b63ebc92e84a3522f77b178f08d81fa37253f"
+    }
+  ],
+  "compilerLog": {
+    "compressedPath": "near-nft-deposit-wasm-current.log.gz",
+    "rawBytes": 805,
+    "compressedBytes": 275,
+    "rawSha256": "15c76c47a251333ee326ffd8d82345d1090ddee11230175d9f36649e3585c7d1"
+  }
+}
