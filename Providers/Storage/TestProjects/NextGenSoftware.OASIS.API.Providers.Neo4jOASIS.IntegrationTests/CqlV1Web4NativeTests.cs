@@ -1045,7 +1045,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(36, shippingRestRequests);
             var shippingTransportRequests = await VerifyShippingTransportsAsync(providers, outbox, authority,
                 secret, transportActor, transportIds, ids[0], tag, Journal, sharingOperations);
-            Assert.AreEqual(24, shippingTransportRequests);
+            Assert.AreEqual(48, shippingTransportRequests);
             if (mode != null)
             {
                 // Shutdown waits for in-flight requests. Never erase an unsettled

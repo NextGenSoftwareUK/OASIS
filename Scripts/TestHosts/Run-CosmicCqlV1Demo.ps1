@@ -94,7 +94,7 @@ try {
         if ($report.shippingRestRequests -ne 36 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 33) {
             throw 'Shipping REST/native storage settlement proof is incomplete.'
         }
-        if ($report.shippingTransportRequests -ne 24 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 24) {
+        if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {
             throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
         }
 

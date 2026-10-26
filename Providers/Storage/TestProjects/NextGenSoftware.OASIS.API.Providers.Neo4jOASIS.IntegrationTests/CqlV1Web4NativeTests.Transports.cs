@@ -23,6 +23,8 @@ using NextGenSoftware.OASIS.API.DNA;
 using ShippingMutation = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL.Mutation;
 using ShippingGrpcService = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices.DataGrpcService;
 using ShippingGrpcRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc.SaveHolonGrpcRequest;
+using ShippingDeleteRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc.DeleteHolonGrpcRequest;
+using ShippingDeleteResponse = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc.OASISDataResponse;
 using ShippingGrpcResponse = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc.HolonResponse;
 using ShippingJson = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonJsonContracts;
 
@@ -42,6 +44,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 descriptor.BindFieldsExplicitly();
                 descriptor.Field(value => value.SaveHolon(default!, default!, default!, default!, default, default!, default));
+                descriptor.Field(value => value.DeleteHolon(default, default!, default, default, default, default!));
             }))
             .AddType<ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL.Types.HolonType>();
     }
@@ -190,6 +193,59 @@ public sealed partial class CqlV1Web4NativeTests
                     await Grpc(foreign, "COSMIC_WRITE_FORBIDDEN", 1, 0.001m);
                     await Grpc(new ShippingGrpcRequest { HolonJson = "{}" }, "COSMIC_WRITE_INTENT_INVALID", 0, 0);
                     await Grpc(new ShippingGrpcRequest { HolonJson = "not-json" }, "COSMIC_WRITE_INTENT_INVALID", 0, 0);
+                    // Deletion uses the caller's original revision and the same
+                    // admitted authority; none of these cases retries a write.
+                    async Task GraphDelete(Guid id, Guid intent, Guid revision, string code, int attempts)
+                    {
+                        var operationArgument = intent == Guid.Empty ? "" : $", operationId: \"{intent:D}\"";
+                        var query = $"mutation {{ deleteHolon(id: \"{id:D}\", providerType: \"{pair.Key}\", expectedRevision: \"{revision:D}\"{operationArgument}) }}";
+                        var cost = attempts == 0 ? 0m : attempts == 1 ? 0.001m : 0.004m;
+                        var body = await Send("/graphql", JsonSerializer.SerializeToUtf8Bytes(new { query }), "application/json",
+                            intent, attempts, cost, code.Length == 0 ? "succeeded" : "failed");
+                        using var parsed = JsonDocument.Parse(body);
+                        if (code.Length != 0)
+                            Assert.AreEqual(code, parsed.RootElement.GetProperty("errors")[0].GetProperty("extensions").GetProperty("code").GetString());
+                        else Assert.IsTrue(parsed.RootElement.GetProperty("data").GetProperty("deleteHolon").GetBoolean());
+                    }
+
+                    var graphRevision = CosmicConcurrency.GetProviderRevisionId(await Read(ids[0]), pair.Key)!.Value;
+                    await GraphDelete(ids[0], Guid.Empty, graphRevision, "COSMIC_WRITE_INTENT_INVALID", 0);
+                    await GraphDelete(foreignId, Guid.NewGuid(), Guid.NewGuid(), "COSMIC_WRITE_FORBIDDEN", 1);
+                    await GraphDelete(ids[0], Guid.NewGuid(), Guid.NewGuid(), CosmicConcurrencyException.Code, 2);
+                    await GraphDelete(ids[0], Guid.NewGuid(), graphRevision, "", 2);
+                    var softDeleted = await pair.Value.LoadHolonAsync(ids[0], false, true, 0, true, false, 0);
+                    Assert.IsNotNull(softDeleted.Result);
+                    Assert.IsTrue(softDeleted.Result.IsDeleted);
+                    Assert.AreEqual(actor, softDeleted.Result.DeletedByAvatarId);
+
+                    async Task GrpcDelete(Guid id, Guid intent, Guid revision, string code, int attempts)
+                    {
+                        var wire = new ShippingDeleteRequest { Id = id.ToString("D"), ProviderType = pair.Key.ToString(),
+                            SoftDelete = false, OperationId = intent == Guid.Empty ? "" : intent.ToString("D"),
+                            ExpectedRevision = revision.ToString("D") };
+                        var payload = wire.ToByteArray();
+                        var frame = new byte[payload.Length + 5];
+                        BinaryPrimitives.WriteInt32BigEndian(frame.AsSpan(1, 4), payload.Length);
+                        payload.CopyTo(frame, 5);
+                        var cost = attempts == 0 ? 0m : attempts == 1 ? 0.001m : 0.004m;
+                        var body = await Send("/oasis.web4.DataService/DeleteHolon", frame, "application/grpc", intent,
+                            attempts, cost, code.Length == 0 ? "succeeded" : "failed");
+                        Assert.IsTrue(body.Length >= 5);
+                        Assert.AreEqual(0, body[0]);
+                        Assert.AreEqual(body.Length - 5, BinaryPrimitives.ReadInt32BigEndian(body.AsSpan(1, 4)));
+                        var result = ShippingDeleteResponse.Parser.ParseFrom(body, 5, body.Length - 5);
+                        Assert.AreEqual(code, result.ErrorCode);
+                        Assert.AreEqual(code.Length != 0, result.IsError);
+                        Assert.AreEqual(code.Length == 0, result.IsDeleted);
+                        if (code.Length == 0) Assert.IsFalse(string.IsNullOrEmpty(result.CommittedDeltaJson));
+                    }
+                    var hardRevision = CosmicConcurrency.GetProviderRevisionId(await Read(ids[2]), pair.Key)!.Value;
+                    await GrpcDelete(ids[2], Guid.Empty, hardRevision, "COSMIC_WRITE_INTENT_INVALID", 0);
+                    await GrpcDelete(foreignId, Guid.NewGuid(), Guid.NewGuid(), "COSMIC_WRITE_FORBIDDEN", 1);
+                    await GrpcDelete(ids[2], Guid.NewGuid(), Guid.NewGuid(), CosmicConcurrencyException.Code, 2);
+                    await GrpcDelete(ids[2], Guid.NewGuid(), hardRevision, "", 2);
+                    var hardDeleted = await pair.Value.LoadHolonAsync(ids[2], false, true, 0, true, false, 0);
+                    Assert.IsNull(hardDeleted.Result, "Acknowledged hard deletion must remove the native record.");
                     await journal("transport-provider-complete", new { provider = pair.Key.ToString(), requests });
                 }
                 finally { await app.StopAsync(); }

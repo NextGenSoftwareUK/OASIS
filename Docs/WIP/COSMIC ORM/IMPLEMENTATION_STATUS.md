@@ -1,3 +1,9 @@
+## Signed native GraphQL/gRPC deletion - 2026-10-26
+
+The fresh native gate passes across MongoDB, SQLite and Neo4j: 24 signed deletion requests added to24 existing transport saves, with426 settled operations and466 physical attempts across the full joined cohort. Missing intent, foreign owner, stale revision, persisted GraphQL soft deletion and acknowledged gRPC hard deletion/delta are verified. Source snapshots are unchanged; seven producer/consumer pairs match; owned services stopped and fixtures removed. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Signed REST logical/provider-key deletion and further authority/failure/recovery gates remain open. The broader CQL/ORM roadmap remains incomplete.
+
 ## Provider-key HTTP deletion and explicit operation pricing - 2026-10-26
 
 Core `6dfd238` adds exact LoadHolonByProviderKey/DeleteHolon tariffs and route-specific startup requirements. Save-only profiles retain their existing three-operation requirements; GraphQL/gRPC/delete routes require the relevant operations. All fifteen provider/operation rows fit the bounded catalogue. Runtime HTTP admission remains fail-closed independent of route classification.
