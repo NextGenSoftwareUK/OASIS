@@ -12,6 +12,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaFinalityTests
 {
+    [DataTestMethod][DataRow(200)][DataRow(202)][DataRow(206)]
+    public async Task FinalizedStatusRequiresCompletedHttpAcknowledgement(int statusCode)
+    {
+        var payer=new Solnet.Wallet.Account();
+        var bytes=new Solnet.Rpc.Builders.TransactionBuilder().SetRecentBlockHash(Encoders.Base58.EncodeData(new byte[32])).SetFeePayer(payer)
+            .AddInstruction(Solnet.Programs.MemoProgram.NewMemoV2("finality-response")).Build(payer);
+        var signature=Encoders.Base58.EncodeData(bytes.AsSpan(1,64).ToArray());
+        var rpc=DispatchProxy.Create<IRpcClient,RpcProxy>();var observed=(RpcProxy)(object)rpc;
+        observed.Signature=signature;observed.StatusHttpCode=(System.Net.HttpStatusCode)statusCode;
+        if(statusCode==200)Assert.AreEqual(signature,await Submit(new SolanaRepository(payer,rpc),bytes));
+        else{
+            var error=await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(()=>Submit(new SolanaRepository(payer,rpc),bytes));
+            Assert.AreEqual(signature,error.OriginalTransactionId);
+            Assert.IsTrue(NativeMutationReconciliation.IsRequired(error));
+        }
+        Assert.AreEqual(1,observed.Sends);Assert.AreEqual(1,observed.Reads);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -92,6 +110,7 @@ public class SolanaFinalityTests
     {
         public string Signature = "";
         public bool FirstPending, LostReply;
+        public System.Net.HttpStatusCode StatusHttpCode=System.Net.HttpStatusCode.OK;
         public int Sends, Reads;
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -109,7 +128,7 @@ public class SolanaFinalityTests
                 : JsonConvert.SerializeObject(new { Value = new[] { new {
                     confirmationStatus = FirstPending && Reads == 1 ? "confirmed" : "finalized", err = (object?)null } } });
             var value = JsonConvert.DeserializeObject(json, valueType);
-            var response = Activator.CreateInstance(resultType, new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK), value);
+            var response = Activator.CreateInstance(resultType, new System.Net.Http.HttpResponseMessage(method.Name=="GetSignatureStatusesAsync"?StatusHttpCode:System.Net.HttpStatusCode.OK), value);
             resultType.GetProperty("WasRequestSuccessfullyHandled")!.SetValue(response,true);
             return typeof(Task).GetMethod("FromResult")!.MakeGenericMethod(resultType).Invoke(null,new[] { response });
         }
