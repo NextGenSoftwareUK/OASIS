@@ -1,5 +1,21 @@
 # HTTP configuration ownership — working audit
 
+## Request protection policy preservation — 26 October 2026
+
+The request-context factory now retains configured metadata and preparation
+protection policies. Dropping them silently disabled inherited protection on
+scoped writes. Two genuine regressions exposed that loss; the corrected factory
+and barrier-controlled concurrent override case pass within full Core3,497/3,497,
+zero skips/failures, with both targets built. Policies belong to request-owned
+managers; later parent updates or another request's assignments do not replace
+their captured configuration. [Contract and evidence](WRITE_PREPARATION.md#request-owned-protection-configuration).
+
+Hosted authentication, actor-specific protection policy enrollment and recovery
+endpoint admission remain separate requirements. Retaining a configured policy
+does not supply one for an unconfigured host.
+
+## Earlier routing ownership audit
+
 26 October 2026. The request-owned implementation is active and its focused
 controls pass. Final portable/full-unit/native certification is in progress. The completed
 canonical REST/native/usage milestone is recorded in
