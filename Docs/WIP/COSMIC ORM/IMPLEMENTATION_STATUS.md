@@ -1,3 +1,5 @@
+26 October checkpoint: actual writer-process interruption after native hard-delete commit + fresh-process protected recovery PASS all3providers. Full native465settlements/517attempts, source unchanged/sevenbinarypairs, services/fixtures clean. Evidence HOSTED_OPERATION_RECOVERY.md and Verification/process-restart-*. Overall roadmap remains open.
+
 26 October checkpoint: protected public-manager hard-delete acknowledgement-loss PASS on all three providers; stored-only authenticated recovery, caller unchanged, one native commit. Full native465 settlements/517attempts; seven binary pairs match and sources unchanged. See HOSTED_OPERATION_RECOVERY.md and Verification/protected-hard-delete-*. Actual OS-process restart and broader roadmap remain open.
 
 ## Hosted write enrollment and signed recovery - 26 October 2026

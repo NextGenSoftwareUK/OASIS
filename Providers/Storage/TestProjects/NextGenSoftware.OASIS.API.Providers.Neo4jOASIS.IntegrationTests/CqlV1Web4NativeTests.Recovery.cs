@@ -23,6 +23,7 @@ public sealed partial class CqlV1Web4NativeTests
         Func<string, object?, Task> journal, List<string> conditionalOperations)
     {
         var verified = 0;
+        var processProof = new List<object>();
         foreach (var pair in providers)
         {
             var recovery = pair.Value as IConditionalHolonWriteRecoveryStorageProvider;
@@ -79,6 +80,19 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 if (request.Operation == ConditionalHolonOperation.HardDelete)
                 {
+                    if (request.Roots.Single().Id == ids[3])
+                    {
+                        var processes = await VerifyProcessRestart(request, sqlitePath, journal);
+                        processProof.Add(new { authority = pair.Key.ToString(), operation = request.Write.OperationId,
+                            writerPid = processes.WriterPid, readerPid = processes.ReaderPid, commits = 1, recovered = true });
+                        var persisted = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
+                        Assert.IsFalse(persisted.IsError, persisted.Message + persisted.Exception);
+                        Assert.IsNotNull(persisted.Result);
+                        storedPreparations.Add(request.Write.OperationId, persisted.Result);
+                        originals.Add(request);
+                        return null;
+                    }
+
                     var boundary = System.Reflection.DispatchProxy.Create<IRecoveryMutationBoundary, RecoveryMutationBoundary>();
                     var probe = (RecoveryMutationBoundary)(object)boundary;
                     probe.Target = pair.Value;
@@ -203,6 +217,9 @@ public sealed partial class CqlV1Web4NativeTests
             await journal("recovery-provider-complete", new { provider = pair.Key.ToString(), originals = originals.Count });
             verified++;
         }
+        Assert.AreEqual(3, processProof.Count);
+        var proofPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sqlitePath)!, "../CosmicCqlDemo/v1-process-restart-proof.json"));
+        await File.WriteAllTextAsync(proofPath, JsonSerializer.Serialize(new { capturedUtc = DateTime.UtcNow, providers = processProof }));
         return verified;
     }
 }

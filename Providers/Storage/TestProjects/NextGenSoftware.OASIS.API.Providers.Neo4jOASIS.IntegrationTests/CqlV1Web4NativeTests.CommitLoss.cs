@@ -30,6 +30,7 @@ public sealed partial class CqlV1Web4NativeTests
         public string SqlitePath = "";
         public int Executions;
         public int Commits;
+        public Action? AfterNativeCommit;
 
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -44,7 +45,7 @@ public sealed partial class CqlV1Web4NativeTests
         private async Task<OASISResult<IEnumerable<IHolon>>> Execute(ConditionalHolonWriteRequest request)
         {
             Executions++;
-            var result = await ExecuteWithLostCommitAcknowledgement(Authority, Target, request, SqlitePath);
+            var result = await ExecuteWithLostCommitAcknowledgement(Authority, Target, request, SqlitePath, AfterNativeCommit);
             Commits += result.Commits;
             return result.Result;
         }
@@ -100,15 +101,17 @@ public sealed partial class CqlV1Web4NativeTests
     }
 
     private static async Task<(OASISResult<IEnumerable<IHolon>> Result, int Commits)> ExecuteWithLostCommitAcknowledgement(
-        ProviderType type, IOASISStorageProvider provider, ConditionalHolonWriteRequest original, string sqlitePath)
+        ProviderType type, IOASISStorageProvider provider, ConditionalHolonWriteRequest original, string sqlitePath,
+        Action? afterNativeCommit = null)
     {
         var commits = 0;
+        void Committed() { commits++; afterNativeCommit?.Invoke(); }
         var failure = new IOException("Owned acknowledgement lost after real native commit.");
         if (type == ProviderType.MongoDBOASIS)
         {
             var context = ((MongoProvider)provider).Database;
             var healthy = context.MongoClient;
-            context.MongoClient = RecoveryMongoCommitProxy.Wrap(healthy, failure, () => commits++);
+            context.MongoClient = RecoveryMongoCommitProxy.Wrap(healthy, failure, Committed);
             try
             {
                 var result = await ((IConditionalHolonStorageProvider)provider).ExecuteConditionalHolonWriteAsync(original);
@@ -120,7 +123,7 @@ public sealed partial class CqlV1Web4NativeTests
         {
             var field = typeof(NeoProvider).GetField("_driver", BindingFlags.Instance | BindingFlags.NonPublic)!;
             var healthy = (IDriver)field.GetValue(provider)!;
-            field.SetValue(provider, Neo4jCommitFaultProxy.Wrap(healthy, failure, () => commits++));
+            field.SetValue(provider, Neo4jCommitFaultProxy.Wrap(healthy, failure, Committed));
             try
             {
                 var result = await ((IConditionalHolonStorageProvider)provider).ExecuteConditionalHolonWriteAsync(original);
@@ -132,7 +135,7 @@ public sealed partial class CqlV1Web4NativeTests
         {
             if (!File.Exists(sqlitePath)) throw new InvalidOperationException("Preserve the existing owned SQLite authority.");
             using var context = new RecoverySqliteContext("Data Source=" + sqlitePath + ";Pooling=False",
-                new RecoveryLostSqliteCommit(() => commits++, failure));
+                new RecoveryLostSqliteCommit(Committed, failure));
             var repository = new SqliteRepository(context, () => ((IOASISDBStorageProvider)provider).IsVersionControlEnabled);
             var result = await repository.ExecuteConditionalHolonWriteAsync(original);
             return (result, commits);
