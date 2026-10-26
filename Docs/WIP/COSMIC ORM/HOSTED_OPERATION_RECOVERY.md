@@ -30,6 +30,8 @@ Use the application's authorized `IHolonMetadataKeyResolver`; do not derive keys
 
 An enrolled recovery route requires this service at startup. Readiness checks service composition without authorizing a real actor, resolving a key, activating a provider or making a native call. An unenrolled host does not acquire a default key or policy.
 
+Readiness now resolves an enrolled policy in a short disposable DI scope. Scoped policies are disposed after composition validation, while application singletons remain owned by the root container. This supports `AddScoped<ICosmicOperationRecoveryPolicy, ApplicationRecoveryPolicy>()` under scope validation and prevents a scoped policy being retained until host shutdown when validation is disabled. Unenrolled or cancelled checks construct no policy. Request authorization still occurs in the request's own scope.
+
 Registering this service now also enrolls V2 hosted writes through the shared single-save, batch-save and delete boundaries, including REST aliases/provider-key deletion and the GraphQL/gRPC wrapper. The grant is applied to a fresh request-owned manager, never the shared manager. Each selected record is admitted against the same runtime catalogue and authorized key context before a preparation claim or mutation. New IDs are assigned by the existing graph planner before the callback; unselected descendants never reach it. A denied/null record policy cannot fall back to global protection or an unprotected write.
 
 Core exposes `PreparationPolicyResolver` with an immutable `HolonPreparationPolicyContext` containing the assigned ID and actual runtime type, without handing the callback a mutable entity. Request contexts retain the callback observation; later parent changes cannot replace it. The callback is excluded from JSON serialization. Existing explicit-policy SDK behavior is preserved when no application service is configured. Legacy paths are unchanged.
@@ -70,3 +72,9 @@ The parent requires the writer's nonzero termination, a matching post-commit mar
 [Process gate TRX](Verification/process-restart-native.trx.gz), [original operations and PIDs](Verification/process-restart-originals.json), [result](Verification/process-restart-result.json), [source identities](Verification/process-restart-source.json.gz), [binary identities](Verification/process-restart-binaries.json).
 
 Remaining: operator retention/reconciliation and broader tenant/query/federation acceptance. A separate injected signed-HTTP failure scenario and explicit per-transport envelope inspection are not claimed by this public-manager process gate. Database-server crash/restart, interruption before commit and network partitions are separate failure windows requiring their own acceptance evidence.
+
+## Recovery startup policy lifetime checkpoint
+
+26 October 2026. Two shipping-assembly regressions reproduced the old root-container lookup: scope validation rejected a scoped registration, while disabled validation retained its disposable instance. Both now pass after readiness borrowed a scope. Positive controls verify that singleton disposal remains with the application container and that unenrolled/cancelled checks never construct a policy.
+
+Shipping build and the full WEB4 suite pass: **320 passed / one existing Stripe sandbox skip**. The shipping producer and unit consumer hashes match. [Original failing controls](Verification/recovery-policy-lifetime-red.trx.gz), [full passing report](Verification/recovery-policy-lifetime-web4.trx.gz), [source/binary identities](Verification/recovery-policy-lifetime-identities.json). No provider or database test was needed for this DI ownership change; earlier Core and native matrices retain their separately recorded scope.

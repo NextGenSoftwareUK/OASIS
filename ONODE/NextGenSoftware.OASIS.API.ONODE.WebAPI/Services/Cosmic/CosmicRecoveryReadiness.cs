@@ -18,9 +18,12 @@ public sealed class CosmicRecoveryReadiness(IServiceProvider services) : IHosted
         var request = new DefaultHttpContext();
         request.Request.Method = "POST";
         request.Request.Path = CosmicOperationRecoveryRoutes.Recover;
-        if (services.GetService<StorageAdmissionRoutes>()?.Resolve(request) != null
-            && services.GetService<ICosmicOperationRecoveryPolicy>() == null)
-            throw new InvalidOperationException("An enrolled COSMIC recovery route requires an application-authorized recovery policy.");
+        if (services.GetService<StorageAdmissionRoutes>()?.Resolve(request) != null)
+        {
+            using var scope = services.CreateScope();
+            if (scope.ServiceProvider.GetService<ICosmicOperationRecoveryPolicy>() == null)
+                throw new InvalidOperationException("An enrolled COSMIC recovery route requires an application-authorized recovery policy.");
+        }
         return Task.CompletedTask;
     }
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
