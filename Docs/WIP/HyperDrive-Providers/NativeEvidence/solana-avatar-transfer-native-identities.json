@@ -1,0 +1,64 @@
+{
+  "scope": "two native local SOL cases, eight finalized originals, wallet lookup synthetic, independent service model key",
+  "counters": {
+    "total": "2",
+    "executed": "2",
+    "passed": "2",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "rawBytes": 4605,
+  "rawSha256": "c8f4c7609cd26efe14a32fa3cf79f2dd3a5195de41528f8b19fab180300b488c",
+  "gzipBytes": 1339,
+  "completed": [
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\solana-avatar-transfer-async.complete.json",
+      "bytes": 745,
+      "sha256": "f89aec18a10bbc65017a0c5e211cd0e8c0bf0b4c0a25bd912b8139702e5132e0",
+      "recipient": "GYKM5uRzgGRWHx4RSicD8gLaKTjRJkXju8iCmmx3toMK",
+      "retainedLocalBalanceLamports": 4000000,
+      "feeLamports": 20000
+    },
+    {
+      "path": "Docs\\WIP\\HyperDrive-Providers\\NativeEvidence\\solana-avatar-transfer-sync.complete.json",
+      "bytes": 746,
+      "sha256": "4d1b80502e83c41de8c2d8d21fec8aaeecfa9ccd9fd03d348c7ee2822c5095c6",
+      "recipient": "5ce9H7ETyFdwf3Hd6MMJGapuf2mNcoJegfx7J48Pvz6s",
+      "retainedLocalBalanceLamports": 4000000,
+      "feeLamports": 20000
+    }
+  ],
+  "binaries": [
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3502592,
+      "sha256": "f66ddf4abb033656e8acc181de2fbc024480e2c2e2cf3e76a9b9365ba456c1c9"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "dc15b3a598b097620be940721de3f27bba158c45f65ac06a770f97ae8ec386b5"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.dll",
+      "bytes": 330240,
+      "sha256": "196bd6a4b4df76f3872152a4fa0f29f19412348756b32e65a7a467d3a3dc55ce"
+    },
+    {
+      "path": "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.dll",
+      "bytes": 83968,
+      "sha256": "fc1390ef4e3514fafec480e356605378bc7a47257daa6982cc4d310a88c2326f"
+    }
+  ]
+}
