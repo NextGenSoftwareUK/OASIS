@@ -274,3 +274,29 @@ Evidence: Verification/federation-access-core.trx.gz and
 federation-access-identities.json. Earlier14native SDK federation scenarios
 predate this extension. Signed hosted multi-provider authorization, federation
 HTTP/billing, cursors and distributed joins remain required acceptance work.
+
+## HolonManager federation materialization — 26 October 2026
+
+`HolonManager.ExecuteFederationQueryAsync<T>` now routes V2 federation through
+the existing collection metadata decryption, typed hydration and tracking owner.
+Selected copies and observed alternatives retain provider/identity provenance;
+mapping cannot change identity or escape the target read policy. Native rows
+remain detached. The existing reserved metadata/encryption policy is reused,
+without a second decryption implementation. Wrong keys, plaintext envelopes,
+duplicate or conflicting encrypted fields, and typed setter failures return real
+errors with no result. Legacy mode rejects before native execution.
+
+The same federation budget continues through mapping and final canonical output.
+An output regression exposed the persistence serializer dropping Copy.Row as an
+IHolon navigation member, undercounting row payload. Federation now captures each
+entity root explicitly in a data-only envelope containing all selected/observed
+copies and provenance; it does not change the persistence navigation contract.
+The earlier fixture-only diagnosis was incorrect and is superseded by this root
+fix. Both raw large metadata and expanded typed output now hit the output bound.
+
+Dual-target Core build and all3,617 tests pass, including ten new manager,
+encryption-fault, tracking, error, V2-guard and row-payload cases. Evidence:
+Verification/federation-materialization-{core,initial,row-omission}.trx.gz and
+federation-materialization-identities.json. Earlier14native SDK scenarios predate
+this finalizer and the per-target policy extension. Native manager/hosted
+federation authorization, HTTP, billing, cursors and distributed joins remain open.
