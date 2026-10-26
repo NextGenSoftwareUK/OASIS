@@ -20,6 +20,7 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-custody-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-bridge-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-lifecycle-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-public-pending.jsonl'
@@ -44,6 +45,8 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustodySource=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustody=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustodyRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftBridge=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftBridgeRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowConstructor=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowDeploy=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowReconcile=$true } },
@@ -85,6 +88,7 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('NftLifecycleRecover') -and $path.EndsWith('psp34-mutation-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftPublicRecover') -and $path.EndsWith('psp34-public-mutation-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftCustodyRecover') -and $path.EndsWith('psp34-custody-pending.jsonl')) { continue }
+        if ($arguments.ContainsKey('NftBridgeRecover') -and $path.EndsWith('psp34-bridge-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftEscrowReconcile') -and $path.EndsWith('psp34-escrow-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('NftEscrowLifecycleRecover') -and $path.EndsWith('psp34-escrow-lifecycle-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftEscrowPublicRecover') -and $path.EndsWith('psp34-escrow-public-pending.jsonl')) { continue }

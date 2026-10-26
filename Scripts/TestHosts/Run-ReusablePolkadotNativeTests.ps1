@@ -23,6 +23,7 @@ try {
     $nftMutationPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
     $publicNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
     $custodyNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-custody-pending.jsonl'
+    if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-bridge-pending.jsonl')) { throw 'Pending original exists: public NFT bridge custody. Reconcile read-only, never replay.' }
     $escrowDeploymentPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-deployment-pending.json'
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-deployment-pending.json')) { throw 'Pending original exists: token escrow deployment. Reconcile read-only, never replay.' }
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-test-token-deployment-pending.json')) { throw 'Pending original exists: PSP22 acceptance asset deployment. Reconcile read-only, never replay.' }
