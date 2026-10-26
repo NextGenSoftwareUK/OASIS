@@ -2200,3 +2200,79 @@ All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once t
 ## 26 October: required authoritative policy deployment verified
 
 CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## Bounded federated SDK rows — 26 October 2026
+
+This SDK feature has unit verification; real MongoDB/SQLite/Neo4j federation and
+HTTP acceptance are still pending. Ordinary multi-provider queries continue to
+return separate provider result sets. Explicit federation adds a global page.
+
+The application supplies an already authorized, bounded `adapters` snapshot and
+an authenticated `actorId`; choosing providers does not grant data access.
+
+```csharp
+// Bind the actor before querying. Metadata labels cannot grant access.
+var access = CosmicQueryReadAccess.OwnerOrPublic(actorId);
+if (access.IsError)
+    throw new InvalidOperationException(access.Message);
+
+// This source has no per-provider Skip/Take. Adding them would retain their
+// per-provider meaning, independently of the global page below.
+var source = CosmicQuery<Holon>
+    .Create(CosmicQueryScope.AllEligible)
+    .WithReadAccess(access.Result)
+    .OrderBy(holon => holon.Name);
+
+if (source.IsError)
+    throw new InvalidOperationException(source.Message);
+
+// Preserve each physical copy and its provider. For explicit replica selection,
+// choose ProviderPriority and pass every resolved provider exactly once.
+var options = CosmicFederationOptions.Create(
+    skip: 0,
+    take: 10,
+    maximumInputRows: 1_000,
+    maximumRowsPerProvider: 500,
+    maximumInputBytes: 4 * 1024 * 1024,
+    maximumOutputBytes: 1024 * 1024,
+    maximumDurationMilliseconds: 5_000);
+
+if (options.IsError)
+    throw new InvalidOperationException(options.Message);
+
+var targets = adapters
+    .Select(adapter => new CosmicQueryTarget(
+        adapter.QueryProviderType,
+        adapter.QueryCapabilities))
+    .ToArray();
+
+var plan = CosmicFederationPlanner.Plan(
+    source.Result,
+    options.Result,
+    currentDefaultProvider,
+    targets);
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var page = await CosmicFederationExecutor.ExecuteAsync(
+    plan.Result,
+    adapters,
+    cancellationToken);
+
+if (page.IsError)
+    throw new InvalidOperationException(page.Message);
+
+foreach (var item in page.Result.Rows)
+{
+    Console.WriteLine($"{item.Selected.Provider}: {item.Selected.Row.Name}");
+}
+```
+
+Every source must finish within the declared bounds. A small global page does
+not permit truncated inputs or silent omission of a failed provider. No partial
+result is returned on failure. Priority selection precedes global paging and
+retains the observed accessible copies in `Copies`; it never means newest.
+`ResolvedRows` is the count before the global page. No repeatable snapshot or
+continuation cursor is promised. See CQL_FEDERATION_CONTRACT.md for remaining
+production acceptance, error behavior and identity semantics.
