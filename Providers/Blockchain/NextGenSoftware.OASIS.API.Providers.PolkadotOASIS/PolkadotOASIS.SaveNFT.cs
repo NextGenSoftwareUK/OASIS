@@ -170,80 +170,48 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
-            var response = new OASISResult<IWeb3NFT>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
+            var response=new OASISResult<IWeb3NFT>();
+            try {
+                if(!IsGenesisHash(nftTokenAddress))throw new ArgumentException("A canonical32byte PSP34 collection contract address is required.",nameof(nftTokenAddress));
+                if(_nftConfiguration==null)throw new InvalidOperationException("Configure the reviewed PSP34 code hash and explicit query origin before NFT reads.");
+                if(!_isActivated) {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IWeb3NFT>(activation);
                 }
-
-                // Query NFT from Polkadot smart contract using state_call
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "state_call",
-                    @params = new[]
-                    {
-                        "Oasis_getNFT",
-                        Convert.ToBase64String(Encoding.UTF8.GetBytes($"{{\"token_address\":\"{nftTokenAddress}\"}}")),
-                        null
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var rpcResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (rpcResponse.TryGetProperty("result", out var result))
-                    {
-                        var nftJson = Convert.FromBase64String(result.GetString());
-                        var nftData = JsonSerializer.Deserialize<JsonElement>(Encoding.UTF8.GetString(nftJson));
-                        
-                        var imgStr = nftData.TryGetProperty("image", out var imgEl) ? imgEl.GetString() : null;
-                        var nft = new Web3NFT
-                        {
-                            NFTTokenAddress = nftTokenAddress,
-                            Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
-                            Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                            ImageUrl = imgStr ?? "",
-                            Image = !string.IsNullOrEmpty(imgStr) ? System.Text.Encoding.UTF8.GetBytes(imgStr) : null
-                        };
-                        if (nft.MetaData == null) nft.MetaData = new Dictionary<string, string>();
-                        if (nftData.TryGetProperty("external_url", out var extUrl))
-                            nft.MetaData["external_url"] = extUrl.GetString() ?? "";
-
-                        response.Result = nft;
-                        response.IsError = false;
-                        response.Message = "NFT loaded successfully from Polkadot blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "NFT not found on Polkadot blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load NFT from Polkadot: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadOnChainNFTDataAsync: {ex.Message}");
+                var address=nftTokenAddress.ToLowerInvariant();
+                var observed=await InvokePolkadotSdkAsync(new {operation="psp34ReadCollection",endpoint=_rpcEndpoint,
+                    genesisHash=ReportedGenesisHash,contractAddress=address,contractCodeHash=_nftConfiguration.CodeHash,
+                    origin=_nftConfiguration.QueryOrigin});
+                response.Result=ParsePsp34Collection(observed,address);
+                response.IsLoaded=true;response.Message="PSP34 collection metadata loaded from finalized state.";
+            } catch(Exception cause) {
+                OASISErrorHandling.HandleError(ref response,$"Error loading PSP34 collection: {cause.Message}",cause);
             }
             return response;
+        }
+
+        private IWeb3NFT ParsePsp34Collection(JsonElement observed,string address)
+        {
+            if(_nftConfiguration==null||observed.GetProperty("contractAddress").GetString()!=address
+                ||observed.GetProperty("codeHash").GetString()!=_nftConfiguration.CodeHash
+                ||!IsGenesisHash(observed.GetProperty("blockHash").GetString())
+                ||observed.GetProperty("collectionId").ValueKind!=JsonValueKind.Object)
+                throw new System.IO.InvalidDataException("PSP34 collection response differs from the reviewed contract identity.");
+            var attributes=observed.GetProperty("attributes");
+            string Attribute(string key) {
+                var value=attributes.GetProperty(key);
+                return value.ValueKind==JsonValueKind.Null?null:value.ValueKind==JsonValueKind.String?value.GetString():
+                    throw new System.IO.InvalidDataException("PSP34 metadata attribute must be text or absent.");
+            }
+            return new Web3NFT {
+                NFTTokenAddress=address,Title=Attribute("name")??string.Empty,Symbol=Attribute("symbol")??string.Empty,
+                Description=Attribute("description")??string.Empty,ImageUrl=Attribute("image")??string.Empty,
+                MetaData=new Dictionary<string,string> {
+                    ["polkadot:collection-id"]=observed.GetProperty("collectionId").GetRawText(),
+                    ["polkadot:block-hash"]=observed.GetProperty("blockHash").GetString(),
+                    ["polkadot:code-hash"]=_nftConfiguration.CodeHash
+                }
+            };
         }
     }
 }

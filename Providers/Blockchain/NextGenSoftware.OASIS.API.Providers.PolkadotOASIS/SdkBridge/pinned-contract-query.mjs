@@ -1,10 +1,13 @@
 // One finalized code-pinned view for any reviewed pallet-contracts ABI.
 // Callers own ABI encoding/decoding. No signing, submission, retry or fallback.
-export async function openPinnedContractQuery(api, request) {
+export function validatePinnedContractQuery(request) {
   for (const field of ['contractAddress', 'origin', 'contractCodeHash']) {
     if (typeof request[field] !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(request[field]))
       throw new Error('Explicit canonical contract/origin/code identity required.');
   }
+}
+export async function openPinnedContractQuery(api, request) {
+  validatePinnedContractQuery(request);
   const address = api.createType('AccountId32', request.contractAddress).toHex();
   const origin = api.createType('AccountId32', request.origin).toHex();
   const codeHash = request.contractCodeHash.toLowerCase();

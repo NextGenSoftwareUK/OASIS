@@ -44,6 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         private readonly string _contractAddress;
         private readonly string _bridgePoolAddress;
         private readonly PolkadotConfiguredRecordBackend _recordStorage;
+        private readonly PolkadotNftConfiguration _nftConfiguration;
         private bool _isActivated;
         private bool _isDisposed;
         private int _rpcRequestId;
@@ -77,12 +78,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             : this(rpcEndpoint, chainId, privateKey, bridgePoolAddress, PolkadotStorageConfiguration.FromEnvironment()) { }
 
         public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress, PolkadotStorageConfiguration storage)
-            : this(new PolkadotConfiguredRecordBackend(storage), rpcEndpoint, chainId, privateKey, bridgePoolAddress) { }
+            : this(rpcEndpoint,chainId,privateKey,bridgePoolAddress,storage,PolkadotNftConfiguration.FromEnvironment()) { }
 
-        private PolkadotOASIS(PolkadotConfiguredRecordBackend backend, string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress)
+        public PolkadotOASIS(string rpcEndpoint,string chainId,string privateKey,string bridgePoolAddress,
+            PolkadotStorageConfiguration storage,PolkadotNftConfiguration nft)
+            : this(new PolkadotConfiguredRecordBackend(storage),rpcEndpoint,chainId,privateKey,bridgePoolAddress,nft) { }
+
+        private PolkadotOASIS(PolkadotConfiguredRecordBackend backend, string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress,PolkadotNftConfiguration nft)
             : base(backend)
         {
             _recordStorage = backend;
+            _nftConfiguration=nft;
             backend.Bind(configuration => CreateRecordBackend(configuration.ContractAccountId, configuration.CodeHash, configuration.OwnerAccountId), EnsureRecordActivation);
             this.ProviderName = "PolkadotOASIS";
             this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";

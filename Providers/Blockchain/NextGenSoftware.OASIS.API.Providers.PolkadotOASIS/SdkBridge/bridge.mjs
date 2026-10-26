@@ -13,6 +13,8 @@ import { readWalletHistory, validateHistoryRequest } from './wallet-history.mjs'
 import { generateKeyPair, validateGenerationRequest, createAccount, restoreAccount, validateRestorationMaterial } from './key-generation.mjs';
 import { readTransactionStatus, validateStatusRequest } from './transaction-status.mjs';
 import { readRecordContract, validateRecordRead } from './record-contract-read.mjs';
+import { readPsp34Collection } from './psp34-contract-read.mjs';
+import { validatePinnedContractQuery } from './pinned-contract-query.mjs';
 import { prepareRecordMutation, verifyRecordPreparation, validateRecordMutation } from './record-contract-mutation.mjs';
 import { readOriginalRecordOutcome, validateRecordOutcome } from './record-contract-outcome.mjs';
 
@@ -23,8 +25,9 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
   if (request.operation === 'recordRead') validateRecordRead(request);
+  if (request.operation === 'psp34ReadCollection') validatePinnedContractQuery(request);
   if (request.operation === 'prepareRecordMutation') await validateRecordMutation(request);
   if (request.operation === 'recordOutcome') validateRecordOutcome(request);
   if (['generateKeyPair', 'createAccount'].includes(request.operation)) validateGenerationRequest(request);
@@ -50,7 +53,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -59,7 +62,10 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'recordOutcome') {
+  if (request.operation === 'psp34ReadCollection') {
+    stage = 'finalized code-pinned PSP34 collection metadata';
+    process.stdout.write(JSON.stringify({ ok: true, result: await readPsp34Collection(api, request) }));
+  } else if (request.operation === 'recordOutcome') {
     stage = 'original record finalized effect verification';
     process.stdout.write(JSON.stringify({ ok: true, result: await readOriginalRecordOutcome(api, request) }));
   } else if (request.operation === 'prepareRecordMutation') {
