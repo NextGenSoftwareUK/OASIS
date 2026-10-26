@@ -6,7 +6,7 @@ import { submitCheckedRecord } from "./checked-write.mjs";
 import { decodeCallArguments } from "./call-arguments.mjs";
 import { submitNativeAction } from "./native-mutation.mjs";
 import {pathToFileURL} from 'node:url';
-import {prepareNearAction,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation} from './native-preparation.mjs';
+import {prepareNearAction,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation,nearActionIntent} from './native-preparation.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -29,6 +29,17 @@ async function execute(input) {
   if(input.operation==='submitNativePreparation'&&(!process.env.OASIS_NATIVE_PREPARATION_PIPE||!process.env.OASIS_NATIVE_PREPARATION_MODULE))
     throw new Error('Existing owned native preparation pipe/module required before submission.');
   const provider = providerFor(input);
+  let original;
+  const hasPipe=Boolean(process.env.OASIS_NATIVE_PREPARATION_PIPE),hasModule=Boolean(process.env.OASIS_NATIVE_PREPARATION_MODULE);
+  if(hasPipe!==hasModule)throw new Error('Incomplete owned native preparation context.');
+  const submitOriginal=hasPipe?async(account,receiver,action)=>{
+    const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+    const preparation=await prepareNearAction(account,{chainId:input.networkId,sender:account.accountId,...nearActionIntent(receiver,action)});
+    original=await submitNearPreparation(provider,preparation,input.networkId,preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE),
+      exactNearSubmission(input.rpcEndpoint,preparation.signedTransactionBase64));
+    return original.outcome;
+  }:undefined;
+  const ownedReply=reply=>original?{...reply,persisted:original.persisted,submitted:original.submitted,outcome:original.outcome}:reply;
   switch (input.operation) {
     case 'prepareNativeAction':
       if(input.request?.chainId!==input.networkId||input.request?.sender!==input.accountId)throw new Error('Native request differs from configured signer/network.');
@@ -102,8 +113,8 @@ async function execute(input) {
     case "transfer": {
       const account = accountFor(input, provider);
       if (!input.receiverId) throw new Error("receiverId is required");
-      const outcome = await submitNativeAction(account,input.receiverId,actions.transfer(BigInt(input.amountYocto)));
-      return { transactionHash: outcome.transaction_outcome.id, outcome };
+      const outcome = await submitNativeAction(account,input.receiverId,actions.transfer(BigInt(input.amountYocto)),submitOriginal);
+      return ownedReply({ transactionHash: outcome.transaction_outcome.id, outcome });
     }
     case "transactionStatus": {
       if (!input.transactionHash) throw new Error("transactionHash is required");
@@ -126,12 +137,12 @@ async function execute(input) {
       const args=decodeCallArguments(input.argsBase64);
       const account = accountFor(input, provider);
       const outcome = await submitNativeAction(account,input.targetContractId ?? input.contractId,
-        actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")));
-      return { transactionHash: outcome.transaction_outcome.id, outcome };
+        actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")),submitOriginal);
+      return ownedReply({ transactionHash: outcome.transaction_outcome.id, outcome });
     }
     case "putRecordChecked":
-      return await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
-        args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n));
+      return ownedReply(await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
+        args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n),submitOriginal));
     default:
       throw new Error(`Unsupported NEAR SDK operation: ${input.operation}`);
   }

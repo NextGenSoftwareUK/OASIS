@@ -1,6 +1,6 @@
 import {submitNativeAction} from './native-mutation.mjs';
 // One SDK invocation. This does not certify provider transport retries or durable pre-sign admission.
-export async function submitCheckedRecord(provider,createAccount,input,createAction) {
+export async function submitCheckedRecord(provider,createAccount,input,createAction,submitOriginal) {
   let account,action;
   try {
   if(!input.networkId||!input.contractId)throw new Error('Explicit network and contract identity required');
@@ -12,7 +12,7 @@ export async function submitCheckedRecord(provider,createAccount,input,createAct
     const error=cause instanceof Error?cause:new Error(String(cause));
     error.checkedWritePhase='before-submission';throw error;
   }
-  const outcome=await submitNativeAction(account,input.contractId,action);
+  const outcome=await submitNativeAction(account,input.contractId,action,submitOriginal);
   // Preserve native failures as receipts, not exceptions which discard the acknowledged identity.
   // Consumers must validate FINAL/status and reconcile malformed/unknown acknowledgements.
   return {transactionHash:outcome.transaction_outcome?.id??null,

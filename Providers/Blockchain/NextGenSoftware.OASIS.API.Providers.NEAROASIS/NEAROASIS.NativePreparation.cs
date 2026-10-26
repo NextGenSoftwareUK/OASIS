@@ -21,7 +21,7 @@ public sealed class NearNativeAction
     {Kind=kind;Recipient=recipient;DepositUnits=depositUnits;MethodName=methodName;GasUnits=gasUnits;ArgumentsBase64=argumentsBase64;}
 }
 
-public partial class NEAROASIS
+public partial class NEAROASIS : IPreparedNativeStorageProvider
 {
     /// <summary>Executes one native action under an EXISTING admission; never creates a reservation or authorizes spending.</summary>
     public async Task<OASISResult<JsonElement>> ExecutePreparedNativeActionAsync(NearNativeAction request,UsageExecutionHandle execution,
@@ -30,6 +30,7 @@ public partial class NEAROASIS
         var result=new OASISResult<JsonElement>();string originalId=null;var submissionStarted=false;
         try {
             ArgumentNullException.ThrowIfNull(execution);
+            if(_sdk.HasPreparationOwner)throw new InvalidOperationException("Explicit native execution cannot replace an existing NEAR operation owner.");
             ArgumentNullException.ThrowIfNull(request);
             ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
             if(string.IsNullOrWhiteSpace(expectedSender)||expectedSender!=_accountId)
@@ -47,13 +48,7 @@ public partial class NEAROASIS
             var nativeRequest=new Dictionary<string,object>(intent){{"sender",_accountId},{"chainId",_networkId}};
             var preparation=await _sdk.PrepareNativeActionAsync(nativeRequest,cancellationToken).ConfigureAwait(false);
             originalId=preparation.GetProperty("transactionHash").GetString();
-            async Task Verify(JsonElement evidence,CancellationToken token){
-                var verified=await _sdk.VerifyNativePreparationAsync(evidence,token).ConfigureAwait(false);
-                if(!verified.GetProperty("verified").GetBoolean()||verified.GetProperty("chainId").GetString()!=_networkId
-                    ||verified.GetProperty("sender").GetString()!=expectedSender||verified.GetProperty("transactionHash").GetString()!=originalId
-                    ||!JsonElement.DeepEquals(verified.GetProperty("intent"),expectedIntent))
-                    throw new InvalidDataException("Original signed NEAR identity/action differs from the admitted immutable request.");
-            }
+            Task Verify(JsonElement evidence,CancellationToken token)=>VerifyPreparedIntentAsync(evidence,expectedIntent,expectedSender,originalId,token);
             await Verify(preparation,cancellationToken).ConfigureAwait(false);
             using var server=new PreparedSubmissionServer(execution.NativePreparationPersistence("NEAROASIS",null,clientRequestId,
                 _networkId,expectedSender,Verify),originalId);
@@ -72,6 +67,38 @@ public partial class NEAROASIS
             OASISErrorHandling.HandleError(ref result,failure.Message,failure);
         }
         return result;
+    }
+
+    /// <summary>Uses the existing async-flow owner for every physical mutation in an admitted ordinary provider operation.</summary>
+    public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
+        string clientRequestId,string expectedSender,CancellationToken token=default)
+    {
+        ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
+        token.ThrowIfCancellationRequested();
+        if(!_isActivated||_chainId!=_networkId)throw new InvalidOperationException("Activate a consistently configured NEAR network before prepared storage.");
+        if(string.IsNullOrWhiteSpace(expectedSender)||expectedSender!=_accountId)throw new ArgumentException("Expected NEAR signer must equal this configured execution wallet.");
+        if(execution.RequiresVerifiedNativeFeeMaximums)throw new UsageProtocolException("NEAR_VERIFIED_FEE_MAXIMUM_REQUIRED",
+            "Full verified native fee maxima are required before sponsored NEAR execution.",400);
+        var correlation=new NativeStorageCorrelation(clientRequestId);
+        return _sdk.WithPreparationAsync(operation,(_,context)=>{
+            using var parsed=JsonDocument.Parse(context);
+            if(parsed.RootElement.GetProperty("sender").GetString()!=expectedSender)
+                throw new InvalidOperationException("Ordinary native operation cannot replace its admitted signer.");
+            var intent=parsed.RootElement.GetProperty("intent").Clone();
+            return new PreparedSubmissionServer(execution.NativePreparationPersistence("NEAROASIS",null,correlation.Next(),_networkId,expectedSender,
+                (evidence,ct)=>VerifyPreparedIntentAsync(evidence,intent,expectedSender,null,ct)));
+        },token);
+    }
+
+    private async Task VerifyPreparedIntentAsync(JsonElement evidence,JsonElement expectedIntent,string expectedSender,string originalId,CancellationToken token)
+    {
+        var verified=await _sdk.VerifyNativePreparationAsync(evidence,token).ConfigureAwait(false);
+        if(!verified.GetProperty("verified").GetBoolean()||verified.GetProperty("chainId").GetString()!=_networkId
+            ||verified.GetProperty("sender").GetString()!=expectedSender
+            ||verified.GetProperty("transactionHash").GetString()!=evidence.GetProperty("transactionHash").GetString()
+            ||(originalId!=null&&verified.GetProperty("transactionHash").GetString()!=originalId)
+            ||!JsonElement.DeepEquals(verified.GetProperty("intent"),expectedIntent))
+            throw new InvalidDataException("Original signed NEAR identity/action differs from the admitted immutable request.");
     }
 
     /// <summary>Reconstructs persisted signed bytes read-only. Does not sign, replay, settle fees or declare completion.</summary>
