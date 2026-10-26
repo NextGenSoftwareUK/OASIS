@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR worker credential routing — 26 October
+
+Controlled baselines reproduced10request-field failures and17ambient-credential failures. Final470unitPASS0skip31s after central request key allowlist and child-only removal of known NEAR signing/storage environment keys. Explicit selected signing/derivation inputs and parent record crypto retained. Same environment/no native mutation/download. Independent-payer/hosted/native-loss/full-provider gates remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR NFT native replay guards — 26 October
 
 453unitPASS +1nativePASS52s.23durably retained originals recovered keylessly (20success/3exact expected failures). Public stale-source/released-replay rejects before signing; native stale-ID release, locked burn and burn/remint old-ID reuse rejected. Synthetic NFT/remint burned,4owned ciphertext history rows removed after exact checks; replay tombstones retained. Same runtime stopped, no installs/downloads. Same-account custom-contract scope; independent owners, transport loss, hosted fees/authority and full provider/V2 remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
