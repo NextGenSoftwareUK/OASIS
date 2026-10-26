@@ -23,6 +23,7 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-lifecycle-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-escrow-public-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-deployment-pending.json'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -43,6 +44,9 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowLifecycleRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowPublic=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftEscrowPublicRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowConstructor=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowDeploy=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowReconcile=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
@@ -61,6 +65,7 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('NftEscrowReconcile') -and $path.EndsWith('psp34-escrow-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('NftEscrowLifecycleRecover') -and $path.EndsWith('psp34-escrow-lifecycle-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftEscrowPublicRecover') -and $path.EndsWith('psp34-escrow-public-pending.jsonl')) { continue }
+        if ($arguments.ContainsKey('TokenEscrowReconcile') -and $path.EndsWith('psp22-escrow-deployment-pending.json')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)

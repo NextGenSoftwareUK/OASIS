@@ -1,11 +1,11 @@
 {
-  "DateUtc": "2026-10-26T17:18:27.4267450Z",
-  "RootCommit": "cf7f4fb27cfcab172c9ba933edee6a4c42fdc773",
+  "DateUtc": "2026-10-26T17:24:13.2333712Z",
+  "RootCommit": "d208dfdf79693525766c11feddd13d016c84de8a",
   "Sources": [
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/token-escrow/lib.rs",
-      "Sha256": "2B9B8D5765A3DCC0105327A8FDCD21170563E25E67EC96F9831076A6F048DAE9",
-      "Bytes": 8855
+      "Sha256": "368A53D92055EF65873A77349E3982864A04E0AF9952C6C16AAF01C280770CAC",
+      "Bytes": 8878
     },
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/token-escrow/Cargo.toml",
@@ -29,23 +29,66 @@
     },
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/oasis-psp22-escrow-codec.test.mjs",
-      "Sha256": "AC1F067476ACABEB10137AD19D3B5C3D766E9D66386C4A19B1EEB915BC4D08AE",
-      "Bytes": 3759
+      "Sha256": "7E8A726A55502049BF7B830AC2A6DBFE48666A3687810C2430CDDDC9AC4F4A84",
+      "Bytes": 6582
     },
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/psp34-contract-codec.mjs",
       "Sha256": "977A5B23B12062072A5C9F28197A370767531BEC0C215A6B3824CAA79737BDAA",
       "Bytes": 4216
+    },
+    {
+      "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/psp22-escrow-read.mjs",
+      "Sha256": "D30BCF74000FFCF49A94D89412FAF31D2A0DE68C4E3635EBE6062003FDC8D31C",
+      "Bytes": 567
+    },
+    {
+      "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/bootstrap-local-psp34.mjs",
+      "Sha256": "EA349AB2653E63EC398CAA7D41EC0D23E216313A200FFAFAADB7890A6EE45D59",
+      "Bytes": 9407
+    },
+    {
+      "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/test-local-psp34-constructor.mjs",
+      "Sha256": "7E48454CB54A622AED69842BAA4EA45546791E25FBB0202C9D291A80E0CB5BF0",
+      "Bytes": 4286
+    },
+    {
+      "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/verify-record-contract-artifact.mjs",
+      "Sha256": "EB60AB58B6C5EE0BA6C97AB46B67DCECD3EEE0DB017391A74025932B77FD7F88",
+      "Bytes": 2907
+    },
+    {
+      "Path": "Scripts/TestHosts/Build-ReusablePolkadotRecords.sh",
+      "Sha256": "868E30763E493EB0A25E115AE06FB83521AD541D3C854A035493B47E70C251CF",
+      "Bytes": 2834
+    },
+    {
+      "Path": "Scripts/TestHosts/Run-ReusablePolkadotRecordTests.ps1",
+      "Sha256": "BCCE09C870678DF083044433BFAAF5969197583C0C859BE8BD9A073CE28290A2",
+      "Bytes": 13548
+    },
+    {
+      "Path": "Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1",
+      "Sha256": "947341D8C2D81DAC1328F8F01F5064CA1C094322EE7516F228E36A2443E3F1C2",
+      "Bytes": 9145
+    },
+    {
+      "Path": "Scripts/TestHosts/Test-PolkadotPendingFences.ps1",
+      "Sha256": "131A5046DA7616DB54CD42FB76616F1309FAEAFEAE7243F2527680D69B7E70BA",
+      "Bytes": 6572
     }
   ],
   "Rust": "1.88.0",
   "Ink": "5.1.1",
   "OfflineHostPassed": 3,
-  "SdkSelectedPassed": 52,
+  "SdkSelectedPassed": 55,
   "NativePsp22Verified": false,
   "PublicTokenMethodsWired": false,
   "Downloads": 0,
   "Restores": 0,
   "Target": "TestResults/PolkadotCurrent/record-contract-target",
-  "Scope": "Host pre-call validation/auth/tombstones and strict SCALE controls; no external token call/native lifecycle proof"
+  "Scope": "Host pre-call validation/auth/tombstones and strict SCALE controls; no external token call/native lifecycle proof",
+  "NativeDeploymentVerified": true,
+  "EmptyNativeDepositGetterVerified": true,
+  "PendingFencePassed": 317
 }

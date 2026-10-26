@@ -13,10 +13,12 @@ import { originalSubmission, submitOriginalPreparation } from './original-submis
 import { readVerifiedOriginalRange } from './original-outcome.mjs';
 import { readFinalizedReceipt, readFinalizedExtrinsicContext } from './finalized-receipt.mjs';
 import { readPsp34Collection } from './psp34-contract-read.mjs';
+import { readTokenEscrowDeposit } from './psp22-escrow-read.mjs';
 
 assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1', 'Explicit retained local opt-in required.');
-assert.ok(process.argv.length === 3 || (process.argv.length === 4 && process.argv[3] === '--escrow'));
-const prefix = process.argv[3] === '--escrow' ? 'psp34-escrow' : 'psp34';
+assert.ok(process.argv.length === 3 || (process.argv.length === 4 && ['--escrow', '--token-escrow'].includes(process.argv[3])));
+const tokenEscrow = process.argv[3] === '--token-escrow';
+const prefix = tokenEscrow ? 'psp22-escrow' : process.argv[3] === '--escrow' ? 'psp34-escrow' : 'psp34';
 const mode = process.argv[2];
 assert.ok(['--deploy', '--reconcile'].includes(mode), 'Explicit deployment or same-original reconciliation required.');
 const root = resolve(import.meta.dirname, '../../../..');
@@ -28,22 +30,25 @@ if (mode === '--reconcile' && !existsSync(pending) && !existsSync(completed))
   throw new Error('No existing original to reconcile; this mode cannot deploy.');
 const cohort = JSON.parse(readFileSync(resolve(evidence, `${prefix}-wasm-current.json`), 'utf8'));
 const fixture = JSON.parse(readFileSync(resolve(evidence, `${prefix}-constructor-simulation-current.json`), 'utf8'));
-const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/oasis-${prefix}.wasm`));
+const artifact = tokenEscrow ? 'oasis-token-escrow' : `oasis-${prefix}`;
+const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/${artifact}.wasm`));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(sha(code), cohort.sha256);
 assert.equal(blake2AsHex(code, 256), cohort.codeHash);
 assert.equal(fixture.codeHash, cohort.codeHash);
+for (const [path, hash] of Object.entries(cohort.sources ?? {}))
+  assert.equal(sha(readFileSync(resolve(import.meta.dirname, '..', path))), hash, `Source cohort differs: ${path}`);
 const durable = (path, value) => {
   const fd = openSync(path, 'wx', 0o600);
   try { writeFileSync(fd, JSON.stringify(value, null, 2) + '\n'); fsyncSync(fd); }
   finally { closeSync(fd); }
 };
-const protocol = 'oasis.polkadot.local-psp34-deployment.v1';
+const protocol = tokenEscrow ? 'oasis.polkadot.local-token-escrow-deployment.v1' : 'oasis.polkadot.local-psp34-deployment.v1';
 const api = await ApiPromise.create({ provider: new HttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
 let pair;
 try {
   assert.equal(api.genesisHash.toHex(), '0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208');
-  const data = encodeOasisPsp34Constructor(api.registry,
+  const data = tokenEscrow ? '0x00000001' : encodeOasisPsp34Constructor(api.registry,
     Object.fromEntries(Object.entries(fixture.fields).map(([key, value]) => [key, Buffer.from(value, 'utf8')])));
   assert.equal(data, fixture.data);
   const sender = fixture.sender;
@@ -104,10 +109,14 @@ try {
   assert.equal(api.createType('AccountId32', instances[0].data[1]).toHex(), fixture.address);
   const at = await api.at(receipt.blockHash);
   assert.equal((await at.query.contracts.contractInfoOf(fixture.address)).unwrap().codeHash.toHex(), cohort.codeHash);
-  const collection = await readPsp34Collection(api,
-    { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash });
-  assert.deepEqual(collection.attributes, fixture.fields);
-  assert.deepEqual(collection.collectionId, { bytes: fixture.address });
+  const collection = tokenEscrow ? await readTokenEscrowDeposit(api,
+    { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash, depositId: '0x' + '11'.repeat(32) })
+    : await readPsp34Collection(api, { contractAddress: fixture.address, origin: sender, contractCodeHash: cohort.codeHash });
+  if (tokenEscrow) assert.equal(collection.deposit, null);
+  else {
+    assert.deepEqual(collection.attributes, fixture.fields);
+    assert.deepEqual(collection.collectionId, { bytes: fixture.address });
+  }
   const result = { ...stored, sender, receipt, collection, nativeDeploymentVerified: true, publicFunds: false };
   if (!existsSync(completed)) durable(completed, result);
   else assert.equal(JSON.parse(readFileSync(completed, 'utf8')).preparation.transactionHash, receipt.transactionHash);
@@ -118,5 +127,6 @@ try {
   console.log(JSON.stringify({ address: fixture.address, codeHash: cohort.codeHash,
     transactionHash: receipt.transactionHash, actualFeeUnits: receipt.actualFeeUnits,
     storageDepositLimit: stored.storageDepositLimit, nativeDeploymentVerified: true,
-    sdkCollectionReadVerified: true, mode, reusable: true, publicFunds: false }));
+    sdkCollectionReadVerified: !tokenEscrow, sdkEmptyTokenDepositReadVerified: tokenEscrow,
+    mode, reusable: true, publicFunds: false }));
 } finally { pair?.lock(); await api.disconnect(); }
