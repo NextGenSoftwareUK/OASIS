@@ -1,5 +1,9 @@
 # AWS direct configuration checkpoint — 2026-10-20
 
+## 26 October: joined avatar identity reads verified
+
+Native14811terminal0:12/12 cases +init1 PASS0skip5s/161ms, including four AWS/Dynamo×sync/async lifecycle cases with fifteen scopes each. Added public profile/detail reads by GUID/username/email verify exact identity, loaded count, XP71/Karma23 and table-bound real SDK GetItem/Scan capture in durable Mongo. All original lifecycle/unpriced-recovery/duplicate-admission assertions retained. Core7685F49/Shared56BB013239/source/PDB/copies verified, ownership3controlsPASS, fixture journals0, owned services stopped and ports absent. Same environments/SDK/cache; no download/restore/production change. Exact report hashes, resource sizes and conditional cleanup evidence in [environment inventory](ENVIRONMENT_INVENTORY.md). Hosted cloud access, trusted prices/exposure and full provider/V2 completion remain OPEN.
+
 ## 26 October: joined native lifecycle gate verified
 
 12/12 joined native cases PASS, zero skips; replica initialization also passed. Four added lifecycle cases cover both AWS/Dynamo facades and sync/async APIs. Each preserves nine original prepared scopes: create/update/history/metadata scan/conditional holon deletion, paired avatar/detail creation, transactional soft deletion preserving Karma23/XP71, then hard deletion with independent native absence checks. Actual SDK GetItem/PutItem/Scan/DeleteItem/TransactWriteItems observations retain original identities, contiguous batches and closed capture counts in real Mongo. Successful operations remain recovery-required while unpriced; no zero invoice or duplicate admission. Synthetic reservation authority and local DynamoDB are not hosted authentication, pricing or full V2 acceptance.
