@@ -3466,3 +3466,37 @@ C:\Source\OASIS\TestResults\Neo4jCurrent\floating-grouped-unit-current.trx | 831
 C:\Source\OASIS\TestResults\Neo4jCurrent\floating-grouped-unit-matched.trx | 831526bytes | SHA256725713405cacaf1704780406e01afa8565ef7200223856d30021d3d1e509a5cc | COSMIC25October2026 retained compact evidence; no activeprocess/port, regenerate same leased runner; preserve retained graphdata/cache and earliercompactcohorts.
 C:\Source\OASIS\TestResults\Neo4jCurrent\neo4j-attached-current.log | 1472bytes | SHA256a78e648cb6b77f279f5bc9020e6fbaeefa970e1688714c34e6c311b7e9662614 | COSMIC25October2026 retained compact evidence; no activeprocess/port, regenerate same leased runner; preserve retained graphdata/cache and earliercompactcohorts.
 C:\Source\OASIS\TestResults\Neo4jCurrent\neo4j-attached-current.err.log | 0bytes | SHA256e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 | COSMIC25October2026 retained compact evidence; no activeprocess/port, regenerate same leased runner; preserve retained graphdata/cache and earliercompactcohorts.
+
+25October2026 floating HTTP binding plan:56new controlled Core/linkedWEB4 cases (36scalar type/wire/actor/receipt/nullable/empty +4group selection/filter/order/page +4read-only capabilitydenials +12nonfiniteprovideroutputs). Reuse existing Core.UnitTests/net10.0 bin/obj, Core0d56 output, .NET10.0.401/sharedNuGet, in-memory MVC policy/manager mocks; no DB/service/port/newenv/download planned. Root http helper CqlScalarSelectionCompiler shared by scalar/grouped is the onlyproductionbindingowner. Record baseline before enrollment; fulltarget3154tests assumingprior3098unchanged. Reports CoreCurrent/floating-http-red.trx/floating-http-current.trx; compactlogs CosmicCqlDemo/floating-http-{red,full}.log. Samegloballease; peerSolana explicitlyreserved untilfinalrelease, no buildattemptwhilequeued. MissingCoretestcache ['Castle.Core/5.1.1', 'coverlet.collector/6.0.2', 'FluentAssertions/6.12.0', 'Moq/4.20.72'].
+
+PeerSolana finalreservationreleased. Targeted missingCoretest restoreplanned underlease: Castle.Core5.1.1, coverlet.collector6.0.2, FluentAssertions6.12.0, Moq4.20.72 into original C:/Users/david/.nuget/packages; original packagegraph/contenthashes saved CosmicCqlDemo/floating-http-dependencies-before.json. Existing .NET/sharedcache reused, root --no-dependencies --disable-parallel /m:2 /nr:false only, no newenv/runtime; sizespending. Restorelog floating-http-restore.log, compactevidence retained; reusablepackages retained and shared HTTPcache ownership remains shared.
+
+HTTPtest targetedrestoreterminal0: fouroriginalmissingpackages28090028logicalbytes at identitiesabove, all originalversions/contenthashes unchanged. Retain reusableglobalcache; no runtime/env/newproviderDB. Proceed boundedredgate, expected56failuresbeforebinder enrollment, not acceptance.
+
+
+### Reboot recovery and floating HTTP gate — 25 October 2026
+
+Owner: COSMIC ORM session. Reused C:/Source/OASIS, .NET SDK 10.0.401,
+existing Core.UnitTests bin/obj and WEB4 bin/obj (sizes unmeasured), shared
+NuGet cache and fixed TestResults directories; no new environment, database,
+container, worktree or runtime. Pre-gate free C: 81,442,938,880 bytes.
+The pre-reboot red report survived: 56 failed, zero skipped. After the shared
+binder fix, 56 focused and 3,154 full Core tests pass, zero skipped.
+Reports: C:/Source/OASIS/TestResults/CoreCurrent/floating-http-{red,green,full}.trx;
+logs: C:/Source/OASIS/TestResults/CosmicCqlDemo/floating-http-{red,green,full}.log.
+Retain compact test evidence; regenerate with the leased Core test command.
+Generated outputs remain reusable/shared; no deletion authorized by this entry.
+No provider services or ports were started by this gate.
+
+Shipping WEB4 build failed because original cache folders
+C:/Users/david/.nuget/packages/awssdk.s3/3.7.401 and
+C:/Users/david/.nuget/packages/microsoft.codeanalysis.analyzers/3.3.3
+are absent (verified directly). Historical removal ownership unknown.
+No replacement download attempted in this gate. Shipping validation remains
+open; recover required pinned dependencies before claiming live acceptance.
+
+Targeted recovery plan: reuse fixed C:/Source/OASIS/TestResults/CosmicCqlDemo/DependencyRecovery/DependencyRecovery.csproj (created, size unmeasured, disposable after restore) with PackageDownload for only AWSSDK.S3 3.7.401 and Microsoft.CodeAnalysis.Analyzers 3.3.3. NuGet installs into original shared global cache; verify original assets SHA512; retain reusable packages, remove owned recovery project/obj after verified operation. No service/port dependencies. Full WEB4 graph has 166 missing folders; no wholesale restore planned.
+
+Two analyzer packages recovered by NuGet, hash verification against original assets performed. Shipping build now reveals missing references (952 compile errors, including Grpc types); analyzer-only recovery insufficient. Restore original WEB4 dependency graph once into shared original cache using --no-dependencies, bounded workers, no new environment. Original versions/hashes recorded TestResults/CosmicCqlDemo/web4-recovery-graph-before.json; post-restore equality and measured cache additions required. Preserve failed shipping log; no shipping pass claimed.
+
+Analyzer recovery actuals: AWSSDK.S3/3.7.401 29,603,439 bytes; Microsoft.CodeAnalysis.Analyzers/3.3.3 4,133,174 bytes. Both NuGet .nupkg.metadata contentHash values match original project.assets entries. Initial comparison against archive .nupkg.sha512 was the wrong hash identity and returned false; contentHash verification is authoritative for assets equality. Shared reusable cache retained.
