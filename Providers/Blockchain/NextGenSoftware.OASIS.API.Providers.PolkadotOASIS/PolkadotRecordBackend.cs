@@ -109,6 +109,33 @@ public sealed class PolkadotRecordBackend : IConditionalKeyValueBackend
         var response = await _invoke(request, cancellationToken, null).ConfigureAwait(false); Identity(response);
         if (!response.GetProperty("verified").GetBoolean()) throw new InvalidDataException("Native contract verification was not acknowledged.");
     }
+
+    /// <summary>Read-only recovery of a retained signed original; absence in a bounded
+    /// scan is not failure/expiry and never authorizes signing or resubmission.</summary>
+    public async Task<JsonElement> ReadOriginalOutcomeAsync(JsonElement preparation, string fromBlockNumber = null,
+        int maximumBlocks = 32, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var original = preparation.Clone();
+        if (maximumBlocks is < 1 or > 128) throw new ArgumentOutOfRangeException(nameof(maximumBlocks));
+        if (fromBlockNumber != null) Revision(fromBlockNumber);
+        if (original.GetProperty("chainId").GetString() != _genesis || original.GetProperty("sender").GetString() != _sender
+            || original.GetProperty("contractAddress").GetString() != _contract || original.GetProperty("contractCodeHash").GetString() != _code
+            || !Hash.IsMatch(original.GetProperty("transactionHash").GetString() ?? ""))
+            throw new ArgumentException("Retained original belongs to a different record backend.", nameof(preparation));
+        var lookup = Request("recordOutcome"); lookup["preparation"] = original; lookup["maximumBlocks"] = maximumBlocks;
+        if (fromBlockNumber != null) lookup["fromBlockNumber"] = fromBlockNumber;
+        var response = await _invoke(lookup, cancellationToken, null).ConfigureAwait(false);
+        if (response.GetProperty("found").GetBoolean())
+        {
+            var receipt = response.GetProperty("receipt");
+            if (receipt.GetProperty("transactionHash").GetString() != original.GetProperty("transactionHash").GetString()
+                || !receipt.GetProperty("finalized").GetBoolean() || receipt.GetProperty("contractAddress").GetString() != _contract
+                || receipt.GetProperty("action").GetString() != original.GetProperty("action").GetString())
+                throw new InvalidDataException("Recovered receipt differs from the retained original.");
+        }
+        return response.Clone();
+    }
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
         => Mutate("put", key, value, "Any", null, cancellationToken);
     public Task CreateOnlyAsync(string key, string value, CancellationToken cancellationToken = default)
@@ -153,9 +180,7 @@ public sealed class PolkadotRecordBackend : IConditionalKeyValueBackend
             while (true)
             {
                 linked.Token.ThrowIfCancellationRequested();
-                var lookup = Request("recordOutcome"); lookup["preparation"] = prepared.Clone(); lookup["maximumBlocks"] = 32;
-                if (cursor != null) lookup["fromBlockNumber"] = cursor;
-                var outcome = await _invoke(lookup, linked.Token, null).ConfigureAwait(false);
+                var outcome = await ReadOriginalOutcomeAsync(prepared, cursor, 32, linked.Token).ConfigureAwait(false);
                 if (outcome.GetProperty("found").GetBoolean())
                 {
                     var receipt = outcome.GetProperty("receipt");
