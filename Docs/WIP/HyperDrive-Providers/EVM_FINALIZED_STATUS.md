@@ -1,5 +1,19 @@
 # EVM finalized transaction status — implementation in progress
 
+## Approved environment recovery — 25 October 2026
+
+Old evidence was preserved by exact-hash moves under both leases, with durable manifest `TestResults/EthereumCurrent/evm-recovery-preservation.current.json` (SHA256 `5D3A14CC97DEDBA1B77002AB10D75BB54BC9E32828766695D5FE0FFF8B130CC2`). All 15 preserved artifacts were independently checked after the move. Old transaction outcomes remain unverified; this did not reconstruct the old ephemeral chain.
+
+Targeted pinned-package recovery completed with unchanged assets identities. The existing native runner compiled both Solidity fixtures and all eight producer/consumer projects successfully, but run33045 terminated1 before native test invocation: localhost18545 did not return the expected chain within the existing20-second readiness gate. Both new runtime logs are empty; no fresh native TRX or successful transaction proof exists. Owned startup process was stopped by the runner's pre-native teardown, and18545/18546 listeners are absent. Node24.19.0, direct Hardhat import (~546ms), and the same hidden CLI launch with `--version` (2.22.10) pass; these do not explain or repair node readiness.
+
+A separate read-only node-start diagnostic was rejected before execution by execution policy (`blocked by policy`, no further reason supplied). It was not reissued through another shell/tool. Native recovery therefore remains open. The runner now verifies Core/Shared source and assembly identities in both consumers before starting the node, and retains the last readiness exception/chain-id observation in its error instead of discarding that evidence. Its deadline, readiness criterion and node-retention policy are unchanged. The existing actual-expression retention test passes64decisions plus lifecycle ordering; this is script-control evidence, not native provider acceptance.
+
+## Transport cancellation audit — 25 October 2026
+
+Rechecked the source-linked `src/EvmTransactionStatus.cs` while the shared native Mongo regression occupied the producer lease. All three status RPC observations still use `Task.WaitAsync(ct)`, so caller cancellation does not prove transport cancellation. The pinned [Nethereum 7.0.0 RpcClient source](https://github.com/Nethereum/Nethereum/blob/7.0.0/src/Nethereum.JsonRpc.RpcClient/RpcClient.cs) creates its own cancellation source from `ConnectionTimeout` for `PostAsync`; it does not receive the observation caller's token. Its external-HttpClient constructor also initializes that client's base address and authorization. Consequently, changing a borrowed client's global timeout or disposing/cancelling it per status call would affect unrelated operations and is not an acceptable repair.
+
+Required next implementation evidence: preserve the configured SDK transport/authentication ownership, propagate an operation-scoped linked token into the actual request, dispose owned response/content resources, and test cancellation during a blocked HTTP response plus an independent concurrent request. The latter must remain usable after cancelling the former. No transport implementation was changed or certified by this source audit; the finality and bridge-settlement limitations below remain open.
+
 ## Shared Web3 counts — 23 October 2026, controlled verification only
 
 Shared returned-root counters repaired for Polygon/Arbitrum V2 wrapper: new39 cases corrected baseline19fail/20pass; full176 Web3 selected and124 Ethereum non-native PASS0skip. Real SDK ABI codec with controlled RPC responses, encrypted successful exports avatar2/root3/child1, root-vs-descendant/filter/error counts. Exact source/copy/PDB/report cohort in inventory. Original routing.db unchanged;64 retention controls pass. This is NOT new finalized transaction/native-chain/gas/V2 certification; those gates remain OPEN. No environment/download/node/sign/broadcast/dev deployment.
