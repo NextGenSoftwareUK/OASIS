@@ -1877,3 +1877,12 @@ WEB4 helpers support conditional ShareAsync/RevokeAsync mutations; see the
 share does not widen the current CQL owner/public profile. Native recipient/tenant
 policy support remains unenrolled. Handle conflicts and uncertain outcomes as
 errors; do not retry through an ordinary save.
+
+## Generic recipient representation validation
+
+Core `HolonReadGrants.Read` and `Encode` provide bounded whole-set recipient
+validation and canonical encoding independently of provider choice. WEB4 now
+uses that owner and rejects malformed grants before sharing mutations. Valid
+legacy text requires explicit admission; malformed JSON never changes grammars.
+See the [contract and migration limits](CQL_SHARING_WRITE_CONTRACT.md). This does
+not enroll recipient/tenant access in CQL or replace authenticated issuer checks.
