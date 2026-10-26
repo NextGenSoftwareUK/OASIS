@@ -144,16 +144,29 @@ test('ordinary shared native policy delegates once to owned capability and never
 test('checked record keeps protocol preflight and passes exact action through same owned capability',async()=>{
   let submits=0,signs=0;
   const account={signAndSendTransaction:async()=>{signs++;throw new Error('Unowned signing');}};
-  const input={networkId:chain,contractId:'contract.near',args:{key:'holon:fixture',expected_value:null,value:'ciphertext'}};
+  const args={key:'holon:fixture',expected_value:null,value:'ciphertext'};
+  const input={networkId:chain,contractId:'contract.near',argsBase64:Buffer.from(JSON.stringify(args)).toString('base64')};
   const node={getNetworkId:async()=>chain,callFunction:async()=>1};
   const createAction=args=>actions.functionCall('put_record_checked',args,100000000000000n,0n);
   const receipt={transaction_outcome:{id:'retained-original'},final_execution_status:'FINAL',status:{SuccessValue:''}};
   const result=await submitCheckedRecord(node,()=>account,input,createAction,async(a,r,action)=>{
     submits++;assert.equal(a,account);const intent=nearActionIntent(r,action);
-    assert.equal(intent.methodName,'put_record_checked');assert.equal(intent.argsBase64,Buffer.from(JSON.stringify(input.args)).toString('base64'));return receipt;
+    assert.equal(intent.methodName,'put_record_checked');assert.equal(intent.argsBase64,input.argsBase64);return receipt;
   });
   assert.equal(result.transactionHash,'retained-original');assert.equal(submits,1);assert.equal(signs,0);
   node.callFunction=async()=>2;
   await assert.rejects(submitCheckedRecord(node,()=>account,input,createAction,async()=>{submits++;}),/protocol1/);
   assert.equal(submits,1);assert.equal(signs,0);
+});
+
+test('checked writes preserve exact escaped C# JSON bytes instead of SDK reserialization',async()=>{
+  const raw=String.raw`{"key":"holon:owned","expected_value":null,"value":"A\u002BB\u003CC","large":9223372036854775807}`;
+  const input={networkId:chain,contractId:'contract.near',argsBase64:Buffer.from(raw).toString('base64')};
+  const node={getNetworkId:async()=>chain,callFunction:async()=>1};
+  let inspected=0;
+  await submitCheckedRecord(node,()=>({}),input,args=>actions.functionCall('put_record_checked',args,100000000000000n,0n),async(_,receiver,action)=>{
+    inspected++;assert.equal(nearActionIntent(receiver,action).argsBase64,input.argsBase64);
+    return {transaction_outcome:{id:'owned-original'},final_execution_status:'FINAL',status:{SuccessValue:''}};
+  });
+  assert.equal(inspected,1);
 });
