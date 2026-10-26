@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR public encrypted storage and native follow-up repair — 26 October
+
+389unit/31SDK checks PASS; actual public save/history/CAS-conflict/tombstone writes produced5known originals, then exact-ciphertext/keyless reconciliation passed and submitted only3remaining fixture deletes. All8verified, fixturesabsent; first5never replayed. Preserve provenance: initial0-ACK byte-mismatch run and later test-only rawJSON history assertion failed; both reports retained. Main assertion fix compiled, not fresh-replayed. Fixed exact checked calldata transport plus lost wallet/NFT follow-up IDs and incorrect NFT lock read-back handling. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md) for originals/fees/limits. Full hosted/native-loss/NFT/V2/provider gates remain OPEN; no Dev merge.
+
 ## NEAR ordinary-interface original persistence — 26 October
 
 Existing prepared-storage interface now covers ordinary native transfer/call/checked-write plumbing using existing shared async owner.380unit/22SDK/1native PASS; native3originals fsynced before send and recovered keylessly, including rejected call. Native checked-record/public NFT-token/forced-loss/hosted Mongo fee and full V2 gates remain OPEN. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). No completion or Dev promotion claimed.

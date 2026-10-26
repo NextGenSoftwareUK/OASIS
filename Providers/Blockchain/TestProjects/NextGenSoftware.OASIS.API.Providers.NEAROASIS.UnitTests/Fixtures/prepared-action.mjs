@@ -14,7 +14,7 @@ if(input.operation==='prepareNativeAction'){
     const intent=input.operation==='transfer'?{kind:'transfer',recipient:input.receiverId,depositUnits:input.amountYocto}:
       {kind:'functionCall',recipient:input.targetContractId??input.contractId,depositUnits:input.depositYocto??'0',
         methodName:input.operation==='putRecordChecked'?'put_record_checked':input.methodName,gasUnits:'100000000000000',
-        argsBase64:input.operation==='putRecordChecked'?Buffer.from(JSON.stringify(input.args)).toString('base64'):input.argsBase64};
+        argsBase64:input.argsBase64};
     if(mode==='prepared-mismatch')intent.recipient='different.near';
     input.preparation={protocol:'oasis.near.native-action.preparation.v1',chainId:input.networkId,sender:input.accountId,
       transactionHash:hash,signedTransactionBase64:'AQID',signDocBase64:'BAUG',signature:null,intent};

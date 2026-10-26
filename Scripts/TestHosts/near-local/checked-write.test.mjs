@@ -1,11 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {submitCheckedRecord} from '../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/checked-write.mjs';
-const input={networkId:'owned-local',contractId:'owned.near',args:{key:'holon:owned',expected_value:'exact-original-ciphertext',value:'new-ciphertext'}};
+const bytes=Buffer.from(JSON.stringify({key:'holon:owned',expected_value:'exact-original-ciphertext',value:'new-ciphertext'}));
+const input={networkId:'owned-local',contractId:'owned.near',argsBase64:bytes.toString('base64')};
 function fixture({network='owned-local',protocol=1,outcome={transaction_outcome:{id:'original-receipt'},final_execution_status:'FINAL',status:{SuccessValue:''}},failure=null}={}){
   let factories=0,calls=0;return {get factories(){return factories;},get calls(){return calls;},
     provider:{async getNetworkId(){return network;},async callFunction(request){assert.deepEqual(request,{contractId:'owned.near',method:'record_write_protocol',args:{},blockQuery:{finality:'final'}});return protocol;}},
-    createAccount(){factories++;return {async signAndSendTransaction(request){calls++;assert.deepEqual(request,{receiverId:'owned.near',actions:[{method:'checked',args:input.args}],waitUntil:'FINAL',throwOnFailure:false});if(failure)throw failure;return outcome;}};}};
+    createAccount(){factories++;return {async signAndSendTransaction(request){calls++;assert.deepEqual(request,{receiverId:'owned.near',actions:[{method:'checked',args:bytes}],waitUntil:'FINAL',throwOnFailure:false,retries:0});if(failure)throw failure;return outcome;}};}};
 }
 const action=args=>({method:'checked',args});
 test('explicit native identities and one SDK invocation',async()=>{const f=fixture();const result=await submitCheckedRecord(f.provider,()=>f.createAccount(),input,action);assert.equal(result.transactionHash,'original-receipt');assert.equal(result.finalExecutionStatus,'FINAL');assert.equal(f.calls,1);});
