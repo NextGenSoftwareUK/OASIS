@@ -1,5 +1,17 @@
 # COSMIC ORM implementation roadmap
 
+## Current acceptance checkpoint - 26 October 2026
+
+The latest CQL/provider checkpoint is maintained in the
+[CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and
+[implementation status](IMPLEMENTATION_STATUS.md). Core `5e483cb` has 3,412 passing
+unit tests and both target builds. HTTP operation-pricing isolation has 390 passing
+real-Mongo usage cases at the preceding Core cohort. The latest WEB4 gate is 264.
+These scoped results do not close the eight-stage roadmap or replace signed native
+acceptance. Provider-key transport deletion, explicit key-read/delete tariffs and
+the signed three-provider delete matrix are next; see the
+[provider-key deletion acceptance contract](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
 Date: 19 October 2026. Design and acceptance plan. The first tracking/save-ownership batch is implemented and locally verified; see [current status and test evidence](IMPLEMENTATION_STATUS.md). Later stages remain open.
 
 Read with the [audit](COSMIC_ORM_AUDIT_2026-10-19.md) and [evidence inventory](COSMIC_ORM_SOURCE_EVIDENCE.md). This plan deliberately reuses shared graph planning, provider checked writes and hosted/Edge synchronization rather than adding competing persistence paths.
