@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## 26 October: joined avatar identity reads verified
+
+Native14811terminal0:12/12 cases +init1 PASS0skip5s/161ms, including four AWS/Dynamo×sync/async lifecycle cases with fifteen scopes each. Added public profile/detail reads by GUID/username/email verify exact identity, loaded count, XP71/Karma23 and table-bound real SDK GetItem/Scan capture in durable Mongo. All original lifecycle/unpriced-recovery/duplicate-admission assertions retained. Core7685F49/Shared56BB013239/source/PDB/copies verified, ownership3controlsPASS, fixture journals0, owned services stopped and ports absent. Same environments/SDK/cache; no download/restore/production change. Exact report hashes, resource sizes and conditional cleanup evidence in [environment inventory](ENVIRONMENT_INVENTORY.md). Hosted cloud access, trusted prices/exposure and full provider/V2 completion remain OPEN.
+
 ## 2026-10-25 AWS/Dynamo fresh native cohorts
 
 Dynamo181realSDKnativePASS includes4newDynamo/AWS-alias sync/async historical embedded-payload cases. Separate fullAWS138native+baseline+conditionalownedcleanupPASS,81residualsyntheticrows independentlyabsent. Existing real localDynamoDB↔SQLite routing/failover/roundrobin/replication covered, NOT everyprovider/configuration/hostedAWS/S3. Exact hashes/separateSharedbuilds/preservedreports/teardown in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md/inventory. Manifest/source checks pass, broaderprogramme unfinished.
