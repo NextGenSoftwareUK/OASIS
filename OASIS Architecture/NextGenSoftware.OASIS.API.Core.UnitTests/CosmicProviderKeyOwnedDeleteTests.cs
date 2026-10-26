@@ -222,4 +222,46 @@ public partial class CosmicTrackingTests
         result.ErrorCode.Should().Be("COSMIC_OWNED_DELETE_INPUT_INVALID");
         fixture.Provider.Invocations.Should().BeEmpty();
     }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task OwnedDeleteCannotBorrowOwnershipFromAnAvailableReplica(bool byKey, bool soft)
+    {
+        var fixture = Fixture(true, conditional: true);
+        var actor = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var unavailable = new OASISResult<IHolon> { IsError = true, ErrorCount = 2,
+            ErrorCode = "OWNER_AUTHORITY_OFFLINE", MetaData = new() { ["original-authority"] = "retained" } };
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync(id, false, true, 0, true, false, 0)).ReturnsAsync(unavailable);
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync("native-key", false, true, 0, true, false, 0)).ReturnsAsync(unavailable);
+        var replica = new Mock<IOASISStorageProvider>();
+        replica.SetupAllProperties();
+        replica.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.LocalFileOASIS);
+        replica.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage);
+        replica.Object.IsProviderActivated = true;
+        var replicaRecord = new Holon { Id = id, CreatedByAvatarId = actor };
+        replica.Setup(provider => provider.LoadHolonAsync(id, false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(replicaRecord) { IsLoaded = true });
+        replica.Setup(provider => provider.LoadHolonAsync("native-key", false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(replicaRecord) { IsLoaded = true });
+        fixture.Providers.RegisterProvider(replica.Object);
+        fixture.Providers.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) })
+            .IsError.Should().BeFalse();
+        fixture.Providers.IsAutoFailOverEnabled = true;
+        replica.Invocations.Clear();
+        var options = new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?> { [id] = Guid.NewGuid() });
+        var result = byKey
+            ? await fixture.Manager.DeleteOwnedHolonByProviderKeyAsync("native-key", id, actor, options, soft)
+            : await fixture.Manager.DeleteOwnedHolonAsync(id, actor, options, soft);
+        result.ErrorCode.Should().Be("OWNER_AUTHORITY_OFFLINE");
+        result.ErrorCount.Should().Be(2);
+        result.MetaData.Should().ContainKey("original-authority").WhoseValue.Should().Be("retained");
+        result.IsDeleted.Should().BeFalse();
+        replica.Invocations.Should().BeEmpty();
+        fixture.Provider.As<IConditionalHolonStorageProvider>().Verify(provider =>
+            provider.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
 }
