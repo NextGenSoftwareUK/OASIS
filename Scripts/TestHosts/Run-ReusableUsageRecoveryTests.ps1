@@ -171,7 +171,7 @@ try{
             if($joinReport.LastWriteTimeUtc -lt $joinStarted){throw 'Joined SDK/native report is stale.'}
             [xml]$joinEvidence=Get-Content -LiteralPath $joinReport.FullName -Raw
             $joinCounts=$joinEvidence.TestRun.ResultSummary.Counters
-            $expectedJoin=if($DynamoResourceCapture){8}else{1}
+            $expectedJoin=if($DynamoResourceCapture){12}else{1}
             if([int]$joinCounts.total -ne $expectedJoin -or [int]$joinCounts.passed -ne $expectedJoin -or [int]$joinCounts.notExecuted -ne 0){throw "Expected$expectedJoin passing joined SDK/native cases without skips."}
             if(!$DynamoResourceCaptureInspect -and @(Get-ChildItem -LiteralPath $joinWork -Filter 'dynamo-resource-host-*.json' -File | Where-Object {$_.Name -like '*.pending.json' -or $_.Name -like '*.pending.json.verified-cleanup.json'}).Count){throw 'Joined SDK fixture remains unresolved.'}
         }finally{
