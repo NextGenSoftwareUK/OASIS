@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <Compile Include="../../../Shared/TestSupport/ImportResultEnvelopeAssertions.cs" Link="TestSupport/ImportResultEnvelopeAssertions.cs" />
   </ItemGroup>
 
   <ItemGroup>

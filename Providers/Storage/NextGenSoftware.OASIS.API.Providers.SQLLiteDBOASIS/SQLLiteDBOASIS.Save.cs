@@ -170,30 +170,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                if (holons == null) throw new ArgumentNullException(nameof(holons));
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
-                        result.ErrorCode = activateResult.ErrorCode;
-                        return result;
-                    }
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,bool>(activateResult);
                 }
-
-                if (holons == null) throw new ArgumentNullException(nameof(holons));
-                var entries = holons.ToList();
-                var saveResult = await _holonRepository.SaveHolonsAsync(entries);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error importing holons: {saveResult.Message}", saveResult.Exception);
-                    result.ErrorCode = saveResult.ErrorCode;
-                    return result;
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {entries.Count} holons to SQLite";
+                var saved=await SaveHolonsAsync(holons,true,true,0,0,false);
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+                result.Result=!saved.IsError&&saved.IsSaved;
             }
             catch (Exception ex)
             {
