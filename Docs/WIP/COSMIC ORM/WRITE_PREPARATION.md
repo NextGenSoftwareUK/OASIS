@@ -1,5 +1,17 @@
 # Durable conditional-write preparation
 
+## Read-only preparation retrieval
+
+Verified on 26 October 2026: full Shared **1,242**, MongoDB **575**, SQLite **95** and Neo4j **566** unit tests pass, zero skips/failures. Both Core build targets pass. The native signed CQL cohort passes with unchanged **453 settlements / 496 attempts**, including fifteen preparation lookups after provider reconnection and foreign-actor rejection across all three stores. Existing actual commit-acknowledgement-loss receipt recovery also remains green. [Native result](Verification/preparation-read-native-result.json), [native TRX](Verification/preparation-read-native.trx.gz), [source identities](Verification/preparation-read-native-source.json.gz), [seven matched binary pairs](Verification/preparation-read-native-binaries.json). Unit reports are `Verification/preparation-read-unit-{0,1,2,3}.trx.gz` in Shared/MongoDB/SQLite/Neo4j order.
+
+Native preparation cases use opaque storage-conformance envelopes. Core's separate protected reconstruction tests prove encryption/context/graph admission; the combination does not yet prove an authenticated hosted workflow or OS-process restart recovery.
+
+The additive `IHolonWritePreparationRecoveryStorageProvider` capability reads an original preparation by operation ID and authenticated actor ID. It extends the existing claim capability without changing other providers' contracts. A successful result with a null preparation means none was observed; it does not prove rejection and never authorizes a replay. Returned envelopes remain untrusted until Core authenticates them using authorized protection contexts.
+
+MongoDB reads the existing `CosmicWritePreparation` collection on the primary with majority read concern and reuses the claim owner's stored-record validator. Neo4j performs a bounded `MATCH` against the existing receipt and uses the same preparation ownership/schema validator and shared opaque decoder as its claim owner. SQLite uses a separate nonpooled, read-only file connection and a bounded `SELECT`; a missing file is an error and must not be created by lookup. SQLite claim and read paths now share the opaque transport decoder. No lookup opens a write transaction, claims an operation, mutates a fence, or invokes conditional execution.
+
+Provider SDK callers must supply the actor established by their trusted authentication boundary. These methods do not provide an HTTP authentication boundary or decrypt private original intent. Read-only routing through HyperDrive and hosted recovery admission remain separate integration requirements.
+
 ## Stored-only reconstruction for status recovery — 26 October 2026
 
 Core now has an internal `HolonConditionalPreparation.RecoverOriginalForStatus` decoder. It reconstructs the original conditional request from the existing protected preparation without requiring a retry candidate. Save, soft-delete and hard-delete kinds are explicit; the existing save preparation format remains unchanged.
