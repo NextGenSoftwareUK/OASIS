@@ -4,6 +4,22 @@ Updated 26 October 2026. The focused signed GraphQL/gRPC save subgate now passes
 on MongoDB, SQLite and Neo4j, through configured admission and durable settlement.
 Broader transport/startup/read/delete gates remain open.
 
+## Signed deletion checkpoint - 26 October 2026
+
+The focused shipping GraphQL DeleteHolon and gRPC DeleteHolon methods now have
+signed three-provider native acceptance. Twenty-four deletion requests join the
+existing24 transport saves, yielding426 settled operations and466 physical
+attempts across the complete native cohort. Persisted soft deletion, physical
+hard deletion, committed gRPC deltas, missing intent, foreign ownership, stale
+conditions and per-attempt settlement are verified. Sources remained unchanged;
+seven producer/consumer pairs matched; owned services/fixtures were cleaned.
+See [provider-key/delete acceptance](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+REST provider-key/logical deletion has SDK/MVC acceptance and a prepared signed
+native matrix; that matrix is not yet executed. Full deployed GraphQL schema,
+startup, authority-failure/concurrent scope and unknown-outcome coverage remain
+open. Historical findings below retain their original checkpoint context.
+
 ## Current authoritative findings
 
 | Surface | Current source | Required correction |
