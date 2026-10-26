@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## 2026-10-25 AWS/Dynamo fresh native cohorts
+
+Dynamo181realSDKnativePASS includes4newDynamo/AWS-alias sync/async historical embedded-payload cases. Separate fullAWS138native+baseline+conditionalownedcleanupPASS,81residualsyntheticrows independentlyabsent. Existing real localDynamoDB↔SQLite routing/failover/roundrobin/replication covered, NOT everyprovider/configuration/hostedAWS/S3. Exact hashes/separateSharedbuilds/preservedreports/teardown in AWS_DIRECT_CONFIGURATION_AUDIT_2026-10-20.md/inventory. Manifest/source checks pass, broaderprogramme unfinished.
+
 ## 2026-10-25 historical export visibility gate
 
 All-version owned-export root filtering alone leaked foreign embedded descendants in controlled Oracle/Dynamo/Google/Shared paths (8genuine pre-fix failures). All four now call existing Core visibility projection independently per stored version; no reconstructed historical snapshot, public-child inclusion or hidden-branch hoisting. Latest matched Oracle571real native SDK/466unit +Shared1213unit pass, zero skipped; actual native historical typed payload and unchanged bytes/rejected projected saves verified. Full evidence and failed-fixture recovery disclosures: ORACLE_CLIENT_PRIORITY.md/ENVIRONMENT_INVENTORY.md. Other adapters'665Dynamo/482Google controls passed earlier; current matched companions, S3/OCI transport controls and hosted/security/cost/full-interface/global V2 acceptance are still separate gates.
