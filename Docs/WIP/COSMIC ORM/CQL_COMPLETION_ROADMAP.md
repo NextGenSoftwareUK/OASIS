@@ -2176,3 +2176,5 @@ and all three providers before it accepts success. No new environment/download
 was used; fixture teardown and cleanup are recorded in the resource ledger.
 
 26 October hosted federation prerequisite: generic complete per-target policy binding and admission/visibility controls implemented; Core dual-target/all3,607 tests pass. No federation HTTP route or signed multi-provider policy/billing acceptance claimed. These remain the next gate before cursor/distributed-join work. See CQL_FEDERATION_CONTRACT.md.
+
+26 October materialization prerequisite verified: V2 HolonManager.ExecuteFederationQueryAsync<T> reuses collection decryption/hydration/tracking and retains one budget through actual final canonical row payload. Core dual-target/all3,617 tests pass. Native manager/hosted federation HTTP/billing, cursors and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md for the output-accounting root fix and evidence.

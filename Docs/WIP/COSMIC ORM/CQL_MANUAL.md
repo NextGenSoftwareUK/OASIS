@@ -2254,7 +2254,8 @@ var plan = CosmicFederationPlanner.Plan(
 if (plan.IsError)
     throw new InvalidOperationException(plan.Message);
 
-var page = await CosmicFederationExecutor.ExecuteAsync(
+// Use the existing request-owned V2 HolonManager for typed mapping/decryption.
+var page = await manager.ExecuteFederationQueryAsync(
     plan.Result,
     adapters,
     cancellationToken);
@@ -2286,3 +2287,5 @@ existing source access policy cannot be replaced. The planner applies target
 policies before each native source window. This overload has Core unit coverage;
 its hosted/native authorization acceptance remains pending. Never construct the
 catalogues directly from caller-selected IDs or metadata search hits.
+
+The manager federation method materializes each selected/observed copy as T using the ordinary metadata decryption/hydration pipeline and publishes clean tracking state. The low-level CosmicFederationExecutor handles stored canonical rows and does not perform that mapping. The output budget includes actual row payload after materialization, plus provenance. This manager extension has Core unit/encryption controls; its native/hosted acceptance is still pending.

@@ -10,14 +10,15 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public class CosmicTypedQueryTests
+public partial class CosmicTypedQueryTests
 {
     public sealed class TypedRow : Holon { [CustomOASISProperty] public int Rating { get; set; } }
     public sealed class ThrowingRow : Holon { [CustomOASISProperty] public int Rating { get => 0; set => throw new InvalidOperationException("owned setter failure"); } }
     private sealed class Adapter : ICosmicQueryStorageProvider
     {
         public int Calls; public IHolon Row = new Holon { Id = Guid.NewGuid(), MetaData = new() { ["Rating"] = 7 } };
-        public ProviderType QueryProviderType => ProviderType.SQLLiteDBOASIS;
+        public ProviderType Provider = ProviderType.SQLLiteDBOASIS;
+        public ProviderType QueryProviderType => Provider;
         public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.None, Array.Empty<CosmicQueryFieldCapability>());
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan, int maximumResults = 100,
             CancellationToken cancellationToken = default) where T : IHolon
