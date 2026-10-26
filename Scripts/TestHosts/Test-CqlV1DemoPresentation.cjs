@@ -66,12 +66,38 @@ for (const mode of ['decimalSum', 'decimalAverage', 'decimalNumericGroups']) {
     assert.equal(body.resultTake, 1);
   } else assert.equal(body.operation, mode === 'decimalSum' ? 'Sum' : 'Average');
 }
+// Floating presets must bind the input domain, nullability and exact text.
+for (const prefix of ['double', 'single']) {
+  for (const operation of ['Sum', 'Average', 'NumericGroups']) {
+    const mode = prefix + operation;
+    assert.ok(page.includes('<option value="' + mode + '">'));
+    element('example').value = mode;
+    vm.runInContext('preset()', context);
+    const body = JSON.parse(element('query').value);
+    const grouped = operation === 'NumericGroups';
+    const type = prefix === 'single' ? 'Single' : 'Double';
+    assert.equal(body.take, 2);
+    assert.equal(vm.runInContext('queryRoute', context), '/api/data/query-cql/' + (grouped ? 'grouped' : 'scalar'));
+    if (grouped) {
+      assert.deepEqual(body.columns.map(column => column.selection.valueType), [type, type]);
+      assert.deepEqual(body.columns.map(column => column.selection.nullable), [false, true]);
+      assert.deepEqual(body.resultFilters.map(filter => filter.value), prefix === 'single'
+        ? ['2.0000005', '1.0000002'] : ['2.000000000000001', '1.0000000000000004']);
+      assert.equal(body.resultOrder[0].alias, 'Mean');
+      assert.equal(body.resultTake, 1);
+    } else {
+      assert.equal(body.operation, operation);
+      assert.equal(body.selection.valueType, type);
+      assert.equal(body.selection.nullable, operation === 'Average');
+    }
+  }
+}
 const raw = '{"price":"' + lower + '","integer":9007199254740993}';
 context.raw = raw;
 const formatted = vm.runInContext('pretty(raw)', context);
 assert.ok(formatted.includes('"' + lower + '"'));
 assert.ok(formatted.includes('9007199254740993'));
-const result = { status: 'passed', presets: 12, lexicalExactness: true, runtime: process.version,
+const result = { status: 'passed', presets: 18, lexicalExactness: true, runtime: process.version,
   mode: 'offline-script-behavior-no-browser-or-network' };
 fs.writeFileSync('TestResults/CosmicCqlDemo/v1-decimal-ui-check.json', JSON.stringify(result));
 console.log(JSON.stringify(result));

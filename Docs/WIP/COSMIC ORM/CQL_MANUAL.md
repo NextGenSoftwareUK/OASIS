@@ -22,8 +22,8 @@ rather than returning infinity, and empty nullable averages return null.
 Acceptance passes **1,763 production integration /74 unit tests**, zero skips,
 including48 new query controls. MongoDB and Neo4j support is described below;
 The shared HTTP binder now accepts Single/Double arithmetic; controlled endpoint
-tests pass, with signed live HTTP acceptance still pending. Existing floating metadata
-queries and the40-example three-provider demo retain their separate scope.
+tests and signed live HTTP acceptance pass on all three stores (examples41–46). Existing floating metadata
+queries and the46-example three-provider demo retain their declared scope.
 [Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 ## MongoDB Single/Double arithmetic SDK availability
@@ -68,9 +68,8 @@ Plan and execute with actual Mongo grouped capabilities using the generic
 HolonManager entry point shown below. Every raw group is validated, including
 excluded groups; overflow cannot hide behind a filter or `Take(0)`.
 
-HTTP binding is implemented and controlled endpoint tests pass; signed live
-floating arithmetic acceptance remains pending. The current40-example SDK/HTTP
-walkthrough does not yet demonstrate these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+HTTP binding and signed live acceptance pass. The46-example SDK/HTTP
+walkthrough demonstrates floating scalar/grouped arithmetic in examples41–46. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 ## Neo4j Single/Double arithmetic SDK availability
 
@@ -84,7 +83,7 @@ exact final rounding, including subnormals, cancellation and finite overflow.
 Use Neo4j's declared `ProviderDefault` graph consistency. An explicit
 `ProviderSnapshot` request remains unsupported and is rejected during admission.
 The grouped profile owns its numeric input whitelist independently of scalar
-enrollment. It now explicitly includes floating inputs. Floating HTTP binding is implemented; signed live acceptance remains pending.
+enrollment. It now explicitly includes floating inputs. Floating HTTP binding and signed live acceptance pass (examples41–46).
 
 Acceptance passes36scalar and34grouped focused cases,490full native CQL tests
 and552matched full units, zero failures/skips. Eight producer/consumer copies

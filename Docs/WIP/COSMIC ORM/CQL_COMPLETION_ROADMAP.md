@@ -2,13 +2,13 @@
 
 Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
-SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK/HTTP walkthrough.
+SQLite and Neo4j. The annotated demo source now has46 examples per provider in each SDK/HTTP walkthrough.
 
-- Latest separately verified cohorts: Core **3,098** (including UInt64 numeric capture/normalization and input-domain admission),
+- Latest separately verified cohorts: Core **3,154** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **490 native /571 matched unit**,
   Neo4j **490 native /552 matched unit**; zero skips at their recorded checkpoints.
-- The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
-  /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
+- The expanded live demo passes **138 SDK /138 HTTP**, **345 settled operations
+  /337 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
 - Selected-result composition captures immutable stages and independently admits
   complete proof/work contracts, with **SQLite, MongoDB and Neo4j native SDK execution verified**. Ordinary
