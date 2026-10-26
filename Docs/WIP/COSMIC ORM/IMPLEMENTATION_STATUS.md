@@ -1,5 +1,16 @@
 # COSMIC ORM implementation status
 
+## Creator-owned conditional-delete SDK — 26 October 2026
+
+Core `5ec9ccc` adds `DeleteOwnedHolonAsync`: one pinned stored-owner observation,
+the caller's unchanged original revision and the existing atomic-delete engine.
+Missing actor/identity/revision rejects before I/O; a foreign owner cannot mutate.
+Both soft/hard paths, stale conditions across a default-provider change and full
+failure evidence have controls. Full Core **3,385** / WEB4 **250** tests pass with
+zero skips; portable and shipping builds pass. This addition is SDK-only: existing
+transport deletes still need migration and native acceptance. See
+[the contract](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+
 ## Signed save transports — 26 October 2026
 
 The focused shipping GraphQL/gRPC save gate passes on all three stores with real

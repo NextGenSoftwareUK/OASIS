@@ -8,6 +8,7 @@ param(
     [Parameter(ParameterSetName = 'NftConstructorSimulation')][switch]$NftConstructorSimulation,
     [Parameter(ParameterSetName = 'NftDeploy')][switch]$NftDeploy,
     [Parameter(ParameterSetName = 'NftReconcile')][switch]$NftReconcile,
+    [Parameter(ParameterSetName = 'NftPublicRead')][switch]$NftPublicRead,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
 )
@@ -19,7 +20,7 @@ $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers
 if (!(Test-Path -LiteralPath $evidence -PathType Container)) { throw 'Reuse the retained environment.' }
 $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
 $publicEvidence = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot'
-$recordEvidence = if ($CSharpStorage) { $publicEvidence } else { $evidence }
+$recordEvidence = if ($CSharpStorage -or $NftPublicRead) { $publicEvidence } else { $evidence }
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
 $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
 $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
@@ -36,7 +37,7 @@ try {
     if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'public-storage-pending.jsonl')) -and !$RecoverCompleted) { throw 'Pending public storage sequence exists; reconcile read-only.' }
     $env:OASIS_POLKADOT_RECORD_RECOVERY = if ($RecoverCompleted) { '1' } else { $null }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
-    if ($CSharpBackend -or $CSharpStorage) {
+    if ($CSharpBackend -or $CSharpStorage -or $NftPublicRead) {
         # Caller must hold the global provider build lease for this whole runner.
         $env:OASIS_POLKADOT_SDK_BRIDGE = Join-Path $sdk 'bridge.mjs'
         $env:OASIS_POLKADOT_RECORD_EVIDENCE = $recordEvidence
@@ -48,12 +49,13 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Provider build failed; no restore/download attempted.' }
             & dotnet build $unit --no-restore /p:IncludePolkadotRecordNativeTests=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
             if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
-            $nativeClass = if ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
-            $reportName = if ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
+            $nativeClass = if ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
+            $reportName = if ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
             & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$nativeClass" --logger "trx;LogFileName=$reportName" --results-directory $recordEvidence --verbosity quiet -- MSTest.DeploymentEnabled=false
             if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
             [xml]$report = Get-Content -LiteralPath (Join-Path $recordEvidence $reportName)
-            if ($report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.passed -ne '1') { throw 'Exactly one executed native case required.' }
+            $expectedCases = if ($NftPublicRead) { '3' } else { '1' }
+            if ($report.TestRun.ResultSummary.Counters.total -ne $expectedCases -or $report.TestRun.ResultSummary.Counters.passed -ne $expectedCases) { throw "Exactly $expectedCases executed native cases required." }
             return
         } finally { Pop-Location }
     }
