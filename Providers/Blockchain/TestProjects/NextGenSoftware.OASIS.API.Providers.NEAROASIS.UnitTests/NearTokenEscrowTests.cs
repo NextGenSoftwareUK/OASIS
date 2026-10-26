@@ -19,7 +19,7 @@ public class NearTokenEscrowTests
         public readonly TaskCompletionSource Entered=new(TaskCreationOptions.RunContinuationsAsynchronously),Release=new(TaskCreationOptions.RunContinuationsAsynchronously);
         public bool Pause;public int WalletLoads;public Guid SeenActor;
         public Provider(string chain="fixture"):base("http://127.0.0.1:1","fixture",chain,"contract.near","service.near","service-key"){}
-        protected override Task<OASISResult<IProviderWallet>> LoadTokenSigningWalletAsync(Guid actor){WalletLoads++;SeenActor=actor;return Task.FromResult(Wallet);}
+        protected override Task<OASISResult<IProviderWallet>> LoadSigningWalletAsync(Guid actor){WalletLoads++;SeenActor=actor;return Task.FromResult(Wallet);}
         public override async Task<OASISResult<bool>> ActivateProviderAsync(){if(Pause){Entered.TrySetResult();await Release.Task;}return new(true);}
     }
     private sealed class Fixture:IDisposable
@@ -69,4 +69,30 @@ public class NearTokenEscrowTests
     public async Task LegacyFreezeRejectsForeignIssuerAndPreservesAcknowledgedReadbackFailure(string mode){using var fixture=new Fixture(mode);var result=await new Provider().LockTokenAsync(new LockWeb3TokenRequest{TokenAddress="OWN",LockedByAvatarId=Actor});Assert.IsTrue(result.IsError);Assert.AreEqual(mode=="issuer"?0:1,fixture.NativeCalls);if(mode=="post-freeze")Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));}
     [TestMethod]
     public async Task CallerChangesDuringActivationCannotChangeCapturedDeposit(){using var fixture=new Fixture("accepted");var provider=new Provider{Pause=true};var request=Request();var pending=provider.LockTokenAsync(request);try{await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));request.LockId=Guid.NewGuid();request.Amount=9;request.TokenAddress="CHANGED";request.EscrowContractAddress="changed.near";request.LockedByAvatarId=Guid.NewGuid();provider.Release.SetResult();var result=await pending.WaitAsync(TimeSpan.FromSeconds(10));Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(Actor,provider.SeenActor);Assert.AreEqual(1,fixture.NativeCalls);}finally{provider.Release.TrySetResult();}}
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task NftLockUsesExactAvatarWallet(bool unlocking){
+        using var fixture=new Fixture("accepted",unlocking);var provider=new Provider();
+        var result=unlocking?await provider.UnlockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{NFTTokenAddress="owned-nft",UnlockedByAvatarId=Actor})
+            :await provider.LockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.LockWeb3NFTRequest{NFTTokenAddress="owned-nft",LockedByAvatarId=Actor});
+        Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(Actor,provider.SeenActor);Assert.AreEqual(1,provider.WalletLoads);Assert.AreEqual(1,fixture.NativeCalls);
+        CollectionAssert.Contains(fixture.Methods,"nft_set_locked");
+    }
+    [DataTestMethod][DataRow(false,false)][DataRow(true,false)][DataRow(false,true)][DataRow(true,true)]
+    public async Task NftActorCannotUseForeignOrWarningWallet(bool unlocking,bool warning){
+        using var fixture=new Fixture("accepted");var provider=new Provider();if(warning)provider.Wallet.IsWarning=true;else provider.Wallet.Result.AvatarId=Guid.NewGuid();
+        var result=unlocking?await provider.UnlockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{NFTTokenAddress="owned-nft",UnlockedByAvatarId=Actor})
+            :await provider.LockNFTAsync(new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.LockWeb3NFTRequest{NFTTokenAddress="owned-nft",LockedByAvatarId=Actor});
+        Assert.IsTrue(result.IsError);Assert.AreEqual(0,fixture.NativeCalls);Assert.AreEqual(Actor,provider.SeenActor);
+    }
+
+    [TestMethod]
+    public async Task NftActorAndTokenAreCapturedBeforeActivation(){
+        using var fixture=new Fixture("accepted");var provider=new Provider{Pause=true};
+        var request=new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.LockWeb3NFTRequest{NFTTokenAddress="owned-nft",LockedByAvatarId=Actor};
+        var pending=provider.LockNFTAsync(request);
+        try{await provider.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5));request.NFTTokenAddress="changed";request.LockedByAvatarId=Guid.NewGuid();provider.Release.SetResult();
+            var result=await pending.WaitAsync(TimeSpan.FromSeconds(10));Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.AreEqual(Actor,provider.SeenActor);Assert.AreEqual(1,fixture.NativeCalls);
+        }finally{provider.Release.TrySetResult();}
+    }
+
 }

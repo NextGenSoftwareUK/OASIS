@@ -13,6 +13,7 @@ else if(input.operation==='derivePublicKey'){
  if(['token_get','token_balance'].includes(input.methodName)&&input.args.symbol!=='OWN')throw new Error('Read selected another token');
  if(input.methodName==='token_balance'&&input.args.account_id!=='holder.near')throw new Error('Read selected another holder balance');
  switch(input.methodName){
+  case 'nft_token':if(input.args.token_id!=='owned-nft')throw new Error('NFT identity changed');result={metadata_json:'{}',owner_id:'holder.near',locked:state.frozen};break;
   case 'token_escrow_protocol':result=state.mode==='protocol'?2:1;break;
   case 'token_lock_get':{
    result=state.deposit===null?null:structuredClone(state.deposit);
@@ -24,11 +25,11 @@ else if(input.operation==='derivePublicKey'){
  }
 }else if(input.operation==='call'){
  if(input.accountId!=='holder.near'||input.privateKey!=='owner-key'||input.targetContractId!=='contract.near')throw new Error('Signer/contract replaced by provider defaults');
- const args=JSON.parse(Buffer.from(input.argsBase64,'base64').toString('utf8'));if(args.symbol!=='OWN')throw new Error('Caller symbol changed after capture');
+ const args=JSON.parse(Buffer.from(input.argsBase64,'base64').toString('utf8'));if(input.methodName==='nft_set_locked'?args.token_id!=='owned-nft':args.symbol!=='OWN')throw new Error('Caller symbol changed after capture');
  if(input.methodName==='token_lock'||input.methodName==='token_release'){
   if(args.lock_id!=='1'.repeat(32))throw new Error('Caller deposit identity changed');
   if(input.methodName==='token_lock'&&args.amount!=='250000000')throw new Error('Exact caller amount changed');
- }else if(input.methodName!=='token_set_locked')throw new Error('Unexpected native operation');
+ }else if(!['token_set_locked','nft_set_locked'].includes(input.methodName))throw new Error('Unexpected native operation');
  state.calls++;
  if(state.mode!=='reject'){
   if(input.methodName==='token_lock'){state.deposit={protocol:1,lock_id:args.lock_id,symbol:args.symbol,owner_id:input.accountId,amount:args.amount,released:false};state.balance=(BigInt(state.balance)-BigInt(args.amount)).toString();}

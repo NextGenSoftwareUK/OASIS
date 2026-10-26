@@ -1,10 +1,38 @@
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
 public partial class NEAROASIS
 {
+    protected virtual Task<OASISResult<IProviderWallet>> LoadSigningWalletAsync(Guid actor)
+        =>WalletManager.GetAvatarDefaultWalletByIdAsync(actor,Core.Enums.ProviderType.NEAROASIS,showPrivateKeys:true);
+
+    private async Task<(string Account,string Key)> ResolveLockSignerAsync(Guid actor,string requestedFrom,string suppliedKey)
+    {
+        if(!string.IsNullOrWhiteSpace(suppliedKey)){
+            if(string.IsNullOrWhiteSpace(requestedFrom))throw new ArgumentException("An explicit private key requires its actual NEAR account address.");
+            var known=await ResolveNearExplicitKeyAsync(suppliedKey,null);
+            return await ResolveNearSignerAsync(requestedFrom,suppliedKey,null,known);
+        }
+        if(actor!=Guid.Empty){
+            var loaded=await LoadSigningWalletAsync(actor);
+            if(loaded==null||loaded.IsError||loaded.IsWarning||loaded.Result==null||loaded.Result.AvatarId!=actor
+                ||loaded.Result.ProviderType!=Core.Enums.ProviderType.NEAROASIS||string.IsNullOrWhiteSpace(loaded.Result.PrivateKey)
+                ||string.IsNullOrWhiteSpace(loaded.Result.WalletAddress))
+                throw new InvalidOperationException("The exact requesting avatar's NEAR signing wallet is required.",loaded?.Exception);
+            if(!string.IsNullOrWhiteSpace(requestedFrom)&&requestedFrom!=loaded.Result.WalletAddress)
+                throw new ArgumentException("Requested source account differs from the avatar's signing wallet.");
+            return await ResolveNearSignerAsync(loaded.Result.WalletAddress,loaded.Result.PrivateKey,loaded.Result.PublicKey);
+        }
+        if(!string.IsNullOrWhiteSpace(requestedFrom)&&requestedFrom!=_accountId)
+            throw new ArgumentException("An independent NEAR account requires its own signing wallet/key.");
+        return await ResolveNearSignerAsync(_accountId,null,null);
+    }
+
+
     private async Task<NearKeyPair> ResolveNearExplicitKeyAsync(string privateKey,string seed)
     {
         if(!string.IsNullOrWhiteSpace(seed)){

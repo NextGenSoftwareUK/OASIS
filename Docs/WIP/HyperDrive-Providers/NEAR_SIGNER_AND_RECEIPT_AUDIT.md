@@ -1,5 +1,11 @@
 # NEAR signer and receipt audit
 
+## NFT actor routing verified — 26 October (controlled gate)
+
+Inspection found public LockNFT/UnlockNFT forwarded only NFTTokenAddress and ignored existing LockedByAvatarId/UnlockedByAvatarId. Current source captures those actor IDs and routes nonempty actors through the SAME wallet resolver as token custody, now located in NEAROASIS.Signing.cs. It requires the exact actor/provider wallet, usable account/key and no load warning; empty actor retains the explicitly configured wallet operation. Added7controlled cases for exact actor signing, caller mutation during activation and foreign/warning wallet rejection, reusing the existing owned process fixture. Provider/unit builds passed and full433/433controlled cases passed0skip25seconds (42556terminal0). NativeEvidence/near-nft-avatar-unit-current.trx.gz and near-nft-avatar-binaries.json retain results and source/binary identities. Core786/Shared56/provider21/unit39 source documents matched PDBs; bothconsumer dependency pairs and final fixture bytes matched. No native operation or independent-holder chain proof in this gate. Controlled model directory verified empty after owned cleanup.
+
+Additional unresolved source binding: DepositNFT currently checks only whether an optional sourceTransactionHash is finalized, then unlocks/transfers the requested token. It does not establish that this original was a lock of that token by the correct owner against this contract/network. Finality alone is insufficient to certify bridge linkage. Add negative unrelated-token/method/owner/contract receipt evidence and verify before any unlock; do not certify this interface from the prior happy-path lifecycle.
+
 ## Public native token custody acceptance — 26 October
 
 Native80871terminal0:1/1testPASS20seconds,426/426unitPASS25seconds, all3provider/unit/integration projects compiled without restore. Public MintToken, amount/ID LockToken, BurnToken, selector-free issuer freeze/unfreeze and UnlockToken used the existing prepared owner. Eight physical originals fsynced before send, all independently recovered/read with invalid signing material:7FINAL/Success and1expected FINAL/Failure for a lock while trading was frozen. Rejected native lock created no deposit. Duplicate lock and release replay rejected before signing (zero physical originals).
