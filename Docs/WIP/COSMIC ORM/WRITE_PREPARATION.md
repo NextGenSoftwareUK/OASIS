@@ -1,5 +1,15 @@
 # Durable conditional-write preparation
 
+## Request-owned protection configuration
+
+`HolonManager.CreateRequestContext` now retains the metadata and preparation protection policies observed when the context is created. Previously it constructed a new manager with neither policy, allowing scoped writes to silently lose configured protection. The new manager keeps the immutable policy references, including authorized resolver scope and query-visible key configuration; no key material is copied into request data. Resolver lifetime remains application-owned.
+
+A trusted host may assign an actor-specific preparation policy to the returned request manager before any storage operation. Assigning that request's policy does not change the parent or another request manager. Later parent-policy changes do not rewrite an existing request's observation. This reuses the existing request-context owner rather than mutating the shared manager around an await.
+
+Two inheritance regressions fail against the previous producer, while the concurrent per-request override control passes. With the factory fix, all three controls and full Core **3,497/3,497** pass without skips/failures; both target builds pass. The concurrency test pauses one preparation claim while another request completes and verifies both encrypted envelopes against their own authorized contexts. [Red evidence](Verification/request-protection-red.trx.gz), [frozen producer](Verification/request-protection-red-producer.json), [full corrected regression](Verification/request-protection-core-full.trx.gz).
+
+Native verification passes inherited request-context protection through real encrypted manager soft deletes and stored-only recovery after reconnection on MongoDB, SQLite and Neo4j. Existing signed CQL/transport/delete and actual hard-delete acknowledgement-loss controls remain green: **453 settlements / 496 attempts**. Sources stayed unchanged, seven producer/consumer pairs matched, and owned fixtures/services were removed. [Native TRX](Verification/request-protection-native.trx.gz), [result](Verification/request-protection-result.json), [source identities](Verification/request-protection-source.json.gz), [binary identities](Verification/request-protection-binaries.json). This does not configure an unconfigured host or close authenticated recovery/process-restart acceptance.
+
 ## Protected conditional delete enrollment
 
 Conditional `DeleteHolon` / `DeleteHolonAsync` now use the same preparation capture and first-winner recovery owner as conditional saves when an explicit preparation or metadata protection context is configured. Both soft and hard deletes seal their actual operation kind, original selected-root values, original revision condition and root-only traversal flags before mutation dispatch. An operation sealed as a save cannot be reused for a delete. Preparation lookup/reconstruction remains a read-only workflow and never dispatches the mutation again.

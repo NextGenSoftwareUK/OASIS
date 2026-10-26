@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -60,10 +61,12 @@ public sealed partial class CqlV1Web4NativeTests
                     // Exercise the public manager's real protected enrollment,
                     // preserving the untouched original request for comparison.
                     manager.PreparationEncryptionPolicy = protection;
+                    var scoped = manager.CreateRequestContext(new ProviderRoutingOverrides(), pair.Key);
+                    Assert.IsFalse(scoped.IsError, scoped.Message + scoped.Exception);
                     var detached = StoredRecordJson.Deserialize<IHolon>(StoredRecordJson.Serialize(request.Roots.Single()));
                     var options = new CosmicWriteOptions(request.Write.OperationId,
                         request.Write.Conditions.ToDictionary(value => value.HolonId, value => value.ExpectedRevisionId));
-                    var deleted = await manager.DeleteHolonAsync(detached, actor, options, true, pair.Key);
+                    var deleted = await scoped.Result.Manager.DeleteHolonAsync(detached, actor, options, true, pair.Key);
                     Assert.IsFalse(deleted.IsError, deleted.Message + deleted.Exception);
                     Assert.IsTrue(deleted.IsDeleted);
                     var stored = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
