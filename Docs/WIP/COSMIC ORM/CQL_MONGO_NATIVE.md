@@ -200,3 +200,8 @@ runtime/data remain reusable. No download/install/restore or duplicate environme
 MongoDB and SQLite SDK flat joins are available. Neo4j joins, graph-source joins,
 joined HTTP/browser demos, post-projection/window composition, federation and
 remaining policy/certification gates stay open. Full CQL is not complete.
+
+
+## MongoDB floating scalar milestone - 25 October 2026
+
+MongoDB SDK scalar Single/Double Sum/Average now passes36focused native controls,454full native CQL tests and560matched units, zero skips. Native source values remain binary; ten/seventy Int64 digit sums feed shared Core exact rounding. Scalar packets require exact declared widths, Int64 words, participation and work proofs. Six Core/Shared/Mongo producer/native/unit copies match. Scalar capabilities explicitly enroll floating input domains; grouped capabilities and HTTP do not. See CQL_FLOATING_AGGREGATE_CONTRACT.md and TestResults/CosmicCqlDemo/mongo-floating-scalar-evidence.json. Owned27029stopped and28,232,479byte raw log bounded to65,311byte tail, raw0, data/runtime reused.

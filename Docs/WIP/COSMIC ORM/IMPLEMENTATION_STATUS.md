@@ -1,5 +1,23 @@
 # COSMIC ORM implementation status
 
+## MongoDB floating scalar acceptance - 25 October 2026
+
+MongoDB explicitly enrolls required/nullable Single/Double scalar Sum/Average.
+All36 new native scalar controls,454 full native CQL tests and560 matched provider
+units pass, zero failures/skips. Final Core/Shared/Mongo producer/native/unit copies
+match. The initial unit epoch differed after the native producer rebuild; a normal
+consumer rebuild and full unit rerun established the final matching cohort.
+
+The native compiler retains original admitted binary bits and reduces ten/seventy
+Int64 words. Strict packet/domain/count validation feeds the generic Core exact
+rounding owner. Privacy, windows, empty/nullable behavior, overflow, cancellation,
+137inputs independent of graph publication limits and non-hydrating execution are
+verified. Runner-owned Mongo stopped and its raw log was bounded after teardown.
+Mongo grouped floating arithmetic and selected result comparisons/order, Neo4j
+floating arithmetic, floating HTTP/demos and broader roadmap gates remain open.
+[Contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+
 ## SQLite floating native query acceptance - 25 October 2026
 
 All48 focused Single/Double native query controls and74 provider units pass.

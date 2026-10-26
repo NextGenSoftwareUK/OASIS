@@ -114,3 +114,25 @@ and provider enrollment remain pending. Evidence: TestResults/CosmicCqlDemo/
 mongo-floating-parts-evidence.json and SubscriptionUsageCurrent/
 mongo-floating-parts-current.trx. Reusable runner mode:
 `Run-ReusableUsageRecoveryTests.ps1 -CosmicCqlFloatingParts` under the build lease.
+
+
+## MongoDB scalar Sum/Average — focused acceptance
+
+The scalar compiler now consumes the admitted binary value without Decimal128
+conversion, reduces ten/seventy native Int64 sums and preserves independent
+input/invalid/present proofs. The reader requires the declared exact array width
+and Int64 word types. Decimal, integer and floating packets cannot impersonate
+one another. The shared Core owner validates the complete numerator/count domain
+and rounds once to the declared required/nullable Single/Double result.
+
+All36 focused native scalar controls and560 full provider units pass, zero skips.
+The tests cover finite boundaries, oversized cancellation preserving a subnormal,
+overflow versus a valid mean, halfway ties, both empty paths, malformed original
+inputs, source windows, owner/public privacy,137inputs with a one-node graph
+publication budget, cancellation/reuse and detached strict packet shapes.
+The complete454native regression also passes, followed by560 matched full units;
+six Core/Shared/Mongo producer/native/unit assembly copies match. Owned Mongo
+27029 is absent after teardown. Exact reports/hashes are recorded in
+TestResults/CosmicCqlDemo/mongo-floating-scalar-evidence.json.
+This enrolls only SDK scalar arithmetic. Mongo floating grouped aggregates,
+selected group comparisons/order and floating HTTP/demos remain pending.
