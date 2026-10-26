@@ -6,7 +6,7 @@ SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK
 
 - Latest separately verified cohorts: Core **3,098** (including UInt64 numeric capture/normalization and input-domain admission),
   Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **490 native /571 matched unit**,
-  Neo4j **454 native /541 matched unit**; zero skips at their recorded checkpoints.
+  Neo4j **490 native /552 matched unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
   /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
   checks and standalone demo build pass. These are distinct cohorts.
@@ -1773,3 +1773,5 @@ Neo4j floating prerequisite:2native digit cases/5,786vectors pass0skip, four mat
 Neo4j scalar floating milestone:36focused cases,454full native/541matched units pass0skip; eightmatching Core/Shared/Neo/sourceDriver producer/native/unit copies. Grouped capability ownership is now independent, preventing scalar enrollment from admitting unfinished plain groups. ProviderDefault consistency used; unsupported ProviderSnapshot still rejects. Next: Neo4j grouped finalization/compile/read/selection/capabilities, then floating HTTP and annotated live demos. Broader policy/federation and ORM gates remain open.
 
 Neo4j grouped finalizer prerequisite now passes2native cases/5,127packets bit-for-bit against Core (0skips). Four producer/native copies match and retained runtime/attachment stops cleanly. Existing454native/541unit scalar checkpoint remains separate; no full456/541rerun or group enrollment claimed. Next: grouped compile/read/selection/off-page proof integration and explicit grouped numeric admission, then floating HTTP/live demos.
+
+Neo4j grouped floating milestone:34new native cases,490full native/552matched units PASS0skip; eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. Complete raw off-page proofs retain typed arithmetic and independent native membership validation; all three native SDK adapters now enroll floating scalar/grouped Sum/Average. ProviderDefault consistency retained; unsupported snapshots still reject. Next: shared floating HTTP arithmetic binder/wire acceptance, annotated C#/HTTP/browser demos, then remaining declared policy/federation/ORM gates.

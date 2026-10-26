@@ -25,7 +25,8 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             // Grouped admission owns its implementation domains independently:
             // enrolling a scalar must not silently enroll an unfinished group path.
             var numericInputs = new[] { typeof(int), typeof(int?), typeof(long), typeof(long?),
-                typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) };
+                typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?),
+                typeof(float), typeof(float?), typeof(double), typeof(double?) };
             var aggregateCapabilities = new CosmicScalarCapabilities(
                 new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
                 new[]
@@ -45,7 +46,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.LongCount, typeof(long))
             }).Concat(numericInputs
                 .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type)))
-                .Concat(new[] { typeof(decimal), typeof(decimal?) }.Select(type =>
+                .Concat(new[] { typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }.Select(type =>
                     new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Average, type))).ToArray();
             var comparisons = System.Enum.GetValues<CosmicQueryComparisonOperator>();
             CosmicQueryMetadataCapability Scalar(Type declared)
