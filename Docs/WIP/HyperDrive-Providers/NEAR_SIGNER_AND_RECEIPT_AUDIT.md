@@ -1,5 +1,15 @@
 # NEAR signer and receipt audit
 
+## Public native token custody acceptance — 26 October
+
+Native80871terminal0:1/1testPASS20seconds,426/426unitPASS25seconds, all3provider/unit/integration projects compiled without restore. Public MintToken, amount/ID LockToken, BurnToken, selector-free issuer freeze/unfreeze and UnlockToken used the existing prepared owner. Eight physical originals fsynced before send, all independently recovered/read with invalid signing material:7FINAL/Success and1expected FINAL/Failure for a lock while trading was frozen. Rejected native lock created no deposit. Duplicate lock and release replay rejected before signing (zero physical originals).
+
+Conservation: mint10 -> lock3 (7spendable,10supply) -> burn2 (5spendable,8supply) -> freeze -> native lock rejection (unchanged) -> release3 WHILE frozen (8spendable,8supply) -> unfreeze -> burn8 (0spendable,0supply). Original released tombstone retained. Synthetic symbol ESCROW-dbf13a79e84346ca9470deda58ad5199, deposit649daee5-9334-4b2a-801d-9cde61598f41; rejected depositdfa87be3-c2ea-4939-9f95-3d94a7dec5b0 absent. Native audit token/tombstone remain deliberately; zero supply does not erase replay evidence. This is same-account custom-contract proof, not independent-holder or NEP-141 certification.
+
+NativeEvidence/near-prepared-token.complete.json51782bytes preserves attempts/originals/receipts. near-prepared-token-current.trx.gz1645bytes and near-token-native-unit-current.trx.gz94363bytes were losslessly verified before raw removal. near-prepared-token-binaries.json1355bytes records exact captured Core813b395f.../Sharede564ee7d..., provider/unit/integration assembly hashes and sizes. Source/PDB verified Core785/Shared56/provider21/unit39/integration13; all3consumer dependency pairs match. Native transaction+receipt tokens_burnt10766185771346600000000yocto=0.0107661857713466localtestNEAR, excluding full storage/deposit/refunds and fiat sponsored settlement.
+
+Same retained ledger/runtime/SDK/key only. Owned node553 stopped/ports absent; log9359bytes retained and ledger313194120bytes reusable. Earlier upgrade artifacts promoted by verified in-place moves: active oasis_storage.wasm3390da66...534212bytes; old638719...528815bytes retained as oasis_storage.pre-token-escrow.wasm. No clone/download/restore/new environment. Hosted authority/fees, independent owners, further interface coverage and full cross-provider V2 remain open.
+
 ## Retained native token escrow code upgrade verified — 26 October
 
 Actual code-only upgrade transaction CeGGa9jNRCvvXFHfBpq4Nbim1tKHS7uoDEdfSiZxEkTr finalized successfully in the same near-sandbox2.6.2 environment using official SDK7.3.1. Signed Borsh and32byte signing digest were exclusively persisted and fsynced (including directory) BEFORE one exact submission. Independent deployed code SHA256 is3390da66ecaa7c09e6ebdd897a7139ae2be53644deb69ccbe953bf944c6c5b31; native token_escrow_protocol returns1. No init/reset. Before/after full native state both2523entries with SHA256e3f864bdf44f2f05fb28abaf0e4df1519e9c638d4fef3817e886e6b8adf71f3e.
