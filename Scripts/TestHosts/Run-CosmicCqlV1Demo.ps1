@@ -114,11 +114,17 @@ try {
         if ($report.sdkFederationExamples -ne 1 -or $report.demoFederationRequests -ne 1) {
             throw 'Annotated SDK/HTTP global federation demo verification is incomplete.'
         }
+        if ($report.hostedCursorRequests -ne 20 -or $report.settledCursorOperations -ne 18 -or
+            $report.cursorProviderAttempts -ne 32 -or $report.cursorDuplicateRejections -ne 2 -or
+            $report.cursorProvidersVerified -ne 3 -or $report.cursorHostRestarts -ne 2 -or
+            $report.cursorKeyRotations -ne 1 -or $report.cursorKeyRevocations -ne 1) {
+            throw 'Signed native cursor paging/claim/restart/key-lifecycle proof is incomplete.'
+        }
         # Interactive presenters may run additional queries before Finish.
         # Bounded verification retains exact totals; both require all recovery cases.
         if ($report.settledRecoveryOperations -ne 12 -or
-            (!$Serve -and ($report.settledOperations -ne 505 -or $report.providerAttempts -ne 567)) -or
-            ($Serve -and ($report.settledOperations -lt 505 -or $report.providerAttempts -lt 567))) {
+            (!$Serve -and ($report.settledOperations -ne 523 -or $report.providerAttempts -ne 599)) -or
+            ($Serve -and ($report.settledOperations -lt 523 -or $report.providerAttempts -lt 599))) {
             throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 

@@ -245,3 +245,5 @@ Both new global examples execute in the native gate alongside the existing
 per-target private grants, revocation, limits and real encrypted metadata handling.
 Sources and seven binary pairs match. Cursors/causal agreement/distributed joins
 remain separate unfinished roadmap work. See the COSMIC ORM HTTP contract.
+
+26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
