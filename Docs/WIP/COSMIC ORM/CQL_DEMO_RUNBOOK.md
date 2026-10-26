@@ -224,3 +224,24 @@ The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
 Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.
 
 Latest25October acceptance:102SDK/102HTTP,309settled/301attempts, Core2940 and joint native1/1 pass; standalone build and20 browser preset checks pass. [Composition contract/examples](CQL_COMPOSITION_HTTP_CONTRACT.md). Historical counts below retain their dated scopes.
+
+## Federation demo — verified 26 October 2026
+
+Read [V1FederationWalkthrough.cs](../../../Examples/CosmicCqlDemo/V1FederationWalkthrough.cs) for the spaced and
+commented C# and HTTP examples. The SDK example preserves copies and returns a
+five-row global page; the HTTP example chooses an explicit provider priority
+before its two-identity global page. Neither claims cross-provider freshness.
+
+Run `pwsh -File Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -Serve` from the OASIS
+root using the retained environment. Open the printed Swagger URL, choose
+`POST /api/data/query-cql/federation`, replace the fixture-tag placeholder with
+the running demo tag, and use a fresh idempotency key. The demo supplies Alice's
+bearer token at dispatch. Its federation admission allows three provider attempts;
+leaf query admission remains one. Finish using the demo page for verified cleanup.
+
+Both new global examples execute in the native gate alongside the existing
+138SDK/138HTTP walkthrough. Full cohort505operations/567attempts passes, plus
+13actual-shipping-controller federation requests with exact durable tariffs,
+per-target private grants, revocation, limits and real encrypted metadata handling.
+Sources and seven binary pairs match. Cursors/causal agreement/distributed joins
+remain separate unfinished roadmap work. See the COSMIC ORM HTTP contract.
