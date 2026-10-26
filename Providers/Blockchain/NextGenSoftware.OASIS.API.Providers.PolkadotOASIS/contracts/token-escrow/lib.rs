@@ -69,7 +69,7 @@ mod oasis_token_escrow {
     }
 
     impl OasisTokenEscrow {
-        #[ink(constructor)]
+        #[ink(constructor, selector = 0x00000001)]
         pub fn new() -> Self {
             Self {
                 deposits: Mapping::default(),

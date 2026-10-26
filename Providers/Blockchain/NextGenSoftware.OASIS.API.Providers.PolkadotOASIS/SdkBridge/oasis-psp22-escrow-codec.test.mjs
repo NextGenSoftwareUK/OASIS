@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TypeRegistry } from '@polkadot/types/create';
+import { readTokenEscrowDeposit } from './psp22-escrow-read.mjs';
 import { encodeTokenEscrowMutation, decodeTokenEscrowMutation, encodeTokenEscrowDepositQuery,
   registerTokenEscrowTypes, decodeTokenEscrowResult } from './oasis-psp22-escrow-codec.mjs';
 const registry = new TypeRegistry();
@@ -47,4 +48,41 @@ test('deposit query preserves original owner, exact amount and released tombston
   const value = { owner: id, token, amount: '18446744073709551620', released: true };
   assert.deepEqual(decodeTokenEscrowResult(registry, 'deposit', registry.createType(type, { Ok: value }).toU8a()),
     { owner: id, tokenAddress: token, amountUnits: value.amount, released: true });
+});
+test('invalid deposit query rejects before finalized-head or contract access', async () => {
+  await assert.rejects(readTokenEscrowDeposit({}, { depositId: 'guid' }), /deposit ID/);
+});
+test('deposit read uses one finalized code-pinned snapshot and preserves large amounts', async () => {
+  registerTokenEscrowTypes(registry);
+  const hash = '0x' + '33'.repeat(32), code = '0x' + '44'.repeat(32);
+  const finalized = { toHex: () => hash };
+  const counts = { heads: 0, at: 0, query: 0 };
+  const api = { registry, createType: (...args) => registry.createType(...args),
+    rpc: { chain: { getFinalizedHead: async () => { counts.heads++; return finalized; } } },
+    at: async block => { counts.at++; assert.equal(block, finalized); return {
+      query: { contracts: { contractInfoOf: async address => { assert.equal(address, token); return {
+        isNone: false, unwrap: () => ({ codeHash: { toHex: () => code } }) }; } } },
+      call: { contractsApi: { call: async (origin, address, value, gas, deposit, input) => {
+        counts.query++; assert.equal(origin, id); assert.equal(address, token);
+        assert.equal(input, encodeTokenEscrowDepositQuery(id));
+        assert.equal(value, 0); assert.equal(gas, null); assert.equal(deposit, null);
+        const encoded = registry.createType('Result<Option<OasisTokenEscrowDeposit>,OasisTokenEscrowLangError>',
+          { Ok: { owner: id, token, amount: '18446744073709551620', released: false } });
+        return { result: { isErr: false, asOk: { flags: { get: () => registry.createType('u32', 0) },
+          data: registry.createType('Bytes', encoded.toHex()) } } };
+      } } } }; } };
+  const result = await readTokenEscrowDeposit(api, { contractAddress: token, contractCodeHash: code, origin: id, depositId: id });
+  assert.equal(result.blockHash, hash); assert.equal(result.deposit.amountUnits, '18446744073709551620');
+  assert.deepEqual(counts, { heads: 1, at: 1, query: 1 });
+});
+test('missing or substituted contract cannot become a successful empty token deposit', async () => {
+  for (const missing of [false, true]) {
+    const api = { createType: (...args) => registry.createType(...args),
+      rpc: { chain: { getFinalizedHead: async () => ({ toHex: () => id }) } },
+      at: async () => ({ query: { contracts: { contractInfoOf: async () => ({ isNone: missing,
+        unwrap: () => ({ codeHash: { toHex: () => id } }) }) } },
+        call: { contractsApi: { call: async () => { throw new Error('Unexpected unpinned query'); } } } }) };
+    await assert.rejects(readTokenEscrowDeposit(api, { contractAddress: token, contractCodeHash: token, origin: id, depositId: id }),
+      missing ? /does not exist at finalized snapshot/ : /differs from the explicitly pinned artifact/);
+  }
 });

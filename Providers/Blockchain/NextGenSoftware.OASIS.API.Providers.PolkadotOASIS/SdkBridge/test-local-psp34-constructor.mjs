@@ -10,14 +10,16 @@ import { blake2AsHex } from '@polkadot/util-crypto';
 import { encodeOasisPsp34Constructor } from './oasis-psp34-constructor.mjs';
 
 assert.equal(process.env.OASIS_POLKADOT_LOCAL_NATIVE, '1', 'Explicit retained local opt-in required.');
-assert.ok(process.argv.length === 2 || (process.argv.length === 3 && process.argv[2] === '--escrow'),
-  'Constructor simulation accepts only the explicit escrow variant, never submission arguments.');
+assert.ok(process.argv.length === 2 || (process.argv.length === 3 && ['--escrow', '--token-escrow'].includes(process.argv[2])),
+  'Constructor simulation accepts only explicit escrow variants, never submission arguments.');
 const escrow = process.argv[2] === '--escrow';
-const prefix = escrow ? 'psp34-escrow' : 'psp34';
+const tokenEscrow = process.argv[2] === '--token-escrow';
+const prefix = tokenEscrow ? 'psp22-escrow' : escrow ? 'psp34-escrow' : 'psp34';
 const root = resolve(import.meta.dirname, '../../../..');
 const evidence = resolve(root, 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot');
 const cohort = JSON.parse(readFileSync(resolve(evidence, `${prefix}-wasm-current.json`), 'utf8'));
-const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/oasis-${prefix}.wasm`));
+const artifact = tokenEscrow ? 'oasis-token-escrow' : `oasis-${prefix}`;
+const code = readFileSync(resolve(root, `TestResults/PolkadotCurrent/record-contract-target/${artifact}.wasm`));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 assert.equal(sha(code), cohort.sha256);
 assert.equal(blake2AsHex(code, 256), cohort.codeHash);
@@ -32,9 +34,9 @@ try {
   const sender = '0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c';
   const fields = { name: escrow ? 'OASIS retained beneficiary escrow' : 'OASIS retained PSP34 fixture', symbol: 'OASIS',
     description: 'Local native NFT acceptance; no public funds.', image: 'oasis://test/psp34' };
-  const data = encodeOasisPsp34Constructor(api.registry,
+  const data = tokenEscrow ? '0x00000001' : encodeOasisPsp34Constructor(api.registry,
     Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, Buffer.from(value, 'utf8')])));
-  const salt = escrow ? '0x6f617369732d70737033342d657363726f772d7632' : '0x6f617369732d70737033342d7631';
+  const salt = tokenEscrow ? '0x6f617369732d746f6b656e2d657363726f772d7631' : escrow ? '0x6f617369732d70737033342d657363726f772d7632' : '0x6f617369732d70737033342d7631';
   const finalized = await api.rpc.chain.getFinalizedHead();
   const at = await api.at(finalized);
   const result = await at.call.contractsApi.instantiate(sender, 0, null, null,
@@ -47,7 +49,7 @@ try {
     'Untracked fixture already exists; investigate instead of deploying again.');
   const proof = { genesisHash: api.genesisHash.toHex(), blockHash: finalized.toHex(),
     runtimeSpecVersion: api.runtimeVersion.specVersion.toString(), codeHash: cohort.codeHash,
-    artifactSha256: cohort.sha256, address, sender, data, salt, fields,
+    artifactSha256: cohort.sha256, address, sender, data, salt, fields: tokenEscrow ? null : fields,
     gasRequired: result.gasRequired.toJSON(), storageDeposit: result.storageDeposit.toJSON(),
     simulationPassed: true, nativeDeploymentVerified: false, signedOrSubmitted: false };
   writeFileSync(resolve(evidence, `${prefix}-constructor-simulation-current.json`), JSON.stringify(proof, null, 2) + '\n');
