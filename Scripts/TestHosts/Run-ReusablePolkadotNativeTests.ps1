@@ -21,7 +21,8 @@ try {
     $publicStoragePending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
     $nftDeploymentPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
     $nftMutationPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
-    foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation, $assetApi, $assetTransfer) + $recordPending + @($publicStoragePending, $nftDeploymentPending, $nftMutationPending)) {
+    $publicNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
+    foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation, $assetApi, $assetTransfer) + $recordPending + @($publicStoragePending, $nftDeploymentPending, $nftMutationPending, $publicNftPending)) {
         if (Test-Path -LiteralPath $pending) { throw "Pending original exists: $pending. Reconcile it read-only; never replay or delete it to rerun." }
     }
     $publicKeys = $Suite -eq 'PublicKeys'
