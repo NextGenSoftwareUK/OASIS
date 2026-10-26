@@ -72,7 +72,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-$cleanupLedger = Join-Path $repoRoot 'Docs\WIP\HyperDrive-Providers\WORKSPACE_CLEANUP_LEDGER.md'
+# Machine log, not a project document: kept outside the repository so runs never dirty git.
+$cleanupLedger = Join-Path $env:LOCALAPPDATA 'OASIS\cleanup-ledger.md'
 $cleanupFailureCount = 0
 $cleanupRemovedBytes = 0L
 $cleanupCutoff = [DateTime]::UtcNow.AddDays(-$MinimumAgeDays)
