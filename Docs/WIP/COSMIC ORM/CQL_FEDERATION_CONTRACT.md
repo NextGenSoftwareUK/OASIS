@@ -406,3 +406,30 @@ validation, binding the exact next key to durable usage idempotency, atomic repl
 rejection, cumulative remaining-budget execution, publication and signed/native
 paging acceptance remain unimplemented. HTTP still rejects Cursor input. The
 prior505/567 native federation checkpoint is separate and predates this codec.
+
+### Redemption ownership inspection — 26 October 2026
+
+The durable replay owner is `Web4UsageExecution.AdmitAsync` in Core's
+`Services/Subscriptions/Web4UsageExecution.cs`. It canonicalizes the avatar,
+derives the operation through `UsageCanonical.OperationId(service, avatar, key)`,
+claims the outbox with `TryBeginAsync`, and rejects an existing claim before
+returning a handle. Authority start also precedes handle publication. Therefore
+cursor redemption must reuse this owner rather than introduce another replay
+store or derive operation IDs in the controller.
+
+`UsageExecutionHandle` currently exposes OperationId and UserId but no supported
+check that a supplied continuation key belongs to its admitted operation. The
+next Core change should expose a narrow binding check implemented with the same
+canonical owner, including the captured service and avatar. Tests must prove
+correct key/owner acceptance, foreign key/service/avatar rejection, and unchanged
+binding on `WithNativePrices` derived handles. Host code must require the cursor's
+exact server-issued key in the HTTP header and verify the handle binding before
+provider preparation. Header equality alone is insufficient evidence of admission.
+
+This inspection does not implement redemption. The codec checkpoint is published
+as parent commit 837abaaa8; origin was verified at that exact commit. The shared
+build/output and root Git slot was explicitly returned for the peer S3 regression.
+No build, download, environment or service was introduced during this inspection.
+
+26 October durable request-key binding prerequisite verified: UsageExecutionHandle.IsBoundToRequest(service, avatar, key) reuses UsageCanonical.OperationId against the captured durable owner, independent of later options mutation. Admission and binding share key validation. Ten strict memory-only controls reject foreign keys/avatars/services, invalid key lengths/control characters and empty avatars without authority/outbox calls. Core dual-target build/all3,685 tests pass, zero skips. Evidence: Verification/federation-request-binding-core.trx.gz and federation-request-binding-identities.json. HTTP cursor redemption, priced-handle binding coverage, cumulative budgets and signed/native paging acceptance remain open.
+
