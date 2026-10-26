@@ -21,7 +21,8 @@ internal static class HostedHolonWriteEndpoint
     internal static Task<OASISResult<IHolon>> SaveAsync(HttpContext context,
         string engineMode, SaveHolonRequest request, Func<HolonManager> acquireManager)
         => ExecuteAsync(context, engineMode, request, acquireManager,
-            (manager, actor, wizard, header) => HolonWriteEndpoint.SaveAsync(manager, request, actor, wizard, header));
+            (manager, actor, wizard, header) => HolonWriteEndpoint.SaveAsync(manager, request, actor, wizard, header,
+                context?.RequestServices?.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy));
 
     internal static Task<OASISResult<IHolon>> DeleteAsync(HttpContext context,
         string engineMode, DeleteHolonRequest request, Func<HolonManager> acquireManager)
@@ -30,7 +31,8 @@ internal static class HostedHolonWriteEndpoint
             context?.Request.Headers[HolonWriteEndpoint.ExpectedRevisionHeader].ToString());
         return bound.IsError ? Task.FromResult(bound)
             : ExecuteAsync(context, engineMode, request, acquireManager,
-                (manager, actor, wizard, header) => HolonWriteEndpoint.DeleteAsync(manager, request, actor, wizard, header));
+                (manager, actor, wizard, header) => HolonWriteEndpoint.DeleteAsync(manager, request, actor, wizard, header,
+                    context?.RequestServices?.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy));
     }
 
     private static async Task<OASISResult<IHolon>> ExecuteAsync(HttpContext context,

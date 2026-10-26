@@ -357,7 +357,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                         return HttpResponseHelper.FormatResponse(error, HolonWriteEndpoint.Status(error), request.ShowDetailedSettings);
                     }
                     var written = await HolonWriteEndpoint.SaveBatchAsync(context.Result.Manager, request, callerId, callerIsWizard,
-                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                        HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
                     response.Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(written, response.Result);
                     if (written.Result != null)
                         response.Result.Result = Mapper.Convert<IHolon, Holon>(written.Result)?.ToList();

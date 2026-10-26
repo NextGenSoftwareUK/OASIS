@@ -54,6 +54,8 @@
   <ItemGroup><None Update="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs" Link="Production/HolonWriteEndpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs" Link="Production/HostedCosmicProtection.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic/ICosmicOperationRecoveryPolicy.cs" Link="Production/ICosmicOperationRecoveryPolicy.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/HolonWriteIntentRequest.cs" Link="Production/HolonWriteIntentRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonRequest.cs" Link="Production/SaveHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonsRequest.cs" Link="Production/SaveHolonsRequest.cs" />
