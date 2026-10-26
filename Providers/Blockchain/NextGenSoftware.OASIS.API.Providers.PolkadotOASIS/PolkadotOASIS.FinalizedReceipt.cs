@@ -24,6 +24,10 @@ public partial class PolkadotOASIS
         string fromBlockNumber=null,int maximumBlocks=16,CancellationToken cancellationToken=default)
         => ReadOriginalOutcomeAsync(preparation,fromBlockNumber,maximumBlocks,NativeMutationKind.Nft,cancellationToken);
 
+    public Task<OASISResult<JsonElement>> ReadOriginalTokenEscrowOutcomeAsync(JsonElement preparation,
+        string fromBlockNumber=null,int maximumBlocks=16,CancellationToken cancellationToken=default)
+        => ReadOriginalOutcomeAsync(preparation,fromBlockNumber,maximumBlocks,NativeMutationKind.TokenEscrow,cancellationToken);
+
     private async Task<OASISResult<JsonElement>> ReadOriginalOutcomeAsync(JsonElement preparation,
         string fromBlockNumber, int maximumBlocks, NativeMutationKind kind, CancellationToken cancellationToken)
     {
@@ -32,6 +36,10 @@ public partial class PolkadotOASIS
         {
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before original outcome recovery.");
             var original = preparation.Clone();
+            if(kind==NativeMutationKind.TokenEscrow&&(_tokenEscrowConfiguration==null
+                ||original.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId
+                ||original.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash))
+                throw new InvalidDataException("Token recovery original differs from the explicitly configured escrow.");
             var response = await InvokePolkadotSdkAsync(new { operation = MutationOperations(kind).Outcome, endpoint = _rpcEndpoint,
                 genesisHash = ReportedGenesisHash, preparation = original, fromBlockNumber, maximumBlocks }, cancellationToken);
             var found = response.GetProperty("found").GetBoolean();

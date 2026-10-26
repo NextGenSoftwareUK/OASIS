@@ -131,8 +131,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
             // Any supplied source hash must prove this same collection/token entering
             // local custody. Cross-chain authorization remains the coordinator's job.
             var released=await ExecuteOwnedNftAsync(owner=>Task.FromResult(new NftIntent("transfer",
-                NftAccount(nftTokenAddress),CanonicalNftTokenId(tokenId),NftAccount(_bridgePoolAddress),
-                NftAccount(receiverAccountAddress),NftAccount(_bridgePoolAddress),_bridgePoolAddress,_privateKey,null,null,
+                NativeAccount(nftTokenAddress),CanonicalNftTokenId(tokenId),NativeAccount(_bridgePoolAddress),
+                NativeAccount(receiverAccountAddress),NativeAccount(_bridgePoolAddress),_bridgePoolAddress,_privateKey,null,null,
                 SourceCustodyTransaction:sourceTransactionHash))).ConfigureAwait(false);
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse,BridgeTransactionResponse>(released);
             var unresolved=released.Exception as INativeMutationReconciliationRequired;
