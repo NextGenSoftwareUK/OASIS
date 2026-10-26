@@ -8,8 +8,8 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
-// Activate alongside the existing test class's partial declaration. Excluded
-// until the shared producer/source slot is available for baseline verification.
+// Real MVC barriers reproduce request-local settings escaping into the singleton
+// and older cleanup overwriting a newer global publication. No timing sleeps.
 public sealed partial class CosmicDataControllerHttpTests
 {
     [Theory]
