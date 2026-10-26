@@ -1,8 +1,8 @@
 # CQL finite floating aggregate contract
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
-(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. Native provider
-translation/enrollment and HTTP/demos are not implemented by this component.
+(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite native SDK integration is now certified below. MongoDB/Neo4j native
+translation/enrollment and floating HTTP/demos remain pending.
 Existing floating metadata filters/projection/extrema remain separate features.
 
 ## Exact native reduction
@@ -73,3 +73,26 @@ Remaining: integrate this component into both query compilers/read owners,
 retain original source/access/traversal and complete raw proofs, certify native
 scalar/grouped cases, then explicitly enroll provider capabilities. MongoDB,
 Neo4j and HTTP floating arithmetic remain pending independently.
+
+## SQLite native SDK enrollment
+
+Scalar/grouped source compilation and packet publication are integrated. The
+original source window, protected scope validation, access predicates, read
+snapshot, cumulative budget and transaction owners are retained. SQL participation
+and packet counts are checked independently. Scalars admit zero inputs; actual
+groups require positive inputs. Every raw packet is normalized before typed DTO
+construction, including groups outside a requested page.
+
+All48 query controls pass, followed by the clean production runner:1,763native
+integration/74unit tests, zero failures/skips, stable sources/sixmatching copies
+and verified fixture teardown. They include both domains' boundaries, malformed
+inputs, exact cancellation, overflow/valid means, nullable/empty inputs, source
+windows, privacy,137inputs independent of graph publication limits, cancellation,
+rounded result filtering, exact sum/key comparison, mixed packets and30aggregate
+slots. No native REAL SUM or manager-side input scan is substituted.
+
+The reusable command is Scripts/TestHosts/Run-CosmicSqliteAcceptance.ps1; it owns
+the global build lease and excludes only the documented historical reconciliation
+class. The earlier unfiltered report's two diagnostic lock refusals are preserved
+separately; they are not claimed as a passing raw run. MongoDB/Neo4j native
+arithmetic and explicit floating HTTP/demo enrollment remain open.

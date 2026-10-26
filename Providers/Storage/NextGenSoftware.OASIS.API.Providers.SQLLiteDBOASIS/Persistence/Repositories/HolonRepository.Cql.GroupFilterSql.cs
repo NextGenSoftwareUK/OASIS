@@ -48,7 +48,7 @@ public partial class HolonRepository
             else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) cell.Value = "inputs";
             else if (column.Operation == CosmicScalarOperation.Sum)
             {
-                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                if (FloatingNumeric(column.Selector.ValueType) || (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
                     cell.Value = GroupNumericKey(column, index);
                 else { cell.High = "a" + index + "h"; cell.Low = "a" + index + "l"; }
             }
@@ -67,6 +67,12 @@ public partial class HolonRepository
         private static string GroupNumericKey(CosmicGroupedColumn column, int index)
         {
             var input = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            if (FloatingNumeric(input))
+            {
+                var floatingMode=(column.Operation==CosmicScalarOperation.Sum ? 0 : 2)
+                    +(Nullable.GetUnderlyingType(column.Selector.ValueType)!=null ? 1 : 0);
+                return SqliteCqlFloatingAggregates.KeyFunction+"(a"+index+"p,"+floatingMode+","+(input==typeof(float)?0:1)+")";
+            }
             if (input == typeof(decimal))
             {
                 var decimalMode = (column.Operation == CosmicScalarOperation.Sum ? 0 : 2)

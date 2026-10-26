@@ -1,5 +1,11 @@
 # CQL architecture
 
+SQLite floating Sum/Average now has native scalar/grouped SDK acceptance:
+**1,763 production integration /74 unit tests**, zero skips, stable source and
+six matching copies. SQL-local constant-size packets retain source/budget/access
+and off-page error ownership. MongoDB/Neo4j and HTTP floating arithmetic remain
+pending. See [the contract](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 ## Floating aggregate capture - 25 October 2026
 
 Full Core **3,098 tests** pass without failures/skips; both Core targets build.

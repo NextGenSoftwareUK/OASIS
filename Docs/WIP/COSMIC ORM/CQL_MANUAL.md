@@ -1,5 +1,30 @@
 # CQL developer manual
 
+## SQLite Single/Double arithmetic SDK availability
+
+SQLite now supports required/nullable Single and Double Sum/Average, including
+grouped result filters/order/pages. Results retain their declared floating type;
+integer/Decimal Average still returns Decimal. For an already scoped source:
+
+```csharp
+var total = source.Sum(holon =>
+    CosmicQueryMetadata.Value<double>(holon, "reading"));
+
+var mean = source.Average(holon =>
+    CosmicQueryMetadata.Value<float?>(holon, "singleReading"));
+```
+
+Use the actual SQLite capabilities and the existing generic planner/HolonManager
+execution shown below. Native reduction is exact until one final IEEE rounding;
+this deliberately differs from sequential accumulation. Finite overflow errors
+rather than returning infinity, and empty nullable averages return null.
+
+Acceptance passes **1,763 production integration /74 unit tests**, zero skips,
+including48 new query controls. MongoDB/Neo4j floating arithmetic and HTTP
+Single/Double arithmetic inputs remain unenrolled. Existing floating metadata
+queries and the40-example three-provider demo retain their separate scope.
+[Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
 ## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 
 MongoDB, SQLite and Neo4j support exact Decimal/nullable Sum and Average, including grouped
