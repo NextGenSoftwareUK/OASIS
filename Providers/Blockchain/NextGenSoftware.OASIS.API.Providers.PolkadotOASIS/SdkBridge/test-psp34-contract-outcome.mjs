@@ -43,6 +43,7 @@ test('non-mint actions require a real source and burn requires no destination', 
   assert.throws(() => exactNftEffect(api, { ...identity, action: 'transfer' }, [transfer()], true));
   assert.throws(() => exactNftEffect(api, { ...identity, action: 'burn' }, [transfer(sender)], true));
   assert.throws(() => exactNftEffect(api, { ...identity, action: 'transfer' }, [transfer(sender, null)], true));
+  assert.throws(() => exactNftEffect(api, { ...identity, action: 'transfer', expectedFrom: recipient }, [transfer(sender)], true));
 });
 test('empty metadata bytes remain exact and byte token identities retain their variant', () => {
   const id = { Bytes: '0x0001ff' };

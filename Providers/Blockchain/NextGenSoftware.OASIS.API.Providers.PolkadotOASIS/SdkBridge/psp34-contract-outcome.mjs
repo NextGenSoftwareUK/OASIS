@@ -35,6 +35,7 @@ export function exactNftEffect(api, identity, own, dispatchSucceeded) {
   const to = transfer[1].isNone ? null : api.createType('AccountId32', transfer[1].unwrap()).toHex();
   if (!Buffer.from(transfer[2].toU8a()).equals(encodedId)
       || (identity.action === 'mint' ? from !== null : from === null)
+      || (identity.expectedFrom !== undefined && from !== identity.expectedFrom)
       || (identity.action === 'burn' ? to !== null : to !== identity.to))
     throw new Error('NFT transfer acknowledgement differs from signed action/token/recipient.');
   // PSP34 transfer/burn sign caller+token, not a from-account argument. Return
