@@ -35,6 +35,10 @@ try {
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedHolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicRecoveryEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Recovery.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/GrpcHolonWriteContract.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GraphQL',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GrpcServices/DataGrpcService.cs',
@@ -91,11 +95,18 @@ try {
         if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
-        if ($report.shippingRestRequests -ne 63 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
+        if ($report.shippingRestRequests -ne 78 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
             throw 'Shipping REST/native storage settlement proof is incomplete.'
         }
         if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {
             throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
+        }
+        # Interactive presenters may run additional queries before Finish.
+        # Bounded verification retains exact totals; both require all recovery cases.
+        if ($report.settledRecoveryOperations -ne 12 -or
+            (!$Serve -and ($report.settledOperations -ne 465 -or $report.providerAttempts -ne 517)) -or
+            ($Serve -and ($report.settledOperations -lt 465 -or $report.providerAttempts -lt 517))) {
+            throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 
         # Capture the tested producer/consumer identities before releasing the

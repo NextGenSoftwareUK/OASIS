@@ -1,6 +1,6 @@
 # Authenticated hosted operation recovery
 
-26 October 2026. Implemented boundary milestone; signed native HTTP certification and automatic hosted write enrollment remain open. Do not treat this checkpoint as full production CQL completion.
+26 October 2026. Hosted protection enrollment and signed native HTTP recovery are verified on MongoDB, SQLite and Neo4j. The full ORM/CQL roadmap, protected hard-delete acknowledgement-loss and actual process-restart acceptance remain open.
 
 ## Request
 
@@ -30,7 +30,11 @@ Use the application's authorized `IHolonMetadataKeyResolver`; do not derive keys
 
 An enrolled recovery route requires this service at startup. Readiness checks service composition without authorizing a real actor, resolving a key, activating a provider or making a native call. An unenrolled host does not acquire a default key or policy.
 
-Registering a read authorization service alone does **not** enroll original writes. Original operations must already have a protected preparation created under an authorized compatible policy. Shared SDK save/delete enrollment and request-policy inheritance are implemented; automatic per-actor policy enrollment across hosted write routes is the next integration step.
+Registering this service now also enrolls V2 hosted writes through the shared single-save, batch-save and delete boundaries, including REST aliases/provider-key deletion and the GraphQL/gRPC wrapper. The grant is applied to a fresh request-owned manager, never the shared manager. Each selected record is admitted against the same runtime catalogue and authorized key context before a preparation claim or mutation. New IDs are assigned by the existing graph planner before the callback; unselected descendants never reach it. A denied/null record policy cannot fall back to global protection or an unprotected write.
+
+Core exposes `PreparationPolicyResolver` with an immutable `HolonPreparationPolicyContext` containing the assigned ID and actual runtime type, without handing the callback a mutable entity. Request contexts retain the callback observation; later parent changes cannot replace it. The callback is excluded from JSON serialization. Existing explicit-policy SDK behavior is preserved when no application service is configured. Legacy paths are unchanged.
+
+Preparation protects the private original-intent journal. It does not change the primary record's metadata encryption/query-visible keys or create replacement keys. Original operations without a preparation remain unavailable to stored-only recovery; absence still does not authorize replay.
 
 ## Pricing and execution
 
@@ -47,8 +51,12 @@ The response contains the existing redacted `ConditionalHolonWriteOutcome`. Miss
 
 ## Evidence and remaining acceptance
 
-Both Core targets and the shipping WEB4 build pass. Full WEB4: **305 passed / one existing Stripe sandbox test skipped / zero failed**. Real-Mongo usage: **408 passed / zero skipped or failed**, plus the separate replica initialization control. Controls cover pre-manager actor/input/admission rejection, missing/denied/mismatched grants, bounded runtime catalogues, readiness without key access, and a priced stored-original recovery returning only the redacted outcome.
+Both Core targets and the shipping WEB4 build pass. Full Core: **3,501 passed / zero skips or failures**. Full WEB4: **313 passed / one existing Stripe sandbox test skipped / zero failed**. The preceding pricing suite has **408 passing real-Mongo cases**, plus its separate replica initialization control. New controls verify assigned IDs, depth exclusions, per-record contexts, denial without fallback, shared-manager isolation, and all write shapes.
 
-[WEB4 report](Verification/hosted-recovery-web4.trx.gz), [usage report](Verification/hosted-recovery-usage.trx.gz), [tested sources and matching producer/consumer identities](Verification/hosted-recovery-identities.json).
+[Core report](Verification/hosted-protection-core.trx.gz), [WEB4 report](Verification/hosted-protection-web4.trx.gz), [preceding usage report](Verification/hosted-recovery-usage.trx.gz).
 
-Remaining: automatic authorized protection enrollment on hosted saves/deletes, signed HTTP recovery against all three real providers with durable quota/settlement evidence, protected hard-delete acknowledgement-loss certification, and actual process interruption/restart. Earlier native SDK/scoped-manager recovery evidence remains valid for its recorded scope; it does not certify this new HTTP boundary.
+The signed native cohort now passes **78 REST requests**, **48 GraphQL/gRPC requests**, the unchanged **138 SDK / 138 signed CQL queries**, and **465 settlements / 517 attempts**. All three providers recover original save, soft-delete and hard-delete receipts over the shipping HTTP endpoint. Nine successful observations use two charged reads each; three foreign observations are forbidden after one charged lookup; three anonymous requests start no usage operation. The **12 recovery settlements** are counted separately from the original 60 REST-write, 48 transport and 345 CQL settlements. Current soft/hard state remains unchanged after recovery. Existing GraphQL/gRPC cases pass with the protection service configured.
+
+Sources stayed unchanged, seven producer/consumer pairs matched, owned services stopped and the exact fixture/SQLite files were removed. [Native TRX](Verification/hosted-protection-native.trx.gz), [native result](Verification/hosted-protection-result.json), [source identities](Verification/hosted-protection-source.json.gz), [binary identities](Verification/hosted-protection-binaries.json). The bounded demo runner verifies exact counts; interactive mode also permits additional presenter queries, with four direct guard controls covering both modes.
+
+Remaining: protected hard-delete acknowledgement-loss certification, actual process interruption/restart, operator retention/reconciliation, and the broader tenant/query/federation acceptance. Successful hard-delete HTTP recovery is verified; the existing injected hard-delete commit-loss controls still use the direct provider fixture and must not be presented as the protected hosted fault gate.

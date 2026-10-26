@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.Common;
 using SaveHolonRequest = NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.SaveHolonRequest;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
@@ -59,11 +60,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             return new OASISResult<IHolon>();
         }
 
-        public static async Task<OASISResult<IHolon>> DeleteAsync(HolonManager manager,
+        public static Task<OASISResult<IHolon>> DeleteAsync(HolonManager manager,
             DeleteHolonRequest request, Guid actor, bool trustedWizard, string operationHeader = null)
+            => DeleteAsync(manager, request, actor, trustedWizard, operationHeader, null);
+
+        public static async Task<OASISResult<IHolon>> DeleteAsync(HolonManager manager,
+            DeleteHolonRequest request, Guid actor, bool trustedWizard, string operationHeader, ICosmicOperationRecoveryPolicy protection)
         {
             var invalid = Validate(manager, request, actor, operationHeader, out var options, out var provider);
             if (invalid != null) return Error<IHolon>(invalid.Value.Code, invalid.Value.Message);
+            var enrolled = HostedCosmicProtection.Enroll(manager, actor, ref provider, protection);
+            if (enrolled.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonManager, IHolon>(enrolled);
+            manager = enrolled.Result;
             var id = request.Id;
             var softDelete = request.SoftDelete;
             var key = request.ProviderKey;
@@ -87,10 +95,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
         public static Task<OASISResult<IHolon>> SaveAsync(HolonManager manager,
             SaveHolonRequest request, Guid actor, bool trustedWizard, string operationHeader = null)
+            => SaveAsync(manager, request, actor, trustedWizard, operationHeader, null);
+
+        public static Task<OASISResult<IHolon>> SaveAsync(HolonManager manager,
+            SaveHolonRequest request, Guid actor, bool trustedWizard, string operationHeader, ICosmicOperationRecoveryPolicy protection)
         {
             var invalid = Validate(manager, request, actor, operationHeader, out var options, out var provider);
             if (invalid != null)
                 return Task.FromResult(Error<IHolon>(invalid.Value.Code, invalid.Value.Message));
+
+            var enrolled = HostedCosmicProtection.Enroll(manager, actor, ref provider, protection);
+            if (enrolled.IsError) return Task.FromResult(OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonManager, IHolon>(enrolled));
+            manager = enrolled.Result;
 
             // Preserve the existing server-authenticated Wizard policy, but
             // require conditional intent; there is no unconditional retry.
@@ -103,10 +119,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
         public static Task<OASISResult<IEnumerable<IHolon>>> SaveBatchAsync(HolonManager manager,
             SaveHolonsRequest request, Guid actor, bool trustedWizard, string operationHeader = null)
+            => SaveBatchAsync(manager, request, actor, trustedWizard, operationHeader, null);
+
+        public static Task<OASISResult<IEnumerable<IHolon>>> SaveBatchAsync(HolonManager manager,
+            SaveHolonsRequest request, Guid actor, bool trustedWizard, string operationHeader, ICosmicOperationRecoveryPolicy protection)
         {
             var invalid = Validate(manager, request, actor, operationHeader, out var options, out var provider);
             if (invalid != null)
                 return Task.FromResult(Error<IEnumerable<IHolon>>(invalid.Value.Code, invalid.Value.Message));
+
+            var enrolled = HostedCosmicProtection.Enroll(manager, actor, ref provider, protection);
+            if (enrolled.IsError) return Task.FromResult(OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonManager, IEnumerable<IHolon>>(enrolled));
+            manager = enrolled.Result;
 
             return trustedWizard
                 ? manager.SaveHolonsAsync(request.Holons, actor, options,

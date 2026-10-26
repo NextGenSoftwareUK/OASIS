@@ -61,6 +61,8 @@
   <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlEmptyWindowAcceptance.cs" Link="Fixtures/CqlEmptyWindowAcceptance.cs" /></ItemGroup>
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs" Link="Web4/HolonWriteEndpoint.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs" Link="Web4/HostedCosmicProtection.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic/ICosmicOperationRecoveryPolicy.cs" Link="Web4/ICosmicOperationRecoveryPolicy.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/HolonWriteIntentRequest.cs" Link="Web4/HolonWriteIntentRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonRequest.cs" Link="Web4/SaveHolonRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonsRequest.cs" Link="Web4/SaveHolonsRequest.cs" />
