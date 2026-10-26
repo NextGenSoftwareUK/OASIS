@@ -259,3 +259,8 @@ ports are no longer listening. No install/download/restore or duplicate environm
 requests/browser demos, graph-source joins, post-selection/window composition,
 distributed joins/federation and remaining policy/certification gates are still
 open. This checkpoint does not close the full join milestone or CQL roadmap.
+
+
+## Floating digit component and owned WSL runtime - 25 October 2026
+
+Run-ReusableNeo4jTests.ps1 -CosmicCqlFloatingParts under the global build lease passes2native cases/5,786vectors, zero skips. Parameter-only transactions roll back; no fixture nodes are created. Neo5.26.12 and source driver4.3.2.2 are reused; four producer/native copies match. This does not enroll floating arithmetic. The runner now owns podman start--attach through a hidden WSL process, retaining WSL for the service lifetime rather than relying on detached background services. Successful teardown stops the same pinned container and waits for its attached process to exit;69300verified attachment35360absent, Bolt17687absent and original image/data stopped. Fixed stdout/err logs remain in TestResults/Neo4jCurrent/neo4j-attached-current.log and .err.log. No global WSL shutdown or new runtime/environment is used.

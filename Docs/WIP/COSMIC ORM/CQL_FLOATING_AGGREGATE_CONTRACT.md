@@ -186,3 +186,8 @@ TestResults/CosmicCqlDemo/mongo-floating-grouped-evidence.json. Floating HTTP an
 arithmetic remain pending.
 
 Current rollout: SQLite and MongoDB SDK scalar/grouped Single/Double Sum/Average, selected filters/order/pages are verified. Earlier scalar/component-only sections retain their checkpoint scope. Neo4j native arithmetic and floating HTTP/demos remain open.
+
+
+## Neo4j native digit component - 25 October 2026
+
+Two native cases now pass5,786finite vectors, zero failures/skips: every exponent, both signs, signed zero, extrema, subnormals and seeded IEEE bit patterns. Native power-of-two remainder/division emits exact10/70Int64 words; Double's highest word avoids the unrepresentable2^1026 modulus. Independent IEEE field decomposition verifies every word and its Int64 type. Transactions evaluate only bound parameters and roll back, creating no graph data. Four Core/Shared/Neo/sourceDriver producer/native pairs match; pinned source driver identity4.3.2.2 is retained. This is component proof only: Neo4j scalar/grouped floating capabilities remain unenrolled. Evidence: TestResults/CosmicCqlDemo/neo-floating-parts-evidence.json.
