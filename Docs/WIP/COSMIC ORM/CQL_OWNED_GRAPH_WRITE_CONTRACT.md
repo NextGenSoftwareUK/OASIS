@@ -124,3 +124,56 @@ Required regression controls before transport enrollment:
 Do not enroll recipient/tenant query access on the strength of a single-route
 patch: bulk, gRPC and authenticated GraphQL actor binding remain in scope.
 Legacy defects are documentation-only under the agreed V2 implementation scope.
+
+## Generic creator-owned batch API — 26 October 2026
+
+`HolonManager.SaveOwnedHolonsAsync` authorizes the complete selected batch before
+one conditional write. It shares `AuthorizeOwnedPlanAsync` with the single-root
+API: this is one ownership/revision rule, not a sequence of independent saves.
+
+```csharp
+// Load each existing root from the intended write authority. Preserve the
+// returned provider revision metadata, or supply explicit ExpectedRevisions.
+first.MetaData["status"] = "ready";
+second.MetaData["status"] = "ready";
+
+var result = await manager.SaveOwnedHolonsAsync(
+    new IHolon[] { first, second },
+    authenticatedAvatarId,
+    new CosmicWriteOptions(operationId),
+    saveChildren: true,
+    recursive: true,
+    maxChildDepth: 4,
+    providerType: ProviderType.MongoDBOASIS,
+    maximumHolons: 1000);
+
+// Handle the result before reporting success. A conflict rejects the batch;
+// the caller must not replay an uncertain outcome with a new operation ID.
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+```
+
+The same API supports SQLite and Neo4j. One bounded plan rejects duplicate
+identities, repeated references/cycles and invalid parent relationships before
+provider I/O. The node ceiling covers every selected root and descendant;
+root enumeration is bounded too. Even unchanged selected roots must pass
+ownership validation. All-clean authorized input returns no-write success.
+A later denied root or uncertain lookup prevents every mutation. The batch
+write is explicitly pinned to the ownership authority and retains existing
+provider atomic CAS, operation binding and acknowledgement-publication rules.
+There is no continue-on-error mode for this conditional batch.
+
+Current verification:19 focused owned-write tests and3,291 full Core tests pass,
+zero skips; both Core targets and shipping WEB4 build pass. Six new controls
+exercise later-root denial (including unchanged input), uncertain lookup,
+combined node bounds, no-op condition validation and one dispatch preserving
+all caller revisions. The no-op control first failed against the initial
+implementation, then passed after validation moved before no-write success. Native
+three-provider proof passes: later foreign-root denial preserves the first root;
+a valid two-root batch commits; a stale member rejects both edits without a
+partial commit. Existing138SDK/138signedHTTP examples also pass,345settled CQL
+operations. Final source/binary identities match and owned fixtures are cleaned.
+Evidence: `TestResults/CosmicCqlDemo/owned-batch-evidence.json`. Published Core:
+`c82b371c265859c25045d99b1ee1dde6c7b00621`.
+This SDK batch API does not by itself migrate existing REST/gRPC routes or
+establish hosted admission/pricing or trusted Wizard policy.
