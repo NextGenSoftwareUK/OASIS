@@ -22,4 +22,6 @@ public sealed class CqlFederationV1Request
     public int MaximumWork { get; set; } = 100000;
     public int MaximumProviderAttempts { get; set; } = 3;
     public int MaximumDurationMilliseconds { get; set; } = 5000;
+    public bool EnableContinuation { get; set; }
+    public string? Cursor { get; set; }
 }
