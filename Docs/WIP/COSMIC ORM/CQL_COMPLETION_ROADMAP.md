@@ -1,5 +1,23 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
+## Generic whole-set grant validation — 25 October 2026
+
+Core `HolonReadGrants` now owns bounded recipient parsing and canonical encoding;
+WEB4 delegates to it. Ten original native-representation controls reproduce partial
+access from malformed JSON, mixed arrays, invalid comma tokens, arbitrary ToString
+and oversized input. They now pass with immutable snapshots, explicit legacy-text
+admission, bounded enumeration and no partial repair during grant/revocation.
+
+Both Core target frameworks build, fullCore3,217tests and shippingWEB4 pass at this
+checkpoint. Real MongoDB/SQLite/Neo4j malformed-grant reads deny partial access;
+grant/revoke reject without changing stored revision/value, and explicit conditional
+repair succeeds. The joint138SDK/138HTTP walkthrough also passes,345settled/337attempts,
+source snapshots and six binary identities matching. CQL recipient/tenant native
+policy remains unenrolled. Four additional Newtonsoft representation tests also pass in that final full
+suite. Core producer/unit/WEB4 copies match; complete evidence is recorded in
+TestResults/CosmicCqlDemo/grant-parser-evidence.json.
+
+
 Current checkpoint: **25 October 2026**. Native flat inner/left joins,
 signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo source now has46 examples per provider in each SDK/HTTP walkthrough.
