@@ -1486,3 +1486,8 @@ Mongo native grouped floating arithmetic reduces admitted binary inputs into Int
 ## Neo4j floating native prerequisite - 25 October 2026
 
 Neo4j native digit extraction is verified independently against IEEE fields (2cases/5,786vectors). The helper binds finite power-of-two tables and computes exact signed base2^30 words in Cypher, retaining the existing Core10/70word contract. No client input scan, Decimal conversion or provider capability enrollment is introduced. Scalar/grouped compile/read/final-value integration remain next.
+
+
+## Neo4j scalar floating SDK acceptance - 25 October 2026
+
+Neo4j floating scalar compilation now reduces admitted values into ten/seventy native Int64 words and validates exact domains/counts before generic Core normalization. The plain unprotected empty shortcut uses the matching typed zero packet; protected scope/traversal proof remains outside pagination. Grouped aggregate admission owns an independent input whitelist, so extending scalar support cannot accidentally enroll an unfinished group compiler.454native/541matched units pass with eight matching producer/consumer copies. ProviderDefault read consistency remains explicit; floating grouped arithmetic is pending.
