@@ -1,5 +1,6 @@
 import { canonicalBase64 } from './verify-preparation.mjs';
 import { registerRecordContractTypes, encodeRecordMessage, decodeRecordResult } from './record-contract-codec.mjs';
+import { openPinnedContractQuery } from './pinned-contract-query.mjs';
 
 export function validateRecordRead(request) {
   if (!['get', 'list', 'verify'].includes(request.action)) throw new Error('Unknown contract read action.');
@@ -24,27 +25,12 @@ export async function readRecordContract(api, request) {
   request = structuredClone(request);
   const key = validateRecordRead(request);
   registerRecordContractTypes(api.registry);
-  const address = api.createType('AccountId32', request.contractAddress).toHex();
-  const origin = api.createType('AccountId32', request.origin).toHex();
-  const finalized = await api.rpc.chain.getFinalizedHead();
-  const at = await api.at(finalized);
-  if (!at.query.contracts?.contractInfoOf || !at.call.contractsApi?.call) {
-    throw new Error('Pinned runtime does not expose pallet-contracts storage and call simulation.');
-  }
-  const info = await at.query.contracts.contractInfoOf(address);
-  if (info.isNone) throw new Error('Configured record contract does not exist at finalized snapshot.');
-  if (info.unwrap().codeHash.toHex().toLowerCase() !== request.contractCodeHash.toLowerCase()) {
-    throw new Error('Record contract code differs from the explicitly pinned artifact.');
-  }
+  const view = await openPinnedContractQuery(api, request);
+  const identity = view.identity;
   async function query(name, args) {
-    const response = await at.call.contractsApi.call(origin, address, 0, null, null,
-      encodeRecordMessage(api.registry, name, args));
-    if (response.result.isErr) throw new Error(`Native contract read failed: ${response.result.asErr.toString()}`);
-    const result = response.result.asOk;
-    if (result.flags.get('bits').toNumber() !== 0) throw new Error('Contract read reverted or returned unsupported flags.');
-    return decodeRecordResult(api.registry, name, result.data.toU8a(true));
+    return decodeRecordResult(api.registry, name,
+      await view.query(encodeRecordMessage(api.registry, name, args)));
   }
-  const identity = { blockHash: finalized.toHex(), contractAddress: address, codeHash: request.contractCodeHash.toLowerCase() };
   if (request.action === 'get') {
     const cell = await query('get', [key]);
     return { ...identity, observation: cell.isNone ? null : {

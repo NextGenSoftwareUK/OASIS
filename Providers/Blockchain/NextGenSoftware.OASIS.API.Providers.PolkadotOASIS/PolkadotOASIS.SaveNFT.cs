@@ -41,111 +41,34 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-        {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Load all avatars and filter by location
-                var allAvatarsResult = LoadAllAvatarsAsync().Result;
-                if (allAvatarsResult.IsError || allAvatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to load avatars from Polkadot blockchain");
-                    return response;
-                }
-
-                var nearbyAvatars = allAvatarsResult.Result
-                    .Where(avatar => avatar != null && null != null)
-                    .Where(avatar =>
-                    {
-                        var distance = GeoHelper.CalculateDistance(
-                            geoLat / 1000000.0,
-                            geoLong / 1000000.0,
-                            0.0,
-                            0.0);
-                        return distance <= radiusInMeters;
-                    })
-                    .ToList();
-
-                response.Result = nearbyAvatars;
-                response.IsError = false;
-                response.Message = $"Found {nearbyAvatars.Count} avatars within {radiusInMeters} meters";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting avatars near me from Polkadot: {ex.Message}");
-            }
-
-            return response;
-        }
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType holonType)
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radiusInMeters,
+                ()=>LoadAllHolonsAsync(HolonType.All,loadChildren:false),holonType).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<IEnumerable<T>>> ReadNearbyRecordsAsync<T>(long latitude,long longitude,int radius,
+            Func<Task<OASISResult<IEnumerable<T>>>> load,HolonType type=HolonType.All) where T:IHolonBase
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
+            var result=new OASISResult<IEnumerable<T>>();
+            try {
+                var query=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(latitude,longitude,radius);
+                if(!System.Enum.IsDefined(typeof(HolonType),type))throw new ArgumentOutOfRangeException(nameof(type));
+                if(!_isActivated) {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<T>>(activation);
                 }
-
-                // Load all holons and filter by location
-                var allHolonsResult = LoadAllHolonsAsync(holonType).Result;
-                if (allHolonsResult.IsError || allHolonsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to load holons from Polkadot blockchain");
-                    return response;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearbyHolons = new List<IHolon>();
-
-                foreach (var holon in allHolonsResult.Result)
-                {
-                    if (holon != null && null != null)
-                    {
-                        var distance = GeoHelper.CalculateDistance(
-                            centerLat,
-                            centerLng,
-                            0.0,
-                            0.0);
-                        if (distance <= radiusInMeters)
-                            nearbyHolons.Add(holon);
-                    }
-                }
-
-                response.Result = nearbyHolons;
-                response.IsError = false;
-                response.Message = $"Found {nearbyHolons.Count} holons within {radiusInMeters} meters";
+                var loaded=await load();
+                if(loaded.IsError)return loaded;
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,IEnumerable<T>>(loaded);
+                result.Result=query.Select(loaded.Result,row=>row.IsActive&&!row.IsDeleted&&(type==HolonType.All||row.HolonType==type));
+                result.IsLoaded=true;
+            } catch(Exception cause) {
+                result.Result=null;result.IsLoaded=false;
+                OASISErrorHandling.HandleError(ref result,cause.Message,cause);
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Polkadot: {ex.Message}");
-            }
-
-            return response;
+            return result;
         }
-
-
 
         public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest request)
         {
