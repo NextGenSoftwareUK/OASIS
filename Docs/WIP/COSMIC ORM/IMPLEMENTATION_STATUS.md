@@ -1,5 +1,16 @@
 # COSMIC ORM implementation status
 
+## Floating HTTP binder verification — 25 October 2026
+
+The shared scalar/grouped HTTP selection binder now admits required/nullable
+Single and Double Sum/Average and preserves the public Average result type.
+The new tests failed 56/56 before the fix and pass 56/56 afterward. The full
+Core test suite passes 3,154 tests, with no failures or skips. Coverage includes
+canonical round-trip wire strings, empty/nullable results, grouped result filters,
+ordering/paging, actor/receipt binding, capability denial and nonfinite output
+rejection. These are controlled endpoint/compiler tests; signed live HTTP demo
+acceptance remains open and must not be inferred from this gate.
+
 ## Neo4j floating grouped acceptance - 25 October 2026
 
 Neo4j native SDK required/nullable Single/Double grouped Sum/Average now supports

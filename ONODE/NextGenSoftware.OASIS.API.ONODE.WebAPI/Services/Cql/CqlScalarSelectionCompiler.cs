@@ -20,8 +20,9 @@ public static partial class CqlV1Compiler
         // New numeric inputs require explicit v1 wire and live acceptance first.
         var input = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
         if ((operation == CosmicScalarOperation.Sum || operation == CosmicScalarOperation.Average)
-            && input != typeof(int) && input != typeof(long) && input != typeof(ulong) && input != typeof(decimal))
-            throw new ArgumentException("CQL v1 numeric inputs are Int32/Int64/UInt64/Decimal, optionally nullable.");
+            && input != typeof(int) && input != typeof(long) && input != typeof(ulong) && input != typeof(decimal)
+            && input != typeof(float) && input != typeof(double))
+            throw new ArgumentException("CQL v1 numeric inputs are Int32/Int64/UInt64/Decimal/Single/Double, optionally nullable.");
         if (operation == CosmicScalarOperation.Average)
         {
             // The bounded selection visitor already knows the exact CLR input
@@ -43,7 +44,15 @@ public static partial class CqlV1Compiler
                 return consumer.Consume(source.Average((Expression<Func<Holon, decimal>>)(object)selector));
             if (typeof(TValue) == typeof(decimal?))
                 return consumer.Consume(source.Average((Expression<Func<Holon, decimal?>>)(object)selector));
-            throw new ArgumentException("Average requires an Int32/Int64/UInt64/Decimal selection, optionally nullable.");
+            if (typeof(TValue) == typeof(float))
+                return consumer.Consume(source.Average((Expression<Func<Holon, float>>)(object)selector));
+            if (typeof(TValue) == typeof(float?))
+                return consumer.Consume(source.Average((Expression<Func<Holon, float?>>)(object)selector));
+            if (typeof(TValue) == typeof(double))
+                return consumer.Consume(source.Average((Expression<Func<Holon, double>>)(object)selector));
+            if (typeof(TValue) == typeof(double?))
+                return consumer.Consume(source.Average((Expression<Func<Holon, double?>>)(object)selector));
+            throw new ArgumentException("Average requires an Int32/Int64/UInt64/Decimal/Single/Double selection, optionally nullable.");
         }
         var intent = operation switch
         {
