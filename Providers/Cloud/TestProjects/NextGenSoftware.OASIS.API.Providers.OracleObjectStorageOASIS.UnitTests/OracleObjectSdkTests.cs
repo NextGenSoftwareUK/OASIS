@@ -13,7 +13,7 @@ using NamedOwner = NextGenSoftware.OASIS.Providers.TestSupport.NamedChildOwner;
 namespace NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.UnitTests;
 
 [TestClass][DoNotParallelize]
-public class OracleObjectSdkTests
+public partial class OracleObjectSdkTests
 {
     private const string Endpoint="http://127.0.0.1:18661/";
     private static ObjectStorageClient Client()

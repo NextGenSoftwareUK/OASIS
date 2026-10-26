@@ -35,6 +35,7 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         ArgumentException.ThrowIfNullOrWhiteSpace(namespaceName);
         ArgumentException.ThrowIfNullOrWhiteSpace(bucketName);
         ArgumentNullException.ThrowIfNull(objectPrefix);
+        ValidatePhysicalName(objectPrefix,nameof(objectPrefix));
         if(objectPrefix.Length>0&&(!objectPrefix.EndsWith("/",StringComparison.Ordinal)||objectPrefix.Split('/').Any(part=>part=="."||part=="..")))
             throw new ArgumentException("OCI object namespace prefix must end in '/' and cannot contain dot-navigation segments.",nameof(objectPrefix));
         _client=client;_namespace=namespaceName;_bucket=bucketName;
@@ -53,9 +54,9 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
     /// <summary>Value and opaque native ETag from the SAME GET, not a later HEAD/read.</summary>
     public async Task<OracleObjectSnapshot?> GetWithEntityTagAsync(string key,CancellationToken cancellationToken=default)
     {
-        ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
+        var physical=PhysicalKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
-            var response=await _client.GetObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key},Once(),cancellationToken);
+            var response=await _client.GetObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=physical},Once(),cancellationToken);
             try {
                 RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.OK,"object GET");
                 if(response.ContentRange is not null||response.IsNotModified)
@@ -93,10 +94,10 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
 
     private async Task WriteAsync(string key,string value,string? etag,bool createOnly,CancellationToken token)
     {
-        ValidateKey(key);ArgumentNullException.ThrowIfNull(value);token.ThrowIfCancellationRequested();
+        var physical=PhysicalKey(key);ArgumentNullException.ThrowIfNull(value);token.ThrowIfCancellationRequested();
         var bytes=Utf8.GetBytes(value);
         using var stream=new MemoryStream(bytes,writable:false);
-        var request=new PutObjectRequest {NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key,PutObjectBody=stream,
+        var request=new PutObjectRequest {NamespaceName=_namespace,BucketName=_bucket,ObjectName=physical,PutObjectBody=stream,
             ContentLength=bytes.LongLength,ContentType="application/octet-stream",ContentMD5=Convert.ToBase64String(MD5.HashData(bytes)),
             IfMatch=etag,IfNoneMatch=createOnly?"*":null};
         try {
@@ -111,7 +112,7 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
             throw PreconditionConflict(cause);
         }catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
-        catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
+        catch(Exception cause){throw new OracleObjectMutationReconciliationException(physical,cause);}
     }
 
     public Task DeleteAsync(string key,CancellationToken cancellationToken=default)
@@ -125,16 +126,16 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
 
     private async Task DeleteObservedAsync(string key,string? etag,CancellationToken cancellationToken)
     {
-        ValidateKey(key);cancellationToken.ThrowIfCancellationRequested();
+        var physical=PhysicalKey(key);cancellationToken.ThrowIfCancellationRequested();
         try {
-            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=_objectPrefix+key,IfMatch=etag},Once(),cancellationToken);
+            var response=await _client.DeleteObject(new(){NamespaceName=_namespace,BucketName=_bucket,ObjectName=physical,IfMatch=etag},Once(),cancellationToken);
             try{RequireCompletedResponse(response.httpResponseMessage,HttpStatusCode.NoContent,"object DELETE");}
             finally{response.httpResponseMessage?.Dispose();}
         }catch(OciException cause)when(cause.StatusCode==HttpStatusCode.PreconditionFailed||(etag!=null&&IsMissingObject(cause))){
             throw PreconditionConflict(cause);
         }catch(OciException cause)when(etag==null&&IsMissingObject(cause)){}
         catch(OciException cause)when((int)cause.StatusCode>=400&&(int)cause.StatusCode<500&&cause.StatusCode!=HttpStatusCode.RequestTimeout){throw;}
-        catch(Exception cause){throw new OracleObjectMutationReconciliationException(_objectPrefix+key,cause);}
+        catch(Exception cause){throw new OracleObjectMutationReconciliationException(physical,cause);}
     }
 
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken cancellationToken=default)
@@ -143,6 +144,7 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         var keys=new List<string>();var seen=new HashSet<string>(StringComparer.Ordinal);
         var cursors=new HashSet<string>(StringComparer.Ordinal);string? start=null;
         var physicalPrefix=_objectPrefix+prefix;
+        ValidatePhysicalName(physicalPrefix,nameof(prefix));
         do {
             cancellationToken.ThrowIfCancellationRequested();
             var response=await _client.ListObjects(new(){NamespaceName=_namespace,BucketName=_bucket,Prefix=physicalPrefix,Start=start},Once(),cancellationToken);
@@ -175,7 +177,24 @@ public sealed class OracleObjectStorageBackend : IConditionalKeyValueBackend
         var conflict=new StorageLifecycleConflictException("OCI object mutation precondition failed.");
         conflict.Data["NativeCause"]=cause;return conflict;
     }
-    private static void ValidateKey(string key)=>ArgumentException.ThrowIfNullOrWhiteSpace(key);
+    private string PhysicalKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        var physical=_objectPrefix+key;
+        ValidatePhysicalName(physical,nameof(key));
+        return physical;
+    }
+
+    private static void ValidatePhysicalName(string value,string parameter)
+    {
+        // Oracle's object limit includes the namespace prefix and counts UTF-8
+        // bytes. LF/CR/NUL are forbidden; SDK/URI escaping does not make them valid.
+        int bytes;
+        try{bytes=Utf8.GetByteCount(value);}
+        catch(EncoderFallbackException cause){throw new ArgumentException("OCI object names require valid Unicode.",parameter,cause);}
+        if(bytes>1024||value.Contains('\n')||value.Contains('\r')||value.Contains('\0'))
+            throw new ArgumentException("OCI physical object names and prefixes cannot exceed 1024 UTF-8 bytes or contain LF, CR or NUL.",parameter);
+    }
 }
 
 public sealed record OracleObjectSnapshot(string Value,string EntityTag);
