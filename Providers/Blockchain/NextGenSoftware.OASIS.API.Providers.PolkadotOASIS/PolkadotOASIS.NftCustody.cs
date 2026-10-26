@@ -26,10 +26,9 @@ public partial class PolkadotOASIS
         return result;
     }
 
-    private Task<OASISResult<IWeb3NFTTransactionResponse>> LockStoredNftAsync(Guid id,Guid avatar,string collection)
+    private Task<OASISResult<IWeb3NFTTransactionResponse>> ChangeStoredNftEscrowAsync(Guid id,Guid avatar,string collection,bool unlock)
         =>ExecuteOwnedNftAsync(async owner=>{
-            if(id==Guid.Empty||avatar==Guid.Empty)throw new ArgumentException("Stored NFT ID and authenticated locking avatar are required.");
-            if(string.IsNullOrWhiteSpace(_bridgePoolAddress))throw new InvalidOperationException("An explicit NFT custody pool is required.");
+            if(id==Guid.Empty||avatar==Guid.Empty)throw new ArgumentException("Stored NFT ID and authenticated escrow avatar are required.");
             var requestedCollection=NftAccount(collection);
             var loaded=await ResolveStoredWeb3NftAsync(id).ConfigureAwait(false);
             owner.Token.ThrowIfCancellationRequested();
@@ -38,17 +37,20 @@ public partial class PolkadotOASIS
             if(nft.Id!=id||nft.OnChainProvider?.Value!=Core.Enums.ProviderType.PolkadotOASIS
                 ||nft.NFTStandardType?.Value!=NFTStandardType.PSP34)
                 throw new InvalidOperationException("Stored NFT does not identify the requested Polkadot PSP34 record.");
+            if(nft.MetaData==null||!nft.MetaData.TryGetValue(NativeNftChainKey,out var genesis)
+                ||!string.Equals(genesis,ReportedGenesisHash,StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Stored NFT must identify the activated genesis hash; no cross-network locator substitution is permitted.");
             // Freeze the stored locator before awaiting the signing-wallet lookup.
             var contract=NftAccount(nft.NFTTokenAddress);var token=CanonicalNftTokenId(nft.TokenId);
             var wallet=await ResolveAssetMintWalletAsync(avatar).ConfigureAwait(false);
             owner.Token.ThrowIfCancellationRequested();
             if(wallet.IsError||wallet.Result==null)throw wallet.Exception??new InvalidOperationException(wallet.Message);
             if(wallet.Result.AvatarId!=avatar||wallet.Result.ProviderType!=Core.Enums.ProviderType.PolkadotOASIS)
-                throw new InvalidOperationException("Locking wallet does not belong to the requested avatar/provider.");
+                throw new InvalidOperationException("Escrow wallet does not belong to the requested avatar/provider.");
             var sender=NftAccount(wallet.Result.WalletAddress);
-            // The SDK additionally proves key/address agreement and actual owner
-            // before signing; the finalized event must prove the exact custody leg.
-            return new NftIntent("transfer",contract,token,sender,NftAccount(_bridgePoolAddress),sender,
+            // Native v0.2 escrow binds the beneficiary in contract state. The
+            // configured service-pool key cannot authorize this wallet's unlock.
+            return new NftIntent(unlock?"unlock":"lock",contract,token,sender,unlock?sender:contract,unlock?contract:sender,
                 wallet.Result.PublicKey,wallet.Result.PrivateKey,null,null,ContractAlias:requestedCollection);
         });
 }
