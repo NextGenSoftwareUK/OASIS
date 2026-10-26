@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR token custody adapter controlled gate — 26 October
+
+Existing escrow capability, WalletManager resolution and exact public lock/release routing implemented. Provider build and 426 unit cases passed; final fixture identity checks passed the targeted 33 cases again. Exact preflight/read-back and original-ID preservation are covered by controlled process fixtures. This is not live custody: active native code has not been upgraded. Durable deployment/state preservation and native token acceptance remain next; no Dev promotion. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR exact token custody: source/SDK gate only — 26 October
 
 35contract controlsPASS; retained official SDK2 typecheck/validation/actual Wasm buildPASS. Candidate534212bytes/hash3390da66..., alloldexports retained/4newcustody exports; active638719code untouched. Implements exact deposit/owner/replay/supply semantics and reserved custody records; does not certify C# LockToken routing or live custody. Requires actual adapter/capability wiring, durable local code-upgrade/data preservation and native acceptance next. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); no Dev promotion.

@@ -1,5 +1,15 @@
 # NEAR signer and receipt audit
 
+## NEAR C# token custody adapter — 26 October (controlled gate)
+
+The provider now implements the existing IOASISIdBoundTokenEscrowProvider capability and honors the injected WalletManager. Explicit amount/LockId/escrow requests use token_lock/token_release with exact amount, original deposit identity and native signing owner. Invalid or partial custody selectors reject rather than becoming issuer-wide freeze. Selector-free requests retain the separate issuer-freeze operation, with issuer and final-state verification. Request fields are captured before asynchronous activation; actor wallets resolve through the existing WalletManager, with provider, avatar, source and key checks.
+
+Before signing, custody requires deployed protocol1, the expected original deposit state and adequate spendable balance. After acknowledgement it verifies the exact record and balance delta. Follow-up failures retain the original transaction ID for reconciliation. Existing SDK calls, prepared scope, native error owner and TransactionResponse are reused; no new manager or persistence engine.
+
+Provider build passed; 426/426 controlled unit cases passed (25 seconds), including 33 escrow cases. Final fixture query-identity assertions were strengthened afterward and those 33 cases passed again (4 seconds). These process-boundary fixtures do not sign or contact a native chain. Evidence: NativeEvidence/near-token-escrow-adapter-current.trx.gz, near-token-escrow-adapter-target-current.trx.gz and near-token-escrow-adapter-binaries.json. Source/PDB and dependency identities were verified at capture before returning the shared build slot; later peer Core work does not retroactively change that captured identity.
+
+Live custody is NOT verified. The retained active contract still lacks the new ABI, so custody preflight must reject before signing. Next: durable signed-original deployment of the compiled candidate, before/after state preservation, and real public token lock/release, replay, foreign-owner, supply and rejection acceptance. Independent-owner hosted admission, fee settlement and full V2 remain open. No native operation, download, restore or new environment in this gate.
+
 ## Id-bound token custody contract source/SDK candidate — 26 October (not deployed)
 
 Shared LockToken/UnlockToken requests expose exact Amount, LockId and escrow identity; current NEAR provider only forwards TokenAddress to issuer-global token_set_locked and ignores supplied source wallet/key. Core WalletManager already forwards those fields and refuses explicit escrow unless provider opts into existing IOASISIdBoundTokenEscrowProvider. Therefore new custody must be real native state, not a success-shaped global freeze. Reuse the existing marker/manager/amount conversion/persistence owners when the C# adapter is implemented; no new parallel engine/outbox.

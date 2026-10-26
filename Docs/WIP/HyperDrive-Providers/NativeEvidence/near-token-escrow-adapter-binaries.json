@@ -1,0 +1,49 @@
+{
+  "sourceChecksBeforeBuildSlotRelease": {
+    "Core": 785,
+    "Shared": 56,
+    "NEARProvider": 21,
+    "NEARUnit": 39
+  },
+  "dependenciesAtCapture": {
+    "Core": "2b1a08eaa003e086c45b1ae3f1171f21322d5e02e0dcc409fdfa8889b9c46f47",
+    "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+  },
+  "outputs": {
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\bin\\Debug\\net10.0": {
+      "assemblySha256": "185fa178867fdc0084f474d2f17165f2dcaa3e966f8b2162a7917d480e2035f2",
+      "dependencies": {
+        "Core": "2b1a08eaa003e086c45b1ae3f1171f21322d5e02e0dcc409fdfa8889b9c46f47",
+        "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+      },
+      "sizes": {
+        "bin": 7672113,
+        "obj": 960277
+      }
+    },
+    "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\\bin\\Debug\\net10.0": {
+      "assemblySha256": "35f1485b3233d4ea4d023272fa60059c913b42ba141ab477fe9eab14e76c0f52",
+      "dependencies": {
+        "Core": "2b1a08eaa003e086c45b1ae3f1171f21322d5e02e0dcc409fdfa8889b9c46f47",
+        "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+      },
+      "sizes": {
+        "bin": 46794452,
+        "obj": 1152470
+      }
+    }
+  },
+  "sources": {
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\NEAROASIS.cs": "a507cccc701e69a9829ad069c58c4379d9fafa3e91da9dcf2a3f17072570960c",
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\NEAROASIS.MintBurnToken.cs": "42e40da103b3542bcf1a6ed06f3b2cf703dec0e7bf2fdd80db761d7de2091a53",
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\NEAROASIS.TokenEscrow.cs": "8f18631552b6f1c92e852e50f475c9249002d0dfde15fca72bd364c85c6afbf8"
+  },
+  "fixtureSha256": "67e9a56ec45facd2410544162aa3c095c93a0b38d0a414aef27dc4b603e96d5b",
+  "modelFixture": {
+    "path": "C:\\Source\\OASIS\\Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\\bin\\Debug\\net10.0\\TestResults\\NearTokenEscrowCurrent",
+    "files": 0,
+    "reused": true
+  },
+  "nativeOperations": 0,
+  "liveCustodyVerified": false
+}
