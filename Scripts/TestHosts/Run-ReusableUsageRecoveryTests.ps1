@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$CosmicCqlFloatingGrouped,[switch]$CosmicCqlFloatingKernel,[switch]$CosmicCqlFloatingScalar,[switch]$CosmicCqlFloatingParts,[switch]$CosmicCqlDecimalNumeric,[switch]$CosmicCqlDecimalKernel,[switch]$CosmicCqlUnsignedNumeric,[switch]$CosmicCqlEmptyWindow,[switch]$MongoSearchBatchInspect,[switch]$MongoSearchBatchCleanup,[switch]$MongoSearchDateInspect,[switch]$MongoSearchDateCleanup,[switch]$ResourceEvidence,[switch]$MongoAccountRetention,[switch]$MongoAccountHistory,[switch]$MongoConversionIntegrity,[switch]$MongoClanHistory,[switch]$MongoHistoricalCollectionsReconcile,[switch]$MongoHistoricalCollectionsInspect,[switch]$MongoHistoricalCollections,[switch]$MongoHistoricalPoint,[switch]$MongoDomainHistory,[switch]$MongoExportHistoryReconcile,[switch]$MongoExportHistoryInspect,[switch]$MongoExportHistory,[switch]$MongoExports,[switch]$CqlV1Demo,[switch]$CqlV1Web4Reconcile,[switch]$CqlV1Web4,[switch]$CosmicLifecycleReconcile,[switch]$CosmicCqlEmptyCleanup,[switch]$CosmicCqlInspect,[switch]$CosmicCqlReconcile,[switch]$CosmicCql,[switch]$CosmicTypedQueryCommittedReconcile,[switch]$CosmicTypedQueryReconcile,[switch]$CosmicNeo4jReplicasReconcile,[switch]$CosmicNeo4jReplicas,[switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$CosmicGraphTraversal,[switch]$CosmicConditionalWrites,[switch]$CosmicConditionalReconcile,[switch]$CosmicChildReconcile,[switch]$CosmicTransferReconcile,[switch]$MongoV2,[switch]$CosmicReplicaTransfers,[switch]$CosmicReplicaTransfersReconcile,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
+param([switch]$CosmicCqlFloatingGrouped,[switch]$CosmicCqlFloatingKernel,[switch]$CosmicCqlFloatingScalar,[switch]$CosmicCqlFloatingParts,[switch]$CosmicCqlDecimalNumeric,[switch]$CosmicCqlDecimalKernel,[switch]$CosmicCqlUnsignedNumeric,[switch]$CosmicCqlEmptyWindow,[switch]$MongoSearchBatchInspect,[switch]$MongoSearchBatchCleanup,[switch]$MongoSearchDateInspect,[switch]$MongoSearchDateCleanup,[switch]$ResourceEvidence,[switch]$DynamoResourceCapture,[switch]$MongoAccountRetention,[switch]$MongoAccountHistory,[switch]$MongoConversionIntegrity,[switch]$MongoClanHistory,[switch]$MongoHistoricalCollectionsReconcile,[switch]$MongoHistoricalCollectionsInspect,[switch]$MongoHistoricalCollections,[switch]$MongoHistoricalPoint,[switch]$MongoDomainHistory,[switch]$MongoExportHistoryReconcile,[switch]$MongoExportHistoryInspect,[switch]$MongoExportHistory,[switch]$MongoExports,[switch]$CqlV1Demo,[switch]$CqlV1Web4Reconcile,[switch]$CqlV1Web4,[switch]$CosmicLifecycleReconcile,[switch]$CosmicCqlEmptyCleanup,[switch]$CosmicCqlInspect,[switch]$CosmicCqlReconcile,[switch]$CosmicCql,[switch]$CosmicTypedQueryCommittedReconcile,[switch]$CosmicTypedQueryReconcile,[switch]$CosmicNeo4jReplicasReconcile,[switch]$CosmicNeo4jReplicas,[switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$CosmicGraphTraversal,[switch]$CosmicConditionalWrites,[switch]$CosmicConditionalReconcile,[switch]$CosmicChildReconcile,[switch]$CosmicTransferReconcile,[switch]$MongoV2,[switch]$CosmicReplicaTransfers,[switch]$CosmicReplicaTransfersReconcile,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees,[switch]$CosmosRoutingFeeRecovery,[switch]$CosmosReviewedBank,[switch]$SuiCSharpHistory,[switch]$CosmosReviewedToken,[switch]$CosmosReviewedNFT,[switch]$CosmosRoutingVersions,[ValidateSet('Fees','DeployEscrow','LockEscrow')][string]$CosmosReviewScenario='Fees')
 $ErrorActionPreference='Stop'
 if($CosmicCqlFloatingGrouped){if($PSBoundParameters.Count -ne 1){throw 'Choose exclusive Mongo grouped floating verification mode.'};$CosmicCql=$true}
 if($CosmicCqlFloatingKernel){if($PSBoundParameters.Count -ne 1){throw 'Choose exclusive Mongo floating normalization verification mode.'};$CosmicCql=$true}
@@ -12,6 +12,7 @@ if($CosmicCqlEmptyWindow){if($PSBoundParameters.Count -ne 1){throw 'Choose exclu
 if($MongoSearchBatchInspect -or $MongoSearchBatchCleanup){if($PSBoundParameters.Count -ne 1){throw 'Search batch fixture recovery requires one exclusive mode.'};$MongoExports=$true}
 if($MongoSearchDateInspect -or $MongoSearchDateCleanup){if($PSBoundParameters.Count -ne 1){throw 'Date search fixture recovery requires one exclusive mode.'};$MongoExports=$true}
 if($ResourceEvidence -and $PSBoundParameters.Count -ne 1){throw 'Resource evidence verification requires exclusive retained usage mode.'}
+if($DynamoResourceCapture -and $PSBoundParameters.Count -ne 1){throw 'Dynamo resource capture requires exclusive retained usage mode.'}
 if($MongoAccountRetention){if($PSBoundParameters.Count -ne 1){throw 'Mongo account retention verification requires exclusive mode.'};$MongoExports=$true}
 if($MongoAccountHistory){if($PSBoundParameters.Count -ne 1){throw 'Mongo account history verification requires exclusive mode.'};$MongoExports=$true}
 if($MongoConversionIntegrity){if($PSBoundParameters.Count -ne 1){throw 'Mongo conversion integrity verification requires exclusive mode.'};$MongoExports=$true}
@@ -82,6 +83,12 @@ $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 if($ResourceEvidence){foreach($name in @('owned-replica-init-current.trx','usage-resource-evidence-current.trx')){
     if(Test-Path -LiteralPath (Join-Path $work $name)){throw 'Preserve the original resource-evidence/initialization report before another run.'}
 }}
+if($DynamoResourceCapture){
+    if(Test-Path -LiteralPath (Join-Path $work 'owned-replica-init-current.trx')){throw 'Preserve the original initialization report before joined SDK verification.'}
+    $joinWork=Join-Path $taskRoot 'TestResults/DynamoHistoryCurrent'
+    if(Test-Path -LiteralPath (Join-Path $joinWork 'dynamo-resource-host-native-current.trx')){throw 'Preserve the original joined SDK report before another run.'}
+    if(Get-ChildItem -LiteralPath $joinWork -Filter 'dynamo-resource-host-*.pending.json' -File -ErrorAction SilentlyContinue){throw 'Original joined SDK fixture requires reconciliation; never replay pending admissions.'}
+}
 $data=Join-Path $work 'mongo-data'
 $runtime='C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe'
 if(!(Test-Path -LiteralPath $runtime -PathType Leaf)){throw 'Existing installed Mongo runtime is required; no download attempted.'}
@@ -137,7 +144,40 @@ try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
     & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q -clp:ErrorsOnly
     if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
-    if($CosmicTypedQueryReconcile -or $CosmicTypedQueryCommittedReconcile){
+    if($DynamoResourceCapture){
+        $dynamoLeasePath=Join-Path $taskRoot '../OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/environment.lock'
+        $dynamoLease=[IO.File]::Open([IO.Path]::GetFullPath($dynamoLeasePath),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+        $dynamoOwned=$null;$oldEndpoint=$env:DYNAMODB_SERVICE_URL;$oldWork=$env:OASIS_DYNAMO_HISTORY_WORK
+        try{
+            foreach($relative in @('Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj',
+                'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj')){
+                & dotnet build (Join-Path $taskRoot $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+                if($LASTEXITCODE){throw 'Joined SDK provider build failed.'}
+            }
+            $joinProject=Join-Path $taskRoot 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.IntegrationTests.csproj'
+            & dotnet build $joinProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if($LASTEXITCODE){throw 'Joined SDK consumer build failed.'}
+            & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput (Join-Path (Split-Path $joinProject) 'bin/Debug/net10.0') -VerifySourceDocuments
+            $dynamoOwned=& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1')
+            $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000';$env:OASIS_DYNAMO_HISTORY_WORK=$joinWork
+            $joinStarted=[DateTime]::UtcNow
+            & dotnet test $joinProject --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~DynamoResourceHostNativeTests' --logger 'trx;LogFileName=dynamo-resource-host-native-current.trx' --results-directory $joinWork -v:q
+            if($LASTEXITCODE){throw 'Joined SDK/native host capture failed; preserve pending evidence.'}
+            $joinReport=Get-Item -LiteralPath (Join-Path $joinWork 'dynamo-resource-host-native-current.trx')
+            if($joinReport.LastWriteTimeUtc -lt $joinStarted){throw 'Joined SDK/native report is stale.'}
+            [xml]$joinEvidence=Get-Content -LiteralPath $joinReport.FullName -Raw
+            $joinCounts=$joinEvidence.TestRun.ResultSummary.Counters
+            if([int]$joinCounts.total -ne 4 -or [int]$joinCounts.passed -ne 4 -or [int]$joinCounts.notExecuted -ne 0){throw 'Expected4 passing joined SDK/native cases without skips.'}
+            if(Get-ChildItem -LiteralPath $joinWork -Filter 'dynamo-resource-host-*.pending.json' -File){throw 'Joined SDK fixture remains unresolved.'}
+        }finally{
+            try{if($dynamoOwned){& (Join-Path $PSScriptRoot 'Use-ReusableDynamoContainer.ps1') -Stop}}
+            finally{
+                [Environment]::SetEnvironmentVariable('DYNAMODB_SERVICE_URL',$oldEndpoint)
+                [Environment]::SetEnvironmentVariable('OASIS_DYNAMO_HISTORY_WORK',$oldWork)
+                $dynamoLease.Dispose()
+            }
+        }
+    }elseif($CosmicTypedQueryReconcile -or $CosmicTypedQueryCommittedReconcile){
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $typedProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
         $typedFilter=if($CosmicTypedQueryCommittedReconcile){'FullyQualifiedName~ReconcileExactCommittedTypedQueryFixture'}else{'FullyQualifiedName~ReconcileExactEmptyPreSubmissionTypedQueryFixture'}
