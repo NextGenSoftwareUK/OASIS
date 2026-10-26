@@ -23,15 +23,26 @@ param(
     [Parameter(ParameterSetName = 'NftEscrowLifecycleRecover')][switch]$NftEscrowLifecycleRecover,
     [Parameter(ParameterSetName = 'NftEscrowPublic')][switch]$NftEscrowPublic,
     [Parameter(ParameterSetName = 'NftEscrowPublicRecover')][switch]$NftEscrowPublicRecover,
-    [Parameter(ParameterSetName = 'TokenEscrowConstructor')][switch]$TokenEscrowConstructor,
-    [Parameter(ParameterSetName = 'TokenEscrowDeploy')][switch]$TokenEscrowDeploy,
-    [Parameter(ParameterSetName = 'TokenEscrowReconcile')][switch]$TokenEscrowReconcile,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$TokenEscrowConstructor,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$TokenEscrowDeploy,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$TokenEscrowReconcile,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$Psp22TokenConstructor,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$Psp22TokenDeploy,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$Psp22TokenReconcile,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$TokenEscrowV1Reconcile,
+    [Parameter(ParameterSetName = 'TokenSdk')][switch]$TokenEscrowPreparation,
     [Parameter(ParameterSetName = 'NftPublicMutation')][switch]$NftPublicMutation,
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
 )
 $ErrorActionPreference = 'Stop'
+# Group related token SDK modes rather than exceeding PowerShell's 32-set
+# command limit. Keep their exclusive-mode invariant before filesystem/RPC.
+if (@(@($TokenEscrowConstructor,$TokenEscrowDeploy,$TokenEscrowReconcile,
+    $Psp22TokenConstructor,$Psp22TokenDeploy,$Psp22TokenReconcile,$TokenEscrowV1Reconcile,$TokenEscrowPreparation) | Where-Object { $_ }).Count -gt 1) {
+    throw 'Select only one token SDK mode.'
+}
 if ($RecoverCompleted -and !$CSharpStorage) { throw 'RecoverCompleted requires CSharpStorage; no other suite may enter recovery.' }
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $evidence = Join-Path $repo 'TestResults/PolkadotCurrent'
@@ -54,6 +65,8 @@ try {
     if ((Test-Path -LiteralPath $nftDeploymentPending) -and !$NftReconcile) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
     $escrowDeploymentPending = Join-Path $publicEvidence 'psp34-escrow-deployment-pending.json'
     if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp22-escrow-deployment-pending.json')) -and !$TokenEscrowReconcile) { throw 'Pending original exists: token escrow deployment. Reconcile read-only, never replay.' }
+    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp22-test-token-deployment-pending.json')) -and !$Psp22TokenReconcile) { throw 'Pending original exists: PSP22 acceptance asset deployment. Reconcile read-only, never replay.' }
+    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp22-escrow-v1-deployment-pending.json')) -and !$TokenEscrowV1Reconcile) { throw 'Pending original exists: retired token escrow deployment. Reconcile read-only, never replay.' }
     if ((Test-Path -LiteralPath $escrowDeploymentPending) -and !$NftEscrowReconcile) { throw 'Pending original exists: native escrow deployment. Reconcile read-only, never replay.' }
     $escrowLifecyclePending = Join-Path $publicEvidence 'psp34-escrow-lifecycle-pending.jsonl'
     if ((Test-Path -LiteralPath $escrowLifecyclePending) -and !$NftEscrowLifecycleRecover) { throw 'Pending original exists: native escrow lifecycle. Reconcile read-only, never replay.' }
@@ -100,14 +113,21 @@ try {
     }
     Push-Location $sdk
     try {
-        if ($TokenEscrowConstructor -or $TokenEscrowDeploy -or $TokenEscrowReconcile) { & node verify-record-contract-artifact.mjs token-escrow }
+        if ($TokenEscrowV1Reconcile) { & node verify-record-contract-artifact.mjs token-escrow-v1 }
+        elseif ($Psp22TokenConstructor -or $Psp22TokenDeploy -or $Psp22TokenReconcile) { & node verify-record-contract-artifact.mjs psp22-test-token }
+        elseif ($TokenEscrowConstructor -or $TokenEscrowDeploy -or $TokenEscrowReconcile -or $TokenEscrowPreparation) { & node verify-record-contract-artifact.mjs token-escrow }
         elseif ($NftEscrowConstructor -or $NftEscrowDeploy -or $NftEscrowReconcile -or $NftEscrowLifecycle -or $NftEscrowLifecycleRecover) { & node verify-record-contract-artifact.mjs psp34-escrow }
         elseif ($NftCustodySource -or $NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation -or $NftLifecycle -or $NftLifecycleRecover -or $NftIntentRecovery) { & node verify-record-contract-artifact.mjs psp34 }
         else { & node verify-record-contract-artifact.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($TokenEscrowConstructor) { & node test-local-psp34-constructor.mjs --token-escrow }
+        if ($TokenEscrowV1Reconcile) { & node bootstrap-local-psp34.mjs --reconcile --token-escrow-v1 }
+        elseif ($Psp22TokenConstructor) { & node test-local-psp34-constructor.mjs --psp22-test-token }
+        elseif ($Psp22TokenDeploy) { & node bootstrap-local-psp34.mjs --deploy --psp22-test-token }
+        elseif ($Psp22TokenReconcile) { & node bootstrap-local-psp34.mjs --reconcile --psp22-test-token }
+        elseif ($TokenEscrowConstructor) { & node test-local-psp34-constructor.mjs --token-escrow }
         elseif ($TokenEscrowDeploy) { & node bootstrap-local-psp34.mjs --deploy --token-escrow }
         elseif ($TokenEscrowReconcile) { & node bootstrap-local-psp34.mjs --reconcile --token-escrow }
+        elseif ($TokenEscrowPreparation) { & node test-local-psp22-preparation.mjs }
         elseif ($NftEscrowConstructor) { & node test-local-psp34-constructor.mjs --escrow }
         elseif ($NftEscrowDeploy) { & node bootstrap-local-psp34.mjs --deploy --escrow }
         elseif ($NftEscrowReconcile) { & node bootstrap-local-psp34.mjs --reconcile --escrow }

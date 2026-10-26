@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFinalizedReceipt } from './finalized-receipt.mjs';
+import { readFinalizedReceipt, readFinalizedExtrinsicContext } from './finalized-receipt.mjs';
 
 const blockHash = '0x' + 'a'.repeat(64);
 const transactionHash = '0x' + 'b'.repeat(64);
@@ -8,7 +8,7 @@ const number = value => ({ toBigInt: () => BigInt(value), toString: () => String
 function fixture({ final = 10, canonical = blockHash, duplicate = false, failed = false, fees = 1, tip = '2' } = {}) {
   const event = (section, method, data, index = 0) => ({
     phase: { isApplyExtrinsic: true, asApplyExtrinsic: { toNumber: () => index } },
-    event: { section, method, data }
+    event: { section, method, data }, topics: ['retained-signature-topic']
   });
   const events = [event('system', failed ? 'ExtrinsicFailed' : 'ExtrinsicSuccess', ['owned dispatch error'])];
   for (let i = 0; i < fees; i++) events.push(event('transactionPayment', 'TransactionFeePaid', ['payer', '12', tip]));
@@ -30,6 +30,13 @@ test('exact finalized receipt includes tip once and excludes neighboring events'
   assert.equal(result.tipUnits, '2');
   assert.equal(result.dispatchSucceeded, true);
   assert.equal(result.finalized, true);
+});
+test('original context retains exact signature topics while excluding neighboring records', async () => {
+  const context = await readFinalizedExtrinsicContext(fixture(), { blockHash, transactionHash });
+  assert.equal(context.ownRecords.length, 2);
+  assert.deepEqual(context.ownRecords.map(record => record.event), context.own);
+  assert.deepEqual(context.ownRecords.map(record => record.topics),
+    [['retained-signature-topic'], ['retained-signature-topic']]);
 });
 test('failed dispatch remains a paid finalized failure, not success', async () => {
   const result = await readFinalizedReceipt(fixture({ failed: true }), { blockHash, transactionHash });

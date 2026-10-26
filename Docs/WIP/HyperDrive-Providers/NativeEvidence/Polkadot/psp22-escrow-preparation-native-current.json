@@ -1,0 +1,39 @@
+{
+  "before": {
+    "blockHash": "0xf8b954eff7f2c4febcb516a006d27fb2355a39b347ec2a037a20b94a8eb28db0",
+    "contractAddress": "0xb5cf62c8d1079fe1c309a725c1022ea8ea86f729a6ab7ae2b7d9cff6a8477bba",
+    "codeHash": "0xcf8ae46b358235015dc3b1d5beb9e684f592a5817e71cc666c028faa59bf3a2e",
+    "owner": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+    "spender": "0xbe43c50a0fdb5ff88cd5d5cac7072c98b1470ee67d9ff3ca9507f8d91db45d21",
+    "totalSupply": "1208925819614629174706176",
+    "ownerBalance": "1208925819614629174706176",
+    "spenderBalance": "0",
+    "allowance": "0",
+    "decimals": 12
+  },
+  "after": {
+    "blockHash": "0xf8b954eff7f2c4febcb516a006d27fb2355a39b347ec2a037a20b94a8eb28db0",
+    "contractAddress": "0xb5cf62c8d1079fe1c309a725c1022ea8ea86f729a6ab7ae2b7d9cff6a8477bba",
+    "codeHash": "0xcf8ae46b358235015dc3b1d5beb9e684f592a5817e71cc666c028faa59bf3a2e",
+    "owner": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+    "spender": "0xbe43c50a0fdb5ff88cd5d5cac7072c98b1470ee67d9ff3ca9507f8d91db45d21",
+    "totalSupply": "1208925819614629174706176",
+    "ownerBalance": "1208925819614629174706176",
+    "spenderBalance": "0",
+    "allowance": "0",
+    "decimals": 12
+  },
+  "deposit": {
+    "blockHash": "0xf8b954eff7f2c4febcb516a006d27fb2355a39b347ec2a037a20b94a8eb28db0",
+    "contractAddress": "0xbe43c50a0fdb5ff88cd5d5cac7072c98b1470ee67d9ff3ca9507f8d91db45d21",
+    "codeHash": "0xf5bc8dd4c423cc6d5946e9c5cb17a3a522d3a6446c04fdf7a7de8a76aeefb050",
+    "depositId": "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "deposit": null
+  },
+  "error": "Escrow application failure: TokenCallFailed",
+  "structuredErrorVerified": true,
+  "submitted": false,
+  "signedOriginalCreated": false,
+  "publicFunds": false,
+  "scope": "native insufficient-allowance simulation and return ABI; not persisted native rollback acceptance"
+}
