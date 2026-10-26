@@ -32,6 +32,7 @@ try {
             $roots = @(
                 'Examples/CosmicCqlDemo',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedHolonWriteEndpoint.cs',
@@ -106,11 +107,18 @@ try {
         if ($report.nativeFederationQueries -ne 14 -or $report.nativeFederationProvidersVerified -ne 3) {
             throw 'Complete-source SDK federation/native proof is incomplete.'
         }
+        if ($report.hostedFederationRequests -ne 13 -or $report.hostedFederationProvidersVerified -ne 3 -or
+            $report.settledFederationOperations -ne 12 -or $report.federationProviderAttempts -ne 23) {
+            throw 'Signed three-provider federation policy/materialization/settlement proof is incomplete.'
+        }
+        if ($report.sdkFederationExamples -ne 1 -or $report.demoFederationRequests -ne 1) {
+            throw 'Annotated SDK/HTTP global federation demo verification is incomplete.'
+        }
         # Interactive presenters may run additional queries before Finish.
         # Bounded verification retains exact totals; both require all recovery cases.
         if ($report.settledRecoveryOperations -ne 12 -or
-            (!$Serve -and ($report.settledOperations -ne 492 -or $report.providerAttempts -ne 541)) -or
-            ($Serve -and ($report.settledOperations -lt 492 -or $report.providerAttempts -lt 541))) {
+            (!$Serve -and ($report.settledOperations -ne 505 -or $report.providerAttempts -ne 567)) -or
+            ($Serve -and ($report.settledOperations -lt 505 -or $report.providerAttempts -lt 567))) {
             throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 

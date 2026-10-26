@@ -59,6 +59,7 @@ public sealed partial class CqlV1Web4NativeTests
         var tag = Guid.NewGuid().ToString("D");
         var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
         var childIds = Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
+        var federationEncryptedId = Guid.NewGuid();
         var scalarIds = Enumerable.Range(0,137).Select(_=>Guid.NewGuid()).ToArray();
         var restActor = Guid.NewGuid();
         var restIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
@@ -80,7 +81,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds,
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).Append(federationEncryptedId).ToArray(), scalarIds,
                     restActor, restIds, transportActor, transportIds, recoveryIds, scalarWrites, sharingOperations, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
@@ -97,6 +98,8 @@ public sealed partial class CqlV1Web4NativeTests
         var complete = false;
         var walkthroughRequests = 0;
         var localSdkQueries = 0;
+        var sdkFederationExamples = 0;
+        var demoFederationRequests = 0;
         try
         {
             foreach (var provider in providers.Values)
@@ -165,6 +168,11 @@ public sealed partial class CqlV1Web4NativeTests
             var hostedReadPolicyRequests = await VerifyShippingReadPolicy(providers, outbox, authority, secret,
                 outsider, ids, childIds, tag, Journal);
             Assert.AreEqual(30, hostedReadPolicyRequests);
+            var hostedFederation = await VerifyShippingFederation(providers, outbox, authority, secret,
+                outsider, ids, federationEncryptedId, tag, Journal);
+            Assert.AreEqual(13, hostedFederation.Requests);
+            Assert.AreEqual(12, hostedFederation.Settled);
+            Assert.AreEqual(23, hostedFederation.Attempts);
             var demo = mode == null ? null : new V1DemoSession
             {
                 FixtureTag = tag, Ids = ids,
@@ -1028,6 +1036,13 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.AreEqual("GreaterThanOrEqual", groupedExample.GetProperty("resultFilters")[0].GetProperty("operator").GetString());
                             Assert.AreEqual("2026-10-24T00:00:00.0000002Z", groupedExample.GetProperty("resultFilters")[0].GetProperty("value").GetString());
                             Assert.AreEqual("LessThan", groupedExample.GetProperty("resultFilters")[1].GetProperty("operator").GetString());
+                            var federationExample = swagger.RootElement.GetProperty("components").GetProperty("schemas")
+                                .GetProperty("CqlFederationV1Request").GetProperty("example");
+                            Assert.AreEqual("Named", federationExample.GetProperty("scope").GetString());
+                            Assert.AreEqual(3, federationExample.GetProperty("providers").GetArrayLength());
+                            Assert.AreEqual("ProviderPriority", federationExample.GetProperty("identityMode").GetString());
+                            Assert.AreEqual(2, federationExample.GetProperty("take").GetInt32());
+                            Assert.IsFalse(federationExample.GetProperty("source").TryGetProperty("provider", out _));
                         }
 
                         // These examples are the same readable C# client code developers
@@ -1038,6 +1053,16 @@ public sealed partial class CqlV1Web4NativeTests
                                 localSdkQueries += await V1NativeQueries.RunAsync(new Sources(providers).CreateManager(provider),
                                     (NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider)provider, alice, tag, transcript);
                             walkthroughRequests = await V1Walkthrough.RunAsync(client, demo.Tokens["Alice"], tag, transcript);
+                            sdkFederationExamples = await V1FederationWalkthrough.RunSdkAsync(
+                                new Sources(providers).CreateManager(providers.Values.First()),
+                                providers.Values.Cast<ICosmicQueryStorageProvider>().ToArray(), alice, tag, transcript);
+                            var federationOperationId = await V1FederationWalkthrough.RunHttpAsync(client, demo.Tokens["Alice"], tag, transcript);
+                            var federationOperation = await outbox.GetAsync(federationOperationId, CancellationToken.None);
+                            Assert.AreEqual("settled", federationOperation.State);
+                            Assert.AreEqual(3, federationOperation.ProviderAttempts.Count);
+                            Assert.AreEqual(3, federationOperation.Receipts.Count);
+                            Assert.AreEqual(0.006m, authority.Settlements[federationOperationId].ActualCostUsd);
+                            demoFederationRequests = 1;
                         }
 
                         if (mode == "serve")
@@ -1075,9 +1100,15 @@ public sealed partial class CqlV1Web4NativeTests
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
                     nativeFederationQueries, nativeFederationProvidersVerified = providers.Count,
+                    sdkFederationExamples, demoFederationRequests,
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     recoveryProvidersVerified, processRestartProvidersVerified = recoveryProvidersVerified,
                     hostedReadPolicyRequests, hostedReadPolicyProvidersVerified = providers.Count,
+                    hostedFederationRequests = hostedFederation.Requests,
+                    settledFederationOperations = hostedFederation.Settled,
+                    federationProviderAttempts = hostedFederation.Attempts,
+                    hostedFederationProvidersVerified = providers.Count,
+                    hostedFederationEncryptedRecordId = federationEncryptedId.ToString("D"),
                     shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
@@ -1101,7 +1132,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Concat(restIds).Concat(transportIds).Concat(recoveryIds).Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Append(federationEncryptedId).Concat(scalarIds).Concat(restIds).Concat(transportIds).Concat(recoveryIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.OperationId IN $operations DETACH DELETE r",
