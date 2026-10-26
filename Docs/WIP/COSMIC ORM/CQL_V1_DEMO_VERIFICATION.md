@@ -1,5 +1,21 @@
 # CQL v1 developer demo verification
 
+## Floating Swagger examples — verified 25 October 2026
+
+Swagger now includes `SingleSum`, `SingleAverage`, `SingleTotalsAndMeans`,
+`DoubleSum`, `DoubleAverage` and `DoubleTotalsAndMeans`. Pick a named example,
+replace its fixture tag with the running demo's tag, select a provider and use
+an authenticated demo identity with a new idempotency key per logical request.
+The Average inputs are nullable; Sum inputs are required. Grouped filters use
+canonical string thresholds and page after ordering the rounded means.
+
+The generated Swagger assertions and full live walkthrough pass together:
+138 SDK /138 signed HTTP queries,345settled operations/337attempts; native1/1,
+zero skips. Source snapshots and six binary identities match. Evidence:
+`TestResults/CosmicCqlDemo/floating-swagger-native.log` and
+`floating-swagger-evidence.json`. This supersedes earlier numeric Swagger coverage.
+
+
 ## Floating arithmetic live demo acceptance — 25 October 2026
 
 The annotated walkthrough now contains **46 examples per provider**. Fresh joint
