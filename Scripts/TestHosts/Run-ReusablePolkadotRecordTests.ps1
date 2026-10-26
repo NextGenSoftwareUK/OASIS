@@ -9,6 +9,7 @@ param(
     [Parameter(ParameterSetName = 'NftDeploy')][switch]$NftDeploy,
     [Parameter(ParameterSetName = 'NftReconcile')][switch]$NftReconcile,
     [Parameter(ParameterSetName = 'NftPublicRead')][switch]$NftPublicRead,
+    [Parameter(ParameterSetName = 'NftPreparation')][switch]$NftPreparation,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
 )
@@ -61,10 +62,11 @@ try {
     }
     Push-Location $sdk
     try {
-        if ($NftConstructorSimulation -or $NftDeploy -or $NftReconcile) { & node verify-record-contract-artifact.mjs psp34 }
+        if ($NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation) { & node verify-record-contract-artifact.mjs psp34 }
         else { & node verify-record-contract-artifact.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($NftDeploy) { & node bootstrap-local-psp34.mjs --deploy }
+        if ($NftPreparation) { & node test-local-psp34-preparation.mjs }
+        elseif ($NftDeploy) { & node bootstrap-local-psp34.mjs --deploy }
         elseif ($NftReconcile) { & node bootstrap-local-psp34.mjs --reconcile }
         elseif ($NftConstructorSimulation) { & node test-local-psp34-constructor.mjs }
         elseif ($Execution) { & node test-local-record-execution.mjs }
