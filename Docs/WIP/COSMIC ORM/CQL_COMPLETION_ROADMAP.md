@@ -1763,3 +1763,5 @@ policy, federation and the remaining ORM roadmap still require work.
 25 October Mongo grouped identity consistency repair passes538unit/361native, zero skips. Native comparable grouping/extremum fields now must agree with decoded typed values, including off-page rows. [Root cause and red/green evidence](CQL_GROUPING_CONTRACT.md). Expanded all-provider grouping/policy gates remain open.
 
 25October2026 Mongo scalar floating milestone:36new controls,454full native/560matched units pass0skip; six producer/consumer copies match and owned runtime stops cleanly. Only scalar Single/Double Sum/Average enrolled. Next: Mongo grouped arithmetic/final selected result keys, Neo4j arithmetic, then floating HTTP and annotated live demos. No full-roadmap completion claim.
+
+Mongo grouped floating prerequisite now native-verified:2kernel tests/5,115packets normalize Sum/Average bit-for-bit against Core; no grouped capability enrollment yet. Complete454native/560unit scalar acceptance remains its own prior cohort. Next connect the component to grouped compile/read/filter/order with off-page proof validation.
