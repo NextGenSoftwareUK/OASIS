@@ -1,5 +1,27 @@
 # CQL developer manual
 
+## Saving complete child graphs through WEB4
+
+For an existing graph, retain the provider revision for every selected record.
+Use those opaque provider tokens in `ExpectedRevisions`; logical `VersionId` is
+not a replacement for them. `SaveChildren=false` writes the root while retaining
+stored child membership. `MaxChildDepth=1` and `Recursive=false` select the first
+child level; zero depth with recursion selects the complete submitted graph.
+
+A complete HTTP graph must retain each node's `ChildRoleManifestJson` from its
+loaded representation. The shipping JSON contract preserves that field on
+`IHolon` children and creates ordinary `Holon` instances without accepting CLR
+type hints. Keep this stored observation intact. It does not grant ownership:
+the generic manager checks the authenticated actor against every selected stored
+record, then the native provider checks the caller's original revisions atomically.
+
+Known-partial selections cannot be promoted by calling `AcceptChanges`. Reload
+the required graph from its explicit write authority before a child-selecting
+save. Complete serialized conditional admission also does not grant ordinary
+SDK save authority. See [REST writes](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) and
+[storage accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for intent, deployment
+tariffs and current verification scope.
+
 ## SQLite Single/Double arithmetic SDK availability
 
 SQLite now supports required/nullable Single and Double Sum/Average, including

@@ -1,5 +1,27 @@
 # COSMIC ORM implementation status
 
+## Joined shipping REST/native write settlement — 26 October 2026
+
+Core **3,342** and normal WEB4 **221** tests pass with zero skips. The native
+MongoDB/SQLite/Neo4j runner passes **36 signed shipping REST requests**, including
+full recursive child updates, depth flags, selected-child ownership, replay/stale
+conflicts and atomic batch failure. Its **33 REST operations** settle alongside
+**345 CQL operations**; **403 physical attempts** are accounted for. The existing
+**138 SDK /138 signed CQL examples** remain green.
+
+Root fixes distinguish complete serialized conditional intent from ordinary local
+hydration authority, preserve nested membership observations and affirm zero
+provider execution after pre-provider rejection. Seven producer/consumer pairs
+and three extra Core copies match; sources remain unchanged during the live run.
+Both failed fixtures were reconciled before exact cleanup. No services or owned
+test databases remain active. [Evidence and limits](CQL_STORAGE_WRITE_ACCOUNTING.md).
+
+Next acceptance work: concurrent request/configuration and complete startup/alias
+coverage, unknown-outcome recovery, gRPC graph-save migration and GraphQL request
+actor binding, then authoritative recipient/tenant policy and broader CQL/native
+federation certification. The full COSMIC ORM roadmap remains open. Historical
+checkpoints below retain their original verification scope.
+
 ## Sharing authority and authenticated snapshot — 26 October 2026
 
 V2 sharing/revocation now reads through generic Core LoadHolonForWriteAsync and

@@ -95,6 +95,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                     x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                     x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
                     x.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
+                    Helpers.HolonJsonContracts.Configure(x.JsonSerializerOptions);
                 });
             services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>

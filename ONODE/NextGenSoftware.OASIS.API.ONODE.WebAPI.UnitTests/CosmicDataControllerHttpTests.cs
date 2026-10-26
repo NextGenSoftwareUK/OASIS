@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,6 +28,120 @@ public sealed class CosmicHostedGlobalStateCollection { }
 [Collection("COSMIC hosted global state")]
 public sealed class CosmicDataControllerHttpTests
 {
+    [Fact]
+    public void OrdinaryChildWireContractPreservesItsStoredMembershipObservation()
+    {
+        var child = new Holon { Id = Guid.NewGuid(), ChildRoleManifestJson = "stored-child-membership" };
+        var root = new Holon { Id = Guid.NewGuid(), Children = new List<IHolon> { child } };
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+        };
+        NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonJsonContracts.Configure(options);
+
+        var wire = JsonSerializer.Serialize(root, options);
+        var decoded = JsonSerializer.Deserialize<Holon>(wire, options)!;
+
+        Assert.Equal(child.ChildRoleManifestJson, Assert.IsType<Holon>(Assert.Single(decoded.Children)).ChildRoleManifestJson);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task WireChildGraphsBindAndHonorTheSelectedSaveDepth(int selection)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            var root = Guid.NewGuid();
+            var child = Guid.NewGuid();
+            var foreign = Guid.NewGuid();
+            foreach (var id in new[] { root, child, foreign })
+                provider.Setup(value => value.LoadHolonAsync(id, false, true, 0, true, false, 0))
+                    .ReturnsAsync(new OASISResult<IHolon>(new Holon
+                    {
+                        Id = id, CreatedByAvatarId = id == foreign ? Guid.NewGuid() : actor
+                    }) { IsLoaded = true });
+            var revisions = new Dictionary<Guid, Guid?> { [root] = Guid.NewGuid() };
+            if (selection != 0) revisions[child] = Guid.NewGuid();
+
+            using var response = await client.PostAsJsonAsync("/api/data/save-holon", new
+            {
+                holon = new
+                {
+                    id = root, name = "wire parent",
+                    children = new[]
+                    {
+                        new
+                        {
+                            id = child, parentHolonId = root, name = "wire child",
+                            children = new[] { new { id = foreign, parentHolonId = child, name = "excluded foreign grandchild" } }
+                        }
+                    }
+                },
+                operationId = Guid.NewGuid(), expectedRevisions = revisions,
+                saveChildren = selection != 0, recursive = selection != 2,
+                maxChildDepth = selection == 1 ? 1 : 0
+            });
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode); // Controlled conditional provider reached.
+            var loaded = provider.Invocations.Where(call => call.Method.Name == "LoadHolonAsync")
+                .Select(call => (Guid)call.Arguments[0]).ToArray();
+            Assert.Equal(selection == 0 ? new[] { root } : new[] { root, child }, loaded);
+            Assert.Single(provider.Invocations.Where(call => call.Method.Name == "ExecuteConditionalHolonWriteAsync"));
+        });
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RejectedPricedSavesRecordAffirmativeNoProviderExecution(bool malformed)
+    {
+        var recorded = false;
+        await WithHost(true, async (client, actor, provider) =>
+        {
+            using var response = malformed
+                ? await client.PostAsync("/api/data/save-holon",
+                    new StringContent("{", System.Text.Encoding.UTF8, "application/json"))
+                : await client.PostAsJsonAsync("/api/data/save-holon", new { holon = new { name = "missing intent" } });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.True(recorded, "A priced rejection needs affirmative evidence before its reservation can settle.");
+            Assert.Empty(provider.Invocations.Where(call => call.Method.Name.Contains("Load") ||
+                call.Method.Name.Contains("Save") || call.Method.Name.Contains("Conditional")));
+        }, admitted: true, configureOutbox: store =>
+            store.Setup(value => value.RecordNoProviderExecutionAsync(It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback(() => recorded = true).Returns(Task.CompletedTask));
+    }
+
+    [Fact]
+    public async Task AnActualOwnershipAttemptIsNeverReportedAsZeroExecution()
+    {
+        var recorded = false;
+        await WithHost(true, async (client, actor, provider) =>
+        {
+            var id = Guid.NewGuid();
+            provider.Setup(value => value.LoadHolonAsync(id, false, true, 0, true, false, 0))
+                .ReturnsAsync(new OASISResult<IHolon>(new Holon
+                {
+                    Id = id, CreatedByAvatarId = Guid.NewGuid()
+                }) { IsLoaded = true });
+
+            using var response = await client.PostAsJsonAsync("/api/data/save-holon", new
+            {
+                holon = new { id, name = "denied after lookup" }, operationId = Guid.NewGuid(), saveChildren = false
+            });
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.False(recorded);
+            Assert.Contains(provider.Invocations, call => call.Method.Name == "LoadHolonAsync");
+        }, admitted: true, configureOutbox: store =>
+            store.Setup(value => value.RecordNoProviderExecutionAsync(It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Callback(() => recorded = true).Returns(Task.CompletedTask));
+    }
+
     [Theory]
     [InlineData(false, null)]
     [InlineData(true, null)]
@@ -224,7 +339,8 @@ public sealed class CosmicDataControllerHttpTests
     }
 
     private static async Task WithHost(bool configuredAdmission,
-        Func<HttpClient, Guid, Mock<IOASISStorageProvider>, Task> test, bool admitted = false)
+        Func<HttpClient, Guid, Mock<IOASISStorageProvider>, Task> test, bool admitted = false,
+        Action<Mock<IUsageOutboxStore>>? configureOutbox = null)
     {
         var previousDna = Boot.OASISDNA;
         var globals = ProviderManager.Instance;
@@ -256,10 +372,12 @@ public sealed class CosmicDataControllerHttpTests
         Assert.False(providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError);
         var manager = new HolonManager(null, dna, providers);
         PreparedStorageExecution? admission = null;
+        UsageExecutionHandle? admittedHandle = null;
         if (admitted)
         {
             var attemptStarted = false;
             var outbox = new Mock<IUsageOutboxStore>();
+            configureOutbox?.Invoke(outbox);
             outbox.Setup(value => value.TryBeginAsync(It.IsAny<UsageOutboxOperation>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
             outbox.Setup(value => value.BeginProviderAttemptAsync(It.IsAny<string>(), It.IsAny<string>(),
@@ -292,6 +410,7 @@ public sealed class CosmicDataControllerHttpTests
                     MeterCategory = "fixture-write", PricingCatalogueVersion = "fixture-v1",
                     RequiresProviderMeasurement = true, MaximumProviderAttempts = 10
                 });
+            admittedHandle = handle;
             admission = new PreparedStorageExecution(handle, "http-activation",
                 new Dictionary<ProviderType, string>(), new[] { ProviderType.SQLLiteDBOASIS });
         }
@@ -302,9 +421,13 @@ public sealed class CosmicDataControllerHttpTests
             var builder = WebApplication.CreateBuilder();
             builder.Logging.ClearProviders();
             builder.WebHost.UseUrls("http://127.0.0.1:0");
-            builder.Services.AddControllers().AddApplicationPart(typeof(DataController).Assembly)
+            builder.Services.AddControllers()
+                .AddJsonOptions(options => NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonJsonContracts.Configure(options.JsonSerializerOptions))
+                .AddApplicationPart(typeof(DataController).Assembly)
                 .AddControllersAsServices();
             builder.Services.AddTransient<DataController>(_ => new DataController(manager));
+            if (admission != null)
+                builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(new FixtureAdmissionFactory(admission));
             if (configuredAdmission)
                 builder.Services.AddSingleton(new StorageAdmissionRoutes(new[]
                 {
@@ -322,11 +445,16 @@ public sealed class CosmicDataControllerHttpTests
                 // Auth is controlled at the host boundary; the real shipping
                 // AuthorizeAttribute, model binder and DataController still run.
                 context.Items["Avatar"] = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = actor };
-                if (admission == null)
-                    await next(context);
-                else
-                    await admission.RunAsync(async () => { await next(context); return true; });
+                if (admittedHandle != null)
+                {
+                    context.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(
+                        new[] { new System.Security.Claims.Claim("sub", actor.ToString("D")) }, "controlled-http-fixture"));
+                    context.Items[Web4UsageMeasurement.ExecutionKey] = admittedHandle;
+                }
+                await next(context);
             });
+            if (admission != null)
+                app.UseMiddleware<PreparedStorageAdmissionMiddleware>();
             app.MapControllers();
             await app.StartAsync();
             try
@@ -343,5 +471,11 @@ public sealed class CosmicDataControllerHttpTests
             globals.IsAutoReplicationEnabled = previousReplication;
             Boot.OASISDNA = previousDna;
         }
+    }
+
+    private sealed class FixtureAdmissionFactory(PreparedStorageExecution policy) : IPreparedStorageAdmissionFactory
+    {
+        public Task<PreparedStorageExecution> CreateAsync(HttpContext context, UsageExecutionHandle execution,
+            CancellationToken cancellationToken) => Task.FromResult(policy);
     }
 }

@@ -55,6 +55,8 @@ public sealed partial class CqlV1Web4NativeTests
         var ids = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
         var childIds = Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
         var scalarIds = Enumerable.Range(0,137).Select(_=>Guid.NewGuid()).ToArray();
+        var restActor = Guid.NewGuid();
+        var restIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
         var scalarWrites = new List<string>();
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
@@ -70,7 +72,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, scalarWrites, sharingOperations, tag, requests = journal }));
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, restActor, restIds, scalarWrites, sharingOperations, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
         }
@@ -1033,6 +1035,11 @@ public sealed partial class CqlV1Web4NativeTests
                 }
                 finally { await app.StopAsync(); }
             }
+            // Exercise signed requests through the shipping DataController only
+            // after the read demo, so these private records cannot change it.
+            var shippingRestRequests = await VerifyShippingRestAsync(providers, outbox, authority,
+                secret, restActor, restIds, ids[0], tag, Journal, sharingOperations);
+            Assert.AreEqual(36, shippingRestRequests);
             if (mode != null)
             {
                 // Shutdown waits for in-flight requests. Never erase an unsettled
@@ -1045,7 +1052,11 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
+                    shippingRestRequests, shippingRestProvidersVerified = providers.Count,
+                    settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D")),
+                    settledCqlOperations = operations.Count(operation => operation.UserId != restActor.ToString("D")),
+                    settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));
@@ -1062,7 +1073,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Concat(scalarIds).Concat(restIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.OperationId IN $operations DETACH DELETE r",
