@@ -148,7 +148,9 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     {
         ArgumentNullException.ThrowIfNull(prefix); cancellationToken.ThrowIfCancellationRequested();
         var physical = _prefix + prefix;
-        var request = new ListObjectsV2Request { BucketName = _bucket, Prefix = physical };
+        // Request the documented XML-safe format. The pinned v3 SDK leaves these
+        // fields encoded; normalize exactly once using the response's format tag.
+        var request = new ListObjectsV2Request { BucketName = _bucket, Prefix = physical, Encoding = EncodingType.Url };
         var keys = new List<string>(); var seen = new HashSet<string>(StringComparer.Ordinal); var tokens = new HashSet<string>(StringComparer.Ordinal);
         while (true)
         {
@@ -160,6 +162,15 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
                 throw new InvalidDataException("S3 listing omitted its native completion flag.");
             if (!response.IsTruncated && !string.IsNullOrEmpty(response.NextContinuationToken))
                 throw new InvalidDataException("S3 listing claims completion but also supplies a next continuation token.");
+            if (response.Prefix != null && DecodeListingValue(response.Prefix,response.Encoding) != physical)
+                throw new InvalidDataException("S3 listing prefix differs from its original requested selection.");
+            // Continuation tokens are opaque and are not among the URL-encoded
+            // fields. StartAfter/delimiter were never requested by this backend.
+            if (response.ContinuationToken != null && response.ContinuationToken != request.ContinuationToken
+                || !string.IsNullOrEmpty(response.StartAfter) || !string.IsNullOrEmpty(response.Delimiter))
+                throw new InvalidDataException("S3 listing cursor or delimiter differs from its original request.");
+            if (response.Encoding != null && response.Encoding != EncodingType.Url)
+                throw new InvalidDataException("S3 listing uses an unsupported response encoding.");
             var objects=response.S3Objects ?? throw new InvalidDataException("S3 listing omitted its object collection.");
             if(response.CommonPrefixes is { Count: > 0 })
                 throw new InvalidDataException("S3 delimiter-free listing cannot publish grouped prefixes as a complete object collection.");
@@ -167,15 +178,32 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
                 throw new InvalidDataException("S3 listing's declared key count does not match its returned object collection.");
             foreach (var item in objects)
             {
-                if (string.IsNullOrWhiteSpace(item?.Key) || !item.Key.StartsWith(physical, StringComparison.Ordinal) || !seen.Add(item.Key))
+                var key=DecodeListingValue(item?.Key,response.Encoding);
+                if (string.IsNullOrWhiteSpace(key) || !key.StartsWith(physical, StringComparison.Ordinal) || !seen.Add(key))
                     throw new InvalidDataException("S3 listing contains an invalid, duplicate or out-of-prefix key.");
-                keys.Add(item.Key[_prefix.Length..]);
+                keys.Add(key[_prefix.Length..]);
             }
             if (!response.IsTruncated) return keys;
             if (string.IsNullOrEmpty(response.NextContinuationToken) || !tokens.Add(response.NextContinuationToken))
                 throw new InvalidDataException("S3 truncated listing requires a new continuation token.");
             request.ContinuationToken = response.NextContinuationToken;
         }
+    }
+
+    private static string? DecodeListingValue(string? value, EncodingType? encoding)
+    {
+        if (value == null || encoding == null) return value;
+        if (encoding != EncodingType.Url) throw new InvalidDataException("S3 listing uses an unsupported response encoding.");
+        try
+        {
+            Utf8.GetByteCount(value);
+            for (var index=value.IndexOf('%');index>=0;index=value.IndexOf('%',index+3))
+                if (index+2>=value.Length || !Uri.IsHexDigit(value[index+1]) || !Uri.IsHexDigit(value[index+2]))
+                    throw new InvalidDataException("S3 listing contains a malformed percent-encoded value.");
+            // S3 uses URI encoding, not HTML form encoding: a literal '+' stays '+'.
+            return Utf8.GetString(System.Web.HttpUtility.UrlDecodeToBytes(value.Replace("+","%2B",StringComparison.Ordinal)));
+        }
+        catch (ArgumentException cause) { throw new InvalidDataException("S3 listing contains invalid encoded UTF-8.",cause); }
     }
 
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
