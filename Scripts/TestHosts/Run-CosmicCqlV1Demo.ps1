@@ -103,6 +103,9 @@ try {
         if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {
             throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
         }
+        if ($report.nativeFederationQueries -ne 14 -or $report.nativeFederationProvidersVerified -ne 3) {
+            throw 'Complete-source SDK federation/native proof is incomplete.'
+        }
         # Interactive presenters may run additional queries before Finish.
         # Bounded verification retains exact totals; both require all recovery cases.
         if ($report.settledRecoveryOperations -ne 12 -or

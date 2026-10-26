@@ -151,6 +151,7 @@ public sealed partial class CqlV1Web4NativeTests
             }
 
             await VerifyAuthoritativeAccess(providers, outsider, ids, childIds);
+            var nativeFederationQueries = await VerifyNativeFederation(providers, alice, outsider, tag, ids);
 
             var outbox = new MongoUsageOutboxStore(mongoUri, usageDb);
             await outbox.InitializeAsync(CancellationToken.None);
@@ -1073,6 +1074,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
+                    nativeFederationQueries, nativeFederationProvidersVerified = providers.Count,
                     walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     recoveryProvidersVerified, processRestartProvidersVerified = recoveryProvidersVerified,
                     hostedReadPolicyRequests, hostedReadPolicyProvidersVerified = providers.Count,

@@ -2203,8 +2203,7 @@ CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment 
 
 ## Bounded federated SDK rows — 26 October 2026
 
-This SDK feature has unit verification; real MongoDB/SQLite/Neo4j federation and
-HTTP acceptance are still pending. Ordinary multi-provider queries continue to
+This SDK feature now passes fourteen real MongoDB/SQLite/Neo4j scenarios and 3,595 Core unit tests. Signed federation HTTP/billing acceptance remains pending. Ordinary multi-provider queries continue to
 return separate provider result sets. Explicit federation adds a global page.
 
 The application supplies an already authorized, bounded `adapters` snapshot and
@@ -2276,3 +2275,5 @@ retains the observed accessible copies in `Copies`; it never means newest.
 `ResolvedRows` is the count before the global page. No repeatable snapshot or
 continuation cursor is promised. See CQL_FEDERATION_CONTRACT.md for remaining
 production acceptance, error behavior and identity semantics.
+
+Native SDK federation verification now covers exact decimal, UInt64, Single, Double, Int64, UTC ticks, GUID and nullable metadata ordering. Single/Double ordering uses the declared IEEE domain with exact ties-to-even normalization; it does not sort unrounded JSON numbers. See CQL_FEDERATION_CONTRACT.md for source/binary/test evidence and remaining federation HTTP, billing, cursor and distributed join gates.

@@ -1675,3 +1675,30 @@ The SDK merge passes 3,591 Core tests but has not yet passed the real-provider o
 HTTP federation acceptance gate. Cursor continuity, causal agreement, distributed
 snapshots and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md for
 the precise contract and remaining gates; CQL_MANUAL.md has the SDK example.
+
+## 26 October native SDK federation acceptance
+
+Fourteen read-only SDK federation scenarios now pass on the retained real
+MongoDB, SQLite and Neo4j fixture: complete sources, visibility before global
+paging, provider priority/copy provenance, independent source/global windows,
+cumulative input rejection and exact decimal/UInt64/Single/Double/Int64/UTC/GUID/
+nullable metadata ordering. The ordinary signed HTTP/recovery cohort remains
+492 settled operations / 541 attempts; sources stayed unchanged and all seven
+native producer/consumer binary pairs matched. The SDK federation scenarios run
+before hosted usage enrollment. They do not prove signed federation billing or a
+federation HTTP endpoint; both remain open, along with cursors/distributed joins.
+
+The gate exposed a scalar-contract mismatch before any native fixture was
+started: federation rejected JSON decimal/integer normalization admitted by
+native Single/Double ordering. Two red regressions reproduced it. Core now uses
+its existing exact rational ties-to-even IEEE rounding owner, once, and verifies
+normalized ties by logical ID. Exact integer/decimal conversions still reject
+precision loss; floating normalization follows the explicit declared IEEE domain.
+Core dual-target build and all 3,595 unit tests pass, including four new cases.
+
+Evidence: Verification/federation-normalization-{red,core}.trx.gz,
+federation-normalization-identities.json, federation-native.trx.gz,
+federation-native-source.json.gz, federation-native-binaries.json and
+federation-native-result.json. The reusable runner requires all fourteen scenarios
+and all three providers before it accepts success. No new environment/download
+was used; fixture teardown and cleanup are recorded in the resource ledger.
