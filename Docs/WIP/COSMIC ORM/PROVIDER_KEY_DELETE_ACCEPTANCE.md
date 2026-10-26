@@ -48,3 +48,11 @@ The shipping WEB4 build passes. Full WEB4 suite: 271 passed, zero failures, one 
 The key route preserves its existing callable signature and supports optional `providerType` query scope through common intent validation. Its result projection preserves captured request routing policy. Legacy engine behavior remains unchanged. The new DTO ProviderKey also lets the canonical conditional-delete boundary share the same identity checks.
 
 Usage suite: 400 passed, zero skips. Ten new configuration controls cover exact delete/key-read pricing, save-only compatibility and complete/duplicate/unknown tariff matrices. Evidence: Verification/key-delete-usage-full.trx.gz. Signed native delete acceptance is still pending and must not be inferred from these mock-provider MVC cases.
+
+## Signed GraphQL/gRPC native delete gate - 2026-10-26
+
+Run98189 passed across MongoDB, SQLite and Neo4j. The focused shipping GraphQL schema now includes the actual DeleteHolon resolver. Per provider, four GraphQL soft-delete and four gRPC hard-delete requests cover missing intent, foreign-owner denial, stale revision rejection and acknowledged deletion. GraphQL soft deletion is verified through persisted deletion state/actor; gRPC hard deletion returns its committed delta and the physical record is absent. Every request checks durable attempt/receipt counts, settled outcome and exact operation tariff. No write retries were introduced.
+
+Combined native cohort: 48 signed GraphQL/gRPC requests (24 existing saves plus24 deletes);36 signed REST save requests;138 SDK and138 signed CQL walkthrough cases;426 settled operations and466 physical attempts (345 CQL,33 REST and48 transport settlements). Source snapshots stayed unchanged and seven producer/consumer binary identities matched while the build lease was held. The native test passed with zero skips. Owned Mongo/Neo4j services stopped; exact manifest and SQLite fixture are absent after verified cleanup. Required evidence is preserved under Verification/signed-delete-*.
+
+This certifies the stated GraphQL/gRPC delete cases only. Signed REST logical-ID/provider-key deletion, Wizard/provider-scope concurrency, unavailable-primary behavior and unknown-outcome transport recovery remain open. It is not full startup/GraphQL schema or full roadmap certification. Existing SDK/MVC tests remain separate evidence cohorts.
