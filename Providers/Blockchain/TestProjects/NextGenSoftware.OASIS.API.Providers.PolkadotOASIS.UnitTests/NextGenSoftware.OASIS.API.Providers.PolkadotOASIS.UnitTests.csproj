@@ -28,6 +28,7 @@
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicReadNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicMutationNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftCustodyNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftEscrowNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <None Update="submission-process-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
