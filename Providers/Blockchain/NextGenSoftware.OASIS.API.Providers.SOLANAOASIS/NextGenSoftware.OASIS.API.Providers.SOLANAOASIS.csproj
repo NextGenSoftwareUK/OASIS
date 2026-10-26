@@ -48,6 +48,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="SolSharp" Version="4.0.0" />
       <PackageReference Include="Solana.Metaplex" Version="8.0.0" />
       <PackageReference Include="Solnet.Extensions" Version="6.1.0" />
       <PackageReference Include="Solnet.KeyStore" Version="6.1.0" />
