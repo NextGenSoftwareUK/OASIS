@@ -148,6 +148,7 @@ function Get-CleanupInventory([string]$path) {
 
 function Write-CleanupLedger([string]$message) {
     if (!$DryRun) {
+        [void][IO.Directory]::CreateDirectory((Split-Path -Parent $cleanupLedger))
         Add-Content -LiteralPath $cleanupLedger -Encoding UTF8 -Value ("`n{0} cleanup script PID{1}: {2}" -f [DateTime]::UtcNow.ToString('o'), $PID, $message)
     }
 }
