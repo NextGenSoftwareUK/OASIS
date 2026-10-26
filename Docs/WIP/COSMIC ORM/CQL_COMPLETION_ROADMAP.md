@@ -2047,3 +2047,7 @@ This closes this routing checkpoint, not the roadmap. Non-migrated routes,
 cross-route concurrency, deep DNA/security/strategy ownership, gRPC/GraphQL
 identity, recipient/tenant queries, federation and remaining ORM work stay open.
 See [request policy ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
+
+## GraphQL conditional-create checkpoint — 26 October 2026
+
+V2 saveHolon now binds the HTTP actor, stable operation intent and explicit provider through the shared hosted/owned conditional boundary. Real focused schema execution caught and fixed implicit IHolon mutation-member discovery by binding declared output fields. Shipping build/fullWEB4239tests pass without skips. Required original schema-red/final reports retained under Verification/graphql-*.trx.gz (59053/57306bytes). Signed GraphQL deployment/native acceptance, admission/settlement and delta response enrollment remain open; gRPC migration is next. Core is unchanged at289fa01 for this checkpoint.
