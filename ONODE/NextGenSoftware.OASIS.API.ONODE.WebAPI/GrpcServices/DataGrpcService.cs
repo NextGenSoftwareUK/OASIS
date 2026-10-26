@@ -10,6 +10,8 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 {
@@ -27,6 +29,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
+                var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+                var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+                if (mode.IsError) return GrpcHolonWriteContract.Encode(mode);
+                if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var decoded = GrpcHolonWriteContract.Decode(request);
+                    if (decoded.IsError)
+                        return new HolonResponse { IsError = true, ErrorCode = decoded.ErrorCode,
+                            Message = decoded.Message, ErrorCount = decoded.ErrorCount };
+                    var written = await HostedHolonWriteEndpoint.SaveAsync(context.GetHttpContext(),
+                        dna.OASIS.HyperDriveMode, decoded.Result,
+                        () => new HolonManager(null, dna, ProviderManager.Instance));
+                    return GrpcHolonWriteContract.Encode(written);
+                }
+
                 await ActivateProviderIfSpecifiedAsync(request.ProviderType, request.SetGlobally);
 
                 var holon = MapToHolon(request.Holon);
@@ -68,6 +85,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                     maxChildDepth: request.MaxChildDepth,
                     continueOnError: request.ContinueOnError,
                     version: request.Version);
+
+                if (manager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var response = GrpcHolonWriteContract.Encode(result);
+                    if (!result.IsError && result.Result != null) response.Holon = MapHolon(result.Result);
+                    return response;
+                }
 
                 return result.IsError
                     ? new HolonResponse { IsError = true, Message = result.Message }

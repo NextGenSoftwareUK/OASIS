@@ -105,4 +105,62 @@ delta responses and gRPC migration remain open. Configured hosts without admitte
 execution reject rather than bypass reservation policy. This example therefore
 does not claim deployment enrollment on such a host.
 
+## gRPC conditional-write envelope (V2)
+
+`DataService.SaveHolon` now selects the explicit engine mode before activation.
+V2 validates and uses the shared hosted conditional-write boundary; the original
+Legacy branch remains separate. New protobuf fields retain the original field
+numbers and add:
+
+| Field | Semantics |
+|---|---|
+| `SaveHolonGrpcRequest.operation_id` (9) | Stable nonempty canonical GUID, or omitted when supplied by the agreeing operation header |
+| `expected_revisions` (10) | Canonical record GUID to opaque provider revision GUID; empty value means create-only; all-zero GUID is an actual legacy token |
+| `holon_json` (11) | Required recursive REST-compatible holon representation for V2; omit the flat Legacy `holon` field |
+| `HolonResponse.error_code` / `error_count` | Original machine-readable failure evidence |
+| `is_saved` / `committed_delta_json` | Actual acknowledged save state and committed delta, when supplied by the write owner |
+| `holon_json` / `result_metadata` | Recursive returned record and provider/result evidence |
+
+The canonical recursive JSON is deliberate: it reuses `HolonJsonContracts` for
+interfaces, child-role observations and exact metadata numbers, rather than
+maintaining a second lossy holon mapper. It accepts no CLR type hint. Sending
+both flat and recursive input rejects instead of guessing precedence. Malformed
+record IDs and revisions reject instead of turning an intended update into a
+create. The serializer retains the ordinary bounded JSON depth handling; the
+revision map is bounded to 10,000 entries before materialization.
+
+For example, a new logical create supplies this protobuf envelope (shown in
+protobuf JSON notation):
+
+```json
+{
+  "operationId": "0da8c72f-a1d5-4dd1-ae11-c822389b1510",
+  "providerType": "MongoDBOASIS",
+  "holonJson": "{\"name\":\"Coffee order\",\"description\":\"Conditional create\"}",
+  "saveChildren": false
+}
+```
+
+For an existing record, retain its loaded recursive representation and submit its
+original provider revision in `expectedRevisions`. Selected children require their
+own original conditions and complete stored role observations. `saveChildren`,
+`recursive` and `maxChildDepth` pass to the generic planner. The old
+`saveChildrenForAllProviders=true` flag rejects for V2 conditional writes;
+cross-provider propagation requires explicit replication enrollment and cannot
+change the single write authority. `setGlobally` publishes the selected routing
+preference through the existing atomic owner after intent validation.
+
+V2 `LoadHolon` now also returns the recursive representation in `holon_json` so
+clients need not reconstruct a graph from the old flat root. Its existing read
+routing/activation flow still needs migration; this output change does not prove
+read authority or access-policy completion.
+
+Tests cover protobuf round trips, recursive children and role observations, exact
+large integer/fraction metadata, create-only versus all-zero revision tokens,
+duplicate/malformed conditions, ambiguous payloads and result deltas. Real
+loopback HTTP/2 requests execute the shipping gRPC service and verify anonymous
+and missing-intent rejection. Their authentication boundary is controlled by the
+fixture, not a signed JWT certification. Signed native acceptance and configured
+transport admission/settlement remain open on all three providers.
+
 Final evidence checkpoint: gate40497terminal0; portable Core and shipping WEB4 builds pass, WEB4231/231PASS0skip. Core289fa01 published. No new native cohort was run for this failure-projection change; the preceding routing native cohort is separately retained and is not relabelled as this revision's evidence. GraphQL/gRPC migration and native transport enrollment remain open.

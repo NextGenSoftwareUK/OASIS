@@ -2009,3 +2009,7 @@ price-versus-native-invoice distinction and remaining joined settlement proof.
 ## GraphQL conditional creates (V2)
 
 The saveHolon mutation now accepts a stable operationId and explicit providerType, uses the request-authenticated actor, and delegates to the same owned conditional-write boundary as REST. It remains create-only. See the [transport contract and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#graphql-conditional-create-migration) for syntax and current enrollment limits. Configured admission hosts must enroll this transport before provider execution; unit/schema tests do not establish signed deployment acceptance.
+
+## gRPC conditional saves (V2)
+
+DataService.SaveHolon now accepts operation_id, expected_revisions and a required holon_json carrying the same recursive contract as REST. It uses the request actor and shared owned conditional-save boundary. Responses carry error_code, is_saved, committed_delta_json and result_metadata. See the [gRPC envelope and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#grpc-conditional-write-envelope-v2) for field numbers, child selection, precision, compatibility and current signed/admission verification limits.
