@@ -1730,3 +1730,5 @@ Verification/federation-materialization-{core,initial,row-omission}.trx.gz and
 federation-materialization-identities.json. Earlier14native SDK scenarios predate
 this finalizer and the per-target policy extension. Native manager/hosted
 federation authorization, HTTP, billing, cursors and distributed joins remain open.
+
+26 October federation HTTP boundary: the seventh exact CQL route binds authenticated admission before provider lookup, compiles unbound business intent only internally, captures one policy per target, then uses generic federation planning and HolonManager materialization. Resource filtering, durable query attempt ownership and public leaf projection are shared with existing CQL. Wire size and canonical output are separately bounded. Core3,636/shipping320+1existing skip pass; signed native federation HTTP/billing remains open. See CQL_FEDERATION_HTTP_CONTRACT.md.

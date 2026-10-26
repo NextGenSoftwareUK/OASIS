@@ -2289,3 +2289,5 @@ its hosted/native authorization acceptance remains pending. Never construct the
 catalogues directly from caller-selected IDs or metadata search hits.
 
 The manager federation method materializes each selected/observed copy as T using the ordinary metadata decryption/hydration pipeline and publishes clean tracking state. The low-level CosmicFederationExecutor handles stored canonical rows and does not perform that mapping. The output budget includes actual row payload after materialization, plus provenance. This manager extension has Core unit/encryption controls; its native/hosted acceptance is still pending.
+
+Hosted row federation is implemented at POST /api/data/query-cql/federation with explicit CurrentDefault/Named/AllEligible scope, per-target policy capture, independent source/global windows, manager materialization and canonical/public byte limits. See [the HTTP contract and JSON example](CQL_FEDERATION_HTTP_CONTRACT.md). Core unit/per-target receipt controls and the shipping build pass; signed real-provider HTTP/billing and demo acceptance remain pending.
