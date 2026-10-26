@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+## 2026-10-25 historical export visibility gate
+
+All-version owned-export root filtering alone leaked foreign embedded descendants in controlled Oracle/Dynamo/Google/Shared paths (8genuine pre-fix failures). All four now call existing Core visibility projection independently per stored version; no reconstructed historical snapshot, public-child inclusion or hidden-branch hoisting. Latest matched Oracle571real native SDK/466unit +Shared1213unit pass, zero skipped; actual native historical typed payload and unchanged bytes/rejected projected saves verified. Full evidence and failed-fixture recovery disclosures: ORACLE_CLIENT_PRIORITY.md/ENVIRONMENT_INVENTORY.md. Other adapters'665Dynamo/482Google controls passed earlier; current matched companions, S3/OCI transport controls and hosted/security/cost/full-interface/global V2 acceptance are still separate gates.
+
 ## 2026-10-25 Google scoped graph visibility evidence
 
 Current-avatar search and GUID/username/email owned exports now reuse Core's descendant visibility projector rather than only filtering roots. Local official SDK proves current/historical root versions, independent child versions, foreign-subtree pruning, unchanged unscoped native data and rejected projected saves. Matched full480 controlled/95 history-native/79 regression-native tests pass with zero skips. Exact hashes, original failed-fixture reconciliation and legacy cleanup hardening are in `FIRESTORE_RECORD_HISTORY.md`. No hosted/full-interface/global V2 acceptance claim; existing environment reused without download or restore.

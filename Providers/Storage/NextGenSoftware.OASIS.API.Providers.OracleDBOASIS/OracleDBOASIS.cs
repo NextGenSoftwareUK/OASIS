@@ -755,7 +755,8 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;"
                 if(avatarId==Guid.Empty)throw new ArgumentException("Avatar export requires a nonempty avatar identity.",nameof(avatarId));
                 if(version==-1){
                     var all=await ExportAllAsync(version);if(all.IsError)return all;
-                    RecordsLoaded(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList());return result;
+                    RecordsLoaded(result,all.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList());
+                    return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
                 }
                 if(version>0){
                     var selected=await ReadRecordCollectionAsync<Holon>("OASIS_HOLONS",version);

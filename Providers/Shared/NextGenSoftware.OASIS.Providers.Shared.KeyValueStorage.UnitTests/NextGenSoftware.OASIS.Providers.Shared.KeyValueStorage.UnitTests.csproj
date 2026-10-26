@@ -12,6 +12,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <None Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" Link="prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
