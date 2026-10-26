@@ -54,6 +54,41 @@ report the request's effective detailed settings. Global publication must be
 atomic and independent of older request cleanup. Inheritance/default behavior,
 immutable list capture and provider activation ordering need dedicated controls.
 
+### Selected implementation direction
+
+Use an explicit request manager/registry, not an ambient global replacement or
+temporary mutation of singleton properties. Core captures the effective policy
+once, applies immutable overrides and creates a registry pointing at already
+registered provider instances. Provider capture must not activate/deactivate,
+register replacements or allocate another performance monitor. Share the original
+load-balancer selection state so request isolation cannot reset round-robin or
+weighted fairness on every request.
+
+The request manager must preserve the original manager's configured provider
+unless an explicit request provider wins. Construct the scoped manager and search
+manager without adding persistent event handlers to shared providers: the existing
+OASISManager constructor subscribes when a provider argument is supplied and has
+no teardown. A new per-request factory must not multiply that existing leak.
+
+Publish `SetGlobally=true` changes atomically through the runtime-policy owner.
+Default/list inheritance in V2 comes from that effective runtime policy, rather
+than the legacy StorageProviders section. The V2 write configuration path should
+validate/describe intent without temporary singleton updates; its cleanup must
+have no global snapshot to restore. Keep legacy behavior as documented only.
+
+Detailed response settings also need a captured policy. Their existing getters
+read the singleton during JSON serialization, after controller cleanup, so simply
+changing execution would still report another request's settings. Preserve the
+existing response surface while binding V2 responses to their immutable policy.
+
+An excluded draft, `Drafts/ProviderRoutingPolicy.cs.pending`, defines
+bounded immutable override/snapshot data only. It is not active or certified.
+Next: implement capture/global publication and scoped registry/manager creation,
+add Core isolation/default/list/fairness/no-activation controls, bind the shipping
+single/batch routes and their responses, then run the six HTTP regressions plus
+full unit/native gates. A changed test expectation or ignored routing option is
+not a fix.
+
 Keep legacy code unchanged; document its equivalent global mutation/restoration
 gap. Remaining verification must cover ordered lists, provider selection,
 invalid/default options, actual request-policy application, and simultaneous
