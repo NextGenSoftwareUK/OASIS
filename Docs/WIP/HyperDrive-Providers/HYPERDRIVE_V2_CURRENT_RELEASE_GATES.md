@@ -1,5 +1,13 @@
 # HyperDrive V2 current release gates
 
+## 26 October: NEAR prepared native owner and keyless recovery
+
+New explicit ExecutePreparedNativeActionAsync reuses EXISTING UsageExecutionHandle/PreparedSubmissionServer, verifies the admitted immutable action, persists original common signed fields before one exact SDK submission, and validates bound FINAL outcome. Missing admission/wrong signer/unverified sponsored maxima reject before SDK. Known native rejection preserves its original ID; post-submit uncertainty requires reconciliation. SDK20PASS; providerbuild/full370controlledPASS0skip18s includes physical-pipe and failed-ACK/lost-response controls.
+
+Actual native75165PASS1/1,7s:3originals (self-transfer, get function call, deliberately rejected missing method) fsynced before broadcast and reconstructed from common persisted fields; all native outcomes read using invalid signing material. Core781/Shared56 source/PDB/copies match; three fixed SDK copies match source and shared pipe client. Same retained node/SDK/validator, no downloads/restores/new environment; node stopped/ports absent. Actual receipt tokens_burnt1274803669988800000000yocto=0.0012748036699888localtestNEAR; storage/outlay/pricing and settlement separate.
+
+This is synthetic admission/file-backed durability, NOT hosted Mongo/billing. Existing CallAsync/TransferAsync/checked-write interfaces are not yet redirected to this explicit owner API; actual response-loss/process-restart gates and host routing/fullV2 remain OPEN. Canonical completed evidence/replay guard prevents native rerun; no default-interface durable certificate. [Details](NEAR_SIGNER_AND_RECEIPT_AUDIT.md), [resources](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: NEAR ordinary encrypted put/delete acknowledgements
 
 Two direct storage paths accepted hash-only responses and used separate SDK callFunctionRaw signing.24new controlled cases reproduced22real failures/2valid controls. Both now delegate the existing CallAsync→InvokeMutationAsync owner (exact signer/receiver/action/method/args/deposit/gas and FINAL execution) and shared official SDK submitNativeAction with retries0; obsolete raw put/delete branches removed. Final357/357controlledPASS0skip18s.
