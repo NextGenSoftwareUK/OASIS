@@ -30,10 +30,10 @@ public partial class SolanaRepository
                     throw new InvalidOperationException("Solana history contains invalid or repeated signatures.");
                 before=entry.Signature;
                 if(entry.Error != null) continue; // Native failed transactions never committed storage records.
-                var transaction=await rpcClient.GetTransactionAsync(entry.Signature,Commitment.Finalized);
-                if(transaction == null || !transaction.WasSuccessful || transaction.HttpStatusCode != HttpStatusCode.OK || transaction.Result?.Transaction?.Message == null)
+                var transaction=await transactionReader(entry.Signature);
+                if(transaction?.Transaction?.Message == null)
                     throw new InvalidOperationException("Solana finalized history transaction is unavailable; no partial collection returned.");
-                var message=transaction.Result.Transaction.Message;
+                var message=transaction.Transaction.Message;
                 if(message.AccountKeys == null || message.AccountKeys.Length==0)
                     throw new InvalidOperationException("Solana history transaction has no account identities.");
                 if(message.AccountKeys[0] != writer) continue; // Recipient activity is not storage written by this provider.
@@ -51,7 +51,7 @@ public partial class SolanaRepository
                         || text.StartsWith("oasis-solana-commit-",StringComparison.Ordinal)) ownedStorage=true;
                 }
                 if(!ownedStorage) continue; // An explicitly non-storage memo, not a guessed avatar.
-                var payload=await DecodeStoredMemoAsync(entry.Signature,ValidateStoredTransaction(transaction.Result,entry.Signature,writer));
+                var payload=await DecodeStoredMemoAsync(entry.Signature,ValidateStoredTransaction(transaction,entry.Signature,writer));
                 var document=Newtonsoft.Json.Linq.JObject.Parse(payload);
                 var kind=document.Value<string>("RecordKind");
                 if(kind is not ("oasis.avatar.v1" or "oasis.avatar-detail.v1" or "oasis.holon.v1"))

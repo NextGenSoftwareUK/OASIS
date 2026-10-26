@@ -30,7 +30,7 @@ public class SolanaServiceIdentityTests
         var owner=new Account();var id=Guid.NewGuid();var key=RandomNumberGenerator.GetBytes(32);
         var rpc=DispatchProxy.Create<IRpcClient,SolanaCollectionTests.HistoryProxy>();
         var proxy=(SolanaCollectionTests.HistoryProxy)(object)rpc;proxy.Writer=owner.PublicKey.Key;
-        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
         SolanaBaseDto Record(Guid identity,int version) => detail
             ? new SolanaAvatarDetailDto {Id=identity,Version=version,Username="stored user",Email="stored@example.invalid",XP=91}
             : new SolanaAvatarDto {Id=identity,AvatarId=identity,Version=version,UserName="stored user",Email="stored@example.invalid"};

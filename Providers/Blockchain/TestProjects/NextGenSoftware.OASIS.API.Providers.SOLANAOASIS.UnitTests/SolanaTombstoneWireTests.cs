@@ -23,7 +23,7 @@ public class SolanaTombstoneWireTests
         try{
             var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;
             proxy.Writer=owner.PublicKey.Key;proxy.IncludePacketsInHistory=true;
-            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray());
+            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray(),SolanaReadFixture.From(rpc));
             var root=await repository.CreateAsync(new SolanaAvatarDetailDto{Id=Guid.NewGuid(),Version=6,XP=997});
             var tail=proxy.Packets.Keys.Reverse().Skip(1).First();
             proxy.RewriteMemo=(reference,memo)=>{
@@ -57,7 +57,7 @@ public class SolanaTombstoneWireTests
         try{
             var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;
             proxy.Writer=owner.PublicKey.Key;proxy.IncludePacketsInHistory=true;
-            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray());
+            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray(),SolanaReadFixture.From(rpc));
             var source=new SolanaAvatarDetailDto{Id=Guid.NewGuid(),Version=6,XP=997};
             var ciphertext=(string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.NonPublic|BindingFlags.Instance)!
                 .MakeGenericMethod(source.GetType()).Invoke(repository,new object[]{source})!;
@@ -90,7 +90,7 @@ public class SolanaTombstoneWireTests
         try{
             var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;
             proxy.Writer=owner.PublicKey.Key;proxy.IncludePacketsInHistory=true;
-            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray());
+            var repository=new SolanaRepository(owner,rpc,()=>key.ToArray(),SolanaReadFixture.From(rpc));
             var source=new SolanaAvatarDetailDto{Id=Guid.NewGuid(),Version=6,XP=997};
             var signature=await repository.CreateAsync(source);
             Assert.IsTrue(proxy.Sends>2);
@@ -109,7 +109,7 @@ public class SolanaTombstoneWireTests
         var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
         var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;
         proxy.Writer=owner.PublicKey.Key;
-        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
         SolanaBaseDto source=kind switch {"avatar"=>new SolanaAvatarDto {Email="private@example.invalid"},"detail"=>new SolanaAvatarDetailDto {XP=93},_=>new SolanaHolonDto {Name="private holon"}};
         source.Id=Guid.NewGuid();source.Version=6;
         const decimal precise=0.1234567890123456789012345678m;
@@ -166,7 +166,7 @@ public class SolanaTombstoneWireTests
         var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
         try{
             var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;proxy.Writer=owner.PublicKey.Key;
-            var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+            var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
             const decimal precise=0.1234567890123456789012345678m;
             const string literalDate="2026-10-20T10:11:12.1234567+02:00";
             var source=new SolanaHolonDto{Id=Guid.NewGuid(),Version=6,MetaData=new(){["precise"]=precise,["literal_date"]=literalDate}};
@@ -190,7 +190,7 @@ public class SolanaTombstoneWireTests
     {
         var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
         var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;proxy.Writer=owner.PublicKey.Key;
-        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone(),SolanaReadFixture.From(rpc));
         SolanaBaseDto source=kind switch {"avatar"=>new SolanaAvatarDto(),"detail"=>new SolanaAvatarDetailDto(),_=>new SolanaHolonDto()};
         source.Id=Guid.NewGuid();source.Version=6;
         var encoder=typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(source.GetType());

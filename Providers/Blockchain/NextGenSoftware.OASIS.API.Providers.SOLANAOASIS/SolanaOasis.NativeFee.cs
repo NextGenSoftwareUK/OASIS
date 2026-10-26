@@ -16,7 +16,7 @@ public partial class SolanaOASIS : IOASISNativeFeeReceiptProvider
             using var timeout=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(TimeSpan.FromSeconds(20));
             timeout.Token.ThrowIfCancellationRequested();
-            var observed=await Infrastructure.SolanaFinalizedFeeReader.ReadAsync(
+            var observed=await Infrastructure.SolanaTransactionReader.ReadFeeAsync(
                 _rpcEndpoint,originalTransactionId,_nativeFeeReadHandler,timeout.Token);
             RequireNativeBase58(observed.Genesis,32);
             // Preserve raw field presence: SDK numeric defaults cannot distinguish

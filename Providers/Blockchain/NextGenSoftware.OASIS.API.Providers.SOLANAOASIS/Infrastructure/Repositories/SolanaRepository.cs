@@ -1,7 +1,18 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 
-public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<byte[]> storageKeyResolver) : ISolanaRepository
+public partial class SolanaRepository : ISolanaRepository
 {
+    private readonly Account oasisAccount;
+    private readonly IRpcClient rpcClient;
+    private readonly Func<byte[]> storageKeyResolver;
+    private readonly Func<string,Task<TransactionMetaSlotInfo>> transactionReader;
+    public SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<byte[]> storageKeyResolver)
+        : this(oasisAccount,rpcClient,storageKeyResolver, signature => Infrastructure.SolanaTransactionReader.ReadAsync(rpcClient.NodeAddress,signature)) { }
+    internal SolanaRepository(Account owner, IRpcClient client, Func<byte[]> keyResolver, Func<string,Task<TransactionMetaSlotInfo>> readTransaction)
+    {
+        oasisAccount=owner;rpcClient=client;storageKeyResolver=keyResolver;
+        transactionReader=readTransaction ?? throw new ArgumentNullException(nameof(readTransaction));
+    }
     public SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : this(oasisAccount, rpcClient, null) { }
     private const string MemoIdentity = "oasis/solana/private-memo/v1";
     // Finalization requires additional rooted slots after confirmation. Observe up
@@ -108,10 +119,8 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
 
     private async Task<string> ReadStoredRecordAsync(string signature)
     {
-        var queried = await rpcClient.GetTransactionAsync(signature, Commitment.Finalized);
-        if (!queried.WasSuccessful || queried.HttpStatusCode != HttpStatusCode.OK)
-            throw new InvalidOperationException("Solana finalized record lookup failed: " + queried.RawRpcResponse);
-        var memo = ValidateStoredTransaction(queried.Result, signature, oasisAccount.PublicKey.Key);
+        var queried = await transactionReader(signature);
+        var memo = ValidateStoredTransaction(queried, signature, oasisAccount.PublicKey.Key);
         return await DecodeStoredMemoAsync(signature,memo);
     }
 
