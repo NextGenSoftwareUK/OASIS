@@ -39,12 +39,15 @@ export function nativeActionIntent(request){
 }
 function decodedIntent(transaction){
   if(!Array.isArray(transaction.actions)||transaction.actions.length!==1)throw new Error('Exactly one native action required.');
-  const action=transaction.actions[0],keys=Object.keys(action);
-  if(keys.length!==1)throw new Error('Ambiguous native action.');
-  if(keys[0]==='transfer')return nativeActionIntent({kind:'transfer',recipient:transaction.receiverId,depositUnits:action.transfer.deposit.toString()});
+  return nearActionIntent(transaction.receiverId,transaction.actions[0]);
+}
+export function nearActionIntent(receiverId,action){
+  const keys=Object.keys(action).filter(key=>key!=='enum');
+  if((Object.hasOwn(action,'enum')&&action.enum!==keys[0])||keys.length!==1)throw new Error('Ambiguous native action.');
+  if(keys[0]==='transfer')return nativeActionIntent({kind:'transfer',recipient:receiverId,depositUnits:action.transfer.deposit.toString()});
   if(keys[0]!=='functionCall')throw new Error('Unreviewed native action family.');
   const call=action.functionCall;
-  return nativeActionIntent({kind:'functionCall',recipient:transaction.receiverId,depositUnits:call.deposit.toString(),methodName:call.methodName,
+  return nativeActionIntent({kind:'functionCall',recipient:receiverId,depositUnits:call.deposit.toString(),methodName:call.methodName,
     gasUnits:call.gas.toString(),argsBase64:Buffer.from(call.args).toString('base64')});
 }
 export function verifyNearSignedOriginal(preparation,expectedNetwork,expectedIntent){

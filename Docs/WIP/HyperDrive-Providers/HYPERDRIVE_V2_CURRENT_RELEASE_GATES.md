@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR ordinary-interface original persistence — 26 October
+
+Existing prepared-storage interface now covers ordinary native transfer/call/checked-write plumbing using existing shared async owner.380unit/22SDK/1native PASS; native3originals fsynced before send and recovered keylessly, including rejected call. Native checked-record/public NFT-token/forced-loss/hosted Mongo fee and full V2 gates remain OPEN. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). No completion or Dev promotion claimed.
+
 ## 26 October: NEAR prepared native owner and keyless recovery
 
 New explicit ExecutePreparedNativeActionAsync reuses EXISTING UsageExecutionHandle/PreparedSubmissionServer, verifies the admitted immutable action, persists original common signed fields before one exact SDK submission, and validates bound FINAL outcome. Missing admission/wrong signer/unverified sponsored maxima reject before SDK. Known native rejection preserves its original ID; post-submit uncertainty requires reconciliation. SDK20PASS; providerbuild/full370controlledPASS0skip18s includes physical-pipe and failed-ACK/lost-response controls.

@@ -118,6 +118,7 @@ internal sealed partial class NearSdkService
             return ReadCheckedRecordOutcome(response.RootElement);
         }
         catch(NearRecordAdmissionException){throw;}
+        catch(NearMutationUncertainException){throw;}
         catch(NearRecordWriteRejectedException){throw;}
         catch(NearRecordMutationUncertainException){throw;}
         catch(Exception cause){throw new NearRecordMutationUncertainException(null,cause);}
@@ -283,6 +284,7 @@ internal sealed partial class NearSdkService
             return hash;
         }
         catch(NearMutationRejectedException){throw;}
+        catch(NearMutationUncertainException){throw;}
         catch(Exception cause){throw new NearMutationUncertainException(hash,cause);}
     }
 
@@ -335,14 +337,50 @@ internal sealed partial class NearSdkService
             throw new InvalidOperationException("NEAR accountId and privateKey are required for storage writes.");
     }
 
-    private Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
-        =>InvokeCoreAsync(operation,args,cancellationToken,null);
+    private readonly OwnedPreparationScope _preparationScope=new();
+    internal bool HasPreparationOwner=>_preparationScope.HasCurrent;
+    internal Task<T> WithPreparationAsync<T>(Func<Task<T>> operation,Func<string,string,PreparedSubmissionServer> factory,CancellationToken token)
+        =>_preparationScope.RunAsync(operation,factory,token);
+
+    private async Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+    {
+        var scopeToken=_preparationScope.CurrentToken;
+        using var linked=scopeToken.CanBeCanceled&&cancellationToken.CanBeCanceled
+            ?CancellationTokenSource.CreateLinkedTokenSource(scopeToken,cancellationToken):null;
+        cancellationToken=linked?.Token??(scopeToken.CanBeCanceled?scopeToken:cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        using var server=operation is "transfer" or "call" or "putRecordChecked"
+            ?_preparationScope.CreateCurrent(operation,PreparationContext(operation,args)):null;
+        return await InvokeCoreAsync(operation,args,cancellationToken,server).ConfigureAwait(false);
+    }
+
+    private string PreparationContext(string operation,object args)
+    {
+        var input=JsonSerializer.SerializeToElement(args);
+        var sender=input.TryGetProperty("accountId",out var supplied)?supplied.GetString():_accountId;
+        var intent=new Dictionary<string,object>();
+        if(operation=="transfer"){
+            intent["kind"]="transfer";intent["recipient"]=input.GetProperty("receiverId").GetString();
+            intent["depositUnits"]=CanonicalNativeAmount(input.GetProperty("amountYocto").GetString());
+        }else{
+            intent["kind"]="functionCall";
+            intent["recipient"]=operation=="putRecordChecked"?_contractId:input.GetProperty("targetContractId").GetString();
+            intent["depositUnits"]=operation=="putRecordChecked"?"0":CanonicalNativeAmount(input.GetProperty("depositYocto").GetString());
+            intent["methodName"]=operation=="putRecordChecked"?"put_record_checked":input.GetProperty("methodName").GetString();
+            intent["gasUnits"]="100000000000000";
+            intent["argsBase64"]=operation=="putRecordChecked"?Convert.ToBase64String(Encoding.UTF8.GetBytes(input.GetProperty("args").GetRawText()))
+                :input.GetProperty("argsBase64").GetString();
+        }
+        return JsonSerializer.Serialize(new{sender,intent});
+    }
 
     private async Task<JsonDocument> InvokeCoreAsync(string operation,object args,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var submitting=operation=="submitNativePreparation";
-        if(submitting&&preparationServer==null)throw new InvalidOperationException("NEAR original submission requires the existing owned preparation server.");
+        var submitting=preparationServer!=null;
+        using var expectedContext=preparationServer!=null&&operation is "transfer" or "call" or "putRecordChecked"
+            ?JsonDocument.Parse(PreparationContext(operation,args)):null;
+        if(operation=="submitNativePreparation"&&preparationServer==null)throw new InvalidOperationException("NEAR original submission requires the existing owned preparation server.");
         var request = new Dictionary<string, object>
         {
             ["operation"] = operation,
@@ -408,6 +446,14 @@ internal sealed partial class NearSdkService
                 if(preparationServer.PreparedTransactionId==null||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
                     ||!result.GetProperty("persisted").GetBoolean()||!result.GetProperty("submitted").GetBoolean())
                     throw new InvalidDataException("NEAR submission reply differs from the durably acknowledged original.");
+                if(expectedContext!=null){
+                    var original=JsonSerializer.SerializeToElement(new{transactionHash=preparationServer.PreparedTransactionId,
+                        sender=expectedContext.RootElement.GetProperty("sender").GetString(),intent=expectedContext.RootElement.GetProperty("intent")});
+                    _=ValidatePreparedOutcome(original,result.GetProperty("outcome"));
+                    if(operation=="putRecordChecked"&&(result.GetProperty("finalExecutionStatus").GetString()!=result.GetProperty("outcome").GetProperty("final_execution_status").GetString()
+                        ||!JsonElement.DeepEquals(result.GetProperty("nativeStatus"),result.GetProperty("outcome").GetProperty("status"))))
+                        throw new InvalidDataException("Checked-write projection differs from its bound native outcome.");
+                }
             }
             return JsonDocument.Parse(result.GetRawText());
         }

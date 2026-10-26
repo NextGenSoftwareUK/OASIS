@@ -6,7 +6,10 @@ import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {KeyPair,KeyPairSigner,createTransaction,actions,baseEncode,SignedTransaction} from 'near-api-js';
-import {preparationProtocol,nativeActionIntent,prepareNearAction,verifyNearSignedOriginal,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation} from './native-preparation.mjs';
+import {preparationProtocol,nativeActionIntent,prepareNearAction,verifyNearSignedOriginal,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation,nearActionIntent} from './native-preparation.mjs';
+
+import {submitNativeAction} from './native-mutation.mjs';
+import {submitCheckedRecord} from './checked-write.mjs';
 
 const key=KeyPair.fromRandom('ed25519'),signer=KeyPairSigner.fromSecretKey(key.toString());
 const block=new Uint8Array(32).fill(7),checkpoint=baseEncode(block),chain='controlled-network';
@@ -123,4 +126,34 @@ test('one exact original capability makes only one SDK HTTP attempt, including 5
     await assert.rejects(submit());assert.equal(calls,1);
     await assert.rejects(submit(),/consumed/);assert.equal(calls,1);
   } finally {server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});
+
+test('ordinary shared native policy delegates once to owned capability and never signs on failure',async()=>{
+  let nativeSigns=0,ownedCalls=0;
+  const account={signAndSendTransaction:async()=>{nativeSigns++;throw new Error('Direct signing forbidden in owned scope');}};
+  const action=actions.transfer(7n);
+  const expected={kind:'transfer',recipient:'receiver.near',depositUnits:'7'};
+  assert.deepEqual(nearActionIntent('receiver.near',action),expected);
+  const receipt={transaction_outcome:{id:'owned-original'}};
+  assert.equal(await submitNativeAction(account,'receiver.near',action,async(a,r,signedAction)=>{
+    ownedCalls++;assert.equal(a,account);assert.deepEqual(nearActionIntent(r,signedAction),expected);return receipt;
+  }),receipt);
+  await assert.rejects(submitNativeAction(account,'receiver.near',action,async()=>{ownedCalls++;throw new Error('No ACK');}),/No ACK/);
+  assert.equal(ownedCalls,2);assert.equal(nativeSigns,0);
+});
+test('checked record keeps protocol preflight and passes exact action through same owned capability',async()=>{
+  let submits=0,signs=0;
+  const account={signAndSendTransaction:async()=>{signs++;throw new Error('Unowned signing');}};
+  const input={networkId:chain,contractId:'contract.near',args:{key:'holon:fixture',expected_value:null,value:'ciphertext'}};
+  const node={getNetworkId:async()=>chain,callFunction:async()=>1};
+  const createAction=args=>actions.functionCall('put_record_checked',args,100000000000000n,0n);
+  const receipt={transaction_outcome:{id:'retained-original'},final_execution_status:'FINAL',status:{SuccessValue:''}};
+  const result=await submitCheckedRecord(node,()=>account,input,createAction,async(a,r,action)=>{
+    submits++;assert.equal(a,account);const intent=nearActionIntent(r,action);
+    assert.equal(intent.methodName,'put_record_checked');assert.equal(intent.argsBase64,Buffer.from(JSON.stringify(input.args)).toString('base64'));return receipt;
+  });
+  assert.equal(result.transactionHash,'retained-original');assert.equal(submits,1);assert.equal(signs,0);
+  node.callFunction=async()=>2;
+  await assert.rejects(submitCheckedRecord(node,()=>account,input,createAction,async()=>{submits++;}),/protocol1/);
+  assert.equal(submits,1);assert.equal(signs,0);
 });
