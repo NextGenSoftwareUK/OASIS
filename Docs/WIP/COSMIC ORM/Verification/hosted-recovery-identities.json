@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-26",
+  "scope": "Hosted recovery boundary unit and configuration gates; not signed native HTTP certification",
+  "web4Passed": 305,
+  "web4Skipped": 1,
+  "usagePassed": 408,
+  "usageSkipped": 0,
+  "pairs": [
+    {
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "05F39ED12929F89F3E330E68FDBEF8B852173DB0D29ACF6B5CA42579EACC4FB1"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "sha256": "A74FA7A2DDF7113D8CDDFF45B83BF59801872B376E6C746282A46EC5AAB33F1B"
+    }
+  ],
+  "sources": [
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Controllers\\DataController.Recovery.cs",
+      "bytes": 1365,
+      "sha256": "9BE12338F037FEFE098F8D3BDBA2A0904E726AE8C3CD178490636F24ED2001BB"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Helpers\\HostedCosmicRecoveryEndpoint.cs",
+      "bytes": 4692,
+      "sha256": "E99F0024159FE42C8D6159248150ED9A0D6DBA2C4B72ACEA626BF807A76C9242"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cosmic\\ICosmicOperationRecoveryPolicy.cs",
+      "bytes": 2725,
+      "sha256": "102B8527CE03B6E76D696A9DC00A30C3CC77F37FEED14DB6533B792E5944B60A"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cosmic\\CosmicRecoveryReadiness.cs",
+      "bytes": 1285,
+      "sha256": "DB4B40F1566E5CCB2A1062F5DC43B64D1FF64DBDB6827EEC0A88411536B75457"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Startup.cs",
+      "bytes": 55961,
+      "sha256": "C3B37F4A7A0603CA9B26C046124390B03C92903168133C54E7B1F0C858D42F58"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\HostedCosmicRecoveryTests.cs",
+      "bytes": 12715,
+      "sha256": "EEF1E3CE2335A5647452C9EE9A0CC3C0446D6883934C26E0AF259E886D2B3FCA"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Services\\Subscriptions\\ConfiguredStorageAdmission.cs",
+      "bytes": 13197,
+      "sha256": "8617336DB3EE79FCD666ED8A48A821390D306D5893748DDA2CEBA5A2CCA3EE3F"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Services\\Subscriptions\\StorageAttemptTariff.cs",
+      "bytes": 4437,
+      "sha256": "725B527CBADEB5EB8D91EBF7556C9CB3B6D78B5248B7C8BFCB8E724C4BFD7B24"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Tests\\SubscriptionUsage\\ConfiguredStorageAdmissionTests.cs",
+      "bytes": 18692,
+      "sha256": "C3399588C9260C83D89B32FE0F1F90CF30D430556CFC3E433E618FC200649436"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Scripts\\TestHosts\\Run-ReusableUsageRecoveryTests.ps1",
+      "bytes": 73516,
+      "sha256": "D47485408B6D6FDFA1DFDB86415C78FB78DFA0BF4951AF824DD17309FF08A923"
+    }
+  ]
+}

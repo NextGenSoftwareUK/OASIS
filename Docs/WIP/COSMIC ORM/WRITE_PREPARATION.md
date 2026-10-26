@@ -1,5 +1,7 @@
 # Durable conditional-write preparation
 
+The [authenticated hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) is now implemented with explicit application authorization, priced exact-route admission and startup checks. Its current acceptance is WEB4 unit/configuration tests; signed native HTTP certification and automatic hosted write policy enrollment remain open. Earlier native SDK evidence below does not certify that new endpoint.
+
 ## Request-owned protection configuration
 
 `HolonManager.CreateRequestContext` now retains the metadata and preparation protection policies observed when the context is created. Previously it constructed a new manager with neither policy, allowing scoped writes to silently lose configured protection. The new manager keeps the immutable policy references, including authorized resolver scope and query-visible key configuration; no key material is copied into request data. Resolver lifetime remains application-owned.
