@@ -26,6 +26,9 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "IsSetIsTruncated")]
     private static extern bool HasNativeCompletionFlag(ListObjectsV2Response response);
 
+    [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "IsSetKeyCount")]
+    private static extern bool HasNativeKeyCount(ListObjectsV2Response response);
+
     public S3ObjectBackend(IAmazonS3 client, string bucket, string objectPrefix = "")
     {
         ArgumentNullException.ThrowIfNull(client);
@@ -157,7 +160,12 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
                 throw new InvalidDataException("S3 listing omitted its native completion flag.");
             if (!response.IsTruncated && !string.IsNullOrEmpty(response.NextContinuationToken))
                 throw new InvalidDataException("S3 listing claims completion but also supplies a next continuation token.");
-            foreach (var item in response.S3Objects ?? throw new InvalidDataException("S3 listing omitted its object collection."))
+            var objects=response.S3Objects ?? throw new InvalidDataException("S3 listing omitted its object collection.");
+            if(response.CommonPrefixes is { Count: > 0 })
+                throw new InvalidDataException("S3 delimiter-free listing cannot publish grouped prefixes as a complete object collection.");
+            if(HasNativeKeyCount(response) && response.KeyCount!=objects.Count)
+                throw new InvalidDataException("S3 listing's declared key count does not match its returned object collection.");
+            foreach (var item in objects)
             {
                 if (string.IsNullOrWhiteSpace(item?.Key) || !item.Key.StartsWith(physical, StringComparison.Ordinal) || !seen.Add(item.Key))
                     throw new InvalidDataException("S3 listing contains an invalid, duplicate or out-of-prefix key.");
