@@ -1965,3 +1965,27 @@ proof does not establish the joined deployed startup/JWT/DataController/native
 store/admission/settlement flow. That joined gate, explicit ownership-read/write
 pricing, remaining request-option/cold-start mode certification, gRPC saves and
 GraphQL actor binding remain open before recipient/tenant query enrollment.
+
+
+## Engine mode and option validation — 26 October 2026
+
+Fourteen actual HTTP regressions reproduced unknown-mode routing and invalid
+configuration responses. Single/bulk saves now require explicit supported mode
+before configuration; absent/blank/unsupported mode returns
+COSMIC_WRITE_ENGINE_MODE_REQUIRED/503 without provider calls. Known Legacy mode
+keeps the existing legacy path. V2 configuration errors use the existing grammar
+owner and return COSMIC_WRITE_CONFIGURATION_INVALID/400 with IsError=true.
+Invalid options cannot apply requested global settings.
+
+Final normal WEB4 unit gate214/214 (including23actual MVC HTTP controls) and
+full Core3,302/3,302 pass, zero skips within those gates; shipping WEB4 builds.
+The WEB4 gate excludes its documented operator Mongo soak/external Stripe
+integration cases. Shipping/HTTP-consumer DLL20F4E5F1 matches. Evidence:
+`TestResults/CosmicCqlDemo/mode-options-evidence.json`, mode-options red/full logs
+and current CoreCurrent mode-options TRXs. No native-store run is claimed for
+this boundary-only change; the preceding three-provider proof remains scoped to
+its tested source cohort. No install/download/restore/new environment was needed.
+
+Next: joined shipping DataController HTTP/native/admission/outbox verification
+and explicit read/write pricing, then remaining gRPC/GraphQL authority migration
+before tenant/recipient query enrollment. Full ORM/CQL objective remains open.

@@ -42,7 +42,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      {
          var callerId = Avatar?.Id ?? Guid.Empty;
          var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
-         var isV2Write = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+         var engineMode = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode;
+         var modeCheck = HolonWriteEndpoint.ValidateEngineMode<IHolon>(engineMode);
+         if (modeCheck.IsError)
+         {
+             Response.StatusCode = (int)HolonWriteEndpoint.Status(modeCheck);
+             return HttpResponseHelper.FormatResponse(modeCheck, HolonWriteEndpoint.Status(modeCheck), request.ShowDetailedSettings);
+         }
+         var isV2Write = engineMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
          if (isV2Write)
          {
              var intent = HolonWriteEndpoint.ValidateIntent<IHolon>(request, callerId,
@@ -56,6 +63,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
              }
          }
          OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
+
+         if (isV2Write && (configResult.IsError || configResult.Response?.Result?.IsError == true))
+         {
+             var invalidConfig = HolonWriteEndpoint.ConfigurationError<IHolon>(configResult.Response?.Result?.Message);
+             Response.StatusCode = (int)HolonWriteEndpoint.Status(invalidConfig);
+             return HttpResponseHelper.FormatResponse(invalidConfig, HolonWriteEndpoint.Status(invalidConfig), request.ShowDetailedSettings);
+         }
 
          if (configResult.IsError && configResult.Response != null)
              return configResult.Response;

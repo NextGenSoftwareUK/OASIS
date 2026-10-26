@@ -67,7 +67,8 @@ Error-only bulk responses copy result flags without invoking a payload mapper:
 | Missing authenticated actor | 401 |
 | Foreign selected record | 403 |
 | Stale provider revision | 409 |
-| Invalid operation intent or missing required revision | 400 |
+| Invalid operation/configuration intent or missing required revision | 400 |
+| Unknown or unavailable engine mode | 503 |
 | Inconclusive authority/admission/provider failure | 503 |
 
 The `OASISResult` error code remains in the envelope. A 503 with an unknown
@@ -76,6 +77,18 @@ settings are reset in a finally block on ownership denial, lookup exceptions
 and failed writes, subject to the existing explicit `SetGlobally` contract.
 
 ## Admission and configuration ownership
+
+Save routing requires an explicit supported engine mode before configuration.
+Missing DNA, a blank mode or an unsupported mode returns
+`COSMIC_WRITE_ENGINE_MODE_REQUIRED`/503 with no provider calls. The boundary
+never interprets an unknown mode as permission to run an unconditional write.
+Explicit `Legacy` mode retains its existing execution path. Server startup must
+load its engine configuration before this save boundary can execute.
+
+V2 configuration validation continues to use the existing configuration owner.
+Invalid replication/failover/load-balance modes or provider-list input returns
+`COSMIC_WRITE_CONFIGURATION_INVALID`/400 with `IsError=true`; it cannot be
+reported as successful HTTP200 merely because validation returned an envelope.
 
 V2 save actions validate actor, input shape and operation intent before engine
 configuration or manager acquisition. Invalid requests therefore cannot apply
@@ -126,9 +139,10 @@ Before declaring hosted writes complete:
   selected-route admission/outbox pipeline, including valid acknowledgements,
   child selection, unknown outcomes and cleanup. Controlled MVC plus separate
   native-service proof does not establish the complete joined flow.
-- Certify cold-start engine-mode selection and the remaining request-option
-  validation/status behavior before treating the entire public save surface as
-  complete. Existing controlled HTTP hosts supply explicit V2 DNA.
+- Expand the option/alias and startup certification matrix as hosted native
+  integration grows. Controlled HTTP tests now cover absent/blank/unknown mode
+  and invalid mode/provider-list options, alongside the existing supported-V2
+  request controls; they do not prove the complete deployed startup chain.
 - Keep canonical and alias enrollment explicit; guards prevent missing-policy
   execution but do not invent deployment route registrations or tariff budgets.
 - Admit and price actual ownership reads and conditional writes using explicit
@@ -136,3 +150,12 @@ Before declaring hosted writes complete:
   invented zero, query receipt or native invoice is added by this boundary.
 - Finish gRPC save migration and authenticated GraphQL actor binding before
   enrolling authoritative recipient/tenant CQL access.
+
+
+Latest mode/options gate: all14new HTTP regressions failed before the fix.
+The final normal WEB4 gate passes214/214 including23actual MVC cases; Core
+passes3,302/3,302 and shipping WEB4 builds. The two explicit external/operator
+integration exclusions above remain unchanged. DLL20F4E5F1 matches the HTTP
+consumer. See `TestResults/CosmicCqlDemo/mode-options-evidence.json` for identities,
+filters and counts. This new gate covers HTTP mode/configuration ownership and
+does not claim a new native-provider/billing run.
