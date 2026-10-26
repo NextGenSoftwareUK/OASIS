@@ -36,10 +36,10 @@ foreach ($path in $cleanupPreserve) {
 Assert-Cleanup (!(Test-CleanupOverlap 'C:\Source\OASIS\Project\bin' 'C:\Source\OASIS\Project\bin-other')) 'Sibling prefix must not count as ancestry.'
 Assert-Cleanup (Test-CleanupOverlap 'C:\Source\OASIS\Project\bin\Debug' 'C:\Source\OASIS\Project\bin') 'Nested path must count as ancestry.'
 $priorSource = (Get-FileHash -LiteralPath $testPath).Hash
-$priorLedger = (Get-FileHash -LiteralPath $cleanupLedger).Hash
+$priorLedger = if (Test-Path -LiteralPath $cleanupLedger) { (Get-FileHash -LiteralPath $cleanupLedger).Hash } else { $null }
 Remove-Safely $testPath 'Read-only dry-run self-test; do not delete source'
 Assert-Cleanup ((Get-FileHash -LiteralPath $testPath).Hash -eq $priorSource) 'Dry run modified source.'
-Assert-Cleanup ((Get-FileHash -LiteralPath $cleanupLedger).Hash -eq $priorLedger) 'Dry run wrote cleanup ledger.'
+Assert-Cleanup ($(if (Test-Path -LiteralPath $cleanupLedger) { (Get-FileHash -LiteralPath $cleanupLedger).Hash } else { $null }) -eq $priorLedger) 'Dry run wrote cleanup ledger.'
 $sample = Join-Path $repoRoot 'Providers\Cloud\NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS'
 foreach ($output in @(Find-GeneratedOutput $sample)) {
     Assert-Cleanup ((Split-Path -Leaf $output) -in @('bin','obj')) 'Discovery selected a non-build directory.'
