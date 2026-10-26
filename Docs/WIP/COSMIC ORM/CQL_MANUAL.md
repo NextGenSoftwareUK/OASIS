@@ -2013,3 +2013,13 @@ The saveHolon mutation now accepts a stable operationId and explicit providerTyp
 ## gRPC conditional saves (V2)
 
 DataService.SaveHolon now accepts operation_id, expected_revisions and a required holon_json carrying the same recursive contract as REST. It uses the request actor and shared owned conditional-save boundary. Responses carry error_code, is_saved, committed_delta_json and result_metadata. See the [gRPC envelope and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#grpc-conditional-write-envelope-v2) for field numbers, child selection, precision, compatibility and current signed/admission verification limits.
+
+### Signed transport verification scope
+
+The focused save resolver/service now has signed native acceptance on MongoDB,
+SQLite and Neo4j with configured admission, physical receipts and durable
+settlement. The passing gate includes 24 GraphQL/gRPC requests; GraphQL is still a
+conditional create API, while the gRPC recursive envelope also supports selected
+existing graphs. Retain original revision tokens and operation IDs. Full deployed
+GraphQL schema/startup, other gRPC methods and delete boundaries remain separate
+open work. See [retained transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md#signed-save-gate--passed).

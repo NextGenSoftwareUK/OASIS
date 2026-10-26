@@ -2,14 +2,18 @@
 
 ## Current checkpoint — 26 October 2026
 
-Core remains published at `289fa01`; the latest transport follow-up is
-`4a3d8b3ce`. Full WEB4 250 tests and shipping builds pass. Signed MongoDB
+Core is published at `361f3d6`; the latest transport follow-up is
+`b70ed648c`. Full Core 3,372 / WEB4 250 / usage-protocol 387 tests and shipping builds pass. Signed MongoDB
 GraphQL create/conflict/missing-intent checks passed; the first native gRPC graph
 request exposed string-enum decoding rejection before any provider attempt.
 That failure was reproduced in a unit test and fixed at the serializer owner.
-All 382 original operations and owned fixture contents were verified before
-exact cleanup, without replay. Fresh signed three-provider acceptance remains
-pending the active shared build lease. See
+That correction exposed unflushed response-writer bytes after a successful gRPC
+commit. The shared usage buffer now completes its response feature before
+inspection/publication. Both failed fixtures' 382 original operations and owned
+contents were verified before exact cleanup, without replay. Fresh signed
+three-provider acceptance passes: 24 GraphQL/gRPC requests, 402 settled operations
+and 436 physical attempts including the existing CQL/REST checks. Sources stayed
+frozen, seven producer/consumer pairs matched, and owned fixtures were removed. See
 [transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md).
 
 After save acceptance, transport deletion is a priority before recipient/tenant

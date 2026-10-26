@@ -1630,3 +1630,17 @@ service tariffs in the existing prepared ledger. Query tariffs do not price
 writes; configured save routes require bounded complete profiles. See
 [storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
 price-versus-native-invoice distinction and remaining joined settlement proof.
+
+## Signed save transport/response ownership — 26 October 2026
+
+GraphQL creates and recursive gRPC saves reuse the same request-owned manager,
+conditional owned-save planner, generic holon serializer and prepared usage
+execution as REST. gRPC marks domain failures explicitly because HTTP200 and
+`grpc-status: 0` do not establish application success. The usage buffer completes
+its response feature before envelope inspection and durable publication so unary
+BodyWriter bytes cannot disappear after a committed write.
+
+The focused signed three-provider gate passes24transportrequests, alongside the
+existing CQL/REST suite:402settledoperations/436attempts. Seven producer/native
+copies and three refreshed unit-consumer copies match; source freeze holds.
+This does not certify full deployed GraphQL startup or other gRPC/delete paths.
