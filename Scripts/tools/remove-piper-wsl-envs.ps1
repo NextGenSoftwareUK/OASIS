@@ -1,8 +1,8 @@
 <#
 Remove the piper-ml conda environments from WSL Ubuntu to reclaim disk space.
 
-Removes: piper-art (~11 GB), slp (~9.3 GB), mfa (~1.7 GB).
-Optional: -IncludeModels also removes ~/art-ml-models (~2.6 GB of downloaded models).
+Removes: piper-art (~11 GB), slp (~9.3 GB), mfa (~1.7 GB) and ~/art-ml-models
+(~2.6 GB of downloaded models; keep them with -IncludeModels:$false).
 
 All of it is regenerable from the piper-ml repository:
   mamba env create -f envs/piper-art_env.yml
@@ -15,12 +15,12 @@ to compact the WSL disk and return it to Windows.
 Usage:
   .\remove-piper-wsl-envs.ps1 -DryRun
   .\remove-piper-wsl-envs.ps1
-  .\remove-piper-wsl-envs.ps1 -IncludeModels
+  .\remove-piper-wsl-envs.ps1 -IncludeModels:$false
 #>
 
 param(
     [switch]$DryRun,
-    [switch]$IncludeModels,
+    [switch]$IncludeModels = $true,
     [string[]]$Environment = @('piper-art', 'slp', 'mfa'),
     [string]$WslDistribution = 'Ubuntu'
 )
