@@ -19,16 +19,19 @@ public class PolkadotTokenEscrowNativeTests
     private const string Sender="0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c";
     private const string Units="18446744073709551620",Supply="1208925819614629174706176";
     private static readonly Guid Avatar=Guid.Parse("da06227d-87d7-4c71-a6ef-c88ded5e7201");
-    private static readonly Guid LockId=Guid.Parse("e7b34731-98cc-497d-9f11-5d5b8dd87fb1");
 
     [TestMethod][TestCategory("LocalNative")]
     public async Task PublicTokenCustodyUsesExactDecimalAndRecoversOriginalSignedFields()
     {
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
+        var cohort=Environment.GetEnvironmentVariable("OASIS_POLKADOT_TOKEN_PUBLIC_COHORT")??"1";
+        Assert.IsTrue(cohort is "1" or "2");
+        var lockId=Guid.Parse(cohort=="1"?"e7b34731-98cc-497d-9f11-5d5b8dd87fb1":"e7b34731-98cc-497d-9f11-5d5b8dd87fb2");
+        var prefix=cohort=="1"?"psp22-public":"psp22-public-postfix";
         var sdk=Path.GetDirectoryName(Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE"))!;
         var folder=Path.GetFullPath(Path.Combine(sdk,"../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
-        var pending=Path.Combine(folder,"psp22-public-pending.jsonl");
-        var completed=Path.Combine(folder,"psp22-public.completed.json");
+        var pending=Path.Combine(folder,prefix+"-pending.jsonl");
+        var completed=Path.Combine(folder,prefix+".completed.json");
         using var tokenFile=JsonDocument.Parse(File.ReadAllText(Path.Combine(folder,"psp22-test-token-deployment.completed.json")));
         using var escrowFile=JsonDocument.Parse(File.ReadAllText(Path.Combine(folder,"psp22-escrow-deployment.completed.json")));
         var tokenAddress=tokenFile.RootElement.GetProperty("address").GetString()!;
@@ -58,7 +61,7 @@ public class PolkadotTokenEscrowNativeTests
             Assert.AreEqual(Units,receipt.GetProperty("amountUnits").GetString());
         }
         if(!recovering||releaseOnly) {
-            Assert.IsTrue(File.Exists(Path.Combine(folder,"psp22-public-approval.completed.json")),"Separate durable approval original required.");
+            Assert.IsTrue(File.Exists(Path.Combine(folder,prefix+"-approval.completed.json")),"Separate durable approval original required.");
             var before=await State(sdk);AssertState(before,releaseOnly?0:-1);observations.Add(before);
             for(var step=releaseOnly?1:0;step<2;step++) {
                 var record=new AttemptRecord{Action=step==0?"lock":"unlock",From=Sender,To=escrow};
@@ -70,10 +73,10 @@ public class PolkadotTokenEscrowNativeTests
                         store,new Web4UsageLedgerOptions(),null,null});
                 using var timeout=new CancellationTokenSource(TimeSpan.FromMinutes(3));
                 var result=await provider.ExecutePreparedNativeOperationAsync(()=>step==0
-                    ?provider.LockTokenAsync(new LockWeb3TokenRequest{LockedByAvatarId=Avatar,LockId=LockId,TokenAddress=tokenAddress,
+                    ?provider.LockTokenAsync(new LockWeb3TokenRequest{LockedByAvatarId=Avatar,LockId=lockId,TokenAddress=tokenAddress,
                         Amount=18_446_744.073709551620m,EscrowContractAddress=escrow})
-                    :provider.UnlockTokenAsync(new UnlockWeb3TokenRequest{UnlockedByAvatarId=Avatar,LockId=LockId,TokenAddress=tokenAddress,
-                        EscrowContractAddress=escrow}),execution,$"public-token-v1-{step}",Sender,timeout.Token);
+                    :provider.UnlockTokenAsync(new UnlockWeb3TokenRequest{UnlockedByAvatarId=Avatar,LockId=lockId,TokenAddress=tokenAddress,
+                        EscrowContractAddress=escrow}),execution,$"public-token-{cohort}-{step}",Sender,timeout.Token);
                 Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);
                 Assert.IsTrue(result.IsSaved);Assert.AreEqual(1,owner.Calls);records.Add(record);
                 var state=await State(sdk);AssertState(state,step);observations.Add(state);

@@ -29,6 +29,8 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-lifecycle-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-approval-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-postfix-approval-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-postfix-pending.jsonl'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -64,6 +66,10 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublic=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicReleaseVerifiedLock=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicApproval=$true; TokenPublicCohort='2' } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicApprovalRecover=$true; TokenPublicCohort='2' } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublic=$true; TokenPublicCohort='2' } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicRecover=$true; TokenPublicCohort='2' } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
@@ -86,8 +92,9 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('Psp22TokenReconcile') -and $path.EndsWith('psp22-test-token-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('TokenEscrowV1Reconcile') -and $path.EndsWith('psp22-escrow-v1-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('TokenEscrowLifecycleRecover') -and $path.EndsWith('psp22-escrow-lifecycle-pending.jsonl')) { continue }
-        if ($arguments.ContainsKey('TokenPublicApprovalRecover') -and $path.EndsWith('psp22-public-approval-pending.jsonl')) { continue }
-        if (($arguments.ContainsKey('TokenPublicRecover') -or $arguments.ContainsKey('TokenPublicReleaseVerifiedLock')) -and $path.EndsWith('psp22-public-pending.jsonl')) { continue }
+        $tokenPrefix=if($arguments.TokenPublicCohort -eq '2'){'psp22-public-postfix'}else{'psp22-public'}
+        if ($arguments.ContainsKey('TokenPublicApprovalRecover') -and $path.EndsWith($tokenPrefix+'-approval-pending.jsonl')) { continue }
+        if (($arguments.ContainsKey('TokenPublicRecover') -or $arguments.ContainsKey('TokenPublicReleaseVerifiedLock')) -and $path.EndsWith($tokenPrefix+'-pending.jsonl')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)
