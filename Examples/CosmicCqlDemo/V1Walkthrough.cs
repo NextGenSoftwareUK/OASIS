@@ -873,6 +873,130 @@ public static class V1Walkthrough
                 resultOrder = new[] { new { alias = "Total", descending = true } },
                 resultTake = 1
             }, grouped: true, decimalNumericGroups: true);
+            // EXAMPLE 41 — Double Sum retains its input domain.
+            // Two visible ordered readings participate; round once, ties to even.
+            // Canonical response strings keep JavaScript from changing precision.
+            await ShowAsync("41. Double Sum / one final binary round", new
+            {
+                provider,
+                operation = "Sum",
+                selection = new
+                {
+                    metadataPath = new[] { "reading" },
+                    valueType = "Double",
+                    nullable = false
+                },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Double", expected: "2.000000000000001");
+
+            // EXAMPLE 42 — Double Average retains its input domain.
+            // Two visible ordered readings participate; round once, ties to even.
+            // Canonical response strings keep JavaScript from changing precision.
+            await ShowAsync("42. Double Average / one final binary round", new
+            {
+                provider,
+                operation = "Average",
+                selection = new
+                {
+                    metadataPath = new[] { "reading" },
+                    valueType = "Double",
+                    nullable = true
+                },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Double", expected: "1.0000000000000004");
+
+            // EXAMPLE 43 — source paging precedes aggregation; result paging
+            // follows filters/order over the rounded, published aggregate values.
+            await ShowAsync("43. Double groups / rounded totals and means", new
+            {
+                provider,
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2,
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new[]
+                {
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "reading" }, valueType = "Double", nullable = false } },
+                    new { alias = "Mean", operation = "Average",
+                        selection = new { metadataPath = new[] { "reading" }, valueType = "Double", nullable = true } }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Total", @operator = "Equal", value = "2.000000000000001" },
+                    new { alias = "Mean", @operator = "Equal", value = "1.0000000000000004" }
+                },
+                resultOrder = new[] { new { alias = "Mean", descending = true } },
+                resultTake = 1
+            }, grouped: true, floatingNumericType: "Double",
+                floatingTotal: "2.000000000000001", floatingMean: "1.0000000000000004");
+
+            // EXAMPLE 44 — Single Sum retains its input domain.
+            // Two visible ordered readings participate; round once, ties to even.
+            // Canonical response strings keep JavaScript from changing precision.
+            await ShowAsync("44. Single Sum / one final binary round", new
+            {
+                provider,
+                operation = "Sum",
+                selection = new
+                {
+                    metadataPath = new[] { "singleReading" },
+                    valueType = "Single",
+                    nullable = false
+                },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Single", expected: "2.0000005");
+
+            // EXAMPLE 45 — Single Average retains its input domain.
+            // Two visible ordered readings participate; round once, ties to even.
+            // Canonical response strings keep JavaScript from changing precision.
+            await ShowAsync("45. Single Average / one final binary round", new
+            {
+                provider,
+                operation = "Average",
+                selection = new
+                {
+                    metadataPath = new[] { "singleReading" },
+                    valueType = "Single",
+                    nullable = true
+                },
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2
+            }, scalar: true, valueType: "Single", expected: "1.0000002");
+
+            // EXAMPLE 46 — source paging precedes aggregation; result paging
+            // follows filters/order over the rounded, published aggregate values.
+            await ShowAsync("46. Single groups / rounded totals and means", new
+            {
+                provider,
+                filters = unsignedFilters,
+                orderBy = "Name",
+                take = 2,
+                keys = new[] { new { alias = "stock", metadataPath = new[] { "stock" }, valueType = "Int64" } },
+                columns = new[]
+                {
+                    new { alias = "Total", operation = "Sum",
+                        selection = new { metadataPath = new[] { "singleReading" }, valueType = "Single", nullable = false } },
+                    new { alias = "Mean", operation = "Average",
+                        selection = new { metadataPath = new[] { "singleReading" }, valueType = "Single", nullable = true } }
+                },
+                resultFilters = new[]
+                {
+                    new { alias = "Total", @operator = "Equal", value = "2.0000005" },
+                    new { alias = "Mean", @operator = "Equal", value = "1.0000002" }
+                },
+                resultOrder = new[] { new { alias = "Mean", descending = true } },
+                resultTake = 1
+            }, grouped: true, floatingNumericType: "Single",
+                floatingTotal: "2.0000005", floatingMean: "1.0000002");
+
         }
 
         return completedRequests;
@@ -893,6 +1017,9 @@ public static class V1Walkthrough
             bool unsignedGroups = false,
             bool unsignedNumericGroups = false,
             bool decimalNumericGroups = false,
+            string? floatingNumericType = null,
+            string? floatingTotal = null,
+            string? floatingMean = null,
             bool decimalProjection = false,
             bool decimalGroups = false,
             bool doubleProjection = false,
@@ -985,7 +1112,7 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " returned the wrong selected shape or exact value.");
             }
 
-            if (grouped && !decimalNumericGroups && !unsignedNumericGroups && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
+            if (grouped && floatingNumericType == null && !decimalNumericGroups && !unsignedNumericGroups && !orderedGroups && !dateGroups && !unsignedGroups && !decimalGroups && !doubleGroups && !singleGroups)
             {
                 var payload = result.RootElement.GetProperty("result");
                 var row = payload.GetProperty("rows").EnumerateArray().Single();
@@ -1035,6 +1162,18 @@ public static class V1Walkthrough
                     throw new InvalidOperationException(title + " lost exact UTC date values, shape or visibility.");
             }
 
+
+            if (floatingNumericType != null)
+            {
+                var payload = result.RootElement.GetProperty("result");
+                var row = payload.GetProperty("rows").EnumerateArray().Single();
+
+                if (payload.GetProperty("version").GetString() != "cql-grouped-v1"
+                    || payload.GetProperty("columns")[0].GetProperty("valueType").GetString() != floatingNumericType
+                    || payload.GetProperty("columns")[1].GetProperty("valueType").GetString() != floatingNumericType
+                    || row[0].GetString() != floatingTotal || row[1].GetString() != floatingMean)
+                    throw new InvalidOperationException(title + " lost floating types or rounded aggregate values.");
+            }
 
             if (decimalNumericGroups)
             {
