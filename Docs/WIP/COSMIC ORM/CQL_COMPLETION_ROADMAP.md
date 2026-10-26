@@ -2174,3 +2174,5 @@ federation-native-source.json.gz, federation-native-binaries.json and
 federation-native-result.json. The reusable runner requires all fourteen scenarios
 and all three providers before it accepts success. No new environment/download
 was used; fixture teardown and cleanup are recorded in the resource ledger.
+
+26 October hosted federation prerequisite: generic complete per-target policy binding and admission/visibility controls implemented; Core dual-target/all3,607 tests pass. No federation HTTP route or signed multi-provider policy/billing acceptance claimed. These remain the next gate before cursor/distributed-join work. See CQL_FEDERATION_CONTRACT.md.

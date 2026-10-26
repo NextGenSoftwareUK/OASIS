@@ -249,3 +249,28 @@ federation-native-source.json.gz, federation-native-binaries.json and
 federation-native-result.json. The reusable runner requires all fourteen scenarios
 and all three providers before it accepts success. No new environment/download
 was used; fixture teardown and cleanup are recorded in the resource ledger.
+
+## Target-specific authorization — 26 October 2026
+
+The generic planner now accepts a complete bounded list of
+`CosmicFederationReadPolicy(provider, access)` bindings. Each concrete resolved
+target must appear exactly once, with a matching authoritative provider (or an
+explicit owner/public policy) and the same actor across the entire plan. Missing,
+extra, duplicate, null, foreign-authority or mixed-actor bindings reject the whole
+plan. The input list is snapshotted; changing it cannot change an admitted plan.
+
+The planner binds each mandatory policy before that target's native source
+window, preserving the source Skip/Take values. Existing source access cannot be
+replaced or weakened. Ordinary WithReadAccess behavior is unchanged. Input
+capture checks every target actor against inherited usage admission before any
+physical admission/read; output is still checked against that target's catalogue.
+A private row allowed by one provider's catalogue cannot borrow that grant on
+another provider. This is application-supplied trusted authorization, not client
+metadata/tenant labels or automatic grant discovery.
+
+Dual-target Core build and all3,607 Core tests pass, including12new snapshot,
+policy coverage, binding/window, rebinding, actor-admission and private-row controls.
+Evidence: Verification/federation-access-core.trx.gz and
+federation-access-identities.json. Earlier14native SDK federation scenarios
+predate this extension. Signed hosted multi-provider authorization, federation
+HTTP/billing, cursors and distributed joins remain required acceptance work.
