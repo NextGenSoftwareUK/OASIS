@@ -205,8 +205,31 @@ mod oasis {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use scale::Encode;
         fn key(n: u8) -> Vec<u8> {
             ink::prelude::vec![n]
+        }
+
+        #[ink::test]
+        fn scale_vectors_match_public_sdk_codec() {
+            let mut put = ink::prelude::vec![4, 0xab, 4, 0xcd, 2, 2, 1];
+            put.extend_from_slice(&[0; 6]);
+            put.extend_from_slice(&[0; 32]);
+            assert_eq!(
+                (key(0xab), key(0xcd), Expected::Revision(258), [0u8; 32]).encode(),
+                put
+            );
+            let output: ink::MessageResult<Result<Option<Cell>, Error>> = Ok(Ok(Some(Cell {
+                value: key(0xab),
+                revision: 258,
+            })));
+            assert_eq!(
+                output.encode(),
+                ink::prelude::vec![0, 0, 1, 4, 0xab, 2, 1, 0, 0, 0, 0, 0, 0]
+            );
+            let language: ink::MessageResult<Result<u64, Error>> =
+                Err(ink::LangError::CouldNotReadInput);
+            assert_eq!(language.encode(), ink::prelude::vec![1, 1]);
         }
 
         #[ink::test]
