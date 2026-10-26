@@ -464,9 +464,9 @@ try{
         if($report.LastWriteTimeUtc -lt $usageStarted){throw 'Usage recovery report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
-        # Both labels execute this same project/filter: 387 prior cases plus
-        # three HTTP isolation and ten exact operation-tariff configuration controls.
-        $expectedUsage=400
+        # Both labels execute this same project/filter: 400 prior cases plus
+        # two exact-price read-only conditional recovery controls.
+        $expectedUsage=402
         if([int]$counts.total -ne $expectedUsage -or [int]$counts.passed -ne $expectedUsage -or [int]$counts.notExecuted -ne 0){throw "Expected$expectedUsage passing usage recovery cases without skips."}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
