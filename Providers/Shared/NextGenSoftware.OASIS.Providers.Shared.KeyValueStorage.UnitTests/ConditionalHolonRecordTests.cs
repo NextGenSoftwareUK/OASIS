@@ -13,6 +13,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public sealed class ConditionalHolonRecordTests
 {
+    [DataTestMethod][DynamicData(nameof(AvatarSelectorRaces),DynamicDataSourceType.Method)]
+    public async Task DetailAliasDeletionMustRetainItsOriginalProfileSelection(bool sync,bool email,bool soft,bool rename)
+    {
+        var id=Guid.NewGuid();var key=$"oasis/avatar/{id:N}";var detailKey=$"oasis/avatardetail/{id:N}";
+        var store=new Store();var original=new Avatar{Id=id,Username="owned",Email="owned@example.invalid",IsActive=true,FirstName="original",Version=1};
+        store.Seed(key,OasisJson.Serialize<IAvatar>(original));store.Seed(detailKey,OasisJson.Serialize<IAvatarDetail>(new AvatarDetail{Id=id,IsActive=true,XP=123,Version=1}));
+        var selector=email?original.Email:original.Username;
+        var encoded=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(selector)).TrimEnd('=').Replace('+','-').Replace('/','_');
+        store.Seed($"oasis/avatar-{(email?"email":"username")}/{encoded}",id.ToString());
+        var winner=OasisJson.Serialize<IAvatar>(new Avatar{Id=id,Username=rename?"changed":original.Username,Email=rename?"changed@example.invalid":original.Email,FirstName="independent winner",IsActive=true,Version=2});
+        var originalDetail=store.Rows[detailKey];
+        store.PointRead=read=>{var selected=store.Rows.TryGetValue(read,out var row)?row.Value:null;
+            if(read==key){store.PointRead=other=>store.Rows.TryGetValue(other,out var next)?next.Value:null;store.Seed(key,winner);}return selected;};
+        var provider=new TestProvider(store){IsVersionControlEnabled=true};
+        var result=email?sync?provider.DeleteAvatarDetailByEmail(selector,soft):await provider.DeleteAvatarDetailByEmailAsync(selector,soft)
+            :sync?provider.DeleteAvatarDetailByUsername(selector,soft):await provider.DeleteAvatarDetailByUsernameAsync(selector,soft);
+        Assert.IsTrue(result.IsError,"Detail deletion must reject a changed profile selection before mutating detail/history.");
+        Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.Result);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,result.ErrorCode,result.Exception?.ToString());
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(result.Exception);Assert.AreEqual(0,store.Mutations);
+        Assert.AreEqual(winner,store.Rows[key].Value);Assert.AreSame(originalDetail,store.Rows[detailKey]);
+    }
+
     // Controlled native-precondition schedules, not a real-provider or multi-key transaction claim.
     private sealed class Store:IConditionalKeyValueBackend
     {
