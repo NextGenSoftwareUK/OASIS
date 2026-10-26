@@ -2,6 +2,7 @@ import {createHash} from 'node:crypto';
 import {actions,baseEncode,encodeTransaction,SignedTransaction,JsonRpcProvider} from 'near-api-js';
 import {decodeCallArguments} from './call-arguments.mjs';
 
+export const deploymentProtocol='oasis.near.code-deployment.preparation.v1';
 export const preparationProtocol='oasis.near.native-action.preparation.v1';
 const maximum=1048576; // Existing shared preparation pipe/envelope budget.
 function base64(value){
@@ -50,14 +51,15 @@ export function nearActionIntent(receiverId,action){
   return nativeActionIntent({kind:'functionCall',recipient:receiverId,depositUnits:call.deposit.toString(),methodName:call.methodName,
     gasUnits:call.gas.toString(),argsBase64:Buffer.from(call.args).toString('base64')});
 }
-export function verifyNearSignedOriginal(preparation,expectedNetwork,expectedIntent){
+function verifyOriginal(preparation,expectedNetwork,expectedIntent,deployment){
   const original=structuredClone(preparation);
   if(Buffer.byteLength(JSON.stringify(original))>maximum)throw new Error('Original exceeds the shared preparation envelope budget.');
-  if(original.protocol!==preparationProtocol||original.chainId!==network(expectedNetwork))throw new Error('Original protocol/network differs.');
+  if(original.protocol!==(deployment?deploymentProtocol:preparationProtocol)||original.chainId!==network(expectedNetwork))throw new Error('Original protocol/network differs.');
   const bytes=base64(original.signedTransactionBase64),unsigned=base64(original.signDocBase64);
   const signed=SignedTransaction.decode(bytes),transaction=signed.transaction;
-  if(!Buffer.from(signed.encode()).equals(bytes)||!Buffer.from(encodeTransaction(transaction)).equals(unsigned))throw new Error('Original Borsh bytes/signing document differ.');
-  const hash=createHash('sha256').update(unsigned).digest();
+  const encoded=Buffer.from(encodeTransaction(transaction));
+  const hash=createHash('sha256').update(encoded).digest();
+  if(!Buffer.from(signed.encode()).equals(bytes)||!(deployment?hash:encoded).equals(unsigned))throw new Error('Original Borsh bytes/signing document differ.');
   if(baseEncode(hash)!==original.transactionHash||accountId(transaction.signerId)!==original.sender)throw new Error('Original transaction hash/signer differs.');
   const tags=['ed25519Signature','secp256k1Signature','mlDsa65Signature'];
   const signature=signed.signature,tag=tags[transaction.publicKey.keyType];
@@ -68,17 +70,42 @@ export function verifyNearSignedOriginal(preparation,expectedNetwork,expectedInt
   // exceed that field's4096character bound). All algorithms use this one format.
   if(original.signature!==null||!transaction.publicKey.verify(hash,signatureBytes))throw new Error('Original signature verification failed.');
   if(transaction.blockHash.length!==32||transaction.nonce<=0n||transaction.nonce>=(1n<<64n))throw new Error('Invalid original checkpoint/nonce.');
-  const intent=decodedIntent(transaction);
+  const intent=deployment?decodedDeployment(transaction):decodedIntent(transaction);
   const publicKey=transaction.publicKey.toString();
   if(original.publicKey!==undefined&&original.publicKey!==publicKey)throw new Error('Declared public key differs from signed key.');
   if(original.intent!==undefined&&JSON.stringify(original.intent)!==JSON.stringify(intent))throw new Error('Declared original intent differs from signed action.');
-  if(expectedIntent!==undefined&&JSON.stringify(nativeActionIntent(expectedIntent))!==JSON.stringify(intent))throw new Error('Signed action differs from admitted intent.');
+  if(expectedIntent!==undefined&&JSON.stringify(deployment?deploymentIntent(expectedIntent):nativeActionIntent(expectedIntent))!==JSON.stringify(intent))throw new Error('Signed action differs from admitted intent.');
   return {verified:true,transactionHash:original.transactionHash,chainId:original.chainId,sender:original.sender,
     publicKey,checkpointHash:baseEncode(Uint8Array.from(transaction.blockHash)),nonce:transaction.nonce.toString(),intent};
 }
+export function verifyNearSignedOriginal(preparation,expectedNetwork,expectedIntent){
+  return verifyOriginal(preparation,expectedNetwork,expectedIntent,false);
+}
+export function verifyNearDeploymentOriginal(preparation,expectedNetwork,expectedIntent){
+  return verifyOriginal(preparation,expectedNetwork,expectedIntent,true);
+}
+function deploymentIntent(value){
+  if(value.kind!=='deployContract'||!Number.isSafeInteger(value.codeBytes)||value.codeBytes<=0
+    ||typeof value.codeSha256!=='string'||! /^[0-9a-f]{64}$/.test(value.codeSha256))throw new Error('Exact deployment code identity required.');
+  return {kind:'deployContract',recipient:accountId(value.recipient),codeBytes:value.codeBytes,codeSha256:value.codeSha256};
+}
+function decodedDeployment(transaction){
+  if(transaction.receiverId!==transaction.signerId||!Array.isArray(transaction.actions)||transaction.actions.length!==1)
+    throw new Error('Code-only deployment must target its signing account.');
+  const action=transaction.actions[0],keys=Object.keys(action).filter(key=>key!=='enum');
+  if(keys.length!==1||keys[0]!=='deployContract'||Object.hasOwn(action,'enum')&&action.enum!=='deployContract')throw new Error('Exactly one deployment action required.');
+  const code=Buffer.from(action.deployContract.code);
+  return deploymentIntent({kind:'deployContract',recipient:transaction.receiverId,codeBytes:code.length,codeSha256:createHash('sha256').update(code).digest('hex')});
+}
 export async function verifyNearPreparation(provider,preparation,expectedNetwork,expectedIntent){
+  return verifyCheckpoint(provider,preparation,expectedNetwork,expectedIntent,false);
+}
+export async function verifyNearDeployment(provider,preparation,expectedNetwork,expectedIntent){
+  return verifyCheckpoint(provider,preparation,expectedNetwork,expectedIntent,true);
+}
+async function verifyCheckpoint(provider,preparation,expectedNetwork,expectedIntent,deployment){
   const original=structuredClone(preparation);
-  const identity=verifyNearSignedOriginal(original,expectedNetwork,expectedIntent);
+  const identity=verifyOriginal(original,expectedNetwork,expectedIntent,deployment);
   if(await provider.getNetworkId()!==identity.chainId)throw new Error('Observed NEAR network differs.');
   const checkpoint=await provider.viewBlock({blockId:identity.checkpointHash});
   const height=checkpoint?.header?.height;
@@ -127,9 +154,15 @@ export function exactNearSubmission(endpoint,signedTransactionBase64){
   };
 }
 export async function submitNearPreparation(provider,preparation,expectedNetwork,persist,submit){
+  return submitOriginal(provider,preparation,expectedNetwork,persist,submit,false);
+}
+export async function submitNearDeployment(provider,preparation,expectedNetwork,persist,submit){
+  return submitOriginal(provider,preparation,expectedNetwork,persist,submit,true);
+}
+async function submitOriginal(provider,preparation,expectedNetwork,persist,submit,deployment){
   if(typeof persist!=='function'||typeof submit!=='function')throw new Error('Existing owned persistence and submission capabilities required.');
   const original=structuredClone(preparation);
-  const identity=await verifyNearPreparation(provider,original,expectedNetwork);
+  const identity=await verifyCheckpoint(provider,original,expectedNetwork,undefined,deployment);
   await persist(original);
   try {
     const outcome=await submit();
@@ -139,4 +172,27 @@ export async function submitNearPreparation(provider,preparation,expectedNetwork
     const error=new Error('Original NEAR submission requires reconciliation; never re-sign or replay.',{cause});
     error.originalTransactionId=identity.transactionHash;error.reconciliationRequired=true;throw error;
   }
+}
+
+// Explicit code-only codec: NEAR signs SHA256(Borsh transaction). Persist that
+// exact32byte signing message plus the complete signed Borsh, without duplicating code.
+export async function prepareNearDeployment(account,request,code){
+  request=structuredClone(request);code=Buffer.from(code);
+  const chainId=network(request.chainId),sender=accountId(request.sender),intent=deploymentIntent(request);
+  if(sender!==intent.recipient||account.accountId!==sender||await account.provider.getNetworkId()!==chainId
+    ||code.length!==intent.codeBytes||createHash('sha256').update(code).digest('hex')!==intent.codeSha256)
+    throw new Error('Deployment signer/network/code differs from admitted request.');
+  const signed=await account.createSignedTransaction({receiverId:sender,actions:[actions.deployContract(code)]});
+  const digest=createHash('sha256').update(encodeTransaction(signed.transaction)).digest();
+  const original={protocol:deploymentProtocol,chainId,sender,transactionHash:baseEncode(digest),
+    signedTransactionBase64:Buffer.from(signed.encode()).toString('base64'),signDocBase64:digest.toString('base64'),signature:null,intent};
+  await verifyNearDeployment(account.provider,original,chainId,intent);return original;
+}
+export async function recoverNearDeployment(common,expectedNetwork){
+  common=structuredClone(common);
+  if(common.protocol!==undefined&&common.protocol!==deploymentProtocol)throw new Error('Deployment protocol differs.');
+  const original={protocol:deploymentProtocol,chainId:common.chainId,sender:common.sender,transactionHash:common.transactionHash,
+    signedTransactionBase64:common.signedTransactionBase64,signDocBase64:common.signDocBase64,signature:common.signature??null};
+  const identity=verifyNearDeploymentOriginal(original,expectedNetwork);
+  return {...original,publicKey:identity.publicKey,intent:identity.intent,recoveredFromSignedOriginal:true};
 }
