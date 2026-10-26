@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## 2026-10-26 shared standalone detail selector gate
+
+Shared username/email detail deletion now retains its selected profile and compares the canonical preflight before mutating detail/history; GUID-only detail deletion remains independent.32genuine baseline false-success schedules repaired across shared conditional storage and encrypted official S3 SDK. Final1229Shared/228S3/155OCI/41AWS PASS0skip, matched Core765/DC73E5A3 +Shared56/1C0000A8 source/PDB/copies. Alias path adds one native profile read, not a multi-object transaction. Missing conflict-code diagnostic and original red reports preserved; exact hashes/resources/owned empty-folder cleanup in ENVIRONMENT_INVENTORY.md and WORKSPACE_CLEANUP_LEDGER.md. Hosted Oracle/AWS, native acceptance on other shared inheritors and full provider/V2 completion remain open. No new runtime/download/restore, spending or dev deployment.
+
 ## 2026-10-25 resource-receipt provenance and settlement serialization
 
 Shared Core accounting now enforces original resource-attempt binding at aggregate/append/enqueue boundaries even for optional measurement. Caller settlement state is snapshotted before asynchronous validation/driver serialization; three reproducible mutation failures repaired. Focused27/27 and full Core3255/3255 PASS, zero skips; Core net10.0/netstandard2.1 and shipping WEB4 builds pass. Six native Mongo schedules use synthetic capacity/tariffs and must not be counted as actual AWS consumption. Current native suite count is368, not obsolete312/341/347; exact native terminal outcome and reports in ENVIRONMENT_INVENTORY.md. Hosted Oracle/AWS gates, raw observer persistence/pricing and whole-provider/V2 acceptance remain open. No sponsored spending or deployment enabled by this repair.

@@ -598,12 +598,25 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 
-        public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+        public Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarDetailCoreAsync(id,softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarDetailCoreAsync(Guid id,bool softDelete,IAvatar selected=null)
         {
             var acknowledged=new List<string>();
             try
             {
                 var key=AvatarDetailKey(id);var conditional=Backend as IConditionalKeyValueBackend;
+                if(selected!=null){
+                    // Alias deletion retains its original profile intent. GUID-only detail
+                    // deletion remains independent of whether a profile record exists.
+                    var avatarKey=AvatarKey(id);
+                    var (profileRecord,_)=await ReadForMutationAsync<IAvatar>(avatarKey,conditional);
+                    var profile=await ReadVersionAsync(avatarKey,profileRecord,0);
+                    if(profile==null||!StoredRecordPayloadEquality.Equivalent(StoredRecordJson.CaptureInputToken<IAvatar>(selected),
+                        StoredRecordJson.CaptureInputToken<IAvatar>(profile)))
+                        throw new StorageLifecycleConflictException("Avatar changed after its detail deletion selector observation.");
+                }
                 var (record,observed)=await ReadForMutationAsync<IAvatarDetail>(key,conditional);
                 var detail=await ReadVersionAsync(key,record,0);
                 if(detail==null)return Fail<bool>($"Avatar detail {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
@@ -630,7 +643,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
             }
-            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
+            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex,
+                ex is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode:null); }
         }
 
         public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
@@ -638,14 +652,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
         {
             var avatar = await LoadAvatarByUsernameAsync(username);
-            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailCoreAsync(avatar.Result.Id, softDelete,avatar.Result);
         }
         public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
             => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
         public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
         {
             var avatar = await LoadAvatarByEmailAsync(email);
-            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailCoreAsync(avatar.Result.Id, softDelete,avatar.Result);
         }
         public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
             => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
