@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotSubmissionProcessTests
 {
-    [DataTestMethod][DataRow("submitNativePreparation")][DataRow("submitAssetPreparation")]
+    [DataTestMethod][DataRow("submitNativePreparation")][DataRow("submitAssetPreparation")][DataRow("submitRecordPreparation")]
     public async Task AllWritableSdkOperationsRequireAnOwnedPreparationServer(string operation)
     {
         using var provider = new PolkadotOASIS("http://127.0.0.1:1");
@@ -24,6 +24,8 @@ public class PolkadotSubmissionProcessTests
     [DataRow("submitNativePreparation", "wrong-hash")][DataRow("submitNativePreparation", "false-finality")]
     [DataRow("submitAssetPreparation", "accepted")][DataRow("submitAssetPreparation", "error")]
     [DataRow("submitAssetPreparation", "wrong-hash")][DataRow("submitAssetPreparation", "false-finality")]
+    [DataRow("submitRecordPreparation", "accepted")][DataRow("submitRecordPreparation", "error")]
+    [DataRow("submitRecordPreparation", "wrong-hash")][DataRow("submitRecordPreparation", "false-finality")]
     public async Task AcknowledgedOriginalCannotLoseIdentityOrBecomeFinalSuccess(string operation, string outcome)
     {
         // Real owned child/physical pipe, controlled callback/response. NOT native ledger/outbox evidence.
@@ -57,5 +59,20 @@ public class PolkadotSubmissionProcessTests
             Assert.AreEqual(hash, owner.PreparedTransactionId);
         }
         finally { Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE", prior); }
+    }
+
+    [TestMethod]
+    public async Task StructuredContractConflictIsNotAnUncertainSubmission()
+    {
+        var prior=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        try
+        {
+            using var provider=new PolkadotOASIS("http://127.0.0.1:1");
+            var method=typeof(PolkadotOASIS).GetMethod("InvokePolkadotSdkAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var pending=(Task<JsonElement>)method.Invoke(provider,new object?[]{new{operation="prepareRecordMutation"},CancellationToken.None,null})!;
+            await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException>(async()=>await pending);
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",prior);}
     }
 }
