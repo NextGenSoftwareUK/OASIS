@@ -56,6 +56,8 @@ public sealed partial class CqlV1Web4NativeTests
         var childIds = Enumerable.Range(0,4).Select(_=>Guid.NewGuid()).ToArray();
         var scalarIds = Enumerable.Range(0,137).Select(_=>Guid.NewGuid()).ToArray();
         var scalarWrites = new List<string>();
+        var sharingOperations = new List<string>();
+        var sharingProvidersVerified = 0;
         var journal = new List<object>();
         using var journalGate = new SemaphoreSlim(1);
         async Task Journal(string stage, object? request = null)
@@ -65,7 +67,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, scalarWrites, tag, requests = journal }));
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).ToArray(), scalarIds, scalarWrites, sharingOperations, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
         }
@@ -153,6 +155,56 @@ public sealed partial class CqlV1Web4NativeTests
                     ["Visitor"] = authority.Tokens.Single(pair => pair.Value == outsider).Key
                 }
             };
+            // Sharing writes use the same generic manager and actual stores.
+            // Record every conditional operation before dispatch for reviewed cleanup.
+            foreach (var pair in providers)
+            {
+                var manager = new Sources(providers).CreateManager(pair.Value);
+                var actor = new Avatar { Id = bob };
+                var original = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(original.IsError, original.Message);
+                var originalRevision = CosmicConcurrency.GetProviderRevisionId(original.Result, pair.Key);
+                Assert.IsNotNull(originalRevision, "Sharing requires a real provider revision observation.");
+
+                async Task<CosmicWriteOptions> SharingIntent(Guid revision)
+                {
+                    var operation = Guid.NewGuid();
+                    sharingOperations.Add(operation.ToString("D"));
+                    await Journal("before-sharing-mutation", new { provider = pair.Key.ToString(), operation });
+                    return new CosmicWriteOptions(operation,
+                        new Dictionary<Guid, Guid?> { [ids[0]] = revision });
+                }
+
+                var grant = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.ShareAsync(
+                    manager, ids[0], new[] { alice }, actor, await SharingIntent(originalRevision.Value));
+                Assert.IsFalse(grant.IsError, pair.Key + ": " + grant.Message + grant.Exception);
+                Assert.IsTrue(grant.Result && grant.IsSaved);
+
+                var granted = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(granted.IsError, granted.Message);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.CanRead(granted.Result, alice));
+                var grantedRevision = CosmicConcurrency.GetProviderRevisionId(granted.Result, pair.Key)!.Value;
+                Assert.AreNotEqual(originalRevision.Value, grantedRevision);
+
+                var revoke = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.RevokeAsync(
+                    manager, ids[0], new[] { alice }, actor, await SharingIntent(grantedRevision));
+                Assert.IsFalse(revoke.IsError, pair.Key + ": " + revoke.Message + revoke.Exception);
+                Assert.IsTrue(revoke.Result && revoke.IsSaved);
+
+                // A stale grant must not resurrect a recipient after revocation.
+                var stale = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.ShareAsync(
+                    manager, ids[0], new[] { alice }, actor, await SharingIntent(grantedRevision));
+                Assert.IsTrue(stale.IsError);
+                Assert.AreEqual(CosmicConcurrencyException.Code, stale.ErrorCode);
+
+                var final = await manager.LoadHolonAsync(ids[0], loadChildren: false);
+                Assert.IsFalse(final.IsError, final.Message);
+                Assert.IsFalse(NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.CanRead(final.Result, alice));
+                Assert.IsFalse(final.Result.MetaData.ContainsKey(
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.SharedWithIndexKey(alice)));
+                sharingProvidersVerified++;
+            }
+
             await using (var app = Host(providers, outbox, authority, secret, demo,
                 (actor, operation) => Journal("before-http-request", new { actor, operation })))
             {
@@ -818,7 +870,7 @@ public sealed partial class CqlV1Web4NativeTests
                 await File.WriteAllTextAsync(Path.Combine(demoWork, "v1-demo-result.json"), JsonSerializer.Serialize(new
                 {
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
-                    walkthroughRequests, localSdkQueries, settledOperations = operations.Count,
+                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, settledOperations = operations.Count,
                     providerAttempts = operations.Sum(operation => operation.ProviderAttempts.Count)
                 }));
                 File.Delete(Path.Combine(demoWork, "v1-session.json"));
@@ -838,6 +890,8 @@ public sealed partial class CqlV1Web4NativeTests
                 var ownedIds = ids.Concat(childIds).Concat(scalarIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
+                await (await inspection.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.OperationId IN $operations DETACH DELETE r",
+                    new { operations = sharingOperations.ToArray() })).ConsumeAsync();
                 await mongo.DropDatabaseAsync(storageDb);
                 await mongo.DropDatabaseAsync(usageDb);
                 // The runner removes the exact SQLite files only after this test process exits.

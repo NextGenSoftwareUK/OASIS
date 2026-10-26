@@ -88,51 +88,73 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         /// must go through this, because sharing grants read access: only the creator or a Wizard may share, and
         /// new recipients are added to the existing list rather than replacing it.
         /// </summary>
-        public static async Task<OASISResult<bool>> ShareAsync(
-            HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller)
+        public static Task<OASISResult<bool>> ShareAsync(
+            HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller) =>
+            ShareAsync(holonManager, holonId, avatarIds, caller, writeOptions: null);
+
+        public static Task<OASISResult<bool>> ShareAsync(
+            HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller,
+            CosmicWriteOptions writeOptions) =>
+            ChangeSharesAsync(holonManager, holonId, avatarIds, caller, revoke: false, writeOptions);
+
+        /// <summary>
+        /// Revokes read recipients using the same owner check and atomic revision
+        /// precondition as a grant. A conflict is returned; it is never retried as
+        /// an unconditional write. Supply stable write options for a known intent.
+        /// </summary>
+        public static Task<OASISResult<bool>> RevokeAsync(
+            HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller,
+            CosmicWriteOptions writeOptions = null) =>
+            ChangeSharesAsync(holonManager, holonId, avatarIds, caller, revoke: true, writeOptions);
+
+        private static async Task<OASISResult<bool>> ChangeSharesAsync(
+            HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller,
+            bool revoke, CosmicWriteOptions writeOptions)
         {
-            var result = new OASISResult<bool>();
             if (caller == null || caller.Id == Guid.Empty)
-            {
-                OASISErrorHandling.HandleError(ref result, "Unauthorized. Sign in to share holons.");
-                return result;
-            }
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_SHARE_FORBIDDEN", Message = "Unauthorized. Sign in to change sharing." };
 
-            var recipients = avatarIds?.Where(x => x != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
-            if (recipients.Count == 0)
-            {
-                OASISErrorHandling.HandleError(ref result, "At least one valid avatar id must be supplied.");
-                return result;
-            }
+            var recipients = avatarIds?.Where(id => id != Guid.Empty).Distinct().ToList() ?? new List<Guid>();
+            if (recipients.Count == 0 || holonId == Guid.Empty)
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_SHARE_INPUT_INVALID",
+                    Message = "At least one valid avatar id and a nonempty holon id must be supplied." };
 
-            var holonResult = await holonManager.LoadHolonAsync(holonId);
-            if (holonResult == null || holonResult.IsError || holonResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unable to load holon {holonId}. Reason: {holonResult?.Message}");
-                return result;
-            }
+            // Sharing changes only this record. Do not load or write its child graph.
+            var loaded = await holonManager.LoadHolonAsync(holonId, loadChildren: false);
+            if (loaded == null || loaded.IsError || loaded.IsWarning || loaded.Result == null
+                || loaded.Result.Id != holonId)
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = loaded?.ErrorCode ?? "COSMIC_SHARE_LOOKUP_INVALID",
+                    Message = $"Unable to verify sharing record {holonId}. Reason: {loaded?.Message}",
+                    Exception = loaded?.Exception };
 
-            var holon = holonResult.Result;
+            var holon = loaded.Result;
             if (holon.CreatedByAvatarId != caller.Id && caller.AvatarType?.Value != AvatarType.Wizard)
-            {
-                OASISErrorHandling.HandleError(ref result, "Unauthorized. You can only share holons that you created.");
-                return result;
-            }
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_SHARE_FORBIDDEN",
+                    Message = "Unauthorized. You can only change sharing on holons that you created." };
 
             var sharedIds = GetSharedAvatarIds(holon);
-            sharedIds.UnionWith(recipients);
+            if (revoke) sharedIds.ExceptWith(recipients);
+            else sharedIds.UnionWith(recipients);
             RecordShares(holon, sharedIds);
 
-            var saveResult = await holonManager.SaveHolonAsync(holon, caller.Id);
-            if (saveResult == null || saveResult.IsError || saveResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unable to persist shared metadata for holon {holonId}. Reason: {saveResult?.Message}");
-                return result;
-            }
+            // Conditions bind the accepted provider revision from this load.
+            // Unsupported providers and uncertain/conflicting outcomes fail closed.
+            var saved = await holonManager.SaveHolonAsync(holon, caller.Id,
+                writeOptions ?? new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false);
+            if (saved == null || saved.IsError || saved.IsWarning || saved.Result == null)
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = saved?.ErrorCode ?? "COSMIC_SHARE_SAVE_INVALID",
+                    Message = $"Unable to persist sharing for holon {holonId}. Reason: {saved?.Message}",
+                    Exception = saved?.Exception };
 
-            result.Result = true;
-            result.Message = $"Holon {holonId} shared with {recipients.Count} avatar(s).";
-            return result;
+            return new OASISResult<bool> { Result = true, IsSaved = saved.IsSaved,
+                MetaData = saved.MetaData,
+                Message = revoke ? $"Read access revoked for {recipients.Count} avatar(s)."
+                    : $"Holon {holonId} shared with {recipients.Count} avatar(s)." };
         }
 
         /// <summary>True when a holon has recipients whose "shared with me" index flag is missing (shares made before the index existed).</summary>
@@ -148,7 +170,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         public static void RecordShares(IHolon holon, IEnumerable<Guid> sharedIds)
         {
             holon.MetaData ??= new Dictionary<string, object>();
-            var all = sharedIds.Where(id => id != Guid.Empty).Distinct().ToList();
+            var all = sharedIds.Where(id => id != Guid.Empty).Distinct().OrderBy(id => id).ToList();
+            // Indexes are derived lookup hints, never independent grants. Remove
+            // revoked entries before rebuilding the current canonical set.
+            foreach (var key in holon.MetaData.Keys.Where(key =>
+                key.StartsWith("SHARED_WITH_", StringComparison.Ordinal)
+                && Guid.TryParseExact(key.Substring("SHARED_WITH_".Length), "N", out _)).ToArray())
+                holon.MetaData.Remove(key);
             holon.MetaData[SharedAvatarIdsMetaKey] = JsonSerializer.Serialize(all);
             foreach (var id in all)
                 holon.MetaData[SharedWithIndexKey(id)] = SharedWithIndexValue;
