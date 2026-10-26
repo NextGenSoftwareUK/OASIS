@@ -39,6 +39,7 @@ public class PolkadotNftCustodyNativeTests
         var code=deployment.RootElement.GetProperty("codeHash").GetString()!;
         var records=new List<AttemptRecord>();
         var recovering=File.Exists(completed)||File.Exists(pending);
+        Assert.IsTrue(recovering,"The v0.1 service-pool fixture is now recovery-only; use the native v0.2 escrow fixture for new lock/unlock operations.");
         if(Environment.GetEnvironmentVariable("OASIS_POLKADOT_NFT_CUSTODY_RECOVERY")=="1")
             Assert.IsTrue(recovering,"Explicit recovery cannot start writes.");
         if(File.Exists(completed)) {

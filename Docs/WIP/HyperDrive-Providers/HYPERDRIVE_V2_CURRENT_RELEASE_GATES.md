@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: native beneficiary escrow v0.2 source and artifact gates
+
+Current C# lock/unlock share stored NFT/chain validation and authorized avatar-wallet selection; gate54473passed358/358controlled cases0skip19s after provider/consumer builds. Rust14/14 and SDK28/28 pass. Offline Wasm16840passed with50,316Bartifact, exact exports/imports, SHA78d6d3d39dafe6338257a35205cd099246b658ab102f2547066133d70b32a67f/codeHash0x39cacf5a31331133ee218034e8c7bc379f250a3c86a8c1a1e775c3a3773c82f1. All builds reused cached runtimes/one target; obsolete intermediate files were verified/removed, final0.1artifact preserved.
+
+**Not yet deployed or natively accepted:** v0.2constructor simulation/deployment, rightful/foreign/stale beneficiary native cases and hosted GUID/wallet authorization. Earlier four-operation service-pool native proof is historical v0.1evidence, not certification of the new contract methods. Old fixture is recovery-only. No provider/global100% claim or dev deployment follows from these source/artifact gates. [Evidence and boundary](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resource ledger](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: Polkadot native custody lock/release acceptance
 
 Gate27455terminal0: one native case finalized4originals (mint, stored-record lock, source-proven release, burn)68s; separate same-original read-only recovery1/1PASS24s, restored ordinary provider347/347PASS0skip19s; pending fences131PASS. Existing node/ledger/collection/wallets reused, no download/install/funding. Actual FRAME fees0.012881604343localtestUNIT exclude separate storage effects; no fiat/sponsorship cap claim. Independent final state proves3IDs absent/supply0. Owned node stopped/ports absent; raw reports compacted after hash roundtrip.

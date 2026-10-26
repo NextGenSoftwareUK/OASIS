@@ -140,6 +140,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS),
                 NFTStandardType=new EnumValue<NFTStandardType>(NFTStandardType.PSP34),
                 MetaData=new Dictionary<string,string> {
+                    [NativeNftChainKey]=ReportedGenesisHash,
                     ["polkadot:collection-id"]=observed.GetProperty("collectionId").GetRawText(),
                     ["polkadot:block-hash"]=observed.GetProperty("blockHash").GetString(),
                     ["polkadot:code-hash"]=_nftConfiguration.CodeHash

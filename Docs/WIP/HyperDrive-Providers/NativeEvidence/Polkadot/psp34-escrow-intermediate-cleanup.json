@@ -1,0 +1,22 @@
+[
+  {
+    "bytes": 51390,
+    "path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-psp34-pruned.wasm",
+    "sha256": "1EE14CE624CA76291398080850E2980E103913A24BBC005A7060A82B1C69911B"
+  },
+  {
+    "bytes": 44729,
+    "path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-psp34-optimized.wasm",
+    "sha256": "094C9DC560C6CFEEF50C0C33D2ED04A9DA5AC3467B2C89B2C82CACF438AC3353"
+  },
+  {
+    "bytes": 57202,
+    "path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-psp34-escrow-pruned.wasm",
+    "sha256": "41503868C7FA5DEBD45446A334A388769E6D5656D4D513F43C620F4046209034"
+  },
+  {
+    "bytes": 50195,
+    "path": "C:\\Source\\OASIS\\TestResults\\PolkadotCurrent\\record-contract-target\\oasis-psp34-escrow-optimized.wasm",
+    "sha256": "98A2333C7DA165A4A58FBA46B29FE84A74E42030822BEFDF0E6F2FF276D7E4B8"
+  }
+]

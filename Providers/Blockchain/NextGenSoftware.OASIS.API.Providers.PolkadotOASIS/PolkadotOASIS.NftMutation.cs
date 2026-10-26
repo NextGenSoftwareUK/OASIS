@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 public partial class PolkadotOASIS
 {
     private const string NativeNftIdKey="polkadot:token-id";
+    private const string NativeNftChainKey="polkadot:genesis-hash";
     private sealed record NftIntent(string Action,string Contract,string TokenId,string Sender,string To,
         string ExpectedFrom,string PublicKey,string PrivateKey,string Mnemonic,string[][] Attributes,
         string Title="",string Symbol="",string Description="",string ImageUrl="",bool DeliveredAtMint=false,Guid MinterAvatarId=default,string ContractAlias=null,string SourceCustodyTransaction=null)
@@ -51,6 +52,7 @@ public partial class PolkadotOASIS
             Title=intent.Title,Symbol=intent.Symbol,Description=intent.Description,ImageUrl=intent.ImageUrl,
             OnChainProvider=new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS),
             NFTStandardType=new EnumValue<NFTStandardType>(NFTStandardType.PSP34) };
+        nft.MetaData[NativeNftChainKey]=ReportedGenesisHash;
         if(intent.Action=="mint") {
             nft.Id=Guid.NewGuid();nft.MintedOn=DateTime.UtcNow;
             nft.MintedByAvatarId=intent.MinterAvatarId;
