@@ -12,7 +12,12 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (request.operation === 'prepareNftMutation') {
+if (request.operation === 'nftOutcome' && request.custodyReceipt === true) {
+  emit({ transactionHash: request.transactionHash, finalized: true, dispatchSucceeded: true,
+    nftEffectMatchesRequest: true, custodyReceiptVerified: true, contractAddress: request.contractAddress,
+    contractCodeHash: request.contractCodeHash, custody: request.custody, to: request.custody,
+    tokenId: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'source-mismatch' ? { U8: '1' } : request.tokenId });
+} else if (request.operation === 'prepareNftMutation') {
   const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
   emit({ transactionHash: originalHash, chainId: chain, sender: request.sender,
     action: request.action, contractAddress: request.contractAddress, contractCodeHash: request.contractCodeHash,

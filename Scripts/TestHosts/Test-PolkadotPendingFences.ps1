@@ -29,6 +29,7 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftLifecycle=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftLifecycleRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftIntentRecovery=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustodySource=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },

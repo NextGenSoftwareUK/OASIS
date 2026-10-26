@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TypeRegistry } from '@polkadot/types/create';
 import { registerPsp34Types } from './psp34-contract-codec.mjs';
-import { exactNftEffect, validateNftOutcome } from './psp34-contract-outcome.mjs';
+import { exactNftEffect, validateNftOutcome, readNftCustodyReceipt } from './psp34-contract-outcome.mjs';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const registry = new TypeRegistry();registerPsp34Types(registry);
@@ -19,6 +19,33 @@ const attribute = (id = tokenId, key = '0x6e616d65', value = '0x54726565') =>
   event('(OasisPsp34Id,Bytes,Bytes)', [id, key, value]);
 const transfer = (from = null, to = recipient, id = tokenId, address = contract, suffix = '') =>
   event('(Option<AccountId32>,Option<AccountId32>,OasisPsp34Id)', [from, to, id], address, suffix);
+
+test('custody source proof binds finalized dispatch, exact token/pool/code and original extrinsic', async () => {
+  const blockHash = '0x' + 'aa'.repeat(32), transactionHash = '0x' + 'bb'.repeat(32), code = '0x' + 'cc'.repeat(32);
+  const request = { transactionHash, blockHash, contractAddress: contract, contractCodeHash: code, tokenId, custody: recipient };
+  async function prove(mode) {
+    const own = [{ section: 'system', method: mode === 'failed' ? 'ExtrinsicFailed' : 'ExtrinsicSuccess', data: ['failure'] },
+      transfer(sender, mode === 'pool' ? sender : recipient, mode === 'token' ? { U8: '1' } : tokenId)];
+    const hex = value => ({ toHex: () => value });
+    const reader = { ...api, rpc: { chain: {
+      getFinalizedHead: async () => hex(blockHash),
+      getHeader: async () => ({ number: registry.createType('u32', 1) }),
+      getBlockHash: async () => hex(blockHash),
+      getBlock: async () => ({ block: { extrinsics: [{ hash: hex(transactionHash) }] } })
+    } }, at: async () => ({ query: {
+      system: { events: async () => own.map(value => ({ event: value, phase: {
+        isApplyExtrinsic: true, asApplyExtrinsic: { toNumber: () => mode === 'foreign' ? 1 : 0 }
+      } })) },
+      contracts: { contractInfoOf: async () => ({ isNone: false, unwrap: () => ({ codeHash: hex(mode === 'code' ? blockHash : code) }) }) }
+    } }) };
+    return readNftCustodyReceipt(reader, request);
+  }
+  const proof = await prove('accepted');
+  assert.equal(proof.transactionHash, transactionHash);
+  assert.equal(proof.custodyReceiptVerified, true);
+  assert.equal(proof.from, sender);assert.equal(proof.to, recipient);
+  for (const mode of ['failed', 'pool', 'token', 'code', 'foreign']) await assert.rejects(prove(mode));
+});
 
 test('mint proves every ordered metadata acknowledgement and the exact typed token/recipient', () => {
   assert.deepEqual(exactNftEffect(api, identity, [attribute(), transfer()], true),
