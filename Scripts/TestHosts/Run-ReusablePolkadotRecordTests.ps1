@@ -1,3 +1,4 @@
+param([switch]$ReadBridge)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $evidence = Join-Path $repo 'TestResults/PolkadotCurrent'
@@ -15,7 +16,8 @@ try {
     try {
         & node verify-record-contract-artifact.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        & node test-local-record-contract.mjs
+        if ($ReadBridge) { & node --test test-local-record-read-bridge.mjs }
+        else { & node test-local-record-contract.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Native records test failed. Preserve original journals and fixture state.' }
     } finally { Pop-Location }
 } finally {

@@ -1,5 +1,15 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: shipping SDK finalized record reads
+
+The existing restricted-RPC SDK bridge now exposes `recordRead` (get/list/verify). Reads require an explicit contract address, read origin and pinned code hash. Code existence/identity and every enumeration page use ONE finalized API snapshot. Binary keys/values use canonical base64 across JSON and native SCALE inside the SDK; revisions remain decimal strings, including values above JavaScript's safe integer limit. Missing contract, code mismatch, transport/revert/corrupt output, duplicate/out-of-prefix keys, nonadvancing cursors and inconsistent generation throw rather than becoming absence/partial success. No second record serializer or query engine was added.
+
+Nine controlled codec/read cases PASS0skip0.88s, including19keys over3pages with exactly1head/1snapshot, u64revision9007199254740993 and separate cursor/generation/duplicate/prefix failures. A verify test initially supplied invalid duplicate fixture rows and was corrected; no production defect/red baseline is claimed for that fixture error.
+
+Four native shipping-bridge process cases PASS0skip12.34s on the retained deployed contract via `Run-ReusablePolkadotRecordTests.ps1 -ReadBridge`: code verification, cleaned-key absence, actual empty enumeration/generation5, and wrong-code rejection with no result. These prove real bridge/restricted RPC integration, not populated native multi-page enumeration or C# encrypted-record storage. No signed submission/new fixture/deployment/account/funds. The same nodePID404 was stoppedSIGINT, original75178terminal0; all original transaction receipts and retained empty contract remain.
+
+Next required integration: production signed conditional mutations/owned preparation and finalized recovery, C# conditional backend plus existing private-record encryption/history/query layer, larger-record framing/admission, relevant interfaces and native record tests. Current native cell value limit is8192bytes; do not silently truncate or call arbitrary large encrypted records supported. The shared Core/WEB4 source-output slot remains with the other session; this work performs no .NET build.
+
 ## 26 October: signed record contract CRUD and restart gate
 
 `Run-ReusablePolkadotRecordTests.ps1` now proves one retained contract using the existing official SDK/signature verifier, original-only submission and finalized canonical receipt/event readers. Contract `5ESNt37LSXvXuyWxfWai8aghbkCP8QgDaykAcgsN94eY9cx6`, codeHash `0x7c102aaaaef5fec4e9f8f035c0542c7c6ca23f8c4e6b8de5e0498862debef0fa`, artifact SHA256 `16aafeccc5c9ee3d40b994bc9f9307a04ef1cee68ce5e9cbcc05d1ce94108ed3`. The same local genesis/spec100/12decimal UNIT is used; this is not public-network acceptance.
