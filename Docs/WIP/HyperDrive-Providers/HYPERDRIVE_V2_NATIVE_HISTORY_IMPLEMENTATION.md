@@ -1,5 +1,11 @@
 # Native provider history implementation and acceptance contract
 
+## 26 October: SQLite import acknowledgement and evidence gate
+
+16genuine baseline failures fixed. SQLite Import now preserves activation/save error codes, details, metadata, warnings and partial-save counts through the existing copier; returns success only for confirmed IsSaved; admits null before activation; and delegates one public SaveHolons call with stop-on-error. Cold activation retained. Repository/public save ALREADY share one atomic graph writer; no alternative writer/schema/retry introduced. Final90/90 full unit PASS0skip5s includes2actual native sync/async imports on SQLite3.53.3, independently verifying3rows, generated identities/parents and point reads. RAM-only shared-memory connections, no new file/service/download. One fixture compile error corrected before baseline, not counted as a provider failure.
+
+Source/copies/PDB: SQLite174 F81C7D14D15A7172553A6BB85047401FC7D35EC37D36DD92856F6230E02BD7B6; unit10; Core7692E13/Shared565917 current peer-active cohort. This is NOT a passing result for the peer's preserved failed Mongo HTTP/native fixture, nor a deployed/published Core proof or whole-provider/V2 certification. Exact reports, resource sizes, empty deployment-directory limitation and pre-existing idle-worker observation: [inventory](ENVIRONMENT_INVENTORY.md). Broader gates remain OPEN; no dev merge.
+
 Evidence audit: 2026-10-16, parent `2c3dff3af`. This is an implementation specification and open release gate, not a claim that history works.
 
 ## Existing semantics and evidence
