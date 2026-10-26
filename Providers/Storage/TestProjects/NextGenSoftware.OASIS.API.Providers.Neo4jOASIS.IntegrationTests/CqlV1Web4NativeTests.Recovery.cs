@@ -18,6 +18,9 @@ public sealed partial class CqlV1Web4NativeTests
             var recovery = pair.Value as IConditionalHolonWriteRecoveryStorageProvider;
             Assert.IsNotNull(recovery, "The selected authority must declare read-only recovery.");
             var writer = (IConditionalHolonStorageProvider)pair.Value;
+            var preparations = pair.Value as IHolonWritePreparationRecoveryStorageProvider;
+            Assert.IsNotNull(preparations, "The selected authority must expose read-only preparation retrieval.");
+            var storedPreparations = new Dictionary<Guid, HolonWritePreparation>();
             var manager = new Sources(providers).CreateManager(pair.Value);
             var originals = new List<ConditionalHolonWriteRequest>();
             var acknowledged = new List<IHolon>();
@@ -25,6 +28,17 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 conditionalOperations.Add(request.Write.OperationId.ToString("D"));
                 await journal("before-recovery-original", new { provider = pair.Key.ToString(), request });
+                // Storage conformance uses opaque test envelopes. Cryptographic
+                // authentication and stored-only reconstruction are Core tests.
+                var absentPreparation = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
+                Assert.IsFalse(absentPreparation.IsError, absentPreparation.Message + absentPreparation.Exception);
+                Assert.IsNull(absentPreparation.Result);
+                var preparation = new HolonWritePreparation(request.Write.OperationId, actor, pair.Key,
+                    request.Roots.Select(root => new ProtectedHolonPreparation(root.Id,
+                        "oasis-preparation1:owned-status-" + request.Write.OperationId.ToString("D"))).ToArray());
+                var claimed = await preparations.ClaimHolonWritePreparationAsync(preparation);
+                Assert.IsFalse(claimed.IsError, claimed.Message + claimed.Exception);
+                storedPreparations.Add(request.Write.OperationId, preparation);
                 if (request.Operation == ConditionalHolonOperation.HardDelete)
                 {
                     var uncertain = await ExecuteWithLostCommitAcknowledgement(pair.Key, pair.Value, request, sqlitePath);
@@ -80,6 +94,14 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsFalse((await pair.Value.ActivateProviderAsync()).IsError);
             foreach (var original in originals)
             {
+                var stored = await preparations.ReadHolonWritePreparationAsync(original.Write.OperationId, actor);
+                Assert.IsFalse(stored.IsError, stored.Message + stored.Exception);
+                Assert.IsNotNull(stored.Result);
+                Assert.AreEqual(JsonSerializer.Serialize(storedPreparations[original.Write.OperationId]), JsonSerializer.Serialize(stored.Result));
+                var foreignPreparation = await preparations.ReadHolonWritePreparationAsync(original.Write.OperationId, Guid.NewGuid());
+                Assert.IsTrue(foreignPreparation.IsError);
+                Assert.AreEqual("COSMIC_PREPARATION_ACTOR_MISMATCH", foreignPreparation.ErrorCode);
+                Assert.IsNull(foreignPreparation.Result);
                 var first = await recovery.ReadConditionalHolonWriteOutcomeAsync(original);
                 Assert.IsFalse(first.IsError, first.Message + first.Exception);
                 Assert.AreEqual(ConditionalHolonReceiptState.Committed, first.Result.ReceiptState);

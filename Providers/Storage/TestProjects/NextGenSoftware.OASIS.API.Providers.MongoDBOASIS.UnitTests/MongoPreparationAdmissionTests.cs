@@ -7,6 +7,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 [TestClass]
 public class MongoPreparationAdmissionTests
 {
+    [DataTestMethod][DataRow("operation")][DataRow("actor")][DataRow("cancelled")][DataRow("unactivated")]
+    public async Task PreparationReadRejectsBeforeRepositoryAccess(string mode)
+    {
+        var provider=new MongoDBOASIS("mongodb://127.0.0.1:1/?serverSelectionTimeoutMS=1","unactivated-preparation-admission-only");
+        using var cancellation=new CancellationTokenSource();if(mode=="cancelled")cancellation.Cancel();
+        var result=await provider.ReadHolonWritePreparationAsync(mode=="operation"?Guid.Empty:Guid.NewGuid(),
+            mode=="actor"?Guid.Empty:Guid.NewGuid(),cancellation.Token);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+        Assert.AreEqual(mode=="cancelled"?"COSMIC_PREPARATION_CANCELLED":mode=="unactivated"?"COSMIC_PREPARATION_PROVIDER_NOT_READY":"COSMIC_PREPARATION_INVALID",result.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow(false, "missing")] [DataRow(true, "missing")]
     [DataRow(false, "authority")] [DataRow(true, "authority")]

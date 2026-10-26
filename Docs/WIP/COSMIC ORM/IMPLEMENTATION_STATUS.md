@@ -1,3 +1,9 @@
+## Three-provider preparation retrieval - 26 October 2026
+
+Read-only original preparation lookup is implemented for MongoDB, SQLite and Neo4j through an additive provider capability. Full Shared1242/Mongo575/SQLite95/Neo566 unit tests pass with zero skips/failures; both Core targets build. Native fifteen-operation preparation retrieval after reconnection and foreign-actor rejection passes, with the existing lost-acknowledgement recovery and 453-settlement/496-attempt cohort green. Sources/binary pairs/owned teardown verified. See [contract and retained evidence](WRITE_PREPARATION.md).
+
+Next: pinned HyperDrive lookup routing and authenticated hosted recovery with explicit durable protection policy. Actual OS-process crash/restart and the broader ORM roadmap remain incomplete.
+
 ## Protected original-intent reconstruction - 26 October 2026
 
 Stored-only status reconstruction passes sixteen new controls and full Core 3,449/3,449, zero skips/failures; portable and net10 builds pass. It reuses encrypted preparation and authenticates every selected record before entity construction. Save, soft-delete and hard-delete kinds are supported; existing retry intent comparison remains. See [contract and evidence](WRITE_PREPARATION.md).

@@ -21,7 +21,15 @@ public static class ProtectedPreparationJson
     }
     public static HolonWritePreparation Read(HolonWritePreparation owner,string payload)
     {
-        ArgumentNullException.ThrowIfNull(owner);ArgumentNullException.ThrowIfNull(payload);
+        ArgumentNullException.ThrowIfNull(owner);
+        return Read(owner.OperationId,owner.ActorId,owner.Authority,payload);
+    }
+    public static HolonWritePreparation Read(Guid operationId,Guid actorId,
+        NextGenSoftware.OASIS.API.Core.Enums.ProviderType authority,string payload)
+    {
+        if(operationId==Guid.Empty||actorId==Guid.Empty)throw new ArgumentException("Preparation operation and actor are required.");
+        NextGenSoftware.OASIS.API.Core.Holons.CosmicConcurrency.ValidateAuthority(authority);
+        ArgumentNullException.ThrowIfNull(payload);
         if(payload.Length>MaximumPayloadCharacters)throw new InvalidDataException("Stored preparation exceeds its transport limit.");
         using var document=JsonDocument.Parse(payload,new JsonDocumentOptions{MaxDepth=4});
         var root=document.RootElement;
@@ -41,6 +49,6 @@ public static class ProtectedPreparationJson
                 throw new InvalidDataException("Stored preparation identity is invalid.");
             records.Add(new ProtectedHolonPreparation(id,item.GetProperty("envelope").GetString()!));
         }
-        return new HolonWritePreparation(owner.OperationId,owner.ActorId,owner.Authority,records);
+        return new HolonWritePreparation(operationId,actorId,authority,records);
     }
 }
