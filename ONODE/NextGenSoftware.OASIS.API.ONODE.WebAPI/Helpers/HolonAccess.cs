@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
@@ -69,7 +70,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller,
             bool revoke, CosmicWriteOptions writeOptions)
         {
-            if (caller == null || caller.Id == Guid.Empty)
+            var callerId = caller?.Id ?? Guid.Empty;
+            var callerIsWizard = caller?.AvatarType?.Value == AvatarType.Wizard;
+            if (callerId == Guid.Empty)
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN", Message = "Unauthorized. Sign in to change sharing." };
 
@@ -81,7 +84,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                     Message = "At least one valid avatar id and a nonempty holon id must be supplied." };
 
             // Sharing changes only this record. Do not load or write its child graph.
-            var loaded = await holonManager.LoadHolonAsync(holonId, loadChildren: false);
+            var authority = ProviderType.Default;
+            OASISResult<IHolon> loaded;
+            if (holonManager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+            {
+                var observed = await holonManager.LoadHolonForWriteAsync(holonId, callerId);
+                if (observed.IsError || observed.IsWarning || observed.Result == null)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                        ErrorCode = observed.ErrorCode == "COSMIC_AUTHORITY_READ_INVALID"
+                            ? "COSMIC_SHARE_LOOKUP_INVALID" : observed.ErrorCode,
+                        Message = observed.Message, Exception = observed.Exception };
+                authority = observed.Result.Authority;
+                loaded = new OASISResult<IHolon>(observed.Result.Record) { IsLoaded = true };
+            }
+            else loaded = await holonManager.LoadHolonAsync(holonId, loadChildren: false);
             if (loaded == null || loaded.IsError || loaded.IsWarning || loaded.Result == null
                 || loaded.Result.Id != holonId)
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
@@ -90,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                     Exception = loaded?.Exception };
 
             var holon = loaded.Result;
-            if (holon.CreatedByAvatarId != caller.Id && caller.AvatarType?.Value != AvatarType.Wizard)
+            if (holon.CreatedByAvatarId != callerId && !callerIsWizard)
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN",
                     Message = "Unauthorized. You can only change sharing on holons that you created." };
@@ -109,8 +125,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
             // Conditions bind the accepted provider revision from this load.
             // Unsupported providers and uncertain/conflicting outcomes fail closed.
-            var saved = await holonManager.SaveHolonAsync(holon, caller.Id,
-                writeOptions ?? new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false);
+            var saved = await holonManager.SaveHolonAsync(holon, callerId,
+                writeOptions ?? new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false, providerType: authority);
             if (saved == null || saved.IsError || saved.IsWarning || saved.Result == null)
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = saved?.ErrorCode ?? "COSMIC_SHARE_SAVE_INVALID",
