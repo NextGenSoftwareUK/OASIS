@@ -5,6 +5,9 @@ param(
     [Parameter(ParameterSetName = 'OwnerBootstrap')][switch]$OwnerBootstrap,
     [Parameter(ParameterSetName = 'Execution')][switch]$Execution,
     [Parameter(ParameterSetName = 'CSharpBackend')][switch]$CSharpBackend,
+    [Parameter(ParameterSetName = 'NftConstructorSimulation')][switch]$NftConstructorSimulation,
+    [Parameter(ParameterSetName = 'NftDeploy')][switch]$NftDeploy,
+    [Parameter(ParameterSetName = 'NftReconcile')][switch]$NftReconcile,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted
 )
@@ -23,7 +26,7 @@ $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
 $priorRecovery = $env:OASIS_POLKADOT_RECORD_RECOVERY
 try {
     $nftDeploymentPending = Join-Path $publicEvidence 'psp34-deployment-pending.json'
-    if (Test-Path -LiteralPath $nftDeploymentPending) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
+    if ((Test-Path -LiteralPath $nftDeploymentPending) -and !$NftReconcile) { throw 'Pending original exists: NFT deployment. Reconcile read-only, never replay.' }
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
         'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json','record-csharp-pending.json','public-storage-pending.jsonl')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
@@ -56,9 +59,13 @@ try {
     }
     Push-Location $sdk
     try {
-        & node verify-record-contract-artifact.mjs
+        if ($NftConstructorSimulation -or $NftDeploy -or $NftReconcile) { & node verify-record-contract-artifact.mjs psp34 }
+        else { & node verify-record-contract-artifact.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($Execution) { & node test-local-record-execution.mjs }
+        if ($NftDeploy) { & node bootstrap-local-psp34.mjs --deploy }
+        elseif ($NftReconcile) { & node bootstrap-local-psp34.mjs --reconcile }
+        elseif ($NftConstructorSimulation) { & node test-local-psp34-constructor.mjs }
+        elseif ($Execution) { & node test-local-record-execution.mjs }
         elseif ($OwnerBootstrap) { & node bootstrap-local-record-owner.mjs }
         elseif ($Preparation) { & node --test test-local-record-preparation.mjs }
         elseif ($ReadBridge) { & node --test test-local-record-read-bridge.mjs }

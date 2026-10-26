@@ -1,0 +1,27 @@
+{
+  "genesisHash": "0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208",
+  "blockHash": "0x313779bf951f27cec1beaabf59cb5999480a67435dee49a40f32d6f0e519e9cc",
+  "runtimeSpecVersion": "100",
+  "codeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
+  "artifactSha256": "32b1e526fb7c4c7502f88c2fa1f213d77e088aa7bdafa90f9cd13b73f691eaea",
+  "address": "0x6c8b9e8643c72ec5fc1f406e8cb1eb4d92d810c69a742d7af154b4b987b94c85",
+  "sender": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+  "data": "0x00000001704f415349532072657461696e65642050535033342066697874757265144f41534953b44c6f63616c206e6174697665204e465420616363657074616e63653b206e6f207075626c69632066756e64732e486f617369733a2f2f746573742f7073703334",
+  "salt": "0x6f617369732d70737033342d7631",
+  "fields": {
+    "name": "OASIS retained PSP34 fixture",
+    "symbol": "OASIS",
+    "description": "Local native NFT acceptance; no public funds.",
+    "image": "oasis://test/psp34"
+  },
+  "gasRequired": {
+    "refTime": 1573497190,
+    "proofSize": 81539
+  },
+  "storageDeposit": {
+    "charge": 1026915000000
+  },
+  "simulationPassed": true,
+  "nativeDeploymentVerified": false,
+  "signedOrSubmitted": false
+}
