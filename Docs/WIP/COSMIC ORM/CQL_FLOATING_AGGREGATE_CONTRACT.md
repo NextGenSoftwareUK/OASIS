@@ -45,8 +45,9 @@ TestResults/CosmicCqlDemo/floating-aggregate-core.log and floating-aggregate-cor
 
 Capture/result typing, immutable grouped selection and explicit capability
 declarations are now implemented. Legacy read permissions remain unchanged.
-Next: actual SQLite/MongoDB/Neo4j native digits/reductions and final group
-keys; provider source/privacy/window/consistency/interruption/error certification;
+SQLite native integration is certified below. Remaining: MongoDB/Neo4j native
+digits/reductions and final group keys, with provider source/privacy/window/
+consistency/interruption/error certification;
 explicit HTTP enrollment and signed three-provider demos. No adapter may advertise
 floating Sum/Average merely because the shared normalizer exists.
 
@@ -69,10 +70,9 @@ across SQL filters; budget exceptions preserve their original cause. Registratio
 requires an open owned connection, and disposal is idempotent. Connections and
 parameter datasets are in-memory in these tests and disposed after each case.
 
-Remaining: integrate this component into both query compilers/read owners,
-retain original source/access/traversal and complete raw proofs, certify native
-scalar/grouped cases, then explicitly enroll provider capabilities. MongoDB,
-Neo4j and HTTP floating arithmetic remain pending independently.
+This component checkpoint preceded the completed SQLite query integration
+and explicit capability enrollment described below. MongoDB, Neo4j and HTTP
+floating arithmetic remain pending independently.
 
 ## SQLite native SDK enrollment
 
@@ -96,3 +96,17 @@ the global build lease and excludes only the documented historical reconciliatio
 class. The earlier unfiltered report's two diagnostic lock refusals are preserved
 separately; they are not claimed as a passing raw run. MongoDB/Neo4j native
 arithmetic and explicit floating HTTP/demo enrollment remain open.
+
+
+## MongoDB digit extraction — verification pending
+
+A native expression component now extracts ten/70 signed base2^30 words from
+an already admitted Single/Double. Each digit uses remainder/division by exact
+powers of two before Int64 conversion; the top Double limb omits an unrepresentable
+2^1026 modulus. No Decimal128 source conversion or full-value subnormal scaling
+is used. This does not enroll floating aggregates. Two native test cases compare
+every exponent, both signs and seeded finite values against independent IEEE
+field decomposition. Native execution is not yet verified: the build stopped
+in Shared because saved NuGet package paths were absent, before Mongo startup.
+No downloads/restores were attempted. Reusable runner mode:
+`Run-ReusableUsageRecoveryTests.ps1 -CosmicCqlFloatingParts` under the build lease.
