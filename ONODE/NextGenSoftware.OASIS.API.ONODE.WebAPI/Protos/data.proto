@@ -25,6 +25,11 @@ message SaveHolonGrpcRequest {
   int32  max_child_depth = 6;
   bool   continue_on_error = 7;
   bool   save_children_for_all_providers = 8;
+  // V2 uses the same recursive holon JSON contract as REST. The flat legacy
+  // holon field is not a second V2 input and must be omitted for V2 requests.
+  string operation_id = 9;
+  map<string, string> expected_revisions = 10; // empty value means create-only
+  string holon_json = 11;
 }
 
 message LoadHolonGrpcRequest {
@@ -91,6 +96,12 @@ message HolonResponse {
   bool         is_error = 1;
   string       message = 2;
   HolonMessage holon = 3;
+  string error_code = 4;
+  bool is_saved = 5;
+  string committed_delta_json = 6;
+  string holon_json = 7; // canonical recursive V2 record, including child roles
+  int32 error_count = 8;
+  map<string, string> result_metadata = 9;
 }
 
 message LoadAllHolonsResponse {

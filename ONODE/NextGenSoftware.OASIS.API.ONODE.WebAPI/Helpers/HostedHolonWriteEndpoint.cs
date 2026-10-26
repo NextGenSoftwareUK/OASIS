@@ -39,7 +39,15 @@ internal static class HostedHolonWriteEndpoint
         var provider = string.IsNullOrWhiteSpace(request.ProviderType)
             ? ProviderType.Default
             : Enum.Parse<ProviderType>(request.ProviderType, true);
-        var scoped = manager.CreateRequestContext(new ProviderRoutingOverrides(), provider);
+        var routing = new ProviderRoutingOverrides();
+        if (request.SetGlobally)
+        {
+            var published = ProviderManager.Instance.PublishRoutingOverrides(routing, provider);
+            if (published.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ProviderRoutingPolicy, IHolon>(published);
+            routing = published.Result.ToOverrides();
+        }
+        var scoped = manager.CreateRequestContext(routing, provider);
         if (scoped.IsError)
             return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonRequestContext, IHolon>(scoped);
 
