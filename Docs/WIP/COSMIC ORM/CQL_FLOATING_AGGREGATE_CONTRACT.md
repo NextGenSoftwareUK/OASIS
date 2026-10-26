@@ -98,7 +98,7 @@ separately; they are not claimed as a passing raw run. MongoDB/Neo4j native
 arithmetic and explicit floating HTTP/demo enrollment remain open.
 
 
-## MongoDB digit extraction — verification pending
+## MongoDB digit extraction — native component verified
 
 A native expression component now extracts ten/70 signed base2^30 words from
 an already admitted Single/Double. Each digit uses remainder/division by exact
@@ -106,7 +106,11 @@ powers of two before Int64 conversion; the top Double limb omits an unrepresenta
 2^1026 modulus. No Decimal128 source conversion or full-value subnormal scaling
 is used. This does not enroll floating aggregates. Two native test cases compare
 every exponent, both signs and seeded finite values against independent IEEE
-field decomposition. Native execution is not yet verified: the build stopped
-in Shared because saved NuGet package paths were absent, before Mongo startup.
-No downloads/restores were attempted. Reusable runner mode:
+field decomposition. After restoring the removed original dependency cache, both
+native cases pass:5,786vectors, zero failures/skips. Producer/native Core, Shared
+and Mongo assembly hashes match. Runner-owned27029 is absent after teardown.
+This is component proof only; scalar/grouped query integration, final result keys
+and provider enrollment remain pending. Evidence: TestResults/CosmicCqlDemo/
+mongo-floating-parts-evidence.json and SubscriptionUsageCurrent/
+mongo-floating-parts-current.trx. Reusable runner mode:
 `Run-ReusableUsageRecoveryTests.ps1 -CosmicCqlFloatingParts` under the build lease.
