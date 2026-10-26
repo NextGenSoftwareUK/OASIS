@@ -20,8 +20,8 @@ this deliberately differs from sequential accumulation. Finite overflow errors
 rather than returning infinity, and empty nullable averages return null.
 
 Acceptance passes **1,763 production integration /74 unit tests**, zero skips,
-including48 new query controls. MongoDB scalar support is described below; Neo4j
-floating arithmetic and HTTP Single/Double arithmetic inputs remain unenrolled. Existing floating metadata
+including48 new query controls. MongoDB and Neo4j support is described below;
+HTTP Single/Double arithmetic inputs remain unenrolled. Existing floating metadata
 queries and the40-example three-provider demo retain their separate scope.
 [Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
@@ -70,9 +70,10 @@ excluded groups; overflow cannot hide behind a filter or `Take(0)`.
 HTTP floating arithmetic remains unenrolled. The current40-example SDK/HTTP
 walkthrough does not yet demonstrate these new floating aggregates. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
-## Neo4j Single/Double scalar arithmetic SDK availability
+## Neo4j Single/Double arithmetic SDK availability
 
-Neo4j supports required/nullable Single and Double scalar `Sum` and `Average`.
+Neo4j supports required/nullable Single and Double scalar and grouped `Sum` and
+`Average`, including native selected group filters, ordering and paging.
 Use the same metadata selectors and generic scalar planner/HolonManager execution
 shown above with Neo4j's actual capabilities. Results retain `float`/`double`;
 integer and Decimal averages retain Decimal. Native Int64 word sums feed Core's
@@ -80,12 +81,15 @@ exact final rounding, including subnormals, cancellation and finite overflow.
 
 Use Neo4j's declared `ProviderDefault` graph consistency. An explicit
 `ProviderSnapshot` request remains unsupported and is rejected during admission.
-Grouped floating arithmetic and floating HTTP remain unenrolled. The grouped
-profile owns its numeric input whitelist independently of scalar enrollment.
+The grouped profile owns its numeric input whitelist independently of scalar
+enrollment. It now explicitly includes floating inputs. Floating HTTP remains
+unenrolled.
 
-Acceptance passes36focused cases,454full native CQL tests and541matched full
-units, zero failures/skips. Eight producer/consumer copies match, including the
-pinned source driver; two controls prove independent grouped admission. See the [contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+Acceptance passes36scalar and34grouped focused cases,490full native CQL tests
+and552matched full units, zero failures/skips. Eight producer/consumer copies
+match, including the pinned source driver; grouped admission remains independent. Use the grouped example above with
+Neo4j's actual capabilities and declared ProviderDefault consistency. Every raw
+group remains subject to validation even when filtered or paged out. See the [contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
 
 ## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
 

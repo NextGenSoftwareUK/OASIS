@@ -274,3 +274,8 @@ Native SDK scalar Single/Double Sum/Average now passes36focused cases,454full na
 ## Neo4j floating final-value component - 25 October 2026
 
 Native grouped-result normalization prerequisite passes2cases/5,127packets, zero skips9s. It uses Int64 carries/division and guard/sticky rounding; divides prefix words before recombining a coefficient, preventing82-bit intermediate overflow. Sum/Average match Core for every exponent, random reductions, signed overflow midpoints and maximum participation. Fixed256packet parameter-only transactions roll back without graph writes; no query-error retry or fallback. Four producer/native pairs match and owned attachment34620/container/Bolt17687are stopped. No grouped capability enrollment or new full456/541claim; see CQL_FLOATING_AGGREGATE_CONTRACT.md.
+
+
+## Neo4j grouped floating SDK acceptance - 25 October 2026
+
+Required/nullable Single/Double grouped Sum/Average now supports exact native selected predicates/order/pages.34new cases and full490native/552matched units pass0skip; eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. Packed10/70word arrays retain independent input/participation proof; the shared scalar decoder and Core normalizer validate every raw group, including off-page errors, before generic membership/rank validation. Existing ProviderDefault consistency remains; unsupported snapshots still reject. Runtime image/data stopped, attach11516exited/Bolt17687absent. No downloads/restores/newenv. See CQL_FLOATING_AGGREGATE_CONTRACT.md.
