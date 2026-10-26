@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public sealed class CosmicHostedGlobalStateCollection { }
 
 [Collection("COSMIC hosted global state")]
-public sealed class CosmicDataControllerHttpTests
+public sealed partial class CosmicDataControllerHttpTests
 {
     [Fact]
     public void OrdinaryChildWireContractPreservesItsStoredMembershipObservation()
