@@ -40,6 +40,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
      [HttpPost("save-holon")]
      public async Task<OASISHttpResponseMessage<IHolon>> SaveHolon(Models.Data.SaveHolonRequest request)
      {
+         var callerId = Avatar?.Id ?? Guid.Empty;
+         var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
          OASISConfigResult<IHolon> configResult = ConfigureOASISEngine<IHolon>(request);
 
          if (configResult.IsError && configResult.Response != null)
@@ -47,6 +49,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
          try
          {
+         if (HolonManager.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+         {
+             var written = await HolonWriteEndpoint.SaveAsync(HolonManager, request, callerId, callerIsWizard,
+                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+             var status = HolonWriteEndpoint.Status(written);
+             Response.StatusCode = (int)status;
+             return HttpResponseHelper.FormatResponse(written, status, request.ShowDetailedSettings);
+         }
+
          // For updates (non-empty ID), verify the caller owns the existing holon or is a Wizard
          if (request.Holon?.Id != null && request.Holon.Id != Guid.Empty && Avatar?.AvatarType?.Value != AvatarType.Wizard)
          {
