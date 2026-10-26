@@ -1,5 +1,27 @@
 # CQL architecture
 
+## Request routing ownership — 26 October 2026
+
+`ProviderRoutingPolicy` is an immutable observation of the three routing flags,
+ordered provider lists and preferred provider. `ProviderRoutingOverrides` keeps
+inheritance distinct from explicit values. Converting an observation back to
+overrides retains every captured value, including the absence of a default.
+`ProviderManager` owns capture, validation and atomic explicit publication;
+request completion never restores a prior global snapshot.
+
+`HolonManager.CreateRequestContext` creates an isolated routing registry over
+existing registered provider instances and the existing runtime DNA. It shares
+performance monitoring and load-balancer selection history, preserving fairness,
+but owns its routing lists and current/default pointers. Construction performs no
+provider activation and adds no persistent provider event subscriptions. Original
+public constructor signatures remain available.
+
+WEB4 graph-save actions bind their manager and detailed response to the same
+observation. This does not authorize access, change conditional write authority,
+replace usage admission, or deep-copy all configuration. Non-migrated routes
+still require separate migration and cross-route verification. See
+[ownership and evidence](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
+
 ## Conditional serialized graph planning — 26 October 2026
 
 Generic `HolonSavePlan` now distinguishes explicit conditional intent from

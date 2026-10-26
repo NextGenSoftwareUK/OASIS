@@ -91,7 +91,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 request.MaxChildDepth < 0 || request.ExpectedRevisions?.Count > 10000)
                 return ("COSMIC_WRITE_INTENT_INVALID", "Stable operation intent and bounded valid conditions are required.");
             if (!string.IsNullOrWhiteSpace(request.ProviderType) &&
-                (!Enum.TryParse(request.ProviderType, true, out provider) || !Enum.IsDefined(typeof(ProviderType), provider) || provider == ProviderType.None))
+                (!Enum.TryParse(request.ProviderType, true, out provider) || !Enum.IsDefined(typeof(ProviderType), provider) ||
+                    provider == ProviderType.None || provider == ProviderType.All))
                 return ("COSMIC_WRITE_INTENT_INVALID", "A valid provider is required.");
 
             if (request is SaveHolonRequest single && single.Holon == null)

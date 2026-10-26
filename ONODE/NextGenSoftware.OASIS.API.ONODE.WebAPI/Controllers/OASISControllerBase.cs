@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -265,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (OASISConfigResult<T> result, ProviderType providerTypeOverride) = ConfigureOASISEngineInternal<T>(request);
 
             // Admitted storage activates only inside its physical attempt owner.
-            if (NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
+            if (result.RequestRoutingPolicy == null && NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
                 providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
                 GetAndActivateProvider(providerTypeOverride, request.SetGlobally);
 
@@ -277,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (OASISConfigResult<T> result, ProviderType providerTypeOverride) = ConfigureOASISEngineInternal<T>(request);
 
             // Admitted storage activates only inside its physical attempt owner.
-            if (NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
+            if (result.RequestRoutingPolicy == null && NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
                 providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
                 await GetAndActivateProviderAsync(providerTypeOverride, request.SetGlobally);
 
@@ -286,6 +287,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected bool ResetOASISSettings<T>(OASISRequest request, OASISConfigResult<T> result)
         {
+            // V2 graph writes own their registry; finishing one request cannot
+            // restore an older snapshot over another request's global update.
+            if (result.RequestRoutingPolicy != null) return true;
             if (!request.SetGlobally)
                 ProviderManager.Instance.IsAutoFailOverEnabled = result.PreviousAutoFailOverEnabled;
 
@@ -311,6 +315,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private (OASISConfigResult<T>, ProviderType) ConfigureOASISEngineInternal<T>(OASISRequest request)
         {
             OASISConfigResult<T> result = new OASISConfigResult<T>();
+            var scopedWrite = request is Models.Data.HolonWriteIntentRequest &&
+                OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+            if (scopedWrite)
+            {
+                request.AutoReplicationMode ??= "DEFAULT";
+                request.AutoFailOverMode ??= "DEFAULT";
+                request.AutoLoadBalanceMode ??= "DEFAULT";
+            }
             object providerTypeObject = null;
             ProviderType providerTypeOverride = ProviderType.Default;
 
@@ -335,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return (result, ProviderType.None);
             }
 
-            if (!string.IsNullOrEmpty(request.ProviderType) && !Enum.TryParse(typeof(ProviderType), request.ProviderType, out providerTypeObject))
+            if (!string.IsNullOrEmpty(request.ProviderType) && !Enum.TryParse(typeof(ProviderType), request.ProviderType, scopedWrite, out providerTypeObject))
             {
                 result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = $"The ProviderType {request.ProviderType} passed in is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true }, HttpStatusCode.BadRequest);
                 return (result, ProviderType.None);
@@ -441,6 +453,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //result.AutoReplicationMode = request.AutoReplicationMode == "DEFAULT" ? AutoReplicationMode.UseGlobalDefaultInOASISDNA : AutoReplicationModeTemp == true ? AutoReplicationMode.True : AutoReplicationMode.False;
             //result.AutoFailOverMode = request.AutoFailOverEnabled == "DEFAULT" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
             //result.AutoLoadBalanceMode = request.AutoLoadBalanceMode == "DEFAULT" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : AutoLoadBalanceModeTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
+
+            if (scopedWrite)
+            {
+                try
+                {
+                    bool? Mode(string value) => value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true :
+                        value.Equals("OFF", StringComparison.OrdinalIgnoreCase) ? false : (bool?)null;
+                    IEnumerable<ProviderType> Providers(string value)
+                    {
+                        if (string.IsNullOrEmpty(value) || value.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase)) return null;
+                        var parsed = ProviderManager.Instance.GetProvidersFromList("Request routing", value);
+                        if (parsed.IsError || parsed.IsWarning || parsed.WarningCount != 0 || parsed.Result == null)
+                            throw new ArgumentException(parsed.Message ?? "Invalid request provider list.");
+                        return parsed.Result;
+                    }
+                    var changes = new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
+                        Mode(request.AutoFailOverMode), Mode(request.AutoReplicationMode), Mode(request.AutoLoadBalanceMode),
+                        Providers(request.AutoFailOverProviders), Providers(request.AutoReplicationProviders), Providers(request.AutoLoadBalanceProviders));
+                    var resolved = request.SetGlobally
+                        ? ProviderManager.Instance.PublishRoutingOverrides(changes, providerTypeOverride)
+                        : ProviderManager.Instance.ResolveRoutingOverrides(changes);
+                    if (resolved.IsError)
+                    {
+                        result.IsError = true;
+                        result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>
+                        { IsError = true, ErrorCount = 1, ErrorCode = resolved.ErrorCode, Message = resolved.Message, Exception = resolved.Exception }, HttpStatusCode.ServiceUnavailable);
+                        return (result, ProviderType.None);
+                    }
+                    result.RequestRoutingPolicy = resolved.Result;
+                    result.RequestProviderType = providerTypeOverride;
+                    return (result, providerTypeOverride);
+                }
+                catch (ArgumentException exception)
+                {
+                    result.IsError = true;
+                    result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>
+                    { IsError = true, ErrorCount = 1, Message = exception.Message, Exception = exception }, HttpStatusCode.BadRequest);
+                    return (result, ProviderType.None);
+                }
+            }
 
             result.PreviousAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             result.PreviousAutoReplicationEnabled = ProviderManager.Instance.IsAutoReplicationEnabled;

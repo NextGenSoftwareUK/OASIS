@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -12,6 +13,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 // and older cleanup overwriting a newer global publication. No timing sleeps.
 public sealed partial class CosmicDataControllerHttpTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AConditionalWriteCannotUseAllProvidersAsItsAuthority(bool bulk)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            object body = bulk
+                ? new { holons = new[] { new { name = "invalid authority" } }, operationId = Guid.NewGuid(), providerType = "All" }
+                : new { holon = new { name = "invalid authority" }, operationId = Guid.NewGuid(), providerType = "All" };
+            using var response = await client.PostAsJsonAsync(bulk ? "/api/data/save-holons" : "/api/data/save-holon", body);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Empty(provider.Invocations.Where(call => call.Method.Name.Contains("Load") ||
+                call.Method.Name.Contains("Save") || call.Method.Name.Contains("Conditional")));
+        });
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LocalProviderListsAndNullModesRemainRequestOwned(bool bulk)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            var globals = ProviderManager.Instance;
+            var before = globals.GetProviderAutoFailOverListAsString();
+            object body = bulk
+                ? new { holons = new[] { new { name = "list scope" } }, operationId = Guid.NewGuid(), saveChildren = false,
+                    providerType = "sqllitedboasis", autoFailOverProviders = "MongoDBOASIS,SQLLiteDBOASIS", autoFailOverMode = (string?)null }
+                : new { holon = new { name = "list scope" }, operationId = Guid.NewGuid(), saveChildren = false,
+                    providerType = "sqllitedboasis", autoFailOverProviders = "MongoDBOASIS,SQLLiteDBOASIS", autoFailOverMode = (string?)null };
+            using var response = await client.PostAsJsonAsync(bulk ? "/api/data/save-holons" : "/api/data/save-holon", body);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.Equal("MongoDBOASIS,SQLLiteDBOASIS", json.RootElement.GetProperty("autoFailOverProviders").GetString());
+            Assert.Equal("SQLLiteDBOASIS", json.RootElement.GetProperty("currentOASISProvider").GetString());
+            Assert.Equal(before, globals.GetProviderAutoFailOverListAsString());
+        });
+    }
+
     [Theory]
     [InlineData(0, false)]
     [InlineData(1, false)]
@@ -84,6 +127,12 @@ public sealed partial class CosmicDataControllerHttpTests
                 Assert.Equal(globalUpdate, duringSecond);
                 Assert.Equal(globalUpdate, afterFirst);
                 Assert.Equal(globalUpdate, Observe());
+                var settingName = feature switch
+                { 0 => "autoReplicationEnabled", 1 => "autoFailOverEnabled", _ => "autoLoadBalanceEnabled" };
+                using var firstBody = JsonDocument.Parse(await firstResponse.Content.ReadAsStringAsync());
+                using var secondBody = JsonDocument.Parse(await secondResponse.Content.ReadAsStringAsync());
+                Assert.Equal(!globalUpdate, firstBody.RootElement.GetProperty(settingName).GetBoolean());
+                Assert.Equal(globalUpdate, secondBody.RootElement.GetProperty(settingName).GetBoolean());
             }
             finally
             {

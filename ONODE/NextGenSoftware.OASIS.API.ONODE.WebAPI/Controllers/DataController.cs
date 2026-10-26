@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if(AdmittedStorageManagerAcquisition.TryCreate(
                         ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
                         ()=>ProviderManager.Instance.CurrentStorageProvider,
-                        (provider,dna)=>new HolonManager(provider,dna),out HolonManager admitted))
+                        (provider,dna)=>new HolonManager(null,dna,ProviderManager.Instance),out HolonManager admitted))
                     {
                         _holonManager=admitted;
                         return _holonManager;
@@ -67,6 +67,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
 
         }
+
+        private static OASISResult<T> RequestContextError<T>(OASISResult<HolonRequestContext> context) =>
+            new OASISResult<T>
+            {
+                IsError = true, ErrorCount = 1, ErrorCode = context.ErrorCode,
+                Message = context.Message, Exception = context.Exception
+            };
 
     }
 }
