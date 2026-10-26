@@ -25,7 +25,7 @@ public partial class Neo4jOASIS
             var id=(Guid)DecodeNativeProjectionValue(rawId,typeof(Guid));
             var creator=(Guid)DecodeNativeProjectionValue(rawCreator,typeof(Guid));
             var visible=Flag(source,"visible");
-            if(id==Guid.Empty || access!=null && !visible && creator!=access.ActorId)
+            if(id==Guid.Empty || access!=null && !access.CanRead(id,visible,creator))
                 throw Invalid("Native detached source identity/access is invalid.");
             var lower=Number(source,"bytes");
             if(lower<0)throw Invalid("Native detached byte proof is invalid.");

@@ -150,6 +150,8 @@ public sealed partial class CqlV1Web4NativeTests
                 }
             }
 
+            await VerifyAuthoritativeAccess(providers, outsider, ids, childIds);
+
             var outbox = new MongoUsageOutboxStore(mongoUri, usageDb);
             await outbox.InitializeAsync(CancellationToken.None);
             var authority = new Authority();
