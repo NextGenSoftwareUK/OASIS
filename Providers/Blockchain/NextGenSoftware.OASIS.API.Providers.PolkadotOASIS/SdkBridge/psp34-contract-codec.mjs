@@ -1,5 +1,6 @@
 // Published PSP34 ABI: https://github.com/w3f/PSPs/blob/master/PSPs/psp-34.md
 // Pure SCALE encoding/decoding only; this module neither queries nor submits.
+import { decodeInkScaleResult } from './ink-scale-result.mjs';
 const definitions = {
   OasisPsp34Id: { _enum: { U8: 'u8', U16: 'u16', U32: 'u32', U64: 'u64', U128: 'u128', Bytes: 'Bytes' } },
   OasisPsp34Error: { _enum: { Custom: 'String', SelfApprove: 'Null', NotApproved: 'Null',
@@ -67,12 +68,6 @@ export function encodePsp34Arguments(registry, kinds, args) {
 }
 export function decodePsp34Result(registry, name, bytes) {
   const [, , type] = specification(name);
-  if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error('Missing PSP34 return bytes.');
   registerPsp34Types(registry);
-  const decoded = registry.createType(`Result<${type},OasisPsp34LangError>`, bytes);
-  if (!Buffer.from(decoded.toU8a()).equals(Buffer.from(bytes))) throw new Error('Noncanonical or trailing PSP34 return bytes.');
-  if (decoded.isErr) throw new Error(`PSP34 language failure: ${decoded.asErr.toString()}`);
-  if (type.startsWith('Result<') && decoded.asOk.isErr)
-    throw new Error(`PSP34 application failure: ${decoded.asOk.asErr.toString()}`);
-  return decoded.asOk;
+  return decodeInkScaleResult(registry, type, 'OasisPsp34LangError', bytes, 'PSP34');
 }
