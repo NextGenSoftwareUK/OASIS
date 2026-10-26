@@ -1,5 +1,17 @@
 # HyperDrive V2 current release gates
 
+## NEAR NFT native replay guards — 26 October
+
+453unitPASS +1nativePASS52s.23durably retained originals recovered keylessly (20success/3exact expected failures). Public stale-source/released-replay rejects before signing; native stale-ID release, locked burn and burn/remint old-ID reuse rejected. Synthetic NFT/remint burned,4owned ciphertext history rows removed after exact checks; replay tombstones retained. Same runtime stopped, no installs/downloads. Same-account custom-contract scope; independent owners, transport loss, hosted fees/authority and full provider/V2 remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR native NFT code upgrade — 26 October
+
+Durable original9oWz1mLD... FINAL/Success; deployed86e566d1...andprotocol1 independently read back. All2527state entries/digest unchanged; no init/reset. Owned node stopped/settings restored; signed proof/fees/artifact promotion recorded. Public23-original stale-ID/replay/locked-burn/remint cohort still requires compilation/execution. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT official SDK Wasm gate — 26 October
+
+Installed SDK2typecheck/validation/real Wasm buildPASS; candidate536635B/SHA86e566d1..., oldexports retained/exact2new. Active3390da66... unchanged. Source/mirror/export hashes and compact logs retained;750731B verified compiler intermediates removed, no downloads/new environments/native mutation. Durable upgrade and new native replay cohort remain required. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR NFT deposit-ID C# gate — 26 October
 
 453unitPASS0skip30s. Provider requires native custody protocol1, binds generated/current lock ID into calldata, validates exact original deposit/read-back and constrains bridge release to the source receipt ID. Existing owners/resolvers/validators reused; both model fixtures empty after cleanup. Active contract3390da66... does not yet expose this ABI: no live claim until actual SDK build/durable upgrade/native acceptance. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
