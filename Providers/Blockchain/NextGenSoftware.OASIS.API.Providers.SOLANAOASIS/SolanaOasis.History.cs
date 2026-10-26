@@ -17,9 +17,7 @@ public partial class SolanaOASIS
 {
     private async Task<List<IWalletTransaction>> ReadNativeHistoryEffectsAsync(SignatureStatusInfo signature,string wallet,WalletTransaction summary)
     {
-        var response=await _rpcClient.GetTransactionAsync(signature.Signature,Commitment.Finalized);
-        if(!response.WasSuccessful) throw new InvalidOperationException($"Solana transaction RPC failed: {response.Reason}");
-        var tx=response.Result;
+        var tx=await _transactionReader(signature.Signature,default);
         if(tx?.Transaction?.Message?.AccountKeys==null || tx.Transaction.Message.Instructions==null || tx.Meta==null)
             throw new InvalidDataException("Solana transaction details are missing; history is incomplete.");
         if(tx.Slot!=signature.Slot || tx.Transaction.Signatures==null || tx.Transaction.Signatures.FirstOrDefault()!=signature.Signature

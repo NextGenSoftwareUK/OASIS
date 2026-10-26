@@ -57,8 +57,8 @@ public partial class SolanaOASIS
             if (!health.WasSuccessful || !string.Equals(health.Result, "ok", StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException($"Solana RPC health check failed: {health.Reason ?? health.RawRpcResponse}. ");
 
-            _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+            _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient, null, signature => _transactionReader(signature, default));
+            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient, _solanaRepository);
 
             result.Result = true;
             IsProviderActivated = true;
