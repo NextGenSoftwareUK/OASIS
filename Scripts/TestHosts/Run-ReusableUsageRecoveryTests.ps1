@@ -102,6 +102,11 @@ $owned=$null
 $prior=@{}
 foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_SUI_SDK_BRIDGE','OASIS_COSMOS_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
 try{
+    # Every consumer below suppresses project-reference builds. Always build the
+    # current Core producer first, including the ordinary usage-only gate.
+    $cosmicCore=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj'
+    & dotnet build $cosmicCore -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    if($LASTEXITCODE){throw 'Current Core producer build failed before usage/provider verification.'}
     if($CosmicCqlEmptyCleanup -or $CosmicCqlInspect -or $CosmicCqlReconcile -or $CosmicCql -or $CosmicGraphTraversal -or $CosmicChildReconcile -or $CosmicConditionalWrites -or $CosmicConditionalReconcile -or $MongoTransactions){
         foreach($relative in @(
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
@@ -111,9 +116,6 @@ try{
         }
     }
     if($MongoV2 -or $CosmicTransferReconcile -or $CosmicReplicaTransfers -or $CosmicReplicaTransfersReconcile){
-        $cosmicCore=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj'
-        & dotnet build $cosmicCore -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
-        if($LASTEXITCODE){throw 'Current Core producer build failed before native routing verification.'}
         foreach($relative in @(
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj',
@@ -462,9 +464,9 @@ try{
         if($report.LastWriteTimeUtc -lt $usageStarted){throw 'Usage recovery report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
-        # Both labels execute this same project/filter: 368 prior cases plus
-        # seventeen raw SDK resource persistence/closure/reconciliation schedules.
-        $expectedUsage=385
+        # Both labels execute this same project/filter: 385 prior cases plus
+        # two buffered BodyWriter/envelope publication controls.
+        $expectedUsage=387
         if([int]$counts.total -ne $expectedUsage -or [int]$counts.passed -ne $expectedUsage -or [int]$counts.notExecuted -ne 0){throw "Expected$expectedUsage passing usage recovery cases without skips."}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
