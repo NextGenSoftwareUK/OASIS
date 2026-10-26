@@ -2,7 +2,8 @@
 param(
     [Parameter(ParameterSetName = 'ReadBridge')][switch]$ReadBridge,
     [Parameter(ParameterSetName = 'Preparation')][switch]$Preparation,
-    [Parameter(ParameterSetName = 'OwnerBootstrap')][switch]$OwnerBootstrap
+    [Parameter(ParameterSetName = 'OwnerBootstrap')][switch]$OwnerBootstrap,
+    [Parameter(ParameterSetName = 'Execution')][switch]$Execution
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -13,7 +14,7 @@ $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.loc
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
 try {
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
-        'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json')) {
+        'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
     }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
@@ -21,7 +22,8 @@ try {
     try {
         & node verify-record-contract-artifact.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($OwnerBootstrap) { & node bootstrap-local-record-owner.mjs }
+        if ($Execution) { & node test-local-record-execution.mjs }
+        elseif ($OwnerBootstrap) { & node bootstrap-local-record-owner.mjs }
         elseif ($Preparation) { & node --test test-local-record-preparation.mjs }
         elseif ($ReadBridge) { & node --test test-local-record-read-bridge.mjs }
         else { & node test-local-record-contract.mjs }
