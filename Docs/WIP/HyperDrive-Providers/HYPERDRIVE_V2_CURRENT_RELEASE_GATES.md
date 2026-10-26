@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## 26 October: ActivityPub account/detail native batches
+
+Ten genuine baseline failures fixed: unsupported full/geographic account collections now reject before HTTP instead of misusing the explicit-ID native endpoint and obsolete generic parsers. New account/detail batches reuse existing status-batch validation and public-profile projection. Final290controlled +12realpublicGET-native PASS0skip127ms/13s, including independently compared account/detail sync/async batch reads; prior public status/timeline/reply paths retained. Core7685F49/Shared56BB013239/provider12+unit21/native6 source/copies verified. Existing cache/projects/public fixtures only, no download or remote mutation; cached test framework versions aligned after deleted old cache prevented compilation. Exact evidence/resources in [ActivityPub audit](ACTIVITYPUB_PROVIDER_IMPLEMENTATION_AUDIT.md) and [inventory](ENVIRONMENT_INVENTORY.md). Authenticated writes/search/private batches, federation, generic private-storage capability routing and fullV2 remain OPEN.
+
 ## 26 October: joined avatar identity reads verified
 
 Native14811terminal0:12/12 cases +init1 PASS0skip5s/161ms, including four AWS/Dynamo×sync/async lifecycle cases with fifteen scopes each. Added public profile/detail reads by GUID/username/email verify exact identity, loaded count, XP71/Karma23 and table-bound real SDK GetItem/Scan capture in durable Mongo. All original lifecycle/unpriced-recovery/duplicate-admission assertions retained. Core7685F49/Shared56BB013239/source/PDB/copies verified, ownership3controlsPASS, fixture journals0, owned services stopped and ports absent. Same environments/SDK/cache; no download/restore/production change. Exact report hashes, resource sizes and conditional cleanup evidence in [environment inventory](ENVIRONMENT_INVENTORY.md). Hosted cloud access, trusted prices/exposure and full provider/V2 completion remain OPEN.
