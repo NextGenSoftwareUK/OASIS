@@ -18,6 +18,7 @@ public sealed partial class CqlV1Web4NativeTests
             var recovery = pair.Value as IConditionalHolonWriteRecoveryStorageProvider;
             Assert.IsNotNull(recovery, "The selected authority must declare read-only recovery.");
             var writer = (IConditionalHolonStorageProvider)pair.Value;
+            var manager = new Sources(providers).CreateManager(pair.Value);
             var originals = new List<ConditionalHolonWriteRequest>();
             var acknowledged = new List<IHolon>();
             async Task<IHolon> Execute(ConditionalHolonWriteRequest request)
@@ -42,6 +43,9 @@ public sealed partial class CqlV1Web4NativeTests
                 var absent = await recovery.ReadConditionalHolonWriteOutcomeAsync(original);
                 Assert.IsFalse(absent.IsError, absent.Message + absent.Exception);
                 Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+                var routedAbsent = await manager.ReadConditionalHolonWriteOutcomeAsync(original, actor);
+                Assert.IsFalse(routedAbsent.IsError, routedAbsent.Message + routedAbsent.Exception);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, routedAbsent.Result.ReceiptState);
                 acknowledged.Add(await Execute(original));
             }
             for (var i = 1; i < ids.Length; i++)
@@ -68,7 +72,7 @@ public sealed partial class CqlV1Web4NativeTests
                 Assert.AreEqual(original.Operation, first.Result.Operation);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(first.Result.CommittedDeltaSummaryJson));
                 Assert.IsFalse(JsonSerializer.Serialize(first.Result).Contains("private recovery fixture", StringComparison.Ordinal));
-                var second = await recovery.ReadConditionalHolonWriteOutcomeAsync(original);
+                var second = await manager.ReadConditionalHolonWriteOutcomeAsync(original, actor);
                 Assert.IsFalse(second.IsError, second.Message + second.Exception);
                 Assert.AreEqual(JsonSerializer.Serialize(first.Result), JsonSerializer.Serialize(second.Result));
                 var foreign = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(original.Write.OperationId,

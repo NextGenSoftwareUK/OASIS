@@ -1053,7 +1053,7 @@ public partial class CosmicTrackingTests
         root.MetaData["private-parent-note"].ToString().Should().Be("public-unit-test-value");child.ParentHolon.Should().BeSameAs(root);
     }
 
-    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false)
+    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false)
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
             HyperDriveMode = v2 ? HyperDriveModes.V2 : HyperDriveModes.Legacy,
@@ -1061,6 +1061,7 @@ public partial class CosmicTrackingTests
         var p = new Mock<IOASISStorageProvider>(); p.SetupAllProperties();
         if (conditional) p.As<IConditionalHolonStorageProvider>();
         if (preparation) p.As<IHolonWritePreparationStorageProvider>();
+        if (recovery) p.As<IConditionalHolonWriteRecoveryStorageProvider>();
         p.Object.ProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
         p.Object.ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.Storage);
         p.Object.ProviderName = "cosmic-controlled-store"; p.Object.IsProviderActivated = true;

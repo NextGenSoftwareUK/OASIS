@@ -1,5 +1,15 @@
 # Provider-key deletion acceptance contract
 
+## Routed recovery SDK - verified
+
+Core `1832d0b` exposes HolonManager.ReadConditionalHolonWriteOutcomeAsync(original, authenticatedActor). It verifies actor before I/O, captures a detached original graph, pins the original authority, rejects unsupported capabilities and verifies returned operation/actor/authority/kind. HyperDrive dispatches a dedicated read operation with no conditional mutation enrollment, replication or failover. The ordinary tariff catalogue has an explicit recovery-read entry and a bounded18-row three-provider matrix.
+
+Seven focused controls pass; the shared full Core3433/3433 report includes all seven (inspected XML, zero skips). Reuse [shared Core regression evidence](../HyperDrive-Providers/NativeEvidence/Polkadot/shared-nft-core-current.trx.gz) and its source/binary record in stored-nft-lock-current.json. Real-Mongo usage402/402 passes: query tariffs do not authorize recovery reads, while an exact recovery-read tariff persists one bound attempt/receipt and its0.001USD charge.
+
+Native79939 passes routed absent reads and direct-provider versus HolonManager committed-outcome equality for create/soft-delete/hard-delete receipts on all three providers after reconnection. The existing full cohort remains453 settlements/496 attempts. Sources stayed unchanged; seven producer/consumer pairs matched under lease; owned services stopped and exact fixture/SQLite files are absent. Evidence: Verification/routed-recovery-* plus recovery-routing-focused.trx.gz.
+
+This is trusted SDK routing and pricing-policy acceptance. An authenticated recovery HTTP endpoint, durable original hosted intent, actual lost native acknowledgement injection and OS-process restart remain open. The original provider request must be retained exactly; a current holon read or new CosmicWriteOptions is not a substitute for that original intent.
+
 ## Read-only recovery SDK - native verified
 
 Core `b3d4df4` defines IConditionalHolonWriteRecoveryStorageProvider. MongoDB, SQLite and Neo4j implement it by reading durable receipts and reusing existing exact-intent validators. Status is bound to the original request's actor, operation, authority, selected graph and fingerprint. Results contain no stored graph or private field values. Absent is not proof of rejection or permission to replay; invalid/unavailable evidence returns an error.
@@ -132,3 +142,9 @@ Neo4j provider/consumer builds pass; all seven new recovery controls and full559
 MongoDB recovery now builds with primary/majority reads of the existing CosmicWriteReceipt collection and the shared pure receipt validator. SQLite recovery also builds: a separate nonpooled ReadOnly file connection runs SELECT only and invokes the existing SQLite receipt fingerprint/envelope/graph/delta validator. It does not save, detach context entities, reserve an IMMEDIATE writer transaction, create a missing database, or observe uncommitted writer-context receipts. Private in-memory authorities explicitly reject durable recovery rather than fabricate an absent result.
 
 These implementations and the additive Core contract remain uncommitted. MongoDB/SQLite unit/native validation, Neo4j actual receipt/restart/fault validation, generic routing/admission, and authenticated host integration remain pending. A compilation result is not native recovery certification.
+
+## Generic recovery routing - focused controls verified
+
+HolonManager.ReadConditionalHolonWriteOutcomeAsync(original, authenticatedActor) now captures a detached original graph, verifies actor and explicit original authority, and dispatches a dedicated HyperDrive read operation with required provider/replication disabled. Unsupported provider capabilities reject before execution. A returned status must match actor, authority, original operation ID and operation kind. The recovery payload is not enrolled as a conditional mutation. The ordinary tariff catalogue adds an exact read-status operation and is bounded to18 entries across the three target stores.
+
+Seven focused controls pass for save/soft/hard detached original capture, actor/legacy rejection, unsupported capability and mismatched returned binding. No mutation method is called. This uncommitted routing batch still needs portable/full regression, real receipt lookup through the manager and configured HTTP admission/pricing coverage; host recovery is not yet delivered. Provider-level native checks above remain the published evidence cohort.
