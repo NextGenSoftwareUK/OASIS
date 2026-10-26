@@ -1140,7 +1140,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             if(all.IsError)return all;
             var filtered=all.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();
             all.Result=filtered;all.LoadedCount=filtered.Count;
-            return all;
+            // Project each stored root independently; do not hydrate or merge versions.
+            return version==-1 ? IOASISStorageProvider.ProjectVisibleHolons(all,avatarId,false) : all;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();

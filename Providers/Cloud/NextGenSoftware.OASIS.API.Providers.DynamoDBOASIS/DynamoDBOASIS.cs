@@ -900,7 +900,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
                 result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList();
                 result.LoadedCount=result.Result.Count();
-                if(version!=-1)return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
+                return IOASISStorageProvider.ProjectVisibleHolons(result,avatarId,false);
             }
             catch(Exception cause) {result.Result=null;result.IsLoaded=false;result.LoadedCount=0;result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
             return result;
