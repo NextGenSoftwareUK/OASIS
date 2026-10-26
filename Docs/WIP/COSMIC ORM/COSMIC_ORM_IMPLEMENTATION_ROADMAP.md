@@ -5,7 +5,7 @@
 The latest CQL/provider checkpoint is maintained in the
 [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and
 [implementation status](IMPLEMENTATION_STATUS.md). Core's pinned preparation
-lookup and stored-only recovery workflow has 3,478 passing unit tests and both
+lookup, stored-only recovery and protected conditional-delete workflow have 3,494 passing unit tests and both
 target builds; ordinary read pricing has 404 passing real-Mongo usage cases.
 Latest WEB4 unit evidence is 285 passed / one unrelated Stripe sandbox skip.
 The signed three-provider delete matrix, actual lost native acknowledgement

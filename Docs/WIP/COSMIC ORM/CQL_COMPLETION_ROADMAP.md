@@ -12,7 +12,7 @@ matching producer/consumer pairs. These are application-boundary fault tests,
 not OS-process crash certification.
 
 Core's new pinned preparation routing and stored-only reconstruction workflow
-passes 3,478 unit tests; both Core targets build. Exact preparation/receipt read
+and protected conditional-delete enrollment pass 3,494 unit tests; both Core targets build. Exact preparation/receipt read
 tariffs have 404 passing real-Mongo usage tests. Latest WEB4 unit evidence is
 285 passed with one unrelated Stripe sandbox credential skip. See
 [protected preparation contracts and evidence](WRITE_PREPARATION.md) and
