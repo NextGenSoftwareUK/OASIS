@@ -1732,3 +1732,34 @@ this finalizer and the per-target policy extension. Native manager/hosted
 federation authorization, HTTP, billing, cursors and distributed joins remain open.
 
 26 October federation HTTP boundary: the seventh exact CQL route binds authenticated admission before provider lookup, compiles unbound business intent only internally, captures one policy per target, then uses generic federation planning and HolonManager materialization. Resource filtering, durable query attempt ownership and public leaf projection are shared with existing CQL. Wire size and canonical output are separately bounded. Core3,636/shipping320+1existing skip pass; signed native federation HTTP/billing remains open. See CQL_FEDERATION_HTTP_CONTRACT.md.
+
+## 26 October: signed native federation and demos verified
+
+The actual shipping controller passes13requests (12admitted/settled, one anonymous)
+with23durable provider attempts on real MongoDB, SQLite and Neo4j. Cases cover
+provider-specific private grants, visibility before global paging, priority/copy
+provenance, revocation, late denial and authority mismatch with zero attempts,
+input/output exhaustion, empty sources, schema rejection, captured default,
+three-store metadata decryption, wrong-key rejection and unchanged stored
+ciphertext. Every admitted operation settles with the expected exact tariff cost;
+completed read receipts survive later service errors. No billing account is used.
+
+The reusable demo also executes the spaced/commented
+Examples/CosmicCqlDemo/V1FederationWalkthrough.cs: one global SDK example and one
+signed global HTTP example, in addition to138SDK/138HTTP per-provider examples.
+Swagger has a federation request example; its token interceptor derives allowed
+paths from the shared CQL catalogue, including composition and federation. Demo
+federation admission reserves three attempts; leaf routes retain one.
+
+The complete cohort passes505settled operations/567attempts,14SDK federation
+scenarios and process-restart recovery on all3providers. Native source snapshots
+are unchanged and seven producer/consumer pairs match. The controller's source
+hash matches the earlier HTTP capture; the reusable snapshot list now includes
+that file explicitly for future runs. Owned fixtures/services were verified and
+removed; no installation, download or new environment was used.
+
+Evidence: Verification/federation-hosted-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}
+and federation-hosted-controller-identity.json. Core3,636 tests and the existing
+shipping320tests/one Stripe sandbox skip are separate prior regression gates.
+Authenticated cursors, causal agreement/repeatable distributed snapshots,
+distributed joins and full remaining ORM roadmap acceptance remain open.

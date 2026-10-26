@@ -2203,7 +2203,7 @@ CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment 
 
 ## Bounded federated SDK rows — 26 October 2026
 
-This SDK feature now passes fourteen real MongoDB/SQLite/Neo4j scenarios and 3,595 Core unit tests. Signed federation HTTP/billing acceptance remains pending. Ordinary multi-provider queries continue to
+This SDK feature now passes fourteen real MongoDB/SQLite/Neo4j scenarios and 3,636 Core unit tests. Signed federation HTTP/billing is now verified in the thirteen-request native matrix. Ordinary multi-provider queries continue to
 return separate provider result sets. Explicit federation adds a global page.
 
 The application supplies an already authorized, bounded `adapters` snapshot and
@@ -2284,10 +2284,11 @@ one `CosmicFederationReadPolicy(provider, access)` for every resolved provider.
 Use the same authenticated actor in every policy and a matching authority for
 each AuthoritativeRecords catalogue. Start with an unbound source intent; an
 existing source access policy cannot be replaced. The planner applies target
-policies before each native source window. This overload has Core unit coverage;
-its hosted/native authorization acceptance remains pending. Never construct the
+policies before each native source window. This overload now has Core unit coverage and signed three-provider authorization acceptance. Never construct the
 catalogues directly from caller-selected IDs or metadata search hits.
 
-The manager federation method materializes each selected/observed copy as T using the ordinary metadata decryption/hydration pipeline and publishes clean tracking state. The low-level CosmicFederationExecutor handles stored canonical rows and does not perform that mapping. The output budget includes actual row payload after materialization, plus provenance. This manager extension has Core unit/encryption controls; its native/hosted acceptance is still pending.
+The manager federation method materializes each selected/observed copy as T using the ordinary metadata decryption/hydration pipeline and publishes clean tracking state. The low-level CosmicFederationExecutor handles stored canonical rows and does not perform that mapping. The output budget includes actual row payload after materialization, plus provenance. This manager extension has Core unit/encryption controls; its native/hosted acceptance now passes the signed matrix.
 
-Hosted row federation is implemented at POST /api/data/query-cql/federation with explicit CurrentDefault/Named/AllEligible scope, per-target policy capture, independent source/global windows, manager materialization and canonical/public byte limits. See [the HTTP contract and JSON example](CQL_FEDERATION_HTTP_CONTRACT.md). Core unit/per-target receipt controls and the shipping build pass; signed real-provider HTTP/billing and demo acceptance remain pending.
+Hosted row federation is implemented at POST /api/data/query-cql/federation with explicit CurrentDefault/Named/AllEligible scope, per-target policy capture, independent source/global windows, manager materialization and canonical/public byte limits. See [the HTTP contract and JSON example](CQL_FEDERATION_HTTP_CONTRACT.md). Core unit/per-target receipt controls and the shipping build pass; signed real-provider HTTP/billing and demo acceptance now pass.
+
+Signed federation HTTP/native acceptance now passes on all3providers:13requests/12settled operations/23attempts, including private per-target grants and actual manager encryption handling. The new readable [SDK and HTTP global examples](../../../Examples/CosmicCqlDemo/V1FederationWalkthrough.cs) execute in the retained runner. Full cohort505operations/567attempts;14SDK federation scenarios plus one new SDK/HTTP demo each pass. Swagger supports federation with the shared route-catalog token interceptor. Earlier pending native/hosted statements above are superseded by this checkpoint; cursors, causal agreement and distributed joins remain open.

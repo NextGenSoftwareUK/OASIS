@@ -1,8 +1,6 @@
 # CQL federation HTTP v1
 
-26 October 2026. Implemented and unit verified; signed real-provider federation
-HTTP/billing acceptance is still pending. The last fourteen real-provider SDK
-scenarios predate hosted authorization and typed materialization extensions.
+26 October 2026. Implemented with signed actual-controller acceptance on real MongoDB, SQLite and Neo4j:13requests,12settled operations,23provider attempts. Typed/decrypted results, per-target grants and exact durable billing are verified. Authenticated cursors and distributed joins remain open.
 
 `POST /api/data/query-cql/federation` requires an authenticated WEB4 actor,
 HyperDrive V2, the route's configured storage admission and explicit ordinary
@@ -117,7 +115,36 @@ unknown grant/tariff fields and actual JSON wire size. The existing shipping WEB
 suite passed320 with one existing Stripe sandbox skip.
 
 Retained proof: Verification/federation-http-{core,web4,initial-core}.trx.gz and
-federation-http-identities.json. Signed actual-controller tests on real MongoDB,
-SQLite and Neo4j, exact durable federation billing, native policy separation,
-typed/encrypted acceptance and annotated HTTP demo enrollment remain required.
+federation-http-identities.json. Signed native controller/grant/decryption/billing and annotated SDK/HTTP demo acceptance now pass; see the native checkpoint below.
 See CQL_FEDERATION_CONTRACT.md and CQL_COMPLETION_ROADMAP.md.
+
+## 26 October: signed native federation and demos verified
+
+The actual shipping controller passes13requests (12admitted/settled, one anonymous)
+with23durable provider attempts on real MongoDB, SQLite and Neo4j. Cases cover
+provider-specific private grants, visibility before global paging, priority/copy
+provenance, revocation, late denial and authority mismatch with zero attempts,
+input/output exhaustion, empty sources, schema rejection, captured default,
+three-store metadata decryption, wrong-key rejection and unchanged stored
+ciphertext. Every admitted operation settles with the expected exact tariff cost;
+completed read receipts survive later service errors. No billing account is used.
+
+The reusable demo also executes the spaced/commented
+Examples/CosmicCqlDemo/V1FederationWalkthrough.cs: one global SDK example and one
+signed global HTTP example, in addition to138SDK/138HTTP per-provider examples.
+Swagger has a federation request example; its token interceptor derives allowed
+paths from the shared CQL catalogue, including composition and federation. Demo
+federation admission reserves three attempts; leaf routes retain one.
+
+The complete cohort passes505settled operations/567attempts,14SDK federation
+scenarios and process-restart recovery on all3providers. Native source snapshots
+are unchanged and seven producer/consumer pairs match. The controller's source
+hash matches the earlier HTTP capture; the reusable snapshot list now includes
+that file explicitly for future runs. Owned fixtures/services were verified and
+removed; no installation, download or new environment was used.
+
+Evidence: Verification/federation-hosted-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}
+and federation-hosted-controller-identity.json. Core3,636 tests and the existing
+shipping320tests/one Stripe sandbox skip are separate prior regression gates.
+Authenticated cursors, causal agreement/repeatable distributed snapshots,
+distributed joins and full remaining ORM roadmap acceptance remain open.

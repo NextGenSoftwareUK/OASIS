@@ -39,6 +39,7 @@
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1FederationWalkthrough.cs" Link="Demo\V1FederationWalkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SwaggerExample.cs" Link="Demo\V1SwaggerExample.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1DemoPresentation.cs" Link="Demo\V1DemoPresentation.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlV1Request.cs" Link="Web4\CqlV1Request.cs" />

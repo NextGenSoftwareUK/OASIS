@@ -68,6 +68,10 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static WebApplication ShippingReadHost(ShippingQuerySources sources, ShippingReadPolicy policy,
         ProviderType provider, MongoUsageOutboxStore outbox, Authority authority, string secret)
+        => ShippingReadHost(sources, policy, new[] { provider }, outbox, authority, secret);
+
+    private static WebApplication ShippingReadHost(ShippingProviders sources, ShippingPolicy policy,
+        ProviderType[] providers, MongoUsageOutboxStore outbox, Authority authority, string secret)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
@@ -82,12 +86,12 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions { Service = "WEB4", EndpointPolicy = http =>
             IsQueryRoute(http) ? new UsageEndpointPolicy { MeterCategory = "cql.query", ReservedUnits = 1,
-                EstimatedCostUsd = 0.002m, PricingCatalogueVersion = "owned-fixture-v1",
-                RequiresProviderMeasurement = true, MaximumProviderAttempts = 1, MaximumNativeFeeCostUsd = 0 } : null });
+                EstimatedCostUsd = 0.002m * providers.Length, PricingCatalogueVersion = "owned-fixture-v1",
+                RequiresProviderMeasurement = true, MaximumProviderAttempts = providers.Length, MaximumNativeFeeCostUsd = 0 } : null });
         builder.Services.AddSingleton<Web4UsageExecution>();
         builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(new PricedStorageAdmissionFactory(null,
-            Array.Empty<NativeStorageAdmissionBinding>(), new[] { provider },
-            new[] { new StorageQueryTariff(provider, 0.002m, "owned-fixture-v1") }));
+            Array.Empty<NativeStorageAdmissionBinding>(), providers,
+            providers.Select(provider => new StorageQueryTariff(provider, 0.002m, "owned-fixture-v1"))));
         builder.Services.AddControllers(options => options.Filters.Add<UsageResultFilter>())
             .AddApplicationPart(typeof(ShippingQuery).Assembly)
             .ConfigureApplicationPartManager(parts => parts.FeatureProviders.Add(new OnlyShippingQuery()));
