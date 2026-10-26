@@ -13,6 +13,7 @@ import { readWalletHistory, validateHistoryRequest } from './wallet-history.mjs'
 import { generateKeyPair, validateGenerationRequest, createAccount, restoreAccount, validateRestorationMaterial } from './key-generation.mjs';
 import { readTransactionStatus, validateStatusRequest } from './transaction-status.mjs';
 import { readRecordContract, validateRecordRead } from './record-contract-read.mjs';
+import { prepareRecordMutation, verifyRecordPreparation, validateRecordMutation } from './record-contract-mutation.mjs';
 
 // Metadata/preparation transport is read-only. Only explicitly owned submission gains a one-shot capability.
 let api;
@@ -21,8 +22,9 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
-  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
+  if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'prepareRecordMutation', 'verifyRecordPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
   if (request.operation === 'recordRead') validateRecordRead(request);
+  if (request.operation === 'prepareRecordMutation') await validateRecordMutation(request);
   if (['generateKeyPair', 'createAccount'].includes(request.operation)) validateGenerationRequest(request);
   if (request.operation === 'restoreAccount') await validateRestorationMaterial(request.recoveryMaterial);
   if (request.operation === 'transactionStatus') validateStatusRequest(request);
@@ -46,7 +48,7 @@ try {
   if (api.genesisHash.toHex().toLowerCase() !== request.genesisHash.toLowerCase())
     throw new Error('Polkadot SDK genesis hash differs from the activated network.');
   let decimals;
-  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead'].includes(request.operation)) {
+  if (!['verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'prepareRecordMutation', 'verifyRecordPreparation'].includes(request.operation)) {
   stage = 'native precision query';
   const properties = await api.rpc.system.properties();
   if (properties.tokenDecimals.isNone || properties.tokenDecimals.unwrap().length !== 1)
@@ -55,7 +57,13 @@ try {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > 38)
     throw new Error('Native-token precision is outside the supported range.');
   }
-  if (request.operation === 'recordRead') {
+  if (request.operation === 'prepareRecordMutation') {
+    stage = 'record mutation signing and execution-limit estimation';
+    process.stdout.write(JSON.stringify({ ok: true, result: await prepareRecordMutation(api, request) }));
+  } else if (request.operation === 'verifyRecordPreparation') {
+    stage = 'original signed record intent verification';
+    process.stdout.write(JSON.stringify({ ok: true, result: await verifyRecordPreparation(api, request.preparation) }));
+  } else if (request.operation === 'recordRead') {
     stage = 'pinned finalized contract record read';
     process.stdout.write(JSON.stringify({ ok: true, result: await readRecordContract(api, request) }));
   } else if (request.operation === 'transactionStatus') {

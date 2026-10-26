@@ -57,11 +57,15 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\bridge.mjs" />
+    <None Include="SdkBridge\record-contract-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-codec.mjs" />
+    <None Include="SdkBridge\record-contract-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-read.mjs" />
+    <None Include="SdkBridge\record-contract-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\record-contract-mutation.mjs" />
     <None Include="SdkBridge\native-transfer.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\native-transfer.mjs" />
     <None Include="SdkBridge\asset-operation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-operation.mjs" />
     <None Include="SdkBridge\asset-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\asset-outcome.mjs" />
     <None Include="SdkBridge\wallet-history.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\wallet-history.mjs" />
     <None Include="SdkBridge\key-generation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\key-generation.mjs" />
+    <None Include="SdkBridge\transaction-status.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\transaction-status.mjs" />
     <None Include="SdkBridge\read-only-provider.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\read-only-provider.mjs" />
     <None Include="SdkBridge\verify-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\verify-preparation.mjs" />
     <None Include="SdkBridge\finalized-receipt.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\finalized-receipt.mjs" />
