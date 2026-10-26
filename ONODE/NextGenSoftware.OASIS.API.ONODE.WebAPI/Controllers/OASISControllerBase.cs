@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -264,7 +264,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             (OASISConfigResult<T> result, ProviderType providerTypeOverride) = ConfigureOASISEngineInternal<T>(request);
 
-            if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
+            // Admitted storage activates only inside its physical attempt owner.
+            if (NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
+                providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
                 GetAndActivateProvider(providerTypeOverride, request.SetGlobally);
 
             return result;
@@ -274,7 +276,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             (OASISConfigResult<T> result, ProviderType providerTypeOverride) = ConfigureOASISEngineInternal<T>(request);
 
-            if (providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
+            // Admitted storage activates only inside its physical attempt owner.
+            if (NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current == null &&
+                providerTypeOverride != ProviderType.Default && providerTypeOverride != ProviderType.None)
                 await GetAndActivateProviderAsync(providerTypeOverride, request.SetGlobally);
 
             return result;
