@@ -28,6 +28,7 @@
     <None Include="Fixtures\record-publication.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\storage-snapshot.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\storage-mutation-outcome.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\token-escrow.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\prepared-action.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

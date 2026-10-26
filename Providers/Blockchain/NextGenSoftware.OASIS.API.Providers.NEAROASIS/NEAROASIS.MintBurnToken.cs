@@ -123,37 +123,9 @@ public partial class NEAROASIS
     private async Task<BigInteger> ReadCustomTokenUnitsAsync(string symbol,string owner)
     {
         var value=await _sdk.ViewAsync("token_balance",new{symbol,account_id=owner});
-        if(value.ValueKind!=System.Text.Json.JsonValueKind.String
-            ||!BigInteger.TryParse(value.GetString(),NumberStyles.None,CultureInfo.InvariantCulture,out var units)||units.Sign<0)
-            throw new System.IO.InvalidDataException("Native custom-token balance is not an unsigned integer string.");
-        return units;
-    }
-
-    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) =>
-        LockTokenAsync(request).GetAwaiter().GetResult();
-
-    public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request) =>
-        await SetTokenLockAsync(request?.TokenAddress, true);
-
-    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) =>
-        UnlockTokenAsync(request).GetAwaiter().GetResult();
-
-    public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request) =>
-        await SetTokenLockAsync(request?.TokenAddress, false);
-
-    private async Task<OASISResult<ITransactionResponse>> SetTokenLockAsync(string symbol, bool locked)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        try
-        {
-            if (string.IsNullOrWhiteSpace(symbol)) throw new ArgumentException("Token address is required.");
-            if (!await EnsureSdkActiveAsync(result)) return result;
-            var tx = await _sdk.CallAsync("token_set_locked", new { symbol, locked });
-            result.Result = new TransactionResponse { TransactionResult = tx };
-            result.Message = $"Token {(locked ? "locked" : "unlocked")} by the deployed NEAR contract.";
-        }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error changing NEAR token lock: {ex.Message}", ex); }
-        return result;
+        if(value.ValueKind!=System.Text.Json.JsonValueKind.String)
+            throw new System.IO.InvalidDataException("Native custom-token balance must contain exact unsigned integer units.");
+        return ExactTokenUnits(value.GetString());
     }
 
     public async Task<OASISResult<decimal>> GetCustomTokenBalanceAsync(string symbol, string accountId)
