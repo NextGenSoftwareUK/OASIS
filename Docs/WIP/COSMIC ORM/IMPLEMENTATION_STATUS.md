@@ -1,5 +1,27 @@
 # COSMIC ORM implementation status
 
+## Neo4j floating grouped acceptance - 25 October 2026
+
+Neo4j native SDK required/nullable Single/Double grouped Sum/Average now supports
+selected filtering/order/paging. All34new grouped native cases,490full native CQL
+tests and552matched provider units pass, zero failures/skips. Eight Core/Shared/
+Neo/sourceDriver producer/native/unit copies match; driver4.3.2.2 and the existing
+pinned image/data were reused. Owned attachment11516exited after containerstop,
+with Bolt17687absent.
+
+The compiler retains packed10/70word Int64 reductions plus participation for
+every raw group, uses exact native final values for selection, and reuses the
+scalar word-domain decoder plus shared Core normalization. Excluded groups cannot
+hide overflow or malformed packets. Precision/key equality, rounded/nullable
+means, mixed slots, privacy/windows, cancellation/reuse and137inputs independent
+of graph publication limits are verified. Grouped admission remains independent
+and explicitly enrolls the implemented numeric domains.
+
+All three target stores now implement native SDK scalar/grouped floating arithmetic.
+Floating HTTP enrollment, annotated live demos and broader CQL/ORM policy/federation
+criteria remain open. [Contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+
 ## Neo4j floating scalar acceptance - 25 October 2026
 
 Neo4j SDK required/nullable Single/Double scalar Sum/Average now passes36focused

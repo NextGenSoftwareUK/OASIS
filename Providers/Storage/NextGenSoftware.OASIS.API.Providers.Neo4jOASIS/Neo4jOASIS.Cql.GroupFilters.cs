@@ -43,9 +43,12 @@ public partial class Neo4jOASIS
             var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
             var packet = "aggregates[" + slot + "]";
             if (column.Operation == CosmicScalarOperation.Sum)
-                return (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal)
+            {
+                var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                return type == typeof(decimal) || type == typeof(float) || type == typeof(double)
                     ? new Cell { Value = "averageKeys[" + index + "]", Type = column.ValueType }
                     : new Cell { High = packet + ".high", Low = packet + ".low" };
+            }
             if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) return new Cell { Value = packet + ".value", Type = column.ValueType };
             throw new NotSupportedException("Exact normalized Average filtering is not enrolled.");
         }

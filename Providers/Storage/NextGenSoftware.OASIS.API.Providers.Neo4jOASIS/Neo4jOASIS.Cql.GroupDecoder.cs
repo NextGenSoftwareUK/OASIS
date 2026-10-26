@@ -55,7 +55,16 @@ public partial class Neo4jOASIS
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 OASISResult<object> normalized;
-                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                if (type == typeof(float) || type == typeof(double))
+                {
+                    if (aggregate.Count != 2 || !aggregate.TryGetValue("parts", out var rawParts))
+                        throw new InvalidDataException("Native floating packet shape is invalid.");
+                    var width = type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+                    normalized = CosmicFloatingAggregateResults.FromParts(column.Operation.Value, column.Selector.ValueType,
+                        ReadFloatingAggregateParts(rawParts, width), present);
+                }
+                else if (type == typeof(decimal))
                 {
                     if (aggregate.Count != 2 || !aggregate.TryGetValue("parts", out var rawParts))
                         throw new InvalidDataException("Native Decimal packet shape is invalid.");

@@ -48,10 +48,8 @@ public partial class Neo4jOASIS
             throw new NeoCqlLimitException("Neo4j numeric reduction exceeds its input-work budget.");
         if (floatingWidth != 0)
         {
-            if (!row.TryGetValue("parts", out var raw) || raw is not IReadOnlyList<object> parts
-                || parts.Count != floatingWidth || parts.Any(part => part is not long))
-                throw new InvalidDataException("Floating reduction requires its exact declared Int64 word array.");
-            return new NeoCqlNumericValue(parts.Cast<long>().ToArray(), count, floating: true);
+            if (!row.TryGetValue("parts", out var raw)) throw new InvalidDataException("Missing floating words.");
+            return new NeoCqlNumericValue(ReadFloatingAggregateParts(raw, floatingWidth), count, floating: true);
         }
         if (decimalInput)
         {
@@ -62,6 +60,14 @@ public partial class Neo4jOASIS
             || !row.TryGetValue("low", out var low) || low is not long lowInteger)
             throw new InvalidDataException("Integer reduction requires exact Int64 limbs.");
         return new NeoCqlNumericValue(highInteger, lowInteger, count);
+    }
+
+    private static long[] ReadFloatingAggregateParts(object raw, int width)
+    {
+        if (width != CosmicFloatingAggregateResults.SingleLimbCount && width != CosmicFloatingAggregateResults.DoubleLimbCount
+            || raw is not IReadOnlyList<object> parts || parts.Count != width || parts.Any(part => part is not long))
+            throw new InvalidDataException("Floating reduction requires its exact declared Int64 word array.");
+        return parts.Cast<long>().ToArray();
     }
 
     private static long[] ReadDecimalAggregateParts(object raw)

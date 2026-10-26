@@ -17,8 +17,8 @@ Historical test cohorts are not interchangeable with a new full-suite gate.
 | Single/nullable Single metadata selectors | Verified 1,516 full native cohort, including 31 Single cases | Verified 281 native / 494 unit cohort, including 24 Single query cases | Verified 249 native / 459 unit cohort, including 16 Single query cases |
 | Count/LongCount/Any | Native | Native | Native |
 | Min/Max | Enrolled selected scalar domains | Enrolled selected scalar domains | Enrolled selected scalar domains |
-| Sum/Average inputs | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal; Single/Double scalar only; nullable allowed |
-| Average result, selected filters/order | Exact Decimal or finite Single/Double normalization | Exact Decimal or finite Single/Double normalization | Exact Decimal; finite Single/Double scalar results only |
+| Sum/Average inputs | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed | Int32/Int64/UInt64/Decimal/Single/Double, nullable allowed |
+| Average result, selected filters/order | Exact Decimal or finite Single/Double normalization | Exact Decimal or finite Single/Double normalization | Exact Decimal or finite Single/Double normalization |
 
 The [floating foundation contract](CQL_FLOATING_SCALAR_CONTRACT.md) records the
 shared finite bit-key codec and Mongo Single persistence prerequisites. Double SDK enrollment passes full native gates on all three providers.
@@ -120,3 +120,5 @@ MongoDB Single/Double scalar Sum/Average pass36focused controls,454full native/5
 MongoDB grouped floating arithmetic now passes34new native controls within full490native/571matched units, zero skips. Scalar/grouped Sum/Average and selected filters/order/pages are enrolled; floating HTTP and Neo4j arithmetic remain pending. This supersedes the earlier scalar-only rollout note.
 
 Neo4j scalar Single/Double Sum/Average is verified:36focused cases,454full native/541matched units,0skip and eightmatching copies. Grouped arithmetic owns independent numeric admission and remains unadmitted for floating inputs. Floating HTTP remains pending. Earlier Neo4j no-arithmetic notes retain historicalscope.
+
+Neo4j grouped floating arithmetic is now verified:34new native cases within full490native/552matched units,0skip and eight matching copies. All three stores enroll native SDK scalar/grouped floating Sum/Average, including selected filters/order/pages. Earlier scalar-only limitations are superseded; floating HTTP and live demos remain pending.

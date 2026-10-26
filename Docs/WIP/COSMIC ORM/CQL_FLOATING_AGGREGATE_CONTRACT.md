@@ -1,8 +1,8 @@
 # CQL finite floating aggregate contract
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
-(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite/MongoDB scalar and grouped SDK integration and Neo4j scalar SDK integration
-are certified below. Neo4j grouped arithmetic and floating HTTP/demos remain pending.
+(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite, MongoDB and Neo4j scalar/grouped SDK floating arithmetic is certified
+below. Floating HTTP enrollment and annotated live demos remain pending.
 Existing floating metadata filters/projection/extrema remain separate features.
 
 ## Exact native reduction
@@ -239,3 +239,28 @@ TestResults/CosmicCqlDemo/neo-floating-kernel-evidence.json. This is component p
 not a new full456native/541unit cohort or grouped enrollment. Grouped compile/read,
 off-page/selection and admission integration remain before the independent
 numeric whitelist can enroll floating inputs.
+
+
+## Neo4j grouped query integration — focused acceptance
+
+The grouped compiler now extracts ten/seventy exact native Int64 words for
+admitted floating inputs and uses the verified finalizer for selected predicates,
+ordering and page membership. Packed word arrays plus participation remain in
+every raw group. The decoder shares the scalar word-domain validator, then Core
+normalizes and independently validates complete selected membership/rank before
+publication. Filtering or Take(0) cannot suppress arithmetic/domain failures.
+
+All34 focused native cases and552full units pass, zero failures/skips. They cover
+precision boundaries/key equality, exact cancellation, rounded/nullable means,
+filters/order/pages, off-page overflow, mixed integer/Decimal/Single/Double slots,
+source windows, privacy, cancellation/reuse and137inputs independent of graph
+publication limits. Independent grouped input/result capability lists explicitly
+enroll floating domains. Existing ProviderDefault consistency remains; no new
+snapshot guarantee is advertised. Complete490native/552matched-unit regression
+passes, zero failures/skips. Eight Core/Shared/Neo/sourceDriver producer/native/
+unit copies match; same retained image stopped and attachment11516exited, with
+Bolt17687absent. Exact reports/hashes:
+TestResults/CosmicCqlDemo/neo-floating-grouped-evidence.json.
+Floating HTTP/live demos remain open.
+
+Current rollout now includes native SDK scalar/grouped required/nullable Single/Double Sum/Average with selected filters/order/pages on all three target providers. Earlier scalar/component-only sections retain their checkpoint scope. Broader CQL/ORM policy/federation gates are separate.
