@@ -92,6 +92,7 @@ try {
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
+        if ($report.processRestartProvidersVerified -ne 3) { throw 'Actual process-interruption recovery proof is incomplete.' }
         if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }

@@ -1,6 +1,6 @@
 # Authenticated hosted operation recovery
 
-26 October 2026. Hosted protection enrollment, signed native HTTP recovery and protected public-manager hard-delete acknowledgement-loss are verified on MongoDB, SQLite and Neo4j. The full ORM/CQL roadmap and actual process-restart acceptance remain open.
+26 October 2026. Hosted protection enrollment, signed native HTTP recovery, protected public-manager hard-delete acknowledgement-loss and actual writer-process interruption/fresh-process recovery are verified on MongoDB, SQLite and Neo4j. The full ORM/CQL roadmap remains open.
 
 ## Request
 
@@ -63,4 +63,10 @@ The protected public-manager hard-delete fault gate now also passes on all three
 
 The complete native cohort again passed with the same 465 settlements / 517 attempts, unchanged sources and seven matching producer/consumer pairs. Owned services stopped and the exact fixture/SQLite files were removed. [Fault-gate TRX](Verification/protected-hard-delete-native.trx.gz), [result](Verification/protected-hard-delete-result.json), [source identities](Verification/protected-hard-delete-source.json.gz), [binary identities](Verification/protected-hard-delete-binaries.json).
 
-Remaining: actual process interruption/restart, operator retention/reconciliation, and broader tenant/query/federation acceptance. The injected failure crosses the public manager boundary; a separate injected signed-HTTP failure scenario and explicit per-transport envelope inspection are not claimed by this gate. Provider reactivation is not an operating-system process restart.
+Actual process interruption now has a separate gate. For each authority, the parent journals an additional original operation and launches the same frozen test assembly in a writer test host. The public manager commits its protected preparation normally. At the native hard-delete commit callback, the writer flushes the exact operation identity and terminates its own process before returning an acknowledgement. A distinct fresh test host then activates the same authority, authenticates/reconstructs the stored preparation, reads the original committed receipt and verifies physical absence. The reader never executes or claims the mutation. No new environment, restore, database copy or operation identity is introduced.
+
+The parent requires the writer's nonzero termination, a matching post-commit marker, exactly one commit, a passing fresh reader and distinct writer/reader process IDs. Child phases are bounded to 90 seconds; timeout stops only that owned process tree and preserves intent. Unfinished phase files prevent replay. Successful recovery removes the three owned phase JSON files; bounded logs/TRX and compact original-operation/PID attestations remain. The full native gate again passed with 465 settlements / 517 attempts, three process-recovery providers, unchanged sources, seven matching binary pairs, stopped child/services and removed database fixtures.
+
+[Process gate TRX](Verification/process-restart-native.trx.gz), [original operations and PIDs](Verification/process-restart-originals.json), [result](Verification/process-restart-result.json), [source identities](Verification/process-restart-source.json.gz), [binary identities](Verification/process-restart-binaries.json).
+
+Remaining: operator retention/reconciliation and broader tenant/query/federation acceptance. A separate injected signed-HTTP failure scenario and explicit per-transport envelope inspection are not claimed by this public-manager process gate. Database-server crash/restart, interruption before commit and network partitions are separate failure windows requiring their own acceptance evidence.
