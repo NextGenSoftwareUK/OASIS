@@ -106,31 +106,9 @@ async function execute(input) {
         actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")));
       return { transactionHash: outcome.transaction_outcome.id, outcome };
     }
-    case "put": {
-      const account = accountFor(input, provider);
-      const outcome = await account.callFunctionRaw({
-        contractId: input.contractId,
-        methodName: "put",
-        args: { key: input.key, value: input.value },
-        gas: teraToGas("100"),
-        waitUntil: "FINAL",
-      });
-      return { transactionHash: outcome.transaction_outcome.id };
-    }
     case "putRecordChecked":
       return await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
         args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n));
-    case "delete": {
-      const account = accountFor(input, provider);
-      const outcome = await account.callFunctionRaw({
-        contractId: input.contractId,
-        methodName: "delete_record",
-        args: { key: input.key },
-        gas: teraToGas("100"),
-        waitUntil: "FINAL",
-      });
-      return { transactionHash: outcome.transaction_outcome.id };
-    }
     default:
       throw new Error(`Unsupported NEAR SDK operation: ${input.operation}`);
   }
