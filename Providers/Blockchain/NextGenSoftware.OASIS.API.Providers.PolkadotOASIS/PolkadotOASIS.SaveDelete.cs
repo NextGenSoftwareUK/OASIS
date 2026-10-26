@@ -411,37 +411,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Polkadot provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                if (holons == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Holons cannot be null");
-                    return response;
-                }
-
-                // Import holons using SaveHolonsAsync
-                var saveResult = await SaveHolonsAsync(holons, true, true, 0, 0, true, false);
-                response.Result = !saveResult.IsError;
-                response.IsError = saveResult.IsError;
-                response.Message = saveResult.Message;
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in ImportAsync: {ex.Message}");
-            }
-            return response;
+            var saved=await SaveHolonsAsync(holons,true,true,0,0,false);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError&&saved.IsSaved;
+            return result;
         }
 
 

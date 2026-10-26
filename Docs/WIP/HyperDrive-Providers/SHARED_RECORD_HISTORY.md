@@ -1,5 +1,11 @@
 # Shared canonical record-history codec
 
+## 26 October: import result evidence and confirmed completion
+
+Fixed NEAR and Polkadot import wrappers to reuse the existing Core result copier: preserve native exception/error code, details, warnings, metadata, partial acknowledgements and SavedCount. NEAR no longer enumerates a returned save payload after acknowledgement just to construct a message. Shared key-value and both chain wrappers return true only for a non-error confirmed IsSaved. Polkadot delegates one stop-on-error save without redundant pre-activation; no duplicate SDK/storage path or retry added.
+
+One linked assertion fixture reproduced22genuine failures across30sync/async schedules (Shared2fail8pass, NEAR10fail, Polkadot10fail), including uncertain native-exception preservation and unconfirmed save rejection. Final full Shared1239/NEAR333/Polkadot233/S3protocol228 PASS0skip7s/17s/12s/2s on matched Core769BE5/Shared56284E source/copies/PDB. These are controlled wrapper/SDK-HTTP regression gates, not fresh native-chain or hosted-cloud acceptance. NEAR interrupted native19/unknown ordinary writes and other relevant-interface/native/security/fee/V2 gates remain OPEN. Exact report hashes, reused outputs, last-resort cache recovery and blocked empty-directory cleanup are in [resource inventory](ENVIRONMENT_INVENTORY.md). No dev merge or complete-provider claim.
+
 ## 25 October — reject empty identity before avatar-scoped export
 
 The shared S3/OCI/Redis owner accepted Guid.Empty as an avatar export identity and selected records whose CreatedByAvatarId was also empty. The existing scoped-export entry now returns terminal HYPERDRIVE_PAYLOAD_INVALID/ArgumentException BEFORE any listing/read. Valid avatar IDs, independent root versions, all-version export(-1), and the separate unscoped ExportAll entry are unchanged. No new SDK call, pricing rule, authorization bypass, retry or storage format was introduced; higher-level authentication remains the host's responsibility.

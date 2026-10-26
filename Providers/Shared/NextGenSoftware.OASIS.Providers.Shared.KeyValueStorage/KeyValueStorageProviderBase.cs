@@ -1110,8 +1110,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             var saved = await SaveHolonsAsync(holons, true, true, 0, 0, false);
             var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
-            result.Result=!saved.IsError;
-            if(!saved.IsError)result.Message=$"Imported {saved.SavedCount} holons into {Name}.";
+            result.Result=!saved.IsError&&saved.IsSaved;
+            if(result.Result)result.Message=$"Imported {saved.SavedCount} holons into {Name}.";
             return result;
         }
 

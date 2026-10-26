@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
+    <Compile Include="../TestSupport/ImportResultEnvelopeAssertions.cs" Link="TestSupport/ImportResultEnvelopeAssertions.cs" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <None Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" Link="prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
