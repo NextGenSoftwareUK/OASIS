@@ -439,3 +439,8 @@ MongoDB SDK scalar Sum/Average over required/nullable Single/Double is verified:
 ## MongoDB grouped floating SDK acceptance - 25 October 2026
 
 MongoDB now enrolls SDK scalar and grouped required/nullable Single/Double Sum/Average, including group selected filtering/order/pages.34new grouped controls and full490native/571matched units pass,0skip. Precision, nullable groups, mixed numeric slot alignment, privacy/windows, cancellation and off-page overflow are verified. Earlier scalar-only limitations are superseded at this native SDK checkpoint; HTTP and Neo4j floating arithmetic are still pending.
+
+
+## Neo4j scalar floating SDK acceptance - 25 October 2026
+
+All three providers now support native SDK required/nullable Single/Double scalar Sum/Average. Neo4j acceptance passes36focused cases,454full native CQL tests and541matched units,0skips. Grouped support exists on SQLite/MongoDB; Neo4j floating groups remain explicitly unadmitted through an independent aggregate profile. Source data domains, empty/nullable behavior, exact cancellation, overflow and work/access proofs remain mandatory. Floating HTTP and new live demos are pending.

@@ -22,6 +22,19 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
         {
             var keys = CqlCapabilities.CanonicalFields.Select(field => field.ValueType)
                 .Concat(CqlCapabilities.MetadataTypes.Select(type => type.ValueType)).Distinct().ToArray();
+            // Grouped admission owns its implementation domains independently:
+            // enrolling a scalar must not silently enroll an unfinished group path.
+            var numericInputs = new[] { typeof(int), typeof(int?), typeof(long), typeof(long?),
+                typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) };
+            var aggregateCapabilities = new CosmicScalarCapabilities(
+                new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+                new[]
+                {
+                    new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
+                    new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
+                    new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities, numericInputs),
+                    new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities, numericInputs)
+                });
             var aggregates = keys.SelectMany(type => new[]
             {
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Min, type),
@@ -30,7 +43,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
             {
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Count, typeof(int)),
                 new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.LongCount, typeof(long))
-            }).Concat(new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) }
+            }).Concat(numericInputs
                 .Select(type => new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Sum, type)))
                 .Concat(new[] { typeof(decimal), typeof(decimal?) }.Select(type =>
                     new CosmicGroupedAggregateOrderingCapability(CosmicScalarOperation.Average, type))).ToArray();
@@ -50,7 +63,7 @@ public partial class Neo4jOASIS : ICosmicQueryGroupedStorageProvider
                 | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison,
                 keys.Select(Scalar).ToArray(), aggregates.Select(value =>
                     new CosmicGroupedAggregateFilteringCapability(value.Operation, Scalar(value.ValueType))).ToArray());
-            return new CosmicGroupedCapabilities(CqlProjectionCapabilities, CqlScalarCapabilities,
+            return new CosmicGroupedCapabilities(CqlProjectionCapabilities, aggregateCapabilities,
                 new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters);
         }
     }

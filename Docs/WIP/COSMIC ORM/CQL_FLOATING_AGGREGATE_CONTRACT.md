@@ -1,8 +1,8 @@
 # CQL finite floating aggregate contract
 
 25 October 2026. Shared normalization passes the full3,090-test Core suite and both Core targets
-(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite and MongoDB native SDK integration are certified below. Neo4j native
-translation/enrollment and floating HTTP/demos remain pending.
+(netstandard2.1/net10.0); query capture/grouping also passes full3,098 tests. SQLite/MongoDB scalar and grouped SDK integration and Neo4j scalar SDK integration
+are certified below. Neo4j grouped arithmetic and floating HTTP/demos remain pending.
 Existing floating metadata filters/projection/extrema remain separate features.
 
 ## Exact native reduction
@@ -191,3 +191,41 @@ Current rollout: SQLite and MongoDB SDK scalar/grouped Single/Double Sum/Average
 ## Neo4j native digit component - 25 October 2026
 
 Two native cases now pass5,786finite vectors, zero failures/skips: every exponent, both signs, signed zero, extrema, subnormals and seeded IEEE bit patterns. Native power-of-two remainder/division emits exact10/70Int64 words; Double's highest word avoids the unrepresentable2^1026 modulus. Independent IEEE field decomposition verifies every word and its Int64 type. Transactions evaluate only bound parameters and roll back, creating no graph data. Four Core/Shared/Neo/sourceDriver producer/native pairs match; pinned source driver identity4.3.2.2 is retained. This is component proof only: Neo4j scalar/grouped floating capabilities remain unenrolled. Evidence: TestResults/CosmicCqlDemo/neo-floating-parts-evidence.json.
+
+
+## Neo4j scalar integration — focused acceptance
+
+Neo4j now compiles floating selectors into ten/seventy native Int64 word sums,
+retaining original input/participation/valid/traversal proofs. Decimal/integer/
+floating packet domains remain distinct. Core validates and rounds the complete
+numerator once. Plain unprotected Take(0) uses an exact typed empty packet;
+protected relationship validation remains outside source pagination.
+
+The corrected focused gate passes36native cases/539full units, zero skips.
+Two copied tests originally requested unsupported ProviderSnapshot and correctly
+failed admission; they now use the declared Neo4j ProviderDefault consistency.
+No production consistency contract was weakened. Source review also separated
+grouped aggregate capabilities from the growing scalar profile: an unfinished
+plain floating grouped selection must fail admission, even without filters/order.
+The complete454native/541matched unit gate passes, zero failures/skips,
+including two independent grouped-capability controls. Eight Core/Shared/Neo/
+sourceDriver producer/native/unit copies match. Same retained Neo image is
+stopped, owned attachment11232exited and Bolt17687is absent. Exact evidence:
+TestResults/CosmicCqlDemo/neo-floating-scalar-evidence.json. Neo4j grouped arithmetic and floating HTTP remain unadmitted.
+
+
+## Neo4j grouped finalizer plan — implementation remains open
+
+Reuse signed base2^30 normalization and integer long division before selecting
+an IEEE quantum. Each native limb sum is bounded by (2^30-1)*Int32.MaxValue;
+carry and remainder*base terms fit Int64. For a sub-word shift, divide the bounded
+prefix words by2^remainingBits BEFORE recombining the coefficient. Recombining
+an unshifted82-bit prefix would overflow Neo4j Int64; the divided prefix fits
+53bits (24for Single). Preserve guard/sticky bits from the original quotient and
+its exact Average remainder, then round once and multiply only the final exact
+coefficient by a bound power of two. Canonical zero stays positive; overflow
+and empty nullable means require explicit proof/publication handling.
+
+This plan is not provider enrollment or verification. It must pass native
+comparison with Core, then grouped query/off-page/selection and admission tests
+before replacing the current independent grouped numeric whitelist.

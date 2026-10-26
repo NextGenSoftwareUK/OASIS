@@ -1,5 +1,26 @@
 # COSMIC ORM implementation status
 
+## Neo4j floating scalar acceptance - 25 October 2026
+
+Neo4j SDK required/nullable Single/Double scalar Sum/Average now passes36focused
+native cases,454full native CQL tests and541matched provider units, zero failures/
+skips. Eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. The
+existing pinned source driver4.3.2.2 and retained Neo image/data were reused.
+
+Native arithmetic retains ten/seventy Int64 word sums plus independent input,
+participation and validity/traversal proofs. Shared Core exact normalization owns
+typed publication and rounding. Empty/nullable behavior, finite overflow, exact
+cancellation/subnormals, privacy, source windows, cancellation/reuse, non-hydrating
+execution and137inputs independent of graph publication limits are verified.
+
+Neo4j's declared ProviderDefault consistency is used; explicit ProviderSnapshot
+remains unsupported. Grouped admission now owns an independent numeric whitelist,
+with two controls preventing scalar-only enrollment from admitting unfinished
+floating group paths. Neo4j grouped arithmetic and floating HTTP/demos remain open.
+Owned attachment11232exited after controlled containerstop; Bolt17687absent.
+[Contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+
 ## MongoDB floating grouped acceptance - 25 October 2026
 
 MongoDB SDK Single/Double arithmetic now covers scalar and grouped Sum/Average,

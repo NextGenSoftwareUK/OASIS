@@ -15,10 +15,11 @@ public partial class Neo4jOASIS
         internal long Low { get; }
         internal long Count { get; }
         internal long[] DecimalParts { get; }
+        internal long[] FloatingParts { get; }
 
-        internal NeoCqlNumericValue(long[] parts, long count)
+        internal NeoCqlNumericValue(long[] parts, long count, bool floating = false)
         {
-            DecimalParts = (long[])parts.Clone();
+            if (floating) FloatingParts = (long[])parts.Clone(); else DecimalParts = (long[])parts.Clone();
             Count = count;
         }
 
@@ -30,10 +31,13 @@ public partial class Neo4jOASIS
         }
     }
 
-    internal static NeoCqlNumericValue DecodeCqlNumeric(IReadOnlyDictionary<string, object> row, bool decimalInput = false, bool required = false)
+    internal static NeoCqlNumericValue DecodeCqlNumeric(IReadOnlyDictionary<string, object> row, bool decimalInput = false, bool required = false, int floatingWidth = 0)
 
     {
-        if (row.Count != (decimalInput ? 6 : 7) || !row.TryGetValue("present", out var present) || present is not long count
+        if (floatingWidth != 0 && floatingWidth != CosmicFloatingAggregateResults.SingleLimbCount
+            && floatingWidth != CosmicFloatingAggregateResults.DoubleLimbCount || floatingWidth != 0 && decimalInput)
+            throw new InvalidDataException("One explicit numeric packet domain is required.");
+        if (row.Count != (decimalInput || floatingWidth != 0 ? 6 : 7) || !row.TryGetValue("present", out var present) || present is not long count
             || !row.TryGetValue("inputs", out var inputs) || inputs is not long work
             || !row.TryGetValue("valid", out var valid) || valid is not bool
             || !row.TryGetValue("traversalCycle", out var cycle) || cycle is not bool
@@ -42,6 +46,13 @@ public partial class Neo4jOASIS
             throw new InvalidDataException("Neo4j numeric reduction requires exact integer limbs and consistent counts.");
         if (work > CosmicNumericScalarResults.MaximumParticipatingValues)
             throw new NeoCqlLimitException("Neo4j numeric reduction exceeds its input-work budget.");
+        if (floatingWidth != 0)
+        {
+            if (!row.TryGetValue("parts", out var raw) || raw is not IReadOnlyList<object> parts
+                || parts.Count != floatingWidth || parts.Any(part => part is not long))
+                throw new InvalidDataException("Floating reduction requires its exact declared Int64 word array.");
+            return new NeoCqlNumericValue(parts.Cast<long>().ToArray(), count, floating: true);
+        }
         if (decimalInput)
         {
             if (!row.TryGetValue("parts", out var rawParts)) throw new InvalidDataException("Missing Decimal limbs.");
@@ -82,17 +93,27 @@ public partial class Neo4jOASIS
     private static string CompileCqlNumeric<T, TResult>(NeoCqlSource compiled, CosmicScalarQuery<T, TResult> query) where T : IHolon
     {
         if (query.Selector == null || (query.Operation != CosmicScalarOperation.Sum && query.Operation != CosmicScalarOperation.Average))
-            throw new NotSupportedException("An admitted integer numeric aggregate is required.");
+            throw new NotSupportedException("An admitted numeric aggregate is required.");
         var translator = compiled.Translator;
         var cell = translator.TranslateProjectionPath(query.Selector);
-        var decimalInput = (Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType) == typeof(decimal);
-        var parts = decimalInput ? default : IntegralParts(query.Selector.ValueType, "selectedValue");
-        var fields = decimalInput ? "parts,present,inputs" : "high,low,present,inputs";
-        var reductions = decimalInput
-            ? string.Join(",", Enumerable.Range(0, 7).Select(index => "sum(decimalParts[" + index + "]) AS d" + index))
+        var inputType = Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType;
+        var decimalInput = inputType == typeof(decimal);
+        var floating = inputType == typeof(float) || inputType == typeof(double);
+        var wide = decimalInput || floating;
+        var width = decimalInput ? CosmicDecimalScalarResults.LimbCount
+            : inputType == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount
+            : inputType == typeof(double) ? CosmicFloatingAggregateResults.DoubleLimbCount : 0;
+        var parts = wide ? default : IntegralParts(query.Selector.ValueType, "selectedValue");
+        var fields = wide ? "parts,present,inputs" : "high,low,present,inputs";
+        var reductions = wide
+            ? string.Join(",", Enumerable.Range(0, width).Select(index => "sum(numericParts[" + index + "]) AS d" + index))
             : "sum(CASE WHEN selectedState=2 THEN " + parts.High + " ELSE 0 END) AS high,"
                 + "sum(CASE WHEN selectedState=2 THEN " + parts.Low + " ELSE 0 END) AS low";
-        var reduced = decimalInput ? "[d0,d1,d2,d3,d4,d5,d6] AS parts,present,inputs" : fields;
+        var reduced = wide ? "[" + string.Join(",", Enumerable.Range(0, width).Select(index => "d" + index))
+            + "] AS parts,present,inputs" : fields;
+        var zeroParts = "[" + string.Join(",", Enumerable.Repeat("0", width)) + "]";
+        var nativeParts = floating ? FloatingAggregateParts("selectedValue", inputType == typeof(float), translator.Bind)
+            : decimalInput ? DecimalAggregateParts("selectedValue") : null;
         var keys = translator.TranslateOrdering(query.Source.Orderings);
         var aliases = keys.Select((_, index) => "cqlNumericSort" + index).ToArray();
         var keyValues = string.Concat(keys.Select((key, index) => "," + key.Expression + " AS " + aliases[index]));
@@ -103,7 +124,7 @@ public partial class Neo4jOASIS
         translator.Parameters.Add("numericTake", Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
             (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
         var invalid = Nullable.GetUnderlyingType(query.Selector.ValueType) == null ? "selectedState <> 2" : "selectedState = 3";
-        var zeros = (decimalInput ? "[0,0,0,0,0,0,0] AS parts" : "0 AS high,0 AS low") + ",0 AS present,0 AS inputs";
+        var zeros = (wide ? zeroParts + " AS parts" : "0 AS high,0 AS low") + ",0 AS present,0 AS inputs";
         var traversal = translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit
             + " RETURN " + zeros + ",false AS valid," + compiled.Cycle + " AS traversalCycle,"
@@ -117,7 +138,7 @@ public partial class Neo4jOASIS
             + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
             + "WITH h,p" + keyValues + " ORDER BY " + order + " SKIP $numericOffset LIMIT $numericTake "
             + "WITH " + cell.State + " AS selectedState," + cell.Value + " AS selectedValue "
-            + (decimalInput ? "WITH *,CASE WHEN selectedState=2 THEN " + DecimalAggregateParts("selectedValue") + " ELSE [0,0,0,0,0,0,0] END AS decimalParts " : "")
+            + (wide ? "WITH *,CASE WHEN selectedState=2 THEN " + nativeParts + " ELSE " + zeroParts + " END AS numericParts " : "")
             + "WITH count(*) AS inputs,sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END) AS invalid,"
             + "sum(CASE WHEN selectedState=2 THEN 1 ELSE 0 END) AS present,"
             + reductions + " RETURN " + reduced + ",invalid=0 AS valid,false AS traversalCycle,false AS traversalLimit } "
