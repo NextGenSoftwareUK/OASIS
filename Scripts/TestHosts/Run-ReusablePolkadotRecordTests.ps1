@@ -3,7 +3,8 @@ param(
     [Parameter(ParameterSetName = 'ReadBridge')][switch]$ReadBridge,
     [Parameter(ParameterSetName = 'Preparation')][switch]$Preparation,
     [Parameter(ParameterSetName = 'OwnerBootstrap')][switch]$OwnerBootstrap,
-    [Parameter(ParameterSetName = 'Execution')][switch]$Execution
+    [Parameter(ParameterSetName = 'Execution')][switch]$Execution,
+    [Parameter(ParameterSetName = 'CSharpBackend')][switch]$CSharpBackend
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -12,12 +13,33 @@ $sdk = Join-Path $repo 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers
 if (!(Test-Path -LiteralPath $evidence -PathType Container)) { throw 'Reuse the retained environment.' }
 $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
+$priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
+$priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
 try {
     foreach ($name in @('local-native-pending.json','local-bootstrap-pending.json','local-asset-bootstrap-pending.json',
-        'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json')) {
+        'local-asset-mutation-pending.json','local-asset-api-pending.json','local-asset-transfer-pending.json','local-record-contract-pending.json','local-record-owner-pending.json','local-record-sdk-pending.json','record-csharp-pending.json')) {
         if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
     }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
+    if ($CSharpBackend) {
+        # Caller must hold the global provider build lease for this whole runner.
+        $env:OASIS_POLKADOT_SDK_BRIDGE = Join-Path $sdk 'bridge.mjs'
+        $env:OASIS_POLKADOT_RECORD_EVIDENCE = $evidence
+        Push-Location $repo
+        try {
+            $provider = 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj'
+            $unit = 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests.csproj'
+            & dotnet build $provider --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
+            if ($LASTEXITCODE -ne 0) { throw 'Provider build failed; no restore/download attempted.' }
+            & dotnet build $unit --no-restore /p:IncludePolkadotRecordNativeTests=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
+            if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
+            & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PolkadotRecordBackendNativeTests' --logger 'trx;LogFileName=record-backend-native-current.trx' --results-directory $evidence --verbosity quiet -- MSTest.DeploymentEnabled=false
+            if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
+            [xml]$report = Get-Content -LiteralPath (Join-Path $evidence 'record-backend-native-current.trx')
+            if ($report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.passed -ne '1') { throw 'Exactly one executed native case required.' }
+            return
+        } finally { Pop-Location }
+    }
     Push-Location $sdk
     try {
         & node verify-record-contract-artifact.mjs
@@ -31,5 +53,7 @@ try {
     } finally { Pop-Location }
 } finally {
     $env:OASIS_POLKADOT_LOCAL_NATIVE = $prior
+    $env:OASIS_POLKADOT_SDK_BRIDGE = $priorBridge
+    $env:OASIS_POLKADOT_RECORD_EVIDENCE = $priorEvidence
     $lease.Dispose()
 }

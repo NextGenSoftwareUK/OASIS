@@ -1,5 +1,21 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: actual C# private backend, native execution and recovery
+
+Opt-in `Run-ReusablePolkadotRecordTests.ps1 -CSharpBackend`, wrapped ONCE in the global build lease, now exercises the activated provider factory and EXISTING SDK process runner plus actual C# PreparedSubmissionServer. Existing PersistedPrivateKeyValueBackend supplies HMAC logical-key privacy and compressed authenticated value encryption with a stable separate public synthetic fixture key (not production key management). The test independently observes one physical cell without logical key/value plaintext, reads/reopens through the private layer, applies conditional replacement, rejects duplicate create BEFORE durable acknowledgement, and conditionally deletes the exact synthetic cell. Three original preparations are create-exclusive/fsync'd before ACK; matching finalized native effects are independently recovered before fsync completion and exact pending-file removal. No replacement/replay of unknown originals.
+
+Native test **1/1PASS0skip73s**, terminal73333exit0. Separate same-original recovery **1/1PASS0skip16s**, terminal99714exit0, captured stdout explicitly reports fresh durable acknowledgements0; all three retained originals and final empty state verified, no new signing/submission. Regular host rebuilt with native source excluded; full **249/249PASS0skip14s**, terminal30137exit0. New `ReadOriginalOutcomeAsync` validates backend binding/canonical bounds and delegates the SAME read-only original lookup used by mutations; a missing bounded result stays unresolved. Two controlled recovery-admission cases cover no-I/O foreign-backend rejection and preserved absence.
+
+| Encrypted C# operation | Original native transaction | Actual transaction fee, local baseunits |
+|---|---|---:|
+| create | `0xdc33c327ba2f81a0f3d4f3f8958d79b774a9391cf8202a220b0c61a6c5344ac8` | 1929989722 |
+| replace | `0x110cbe78d988169eed5e779a74be67d912d877872e140d7b11c97163ba6d1821` | 1590301175 |
+| delete | `0xba099bffb50edd03445f7d3f9c9dbd56ff90e3a9108d113fe78dc57f3247d633` | 2052832485 |
+
+Cohort transactionfees **0.005573123382 local test UNIT**; all record fixtures so far0.026255158104testUNIT. These are actual transactionPayment events; storage deposits/refunds remain separate, no fiat/public DOT/complete cost-envelope claim. No real-money funds. Same explicit-owner instance/code/ledger/runtime/SDK installation, no download or new environment. NodePID407 exact executable verified/stoppedSIGINT, original15723terminal0, pending absent and all synthetic logical/physical test keys removed. Original receipts and fixed compact reports retained (hashes/sizes in inventory).
+
+Compiled cohort: provider24source docs SHA256 `3C0BFDE970C108F1B792FA224CA8C3CFA935557FCEC9977E7D52FA2E04BAD41F`, equal consumer copy; native unit23/default unit22docs checked. **Core772 `AF6109BB89E9A6D92A0EC24D9B19F912366A7FE440CAE170CCDDB93DED1E5444` is the peer's active unpublished routing-policy cohort**, not a published release proof. Shared56 `EC7989AD56914E8340818EF892290C015529210C1B3AE1751F3F2FF811DB1E50`; all producer/copy/PDB/current-source checks passed while peer sources frozen. Source/output slot returned after verification, dotnetprocess0. No Core/Shared/WEB4 source edits or builds by this session. Actual Mongo outbox/usage/quota/auth/HTTP, production key configuration, all public provider interfaces, large-record framing, full fee recovery, fault injection and HyperDriveV2 still OPEN. This proves encrypted native conditional cells, not complete Polkadot storage.
+
 ## 26 October: C# native-cell adapter and process ownership integration
 
 `PolkadotRecordBackend` implements the EXISTING IConditionalKeyValueBackend, using a delegate to the existing provider SDK runner rather than another process/client implementation. Explicit canonical genesis/code/account identities are configured; strict UTF8/canonical-base64/native byte bounds protect read/write values; observed revisions are preserved. Enumeration validates all native keys and returns sorted keys for shared consumers. CreateOnly/ReplaceUnchanged/DeleteUnchanged encode native expectations; ordinary put/delete retain documented unconditional semantics.

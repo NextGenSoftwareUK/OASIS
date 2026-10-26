@@ -85,4 +85,32 @@ public class PolkadotRecordBackendTests
         release.SetResult();
         await Assert.ThrowsExceptionAsync<InvalidOperationException>(async()=>await inherited!);
     }
+
+    [TestMethod]
+    public async Task RecoveryIsReadOnlyAndPreservesBoundedAbsence()
+    {
+        var backend=Backend((request,_,server)=>{
+            Assert.IsNull(server);
+            var sent=JsonSerializer.SerializeToElement(request);
+            Assert.AreEqual("recordOutcome",sent.GetProperty("operation").GetString());
+            Assert.AreEqual(16,sent.GetProperty("maximumBlocks").GetInt32());
+            Assert.AreEqual("7",sent.GetProperty("fromBlockNumber").GetString());
+            return Task.FromResult(JsonSerializer.SerializeToElement(new{found=false,reconciliationRequired=true,nextBlockNumber="9"}));
+        });
+        var original=JsonSerializer.SerializeToElement(new{chainId=Identity,sender=Identity,contractAddress=Identity,
+            contractCodeHash=Identity,transactionHash=Identity});
+        var result=await backend.ReadOriginalOutcomeAsync(original,"7",16);
+        Assert.IsFalse(result.GetProperty("found").GetBoolean());
+        Assert.IsTrue(result.GetProperty("reconciliationRequired").GetBoolean());
+    }
+    [TestMethod]
+    public async Task RecoveryRejectsOtherBackendAndInvalidRangeBeforeSdk()
+    {
+        var calls=0;var backend=Backend((_,_,_)=>{calls++;throw new AssertFailedException("Unexpected I/O");});
+        var original=JsonSerializer.SerializeToElement(new{chainId=Identity,sender=Identity,contractAddress=Identity,
+            contractCodeHash="0x"+new string('2',64),transactionHash=Identity});
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>backend.ReadOriginalOutcomeAsync(original));
+        await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(()=>backend.ReadOriginalOutcomeAsync(original,maximumBlocks:129));
+        Assert.AreEqual(0,calls);
+    }
 }

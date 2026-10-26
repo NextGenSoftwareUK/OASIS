@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: native C# encrypted conditional-cell and recovery gate
+
+C# adapter now proves real SDK/physical PreparedSubmissionServer/fsync-owner execution through the EXISTING shared PersistedPrivateKeyValueBackend: encrypted create/revision-replace/revision-delete, HMAC-key/ciphertext visibility checks, reopened read with separate stable synthetic key, pre-ACK conflict and exact synthetic cleanup. Native1/1PASS73s, same-original read-only recovery1/1PASS16s with freshACK0; regular consumer restored,249/249PASS0skip14s. New read-only recovery method binds the configured backend and preserves bounded absence as unresolved. No extra runtime/instance/download; node stopped, slot returned.
+
+This gate used peer's frozen **unpublished dirty Core772 AF6109BB...**, not the published8a1d42f cohort; Shared56EC7989AD... and provider24 3C0BFDE9... copied/source identities match. NativeUnit23/defaultUnit22docs verified. No Core/Shared/WEB4 source changes by this session. C# native cohort transactionfees0.005573123382localtestUNIT; allrecordfixtures0.026255158104testUNIT, storage deposits separate. Still OPEN: public avatar/holon shared-lifecycle migration, large-record framing, production/realoutbox/quota/auth/fullfee/faultinjection/V2. [Evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resource ledger](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: C# Polkadot conditional adapter compile/regression gate
 
 Native conditional-cell adapter/factory now reuses the existing provider SDK process runner, OwnedPreparationScope and PreparedSubmissionServer. Reads validate identity/binary/revision boundaries; dense enumeration is sorted for shared consumers; writes require a durable owner, retain original identity after ACK and poll only finalized original outcomes. Structured pre-sign contract conflicts use existing StorageLifecycleConflictException, not string guessing. Record submissions join the existing process/pipe/uncertainty handling. Full Polkadot247/247 PASS0skip14s; includes8new adapter and6record-transport/conflict controls. Core/Shared source unchanged and source/output slot returned. No fresh native chain writes in this C# gate.
