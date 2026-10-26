@@ -26,6 +26,9 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-test-token-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-v1-deployment-pending.json'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-escrow-lifecycle-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-approval-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp22-public-pending.jsonl'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -54,6 +57,13 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ Psp22TokenReconcile=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowV1Reconcile=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowPreparation=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowLifecycle=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenEscrowLifecycleRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicApproval=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicApprovalRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublic=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicRecover=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ TokenPublicReleaseVerifiedLock=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
@@ -75,6 +85,9 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('TokenEscrowReconcile') -and $path.EndsWith('psp22-escrow-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('Psp22TokenReconcile') -and $path.EndsWith('psp22-test-token-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('TokenEscrowV1Reconcile') -and $path.EndsWith('psp22-escrow-v1-deployment-pending.json')) { continue }
+        if ($arguments.ContainsKey('TokenEscrowLifecycleRecover') -and $path.EndsWith('psp22-escrow-lifecycle-pending.jsonl')) { continue }
+        if ($arguments.ContainsKey('TokenPublicApprovalRecover') -and $path.EndsWith('psp22-public-approval-pending.jsonl')) { continue }
+        if (($arguments.ContainsKey('TokenPublicRecover') -or $arguments.ContainsKey('TokenPublicReleaseVerifiedLock')) -and $path.EndsWith('psp22-public-pending.jsonl')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)
@@ -97,7 +110,8 @@ foreach ($entry in $runners) {
 }
 Write-Output "Polkadot cross-runner pending fences: $cases passed; no RPC/build/signing or fixture writes."
 $tokenModes=@('TokenEscrowConstructor','TokenEscrowDeploy','TokenEscrowReconcile',
-    'Psp22TokenConstructor','Psp22TokenDeploy','Psp22TokenReconcile','TokenEscrowV1Reconcile','TokenEscrowPreparation')
+    'Psp22TokenConstructor','Psp22TokenDeploy','Psp22TokenReconcile','TokenEscrowV1Reconcile','TokenEscrowPreparation',
+    'TokenEscrowLifecycle','TokenEscrowLifecycleRecover','TokenPublicApproval','TokenPublicApprovalRecover','TokenPublic','TokenPublicRecover','TokenPublicReleaseVerifiedLock')
 $exclusive=0
 for($i=0;$i -lt $tokenModes.Count;$i++) {
     for($j=$i+1;$j -lt $tokenModes.Count;$j++) {

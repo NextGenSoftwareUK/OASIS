@@ -1,6 +1,6 @@
 {
-  "DateUtc": "2026-10-26T17:56:26.0750953Z",
-  "RootCommit": "5fee6e7181881eb2717de1d3c3e9bb748fd81544",
+  "DateUtc": "2026-10-26T18:11:00.0328425Z",
+  "RootCommit": "ef8a84ef3192e78004e3bc7046d2da605b5c05dc",
   "Sources": [
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/token-escrow/lib.rs",
@@ -64,18 +64,18 @@
     },
     {
       "Path": "Scripts/TestHosts/Run-ReusablePolkadotRecordTests.ps1",
-      "Sha256": "BE9B754B816AD46E593358614C06E136E4A339D3268DD332A7FDCB86941A847D",
-      "Bytes": 15584
+      "Sha256": "197E739A51494E1F4CE7331032DB542CAECC584C285AD94B858361EA7E78C173",
+      "Bytes": 16290
     },
     {
       "Path": "Scripts/TestHosts/Run-ReusablePolkadotNativeTests.ps1",
-      "Sha256": "93E64D0020AEBAC56BC47501648BB141FF66AA4062861C541E1835B0011303BE",
-      "Bytes": 9650
+      "Sha256": "7E8C26F49BD30820BC26DC8512FB5D69CAD7655293A1E8CBF5D983858D905179",
+      "Bytes": 9896
     },
     {
       "Path": "Scripts/TestHosts/Test-PolkadotPendingFences.ps1",
-      "Sha256": "B41DD9C53E371BEC9E1E2847C96B62A85A585104F0857FC7C0DD20E6D4DA8CD4",
-      "Bytes": 8365
+      "Sha256": "96CCF2ECE6E4F1CBE245A77218BD4B0F9205747FF752CC6B5340035069B46A55",
+      "Bytes": 8881
     },
     {
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/psp22-escrow-mutation.mjs",
@@ -121,21 +121,28 @@
       "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/native-psp22-test-token/lib.rs",
       "Sha256": "0B76F50510ED4A54967567207249B5709A9F1B7FB37A39443935BDB809F47A74",
       "Bytes": 10551
+    },
+    {
+      "Path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/test-local-psp22-lifecycle.mjs",
+      "Sha256": "23BE39E5C00C786976D6BC944FDBD1DBFEDEC7043956D72DC3E8E834B44357D2",
+      "Bytes": 13921
     }
   ],
   "Rust": "1.88.0",
   "Ink": "5.1.1",
   "OfflineHostPassed": 4,
   "SdkSelectedPassed": 118,
-  "NativePsp22Verified": false,
   "PublicTokenMethodsWired": false,
   "Downloads": 0,
   "Restores": 0,
   "Target": "TestResults/PolkadotCurrent/record-contract-target",
-  "Scope": "Host validation/golden manual-revert ABI and selected SDK controls; native corrected error/empty getter verified, no positive custody/broadcast rollback/C# token wiring proof",
+  "Scope": "SDK custody and two broadcast ContractReverted rollback checks verified; C# token API and hosted admission remain unverified",
   "NativeDeploymentVerified": true,
   "EmptyNativeDepositGetterVerified": true,
-  "PendingFencePassed": 440,
-  "TokenModeExclusivityPassed": 28,
-  "NativeInsufficientAllowanceStructuredErrorVerified": true
+  "PendingFencePassed": 501,
+  "TokenModeExclusivityPassed": 45,
+  "NativeInsufficientAllowanceStructuredErrorVerified": true,
+  "NativeSdkCustodyLifecycleVerified": true,
+  "NativeFailedBroadcastRollbackVerified": true,
+  "CommonSignedFieldRecoveryVerified": true
 }
