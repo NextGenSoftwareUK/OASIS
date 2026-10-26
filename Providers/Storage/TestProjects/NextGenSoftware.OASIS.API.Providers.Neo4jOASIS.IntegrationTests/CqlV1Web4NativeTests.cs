@@ -1042,7 +1042,7 @@ public sealed partial class CqlV1Web4NativeTests
             // Exercise signed requests through the shipping DataController only
             // after the read demo, so these private records cannot change it.
             var recoveryProvidersVerified = await VerifyConditionalRecoveryAsync(providers, transportActor, recoveryIds,
-                tag, Journal, sharingOperations);
+                tag, sqlite, Journal, sharingOperations);
             Assert.AreEqual(3, recoveryProvidersVerified);
             var shippingRestRequests = await VerifyShippingRestAsync(providers, outbox, authority,
                 secret, restActor, restIds, ids[0], tag, Journal, sharingOperations);
