@@ -295,13 +295,13 @@ public sealed partial class CqlV1Web4NativeTests
             builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
                 endpoint => endpoint.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2));
         else builder.WebHost.UseUrls("http://127.0.0.1:0");
-        var paths = transportMode ? new[] { "/graphql", "/oasis.web4.DataService/SaveHolon" }
+        var paths = transportMode ? new[] { "/graphql", "/oasis.web4.DataService/SaveHolon", "/oasis.web4.DataService/DeleteHolon" }
             : new[] { "/api/data/save-holon", "/api/data/save-holons" };
         var deployment = new StorageAdmissionDeployment
         {
             NativeProviders = Array.Empty<NativeStorageAdmissionBinding>(), OrdinaryProviders = new[] { provider },
             StorageTariffs = StorageAttemptTariff.SupportedOperations.Select(operation =>
-                new StorageAttemptTariff(provider, operation, operation == "LoadHolon" ? 0.001m : 0.003m, "owned-storage-v1")).ToArray(),
+                new StorageAttemptTariff(provider, operation, operation is "LoadHolon" or "LoadHolonByProviderKey" ? 0.001m : 0.003m, "owned-storage-v1")).ToArray(),
             Routes = paths.Select(path => new StorageAdmissionRoute("POST", path, new UsageEndpointPolicy
             {
                 MeterCategory = "cosmic.write", PricingCatalogueVersion = "owned-storage-v1",
