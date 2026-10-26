@@ -1,3 +1,15 @@
+## Read-only conditional-operation recovery gap - source verified
+
+The generic conditional-write capability currently exposes execution but no read-only status lookup for an original operation. Providers retain internal receipts, yet an authenticated host cannot generically reconcile an uncertain delete through that interface without re-entering mutation. A new receipt/status capability must bind actor, authority and original operation and distinguish committed, absent and unavailable evidence without assuming absence proves rejection. Service-attempt charges and uncertain mutation state remain separate. [Required recovery behavior](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+## Uncertain delete result ownership - 26 October 2026
+
+Four new controlled SDK cases preserve provider-declared reconciliation evidence and the original operation/transaction without retry or publishing deletion/new revision. Focused4/4 and fullCore3420PASS/0skip. This does not close durable hosted/native unknown-outcome recovery. [Scope and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+## Concurrent hosted delete provider isolation - 26 October 2026
+
+Four new barrier-controlled cases pass: one provider read pauses while another provider request completes, the registry default changes, and the original mutable transport request changes. Both requests retain their captured provider and conditional intent. Focused4/4 and fullWEB4285 PASS/1unrelated Stripe sandbox skip/0fail. No production correction required. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md). Native outage/unknown-outcome/startup gates remain open.
+
 ## Hosted delete authorization and pinned-authority failures - 26 October 2026
 
 Fourteen new controls pass: ten for captured authenticated actor/Wizard role, logical/key identity and unchanged original conditional intent; four ensuring an unavailable authority cannot borrow ownership from an available failover replica. Full Core3416 PASS/0skip; WEB4281 PASS/1unrelated Stripe sandbox credentialskip/0fail. These are controlled-provider host/SDK tests, separate from the preceding signed native delete cohort. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).

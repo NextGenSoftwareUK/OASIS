@@ -264,4 +264,61 @@ public partial class CosmicTrackingTests
         fixture.Provider.As<IConditionalHolonStorageProvider>().Verify(provider =>
             provider.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()), Times.Never);
     }
+
+    private sealed class UnknownOwnedDeleteOutcome : System.IO.IOException, INativeMutationReconciliationRequired
+    {
+        public string OriginalTransactionId { get; }
+        public UnknownOwnedDeleteOutcome(string original) : base("The acknowledgement was not observed.")
+            => OriginalTransactionId = original;
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task OwnedDeletePreservesUncertainOriginalWithoutRetryOrPublishingDeletion(bool byKey, bool soft)
+    {
+        var fixture = Fixture(true, conditional: true);
+        var actor = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var revision = Guid.NewGuid();
+        var operation = Guid.NewGuid();
+        var originalTransaction = "controlled-original-transaction";
+        var cause = new UnknownOwnedDeleteOutcome(originalTransaction);
+        var stored = new Holon { Id = id, CreatedByAvatarId = actor, Version = 7 };
+        CosmicConcurrency.SetProviderRevisionId(stored, ProviderType.SQLLiteDBOASIS, revision);
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync(id, false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored) { IsLoaded = true });
+        fixture.Provider.Setup(provider => provider.LoadHolonAsync("native-key", false, true, 0, true, false, 0))
+            .ReturnsAsync(new OASISResult<IHolon>(stored) { IsLoaded = true });
+        ConditionalHolonWriteRequest? submitted = null;
+        fixture.Provider.As<IConditionalHolonStorageProvider>()
+            .Setup(provider => provider.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<ConditionalHolonWriteRequest, CancellationToken>((request, _) => submitted = request)
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCount = 2,
+                ErrorCode = "COSMIC_WRITE_RECONCILIATION_REQUIRED", Exception = cause,
+                Message = cause.Message, MetaData = new() { ["COSMIC.OperationId"] = operation.ToString("D") } });
+        var options = new CosmicWriteOptions(operation, new Dictionary<Guid, Guid?> { [id] = revision });
+        var result = byKey
+            ? await fixture.Manager.DeleteOwnedHolonByProviderKeyAsync("native-key", id, actor, options, soft)
+            : await fixture.Manager.DeleteOwnedHolonAsync(id, actor, options, soft);
+        result.IsError.Should().BeTrue();
+        result.IsDeleted.Should().BeFalse();
+        result.ErrorCode.Should().Be("COSMIC_WRITE_RECONCILIATION_REQUIRED");
+        result.ErrorCount.Should().Be(2);
+        result.Exception.Should().BeSameAs(cause);
+        result.MetaData.Should().ContainKey("COSMIC.OperationId").WhoseValue.Should().Be(operation.ToString("D"));
+        NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeTrue();
+        NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(result.Exception)
+            .Should().Equal(originalTransaction);
+        submitted.Should().NotBeNull();
+        submitted!.Write.OperationId.Should().Be(operation);
+        submitted.Write.Conditions.Single().ExpectedRevisionId.Should().Be(revision);
+        stored.IsDeleted.Should().BeFalse();
+        stored.Version.Should().Be(7);
+        CosmicConcurrency.GetProviderRevisionId(stored, ProviderType.SQLLiteDBOASIS).Should().Be(revision);
+        fixture.Provider.As<IConditionalHolonStorageProvider>().Verify(provider =>
+            provider.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
 }
