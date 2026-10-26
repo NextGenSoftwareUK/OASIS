@@ -1,5 +1,21 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
+## Latest joined HTTP/native gate — 26 October 2026
+
+Verified: Core3,342/WEB4221;36 signed shipping DataController REST requests on all
+three stores,33 settled REST operations,345 settled CQL operations and403 physical
+attempts. The138SDK/138signedCQL walkthrough remains green. Recursive child values
+and exact membership survive transport; depth exclusions, ownership, replay/stale
+conflicts and atomic batch failure have joined durable settlement evidence.
+Sources are frozen and seven producer/consumer pairs match. Fixtures and services
+are cleaned. [Evidence](CQL_STORAGE_WRITE_ACCOUNTING.md).
+
+This closes the canonical REST/native/usage join identified in earlier checkpoints.
+It does not close full startup/alias/concurrent configuration, unknown outcomes,
+gRPC/GraphQL authority, authoritative recipient/tenant queries, federation or the
+broader certification/ORM roadmap. Continue those gates rather than treating the
+existing walkthrough as100%completion. Historical notes below are scoped snapshots.
+
 ## Sharing authority and authenticated snapshot — 26 October 2026
 
 V2 sharing/revocation now reads through generic Core LoadHolonForWriteAsync and

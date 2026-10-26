@@ -1,8 +1,15 @@
 # V2 REST conditional graph writes
 
-Status: controller/service migration and controlled shipping MVC HTTP gates
-verified. Native DataController HTTP with real stores, complete startup/billing
-and remaining transports are still open. This is not a production-completeness claim.
+Status: controller/service migration, controlled MVC gates and joined signed
+shipping DataController HTTP with MongoDB/SQLite/Neo4j and durable usage settlement
+are verified. Full deployment startup/alias/concurrent configuration and remaining
+transports stay open. This is not a production-completeness claim.
+
+Latest gate: Core3,342 and normal WEB4221 passing, zero skips;36 signed shipping
+REST requests/33 settled REST operations across all three stores, plus the existing
+138SDK/138CQL walkthrough. Complete serialized child graphs, full recursive child
+updates, depth selection, foreign denial, replay/stale conflicts and atomic stale
+batches pass with exact service receipts. See [joined evidence and limitations](CQL_STORAGE_WRITE_ACCOUNTING.md).
 
 The existing `POST /api/data/save-holon` and `POST /api/data/save-holons` actions
 use the generic Core owned graph APIs in HyperDrive V2. Existing single-save
@@ -135,19 +142,19 @@ Owned native services/fixtures are cleaned. Evidence:
 
 Before declaring hosted writes complete:
 
-- Exercise actual DataController HTTP with MongoDB, SQLite and Neo4j and the full
-  selected-route admission/outbox pipeline, including valid acknowledgements,
-  child selection, unknown outcomes and cleanup. Controlled MVC plus separate
-  native-service proof does not establish the complete joined flow.
+- Canonical single/batch DataController HTTP now passes the joined native
+  admission/outbox/settlement gate, including acknowledgements and child selection.
+  Extend it to unknown-outcome recovery and the full deployment/startup matrix;
+  the verified fixture authority does not certify external billing services.
 - Expand the option/alias and startup certification matrix as hosted native
   integration grows. Controlled HTTP tests now cover absent/blank/unknown mode
   and invalid mode/provider-list options, alongside the existing supported-V2
   request controls; they do not prove the complete deployed startup chain.
 - Keep canonical and alias enrollment explicit; guards prevent missing-policy
   execution but do not invent deployment route registrations or tariff budgets.
-- Admit and price actual ownership reads and conditional writes using explicit
-  server policy. Query-attempt tariffs do not establish write pricing; no
-  invented zero, query receipt or native invoice is added by this boundary.
+- Actual ownership reads and conditional writes now use explicit server operation
+  tariffs with joined native settlement proof. Keep catalogue approval and exact
+  deployment enrollment explicit. Service prices do not establish native invoices.
 - Finish gRPC save migration and authenticated GraphQL actor binding before
   enrolling authoritative recipient/tenant CQL access.
 
