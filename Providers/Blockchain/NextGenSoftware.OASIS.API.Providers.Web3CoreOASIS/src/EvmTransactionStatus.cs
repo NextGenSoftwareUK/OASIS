@@ -20,6 +20,7 @@ internal static class EvmTransactionStatus
         try{
             token.ThrowIfCancellationRequested();EvmFinalizedStatus.ValidateHash(transactionHash);
             using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(TimeSpan.FromSeconds(30));
+            using var transportScope=EvmOperationRpc.Enter(deadline.Token);
             var ready=await initialize().WaitAsync(deadline.Token);
             if(ready.IsError){OASISErrorHandling.HandleError(ref result,ready.Message,ready.Exception);result.ErrorCode=ready.ErrorCode;return result;}
             var client=ready.Result??throw new InvalidOperationException("EVM status client was not initialized.");
