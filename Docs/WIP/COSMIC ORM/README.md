@@ -2,7 +2,9 @@
 
 Latest host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including per-record write enrollment, two-read pricing, signed three-provider acceptance and remaining fault/restart gates.
 
-Latest query addition: [authority-bound record access](CQL_AUTHORITATIVE_ACCESS.md), with immutable trusted catalogues and native paging/graph/join/composition verification on all three providers. Hosted tenant/recipient enrollment remains open.
+Latest query addition: [authority-bound record access](CQL_AUTHORITATIVE_ACCESS.md), with immutable trusted catalogues and native paging/graph/join/composition verification on all three providers. Application grant discovery and scalable tenant scopes remain open.
+
+Latest hosted addition: [authoritative CQL read-policy enrollment](CQL_HOSTED_READ_POLICY.md) across all six query families, with 30 signed shipping-controller requests on all three stores. Current native cohort: 492 settlements / 541 attempts. Application grant discovery, scalable tenant scopes and federation remain open.
 
 Start with [implementation status](IMPLEMENTATION_STATUS.md), the [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) and the [source integration boundary](INTEGRATION_BOUNDARY.md). They identify verified scope, unfinished acceptance criteria and publication constraints.
 

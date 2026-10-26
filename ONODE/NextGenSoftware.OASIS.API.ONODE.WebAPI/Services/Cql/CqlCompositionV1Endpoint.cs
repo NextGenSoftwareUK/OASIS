@@ -25,8 +25,9 @@ public static partial class CqlV1Endpoint
         {
             http.RequestAborted.ThrowIfCancellationRequested();
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider);
-            var intent = CqlV1Compiler.CompileComposition(request, actor, requested);
-            if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected))
+            var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
+            var intent = CqlV1Compiler.CompileComposition(request, actor, policy?.Selected??requested,policy?.Access);
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted composition.");
             if (rowAdapter is not ICosmicQueryProjectionCompositionStorageProvider adapter)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native selected-result composition.");
@@ -52,6 +53,7 @@ public static partial class CqlV1Endpoint
             deadline.Token.ThrowIfCancellationRequested();
             return response;
         }
+        catch(ReadPolicyRejected cause) { return Failure(cause.Status,cause.Code,"The trusted read-access policy did not authorize this request."); }
         catch (ArgumentException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         { return Failure(400, "CQL_REQUEST_INVALID", "Invalid bounded CQL composition description."); }
         catch (InvalidOperationException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
