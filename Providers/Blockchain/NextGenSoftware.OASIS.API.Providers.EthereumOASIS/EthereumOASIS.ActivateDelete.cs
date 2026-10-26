@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         private static Web3 CreateWeb3WithAccount(IAccount account, string url)
         {
-            return new Web3(account, url ?? string.Empty);
+            return NextGenSoftware.OASIS.Providers.Shared.Evm.EvmOperationRpc.Create(account, url ?? string.Empty);
         }
 
         public override OASISResult<bool> ActivateProvider()

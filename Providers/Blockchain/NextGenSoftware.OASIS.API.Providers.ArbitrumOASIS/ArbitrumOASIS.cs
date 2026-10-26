@@ -108,7 +108,7 @@ public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISLega
                 throw new InvalidOperationException("The Arbitrum provider requires an RPC URI, private key, chain ID and deployed contract address.");
 
             _oasisAccount = new Account(_chainPrivateKey, _chainId);
-            _web3Client = new Web3(_oasisAccount, _hostURI);
+            _web3Client = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmOperationRpc.Create(_oasisAccount, _hostURI);
             HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
             if (remoteChainId.Value != _chainId)
                 throw new InvalidOperationException($"Arbitrum RPC chain ID '{remoteChainId.Value}' does not match configured chain ID '{_chainId}'.");

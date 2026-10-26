@@ -61,7 +61,7 @@ public partial class Web3CoreOASISBaseProvider
                 throw new InvalidOperationException("The EVM provider requires an RPC URI, private key and deployed contract address.");
 
             var account = new Account(_chainPrivateKey,_expectedChainId);
-            _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
+            _web3Client = NextGenSoftware.OASIS.Providers.Shared.Evm.EvmOperationRpc.Create(account, _hostURI);
             HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
             if (_expectedChainId.HasValue && remoteChainId.Value != _expectedChainId.Value)
                 throw new InvalidOperationException($"EVM RPC chain ID '{remoteChainId.Value}' does not match expected chain ID '{_expectedChainId.Value}'.");
