@@ -17,8 +17,11 @@ internal sealed partial class MongoCqlTranslator
             .Select(part => (BsonValue)("$a" + index + "d" + part))), "$a" + index + "present", average);
 
     private static BsonValue GroupedSumValue(CosmicGroupedColumn column, int index)
-        => (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal)
-            ? (BsonValue)("$cqlDecimalSum" + index) : GroupedSumValue(index);
+    {
+        var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+        return type == typeof(decimal) ? (BsonValue)("$cqlDecimalSum" + index)
+            : type == typeof(float) || type == typeof(double) ? (BsonValue)("$cqlFloatingSum" + index) : GroupedSumValue(index);
+    }
 
     private static BsonValue GroupFilterValue<T, TKey, TResult>(CosmicGroupedSelection<T, TKey, TResult> query,
         CosmicQueryPath path) where T : IHolon

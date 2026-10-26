@@ -1,5 +1,26 @@
 # COSMIC ORM implementation status
 
+## MongoDB floating grouped acceptance - 25 October 2026
+
+MongoDB SDK Single/Double arithmetic now covers scalar and grouped Sum/Average,
+including nullable inputs and selected group filtering/order/paging. All34 new
+grouped native controls,490 full native CQL tests and571 matched provider units
+pass without failures/skips. Six Core/Shared/Mongo producer/native/unit copies
+match. The full gate also checks5,127native final-normalization packets.
+
+The compiler packs ten/seventy exact Int64 word sums plus participation per
+floating slot. The shared Core normalizer validates every raw group, including
+groups excluded from publication, before validating native result membership.
+Overflow cannot hide behind predicates or Take(0). Mixed integer/Decimal/Single/
+Double slots, precision boundaries, nullable means, privacy, source windows,
+cancellation/reuse and137inputs independent of graph output limits are verified.
+
+Runner-owned Mongo stopped; its26,392,148byte raw log was bounded to a65,383byte
+tail after teardown. No new downloads/restores/environments were needed for this
+batch. Neo4j floating arithmetic, floating HTTP/live demos and broader CQL/ORM
+policy/federation gates remain open. [Contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
+
+
 ## MongoDB floating scalar acceptance - 25 October 2026
 
 MongoDB explicitly enrolls required/nullable Single/Double scalar Sum/Average.

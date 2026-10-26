@@ -68,7 +68,18 @@ public partial class HolonRepository
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 OASISResult<object> normalized;
-                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                var inputType = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                if (inputType == typeof(float) || inputType == typeof(double))
+                {
+                    expectedFields += 2;
+                    var width = inputType == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+                    if (!document.TryGetValue(name + "parts", out var words) || !words.IsBsonArray
+                        || words.AsBsonArray.Count != width || words.AsBsonArray.Any(word => !word.IsInt64))
+                        throw new InvalidDataException("Native floating group requires its declared exact Int64 word array.");
+                    normalized = CosmicFloatingAggregateResults.FromParts(column.Operation.Value, column.Selector.ValueType,
+                        words.AsBsonArray.Select(word => word.AsInt64).ToArray(), present);
+                }
+                else if (inputType == typeof(decimal))
                 {
                     expectedFields += CosmicDecimalScalarResults.LimbCount + 1;
                     var parts = new long[CosmicDecimalScalarResults.LimbCount];
