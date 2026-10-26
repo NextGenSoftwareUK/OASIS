@@ -1,4 +1,5 @@
 import { ApiPromise } from '@polkadot/api';
+import { canonicalAccountIdentities } from './account-identities.mjs';
 import { readFileSync } from 'node:fs';
 import { prepareNativeTransfer, validateTransferRequest } from './native-transfer.mjs';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
@@ -27,6 +28,10 @@ let stage = 'request validation';
 try {
   try { request = JSON.parse(readFileSync(0, 'utf8')); }
   catch { throw new Error('SDK request must be valid JSON.'); }
+  if (request.operation === 'canonicalAccountIdentities') {
+    // Pure SDK decoding: no endpoint, signing material or RPC is needed.
+    process.stdout.write(JSON.stringify({ ok: true, result: await canonicalAccountIdentities(request.addresses) }));
+  } else {
   if (!['balance', 'prepareTransfer', 'verifyNativePreparation', 'persistNativePreparation', 'submitNativePreparation', 'finalizedReceipt', 'originalOutcome', 'originalNativeFee', 'prepareAssetOperation', 'verifyAssetPreparation', 'submitAssetPreparation', 'assetOutcome', 'walletHistory', 'generateKeyPair', 'createAccount', 'restoreAccount', 'transactionStatus', 'recordRead', 'psp34ReadCollection', 'prepareRecordMutation', 'verifyRecordPreparation', 'submitRecordPreparation', 'recordOutcome', 'prepareNftMutation', 'verifyNftPreparation', 'submitNftPreparation', 'nftOutcome', 'recoverNftPreparation'].includes(request.operation)) throw new Error('Unknown Polkadot SDK operation.');
   if (request.operation === 'recordRead') validateRecordRead(request);
   if (request.operation === 'psp34ReadCollection') validatePinnedContractQuery(request);
@@ -162,6 +167,7 @@ try {
   if (!/^(0|[1-9][0-9]*)$/.test(units) || BigInt(units) >= (1n << 128n))
     throw new Error('Runtime returned an invalid native u128 balance.');
   process.stdout.write(JSON.stringify({ ok: true, result: { units, decimals, blockHash: blockHash.toHex() } }));
+  }
   }
 } catch (error) {
   // Preserve failure stage/type/reason without echoing endpoint URLs or request content.
