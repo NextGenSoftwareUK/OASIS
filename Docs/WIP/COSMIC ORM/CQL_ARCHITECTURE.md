@@ -1560,3 +1560,12 @@ authorized. See [owned graph write contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md)
 for the spaced C# example, failure semantics and verification. Hosted REST,
 gRPC and trusted-role policy migration remains open; this API alone does not
 enroll recipient/tenant queries or supply admission/pricing.
+
+### Conditional REST save requests
+
+HyperDrive V2's existing single/bulk save routes now accept stable operation IDs
+and expected provider revisions, with generic whole-graph authorization. Existing
+single-save aliases can use `X-COSMIC-Operation-Id`. See the spaced JSON example,
+revision semantics and verification limits in the
+[REST conditional write contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md).
+Hosted admission and full shipping HTTP certification are still open.
