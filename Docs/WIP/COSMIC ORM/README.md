@@ -6,6 +6,8 @@ Latest query addition: [authority-bound record access](CQL_AUTHORITATIVE_ACCESS.
 
 Latest hosted addition: [authoritative CQL read-policy enrollment](CQL_HOSTED_READ_POLICY.md) across all six query families, with 30 signed shipping-controller requests on all three stores. Current native cohort: 492 settlements / 541 attempts. Application grant discovery, scalable tenant scopes and federation remain open.
 
+Tenant deployments can require that policy with `CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true`. Startup readiness and every query family reject missing policy composition; scoped policy lifetime and actual shipping host startup are verified.
+
 Start with [implementation status](IMPLEMENTATION_STATUS.md), the [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) and the [source integration boundary](INTEGRATION_BOUNDARY.md). They identify verified scope, unfinished acceptance criteria and publication constraints.
 
 These are working documents. Dated reports retain historical evidence; earlier counts and findings do not override current status. Legacy Hyperdrive is documented only. Implementation targets V2.

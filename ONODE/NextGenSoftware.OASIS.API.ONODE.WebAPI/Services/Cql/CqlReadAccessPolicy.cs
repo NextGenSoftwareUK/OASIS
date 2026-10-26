@@ -42,6 +42,8 @@ public static partial class CqlV1Endpoint
             var registered = http.RequestServices?.GetService(typeof(IServiceProviderIsService)) as IServiceProviderIsService;
             if (registered?.IsService(typeof(ICqlReadAccessPolicy)) == true)
                 throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
+            if ((http.RequestServices?.GetService(typeof(CqlReadPolicyRequirement)) as CqlReadPolicyRequirement)?.Required == true)
+                throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_REQUIRED");
             return null; // Unenrolled hosts retain their explicit owner/public contract.
         }
         if (resolved is not ICqlReadAccessPolicy service)

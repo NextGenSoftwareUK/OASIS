@@ -56,6 +56,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Validate required authorization before storage initialization hosts start.
+            Services.Cql.CqlReadPolicyEnrollment.AddConfiguredCqlReadAccessPolicy(services, Configuration);
             services.Configure<HostOptions>(options =>
                 options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
