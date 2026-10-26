@@ -1,0 +1,15 @@
+{
+  "transactionHash": "0x5a454159db0d63d88b652fb9127e07c3fbfdd5bc49f6fb32b123c54698e506de",
+  "beforeBlockHash": "0x4e9986d7a892b5b0ea2af5cd010df8d80c75b02bd63e4278854bdc25818e111e",
+  "debitUnits": "1059786846082",
+  "beforeUnits": "66487322208993",
+  "debitMatchesFeePlusLimit": true,
+  "frameFeeUnits": "5516846082",
+  "scope": "Single local deployment balance observation; storage limit alone is not a general actual-cost or retail-fee proof.",
+  "storageLimitUnits": "1054270000000",
+  "after": {
+    "units": "65427535362911",
+    "decimals": 12,
+    "blockHash": "0x610935bb48ee6610571d0c86bc878b0e666035b08d3e0790922078abc60013dc"
+  }
+}

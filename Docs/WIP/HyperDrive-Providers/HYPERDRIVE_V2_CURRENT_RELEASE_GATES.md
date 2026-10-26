@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: native escrow v0.2 constructor/deployment accepted
+
+Retained-node simulation and one original instantiateWithCode finalized at0x57c45516efaf35ef1737dfcaea6ea8c67f44dcf4e3687f3eb49bdcfced2b21a7; exact original/call/payer/code/Instantiated event/collection verified. Separate explicit reconciliation reused the same original without signing or replay. Initial native beneficiary-query/owner/supply snapshot confirms new ABI and empty state. SDK37/37 and pending fences175PASS. No new runtime/environment/wallet/download/funding; old0.1instance preserved, owned node stopped/ports absent.
+
+Actual local FRAME fee0.005516846082testUNIT; storage limit1.05427UNIT and observed debit1.059786846082UNIT are separate quantities, not a retail-fee or general outlay certificate. **Still open:** native lock/unlock across ownership cycles, wrong/stale beneficiaries, hosted GUID/wallet/owner authorization and full provider/V2 certification. [Original/evidence/fee details](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md). Earlier “not deployed” checkpoints below are historical.
+
 ## 26 October: native beneficiary escrow v0.2 source and artifact gates
 
 Current C# lock/unlock share stored NFT/chain validation and authorized avatar-wallet selection; gate54473passed358/358controlled cases0skip19s after provider/consumer builds. Rust14/14 and SDK28/28 pass. Offline Wasm16840passed with50,316Bartifact, exact exports/imports, SHA78d6d3d39dafe6338257a35205cd099246b658ab102f2547066133d70b32a67f/codeHash0x39cacf5a31331133ee218034e8c7bc379f250a3c86a8c1a1e775c3a3773c82f1. All builds reused cached runtimes/one target; obsolete intermediate files were verified/removed, final0.1artifact preserved.
