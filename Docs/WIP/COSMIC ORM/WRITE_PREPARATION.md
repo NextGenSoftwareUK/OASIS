@@ -1,5 +1,49 @@
 # Durable conditional-write preparation
 
+## Routed stored-intent recovery SDK
+
+Verified 26 October 2026: full Core **3,478/3,478**, zero skips/failures, both targets built; real-Mongo usage **404/404** plus the separate replica initialization control. The three-provider native gate passes routed/direct preparation equivalence before claim and after reconnection, with existing actual lost-acknowledgement recovery and **453 settlements / 496 attempts** unchanged. Sources stayed unchanged, seven producer/consumer pairs matched and owned services/fixtures were removed. [Core tests](Verification/preparation-routing-core-full.trx.gz), [usage tests](Verification/preparation-routing-usage.trx.gz), [native tests](Verification/preparation-routing-native.trx.gz), [native result](Verification/preparation-routing-result.json), [source identities](Verification/preparation-routing-source.json.gz), [binary identities](Verification/preparation-routing-binaries.json).
+
+`HolonManager.ReadHolonWritePreparationAsync(operationId, actor, authority)` routes a lookup through HyperDrive V2, pins the original concrete authority, disables replication, and rejects any returned operation/actor/authority substitution. A missing preparation remains an observation of absence. Direct HyperDrive callers must provide the same immutable `HolonWritePreparationLookup` binding, authenticated actor, required provider and `AutoReplicate=false`; mutation enrollment is rejected before provider access. Both synchronous and asynchronous dispatch require the read capability.
+
+`HolonManager.RecoverConditionalHolonWriteOutcomeAsync` combines lookup, authenticated original-intent reconstruction, and the existing pinned read-only receipt lookup. It requires host-owned protection-context and runtime-type admission callbacks. No request graph or retry candidate is needed, and no execution or first-winner claim is entered. Missing original intent, denied keys/types and changed returned bindings are explicit errors; none authorizes another mutation.
+
+For a trusted SDK host with an authorized per-record policy dictionary, a built-in `Holon`-only type catalogue can be expressed as follows:
+
+```csharp
+var status = await holonManager.RecoverConditionalHolonWriteOutcomeAsync(
+    operationId,
+    authenticatedActorId,
+    originalProvider,
+
+    // This dictionary must come from trusted host authorization policy.
+    // Missing records fail; never allocate a replacement key here.
+    authorizePolicy: recordId => authorizedPolicyById[recordId],
+
+    // Admit only the concrete contracts your application owns.
+    // A typed application must explicitly admit its own holon types too.
+    admitType: (typeName, assemblyName) =>
+        typeName == typeof(Holon).FullName
+        && assemblyName == typeof(Holon).Assembly.GetName().Name
+            ? typeof(Holon)
+            : null);
+
+if (status.IsError)
+{
+    // Preserve the original operation ID and report the explicit error.
+    // Do not infer failure, replay, or switch providers.
+    Console.WriteLine(status.ErrorCode);
+}
+else
+{
+    Console.WriteLine(status.Result.ReceiptState);
+}
+```
+
+Under priced host admission, `ReadHolonWritePreparation` and `ReadConditionalHolonWriteOutcome` each require their own ordinary storage-attempt tariff. A query price does not authorize either operation. The full three-provider ordinary tariff matrix now has 21 rows. A successful reconstructed status workflow can perform two separately accounted reads; an authentication failure after preparation retrieval never dispatches the receipt read.
+
+This SDK surface is not an HTTP endpoint or a durable intent enrollment policy. Authenticated host exposure, writer enrollment under an explicit authorized protection policy, startup validation, and actual OS-process interruption/restart acceptance remain open.
+
 ## Read-only preparation retrieval
 
 Verified on 26 October 2026: full Shared **1,242**, MongoDB **575**, SQLite **95** and Neo4j **566** unit tests pass, zero skips/failures. Both Core build targets pass. The native signed CQL cohort passes with unchanged **453 settlements / 496 attempts**, including fifteen preparation lookups after provider reconnection and foreign-actor rejection across all three stores. Existing actual commit-acknowledgement-loss receipt recovery also remains green. [Native result](Verification/preparation-read-native-result.json), [native TRX](Verification/preparation-read-native.trx.gz), [source identities](Verification/preparation-read-native-source.json.gz), [seven matched binary pairs](Verification/preparation-read-native-binaries.json). Unit reports are `Verification/preparation-read-unit-{0,1,2,3}.trx.gz` in Shared/MongoDB/SQLite/Neo4j order.

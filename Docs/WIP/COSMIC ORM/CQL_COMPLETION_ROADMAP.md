@@ -1,6 +1,30 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
-## Current checkpoint — 26 October 2026
+## Current recovery integration checkpoint — 26 October 2026
+
+The signed REST, GraphQL and gRPC creator-owned conditional delete matrix is
+verified on MongoDB, SQLite and Neo4j. Read-only receipt recovery and original
+protected preparation retrieval are implemented on all three stores. Actual
+hard-delete commits followed by injected acknowledgement loss recover through
+read-only receipts without replay. The latest retained native cohort has
+453 settled operations / 496 physical attempts, unchanged sources and seven
+matching producer/consumer pairs. These are application-boundary fault tests,
+not OS-process crash certification.
+
+Core's new pinned preparation routing and stored-only reconstruction workflow
+passes 3,478 unit tests; both Core targets build. Exact preparation/receipt read
+tariffs have 404 passing real-Mongo usage tests. Latest WEB4 unit evidence is
+285 passed with one unrelated Stripe sandbox credential skip. See
+[protected preparation contracts and evidence](WRITE_PREPARATION.md) and
+[current implementation status](IMPLEMENTATION_STATUS.md) for scoped cohorts.
+
+Remaining priority: authenticated hosted recovery, explicit authorized durable
+intent enrollment for hosted writes/deletes, startup/admission validation, and
+actual process interruption/restart. Recipient/tenant query scope, federation
+certification and the broader ORM roadmap remain open. Provider reactivation
+does not close the process-restart requirement.
+
+## Earlier owned-delete SDK checkpoint — 26 October 2026
 
 Core is published at `5e483cb`. Logical-ID and provider-key creator-owned
 conditional-delete SDK boundaries are implemented. Latest full Core: **3,412**
