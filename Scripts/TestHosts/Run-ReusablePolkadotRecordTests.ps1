@@ -13,6 +13,7 @@ param(
     [Parameter(ParameterSetName = 'NftLifecycle')][switch]$NftLifecycle,
     [Parameter(ParameterSetName = 'NftLifecycleRecover')][switch]$NftLifecycleRecover,
     [Parameter(ParameterSetName = 'NftIntentRecovery')][switch]$NftIntentRecovery,
+    [Parameter(ParameterSetName = 'NftCustodySource')][switch]$NftCustodySource,
     [Parameter(ParameterSetName = 'NftPublicMutation')][switch]$NftPublicMutation,
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
@@ -73,10 +74,11 @@ try {
     }
     Push-Location $sdk
     try {
-        if ($NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation -or $NftLifecycle -or $NftLifecycleRecover -or $NftIntentRecovery) { & node verify-record-contract-artifact.mjs psp34 }
+        if ($NftCustodySource -or $NftConstructorSimulation -or $NftDeploy -or $NftReconcile -or $NftPreparation -or $NftLifecycle -or $NftLifecycleRecover -or $NftIntentRecovery) { & node verify-record-contract-artifact.mjs psp34 }
         else { & node verify-record-contract-artifact.mjs }
         if ($LASTEXITCODE -ne 0) { throw 'Artifact admission failed.' }
-        if ($NftIntentRecovery) { & node test-local-psp34-recovery.mjs }
+        if ($NftCustodySource) { & node test-local-psp34-custody-source.mjs }
+        elseif ($NftIntentRecovery) { & node test-local-psp34-recovery.mjs }
         elseif ($NftLifecycle) { & node test-local-psp34-lifecycle.mjs --execute }
         elseif ($NftLifecycleRecover) { & node test-local-psp34-lifecycle.mjs --reconcile }
         elseif ($NftPreparation) { & node test-local-psp34-preparation.mjs }

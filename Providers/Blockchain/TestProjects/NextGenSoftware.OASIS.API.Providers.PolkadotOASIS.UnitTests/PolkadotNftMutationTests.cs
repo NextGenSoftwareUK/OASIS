@@ -170,11 +170,39 @@ public class PolkadotNftMutationTests
         }
     }
 
+    [DataTestMethod][DataRow("accepted",false)][DataRow("accepted",true)]
+    [DataRow("wrong-token",true)][DataRow("read-error",false)][DataRow("source-mismatch",true)]
+    public async Task DepositReleasesExistingNativeTokenAndBindsOptionalCustodyProof(string outcome,bool source)
+    {
+        var priorBridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var priorOutcome=Environment.GetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",outcome);
+        try {
+            using var provider=new Provider();Activate(provider);
+            var store=DispatchProxy.Create<IUsageOutboxStore,PolkadotOwnedTransferTests.AttemptObserver>();
+            var result=await provider.ExecutePreparedNativeOperationAsync(()=>provider.DepositNFTAsync(Contract,Token,Sender,
+                source?"0x"+new string('e',64):null),PolkadotOwnedTransferTests.Handle(store),"owned-original",Recipient);
+            Assert.AreEqual(outcome=="source-mismatch"?0:1,((PolkadotOwnedTransferTests.AttemptObserver)(object)store).Calls);
+            Assert.AreEqual(outcome!="accepted",result.IsError,result.Exception?.ToString());
+            Assert.AreEqual(0,provider.WalletLoads,"Releasing custody must not mint or resolve a new mint wallet.");
+            if(outcome=="accepted")Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,result.Result.Status);
+            else if(outcome!="source-mismatch") {
+                Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending,result.Result.Status);
+                Assert.IsInstanceOfType(result.Exception,typeof(INativeMutationReconciliationRequired));
+                Assert.AreEqual("0x"+new string('b',64),result.Result.TransactionId);
+            }
+        } finally {
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",priorBridge);
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",priorOutcome);
+        }
+    }
+
     private static void Activate(PolkadotOASIS provider) {
         typeof(PolkadotOASIS).GetField("_isActivated",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,true);
         typeof(PolkadotOASIS).GetProperty("ReportedGenesisHash")!.SetValue(provider,"0x"+new string('a',64));
     }
-    private sealed class Provider():PolkadotOASIS("http://127.0.0.1:1","fixture","",Recipient,null,new PolkadotNftConfiguration(Code,Sender))
+    private sealed class Provider():PolkadotOASIS("http://127.0.0.1:1","fixture","fixture",Recipient,null,new PolkadotNftConfiguration(Code,Sender))
     {
         public int WalletLoads;
         protected override Task<OASISResult<IProviderWallet>> ResolveAssetMintWalletAsync(Guid avatarId) {

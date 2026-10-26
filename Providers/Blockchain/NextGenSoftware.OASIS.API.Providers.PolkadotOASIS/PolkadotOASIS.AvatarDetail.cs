@@ -191,38 +191,31 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 return result;
             }
 
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
+            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress)||string.IsNullOrWhiteSpace(tokenId))
             {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
+                OASISErrorHandling.HandleError(ref result, "NFT collection, native token ID and receiver address are required");
                 return result;
             }
 
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
+            if(string.IsNullOrWhiteSpace(_bridgePoolAddress)||string.IsNullOrWhiteSpace(_privateKey))
+                throw new InvalidOperationException("An explicit configured custody pool and signing key are required for NFT release.");
+            // Release the existing token; never manufacture a different NFT as a deposit.
+            // Any supplied source hash must prove this same collection/token entering
+            // local custody. Cross-chain authorization remains the coordinator's job.
+            var released=await ExecuteOwnedNftAsync(owner=>Task.FromResult(new NftIntent("transfer",
+                NftAccount(nftTokenAddress),CanonicalNftTokenId(tokenId),NftAccount(_bridgePoolAddress),
+                NftAccount(receiverAccountAddress),NftAccount(_bridgePoolAddress),_bridgePoolAddress,_privateKey,null,null,
+                SourceCustodyTransaction:sourceTransactionHash))).ConfigureAwait(false);
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse,BridgeTransactionResponse>(released);
+            var unresolved=released.Exception as INativeMutationReconciliationRequired;
+            result.Result=new BridgeTransactionResponse {
+                TransactionId=unresolved?.OriginalTransactionId??released.Result?.TransactionResult??string.Empty,
+                IsSuccessful=!released.IsError&&released.Result!=null,ErrorMessage=released.IsError?released.Message:null,
+                Status=unresolved!=null?BridgeTransactionStatus.Pending:
+                    released.IsError?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Completed
             };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+            if(!released.IsError&&released.Result!=null)
+                result.Message="Original PSP34 custody release finalized; cross-chain settlement is separate.";
         }
         catch (Exception ex)
         {
