@@ -1,5 +1,15 @@
 # Oracle client readiness — top priority
 
+## OCI physical object-name admission — 25 October 2026
+
+OCI's backend now validates the complete configured-prefix-plus-key name before SDK dispatch: at most1024UTF-8 bytes, valid Unicode, and no LF/CR/NUL. The same service constraints apply to constructor prefixes and list prefixes. Validation happens outside mutation submission/reconciliation handling, so an invalid caller name cannot be reported as an uncertain native write. This is Oracle-specific transport admission; shared record/query/encryption policy is unchanged. The constraints come from [Oracle's object naming rules](https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingobjects.htm).
+
+Corrected baseline reproduced20invalid admission failures while2valid exact-limit cases passed. Final full **155/155 OCI SDK controls PASS, zero skips,22s**. Valid1024-byte BMP/supplementary-Unicode writes are observed through actual SDK signatures, complete physical URI, create-only precondition, request body and checksum acknowledgement. These two cases use a bounded in-process TCP fixture on the same existing18661loopback port because Windows HTTP.sys rejected their long encoded segments before delivering them to the usual HTTP listener. No machine-wide limits, extra runtime, bucket, download or cloud credentials were introduced. The first failed fixture report remains preserved and is not counted as an OCI service defect.
+
+Final report `TestResults/OracleObjectCurrent/name-admission-current.trx`,248,993bytes, SHA256 `F447944C77519F2F8B55CB93F7E3C2A94E4025CE9AEDB96BA40BE8B3A15547D2`. Provider5/unit12/Core761/Shared56 source/PDB identities and provider copies verified. Baseline reports and exact resource sizes/lifecycle are in ENVIRONMENT_INVENTORY.md. All test listeners stopped; reserved18661port absent. No Oracle Database suite was rerun or relabelled by this object-transport change.
+
+Cloud access rechecked without displaying values: relevant Oracle/AWS process and Windows-user environment variables remain unset, and the default `.oci/config`, `.aws/config` and `.aws/credentials` files are absent. This does not rule out an undisclosed nondefault protected profile. Hosted Autonomous Database/OCI/AWS acceptance remains pending the configured access already listed in Actions for David; local controls are not a100%provider certification.
+
 ## All-version embedded graph privacy — verified local cohort, 25 October 2026
 
 Avatar-owned exports at Version=-1 now apply the existing Core visibility projector to each stored root independently. Root ownership alone must not expose a foreign-public child or an owned grandchild behind a foreign branch. No graph is reconstructed across versions: each allowed stored child's historical version remains unchanged. Unscoped all-version export still retains its stored payload. Core/schema/SDK/storage formats and hosted configuration are unchanged.
