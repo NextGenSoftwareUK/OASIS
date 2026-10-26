@@ -1,3 +1,9 @@
+## Protected conditional delete enrollment - 26 October 2026
+
+Conditional deletes now use the shared protected preparation owner when explicit protection is configured, binding actual soft/hard operation kind before mutation. Genuine regression:12failed+4unprotectedcontrols passed against previous Core; corrected fullCore3494/3494 passes0skip and both targets build. Native encrypted manager soft-delete enrollment and stored-only recovery after reconnection pass all3providers, alongside existing hard-delete ACK-loss controls. Native453settlements/496attempts/source and binary identity/owned teardown verified. See [contract and exact evidence scope](WRITE_PREPARATION.md).
+
+Next: request-scoped authorized host protection/enrollment, authenticated recovery boundary, protected hard-delete native ACK-loss and actual process-restart gates. The full roadmap remains incomplete.
+
 ## Pinned preparation routing and stored-only SDK recovery - 26 October 2026
 
 HolonManager/HyperDrive now route original-bound preparation lookup without claims/mutation/replication. A new SDK workflow authenticates stored protected intent with trusted policy/type callbacks before read-only receipt lookup. Full Core3478, usage404 plus separate replica-init control, both Core targets and native three-provider routed/direct equivalence pass. Sources and seven binary pairs match; owned fixture/service teardown verified. Native453 settlements/496 attempts unchanged. See [contract, example and retained evidence](WRITE_PREPARATION.md).
