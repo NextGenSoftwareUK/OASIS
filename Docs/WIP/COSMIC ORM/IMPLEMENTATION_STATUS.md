@@ -1,3 +1,9 @@
+## Request-owned protection policy retention - 26 October 2026
+
+Fixed CreateRequestContext dropping configured metadata/preparation policies. New request managers retain immutable policy snapshots; parent changes and overlapping request overrides stay isolated. Two genuine failing regressions plus one positive concurrency control now pass within fullCore3497/3497, zero skips/failures; both targets build. Native inherited context protection and encrypted soft-delete recovery pass MongoDB/SQLite/Neo4j; source/binary/owned teardown verified,453settlements496attemptsunchanged. [Contract and exact evidence](WRITE_PREPARATION.md).
+
+Remaining priorities: authorized hosted policy enrollment, authenticated recovery endpoint, protected hard-delete native ACK-loss and actual process interruption/restart. Fullroadmap remains incomplete.
+
 ## Protected conditional delete enrollment - 26 October 2026
 
 Conditional deletes now use the shared protected preparation owner when explicit protection is configured, binding actual soft/hard operation kind before mutation. Genuine regression:12failed+4unprotectedcontrols passed against previous Core; corrected fullCore3494/3494 passes0skip and both targets build. Native encrypted manager soft-delete enrollment and stored-only recovery after reconnection pass all3providers, alongside existing hard-delete ACK-loss controls. Native453settlements/496attempts/source and binary identity/owned teardown verified. See [contract and exact evidence scope](WRITE_PREPARATION.md).
