@@ -159,3 +159,10 @@ integration exclusions above remain unchanged. DLL20F4E5F1 matches the HTTP
 consumer. See `TestResults/CosmicCqlDemo/mode-options-evidence.json` for identities,
 filters and counts. This new gate covers HTTP mode/configuration ownership and
 does not claim a new native-provider/billing run.
+
+
+Ordinary read/single-save/batch-save attempts now support explicit server-owned
+service tariffs in the existing prepared ledger. Query tariffs do not price
+writes; configured save routes require bounded complete profiles. See
+[storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
+price-versus-native-invoice distinction and remaining joined settlement proof.
