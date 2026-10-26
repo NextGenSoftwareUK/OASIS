@@ -2,6 +2,7 @@ import {readFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 const input=JSON.parse(readFileSync(0,'utf8')),mode=process.env.OASIS_NEAR_PREPARED_CASE;
 const hash='controlled-near-original';let result;
+if(input.operation==='submitNativePreparation'&&Object.hasOwn(input,'privateKey'))throw new Error('Signed-original submission must not receive signing authority');
 if(input.operation==='prepareNativeAction'){
   const {chainId,sender,...intent}=input.request;
   if(mode==='prepared-mismatch')intent.recipient='different.near';
