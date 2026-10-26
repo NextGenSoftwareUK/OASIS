@@ -1,5 +1,21 @@
 # COSMIC ORM implementation status
 
+## SQLite floating native query acceptance - 25 October 2026
+
+All48 focused Single/Double native query controls and74 provider units pass.
+The clean reusable production runner passes **1,763 production integration tests
+and74 provider units**, without failures/skips. Core/Shared/SQLite sources remain
+unchanged, six producer/consumer DLL copies match, and the owned database and
+intents are absent. SQLite explicitly enrolls required/nullable Single/Double
+Sum/Average for native SDK execution. MongoDB/Neo4j arithmetic and floating HTTP
+enrollment remain pending.
+
+The compiler/read owners now preserve source windows, protected graph/access
+validation and independent SQL versus packet participation counts. Scalar zero
+inputs and nonempty groups have distinct explicit invariants. Native result keys
+support selected filters/order/pages; every raw off-page packet is normalized.
+Mixed integer/Decimal/Single/Double output and30floating slots are verified.
+
 ## SQLite floating native component - 25 October 2026
 
 Eleven real SQLite component tests and all74 provider unit tests pass without

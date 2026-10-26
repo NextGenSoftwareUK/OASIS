@@ -5,7 +5,7 @@ signed HTTP and bounded selected-result composition are implemented on MongoDB,
 SQLite and Neo4j. The annotated demo now has40 examples per provider in each SDK/HTTP walkthrough.
 
 - Latest separately verified cohorts: Core **3,098** (including UInt64 numeric capture/normalization and input-domain admission),
-  Shared **1,189**, SQLite **1,702 native /72 unit**, MongoDB **416 native /550 unit**,
+  Shared **1,189**, SQLite **1,763 production integration /74 unit**, MongoDB **416 native /550 unit**,
   Neo4j **416 native /529 unit**; zero skips at their recorded checkpoints.
 - The expanded live demo passes **120 SDK /120 HTTP**, **327 settled operations
   /319 provider attempts**. Twenty composition/join browser presets pass offline, generated Swagger
@@ -103,8 +103,8 @@ implementation; current results remain separate per provider.
 
 ## 5. Scalar coverage and authoritative policy
 
-SQLite floating native packet/key component passes11focused native/74fullunit
-tests; scalar/grouped query integration and capability enrollment remain open.
+SQLite floating native SDK integration passes48focused queries and the clean
+1,763production integration/74unit gate. MongoDB/Neo4j and HTTP enrollment remain open.
 
 
 Floating exact packet normalization is verified in fullCore3,090 and both TFMs.
