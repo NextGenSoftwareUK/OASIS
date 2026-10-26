@@ -10,7 +10,7 @@ public partial class SolanaRepository
     private static void RequirePacketSize(byte[] packet)
     {
         if(packet.Length>SolanaMemoFrames.TransactionBytesLimit)
-            throw new InvalidOperationException("Solana storage transaction exceeds the native 1232-byte packet limit; no oversized packet submitted.");
+            throw new InvalidOperationException("Solana SDK-built legacy/v0 transaction exceeds the native 1232-byte packet limit; no oversized packet submitted.");
     }
 
     private async Task<string> WriteEncryptedRecordAsync(string ciphertext)

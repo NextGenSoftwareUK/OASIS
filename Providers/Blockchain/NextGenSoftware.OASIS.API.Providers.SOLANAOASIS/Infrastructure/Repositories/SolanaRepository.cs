@@ -168,6 +168,9 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         } while((tag&128)!=0);
         if(count==0 || (prefix>1 && (tag&127)==0) || signedTransaction.Length<=prefix+count*64)
             throw new ArgumentException("Solana transaction has a noncanonical or incomplete signature section.");
+        // The current signature-prefix parser covers legacy/v0 packets. Enforce
+        // their shared limit for SDK token/NFT sends as well as storage frames.
+        RequirePacketSize(signedTransaction);
         var signature = Encoders.Base58.EncodeData(signedTransaction.AsSpan(prefix,64).ToArray());
         try
         {
@@ -180,7 +183,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
             for (var attempt = 0; attempt < FinalityObservationAttempts; attempt++)
             {
                 var statuses = await rpcClient.GetSignatureStatusesAsync(new List<string> { signature }, true);
-                if (!statuses.WasSuccessful || statuses.Result?.Value == null || statuses.Result.Value.Count != 1)
+                if (!statuses.WasSuccessful || statuses.HttpStatusCode != HttpStatusCode.OK || statuses.Result?.Value == null || statuses.Result.Value.Count != 1)
                     throw new InvalidOperationException("Solana status response was unavailable or malformed.");
                 var status = statuses.Result.Value[0];
                 lastStatus = status?.ConfirmationStatus ?? "not found";
