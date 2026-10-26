@@ -1,0 +1,32 @@
+{
+  "scope": "Native SDK lifecycle and same-original read-only reconciliation; public C# mutation gates open",
+  "nativeOriginalCount": 3,
+  "totalNativeFeeBaseUnits": "8537385947",
+  "signedStorageDepositLimits": [
+    "500350000000",
+    "0",
+    "0"
+  ],
+  "nativeTransactionFeesExcludeStorageDepositEffects": true,
+  "completedSha256": "d2be9605a7bd28040c84f63f6aae39b753bff1aa3235ad3bbcc50d6f8fc50546",
+  "sourceSha256": {
+    "psp34-contract-mutation.mjs": "167fc289a02224c1f2657f48a92058f1065b91ea99d2a31af5758e5032986420",
+    "psp34-contract-outcome.mjs": "d19a2e611be62bba2e6c04d4d0d491fd7aed61b9aa53eebdf527947103386f8c",
+    "oasis-psp34-mutation-codec.mjs": "10b792ee3960e4b722efd7c1eea025166ae7a42039f19fc23f6bd3b39e18d335",
+    "psp34-contract-codec.mjs": "67662d7f8e518a08a2a1aa0df3b976667046ecdc18e3c1c233f0eea2d1bce2fb",
+    "test-local-psp34-lifecycle.mjs": "6dbd0ef6ee8ea6eaae72278a71c894ef1106bd2a37c28636877cc2dff661bef2"
+  },
+  "sdkControlled": {
+    "passed": 60,
+    "failed": 0,
+    "skipped": 0,
+    "log": "psp34-outcome-sdk-current.log.gz",
+    "rawBytes": 13346,
+    "gzipBytes": 2736,
+    "rawSha256": "26360b9d0ad73d83921ce863b3e9144a61661a7b0334adac3b11357871dbc574"
+  },
+  "pendingFenceCases": 61,
+  "nodeHandle": 15993,
+  "nodeTerminalExitCode": 0,
+  "publicCSharpMutationVerified": false
+}
