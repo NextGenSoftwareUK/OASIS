@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## NEAR NFT source-lock receipt gate — 26 October
+
+445unitPASS0skip27s. A supplied NFT deposit source must be finalized successfully and bind its exact hash/configured signer/contract/single lock action/token/locked=true arguments before any unlock. Existing SDK reader/action validator reused;12new controlled cases. No native bridge completion claim; lock-cycle replay still needs a native unique deposit invariant. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
 ## NEAR NFT avatar wallet routing — 26 October
 
 Public NFT lock/unlock now honor existing actor IDs through the shared NEAR signing-wallet resolver. Seven new controls and full433unitPASS cover exact avatar signing, foreign/warning wallet rejection and caller mutation during activation. Source/PDB/dependencies captured; same environment/no native mutation. Source-lock receipt binding for NFT bridge deposits remains open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).

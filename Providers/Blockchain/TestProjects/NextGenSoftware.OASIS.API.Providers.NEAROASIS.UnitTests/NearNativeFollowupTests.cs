@@ -34,4 +34,23 @@ public class NearNativeFollowupTests
             if(operation=="deposit-transfer-failed"){Assert.IsInstanceOfType(error.InnerException,typeof(NativeTransactionFollowupException));Assert.AreEqual("controlled-original-nft-transaction",((NativeTransactionFollowupException)error.InnerException).OriginalTransactionId);}
         }finally{for(var i=0;i<names.Length;i++)Environment.SetEnvironmentVariable(names[i],prior[i]);}
     }
+    [DataTestMethod][DataRow("valid")][DataRow("hash")][DataRow("signer")][DataRow("contract")][DataRow("token")][DataRow("method")][DataRow("unlock")][DataRow("extra-arg")][DataRow("deposit")][DataRow("multi")][DataRow("pending")][DataRow("failed")]
+    public async Task NftDepositRequiresItsExactSuccessfulSourceLockBeforeMutation(string mode)
+    {
+        var names=new[]{"OASIS_NEAR_SDK_BRIDGE","OASIS_NEAR_NFT_SOURCE_MODE","OASIS_NEAR_NFT_TEST_MODE"};var prior=names.Select(Environment.GetEnvironmentVariable).ToArray();
+        try{
+            Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-followup.mjs"));Environment.SetEnvironmentVariable(names[1],mode);Environment.SetEnvironmentVariable(names[2],"missing");
+            var provider=new NEAROASIS("http://127.0.0.1:1","fixture","fixture","contract.near","service.near","controlled-owner-key");
+            var result=await provider.DepositNFTAsync("contract.near","owned-test-token","receiver.near","source-lock");
+            Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Exception);
+            if(mode=="valid"){
+                Assert.IsInstanceOfType(result.Exception,typeof(NativeTransactionFollowupException));
+                Assert.AreEqual("controlled-original-nft-transaction",((NativeTransactionFollowupException)result.Exception).OriginalTransactionId);
+            }else{
+                Assert.IsFalse(result.Exception is NativeTransactionFollowupException or NearMutationUncertainException or NearMutationRejectedException,"Invalid source reached mutation: "+result.Exception);
+                Assert.AreEqual(string.Empty,result.Result.TransactionId);Assert.IsFalse(result.Result.IsSuccessful);
+            }
+        }finally{for(var j=0;j<names.Length;j++)Environment.SetEnvironmentVariable(names[j],prior[j]);}
+    }
+
 }
