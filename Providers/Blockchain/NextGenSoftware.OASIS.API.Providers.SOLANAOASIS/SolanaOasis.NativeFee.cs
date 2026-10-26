@@ -16,20 +16,12 @@ public partial class SolanaOASIS : IOASISNativeFeeReceiptProvider
             using var timeout=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(TimeSpan.FromSeconds(20));
             timeout.Token.ThrowIfCancellationRequested();
-            var chain=await _rpcClient.GetGenesisHashAsync().WaitAsync(timeout.Token);
-            if(chain==null || !chain.WasSuccessful || chain.HttpStatusCode!=HttpStatusCode.OK)
-                throw new InvalidOperationException("Solana native fee chain identity is unavailable.");
-            RequireNativeBase58(chain.Result,32);
-            var transaction=await _rpcClient.GetTransactionAsync(originalTransactionId,Commitment.Finalized).WaitAsync(timeout.Token);
-            if(transaction==null || !transaction.WasSuccessful || transaction.HttpStatusCode!=HttpStatusCode.OK
-                || string.IsNullOrWhiteSpace(transaction.RawRpcResponse))
-                throw new InvalidOperationException("Solana original finalized fee receipt is unavailable.");
-            // Raw presence/type checks are required: SDK value-type defaults cannot
-            // distinguish a genuinely zero fee from missing or malformed metadata.
-            using var document=JsonDocument.Parse(transaction.RawRpcResponse);
-            if(document.RootElement.TryGetProperty("error",out _))
-                throw new InvalidOperationException("Solana native fee RPC returned an error.");
-            result.Result=MapSolanaNativeFeeReceipt(originalTransactionId,chain.Result,document.RootElement.GetProperty("result"));
+            var observed=await Infrastructure.SolanaFinalizedFeeReader.ReadAsync(
+                _rpcEndpoint,originalTransactionId,_nativeFeeReadHandler,timeout.Token);
+            RequireNativeBase58(observed.Genesis,32);
+            // Preserve raw field presence: SDK numeric defaults cannot distinguish
+            // a genuine zero fee from missing or malformed metadata.
+            result.Result=MapSolanaNativeFeeReceipt(originalTransactionId,observed.Genesis,observed.Transaction);
             result.IsLoaded=true;
             result.Message="Observed finalized native transaction fee only; excludes rent/transfers and does not authorize spending or settlement.";
         }

@@ -5,28 +5,30 @@ using Solnet.Wallet;
 using Solnet.Wallet.Utilities;
 using System.Text.Json;
 using System.Net;
-using System.Reflection;
 using System.Text;
-using Solnet.Rpc;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 
 [TestClass]
 public class SolanaNativeFeeTests
 {
-    [DataTestMethod][DataRow("normal")][DataRow("failed")][DataRow("missingFee")][DataRow("missingTx")][DataRow("rpcError")]
+    [DataTestMethod][DataRow("normal")][DataRow("v1")][DataRow("failed")][DataRow("missingFee")][DataRow("missingTx")][DataRow("rpcError")]
+    [DataRow("http202")][DataRow("http206")][DataRow("http500")][DataRow("wrongId")][DataRow("malformedJson")]
     public async Task ActualSdkWireReceiptPreservesFeesAndRejectsMissingEvidence(string mode)
     {
-        using var handler=new FeeWireHandler(mode);using var http=new HttpClient(handler){BaseAddress=new Uri("http://127.0.0.1:1")};
-        var rpc=ClientFactory.GetClient("http://127.0.0.1:1",null,http,null);var account=new Account();
-        var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key);
-        typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
+        using var handler=new FeeWireHandler(mode);var account=new Account();
+        var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key,handler);
         var receipt=await provider.GetNativeFeeReceiptAsync(Signature);
         CollectionAssert.AreEqual(new[]{"getGenesisHash","getTransaction"},handler.Methods.ToArray());
-        if(mode is "normal" or "failed"){
+        Assert.AreEqual(Signature,handler.RequestedSignature);
+        Assert.AreEqual("finalized",handler.TransactionOptions.GetProperty("commitment").GetString());
+        Assert.AreEqual("json",handler.TransactionOptions.GetProperty("encoding").GetString());
+        Assert.AreEqual(JsonValueKind.Number,handler.TransactionOptions.GetProperty("maxSupportedTransactionVersion").ValueKind);
+        Assert.AreEqual(1,handler.TransactionOptions.GetProperty("maxSupportedTransactionVersion").GetInt32());
+        if(mode is "normal" or "v1" or "failed"){
             Assert.IsFalse(receipt.IsError,receipt.Exception?.ToString());Assert.IsTrue(receipt.IsLoaded);
             Assert.AreEqual("5000",receipt.Result.GetProperty("netUnits").GetString());
-            Assert.AreEqual(mode=="normal",receipt.Result.GetProperty("success").GetBoolean());
+            Assert.AreEqual(mode!="failed",receipt.Result.GetProperty("success").GetBoolean());
         }else{
             Assert.IsTrue(receipt.IsError);Assert.IsFalse(receipt.IsLoaded);
             Assert.AreEqual(JsonValueKind.Undefined,receipt.Result.ValueKind);
@@ -36,6 +38,9 @@ public class SolanaNativeFeeTests
     private sealed class FeeWireHandler(string mode):HttpMessageHandler
     {
         public List<string> Methods=new();
+        public bool Disposed;
+        public string? RequestedSignature;
+        public JsonElement TransactionOptions;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
         {
             using var parsed=JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
@@ -44,18 +49,92 @@ public class SolanaNativeFeeTests
             if(method=="getGenesisHash")result=Genesis;
             else{
                 Assert.AreEqual("getTransaction",method,"Fee observation must never submit or request signing.");
-                var parameters=parsed.RootElement.GetProperty("params");Assert.AreEqual(Signature,parameters[0].GetString());
-                if(parameters.GetArrayLength()>1 && parameters[1].TryGetProperty("commitment",out var commitment))
-                    Assert.AreEqual("finalized",commitment.GetString());
+                var parameters=parsed.RootElement.GetProperty("params");RequestedSignature=parameters[0].GetString();
+                Assert.AreEqual(2,parameters.GetArrayLength());
+                TransactionOptions=parameters[1].Clone();
                 var native=Native();
+                if(mode=="v1"){
+                    native["version"]=1;
+                    native["transaction"]!["message"]!["transactionConfig"]=JObject.FromObject(new{priorityFee=999999,computeUnitLimit=200000});
+                }
                 if(mode=="failed")native["meta"]!["err"]="AccountNotFound";
                 if(mode=="missingFee")((JObject)native["meta"]!).Remove("fee");
                 result=mode=="missingTx"?null:native;
             }
             var envelope=method=="getTransaction" && mode=="rpcError"
-                ? JObject.FromObject(new{jsonrpc="2.0",id=0,error=new{code=-32005,message="Node unhealthy"}})
-                : JObject.FromObject(new{jsonrpc="2.0",id=0,result});
-            return new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(envelope.ToString(),Encoding.UTF8,"application/json")};
+                ? JObject.FromObject(new{jsonrpc="2.0",id=parsed.RootElement.GetProperty("id").GetInt32(),error=new{code=-32005,message="Node unhealthy"}})
+                : JObject.FromObject(new{jsonrpc="2.0",id=parsed.RootElement.GetProperty("id").GetInt32(),result});
+            if(method=="getTransaction" && mode=="wrongId")envelope["id"]=-999;
+            var status=method=="getTransaction" ? mode switch{
+                "http202"=>HttpStatusCode.Accepted,"http206"=>HttpStatusCode.PartialContent,
+                "http500"=>HttpStatusCode.InternalServerError,_=>HttpStatusCode.OK}:HttpStatusCode.OK;
+            return new HttpResponseMessage(status){Content=new StringContent(
+                method=="getTransaction" && mode=="malformedJson" ? "{":envelope.ToString(),Encoding.UTF8,"application/json")};
+        }
+        protected override void Dispose(bool disposing){Disposed=true;base.Dispose(disposing);}
+    }
+
+    [TestMethod]
+    public async Task RepeatedReadsDoNotDisposeBorrowedTransport()
+    {
+        using var handler=new FeeWireHandler("v1");var account=new Account();
+        var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key,handler);
+        for(var index=0;index<2;index++){
+            var result=await provider.GetNativeFeeReceiptAsync(Signature);
+            Assert.IsFalse(result.IsError,result.Exception?.ToString());
+            Assert.IsFalse(handler.Disposed,"Only the operation's wrapper may be disposed.");
+        }
+        Assert.AreEqual(4,handler.Methods.Count);
+    }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task CancellationReachesTheInFlightSdkTransport(bool responseBody)
+    {
+        using var handler=new CancelFeeHandler(responseBody);var account=new Account();
+        var provider=new SolanaOASIS("http://127.0.0.1:1",account.PrivateKey.Key,account.PublicKey.Key,handler);
+        using var cancellation=new CancellationTokenSource();
+        var pending=provider.GetNativeFeeReceiptAsync(Signature,cancellation.Token);
+        await handler.Started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        cancellation.Cancel();
+        var result=await pending.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);
+        Assert.IsInstanceOfType<OperationCanceledException>(result.Exception);
+        Assert.IsTrue(handler.Cancelled);Assert.AreEqual(1,handler.Calls);
+        if(responseBody)Assert.IsTrue(handler.BodyDisposed,"Cancelled SDK response body must be disposed.");
+    }
+
+    private sealed class CancelFeeHandler(bool responseBody):HttpMessageHandler
+    {
+        public readonly TaskCompletionSource<bool> Started=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool Cancelled;public bool BodyDisposed;public int Calls;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
+        {
+            Calls++;
+            if(responseBody)return new HttpResponseMessage(HttpStatusCode.OK){Content=new StreamContent(new WaitingBody(this))};
+            Started.TrySetResult(true);
+            try{await Task.Delay(Timeout.Infinite,cancellationToken);}
+            catch(OperationCanceledException){Cancelled=true;throw;}
+            throw new AssertFailedException("Cancelled read must not complete or retry.");
+        }
+
+        private sealed class WaitingBody(CancelFeeHandler owner):Stream
+        {
+            public override bool CanRead=>true;public override bool CanSeek=>false;public override bool CanWrite=>false;
+            public override long Length=>throw new NotSupportedException();
+            public override long Position{get=>throw new NotSupportedException();set=>throw new NotSupportedException();}
+            public override int Read(byte[] buffer,int offset,int count)=>throw new NotSupportedException();
+            public override async ValueTask<int> ReadAsync(Memory<byte> buffer,CancellationToken cancellationToken=default)
+            {
+                owner.Started.TrySetResult(true);
+                try{await Task.Delay(Timeout.Infinite,cancellationToken);}
+                catch(OperationCanceledException){owner.Cancelled=true;throw;}
+                throw new AssertFailedException("Cancelled body must not complete.");
+            }
+            public override void Flush()=>throw new NotSupportedException();
+            public override long Seek(long offset,SeekOrigin origin)=>throw new NotSupportedException();
+            public override void SetLength(long value)=>throw new NotSupportedException();
+            public override void Write(byte[] buffer,int offset,int count)=>throw new NotSupportedException();
+            protected override void Dispose(bool disposing){if(disposing)owner.BodyDisposed=true;base.Dispose(disposing);}
         }
     }
 
