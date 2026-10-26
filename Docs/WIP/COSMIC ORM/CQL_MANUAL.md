@@ -2005,3 +2005,7 @@ service tariffs in the existing prepared ledger. Query tariffs do not price
 writes; configured save routes require bounded complete profiles. See
 [storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
 price-versus-native-invoice distinction and remaining joined settlement proof.
+
+## GraphQL conditional creates (V2)
+
+The saveHolon mutation now accepts a stable operationId and explicit providerType, uses the request-authenticated actor, and delegates to the same owned conditional-write boundary as REST. It remains create-only. See the [transport contract and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#graphql-conditional-create-migration) for syntax and current enrollment limits. Configured admission hosts must enroll this transport before provider execution; unit/schema tests do not establish signed deployment acceptance.
