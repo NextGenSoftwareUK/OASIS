@@ -54,6 +54,7 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
+                using var floating = numeric && FloatingNumeric(plan.Query.Selector.ValueType) ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || selected && translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
@@ -78,10 +79,20 @@ public partial class HolonRepository
                         {
                             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                                 throw new System.IO.InvalidDataException("Native scalar envelope is missing.");
-                            budget.Check(); traversal?.Check();
+                            budget.Check(); traversal?.Check(); floating?.Check();
                             if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
                             if (numeric)
                             {
+                                if (FloatingNumeric(plan.Query.Selector.ValueType))
+                                {
+                                    if (reader.GetInt64(3) != 0) throw new SqliteCqlResourceException("Floating aggregation exceeds its input work bound.");
+                                    var normalized=DecodeFloatingNumeric(plan.Query.Operation,plan.Query.Selector.ValueType,
+                                        reader.GetInt64(4),reader.GetInt64(1),(byte[])reader.GetValue(2),grouped:false);
+                                    result=normalized.IsError ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<object,TResult>(normalized)
+                                        : new OASISResult<TResult>((TResult)normalized.Result) { IsLoaded=true };
+                                }
+                                else
+                                {
                                 var decimalInput = (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
                                 if (reader.GetInt64(decimalInput ? 9 : 4) != 0)
                                     throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
@@ -89,6 +100,7 @@ public partial class HolonRepository
                                     ? CosmicDecimalScalarResults.FromParts(plan.Query,
                                         Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(index => reader.GetInt64(2 + index)).ToArray(), reader.GetInt64(1))
                                     : CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
+                                }
                             }
                             else
                             {
@@ -107,7 +119,7 @@ public partial class HolonRepository
                             .SingleAsync(cancellationToken).ConfigureAwait(false);
                         result = CosmicScalarResults.FromCount(plan.Query, count);
                     }
-                    budget.Check(); traversal?.Check();
+                    budget.Check(); traversal?.Check(); floating?.Check();
                     if (result.IsError) return result;
                     transaction?.Commit(); budget.Check();
                     return result;
@@ -125,6 +137,7 @@ public partial class HolonRepository
         catch (SqliteCqlResourceException cause) { return ScalarCqlError<TResult>("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (SqliteException cause) when (cause.SqliteErrorCode == 18) { return ScalarCqlError<TResult>("CQL_QUERY_LIMIT", "SQLite scalar query exceeds its native record-size budget.", cause); }
         catch (CqlTranslationLimitException cause) { return ScalarCqlError<TResult>("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (SqliteCqlNumericException cause) { return ScalarCqlError<TResult>(cause.Code,cause.Message,cause); }
         catch (NotSupportedException cause) { return ScalarCqlError<TResult>("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return ScalarCqlError<TResult>("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (Exception cause) { return ScalarCqlError<TResult>("CQL_QUERY_FAILED", "SQLite scalar execution failed: " + cause.Message, cause); }

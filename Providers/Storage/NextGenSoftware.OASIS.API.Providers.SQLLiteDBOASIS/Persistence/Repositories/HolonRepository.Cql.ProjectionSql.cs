@@ -91,6 +91,18 @@ public partial class HolonRepository
             var invalid = optional ? "s=3" : "s<>2";
             var maximum = CosmicNumericScalarResults.MaximumParticipatingValues;
             var sentinel = ((long)maximum + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (FloatingNumeric(path.ValueType))
+            {
+                var function = (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(float)
+                    ? SqliteCqlFloatingAggregates.SingleFunction : SqliteCqlFloatingAggregates.DoubleFunction;
+                return "/* COSMIC floating aggregate */ WITH selected AS (SELECT " + operand.State + " AS s," + operand.Value
+                    + " AS v FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset),"
+                    + " bounded AS (SELECT s,v FROM selected LIMIT " + sentinel + "), aggregated AS (SELECT count(*) AS inputs,"
+                    + "COALESCE(sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END),0) AS invalid,"
+                    + "COALESCE(sum(CASE WHEN s=2 THEN 1 ELSE 0 END),0) AS present,"
+                    + function + "(CASE WHEN s=2 THEN v ELSE NULL END) AS packet FROM bounded)"
+                    + " SELECT invalid,present,packet,CASE WHEN inputs>" + maximum + " THEN 1 ELSE 0 END AS overWork,inputs FROM aggregated";
+            }
             var decimalInput = (Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType) == typeof(decimal);
             var fields = decimalInput ? DecimalParts("v").Select((value, index) => (Name: "p" + index, Value: value)).ToArray()
                 : new[] { (Name: "high", Value: IntegralParts(path.ValueType, "v").High),

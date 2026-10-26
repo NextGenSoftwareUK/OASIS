@@ -43,7 +43,15 @@ public partial class HolonRepository
                 if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                 {
                     var high = "a" + index + "h"; var low = "a" + index + "l"; var count = "a" + index + "n";
-                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                    if (FloatingNumeric(column.Selector.ValueType))
+                    {
+                        var function=(Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType)==typeof(float)
+                            ? SqliteCqlFloatingAggregates.SingleFunction : SqliteCqlFloatingAggregates.DoubleFunction;
+                        var packet="a"+index+"p";
+                        reductions.Add(function+"(CASE WHEN "+state+"=2 THEN "+value+" ELSE NULL END) AS "+packet);
+                        output.Add(packet);
+                    }
+                    else if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
                     {
                         var words = DecimalParts(value);
                         for (var part = 0; part < words.Length; part++)
@@ -94,7 +102,7 @@ public partial class HolonRepository
                 }
                 else if (column.Operation == CosmicScalarOperation.Sum)
                 {
-                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                    if (FloatingNumeric(column.Selector.ValueType) || (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
                         resultOrder.Add(GroupNumericKey(column, selectedOrder.ColumnIndex) + " COLLATE BINARY" + direction);
                     else
                     {

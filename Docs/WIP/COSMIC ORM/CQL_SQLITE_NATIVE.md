@@ -1,5 +1,21 @@
 # CQL SQLite native execution — work in progress
 
+## SQLite floating native query acceptance - 25 October 2026
+
+All48 focused Single/Double native query controls and74 provider units pass.
+The clean reusable production runner passes **1,763 production integration tests
+and74 provider units**, without failures/skips. Core/Shared/SQLite sources remain
+unchanged, six producer/consumer DLL copies match, and the owned database and
+intents are absent. SQLite explicitly enrolls required/nullable Single/Double
+Sum/Average for native SDK execution. MongoDB/Neo4j arithmetic and floating HTTP
+enrollment remain pending.
+
+The compiler/read owners now preserve source windows, protected graph/access
+validation and independent SQL versus packet participation counts. Scalar zero
+inputs and nonempty groups have distinct explicit invariants. Native result keys
+support selected filters/order/pages; every raw off-page packet is normalized.
+Mixed integer/Decimal/Single/Double output and30floating slots are verified.
+
 ## SQLite floating native component - 25 October 2026
 
 Eleven real SQLite component tests and all74 provider unit tests pass without
@@ -266,3 +282,23 @@ The fixed SQLite database/WAL/SHM and pending fixture markers are absent after
 terminal teardown. No dependencies or new environment were installed/restored.
 This publishes SQLite SDK flat joins only; the remaining join gates above remain
 open. Existing MongoDB/Neo4j suites are separate earlier cohorts.
+
+## Reusable normal production acceptance command
+
+```powershell
+pwsh -NoProfile -File Scripts/TestHosts/Run-CosmicSqliteAcceptance.ps1
+```
+
+Run from the existing checkout; do not add an outer build lease. The runner
+reuses pinned SDK/packages and the existing SQLiteCurrent fixture. It refuses an
+existing database or pending intent, rebuilds current producers/consumers without
+restore, checks six DLL copies, and requires fresh all-pass/no-skip reports and
+unchanged Core/Shared/SQLite sources. It verifies acknowledged fixture teardown.
+
+Only `SQLiteScopedGraphReconciliation` is excluded from normal regression, as
+already documented in [ordinary role ownership](SQLITE_ORDINARY_ROLE_OWNERSHIP.md).
+Those two historical recovery actions require exact preserved database/intent
+hashes and must be invoked explicitly for their original fixture. They are not
+ordinary regression, must not be weakened to pass without that fixture, and must
+never be used as automatic cleanup. The earlier unfiltered mixed report remains
+preserved with its two lock-refusal failures.
