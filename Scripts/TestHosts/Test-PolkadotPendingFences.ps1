@@ -19,6 +19,7 @@ $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-custody-pending.jsonl'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -30,6 +31,8 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftLifecycleRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftIntentRecovery=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustodySource=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustody=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftCustodyRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicMutation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
@@ -44,6 +47,7 @@ foreach ($entry in $runners) {
         if ($arguments.ContainsKey('NftReconcile') -and $path.EndsWith('psp34-deployment-pending.json')) { continue }
         if ($arguments.ContainsKey('NftLifecycleRecover') -and $path.EndsWith('psp34-mutation-pending.jsonl')) { continue }
         if ($arguments.ContainsKey('NftPublicRecover') -and $path.EndsWith('psp34-public-mutation-pending.jsonl')) { continue }
+        if ($arguments.ContainsKey('NftCustodyRecover') -and $path.EndsWith('psp34-custody-pending.jsonl')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)

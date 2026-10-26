@@ -14,6 +14,14 @@ const deployment = JSON.parse(readFileSync(resolve(folder, 'psp34-deployment.com
 const completed = JSON.parse(readFileSync(resolve(folder, 'psp34-public-mutation.completed.json'), 'utf8'));
 const ids = [...new Set(completed.nativeTokenIds.map(value => JSON.stringify(value)))].map(value => JSON.parse(value));
 assert.equal(ids.length, 2);
+if (existsSync(resolve(folder, 'psp34-custody.completed.json'))) {
+  assert.equal(existsSync(resolve(folder, 'psp34-custody-pending.jsonl')), false);
+  const custody = JSON.parse(readFileSync(resolve(folder, 'psp34-custody.completed.json'), 'utf8'));
+  assert.equal(custody.records.length, 4);
+  const id = JSON.parse(custody.records[0].TokenId);
+  assert.equal(ids.some(value => JSON.stringify(value) === JSON.stringify(id)), false);
+  ids.push(id);
+}
 const api = await ApiPromise.create({ provider: new ReadOnlyHttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
 try {
   assert.equal(api.genesisHash.toHex(), '0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208');

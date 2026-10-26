@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: Polkadot native custody lock/release acceptance
+
+Gate27455terminal0: one native case finalized4originals (mint, stored-record lock, source-proven release, burn)68s; separate same-original read-only recovery1/1PASS24s, restored ordinary provider347/347PASS0skip19s; pending fences131PASS. Existing node/ledger/collection/wallets reused, no download/install/funding. Actual FRAME fees0.012881604343localtestUNIT exclude separate storage effects; no fiat/sponsorship cap claim. Independent final state proves3IDs absent/supply0. Owned node stopped/ports absent; raw reports compacted after hash roundtrip.
+
+Native vsfinal provider DLLs are separate cohorts after Git-only root revision changed during rebuild; Core/Shared unchanged and final producer/consumer pairs matched. The likely generated informational-version cause is documented without asserting byte equivalence. Synthetic stored-record/wallet lookups and file admission do not establish hosted authorization/Mongo or UnlockNFT replay/beneficiary safety. Cross-chain wrapping and other relevant interfaces remain open. [Exact evidence, hashes and limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resource lifecycle](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: public Polkadot NFT lifecycle and address interoperability
 
 Published8f2dbf1b9 implements ordinary mint/send/burn using the shared admitted-operation owner and real SDK. Local native gate22504 executed five original transactions, proved exact finalized effects, recovered the same originals read-only and independently proved both minted IDs absent/supply0. Provider329/329, SDK63/63, ONODE119/119 and fences93 passed. Actual FRAME fees0.017430258451localtestUNIT; separate storage effects mean this is not complete outlay or a sponsorship cap. Paired ONODE dependency714ce73 and manifest validator passed. Detailed reports/cohort hashes are in [native evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md).

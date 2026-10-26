@@ -1,0 +1,51 @@
+{
+  "gate": 27455,
+  "terminalExitCode": 0,
+  "nativeCasesPassed": 1,
+  "originalsFinalized": 4,
+  "recoveryCasesPassed": 1,
+  "newSubmissionsDuringRecovery": 0,
+  "providerPassed": 347,
+  "skipped": 0,
+  "pendingFencesPassed": 131,
+  "actualFrameFeeBaseUnits": "12881604343",
+  "nativeDecimals": 12,
+  "storageEffectsSeparate": true,
+  "finalProducerConsumerSha256": {
+    "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll": "9E8880AC2050BDABC370AB544FE2831DDAE324082F5EF8965960F339CF577481",
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll": "83F419BDC40184C564972BFED3AF30AB2AF44FD769527CB6DADEF6D7191A9AC9",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll": "C3EEEC7B601E8607D88D8623A6154AC6EC892C216B6E1C960AD046B43EEB1797"
+  },
+  "sourceSha256": {
+    "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/PolkadotNftCustodyNativeTests.cs": "D5726301C135F830B873572BD737186D93C081844D96BD6862174A17696C742A",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.NftCustody.cs": "22AE2C33B536D534D6C7926D95CF84DAD401D74446BFA3F8325C584ABD78C75F",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.NftMutation.cs": "3791D3FE156F78D8EDD88C1AE3C3A80A434D2463C646B529F43C71C90D26E08B",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/PolkadotOASIS.AvatarDetail.cs": "F3B1BFDACF410C140B2D5B76EE0157C2A0690EFB31CC4FACBB19B636CD2F1B77"
+  },
+  "nativeConsumerIdentities": "psp34-custody-native-consumer-identities.json",
+  "providerAssemblyIdentityChangedDuringGate": true,
+  "identityCaveat": "Native provider18B774... and final C3EEEC... are distinct cohorts. Core/Shared unchanged. Root Git advanced0af953865 to50d142f7b during later rebuild; generated AssemblyInformationalVersion contains50d142f7b. Git revision metadata is the likely explanation, not a proved byte-level equivalence. Do not claim native/final provider DLL hashes match.",
+  "syntheticStoredNftLookup": true,
+  "syntheticWalletLookup": true,
+  "fileBackedAdmissionOnly": true,
+  "hostedAdmissionVerified": false,
+  "unlockVerified": false,
+  "reports": [
+    {
+      "path": "psp34-custody-native-current.trx.gz",
+      "rawSha256": "491B05A18025685454FE9FC7AE838719F3F3192656F81F16DF25F668E5A9AF50",
+      "passed": 1,
+      "rawBytes": 2858,
+      "gzipBytes": 1197,
+      "skipped": 0
+    },
+    {
+      "path": "psp34-custody-recovery-current.trx.gz",
+      "rawSha256": "E9D75D83A79E02031E6EB4AB8FBD9739937BD677B394E7554A961A2D55753C90",
+      "passed": 1,
+      "rawBytes": 2858,
+      "gzipBytes": 1199,
+      "skipped": 0
+    }
+  ]
+}
