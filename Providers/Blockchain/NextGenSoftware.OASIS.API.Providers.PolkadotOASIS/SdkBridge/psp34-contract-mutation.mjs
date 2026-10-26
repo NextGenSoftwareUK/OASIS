@@ -2,7 +2,7 @@ import { TypeRegistry } from '@polkadot/types/create';
 import { canonicalBase64, verifySignedPreparation } from './verify-preparation.mjs';
 import { validateExplicitSigner, withExplicitSigner, signOriginalCall, withOriginalFeeEstimate } from './native-transfer.mjs';
 import { validatePinnedContractQuery, openPinnedContractQuery } from './pinned-contract-query.mjs';
-import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult, decodeOasisPsp34Mutation } from './oasis-psp34-mutation-codec.mjs';
+import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult, decodeOasisPsp34Mutation, encodeOasisPsp34EscrowQuery } from './oasis-psp34-mutation-codec.mjs';
 import { encodePsp34Message, decodePsp34Result } from './psp34-contract-codec.mjs';
 
 const protocol = 'oasis.polkadot.psp34-mutation.preparation.v1';
@@ -45,6 +45,7 @@ export function nftTokenId(value) {
   return id;
 }
 export function nftMutationData(registry, request) {
+  validateEscrowIntent(request, request.sender, request.contractAddress);
   const id = nftTokenId(request.tokenId);
   let attributes;
   if (request.attributes !== undefined) {
@@ -54,7 +55,16 @@ export function nftMutationData(registry, request) {
       return [bytes(pair[0], 128), bytes(pair[1], 8192, true)];
     });
   }
-  return encodeOasisPsp34Mutation(registry, request.action, id, request.to, attributes);
+  return encodeOasisPsp34Mutation(registry, request.action, id,
+    ['lock', 'unlock'].includes(request.action) ? undefined : request.to, attributes);
+}
+
+function validateEscrowIntent(request, sender, contract) {
+  if (!['lock', 'unlock'].includes(request.action)) return;
+  const to = request.action === 'lock' ? contract : sender;
+  const from = request.action === 'lock' ? sender : contract;
+  if (request.to !== to || request.expectedFrom !== from)
+    throw new Error('Native escrow requires its deterministic beneficiary/contract destination and signed source-owner witness.');
 }
 
 export async function validateNftMutation(request) {
@@ -76,6 +86,13 @@ export async function prepareNftMutation(api, request) {
       await view.query(encodePsp34Message(api.registry, 'ownerOf', [nftTokenId(request.tokenId)])));
     if (owner.isNone || api.createType('AccountId32', owner.unwrap()).toHex() !== request.expectedFrom)
       throw new Error('Observed NFT owner differs from the frozen requested source owner.');
+  }
+  if (['lock', 'unlock'].includes(request.action)) {
+    const beneficiary = decodePsp34Result(api.registry, 'ownerOf',
+      await view.query(encodeOasisPsp34EscrowQuery(api.registry, nftTokenId(request.tokenId))));
+    if (request.action === 'lock' ? !beneficiary.isNone :
+      beneficiary.isNone || api.createType('AccountId32', beneficiary.unwrap()).toHex() !== request.sender)
+      throw new Error('Native escrow beneficiary does not authorize this lock/unlock intent.');
   }
   if (!api.tx.contracts?.call) throw new Error('Runtime has no contracts.call operation.');
   const address = api.createType('AccountId32', request.contractAddress).toHex();
@@ -116,6 +133,7 @@ export async function verifyNftPreparation(api, preparation) {
     throw new Error('Signed NFT original is not a direct contracts.call.');
   if (preparation.expectedFrom !== expectedFrom) throw new Error('Declared NFT source owner differs from its signed atomic witness.');
   const address = api.createType('AccountId32', call.args[0].toString()).toHex();
+  validateEscrowIntent(preparation, sender, address);
   if (address !== preparation.contractAddress || call.args[1].toBigInt() !== 0n || call.args[4].toHex() !== data
       || call.args[2].refTime.toString() !== preparation.gasLimit?.refTime
       || call.args[2].proofSize.toString() !== preparation.gasLimit?.proofSize
@@ -147,6 +165,8 @@ export async function recoverNftPreparation(api, request) {
       || call.args[1].toBigInt() !== 0n || call.args[3].isNone)
     throw new Error('Retained original is not a zero-value NFT contracts.call with a signed deposit limit.');
   const intent = decodeOasisPsp34Mutation(api.registry, call.args[4].toHex());
+  if (['lock', 'unlock'].includes(intent.action))
+    intent.to = intent.action === 'lock' ? api.createType('AccountId32', call.args[0].toString()).toHex() : sender;
   const prepared = { protocol, chainId: genesis, sender, transactionHash: decoded.hash.toHex(),
     signedTransactionBase64: original.signedTransactionBase64, signDocBase64: original.signDocBase64,
     signature: original.signature, contractAddress: api.createType('AccountId32', call.args[0].toString()).toHex(),

@@ -1,4 +1,5 @@
-// Explicit oasis-psp34 v0.1.0 extensions. Mint/burn are NOT standard PSP34 ABI.
+// Explicit oasis-psp34 extensions. Native beneficiary escrow requires v0.2.0.
+// Mint/burn/lock/unlock are NOT standard PSP34 ABI.
 // Reuse standard token/account encoding; no signing, RPC or submission here.
 import { encodePsp34Arguments, encodePsp34Message, decodePsp34Result, registerPsp34Types } from './psp34-contract-codec.mjs';
 
@@ -28,17 +29,23 @@ export function encodeOasisPsp34Mutation(registry, action, tokenId, recipient, v
     return '0x00000010' + Buffer.concat([prefix, attributes(registry, values)]).toString('hex');
   }
   if (values !== undefined) throw new Error('Only mint may supply token attributes.');
-  if (action === 'burn') {
-    if (recipient !== undefined) throw new Error('Burn has no recipient.');
-    return '0x00000011' + Buffer.from(encodePsp34Arguments(registry, ['id'], [tokenId])).toString('hex');
+  if (['burn', 'lock', 'unlock'].includes(action)) {
+    if (recipient !== undefined) throw new Error('Native burn/escrow call has no arbitrary recipient.');
+    const selector = { burn: '00000011', lock: '00000012', unlock: '00000013' }[action];
+    return '0x' + selector + Buffer.from(encodePsp34Arguments(registry, ['id'], [tokenId])).toString('hex');
   }
   if (action === 'transfer') return encodePsp34Message(registry, 'transfer', [recipient, tokenId, new Uint8Array()]);
-  throw new Error('Explicit OASIS PSP34 mint, transfer or burn required.');
+  throw new Error('Explicit OASIS PSP34 mutation required.');
+}
+
+export function encodeOasisPsp34EscrowQuery(registry, tokenId) {
+  tokenBound(tokenId);
+  return '0x00000014' + Buffer.from(encodePsp34Arguments(registry, ['id'], [tokenId])).toString('hex');
 }
 
 export function decodeOasisPsp34MutationResult(registry, action, bytes) {
-  if (!['mint', 'transfer', 'burn'].includes(action)) throw new Error('Unknown OASIS PSP34 mutation.');
-  // All three return the same Result<(),PSP34Error> inside ink's language result.
+  if (!['mint', 'transfer', 'burn', 'lock', 'unlock'].includes(action)) throw new Error('Unknown OASIS PSP34 mutation.');
+  // Every mutation returns Result<(),PSP34Error> inside ink's language result.
   return decodePsp34Result(registry, 'transfer', bytes);
 }
 
@@ -46,18 +53,20 @@ export function decodeOasisPsp34MutationResult(registry, action, bytes) {
 export function decodeOasisPsp34Mutation(registry, input) {
   if (typeof input !== 'string' || !/^0x(?:[0-9a-f]{2}){4,}$/.test(input)) throw new Error('Canonical NFT call bytes required.');
   const specification = { '00000010': ['mint', '(AccountId32,OasisPsp34Id,Vec<(Bytes,Bytes)>)'],
-    '3128d61b': ['transfer', '(AccountId32,OasisPsp34Id,Bytes)'], '00000011': ['burn', 'OasisPsp34Id'] }[input.slice(2, 10)];
+    '3128d61b': ['transfer', '(AccountId32,OasisPsp34Id,Bytes)'], '00000011': ['burn', 'OasisPsp34Id'],
+    '00000012': ['lock', 'OasisPsp34Id'], '00000013': ['unlock', 'OasisPsp34Id'] }[input.slice(2, 10)];
   if (!specification) throw new Error('Signed call is not a reviewed NFT mutation selector.');
   registerPsp34Types(registry);
   const [action, type] = specification;
   const raw = Buffer.from(input.slice(10), 'hex'), args = registry.createType(type, raw);
   if (!Buffer.from(args.toU8a()).equals(raw)) throw new Error('Noncanonical NFT call or trailing data.');
-  const id = action === 'burn' ? args : args[1];
+  const identityOnly = ['burn', 'lock', 'unlock'].includes(action);
+  const id = identityOnly ? args : args[1];
   const variant = ['U8', 'U16', 'U32', 'U64', 'U128', 'Bytes'][id.index];
   const tokenId = { [variant]: variant === 'Bytes' ? id.value.toHex() : id.value.toString() };
   if (action === 'transfer' && args[2].toU8a(true).length !== 0)
     throw new Error('Reviewed NFT transfer recovery cannot discard receiver callback data.');
-  const to = action === 'burn' ? undefined : args[0].toHex();
+  const to = identityOnly ? undefined : args[0].toHex();
   const attributes = action === 'mint' ? [...args[2]].map(pair =>
     [Buffer.from(pair[0].toU8a(true)).toString('base64'), Buffer.from(pair[1].toU8a(true)).toString('base64')]) : undefined;
   const typed = variant === 'Bytes' ? { Bytes: Uint8Array.from(Buffer.from(tokenId.Bytes.slice(2), 'hex')) } : tokenId;

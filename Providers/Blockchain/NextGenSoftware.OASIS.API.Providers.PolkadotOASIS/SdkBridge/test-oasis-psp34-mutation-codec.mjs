@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TypeRegistry } from '@polkadot/types/create';
-import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult, decodeOasisPsp34Mutation } from './oasis-psp34-mutation-codec.mjs';
+import { encodeOasisPsp34Mutation, decodeOasisPsp34MutationResult, decodeOasisPsp34Mutation, encodeOasisPsp34EscrowQuery } from './oasis-psp34-mutation-codec.mjs';
 const account = '0x' + 'ab'.repeat(32);
 test('mint extension has exact account, variant and independent metadata byte encoding', () => {
   assert.equal(encodeOasisPsp34Mutation(new TypeRegistry(), 'mint', { U8: '7' }, account,
@@ -28,19 +28,21 @@ test('extension bounds match the retained contract without string coercion or si
 });
 test('native application/language errors and trailing data cannot acknowledge a mutation', () => {
   const registry = new TypeRegistry();
-  for (const action of ['mint', 'transfer', 'burn']) {
+  for (const action of ['mint', 'transfer', 'burn', 'lock', 'unlock']) {
     assert.equal(decodeOasisPsp34MutationResult(registry, action, new Uint8Array([0, 0])).isOk, true);
     assert.throws(() => decodeOasisPsp34MutationResult(registry, action, new Uint8Array([0, 1, 2])), /application failure/);
     assert.throws(() => decodeOasisPsp34MutationResult(registry, action, new Uint8Array([1, 1])), /language failure/);
     assert.throws(() => decodeOasisPsp34MutationResult(registry, action, new Uint8Array([0, 0, 0])), /trailing/);
   }
 });
-test('signed ABI recovery preserves all three actions and exact binary/u128 identities', () => {
+test('signed ABI recovery preserves all five actions and exact binary/u128 identities', () => {
   const registry = new TypeRegistry();
   for (const [action, id, to, metadata] of [
     ['mint', { U128: '18446744073709551617' }, account, [[new Uint8Array([1]), new Uint8Array()]]],
     ['transfer', { Bytes: new Uint8Array([0, 255]) }, account, undefined],
-    ['burn', { U8: '7' }, undefined, undefined]]) {
+    ['burn', { U8: '7' }, undefined, undefined],
+    ['lock', { U128: '18446744073709551618' }, undefined, undefined],
+    ['unlock', { Bytes: new Uint8Array([0, 255]) }, undefined, undefined]]) {
     const input = encodeOasisPsp34Mutation(registry, action, id, to, metadata);
     const recovered = decodeOasisPsp34Mutation(registry, input);
     assert.equal(recovered.action, action);assert.equal(recovered.to, to);
@@ -51,4 +53,15 @@ test('signed ABI recovery preserves all three actions and exact binary/u128 iden
   assert.throws(() => decodeOasisPsp34Mutation(registry, '0x00000001'), /reviewed/);
   const withData = '0x3128d61b' + 'ab'.repeat(32) + '000104ff';
   assert.throws(() => decodeOasisPsp34Mutation(registry, withData), /callback data/);
+});
+
+test('beneficiary escrow ABI cannot encode an arbitrary release recipient', () => {
+  const registry = new TypeRegistry();
+  assert.equal(encodeOasisPsp34Mutation(registry, 'lock', { U8: '7' }), '0x000000120007');
+  assert.equal(encodeOasisPsp34Mutation(registry, 'unlock', { U8: '7' }), '0x000000130007');
+  assert.equal(encodeOasisPsp34EscrowQuery(registry, { U8: '7' }), '0x000000140007');
+  for (const action of ['lock', 'unlock']) {
+    assert.throws(() => encodeOasisPsp34Mutation(registry, action, { U8: '7' }, account));
+    assert.throws(() => encodeOasisPsp34Mutation(registry, action, { U8: '7' }, undefined, []));
+  }
 });
