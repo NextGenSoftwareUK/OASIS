@@ -1,3 +1,9 @@
+## Authenticated recovery boundary milestone - 26 October 2026
+
+Added POST /api/data/recover-conditional-operation with authenticated actor capture, required priced exact-route admission, explicit actor/authority application grants, per-record authorized key contexts and bounded concrete type catalogues. Startup rejects enrolled recovery without policy or both prices/two-read budget. ShippingWEB4/bothCoretargets build; WEB4305PASS/1existingStripeSandboxSkip/0fail and realMongoUsage408PASS0skip. Matchingproducer/consumer/source evidence retained. [Contract and remaining acceptance](HOSTED_OPERATION_RECOVERY.md).
+
+This boundary is unit/configuration verified. Signed native HTTP recovery on all3providers, automatic hosted write protection enrollment, protectedharddelete native ACK-loss and processrestart remain open. Earlier native SDK453/496 cohort does not certify this new HTTP endpoint; fullroadmap incomplete.
+
 ## Request-owned protection policy retention - 26 October 2026
 
 Fixed CreateRequestContext dropping configured metadata/preparation policies. New request managers retain immutable policy snapshots; parent changes and overlapping request overrides stay isolated. Two genuine failing regressions plus one positive concurrency control now pass within fullCore3497/3497, zero skips/failures; both targets build. Native inherited context protection and encrypted soft-delete recovery pass MongoDB/SQLite/Neo4j; source/binary/owned teardown verified,453settlements496attemptsunchanged. [Contract and exact evidence](WRITE_PREPARATION.md).

@@ -432,6 +432,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             services.AddSingleton<Services.Cql.ICqlV1Providers, Services.Cql.CqlV1Providers>();
             services.AddSingleton<Services.Cql.CqlV1ResourceFilter>();
+            services.AddHostedService<Services.Cosmic.CosmicRecoveryReadiness>();
             var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
                 services,Configuration,subscriptionUsageEnabled,_=>null,
                 ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
