@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: public NFT bridge local custody gate
+
+Native47562PASS1/1,68s: four real originals mint→public WithdrawNFTAsync→source-proven DepositNFTAsync→burn on the retained collection/node. Separate52769READ-ONLY recoveryPASS1/1,24s; independent four native IDs absent/collection supply0; ordinary373/373PASS0skip20s. Same fsynced admitted-owner fixture, one acknowledgement each, exact original sender/token/from/to and native effects. Core781/Shared56 source identities verified. Fences886/mode exclusions105PASS; owned node stopped/ports absent, no restore/download/new environment.
+
+Actual FRAME fees0.012873042047localtestUNIT, storage separate. This closes the earlier missing native withdrawal-wrapper gate. These are local custody legs with synthetic file admission/wallet lookup; remote-chain provenance, wrapped mint, cross-leg replay protection, hosted authorization/billing and whole-provider/fullV2 support remain OPEN. [Original evidence/limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md).
+
 ## 26 October: public PSP22 escrow uninterrupted post-fix acceptance
 
 Public C# token Lock/Unlock now have a fresh successful response cycle on the SAME retained native token, reviewed escrow and runtime: gate42605PASS1/1,45s; separate read-only recovery23233PASS1/1,15s; ordinary373/373PASS0skip21s. Existing first-cohort originals/failure evidence remain unchanged. Exact typed decimal conversion, one durable owner acknowledgement per operation, native finalized effects, common signed-field recovery and final full balance/zero allowance/released deposit are proven. Source-verified Core781/Shared56 identities match. Pending fences804 and mode exclusions105PASS. Runtime stopped/ports absent; no downloads, restores or duplicate environment.

@@ -16,6 +16,8 @@ param(
     [Parameter(ParameterSetName = 'NftCustodySource')][switch]$NftCustodySource,
     [Parameter(ParameterSetName = 'NftCustody')][switch]$NftCustody,
     [Parameter(ParameterSetName = 'NftCustodyRecover')][switch]$NftCustodyRecover,
+    [Parameter(ParameterSetName = 'NftBridge')][switch]$NftBridge,
+    [Parameter(ParameterSetName = 'NftBridgeRecover')][switch]$NftBridgeRecover,
     [Parameter(ParameterSetName = 'NftEscrowConstructor')][switch]$NftEscrowConstructor,
     [Parameter(ParameterSetName = 'NftEscrowDeploy')][switch]$NftEscrowDeploy,
     [Parameter(ParameterSetName = 'NftEscrowReconcile')][switch]$NftEscrowReconcile,
@@ -61,7 +63,7 @@ $lease = [IO.FileStream]::new((Join-Path $evidence 'local-native-environment.loc
 $publicEvidence = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot'
 $escrowPublicGate = $NftEscrowPublic -or $NftEscrowPublicRecover
 $tokenPublicGate = $TokenPublic -or $TokenPublicRecover -or $TokenPublicReleaseVerifiedLock
-$custodyGate = $NftCustody -or $NftCustodyRecover
+$custodyGate = $NftCustody -or $NftCustodyRecover -or $NftBridge -or $NftBridgeRecover
 $recordEvidence = if ($tokenPublicGate -or $escrowPublicGate -or $custodyGate -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) { $publicEvidence } else { $evidence }
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
 $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
@@ -73,7 +75,9 @@ $priorEscrowRecovery = $env:OASIS_POLKADOT_NFT_ESCROW_RECOVERY
 $priorTokenRecovery = $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY
 $priorTokenRelease = $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE
 $priorTokenCohort = $env:OASIS_POLKADOT_TOKEN_PUBLIC_COHORT
+$priorNftBridge = $env:OASIS_POLKADOT_NFT_BRIDGE_NATIVE
 try {
+    if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'psp34-bridge-pending.jsonl')) -and !$NftBridgeRecover) { throw 'Pending original exists: public NFT bridge custody. Reconcile read-only, never replay.' }
     $tokenPrefix=if($TokenPublicCohort -eq '1'){'psp22-public'}else{'psp22-public-postfix'}
     foreach($prefix in @('psp22-public','psp22-public-postfix')) {
         if ((Test-Path -LiteralPath (Join-Path $publicEvidence ($prefix+'-approval-pending.jsonl'))) -and !($TokenPublicApprovalRecover -and $prefix -eq $tokenPrefix)) { throw 'Pending original exists: public token approval. Reconcile read-only, never replay.' }
@@ -106,7 +110,8 @@ try {
     $env:OASIS_POLKADOT_RECORD_RECOVERY = if ($RecoverCompleted) { '1' } else { $null }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
     $env:OASIS_POLKADOT_NFT_PUBLIC_RECOVERY = if ($NftPublicRecover) { '1' } else { $null }
-    $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY = if ($NftCustodyRecover) { '1' } else { $null }
+    $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY = if ($NftCustodyRecover -or $NftBridgeRecover) { '1' } else { $null }
+    $env:OASIS_POLKADOT_NFT_BRIDGE_NATIVE = if ($NftBridge -or $NftBridgeRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_NFT_ESCROW_RECOVERY = if ($NftEscrowPublicRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY = if ($TokenPublicRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE = if ($TokenPublicReleaseVerifiedLock) { '1' } else { $null }
@@ -124,7 +129,7 @@ try {
             & dotnet build $unit --no-restore /p:IncludePolkadotRecordNativeTests=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
             if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
             $nativeClass = if ($tokenPublicGate) { 'PolkadotTokenEscrowNativeTests' } elseif ($escrowPublicGate) { 'PolkadotNftEscrowNativeTests' } elseif ($custodyGate) { 'PolkadotNftCustodyNativeTests' } elseif ($NftPublicMutation -or $NftPublicRecover) { 'PolkadotNftPublicMutationNativeTests' } elseif ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests' } else { 'PolkadotRecordBackendNativeTests' }
-            $reportName = if ($TokenPublicReleaseVerifiedLock) { 'psp22-public-release-current.trx' } elseif ($TokenPublicRecover) { 'psp22-public-recovery-current.trx' } elseif ($TokenPublic) { 'psp22-public-native-current.trx' } elseif ($NftEscrowPublicRecover) { 'psp34-escrow-public-recovery-current.trx' } elseif ($NftEscrowPublic) { 'psp34-escrow-public-native-current.trx' } elseif ($NftCustodyRecover) { 'psp34-custody-recovery-current.trx' } elseif ($NftCustody) { 'psp34-custody-native-current.trx' } elseif ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
+            $reportName = if ($NftBridgeRecover) { 'psp34-bridge-recovery-current.trx' } elseif ($NftBridge) { 'psp34-bridge-native-current.trx' } elseif ($TokenPublicReleaseVerifiedLock) { 'psp22-public-release-current.trx' } elseif ($TokenPublicRecover) { 'psp22-public-recovery-current.trx' } elseif ($TokenPublic) { 'psp22-public-native-current.trx' } elseif ($NftEscrowPublicRecover) { 'psp34-escrow-public-recovery-current.trx' } elseif ($NftEscrowPublic) { 'psp34-escrow-public-native-current.trx' } elseif ($NftCustodyRecover) { 'psp34-custody-recovery-current.trx' } elseif ($NftCustody) { 'psp34-custody-native-current.trx' } elseif ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
             if($tokenPublicGate -and $TokenPublicCohort -eq '2'){$reportName=$reportName.Replace('psp22-public-','psp22-public-postfix-')}
             & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$nativeClass" --logger "trx;LogFileName=$reportName" --results-directory $recordEvidence --verbosity quiet -- MSTest.DeploymentEnabled=false
             if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
@@ -186,5 +191,6 @@ try {
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RECOVERY = $priorTokenRecovery
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_RELEASE = $priorTokenRelease
     $env:OASIS_POLKADOT_TOKEN_PUBLIC_COHORT = $priorTokenCohort
+    $env:OASIS_POLKADOT_NFT_BRIDGE_NATIVE = $priorNftBridge
     $lease.Dispose()
 }
