@@ -1,5 +1,6 @@
-param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements,[switch]$VerifyCheckedWrites,[switch]$VerifyOrdinaryWrites,[switch]$VerifyPreparedActions,[switch]$VerifyPreparedOrdinary,[switch]$VerifyPreparedStorage,[switch]$VerifyPreparedLifecycle,[switch]$VerifyPreparedToken)
+param([switch]$InspectInterruptedRun,[switch]$InspectStorageRecords,[switch]$VerifySignedAcknowledgements,[switch]$VerifyCheckedWrites,[switch]$VerifyOrdinaryWrites,[switch]$VerifyPreparedActions,[switch]$VerifyPreparedOrdinary,[switch]$VerifyPreparedStorage,[switch]$VerifyPreparedLifecycle,[switch]$VerifyPreparedToken,[switch]$VerifyNftDeposit)
 $ErrorActionPreference='Stop'
+if($VerifyNftDeposit -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions -or $VerifyPreparedOrdinary -or $VerifyPreparedStorage -or $VerifyPreparedLifecycle -or $VerifyPreparedToken)){throw 'Choose one explicit native scope.'}
 if($VerifyPreparedToken -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions -or $VerifyPreparedOrdinary -or $VerifyPreparedStorage -or $VerifyPreparedLifecycle)){throw 'Choose one explicit native scope.'}
 if($VerifyPreparedLifecycle -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions -or $VerifyPreparedOrdinary -or $VerifyPreparedStorage)){throw 'Choose one explicit native verification scope.'}
 if($VerifyPreparedStorage -and ($InspectInterruptedRun -or $InspectStorageRecords -or $VerifySignedAcknowledgements -or $VerifyCheckedWrites -or $VerifyOrdinaryWrites -or $VerifyPreparedActions -or $VerifyPreparedOrdinary)){throw 'Choose one explicit native verification scope.'}
@@ -14,13 +15,14 @@ if($VerifyPreparedActions -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WI
 if($VerifyOrdinaryWrites -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-ordinary-storage.complete.json'))){
     throw 'Original ordinary storage cohort is already complete; reconcile its retained receipts, never replay.'
 }
-if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and !$VerifyCheckedWrites -and !$VerifyOrdinaryWrites -and !$VerifyPreparedActions -and !$VerifyPreparedOrdinary -and !$VerifyPreparedStorage -and !$VerifyPreparedLifecycle -and !$VerifyPreparedToken -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
+if(!$InspectInterruptedRun -and !$VerifySignedAcknowledgements -and !$VerifyCheckedWrites -and !$VerifyOrdinaryWrites -and !$VerifyPreparedActions -and !$VerifyPreparedOrdinary -and !$VerifyPreparedStorage -and !$VerifyPreparedLifecycle -and !$VerifyPreparedToken -and !$VerifyNftDeposit -and (Test-Path -LiteralPath (Join-Path $root 'TestResults/NearRuntime/near-provider-current.trx'))){
     throw 'Preserve and hash-verify the original NEAR native report before another run; no node or mutation started.'
 }
 if($VerifyPreparedOrdinary -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-ordinary.complete.json'))){throw 'Original prepared ordinary cohort is complete; reconcile only, never replay.'}
 if($VerifyPreparedStorage -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-storage.complete.json'))){throw 'Original prepared storage cohort is complete; reconcile only, never replay.'}
 if($VerifyPreparedLifecycle -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-lifecycle.complete.json'))){throw 'Original prepared lifecycle cohort is complete; reconcile only, never replay.'}
 if($VerifyPreparedToken -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-token.complete.json'))){throw 'Original token cohort complete; reconcile, never replay.'}
+if($VerifyNftDeposit -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-nft-deposit.complete.json'))){throw 'Original NFT deposit cohort complete; reconcile, never replay.'}
 $rootWsl=(& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')).Trim()
 if($LASTEXITCODE -ne 0 -or $rootWsl -ne '/mnt/c/Source/OASIS'){throw 'Unexpected retained NEAR repository root.'}
 # No downloads, dependency installs, compilation/deployment of the contract or chain reset.
@@ -38,6 +40,7 @@ flock -n 9 || { echo 'Retained NEAR environment is already owned.' >&2; exit 1; 
 test -z "$(pgrep -x near-sandbox || true)" || { echo 'Existing NEAR process must be inspected, not duplicated.' >&2; exit 1; }
 test -z "$(ss -H -ltn 'sport = :3030 or sport = :24567')" || { echo 'Retained NEAR ports are occupied.' >&2; exit 1; }
 pending_original() {
+  if test -e "$repo/TestResults/NearRuntime/near-prepared-nft-deposit.pending.json"; then return 0; fi
   if test -e "$repo/TestResults/NearRuntime/near-prepared-token.pending.json"; then return 0; fi
   if test -n "$(find "$root" -maxdepth 1 -name '*.pending.json' -print -quit)" || test -e "$repo/TestResults/NearRuntime/near-checked-sdk.pending.json" || test -e "$repo/TestResults/NearRuntime/near-signed-ack.pending.json" || test -e "$repo/TestResults/NearRuntime/near-ordinary-storage.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-native.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-ordinary.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-storage.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-storage.attempts.jsonl" || test -e "$repo/TestResults/NearRuntime/near-prepared-lifecycle.pending.json" || test -e "$repo/TestResults/NearRuntime/near-prepared-lifecycle.attempts.jsonl"; then return 0; fi
   # A negative-fixture submission is also an original mutation, not just the C# writes.
@@ -74,8 +77,9 @@ if test "$OASIS_NEAR_ORDINARY_WRITE" = 1; then node_log="$root/node-ordinary-sto
 if test "$OASIS_NEAR_PREPARED_ACTION" = 1; then node_log="$root/node-prepared-native.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-native node log before another run.' >&2; exit 1; }; fi
 if test "$OASIS_NEAR_PREPARED_ORDINARY" = 1; then node_log="$root/node-prepared-ordinary.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-ordinary node log before another run.' >&2; exit 1; }; fi
 if test "$OASIS_NEAR_PREPARED_STORAGE" = 1; then node_log="$root/node-prepared-storage.log"; test ! -e "$node_log" || { echo 'Preserve original prepared-storage node log before another run.' >&2; exit 1; }; fi
-if test "$OASIS_NEAR_PREPARED_LIFECYCLE" = 1 && test "$OASIS_NEAR_PREPARED_TOKEN" != 1; then node_log="$root/node-prepared-lifecycle.log"; test ! -e "$node_log" || { echo 'Preserve original lifecycle log before another run.' >&2; exit 1; }; fi
+if test "$OASIS_NEAR_PREPARED_LIFECYCLE" = 1 && test "$OASIS_NEAR_PREPARED_TOKEN" != 1 && test "$OASIS_NEAR_NFT_DEPOSIT" != 1; then node_log="$root/node-prepared-lifecycle.log"; test ! -e "$node_log" || { echo 'Preserve original lifecycle log before another run.' >&2; exit 1; }; fi
 if test "$OASIS_NEAR_PREPARED_TOKEN" = 1; then node_log="$root/node-prepared-token.log"; test ! -e "$node_log" || { echo "Preserve original token log" >&2; exit 1; }; fi
+if test "$OASIS_NEAR_NFT_DEPOSIT" = 1; then node_log="$root/node-prepared-nft-deposit.log"; test ! -e "$node_log" || { echo "Preserve original NFT deposit log" >&2; exit 1; }; fi
 "$runtime" --home "$root/ledger" run --rpc-addr 127.0.0.1:3030 --network-addr 127.0.0.1:24567 >"$node_log" 2>&1 &
 pid=$!
 echo "Resumed retained NEAR node PID $pid (loopback only)."
@@ -105,14 +109,15 @@ fi
 $inspectionValue=if($InspectInterruptedRun){'1'}else{'0'}
 $storageInspectionValue=if($InspectStorageRecords){'1'}else{'0'}
 $signedAckValue=if($VerifySignedAcknowledgements){'1'}else{'0'}
-$preparedLifecycleValue=if($VerifyPreparedLifecycle -or $VerifyPreparedToken){'1'}else{'0'}
+$preparedLifecycleValue=if($VerifyPreparedLifecycle -or $VerifyPreparedToken -or $VerifyNftDeposit){'1'}else{'0'}
 $preparedStorageValue=if($VerifyPreparedStorage){'1'}else{'0'}
 $preparedOrdinaryValue=if($VerifyPreparedOrdinary){'1'}else{'0'}
 $preparedActionValue=if($VerifyPreparedActions){'1'}else{'0'}
 $ordinaryWriteValue=if($VerifyOrdinaryWrites){'1'}else{'0'}
 $checkedWriteValue=if($VerifyCheckedWrites){'1'}else{'0'}
 $preparedTokenValue=if($VerifyPreparedToken){'1'}else{'0'}
-$nearShell="export OASIS_NEAR_PREPARED_TOKEN=$preparedTokenValue`nexport OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`nexport OASIS_NEAR_CHECKED_WRITE=$checkedWriteValue`nexport OASIS_NEAR_ORDINARY_WRITE=$ordinaryWriteValue`nexport OASIS_NEAR_PREPARED_ACTION=$preparedActionValue`nexport OASIS_NEAR_PREPARED_ORDINARY=$preparedOrdinaryValue`nexport OASIS_NEAR_PREPARED_STORAGE=$preparedStorageValue`nexport OASIS_NEAR_PREPARED_LIFECYCLE=$preparedLifecycleValue`n"+$nearShell
+$nftDepositValue=if($VerifyNftDeposit){'1'}else{'0'}
+$nearShell="export OASIS_NEAR_NFT_DEPOSIT=$nftDepositValue`nexport OASIS_NEAR_PREPARED_TOKEN=$preparedTokenValue`nexport OASIS_NEAR_READ_ONLY_INSPECTION=$inspectionValue`nexport OASIS_NEAR_READ_ONLY_STORAGE=$storageInspectionValue`nexport OASIS_NEAR_SIGNED_ACK=$signedAckValue`nexport OASIS_NEAR_CHECKED_WRITE=$checkedWriteValue`nexport OASIS_NEAR_ORDINARY_WRITE=$ordinaryWriteValue`nexport OASIS_NEAR_PREPARED_ACTION=$preparedActionValue`nexport OASIS_NEAR_PREPARED_ORDINARY=$preparedOrdinaryValue`nexport OASIS_NEAR_PREPARED_STORAGE=$preparedStorageValue`nexport OASIS_NEAR_PREPARED_LIFECYCLE=$preparedLifecycleValue`n"+$nearShell
 $nearEncoded=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($nearShell -replace "`r`n","`n")))
 & wsl.exe -d Ubuntu -- bash -lc "printf '%s' '$nearEncoded' | base64 -d | bash"
 if($LASTEXITCODE -ne 0){throw 'Retained NEAR verification did not pass; inspect original evidence before rerunning.'}
