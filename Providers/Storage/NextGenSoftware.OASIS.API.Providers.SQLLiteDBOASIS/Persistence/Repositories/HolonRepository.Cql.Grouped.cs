@@ -50,6 +50,8 @@ public partial class HolonRepository
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var numericKeys = new SqliteCqlNumericKeys(connection, budget.Check);
+                using var floating = query.Columns.Any(c => (c.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average) && FloatingNumeric(c.Selector?.ValueType))
+                    ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 var snapshot = source.GraphOptions != null || translator.HasRelationship;
                 if (snapshot && _dbContext.Database.CurrentTransaction != null
@@ -78,7 +80,7 @@ public partial class HolonRepository
                                 throw new SqliteCqlResourceException("Grouped input exceeds its explicit native work bound.");
                             if (rows.Count >= maximumGroups) throw new SqliteCqlResourceException("Grouping exceeds its remaining output count.");
                             if (reader.GetInt64(0) != 0) throw new InvalidDataException("A participating grouping key or aggregate has an invalid domain.");
-                            numericKeys.Check();
+                            numericKeys.Check(); floating?.Check();
                             var inputs = reader.GetInt64(2); var position = 3;
                             var keys = new object[query.Grouping.Key.Columns.Count]; bytes += 32;
                             for (var index = 0; index < keys.Length; index++)
@@ -100,7 +102,13 @@ public partial class HolonRepository
                                 else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                                 {
                                     OASISResult<object> normalized;
-                                    if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                                    if (FloatingNumeric(column.Selector.ValueType))
+                                    {
+                                        normalized=DecodeFloatingNumeric(column.Operation.Value,column.Selector.ValueType,inputs,
+                                            reader.GetInt64(position+1),(byte[])reader.GetValue(position),grouped:true);
+                                        position+=2;
+                                    }
+                                    else if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
                                     {
                                         var words = Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount)
                                             .Select(part => reader.GetInt64(position + part)).ToArray();
@@ -134,7 +142,7 @@ public partial class HolonRepository
                             rows.Add(new CosmicGroupedRow(inputs, member == 1, keys, values));
                         }
                     }
-                    budget.Check(); traversal?.Check(); numericKeys.Check();
+                    budget.Check(); traversal?.Check(); numericKeys.Check(); floating?.Check();
                     return new OASISResult<IReadOnlyList<CosmicGroupedRow>>(rows) { IsLoaded = true };
 
                     void Reserve(object value)

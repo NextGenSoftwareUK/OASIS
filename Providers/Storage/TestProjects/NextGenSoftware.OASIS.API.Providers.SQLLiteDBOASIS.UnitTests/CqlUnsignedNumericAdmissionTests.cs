@@ -59,30 +59,36 @@ public sealed class CqlUnsignedNumericAdmissionTests
     }
     [DataTestMethod]
     [DataRow(true)] [DataRow(false)]
-    public void FloatingKernelAloneDoesNotEnrollScalarOrGroupedArithmetic(bool single)
+    public void FloatingArithmeticRequiresExplicitInputEnrollment(bool single)
     {
         var source=CosmicQuery<Holon>.Create();
+        var legacy=new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(),new[]
+        {
+            new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum,Provider.CqlProjectionCapabilities)
+        });
         if(single)
         {
             var sum=source.Sum(h=>CosmicQueryMetadata.Value<float>(h,"value"));
             var mean=source.Average(h=>CosmicQueryMetadata.Value<float>(h,"value"));
             Assert.IsFalse(sum.IsError,sum.Message); Assert.IsFalse(mean.IsError,mean.Message);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(sum.Result).ErrorCode);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(mean.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlScalarCapabilities.Admit(sum.Result).IsError);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",legacy.Admit(sum.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlScalarCapabilities.Admit(mean.Result).IsError);
             var groups=source.GroupBy(h=>h.Name).Select(g=>g.Average(h=>CosmicQueryMetadata.Value<float>(h,"value")));
             Assert.IsFalse(groups.IsError,groups.Message);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlGroupedCapabilities.Admit(groups.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlGroupedCapabilities.Admit(groups.Result).IsError);
         }
         else
         {
             var sum=source.Sum(h=>CosmicQueryMetadata.Value<double>(h,"value"));
             var mean=source.Average(h=>CosmicQueryMetadata.Value<double>(h,"value"));
             Assert.IsFalse(sum.IsError,sum.Message); Assert.IsFalse(mean.IsError,mean.Message);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(sum.Result).ErrorCode);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlScalarCapabilities.Admit(mean.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlScalarCapabilities.Admit(sum.Result).IsError);
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",legacy.Admit(sum.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlScalarCapabilities.Admit(mean.Result).IsError);
             var groups=source.GroupBy(h=>h.Name).Select(g=>g.Average(h=>CosmicQueryMetadata.Value<double>(h,"value")));
             Assert.IsFalse(groups.IsError,groups.Message);
-            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Provider.CqlGroupedCapabilities.Admit(groups.Result).ErrorCode);
+            Assert.IsFalse(Provider.CqlGroupedCapabilities.Admit(groups.Result).IsError);
         }
     }
 
