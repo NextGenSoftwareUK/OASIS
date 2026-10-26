@@ -1989,3 +1989,25 @@ its tested source cohort. No install/download/restore/new environment was needed
 Next: joined shipping DataController HTTP/native/admission/outbox verification
 and explicit read/write pricing, then remaining gRPC/GraphQL authority migration
 before tenant/recipient query enrollment. Full ORM/CQL objective remains open.
+
+
+## Ordinary storage operation pricing — 26 October 2026
+
+Generic prepared execution now prices completed LoadHolon/SaveHolon/SaveHolons
+attempts on MongoDB, SQLite and Neo4j using explicit server service tariffs.
+Configured save routes require a complete affordable catalogue profile; a query
+tariff cannot authorize/price a save. HyperDrive binds actual operation names in
+sync/async execution. Attempt and receipt persistence are awaited. Thrown/unknown
+outcomes produce no invented completion. Original public constructors remain.
+
+Core3,332/3,332 (30new) and normal WEB4 units214/214 pass, dual Core targets and
+shipping WEB4 compile. Fourteen functional pricing baseline failures were proven.
+Native CQL/service regression passes3providers/138SDK/138signedHTTP/345settled
+CQL operations, source freeze/six binary pairs+Core consumersBE5C06BB match.
+Owned Neo10056 exited, fixture ports/readiness/manifest absent. Core29a7725247c0b4c749b83452b58415ac43ee764f
+is published. See [storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md)
+and `TestResults/CosmicCqlDemo/storage-pricing-evidence.json`.
+
+This closes the explicit pricing kernel, not the joined shipping DataController
+HTTP/native-store/admission/outbox settlement gate. That proof remains next;
+gRPC/GraphQL authority migration and broader CQL/ORM acceptance remain open.
