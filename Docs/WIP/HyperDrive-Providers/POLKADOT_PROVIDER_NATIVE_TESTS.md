@@ -1,5 +1,14 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 26 October: SDK worker storage-key isolation verified
+
+Three real child-process controls first failed against the existing implementation: balance, transaction-status and record-preparation workers all inherited OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY. The existing single process launcher now removes that known parent-only key from ProcessStartInfo.Environment. Parent configuration and adapter-side encryption remain intact; explicit native signing inputs and the owned preparation channel are unchanged. This prevents unnecessary key exposure to the Node worker; it does not claim isolation from the parent OS account or arbitrary unrelated environment secrets.
+
+Final leased11053 terminal0: **376/376 full controlled unit PASS, zero skips, 20 seconds**, after baseline1524 produced3/3 expected failures. Synthetic fixture reports only presence, never key values, and restores parent variables in finally. No native ledger, service, cloud requests, install, restore, download or new environment. Core787/Shared56/provider30/unit28 portable-PDB/source checks and dependency pairs match. Current Core SHA B7BFF4A0..., Shared DC15B3A5...; full binary identities and compressed red/current TRX retained in NativeEvidence/polkadot-worker-environment-identities.json. Fixture copy matched exactly.
+
+Raw7539/579194-byte reports removed only after lossless archive readback; retained archives1597/83058bytes. Existing producer bin33779130/obj3285254bytes and unit bin245319986/obj3547847bytes retained for reuse (aggregate inherited outputs, not newly allocated bytes). Final C free128251047936bytes is machinewide. Builds had pre-existing NU1510/NU1603/resilience/nullable warnings; no build errors. Native-chain, hosted authority/fees, remaining interfaces and all-provider V2 completion remain separate open gates.
+
+
 ## 26 October: fungible token custody implementation in progress
 
 ### Current SDK native custody and persisted rollback acceptance

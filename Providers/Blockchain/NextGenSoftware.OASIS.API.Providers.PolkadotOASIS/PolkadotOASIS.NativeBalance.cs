@@ -43,6 +43,8 @@ public partial class PolkadotOASIS
         // Never inherit another operation's persistence channel.
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        // Record encryption belongs to the parent adapter, never the native SDK worker.
+        start.Environment.Remove("OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY");
         preparationServer?.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"PolkadotSdkBridge","prepared-submission.mjs"));
         cancellationToken.ThrowIfCancellationRequested();
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Polkadot SDK bridge.");
