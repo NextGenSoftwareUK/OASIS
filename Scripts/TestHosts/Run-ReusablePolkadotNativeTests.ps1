@@ -20,7 +20,8 @@ try {
         ForEach-Object { Join-Path $evidence $_ }
     $publicStoragePending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
     $nftDeploymentPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
-    foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation, $assetApi, $assetTransfer) + $recordPending + @($publicStoragePending, $nftDeploymentPending)) {
+    $nftMutationPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
+    foreach ($pending in @($journal, $bootstrap, $assetBootstrap, $assetMutation, $assetApi, $assetTransfer) + $recordPending + @($publicStoragePending, $nftDeploymentPending, $nftMutationPending)) {
         if (Test-Path -LiteralPath $pending) { throw "Pending original exists: $pending. Reconcile it read-only; never replay or delete it to rerun." }
     }
     $publicKeys = $Suite -eq 'PublicKeys'

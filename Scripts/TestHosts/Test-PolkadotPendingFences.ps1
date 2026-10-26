@@ -17,6 +17,7 @@ $paths = @('local-record-contract-pending.json','local-record-owner-pending.json
     ForEach-Object { Join-Path $evidence $_ }
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
 $cases = 0
 $runners = @(
     @{ Name='Run-ReusablePolkadotNativeTests.ps1'; Arguments=@{} },
@@ -24,6 +25,8 @@ $runners = @(
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftDeploy=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPublicRead=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftPreparation=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftLifecycle=$true } },
+    @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftLifecycleRecover=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftConstructorSimulation=$true } },
     @{ Name='Run-ReusablePolkadotRecordTests.ps1'; Arguments=@{ NftReconcile=$true } }
 )
@@ -34,6 +37,7 @@ foreach ($entry in $runners) {
         # Reconciliation may inspect its own original, but may not bypass other
         # unresolved sequences. Its read-only path is verified by the native gate.
         if ($arguments.ContainsKey('NftReconcile') -and $path.EndsWith('psp34-deployment-pending.json')) { continue }
+        if ($arguments.ContainsKey('NftLifecycleRecover') -and $path.EndsWith('psp34-mutation-pending.jsonl')) { continue }
         $simulatedPending = [IO.Path]::GetFullPath($path)
         Set-Item Function:Test-Path -Value ({
             param([string]$LiteralPath, [string]$PathType)
