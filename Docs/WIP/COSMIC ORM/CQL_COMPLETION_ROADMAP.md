@@ -1,5 +1,22 @@
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
+## Sharing authority and authenticated snapshot — 26 October 2026
+
+V2 sharing/revocation now reads through generic Core LoadHolonForWriteAsync and
+conditionally saves to the returned immutable authority. The helper captures caller
+ID/trusted role before awaiting storage. Four original regressions reproduce the
+old replica-list and mutable-caller bypasses; they now pass. Three child-selection
+controls and two holder/legacy controls also pass in fullCore3,264, zero skips.
+Both Core targets and shippingWEB4 build pass.
+
+The final three-provider native gate passes sharing3/owned-write3 plus138SDK/
+138signedHTTP examples,345settled CQL operations/337CQL attempts. Source snapshots,
+six producer/native identities and extra Core unit/WEB4 copies match. Owned services
+and fixtures are removed/stopped. Public graph-write transport/accounting migration
+and authoritative CQL recipient/tenant policy remain open.
+[Contract/evidence](CQL_SHARING_WRITE_CONTRACT.md).
+
+
 ## Creator-owned graph save SDK boundary — 25 October 2026
 
 Generic Core now offers V2 `SaveOwnedHolonAsync`, reusing the existing detached
@@ -1861,3 +1878,19 @@ Neo4j scalar floating milestone:36focused cases,454full native/541matched units 
 Neo4j grouped finalizer prerequisite now passes2native cases/5,127packets bit-for-bit against Core (0skips). Four producer/native copies match and retained runtime/attachment stops cleanly. Existing454native/541unit scalar checkpoint remains separate; no full456/541rerun or group enrollment claimed. Next: grouped compile/read/selection/off-page proof integration and explicit grouped numeric admission, then floating HTTP/live demos.
 
 Neo4j grouped floating milestone:34new native cases,490full native/552matched units PASS0skip; eight Core/Shared/Neo/sourceDriver producer/native/unit copies match. Complete raw off-page proofs retain typed arithmetic and independent native membership validation; all three native SDK adapters now enroll floating scalar/grouped Sum/Average. ProviderDefault consistency retained; unsupported snapshots still reject. Next: shared floating HTTP arithmetic binder/wire acceptance, annotated C#/HTTP/browser demos, then remaining declared policy/federation/ORM gates.
+
+### Transport write audit — 26 October 2026 UTC
+
+A focused source check distinguishes these paths:
+
+| Path | Observed source behavior | Remaining gate |
+|---|---|---|
+| REST DataController.SaveHolon | Validates only submitted root ownership, then invokes ordinary graph SaveHolonAsync | Migrate all selected-node ownership/revision checks with admitted physical reads/write; test forged foreign children |
+| GraphQL Mutation.SaveHolon | Creates a new Holon from name/description/type; this method accepts neither submitted ID nor child graph | Bind authenticated request actor instead of assuming global AvatarManager state; do not describe this method as an existing graph-update path |
+| gRPC DataGrpcService.SaveHolon | Maps a submitted holon and child flags, then calls parameterless-actor SaveHolonAsync | Bind actor from authenticated HttpContext, authoritative selected-node checks and explicit revisions/accounting |
+| gRPC ShareGrpcService | Uses HolonAccess.ShareAsync with caller from HttpContext.Items["Avatar"] | Shared helper initial read must be pinned to its write authority; preserve complete generic failure semantics |
+
+These are bounded source findings, not a completed runtime authorization audit.
+CQL recipient/tenant policy must stay unenrolled until its stored grants cannot be
+forged through the public mutation surfaces. The new Core owned-save SDK facade
+is available for migration but does not itself prove transport enrollment.

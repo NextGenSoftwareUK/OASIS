@@ -1894,3 +1894,12 @@ record rather than only a graph root. It preserves caller revision conditions an
 uses the existing provider CAS operations. See the [SDK example, native evidence
 and transport/accounting limits](CQL_OWNED_GRAPH_WRITE_CONTRACT.md). Ordinary
 Save methods and public transports have not all migrated to this boundary.
+
+## Pinned read/change/save observations
+
+For trusted-host optimistic mutations, Core LoadHolonForWriteAsync exposes the
+selected Authority together with the tracked Record. Authorize the actor before
+editing, then pass that same Authority to the conditional Save. See the
+[example and limits](CQL_SHARING_WRITE_CONTRACT.md#same-authority-observation-and-caller-snapshot--26-october-2026-utc).
+An unavailable authority is an error; a replica cannot supply a different grant
+list for the operation. This is not a lock or a public CQL access capability.

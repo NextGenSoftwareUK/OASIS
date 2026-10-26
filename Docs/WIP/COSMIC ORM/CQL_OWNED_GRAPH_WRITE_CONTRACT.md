@@ -61,7 +61,8 @@ existing physical-attempt/receipt owner before enrolling this path. It must also
 bind actor/operation/provider identity and serialize failures without exposing
 inaccessible data. Ordinary REST root-only ownership checks and GraphQL/gRPC save
 paths still need migration; do not treat this SDK addition as their completion.
-The sharing helper's initial read must also stay on its write authority.
+The sharing helper now pins its initial V2 read and subsequent conditional
+save to one authority through the generic Core observation API.
 
 ## Verification
 

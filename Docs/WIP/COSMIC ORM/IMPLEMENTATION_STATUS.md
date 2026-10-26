@@ -1,5 +1,22 @@
 # COSMIC ORM implementation status
 
+## Sharing authority and authenticated snapshot — 26 October 2026
+
+V2 sharing/revocation now reads through generic Core LoadHolonForWriteAsync and
+conditionally saves to the returned immutable authority. The helper captures caller
+ID/trusted role before awaiting storage. Four original regressions reproduce the
+old replica-list and mutable-caller bypasses; they now pass. Three child-selection
+controls and two holder/legacy controls also pass in fullCore3,264, zero skips.
+Both Core targets and shippingWEB4 build pass.
+
+The final three-provider native gate passes sharing3/owned-write3 plus138SDK/
+138signedHTTP examples,345settled CQL operations/337CQL attempts. Source snapshots,
+six producer/native identities and extra Core unit/WEB4 copies match. Owned services
+and fixtures are removed/stopped. Public graph-write transport/accounting migration
+and authoritative CQL recipient/tenant policy remain open.
+[Contract/evidence](CQL_SHARING_WRITE_CONTRACT.md).
+
+
 ## Creator-owned graph save SDK boundary — 25 October 2026
 
 Generic Core now offers V2 `SaveOwnedHolonAsync`, reusing the existing detached
