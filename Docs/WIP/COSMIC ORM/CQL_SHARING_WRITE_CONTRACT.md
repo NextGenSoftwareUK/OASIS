@@ -109,3 +109,43 @@ PASS0skip, bothCoreTFMs/WEB4compilePASS. All3native malformedgrant/repair checks
 and138SDK/138HTTP345settled337attemptsPASS. Core906f64d3source is published;
 parentdependency pin/gitlink move together. Exactreports/hashes and final additional
 Corecopies: TestResults/CosmicCqlDemo/grant-parser-evidence.json.
+
+## Same-authority observation and caller snapshot — 26 October 2026 UTC
+
+V2 sharing now loads through generic Core `LoadHolonForWriteAsync`. Its tracked
+`HolonAuthorityRead` records the selected Authority, ActorId and mutable Record.
+It is an optimistic observation, not a lock, permission grant or credential.
+The helper passes that exact authority into its conditional save. A changed
+default provider cannot redirect the mutation, and an unavailable write authority
+cannot borrow a replica's recipient list. Core owned-graph authorization reads
+reuse the same private pinned-route owner.
+
+The helper captures the authenticated caller ID and trusted Wizard status before
+its first await, then uses those values for checks and the write actor. Mutating
+the caller object while storage is awaited cannot substitute another identity or
+elevate that request. Existing creator/trusted-Wizard policy is unchanged; this
+work does not establish a tenant authority or enroll CQL shared-recipient access.
+
+```csharp
+var observed = await manager.LoadHolonForWriteAsync(holonId, actor, provider);
+
+// Trusted host: authenticate actor and authorize this record before editing it.
+// Check observed.IsError before reading observed.Result.
+var record = observed.Result.Record;
+record.Name = "edited";
+
+var saved = await manager.SaveHolonAsync(
+    record,
+    actor,
+    new CosmicWriteOptions(operationId),
+    saveChildren: false,
+    providerType: observed.Result.Authority);
+```
+
+Four original sharing regressions fail before the fix and pass afterward. Three
+child-scope controls and two authority-holder controls also pass; fullCore3,264,
+both Core target builds and WEB4 compilation pass. The final native checkpoint passes sharing3/owned-write3 plus138SDK/138signedHTTP
+examples on MongoDB/SQLite/Neo4j,345settled CQL operations/337CQL attempts. Source
+snapshots and six binary identities match; owned services/fixtures are cleaned.
+Exact reports/hashes: TestResults/CosmicCqlDemo/sharing-authority-evidence.json.
+Legacy HyperDrive routing is unchanged; the new Core observation API rejects it.

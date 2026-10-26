@@ -1540,3 +1540,12 @@ walker. It captures caller revisions before awaiting pinned ownership reads, the
 uses existing atomic conditional writes on that same authority. Default trusted
 Save APIs are unchanged. Public transport/prepared-accounting migration is still
 required; see the [owned graph contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md).
+
+## Pinned observations for optimistic writes — 26 October 2026
+
+Core LoadHolonForWriteAsync returns a tracked HolonAuthorityRead containing its
+fixed provider, actor and record. Its root-only route requires that provider and
+shares routing ownership with owned-graph authorization reads. It supplies no lock
+or authorization grant. WEB4 sharing now retains that authority through CAS and
+snapshots caller identity/role before I/O. Generic public graph-write migration
+and CQL recipient/tenant policy remain separate gates.
