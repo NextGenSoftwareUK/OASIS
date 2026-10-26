@@ -2339,3 +2339,80 @@ input. SDK accounting alone does not prevent a caller replaying an old snapshot.
 Moving reads may duplicate/skip rows after intervening writes; no repeatable
 snapshot is claimed. Active execution time accumulates; client think time still
 needs the independently protected absolute expiry.
+
+## Protected HTTP continuation (26 October implementation checkpoint)
+
+The federation endpoint now supports explicit `enableContinuation` and `cursor`.
+The implementation passes controlled endpoint/protocol tests; signed native
+continuation, restart and key-rotation acceptance are still pending. The earlier
+505-operation/567-attempt native gate predates this feature.
+
+The host must explicitly register `CqlFederationCursorHost` with an existing
+persistent/shared `IDataProtectionProvider` and a lowercase SHA256 deployment
+contract identity. The contract must identify the intended provider connections,
+deployments and authorization contract. Supply an identity, never credentials.
+The constructor also binds WEB4/Core artifacts; each intent binds actual adapter
+artifacts. No key ring or environment is created automatically. Ephemeral keys
+are suitable for isolated tests only. Unenrolled hosts reject opt-in requests with
+`CQL_CURSOR_UNAVAILABLE` before provider dispatch.
+
+```csharp
+// Reuse the deployment's existing shared Data Protection key owner.
+// Keep this contract identity stable across equivalent replicas; advance it
+// when provider connections or authorization semantics change.
+services.AddSingleton(new CqlFederationCursorHost(
+    existingSharedDataProtectionProvider,
+    deploymentContractSha256));
+```
+
+Start with a new canonical lowercase GUID `Idempotency-Key` and this shape:
+
+```json
+{
+  "enableContinuation": true,
+  "scope": "Named",
+  "providers": ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"],
+  "source": { "orderBy": "Name", "take": 100 },
+  "skip": 0,
+  "take": 3,
+  "maximumInputRows": 900,
+  "maximumRowsPerProvider": 300,
+  "maximumProviderAttempts": 12,
+  "maximumDurationMilliseconds": 5000
+}
+```
+
+A successful page returns `hasMore` and either a `continuation` object containing
+`cursor`/`nextRequestKey`, or null. For the next request, keep all original intent
+fields unchanged, set `cursor` to the returned opaque token and use exactly the
+returned `nextRequestKey` as the header. Do not increment the original `skip`.
+The protected offset advances on the server. `hasMore` refers to the complete
+admitted source windows, not records beyond each source's Take.
+
+Every page rereads the same pinned providers with fresh authoritative policies.
+Changed intent, policies, actor, deployment or key ownership reject before I/O.
+The exact next header must also match the durable admitted handle. Existing
+atomic outbox admission owns replay/concurrent-claim rejection; no second replay
+store is introduced. Unknown outcomes remain subject to existing reconciliation;
+a new page is never an automatic retry to resolve a previous uncertain read.
+
+Cumulative caps allow up to10,000 input/per-provider rows and64attempts for opt-in
+chains, while source Take remains1-100 and public Take1-100. Non-continuation caps
+remain unchanged. Each native capture is bounded by both its remaining provider
+allowance and the source Take. A depleted complete read set rejects before the
+endpoint marks dispatch, retaining affirmative no-provider-execution evidence.
+
+Canonical row bytes and a conservative complete public envelope are both charged.
+The envelope reserves4096token characters, preventing circular token-size
+accounting or protection retries. Work counts include host preparation and public
+projection. Whole-request active time accumulates, excluding client think time;
+100ms is reserved for final protection/framing and verified before publication.
+Exceeding that reservation fails. Absolute expiry stays fixed at five minutes
+from page one and limits dispatch/publication independently of the active budget.
+Responses use the existing MVC/durable-settlement buffer, including opaque state.
+
+When a valid page has more rows but cannot admit another complete read set,
+`continuation` is null and `continuationUnavailable` is `BudgetExhausted`.
+This explicitly ends that bounded chain. There is no provider omission or hidden
+budget reset. Moving reads can duplicate/skip rows after writes; no distributed
+snapshot or causal freshness is claimed.

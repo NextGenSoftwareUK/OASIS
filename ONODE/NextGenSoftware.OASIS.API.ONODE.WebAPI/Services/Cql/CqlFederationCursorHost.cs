@@ -24,8 +24,10 @@ public sealed class CqlFederationCursorHost
     private readonly TimeProvider clock;
     internal DateTimeOffset UtcNow => clock.GetUtcNow();
 
+    /// <param name="keys">Host-owned persistent/shared Data Protection provider.</param>
     /// <param name="deploymentContractSha256">Lowercase SHA256 identifying the host's provider
     /// deployments, connections and policy contract. Never pass connection strings or credentials.</param>
+    /// <param name="clock">Host clock, or system UTC when omitted.</param>
     public CqlFederationCursorHost(IDataProtectionProvider keys, string deploymentContractSha256,
         TimeProvider clock = null)
     {
@@ -66,7 +68,7 @@ public sealed class CqlFederationCursorHost
                 || adapters == null || adapters.Count != plan?.Targets.Count || adapters.Count is < 1 or > 3)
                 throw new ArgumentException("A complete bounded resolved intent is required.");
             var core = CosmicFederationIntentFingerprint.Create(plan);
-            if (core.IsError) return Error<string>(core.ErrorCode, core.Message);
+            if (core.IsError) return Error<string>(core.ErrorCode!, core.Message);
             var identities = new object[adapters.Count];
             for (var index = 0; index < adapters.Count; index++)
             {
