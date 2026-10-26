@@ -14,9 +14,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1FixtureReconciliationTests
 {
     [TestMethod]
-    public async Task ReviewedSignedTransportEnumFixturePreservesOriginalsBeforeExactCleanup()
+    public Task ReviewedSignedTransportEnumFixturePreservesOriginalsBeforeExactCleanup()
+        => ReviewSignedTransportFixture(false);
+
+    [TestMethod]
+    public Task ReviewedSignedTransportBodyWriterFixturePreservesCommittedOriginalsBeforeExactCleanup()
+        => ReviewSignedTransportFixture(true);
+
+    private static async Task ReviewSignedTransportFixture(bool committedGrpc)
     {
-        const string hash = "4859E1760E50FF1D9F7425A866BCF0145F0D8520F5BB58F04DFDD5D77E120858";
+        var hash = committedGrpc ? "E722AC607FAB11F2CC6BFD2DC140C081FFC0683FCCB41093DBEF1D62F05273DE"
+            : "4859E1760E50FF1D9F7425A866BCF0145F0D8520F5BB58F04DFDD5D77E120858";
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         Assert.AreEqual("bolt://127.0.0.1:17687", Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -57,8 +65,8 @@ public sealed partial class CqlV1FixtureReconciliationTests
             new[] { alice, bob, outsider, restActor, actor }.Select(value => value.ToString("D")).Contains(operation.UserId)));
         var transportRows = operations.Where(operation => operation.UserId == actor.ToString("D")).ToArray();
         Assert.AreEqual(4, transportRows.Length);
-        Assert.AreEqual(4, transportRows.Sum(row => row.ProviderAttempts.Count));
-        Assert.AreEqual(4, transportRows.Sum(row => row.Receipts.Count));
+        Assert.AreEqual(committedGrpc ? 7 : 4, transportRows.Sum(row => row.ProviderAttempts.Count));
+        Assert.AreEqual(committedGrpc ? 7 : 4, transportRows.Sum(row => row.Receipts.Count));
         foreach (var request in transportRequests)
         {
             var digest = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(
@@ -69,9 +77,9 @@ public sealed partial class CqlV1FixtureReconciliationTests
             if (row.ProviderAttempts.Count == 0) Assert.IsFalse(string.IsNullOrEmpty(row.NoProviderExecutionReason));
         }
         var grpc = transportRows.Single(row => row.Endpoint.EndsWith("/oasis.web4.DataService/SaveHolon", StringComparison.Ordinal));
-        Assert.AreEqual(0, grpc.ProviderAttempts.Count);
-        Assert.AreEqual("failed", grpc.Settlement.Outcome);
-        Assert.AreEqual(1, transportRows.Count(row => row.Settlement.Outcome == "succeeded"));
+        Assert.AreEqual(committedGrpc ? 3 : 0, grpc.ProviderAttempts.Count);
+        Assert.AreEqual(committedGrpc ? "succeeded" : "failed", grpc.Settlement.Outcome);
+        Assert.AreEqual(committedGrpc ? 2 : 1, transportRows.Count(row => row.Settlement.Outcome == "succeeded"));
 
         var snapshots = new List<object>();
         foreach (var provider in new IOASISStorageProvider[] { new MongoProvider(uri, "cosmic_cql_v1_web4_storage"),
@@ -97,7 +105,7 @@ public sealed partial class CqlV1FixtureReconciliationTests
                 {
                     Assert.AreEqual("GraphQL native create", values.Single(value => value.Id == transports[0]).Name);
                     Assert.AreEqual(actor, values.Single(value => value.Id == transports[0]).CreatedByAvatarId);
-                    Assert.AreEqual("transport root", values.Single(value => value.Id == transports[1]).Name);
+                    Assert.AreEqual(committedGrpc ? "gRPC acknowledged graph" : "transport root", values.Single(value => value.Id == transports[1]).Name);
                     Assert.AreEqual(transports[1], values.Single(value => value.Id == transports[2]).ParentHolonId);
                     var graph = await provider.LoadHolonAsync(transports[1], loadChildren: true);
                     Assert.IsFalse(graph.IsError, graph.Message);
@@ -114,7 +122,7 @@ public sealed partial class CqlV1FixtureReconciliationTests
         var neoReceipts = await (await inspection.RunAsync("MATCH(r:CosmicWriteReceipt) RETURN r.OperationId AS id")).ToListAsync();
         Assert.IsTrue(neoReceipts.All(row => conditionalOps.Contains(row["id"].As<string>())));
         Assert.AreEqual(hash, Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(manifest))));
-        await File.WriteAllTextAsync(Path.Combine(work, "joined-transport-reviewed-proof.json"), JsonSerializer.Serialize(new
+        await File.WriteAllTextAsync(Path.Combine(work, committedGrpc ? "joined-transport-bodywriter-reviewed-proof.json" : "joined-transport-reviewed-proof.json"), JsonSerializer.Serialize(new
         {
             hash, snapshots, operations = operations.Select(row => new { row.Id, row.State, row.UserId,
                 row.ObservedOutcome, row.NoProviderExecutionReason, attempts = row.ProviderAttempts.Count, receipts = row.Receipts.Count })

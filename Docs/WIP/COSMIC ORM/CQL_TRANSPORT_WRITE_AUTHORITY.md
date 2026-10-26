@@ -61,6 +61,18 @@ GraphQL/gRPC transport migrations above. Legacy behavior remains unchanged.
 
 Legacy paths are documented only. This work targets HyperDrive V2.
 
+## Remaining delete boundary (source audit)
+
+`Mutation.DeleteHolon` and `DataGrpcService.DeleteHolon` currently call ordinary
+`DeleteHolonAsync(id, Guid.Empty, ...)`. The V2 ordinary SDK path routes hard
+deletion directly or prepares a tombstone without a host ownership check. This
+is not an authenticated transport boundary. The existing conditional tracked
+`DeleteHolonAsync(IHolon, actor, CosmicWriteOptions, ...)` can preserve revision
+intent, but transport callers still need authenticated actor capture and a
+pinned stored-owner observation before invoking it. Do not enroll recipient or
+tenant query policy on the assumption that migrating saves also secured deletes.
+Verify REST delete aliases in the same matrix; document Legacy equivalents only.
+
 ## GraphQL conditional-create migration
 
 The V2 `saveHolon` resolver now accepts `operationId` and `providerType` in
@@ -224,3 +236,47 @@ Reviewed proof was written before removing the exact owned fixture. No request
 was replayed. Compact proof and the original reconciliation TRX are retained in
 `Verification/signed-transport-original-*`. Fresh native acceptance after the
 decoder correction remains pending.
+
+### Buffered-response root cause found by fresh native execution
+
+Fresh cohort 57839 passed decoding and committed/settled its first signed MongoDB
+selected-child gRPC graph with three physical attempts and the expected cost.
+The HTTP/2 response body was empty. The fixture is preserved with manifest SHA256
+`E722AC607FAB11F2CC6BFD2DC140C081FFC0683FCCB41093DBEF1D62F05273DE`;
+its original failed TRX is `Verification/signed-transports-bodywriter-red.trx.gz`.
+Do not replay that committed operation.
+
+Two real-Mongo usage tests reproduced lost unflushed `HttpResponse.BodyWriter`
+output, including a GraphQL error envelope. The shared usage middleware completed
+its response capture before the pipe buffer had been drained. The correction is
+at that owner: complete the buffered response feature before envelope inspection,
+settlement and copying the captured response to the network. It is not a manual
+gRPC-only flush. All 387 usage-protocol tests pass against the rebuilt Core,
+including real-server publication/settlement controls. Final runner verification
+is still in progress.
+
+That broader gate also exposed six stale fixture assumptions: three reflected an
+ambiguous newly overloaded internal method, and three scope-only probes claimed
+success despite affirmative no-provider-execution evidence. The tests now select
+the intended two-argument method and verify the existing conflict/failed-settlement
+contract without inventing provider work. The original eight-failure baseline is
+retained in `Verification/usage-bodywriter-baseline.trx.gz`.
+
+The reusable usage runner now builds its Core producer before consumers in every
+mode, and expects the actual 387 cases. An earlier attempt had compiled the tests
+against the old Core binary because the default mode skipped that producer build;
+that attempt was not evidence against the correction.
+
+A second exact-hash reconciliation gate is prepared for the committed original.
+It must verify all 382 terminal rows, seven transport attempts/receipts, the
+acknowledged stored graph and exact owned footprint before cleanup. No request
+may be replayed. Fresh three-provider acceptance is still open.
+
+Buffered-response checkpoint: Core `361f3d6` is published. The corrected reusable
+runner passes all 387 real-Mongo usage cases. Both Core targets and shipping WEB4
+build; full Core 3,372 and WEB4 250 tests pass without skips. The exact committed
+fixture reconciliation passed: 382 terminal originals, seven attempts/receipts,
+acknowledged graph state and exact owned footprint verified before cleanup.
+No request was replayed. Required proof is retained in
+`Verification/signed-transport-committed-*`. Fresh full signed native acceptance
+remains pending after this correction; this is not a completion claim.
