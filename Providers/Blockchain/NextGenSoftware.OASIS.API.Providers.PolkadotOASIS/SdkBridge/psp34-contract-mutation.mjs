@@ -10,13 +10,17 @@ function bytes(value, maximum, empty = false) {
 }
 // JSON transports an explicit typed identity. Byte identities use canonical hex;
 // numeric variants remain canonical decimal strings, never JS Number or GUIDs.
-export function nftMutationData(registry, request) {
-  let id = request.tokenId;
+export function nftTokenId(value) {
+  let id = value;
   if (id && Object.hasOwn(id, 'Bytes')) {
     if (typeof id.Bytes !== 'string' || !/^0x(?:[0-9a-f]{2})*$/.test(id.Bytes))
       throw new Error('PSP34 byte identity requires canonical lower-case hex.');
     id = { ...id, Bytes: Uint8Array.from(Buffer.from(id.Bytes.slice(2), 'hex')) };
   }
+  return id;
+}
+export function nftMutationData(registry, request) {
+  const id = nftTokenId(request.tokenId);
   let attributes;
   if (request.attributes !== undefined) {
     if (!Array.isArray(request.attributes)) throw new Error('Explicit metadata byte pairs required.');
@@ -82,6 +86,7 @@ export async function verifyNftPreparation(api, preparation) {
     contractAddress: address, contractCodeHash: preparation.contractCodeHash.toLowerCase(),
     action: preparation.action, tokenId: preparation.tokenId,
     ...(preparation.to !== undefined ? { to: preparation.to } : {}),
+    ...(preparation.attributes !== undefined ? { attributes: preparation.attributes } : {}),
     signingCheckpointHash: payload.blockHash, gasLimit: preparation.gasLimit,
     storageDepositLimit: preparation.storageDepositLimit,
     feeCoverage: 'identity-and-execution-limits-not-total-fee-cap' };
