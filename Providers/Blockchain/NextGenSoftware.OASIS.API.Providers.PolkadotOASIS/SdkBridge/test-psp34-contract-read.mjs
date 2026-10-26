@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { TypeRegistry } from '@polkadot/types/create';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { registerPsp34Types } from './psp34-contract-codec.mjs';
 import { readPsp34Collection } from './psp34-contract-read.mjs';
 
@@ -59,4 +61,13 @@ test('invalid UTF8 metadata fails without replacement-character corruption',asyn
 test('native dispatch errors and revert flags cannot produce collection metadata',async()=>{
   await assert.rejects(readPsp34Collection(fixture({dispatchFailure:true}).api,request),/NativeDispatchFailure/);
   await assert.rejects(readPsp34Collection(fixture({flags:1}).api,request),/reverted/);
+});
+test('shipping bridge admits the real operation but rejects invalid pins before RPC initialization',()=>{
+  const child=spawnSync(process.execPath,[fileURLToPath(new URL('./bridge.mjs',import.meta.url))],{
+    input:JSON.stringify({operation:'psp34ReadCollection',endpoint:'http://127.0.0.1:1',genesisHash:request.contractCodeHash,
+      contractAddress:request.contractAddress,origin:request.origin}),encoding:'utf8',timeout:5000
+  });
+  assert.equal(child.status,1);const reply=JSON.parse(child.stdout);
+  assert.equal(reply.ok,false);assert.match(reply.error,/request validation.*canonical contract\/origin\/code/);
+  assert.doesNotMatch(reply.error,/Unknown Polkadot SDK operation|runtime metadata initialization/);
 });
