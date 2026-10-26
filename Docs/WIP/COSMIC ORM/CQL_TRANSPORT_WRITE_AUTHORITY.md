@@ -46,9 +46,19 @@ tests; adding a save-depth flag alone cannot establish graph support.
 
 `CosmicAuthorityFailureEvidenceTests.cs` exercises a provider failure containing
 three errors, detailed diagnostic, exception and metadata through direct pinned
-authority observation and the shared sharing helper. Current source reconstructs
-both failures with `ErrorCount=1`, dropping other evidence. Baseline execution and
-the correction are pending the active provider build lease; no passing claim is
-made from source inspection alone.
+authority observation and the shared sharing helper. Both original controls
+genuinely failed (`ErrorCount`: expected three, actual one). The correction uses
+the existing generic result-copy owner to retain the complete provider evidence,
+then rejects warnings/missing/mismatched observations without publishing a record.
+It preserves existing error codes and the sharing boundary's invalid-read code.
+
+Both original controls now pass. Two further controls verify conditional grant
+and revoke failure evidence, one physical write attempt and no successful
+acknowledgement. Full Core passes 3,372 tests without skips. Compressed original
+red and full Core reports are in `Verification/authority-evidence-*.trx.gz`.
+Final WEB4/portable gates are still being checked; this does not complete the
+GraphQL/gRPC transport migrations above. Legacy behavior remains unchanged.
 
 Legacy paths are documented only. This work targets HyperDrive V2.
+
+Final evidence checkpoint: gate40497terminal0; portable Core and shipping WEB4 builds pass, WEB4231/231PASS0skip. Core289fa01 published. No new native cohort was run for this failure-projection change; the preceding routing native cohort is separately retained and is not relabelled as this revision's evidence. GraphQL/gRPC migration and native transport enrollment remain open.
