@@ -147,34 +147,24 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 return result;
             }
 
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                LockedByAvatarId = Guid.Empty
+            if(string.IsNullOrWhiteSpace(_bridgePoolAddress))
+                throw new InvalidOperationException("An explicit bridge pool address is required; no guessed NFT custody destination is permitted.");
+            var transfer=await SendNFTAsync(new SendWeb3NFTRequest {
+                FromNFTTokenAddress=nftTokenAddress,TokenAddress=nftTokenAddress,TokenId=tokenId,
+                FromWalletAddress=senderAccountAddress,ToWalletAddress=_bridgePoolAddress,Amount=1,
+                OwnerPublicKey=senderAccountAddress,OwnerPrivateKey=senderPrivateKey
+            }).ConfigureAwait(false);
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse,BridgeTransactionResponse>(transfer);
+            var unresolved=transfer.Exception as INativeMutationReconciliationRequired;
+            result.Result=new BridgeTransactionResponse {
+                TransactionId=unresolved?.OriginalTransactionId??transfer.Result?.TransactionResult??string.Empty,
+                IsSuccessful=!transfer.IsError&&transfer.Result!=null,
+                ErrorMessage=transfer.IsError?transfer.Message:null,
+                Status=unresolved!=null?BridgeTransactionStatus.Pending:
+                    transfer.IsError?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Completed
             };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+            if(!transfer.IsError&&transfer.Result!=null)
+                result.Message="Original PSP34 transfer to the configured custody pool finalized; cross-chain settlement is not established by this operation.";
         }
         catch (Exception ex)
         {

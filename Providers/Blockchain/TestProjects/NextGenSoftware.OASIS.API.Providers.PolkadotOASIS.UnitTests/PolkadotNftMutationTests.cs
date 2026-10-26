@@ -146,11 +146,35 @@ public class PolkadotNftMutationTests
         } finally { Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",prior); }
     }
 
+    [DataTestMethod][DataRow("accepted")][DataRow("wrong-token")][DataRow("read-error")]
+    public async Task WithdrawalKeepsNativeIdAndOriginalReconciliationEvidence(string outcome)
+    {
+        var priorBridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE");
+        var priorOutcome=Environment.GetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME");
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"submission-process-fixture.mjs"));
+        Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",outcome);
+        try {
+            using var provider=new Provider();Activate(provider);
+            var store=DispatchProxy.Create<IUsageOutboxStore,PolkadotOwnedTransferTests.AttemptObserver>();
+            var result=await provider.ExecutePreparedNativeOperationAsync(()=>provider.WithdrawNFTAsync(Contract,Token,Sender,"fixture"),
+                PolkadotOwnedTransferTests.Handle(store),"owned-original",Sender);
+            Assert.AreEqual(1,((PolkadotOwnedTransferTests.AttemptObserver)(object)store).Calls);
+            Assert.AreEqual(outcome!="accepted",result.IsError,result.Exception?.ToString());
+            Assert.AreEqual("0x"+new string('b',64),result.Result.TransactionId);
+            Assert.AreEqual(outcome=="accepted"?Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed:
+                Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending,result.Result.Status);
+            if(outcome!="accepted")Assert.IsInstanceOfType(result.Exception,typeof(INativeMutationReconciliationRequired));
+        } finally {
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE",priorBridge);
+            Environment.SetEnvironmentVariable("OASIS_POLKADOT_TEST_OUTCOME",priorOutcome);
+        }
+    }
+
     private static void Activate(PolkadotOASIS provider) {
         typeof(PolkadotOASIS).GetField("_isActivated",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,true);
         typeof(PolkadotOASIS).GetProperty("ReportedGenesisHash")!.SetValue(provider,"0x"+new string('a',64));
     }
-    private sealed class Provider():PolkadotOASIS("http://127.0.0.1:1","fixture","",null,null,new PolkadotNftConfiguration(Code,Sender))
+    private sealed class Provider():PolkadotOASIS("http://127.0.0.1:1","fixture","",Recipient,null,new PolkadotNftConfiguration(Code,Sender))
     {
         public int WalletLoads;
         protected override Task<OASISResult<IProviderWallet>> ResolveAssetMintWalletAsync(Guid avatarId) {

@@ -1,5 +1,11 @@
 # HyperDrive V2 current release gates
 
+## 26 October: public Polkadot NFT lifecycle and address interoperability
+
+Published8f2dbf1b9 implements ordinary mint/send/burn using the shared admitted-operation owner and real SDK. Local native gate22504 executed five original transactions, proved exact finalized effects, recovered the same originals read-only and independently proved both minted IDs absent/supply0. Provider329/329, SDK63/63, ONODE119/119 and fences93 passed. Actual FRAME fees0.017430258451localtestUNIT; separate storage effects mean this is not complete outlay or a sponsorship cap. Paired ONODE dependency714ce73 and manifest validator passed. Detailed reports/cohort hashes are in [native evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md).
+
+Publishedb599aedc8 adds real SDK SS58-to-AccountId32 normalization before NFT preparation and compares collection aliases by canonical identity. Gate13262 passed331/331 provider tests, including2C#-to-real-SDK controls, plus3SDK checksum/prefix/bounds tests. No new native transaction, environment or download. Hosted auth/Mongo admission, custody interfaces, full fee pricing/caps and complete provider/V2 matrices remain open; these gates do not certify the entire provider. Shared inventory retains resource lifecycle details.
+
 ## 26 October: native C# encrypted conditional-cell and recovery gate
 
 C# adapter now proves real SDK/physical PreparedSubmissionServer/fsync-owner execution through the EXISTING shared PersistedPrivateKeyValueBackend: encrypted create/revision-replace/revision-delete, HMAC-key/ciphertext visibility checks, reopened read with separate stable synthetic key, pre-ACK conflict and exact synthetic cleanup. Native1/1PASS73s, same-original read-only recovery1/1PASS16s with freshACK0; regular consumer restored,249/249PASS0skip14s. New read-only recovery method binds the configured backend and preserves bounded absence as unresolved. No extra runtime/instance/download; node stopped, slot returned.
