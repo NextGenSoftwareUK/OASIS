@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -54,6 +54,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 return _holonManager;
             }
+        }
+
+        // Explicit trusted composition keeps provider ownership in the manager.
+        // The public parameterless constructor remains the default MVC binding.
+        internal DataController(HolonManager manager)
+        {
+            _holonManager = manager ?? throw new ArgumentNullException(nameof(manager));
         }
 
         public DataController()

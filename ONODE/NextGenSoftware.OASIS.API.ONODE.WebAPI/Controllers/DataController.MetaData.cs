@@ -307,19 +307,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var callerId = Avatar?.Id ?? Guid.Empty;
             var callerIsWizard = Avatar?.AvatarType?.Value == AvatarType.Wizard;
+            var isV2Write = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+            if (isV2Write)
+            {
+                var intent = HolonWriteEndpoint.ValidateIntent<IEnumerable<Holon>>(request, callerId,
+                    Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                    HttpContext.RequestServices.GetService(typeof(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes)) != null);
+                if (intent.IsError)
+                {
+                    var status = HolonWriteEndpoint.Status(intent);
+                    Response.StatusCode = (int)status;
+                    return HttpResponseHelper.FormatResponse(intent, status, request.ShowDetailedSettings);
+                }
+            }
             var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
 
             OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            if (OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
+            if (isV2Write)
             {
                 try
                 {
                     var written = await HolonWriteEndpoint.SaveBatchAsync(HolonManager, request, callerId, callerIsWizard,
                         Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
-                    OASISResultHelper<IHolon, Holon>.CopyResult(written, response.Result);
+                    response.Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(written, response.Result);
                     if (written.Result != null)
                         response.Result.Result = Mapper.Convert<IHolon, Holon>(written.Result)?.ToList();
                     var status = HolonWriteEndpoint.Status(written);

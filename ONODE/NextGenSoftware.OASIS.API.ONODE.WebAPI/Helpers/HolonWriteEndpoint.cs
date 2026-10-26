@@ -19,15 +19,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
     {
         public const string OperationHeader = "X-COSMIC-Operation-Id";
 
+        /// <summary>Validate hosted intent before configuration or manager acquisition.
+        /// Configured hosts must not let an unenrolled alias bypass admission.</summary>
+        public static OASISResult<T> ValidateIntent<T>(HolonWriteIntentRequest request,
+            Guid actor, string operationHeader, bool requireAdmission)
+        {
+            var invalid = Validate(null, request, actor, operationHeader, out _, out _,
+                managerRequired: false, requireAdmission: requireAdmission);
+            return invalid == null ? new OASISResult<T>()
+                : Error<T>(invalid.Value.Code, invalid.Value.Message);
+        }
+
         public static Task<OASISResult<IHolon>> SaveAsync(HolonManager manager,
             SaveHolonRequest request, Guid actor, bool trustedWizard, string operationHeader = null)
         {
             var invalid = Validate(manager, request, actor, operationHeader, out var options, out var provider);
             if (invalid != null)
                 return Task.FromResult(Error<IHolon>(invalid.Value.Code, invalid.Value.Message));
-
-            if (request.Holon == null)
-                return Task.FromResult(Error<IHolon>("COSMIC_WRITE_INTENT_INVALID", "A holon is required."));
 
             // Preserve the existing server-authenticated Wizard policy, but
             // require conditional intent; there is no unconditional retry.
@@ -45,10 +53,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             if (invalid != null)
                 return Task.FromResult(Error<IEnumerable<IHolon>>(invalid.Value.Code, invalid.Value.Message));
 
-            if (request.Holons == null || request.Holons.Count == 0 || request.Holons.Count > 10000)
-                return Task.FromResult(Error<IEnumerable<IHolon>>(
-                    "COSMIC_WRITE_INTENT_INVALID", "A bounded nonempty batch is required."));
-
             return trustedWizard
                 ? manager.SaveHolonsAsync(request.Holons, actor, options,
                     request.SaveChildren, request.Recursive, request.MaxChildDepth, provider)
@@ -58,13 +62,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 
         private static (string Code, string Message)? Validate(HolonManager manager,
             HolonWriteIntentRequest request, Guid actor, string operationHeader,
-            out CosmicWriteOptions options, out ProviderType provider)
+            out CosmicWriteOptions options, out ProviderType provider,
+            bool managerRequired = true, bool requireAdmission = false)
         {
             options = null;
             provider = ProviderType.Default;
             if (actor == Guid.Empty)
                 return ("COSMIC_WRITE_ACTOR_REQUIRED", "An authenticated caller is required.");
-            if (manager?.OASISDNA?.OASIS?.HyperDriveMode != HyperDriveModes.V2)
+            if (managerRequired && manager?.OASISDNA?.OASIS?.HyperDriveMode != HyperDriveModes.V2)
                 return ("COSMIC_OWNED_WRITE_V2_REQUIRED", "This write boundary requires HyperDrive V2.");
             var operation = request?.OperationId;
             if (!string.IsNullOrEmpty(operationHeader))
@@ -81,7 +86,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 (!Enum.TryParse(request.ProviderType, true, out provider) || !Enum.IsDefined(typeof(ProviderType), provider) || provider == ProviderType.None))
                 return ("COSMIC_WRITE_INTENT_INVALID", "A valid provider is required.");
 
+            if (request is SaveHolonRequest single && single.Holon == null)
+                return ("COSMIC_WRITE_INTENT_INVALID", "A holon is required.");
+            if (request is SaveHolonsRequest batch &&
+                (batch.Holons == null || batch.Holons.Count == 0 || batch.Holons.Count > 10000))
+                return ("COSMIC_WRITE_INTENT_INVALID", "A bounded nonempty batch is required.");
+
             var admission = PreparedStorageExecution.Current;
+            if (requireAdmission && admission == null)
+                return ("COSMIC_WRITE_ADMISSION_REQUIRED", "This configured host requires an admitted save route.");
             if (admission != null && !admission.IsForAvatar(actor))
                 return ("COSMIC_WRITE_ADMISSION_MISMATCH", "Write admission does not belong to this caller.");
 

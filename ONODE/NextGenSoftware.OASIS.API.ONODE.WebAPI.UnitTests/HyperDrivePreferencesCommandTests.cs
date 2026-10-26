@@ -67,7 +67,13 @@ public sealed class HyperDriveCommandExecutorTests
             .Returns(new OASISResult<bool>(true));
         provider.Setup(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0))
             .ReturnsAsync(() => new OASISResult<IHolon> { Result = stored, IsError = false });
-        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false))
+        // The V2 manager owns child traversal. This preferences record has no
+        // children; the provider must acknowledge that observation explicitly.
+        provider.Setup(x => x.LoadHolonsForParentAsync(It.IsAny<Guid>(), HolonType.All,
+                false, false, 0, 0, It.IsAny<bool>(), false, 0))
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsLoaded = true });
+        provider.Setup(x => x.SaveHolonAsync(It.IsAny<IHolon>(), It.IsAny<bool>(), It.IsAny<bool>(),
+                It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>()))
             .ReturnsAsync((IHolon holon, bool _, bool _, int _, bool _, bool _) =>
             {
                 stored = holon;

@@ -1,7 +1,8 @@
 # V2 REST conditional graph writes
 
-Status: controller/service migration implemented; full shipping HTTP and hosted
-admission certification remains open. This is not a production-completeness claim.
+Status: controller/service migration and controlled shipping MVC HTTP gates
+verified. Native DataController HTTP with real stores, complete startup/billing
+and remaining transports are still open. This is not a production-completeness claim.
 
 The existing `POST /api/data/save-holon` and `POST /api/data/save-holons` actions
 use the generic Core owned graph APIs in HyperDrive V2. Existing single-save
@@ -57,7 +58,8 @@ authorization model or permission granted by a request-body field.
 
 ## Responses and settings
 
-The V2 controller sets the HTTP status and response envelope consistently:
+The V2 controller sets the HTTP status and response envelope consistently.
+Error-only bulk responses copy result flags without invoking a payload mapper:
 
 | Result | HTTP status |
 | --- | --- |
@@ -73,6 +75,22 @@ mutation outcome is not permission to replay using a new operation ID. V2 bulk
 settings are reset in a finally block on ownership denial, lookup exceptions
 and failed writes, subject to the existing explicit `SetGlobally` contract.
 
+## Admission and configuration ownership
+
+V2 save actions validate actor, input shape and operation intent before engine
+configuration or manager acquisition. Invalid requests therefore cannot apply
+`SetGlobally` changes. If the host registered `StorageAdmissionRoutes`, a missing
+inherited admission returns `COSMIC_WRITE_ADMISSION_REQUIRED`/503 before any
+configuration or storage dispatch. An alias not enrolled in the exact registry
+cannot silently use unconfigured execution. Explicitly unconfigured deployments
+retain their documented mode.
+
+Under an inherited prepared admission, both synchronous and asynchronous base
+configuration methods defer provider activation to HyperDrive's physical attempt
+owner. The real MVC activation control observes the durable-attempt callback
+before provider activation. No query price, native invoice or zero write charge
+is manufactured by this guard.
+
 ## Verification and remaining gates
 
 The linked tests compile the actual shipping service and DTOs. Eleven new
@@ -87,18 +105,32 @@ Evidence: `TestResults/CosmicCqlDemo/hosted-write-evidence.json`.
 This verification is separate from actual
 DataController HTTP verification and from the signed CQL query walkthrough.
 
+Nine actual shipping MVC/Kestrel controls pass, exercising the real custom
+authorization filter, model binding, DataController, envelope and HTTP status.
+Storage and the authenticated avatar are controlled fixtures; this is not the
+full deployed startup/JWT/real-store/settlement chain. Five functional baseline
+failures were reproduced first: an unenrolled alias executed, invalid single
+intent changed global settings, and three bulk error cases returned500. The
+corrected controls also cover forbidden/outage finally restoration, actual409
+and admitted activation ordering. The normal WEB4 unit gate passes200/200,
+excluding its separately documented operator Mongo soak and external Stripe
+integration cases. Full Core remains3,302/3,302, zero skips in those gates. The final separate
+three-provider native gate also passes after these changes; source freeze and
+six binary pairs match, and shipping WEB4 matches its HTTP consumer5D3049F6.
+Owned native services/fixtures are cleaned. Evidence:
+`TestResults/CosmicCqlDemo/hosted-http-evidence.json`.
+
 Before declaring hosted writes complete:
 
-- Exercise the real shipping DataController over HTTP, including actual status,
-  response error-code preservation, caller snapshots and settings restoration.
-- Finish configured admission coverage for canonical and alias routes. The
-  existing exact-path registry does not automatically enroll parameterized
-  aliases. An inherited policy is actor-checked; an absent policy is currently
-  allowed in the explicitly unconfigured mode. The host must distinguish an
-  intended unconfigured deployment from a configured route that missed admission.
-- Keep configuration/provider activation inside the appropriate admitted owner.
-  `ConfigureOASISEngine` can currently activate an explicit provider before the
-  save boundary validates intent; service-level zero-I/O tests do not cover it.
+- Exercise actual DataController HTTP with MongoDB, SQLite and Neo4j and the full
+  selected-route admission/outbox pipeline, including valid acknowledgements,
+  child selection, unknown outcomes and cleanup. Controlled MVC plus separate
+  native-service proof does not establish the complete joined flow.
+- Certify cold-start engine-mode selection and the remaining request-option
+  validation/status behavior before treating the entire public save surface as
+  complete. Existing controlled HTTP hosts supply explicit V2 DNA.
+- Keep canonical and alias enrollment explicit; guards prevent missing-policy
+  execution but do not invent deployment route registrations or tariff budgets.
 - Admit and price actual ownership reads and conditional writes using explicit
   server policy. Query-attempt tariffs do not establish write pricing; no
   invented zero, query receipt or native invoice is added by this boundary.

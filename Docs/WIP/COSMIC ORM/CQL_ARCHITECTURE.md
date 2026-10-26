@@ -1569,3 +1569,11 @@ single-save aliases can use `X-COSMIC-Operation-Id`. See the spaced JSON example
 revision semantics and verification limits in the
 [REST conditional write contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md).
 Hosted admission and full shipping HTTP certification are still open.
+
+
+The REST boundary now has nine actual shipping MVC HTTP controls and explicit
+configured-host alias guards. Intent validation precedes configuration; admitted
+activation follows the physical-attempt owner. Error-only bulk responses retain
+codes/status without payload mapping. See the
+[conditional REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for proof
+scope and remaining joined startup/native-store/billing gates.
