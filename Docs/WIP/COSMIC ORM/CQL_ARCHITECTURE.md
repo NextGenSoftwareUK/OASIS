@@ -1523,3 +1523,12 @@ caller/operation identity. The single-recipient REST action preserves real
 failures. All three native stores reject a stale grant after revocation. CQL
 owner/public predicates are unchanged; full shared-recipient/tenant authority
 is still an open requirement. See [sharing contract](CQL_SHARING_WRITE_CONTRACT.md).
+
+## Generic grant representation owner
+
+Core Holons/HolonReadGrants.cs owns bounded whole-set validation/immutable output
+and canonical recipient JSON encoding. WEB4 uses it for fail-closed read decisions
+and rejects malformed persisted grants before conditional mutations. Legacy text
+is explicitly admitted by the existing WEB4 adapter; JSON failures never change
+grammars. This component is representation validation, not an authenticated grant
+authority. CQL native recipient/tenant policy remains a separate open gate.
