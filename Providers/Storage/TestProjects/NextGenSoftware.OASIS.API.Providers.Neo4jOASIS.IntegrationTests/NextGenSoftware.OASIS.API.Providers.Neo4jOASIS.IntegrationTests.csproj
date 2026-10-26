@@ -33,6 +33,7 @@
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Web4/HolonAccess.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadAccessPolicy.cs" Link="Web4/CqlReadAccessPolicy.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadPolicyDeployment.cs" Link="Web4/CqlReadPolicyDeployment.cs" />
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />
