@@ -349,6 +349,12 @@ Both minted IDs are absent and collection supply is0 at the retained finalized s
 
 These gates use synthetic wallet lookup and a durable file admission adapter. Hosted authentication/Mongo admission, SS58 interoperability, custody paths, full fee accounting and provider policy matrices remain open. Native and subsequently restored ordinary test DLL identities are separate cohorts, explicitly recorded; no global completeness claim follows from this gate.
 
+## SS58 interoperability follow-up — 26 October
+
+NFT intent freezing now accepts SS58 presentations and normalizes collection, signer, recipient and expected owner to AccountId32 through the existing pinned `@polkadot/util-crypto` SDK before preparation. Collection aliases are compared after normalization, so equivalent SS58/hex forms agree and different accounts fail before signing. The SDK-only operation performs no RPC, signing or submission. The reviewed hex path keeps its existing identity checks.
+
+Gate13262 exited0: provider and consumer builds passed; full331/331 provider tests passed, including two C# calls through the actual SDK for normalization and conflicting aliases. Three SDK tests independently cover network-prefix equivalence, corrupt checksums and bounded inputs. The first two C# attempts failed because the test output had no provisioned node_modules; the test now explicitly reuses the existing source SDK junction rather than installing another copy. No new transaction or ledger reset was needed. This proves address normalization, not hosted wallet/admission integration or an additional native NFT lifecycle.
+
 ## Pending outcomes and shutdown
 
 The local transfer rows also call `ReadPreparedNativeFeeEvidenceAsync` and match its `native-base-unit` component to the independent finalized fee. This is the existing shared reader contract, not a new settlement pipeline. `SdkBridge/test-local-native-fee.mjs` can recheck both completed originals READ-ONLY with the same LOCAL_NATIVE opt-in/journal prefix. It also forges the non-signed SDK blockNumber hint and proves lookup instead uses the cryptographically bound checkpoint hash/header. Shared full lookup advances128block pages through one captured finalized snapshot; errors/timeouts/pruned history remain unresolved, never zero or replay permission.

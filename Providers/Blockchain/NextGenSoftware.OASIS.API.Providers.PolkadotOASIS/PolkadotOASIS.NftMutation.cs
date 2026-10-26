@@ -29,7 +29,7 @@ public partial class PolkadotOASIS
     private const string NativeNftIdKey="polkadot:token-id";
     private sealed record NftIntent(string Action,string Contract,string TokenId,string Sender,string To,
         string ExpectedFrom,string PublicKey,string PrivateKey,string Mnemonic,string[][] Attributes,
-        string Title="",string Symbol="",string Description="",string ImageUrl="",bool DeliveredAtMint=false,Guid MinterAvatarId=default)
+        string Title="",string Symbol="",string Description="",string ImageUrl="",bool DeliveredAtMint=false,Guid MinterAvatarId=default,string ContractAlias=null)
     {
         public override string ToString()=>$"{Action} NFT intent";
     }
@@ -40,6 +40,7 @@ public partial class PolkadotOASIS
         var operation=await ExecuteOwnedMutationAsync(async owner=>{
             if(_nftConfiguration==null)throw new InvalidOperationException("Configure the reviewed PSP34 code hash before NFT mutations.");
             intent=await freeze(owner).ConfigureAwait(false);
+            intent=await NormalizeNftIntentAccountsAsync(intent,owner.Token).ConfigureAwait(false);
             return await PrepareNftIntentAsync(intent,owner).ConfigureAwait(false);
         },NativeMutationKind.Nft).ConfigureAwait(false);
         var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.Wallet.Responses.ITransactionResponse,IWeb3NFTTransactionResponse>(operation);
@@ -78,7 +79,7 @@ public partial class PolkadotOASIS
             if(request.Amount!=1)throw new ArgumentException("PSP34 transfer amount must be exactly one NFT.");
             if(!string.IsNullOrEmpty(request.MemoText))throw new ArgumentException("PSP34 transfer memo is not supported; it cannot be discarded.");
             return Task.FromResult(new NftIntent("transfer",contract,id,signer,to,from,
-                request.OwnerPublicKey,request.OwnerPrivateKey,request.OwnerSeedPhrase,null));
+                request.OwnerPublicKey,request.OwnerPrivateKey,request.OwnerSeedPhrase,null,ContractAlias:request.TokenAddress));
         });
 
     private Task<OASISResult<IWeb3NFTTransactionResponse>> BurnOwnedNftAsync(IBurnWeb3NFTRequest request)
@@ -193,12 +194,32 @@ public partial class PolkadotOASIS
 
     private static string NftContractAlias(string first,string second)
     {
-        if(!string.IsNullOrWhiteSpace(first)&&!string.IsNullOrWhiteSpace(second)&&NftAccount(first)!=NftAccount(second))
-            throw new ArgumentException("Conflicting NFT collection contract addresses.");
         return NftAccount(string.IsNullOrWhiteSpace(first)?second:first);
     }
     private static string NftAccount(string value)=>IsGenesisHash(value)?value.ToLowerInvariant():
-        throw new ArgumentException("Explicit canonical32byte NFT account or collection identity required.");
+        value!=null&&Regex.IsMatch(value,"^[1-9A-HJ-NP-Za-km-z]{46,50}$",RegexOptions.CultureInvariant)?value:
+        throw new ArgumentException("Explicit AccountId32 hex or SS58 NFT identity required.");
+
+    private async Task<NftIntent> NormalizeNftIntentAccountsAsync(NftIntent intent,CancellationToken token)
+    {
+        var values=new[]{intent.Contract,intent.Sender,intent.To,intent.ExpectedFrom,intent.ContractAlias};
+        var present=values.Where(value=>!string.IsNullOrWhiteSpace(value)).Select(NftAccount).ToArray();
+        string[] canonical;
+        if(present.All(IsGenesisHash))canonical=present;
+        else {
+            var decoded=await InvokePolkadotSdkAsync(new { operation="canonicalAccountIdentities",addresses=present },token).ConfigureAwait(false);
+            if(decoded.ValueKind!=JsonValueKind.Array||decoded.GetArrayLength()!=present.Length)
+                throw new InvalidDataException("SDK account identity count differs from the frozen intent.");
+            canonical=decoded.EnumerateArray().Select(value=>value.GetString()).ToArray();
+            if(canonical.Any(value=>!IsGenesisHash(value)))throw new InvalidDataException("SDK returned a non-AccountId32 identity.");
+        }
+        var index=0;
+        string Next(string original)=>string.IsNullOrWhiteSpace(original)?null:canonical[index++].ToLowerInvariant();
+        var contract=Next(intent.Contract);var sender=Next(intent.Sender);var to=Next(intent.To);
+        var from=Next(intent.ExpectedFrom);var alias=Next(intent.ContractAlias);
+        if(alias!=null&&alias!=contract)throw new ArgumentException("Conflicting NFT collection contract addresses.");
+        return intent with { Contract=contract,Sender=sender,To=to,ExpectedFrom=from,ContractAlias=alias };
+    }
     private static string NewNativeNftId()=>JsonSerializer.Serialize(new Dictionary<string,string>{["U128"]=
         new BigInteger(RandomNumberGenerator.GetBytes(16),isUnsigned:true,isBigEndian:true).ToString(CultureInfo.InvariantCulture)});
     private static string CanonicalNftTokenId(string value)
