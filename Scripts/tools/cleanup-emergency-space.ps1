@@ -15,7 +15,8 @@ Features:
 - Optional hibernation disable
 - Optional recycle bin purge
 - Exact reviewed Downloads/report/build selections (never whole Downloads/TestResults)
-- Optional WSL compaction; never implicit shutdown
+- In-distro WSL cache cleanup by default (pip, conda package cache, unreferenced nix store, apt, journal)
+- WSL trim + compaction by default, shutting WSL down automatically (-AllowWslShutdown:$false to refuse while WSL runs)
 
 Usage:
   powershell -File .\cleanup-emergency-space.ps1 -DryRun
@@ -30,6 +31,8 @@ Examples:
   .\cleanup-emergency-space.ps1 -ClearBuildOutputs -BuildRoot C:\Source\OASIS\SomeProject\bin
   .\cleanup-emergency-space.ps1 -ReviewedArtifact C:\Source\OASIS\artifacts\completed-validation
   .\cleanup-emergency-space.ps1 -WorktreePath C:\Source\reviewed-unused-worktree -ActiveWorktreePath C:\Source\OASIS
+  .\cleanup-emergency-space.ps1 -AllowWslShutdown:$false
+  .\cleanup-emergency-space.ps1 -ClearWslCaches:$false -KeepWSLVhdx
 
 No cleanup policy bypass: an execution-policy denial must be reported, not retried
 through another shell. This script cannot certify hosted test outcomes or merge
@@ -51,7 +54,10 @@ param(
     [switch]$ClearBattleNetCache,
     [switch]$ClearPackageCaches,
     [switch]$ClearWindowsUpdateCache,
-    [switch]$CompactWSL,
+    [switch]$CompactWSL = $true,
+    [switch]$ClearWslCaches = $true,
+    [switch]$AllowWslShutdown = $true,
+    [string]$WslDistribution = 'Ubuntu',
     [switch]$ClearBuildOutputs = $true,
     [string[]]$BuildRoot,
     [string[]]$ReviewedTestOutput,
@@ -77,18 +83,11 @@ function Convert-CleanupPath([string]$value) {
     return [IO.Path]::GetFullPath($value).TrimEnd('\','/')
 }
 $cleanupPreserve = @($cleanupTargets.Preserve | ForEach-Object { Convert-CleanupPath $_ }) + @($PreservePath | Where-Object { ![string]::IsNullOrWhiteSpace($_) } | ForEach-Object { Convert-CleanupPath $_ })
-$cleanupActiveProjects = @($cleanupTargets.ActiveProjects | ForEach-Object { Convert-CleanupPath $_ })
 $ActiveWorktreePath = @($ActiveWorktreePath) + @($cleanupTargets.ActiveWorktrees | ForEach-Object { Convert-CleanupPath $_ })
 
-function Test-CleanupProtectedFileName([string]$name) {
-    return $name -match '(?i)(\.pending\.json(?:\.next)?$|\.(db|sqlite|sqlite3)(?:-wal|-shm)?$|\.vhdx?$|\.(key|pem|pfx|p12|jks)$|^\.env(?:\.|$)|^wallet(?:\.|$)|^credentials?(?:\.|$)|private.?key\.(json|txt)$|^keystore(?:\.|$)|WiredTiger|^\.git$)'
-}
-
-function Test-CleanupUnityCacheDatabase([string]$path) {
-    $cacheRoot = (Convert-CleanupPath 'artifacts/unity-edge-validation-project/Library') + '\'
-    $full = Convert-CleanupPath $path
-    return $full.StartsWith($cacheRoot,[StringComparison]::OrdinalIgnoreCase) -and
-        (Split-Path -Leaf $full) -match '(?i)\.db(?:-wal|-shm)?$'
+# Secrets are never regenerable output; they are skipped file-by-file, never block a folder.
+function Test-CleanupSecretFileName([string]$name) {
+    return $name -match '(?i)(\.(key|pem|pfx|p12|jks)$|^\.env(?:\.|$)|^wallet(?:\.|$)|^credentials?(?:\.|$)|private.?key\.(json|txt)$|^keystore(?:\.|$)|^\.git$)'
 }
 
 function Test-CleanupOverlap([string]$left, [string]$right) {
@@ -98,12 +97,7 @@ function Test-CleanupOverlap([string]$left, [string]$right) {
 
 function Get-CleanupPreservationReason([string]$path) {
     foreach ($protected in $cleanupPreserve) {
-        if (Test-CleanupOverlap $path $protected) { return "Retained runtime/data/evidence: $protected" }
-    }
-    foreach ($project in $cleanupActiveProjects) {
-        foreach ($output in @((Join-Path $project 'bin'),(Join-Path $project 'obj'))) {
-            if (Test-CleanupOverlap $path $output) { return "Active chat output: $output" }
-        }
+        if (Test-CleanupOverlap $path $protected) { return "Retained secret backup: $protected" }
     }
     return $null
 }
@@ -132,19 +126,24 @@ function Get-CleanupInventory([string]$path) {
     $stack = [Collections.Generic.Stack[string]]::new()
     $stack.Push($full)
     $files = [Collections.Generic.List[object]]::new()
+    $dirs = [Collections.Generic.List[string]]::new()
+    $secrets = [Collections.Generic.List[string]]::new()
+    $links = [Collections.Generic.List[string]]::new()
     while ($stack.Count) {
         $item = Get-Item -LiteralPath $stack.Pop() -Force
-        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Shared link preserved: $($item.FullName)" }
+        # A link is removed as a link; its target (possibly a shared environment) is never traversed.
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links.Add($item.FullName); continue }
         if ($item.PSIsContainer) {
+            $dirs.Add($item.FullName)
             foreach ($child in Get-ChildItem -LiteralPath $item.FullName -Force) { $stack.Push($child.FullName) }
+        } elseif (Test-CleanupSecretFileName $item.Name) {
+            $secrets.Add($item.FullName)
         } else {
-            if ((Test-CleanupProtectedFileName $item.Name) -and !(Test-CleanupUnityCacheDatabase $item.FullName)) {
-                throw "Native data, secret or unresolved evidence preserved: $($item.FullName)"
-            }
             $files.Add($item)
         }
     }
-    [pscustomobject]@{ Path=$full; Files=$files.ToArray(); Bytes=[long](($files | Measure-Object Length -Sum).Sum) }
+    [pscustomobject]@{ Path=$full; Files=$files.ToArray(); Directories=$dirs.ToArray(); Secrets=$secrets.ToArray(); Links=$links.ToArray()
+        Bytes=[long](($files | Measure-Object Length -Sum).Sum) }
 }
 
 function Write-CleanupLedger([string]$message) {
@@ -157,18 +156,31 @@ function Remove-Safely([string]$path, [string]$reason='Regenerable cache; recrea
     if (!(Test-Path -LiteralPath $path)) { return }
     try {
         $inventory = Get-CleanupInventory $path
-        if ($DryRun) { Log "DRY RUN: $($inventory.Path) [$($inventory.Bytes) bytes] -- $reason"; return }
-        # Do not report success after a partial/locked deletion. Check files before dispatch.
+        if ($DryRun) { Log "DRY RUN: $($inventory.Path) [$($inventory.Bytes) bytes; $($inventory.Secrets.Count) secret files kept] -- $reason"; return }
+        Write-CleanupLedger "PLANNED target=$($inventory.Path); bytes=$($inventory.Bytes); reason=$reason; regenerate via original tool."
+        # File by file: a locked file (e.g. held by a running test) is reported and skipped,
+        # everything else in the folder is still removed.
+        $removed = 0L; $locked = 0
         foreach ($file in $inventory.Files) {
-            $handle = [IO.File]::Open($file.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
-            $handle.Dispose()
+            try { [IO.File]::Delete($file.FullName); $removed += $file.Length } catch { $locked++ }
         }
-        Write-CleanupLedger "PLANNED exact target=$($inventory.Path); bytes=$($inventory.Bytes); inherited/version unmeasured; reason=$reason; no observed open-file dependency; permanent removal, regenerate via original tool."
-        Remove-Item -LiteralPath $inventory.Path -Force -Recurse -ErrorAction Stop
-        if (Test-Path -LiteralPath $inventory.Path) { throw 'Target still exists after cleanup.' }
-        $script:cleanupRemovedBytes += $inventory.Bytes
-        Write-CleanupLedger "REMOVED verified absent: $($inventory.Path); logical bytes=$($inventory.Bytes)."
-        Log "Removed: $($inventory.Path) [$($inventory.Bytes) bytes]"
+        foreach ($link in $inventory.Links) {
+            try { [IO.Directory]::Delete($link) } catch { try { [IO.File]::Delete($link) } catch { $locked++ } }
+        }
+        foreach ($dir in ($inventory.Directories | Sort-Object Length -Descending)) {
+            if (!@(Get-ChildItem -LiteralPath $dir -Force -ErrorAction SilentlyContinue).Count) {
+                try { [IO.Directory]::Delete($dir) } catch { $locked++ }
+            }
+        }
+        $script:cleanupRemovedBytes += $removed
+        $kept = if ($inventory.Secrets.Count) { "; $($inventory.Secrets.Count) secret files kept" } else { '' }
+        Write-CleanupLedger "REMOVED $($inventory.Path); bytes=$removed; locked/in-use items left=$locked$kept."
+        if ($locked) {
+            $script:cleanupFailureCount++
+            Write-Warning "Removed $removed bytes from $($inventory.Path); $locked locked/in-use items left$kept"
+        } else {
+            Log "Removed: $($inventory.Path) [$removed bytes$kept]"
+        }
     } catch {
         $script:cleanupFailureCount++
         Write-CleanupLedger "PRESERVED or PARTIAL/FAILED target=$path; $($_.Exception.Message). Inspect before retry; no success claimed."
@@ -250,7 +262,7 @@ function Find-GeneratedOutput([string]$root) {
     while ($stack.Count) {
         foreach ($folder in Get-ChildItem -LiteralPath $stack.Pop() -Directory -Force) {
             if ($folder.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
-            if ($folder.Name -in @('.git','node_modules','TestResults','artifacts','.claude','.cache','.venv','venv')) { continue }
+            if ($folder.Name -in @('.git','node_modules','TestResults','artifacts','.claude','.cache','.venv','venv')) { continue } # handled by their own targets or not build output
             if ($folder.Name -in @('bin','obj')) {
                 # Do not mistake a source/tool bin directory for MSBuild output.
                 $projectParent = Split-Path -Parent $folder.FullName
@@ -261,12 +273,16 @@ function Find-GeneratedOutput([string]$root) {
 }
 
 function Remove-GeneratedOutputs {
-    if (Test-CleanupProcess '^(dotnet|testhost.*|MSBuild|VBCSCompiler|Unity.*|cargo|rustc)$') { Log 'Build/test/Unity process active: generated outputs preserved.'; return }
-    $buildLease = $null
+    # Build and test outputs are always regenerable: removed even while builds/tests run.
+    # Files a running process holds open are left and reported by Remove-Safely.
     try {
-        $lock = Join-Path $repoRoot 'TestResults\ProviderBuildCurrent\producer-consumer.lock'
-        if (Test-Path -LiteralPath $lock) { $buildLease = [IO.File]::Open($lock,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None) }
-        if (Test-CleanupProcess '^(dotnet|testhost.*|MSBuild|VBCSCompiler|Unity.*|cargo|rustc)$') { throw 'Build started; outputs preserved.' }
+        foreach ($relative in $cleanupTargets.TestOutputs) {
+            $testRoot = Convert-CleanupPath $relative
+            if (!(Test-Path -LiteralPath $testRoot)) { continue }
+            foreach ($child in Get-ChildItem -LiteralPath $testRoot -Force) {
+                Remove-Safely $child.FullName 'Test output; regenerated by rerunning the tests'
+            }
+        }
         if (!$KeepOASISTemporaryArtifacts) {
             foreach ($relative in $cleanupTargets.ArtifactOutputs) {
                 Remove-OASISPathSafely (Join-Path $repoRoot $relative) $repoRoot
@@ -304,7 +320,6 @@ function Remove-GeneratedOutputs {
             }
         }
     } catch { $script:cleanupFailureCount++; Write-Warning "Generated cleanup stopped: $($_.Exception.Message)" }
-    finally { if ($buildLease) { $buildLease.Dispose() } }
 }
 
 function Remove-MergedWorktrees {
@@ -319,8 +334,9 @@ function Remove-MergedWorktrees {
         if ($reason) { Log "WORKTREE RETAINED: $target -- $reason"; continue }
         $registered = @(& git -C $repoRoot worktree list --porcelain | Where-Object { $_ -like 'worktree *' } | ForEach-Object { [IO.Path]::GetFullPath($_.Substring(9)).TrimEnd('\') })
         if ($LASTEXITCODE -ne 0 -or $target -notin $registered) { throw "Not a registered worktree of this repository: $target" }
-        $dirty = @(& git -C $target status --porcelain --ignored)
-        if ($LASTEXITCODE -ne 0 -or $dirty.Count) { throw "Uncommitted/ignored files preserved; review and commit explicitly first: $target" }
+        # Ignored files (bin/obj/TestResults) are regenerable; only uncommitted source blocks removal.
+        $dirty = @(& git -C $target status --porcelain)
+        if ($LASTEXITCODE -ne 0 -or $dirty.Count) { throw "Uncommitted source preserved; commit it first: $target" }
         & git -C $repoRoot merge-base --is-ancestor (& git -C $target rev-parse HEAD) origin/Development
         if ($LASTEXITCODE -ne 0) { throw "Unique work preserved; verify and merge into Development before retirement: $target" }
         # Get-CleanupInventory intentionally refuses .git and native evidence. For a
@@ -337,6 +353,50 @@ function Remove-MergedWorktrees {
             $script:cleanupFailureCount++
             Write-Warning "WORKTREE RETAINED: $path -- $($_.Exception.Message)"
         }
+    }
+}
+
+# Regenerable caches inside a WSL distribution. Conda environments, model files,
+# toolchains, /var/tmp provider runtimes and build targets are never touched here.
+$wslUserCacheCommands = @(
+    'if [ -x "$HOME/miniforge3/bin/conda" ]; then "$HOME/miniforge3/bin/conda" clean --all --yes; fi',
+    'rm -rf -- "$HOME/.cache/pip"',
+    'if command -v nix-collect-garbage >/dev/null; then nix-collect-garbage; fi'
+)
+$wslRootCacheCommands = @(
+    'apt-get clean',
+    'journalctl --vacuum-size=100M'
+)
+$wslBusyPattern = '^(conda|mamba|pip[0-9.]*|apt|apt-get|dpkg)$'
+
+function Invoke-WslCommand([string]$command, [switch]$AsRoot) {
+    $arguments = @('-d', $WslDistribution)
+    if ($AsRoot) { $arguments += @('-u', 'root') }
+    $output = & wsl.exe @arguments -- bash -lc $command 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "WSL command failed in ${WslDistribution} (exit $LASTEXITCODE): $command`n$($output -join "`n")" }
+    return $output
+}
+
+function Clear-WslCaches {
+    try {
+        $busy = @(Invoke-WslCommand "ps -eo comm= | grep -E '$wslBusyPattern' || true" | Where-Object { $_ })
+        if ($busy.Count) { throw "Package tools running in ${WslDistribution}: $($busy -join ', '); caches preserved." }
+        $sizes = Invoke-WslCommand 'du -sh "$HOME/.cache/pip" "$HOME/miniforge3/pkgs" 2>/dev/null; du -sh /var/cache/apt /var/log/journal 2>/dev/null; true' -AsRoot
+        foreach ($line in $sizes) { Log "WSL cache: $line" }
+        if ($DryRun) {
+            foreach ($command in $wslUserCacheCommands) { Log "DRY RUN (WSL user): $command" }
+            foreach ($command in $wslRootCacheCommands) { Log "DRY RUN (WSL root): $command" }
+            return
+        }
+        Write-CleanupLedger "PLANNED WSL ${WslDistribution} cache cleanup: pip cache, conda package cache, apt cache, journal above 100M; environments and runtimes retained."
+        foreach ($command in $wslUserCacheCommands) { [void](Invoke-WslCommand $command) }
+        foreach ($command in $wslRootCacheCommands) { [void](Invoke-WslCommand $command -AsRoot) }
+        Write-CleanupLedger "REMOVED WSL ${WslDistribution} regenerable caches."
+        Log "WSL ${WslDistribution} caches cleared. Compact the virtual disk to return the space to Windows."
+    } catch {
+        $script:cleanupFailureCount++
+        Write-CleanupLedger "PRESERVED WSL ${WslDistribution} caches; $($_.Exception.Message)"
+        Write-Warning "WSL caches preserved: $($_.Exception.Message)"
     }
 }
 
@@ -366,7 +426,8 @@ Write-Host ""
 
 Log "C: BEFORE => Used: $($before.UsedGB) GB | Free: $($before.FreeGB) GB"
 Log 'Build-output cleanup defaults ON for both registered OASIS checkouts. Active-output exclusions: cleanup-emergency-space.targets.psd1.'
-Log 'No package/runtime/WSL data removal by default. Use -ClearBuildOutputs:$false to omit generated build outputs.'
+Log 'No package/runtime data removal by default. Use -ClearBuildOutputs:$false to omit generated build outputs.'
+Log 'WSL caches are cleared and the WSL disk trimmed/compacted by default (-ClearWslCaches:$false / -KeepWSLVhdx to skip). WSL is shut down automatically for compaction (-AllowWslShutdown:$false to refuse).'
 Write-Host ""
 
 # =========================================================
@@ -662,16 +723,22 @@ if ($Aggressive) {
 # WSL VIRTUAL DISK COMPACTION
 # =========================================================
 
+if ($ClearWslCaches) {
+    Log "Cleaning regenerable caches inside WSL ${WslDistribution} (explicit option)..."
+    Clear-WslCaches
+}
+
 if ($CompactWSL -and !$KeepWSLVhdx) {
 
     Log "Compacting WSL virtual disks..."
 
     $wslCompactionScript = Join-Path $PSScriptRoot "compact-wsl-vhdx.ps1"
     try {
-        & $wslCompactionScript -DryRun:$DryRun -ErrorAction Stop
+        & $wslCompactionScript -DryRun:$DryRun -AllowWslShutdown:$AllowWslShutdown -ErrorAction Stop
     }
     catch {
-        throw "WSL virtual disk compaction failed: $($_.Exception.Message)"
+        $cleanupFailureCount++
+        Write-Warning "WSL virtual disk compaction skipped/failed: $($_.Exception.Message)"
     }
 }
 
