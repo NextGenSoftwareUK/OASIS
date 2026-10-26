@@ -1,5 +1,15 @@
 # Durable conditional-write preparation
 
+## Stored-only reconstruction for status recovery — 26 October 2026
+
+Core now has an internal `HolonConditionalPreparation.RecoverOriginalForStatus` decoder. It reconstructs the original conditional request from the existing protected preparation without requiring a retry candidate. Save, soft-delete and hard-delete kinds are explicit; the existing save preparation format remains unchanged.
+
+The host supplies authorized per-record protection contexts and explicit runtime-type admission. Before constructing recovered entities, Core authenticates every envelope, checks operation/actor/authority binding, validates complete graph and condition coverage, admits every type, and checks prepared snapshot identities. Original revisions, graph flags, relationships and replication enrollment are retained. Recovery does not claim a preparation, execute a mutation, publish tracking state, or generate replacement ciphertext. The existing retry decoder still compares the entire original intent against the retry candidate.
+
+Sixteen new controls cover all operation kinds, fresh key resolver and key rotation, exact integer/decimal values, denied contexts, substituted bindings, missing envelopes, malformed topology/conditions, inadmissible types and snapshot identity/type substitutions. Full Core: **3,449 executed, 3,449 passed, zero skips/failures**. Both `netstandard2.1` and `net10.0` builds pass. [Retained regression evidence](Verification/stored-preparation-core-full.trx.gz).
+
+This internal decoder is not an authenticated hosted recovery endpoint. Remaining work includes read-only provider preparation lookup, durable hosted/delete intent enrollment with an authorized protection policy, host routing/admission, and actual process termination/restart tests. Existing claims must never be cleared or replayed to manufacture a status result.
+
 20 October 2026. This is an implementation checkpoint. Shared manager/V2 preparation recovery and the native SQLite store are implemented. Selected native encrypted retry cases now pass; complete provider, failure, retention and authorization acceptance remains open. Historical storage-only evidence is retained below.
 
 ## Current V2 save flow
