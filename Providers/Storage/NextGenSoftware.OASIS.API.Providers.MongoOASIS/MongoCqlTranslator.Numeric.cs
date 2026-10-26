@@ -20,11 +20,18 @@ internal sealed partial class MongoCqlTranslator
         page.Add(new("$project", new BsonDocument { { "_id", 0 }, { "cell", ProjectionCell(query.Selector, "cqlnumeric") } }));
         var zero = Literal(new BsonDecimal128(Decimal128.Zero));
         var limb = Literal(new BsonDecimal128(new Decimal128(CosmicNumericScalarResults.LimbBase)));
+        var inputType = Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType;
+        var floatingInput = inputType == typeof(float) || inputType == typeof(double);
+        var decimalInput = inputType == typeof(decimal);
+        // Floating values have already been admitted/normalized by ProjectionCell.
+        // Preserve those binary bits; Decimal128 conversion cannot own this domain.
         page.Add(new("$set", new BsonDocument("number", Choose(Op("$eq", "$cell.s", Literal(2)),
-            new BsonDocument("$toDecimal", "$cell.v"), zero))));
-        var decimalInput = (Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType) == typeof(decimal);
+            floatingInput ? (BsonValue)"$cell.v" : new BsonDocument("$toDecimal", "$cell.v"),
+            floatingInput ? Literal(0d) : zero))));
         if (decimalInput)
             page.Add(new("$set", new BsonDocument("decimalParts", DecimalScaledParts("$number"))));
+        else if (floatingInput)
+            page.Add(new("$set", new BsonDocument("floatingParts", FloatingScaledParts("$number", inputType == typeof(float)))));
         else
         {
             // The bounded integer quotient is exact at the truncation boundary.
@@ -40,12 +47,15 @@ internal sealed partial class MongoCqlTranslator
             { "present", new BsonDocument("$sum", Choose(Op("$eq", "$cell.s", Literal(2)), Literal(1L), Literal(0L))) }
         };
         var output = new BsonDocument { { "_id", 0 }, { "inputs", 1 }, { "invalid", 1 }, { "present", 1 } };
-        if (decimalInput)
+        if (decimalInput || floatingInput)
         {
             var words = new BsonArray();
-            for (var part = 0; part < CosmicDecimalScalarResults.LimbCount; part++)
+            var width = decimalInput ? CosmicDecimalScalarResults.LimbCount
+                : inputType == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+            var digits = decimalInput ? "$decimalParts" : "$floatingParts";
+            for (var part = 0; part < width; part++)
             {
-                reduction.Add("p" + part, new BsonDocument("$sum", Op("$arrayElemAt", "$decimalParts", Literal(part))));
+                reduction.Add("p" + part, new BsonDocument("$sum", Op("$arrayElemAt", digits, Literal(part))));
                 words.Add("$p" + part);
             }
             output.Add("parts", words);
