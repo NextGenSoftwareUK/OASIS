@@ -113,7 +113,6 @@ public partial class NEAROASIS
         try
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
-            if (!await EnsureSdkActiveAsync(result)) return result;
             var tokenId = Guid.NewGuid().ToString("N");
             var ownerId = string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting) ? _accountId : request.SendToAddressAfterMinting;
             if (string.IsNullOrWhiteSpace(ownerId)) throw new InvalidOperationException("A NEAR owner account is required to mint an NFT.");
@@ -136,6 +135,7 @@ public partial class NEAROASIS
                 MintedOn = DateTime.UtcNow,
                 OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.NEAROASIS)
             };
+            if (!await EnsureSdkActiveAsync(result)) return result;
             var tx = await _sdk.CallAsync("nft_mint", new
             {
                 token_id = tokenId,
