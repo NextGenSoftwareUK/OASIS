@@ -4,7 +4,9 @@ param(
     [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
     [string[]]$VhdxPath,
 
-    [switch]$DryRun
+    [switch]$DryRun,
+
+    [switch]$AllowWslShutdown
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,12 +41,29 @@ $resolvedVhdxPaths = foreach ($path in $VhdxPath) {
     (Resolve-Path -LiteralPath $path).Path
 }
 
+$runningDistributions = @(& wsl.exe --list --running --quiet 2>$null | ForEach-Object { ($_ -replace "`0", '').Trim() } | Where-Object { $_ })
+if ($runningDistributions.Count -and -not $AllowWslShutdown) {
+    throw "WSL distributions are running ($($runningDistributions -join ', ')). Stop their workloads, then rerun with -AllowWslShutdown."
+}
+
 if ($DryRun) {
+    foreach ($distribution in $runningDistributions) {
+        Write-CompactionLog "DRY RUN: wsl.exe -d $distribution -u root -- fstrim -av"
+    }
     Write-CompactionLog "DRY RUN: wsl.exe --shutdown"
     foreach ($path in $resolvedVhdxPaths) {
         Write-CompactionLog "DRY RUN: Compact $path"
     }
     return
+}
+
+# Discard freed ext4 blocks first so the compaction can actually return them to Windows.
+foreach ($distribution in $runningDistributions) {
+    Write-CompactionLog "Trimming free space in $distribution..."
+    & wsl.exe -d $distribution -u root -- fstrim -av
+    if ($LASTEXITCODE -ne 0) {
+        throw "fstrim failed in $distribution with exit code $LASTEXITCODE."
+    }
 }
 
 Write-CompactionLog "Shutting down WSL before accessing its virtual disks..."
