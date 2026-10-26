@@ -22,10 +22,11 @@ frozen, seven producer/consumer pairs matched, and owned fixtures were removed. 
 [transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md).
 
 After save acceptance, transport deletion is a priority before recipient/tenant
-query enrollment: GraphQL and gRPC still call ordinary deletion with an empty
-actor. Core already exposes conditional tracked deletion, but these hosts must
-bind authenticated identity, verify stored ownership and retain caller revision
-intent. Ordinary trusted SDK deletion is not itself a host permission boundary.
+query enrollment. Canonical REST/logical-ID aliases and GraphQL/gRPC now bind
+authenticated identity and caller revisions through the owned-delete facade;
+shipping build and WEB4 **264** tests pass. Provider-key binding and native
+deletion/admission acceptance remain open. Ordinary trusted SDK deletion is not
+itself a host permission boundary.
 
 ## Historical joined HTTP/native gate — 26 October 2026
 

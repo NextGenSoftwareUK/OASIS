@@ -10,6 +10,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public class GrpcHolonWriteContractTests
 {
     [Fact]
+    public void DeleteWireRetainsOriginalZeroRevisionAndAcknowledgedDelta()
+    {
+        var id = Guid.NewGuid();
+        var operation = Guid.NewGuid();
+        var wire = new DeleteHolonGrpcRequest { Id = id.ToString("D"), OperationId = operation.ToString("D"),
+            ExpectedRevision = Guid.Empty.ToString("D"), SoftDelete = false, ProviderType = "SQLLiteDBOASIS" };
+        var decoded = GrpcHolonWriteContract.DecodeDelete(DeleteHolonGrpcRequest.Parser.ParseFrom(wire.ToByteArray()));
+        Assert.False(decoded.IsError, decoded.Message);
+        Assert.Equal(operation, decoded.Result.OperationId);
+        Assert.Equal(Guid.Empty, decoded.Result.ExpectedRevisions[id]);
+        Assert.False(decoded.Result.SoftDelete);
+        var acknowledged = GrpcHolonWriteContract.EncodeDelete(new OASISResult<IHolon>
+        {
+            IsDeleted = true, MetaData = new Dictionary<string, string> { ["COSMIC.CommittedDelta"] = "{\"deleted\":true}" }
+        });
+        var response = OASISDataResponse.Parser.ParseFrom(acknowledged.ToByteArray());
+        Assert.True(response.IsDeleted);
+        Assert.Equal("{\"deleted\":true}", response.CommittedDeltaJson);
+    }
+
+    [Fact]
+    public void DeleteWireDoesNotInventAnOriginalRevision()
+    {
+        var wire = new DeleteHolonGrpcRequest { Id = Guid.NewGuid().ToString("D"), OperationId = Guid.NewGuid().ToString("D") };
+        var missing = GrpcHolonWriteContract.DecodeDelete(wire);
+        Assert.False(missing.IsError);
+        Assert.Null(missing.Result.ExpectedRevisions);
+        wire.ExpectedRevision = "malformed";
+        Assert.True(GrpcHolonWriteContract.DecodeDelete(wire).IsError);
+    }
+
+    [Fact]
     public void ProtobufAndRecursiveHolonContractsRetainChildrenConditionsAndExactMetadata()
     {
         var id = Guid.NewGuid();

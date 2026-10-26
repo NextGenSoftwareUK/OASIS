@@ -45,6 +45,8 @@ try {
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Save.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Delete.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.ProviderKey.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.MetaData.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/OASISControllerBase.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Properties/AssemblyInfo.cs',

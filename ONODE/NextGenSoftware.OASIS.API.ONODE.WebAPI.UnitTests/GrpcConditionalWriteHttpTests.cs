@@ -19,9 +19,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public class GrpcConditionalWriteHttpTests
 {
     [Theory]
-    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED")]
-    [InlineData(true, "COSMIC_WRITE_INTENT_INVALID")]
-    public async Task ShippingGrpcSaveRejectsUnadmittedIntentOverRealHttp2(bool authenticated, string expectedCode)
+    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED", false)]
+    [InlineData(true, "COSMIC_WRITE_INTENT_INVALID", false)]
+    [InlineData(false, "COSMIC_WRITE_ACTOR_REQUIRED", true)]
+    [InlineData(true, "COSMIC_EXPECTED_REVISION_REQUIRED", true)]
+    public async Task ShippingGrpcSaveRejectsUnadmittedIntentOverRealHttp2(bool authenticated, string expectedCode, bool deletion)
     {
         var previous = OASISBootLoader.OASISBootLoader.OASISDNA;
         try
@@ -48,11 +50,13 @@ public class GrpcConditionalWriteHttpTests
                 using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(10) };
                 var wire = new SaveHolonGrpcRequest { HolonJson = "{\"name\":\"bounded create\"}",
                     OperationId = authenticated ? "" : Guid.NewGuid().ToString("D") };
-                var payload = wire.ToByteArray();
+                var payload = deletion
+                    ? new DeleteHolonGrpcRequest { Id = Guid.NewGuid().ToString("D"), OperationId = Guid.NewGuid().ToString("D") }.ToByteArray()
+                    : wire.ToByteArray();
                 var frame = new byte[payload.Length + 5];
                 BinaryPrimitives.WriteInt32BigEndian(frame.AsSpan(1, 4), payload.Length);
                 payload.CopyTo(frame, 5);
-                using var request = new HttpRequestMessage(HttpMethod.Post, "/oasis.web4.DataService/SaveHolon")
+                using var request = new HttpRequestMessage(HttpMethod.Post, deletion ? "/oasis.web4.DataService/DeleteHolon" : "/oasis.web4.DataService/SaveHolon")
                 {
                     Version = HttpVersion.Version20, VersionPolicy = HttpVersionPolicy.RequestVersionExact,
                     Content = new ByteArrayContent(frame)
@@ -68,11 +72,21 @@ public class GrpcConditionalWriteHttpTests
                 Assert.True(responseBytes.Length >= 5);
                 Assert.Equal(0, responseBytes[0]);
                 Assert.Equal(responseBytes.Length - 5, BinaryPrimitives.ReadInt32BigEndian(responseBytes.AsSpan(1, 4)));
-                var result = HolonResponse.Parser.ParseFrom(responseBytes, 5, responseBytes.Length - 5);
-                Assert.True(result.IsError);
-                Assert.Equal(expectedCode, result.ErrorCode);
-                Assert.False(result.IsSaved);
-                Assert.Empty(result.HolonJson);
+                if (deletion)
+                {
+                    var result = OASISDataResponse.Parser.ParseFrom(responseBytes, 5, responseBytes.Length - 5);
+                    Assert.True(result.IsError);
+                    Assert.Equal(expectedCode, result.ErrorCode);
+                    Assert.False(result.IsDeleted);
+                }
+                else
+                {
+                    var result = HolonResponse.Parser.ParseFrom(responseBytes, 5, responseBytes.Length - 5);
+                    Assert.True(result.IsError);
+                    Assert.Equal(expectedCode, result.ErrorCode);
+                    Assert.False(result.IsSaved);
+                    Assert.Empty(result.HolonJson);
+                }
             }
             finally { await app.StopAsync(); }
         }

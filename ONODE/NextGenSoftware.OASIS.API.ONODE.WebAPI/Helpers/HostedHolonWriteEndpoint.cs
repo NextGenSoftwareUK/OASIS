@@ -18,8 +18,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 /// save boundary as REST. Manager acquisition is lazy and follows validation.</summary>
 internal static class HostedHolonWriteEndpoint
 {
-    internal static async Task<OASISResult<IHolon>> SaveAsync(HttpContext context,
+    internal static Task<OASISResult<IHolon>> SaveAsync(HttpContext context,
         string engineMode, SaveHolonRequest request, Func<HolonManager> acquireManager)
+        => ExecuteAsync(context, engineMode, request, acquireManager,
+            (manager, actor, wizard, header) => HolonWriteEndpoint.SaveAsync(manager, request, actor, wizard, header));
+
+    internal static Task<OASISResult<IHolon>> DeleteAsync(HttpContext context,
+        string engineMode, DeleteHolonRequest request, Func<HolonManager> acquireManager)
+    {
+        var bound = HolonWriteEndpoint.BindDeleteRevision(request,
+            context?.Request.Headers[HolonWriteEndpoint.ExpectedRevisionHeader].ToString());
+        return bound.IsError ? Task.FromResult(bound)
+            : ExecuteAsync(context, engineMode, request, acquireManager,
+                (manager, actor, wizard, header) => HolonWriteEndpoint.DeleteAsync(manager, request, actor, wizard, header));
+    }
+
+    private static async Task<OASISResult<IHolon>> ExecuteAsync(HttpContext context,
+        string engineMode, IHolonWriteIntentRequest request, Func<HolonManager> acquireManager,
+        Func<HolonManager, Guid, bool, string, Task<OASISResult<IHolon>>> operation)
     {
         var avatar = context?.Items["Avatar"] as IAvatar;
         var actor = avatar?.Id ?? Guid.Empty;
@@ -51,6 +67,6 @@ internal static class HostedHolonWriteEndpoint
         if (scoped.IsError)
             return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<HolonRequestContext, IHolon>(scoped);
 
-        return await HolonWriteEndpoint.SaveAsync(scoped.Result.Manager, request, actor, wizard, operationHeader);
+        return await operation(scoped.Result.Manager, actor, wizard, operationHeader);
     }
 }
