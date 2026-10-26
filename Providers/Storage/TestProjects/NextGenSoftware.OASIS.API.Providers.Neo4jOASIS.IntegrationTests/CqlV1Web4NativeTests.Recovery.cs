@@ -3,11 +3,20 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Security;
+using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlV1Web4NativeTests
 {
+    // Owned fixture key material only; never used by a deployed host.
+    private sealed class RecoveryPreparationKeys : IHolonMetadataKeyResolver
+    {
+        public OASISResult<HolonMetadataKeyMaterial> ResolveKey(HolonMetadataKeyRequest request)
+            => new(new HolonMetadataKeyMaterial(Enumerable.Repeat((byte)83, 32).ToArray()));
+    }
     private static async Task<int> VerifyConditionalRecoveryAsync(
         Dictionary<ProviderType, IOASISStorageProvider> providers, Guid actor, Guid[] ids, string tag, string sqlitePath,
         Func<string, object?, Task> journal, List<string> conditionalOperations)
@@ -22,6 +31,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsNotNull(preparations, "The selected authority must expose read-only preparation retrieval.");
             var storedPreparations = new Dictionary<Guid, HolonWritePreparation>();
             var manager = new Sources(providers).CreateManager(pair.Value);
+            var protection = new HolonMetadataEncryptionPolicy("owned-recovery-fixture", "fixture-key-v1", new RecoveryPreparationKeys());
             var originals = new List<ConditionalHolonWriteRequest>();
             var acknowledged = new List<IHolon>();
             async Task<IHolon?> Execute(ConditionalHolonWriteRequest request)
@@ -36,12 +46,34 @@ public sealed partial class CqlV1Web4NativeTests
                 var routedAbsentPreparation = await manager.ReadHolonWritePreparationAsync(request.Write.OperationId, actor, pair.Key);
                 Assert.IsFalse(routedAbsentPreparation.IsError, routedAbsentPreparation.Message + routedAbsentPreparation.Exception);
                 Assert.IsNull(routedAbsentPreparation.Result);
+                if (request.Operation != ConditionalHolonOperation.SoftDelete)
+                {
                 var preparation = new HolonWritePreparation(request.Write.OperationId, actor, pair.Key,
                     request.Roots.Select(root => new ProtectedHolonPreparation(root.Id,
                         "oasis-preparation1:owned-status-" + request.Write.OperationId.ToString("D"))).ToArray());
                 var claimed = await preparations.ClaimHolonWritePreparationAsync(preparation);
                 Assert.IsFalse(claimed.IsError, claimed.Message + claimed.Exception);
                 storedPreparations.Add(request.Write.OperationId, preparation);
+                }
+                if (request.Operation == ConditionalHolonOperation.SoftDelete)
+                {
+                    // Exercise the public manager's real protected enrollment,
+                    // preserving the untouched original request for comparison.
+                    manager.PreparationEncryptionPolicy = protection;
+                    var detached = StoredRecordJson.Deserialize<IHolon>(StoredRecordJson.Serialize(request.Roots.Single()));
+                    var options = new CosmicWriteOptions(request.Write.OperationId,
+                        request.Write.Conditions.ToDictionary(value => value.HolonId, value => value.ExpectedRevisionId));
+                    var deleted = await manager.DeleteHolonAsync(detached, actor, options, true, pair.Key);
+                    Assert.IsFalse(deleted.IsError, deleted.Message + deleted.Exception);
+                    Assert.IsTrue(deleted.IsDeleted);
+                    var stored = await preparations.ReadHolonWritePreparationAsync(request.Write.OperationId, actor);
+                    Assert.IsFalse(stored.IsError, stored.Message + stored.Exception);
+                    Assert.IsNotNull(stored.Result);
+                    Assert.IsFalse(stored.Result.Records.Single().Envelope.Contains("private recovery fixture", StringComparison.Ordinal));
+                    storedPreparations.Add(request.Write.OperationId, stored.Result);
+                    originals.Add(request);
+                    return deleted.Result;
+                }
                 if (request.Operation == ConditionalHolonOperation.HardDelete)
                 {
                     var uncertain = await ExecuteWithLostCommitAcknowledgement(pair.Key, pair.Value, request, sqlitePath);
@@ -104,6 +136,15 @@ public sealed partial class CqlV1Web4NativeTests
                 var routedPreparation = await manager.ReadHolonWritePreparationAsync(original.Write.OperationId, actor, pair.Key);
                 Assert.IsFalse(routedPreparation.IsError, routedPreparation.Message + routedPreparation.Exception);
                 Assert.AreEqual(JsonSerializer.Serialize(stored.Result), JsonSerializer.Serialize(routedPreparation.Result));
+                if (original.Operation == ConditionalHolonOperation.SoftDelete)
+                {
+                    var storedStatus = await manager.RecoverConditionalHolonWriteOutcomeAsync(original.Write.OperationId, actor, pair.Key,
+                        _ => protection, (name, assembly) => name == typeof(Holon).FullName
+                            && assembly == typeof(Holon).Assembly.GetName().Name ? typeof(Holon) : null!);
+                    Assert.IsFalse(storedStatus.IsError, storedStatus.Message + storedStatus.Exception);
+                    Assert.AreEqual(ConditionalHolonReceiptState.Committed, storedStatus.Result.ReceiptState);
+                    Assert.AreEqual(ConditionalHolonOperation.SoftDelete, storedStatus.Result.Operation);
+                }
                 var foreignPreparation = await preparations.ReadHolonWritePreparationAsync(original.Write.OperationId, Guid.NewGuid());
                 Assert.IsTrue(foreignPreparation.IsError);
                 Assert.AreEqual("COSMIC_PREPARATION_ACTOR_MISMATCH", foreignPreparation.ErrorCode);
