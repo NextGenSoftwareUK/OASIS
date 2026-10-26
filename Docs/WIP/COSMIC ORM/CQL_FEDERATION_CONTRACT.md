@@ -147,3 +147,28 @@ passed, including ten new federation planning cases. Evidence is retained in
 `Verification/federation-planning-identities.json`. Native execution, global
 ordering/reconciliation, cumulative budget enforcement, cursor security,
 distributed joins and SDK/HTTP demonstrations remain required acceptance work.
+
+Internal cumulative accounting is now being implemented in CosmicFederationExecutionBudget: one locked counter owner spans all provider input and merge/output work, checks cancellation and a monotonic elapsed deadline, rejects unknown targets/negative or oversized proofs, and retains the first terminal failure. Exact bounds are allowed; a failed budget cannot later authorize another attempt or publish output. This is executor groundwork only. Native input byte/proof capture, dispatch integration and merged-result publication remain unimplemented; the completed unit gate is recorded below.
+
+### Executor integration requirements
+
+The existing `CosmicQueryExecutor` owns adapter snapshot/readmission and delegates
+physical reads to `CosmicQueryAttemptOwner`. Federation must retain that owner
+rather than call provider adapters through a separate unmetered loop. Preflight
+all actual adapters before the first attempt. A linked cancellation deadline must
+reach native I/O; post-read budget checks alone do not bound a hung provider.
+
+Mongo `Repositories/HolonRepository.Cql.cs` streams a bounded native cursor;
+SQLite `Persistence/Repositories/HolonRepository.Cql.cs` fetches a limit-plus-one
+sentinel and rejects excess rows; Neo4j `Neo4jOASIS.Cql.cs` owns a bounded native
+read transaction. Preserve these complete-source-or-error contracts. Do not
+translate a full native budget into a successful truncated source. Per-source
+Skip/Take applies before federation and remains part of the query intent.
+
+The internal budget counts canonical UTF-8 input/output bytes, independently of
+provider wire-format budgets. Charge actual detached canonical snapshots, not
+an estimated row size or a DTO's projected fields. Native wire limits must still
+be enforced during streaming. A subsequent target failure discards earlier
+buffered output without erasing its already-settled physical attempt receipts.
+
+Cumulative budget verification: Core dual-target build passed; full suite 3,569 passed, zero skips, including 13 budget cases for shared row/byte/work/output/attempt limits, concurrent charging, oversized arithmetic claims, cancellation, monotonic deadline and terminal rejection. Evidence: Verification/federation-budget-core.trx.gz and federation-budget-identities.json. Native integration remains pending; these unit results do not establish a working federated query path.
