@@ -2213,3 +2213,5 @@ Authenticated cursors, causal agreement/repeatable distributed snapshots,
 distributed joins and full remaining ORM roadmap acceptance remain open.
 
 26 October cursor prerequisite: generic canonical full-plan/target-policy fingerprint implemented, streaming1MiB cap, Core dual-target/all3,654 tests pass. This unkeyed digest is not an authenticated cursor. Protected token/key/expiry/replay/remaining-budget workflow and signed/native continuation acceptance remain open, as do causal agreement/distributed joins and remaining ORM gates (CQL_FEDERATION_CONTRACT.md).
+
+26 October protected cursor state codec implemented with host-supplied Data Protection; Core3,675tests/shippingbuild pass. No key store or cursor HTTP enrollment. Durable next-key replay binding, fresh policy/intent checks, remaining-budget execution and signed/native continuation acceptance remain required (CQL_FEDERATION_CONTRACT.md).
