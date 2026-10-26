@@ -16,7 +16,7 @@ public class CosmicFederationExecutorTests
     private static readonly CosmicQueryCapabilities Capabilities = new(
         CosmicQueryFeatures.Metadata | CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging,
         new[] { Field("Name", typeof(string)), Field("Id", typeof(Guid)), Field("CreatedDate", typeof(DateTime)) },
-        new[] { typeof(long), typeof(long?), typeof(decimal), typeof(string), typeof(double), typeof(Guid), typeof(DateTime) }
+        new[] { typeof(long), typeof(long?), typeof(decimal), typeof(string), typeof(float), typeof(double), typeof(Guid), typeof(DateTime) }
             .Select(type => new CosmicQueryMetadataCapability(type, new[] { CosmicQueryComparisonOperator.Equal }, supportsOrdering: true)).ToArray());
 
     private sealed class Adapter(ProviderType provider, params IHolon[] rows) : ICosmicQueryStorageProvider
@@ -186,5 +186,41 @@ public class CosmicFederationExecutorTests
         var result = CosmicFederationExecutor.Merge(plan, input.Result);
         Assert.Equal("CQL_QUERY_CANCELLED", result.ErrorCode);
         Assert.Null(result.Result);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FloatingMetadataUsesTheDeclaredNativeIeeeDomainRatherThanRawJsonNumberType(bool single)
+    {
+        var row = Row("numeric JSON");
+        // Native Single ordering explicitly normalizes JSON decimal values to
+        // binary32. Double ordering similarly normalizes integer JSON values.
+        row.MetaData["score"] = single ? (object)1.0000002m : 9007199254740993L;
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.AllEligible);
+        source = single ? source.OrderBy(value => CosmicQueryMetadata.Value<float>(value, "score")).Result
+            : source.OrderBy(value => CosmicQueryMetadata.Value<double>(value, "score")).Result;
+        var result = await CosmicFederationExecutor.ExecuteAsync(Plan(source), new[]
+        { new Adapter(Providers[0], row), new Adapter(Providers[1]), new Adapter(Providers[2]) });
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(row.Id, Assert.Single(result.Result.Rows).Selected.Row.Id);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExactIeeeNormalizationTiesUseIdentityRatherThanUnroundedJsonOrder(bool single)
+    {
+        var high = Row("higher raw", Guid.Parse("10000000-0000-0000-0000-000000000000"));
+        var low = Row("lower raw", Guid.Parse("20000000-0000-0000-0000-000000000000"));
+        high.MetaData["score"] = single ? (object)1.000000059604644775390625m : 9007199254740993L;
+        low.MetaData["score"] = single ? (object)1m : 9007199254740992L;
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.AllEligible);
+        source = single ? source.OrderBy(value => CosmicQueryMetadata.Value<float>(value, "score")).Result
+            : source.OrderBy(value => CosmicQueryMetadata.Value<double>(value, "score")).Result;
+        var result = await CosmicFederationExecutor.ExecuteAsync(Plan(source), new[]
+        { new Adapter(Providers[0], high), new Adapter(Providers[1], low), new Adapter(Providers[2]) });
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(new[] { high.Id, low.Id }, result.Result.Rows.Select(item => item.Selected.Row.Id));
     }
 }
