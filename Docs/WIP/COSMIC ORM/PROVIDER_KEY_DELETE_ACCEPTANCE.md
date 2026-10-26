@@ -1,5 +1,15 @@
 # Provider-key deletion acceptance contract
 
+## Actual commit acknowledgement loss - native verified
+
+Run39009 injects acknowledgement loss only after the real native hard-delete commit succeeds, once per provider. MongoDB delegates the actual client/session then withholds the commit response; Neo4j reuses the real-driver commit proxy; SQLite uses the existing EF transaction-committed interception mechanism against the same owned database file. Each reports exactly one commit, COSMIC_WRITE_RECONCILIATION_REQUIRED, its reconciliation marker and original operation metadata, and no caller deletion publication. The healthy handles are restored, providers reconnect, and read-only receipt recovery verifies the committed operation without another mutation call. Current records and redacted receipt equality are checked.
+
+This covers three actual acknowledgement-loss cases within the existing15 original conditional writes; the signed cohort remains453 settled operations/496 physical attempts. Sources were unchanged; seven producer/consumer pairs matched under lease; root/Core Git commits were held as build inputs. Owned services stopped and exact fixture/SQLite files are absent. Evidence: Verification/recovery-ack-loss-*.
+
+The test exposed a source-level diagnostic gap in Mongo's atomic facade: it manually copied errors but omitted metadata. The transaction owner now attaches COSMIC.OperationId and the facade forwards error diagnostics through the canonical OASISResult helper. All571 modern MongoDB unit tests pass, zero skips; evidence: Verification/ackloss-mongo-full.trx.gz. The missing root unit assets were restored from the existing local package cache only, without downloads.
+
+This is actual database commit/acknowledgement fault injection and reconnection recovery through trusted SDKs. OS-process crash/restart and authenticated hosted recovery remain open. Existing protected preparation retains Save-specific intent, but there is no read-only operation/actor lookup plus standalone reconstruction for hosted save/delete recovery. Do not substitute claim/re-execution or current holon state for that missing workflow.
+
 ## Routed recovery SDK - verified
 
 Core `1832d0b` exposes HolonManager.ReadConditionalHolonWriteOutcomeAsync(original, authenticatedActor). It verifies actor before I/O, captures a detached original graph, pins the original authority, rejects unsupported capabilities and verifies returned operation/actor/authority/kind. HyperDrive dispatches a dedicated read operation with no conditional mutation enrollment, replication or failover. The ordinary tariff catalogue has an explicit recovery-read entry and a bounded18-row three-provider matrix.
