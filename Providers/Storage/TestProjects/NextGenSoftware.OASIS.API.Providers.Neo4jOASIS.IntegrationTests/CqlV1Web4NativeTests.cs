@@ -700,6 +700,37 @@ public sealed partial class CqlV1Web4NativeTests
                             Assert.AreEqual("2.0000000000000000000000000005", decimalTotals.GetProperty("resultFilters")[0].GetProperty("value").GetString());
                             Assert.AreEqual("1.0000000000000000000000000002", decimalTotals.GetProperty("resultFilters")[1].GetProperty("value").GetString());
 
+                            // Generated Swagger must preserve the same domains/nullability
+                            // and canonical thresholds as walkthrough examples 41–46.
+                            var groupedExamples = paths.GetProperty("/api/data/query-cql/grouped").GetProperty("post")
+                                .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")
+                                .GetProperty("examples");
+
+                            foreach (var domain in new[] { "Single", "Double" })
+                            {
+                                var sum = unsignedScalarExamples.GetProperty(domain + "Sum").GetProperty("value");
+                                var mean = unsignedScalarExamples.GetProperty(domain + "Average").GetProperty("value");
+                                var totals = groupedExamples.GetProperty(domain + "TotalsAndMeans").GetProperty("value");
+
+                                Assert.AreEqual("Sum", sum.GetProperty("operation").GetString());
+                                Assert.AreEqual("Average", mean.GetProperty("operation").GetString());
+                                Assert.AreEqual(domain, sum.GetProperty("selection").GetProperty("valueType").GetString());
+                                Assert.AreEqual(domain, mean.GetProperty("selection").GetProperty("valueType").GetString());
+                                Assert.IsFalse(sum.GetProperty("selection").GetProperty("nullable").GetBoolean());
+                                Assert.IsTrue(mean.GetProperty("selection").GetProperty("nullable").GetBoolean());
+                                Assert.AreEqual(2, sum.GetProperty("take").GetInt32());
+                                Assert.AreEqual(2, mean.GetProperty("take").GetInt32());
+                                Assert.AreEqual(domain, totals.GetProperty("columns")[0].GetProperty("selection").GetProperty("valueType").GetString());
+                                Assert.IsFalse(totals.GetProperty("columns")[0].GetProperty("selection").GetProperty("nullable").GetBoolean());
+                                Assert.IsTrue(totals.GetProperty("columns")[1].GetProperty("selection").GetProperty("nullable").GetBoolean());
+                                Assert.AreEqual(domain == "Single" ? "2.0000005" : "2.000000000000001",
+                                    totals.GetProperty("resultFilters")[0].GetProperty("value").GetString());
+                                Assert.AreEqual(domain == "Single" ? "1.0000002" : "1.0000000000000004",
+                                    totals.GetProperty("resultFilters")[1].GetProperty("value").GetString());
+                                Assert.AreEqual("Mean", totals.GetProperty("resultOrder")[0].GetProperty("alias").GetString());
+                                Assert.AreEqual(1, totals.GetProperty("resultTake").GetInt32());
+                            }
+
                             // Swagger's decimal presets must keep input bounds as strings.
                             var decimalProjection = paths.GetProperty("/api/data/query-cql/projection").GetProperty("post")
                                 .GetProperty("requestBody").GetProperty("content").GetProperty("application/json")

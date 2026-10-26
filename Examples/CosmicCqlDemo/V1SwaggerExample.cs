@@ -59,6 +59,24 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
         {
             foreach (var media in operation.RequestBody.Content.Values)
             {
+                // Match walkthrough examples 41–46. Source Take selects inputs;
+                // grouped resultTake pages the rounded aggregate results.
+                foreach (var floatingType in new[] { "Single", "Double" })
+                {
+                    media.Examples[floatingType + (grouped ? "TotalsAndMeans" : "Average")] = new OpenApiExample
+                    {
+                        Summary = floatingType + " nullable mean with one final ties-to-even round",
+                        Value = NumericAggregateExample(grouped, floatingType: floatingType)
+                    };
+
+                    if (scalar)
+                        media.Examples[floatingType + "Sum"] = new OpenApiExample
+                        {
+                            Summary = floatingType + " total with exact binary accumulation",
+                            Value = NumericAggregateExample(false, average: false, floatingType: floatingType)
+                        };
+                }
+
                 media.Examples[grouped ? "DecimalTotalsAndMeans" : "DecimalAverage"] = new OpenApiExample
                 {
                     Summary = grouped ? "Exact Decimal totals and rounded means with result filters" : "Decimal Average with final ties-to-even rounding",
@@ -85,13 +103,21 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
         }
     }
 
-    private static OpenApiObject NumericAggregateExample(bool grouped, bool average = true, bool decimalPrices = false)
+    private static OpenApiObject NumericAggregateExample(bool grouped, bool average = true, bool decimalPrices = false, string? floatingType = null)
     {
+        var floating = floatingType != null;
+        var single = floatingType == "Single";
+        var path = floating ? single ? "singleReading" : "reading" : decimalPrices ? "price" : "counter";
+        var valueType = floatingType ?? (decimalPrices ? "Decimal" : "UInt64");
+
         var selection = new OpenApiObject
         {
-            ["metadataPath"] = new OpenApiArray { new OpenApiString(decimalPrices ? "price" : "counter") },
-            ["valueType"] = new OpenApiString(decimalPrices ? "Decimal" : "UInt64")
+            ["metadataPath"] = new OpenApiArray { new OpenApiString(path) },
+            ["valueType"] = new OpenApiString(valueType)
         };
+        if (floating)
+            selection["nullable"] = new OpenApiBoolean(average);
+
         var request = new OpenApiObject
         {
             ["provider"] = new OpenApiString("MongoDBOASIS"),
@@ -103,7 +129,7 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
             } },
             ["orderBy"] = new OpenApiString("Name"),
-            ["take"] = new OpenApiInteger(average || decimalPrices ? 2 : 1)
+            ["take"] = new OpenApiInteger(average || decimalPrices || floating ? 2 : 1)
         };
         if (grouped)
         {
@@ -124,22 +150,30 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
                 ["alias"] = new OpenApiString("Mean"), ["descending"] = new OpenApiBoolean(true)
             } };
             request["resultTake"] = new OpenApiInteger(1);
-            if (decimalPrices)
+            if (decimalPrices || floating)
             {
+                // Keep Sum required and Average nullable in the floating example.
+                // Separate objects prevent mutating the Average selection by alias.
+                var sumSelection = floating ? new OpenApiObject
+                {
+                    ["metadataPath"] = new OpenApiArray { new OpenApiString(path) },
+                    ["valueType"] = new OpenApiString(valueType),
+                    ["nullable"] = new OpenApiBoolean(false)
+                } : selection;
                 ((OpenApiArray)request["columns"]).Insert(0, new OpenApiObject
                 {
                     ["alias"] = new OpenApiString("Total"),
                     ["operation"] = new OpenApiString("Sum"),
-                    ["selection"] = selection
+                    ["selection"] = sumSelection
                 });
                 request["resultFilters"] = new OpenApiArray
                 {
                     new OpenApiObject { ["alias"] = new OpenApiString("Total"), ["operator"] = new OpenApiString("Equal"),
-                        ["value"] = new OpenApiString("2.0000000000000000000000000005") },
+                        ["value"] = new OpenApiString(floating ? single ? "2.0000005" : "2.000000000000001" : "2.0000000000000000000000000005") },
                     new OpenApiObject { ["alias"] = new OpenApiString("Mean"), ["operator"] = new OpenApiString("Equal"),
-                        ["value"] = new OpenApiString("1.0000000000000000000000000002") }
+                        ["value"] = new OpenApiString(floating ? single ? "1.0000002" : "1.0000000000000004" : "1.0000000000000000000000000002") }
                 };
-                ((OpenApiObject)((OpenApiArray)request["resultOrder"])[0])["alias"] = new OpenApiString("Total");
+                ((OpenApiObject)((OpenApiArray)request["resultOrder"])[0])["alias"] = new OpenApiString(floating ? "Mean" : "Total");
             }
         }
         else
