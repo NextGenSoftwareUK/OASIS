@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -73,6 +74,9 @@ public sealed partial class CqlV1Web4NativeTests
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddSingleton<ShippingProviders>(sources);
         builder.Services.AddSingleton<ShippingPolicy>(policy);
+        ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlReadPolicyEnrollment.AddConfiguredCqlReadAccessPolicy(
+            builder.Services, new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string,string?>
+            { ["CQL_REQUIRE_AUTHORITATIVE_READ_POLICY"]="true" }).Build());
         builder.Services.AddSingleton<ShippingFilter>();
         builder.Services.AddSingleton<IUsageOutboxStore>(outbox);
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
