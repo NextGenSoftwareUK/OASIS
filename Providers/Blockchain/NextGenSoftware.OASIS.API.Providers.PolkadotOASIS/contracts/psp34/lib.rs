@@ -45,6 +45,7 @@ mod oasis_psp34 {
         supply: u128,
         attributes: Mapping<(Id, Vec<u8>), Vec<u8>>,
         attribute_keys: Mapping<Id, Vec<Vec<u8>>>,
+        escrow_beneficiaries: Mapping<Id, AccountId>,
     }
 
     #[ink(event)]
@@ -89,6 +90,7 @@ mod oasis_psp34 {
                 supply: 0,
                 attributes: Mapping::default(),
                 attribute_keys: Mapping::default(),
+                escrow_beneficiaries: Mapping::default(),
             };
             let id = contract.collection_id();
             for (key, data) in [
@@ -193,11 +195,20 @@ mod oasis_psp34 {
             _data: Vec<u8>,
         ) -> Result<(), PSP34Error> {
             Self::recipient(to)?;
+            if to == self.env().account_id() || self.escrow_beneficiaries.contains(&id) {
+                return Err(PSP34Error::NotApproved);
+            }
             let owner = self.owners.get(&id).ok_or(PSP34Error::TokenNotExists)?;
             let caller = self.env().caller();
             if caller != owner && !self.allowance(owner, caller, Some(id.clone())) {
                 return Err(PSP34Error::NotApproved);
             }
+            self.move_owned_token(owner, to, id)
+        }
+
+        // All balance/epoch checks precede the first write. Contract escrow,
+        // ordinary transfer and release share one ownership transition.
+        fn move_owned_token(&mut self, owner: AccountId, to: AccountId, id: Id) -> Result<(), PSP34Error> {
             let epoch = self.next_epoch(&id)?;
             if owner != to {
                 let from_balance = self
@@ -221,6 +232,35 @@ mod oasis_psp34 {
             Ok(())
         }
 
+        #[ink(message, selector = 0x00000012)]
+        pub fn lock(&mut self, id: Id) -> Result<(), PSP34Error> {
+            let owner = self.owners.get(&id).ok_or(PSP34Error::TokenNotExists)?;
+            let custody = self.env().account_id();
+            if self.env().caller() != owner || owner == custody || self.escrow_beneficiaries.contains(&id) {
+                return Err(PSP34Error::NotApproved);
+            }
+            self.move_owned_token(owner, custody, id.clone())?;
+            self.escrow_beneficiaries.insert(&id, &owner);
+            Ok(())
+        }
+
+        #[ink(message, selector = 0x00000013)]
+        pub fn unlock(&mut self, id: Id) -> Result<(), PSP34Error> {
+            let beneficiary = self.escrow_beneficiaries.get(&id).ok_or(PSP34Error::NotApproved)?;
+            let custody = self.env().account_id();
+            if self.env().caller() != beneficiary || self.owners.get(&id) != Some(custody) {
+                return Err(PSP34Error::NotApproved);
+            }
+            self.move_owned_token(custody, beneficiary, id.clone())?;
+            self.escrow_beneficiaries.remove(&id);
+            Ok(())
+        }
+
+        #[ink(message, selector = 0x00000014)]
+        pub fn escrow_beneficiary(&self, id: Id) -> Option<AccountId> {
+            self.escrow_beneficiaries.get(&id)
+        }
+
         // Constructor minter authorizes mint; burn requires token owner/approval.
         #[ink(message, selector = 0x00000010)]
         pub fn mint(
@@ -233,6 +273,9 @@ mod oasis_psp34 {
                 return Err(PSP34Error::NotApproved);
             }
             Self::recipient(to)?;
+            if to == self.env().account_id() {
+                return Err(PSP34Error::NotApproved);
+            }
             if self.owners.contains(&id) || id == self.collection_id() {
                 return Err(PSP34Error::TokenExists);
             }
@@ -281,6 +324,9 @@ mod oasis_psp34 {
 
         #[ink(message, selector = 0x00000011)]
         pub fn burn(&mut self, id: Id) -> Result<(), PSP34Error> {
+            if self.escrow_beneficiaries.contains(&id) {
+                return Err(PSP34Error::NotApproved);
+            }
             let owner = self.owners.get(&id).ok_or(PSP34Error::TokenNotExists)?;
             let caller = self.env().caller();
             if caller != owner && !self.allowance(owner, caller, Some(id.clone())) {
@@ -350,7 +396,97 @@ mod oasis_psp34 {
             test::set_caller::<DefaultEnvironment>(account);
         }
         fn contract() -> OasisPsp34 {
+            // Keep the contract account distinct from every caller/beneficiary.
+            test::set_callee::<DefaultEnvironment>(accounts().frank);
             OasisPsp34::new(b"Park".to_vec(), b"TREE".to_vec(), Vec::new(), Vec::new())
+        }
+
+        #[ink::test]
+        fn native_escrow_only_allows_the_actual_beneficiary_to_release() {
+            let a = accounts();
+            let mut token = contract();
+            let id = Id::U128(17);
+            assert_eq!(token.mint(a.bob, id.clone(), Vec::new()), Ok(()));
+            caller(a.bob);
+            assert_eq!(token.approve(a.charlie, Some(id.clone()), true), Ok(()));
+            caller(a.charlie);
+            assert_eq!(token.lock(id.clone()), Err(PSP34Error::NotApproved));
+            caller(a.bob);
+            assert_eq!(token.lock(id.clone()), Ok(()));
+            assert_eq!(token.owner_of(id.clone()), Some(a.frank));
+            assert_eq!(token.escrow_beneficiary(id.clone()), Some(a.bob));
+            assert_eq!(token.balance_of(a.bob), 0);
+            assert_eq!(token.balance_of(a.frank), 1);
+            assert_eq!(token.total_supply(), 1);
+            caller(a.charlie);
+            assert_eq!(token.unlock(id.clone()), Err(PSP34Error::NotApproved));
+            assert_eq!(token.transfer(a.charlie, id.clone(), Vec::new()), Err(PSP34Error::NotApproved));
+            assert_eq!(token.burn(id.clone()), Err(PSP34Error::NotApproved));
+            caller(a.bob);
+            assert_eq!(token.unlock(id.clone()), Ok(()));
+            assert_eq!(token.owner_of(id.clone()), Some(a.bob));
+            assert_eq!(token.escrow_beneficiary(id.clone()), None);
+            assert_eq!(token.balance_of(a.bob), 1);
+            assert_eq!(token.balance_of(a.frank), 0);
+            assert_eq!(token.unlock(id.clone()), Err(PSP34Error::NotApproved));
+            assert!(!token.allowance(a.bob, a.charlie, Some(id)));
+        }
+
+        #[ink::test]
+        fn prior_beneficiary_cannot_release_a_later_owners_deposit() {
+            let a = accounts();
+            let mut token = contract();
+            let id = Id::U128(18);
+            assert_eq!(token.mint(a.bob, id.clone(), Vec::new()), Ok(()));
+            caller(a.bob);
+            assert_eq!(token.lock(id.clone()), Ok(()));
+            assert_eq!(token.unlock(id.clone()), Ok(()));
+            assert_eq!(token.transfer(a.charlie, id.clone(), Vec::new()), Ok(()));
+            caller(a.charlie);
+            assert_eq!(token.lock(id.clone()), Ok(()));
+            caller(a.bob);
+            assert_eq!(token.unlock(id.clone()), Err(PSP34Error::NotApproved));
+            assert_eq!(token.escrow_beneficiary(id.clone()), Some(a.charlie));
+            caller(a.charlie);
+            assert_eq!(token.unlock(id.clone()), Ok(()));
+            assert_eq!(token.burn(id.clone()), Ok(()));
+            assert_eq!(token.escrow_beneficiary(id), None);
+            assert_eq!(token.total_supply(), 0);
+        }
+
+        #[ink::test]
+        fn custody_counter_failure_preserves_the_beneficiary_and_owner() {
+            let a = accounts();
+            let mut token = contract();
+            let id = Id::U128(19);
+            assert_eq!(token.mint(a.bob, id.clone(), Vec::new()), Ok(()));
+            caller(a.bob);
+            token.balances.insert(a.frank, &u32::MAX);
+            assert!(token.lock(id.clone()).is_err());
+            assert_eq!(token.owner_of(id.clone()), Some(a.bob));
+            assert_eq!(token.escrow_beneficiary(id.clone()), None);
+            assert_eq!(token.balance_of(a.bob), 1);
+            token.balances.remove(a.frank);
+            assert_eq!(token.lock(id.clone()), Ok(()));
+            token.balances.insert(a.bob, &u32::MAX);
+            assert!(token.unlock(id.clone()).is_err());
+            assert_eq!(token.owner_of(id.clone()), Some(a.frank));
+            assert_eq!(token.escrow_beneficiary(id), Some(a.bob));
+            assert_eq!(token.balance_of(a.frank), 1);
+        }
+
+        #[ink::test]
+        fn ordinary_mint_and_transfer_cannot_bypass_the_escrow_entry_point() {
+            let a = accounts();
+            let mut token = contract();
+            let id = Id::U128(20);
+            assert_eq!(token.mint(a.frank, id.clone(), Vec::new()), Err(PSP34Error::NotApproved));
+            assert_eq!(token.owner_of(id.clone()), None);
+            assert_eq!(token.mint(a.bob, id.clone(), Vec::new()), Ok(()));
+            caller(a.bob);
+            assert_eq!(token.transfer(a.frank, id.clone(), Vec::new()), Err(PSP34Error::NotApproved));
+            assert_eq!(token.owner_of(id.clone()), Some(a.bob));
+            assert_eq!(token.escrow_beneficiary(id), None);
         }
 
         #[ink::test]
