@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <!-- Reuse this restored test host for opt-in native checks; keep one canonical native test source. -->
+    <Compile Include="../../../Shared/TestSupport/ImportResultEnvelopeAssertions.cs" Link="TestSupport/ImportResultEnvelopeAssertions.cs" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotReadOnlyNativeTests.cs" Condition="'$(IncludePolkadotReadOnlyNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalNativeTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalAssetTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
