@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public sealed partial class CqlV1Web4NativeTests
 {
     private static async Task<int> VerifyConditionalRecoveryAsync(
-        Dictionary<ProviderType, IOASISStorageProvider> providers, Guid actor, Guid[] ids, string tag,
+        Dictionary<ProviderType, IOASISStorageProvider> providers, Guid actor, Guid[] ids, string tag, string sqlitePath,
         Func<string, object?, Task> journal, List<string> conditionalOperations)
     {
         var verified = 0;
@@ -21,10 +21,25 @@ public sealed partial class CqlV1Web4NativeTests
             var manager = new Sources(providers).CreateManager(pair.Value);
             var originals = new List<ConditionalHolonWriteRequest>();
             var acknowledged = new List<IHolon>();
-            async Task<IHolon> Execute(ConditionalHolonWriteRequest request)
+            async Task<IHolon?> Execute(ConditionalHolonWriteRequest request)
             {
                 conditionalOperations.Add(request.Write.OperationId.ToString("D"));
                 await journal("before-recovery-original", new { provider = pair.Key.ToString(), request });
+                if (request.Operation == ConditionalHolonOperation.HardDelete)
+                {
+                    var uncertain = await ExecuteWithLostCommitAcknowledgement(pair.Key, pair.Value, request, sqlitePath);
+                    Assert.AreEqual(1, uncertain.Commits, "Exactly one real commit preceded acknowledgement loss.");
+                    Assert.IsTrue(uncertain.Result.IsError);
+                    Assert.IsFalse(uncertain.Result.IsDeleted);
+                    Assert.AreEqual(request.Write.OperationId.ToString("D"), uncertain.Result.MetaData["COSMIC.OperationId"]);
+                    Assert.AreEqual("COSMIC_WRITE_RECONCILIATION_REQUIRED", uncertain.Result.ErrorCode);
+                    Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(uncertain.Result.Exception));
+                    Assert.IsFalse(request.Roots.Single().IsDeleted, "An uncertain acknowledgement must not publish deletion into the caller.");
+                    originals.Add(request);
+                    await journal("recovery-acknowledgement-lost", new { provider = pair.Key.ToString(),
+                        operation = request.Write.OperationId, commits = uncertain.Commits, code = uncertain.Result.ErrorCode });
+                    return null;
+                }
                 var result = await writer.ExecuteConditionalHolonWriteAsync(request);
                 Assert.IsFalse(result.IsError, result.Message + result.Exception);
                 originals.Add(request);
@@ -46,7 +61,9 @@ public sealed partial class CqlV1Web4NativeTests
                 var routedAbsent = await manager.ReadConditionalHolonWriteOutcomeAsync(original, actor);
                 Assert.IsFalse(routedAbsent.IsError, routedAbsent.Message + routedAbsent.Exception);
                 Assert.AreEqual(ConditionalHolonReceiptState.Absent, routedAbsent.Result.ReceiptState);
-                acknowledged.Add(await Execute(original));
+                var created = await Execute(original);
+                Assert.IsNotNull(created);
+                acknowledged.Add(created);
             }
             for (var i = 1; i < ids.Length; i++)
             {

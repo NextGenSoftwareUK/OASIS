@@ -1,3 +1,9 @@
+## Native acknowledgement-loss recovery - verified
+
+Actual hard-delete commits followed by controlled acknowledgement loss now pass on MongoDB, SQLite and Neo4j: exactly one commit, preserved reconciliation/original-operation evidence, no caller deletion publication, and read-only committed receipt recovery after reconnection without replay. Full signed cohort remains453 settlements/496 attempts; sources/binaries/owned teardown are verified. Mongo571 modern unit tests pass; atomic error metadata forwarding is fixed. [Evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Authenticated hosted recovery, durable original hosted intent retrieval/reconstruction and OS-process crash/restart remain open. The full roadmap remains incomplete.
+
 ## Generic routed recovery SDK - verified
 
 Core `1832d0b` routes original-bound read-only operation recovery through HolonManager/HyperDrive. Actor, authority, detached intent, provider capability and returned binding controls pass. Full Core3433 and usage402 tests pass without skips; native routed receipts pass on MongoDB/SQLite/Neo4j with the unchanged453-settlement/496-attempt cohort. Sources, seven producer/consumer pairs and cleanup are verified. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).

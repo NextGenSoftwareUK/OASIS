@@ -2187,4 +2187,4 @@ else
 
 The original provider authority is required even if the current default changes. Unsupported providers fail before execution. MongoDB, file-backed SQLite and Neo4j have native receipt/reconnection coverage; private in-memory SQLite cannot provide durable recovery. A configured admission policy needs the exact ReadConditionalHolonWriteOutcome tariff; a general CQL query price does not grant this operation.
 
-There is no authenticated recovery HTTP endpoint yet, and ordinary high-level save/delete calls do not yet provide a durable hosted original-intent recovery workflow. Native acknowledgement-loss and OS-process restart acceptance remain open. See [recovery evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+There is no authenticated recovery HTTP endpoint yet, and ordinary high-level save/delete calls do not yet provide a durable hosted original-intent recovery workflow. Actual hard-delete commit acknowledgement-loss recovery now passes on the three native stores. OS-process restart and authenticated hosted recovery acceptance remain open. See [recovery evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
