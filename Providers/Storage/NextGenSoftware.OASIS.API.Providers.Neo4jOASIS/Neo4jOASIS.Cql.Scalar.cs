@@ -21,9 +21,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) }),
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?) })
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) })
             });
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -42,10 +42,15 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             var numeric = plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average;
             var selected = plan.Query.Selector != null;
-            var decimalInput = numeric && (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
+            var inputType = numeric ? Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType : null;
+            var decimalInput = inputType == typeof(decimal);
+            var floatingWidth = inputType == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount
+                : inputType == typeof(double) ? CosmicFloatingAggregateResults.DoubleLimbCount : 0;
             // An empty result window cannot suppress protected relationship
             // validation. Only an unprotected empty query can avoid native I/O.
             var plainEmpty = source.Limit == 0 && !compiled.Translator.HasRelationship;
+            if (plainEmpty && numeric && floatingWidth != 0)
+                return CosmicFloatingAggregateResults.FromParts(plan.Query, new long[floatingWidth], 0);
             if (plainEmpty && numeric) return decimalInput
                 ? CosmicDecimalScalarResults.FromParts(plan.Query, new long[7], 0)
                 : CosmicNumericScalarResults.FromParts(plan.Query, 0, 0, 0);
@@ -96,7 +101,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 if (observed) throw new InvalidDataException("Neo4j scalar returned multiple native values.");
                 if (numeric)
                 {
-                    numericValue = DecodeCqlNumeric(row.Values, decimalInput, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null);
+                    numericValue = DecodeCqlNumeric(row.Values, decimalInput, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null, floatingWidth);
                 }
                 else if (selected)
                 {
@@ -125,6 +130,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             if (!observed) throw new InvalidDataException("Neo4j scalar reduction did not return its empty/nonempty result.");
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
+            if (numeric && floatingWidth != 0)
+                return CosmicFloatingAggregateResults.FromParts(plan.Query, numericValue.FloatingParts, numericValue.Count);
             if (numeric) return decimalInput
                 ? CosmicDecimalScalarResults.FromParts(plan.Query, numericValue.DecimalParts, numericValue.Count)
                 : CosmicNumericScalarResults.FromParts(plan.Query, numericValue.High, numericValue.Low, numericValue.Count);
