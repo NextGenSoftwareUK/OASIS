@@ -60,12 +60,23 @@ internal sealed partial class MongoCqlTranslator
             reduction.Add(name + "present", new BsonDocument("$sum", Choose(present, Literal(1L), Literal(0L))));
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
-                numeric.Add(name + "number", Choose(present, new BsonDocument("$toDecimal", "$" + name + ".v"), zero));
-                if ((Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))
+                var inputType = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+                var floating = inputType == typeof(float) || inputType == typeof(double);
+                numeric.Add(name + "number", Choose(present,
+                    floating ? (BsonValue)("$" + name + ".v") : new BsonDocument("$toDecimal", "$" + name + ".v"),
+                    floating ? Literal(0d) : zero));
+                if (inputType == typeof(decimal))
                 {
                     high.Add(name + "parts", DecimalScaledParts("$" + name + "number"));
                     for (var part = 0; part < CosmicDecimalScalarResults.LimbCount; part++)
                         reduction.Add(name + "d" + part, new BsonDocument("$sum", Op("$arrayElemAt", "$" + name + "parts", Literal(part))));
+                }
+                else if (floating)
+                {
+                    high.Add(name + "parts", FloatingScaledParts("$" + name + "number", inputType == typeof(float)));
+                    var width = inputType == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+                    for (var part = 0; part < width; part++)
+                        reduction.Add(name + "f" + part, new BsonDocument("$sum", Op("$arrayElemAt", "$" + name + "parts", Literal(part))));
                 }
                 else
                 {
@@ -93,14 +104,44 @@ internal sealed partial class MongoCqlTranslator
         reduction.Add("inputs", new BsonDocument("$sum", Literal(1L)));
         reduction.Add("invalid", new BsonDocument("$sum", Choose(new BsonDocument("$or", invalid), Literal(1L), Literal(0L))));
         page.Add(new("$group", reduction));
+        // Pack native word accumulators before publication. Each floating slot
+        // retains one fixed-width array plus participation, rather than exposing
+        // seventy independent output fields to the result envelope.
+        var floatingPackets = new BsonDocument();
+        var floatingFields = new BsonArray();
+        for (var index = 0; index < query.Columns.Count; index++)
+        {
+            var column = query.Columns[index];
+            if (column.Selector == null || column.Operation is not (CosmicScalarOperation.Sum or CosmicScalarOperation.Average)) continue;
+            var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            if (type != typeof(float) && type != typeof(double)) continue;
+            var width = type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount : CosmicFloatingAggregateResults.DoubleLimbCount;
+            var words = new BsonArray();
+            for (var part = 0; part < width; part++)
+            {
+                var field = "a" + index + "f" + part;
+                words.Add("$" + field); floatingFields.Add(field);
+            }
+            floatingPackets.Add("a" + index + "parts", words);
+        }
+        if (floatingPackets.ElementCount != 0)
+        {
+            page.Add(new("$set", floatingPackets));
+            page.Add(new("$unset", floatingFields));
+        }
         var means = new BsonDocument();
         for (var index = 0; index < query.Columns.Count; index++)
         {
             var column = query.Columns[index];
-            var decimalInput = column.Selector != null
-                && (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal);
+            var inputType = column.Selector == null ? null : Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
+            var decimalInput = inputType == typeof(decimal);
+            var floating = inputType == typeof(float) || inputType == typeof(double);
             if (column.Operation == CosmicScalarOperation.Average)
-                means.Add("cqlGroupAverage" + index, decimalInput ? GroupedDecimalValue(index, average: true) : GroupedAverageValue(index));
+                means.Add("cqlGroupAverage" + index, floating
+                    ? FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", true, inputType == typeof(float))
+                    : decimalInput ? GroupedDecimalValue(index, average: true) : GroupedAverageValue(index));
+            else if (column.Operation == CosmicScalarOperation.Sum && floating)
+                means.Add("cqlFloatingSum" + index, FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", false, inputType == typeof(float)));
             else if (column.Operation == CosmicScalarOperation.Sum && decimalInput)
                 means.Add("cqlDecimalSum" + index, GroupedDecimalValue(index, average: false));
         }
@@ -124,8 +165,8 @@ internal sealed partial class MongoCqlTranslator
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
                 value = "$a" + ordering.ColumnIndex + ".k";
             else if (column.Operation == CosmicScalarOperation.Sum)
-                // Bounded Int64 input has at most29 decimal digits in total.
-                // Decimal128 arithmetic is exact here, including cancelling sums.
+                // Integer limbs rejoin exactly; Decimal/floating domains use
+                // their independently normalized native result values.
                 value = GroupedSumValue(column, ordering.ColumnIndex);
             else if (column.Operation == CosmicScalarOperation.Average)
                 value = "$cqlGroupAverage" + ordering.ColumnIndex;

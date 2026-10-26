@@ -51,6 +51,15 @@ public sealed partial class CosmicCqlNativeTests
             Add(maximum, maximum); Add(-maximum, -maximum);
             Add(maximum, maximum, -maximum, -maximum, unit);
             Add(maximum, unit); Add(-maximum, -unit);
+            // The finite overflow midpoint is a rounding decision, not a
+            // simple comparison with MaxValue. Test one exact unit either side.
+            var overflowHalfQuantum = Math.Pow(2, single ? 103 : 970);
+            Add(maximum, overflowHalfQuantum, -unit);
+            Add(maximum, overflowHalfQuantum);
+            Add(maximum, overflowHalfQuantum, unit);
+            Add(-maximum, -overflowHalfQuantum, unit);
+            Add(-maximum, -overflowHalfQuantum);
+            Add(-maximum, -overflowHalfQuantum, -unit);
             Add(1d, single ? Math.Pow(2, -24) : Math.Pow(2, -53));
             Add(1d, single ? Math.Pow(2, -24) : Math.Pow(2, -53), unit);
             for (var exponent = single ? -149 : -1074; exponent <= (single ? 127 : 1023); exponent++)

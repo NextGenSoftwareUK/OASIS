@@ -434,3 +434,8 @@ Readiness/graph markers are absent; owned27029/17687/5088 listeners are absent a
 ## MongoDB floating scalar milestone - 25 October 2026
 
 MongoDB SDK scalar Sum/Average over required/nullable Single/Double is verified:36focused controls,454full native and560matched units, zero skips. Exact cancellation preserves a smallest subnormal; finite overflow reports CQL_SCALAR_OVERFLOW while a mean can remain finite. Original source scope/windows/access/consistency ownership remains. Mongo floating grouped/selected result arithmetic and HTTP are still unsupported. See CQL_FLOATING_AGGREGATE_CONTRACT.md.
+
+
+## MongoDB grouped floating SDK acceptance - 25 October 2026
+
+MongoDB now enrolls SDK scalar and grouped required/nullable Single/Double Sum/Average, including group selected filtering/order/pages.34new grouped controls and full490native/571matched units pass,0skip. Precision, nullable groups, mixed numeric slot alignment, privacy/windows, cancellation and off-page overflow are verified. Earlier scalar-only limitations are superseded at this native SDK checkpoint; HTTP and Neo4j floating arithmetic are still pending.
