@@ -1,0 +1,106 @@
+using System.Net;
+using System.Net.Http.Json;
+using Moq;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
+
+// Activate alongside the existing test class's partial declaration. Excluded
+// until the shared producer/source slot is available for baseline verification.
+public sealed partial class CosmicDataControllerHttpTests
+{
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(1, false)]
+    [InlineData(2, false)]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(2, true)]
+    public async Task OverlappingRequestSettingsNeverLeakOrRestoreOverAnExplicitGlobalUpdate(int feature, bool globalUpdate)
+    {
+        await WithHost(false, async (client, actor, provider) =>
+        {
+            var globals = ProviderManager.Instance;
+            var original = (globals.IsAutoReplicationEnabled, globals.IsAutoFailOverEnabled, globals.IsAutoLoadBalanceEnabled);
+            bool Observe() => feature switch
+            {
+                0 => globals.IsAutoReplicationEnabled,
+                1 => globals.IsAutoFailOverEnabled,
+                _ => globals.IsAutoLoadBalanceEnabled
+            };
+            var firstEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseFirst = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var releaseSecond = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var pending = new List<Task<HttpResponseMessage>>();
+            globals.IsAutoReplicationEnabled = globals.IsAutoFailOverEnabled = globals.IsAutoLoadBalanceEnabled = false;
+            provider.As<IConditionalHolonStorageProvider>()
+                .Setup(value => value.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()))
+                .Returns(async (ConditionalHolonWriteRequest request, CancellationToken cancellation) =>
+                {
+                    var first = request.Roots.Single().Name == "first";
+                    (first ? firstEntered : secondEntered).TrySetResult();
+                    await (first ? releaseFirst : releaseSecond).Task.WaitAsync(cancellation);
+                    return new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = CosmicConcurrencyException.Code };
+                });
+
+            Task<HttpResponseMessage> Send(string name, string mode, bool globally)
+            {
+                var payload = new Dictionary<string, object>
+                {
+                    ["holon"] = new { name }, ["operationId"] = Guid.NewGuid(),
+                    ["saveChildren"] = false, ["setGlobally"] = globally,
+                    [feature switch { 0 => "autoReplicationMode", 1 => "autoFailOverMode", _ => "autoLoadBalanceMode" }] = mode
+                };
+                var request = client.PostAsJsonAsync("/api/data/save-holon", payload);
+                pending.Add(request);
+                return request;
+            }
+
+            try
+            {
+                var first = Send("first", globalUpdate ? "OFF" : "ON", false);
+                await firstEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var duringFirst = Observe();
+
+                var second = Send("second", globalUpdate ? "ON" : "OFF", globalUpdate);
+                await secondEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                var duringSecond = Observe();
+
+                // Finish the older temporary scope while the second request is
+                // still active. No timing sleeps or nondeterministic race loops.
+                releaseFirst.TrySetResult();
+                using var firstResponse = await first.WaitAsync(TimeSpan.FromSeconds(10));
+                var afterFirst = Observe();
+                releaseSecond.TrySetResult();
+                using var secondResponse = await second.WaitAsync(TimeSpan.FromSeconds(10));
+
+                Assert.Equal(HttpStatusCode.Conflict, firstResponse.StatusCode);
+                Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
+                Assert.False(duringFirst);
+                Assert.Equal(globalUpdate, duringSecond);
+                Assert.Equal(globalUpdate, afterFirst);
+                Assert.Equal(globalUpdate, Observe());
+            }
+            finally
+            {
+                releaseFirst.TrySetResult();
+                releaseSecond.TrySetResult();
+                try
+                {
+                    foreach (var request in pending)
+                        using (await request.WaitAsync(TimeSpan.FromSeconds(10))) { }
+                }
+                finally
+                {
+                    globals.IsAutoReplicationEnabled = original.Item1;
+                    globals.IsAutoFailOverEnabled = original.Item2;
+                    globals.IsAutoLoadBalanceEnabled = original.Item3;
+                }
+            }
+        });
+    }
+}
