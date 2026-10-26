@@ -1,3 +1,9 @@
+## Protected original-intent reconstruction - 26 October 2026
+
+Stored-only status reconstruction passes sixteen new controls and full Core 3,449/3,449, zero skips/failures; portable and net10 builds pass. It reuses encrypted preparation and authenticates every selected record before entity construction. Save, soft-delete and hard-delete kinds are supported; existing retry intent comparison remains. See [contract and evidence](WRITE_PREPARATION.md).
+
+Provider preparation lookup, authenticated hosted recovery and actual process termination/restart remain open. Chronological checkpoints below do not prove completion of the full roadmap.
+
 ## Native acknowledgement-loss recovery - verified
 
 Actual hard-delete commits followed by controlled acknowledgement loss now pass on MongoDB, SQLite and Neo4j: exactly one commit, preserved reconciliation/original-operation evidence, no caller deletion publication, and read-only committed receipt recovery after reconnection without replay. Full signed cohort remains453 settlements/496 attempts; sources/binaries/owned teardown are verified. Mongo571 modern unit tests pass; atomic error metadata forwarding is fixed. [Evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
