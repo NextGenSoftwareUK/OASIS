@@ -1656,3 +1656,7 @@ All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once t
 ## 26 October: required authoritative policy deployment verified
 
 CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## Authorization policy lifetime ownership
+
+CQL and operation-recovery readiness borrow disposable DI scopes for composition checks. They do not authorize actors or select storage at startup. Scoped policies end with the check; singleton policies remain container-owned. Request handlers resolve their own request-scoped policy rather than retaining a startup instance. Recovery's root-container lifetime regressions and the full 320-case shipping WEB4 pass are documented in [hosted operation recovery](HOSTED_OPERATION_RECOVERY.md). The earlier native matrix is a separate cohort.

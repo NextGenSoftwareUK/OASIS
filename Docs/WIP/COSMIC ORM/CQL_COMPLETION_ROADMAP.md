@@ -2141,3 +2141,7 @@ All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once t
 ## 26 October: required authoritative policy deployment verified
 
 CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## 26 October: recovery policy lifetime ownership
+
+Recovery readiness now validates application policy inside a short DI scope. Two genuine regressions covered both scope-validation modes; singleton ownership and unenrolled/cancelled checks have positive controls. Shipping build and 320 WEB4 tests pass, with one existing Stripe sandbox skip. Source and producer/consumer identities are retained in [the recovery contract](HOSTED_OPERATION_RECOVERY.md). This DI-only checkpoint did not rerun the separately recorded Core/native matrices. Grant discovery, scalable authorization, federation and remaining ORM acceptance stay open.
