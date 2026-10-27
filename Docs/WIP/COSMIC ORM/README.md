@@ -14,3 +14,5 @@ New logs/test output belong in the worktree's TestResults, never Docs. Reports r
 Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC and is not disposable test output.
 
 - [SOLID CQL record-point profile and verification](CQL_SOLID_NATIVE_PROFILE.md).
+
+- [Interactive IPFS/SOLID point demo launch and limits](CQL_INTERACTIVE_POINT_DEMO.md).

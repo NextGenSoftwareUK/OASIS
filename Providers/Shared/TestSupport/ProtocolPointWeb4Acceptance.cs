@@ -26,6 +26,32 @@ namespace NextGenSoftware.OASIS.Providers.TestSupport;
 
 internal static class ProtocolPointWeb4Acceptance
 {
+    internal static async Task VerifyTeachingHostAsync(IOASISStorageProvider provider,HolonManager manager,Guid actor,Guid recordId,string nativeKey)
+    {
+        await using var app=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey,"http://127.0.0.1:0");
+        await app.StartAsync();
+        try{
+            var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            using var client=new HttpClient{BaseAddress=new Uri(address),Timeout=TimeSpan.FromSeconds(15)};
+            var page=await client.GetStringAsync("/");Assert.Contains("Current native record",page);
+            using var invalid=await client.PostAsJsonAsync("/api/cql/point",new{NativeKey="unowned"});Assert.Equal(HttpStatusCode.BadRequest,invalid.StatusCode);
+            using var forged=await client.PostAsJsonAsync("/api/cql/point",new{NativeKey=nativeKey,ActorId=Guid.NewGuid()});Assert.Equal(HttpStatusCode.BadRequest,forged.StatusCode);
+            using var reply=await client.PostAsJsonAsync("/api/cql/point",new{NativeKey=nativeKey});
+            var text=await reply.Content.ReadAsStringAsync();Assert.True(reply.IsSuccessStatusCode,text);
+            using var json=JsonDocument.Parse(text);Assert.Equal(1,json.RootElement.GetProperty("count").GetInt32());
+            Assert.Equal(recordId,Assert.Single(json.RootElement.GetProperty("rows").EnumerateArray()).GetProperty("id").GetGuid());
+            using var stopping=await client.PostAsync("/demo/shutdown",null);
+            Assert.True(stopping.IsSuccessStatusCode);
+        }finally{await app.StopAsync();}
+
+        // Explicit opt-in only: keep the verified synthetic fixture alive for the developer demo.
+        if(Environment.GetEnvironmentVariable("OASIS_CQL_POINT_SERVE")=="1"){
+            await using var interactive=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey);
+            Console.WriteLine("Point demo: http://127.0.0.1:5088/ ; POST /demo/shutdown to stop and clean the fixture.");
+            await interactive.RunAsync();
+        }
+    }
+
     private sealed class Providers(IOASISStorageProvider provider,HolonManager manager,ProviderType authority) : ICqlV1Providers
     {
         public int Lookups;

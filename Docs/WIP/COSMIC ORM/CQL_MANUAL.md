@@ -627,3 +627,5 @@ profiles with OrderBy None, with721 affected controls passing. Native HTTP and
 interactive deployment acceptance remain open. See [request examples and limits](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
 
 Native WEB4 HTTP acceptance for IPFS/SOLID point rows now passes against actualKubo/privatePod, using controlled identity/outbox and productioncontroller/filter. Sixrequests/profile include401/400 guards and200rows withoneexplicitqueryreceipt. ProductionJWT/durablebilling/interactivehost deployment remainopen. [Proof and limits](CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
+
+IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.

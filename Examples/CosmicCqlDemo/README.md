@@ -1,4 +1,13 @@
 # COSMIC CQL demo
+## Interactive IPFS / SOLID point demo
+
+A readable loopback page now runs native CQL point reads through HolonManager/LINQ.
+Open `http://127.0.0.1:5088/` after launching the reusable runner with explicit
+`-CqlInteractive -ArchiveCompletedDemo -ServePointDemo`. Stop with POST
+`/demo/shutdown` to clean the exact fixture and backend. Run one provider at a time.
+
+[Launch commands, verification and limits](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md).
+
 ## SOLID private Pod record point — verified 27 October 2026
 
 [SolidPointWalkthrough.cs](SolidPointWalkthrough.cs) is a spaced, commented C#
