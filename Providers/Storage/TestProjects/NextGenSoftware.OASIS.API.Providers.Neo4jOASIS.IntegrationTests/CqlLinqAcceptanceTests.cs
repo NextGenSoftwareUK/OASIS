@@ -75,6 +75,35 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
         Passed("native All child scope");
 
+        var names = root.Select(row => row.Name);
+        var nativeNames = await names.ToCosmicListAsync();
+        Assert.IsFalse(nativeNames.IsError, nativeNames.Message + nativeNames.Exception);
+        Assert.AreEqual("protected source root", nativeNames.Result.Single()); Passed("native scalar Select");
+        Assert.AreEqual("protected source root", names.ToList().Single()); Passed("synchronous selected enumeration");
+        var records = root.Select(row => new { Label = row.Name, row.Version });
+        var nativeRecords = await records.ToCosmicListAsync();
+        Assert.IsFalse(nativeRecords.IsError, nativeRecords.Message + nativeRecords.Exception);
+        Assert.AreEqual("protected source root", nativeRecords.Result.Single().Label); Passed("native flat record Select");
+        var label = "protected source root";
+        var composed = records.Where(value => value.Label == label)
+            .OrderByDescending(value => value.Label).ThenBy(value => value.Version).Skip(0).Take(1);
+        var selected = await composed.ToCosmicListAsync();
+        Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
+        Assert.AreEqual("protected source root", selected.Result.Single().Label); Passed("native selected composition");
+        label = "absent";
+        selected = await composed.ToCosmicListAsync();
+        Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
+        Assert.AreEqual(0, selected.Result.Count); Passed("selected predicate rebinding");
+        label = "protected source root";
+        Assert.IsTrue(composed.All(value => value.Label == label)); Passed("standard selected All true");
+        Assert.IsFalse(composed.All(value => value.Version < 0)); Passed("standard selected All false");
+        Assert.IsTrue(composed.Take(0).All(value => false)); Passed("standard selected All empty window");
+        var emptySelected = await records.Skip(-2).Take(-3).ToCosmicListAsync();
+        Assert.IsFalse(emptySelected.IsError, emptySelected.Message + emptySelected.Exception);
+        Assert.AreEqual(0, emptySelected.Result.Count); Passed("selected negative window");
+        var selectedCancelled = await composed.ToCosmicListAsync(cancellation.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", selectedCancelled.ErrorCode); Passed("selected cancellation");
+
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
 }
