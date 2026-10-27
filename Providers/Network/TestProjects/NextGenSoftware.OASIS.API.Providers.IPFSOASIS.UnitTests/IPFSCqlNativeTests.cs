@@ -16,13 +16,16 @@ public class IPFSCqlNativeTests
     [Fact,Trait("Category","IPFSCqlWeb4Native")]
     public Task ActualKuboPointThroughWeb4RowsAndMeasuredReceipt()=>RunAsync(true);
 
-    private async Task RunAsync(bool web4)
+    [Fact,Trait("Category","IPFSCqlInteractiveNative")]
+    public Task ActualKuboInteractivePointHost()=>RunAsync(true,true);
+
+    private async Task RunAsync(bool web4,bool interactive=false)
     {
         const string endpoint="http://127.0.0.1:18547";
         Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
         var state=Path.GetDirectoryName(Environment.GetEnvironmentVariable("IPFS_PATH"))!;
         Assert.True(File.Exists(Path.Combine(state,"repo","config")));
-        var prefix=web4?"cql-web4":"cql-point";
+        var prefix=interactive?"cql-interactive":web4?"cql-web4":"cql-point";
         var dnaPath=Path.Combine(state,prefix+"-dna.json");
         var pending=Path.Combine(state,prefix+".pending.json");
         var closed=Path.Combine(state,prefix+"-complete.json");
@@ -57,7 +60,11 @@ public class IPFSCqlNativeTests
             Assert.Equal(cid,row.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);Assert.Empty(row.Children);
             Assert.Contains("Returned holons: 1",output.ToString());phase="demo-verified";await Checkpoint();
 
-            if(web4){
+            if(interactive){
+                await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyTeachingHostAsync(provider,manager,owner,root.Id,cid);
+                phase="interactive-verified";await Checkpoint();
+            }
+            else if(web4){
                 await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.RunAsync(
                     provider,manager,owner,"IPFSRecordCid",cid,"IPFSRecordCid",cid,root.Id);
                 phase="web4-verified";await Checkpoint();

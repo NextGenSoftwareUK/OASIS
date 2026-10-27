@@ -17,10 +17,13 @@ public class SolidCqlNativeTests
     [Fact,Trait("Category","SolidCqlWeb4Native")]
     public Task ActualPrivatePodPointThroughWeb4RowsAndMeasuredReceipt()=>RunAsync(true);
 
-    private async Task RunAsync(bool web4)
+    [Fact,Trait("Category","SolidCqlInteractiveNative")]
+    public Task ActualPrivatePodInteractivePointHost()=>RunAsync(true,true);
+
+    private async Task RunAsync(bool web4,bool interactive=false)
     {
         var original=Environment.GetEnvironmentVariable("OASIS_SOLID_COLD_READONLY_WORK")!;
-        var prefix=web4?"cql-web4":"cql-point";
+        var prefix=interactive?"cql-interactive":web4?"cql-web4":"cql-point";
         var pending=Path.Combine(original,prefix+".pending.json");var closed=Path.Combine(original,prefix+"-complete.json");
         Assert.False(File.Exists(pending)||File.Exists(pending+".next")||File.Exists(closed),"Preserve native CQL ownership before rerunning.");
         const string keyVariable="OASIS_SOLID_CQL_KEY",secretVariable="OASIS_SOLID_CQL_SECRET";
@@ -82,7 +85,11 @@ public class SolidCqlNativeTests
                 var hidden=await CosmicCqlDemo.SolidPointWalkthrough.RunAsync(manager,provider,record.Id.ToString("D"),Guid.NewGuid(),TextWriter.Null,timeout.Token);
                 Assert.Empty(hidden);phase="query-verified";await Checkpoint();
 
-                if(web4){
+                if(interactive){
+                    await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyTeachingHostAsync(provider,manager,owner,record.Id,record.Id.ToString("D"));
+                    phase="interactive-verified";await Checkpoint();
+                }
+                else if(web4){
                     await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.RunAsync(
                         provider,manager,owner,"SolidRecordId",record.Id.ToString("D"),"SolidRecordResource",resource.AbsoluteUri,record.Id);
                     phase="web4-verified";await Checkpoint();
