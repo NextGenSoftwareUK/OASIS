@@ -45,6 +45,8 @@ public class SolanaCoreStorageConformanceTests
                     "No stored Solana record matches the requested identity." };
                 rows.Add(new { Id = id, Mode = mode, result.IsError, result.IsLoaded, result.LoadedCount,
                     ReturnedId = result.Result?.Id, result.ErrorCode, ExceptionType = result.Exception?.GetType().FullName,
+                    MissingMemo = result.Exception is NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaMemoChunkUnavailableException missing
+                        ? new { missing.RootSignature, missing.MissingSignature, missing.ChunkIndex, missing.ChunkCount, missing.WriteId } : null,
                     StaticCategory = known.FirstOrDefault(value => result.Exception?.Message == value) ?? "unclassified",
                     FailureMethods = result.Exception == null ? Array.Empty<string>() : (new System.Diagnostics.StackTrace(result.Exception, true).GetFrames() ?? Array.Empty<System.Diagnostics.StackFrame>())
                         .Where(frame => frame.GetMethod()?.DeclaringType?.FullName?.StartsWith("NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", StringComparison.Ordinal) == true)
