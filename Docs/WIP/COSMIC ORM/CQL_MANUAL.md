@@ -2477,3 +2477,60 @@ budget reset. Moving reads can duplicate/skip rows after writes; no distributed
 snapshot or causal freshness is claimed.
 
 26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
+
+
+## Native element terminals (C# SDK)
+
+`First`, `FirstOrDefault`, `Single` and `SingleOrDefault` create immutable
+terminal intents. Execute them through HolonManager in HyperDrive V2. The same
+Core implementation works with SQLite, MongoDB and Neo4j; adapters execute the
+admitted bounded native row query. This SDK addition does not add a WEB4 HTTP
+endpoint or an `IQueryable` implementation.
+
+```csharp
+// Start with a trusted, authorized source query. In this example `visible`
+// already carries its read policy and explicit provider scope.
+var ordered = visible.OrderBy(item => item.Name).Result;
+
+// First preserves earlier filters, ordering and source Skip/Take.
+var intent = ordered.Skip(1).First().Result;
+var plan = CosmicElementPlanner.Plan(
+    intent,
+    adapter.QueryProviderType,
+    new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteElementQueryAsync(
+    plan.Result,
+    new[] { adapter },
+    cancellationToken);
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message);
+
+var item = result.Result; // Typed, detached and tracked by the existing loader.
+```
+
+| Terminal | Native row ceiling | Empty sequence | Multiple matches |
+|---|---:|---|---|
+| `First()` | 1 | `CQL_SEQUENCE_EMPTY` | Return first selected element |
+| `FirstOrDefault()` | 1 | Success, `IsLoaded = true`, default result | Return first selected element |
+| `Single()` | 2 | `CQL_SEQUENCE_EMPTY` | `CQL_SEQUENCE_MULTIPLE` |
+| `SingleOrDefault()` | 2 | Success, `IsLoaded = true`, default result | `CQL_SEQUENCE_MULTIPLE` |
+
+An explicit order makes `First` deterministic. `Single` checks the cardinality
+of the composed source: `source.Take(1).Single()` checks that one-row window,
+not uniqueness of the unwindowed source. Cardinality is established before
+application constructors/property setters run. Provider failures, incomplete
+results, cancellation and materialization failures remain errors; `OrDefault`
+never turns them into successful empty results.
+
+The planner requires native paging and one resolved provider. A multi-provider
+sequence needs an explicit global federation ordering/cardinality contract;
+these terminals do not silently pick a provider or merge independent pages.
+Selected-value/projection and grouped terminal overloads remain separate work.
+
+See [spaced and commented examples 47–58](../../../Examples/CosmicCqlDemo/V1ElementQueries.cs)
+and the [parity checklist](CQL_PARITY_CHECKLIST.md) for current acceptance evidence.

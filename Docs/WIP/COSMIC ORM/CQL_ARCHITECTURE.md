@@ -1893,3 +1893,22 @@ Final HTTP cursor gate: all3,739Core tests pass, twelve new endpoint/protocol ca
 
 
 26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
+
+## Element-terminal ownership
+
+`CosmicElementQuery<T>` retains the immutable composed source and terminal kind.
+`CosmicElementPlanner` lowers First/FirstOrDefault to `Take(1)` and Single/
+SingleOrDefault to `Take(2)`, using the existing composition rules so earlier
+source windows remain intact. The ordinary authorized row planner admits the
+bounded query against native paging capabilities and rejects ambiguous
+multi-provider pages. No provider-specific element implementation is required.
+
+`CosmicElementExecutor` delegates the one native read to `CosmicQueryExecutor`
+and establishes zero/one/multiple cardinality. HolonManager then maps only the
+selected row through its existing typed loading, decryption and tracking owner.
+An ambiguous Single never invokes application property setters. Default-result
+semantics apply only to a successful empty native result; provider, policy,
+protocol, cancellation and hydration errors remain explicit OASISResult errors.
+
+These are C# entity-query terminals. HTTP, selected-value and grouped variants
+must be tracked independently rather than inferred from this implementation.

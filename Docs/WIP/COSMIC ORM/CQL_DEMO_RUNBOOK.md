@@ -1,3 +1,26 @@
+## Investor-demo element terminals verified — 26 October 2026
+
+The same C# examples 47–58 now exercise `First`, `FirstOrDefault`, `Single` and
+`SingleOrDefault` on SQLite, MongoDB and Neo4j. The SDK walkthrough has 58 cases
+per store (174 total); the HTTP walkthrough retains 46 per store (138 total).
+The native gate passes with 526 settlements / 608 physical attempts, unchanged
+sources and seven matching producer/consumer pairs. Core: 3,767 tests pass,
+zero skips; net10.0/netstandard2.1 and shipping WEB4 builds pass.
+
+[Copy the commented SDK examples](../../../Examples/CosmicCqlDemo/V1ElementQueries.cs)
+and see the [terminal manual](CQL_MANUAL.md#native-element-terminals-c-sdk).
+These are SDK entity-query terminals; this change adds no HTTP terminal route.
+The [DEMO-tagged checklist](CQL_PARITY_CHECKLIST.md#investor-demo-priority-and-work-ordering)
+controls the remaining work: eight rows / 24 database cells are still red.
+POCO/migrations/tooling and other untagged backlog remain deferred; green rows
+and federation cursors remain frozen unless a reproducible bug is found.
+
+Evidence: [native result](Verification/element-terminals-native-result.json),
+[native test](Verification/element-terminals-native.trx.gz),
+[Core test gate](Verification/element-terminals-core.trx.gz),
+[source identities](Verification/element-terminals-native-source.json.gz),
+[binary identities](Verification/element-terminals-native-binaries.json).
+
 ## Latest: actual cursor process restart verified — 26 October 2026
 
 A settled three-provider page survives abrupt termination of its hosting process.
