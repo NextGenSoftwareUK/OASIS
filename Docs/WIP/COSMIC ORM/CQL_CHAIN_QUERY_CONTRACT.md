@@ -89,3 +89,26 @@ requirement. No cross-provider snapshot is implied.
 Large ORM parity remains deferred. This contract does not turn any demo or parity
 cell green. [Source failure evidence](CQL_SOLANA_DEMO_ADMISSION.md) and
 [demo acceptance](CQL_DEMO_EXPANSION_ROADMAP.md) retain the remaining gates.
+
+## Checkpoint foundation implemented (27 October 2026)
+
+Core `d3350c1` implements immutable `CosmicChainQuerySource`, position,
+network-bound finalized head, durable coverage checkpoint and explicit read
+requirement descriptors, plus `CosmicChainQueryCheckpointAdmission.Admit`.
+The validator returns `OASISResult`, requires independent head evidence, binds
+all source/index/catalogue/schema identities, checks complete configured
+coverage, same-slot block identity, monotonic acknowledgements, minimum slot
+and maximum lag. Admission does not acknowledge a loaded record or grant access.
+
+Twenty focused controls pass, zero skips; both Core targets and the consumer
+build. Evidence `TestResults/CoreCurrent/chain-checkpoint-foundation.trx`, SHA256
+`038E7A31EFAEC82549243CB1E6BA75635CF240CD53200FACD914141004BF7E67`.
+Tests: `CosmicChainQueryCheckpointTests.cs` in the parent Core.UnitTests project.
+
+This is a callable validation foundation, **not adapter enrollment**. Its caller
+must obtain a live independent head and verify finalized ancestry; descriptor
+strings are not an inclusion proof. Observation-time/lifetime enforcement,
+record receipts, composition/WEB4 propagation, execution integration, persistent
+ingestion and native acceptance remain unimplemented. No Solana demo/parity
+cell changes. Next: bind record receipts and observation lifetime at the shared
+validation owner before connecting source selection to query planning.
