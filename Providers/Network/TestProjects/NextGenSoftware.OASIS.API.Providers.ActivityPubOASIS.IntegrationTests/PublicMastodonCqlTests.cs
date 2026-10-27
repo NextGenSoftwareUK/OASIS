@@ -57,6 +57,33 @@ public class PublicMastodonCqlTests
     private static void RequireNumericId(string id)
         => Assert.True(id.Length is >0 and <=128 && id.All(c=>c>='0'&&c<='9'),"The public fixture must supply a bounded native numeric ID.");
 
+    [Fact]
+    public async Task NativeStatusThroughWeb4RequiresAdmissionAndRejectsUnsupportedOrdering()
+    {
+        Assert.Equal("1",Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_PUBLIC_LIVE"));
+        var nativeTransport=new Guard();
+        using var native=new HttpClient(nativeTransport){BaseAddress=new Uri("https://mastodon.social"),Timeout=TimeSpan.FromSeconds(15)};
+        using var accountReply=await native.GetAsync("/api/v1/accounts/lookup?acct=Mastodon");accountReply.EnsureSuccessStatusCode();
+        using var account=JsonDocument.Parse(await accountReply.Content.ReadAsStringAsync());
+        var accountId=account.RootElement.GetProperty("id").GetString()!;RequireNumericId(accountId);nativeTransport.AccountId=accountId;
+        using var statusesReply=await native.GetAsync("/api/v1/accounts/"+accountId+"/statuses?limit=1");statusesReply.EnsureSuccessStatusCode();
+        using var statuses=JsonDocument.Parse(await statusesReply.Content.ReadAsStringAsync());
+        var original=Assert.Single(statuses.RootElement.EnumerateArray());
+        var statusId=original.GetProperty("id").GetString()!;RequireNumericId(statusId);
+        var providerTransport=new Guard {StatusId=statusId};
+        using var provider=new ActivityPubOASIS("https://mastodon.social","",providerTransport);
+        Assert.False((await provider.ActivateProviderAsync()).IsError);
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+            HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings {LogSwitchingProviders=false}}};
+        var registry=new ProviderManager(null,dna) {IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+        // The controlled host authorizes the exact canonical projection ID;
+        // an unbound owner/public policy is not an authoritative server catalogue.
+        var canonical=await provider.LoadHolonAsync(statusId,loadChildren:false);
+        Assert.False(canonical.IsError,canonical.Message);
+        await MastodonWeb4Acceptance.RunAsync(provider,new HolonManager(provider,dna,registry),statusId,original.GetProperty("uri").GetString()!,canonical.Result.Id);
+        Assert.Equal(2,nativeTransport.Requests);Assert.Equal(3,providerTransport.Requests);
+    }
+
     private sealed class Guard : DelegatingHandler
     {
         public string? AccountId,StatusId;
