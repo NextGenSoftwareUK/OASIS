@@ -253,7 +253,7 @@ Entity element predicate overloads after source windows remain pending Q01 work.
 
 ## Numeric reductions after selected stages — current enrollment
 
-SQLite and MongoDB now support Sum/Average over selected Int32/Int64 values and their nullable
+SQLite, MongoDB and Neo4j now support Sum/Average over selected Int32/Int64 values and their nullable
 forms, including exact column selectors from flat records. The selected filters,
 ordering and windows run before the native reduction. No DTO is constructed.
 Standard integer Average returns double/double?; direct CQL plans can retain the
@@ -261,7 +261,7 @@ existing decimal/decimal? integer-mean result contract. Nullable Sum returns zer
 for an empty/all-null input; required Average reports an empty-sequence error.
 
 ```csharp
-// Currently enrolled on SQLite and MongoDB. Neo4j rejects this staged shape.
+// Enrolled on SQLite, MongoDB and Neo4j.
 var revisions = query
     .Select(row => row.Version)
     .Where(value => value > 0)
@@ -286,11 +286,17 @@ scalar and cardinality permissions. Exact native words and participating counts
 are validated under the selected snapshot owner before normalization. Int64 double
 means additionally require checked-prefix evidence after every selected window.
 Complete source/stage participation and terminal work/proof budgets still apply.
-Neo4j staged kernels, other exact numeric domains and selected Min/Max
-remain unfinished (Q01a/b/c). Their missing contracts return explicit errors.
+Other exact numeric domains and selected Min/Max remain unfinished (Q01b/c). Their missing contracts return explicit errors.
 
 MongoDB runs selected integer reductions in the existing snapshot session. Its
 shared exact numeric kernel receives the selected column and final stage rank;
 checked means therefore follow every selected ordering/window. A native facet
 returns an explicit zero-word acknowledgement on empty input. The strict decoder
 requires its exact integer/checked-prefix schema before shared normalization.
+
+Neo4j reduces the captured final selected positions within its existing single
+query. Exact integer words and sign-guarded prefix evidence are acknowledged in
+one terminal record, including an explicit empty packet. Complete selected proof
+and numeric participation are validated before the result is published. This
+retains the selected owner’s existing consistency contract; it adds no separate
+MATCH or stronger database snapshot promise.

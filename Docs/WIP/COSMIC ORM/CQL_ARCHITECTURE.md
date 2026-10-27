@@ -148,7 +148,7 @@ native reduction runs over the final materialized stage CTE in the same
 serializable owner. Two integer sum words retain exact totals; Int64 double means
 reuse the checked aggregate hook ordered by the final stage rank. The hook checks
 budgets and is removed on disposal. Selected ordering/offset occurs before prefix
-accumulation. Neo4j kernels and wider SQLite/Mongo domains are not enrolled yet;
+accumulation. Wider numeric domains remain unenrolled on all3;
 selected Min/Max needs its own extrema contract. Q01 remains red.
 
 MongoDB Q01a now independently enrolls signed Int32/Int64 Sum/Average and nullable
@@ -159,4 +159,15 @@ facet under the existing selected snapshot session/deadline. Empty input receive
 an explicit native zero packet. The repository reuses strict numeric decoders,
 checks terminal work/proof bounds, requires one packet and returns it through the
 shared selected owner. Scalar/record selectors and all27 native integer cases
-are verified on SQLite and MongoDB; Neo4j remains unenrolled.
+are verified on all3 providers.
+
+Neo4j Q01a now independently enrolls the same signed integer domains. The numeric
+terminal consumes the final native selected-position list and captured scalar
+cells in the existing query. It reuses integral-word expressions and the guarded
+checked-prefix reducer, emitting one exact count/word/Boolean acknowledgement.
+The decoder requires complete source and stage participation before accepting
+that terminal, rejects duplicate/missing/malformed packets and charges final
+proof payload plus terminal scan work. Empty input has an explicit zero packet.
+The shared owner validates participating count and normalizes the result without
+constructing DTOs. All27 integer cases/store and129 Neo focused CQL tests pass;
+Q01a is green while wider domains and selected extrema remain red.

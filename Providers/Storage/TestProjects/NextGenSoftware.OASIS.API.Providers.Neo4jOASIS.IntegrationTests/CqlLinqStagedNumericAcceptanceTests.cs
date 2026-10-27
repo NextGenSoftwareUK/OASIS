@@ -20,7 +20,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         IQueryable<Holon> root, IQueryable<Holon> multi, int version, List<object> checks)
     {
         // Enroll one exact kernel at a time; other providers remain explicit gaps.
-        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS) return;
+        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS
+            && adapter.QueryProviderType != ProviderType.Neo4jOASIS) return;
 
         Assert.AreEqual(version, root.Select(row => row.Version).Take(1).Sum());
         Passed("staged Int32 Sum");

@@ -214,7 +214,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
         Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");
         if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS
-            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS)
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS)
         {
             Assert.AreEqual(version, root.Select(row => row.Version).Where(value => value > 0).Sum());
             Passed("native enrolled staged integer reduction");

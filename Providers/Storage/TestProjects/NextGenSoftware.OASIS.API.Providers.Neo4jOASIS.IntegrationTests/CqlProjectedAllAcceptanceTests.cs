@@ -160,7 +160,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                Assert.AreEqual(495,checks.Count);complete=true;return;
+                Assert.AreEqual(522,checks.Count);complete=true;return;
             }
             if(demo)
             {
