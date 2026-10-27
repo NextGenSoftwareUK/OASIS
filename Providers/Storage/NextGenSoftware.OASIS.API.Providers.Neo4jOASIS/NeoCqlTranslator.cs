@@ -131,6 +131,7 @@ internal sealed partial class NeoCqlTranslator
             case CosmicQueryAnyChild child:
             {
                 HasRelationship = true;
+                if (CosmicScalarCapabilities.HasAllDescendants(new[] { child.Predicate })) return TranslateProtectedChild(child);
                 var suffix=_relationshipDepth.ToString(CultureInfo.InvariantCulture)+"_"+Parameters.Count.ToString(CultureInfo.InvariantCulture);
                 var node="rh"+suffix;var projection="rp"+suffix;
                 var inner=new NeoCqlTranslator(node,projection,Parameters,_access,_relationshipDepth+1);
@@ -143,12 +144,7 @@ internal sealed partial class NeoCqlTranslator
                 }
                 var match=inner.Translate(child.Predicate);
                 return "EXISTS { MATCH ("+_node+")-[:HAS_CHILD]->("+node+":Holon)-["+projection+":HAS_CQL_PROJECTION]->("+node+") "
-                    +"WHERE "+projection+".SchemaVersion="+NeoCqlProjection.SchemaVersion.ToString(CultureInfo.InvariantCulture)
-                    +" AND "+projection+".f_Id=toLower("+node+".Id) AND "+projection+".f_Id<>"+_projection+".f_Id"
-                    +" AND "+projection+".f_ParentHolonId="+_projection+".f_Id"
-                    +" AND coalesce("+projection+".ProviderRevisionId,'')=coalesce("+node+".ProviderRevisionId,'')"
-                    +" AND (NOT "+_projection+".f_HasChildManifest OR "+projection+".f_Id IN "+_projection+".f_ChildIds)"
-                    +" AND ("+visibility+") AND ("+match+") }";
+                    + "WHERE " + ChildScopeCondition(node, projection, visibility) + " AND (" + match + ") }";
             }
             case CosmicQueryBoolean constant: return constant.Value ? "true" : "false";
             case CosmicQueryLogical logical:
@@ -200,4 +196,12 @@ internal sealed partial class NeoCqlTranslator
             default: throw new NotSupportedException("Neo4j CQL predicate has no admitted native translation.");
         }
     }
+    private string ChildScopeCondition(string node, string projection, string visibility)
+        => projection + ".SchemaVersion=" + NeoCqlProjection.SchemaVersion.ToString(CultureInfo.InvariantCulture)
+            + " AND " + projection + ".f_Id=toLower(" + node + ".Id) AND " + projection + ".f_Id<>" + _projection + ".f_Id"
+            + " AND " + projection + ".f_ParentHolonId=" + _projection + ".f_Id"
+            + " AND coalesce(" + projection + ".ProviderRevisionId,'')=coalesce(" + node + ".ProviderRevisionId,'')"
+            + " AND (NOT " + _projection + ".f_HasChildManifest OR " + projection + ".f_Id IN " + _projection + ".f_ChildIds)"
+            + " AND (" + visibility + ")";
+
 }
