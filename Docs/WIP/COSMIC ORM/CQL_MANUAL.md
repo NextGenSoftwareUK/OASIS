@@ -351,14 +351,16 @@ var values = await revisions.ToCosmicListAsync();
 
 Retained native columns remain validated even if the last Select drops them. A selection does not bypass source authorization, data-domain errors or the existing work/payload limits. A closure in an earlier Where is rebound on each standard IQueryable execution; fluent CQL capture remains immutable.
 
-Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but SQLite and MongoDB native enrollment now pass45 cases/store; Neo4j remains pending. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. SQLite expanded-graph source support is verified. Existing pre-window predicate behavior remains unchanged.
+Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but all3 native enrollment passes45 cases/store plus Neo snapshot rejection. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. SQLite expanded-graph source support is verified. Existing pre-window predicate behavior remains unchanged.
 
 ```csharp
-// SQLite/MongoDB Q01e: evaluate the predicate within the original page.
+// SQLite/MongoDB/Neo4j Q01e: evaluate the predicate within the original page.
 var page = query.OrderBy(row => row.Name).Skip(5).Take(10);
 var firstAvailable = page.FirstOrDefault(row => row.Version > 1);
 var lastAvailable = page.LastOrDefault(row => row.Version > 1);
 var onlyMatch = page.Single(row => row.Name == "Coffee");
 ```
 
-These SQLite/MongoDB terminals preserve admitted child-graph depth, snapshot and resource options. Empty terminal results do not expand graphs. Source scopes validate before paging; protected terminal scopes validate within the source page before First/Single/Last can truncate it. Neo4j enrollment remains pending.
+These terminals preserve admitted child-graph depth, snapshot and resource options. Empty terminal results do not expand graphs. Source scopes validate before paging; protected terminal scopes validate within the source page before First/Single/Last can truncate it. Neo4j supports admitted provider-default graphs and rejects ProviderSnapshot requests explicitly.
+
+Neo4j Q01e now passes the same element/graph/visibility cases under its admitted provider-default consistency. A requested `ProviderSnapshot` returns `CQL_CONSISTENCY_UNSUPPORTED`; no snapshot guarantee is inferred from sharing a transaction. Neo post-window element capture admits at most10,000 source-page roots; a larger offset-only page returns `CQL_QUERY_LIMIT` without publishing a truncated match. SQLite/MongoDB snapshot support is unchanged.

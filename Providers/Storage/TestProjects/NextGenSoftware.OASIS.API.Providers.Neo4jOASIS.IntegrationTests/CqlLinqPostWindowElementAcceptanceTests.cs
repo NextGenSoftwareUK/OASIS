@@ -11,7 +11,6 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static void VerifyPostWindowElements(ICosmicQueryStorageProvider adapter, Guid rootId, Guid actor,
         IQueryable<Holon> root, IQueryable<Holon> multi, List<object> checks)
     {
-        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS) return;
         var before = checks.Count;
         const string name = "protected source root";
         var ordered = multi.OrderBy(row => row.Name);
@@ -101,19 +100,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 .Where(row => row.Id == rootId).Result.WithChildren(options).Result;
             return CosmicLinq.Create(NativeManager(adapter), adapter, source).Result;
         }
-        var shallow = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot,
+        var consistency = CosmicQueryGraphConsistency.ProviderSnapshot;
+        var snapshotUnsupported = !adapter.QueryCapabilities.Features.HasFlag(CosmicQueryFeatures.GraphSnapshot);
+        if (snapshotUnsupported)
+        {
+            var requested = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot, maxChildDepth: 1).Result;
+            Assert.AreEqual("CQL_CONSISTENCY_UNSUPPORTED", Assert.ThrowsException<CosmicLinqException>(() => Graph(requested).Take(1).First(row => true)).Code);
+            Passed("post-window snapshot request fails without native consistency enrollment");
+            consistency = CosmicQueryGraphConsistency.ProviderDefault;
+        }
+        var shallow = CosmicQueryGraphOptions.Create(consistency,
             maxChildDepth: 1, maximumNodes: 10).Result;
         var graph = Graph(shallow).Take(1).Single(row => row.Name == name);
         Assert.AreEqual(2, graph.Children.Count());
         Assert.IsTrue(graph.Children.All(child => !child.Children.Any()));
-        Passed("post-window Single expands snapshot graph to depth1");
-        var deep = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot,
+        Passed("post-window Single expands admitted graph to depth1");
+        var deep = CosmicQueryGraphOptions.Create(consistency,
             maxChildDepth: 2, maximumNodes: 10).Result;
         var expanded = Graph(deep).OrderBy(row => row.Name).Take(1).Last(row => row.Name == name);
         Assert.AreEqual(2, expanded.Children.Count());
         Assert.AreEqual(2, expanded.Children.Single(child => child.Name == "private branch").Children.Count());
-        Passed("post-window Last expands snapshot graph to depth2");
-        var bounded = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot,
+        Passed("post-window Last expands admitted graph to depth2");
+        var bounded = CosmicQueryGraphOptions.Create(consistency,
             maxChildDepth: 2, maximumNodes: 2).Result;
         Assert.AreEqual("CQL_QUERY_LIMIT", Assert.ThrowsException<CosmicLinqException>(() => Graph(bounded).Take(1).First(row => true)).Code);
         Passed("post-window element graph retains node budget");
@@ -148,7 +156,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             .Where(row => row.Id == rootId).Result.WithReadAccess(denied).Result;
         Assert.IsNull(Bound(deniedSource).Take(1).FirstOrDefault(row => true));
         Passed("terminal cannot return root outside authoritative catalogue");
-        Assert.AreEqual(before + 45, checks.Count);
+        Assert.AreEqual(before + (snapshotUnsupported ? 46 : 45), checks.Count);
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
 }
