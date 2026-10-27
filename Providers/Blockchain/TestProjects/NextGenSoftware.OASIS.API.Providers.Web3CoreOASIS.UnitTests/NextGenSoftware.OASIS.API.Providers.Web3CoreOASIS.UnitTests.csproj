@@ -9,6 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EvmStorageConformanceTests.cs" />
+    <Compile Include="EvmStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Remove="EvmFamilyFactoryTests.cs" />
+    <Compile Include="EvmFamilyFactoryTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EthereumProviderFactory.cs" Link="Production/EthereumProviderFactory.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
