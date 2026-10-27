@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-26",
+  "scope": "IPFS shipping factory compiled; both modes blocked at configuration, no native dispatch",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "6E63DBFC3F58D4DF57989F72799827F35276B12CE0821C35D226F2D23238D671",
+      "SourceDocuments": 789
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "02C36433484D0407164BE60E28D5FA64C8F145EFB478E6C95F627FF401310DD0",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "Ipfs.Http.Client",
+      "sha256": "2F0F86DA383E9AB2D9FA4C2910DA8246B21B1CFBC3F836E37F8F10566504DD30",
+      "pdbSha256": "7D1AB4BACC02E5DE43E1176AA5ABF87E36201CF301FC0DD628CC939A332E3B92",
+      "sources": null,
+      "sourceIdentity": "legacy DebugType full PDB unsupported by portable checker; no source identity claim"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "sha256": "02C36433484D0407164BE60E28D5FA64C8F145EFB478E6C95F627FF401310DD0",
+      "pdbSha256": "77EC74FDD010EC546F883381F1DBE229BFDE26EBC9023543A042B74228FCFF97",
+      "sources": 56,
+      "sourceIdentity": "portable PDB verified"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS",
+      "sha256": "0C29F92EB7E7CA823BCF1BD2D7CA49F4BBFE01B108BBA691D7A60D3BF0939D46",
+      "pdbSha256": "9AA1899DE8938E85B51310763142708288ADEBDB4B38D8437D0B56925FF59C62",
+      "sources": 177,
+      "sourceIdentity": "portable PDB verified"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS",
+      "sha256": "DC6C16A82BFF3FB94F127FC8AF486B9BD4B468B01EC1F9AF08B08AC09B22B2B0",
+      "pdbSha256": "D237FA0AEF0E4974096175BC9EBED01333C10D0D0525FF1E23186031B634DC99",
+      "sources": 16,
+      "sourceIdentity": "portable PDB verified"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.IPFSOASIS",
+      "sha256": "86069C10835853E0AAB6F5406965225545A6A63FC8531C4F8629E155F7010F4B",
+      "pdbSha256": "E777F8FA17D81DAB7201ECB23FBA7EA002240F9563CEA9303B8BD1571EFFE8D3",
+      "sources": 16,
+      "sourceIdentity": "portable PDB verified"
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests",
+      "sha256": "C159F234F53B89029863EBDEB4D95ED400FAEAC4F9BB123B1AFDF52050592457",
+      "pdbSha256": "E93B9E5515B3C67E79FFDE391BE5BBCAC0D0E0C67E8270F2C32A13B132593403",
+      "sources": 18,
+      "sourceIdentity": "portable PDB verified"
+    }
+  ],
+  "cachedResolution": "System.Memory4.5.5 satisfies Google.Protobuf3.8.0 minimum4.5.2; NU1603 retained as warning",
+  "xunit": "2.9.2 cached",
+  "runner": "2.8.2 cached",
+  "freeBytes": 127727583232,
+  "reusedOutputs": [
+    {
+      "path": "External Libs/net-ipfs-http-client-master/src",
+      "binBytes": 825573,
+      "objBytes": 1005913
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7345909,
+      "objBytes": 1412332
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS",
+      "binBytes": 9247181,
+      "objBytes": 3391016
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS",
+      "binBytes": 7509146,
+      "objBytes": 1003861
+    },
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS",
+      "binBytes": 7959363,
+      "objBytes": 1149942
+    },
+    {
+      "path": "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests",
+      "binBytes": 96346949,
+      "objBytes": 1652261
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/ipfs-core-configuration-current.trx.gz",
+    "rawBytes": 8250,
+    "rawSha256": "a38e42a7d93c890a9172ab954e21f71e1e866c0bcc0ade10d246af8bcf0950d0",
+    "gzipBytes": 1742,
+    "gzipSha256": "b74b9671d5da7ecf2e2d12e94c1fcbe1c0762b08f24a1a00f8f07e0fda873913",
+    "outcome": "2 configuration failures; zero native operations; no skips",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

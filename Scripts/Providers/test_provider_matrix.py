@@ -62,6 +62,14 @@ class ProviderMatrixTests(unittest.TestCase):
         directory=m.ROOT/'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS'
         self.assertIn('arweave 2.1.0 (bridge import)',m.node_sdk_evidence(directory))
 
+    def test_content_addressed_and_redis_facades_use_their_actual_family_owner(self):
+        self.assertEqual('IPFS/content-addressed',m.family('FilecoinOASIS','HttpClient',Path('Providers/Blockchain/provider.csproj')))
+        for name in ['KeyDBOASIS','ValKeyOASIS','DragonflyOASIS','GarnetOASIS']:
+            project=m.ROOT/'Providers/Storage'/('NextGenSoftware.OASIS.API.Providers.'+name)/('NextGenSoftware.OASIS.API.Providers.'+name+'.csproj')
+            with self.subTest(provider=name):self.assertIn('StackExchange.Redis',m.sdk_evidence(project))
+        project=m.ROOT/'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
+        self.assertIn('IPFS client',m.sdk_evidence(project))
+
     def test_unused_provider_reference_cannot_lend_its_sdk_to_an_empty_project(self):
         p=m.ROOT/'Providers/Other/NextGenSoftware.OASIS.API.Providers.CargoOASIS/NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj'
         with patch.object(m,'source_text',return_value=''),patch.object(m,'node_sdk_evidence',return_value=[]):
