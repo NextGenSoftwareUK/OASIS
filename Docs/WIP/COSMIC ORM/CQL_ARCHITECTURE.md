@@ -2123,3 +2123,11 @@ Boolean branches, visibility and empty/source-window controls are proved.
 [Proof](Verification/all-descendant-predicate-native.trx.gz).
 Completion audit keeps parent Q23 red: current projection/composition classes
 have no All terminal, tracked explicitly as Q23e. No parent requirement removed.
+
+### Projected All contract checkpoint (27 October 2026)
+
+Q23e remains **incomplete on all three databases**. The Core builder captures a scalar or record predicate against selected aliases, after the complete selected filter/order/window sequence. The predicate is separate from that sequence: adding All cannot move it ahead of paging or consume a selected-stage slot. Captured constants are frozen and arbitrary callbacks are rejected without invocation.
+
+The planner independently requires terminal admission. Existing composition adapters default to no All capability; none of the three native adapters is enabled yet. Source admission, selected-column domains and bounded composition options must also pass at execution. This checkpoint provides intent and admission contracts, not an executable demo feature.
+
+Validation: 3,838 Core tests passed with zero failures/skips, and the netstandard2.1 build passed. See [contract tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicProjectedAllTests.cs) and [compressed results](Verification/projected-all-core.trx.gz). Remaining work is native boolean reduction, generic executor/HolonManager ownership, then three-store acceptance for empty sources, selected windows, errors and work overflow. No green feature or federation cursor was hardened.
