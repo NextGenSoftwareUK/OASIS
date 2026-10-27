@@ -26,3 +26,5 @@ Explicit default-value overloads verified on all3:3 shared tests and12 live case
 Shared entity-projection foundation implemented with4 new tests and both Core targets built; source stages remain separate from selection, actual native enrollment is mandatory, all cells/count bounds validate before DTO constructors. Native providers/standard Select/selected-stage/numeric integration pending. Latest1,781 native cohort predates this Core increment.
 
 Priority27October: broader demo before full parity. Cosmos recommended first cloud, Solana first chain, then IPFS, SOLID, ActivityPub; see CQL_DEMO_EXPANSION_ROADMAP.md. SQLite entity projection passes47 CQL tests/10 native cases (combined1,791); unfinished parity depth deferred unless demo needs it.
+
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.
