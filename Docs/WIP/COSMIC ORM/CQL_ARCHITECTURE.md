@@ -2072,3 +2072,11 @@ source Take(0). All 66 All examples/store pass (198 total), with 3,824 Core test
 Actual cycle proof and mixed nested relationship/descendant predicates remain
 missing; Q23/Q23d stay red. No completed full-walkthrough claim is made.
 [Native proof](Verification/all-descendant-native.trx.gz).
+
+Native cycle acceptance now passes:24checks over three stores, six typed cycle
+errors/store plus ordinary-count and empty-terminal controls. Source validation
+still catches cycles before an empty source page; terminal traversal over no
+selected roots does not inspect the cycle. Each synthetic record is separately
+journalled and removed only after successful proof; original walkthrough data
+remains unchanged. No production change was needed in this acceptance batch.
+Q23/Q23d remain red for mixed nested traversal. [Proof](Verification/all-cycle-result.json).
