@@ -41,7 +41,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 - Moved DynamoDB JAR hash: `67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620`.
 - DynamoDB rerun: AWS/Dynamo 52/52 each + 27 factory controls; all five tables empty. SQLite database 43,008 bytes; evidence folder about 50.9 MB; container stopped.
 - LocalFile current-suite52/52 and20controls passed; counts/delete acknowledgement fixed; old failures preserved, current fixture payloads0. Details: [LocalFile baseline](LOCALFILE_STORAGE_BASELINE.md).
-- Azure Blob automatic runner52/52 +111controls passed; six containers empty, stopped metadata0blobs/blocks after official graceful IPC shutdown. Original failed payloads/checkpoints preserved.
+- Azure Blob automatic runner52/52 +111controls passed; six containers empty, stopped metadata0blobs/blocks after official graceful IPC shutdown. Original failed payloads/checkpoints preserved. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) is draft; CI found a base manifest/gitlink mismatch and missing Redis-family test keys. Fixes validated locally; CI rerun pending. See [CI acceptance](CI_ACCEPTANCE.md). Previous batches already exist in Development.
 - SOLID binding builds; 0/52 due missing original protected inputs. Container not started; no key/identity/ACL mutation.
 - ActivityPub scoped source/tests and evidence summary published as `00235929a`; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
 - Other dirty work includes a Core submodule and unrelated WIP moves/reports; inspect `git status` before staging.
