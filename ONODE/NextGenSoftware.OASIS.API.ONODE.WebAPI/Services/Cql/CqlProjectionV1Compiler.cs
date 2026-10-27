@@ -22,7 +22,7 @@ public static partial class CqlV1Compiler
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         var selected = source.SelectColumns(columns);
         if (selected.IsError) throw new ArgumentException(selected.Message);
