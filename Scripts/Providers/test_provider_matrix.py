@@ -81,4 +81,14 @@ class ProviderMatrixTests(unittest.TestCase):
         self.assertNotIn('[ProviderNameOASIS]',text)
         self.assertIn('capability-v1',text)
 
+    def test_negative_sdk_review_requires_unchanged_complete_source(self):
+        project=m.ROOT/'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj'
+        self.assertIsNotNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+        with patch.object(m,'source_files',return_value=iter([])):
+            self.assertIsNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+        class ChangedHash:
+            def hexdigest(self):return 'changed'
+        with patch.object(m.hashlib,'sha256',return_value=ChangedHash()):
+            self.assertIsNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+
 if __name__=='__main__':unittest.main()
