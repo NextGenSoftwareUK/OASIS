@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: bind standard staged forward element terminals, then prove native acceptance; add tail/reversal support.
+- Exact next step: implement independently admitted native entity reversal and tail element support.
 - Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
@@ -20,29 +20,29 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
 | Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,631 checks: SQLite543/Mongo543/Neo545, one test, no skips |
+| Latest native gate | 1,691 checks: SQLite563/Mongo563/Neo565, one test, no skips |
 | Focused provider CQL tests | SQLite44, Mongo215, Neo147 pass; provider builds pass |
-| Shared count foundation | 2,563 CQL regressions pass; both Core targets build; Core7fd3b11 pushed/verified |
+| Shared count foundation | 2,566 CQL regressions pass; both Core targets build; Coreabe61f5 pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
-entity element terminals, projections and remaining numeric terminals are still pending. No client reduction substitutes for native execution.
+forward elements now pass20 native cases/store; tail/reversal, explicit defaults, projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
 Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
 Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
 
 Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `688480271D5E3F125AF131EEA9DFBD55CF77E75A349694D6C9EE7EE13ECCFD9A`.
+SHA256 `67658EB34E895BAC50CD5FF1D4418E65EEC1386C2AEBA4568E6ACCA13385F9EA`.
 Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `2A38A09274A3F4F48F076E270926541EE2006F5D6B6D8DC5A99127A4B01D80B1`.
+SHA256 `EA2228648A34599821E9AC2E35A22B347A079F225CA168A4002BD08965A053B8`.
 Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
 SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
 Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
 [Earlier checkpoint evidence](Archive/CURRENT_STATUS_pre_terminal_binding_2026-10-27.md) preserves other hashes/cohorts.
 Full Core suite is not green: earlier3,853 passes/six failures from missing built WEB4 host prerequisite remain unverified.
 
-Shared forward-element planner/executor and V2 manager now append native terminal windows; Single cardinality precedes application construction.
-Four new tests cover ambiguity, hydration/tracking, index/default semantics and gates. Standard binding/live proof/tail reversal pending.
-Evidence `TestResults/CoreCurrent/entity-element-regression.trx`, SHA256 `0C29CE9DAC24EBC46E995C081E568DC46F3B028A32987214FA97EE7FC374E31E`.
-The latest 1,631 native gate predates this element foundation Core increment.
+Forward elements: First/Single/int-index/default/predicate forms verified through native stage and typed hydration owners.
+Three new binding tests;20 native cases/store prove ambiguity before DTO construction, defaults/indexes, protected errors and tracking.
+Evidence `TestResults/CoreCurrent/entity-element-binding-regression.trx`, SHA256 `BE822F71BD8233CC3BA4A73EBFDE5DEC69AA563A09AD7CAC766A8D6710583F86`.
+Last/from-end indexing, explicit default-value overloads and staged projection/numeric integration remain pending.
 
 ## Fixture and resource safety
 
