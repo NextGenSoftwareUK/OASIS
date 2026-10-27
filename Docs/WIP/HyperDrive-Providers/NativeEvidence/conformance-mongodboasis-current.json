@@ -1,0 +1,57 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "MongoDBOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "45e670f5-a47a-4e4d-8a42-a28eaafed98c",
+      "RootId": "4b721fa9-c1a3-4554-816b-bf3654147808",
+      "ChildId": "11f090bd-eea8-482d-b44e-dc8414a18a61",
+      "BatchIds": [
+        "09305e1c-28c0-4743-83cc-02b72ab83843",
+        "8406898a-dc67-43f7-a70c-7700f2997b2c"
+      ],
+      "ImportId": "228c23cc-0a4d-4acc-9bee-a68beaba03a1",
+      "Passed": [
+        "activate",
+        "avatar-save"
+      ],
+      "CurrentCase": "avatar-id",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "absent",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "MongoDBOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "487a1cf7-54f7-4b38-863f-bd1036515001",
+      "RootId": "09c27a89-d27b-4213-a2b5-cfb88aead888",
+      "ChildId": "115b0834-2e86-41c3-b3ab-ea8f993485bf",
+      "BatchIds": [
+        "0d2028c5-7fc4-4372-b995-f0d5e6f8e9bc",
+        "155022ad-4889-48a1-9ed9-d2b24831c285"
+      ],
+      "ImportId": "9f9f9a65-66c8-4818-bb21-636a9dcdefe5",
+      "Passed": [
+        "activate",
+        "avatar-save"
+      ],
+      "CurrentCase": "avatar-id",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "absent",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}
