@@ -1,0 +1,54 @@
+# Projected All: native execution acceptance contract
+
+Status: implementation in progress; Q23e stays red for SQLite, MongoDB and Neo4j. This is a working contract, not a supported-feature claim.
+
+## Invariant
+
+All reduces the complete selected sequence after every captured source and selected-result filter, ordering and window. A work limit is an error; it cannot redefine that sequence to a prefix. Native execution decides the Boolean. No DTO construction, compiled user callback or client Enumerable.All may substitute for the native terminal.
+
+## Finding from the existing owners
+
+The existing composition executor enforces a query-wide budget by validating complete detached input/stage proofs and consuming their measured input rows/bytes and stage rows/proof bytes between providers. Its native snapshot owners validate the complete bounded input before selected stages can hide malformed or inaccessible cells. The first projected-All draft returned only bool, which could not carry measured work between targets. The contract now returns CosmicProjectedAllPacket: a native counterexample count and complete source/stage proof. The generic executor validates that proof without constructing DTOs, charges final selected-row evidence against proof bytes, and debits query-wide work before the next provider. Native adapters remain unenrolled.
+
+Implementation entry points:
+
+- [Composition executor](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core/Queries/CosmicProjectionCompositionExecutor.cs)
+- [Composition proof validator](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core/Queries/CosmicProjectionCompositionProof.cs)
+- [Remaining work limits](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core/Queries/CosmicProjectionCompositionExecutionLimits.cs)
+- [SQLite snapshot owner](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.Composition.cs)
+- [SQLite stage compiler](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.Cql.CompositionSql.cs)
+- [MongoDB stage compiler](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/MongoCqlTranslator.Composition.cs)
+
+## Required implementation
+
+1. Share the existing source/stage compiler and snapshot/proof owner; add native reduction after the final selected stage, including the zero-selected-stage case. Do not append a selected filter or consume a selected-stage slot for All.
+2. Return acknowledged native reduction with complete bounded source/stage evidence and measured work. Verify native counts, proof shape and source completeness before accepting true or false. Empty input is true only after successful complete validation.
+3. Pre-admit every actual target before invoking any provider. Re-admit live identity/capabilities inside the owned invocation; retain cancellation and usage receipt ownership. Never return a successful partial provider list after an error.
+4. Debit shared input/proof budgets after each acknowledged provider packet. The second provider cannot receive the original limits again. Zero remaining budget requires proof of empty participation, not an unconditional skipped call.
+5. Expose generic execution through HolonManager with the existing V2 requirement. Physical per-provider Booleans remain separate, as with entity scalar results; do not invent cross-provider logical identity semantics.
+6. Enroll each native adapter only after its terminal, work evidence and error behavior are proved. Keep existing composition constructor defaults false.
+
+## Acceptance cases required on each database
+
+| Case | Expected evidence |
+|---|---|
+| Plain scalar and record projection | Native true/false without DTO/callback invocation |
+| Empty source and selected Take(0) | Acknowledged true; visited source errors still fail |
+| Source window plus selected Where/order/Skip/Take | Final sequence determines truth; counterexample outside final window does not |
+| Counterexample after default row page | False or explicit work-limit error, never prefix true |
+| Exactly 32 selected stages | All does not consume a 33rd selected stage |
+| Missing/null/invalid required selected cell | Error even when later selected predicate/window would hide it |
+| Source traversal error outside source page | Existing protected error semantics retained |
+| Input/stage/proof limit boundary | Exact limit succeeds; over-limit fails with no Boolean acknowledgement |
+| Multiple physical targets | Remaining work debited; later error discards partial success |
+| Cancellation, missing acknowledgement and live capability revocation | No successful Boolean or unowned physical attempt |
+
+No Q23e database cell may turn green until the native tests cover these invariants. This work does not reopen green features or federation cursors.
+
+## Core executor checkpoint
+
+3,847 Core tests passed, zero failures/skips; net10.0 and netstandard2.1 builds passed. [Execution tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicProjectedAllExecutionTests.cs) cover empty and 150-row sequences, native false, preflight of all actual targets, shared-budget depletion, absent acknowledgement, impossible native counts, live capability revocation and cancellation. [Proof](Verification/projected-all-execution-core.trx.gz).
+
+HolonManager.ExecuteProjectedAllQueryAsync requires HyperDrive V2. The executor uses CosmicQueryAttemptOwner for physical attempts and retains separate per-provider Boolean values. The existing composition proof validator now permits a zero-stage source only through its internal terminal-source entry; ordinary composition still requires selected stages. This is shared ownership needed by the red terminal, not additional hardening of a green feature.
+
+Remaining: native SQLite/MongoDB/Neo4j reducers sharing each existing snapshot/stage owner, then native acceptance cases above. Unit adapters are not native database proof; Q23e stays red.`nThe terminal scan also consumes stage-work budget: total charged stage rows are selected-stage work plus the complete final selected row count. Final evidence payload is charged to proof bytes. These costs are debited before any later provider dispatch.
