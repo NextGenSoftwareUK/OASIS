@@ -3,6 +3,18 @@ import argparse,hashlib,json,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/'Docs/WIP/HyperDrive-Providers'
+EVIDENCE=ROOT/'TestResults/HyperDrive-Providers/NativeEvidence'
+
+def registered_report(name):
+    """Read the authoritative registered report, including pre-relocation evidence."""
+    data=json.loads((DOC/'CONFORMANCE_RESULTS.json').read_text(encoding='utf-8-sig'))
+    matches=[r for r in data['results'] if r['provider']==name]
+    if len(matches)!=1:raise ValueError('Exactly one registered provider report required')
+    entry=matches[0];path=(ROOT/entry['report']).resolve()
+    if not path.is_relative_to(ROOT.resolve()):raise ValueError('Registered report escapes repository')
+    raw=path.read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=entry['sha256']:raise ValueError('Registered report hash mismatch')
+    return raw
 
 def validate_report(r,name,mode,suite,capability=False):
     if r['SuiteVersion']!=suite or r['Provider']!=name or r['Mode'] not in {'native','controlled'}:raise ValueError('Report identity/suite/mode mismatch')
@@ -44,7 +56,8 @@ def register(names):
         if not runs:raise ValueError('No executed reports for '+name)
         if len({r['Mode'] for r in runs})!=1:raise ValueError('Do not combine native and controlled provider results')
         stem='localfile' if name=='LocalFileOASIS' else name.lower()
-        archive=DOC/'NativeEvidence'/('conformance-'+stem+'-current.json')
+        archive=EVIDENCE/('conformance-'+stem+'-current.json')
+        archive.parent.mkdir(parents=True,exist_ok=True)
         archive.write_text(json.dumps({'suite':suite,'runs':runs},indent=2)+'\n',encoding='utf-8')
         passed=sum(len(r['Passed']) for r in runs);total=(5 if capability else 26)*len(modes)
         execution='blocked-before-native' if all(r['CurrentCase']=='configuration' and not r['Passed'] for r in runs) else runs[0]['Mode']
