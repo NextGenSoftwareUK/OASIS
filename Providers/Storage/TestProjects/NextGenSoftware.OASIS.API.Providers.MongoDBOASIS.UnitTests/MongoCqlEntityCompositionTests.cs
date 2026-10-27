@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests;
 
 [TestClass]
-public sealed class MongoCqlEntityCompositionTests
+public sealed partial class MongoCqlEntityCompositionTests
 {
     private static CosmicEntityCompositionPlan<Holon> Plan(CosmicEntityCompositionQuery<Holon> query)
     {

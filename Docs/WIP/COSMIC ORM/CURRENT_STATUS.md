@@ -17,14 +17,14 @@ Updated: 27 October 2026. Update at every milestone; start here after compaction
 | Source composition Q49a | 216 native checks, 72/database |
 | Projected All Q23e | 168 native checks; Q23 parent audit and 24 C# demo examples pass |
 | Q01a–e | Selected numeric/extrema/reselection and post-window entity elements green on all three |
-| Latest native checkpoint | 1,556 checks: SQLite 518, MongoDB 518, Neo4j 520 |
+| Latest native checkpoint | 1,574 checks: SQLite 527, MongoDB 527, Neo4j 520 |
 | Latest committed shared entity-stage foundation | 2,545 CQL regressions pass; both Core targets build |
 
 Native evidence: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256: `79A6FEECC205428B6DC0A9ACFC8BEB92A825FF4EAA89958047ACA3E22FE484E7`.
+SHA256: `0A26277C8392618C9A7D305F363224ACD008A18BB5A196AB59AB81EFC87645E4`.
 Shared evidence: `TestResults/CoreCurrent/entity-composition-regression.trx`.
 SHA256: `44C39A2E37FD6503FEBF78931FCFA9D96CAB03B008C1A39905AAB21319E8D5FE`.
-These are separate cohorts: the latest native gate includes shared stage ownership and 18 entity-stage cases each on all three plus Neo snapshot rejection.
+Latest native gate includes18 entity-stage cases/store, Neo snapshot rejection, and9 entity-count cases each on MongoDB/SQLite.
 
 Q01f remains red on all databases: Native rows/typed V2/graph/visibility checks pass on all three; staged terminal/projection integration remains pending.
 IQueryable bridge committed in Core `b9bccf0fdb2f035ff5a460186ac9f17055e7cd71`: 2,550 CQL regressions pass.
@@ -36,7 +36,7 @@ The full Core suite is not green: earlier run had 3,853 passes and six failures 
 SQLite entity-stage increment: 42 CQL provider tests pass, including seven new SQL/native-owner/graph tests.
 Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-graph-current.trx`.
 SHA256: `0691C0AA1A23F527EF3037DB2249E5C0B71EAC7E0195B28CA805C05ACC4661DF`.
-Native summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`, SHA256 `68D8F74975472953999DB71FDDE35FF948F80794E55F15EEFE9D551B36488D6B`.
+Native summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`, SHA256 `35AD188BEDB025B9E1210BDB6DA97EC081966573E102E091103256ED8B99AC7D`.
 Provider build passes. Native materialized stages and ordinal positions share the row snapshot/budget/graph owner.
 
 Mongo entity stages implemented under the shared row/graph snapshot and deadline owner.
@@ -51,14 +51,16 @@ Unit evidence: `TestResults/CoreCurrent/neo-entity-stage-current.trx`, SHA256 `A
 Shared entity-count contract/executor committed in Core `7b2a2d422f8ff03a4bf064edbbbc97108c12ba7f`; both targets build, 2,555 CQL regressions pass.
 Five new tests cover native ownership, capability re-admission, acknowledgement/window bounds, cancellation/V2/identity and adapter snapshots.
 Evidence `TestResults/CoreCurrent/entity-count-regression.trx`, SHA256 `703C6E13ECDE6521D82BCC1F6D350F5487871BB134E4457A0E5FD5CC936A1C34`.
-SQLite native count is enrolled; Mongo/Neo reduction and standard terminal bridge pending. The 1,556 native checkpoint predates the Core count increment.
+SQLite/Mongo native count enrolled and live-verified; Neo count and standard terminal bridge pending.
 
-SQLite native count: 44 CQL provider tests pass, including native windows/budgets/protected cycles and V2 count without DTO constructors or graph expansion.
+SQLite count:44 CQL provider tests pass. Mongo count:215 compiler tests pass; both have9 live native count cases, including protected errors/budgets/no DTO or graph expansion.
 Evidence `TestResults/CoreCurrent/sqlite-entity-count-current.trx`, SHA256 `190F7213AD5E4D621463A155994F578BDF68B6DEC796C8374CBE812B659622B1`.
+
+Mongo count unit evidence `TestResults/CoreCurrent/mongo-entity-count-current.trx`, SHA256 `6D67F9138A154D8A1A69AF2CEF540C353A80DE32387107FB02BD429B673CB767`.
 
 ## Exact next step
 
-Implement MongoDB/Neo4j native entity count reductions, then bind staged Count/LongCount/Any/All. Follow with element terminals and projections, preserving stage ownership.
+Implement Neo4j native entity count, then bind staged Count/LongCount/Any/All. Follow with element terminals and projections, preserving stage ownership.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.

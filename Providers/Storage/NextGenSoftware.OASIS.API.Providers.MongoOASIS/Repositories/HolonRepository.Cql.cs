@@ -36,14 +36,10 @@ public partial class HolonRepository
         {throw new MongoCqlGraphTimeoutException();}
     }
 
-    private async Task<IReadOnlyList<IHolon>> ReadNativeCqlRowsAsync(MongoCqlCommand command,int maximumResults,
-        int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
-        Action<int> reserveNativeBytes=null)
+    private async Task ValidateNativeEntityStagesAsync(MongoCqlEntityCompositionCommand composition,
+        IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken)
     {
-        if(command.EntityComposition != null)
-        {
             if (session == null) throw new InvalidOperationException("Entity stages require their native snapshot owner.");
-            var composition = command.EntityComposition;
             var inputCount = (await ReadNativeCqlRowsAsync(composition.Source, composition.Options.MaximumInputRows,
                 composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
             long work = 0;
@@ -55,7 +51,14 @@ public partial class HolonRepository
                 inputCount = (await ReadNativeCqlRowsAsync(stage, composition.Options.MaximumInputRows,
                     composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
             }
-        }
+    }
+
+    private async Task<IReadOnlyList<IHolon>> ReadNativeCqlRowsAsync(MongoCqlCommand command,int maximumResults,
+        int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
+        Action<int> reserveNativeBytes=null)
+    {
+        if(command.EntityComposition != null)
+            await ValidateNativeEntityStagesAsync(command.EntityComposition,session,options,cancellationToken).ConfigureAwait(false);
         if(command.FetchCount==0 && !command.RequiresMembership && !command.HasTraversalEnvelope)return Array.Empty<IHolon>();
         if(command.RequiresMembership)
         {

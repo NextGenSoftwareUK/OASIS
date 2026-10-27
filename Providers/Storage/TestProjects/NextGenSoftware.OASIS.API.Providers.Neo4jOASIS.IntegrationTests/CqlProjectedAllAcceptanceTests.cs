@@ -168,7 +168,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
                 foreach (var adapter in adapters)
                     await VerifyEntityStages((ICosmicQueryEntityCompositionStorageProvider)adapter, rootId, checks);
-                Assert.AreEqual(1556,checks.Count);complete=true;return;
+                foreach (var adapter in adapters.Where(item=>item.QueryProviderType!=ProviderType.Neo4jOASIS))
+                    await VerifyEntityCount((ICosmicQueryEntityCountStorageProvider)adapter,rootId,checks);
+                Assert.AreEqual(1574,checks.Count);complete=true;return;
             }
             if(demo)
             {
