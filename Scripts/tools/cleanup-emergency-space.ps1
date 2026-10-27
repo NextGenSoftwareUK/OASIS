@@ -97,7 +97,7 @@ function Test-CleanupOverlap([string]$left, [string]$right) {
 
 function Get-CleanupPreservationReason([string]$path) {
     foreach ($protected in $cleanupPreserve) {
-        if (Test-CleanupOverlap $path $protected) { return "Retained secret backup: $protected" }
+        if (Test-CleanupOverlap $path $protected) { return "Preserved path: $protected" }
     }
     return $null
 }
