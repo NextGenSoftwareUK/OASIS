@@ -54,32 +54,6 @@
       ]
     },
     {
-      "provider": "AWSOASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
-      "sha256": "102631e13e2f7a10f8350841e2de265cc3c3e348eed7b8103690bbe3db819bf0",
-      "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
-      ]
-    },
-    {
-      "provider": "DynamoDBOASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
-      "sha256": "8aa673690a47e39eb9f3e321782e64cf9342106fcc6054f7124513870309985d",
-      "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "AWSS3OASIS",
       "suite": "core-storage-v1",
       "mode": "blocked-before-native",
@@ -239,6 +213,26 @@
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-postgresqloasis-current.json",
       "sha256": "3e6afdc4bf364acb414c7d68b2c1082e56661587a120bce283d1dfd84550f168",
+      "blockers": []
+    },
+    {
+      "provider": "AWSOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
+      "sha256": "fb946f3374c56ef3edcab06c6e61e1e735b90afeeb8f6af3f4553c5ee805d8a3",
+      "blockers": []
+    },
+    {
+      "provider": "DynamoDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
+      "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
       "blockers": []
     }
   ],
