@@ -1,0 +1,53 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "SOLIDOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "6b5f8527-f107-4c3a-8930-33f0bb8338fa",
+      "RootId": "100a99e1-8f9e-4aae-a10a-390ea7fa3e6b",
+      "ChildId": "6c8c5e76-1696-4b73-b36a-b9a3cc87f6e1",
+      "BatchIds": [
+        "4e6bd406-394b-463a-a5e6-af7cb6a7e0c7",
+        "e8b04c5c-1c47-4b3d-9fe5-08a65368914a"
+      ],
+      "ImportId": "63de3d49-d192-466b-9a01-38bed910963a",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "SOLIDOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "5f8b630c-3efe-4d6b-9c67-d92c259425ef",
+      "RootId": "79af9c81-1016-404c-8908-1687f08bddff",
+      "ChildId": "df28b4f7-99dd-4195-a747-5453e5769171",
+      "BatchIds": [
+        "2f8d72f8-d32a-47da-a689-9ccbcc0a03f1",
+        "191a80ee-60f7-4559-b018-ad839c18b016"
+      ],
+      "ImportId": "7b51ec4b-a8c2-4558-a725-8cc96254e836",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}
