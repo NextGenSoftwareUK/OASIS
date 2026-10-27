@@ -24,10 +24,10 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
-            var requested = CqlV1Compiler.RequestedProvider(request?.Provider);
-            var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
+            var requested = CqlV1Compiler.RequestedProvider(request?.Provider, includeCloudReadProfile: true);
+            var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             var intent = CqlV1Compiler.CompileProjection(request, actor, policy?.Selected??requested,policy?.Access);
-            if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy))
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var rowAdapter, out var selected,policy,includeCloudReadProfile:true))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The provider is not eligible for this admitted projection.");
             if (rowAdapter is not ICosmicQueryProjectionStorageProvider adapter)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The provider does not implement native selected columns.");

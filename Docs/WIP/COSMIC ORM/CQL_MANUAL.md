@@ -558,7 +558,7 @@ composition and entity-stage projection are not yet enrolled for Cosmos.
 
 Native emulator evidence: 41 focused tests, 38 native cases and five shared
 HolonManager/LINQ demo operations.
-Hosted Azure, manager/usage integration and the remaining common demo features
+Hosted Azure, prepared usage admission and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
 
 Cosmos save lifecycle remains a separate gap. Existing native ETag replacement
@@ -568,3 +568,33 @@ currently returns `COSMIC_CONDITIONAL_WRITE_UNSUPPORTED` before activation,
 leaving caller identity/version unchanged. Do not replace that request with an
 ordinary Save and describe it as atomic COSMIC concurrency or a durable delta.
 Both synchronous and asynchronous rejection paths are covered by focused tests.
+
+WEB4's existing row, scalar and projection routes now admit the Cosmos read
+profile, provided the host already has an active provider, authenticated actor,
+query tariff and required read policy. Other routes keep their original provider
+enrollment; this does not enroll Cosmos federation/cursors or composition.
+For example, send this body to `POST /api/data/query-cql`:
+
+```json
+{
+  "Provider": "AzureCosmosDBOASIS",
+  "OrderBy": "Id",
+  "Skip": 0,
+  "Take": 10,
+  "Filters": [
+    {
+      "MetadataPath": ["location", "city"],
+      "Scalar": "String",
+      "Operator": "Equal",
+      "Value": "London"
+    }
+  ]
+}
+```
+
+Specify `OrderBy: "Id"` or the declared Version profile: the shared wire default
+`Name` ordering is not admitted by Cosmos yet. Endpoint admission/compiler tests
+pass, but a complete HTTP request against native/hosted Cosmos remains unverified.
+An authoritative-record catalogue currently requires canonical membership support
+not yet enrolled by Cosmos; that policy must reject rather than downgrade to
+owner/public access. This remains an explicit cloud-demo gap.
