@@ -132,3 +132,21 @@ MongoDB and Neo4j share their scalar terminal traversal/error lowering, changing
 only the match contribution for cardinality. An empty terminal page visits no
 terminal scopes; source-scope failures still precede paging. IQueryable binds
 parameters per execution, while fluent cardinality capture freezes them.
+
+Selected numeric reduction uses immutable CosmicProjectedNumericIntent and
+CosmicProjectedNumericPlan descriptors plus a bounded exact-word acknowledgement
+in the composition packet. Each provider independently enrolls scalar numeric
+permissions through NumericReductions; legacy capability constructors keep it
+absent. Selected scalar expressions and flat-record numeric selectors bind an
+exact column. The V2 manager and shared composition attempt owner preserve source
+and stage scope, cross-check native participating count against validated selected
+cells, charge acknowledgement/proof/terminal work, and normalize through existing
+integer/decimal/floating numeric owners. The numeric finalizer constructs no DTOs.
+
+SQLite currently enrolls signed Int32/Int64 Sum/Average and nullable forms. Its
+native reduction runs over the final materialized stage CTE in the same
+serializable owner. Two integer sum words retain exact totals; Int64 double means
+reuse the checked aggregate hook ordered by the final stage rank. The hook checks
+budgets and is removed on disposal. Selected ordering/offset occurs before prefix
+accumulation. MongoDB/Neo4j kernels and wider SQLite domains are not enrolled yet;
+selected Min/Max needs its own extrema contract. Q01 remains red.

@@ -68,8 +68,8 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable repeated Select and staged numeric reductions remain
-unimplemented and fail explicitly; indexed Where and custom comparers are also
+Queryable repeated Select remains unimplemented. Staged reductions have the
+explicit provider/domain enrollment documented below; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
 and [native row tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs).
@@ -214,8 +214,8 @@ A mandatory Boolean acknowledgement accompanies its exact limb/count packet.
 This server-side collection uses memory proportional to the selected input count;
 the numeric work bound, transaction timeout and server memory limits still apply.
 No selected rows are fetched for a client accumulator. Existing fluent `Average(long)`
-keeps its decimal result. Aggregates after selected result stages remain
-explicitly unsupported pending a native selected-reduction contract.
+keeps its decimal result. Aggregates after selected result stages require the independent native
+selected-reduction contract described below.
 Q01 remains red.
 ## Selected Count, LongCount and Any
 
@@ -250,3 +250,41 @@ Count/int, LongCount/long or Any/bool result domain, then
 HolonManager.ExecuteProjectedCardinalityQueryAsync. Results retain per-provider
 provenance. The standard IQueryable bridge remains bound to one named provider.
 Entity element predicate overloads after source windows remain pending Q01 work.
+
+## Numeric reductions after selected stages — current enrollment
+
+SQLite now supports Sum/Average over selected Int32/Int64 values and their nullable
+forms, including exact column selectors from flat records. The selected filters,
+ordering and windows run before the native reduction. No DTO is constructed.
+Standard integer Average returns double/double?; direct CQL plans can retain the
+existing decimal/decimal? integer-mean result contract. Nullable Sum returns zero
+for an empty/all-null input; required Average reports an empty-sequence error.
+
+```csharp
+// Currently enrolled on SQLite. Other providers reject this staged shape.
+var revisions = query
+    .Select(row => row.Version)
+    .Where(value => value > 0)
+    .OrderBy(value => value)
+    .Skip(1)
+    .Take(5);
+
+var revisionSum = revisions.Sum();
+var revisionMean = revisions.Average();
+
+// A record selector binds a numeric column without constructing the records.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
+    .Take(5);
+
+var pageRevisionSum = page.Sum(value => value.Version);
+```
+
+The shared planner admits NumericReductions separately from ordinary projection,
+scalar and cardinality permissions. Exact native words and participating counts
+are validated under the selected snapshot owner before normalization. Int64 double
+means additionally require checked-prefix evidence after every selected window.
+Complete source/stage participation and terminal work/proof budgets still apply.
+MongoDB/Neo4j staged kernels, other exact numeric domains and selected Min/Max
+remain unfinished (Q01a/b/c). Their missing contracts return explicit errors.

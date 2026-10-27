@@ -14,7 +14,7 @@ public partial class HolonRepository
     // validate the entire source before any selected filter/window can hide it.
     private sealed class CompositionSql
     {
-        internal string Source, Proof, Predicate, Reduction, Cardinality;
+        internal string Source, Proof, Predicate, Reduction, Cardinality, Numeric;
         internal bool HasRelationship;
         internal List<SqliteParameter> Parameters;
     }
@@ -24,17 +24,17 @@ public partial class HolonRepository
     {
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.SQLLiteDBOASIS)
             throw new ArgumentException("SQLite composition requires one matching plan and remaining limits.");
-        return CompileSelectedSql(plan.Query, plan.Options, limits, cardinality: plan.RequestsCardinality);
+        return CompileSelectedSql(plan.Query, plan.Options, limits, cardinality: plan.RequestsCardinality, numeric: plan.NumericReduction);
     }
 
     // One compiler owns both the selected pipeline and its terminal reduction.
     private static CompositionSql CompileSelectedSql<T, TResult>(CosmicProjectionQuery<T, TResult> query,
         CosmicProjectionCompositionOptions options, CosmicProjectionCompositionExecutionLimits limits,
-        CosmicQueryPredicate terminal = null, bool cardinality = false) where T : IHolon
+        CosmicQueryPredicate terminal = null, bool cardinality = false, CosmicProjectedNumericIntent numeric = null) where T : IHolon
     {
         var bounded = limits.Admit(options);
         if (bounded.IsError) throw new ArgumentException(bounded.Message);
-        if (query.ResultStages.Count == 0 && terminal == null && !cardinality) throw new ArgumentException("A selected-result pipeline is required.");
+        if (query.ResultStages.Count == 0 && terminal == null && !cardinality && numeric == null) throw new ArgumentException("A selected-result pipeline is required.");
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var parameters = new List<SqliteParameter>();
         var translator = new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
@@ -92,7 +92,8 @@ public partial class HolonRepository
             Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship, Parameters = parameters,
             Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
                 + " ORDER BY phase,ordinal,position", Reduction = reduction,
-            Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count
+            Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count,
+            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedIntegerReduction(numeric, "c" + query.ResultStages.Count, previousRank)
         };
 
         void Cell(CosmicQueryPath path, string alias)

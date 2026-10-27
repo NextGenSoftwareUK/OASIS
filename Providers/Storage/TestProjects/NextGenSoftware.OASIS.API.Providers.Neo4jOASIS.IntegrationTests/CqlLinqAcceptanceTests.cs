@@ -213,8 +213,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(version,root.Select(row=>row.Version).Sum());Passed("plain selected Sum");
         Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
         Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");
-        Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
-            ()=>root.Select(row=>row.Version).Where(value=>value>0).Sum()).Code);Passed("staged numeric reduction remains explicit gap");
+        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS)
+        {
+            Assert.AreEqual(version, root.Select(row => row.Version).Where(value => value > 0).Sum());
+            Passed("native SQLite staged integer reduction");
+        }
+        else
+        {
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Assert.ThrowsException<CosmicLinqException>(
+                () => root.Select(row => row.Version).Where(value => value > 0).Sum()).Code);
+            Passed("staged numeric reduction requires provider enrollment");
+        }
 
         Assert.AreEqual((double)version,root.Average(row=>row.Version));Passed("native Int32 Average double output");
         Assert.AreEqual((double)version,root.Select(row=>row.Version).Average());Passed("plain selected Int32 Average");
@@ -232,6 +241,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await VerifySelectedElements(adapter, root, multi, checks);
         await VerifySelectedCardinality(adapter, root, multi, checks);
         await VerifyEntityCardinality(adapter, rootId, root, multi, checks);
+        await VerifyStagedNumeric(adapter, rootId, root, multi, version, checks);
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
