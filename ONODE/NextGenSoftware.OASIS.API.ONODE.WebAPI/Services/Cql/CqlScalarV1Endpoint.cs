@@ -39,8 +39,9 @@ public static partial class CqlV1Endpoint
             if (selecting != (request.Selection != null))
                 throw new ArgumentException("Min/Max/Sum/Average require one selection; count/existence operations do not accept it.");
             var requested = CqlV1Compiler.RequestedProvider(request.Provider);
-            var source = CqlV1Compiler.CompileScalarSource(request, actor, requested);
-            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected))
+            var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
+            var source = CqlV1Compiler.CompileScalarSource(request, actor, policy?.Selected??requested,policy?.Access);
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted scalar query.");
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
@@ -61,6 +62,7 @@ public static partial class CqlV1Endpoint
                 _ => await ExecuteScalar(http, providers, storage, scalar, source.Any().Result)
             };
         }
+        catch(ReadPolicyRejected cause) { return Failure(cause.Status,cause.Code,"The trusted read-access policy did not authorize this request."); }
         catch (ArgumentException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         { return Failure(400, "CQL_REQUEST_INVALID", "Invalid bounded CQL scalar description."); }
         catch (InvalidOperationException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))

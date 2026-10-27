@@ -1,5 +1,97 @@
 # Durable conditional-write preparation
 
+The [authenticated hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) now includes per-selected-record write protection enrollment and signed HTTP acceptance on MongoDB, SQLite and Neo4j: **465 settlements / 517 attempts**, including 12 recovery settlements. Full Core **3,501** and WEB4 **313 plus one existing Stripe skip** pass. Protected hard-delete acknowledgement loss and actual process restart remain separate gates; older SDK fault evidence is not a substitute.
+
+The new `PreparationPolicyResolver` receives immutable assigned-ID/runtime-type context, supports new records and independent selected-node protection contexts, and is captured by request managers. Denied/null results stop before preparation claims without falling back to global policy. The callback never receives a mutable staged entity and is excluded from JSON. Existing policy precedence is unchanged when no resolver is configured. [Core tests](Verification/hosted-protection-core.trx.gz), [WEB4 tests](Verification/hosted-protection-web4.trx.gz), [signed native result](Verification/hosted-protection-result.json).
+
+## Request-owned protection configuration
+
+`HolonManager.CreateRequestContext` now retains the metadata and preparation protection policies observed when the context is created. Previously it constructed a new manager with neither policy, allowing scoped writes to silently lose configured protection. The new manager keeps the immutable policy references, including authorized resolver scope and query-visible key configuration; no key material is copied into request data. Resolver lifetime remains application-owned.
+
+A trusted host may assign an actor-specific preparation policy to the returned request manager before any storage operation. Assigning that request's policy does not change the parent or another request manager. Later parent-policy changes do not rewrite an existing request's observation. This reuses the existing request-context owner rather than mutating the shared manager around an await.
+
+Two inheritance regressions fail against the previous producer, while the concurrent per-request override control passes. With the factory fix, all three controls and full Core **3,497/3,497** pass without skips/failures; both target builds pass. The concurrency test pauses one preparation claim while another request completes and verifies both encrypted envelopes against their own authorized contexts. [Red evidence](Verification/request-protection-red.trx.gz), [frozen producer](Verification/request-protection-red-producer.json), [full corrected regression](Verification/request-protection-core-full.trx.gz).
+
+Native verification passes inherited request-context protection through real encrypted manager soft deletes and stored-only recovery after reconnection on MongoDB, SQLite and Neo4j. Existing signed CQL/transport/delete and actual hard-delete acknowledgement-loss controls remain green: **453 settlements / 496 attempts**. Sources stayed unchanged, seven producer/consumer pairs matched, and owned fixtures/services were removed. [Native TRX](Verification/request-protection-native.trx.gz), [result](Verification/request-protection-result.json), [source identities](Verification/request-protection-source.json.gz), [binary identities](Verification/request-protection-binaries.json). This does not configure an unconfigured host or close authenticated recovery/process-restart acceptance.
+
+## Protected conditional delete enrollment
+
+Conditional `DeleteHolon` / `DeleteHolonAsync` now use the same preparation capture and first-winner recovery owner as conditional saves when an explicit preparation or metadata protection context is configured. Both soft and hard deletes seal their actual operation kind, original selected-root values, original revision condition and root-only traversal flags before mutation dispatch. An operation sealed as a save cannot be reused for a delete. Preparation lookup/reconstruction remains a read-only workflow and never dispatches the mutation again.
+
+Deletes select only their root. Unselected children are not included in the preparation and are not published or changed by the delete. The request explicitly retains its actor and authority, requires that authority, and disables command replication. Missing preparation capability fails before the conditional mutation. An uncertain delete result retains the protected original without publishing deletion or a new revision into the caller.
+
+The regression was reproduced against a frozen previous Core producer: **16 cases, 12 failures and four passing unprotected controls**. With the shared capture fix, full Core **3,494/3,494** passes without skips/failures; both targets build. [Red report](Verification/delete-preparation-red.trx.gz), [frozen producer identity](Verification/delete-preparation-red-producer.json), [full corrected regression](Verification/delete-preparation-core-full.trx.gz).
+
+The native signed cohort passes on MongoDB, SQLite and Neo4j with actual encrypted manager soft-delete enrollment and stored-only status recovery after provider reconnection. The original untouched request still verifies the native receipt, and the retained preparation does not expose the fixture's private values. Existing hard-delete commit-acknowledgement-loss controls remain green; these still dispatch through the provider SDK with storage-conformance envelopes. Both protected soft/hard manager paths are covered by Core tests, but protected hard-delete native acknowledgement loss and OS-process restart need their own acceptance. Cohort remains **453 settlements / 496 attempts**, with frozen sources, seven matching binary pairs and successful owned teardown. [Native TRX](Verification/delete-preparation-native.trx.gz), [result](Verification/delete-preparation-result.json), [source snapshot](Verification/delete-preparation-source.json.gz), [binary identities](Verification/delete-preparation-binaries.json).
+
+This respects the existing explicit protection policy. It does not allocate keys or introduce a plaintext journal for unprotected SDK calls. A deployed host still needs authorized protection policy enrollment and an authenticated recovery endpoint; OS-process interruption/restart remains a separate acceptance requirement.
+
+## Routed stored-intent recovery SDK
+
+Verified 26 October 2026: full Core **3,478/3,478**, zero skips/failures, both targets built; real-Mongo usage **404/404** plus the separate replica initialization control. The three-provider native gate passes routed/direct preparation equivalence before claim and after reconnection, with existing actual lost-acknowledgement recovery and **453 settlements / 496 attempts** unchanged. Sources stayed unchanged, seven producer/consumer pairs matched and owned services/fixtures were removed. [Core tests](Verification/preparation-routing-core-full.trx.gz), [usage tests](Verification/preparation-routing-usage.trx.gz), [native tests](Verification/preparation-routing-native.trx.gz), [native result](Verification/preparation-routing-result.json), [source identities](Verification/preparation-routing-source.json.gz), [binary identities](Verification/preparation-routing-binaries.json).
+
+`HolonManager.ReadHolonWritePreparationAsync(operationId, actor, authority)` routes a lookup through HyperDrive V2, pins the original concrete authority, disables replication, and rejects any returned operation/actor/authority substitution. A missing preparation remains an observation of absence. Direct HyperDrive callers must provide the same immutable `HolonWritePreparationLookup` binding, authenticated actor, required provider and `AutoReplicate=false`; mutation enrollment is rejected before provider access. Both synchronous and asynchronous dispatch require the read capability.
+
+`HolonManager.RecoverConditionalHolonWriteOutcomeAsync` combines lookup, authenticated original-intent reconstruction, and the existing pinned read-only receipt lookup. It requires host-owned protection-context and runtime-type admission callbacks. No request graph or retry candidate is needed, and no execution or first-winner claim is entered. Missing original intent, denied keys/types and changed returned bindings are explicit errors; none authorizes another mutation.
+
+For a trusted SDK host with an authorized per-record policy dictionary, a built-in `Holon`-only type catalogue can be expressed as follows:
+
+```csharp
+var status = await holonManager.RecoverConditionalHolonWriteOutcomeAsync(
+    operationId,
+    authenticatedActorId,
+    originalProvider,
+
+    // This dictionary must come from trusted host authorization policy.
+    // Missing records fail; never allocate a replacement key here.
+    authorizePolicy: recordId => authorizedPolicyById[recordId],
+
+    // Admit only the concrete contracts your application owns.
+    // A typed application must explicitly admit its own holon types too.
+    admitType: (typeName, assemblyName) =>
+        typeName == typeof(Holon).FullName
+        && assemblyName == typeof(Holon).Assembly.GetName().Name
+            ? typeof(Holon)
+            : null);
+
+if (status.IsError)
+{
+    // Preserve the original operation ID and report the explicit error.
+    // Do not infer failure, replay, or switch providers.
+    Console.WriteLine(status.ErrorCode);
+}
+else
+{
+    Console.WriteLine(status.Result.ReceiptState);
+}
+```
+
+Under priced host admission, `ReadHolonWritePreparation` and `ReadConditionalHolonWriteOutcome` each require their own ordinary storage-attempt tariff. A query price does not authorize either operation. The full three-provider ordinary tariff matrix now has 21 rows. A successful reconstructed status workflow can perform two separately accounted reads; an authentication failure after preparation retrieval never dispatches the receipt read.
+
+This SDK surface is not an HTTP endpoint or a durable intent enrollment policy. Authenticated host exposure, writer enrollment under an explicit authorized protection policy, startup validation, and actual OS-process interruption/restart acceptance remain open.
+
+## Read-only preparation retrieval
+
+Verified on 26 October 2026: full Shared **1,242**, MongoDB **575**, SQLite **95** and Neo4j **566** unit tests pass, zero skips/failures. Both Core build targets pass. The native signed CQL cohort passes with unchanged **453 settlements / 496 attempts**, including fifteen preparation lookups after provider reconnection and foreign-actor rejection across all three stores. Existing actual commit-acknowledgement-loss receipt recovery also remains green. [Native result](Verification/preparation-read-native-result.json), [native TRX](Verification/preparation-read-native.trx.gz), [source identities](Verification/preparation-read-native-source.json.gz), [seven matched binary pairs](Verification/preparation-read-native-binaries.json). Unit reports are `Verification/preparation-read-unit-{0,1,2,3}.trx.gz` in Shared/MongoDB/SQLite/Neo4j order.
+
+Native preparation cases use opaque storage-conformance envelopes. Core's separate protected reconstruction tests prove encryption/context/graph admission; the combination does not yet prove an authenticated hosted workflow or OS-process restart recovery.
+
+The additive `IHolonWritePreparationRecoveryStorageProvider` capability reads an original preparation by operation ID and authenticated actor ID. It extends the existing claim capability without changing other providers' contracts. A successful result with a null preparation means none was observed; it does not prove rejection and never authorizes a replay. Returned envelopes remain untrusted until Core authenticates them using authorized protection contexts.
+
+MongoDB reads the existing `CosmicWritePreparation` collection on the primary with majority read concern and reuses the claim owner's stored-record validator. Neo4j performs a bounded `MATCH` against the existing receipt and uses the same preparation ownership/schema validator and shared opaque decoder as its claim owner. SQLite uses a separate nonpooled, read-only file connection and a bounded `SELECT`; a missing file is an error and must not be created by lookup. SQLite claim and read paths now share the opaque transport decoder. No lookup opens a write transaction, claims an operation, mutates a fence, or invokes conditional execution.
+
+Provider SDK callers must supply the actor established by their trusted authentication boundary. These methods do not provide an HTTP authentication boundary or decrypt private original intent. Read-only routing through HyperDrive and hosted recovery admission remain separate integration requirements.
+
+## Stored-only reconstruction for status recovery — 26 October 2026
+
+Core now has an internal `HolonConditionalPreparation.RecoverOriginalForStatus` decoder. It reconstructs the original conditional request from the existing protected preparation without requiring a retry candidate. Save, soft-delete and hard-delete kinds are explicit; the existing save preparation format remains unchanged.
+
+The host supplies authorized per-record protection contexts and explicit runtime-type admission. Before constructing recovered entities, Core authenticates every envelope, checks operation/actor/authority binding, validates complete graph and condition coverage, admits every type, and checks prepared snapshot identities. Original revisions, graph flags, relationships and replication enrollment are retained. Recovery does not claim a preparation, execute a mutation, publish tracking state, or generate replacement ciphertext. The existing retry decoder still compares the entire original intent against the retry candidate.
+
+Sixteen new controls cover all operation kinds, fresh key resolver and key rotation, exact integer/decimal values, denied contexts, substituted bindings, missing envelopes, malformed topology/conditions, inadmissible types and snapshot identity/type substitutions. Full Core: **3,449 executed, 3,449 passed, zero skips/failures**. Both `netstandard2.1` and `net10.0` builds pass. [Retained regression evidence](Verification/stored-preparation-core-full.trx.gz).
+
+This internal decoder is not an authenticated hosted recovery endpoint. Remaining work includes read-only provider preparation lookup, durable hosted/delete intent enrollment with an authorized protection policy, host routing/admission, and actual process termination/restart tests. Existing claims must never be cleared or replayed to manufacture a status result.
+
 20 October 2026. This is an implementation checkpoint. Shared manager/V2 preparation recovery and the native SQLite store are implemented. Selected native encrypted retry cases now pass; complete provider, failure, retention and authorization acceptance remains open. Historical storage-only evidence is retained below.
 
 ## Current V2 save flow

@@ -1,3 +1,149 @@
+## Last and from-end indexing verified — 26 October 2026
+
+[Examples 106–135](../../../Examples/CosmicCqlDemo/V1TailQueries.cs) run on all
+three stores. Last/LastOrDefault and System.Index select after the original source
+window in one native operation. Graph visibility, null ranks, secondary ties and
+exact UTC/UInt64/Double/Decimal ordering are included. Q18/Q19 are green; All
+and the rest of the red parity backlog remain open. Demo/cursor code was not hardened.
+
+**405 SDK cases + 138 HTTP cases + 30 save checks**, 526settlements/608attempts.
+Core **3,797PASS0skip**; net10/netstandard, shipping WEB4 and console builds pass.
+Sources unchanged, seven native producer/consumer pairs and UnitCore copy match.
+
+[Native result](Verification/tail-elements-native-result.json),
+[native test](Verification/tail-elements-native.trx.gz),
+[Core tests](Verification/tail-elements-core.trx.gz),
+[source identities](Verification/tail-elements-native-source.json.gz),
+[binary identities](Verification/tail-elements-native-binaries.json).
+
+## Integer indexing verified after demo acceptance — 26 October 2026
+
+[Examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs) verify
+ElementAt(int)/ElementAtOrDefault(int) on SQLite, MongoDB and Neo4j. Indexing
+preserves the composed source window; negative defaults and indexes outside
+an explicit Take need no provider read. Cancellation/inherited actor checks
+still apply. Unknown-length native failures remain errors.
+
+Q19a is green. Full parent Q19 retains System.Index/from-end scope; Last and All
+remain red. The existing 12 scoped demo rows remain green without new cursor work.
+
+Final proof: **315 SDK cases, 138 HTTP cases, 30 save checks; 526 settlements /
+608 physical attempts**. Core **3,782 tests pass, zero skips**; net10/netstandard,
+shipping WEB4 and standalone console builds pass. Sources unchanged, seven
+producer/consumer pairs and UnitCore copy match.
+
+[Native result](Verification/indexed-elements-native-result.json),
+[native test](Verification/indexed-elements-native.trx.gz),
+[Core tests](Verification/indexed-elements-core.trx.gz),
+[source identities](Verification/indexed-elements-native-source.json.gz),
+[binary identities](Verification/indexed-elements-native-binaries.json).
+
+## Scoped investor demo set verified — 26 October 2026
+
+All 12 **DEMO** rows in the [parity checklist](CQL_PARITY_CHECKLIST.md) now have
+native proof on SQLite, MongoDB and Neo4j. The delta demo covers committed
+redacted summaries (X08a). Its full-history parent X08 remains red with historical
+value authorization/decryption, old-key policy, retention and tooling unfinished.
+This is demo acceptance, not full CQL/EF/NHibernate parity completion.
+
+[Copy the spaced, commented save examples](../../../Examples/CosmicCqlDemo/V1SaveQueries.cs):
+generated IDs, acknowledged/loaded no-op saves, dirty detection, local previews,
+committed additions/removals/modifications, deletion and old-summary recovery.
+The native observer verifies that the caller stays unchanged after the actual
+provider commit until acknowledgement validation. No-op saves reach neither
+mutation nor preparation storage. Fixture identities are journalled before any
+protected preparation write and removed by the owning native fixture on success.
+
+Final gate: **270 SDK query cases + 138 HTTP cases + 30 save-demo checks**,
+three generated-ID post-commit observations, **526 settlements / 608 attempts**,
+unchanged sources and seven matching producer/consumer pairs. Shipping WEB4 and
+standalone console builds pass. Existing Core3,767 is the separate preceding
+gate; no production Core/provider or cursor implementation changed in this batch.
+
+[Native result](Verification/save-demo-native-result.json),
+[native test](Verification/save-demo-native.trx.gz),
+[source identities](Verification/save-demo-native-source.json.gz),
+[binary identities](Verification/save-demo-native-binaries.json).
+
+Run from the repository root in PowerShell:
+
+```powershell
+# Uses the existing reusable three-provider test environment.
+./Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1
+```
+
+The retained environment must already be configured. The runner owns the build
+lease and refuses retained failed fixtures; preserve/reconcile failures before
+another run. It starts no new installation or alternate provider environment.
+
+## Investor-demo query operators verified — 26 October 2026
+
+Examples 59–90 close demo rows Q05/Q06/Q07/Q08/Q12b on SQLite, MongoDB and Neo4j:
+metadata null/missing, native field comparisons, bounded membership, ordinal
+string matching and actual tied secondary ordering. See the
+[commented C# operator examples](../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs).
+
+The SDK walkthrough now has 90 cases/store (270 total); HTTP retains 46/store
+(138 total). The native test passes with 526 settlements / 608 physical attempts,
+unchanged source snapshots and seven matching binary pairs. Shipping WEB4 and
+standalone console builds pass. Core's preceding 3,767-test gate is separate;
+this batch changes no Core/provider implementation or cursor code.
+
+[Native result](Verification/demo-operators-native-result.json),
+[test outcome](Verification/demo-operators-native.trx.gz),
+[source identities](Verification/demo-operators-native-source.json.gz),
+[binary identities](Verification/demo-operators-native-binaries.json).
+
+Three DEMO rows remain red: generated-ID ownership (M07), dirty/no-op saves
+(S04), and committed deltas (X08). The remaining full parity backlog stays
+tracked and deferred until this demo set is green. No broader parity claim.
+
+## Investor-demo element terminals verified — 26 October 2026
+
+The same C# examples 47–58 now exercise `First`, `FirstOrDefault`, `Single` and
+`SingleOrDefault` on SQLite, MongoDB and Neo4j. The SDK walkthrough has 58 cases
+per store (174 total); the HTTP walkthrough retains 46 per store (138 total).
+The native gate passes with 526 settlements / 608 physical attempts, unchanged
+sources and seven matching producer/consumer pairs. Core: 3,767 tests pass,
+zero skips; net10.0/netstandard2.1 and shipping WEB4 builds pass.
+
+[Copy the commented SDK examples](../../../Examples/CosmicCqlDemo/V1ElementQueries.cs)
+and see the [terminal manual](CQL_MANUAL.md#native-element-terminals-c-sdk).
+These are SDK entity-query terminals; this change adds no HTTP terminal route.
+The [DEMO-tagged checklist](CQL_PARITY_CHECKLIST.md#investor-demo-priority-and-work-ordering)
+controls the remaining work: eight rows / 24 database cells are still red.
+POCO/migrations/tooling and other untagged backlog remain deferred; green rows
+and federation cursors remain frozen unless a reproducible bug is found.
+
+Evidence: [native result](Verification/element-terminals-native-result.json),
+[native test](Verification/element-terminals-native.trx.gz),
+[Core test gate](Verification/element-terminals-core.trx.gz),
+[source identities](Verification/element-terminals-native-source.json.gz),
+[binary identities](Verification/element-terminals-native-binaries.json).
+
+## Latest: actual cursor process restart verified — 26 October 2026
+
+A settled three-provider page survives abrupt termination of its hosting process.
+A distinct fresh host resumes the exact protected cursor using the unchanged
+Windows DPAPI-protected persisted key. Three pages/nine provider attempts settle
+through one parent reservation authority and the production HTTP authorization
+client; a duplicate redemption is rejected without another execution start.
+Readiness JSON is published atomically. This is actual process evidence, separate
+from the earlier in-process host restart/key-rotation matrix.
+
+Full native cohort:526settled operations/608physical attempts, unchanged sources,
+seven matching producer/consumer pairs. Original twenty cursor requests and
+existing writer-process recovery remain green. The owning fixture removed its
+small test key/config directory after both process trees stopped; no private key
+or controlled credential was archived. Native databases/services were cleaned.
+
+Evidence: Verification/federation-cursor-process{.trx.gz,-second.trx.gz,
+-source.json.gz,-binaries.json,-result.json,-pids.json}; earlier initial proof is
+retained separately. Scope is same-user Windows DPAPI persistence. Multi-host,
+container/KMS key deployments, broader failure windows, causal agreement,
+repeatable distributed snapshots, distributed joins and the full remaining ORM
+roadmap are still open. Core3,739 is the separate preceding regression gate.
+
 # CQL demos: native v1 and typed coffee ORM
 
 ## Decimal live demo acceptance - 25 October 2026
@@ -224,3 +370,26 @@ The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
 Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.
 
 Latest25October acceptance:102SDK/102HTTP,309settled/301attempts, Core2940 and joint native1/1 pass; standalone build and20 browser preset checks pass. [Composition contract/examples](CQL_COMPOSITION_HTTP_CONTRACT.md). Historical counts below retain their dated scopes.
+
+## Federation demo — verified 26 October 2026
+
+Read [V1FederationWalkthrough.cs](../../../Examples/CosmicCqlDemo/V1FederationWalkthrough.cs) for the spaced and
+commented C# and HTTP examples. The SDK example preserves copies and returns a
+five-row global page; the HTTP example chooses an explicit provider priority
+before its two-identity global page. Neither claims cross-provider freshness.
+
+Run `pwsh -File Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -Serve` from the OASIS
+root using the retained environment. Open the printed Swagger URL, choose
+`POST /api/data/query-cql/federation`, replace the fixture-tag placeholder with
+the running demo tag, and use a fresh idempotency key. The demo supplies Alice's
+bearer token at dispatch. Its federation admission allows three provider attempts;
+leaf query admission remains one. Finish using the demo page for verified cleanup.
+
+Both new global examples execute in the native gate alongside the existing
+138SDK/138HTTP walkthrough. Full cohort505operations/567attempts passes, plus
+13actual-shipping-controller federation requests with exact durable tariffs,
+per-target private grants, revocation, limits and real encrypted metadata handling.
+Sources and seven binary pairs match. Cursors/causal agreement/distributed joins
+remain separate unfinished roadmap work. See the COSMIC ORM HTTP contract.
+
+26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.

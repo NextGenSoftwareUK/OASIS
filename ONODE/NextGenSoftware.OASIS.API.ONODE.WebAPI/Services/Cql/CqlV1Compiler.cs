@@ -86,24 +86,49 @@ public static partial class CqlV1Compiler
     }
 
     public static CosmicQuery<Holon> Compile(CqlV1Request request, Guid actor, ProviderType? provider)
+        =>Compile(request,actor,provider,null);
+
+    public static CosmicQuery<Holon> Compile(CqlV1Request request, Guid actor, ProviderType? provider,
+        CosmicQueryReadAccess access)
     {
         if (request == null || request.Take is < 1 or > 100)
             throw new ArgumentException("Row queries require Take 1–100.");
         return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
     }
 
     public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider)
+        =>CompileScalarSource(request,actor,provider,null);
+
+    public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider,
+        CosmicQueryReadAccess access)
     {
         if (request == null) throw new ArgumentException("A scalar query description is required.");
         return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+    }
+
+    // Only the federation planner may bind this unbound business intent to its
+    // complete captured target policies before any native execution.
+    internal static CosmicQuery<Holon> CompileFederationSource(CqlV1Request request, Guid actor)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+            throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
+        return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
+            null, request.OrderBy, request.Descending, request.Skip, request.Take, bindAccess: false);
     }
 
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
-        CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take)
+        CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
+        bool bindAccess=true)
     {
+        if(access!=null)
+        {
+            if(access.ActorId!=actor || access.Authority.HasValue && provider.HasValue && access.Authority!=provider)
+                throw new ArgumentException("Trusted access must bind the same authenticated actor and concrete provider.");
+            provider=access.Authority??provider;
+        }
         if (actor == Guid.Empty || provider.HasValue && !Supported(provider.Value)) throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
         if (filters == null || anyOf == null || anyChildren == null || anyDescendants == null ||
             anyChildren.Length + (long)anyDescendants.Length > 4 ||
@@ -132,8 +157,8 @@ public static partial class CqlV1Compiler
 
         // Mandatory access restriction enters the SAME native plan before filters, ordering
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
-        var query = Add(CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault),
-            actor);
+        var query = CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault);
+        if (bindAccess) query = Add(query, actor, access);
         if(graphDescription!=null)
         {
             var graph=graphDescription;
@@ -212,9 +237,9 @@ public static partial class CqlV1Compiler
         return Expression.Lambda<Func<IHolon,bool>>(condition,child);
     }
 
-    private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor)
+    private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor,CosmicQueryReadAccess trusted)
     {
-        var access=CosmicQueryReadAccess.OwnerOrPublic(actor);
+        var access=trusted==null?CosmicQueryReadAccess.OwnerOrPublic(actor):new NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess>(trusted);
         if(access.IsError)throw new ArgumentException(access.Message);
         var secured = query.WithReadAccess(access.Result);
         if (secured.IsError) throw new ArgumentException(secured.Message);

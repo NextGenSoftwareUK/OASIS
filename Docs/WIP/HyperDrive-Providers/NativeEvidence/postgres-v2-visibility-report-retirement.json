@@ -1,0 +1,16 @@
+{
+  "scope": "report archival only; original database rows preserved",
+  "initialArchiveSha256": "5658605298db79cae5e8a1a3f8b5fc9f99467219d986bdf7d9a70f4b1206532e",
+  "reports": [
+    {
+      "path": "TestResults/ProviderConformanceCurrent/PostgreSQLOASIS/async/report-core-storage-v2-visibility.json",
+      "sha256": "812f5f10a9739ee9c9ef9695224aac97b9127e71213f35adab8caa35a310201a",
+      "bytes": 1076
+    },
+    {
+      "path": "TestResults/ProviderConformanceCurrent/PostgreSQLOASIS/sync/report-core-storage-v2-visibility.json",
+      "sha256": "e25547fdc5ad6ddad1f27bd906192fdedaaf372ce653427dce8d8e75d4700e2b",
+      "bytes": 1075
+    }
+  ]
+}

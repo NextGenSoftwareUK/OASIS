@@ -1,5 +1,26 @@
 # COSMIC ORM implementation roadmap
 
+## Current acceptance checkpoint - 26 October 2026
+
+The latest CQL/provider checkpoint is maintained in the
+[CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and
+[implementation status](IMPLEMENTATION_STATUS.md). Core's pinned preparation
+lookup, stored-only recovery and protected conditional-delete workflow, including
+request protection inheritance, have a 3,501-test SDK regression checkpoint.
+Both current Core targets build; recovery pricing/configuration has 408 passing
+real-Mongo usage cases. Latest WEB4 unit evidence is 313 passed / one unrelated
+Stripe sandbox skip, including the new authenticated recovery boundary.
+The signed three-provider delete matrix, actual lost native acknowledgement
+receipt recovery, and preparation retrieval after provider reconnection are
+verified on MongoDB, SQLite and Neo4j. Retained native cohort:465 settlements /
+517 attempts. These scoped results do not close the eight-stage roadmap.
+The hosted recovery endpoint, grant/admission/startup controls, per-record write
+enrollment and signed HTTP save/soft/hard recovery acceptance now pass on all three
+stores. Protected hard-delete acknowledgement-loss and actual OS-process
+interruption/restart remain next; see the
+[preparation contract and evidence](WRITE_PREPARATION.md) and
+[delete acceptance history](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
 Date: 19 October 2026. Design and acceptance plan. The first tracking/save-ownership batch is implemented and locally verified; see [current status and test evidence](IMPLEMENTATION_STATUS.md). Later stages remain open.
 
 Read with the [audit](COSMIC_ORM_AUDIT_2026-10-19.md) and [evidence inventory](COSMIC_ORM_SOURCE_EVIDENCE.md). This plan deliberately reuses shared graph planning, provider checked writes and hosted/Edge synchronization rather than adding competing persistence paths.
@@ -292,3 +313,27 @@ Final equality acceptance: Core1,380/1,380 passes10s, Shared883/883 passes on ma
 ### Stage7 MongoDB adoption checkpoint — 20 October 2026
 
 MongoDB now implements atomic committed-delta capture using the shared Core model and Shared receipt codec. SQLite and MongoDB expose the conditional-delta capability; authorized stored-value access, wider provider rollout, ordinary CRUD/replicas and retention/operator workflows remain required. See [MongoDB acceptance and scope](MONGO_COMMITTED_DELTAS.md).
+
+## 26 October: protected public-manager hard-delete fault gate verified
+
+MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment followed by exactly one native mutation commit with acknowledgement loss. Caller snapshot remains unchanged; after provider reactivation stored-only recovery authenticates the original preparation and finds the committed hard-delete receipt without replay. Complete native cohort: 465 settlements / 517 attempts; sources unchanged; seven producer/consumer identities match; owned fixture removed. Evidence and remaining process-restart/transport/tenant/federation work: [hosted recovery](HOSTED_OPERATION_RECOVERY.md). The overall roadmap remains open.
+
+## 26 October: actual writer-process interruption and fresh-process recovery verified
+
+MongoDB, SQLite and Neo4j pass abrupt writer termination after the native hard-delete commit, followed by authenticated stored-only recovery in a separate process. Each original operation retains its identity; writer/reader PIDs differ; no replay. Full native465 settlements/517attempts; sources unchanged; seven binary pairs match; owned services and fixtures cleaned. See [hosted recovery evidence and remaining acceptance](HOSTED_OPERATION_RECOVERY.md). Operator retention/reconciliation and broader tenant/query/federation work remain open.
+
+## 26 October: authoritative access SDK and native policy verification
+
+Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.
+
+## 26 October: hosted authoritative read-policy enrollment verified
+
+All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once to the authenticated actor and captured eligible provider before source windows. Denial/invalid grants/null DI registrations fail without owner-public fallback or manager acquisition. Final Core3530PASS/WEB4313PASS+oneexistingStripeSkip; actualshippingcontroller30signedpolicyrequests pass on all3providers, complete native492settlements/541attempts including process-interruption recovery. Sourcesunchanged/sevennative+threeunitbinarypairs match; ownedfixtures/services cleaned. See [contract and evidence](CQL_HOSTED_READ_POLICY.md). Application-specific authoritative grant discovery, scalable authorization I/O/cancellation/billing, tenant deployment readiness, federation and broader ORM acceptance remain open.
+
+## 26 October: required authoritative policy deployment verified
+
+CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## 26 October: recovery policy lifetime ownership
+
+Recovery readiness now validates application policy inside a short DI scope. Two genuine regressions covered both scope-validation modes; singleton ownership and unenrolled/cancelled checks have positive controls. Shipping build and 320 WEB4 tests pass, with one existing Stripe sandbox skip. Source and producer/consumer identities are retained in [the recovery contract](HOSTED_OPERATION_RECOVERY.md). This DI-only checkpoint did not rerun the separately recorded Core/native matrices. Grant discovery, scalable authorization, federation and remaining ORM acceptance stay open.

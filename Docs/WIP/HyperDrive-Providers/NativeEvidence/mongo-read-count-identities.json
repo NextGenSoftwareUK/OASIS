@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-26",
+  "scope": "Read-only regression on both original avatars, two schedules passed, id/username/email payload and loaded counts, missing count zero",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "33244D4FC15529CB10879FB5E53E3C2B5D9DA572FA4EE1448026E9D9A19A11A0",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "7FCB5C2BC1D4B7F5F9D7EBB524169327E9523374F3FD8C6A8EEC39A6C42B7CCA",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS",
+      "sha256": "9BB1B0CAA1D8764122617B9827C17D9CFAD98A237131702F269737E42480A0F8",
+      "pdbSha256": "A26B379727E36D4E05F82569DB2D06BE4AEBD69EB94C841756E5F9CECFFAD21B",
+      "sources": 124
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "sha256": "206D55C57ABCEEF5377D0C1B53A2C19B3DC4D4614194BBE8410E7FFB5AE5055C",
+      "pdbSha256": "0DEFD814BCF37575A222F2BDB44569F87C96F7E1F1CBEC1A2F6DA3900FF5E219",
+      "sources": 6
+    }
+  ],
+  "fixtureDisposition": "Original avatars/reports preserved; no new saves, deletions or CQL data writes",
+  "shutdown": "Owned Mongo graceful SDK shutdown completed",
+  "freeBytes": 127587565568,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7348284,
+      "objBytes": 1411601
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS",
+      "binBytes": 8506056,
+      "objBytes": 2263445
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "binBytes": 47532945,
+      "objBytes": 1085231
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/mongo-core-read-count-current.trx.gz",
+    "rawBytes": 4519,
+    "rawSha256": "ff18be3dc5a81c9f633a426b5c607fe7d3c3a13305b0705b04aea55fdad0f888",
+    "gzipBytes": 1314,
+    "gzipSha256": "61b47acce2a0a26e2499e2ce7aef9830bddd119fb72cea09b3117f25ed5ea93d",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

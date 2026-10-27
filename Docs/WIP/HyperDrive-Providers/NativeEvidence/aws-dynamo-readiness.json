@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-27",
+  "container": "c79bc30b625108ec4bd95e07204105bc121843aa1728dd70a0aea0d7d0cbf1ed",
+  "image": "6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd",
+  "runtimeVersion": "3.3.2",
+  "endpoint": "http://127.0.0.1:18000",
+  "readiness": "PASS: native HTTP400 MissingAuthenticationToken protocol response",
+  "finalState": "exited; ports18000/18001 observed absent by teardown",
+  "storePath": "C:\\Source\\OASIS-hyperdrive-v2-gaps\\TestResults\\AWSProviderEvidence\\retained-history-data",
+  "storeBytes": 311,
+  "markerSha256": "ccfa489ddbf1bc3f7b2e0d3b07da5ca37151458f6306f88123d31aa8b633c978",
+  "historicalDataRestored": false,
+  "reinitializationGuard": "PASS: second explicit initialization refused, marker unchanged",
+  "sdkConformancePassed": 0,
+  "scope": "Only retained container lifecycle/readiness; no authenticated storage operations or table creation",
+  "helperSourceSha256": "b64f2fc26ec64988bae71ddd8caceb40c941e77a92f96a25c63900271ef8828a"
+}

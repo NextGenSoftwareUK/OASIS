@@ -27,6 +27,8 @@
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/HolonAccessTests.cs" Link="ProductionTests/HolonAccessTests.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Production/HolonAccess.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadAccessPolicy.cs" Link="Production/CqlReadAccessPolicy.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadPolicyDeployment.cs" Link="Production/CqlReadPolicyDeployment.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs" Link="Production/CqlCompositionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs" Link="Production/CqlSelectedV1Compiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs" Link="Production/CqlCompositionV1Compiler.cs" />
@@ -40,6 +42,11 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlScalarSelectionCompiler.cs" Link="Production/CqlScalarSelectionCompiler.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AdmittedStorageManagerAcquisition.cs" Link="Production/AdmittedStorageManagerAcquisition.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlV1Request.cs" Link="Production/CqlV1Request.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlFederationV1Request.cs" Link="Production/CqlFederationV1Request.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationV1Endpoint.cs" Link="Production/CqlFederationV1Endpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorCodec.cs" Link="Production/CqlFederationCursorCodec.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorHost.cs" Link="Production/CqlFederationCursorHost.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlRequestCapture.cs" Link="Production/CqlRequestCapture.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlScalarV1Request.cs" Link="Production/CqlScalarV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlProjectionV1Request.cs" Link="Production/CqlProjectionV1Request.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlProjectionV1Compiler.cs" Link="Production/CqlProjectionV1Compiler.cs" />
@@ -54,9 +61,13 @@
   <ItemGroup><None Update="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs" Link="Production/HolonWriteEndpoint.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs" Link="Production/HostedCosmicProtection.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic/ICosmicOperationRecoveryPolicy.cs" Link="Production/ICosmicOperationRecoveryPolicy.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/HolonWriteIntentRequest.cs" Link="Production/HolonWriteIntentRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonRequest.cs" Link="Production/SaveHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonsRequest.cs" Link="Production/SaveHolonsRequest.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/DeleteHolonRequest.cs" Link="Production/DeleteHolonRequest.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseLoadHolonRequest.cs" Link="Production/BaseLoadHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Production/BaseHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Production/OASISRequest.cs" />
   </ItemGroup>

@@ -1,0 +1,72 @@
+using System;
+using System.Linq;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
+
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+
+/// <summary>Detach caller-owned wire descriptions before callbacks or awaits. The compiler still
+/// owns semantic admission; these larger capture ceilings only bound snapshot allocation.</summary>
+internal static class CqlRequestCapture
+{
+    internal static CqlFederationV1Request Capture(CqlFederationV1Request value)
+    {
+        if (value == null) throw new ArgumentException("A federation request is required.");
+        return new CqlFederationV1Request
+        {
+            Scope = value.Scope, Providers = Array(value.Providers, 8, item => item),
+            ProviderPriority = Array(value.ProviderPriority, 8, item => item),
+            Source = Capture(value.Source), IdentityMode = value.IdentityMode,
+            Skip = value.Skip, Take = value.Take, MaximumInputRows = value.MaximumInputRows,
+            MaximumRowsPerProvider = value.MaximumRowsPerProvider, MaximumInputBytes = value.MaximumInputBytes,
+            MaximumOutputBytes = value.MaximumOutputBytes, MaximumWork = value.MaximumWork,
+            MaximumProviderAttempts = value.MaximumProviderAttempts, MaximumDurationMilliseconds = value.MaximumDurationMilliseconds,
+            EnableContinuation = value.EnableContinuation, Cursor = value.Cursor
+        };
+    }
+
+    internal static CqlV1Request Capture(CqlV1Request value)
+    {
+        if (value == null) throw new ArgumentException("A source request is required.");
+        var filterCount = 0;
+        CqlV1Filter Filter(CqlV1Filter filter)
+        {
+            if (filter == null || ++filterCount > 64) throw new ArgumentException("Filter capture is incomplete or oversized.");
+            var scalar = filter.Value;
+            if (scalar.ValueKind is JsonValueKind.Object or JsonValueKind.Array
+                || scalar.ValueKind == JsonValueKind.String && scalar.GetString()!.Length > 512
+                || scalar.ValueKind == JsonValueKind.Number && scalar.GetRawText().Length > 64)
+                throw new ArgumentException("Filter capture requires a bounded scalar.");
+            return new CqlV1Filter
+            {
+                Field = filter.Field, MetadataPath = filter.MetadataPath == null ? null : Array(filter.MetadataPath, 8, item => item),
+                Scalar = filter.Scalar, Operator = filter.Operator,
+                Value = scalar.ValueKind == JsonValueKind.Undefined ? default : scalar.Clone()
+            };
+        }
+        var graph = value.Graph;
+        return new CqlV1Request
+        {
+            Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
+            Skip = value.Skip, Take = value.Take, IncludeMetadata = value.IncludeMetadata,
+            Filters = Array(value.Filters, 64, Filter), AnyOf = Array(value.AnyOf, 64, Filter),
+            AnyChildren = Array(value.AnyChildren, 8, group => group == null
+                ? throw new ArgumentException("Missing child group.")
+                : new CqlV1ChildExists { Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
+            AnyDescendants = Array(value.AnyDescendants, 8, group => group == null
+                ? throw new ArgumentException("Missing descendant group.")
+                : new CqlV1DescendantExists { MaximumDepth = group.MaximumDepth, MaximumNodes = group.MaximumNodes,
+                    Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
+            Graph = graph == null ? null : new CqlV1Graph { Recursive = graph.Recursive, MaxChildDepth = graph.MaxChildDepth,
+                ChildType = graph.ChildType, MaximumNodes = graph.MaximumNodes,
+                MaximumPayloadBytes = graph.MaximumPayloadBytes, Consistency = graph.Consistency }
+        };
+    }
+
+    private static TOutput[] Array<TInput, TOutput>(TInput[] values, int maximum, Func<TInput, TOutput> copy)
+    {
+        if (values == null || values.Length > maximum) throw new ArgumentException("Request collection capture is incomplete or oversized.");
+        // Capture references once, then copy every nested mutable descriptor.
+        return ((TInput[])values.Clone()).Select(copy).ToArray();
+    }
+}

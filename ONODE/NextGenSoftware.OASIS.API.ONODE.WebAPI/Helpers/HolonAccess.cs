@@ -90,10 +90,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             {
                 var observed = await holonManager.LoadHolonForWriteAsync(holonId, callerId);
                 if (observed.IsError || observed.IsWarning || observed.Result == null)
-                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                        ErrorCode = observed.ErrorCode == "COSMIC_AUTHORITY_READ_INVALID"
-                            ? "COSMIC_SHARE_LOOKUP_INVALID" : observed.ErrorCode,
-                        Message = observed.Message, Exception = observed.Exception };
+                    return ShareFailure(observed, "COSMIC_SHARE_LOOKUP_INVALID");
                 authority = observed.Result.Authority;
                 loaded = new OASISResult<IHolon>(observed.Result.Record) { IsLoaded = true };
             }
@@ -128,15 +125,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             var saved = await holonManager.SaveHolonAsync(holon, callerId,
                 writeOptions ?? new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false, providerType: authority);
             if (saved == null || saved.IsError || saved.IsWarning || saved.Result == null)
+            {
+                if (holonManager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+                    return ShareFailure(saved, "COSMIC_SHARE_SAVE_INVALID");
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = saved?.ErrorCode ?? "COSMIC_SHARE_SAVE_INVALID",
                     Message = $"Unable to persist sharing for holon {holonId}. Reason: {saved?.Message}",
                     Exception = saved?.Exception };
+            }
 
             return new OASISResult<bool> { Result = true, IsSaved = saved.IsSaved,
                 MetaData = saved.MetaData,
                 Message = revoke ? $"Read access revoked for {recipients.Count} avatar(s)."
                     : $"Holon {holonId} shared with {recipients.Count} avatar(s)." };
+        }
+
+        private static OASISResult<bool> ShareFailure<T>(OASISResult<T> source, string invalidCode)
+        {
+            var result = source == null ? new OASISResult<bool>()
+                : OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<T, bool>(source);
+            result.IsError = true;
+            result.ErrorCount = Math.Max(1, result.ErrorCount);
+            if (string.IsNullOrEmpty(result.ErrorCode) || result.ErrorCode == "COSMIC_AUTHORITY_READ_INVALID")
+                result.ErrorCode = invalidCode;
+            return result;
         }
 
         /// <summary>True when a holon has recipients whose "shared with me" index flag is missing (shares made before the index existed).</summary>

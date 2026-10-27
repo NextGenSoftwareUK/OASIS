@@ -26,7 +26,9 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
                 return CqlFailure("CQL_PLAN_INVALID","MongoDB requires an exclusively MongoDB query plan.");
             if(maximumResults<1||maximumResults>10000)return CqlFailure("CQL_QUERY_LIMIT","Result budget must be between one and 10,000.");
             // Re-admit against this adapter's actual contract, not a caller-supplied capability profile.
-            var command=new MongoCqlTranslator().CompileExecution(plan.Query,maximumResults);
+            var admission = CqlCapabilities.AdmitPlan(plan);
+            if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
+            var command=new MongoCqlTranslator().CompileExecution(plan.Query,maximumResults,plan.TailIndex);
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
             if(plan.Query.GraphOptions!=null)

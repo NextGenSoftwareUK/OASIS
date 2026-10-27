@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotSubmissionProcessTests
 {
-    [DataTestMethod][DataRow("submitNativePreparation")][DataRow("submitAssetPreparation")][DataRow("submitRecordPreparation")]
+    [DataTestMethod][DataRow("submitNativePreparation")][DataRow("submitAssetPreparation")][DataRow("submitRecordPreparation")][DataRow("submitNftPreparation")]
     public async Task AllWritableSdkOperationsRequireAnOwnedPreparationServer(string operation)
     {
         using var provider = new PolkadotOASIS("http://127.0.0.1:1");
@@ -26,6 +26,8 @@ public class PolkadotSubmissionProcessTests
     [DataRow("submitAssetPreparation", "wrong-hash")][DataRow("submitAssetPreparation", "false-finality")]
     [DataRow("submitRecordPreparation", "accepted")][DataRow("submitRecordPreparation", "error")]
     [DataRow("submitRecordPreparation", "wrong-hash")][DataRow("submitRecordPreparation", "false-finality")]
+    [DataRow("submitNftPreparation", "accepted")][DataRow("submitNftPreparation", "error")]
+    [DataRow("submitNftPreparation", "wrong-hash")][DataRow("submitNftPreparation", "false-finality")]
     public async Task AcknowledgedOriginalCannotLoseIdentityOrBecomeFinalSuccess(string operation, string outcome)
     {
         // Real owned child/physical pipe, controlled callback/response. NOT native ledger/outbox evidence.

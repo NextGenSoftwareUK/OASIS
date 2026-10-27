@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-27",
+  "scope": "GoogleCloud production factory Firestore-only native core-storage-v2 52/52PASS2s/no skips",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "E9F0028BA1E00B34E904D4276535207B27BA72DF27D8ABAECEB307CDA3D5371D",
+      "SourceDocuments": 791
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "328E7FA829613CA29E6D667B5B9E66A883A609B7E71479F5D12EFBC9130FE5D6",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS",
+      "sha256": "E26B633373BB61E2FD1AFDD5941CD72B2BEEA8043BA05F256F4538E0731104FE",
+      "pdbSha256": "DA26ED014C210B5BEC72DF824D0217732B79CC72556B531420072D39A66AE7D6",
+      "sources": 26
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.LocalFileOASIS",
+      "sha256": "87AB3790A40BF84C99597309643DEA31DD6E113387F39EAEAF6A0ABFC6D046E4",
+      "pdbSha256": "4C3534F87DA0206DDA476386B549242BF31A00416600D3D54AB5187DBCDB4462",
+      "sources": 16
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS",
+      "sha256": "FDBE0CF502E82DEF1653A1AA87A0885C826A1B0E1A19DF472EFDFACE965088E2",
+      "pdbSha256": "40B44F5C53CE95C258DB1E6DEF6127834AAB83287BE1B7D987E2A63C36955344",
+      "sources": 178
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests",
+      "sha256": "8AAFD2C898DD00038FC3C9F1623CF2F7BECA4B8C76A196FD4DDE79EA19E719B8",
+      "pdbSha256": "5DCE7343709DF6277427AA89D64BCD6FD98D314FF5C331BEF6CAB280C22E4798",
+      "sources": 39
+    }
+  ],
+  "runtime": "Retained Firestore1.22.0 JAR, one256MBJava runtime, explicit synthetic project oasis-google-core-conformance/named core-async/core-sync databases",
+  "legacy": "Old export/checkpoint absent from both documented worktrees, not restored or reset; no durability/restoration/GCS/BigQuery/cloud-account acceptance claim",
+  "fixtureDisposition": "Both canonical reports complete with point/raw-interface absence; synthetic runtime stopped, owner record retained",
+  "freeBytes": 127829962752,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS",
+      "binBytes": 7601060,
+      "objBytes": 1155451
+    },
+    {
+      "path": "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests",
+      "binBytes": 93851219,
+      "objBytes": 1854053
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/google-firestore-core-current.trx.gz",
+    "rawBytes": 4585,
+    "rawSha256": "a04b1069f210f09fdbc051fa515df7cda373d07825609a7437ab4208e75263b8",
+    "gzipBytes": 1321,
+    "gzipSha256": "df71c4a65cbdc85e80a7878bbd0c0ce4c37f406c9413608e0f032bfb786280be",
+    "rawRemovedAfterVerifiedCompression": true
+  },
+  "owner": {
+    "path": "TestResults/GoogleCurrent/core-runtime-owner.json",
+    "sha256": "e1720af20adb1fa42c3d6b749559db1d71f12f9006f8dc468ada629f95ecac83"
+  }
+}

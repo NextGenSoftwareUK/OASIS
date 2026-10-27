@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
@@ -209,87 +209,13 @@ public partial class SolanaOASIS
         return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId,
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId,
         decimal amount)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate =
-            "Error was occured in SendTransactionByIdAsync method in SolanaOASIS while sending transaction. Reason: ";
+        => SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token: null);
 
-        var senderAvatarPublicKeyResult =
-            KeyManager.GetProviderPublicKeysForAvatarById(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
-        var receiverAvatarPublicKeyResult =
-            KeyManager.GetProviderPublicKeysForAvatarById(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
-
-        if (senderAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
-                senderAvatarPublicKeyResult.Exception);
-            return result;
-        }
-
-        if (receiverAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
-                receiverAvatarPublicKeyResult.Exception);
-            return result;
-        }
-
-        var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
-        var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-        result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
-
-        if (result.IsError)
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message),
-                result.Exception);
-
-        return result;
-    }
-
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername,
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername,
         string toAvatarUsername, decimal amount)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate =
-            "Error was occured in SendTransactionByUsernameAsync method in SolanaOASIS while sending transaction. Reason: ";
-
-        var senderAvatarPublicKeyResult =
-            KeyManager.GetProviderPublicKeysForAvatarByUsername(fromAvatarUsername,
-                Core.Enums.ProviderType.SolanaOASIS);
-        var receiverAvatarPublicKeyResult =
-            KeyManager.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername,
-                Core.Enums.ProviderType.SolanaOASIS);
-
-        if (senderAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, senderAvatarPublicKeyResult.Message),
-                senderAvatarPublicKeyResult.Exception);
-
-            return result;
-        }
-
-        if (receiverAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
-                receiverAvatarPublicKeyResult.Exception);
-            return result;
-        }
-
-        var senderAvatarPublicKey = senderAvatarPublicKeyResult.Result[0];
-        var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-
-        result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
-
-        if (result.IsError)
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message),
-                result.Exception);
-
-        return result;
-    }
+        => SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token: null);
 
     public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername,
         string toAvatarUsername, decimal amount)
@@ -297,45 +223,9 @@ public partial class SolanaOASIS
         return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail,
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail,
         string toAvatarEmail, decimal amount)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate =
-            "Error was occured in SendTransactionByEmailAsync method in SolanaOASIS while sending transaction. Reason: ";
-
-        var senderAvatarPublicKeysResult =
-            KeyManager.GetProviderPublicKeysForAvatarByEmail(fromAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
-        var receiverAvatarPublicKeyResult =
-            KeyManager.GetProviderPublicKeysForAvatarByEmail(toAvatarEmail, Core.Enums.ProviderType.SolanaOASIS);
-
-        if (senderAvatarPublicKeysResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
-                senderAvatarPublicKeysResult.Exception);
-            return result;
-        }
-
-        if (receiverAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
-                receiverAvatarPublicKeyResult.Exception);
-            return result;
-        }
-
-        var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result[0];
-        var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result[0];
-
-        result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
-
-        if (result.IsError)
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message),
-                result.Exception);
-
-        return result;
-    }
+        => SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token: null);
 
     public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail,
         decimal amount)
@@ -349,86 +239,11 @@ public partial class SolanaOASIS
         return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
     }
 
-    public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId,
+    public Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId,
         Guid toAvatarId, decimal amount)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate =
-            "Error was occured in SendTransactionByDefaultWallet method in SolanaOASIS while sending transaction. Reason: ";
+        => SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token: null);
 
-        var senderAvatarPublicKeysResult =
-            await WalletManager.GetAvatarDefaultWalletByIdAsync(fromAvatarId, Core.Enums.ProviderType.SolanaOASIS);
-        var receiverAvatarPublicKeyResult =
-            await WalletManager.GetAvatarDefaultWalletByIdAsync(toAvatarId, Core.Enums.ProviderType.SolanaOASIS);
 
-        if (senderAvatarPublicKeysResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, senderAvatarPublicKeysResult.Message),
-                senderAvatarPublicKeysResult.Exception);
-            return result;
-        }
-
-        if (receiverAvatarPublicKeyResult.IsError)
-        {
-            OASISErrorHandling.HandleError(ref result,
-                string.Concat(errorMessageTemplate, receiverAvatarPublicKeyResult.Message),
-                receiverAvatarPublicKeyResult.Exception);
-            return result;
-        }
-
-        var senderAvatarPublicKey = senderAvatarPublicKeysResult.Result.PublicKey;
-        var receiverAvatarPublicKey = receiverAvatarPublicKeyResult.Result.PublicKey;
-        result = await SendSolanaTransaction(senderAvatarPublicKey, receiverAvatarPublicKey, amount);
-
-        if (result.IsError)
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, result.Message),
-                result.Exception);
-
-        return result;
-    }
-
-    private async Task<OASISResult<ITransactionResponse>> SendSolanaTransaction(string fromAddress, string toAddress,
-        decimal amount)
-    {
-        var result = new OASISResult<ITransactionResponse>();
-        var errorMessageTemplate =
-            "Error was occured in SendSolanaTransaction method in SolanaOASIS while sending transaction. Reason: ";
-
-        try
-        {
-            var solanaTransactionResult = await _solanaService.SendTransaction(new SendTransactionRequest()
-            {
-                Amount = (ulong)amount,
-                FromAccount = new BaseAccountRequest()
-                {
-                    PublicKey = fromAddress
-                },
-                ToAccount = new BaseAccountRequest()
-                {
-                    PublicKey = toAddress
-                }
-            });
-
-            if (solanaTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaTransactionResult.Result.TransactionHash))
-            {
-                OASISErrorHandling.HandleError(ref result,
-                    string.Concat(errorMessageTemplate, solanaTransactionResult.Message),
-                    solanaTransactionResult.Exception);
-                return result;
-            }
-
-            result.Result.TransactionResult = solanaTransactionResult.Result.TransactionHash;
-            TransactionHelper.CheckForTransactionErrors(ref result);
-        }
-        catch (Exception e)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessageTemplate, e.Message), e);
-        }
-
-        return result;
-    }
 
     public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         => SendNFTAsync(transaction).Result;

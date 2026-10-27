@@ -1,6 +1,13 @@
 #Requires -Version 7.0
-param([switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2)
+param([switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2)
 $ErrorActionPreference='Stop'
+if($ConformanceReadOnly -and ($ConformanceOnly -or $Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
+    throw 'Select original-fixture read-only conformance diagnosis alone.'
+}
+if($ConformanceOnly -and ($Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
+    throw 'Select canonical storage conformance alone; no inspection/recovery/depth modes.'
+}
+if($AvatarTransferOnly -and ($AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection)){throw 'Select the avatar-transfer native scope alone.'}
 if($CloseReviewedAvatarRejection -and !$InspectAvatarFailure){throw 'Reviewed closure requires exact original avatar inspection.'}
 if($InspectAvatarFailure){$InspectRecent=$true}
 if($StorageTokenOnly -and ($AvatarOnly -or $InspectRecent)){throw 'Storage/token regression must be selected without avatar or inspection modes.'}
@@ -9,7 +16,16 @@ if(!$InspectRecent -and $ObservationSeconds -ne 2){throw 'ObservationSeconds is 
 if($InspectRecent -and $AvatarOnly){throw 'Select keyless inspection or avatar acceptance, not both.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
-$nativeReport=if($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
+$nativeReport=if($ConformanceReadOnly){'solana-core-read-current.trx'}elseif($ConformanceOnly){'solana-core-storage-current.trx'}elseif($AvatarTransferOnly){'solana-avatar-transfer-native.trx'}elseif($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/SOLANAOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){
+            throw 'Preserve previous canonical Solana evidence before another submission.'
+        }
+    }
+}
+if($ConformanceReadOnly -and (Test-Path -LiteralPath (Join-Path $work 'solana-core-read-diagnostic.json'))){throw 'Preserve the previous original-fixture diagnostic.'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
@@ -33,8 +49,13 @@ try {
     if($LASTEXITCODE){throw 'A validator or owned port is already active; refusing duplicate environment.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj'
     if(!$InspectRecent){
-        & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent -or $ConformanceReadOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
+        $consumerOutput=Join-Path (Split-Path $project) 'bin/Debug/net10.0'
+        . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput $consumerOutput -VerifySourceDocuments
+        foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.SOLANAOASIS','NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests')) {
+            Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumerOutput ($assembly+'.dll')) $taskRoot))
+        }
     }
     # Do not independently purge shreds: retained snapshots/tower may still require them for replay.
     # Bound runs and monitor disk; prune only after independently verifying a sufficient durable snapshot.
@@ -173,18 +194,28 @@ try {
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
-    if($AvatarOnly){$testArguments+=@('--filter','TestCategory=AvatarNative')}
-    elseif($StorageTokenOnly){$testArguments+=@('--filter','TestCategory!=AvatarNative&TestCategory!=NativeFeeReadOnly')}
+    if($ConformanceReadOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageInspect')}
+    elseif($ConformanceOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageConformance')}
+    elseif($AvatarTransferOnly){$testArguments+=@('--filter','TestCategory=AvatarTransferNative')}
+    elseif($AvatarOnly){$testArguments+=@('--filter','TestCategory=AvatarNative')}
+    elseif($StorageTokenOnly){$testArguments+=@('--filter','TestCategory!=AvatarNative&TestCategory!=NativeFeeReadOnly&TestCategory!=AvatarTransferNative')}
     elseif($FeeReceiptOnly){$testArguments+=@('--filter','TestCategory=NativeFeeReadOnly')}
-    else{$testArguments+=@('--filter','TestCategory!=NativeFeeReadOnly')}
+    else{$testArguments+=@('--filter','TestCategory!=NativeFeeReadOnly&TestCategory!=AvatarTransferNative')}
     if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
     & dotnet @testArguments
-    if($LASTEXITCODE){throw 'Real Solana integration failed; inspect fixed report.'}
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/record_conformance_results.py') --providers SOLANAOASIS
+        if($LASTEXITCODE){throw 'Solana canonical report registration failed; preserve exact fixture.'}
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Solana matrix update failed.'}
+    }
+    if($testExit){throw 'Real Solana integration failed; preserve exact fixture/report, no automatic replay.'}
     $report=Get-Item -LiteralPath (Join-Path $work $nativeReport)
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
+    $expected=if($ConformanceReadOnly){1}elseif($ConformanceOnly){2}elseif($AvatarTransferOnly){2}elseif($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing native schedules for the selected scope, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {

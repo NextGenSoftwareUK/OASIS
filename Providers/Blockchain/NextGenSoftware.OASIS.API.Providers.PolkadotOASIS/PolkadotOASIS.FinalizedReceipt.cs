@@ -13,22 +13,34 @@ public partial class PolkadotOASIS
     /// never rejection/expiry/replay permission. Retain nextBlockNumber and resume without broadcasting.</summary>
     public Task<OASISResult<JsonElement>> ReadOriginalNativeOutcomeAsync(JsonElement preparation,
         string fromBlockNumber, int maximumBlocks = 16, CancellationToken cancellationToken = default)
-        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, false, cancellationToken);
+        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, NativeMutationKind.Native, cancellationToken);
 
     /// <summary>Reads canonical finalized Assets effects for the original; no broadcast or full native-outlay certification.</summary>
     public Task<OASISResult<JsonElement>> ReadOriginalAssetOutcomeAsync(JsonElement preparation,
         string fromBlockNumber = null, int maximumBlocks = 16, CancellationToken cancellationToken = default)
-        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, true, cancellationToken);
+        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, NativeMutationKind.Asset, cancellationToken);
+
+    public Task<OASISResult<JsonElement>> ReadOriginalNftOutcomeAsync(JsonElement preparation,
+        string fromBlockNumber=null,int maximumBlocks=16,CancellationToken cancellationToken=default)
+        => ReadOriginalOutcomeAsync(preparation,fromBlockNumber,maximumBlocks,NativeMutationKind.Nft,cancellationToken);
+
+    public Task<OASISResult<JsonElement>> ReadOriginalTokenEscrowOutcomeAsync(JsonElement preparation,
+        string fromBlockNumber=null,int maximumBlocks=16,CancellationToken cancellationToken=default)
+        => ReadOriginalOutcomeAsync(preparation,fromBlockNumber,maximumBlocks,NativeMutationKind.TokenEscrow,cancellationToken);
 
     private async Task<OASISResult<JsonElement>> ReadOriginalOutcomeAsync(JsonElement preparation,
-        string fromBlockNumber, int maximumBlocks, bool asset, CancellationToken cancellationToken)
+        string fromBlockNumber, int maximumBlocks, NativeMutationKind kind, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
         {
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before original outcome recovery.");
             var original = preparation.Clone();
-            var response = await InvokePolkadotSdkAsync(new { operation = asset ? "assetOutcome" : "originalOutcome", endpoint = _rpcEndpoint,
+            if(kind==NativeMutationKind.TokenEscrow&&(_tokenEscrowConfiguration==null
+                ||original.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId
+                ||original.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash))
+                throw new InvalidDataException("Token recovery original differs from the explicitly configured escrow.");
+            var response = await InvokePolkadotSdkAsync(new { operation = MutationOperations(kind).Outcome, endpoint = _rpcEndpoint,
                 genesisHash = ReportedGenesisHash, preparation = original, fromBlockNumber, maximumBlocks }, cancellationToken);
             var found = response.GetProperty("found").GetBoolean();
             var observed = found ? response.GetProperty("receipt") : response;

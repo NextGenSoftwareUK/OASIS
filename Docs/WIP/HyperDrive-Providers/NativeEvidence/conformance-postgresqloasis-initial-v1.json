@@ -1,0 +1,55 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "4f0dc015-79d3-4233-8554-665e45d9de29",
+      "RootId": "fec6ad57-236e-47c1-895d-831efe5ccddc",
+      "ChildId": "8277daf2-08e6-4e5c-92d1-c179cb83588b",
+      "BatchIds": [
+        "5be750b5-1a17-4498-ac0d-a3a8ef489dd3",
+        "68319bb1-b803-4b53-b506-b590d2155dae"
+      ],
+      "ImportId": "ff60abb4-5a87-465f-9394-e2ba1cd08613",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save"
+      ],
+      "CurrentCase": "detail-id",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "ce037262-64b6-441b-aab3-804f4d0b5305",
+      "RootId": "b0077af2-23dc-4d45-94c8-e33ac575d034",
+      "ChildId": "d2d2e6a7-2547-481f-ba25-ec08ff69a3a8",
+      "BatchIds": [
+        "683201b5-455d-4857-8153-cfd7361be7c4",
+        "cb208f95-c455-411e-a743-bb7b3135fe96"
+      ],
+      "ImportId": "47d449b0-ea49-428d-a75e-aa22ecc36110",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save"
+      ],
+      "CurrentCase": "detail-id",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

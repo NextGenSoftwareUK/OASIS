@@ -1,0 +1,41 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "ArbitrumOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "3dfd572f-fe2d-4f77-b81c-be07858f0bdd",
+      "RootId": "090f2cba-13b0-4abf-bd54-ad81d6c45cd4",
+      "ChildId": "f9dae43c-bda7-4a3e-a512-f796453eacd0",
+      "BatchIds": [
+        "2e2fd6de-1cfb-4c3a-a49f-4d458be661ff",
+        "b657b60f-d565-4f11-8f2e-f076d37bcd7a"
+      ],
+      "ImportId": "7d471584-a00c-4c4a-a955-27ad236d1749",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "ArbitrumOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "daebc342-c3cd-4043-8d4d-984df4aee5d9",
+      "RootId": "a65ce7ce-af44-4678-8cf3-0c2532baabf0",
+      "ChildId": "37e0f4d8-9dda-4780-b39d-0987616ba8a4",
+      "BatchIds": [
+        "9b6f7d84-e89f-44cd-88b4-ed8d9ddf8cdd",
+        "07278b05-e717-4ce0-8f9e-c96b1253d997"
+      ],
+      "ImportId": "b7f5cfbb-5247-4b6a-a3e2-ab9da4c316a5",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

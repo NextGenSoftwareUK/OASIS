@@ -1,0 +1,14 @@
+[
+  {
+    "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "sha256": "a62a448c0f05abc5a80c8304fc7a7d67da0670cc344418d9b242b1943ee90125"
+  },
+  {
+    "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "sha256": "a62a448c0f05abc5a80c8304fc7a7d67da0670cc344418d9b242b1943ee90125"
+  },
+  {
+    "path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "sha256": "a62a448c0f05abc5a80c8304fc7a7d67da0670cc344418d9b242b1943ee90125"
+  }
+]

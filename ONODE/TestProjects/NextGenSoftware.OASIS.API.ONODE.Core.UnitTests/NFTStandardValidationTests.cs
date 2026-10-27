@@ -38,6 +38,11 @@ public sealed class NFTStandardValidationTests : IDisposable
     [InlineData(NFTStandardType.SuiObject, ProviderType.SuiOASIS, true)]
     [InlineData(NFTStandardType.HederaHTS, ProviderType.HashgraphOASIS, true)]
     [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.CosmosBlockChainOASIS, true)]
+    [InlineData(NFTStandardType.PSP34, ProviderType.PolkadotOASIS, true)]
+    [InlineData(NFTStandardType.PSP34, ProviderType.EthereumOASIS, false)]
+    [InlineData(NFTStandardType.PSP34, ProviderType.SolanaOASIS, false)]
+    [InlineData(NFTStandardType.ERC721, ProviderType.PolkadotOASIS, false)]
+    [InlineData(NFTStandardType.SPL, ProviderType.PolkadotOASIS, false)]
     [InlineData(NFTStandardType.HederaHTS, ProviderType.SuiOASIS, false)]
     [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.HashgraphOASIS, false)]
     [InlineData(NFTStandardType.HederaHTS, ProviderType.EthereumOASIS, false)]
@@ -95,12 +100,15 @@ public sealed class NFTStandardValidationTests : IDisposable
         Assert.Equal(3, (int)NFTStandardType.SuiObject);
         Assert.Equal(4, (int)NFTStandardType.HederaHTS);
         Assert.Equal(5, (int)NFTStandardType.OASISCosmWasm);
+        Assert.Equal(6, (int)NFTStandardType.TRC721);
+        Assert.Equal(7, (int)NFTStandardType.PSP34);
     }
 
     [Theory]
     [InlineData(NFTStandardType.SuiObject, ProviderType.SuiOASIS)]
     [InlineData(NFTStandardType.HederaHTS, ProviderType.HashgraphOASIS)]
     [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.CosmosBlockChainOASIS)]
+    [InlineData(NFTStandardType.PSP34, ProviderType.PolkadotOASIS)]
     public void NativeModelsReuseNonemptyPresentationMetadata(NFTStandardType model, ProviderType provider)
     {
         var manager = new NFTManager((IOASISStorageProvider)null!, Guid.NewGuid(), new OASISDNA());

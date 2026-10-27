@@ -1,0 +1,10 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "6142A3DDD4C525BAEDB723CB66DDF5D6F41E8379CBA210B4484BB2AD584A7ED4"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "6142A3DDD4C525BAEDB723CB66DDF5D6F41E8379CBA210B4484BB2AD584A7ED4"
+  }
+]

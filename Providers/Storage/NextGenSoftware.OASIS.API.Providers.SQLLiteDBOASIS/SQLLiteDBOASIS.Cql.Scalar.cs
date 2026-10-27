@@ -13,13 +13,13 @@ public partial class SQLLiteDBOASIS : ICosmicQueryScalarStorageProvider
     private static class ScalarContract
     {
         internal static readonly CosmicScalarCapabilities Value = new(
-            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All },
             new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }) });
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }) }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true);
     }
 
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;

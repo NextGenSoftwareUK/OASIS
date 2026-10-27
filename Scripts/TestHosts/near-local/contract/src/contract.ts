@@ -1,5 +1,6 @@
 import { NearBindgen, call, initialize, near, view, UnorderedMap } from "near-sdk-js";
 import { writeCheckedRecord, CheckedRecordWrite } from "./checked-record";
+import { lockNftDeposit, releaseNftDeposit, readNftDeposit, lockTokenDeposit, releaseTokenDeposit, readTokenDeposit, burnSpendableToken, requireApplicationRecordKey } from "./token-escrow";
 
 @NearBindgen({ requireInit: true })
 export class OasisStorage {
@@ -21,6 +22,7 @@ export class OasisStorage {
   @call({})
   put({ key, value }: { key: string; value: string }): void {
     this.requireContractOwner();
+    requireApplicationRecordKey(key);
     this.records.set(key, value);
   }
 
@@ -36,6 +38,7 @@ export class OasisStorage {
   @call({})
   delete_record({ key }: { key: string }): void {
     this.requireContractOwner();
+    requireApplicationRecordKey(key);
     this.records.remove(key);
   }
 
@@ -98,17 +101,21 @@ export class OasisStorage {
     if (value === null) throw new Error(`NFT ${token_id} does not exist`);
     const nft = JSON.parse(value);
     if (near.predecessorAccountId() !== nft.owner_id) throw new Error(`Only the owner may burn NFT ${token_id}`);
+    if (nft.locked) throw new Error("Locked NFT cannot be burned");
     this.nfts.remove(token_id);
   }
 
+  @view({})
+  nft_escrow_protocol(): number { return 1; }
+
+  @view({})
+  nft_lock_get({ lock_id }: { lock_id: string }): object | null { return readNftDeposit(this.records, lock_id); }
+
   @call({})
-  nft_set_locked({ token_id, locked }: { token_id: string; locked: boolean }): void {
-    const value = this.nfts.get(token_id);
-    if (value === null) throw new Error(`NFT ${token_id} does not exist`);
-    const nft = JSON.parse(value);
-    if (near.predecessorAccountId() !== nft.owner_id) throw new Error(`Only the owner may change the lock for NFT ${token_id}`);
-    nft.locked = locked;
-    this.nfts.set(token_id, JSON.stringify(nft));
+  nft_set_locked({ token_id, locked, lock_id }: { token_id: string; locked: boolean; lock_id: string }): void {
+    if (typeof locked !== "boolean") throw new Error("Explicit NFT custody state required");
+    if (locked) lockNftDeposit(this.nfts, this.records, near.predecessorAccountId(), token_id, lock_id);
+    else releaseNftDeposit(this.nfts, this.records, near.predecessorAccountId(), token_id, lock_id);
   }
 
   @call({})
@@ -158,18 +165,26 @@ export class OasisStorage {
     this.tokens.set(symbol, JSON.stringify(token));
   }
 
+  @view({})
+  token_escrow_protocol(): number { return 1; }
+
+  @view({})
+  token_lock_get({ lock_id }: { lock_id: string }): object | null {
+    return readTokenDeposit(this.records, lock_id);
+  }
+
+  @call({})
+  token_lock({ symbol, lock_id, amount }: { symbol: string; lock_id: string; amount: string }): void {
+    lockTokenDeposit(this.tokens, this.records, near.predecessorAccountId(), symbol, lock_id, amount);
+  }
+
+  @call({})
+  token_release({ symbol, lock_id }: { symbol: string; lock_id: string }): void {
+    releaseTokenDeposit(this.tokens, this.records, near.predecessorAccountId(), symbol, lock_id);
+  }
+
   @call({})
   token_burn({ symbol, amount }: { symbol: string; amount: string }): void {
-    const value = this.tokens.get(symbol);
-    if (value === null) throw new Error(`Token ${symbol} does not exist`);
-    const token = JSON.parse(value);
-    if (token.locked) throw new Error(`Token ${symbol} is locked`);
-    const holder = near.predecessorAccountId();
-    const quantity = BigInt(amount);
-    const balance = BigInt(token.balances[holder] ?? "0");
-    if (quantity <= 0n || quantity > balance) throw new Error("Positive burn amount within holder balance required");
-    token.balances[holder] = (balance - quantity).toString();
-    token.supply = Object.values(token.balances).reduce((sum: bigint, value: string) => sum + BigInt(value), 0n).toString();
-    this.tokens.set(symbol, JSON.stringify(token));
+    burnSpendableToken(this.tokens, near.predecessorAccountId(), symbol, amount);
   }
 }

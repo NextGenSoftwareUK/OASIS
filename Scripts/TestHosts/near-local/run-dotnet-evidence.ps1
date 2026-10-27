@@ -6,10 +6,26 @@ param(
     [switch] $ReadOnlyStatus,
     [switch] $ReadOnlyStorage,
     [switch] $SignedAcknowledgements,
-    [switch] $CheckedRecordWrites
+    [switch] $CheckedRecordWrites,
+    [switch] $OrdinaryRecordWrites,
+    [switch] $PreparedNativeActions,
+    [switch] $PreparedOrdinaryActions,
+    [switch] $PreparedStorageActions,
+    [switch] $ReconcilePreparedStorage,
+    [switch] $PreparedLifecycleActions,
+    [switch] $PreparedTokenActions,
+    [switch] $PreparedNftDepositActions
 )
 
 $ErrorActionPreference = 'Stop'
+if($PreparedNftDepositActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions -or $ReconcilePreparedStorage -or $PreparedLifecycleActions -or $PreparedTokenActions)){throw 'Choose one explicit native scope.'}
+if($PreparedTokenActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions -or $ReconcilePreparedStorage -or $PreparedLifecycleActions)){throw 'Choose one explicit native scope.'}
+if($PreparedLifecycleActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions -or $ReconcilePreparedStorage)){throw 'Choose one explicit native scope.'}
+if($ReconcilePreparedStorage -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions)){throw 'Choose one explicit native scope.'}
+if($PreparedStorageActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions)){throw 'Choose one explicit native scope.'}
+if($PreparedOrdinaryActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions)){throw 'Choose one explicit native scope.'}
+if($PreparedNativeActions -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites)){throw 'Choose one explicit native scope.'}
+if($OrdinaryRecordWrites -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites)){throw 'Choose one explicit native scope.'}
 if($ReadOnlyStatus -and $ReadOnlyStorage){throw 'Choose one explicit read-only scope.'}
 if($SignedAcknowledgements -and ($ReadOnlyStatus -or $ReadOnlyStorage)){throw 'Signed verification cannot use read-only mode.'}
 if($CheckedRecordWrites -and ($ReadOnlyStatus -or $ReadOnlyStorage -or $SignedAcknowledgements)){throw 'Choose one explicit native scope.'}
@@ -30,12 +46,12 @@ $previous=@{}
 foreach($name in $environmentNames){$previous[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 
 try {
-    $reportName=if($ReadOnlyStatus){'near-readonly-status-current.trx'}elseif($ReadOnlyStorage){'near-readonly-storage-current.trx'}elseif($SignedAcknowledgements){'near-signed-ack-current.trx'}elseif($CheckedRecordWrites){'near-checked-compatibility.trx'}else{'near-provider-current.trx'}
+    $reportName=if($PreparedNftDepositActions){'near-prepared-nft-deposit-current.trx'}elseif($PreparedTokenActions){'near-prepared-token-current.trx'}elseif($PreparedLifecycleActions){'near-prepared-lifecycle-current.trx'}elseif($ReconcilePreparedStorage){'near-prepared-storage-reconciliation-current.trx'}elseif($PreparedStorageActions){'near-prepared-storage-current.trx'}elseif($PreparedOrdinaryActions){'near-prepared-ordinary-current.trx'}elseif($PreparedNativeActions){'near-prepared-native-current.trx'}elseif($OrdinaryRecordWrites){'near-ordinary-storage-current.trx'}elseif($ReadOnlyStatus){'near-readonly-status-current.trx'}elseif($ReadOnlyStorage){'near-readonly-storage-current.trx'}elseif($SignedAcknowledgements){'near-signed-ack-current.trx'}elseif($CheckedRecordWrites){'near-checked-compatibility.trx'}else{'near-provider-current.trx'}
     $reportPath=Join-Path $RepositoryRoot "TestResults/NearRuntime/$reportName"
     if(Test-Path -LiteralPath $reportPath){throw 'Preserve the original report before rerunning; refusing evidence overwrite.'}
     foreach ($name in $environmentNames) {
         if($name -eq 'OASIS_NEAR_STORAGE_ENCRYPTION_KEY'){continue}
-        if(($SignedAcknowledgements -or $CheckedRecordWrites) -and $name -eq 'NEAROASIS_FAILED_STATUS_TRANSACTIONID'){continue}
+        if(($SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions -or $ReconcilePreparedStorage -or $PreparedLifecycleActions -or $PreparedTokenActions -or $PreparedNftDepositActions) -and $name -eq 'NEAROASIS_FAILED_STATUS_TRANSACTIONID'){continue}
         if(($ReadOnlyStatus -or $ReadOnlyStorage) -and $name -eq 'NEAROASIS_PRIVATEKEY'){
             # Deliberately invalid signing material: the selected status tests must not sign.
             [Environment]::SetEnvironmentVariable($name,'read-only-no-signing-key','Process')
@@ -48,7 +64,7 @@ try {
         [Environment]::SetEnvironmentVariable($name, [string] $value, 'Process')
     }
 
-    if(!$ReadOnlyStatus -and !$SignedAcknowledgements){
+    if(!$ReadOnlyStatus -and !$SignedAcknowledgements -and !$PreparedNativeActions -and !$PreparedOrdinaryActions){
     # Windows PowerShell 5.1 does not load the DPAPI assembly implicitly.
     Add-Type -AssemblyName System.Security
     $cache=Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OASIS/provider-evidence/near'
@@ -78,6 +94,14 @@ try {
     if($ReadOnlyStorage){$selection=@('--filter','FullyQualifiedName~RetainedReadonlyStorageTests.RetainedSearchAndNearbyRecordsRemainQueryable')}
     if($SignedAcknowledgements){$selection=@('--filter','FullyQualifiedName~NearSignedAcknowledgementTests.RealSignedCallAndSelfTransferHaveBoundFinalAcknowledgements')}
     if($CheckedRecordWrites){$selection=@('--filter','FullyQualifiedName~NearCheckedWriteNativeTests.RealSdkCheckedWritesRetainEncryptedSnapshotArchiveAndFailedOriginal')}
+    if($OrdinaryRecordWrites){$selection=@('--filter','FullyQualifiedName~NearOrdinaryStorageAcknowledgementTests.RealEncryptedPutAndDeleteRequireBoundFinalOriginals')}
+    if($PreparedNativeActions){$selection=@('--filter','FullyQualifiedName~NearPreparedNativeTests.RealOriginalsAreFsyncedBeforeSubmissionAndRecoveredWithoutSigningKey')}
+    if($PreparedOrdinaryActions){$selection=@('--filter','FullyQualifiedName~NearPreparedNativeTests.OrdinaryInterfacesPersistOriginalsAndRecoverWithoutSigningKey')}
+    if($PreparedStorageActions){$selection=@('--filter','FullyQualifiedName~NearPreparedStorageTests.PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission')}
+    if($ReconcilePreparedStorage){$selection=@('--filter','FullyQualifiedName~NearPreparedStorageTests.ReconcileFiveKnownOriginalsAndCleanOnlyTheirExactOwnedCiphertexts')}
+    if($PreparedLifecycleActions){$selection=@('--filter','FullyQualifiedName~NearPreparedLifecycleTests.PublicNftBridgeWalletAndEncryptedHistoryUseOneExistingNativeOwner')}
+    if($PreparedTokenActions){$selection=@('--filter','FullyQualifiedName~NearPreparedTokenTests.PublicTokenCustodyPreservesExactSupplyAndOriginals')}
+    if($PreparedNftDepositActions){$selection=@('--filter','FullyQualifiedName~NearPreparedLifecycleTests.PublicNftDepositIdsRejectStaleSourceAndReleasedReplay')}
     & dotnet test $tests --no-build --no-restore --nologo --logger "trx;LogFileName=$reportName" --results-directory $results /m:2 /nr:false --verbosity quiet @selection
     if ($LASTEXITCODE -ne 0) {
         throw "NEAR provider tests failed with exit code $LASTEXITCODE."
@@ -86,7 +110,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'NEAR native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ReadOnlyStatus){2}elseif($ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites){1}else{19}
+    $expected=if($ReadOnlyStatus){2}elseif($ReadOnlyStorage -or $SignedAcknowledgements -or $CheckedRecordWrites -or $OrdinaryRecordWrites -or $PreparedNativeActions -or $PreparedOrdinaryActions -or $PreparedStorageActions -or $ReconcilePreparedStorage -or $PreparedLifecycleActions -or $PreparedTokenActions -or $PreparedNftDepositActions){1}else{19}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected exactly$expected passing native NEAR cases and zero skips."}
 }
 finally {

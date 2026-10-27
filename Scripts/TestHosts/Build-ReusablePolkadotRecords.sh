@@ -5,6 +5,15 @@ set -euo pipefail
 # This compiles only; it never starts a node, signs, uploads or deploys code.
 repo="$(cd -- "$(dirname -- "$0")/../.." && pwd)"
 contract="$repo/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/oasis"
+[[ $# -le 1 ]] || { echo 'Expected only records, psp34, psp34-escrow, token-escrow or psp22-test-token.' >&2; exit 1; }
+case "${1:-records}" in
+    records) manifest="$contract/Cargo.toml"; crate='oasis_records'; name='oasis-records' ;;
+    psp34) manifest="$contract/../psp34/Cargo.toml"; crate='oasis_psp34'; name='oasis-psp34' ;;
+    psp34-escrow) manifest="$contract/../psp34/Cargo.toml"; crate='oasis_psp34'; name='oasis-psp34-escrow' ;;
+    token-escrow) manifest="$contract/../token-escrow/Cargo.toml"; crate='oasis_token_escrow'; name='oasis-token-escrow' ;;
+    psp22-test-token) manifest="$contract/../native-psp22-test-token/Cargo.toml"; crate='oasis_native_psp22_test_token'; name='oasis-native-psp22-test-token' ;;
+    *) echo 'Unknown contract target; expected records, psp34, psp34-escrow, token-escrow or psp22-test-token.' >&2; exit 1 ;;
+esac
 target="$repo/TestResults/PolkadotCurrent/record-contract-target"
 rustup="${OASIS_RUSTUP:-$HOME/.cargo/bin/rustup}"
 [[ -x "$rustup" ]] || { echo 'Reuse the installed rustup runtime.' >&2; exit 1; }
@@ -12,11 +21,11 @@ rustup="${OASIS_RUSTUP:-$HOME/.cargo/bin/rustup}"
 [[ "$(wasm-metadce --version)" == 'wasm-metadce version 120' ]] || { echo 'Expected retained Binaryen120 metadce.' >&2; exit 1; }
 cd "$contract" # Cargo discovers the target-specific .cargo/config.toml here.
 "$rustup" run 1.88.0 cargo build --offline --locked --release --no-default-features \
-    --target wasm32-unknown-unknown --jobs 2 --target-dir "$target"
-raw="$target/wasm32-unknown-unknown/release/oasis_records.wasm"
-pruned="$target/oasis-records-pruned.wasm"
-artifact="$target/oasis-records.wasm"
-optimized="$target/oasis-records-optimized.wasm"
+    --manifest-path "$manifest" --target wasm32-unknown-unknown --jobs 2 --target-dir "$target"
+raw="$target/wasm32-unknown-unknown/release/$crate.wasm"
+pruned="$target/$name-pruned.wasm"
+artifact="$target/$name.wasm"
+optimized="$target/$name-optimized.wasm"
 lowerer='/mnt/c/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Data/PlaybackEngines/WebGLSupport/BuildTools/Emscripten/binaryen/bin/wasm-opt.exe'
 [[ -x "$lowerer" ]] || { echo 'Reuse the existing Unity Binaryen124 lowering tool.' >&2; exit 1; }
 [[ "$("$lowerer" --version)" == *'wasm-opt version 124 '* ]] || { echo 'Unexpected retained lowering tool.' >&2; exit 1; }

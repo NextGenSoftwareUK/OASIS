@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Runtime dependencies are reused through a local junction, never .NET build inputs. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);SdkBridge\node_modules\**</DefaultItemExcludes>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.COSMOSBlockChainOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API COSMOS BlockChain OASIS Provider</Product>

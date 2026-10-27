@@ -1,0 +1,62 @@
+{
+  "portableCore": {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\netstandard2.1\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "6646DB4A0E5036D1FF1BE4E4F9A08229F21D0E23F44AA21FCCBF7B11EFDBF8F0"
+  },
+  "sources": [
+    {
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Queries\\CosmicQueryHttpRoutes.cs",
+      "Hash": "DE1D78209C0BA9BA4F089276273318D807AF1831CE86C05A0AB0A37377C5ACA6"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Models\\Data\\CqlFederationV1Request.cs",
+      "Hash": "A7369A89DC12107118637C685133B95546314CDF639B72AEF9EB985CB043AC9B"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlFederationV1Endpoint.cs",
+      "Hash": "75DBC8840F9824EE64F06A5E30D64BAE80F132BE245F759EB346B995D159F6C1"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlV1Compiler.cs",
+      "Hash": "A227941558029F05EC55E86969242B357F58027924E57326B1019B1DB81DCBF8"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Controllers\\CqlV1Controller.cs",
+      "Hash": "49642E3DE3600B74F34989197BB939BB7FF1FAB6631FDD78BCD5F84DAFF2C21F"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CqlFederationV1Web4Tests.cs",
+      "Hash": "C7299530385164CAC12BC01FEBEEAA8A117C395863B60224F07A2F77DBCA36C5"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\NextGenSoftware.OASIS.API.Core.UnitTests.csproj",
+      "Hash": "458C314AC7B1CD4766AA7FF5918F34955120D6DB23C7BD732F1E4E117942BA56"
+    },
+    {
+      "Path": "C:\\Source\\OASIS\\Providers\\Storage\\TestProjects\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests\\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj",
+      "Hash": "0DDE3B88B551EEE68C893B119D47255E3F692F63C98F923E98FAA2703EE697DA"
+    }
+  ],
+  "identities": [
+    {
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "9F84787D4AF91DDA5D4C4538D26EE4F9E73A00AE5D7080AC4F0D48E3A51E9F9F"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "9F84787D4AF91DDA5D4C4538D26EE4F9E73A00AE5D7080AC4F0D48E3A51E9F9F"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "9F84787D4AF91DDA5D4C4538D26EE4F9E73A00AE5D7080AC4F0D48E3A51E9F9F"
+    },
+    {
+      "producer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "consumer": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "sha256": "3C5C5EC438DB7859CB56957B443DCD6AA3C2461B9C40699910BBB21E20978603"
+    }
+  ]
+}

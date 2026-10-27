@@ -247,6 +247,41 @@ public sealed class V1SwaggerExample : ISchemaFilter, IOperationFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type.Name == "CqlFederationV1Request")
+        {
+            var providers = new[] { "MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS" };
+            OpenApiArray Names(IEnumerable<string> values)
+            {
+                var result = new OpenApiArray();
+                foreach (var value in values) result.Add(new OpenApiString(value));
+                return result;
+            }
+            schema.Example = new OpenApiObject
+            {
+                ["scope"] = new OpenApiString("Named"),
+                ["providers"] = Names(providers),
+                ["source"] = new OpenApiObject
+                {
+                    ["filters"] = new OpenApiArray
+                    {
+                        new OpenApiObject
+                        {
+                            ["metadataPath"] = new OpenApiArray { new OpenApiString("fixture") },
+                            ["scalar"] = new OpenApiString("String"),
+                            ["operator"] = new OpenApiString("Equal"),
+                            ["value"] = new OpenApiString("REPLACE_WITH_DEMO_FIXTURE_TAG")
+                        }
+                    },
+                    ["orderBy"] = new OpenApiString("Name"),
+                    ["take"] = new OpenApiInteger(100)
+                },
+                ["identityMode"] = new OpenApiString("ProviderPriority"),
+                ["providerPriority"] = Names(providers.Reverse()),
+                ["take"] = new OpenApiInteger(2)
+            };
+            return;
+        }
+
         if (context.Type.Name == "CqlCompositionV1Request")
         {
             schema.Example = new OpenApiObject

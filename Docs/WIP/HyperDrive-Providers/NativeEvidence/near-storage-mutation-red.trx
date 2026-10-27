@@ -1,0 +1,340 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="8ba71e5c-953e-4675-8d9c-99c027129d1d" name="david@OASISOMEGA 2026-10-26 13:57:42" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T13:57:42.8701148-05:00" queuing="2026-10-26T13:57:42.8701149-05:00" start="2026-10-26T13:57:41.5791448-05:00" finish="2026-10-26T13:57:43.6033577-05:00" />
+  <TestSettings name="default" id="99370fa3-2d6d-49dc-b2ea-d9d815a5cbe2">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_13_57_42" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6c9229b6-4467-411c-9590-e66ccad55abf" testId="92efeaf0-b9d4-bba1-6ac6-300d2f2ea39e" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,3)" computerName="OASISOMEGA" duration="00:00:00.0479713" startTime="2026-10-26T13:57:43.1346227-05:00" endTime="2026-10-26T13:57:43.1827742-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6c9229b6-4467-411c-9590-e66ccad55abf">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="00e90530-5e28-4bf9-b734-e68b2a10eda7" testId="29e2044c-5276-1b67-c0bf-8b42af4270b0" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,9)" computerName="OASISOMEGA" duration="00:00:00.0514384" startTime="2026-10-26T13:57:42.8395689-05:00" endTime="2026-10-26T13:57:42.8912089-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="00e90530-5e28-4bf9-b734-e68b2a10eda7">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="73f43d88-426e-41e1-bd07-896b3f272097" testId="bb202c44-3ca3-d42e-64aa-b87a9437760d" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,11)" computerName="OASISOMEGA" duration="00:00:00.0462075" startTime="2026-10-26T13:57:42.9403534-05:00" endTime="2026-10-26T13:57:42.9867490-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="73f43d88-426e-41e1-bd07-896b3f272097">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.AreEqual failed. Expected:&lt;NearMutationUncertainException&gt;. Actual:&lt;InvalidOperationException&gt;. </Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 29&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9d6db20d-c96e-4ffd-9a7b-dee6509e8866" testId="84855375-ce2f-6c9b-b278-63c40e4fe762" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,2)" computerName="OASISOMEGA" duration="00:00:00.0505018" startTime="2026-10-26T13:57:42.4547002-05:00" endTime="2026-10-26T13:57:42.5053426-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9d6db20d-c96e-4ffd-9a7b-dee6509e8866">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4bd88365-546d-4330-b5c8-c1bd9e33a4e4" testId="38f29a34-2403-5732-4c34-d187de2d0d46" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,4)" computerName="OASISOMEGA" duration="00:00:00.0510277" startTime="2026-10-26T13:57:42.5580996-05:00" endTime="2026-10-26T13:57:42.6092891-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4bd88365-546d-4330-b5c8-c1bd9e33a4e4">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6ac00169-fb64-4c78-be62-cbdee0cdf516" testId="383f45e6-e9ba-4ef6-88ea-a5007ad3fdc0" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,0)" computerName="OASISOMEGA" duration="00:00:00.0502562" startTime="2026-10-26T13:57:42.9868571-05:00" endTime="2026-10-26T13:57:43.0373354-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6ac00169-fb64-4c78-be62-cbdee0cdf516" />
+    <UnitTestResult executionId="6f7ec270-8870-4e22-a65e-a7a53f9db11e" testId="d4c34870-cb62-4934-37df-cbf9752ff8ee" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,11)" computerName="OASISOMEGA" duration="00:00:00.0487039" startTime="2026-10-26T13:57:43.5167073-05:00" endTime="2026-10-26T13:57:43.5662616-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6f7ec270-8870-4e22-a65e-a7a53f9db11e">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.AreEqual failed. Expected:&lt;NearMutationUncertainException&gt;. Actual:&lt;InvalidOperationException&gt;. </Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 29&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e3ac2429-7cce-4e27-8d1d-81514e256335" testId="a25dcb1e-bfb2-e823-77ce-46943e239c73" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,4)" computerName="OASISOMEGA" duration="00:00:00.0475736" startTime="2026-10-26T13:57:43.1828518-05:00" endTime="2026-10-26T13:57:43.2305869-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e3ac2429-7cce-4e27-8d1d-81514e256335">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="91b030a8-889a-4c5e-b770-638f5086b17f" testId="9caf1893-9155-3966-0eef-60b0d6c68a01" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,10)" computerName="OASISOMEGA" duration="00:00:00.0475788" startTime="2026-10-26T13:57:43.4689097-05:00" endTime="2026-10-26T13:57:43.5166341-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91b030a8-889a-4c5e-b770-638f5086b17f">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c4a29b35-8c19-47e6-8283-4978ca205942" testId="076d2220-2aa3-c9b6-4abb-6c5caf0e296b" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,6)" computerName="OASISOMEGA" duration="00:00:00.0485518" startTime="2026-10-26T13:57:43.2811596-05:00" endTime="2026-10-26T13:57:43.3298653-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c4a29b35-8c19-47e6-8283-4978ca205942">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4f830669-0b93-4b8e-a42e-a382f723fb1d" testId="701ccb8c-7713-729e-e3cd-427aa827036f" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,1)" computerName="OASISOMEGA" duration="00:00:00.0478567" startTime="2026-10-26T13:57:43.0374265-05:00" endTime="2026-10-26T13:57:43.0854897-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4f830669-0b93-4b8e-a42e-a382f723fb1d">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="1a22150b-ecb1-4a4c-a6f5-97db36efcba5" testId="fbaabbaa-774d-794f-089d-81aa75210826" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,2)" computerName="OASISOMEGA" duration="00:00:00.0488052" startTime="2026-10-26T13:57:43.0855697-05:00" endTime="2026-10-26T13:57:43.1345401-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a22150b-ecb1-4a4c-a6f5-97db36efcba5">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="d2a57f65-fae6-432f-9034-cb1df87a578c" testId="f7b2d363-3938-e17b-95ac-375a50921a4d" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,3)" computerName="OASISOMEGA" duration="00:00:00.0522938" startTime="2026-10-26T13:57:42.5055517-05:00" endTime="2026-10-26T13:57:42.5580177-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d2a57f65-fae6-432f-9034-cb1df87a578c">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="e65bc2b6-884f-44e2-87db-a9c4651d1606" testId="6167beb3-2931-8e27-6287-20f7bf4dae93" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,1)" computerName="OASISOMEGA" duration="00:00:00.0643352" startTime="2026-10-26T13:57:42.3896915-05:00" endTime="2026-10-26T13:57:42.4544333-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e65bc2b6-884f-44e2-87db-a9c4651d1606">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="498c7738-718a-4354-aeab-991812f80494" testId="4728c8c0-a0ff-6ef5-cd3c-d0024f444a7a" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,7)" computerName="OASISOMEGA" duration="00:00:00.0543249" startTime="2026-10-26T13:57:42.7129801-05:00" endTime="2026-10-26T13:57:42.7675029-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="498c7738-718a-4354-aeab-991812f80494">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="240f5fbc-ec31-4baf-bd73-e4503461c529" testId="cb16e2ee-ae9c-f4ea-8b1d-4eab1219bfa1" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,8)" computerName="OASISOMEGA" duration="00:00:00.0462405" startTime="2026-10-26T13:57:43.3763213-05:00" endTime="2026-10-26T13:57:43.4227864-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="240f5fbc-ec31-4baf-bd73-e4503461c529">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="9b8ed118-3f40-4b69-89f0-98feb16e072a" testId="bf6e7901-fefa-572a-e46e-f326ad81fe95" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,8)" computerName="OASISOMEGA" duration="00:00:00.0477679" startTime="2026-10-26T13:57:42.7675841-05:00" endTime="2026-10-26T13:57:42.8155407-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9b8ed118-3f40-4b69-89f0-98feb16e072a">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7951efe5-5941-47a2-9688-ecfed320d6e1" testId="107677cf-20bc-af2a-a23b-9b3c35d5c03f" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,5)" computerName="OASISOMEGA" duration="00:00:00.0519652" startTime="2026-10-26T13:57:42.6093887-05:00" endTime="2026-10-26T13:57:42.6615443-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7951efe5-5941-47a2-9688-ecfed320d6e1">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="7adcd254-75a2-4b50-9ce7-519902d67f72" testId="a3ac70b8-1a37-d066-e1d8-c57b04df009b" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,7)" computerName="OASISOMEGA" duration="00:00:00.0461527" startTime="2026-10-26T13:57:43.3299397-05:00" endTime="2026-10-26T13:57:43.3762395-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7adcd254-75a2-4b50-9ce7-519902d67f72">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4637b945-75c8-4621-88d9-63884059abab" testId="7dbe9936-a9ae-af5b-4e16-9b5c2331fbb2" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,9)" computerName="OASISOMEGA" duration="00:00:00.0458207" startTime="2026-10-26T13:57:43.4228738-05:00" endTime="2026-10-26T13:57:43.4688403-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4637b945-75c8-4621-88d9-63884059abab">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="b1865a88-1111-4ab2-91cd-43bb8cacb61c" testId="9e8c1fbe-c080-e5d4-de30-ba246a7e5950" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,5)" computerName="OASISOMEGA" duration="00:00:00.0491998" startTime="2026-10-26T13:57:43.2306637-05:00" endTime="2026-10-26T13:57:43.2800205-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b1865a88-1111-4ab2-91cd-43bb8cacb61c">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="728abca8-fd62-4534-8b12-efdffeaef3ce" testId="9354c8e1-190c-5b81-ac2b-a3c31686b421" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,10)" computerName="OASISOMEGA" duration="00:00:00.0488065" startTime="2026-10-26T13:57:42.8912965-05:00" endTime="2026-10-26T13:57:42.9402748-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="728abca8-fd62-4534-8b12-efdffeaef3ce">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="6d62cdf2-8958-477b-99d4-1167ea60fe30" testId="2c8e36b2-1259-f68f-a72a-79eccb56493c" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,6)" computerName="OASISOMEGA" duration="00:00:00.0510878" startTime="2026-10-26T13:57:42.6616256-05:00" endTime="2026-10-26T13:57:42.7128956-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6d62cdf2-8958-477b-99d4-1167ea60fe30">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.IsNotNull failed. Hash alone must not acknowledge storage success.</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests.OrdinaryStorageRequiresSameBoundFinalMutationOwner(Boolean delete, Int32 scenario) in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\NearStorageMutationOutcomeTests.cs:line 28&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="4eeba2b8-4245-4ddf-aa19-b6c147146cb9" testId="c80d5177-794c-70f3-f10f-2ecccd427979" testName="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,0)" computerName="OASISOMEGA" duration="00:00:00.2209877" startTime="2026-10-26T13:57:42.1560905-05:00" endTime="2026-10-26T13:57:42.3867655-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4eeba2b8-4245-4ddf-aa19-b6c147146cb9" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,10)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="9caf1893-9155-3966-0eef-60b0d6c68a01">
+      <Execution id="91b030a8-889a-4c5e-b770-638f5086b17f" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,4)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="38f29a34-2403-5732-4c34-d187de2d0d46">
+      <Execution id="4bd88365-546d-4330-b5c8-c1bd9e33a4e4" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,10)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="9354c8e1-190c-5b81-ac2b-a3c31686b421">
+      <Execution id="728abca8-fd62-4534-8b12-efdffeaef3ce" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,7)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="4728c8c0-a0ff-6ef5-cd3c-d0024f444a7a">
+      <Execution id="498c7738-718a-4354-aeab-991812f80494" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,2)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="fbaabbaa-774d-794f-089d-81aa75210826">
+      <Execution id="1a22150b-ecb1-4a4c-a6f5-97db36efcba5" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,11)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="d4c34870-cb62-4934-37df-cbf9752ff8ee">
+      <Execution id="6f7ec270-8870-4e22-a65e-a7a53f9db11e" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,4)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="a25dcb1e-bfb2-e823-77ce-46943e239c73">
+      <Execution id="e3ac2429-7cce-4e27-8d1d-81514e256335" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,9)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="7dbe9936-a9ae-af5b-4e16-9b5c2331fbb2">
+      <Execution id="4637b945-75c8-4621-88d9-63884059abab" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,2)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="84855375-ce2f-6c9b-b278-63c40e4fe762">
+      <Execution id="9d6db20d-c96e-4ffd-9a7b-dee6509e8866" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,8)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="bf6e7901-fefa-572a-e46e-f326ad81fe95">
+      <Execution id="9b8ed118-3f40-4b69-89f0-98feb16e072a" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,5)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="9e8c1fbe-c080-e5d4-de30-ba246a7e5950">
+      <Execution id="b1865a88-1111-4ab2-91cd-43bb8cacb61c" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,3)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="f7b2d363-3938-e17b-95ac-375a50921a4d">
+      <Execution id="d2a57f65-fae6-432f-9034-cb1df87a578c" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,5)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="107677cf-20bc-af2a-a23b-9b3c35d5c03f">
+      <Execution id="7951efe5-5941-47a2-9688-ecfed320d6e1" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,6)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="2c8e36b2-1259-f68f-a72a-79eccb56493c">
+      <Execution id="6d62cdf2-8958-477b-99d4-1167ea60fe30" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,7)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="a3ac70b8-1a37-d066-e1d8-c57b04df009b">
+      <Execution id="7adcd254-75a2-4b50-9ce7-519902d67f72" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,9)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="29e2044c-5276-1b67-c0bf-8b42af4270b0">
+      <Execution id="00e90530-5e28-4bf9-b734-e68b2a10eda7" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,6)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="076d2220-2aa3-c9b6-4abb-6c5caf0e296b">
+      <Execution id="c4a29b35-8c19-47e6-8283-4978ca205942" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,8)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="cb16e2ee-ae9c-f4ea-8b1d-4eab1219bfa1">
+      <Execution id="240f5fbc-ec31-4baf-bd73-e4503461c529" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,3)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="92efeaf0-b9d4-bba1-6ac6-300d2f2ea39e">
+      <Execution id="6c9229b6-4467-411c-9590-e66ccad55abf" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,0)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="383f45e6-e9ba-4ef6-88ea-a5007ad3fdc0">
+      <Execution id="6ac00169-fb64-4c78-be62-cbdee0cdf516" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,1)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="6167beb3-2931-8e27-6287-20f7bf4dae93">
+      <Execution id="e65bc2b6-884f-44e2-87db-a9c4651d1606" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (True,1)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="701ccb8c-7713-729e-e3cd-427aa827036f">
+      <Execution id="4f830669-0b93-4b8e-a42e-a382f723fb1d" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,11)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="bb202c44-3ca3-d42e-64aa-b87a9437760d">
+      <Execution id="73f43d88-426e-41e1-bd07-896b3f272097" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+    <UnitTest name="OrdinaryStorageRequiresSameBoundFinalMutationOwner (False,0)" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.unittests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.unittests.dll" id="c80d5177-794c-70f3-f10f-2ecccd427979">
+      <Execution id="4eeba2b8-4245-4ddf-aa19-b6c147146cb9" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests.NearStorageMutationOutcomeTests" name="OrdinaryStorageRequiresSameBoundFinalMutationOwner" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="92efeaf0-b9d4-bba1-6ac6-300d2f2ea39e" executionId="6c9229b6-4467-411c-9590-e66ccad55abf" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="29e2044c-5276-1b67-c0bf-8b42af4270b0" executionId="00e90530-5e28-4bf9-b734-e68b2a10eda7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bb202c44-3ca3-d42e-64aa-b87a9437760d" executionId="73f43d88-426e-41e1-bd07-896b3f272097" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="84855375-ce2f-6c9b-b278-63c40e4fe762" executionId="9d6db20d-c96e-4ffd-9a7b-dee6509e8866" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="38f29a34-2403-5732-4c34-d187de2d0d46" executionId="4bd88365-546d-4330-b5c8-c1bd9e33a4e4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="383f45e6-e9ba-4ef6-88ea-a5007ad3fdc0" executionId="6ac00169-fb64-4c78-be62-cbdee0cdf516" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d4c34870-cb62-4934-37df-cbf9752ff8ee" executionId="6f7ec270-8870-4e22-a65e-a7a53f9db11e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a25dcb1e-bfb2-e823-77ce-46943e239c73" executionId="e3ac2429-7cce-4e27-8d1d-81514e256335" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9caf1893-9155-3966-0eef-60b0d6c68a01" executionId="91b030a8-889a-4c5e-b770-638f5086b17f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="076d2220-2aa3-c9b6-4abb-6c5caf0e296b" executionId="c4a29b35-8c19-47e6-8283-4978ca205942" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="701ccb8c-7713-729e-e3cd-427aa827036f" executionId="4f830669-0b93-4b8e-a42e-a382f723fb1d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fbaabbaa-774d-794f-089d-81aa75210826" executionId="1a22150b-ecb1-4a4c-a6f5-97db36efcba5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f7b2d363-3938-e17b-95ac-375a50921a4d" executionId="d2a57f65-fae6-432f-9034-cb1df87a578c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6167beb3-2931-8e27-6287-20f7bf4dae93" executionId="e65bc2b6-884f-44e2-87db-a9c4651d1606" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4728c8c0-a0ff-6ef5-cd3c-d0024f444a7a" executionId="498c7738-718a-4354-aeab-991812f80494" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="cb16e2ee-ae9c-f4ea-8b1d-4eab1219bfa1" executionId="240f5fbc-ec31-4baf-bd73-e4503461c529" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf6e7901-fefa-572a-e46e-f326ad81fe95" executionId="9b8ed118-3f40-4b69-89f0-98feb16e072a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="107677cf-20bc-af2a-a23b-9b3c35d5c03f" executionId="7951efe5-5941-47a2-9688-ecfed320d6e1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a3ac70b8-1a37-d066-e1d8-c57b04df009b" executionId="7adcd254-75a2-4b50-9ce7-519902d67f72" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7dbe9936-a9ae-af5b-4e16-9b5c2331fbb2" executionId="4637b945-75c8-4621-88d9-63884059abab" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9e8c1fbe-c080-e5d4-de30-ba246a7e5950" executionId="b1865a88-1111-4ab2-91cd-43bb8cacb61c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9354c8e1-190c-5b81-ac2b-a3c31686b421" executionId="728abca8-fd62-4534-8b12-efdffeaef3ce" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2c8e36b2-1259-f68f-a72a-79eccb56493c" executionId="6d62cdf2-8958-477b-99d4-1167ea60fe30" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c80d5177-794c-70f3-f10f-2ecccd427979" executionId="4eeba2b8-4245-4ddf-aa19-b6c147146cb9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="24" executed="24" passed="2" failed="22" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>
