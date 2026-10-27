@@ -1,6 +1,6 @@
 # Azure Blob shared storage baseline
 
-Current 2026-10-27: **native25/52 partial;109controlled pass**. See the acknowledgement repair checkpoint below for current gates. This is not a provider completion claim.
+Current 2026-10-27: **native52/52;111controlled pass**, complete automatic runner and graceful persisted cleanup verified. See the final baseline below; earlier failed cohorts remain historical. This is not a provider completion claim.
 
 ## Initial checkpoint (superseded by the repair checkpoint below)
 
@@ -50,3 +50,23 @@ New local proof receipts under the same NativeEvidence path:
 - `azure-blob-initial-fixture-reconciliation.json` plus two saved avatar payloads: original ETag/hash receipts; no arbitrary namespace sweep or user record removal.
 
 Exact next action: diagnose/preserve the interrupted report publication, then reconcile only the fixed IDs in the two retained current reports and their downloaded ETag-bound native snapshots. All applicable baseline and hosted acceptance gates remain open.
+
+## Final local native baseline (27 October)
+
+The complete `Run-AzureBlobStorageConformance.ps1 -RerunVerified` pipeline passed both native schedules (52/52 total) and111controlled cases, zero skips. `RerunVerified` retires only a hash-bound, successful current pair with completed fixture cleanup, preflights both destinations and preserves one fixed previous pair. It refuses unknown/failed/interrupted reports. This rerun was necessary to verify the corrected launcher/teardown, not a repeated environment setup.
+
+The new internal shared-test `AtomicConformanceCheckpoint<T>` preserves the first publication exception and pending bytes when the suite attempts to report that failure; no retry/overwrite of `.next` masks it. A real Windows file-sharing control reproduces an access-denied publication failure and proves the same original exception is rethrown. The original interrupted publication error had been masked, so its exact external lock/permission cause cannot now be attributed. All original current/.next bytes were hash-verified after archival.
+
+The8graph fixtures were downloaded, validated by IDs/owner/content, preserved, and deleted using observed ETags. Force-stopping the old emulator then exposed stale persisted metadata retaining those8previously deleted records. That was a test teardown bug, not a new successful provider write or proof of a production durability failure. Fresh native reads exactly matched all8saved payload hashes and ETags before conditional fixture removal. No unverified operation was blindly replayed or namespace swept.
+
+`RetainedAzuriteHost.cjs` now sends the runtime’s supported IPC shutdown message; `ReusableAzuriteHost.ps1` waits for normal exit and captures bounded logs. One small supervisor and one Azurite child form the same reused environment; no second emulator/install. The full automatic run ended with the runtime’s “successfully closed” acknowledgement, no listener, and stopped metadata containing6empty containers, **0blob rows and0block rows**. This does not claim physical extent erasure. The retained store is88,641 B.
+
+Latest proof: `TestResults/HyperDrive-Providers/NativeEvidence/azure-blob-graceful-final-identities.json`, SHA256 `f0c3e029525f4a34335afe6a6453b6fb1f8a4b9246210ac3db26937e39eca5db`. It includes exact binary/PDB, TRX, preserved checkpoint and stopped-store hashes, counts and output sizes. Earlier `azure-blob-native52-before-teardown-correction.json` remains distinct and explicitly records its teardown gap. Raw TRX files were compressed/decompressed/hash-verified before owned raw removal.
+
+Refreshed Core compiled from the current checkout: SHA256 `45ee3cef4a1091b8e937f2ecd0ebc3257ee94c930a1dbd1207f832c97955656f`,795 source documents. Final Shared SHA256 `6a901cef871d9a27a5cd21835b79857a5c6e9cbef8118a18c6e48d2733df24df`,56documents; Azure provider13 and consumer17source documents verified. No unrelated Core source/gitlink is committed by this batch.
+
+Baseline complete for this local emulator configuration. Hosted Azure/IAM, full interface coverage, advanced recovery and global HyperDrive routing remain separate programme gates. Continue other provider families.
+
+Compact current conformance summaries for Azure, LocalFile and ActivityPub are tracked under TestResults/HyperDrive-Providers/NativeEvidence with exact-byte Git attributes, so a fresh checkout can resolve their registered hashes. Raw TRX, native record payloads, runtime stores and binary cohorts remain local; they are not added to Git. No historical report/hash was rewritten to normalize line endings.
+
+Legacy linked reports/source reviews retain their existing platform-specific line-ending/hash behavior; this batch preserves their bytes and does not claim cross-platform normalization. The three new tracked summaries use exact-byte attributes.
