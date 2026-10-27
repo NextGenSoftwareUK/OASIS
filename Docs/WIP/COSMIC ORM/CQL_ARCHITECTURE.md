@@ -9,7 +9,7 @@ Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature accep
 5. **Validate/return:** acknowledged complete detached evidence, exact values and shared remaining work; materialize only where the requested result contract permits it.
 
 For projected All, native counterexample reduction follows every selected stage. Complete source/stage evidence validates before the Boolean is published; final row evidence and the terminal scan consume their budgets.
-Source relationship composition has separate admission from entity All predicates. The current Mongo defect is in source lowering, not a reason to evaluate source predicates on the client.
+Source relationship composition has separate admission from entity All predicates. All three native source compilers now support the separate source-composition capability. Complete protected scopes are validated before business truth and paging; source predicates stay native.
 Keep source translation, protected errors, membership/visibility and remaining-work accounting in their owning layers. No parallel fallback or silent retry.
 
 [Active acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) defines the current invariants.

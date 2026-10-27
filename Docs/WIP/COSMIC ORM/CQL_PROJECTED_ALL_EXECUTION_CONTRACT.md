@@ -1,6 +1,6 @@
 # Active projected-All / source relationship acceptance contract
 
-Status: Q23e is verified on all three stores; Q49a remains red for its broader source-shape matrix. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
+Status: Q23e and Q49a are verified on all three stores; parent Q23 integration/demo audit remains pending. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
 
 ## Invariants
 
@@ -22,6 +22,6 @@ The isolated draft compiler fix passes 185 compiler tests; full native proof is 
 
 ## Promotion
 
-Q23e is promoted using this gate plus the already recorded focused boundary/window/cancellation cases; freeze it unless a bug is reproduced. Complete every Q49a source shape independently before promoting that row.
+Q23e is promoted using this gate plus the already recorded focused boundary/window/cancellation cases; freeze it unless a bug is reproduced. Q49a is promoted using its independent216-check source matrix and Core admission evidence. Freeze both rows unless a reproducible bug is found.
 Then update demos/docs and commit verified source separately. Do not turn a focused checkpoint into a full EF/NHibernate claim.
 [Full prior contract/history](Archive/CQL_PROJECTED_ALL_EXECUTION_CONTRACT_history_2026-10-27.md) retains implementation notes and historical evidence links.

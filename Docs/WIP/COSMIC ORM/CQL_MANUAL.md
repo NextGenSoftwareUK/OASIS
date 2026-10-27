@@ -18,5 +18,5 @@ Check every OASISResult error/acknowledgement before reading Result. Unsupported
 | Exact per-database feature support/proofs | [Parity checklist](CQL_PARITY_CHECKLIST.md) |
 
 Detailed references retain historical checkpoints; use the checklist/current status for present support, not old dated completion claims.
-Investor-demo rows are green. Projected All has native implementations on the three focus stores, but complete Q23e acceptance remains red.
-Nested source relationship composition is Q49a: independent capability/expansion admission exists; native enrollment/translation proof is incomplete.
+Investor-demo rows, projected All (Q23e) and source relationship composition (Q49a) are green on the three focus stores; this does not mean full EF/NHibernate parity.
+Source composition captures nested child/descendant predicates and AND/OR/NOT through the ordinary Where/WhereAnyChild/WhereAnyDescendant builders. Independent capability and expansion admission precede native execution. Protected scope errors survive Boolean short-circuiting and empty windows. See the216-check source matrix and168-check selected-All gate linked from the checklist; developer-demo updates are next.

@@ -2,8 +2,8 @@
 
 Current phase: [CURRENT_STATUS](CURRENT_STATUS.md). The [parity checklist](CQL_PARITY_CHECKLIST.md) remains authoritative.
 
-1. Q49a: finish native source relationship composition and its protected-error ownership on MongoDB, SQLite and Neo4j.
-2. Q23e: completed168-check native gate; freeze verified projected-All behavior. Audit the broader Q49a source matrix and refresh developer demos before parent Q23 promotion.
+1. Q49a:216 native source checks pass across MongoDB, SQLite and Neo4j; freeze verified source composition.
+2. Q23e: completed168-check native gate; freeze verified projected-All behavior. Refresh developer demos and complete the parent integration audit before Q23 promotion.
 3. Promote a database cell only when proving native evidence covers its full row. Unit/structural compilation does not establish native parity.
 4. Update well-spaced, commented developer demos and maintained docs for newly proved features.
 5. Select the next red row; leave green features and federation cursors alone unless a reproducible bug requires a root fix.
