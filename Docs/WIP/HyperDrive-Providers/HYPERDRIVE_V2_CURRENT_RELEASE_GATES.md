@@ -4,7 +4,7 @@ Updated 2026-10-27. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-
 
 ## Current phase
 
-Provider-family implementations and shared baseline verification precede global routing and depth work. Nine storage implementations have recorded local native 52/52 passes; ActivityPub has a locally verified 5/5 public social capability pass pending source publication.
+Provider-family implementations and shared baseline verification precede global routing and depth work. Nine storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
 
 ## Open gates and next action
 
@@ -18,8 +18,8 @@ Provider-family implementations and shared baseline verification precede global 
 | Cosmos blockchain | Missing bridge SDK/dependency target; earlier install/repair batch was policy-rejected. Do not bypass that rejection with another wrapper |
 | Solana | Recorded 4/52: finalized history references an unavailable memo chunk; preserve both original fixtures, no skip/reset to get green |
 | Other families | Shared suite bindings/native configuration still missing on most rows. Four Redis-compatible facades have controlled-only passes |
-| Raw evidence | Redirect writers/references in a separate code change before producing new raw files; linked legacy evidence cannot be moved blindly |
-| Integration | Publish owned ActivityPub work separately; batch only verified scoped changes into Development, preserving user/Core/submodule work |
+| Raw evidence | Writers redirected by `d70625e86`; unpublished ActivityPub proofs moved to TestResults. Linked legacy evidence remains; existing working-tree line-ending hashes are not Git-blob hashes |
+| Integration | ActivityPub published separately as `00235929a`; batch verified scoped changes into Development, preserving user/Core/submodule work |
 
 ## Deferred, not completed
 
@@ -32,6 +32,6 @@ Provider-family implementations and shared baseline verification precede global 
 
 - Dynamo path relocation (`f446b70a2`): AWS/Dynamo 52/52 each, factory27, all five raw tables empty; stopped DB compacted to 43,008 bytes.
 - SOLID canonical build passed, both schedules blocked before native by missing protected files; no identity/key/ACL change.
-- ActivityPub local capability5/5 and controlled291 pass; generic record storage is explicitly unsupported, source publication pending.
+- ActivityPub `00235929a`: capability5/5 and controlled291; source/PDB and final proof hashes reverified. Generic record storage unsupported; authenticated/social mutation gates open.
 
 Keep this summary below 150 lines and roll old milestone entries into the archive. The complete pre-trim chronology is preserved verbatim in [Archive/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md](Archive/HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md); read it only for a specific historical issue. [Archive hashes](Archive/ARCHIVE_INDEX.md).
