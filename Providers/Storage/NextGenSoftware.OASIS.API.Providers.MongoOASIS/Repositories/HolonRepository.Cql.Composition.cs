@@ -16,6 +16,21 @@ public partial class HolonRepository
     internal async Task<CosmicProjectionCompositionPacket> ExecuteNativeCqlCompositionAsync<T, TResult>(
         MongoCqlCompositionCommand command, CosmicProjectionQuery<T, TResult> query,
         CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken) where T : IHolon
+        => (await ExecuteNativeSelectedSnapshotAsync(command, query, limits, cancellationToken).ConfigureAwait(false)).Proof;
+
+    internal async Task<CosmicProjectedAllPacket> ExecuteNativeCqlProjectedAllAsync<T, TResult>(
+        MongoCqlCompositionCommand command, CosmicProjectionQuery<T, TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken) where T : IHolon
+    {
+        if (command.Reduction == null) throw new InvalidDataException("Projected All requires a native reduction command.");
+        var result = await ExecuteNativeSelectedSnapshotAsync(command, query, limits, cancellationToken).ConfigureAwait(false);
+        if (!result.Counterexamples.HasValue) throw new InvalidDataException("Projected All did not acknowledge its native reduction.");
+        return new CosmicProjectedAllPacket(result.Proof, result.Counterexamples.Value);
+    }
+
+    private async Task<(CosmicProjectionCompositionPacket Proof, long? Counterexamples)> ExecuteNativeSelectedSnapshotAsync<T, TResult>(
+        MongoCqlCompositionCommand command, CosmicProjectionQuery<T, TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken) where T : IHolon
     {
         cancellationToken.ThrowIfCancellationRequested();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -134,12 +149,37 @@ public partial class HolonRepository
             foreach (var id in current)
             {
                 deadline.Token.ThrowIfCancellationRequested();
+                if (command.Reduction != null) outputBytes = checked(outputBytes + 16);
                 var values = byId[id].Values.ToArray();
                 foreach (var value in values) ReserveJoinCell(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
             }
+            long? counterexamples = null;
+            if (command.Reduction != null)
+            {
+                if (checked(work + current.Count) > limits.MaximumStageRows
+                    || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                    throw new MongoCqlLimitException();
+                var seen = false; long count = 0;
+                using var cursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Reduction,
+                    Options(), deadline.Token).ConfigureAwait(false);
+                while (await cursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    foreach (var document in cursor.Current)
+                    {
+                        deadline.Token.ThrowIfCancellationRequested();
+                        if (seen || document.ElementCount != 3 || !document.TryGetValue("_id", out var key) || !key.IsBsonNull
+                            || !document.TryGetValue("selectedCount", out var selected) || !(selected.IsInt32 || selected.IsInt64)
+                            || selected.ToInt64() != current.Count
+                            || !document.TryGetValue("counterexamples", out var value) || !(value.IsInt32 || value.IsInt64)
+                            || value.ToInt64() < 0 || value.ToInt64() > current.Count)
+                            throw new InvalidDataException("Native All count disagrees with its complete selected sequence.");
+                        seen = true; count = value.ToInt64();
+                    }
+                if (!seen && current.Count != 0) throw new InvalidDataException("Native All reduction is incomplete.");
+                counterexamples = count;
+            }
             deadline.Token.ThrowIfCancellationRequested();
-            return new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work);
+            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work), counterexamples);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { throw new MongoCqlGraphTimeoutException(); }

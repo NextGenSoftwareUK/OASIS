@@ -2901,9 +2901,9 @@ no All terminal yet (Q23e). Current All accepts entity CosmicQuery sources only;
 projected-source All must preserve selected-result windows and native execution.
 The full681SDKwalkthrough also still needs verified reconciliation and a clean run.
 
-### Projected All: SQLite preview
+### Projected All: SQLite and MongoDB preview
 
-This terminal is currently native on SQLite. MongoDB/Neo4j support and full three-store Q23e acceptance remain pending. Use HyperDrive V2 and an activated provider; set the work options explicitly when the default complete-input limit (1,000 rows) is insufficient. Exceeding a work limit is an error, not a successful result over a prefix.
+This terminal is currently native on SQLite and MongoDB. Neo4j support and full three-store Q23e acceptance remain pending. Use HyperDrive V2 and an activated provider; set the work options explicitly when the default complete-input limit (1,000 rows) is insufficient. Exceeding a work limit is an error, not a successful result over a prefix.
 
 ```csharp
 // Select columns first, then compose their result sequence.
@@ -2941,3 +2941,5 @@ bool allMatch = result.Result.Providers.Single().Value;
 ```
 
 The Boolean is native; detached proof is checked without constructing selected DTOs. Results remain separate per physical provider. See the [working acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) for current evidence and remaining gaps.
+
+For MongoDB, use ProviderType.MongoDBOASIS and an activated MongoDB adapter in the same planner/manager pattern above. Its source, selected stages and native terminal share one snapshot and deadline; a concurrent update cannot switch the terminal onto a newer source. See [49 native tests](Verification/projected-all-mongo.trx.gz). Neo4j remains unenrolled.
