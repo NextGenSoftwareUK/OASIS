@@ -4,7 +4,7 @@ Read [CURRENT_STATUS](CURRENT_STATUS.md) for the active phase, verified cohorts,
 
 - Full COSMIC ORM/CQL programme: **incomplete**, goal active.
 - Investor demo: 12 scoped rows green on SQLite/MongoDB/Neo4j.
-- Q23 All parent, Q49a source composition and Q23e projected-All are verified on all three. Shipping C# demo:24 examples pass through V2 HolonManager. Active red row: Q01 IQueryable/IQueryProvider; rows/cardinality/All increment has18 unit/1,824 CQL-regression/138 native checks passing, both Core targets build. Flat Select/selected stages/All are verified; entity elements are verified; numeric/selected-element terminals, selected cardinality, repeated Select and post-window cardinality predicates remain pending.
+- Q23 All parent, Q49a source composition and Q23e projected-All are verified on all three. Shipping C# demo:24 examples pass through V2 HolonManager. Active red row: Q01 IQueryable/IQueryProvider; rows/cardinality/All increment has20 unit/1,826 CQL-regression/186 native checks passing, both Core targets build. Flat Select/selected stages/All are verified; entity elements are verified; selector/unstaged value aggregates are verified; integer Average(double result), staged numeric reductions, selected-element terminals, selected cardinality, repeated Select and post-window cardinality predicates remain pending.
 - Core source capture/admission: verified by 3,851 tests and both Core targets.
 - Projected All: native implementations exist on all three; focused gates are recorded in CURRENT_STATUS.
 - Source composition: Mongo185 compiler/53 native checks pass; SQLite35 compiler/26 native tests pass; Neo4j163 compiler tests pass; all three enrolled in passing native acceptance.

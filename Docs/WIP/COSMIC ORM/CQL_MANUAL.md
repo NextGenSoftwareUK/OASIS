@@ -68,7 +68,7 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable numeric/selected-element terminals, selected cardinality and repeated Select remain
+Queryable selected-element terminals, selected cardinality and repeated Select remain
 unimplemented and fail explicitly; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
@@ -123,3 +123,15 @@ cardinality before invoking application entity constructors. Empty/multiple/inde
 errors preserve their CQL codes through CosmicLinqException. Entity terminal
 predicates after a source window remain explicitly unsupported; they are not moved
 before the window. Element terminals on selected sequences are still Q01 work.
+Standard selector Min/Max/Sum and decimal/Single/Double Average now dispatch through
+native scalar capabilities. An unstaged scalar selection can use the corresponding
+parameterless aggregate, for example `query.Select(row => row.Version).Sum()`.
+This is a typed path transformation into the same native aggregate, with no DTO
+construction, row fetching or client sum. Exact Int64 values beyond2^53, decimal
+precision, floating means, nullable Sum and empty inputs are verified natively.
+
+Integer Average remains a specific gap: fluent CQL's exact-decimal contract differs
+from standard LINQ's double return domain. The bridge rejects it explicitly until
+the native result contract is implemented; it does not cast a decimal result on
+the client. Aggregates after selected filters/order/windows also remain explicitly
+unsupported pending a native selected-reduction contract. Q01 remains red.

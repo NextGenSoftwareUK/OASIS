@@ -16,11 +16,20 @@ public sealed class CosmicLinqTests
         public int ScalarCalls;
         public long NativeCount = 2;
         public bool DuplicateRows;
-        public CosmicScalarCapabilities ScalarCapabilities => new(CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All);
+        private static readonly CosmicProjectionCapabilities NumericReads = new(
+            new[] { new CosmicProjectionFieldCapability("Version",typeof(int)),new CosmicProjectionFieldCapability("Name",typeof(string)) },
+            Array.Empty<Type>());
+        public CosmicScalarCapabilities ScalarCapabilities => new(
+            new[] { CosmicScalarOperation.Count,CosmicScalarOperation.LongCount,CosmicScalarOperation.Any,CosmicScalarOperation.All },
+            new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum,NumericReads),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average,NumericReads),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Min,NumericReads),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Max,NumericReads) });
         public Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan, CancellationToken cancellationToken = default) where T : IHolon
         {
             ScalarCalls++; Seen = (CosmicQuery<Holon>)(object)plan.Query.Source;
-            return Task.FromResult(Fault == null ? CosmicScalarResults.FromCount(plan.Query, NativeCount)
+            return Task.FromResult(Fault == null ? plan.Query.Selector == null ? CosmicScalarResults.FromCount(plan.Query, NativeCount)
+                : CosmicSelectedScalarResults.FromValue(plan.Query, typeof(TResult)==typeof(string) ? (object)"coffee" : 42, true)
                 : new OASISResult<TResult> { IsError = true, ErrorCount = 1, ErrorCode = Fault, Message = "Owned scalar fault." });
         }
         public CosmicQuery<Holon>? Seen;
@@ -105,7 +114,7 @@ public sealed class CosmicLinqTests
         Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => index > 0));
         Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name.ToUpperInvariant()));
         Assert.Throws<CosmicLinqException>(() => query.OrderBy(row => row.Name, StringComparer.OrdinalIgnoreCase));
-        Assert.Throws<CosmicLinqException>(() => query.Sum(row => row.Version));
+        Assert.Throws<CosmicLinqException>(() => query.Reverse());
         Assert.Equal(0, adapter.Calls);
     }
 
@@ -268,5 +277,25 @@ public sealed class CosmicLinqTests
         Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => root.Take(1).First(row => row.Name == "coffee")).Code);
         Assert.Equal("CQL_ORDER_REQUIRED", Assert.Throws<CosmicLinqException>(() => root.Last()).Code);
         Assert.Equal(0, adapter.Calls);
+    }
+    [Fact]
+    public void StandardValueAggregatesUseTheNativeScalarContractWithoutRows()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal(42, root.Sum(row => row.Version));
+        Assert.Equal("coffee", root.Min(row => row.Name));
+        Assert.Equal(42, root.Select(row => row.Version).Sum());
+        Assert.Equal(3, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
+    }
+
+    [Fact]
+    public void AggregateDomainMismatchesAndComputedSelectorsNeverBecomeClientCasts()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>root.Average(row=>row.Version)).Code);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>root.Select(row=>row.Version).Average()).Code);
+        Assert.Throws<CosmicLinqException>(()=>root.Sum(row=>row.Version+1));
+        Assert.Throws<CosmicLinqException>(()=>root.Select(row=>row.Version).Take(1).Sum());
+        Assert.Equal(0,adapter.ScalarCalls);Assert.Equal(0,adapter.Calls);
     }
 }
