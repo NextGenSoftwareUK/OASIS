@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2)
+param([switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
 $ErrorActionPreference='Stop'
+if($HistorySignatures -and (!$InspectRecent -or $InspectAvatarFailure)){throw 'Exact history reads require keyless InspectRecent alone.'}
 if($ConformanceReadOnly -and ($ConformanceOnly -or $Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
     throw 'Select original-fixture read-only conformance diagnosis alone.'
 }
@@ -151,6 +152,10 @@ try {
         # Public fixture address verified against the retained genesis/key identity.
         # Inspection never needs client signing/encryption keys or a .NET build.
         $publicAddress='Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr'
+        if($HistorySignatures){
+            & (Join-Path $PSScriptRoot 'Get-SolanaHistoryAvailability.ps1') -Signatures $HistorySignatures | ConvertTo-Json -Depth 6 -Compress | Write-Output
+            return
+        }
         $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($publicAddress,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress
         $recent=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
         if($recent.error){throw 'Read-only native signature inspection failed.'}
