@@ -11,6 +11,76 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 [Collection("Owned IPFS")]
 public class IpfsCoreStorageConformanceTests
 {
+    [Fact,Trait("Category","IPFSCoreStorageCleanup")]
+    public async Task ReconcileExactlyTheTwoIndependentlyObservedOriginalAvatars()
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
+        Assert.NotNull(root);
+        var state=Path.GetDirectoryName(Environment.GetEnvironmentVariable("IPFS_PATH"))!;
+        var inspection=Path.Combine(root!.FullName,"TestResults","IPFSCurrent","original-save-inspection.json");
+        var bytes=await File.ReadAllBytesAsync(inspection);
+        Assert.Equal("844247411279285D6318F6271EBE5BEBFE10160847C073546837E350453116DE",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
+        var pending=Path.Combine(state,"avatar-ack-cleanup.pending.json");
+        var completed=Path.Combine(state,"avatar-ack-cleanup.json");
+        Assert.False(File.Exists(pending)||File.Exists(pending+".next")||File.Exists(completed),"Preserve an existing reconciliation; never replay cleanup.");
+        using var observations=JsonDocument.Parse(bytes);
+        Assert.Equal(2,observations.RootElement.GetArrayLength());
+        var selected=new List<(Provider Provider,JsonElement Observation,string DnaPath,byte[] Original)>();
+        var outcomes=new List<object>();
+        var priorDna=OASISDNAManager.OASISDNA;var priorPath=OASISDNAManager.OASISDNAPath;
+        try
+        {
+            // Admit every exact original catalogue before the first mutation.
+            foreach(var observation in observations.RootElement.EnumerateArray())
+            {
+                var mode=observation.GetProperty("mode").GetString()!;
+                Assert.Contains(mode,new[]{"async","sync"});
+                var dnaPath=Path.Combine(state,"conformance-"+mode+"-dna.json");
+                var original=await File.ReadAllBytesAsync(dnaPath);
+                Assert.Equal(observation.GetProperty("dnaSha256").GetString(),Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original)));
+                var dna=Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(System.Text.Encoding.UTF8.GetString(original))!;
+                Assert.Equal(observation.GetProperty("rootCid").GetString(),dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                var provider=new Provider(dna,dnaPath);Assert.False((await provider.ActivateProviderAsync()).IsError);
+                var entry=Assert.Single(await provider.LoadLookupToJson());
+                Assert.Equal("avatar",entry.Value.RecordKind);
+                Assert.Equal(observation.GetProperty("id").GetGuid(),entry.Value.Id);
+                Assert.Equal(observation.GetProperty("recordCid").GetString(),entry.Key);
+                selected.Add((provider,observation,dnaPath,original));
+            }
+            Assert.Equal(2,selected.Select(row=>row.Observation.GetProperty("mode").GetString()).Distinct().Count());
+            var archive=Path.Combine(state,"Archive");Directory.CreateDirectory(archive);
+            foreach(var item in selected)
+            {
+                var target=Path.Combine(archive,"avatar-ack-original-"+item.Observation.GetProperty("mode").GetString()+"-dna.json");
+                await using var file=new FileStream(target,FileMode.CreateNew,FileAccess.Write,FileShare.None);
+                await file.WriteAsync(item.Original);file.Flush(true);
+            }
+            async Task Progress(bool complete)
+            {
+                await using(var file=new FileStream(pending+".next",FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+                    await JsonSerializer.SerializeAsync(file,new{schema=1,complete,scope="Exact observed original avatar logical removal; immutable CIDs preserved",outcomes});file.Flush(true);
+                }
+                File.Move(pending+".next",pending,true);
+            }
+            await Progress(false);
+            foreach(var item in selected)
+            {
+                Assert.Equal(item.Observation.GetProperty("dnaSha256").GetString(),Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(item.DnaPath))));
+                var id=item.Observation.GetProperty("id").GetGuid();
+                var removed=await item.Provider.DeleteAvatarAsync(id,softDelete:false);
+                Assert.False(removed.IsError,removed.Exception?.GetType().FullName);Assert.True(removed.Result);Assert.True(removed.IsSaved);
+                Assert.Empty(await item.Provider.LoadLookupToJson());
+                var absent=await item.Provider.LoadAvatarAsync(id);
+                Assert.True(absent.IsError);Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,absent.ErrorCode);
+                outcomes.Add(new{mode=item.Observation.GetProperty("mode").GetString(),id,acknowledged=true,catalogueEmpty=true,pointAbsent=true});
+                await Progress(false);
+            }
+            await Progress(true);File.Move(pending,completed);
+        }
+        finally{OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;}
+    }
+
     [Fact,Trait("Category","IPFSCoreStorageInspect")]
     public async Task OriginalFailedSaveRecordsRemainReadableWithoutReplay()
     {

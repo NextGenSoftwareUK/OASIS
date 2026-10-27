@@ -256,13 +256,13 @@
       "provider": "IPFSOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 2,
+      "passed": 18,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
-      "sha256": "9ea376b650a615deb10855a3504f4514dfb90b7b2ace846161846c91922cadeb",
+      "sha256": "b63fb21cc87a313ebc6ac2217c787a10814df619f1cffe81a5fd0672c88d8e6e",
       "blockers": [
-        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
-        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
+        "async: graph-save: System.InvalidOperationException [save acknowledgement/count]",
+        "sync: graph-save: System.InvalidOperationException [save acknowledgement/count]"
       ]
     }
   ],
@@ -322,7 +322,9 @@
     "GarnetOASIS": [
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
-    "IPFSOASIS": "User-authorized fresh persistent Kubo environment now passes offline readiness. First V2 native baseline2/52 failed avatar-save acknowledgement; original records independently read back with unchanged DNA pointers. Shared avatar/detail acknowledgement boundary fixed;174 controlled tests pass, including12 before-failing SDK controls. Exact original fixture reconciliation/cleanup and fresh52-check verification remain pending; no save replay or full storage/CQL certification. Bundled SDK full PDB source-identity limitation and unimplemented shipping-path review remain open.",
+    "IPFSOASIS": [
+      "Fresh owned Kubo environment ready. Original avatar-save outcomes independently reconciled and exact-cleaned without replay; archived proof retained. New native V2 cohort18/52 reaches graph-save, exposing selected-node acknowledgement count omission and facade result loss. Graph count/result-copy fixed;178 controlled tests pass, including4 genuine before-failing graph SDK controls. New fixture IDs/DNA/journals preserved pending exact read-back/reconciliation and fresh52-check verification. Full storage/CQL certification and unimplemented shipping-path review remain open."
+    ],
     "PinataOASIS": [
       "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
     ],

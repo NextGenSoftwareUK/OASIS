@@ -2,6 +2,10 @@
 
 27 October 2026. Source audit/preflight only; CQL remains unenrolled.
 
+Current: native baseline18/52, graph acknowledgement count defect fixed with178
+controlled passes. Original avatar cleanup is complete; the newer graph-save
+cohort is preserved pending exact read-back/reconciliation. No save replay.
+
 ## Current evidence
 
 - Published provider matrix: canonical storage compiled, native suite0/52,
@@ -101,3 +105,38 @@ avatar, perform acknowledged exact-ID cleanup, independently verify absence,
 preserve original report/DNA hashes, then admit a fresh52-check run. Do not simply
 rerun ConformanceOnly while the original fixtures exist. CQL admission remains
 red; no52/52 claim is made from the controlled fix or read-only inspection.
+
+## Original closure and graph-count milestone
+
+Both original avatar catalogues were independently verified to contain exactly
+their one expected record before cleanup. Exact logical deletions acknowledged;
+catalogues are empty and ID reads report RecordNotFound. Original DNA bytes,
+historical CIDs, reports and identity journals were preserved by hash-verified
+archive moves. The durable closure is
+`LocalState/COSMIC/IPFSCurrent/avatar-ack-cleanup.json` (SHA256
+35B277B4F408AC9DF41E5A88D36573CB0480B48958C3DEF04142D8C268899F78).
+Native cleanup1pass/no skips, TRX `ipfs-core-cleanup.trx`, SHA256
+DA00A0A8D35B7934A946AC5B1826461665FE2CE0BDA27B54185C75083FC61E7D.
+
+A fresh cohort on the same repository/key reached18/52: nine checks per mode
+pass, including avatar/detail writes and lookups. It then failed graph-save at
+save acknowledgement/count. The graph publisher omitted SavedCount, and the
+single-holon facade's manual result wrapper lost it. Four stateful bundled-SDK
+controls reproduced count2 expected/count0 actual across sync/async single/batch.
+
+The graph publication owner now reports its selected node count only after all
+selected publications complete. The single-holon facade uses the existing shared
+result-copy owner, preserving counts and error/metadata rather than inventing a
+second result contract. Full controlled cohort178pass/no skips.
+
+| Evidence relative to TestResults/IPFSCurrent | SHA256 |
+|---|---|
+| graph-ack-before.trx (4 genuine failures) | 8A8E5AB78A45AC8A304570F2561D127D08FE87AFE3105C9345789CD54CF6E790 |
+| graph-ack-fixed.trx (178 pass) | 0CDAF163D8AB27980E792B4CF02D92455143F41317B4C1C16713DAB1620B292E |
+| ipfs-core-current.trx (current18/52, two failed graph schedules) | 11CFF4321E23D3C3686B3BAA3BB78B1CE4246812F5DFD501DA792760DD0CA476 |
+
+The fresh cohort's avatar/detail/root/child intents and DNA remain in persistent
+state. Next: independently read and bind its exact catalogue/records, reconcile
+only those fixtures, then verify a fresh full baseline. Do not replay graph-save
+or use the earlier pinned avatar-only review against the newer cohort. Services
+are stopped; CQL and full native certification remain red.
