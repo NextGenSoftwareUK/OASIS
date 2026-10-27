@@ -38,9 +38,14 @@ Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-graph-current.trx`.
 SHA256: `0691C0AA1A23F527EF3037DB2249E5C0B71EAC7E0195B28CA805C05ACC4661DF`.
 Provider build passes. Native materialized stages and ordinal positions share the row snapshot/budget/graph owner.
 
+Mongo entity stages implemented under the shared row/graph snapshot and deadline owner.
+Provider builds; 212 CQL compiler/admission tests pass, including five new tests. Live native proof pending.
+Evidence: `TestResults/CoreCurrent/mongo-entity-stage-current.trx`.
+SHA256: `CF8E2C8895AD2E6918D3A477C5BBDE33813840BB78633AB83B0A674413AFFBD1`.
+
 ## Exact next step
 
-Implement MongoDB native entity stages, then Neo4j; extend the cross-database native matrix and integrate staged terminals/projections.
+Run MongoDB native entity-stage acceptance against retained fixtures, then implement Neo4j; extend the cross-database matrix and integrate staged terminals/projections.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.

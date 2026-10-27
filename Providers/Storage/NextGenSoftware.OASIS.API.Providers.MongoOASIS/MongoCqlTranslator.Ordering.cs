@@ -13,8 +13,10 @@ internal sealed class MongoCqlCommand
     internal int FetchCount { get; }
     internal bool RequiresMembership { get; }
     internal bool HasTraversalEnvelope { get; }
-    internal MongoCqlCommand(BsonDocument[] pipeline,int fetchCount,bool requiresMembership=false,bool hasTraversalEnvelope=false)
-    {Pipeline=pipeline;FetchCount=fetchCount;RequiresMembership=requiresMembership;HasTraversalEnvelope=hasTraversalEnvelope;}
+    internal MongoCqlEntityCompositionCommand EntityComposition { get; }
+    internal MongoCqlCommand(BsonDocument[] pipeline,int fetchCount,bool requiresMembership=false,bool hasTraversalEnvelope=false,
+        MongoCqlEntityCompositionCommand entityComposition=null)
+    {Pipeline=pipeline;FetchCount=fetchCount;RequiresMembership=requiresMembership;HasTraversalEnvelope=hasTraversalEnvelope;EntityComposition=entityComposition;}
 }
 
 internal sealed partial class MongoCqlTranslator
