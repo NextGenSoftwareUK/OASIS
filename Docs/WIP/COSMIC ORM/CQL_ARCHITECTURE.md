@@ -1,3 +1,25 @@
+## Latest request ownership correction — 26 October 2026
+
+Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing
+IncludeMetadata or MaximumOutputBytes while a provider await was suspended could
+expand disclosure or bypass the admitted public wire ceiling. CqlRequestCapture
+now detaches row and federation requests before application callbacks or awaits,
+including provider/priority arrays, nested relationship/filter/path descriptors,
+graph shape and owned scalar JsonElements. The compiler remains the semantic
+admission owner; capture ceilings only bound allocation. No retry, alternate
+writer or provider fallback was introduced.
+
+Full Core3,744pass0skip and shippingWEB4build pass. Five new controls cover the two
+original regressions, ordinary-row disclosure, nested mutation/disposed JSON and
+Exists-without-Value compatibility. Fresh native526settlements608attempts passes
+all three providers, cursor/key/process restart, graph and transport checks;
+source snapshots unchanged and seven producer/consumer pairs match. Owned test
+fixtures, temporary protected keys and services were verified clean.
+
+Evidence: Verification/request-ownership-{red,core,native,process-second}.trx.gz,
+-native-source.json.gz, -native-binaries.json, -native-result.json,
+-process-pids.json and -unit-identities.json. The overall roadmap remains open.
+
 ## Latest: actual cursor process restart verified — 26 October 2026
 
 A settled three-provider page survives abrupt termination of its hosting process.
