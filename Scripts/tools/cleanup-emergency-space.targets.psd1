@@ -1,5 +1,5 @@
 @{
-    ActiveWorktrees = @('C:/Source/OASIS', 'C:/Source/Our-World')
+    ActiveWorktrees = @('C:/Source/OASIS', 'C:/Source/OASIS-cosmic', 'C:/Source/Our-World')
     # Build and test outputs are always regenerable, so nothing here preserves bin/obj
     # or TestResults. Only non-regenerable secret backups and the pinned DynamoDB evidence are kept.
     # Paths below are relative to the main repository unless explicitly absolute.
@@ -30,5 +30,5 @@
         'artifacts/release-promotion/package-verification'
     )
     # Other registered checkouts whose bin/obj and TestResults are also reclaimed.
-    AdditionalBuildRepositories = @()
+    AdditionalBuildRepositories = @('C:/Source/OASIS-cosmic')
 }
