@@ -1,0 +1,91 @@
+{
+  "scope": "offline taxonomy/SDK evidence and controlled non-storage harness only; no native service certification",
+  "matrix": {
+    "providers": 229,
+    "nonStorage": 55,
+    "other": 0,
+    "sdkUnverifiedBefore": 180,
+    "sdkUnverifiedAfter": 33,
+    "sha256": "781cfe015b0e4e9446f2b5cde84144e05c0b9eedfba069ba723281b9661f7b7b"
+  },
+  "pythonTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "capabilityTrx": {
+    "counters": {
+      "total": "7",
+      "executed": "7",
+      "passed": "7",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "rawBytes": 12136,
+    "rawSha256": "c4be77aed17c5974ed5e33b62924e0eb3979fea0bfd02af8fae47651c34176a6",
+    "gzipBytes": 1872
+  },
+  "sourceDocuments": {
+    "Core": 788,
+    "Shared": 56,
+    "sharedUnit": 85
+  },
+  "binaries": [
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "bytes": 3510784,
+      "sha256": "94fae3aceb0f0b7a920051144b8b0f68e1035a4e8f600ab68d340c45ef76f984"
+    },
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "bytes": 379904,
+      "sha256": "7417458cd82028d04e24efd5c0fd759dffd6fffe4af4cd1849a288e06074a228"
+    },
+    {
+      "path": "Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests.dll",
+      "bytes": 840704,
+      "sha256": "692c192d8c7a2dd5836ab41104bcdf6d6d6292e14424299f52711c41d9911440"
+    }
+  ],
+  "resources": [
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\bin",
+      "bytes": 47332685,
+      "retention": "reused existing output; retain for family tests"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Shared\\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests\\obj",
+      "bytes": 2386182,
+      "retention": "reused existing output; retain for family tests"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Scripts\\Providers\\__pycache__\\update_provider_matrix.cpython-312.pyc",
+      "bytes": 13846,
+      "retention": "removed owned import cache after process completion"
+    }
+  ],
+  "sources": [
+    {
+      "path": "Scripts\\Providers\\update_provider_matrix.py",
+      "sha256": "a542e45ab945ebe5afeff34e07fd9660fd549b171c84e4b5cfa9426c60344d57"
+    },
+    {
+      "path": "Scripts\\Providers\\test_provider_matrix.py",
+      "sha256": "862a28f5139ca3fbe5c78aebc212ebe5a973c33ee3fe169feb5cc9454b282681"
+    },
+    {
+      "path": "Providers\\Shared\\TestSupport\\NonStorageConformance.cs",
+      "sha256": "83ab75bc3fb88909f333fdeda864a651ace3e7b9d73b187b96b8a44467a8d423"
+    }
+  ]
+}
