@@ -3,9 +3,9 @@
 Current phase: [CURRENT_STATUS](CURRENT_STATUS.md). The [parity checklist](CQL_PARITY_CHECKLIST.md) remains authoritative.
 
 1. Q49a:216 native source checks pass across MongoDB, SQLite and Neo4j; freeze verified source composition.
-2. Q23e: completed168-check native gate; freeze verified projected-All behavior. Refresh developer demos and complete the parent integration audit before Q23 promotion.
+2. Q23e: completed168-check native gate; freeze verified projected-All behavior. Parent Q23 audit and24 shipping C# demo examples now pass; freeze these rows.
 3. Promote a database cell only when proving native evidence covers its full row. Unit/structural compilation does not establish native parity.
-4. Update well-spaced, commented developer demos and maintained docs for newly proved features.
+4. Source/projected-All C# demos and maintained docs are updated; the24-example native demo passes. Continue Q01 IQueryable/IQueryProvider integration, leaving Q01 red until full scoped proof.
 5. Select the next red row; leave green features and federation cursors alone unless a reproducible bug requires a root fix.
 6. Finish large parity items, including POCO mapping and migration tooling, at their documented priority after demo/current priority acceptance.
 7. Perform a final requirement-by-requirement audit before claiming full EF/NHibernate or COSMIC completion.

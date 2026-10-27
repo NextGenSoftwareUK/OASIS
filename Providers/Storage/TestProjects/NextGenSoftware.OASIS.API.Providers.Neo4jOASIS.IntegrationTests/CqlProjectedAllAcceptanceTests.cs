@@ -57,7 +57,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     [TestMethod]
     public Task NativeSourceRelationshipCompositionShapesAndConsumers()=>VerifyFixture(reviewed:false,sourceMatrix:true);
 
-    private static async Task VerifyFixture(bool reviewed, bool sourceMatrix=false)
+    [TestMethod]
+    public Task NativeSourceAndProjectedAllDeveloperDemo()=>VerifyFixture(reviewed:false,demo:true);
+
+    private static async Task VerifyFixture(bool reviewed, bool sourceMatrix=false, bool demo=false)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
         var reports=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_RESULTS");
@@ -144,6 +147,29 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 Assert.IsFalse(cycle.IsError,cycle.Message+cycle.Exception);states.Add(new{provider=provider.ProviderName,created=true});await Checkpoint("created-"+provider.ProviderName);
             }
             var adapters=providers.Cast<ICosmicQueryProjectedAllStorageProvider>().ToArray();
+            if(demo)
+            {
+                foreach(var adapter in adapters)
+                {
+                    var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA
+                    {
+                        OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS
+                        {
+                            HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                            StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings{LogSwitchingProviders=false}
+                        }
+                    };
+                    var registry=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna)
+                    { IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false };
+                    var manager=new NextGenSoftware.OASIS.API.Core.Managers.HolonManager((IOASISStorageProvider)adapter,dna,registry);
+                    using var output=new StringWriter();
+                    var count=await CosmicCqlDemo.SourceAndProjectedAllDemo.RunAsync(manager,adapter,rootId,actor,output);
+                    Assert.AreEqual(8,count);
+                    await File.WriteAllTextAsync(Path.Combine(reports!,"cql-source-demo-"+adapter.QueryProviderType+".log"),output.ToString());
+                    for(var index=0;index<count;index++)checks.Add(new{provider=adapter.QueryProviderType.ToString(),example=index+1});
+                }
+                Assert.AreEqual(24,checks.Count);complete=true;return;
+            }
             if(sourceMatrix)
             {
                 await VerifySourceMatrix(adapters, provider=>Source(provider), actor, checks);
@@ -264,7 +290,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                     await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=textIds})).ConsumeAsync();
                     Assert.AreEqual(0L,await records.CountDocumentsAsync(mongoIds));Assert.AreEqual(0L,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(0L,await NeoCount());
                     CollectionAssert.AreEqual(original,await File.ReadAllBytesAsync(originalPath));
-                    await File.WriteAllTextAsync(Path.Combine(reports!,sourceMatrix?"cql-source-composition-result.json":"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
+                    await File.WriteAllTextAsync(Path.Combine(reports!,demo?"cql-source-demo-result.json":sourceMatrix?"cql-source-composition-result.json":"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
                     File.Delete(journal);
                 }
             }

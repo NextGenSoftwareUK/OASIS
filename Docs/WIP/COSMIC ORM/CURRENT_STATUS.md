@@ -8,12 +8,13 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 - Full COSMIC roadmap remains active. Current focus: CQL parity on SQLite/MongoDB/Neo4j.
 - Work only on red checklist rows. Green features and federation cursors are frozen unless a bug is reproduced.
 - The 12 investor-demo rows are green; full EF/NHibernate parity is not complete.
-- Q49a source composition and Q23e projected-All are green on all three. Current work: parent Q23 developer-demo/integration audit, then the next red row.
+- Q23 All, Q23e projected-All and Q49a source composition are green on all three. Next red row: Q01 standard IQueryable/IQueryProvider integration.
 
 ## Verified checkpoints (separate cohorts)
 
 | Scope | Result | Evidence location |
 |---|---|---|
+| Shipping source/projected-All C# demo | 24 examples passed,8/store through V2 HolonManager; one test, no skips | `TestResults/Neo4jCurrent/neo4j-source-demo-current.trx` and `cql-source-demo-result.json` |
 | Native source-composition matrix | 216 checks passed,72/store; one test, zero skips, across row/count/projection consumers | `TestResults/Neo4jCurrent/neo4j-source-matrix-current.trx` and `cql-source-composition-result.json` |
 | Combined native projected-All acceptance | 168 checks passed:50/store plus18 rotated shared-budget cases; one test, no skips | `TestResults/Neo4jCurrent/neo4j-native-current.trx` and `cql-projected-all-acceptance-result.json` |
 | Core source capture/admission | 3,851 passed, zero skips; net10.0/netstandard2.1 builds passed | Historical [Core TRX](Evidence/Verification/source-relationships-core.trx.gz) |
@@ -41,8 +42,10 @@ Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationship
 - Native test SHA256: `C5D5DF88D3C5F95818BB08B820091CDC8A04A6AD244EDB6AE3B4B389A38F189C`; summary SHA256: `1E28A326798382BC5DC8236AB5F91E5B97C8BE1FBCC342A95F20C7CB47CC76E2`.
 - Q49a matrix passed216 checks: all four nesting orientations, AND/OR/NOT, positive/negative results, hidden intermediate parents and protected limit errors before empty windows across row/count/projection consumers. Exact cleanup and unchanged original fixture verified.
 - Use the small `Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/` project for native-only acceptance. It links the same authoritative gate without requiring the unrelated WEB4 host graph.
-- Next: add spaced/commented C# developer demos for source composition and projected All; execute them in the reusable native acceptance assembly, update manual/architecture, then audit parent Q23 and select the next red row. Q49a/Q23e are frozen unless a reproducible bug is found.
+- Parent Q23 audit complete: independent Q23a–e/Q49a evidence plus24 shipping C# examples through the V2 manager; freeze these green rows unless a bug is reproduced. Full681-case legacy SDK/HTTP walkthrough is not newly verified by these focused gates.
+- Exact next step: inspect existing immutable query/planner/manager contracts and implement Q01 standard IQueryable/IQueryProvider capture and native execution. Preserve declared capabilities, explicit provider scope and OASISResult errors; no client Enumerable fallback. Keep Q01 red until its full scoped native proof exists.
 - Source matrix TRX SHA256: `6574CE43391BAAF77C4C3AF2979DBF175D4561236D13E8DDD2FB2FB9822B4A47`; summary SHA256: `0D04CA0D491B252A556253A77DB7E29FF4854C3E86AD1513146B6FC78ECDB40E`.
+- Demo TRX SHA256: `1329E5180985368F4B8BCFD00C5F2D3E4DE74AD23DC2CCB341B01752C8A982B5`; summary SHA256: `2B86ED1E976B4DA87C412A86BA0486D162100C6CF07893F6B456350F33EE0E20`.
 - Documentation consolidation:10 active root reports,126 archived reports,334 byte-preserved historical artifacts; recovery set stays below300 lines.
 ## Key commands (PowerShell, cwd above)
 
@@ -54,7 +57,7 @@ git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' fetch origin
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' merge --no-edit origin/Development
 # Native-only acceptance: fresh owned fixture only after the previous gate has completed exact cleanup.
 & 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-cql' -Operation {
-    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlSourceMatrix
+    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlSourceDemo
 }
 ```
 

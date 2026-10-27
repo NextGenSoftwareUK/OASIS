@@ -15,3 +15,10 @@ Keep source translation, protected errors, membership/visibility and remaining-w
 [Active acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) defines the current invariants.
 [Full architecture/history](Archive/CQL_ARCHITECTURE_history_2026-10-27.md) retains earlier detailed designs, subsystem contracts and checkpoint evidence.
 [Full ORM history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) retains replication/history/migration/placement and other programme requirements.
+
+The native-only acceptance assembly links the shipping demo and provider adapters;
+it does not implement replacement query execution. Its host supplies a V2
+HolonManager with an explicit provider registry. The source/composition demo checks
+both successful results and protected errors through that manager. Fixture creation,
+ownership journals and exact cleanup stay in the test host, outside the read-only
+public example. HTTP host contracts remain in their separate integration project.

@@ -1,5 +1,33 @@
 # COSMIC CQL demo
 
+## Source composition and projected All — C# walkthrough (24 examples verified 27 October 2026)
+
+Read [SourceAndProjectedAllDemo.cs](SourceAndProjectedAllDemo.cs) first for eight
+spaced, commented examples. The same code runs on MongoDB, SQLite and Neo4j:
+nested source filtering, NOT with native LongCount, visibility at each hop,
+selected filters/order/windows before All, true/false/empty results, and a
+protected traversal error that survives OR and Take(0).
+
+Run from `C:/Source/OASIS-cosmic`:
+
+```powershell
+& 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-source-demo' -Operation {
+    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlSourceDemo
+}
+```
+
+The host reuses the installed runtimes and retained stores. It owns six synthetic
+IDs per database, checks all examples, and verifies exact cleanup after success.
+It refuses an unfinished fixture; inspect its journal before attempting recovery.
+The demo class itself only reads. Do not supply production data to this fixture host.
+
+Read console output in the worktree's `TestResults/Neo4jCurrent/`:
+`cql-source-demo-MongoDBOASIS.log`, `cql-source-demo-SQLLiteDBOASIS.log`, and
+`cql-source-demo-Neo4jOASIS.log`. The TRX and JSON summary are alongside them.
+[Current evidence/status](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) records
+verified counts and hashes. These are C# examples; HTTP syntax has its own
+capability and endpoint contracts below.
+
 ## Federation demo — verified 26 October 2026
 
 Read [V1FederationWalkthrough.cs](V1FederationWalkthrough.cs) for the spaced and
