@@ -402,3 +402,5 @@ bool emptyAll = featured.Take(0).All(holon => false);
 ```
 
 These terminals preserve source/stage row, payload and work bounds. `Any`/`All` do not bypass protected traversal outcomes through an early managed short-circuit. Separate terminal calls do not promise the same snapshot across calls. Staged element terminals, projections and remaining numeric reductions are still pending.
+
+The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. This increment has shared tests only: standard staged element binding and live provider acceptance remain pending, and Last/reversal explicitly reject until independently implemented.

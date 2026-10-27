@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: implement staged entity element terminals through the existing stage/hydration owners.
+- Exact next step: bind standard staged forward element terminals, then prove native acceptance; add tail/reversal support.
 - Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
@@ -22,7 +22,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
 | Latest native gate | 1,631 checks: SQLite543/Mongo543/Neo545, one test, no skips |
 | Focused provider CQL tests | SQLite44, Mongo215, Neo147 pass; provider builds pass |
-| Shared count foundation | 2,559 CQL regressions pass; both Core targets build; Corec091e61 pushed/verified |
+| Shared count foundation | 2,563 CQL regressions pass; both Core targets build; Core7fd3b11 pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
 entity element terminals, projections and remaining numeric terminals are still pending. No client reduction substitutes for native execution.
@@ -38,6 +38,11 @@ SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
 Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
 [Earlier checkpoint evidence](Archive/CURRENT_STATUS_pre_terminal_binding_2026-10-27.md) preserves other hashes/cohorts.
 Full Core suite is not green: earlier3,853 passes/six failures from missing built WEB4 host prerequisite remain unverified.
+
+Shared forward-element planner/executor and V2 manager now append native terminal windows; Single cardinality precedes application construction.
+Four new tests cover ambiguity, hydration/tracking, index/default semantics and gates. Standard binding/live proof/tail reversal pending.
+Evidence `TestResults/CoreCurrent/entity-element-regression.trx`, SHA256 `0C29CE9DAC24EBC46E995C081E568DC46F3B028A32987214FA97EE7FC374E31E`.
+The latest 1,631 native gate predates this element foundation Core increment.
 
 ## Fixture and resource safety
 
