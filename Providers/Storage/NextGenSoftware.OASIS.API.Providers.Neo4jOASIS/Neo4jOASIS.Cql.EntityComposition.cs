@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 {
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
-        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging, CqlCapabilities);
+        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse, CqlCapabilities);
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
         int maximumResults=100, CancellationToken cancellationToken=default) where T:IHolon
@@ -96,6 +96,10 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
                 text.Append("CALL { WITH selected UNWIND selected AS item WITH item.h AS h,item.p AS p WITH h,p" + project
                     + " ORDER BY " + sort + " RETURN collect({h:h,p:p}) AS sorted } ")
                     .Append("WITH entitySource,sorted AS selected,entityCycle,entityLimit,entityWork ");
+            }
+            else if (stage is CosmicEntityReverseStage)
+            {
+                text.Append("WITH entitySource,reverse(selected) AS selected,entityCycle,entityLimit,entityWork ");
             }
             else if (stage is CosmicEntityWindowStage window)
             {

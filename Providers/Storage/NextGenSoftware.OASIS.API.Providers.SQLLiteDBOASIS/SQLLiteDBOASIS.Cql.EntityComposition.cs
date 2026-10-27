@@ -17,7 +17,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityCountStorageProvider
         => ((HolonRepository)_holonRepository).ExecuteCosmicEntityCountAsync(plan,cancellationToken);
 
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
-        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
+        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
         SqliteCqlContract.Capabilities);
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
