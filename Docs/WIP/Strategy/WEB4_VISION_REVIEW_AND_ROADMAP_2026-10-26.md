@@ -75,7 +75,7 @@ WEB4/HyperDrive is not only about connecting everything — it is designed to us
 | WEB4 API, avatars, identity, deployment | ✅ Live on Railway |
 | COSMIC ORM concurrency and conditional writes | ✅ Strong, well tested |
 | CQL on SQLite / MongoDB / Neo4j | 🟡 Demo working (`COSMIC ORM/CQL_V1_DEMO_VERIFICATION.md`); EF/NHibernate parity in progress |
-| HyperDrive failover / load balancing / replication | 🔴 Not yet proven across providers |
+| HyperDrive failover / load balancing / replication | ✅ Proven in HyperDrive V1 · 🟡 V2 (stronger guarantees across all providers) not yet accepted |
 | COSMIC replication, history, migration, placement, per-save deltas | 🔴 Mostly open |
 | Ingesting existing foreign (Web2/Web3) data | 🔴 The largest remaining gap |
 | AI / ML sense-making | ⚪ Not started |
@@ -93,7 +93,7 @@ Volume: ~3,600 commits, ~346k lines of C# added (~225k in test paths), ~71k line
 **Goal:** implement real SDK/API operations for ALL providers (priority: MongoDB, SQLite, Solana, Ethereum, Arbitrum, Polygon, NEAR, Neo4j, Azure CosmosDB, AWS, Google Cloud, Cosmos, Polkadot, SOLID, ActivityPub), fully tested with live data, *before* going deeper into failover/replication.
 
 - ✅ Breadth is better than it feels: 163 of ~224 provider projects touched; priority providers have almost no `NotImplementedException`/TODOs left (remaining hits are mostly commented-out legacy code).
-- ❌ **Depth before breadth.** Recent work on single providers goes far beyond "fully implemented and working" — e.g. Polkadot now has a custom ink!/Wasm contract, fee accounting, fsync-backed durable acknowledgements, crash-recovery replays and encrypted records — while ~60 providers are untouched and cross-provider failover/replication has not started. This inverts the stated order.
+- ❌ **Depth before breadth.** Recent work on single providers goes far beyond "fully implemented and working" — e.g. Polkadot now has a custom ink!/Wasm contract, fee accounting, fsync-backed durable acknowledgements, crash-recovery replays and encrypted records — while ~60 providers are untouched and V2 cross-provider failover/replication acceptance has not started (V1 already provides proven failover, load balancing and replication). This inverts the stated order.
 - ⚠️ **Status is not readable.** `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` is ~6,300 lines of compressed gate logs; there is no single "how many providers are done" answer.
 
 ### COSMIC ORM / CQL
@@ -135,6 +135,20 @@ The right direction: a unified, typed, permissioned data layer is exactly what A
 3. **Vector / embeddings provider.** Semantic search as another HyperDrive provider: holons are embedded automatically and CQL gains "similar to" queries.
 4. **Entity resolution.** Recognising that a wallet, a social handle and an avatar are the same entity — what turns aggregated data into insight.
 5. **Analytics** last; it is only as good as the layers beneath.
+
+### Additions from the agent's own assessment
+
+The implementing agent's `Docs/WIP/COSMIC ORM/WEB4_VISION_AND_AI_NEXT_STEPS.md` reaches the same direction and adds points worth adopting:
+
+- **Semantic contracts, not just a common envelope.** A shared holon format does not prove two sources *mean* the same thing. Define stable entity identities, schema versions, units, currencies, timestamps, authority, provenance, finality and lossless mappings, and make each provider's guarantees discoverable through the API.
+- **An "explain" surface.** For every query or write, show the resolved provider scope, native vs coordinated execution, consistency and freshness, attempts, cost, replication lag and any rejected capabilities. This makes HyperDrive's behaviour visible and builds trust with developers.
+- **AI as a validated plan, read-only first.** Natural language becomes a typed, policy-checked CQL plan run through the existing WEB4 authorization and budgets; answers return deterministic results with source identities and versions. Start with read-only summaries, search, reconciliation and anomaly detection; allow writes only through the existing conditional-write and authority contracts.
+- **Provenance via W3C PROV.** Record which sources, transformations and versions produced each answer, mapped to the W3C PROV standard rather than a home-grown format.
+- **Vector indexes inherit permissions.** Embeddings must respect source permissions and revocation; retrieved content is data, never instructions.
+- **ML for HyperDrive itself.** Use real telemetry to learn latency, cost and placement, compared against a rules baseline in shadow mode before any automation. Residency, permissions, durability and finality stay enforced outside the model.
+- **Payment stages.** For hybrid payments, distinguish accepted intent, provider persistence, chain submission and finalised settlement, with deadlines, idempotency and visible failure and compensation states. Replicating a holon to a chain is not itself a payment.
+- **Honest availability claims.** Use measured availability and recovery objectives with explicit degraded-mode guarantees instead of "100% uptime"; failover cannot create connectivity, fresh replicas or chain finality that do not exist.
+- **First commercial pilot.** Explain and reconcile operational records across existing Web2 storage and on-chain evidence, with permission-scoped queries and traceable answers. This fits naturally with the coffee-payment flagship.
 
 ---
 
