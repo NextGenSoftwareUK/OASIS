@@ -114,6 +114,19 @@ public static partial class CqlV1Compiler
             request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
     }
 
+    internal static CosmicQuery<Holon> CompileIndexedSource(CqlV1Request request, Guid actor,
+        CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+            throw new ArgumentException("Indexed rows require Take1-100 with alias-owned provider and no graph.");
+        var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
+            request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
+            request.Skip, request.Take, access, includeCloudReadProfile:true, indexedSource:true);
+        var indexed = source.WithIndexedSource(requirement);
+        if(indexed.IsError)throw new ArgumentException(indexed.Message);
+        return indexed.Result;
+    }
+
     // Only the federation planner may bind this unbound business intent to its
     // complete captured target policies before any native execution.
     internal static CosmicQuery<Holon> CompileFederationSource(CqlV1Request request, Guid actor)
@@ -127,7 +140,7 @@ public static partial class CqlV1Compiler
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
-        bool bindAccess=true, bool includeCloudReadProfile=false)
+        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false)
     {
         if(access!=null)
         {
@@ -135,7 +148,7 @@ public static partial class CqlV1Compiler
                 throw new ArgumentException("Trusted access must bind the same authenticated actor and concrete provider.");
             provider=access.Authority??provider;
         }
-        if (actor == Guid.Empty || provider.HasValue && !(includeCloudReadProfile ? SupportedReadProfile(provider.Value) : Supported(provider.Value)))
+        if (actor == Guid.Empty || provider.HasValue && !(indexedSource ? provider.Value==ProviderType.SolanaOASIS : includeCloudReadProfile ? SupportedReadProfile(provider.Value) : Supported(provider.Value)))
             throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
         if (filters == null || anyOf == null || anyChildren == null || anyDescendants == null ||
             anyChildren.Length + (long)anyDescendants.Length > 4 ||

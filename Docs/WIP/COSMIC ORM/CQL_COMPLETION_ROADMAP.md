@@ -17,3 +17,5 @@ Unsupported shapes fail explicitly; client materialization or silent fallback ca
 [original roadmap](Archive/CQL_COMPLETION_ROADMAP_history_2026-10-27.md) preserve history.
 
 Indexed SDK rows, typed manager/LINQ and [prepared physical-read accounting](CQL_INDEXED_BILLING.md) now pass controlled/native-SQL gates. WEB4 server binding/reservation/HTTP acceptance and native declared-source-range acceptance remain next; original source recovery stays red.
+
+[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
