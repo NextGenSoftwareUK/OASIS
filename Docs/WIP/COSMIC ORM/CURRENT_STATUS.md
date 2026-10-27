@@ -21,14 +21,14 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 | Isolated Mongo compiler worktree | 185 compiler tests passed, zero skips | `TestResults/CoreCurrent/isolated-mongo-source-unit.trx` (regenerable) |
 
 Latest compiler evidence SHA256: `6e0e742808535f38509095987b8704fe86d7b6676d54c9612b119d0bd80597ca`.
-The isolated Mongo fix and four new compiler tests are **uncommitted code work**, not native acceptance proof.
-This documentation-only checkpoint must not stage that code or tests.
+The isolated Mongo fix and four new compiler tests remain **uncommitted code work**. Focused native proof now passes: one test, 53 checks; all six records and both journals unchanged, zero creates replayed.
+Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationships-current.trx`; the fixture summary is alongside it. Documentation-only commits must not stage code or tests.
 
 ## Open defect and preserved state
 
 - The combined 168-check native gate is incomplete. The reviewed run verified six fixture IDs/store and matching actor/version controls, without creates.
 - Reproduced defect: Mongo scalar root translation rejects relationships nested below Boolean logic.
-- Draft fix reuses its existing protected relationship evaluator and full-AST membership detection; compiler tests pass, native proof remains pending.
+- Draft fix reuses its existing protected relationship evaluator and full-AST membership detection; 185 compiler tests and 53 focused native checks pass; full three-provider acceptance remains pending.
 - Mongo source capability enrollment is draft/uncommitted; SQLite/Neo4j remain unenrolled for Q49a.
 - No cycle mutation, create replay, reset or fixture cleanup has occurred.
 - Persistent fixture data/journals: ignored `LocalState/COSMIC/`; **never clear it with TestResults**.
@@ -42,7 +42,7 @@ Documentation consolidation is complete: 10 active root reports, 126 archived re
 1. Resume the draft Mongo source fix after the separate docs-only tidy commit; leave source commits separate.
 2. Read `MongoCqlTranslator.Ordering.cs`, `MongoCqlTranslator.cs` and the active [acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md).
 3. Bootstrap only missing local consumer dependencies from the global NuGet cache; reuse existing runtimes and frozen sibling-library inputs, never build in the old checkout.
-4. Verify the Mongo fix natively against the pinned reviewed fixture; then implement/enroll SQLite/Neo4j source composition as needed.
+4. Commit the verified Mongo source fix separately; then implement/enroll SQLite/Neo4j source composition as needed.
 5. Complete all protected-scope, scalar-domain, cycle and rotated cross-provider budget checks before promoting Q49a/Q23e.
 6. Once green, update demos/docs, commit named source files, push and resume the next red checklist row.
 
