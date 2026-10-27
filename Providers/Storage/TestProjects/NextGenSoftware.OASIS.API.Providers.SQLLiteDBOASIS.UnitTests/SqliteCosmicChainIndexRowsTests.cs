@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -70,11 +72,14 @@ public class SqliteCosmicChainIndexRowsTests
         query=query.OrderBy(row=>row.Name).ThenBy(row=>row.Id).Result;
         query=mode=="page"?query.Skip(1).Take(1).Result:query.Take(2).Result;
         using var cancellation=new CancellationTokenSource();if(mode=="cancelled")cancellation.Cancel();
-        var result=await CosmicIndexedQueryExecutor.ExecuteAsync(Plan(query),reader,observer,cancellationToken:cancellation.Token);
+        var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2}};
+        var manager=new HolonManager(null,dna,new ProviderManager(null,dna));
+        var result=await manager.ExecuteIndexedQueryAsync(Plan(query),reader,observer,cancellationToken:cancellation.Token);
         if(mode is "rows" or "empty" or "injection" or "catalogue" or "page"){
             Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(mode is "empty" or "injection"?0:mode is "catalogue" or "page"?1:2,result.Result.Rows.Count);
             Assert.AreEqual(source.IndexId,result.Result.Checkpoint.Source.IndexId);Assert.AreEqual(ProviderType.SQLLiteDBOASIS,result.Result.Checkpoint.Source.ExecutionProvider);
             Assert.AreEqual(1,observer.HeadCalls);Assert.AreEqual(mode is "empty" or "injection"?0:mode is "catalogue" or "page"?1:2,observer.RecordCalls);
+            Assert.IsTrue(result.Result.Rows.All(row=>!HolonChangeTracking.HasChanges(row)),"Typed indexed rows must start clean.");
             if(mode=="rows")CollectionAssert.AreEqual(new[]{"A","B"},result.Result.Rows.Select(r=>r.Name).ToArray());
             if(mode=="page")Assert.AreEqual("B",result.Result.Rows.Single().Name);
         }else{
