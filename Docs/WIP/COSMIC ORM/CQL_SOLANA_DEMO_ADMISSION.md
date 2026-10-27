@@ -157,3 +157,5 @@ must not be presented as original-record recovery or complete historical coverag
 |---|---|
 | TestResults/SolanaCurrent/solana-chain-index-readonly.json | A4F68F3ADAA21DFA421B83C7CCDB7297075168455793F30A874B4A1503A2D2BA |
 | TestResults/SolanaCurrent/solana-chain-index-readonly.trx | 9ADC4711A6152B53B4B09611F6684A849F392272B86384CC41DF2E875292F381 |
+
+Explicit indexedcanonicalSQLrow primitive is controlled-source proven (30SQLite/56Corechecks), not nativeSolanaexecution; source/executionidentities remainseparate. Fullrange0acceptance remainsblocked atretainedblock1402, no sourcewrite/recovery attempted. [Indexedrowcontract](CQL_INDEXED_SQL_ROWS.md).

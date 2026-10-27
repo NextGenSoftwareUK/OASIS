@@ -16,3 +16,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [SOLID CQL record-point profile and verification](CQL_SOLID_NATIVE_PROFILE.md).
 
 - [Interactive IPFS/SOLID point demo launch and limits](CQL_INTERACTIVE_POINT_DEMO.md).
+
+- [Indexed SQL canonical rows: explicit schema, privacy, evidence and remaining integration](CQL_INDEXED_SQL_ROWS.md).

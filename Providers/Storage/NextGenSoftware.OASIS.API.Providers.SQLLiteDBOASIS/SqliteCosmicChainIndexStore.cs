@@ -26,21 +26,24 @@ public sealed record CosmicChainIndexSnapshot(CosmicChainQueryCheckpoint Checkpo
 /// Source-owner decoding/completeness and actor-authorized query execution remain separate gates.
 /// Encrypted immutable history and checkpoint commit in one immediate SQLite transaction.
 /// </summary>
-public sealed class SqliteCosmicChainIndexStore : IDisposable,NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexPublisher
+public sealed partial class SqliteCosmicChainIndexStore : IDisposable,NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexPublisher
 {
-    private sealed record Envelope(CosmicChainQueryCheckpoint Checkpoint,string BatchHash,int HistoryCount);
+    private sealed record Envelope(CosmicChainQueryCheckpoint Checkpoint,string BatchHash,int HistoryCount,string ProjectionProfile,string HistoryHash);
     private readonly string connectionString;
     private readonly CosmicChainQuerySource source;
     private readonly string binding;
     private readonly string context;
     private readonly EncryptedRecordCodec codec;
     private bool disposed;
+    private readonly bool canonicalRowProjection;
 
-    public SqliteCosmicChainIndexStore(string databasePath,CosmicChainQuerySource source,byte[] storageKey)
+    public SqliteCosmicChainIndexStore(string databasePath,CosmicChainQuerySource source,byte[] storageKey,bool canonicalRowProjection=false)
     {
         if(!Path.IsPathRooted(databasePath))throw new ArgumentException("An explicit absolute index path is required.");
         this.source=source??throw new ArgumentNullException(nameof(source));
         if(source.ExecutionProvider!=ProviderType.SQLLiteDBOASIS)throw new ArgumentException("This execution owner is SQLite.");
+        if(source.SchemaVersion!=(canonicalRowProjection?2:1))throw new ArgumentException("Declare schema1 history-only or separately opted-in schema2 canonical rows.");
+        this.canonicalRowProjection=canonicalRowProjection;
         codec=new EncryptedRecordCodec(storageKey,compress:true);
         binding=JsonSerializer.Serialize(source);
         context="oasis/cosmic-chain-index/v1/"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(binding)));
@@ -57,7 +60,16 @@ CREATE TABLE IF NOT EXISTS CosmicChainIndexState (Id INTEGER PRIMARY KEY CHECK(I
 CREATE TABLE IF NOT EXISTS CosmicChainIndexHistory (Id TEXT NOT NULL,Version INTEGER NOT NULL,VersionId TEXT NOT NULL UNIQUE,
 CommitReference TEXT NOT NULL UNIQUE,Receipt TEXT NOT NULL,Payload TEXT NOT NULL,PRIMARY KEY(Id,Version));
 """;
-            command.ExecuteNonQuery();return connection;
+            command.ExecuteNonQuery();
+            if(canonicalRowProjection){
+                var existing=ReadState(connection,null);
+                if(existing==null)InitializeQueryProjection(connection);
+                else{
+                    using var schema=connection.CreateCommand();schema.CommandText="SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='CosmicChainIndexRows'";
+                    if(Convert.ToInt32(schema.ExecuteScalar())!=1)throw new InvalidDataException("Committed query projection schema is missing; no implicit reconstruction.");
+                }
+            }
+            return connection;
         }catch{connection.Dispose();throw;}
     }
 
@@ -70,6 +82,8 @@ CommitReference TEXT NOT NULL UNIQUE,Receipt TEXT NOT NULL,Payload TEXT NOT NULL
         var envelope=JsonSerializer.Deserialize<Envelope>(codec.Decrypt(context+"/checkpoint",reader.GetString(1)))
             ??throw new InvalidDataException("Index checkpoint is missing.");
         if(JsonSerializer.Serialize(envelope.Checkpoint.Source)!=binding)throw new InvalidDataException("Checkpoint source differs.");
+        if(envelope.ProjectionProfile!=(canonicalRowProjection?"canonical-rows-v1":null))
+            throw new InvalidDataException("Index projection policy differs; explicit migration/new binding required.");
         return envelope;
     }
 
@@ -113,6 +127,13 @@ CommitReference TEXT NOT NULL UNIQUE,Receipt TEXT NOT NULL,Payload TEXT NOT NULL
                 count.Transaction=transaction;count.CommandText="SELECT COUNT(*) FROM CosmicChainIndexHistory";
                 if(Convert.ToInt32(count.ExecuteScalar())!=(previous?.HistoryCount??0))throw new InvalidDataException("Index history count differs from its authenticated checkpoint.");
             }
+            if(canonicalRowProjection){
+                if(previous!=null)ValidateQueryProjection(connection,transaction,previous);
+                else{
+                    using var empty=connection.CreateCommand();empty.Transaction=transaction;empty.CommandText="SELECT COUNT(*) FROM CosmicChainIndexRows";
+                    if(Convert.ToInt32(empty.ExecuteScalar())!=0)throw new InvalidDataException("Query projections have no committed checkpoint.");
+                }
+            }
             if(previous!=null&&previous.BatchHash==batchHash)
                 return new OASISResult<bool>(true); // Exact replay acknowledges no new write.
             if((previous==null)!=(expectedPrevious==null)||previous!=null&&
@@ -147,11 +168,13 @@ CommitReference TEXT NOT NULL UNIQUE,Receipt TEXT NOT NULL,Payload TEXT NOT NULL
                 insert.Parameters.AddWithValue("$id",receipt.Record.Id.ToString("D"));insert.Parameters.AddWithValue("$version",receipt.Record.Version);
                 insert.Parameters.AddWithValue("$versionId",receipt.Record.VersionId.ToString("D"));insert.Parameters.AddWithValue("$commit",receipt.CommitReference);
                 insert.Parameters.AddWithValue("$receipt",receiptJson);insert.Parameters.AddWithValue("$payload",codec.Encrypt(context+"/record/"+receiptJson,entry.CanonicalJson));
-                insert.ExecuteNonQuery();inserted++;
+                insert.ExecuteNonQuery();
+                if(canonicalRowProjection)WriteQueryProjection(connection,transaction,entry,receiptJson);
+                inserted++;
             }
             using var update=connection.CreateCommand();update.Transaction=transaction;
             update.CommandText="INSERT INTO CosmicChainIndexState VALUES(1,$binding,$envelope) ON CONFLICT(Id) DO UPDATE SET Envelope=excluded.Envelope";
-            update.Parameters.AddWithValue("$binding",binding);update.Parameters.AddWithValue("$envelope",codec.Encrypt(context+"/checkpoint",JsonSerializer.Serialize(new Envelope(checkpoint,batchHash,(previous?.HistoryCount??0)+inserted))));
+            update.Parameters.AddWithValue("$binding",binding);update.Parameters.AddWithValue("$envelope",codec.Encrypt(context+"/checkpoint",JsonSerializer.Serialize(new Envelope(checkpoint,batchHash,(previous?.HistoryCount??0)+inserted,canonicalRowProjection?"canonical-rows-v1":null,canonicalRowProjection?HistoryHash(connection,transaction):null))));
             update.ExecuteNonQuery();commitRequested=true;transaction.Commit();
             return new OASISResult<bool>(true){IsSaved=true,SavedCount=inserted};
         }catch(Exception error){return Error<bool>(commitRequested?"CQL_INDEX_PUBLICATION_UNCERTAIN":"CQL_INDEX_PUBLICATION_FAILED",
