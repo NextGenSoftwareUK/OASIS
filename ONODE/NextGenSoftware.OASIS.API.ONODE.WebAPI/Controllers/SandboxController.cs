@@ -72,6 +72,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             });
         }
 
+        /// <summary>Counts of requests each offline provider has refused since the sandbox started.</summary>
+        [HttpGet("refusals")]
+        public ActionResult<OASISResult<Dictionary<string, long>>> GetRefusals()
+        {
+            if (!ProviderFaultGate.IsEnabled)
+                return NotFound();
+
+            return Ok(new OASISResult<Dictionary<string, long>>
+            {
+                Result = ProviderFaultGate.GetRefusals().ToDictionary(x => x.Key.ToString(), x => x.Value),
+                Message = "Sandbox provider refusals retrieved."
+            });
+        }
+
         /// <summary>Takes a provider offline for up to two minutes so HyperDrive must fail over.</summary>
         [Authorize]
         [HttpPost("providers/{providerType}/offline")]
