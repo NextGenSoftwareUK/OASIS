@@ -8,12 +8,13 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 - Full COSMIC roadmap remains active. Current focus: CQL parity on SQLite/MongoDB/Neo4j.
 - Work only on red checklist rows. Green features and federation cursors are frozen unless a bug is reproduced.
 - The 12 investor-demo rows are green; full EF/NHibernate parity is not complete.
-- Current red row: **Q49a source relationship composition**. Q23e projected-All acceptance is verified on all three databases.
+- Q49a source composition and Q23e projected-All are green on all three. Current work: parent Q23 developer-demo/integration audit, then the next red row.
 
 ## Verified checkpoints (separate cohorts)
 
 | Scope | Result | Evidence location |
 |---|---|---|
+| Native source-composition matrix | 216 checks passed,72/store; one test, zero skips, across row/count/projection consumers | `TestResults/Neo4jCurrent/neo4j-source-matrix-current.trx` and `cql-source-composition-result.json` |
 | Combined native projected-All acceptance | 168 checks passed:50/store plus18 rotated shared-budget cases; one test, no skips | `TestResults/Neo4jCurrent/neo4j-native-current.trx` and `cql-projected-all-acceptance-result.json` |
 | Core source capture/admission | 3,851 passed, zero skips; net10.0/netstandard2.1 builds passed | Historical [Core TRX](Evidence/Verification/source-relationships-core.trx.gz) |
 | SQLite projected All | 47 native + 9 compiler passed | Historical Evidence/Verification/projected-all-sqlite*.trx.gz |
@@ -38,9 +39,10 @@ Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationship
 - Original WEB4 fixture/journal unchanged: SHA256 `892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5`.
 - Persistent data/original journal remain ignored in `LocalState/COSMIC/`; never clear this with TestResults. Mongo27029 and Neo4j17687 stopped after the gate.
 - Native test SHA256: `C5D5DF88D3C5F95818BB08B820091CDC8A04A6AD244EDB6AE3B4B389A38F189C`; summary SHA256: `1E28A326798382BC5DC8236AB5F91E5B97C8BE1FBCC342A95F20C7CB47CC76E2`.
-- Next: complete Q49a native proof of child/child, child/descendant, descendant/child, descendant/descendant and NOT source shapes independently per database; do not infer these from the168-check gate's narrower source cases. Mongo's focused53-check cohort already covers additional shapes.
+- Q49a matrix passed216 checks: all four nesting orientations, AND/OR/NOT, positive/negative results, hidden intermediate parents and protected limit errors before empty windows across row/count/projection consumers. Exact cleanup and unchanged original fixture verified.
 - Use the small `Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/` project for native-only acceptance. It links the same authoritative gate without requiring the unrelated WEB4 host graph.
-- Then update the developer demos/manual, audit Q49a for promotion, and select the next red row. Q23e is frozen unless a reproducible bug is found.
+- Next: add spaced/commented C# developer demos for source composition and projected All; execute them in the reusable native acceptance assembly, update manual/architecture, then audit parent Q23 and select the next red row. Q49a/Q23e are frozen unless a reproducible bug is found.
+- Source matrix TRX SHA256: `6574CE43391BAAF77C4C3AF2979DBF175D4561236D13E8DDD2FB2FB9822B4A47`; summary SHA256: `0D04CA0D491B252A556253A77DB7E29FF4854C3E86AD1513146B6FC78ECDB40E`.
 - Documentation consolidation:10 active root reports,126 archived reports,334 byte-preserved historical artifacts; recovery set stays below300 lines.
 ## Key commands (PowerShell, cwd above)
 
@@ -52,7 +54,7 @@ git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' fetch origin
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' merge --no-edit origin/Development
 # Native-only acceptance: fresh owned fixture only after the previous gate has completed exact cleanup.
 & 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-cql' -Operation {
-    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlProjectedAllAcceptance
+    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlSourceMatrix
 }
 ```
 

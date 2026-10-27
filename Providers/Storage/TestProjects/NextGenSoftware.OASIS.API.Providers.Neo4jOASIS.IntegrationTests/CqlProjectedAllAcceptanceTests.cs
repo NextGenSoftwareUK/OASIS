@@ -18,7 +18,7 @@ using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLit
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
-public sealed class CqlProjectedAllAcceptanceTests
+public sealed partial class CqlProjectedAllAcceptanceTests
 {
     // Transparent observation only: each call still executes the actual native adapter.
     private sealed class Observed(ICosmicQueryProjectedAllStorageProvider native) : ICosmicQueryProjectedAllStorageProvider
@@ -54,7 +54,10 @@ public sealed class CqlProjectedAllAcceptanceTests
     [TestMethod]
     public Task ReviewedProjectedAllInitialFixtureContinuesWithoutReplayingCreates()=>VerifyFixture(reviewed:true);
 
-    private static async Task VerifyFixture(bool reviewed)
+    [TestMethod]
+    public Task NativeSourceRelationshipCompositionShapesAndConsumers()=>VerifyFixture(reviewed:false,sourceMatrix:true);
+
+    private static async Task VerifyFixture(bool reviewed, bool sourceMatrix=false)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
         var reports=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_RESULTS");
@@ -141,6 +144,11 @@ public sealed class CqlProjectedAllAcceptanceTests
                 Assert.IsFalse(cycle.IsError,cycle.Message+cycle.Exception);states.Add(new{provider=provider.ProviderName,created=true});await Checkpoint("created-"+provider.ProviderName);
             }
             var adapters=providers.Cast<ICosmicQueryProjectedAllStorageProvider>().ToArray();
+            if(sourceMatrix)
+            {
+                await VerifySourceMatrix(adapters, provider=>Source(provider), actor, checks);
+                Assert.AreEqual(216,checks.Count); complete=true; return;
+            }
             async Task Expect<TResult>(string label,CosmicProjectedAllQuery<Holon,TResult> query,ICosmicQueryProjectedAllStorageProvider adapter,string? error=null,bool value=true)
             {
                 var result=await Read(query,new[]{adapter});
@@ -256,7 +264,7 @@ public sealed class CqlProjectedAllAcceptanceTests
                     await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=textIds})).ConsumeAsync();
                     Assert.AreEqual(0L,await records.CountDocumentsAsync(mongoIds));Assert.AreEqual(0L,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(0L,await NeoCount());
                     CollectionAssert.AreEqual(original,await File.ReadAllBytesAsync(originalPath));
-                    await File.WriteAllTextAsync(Path.Combine(reports!,"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
+                    await File.WriteAllTextAsync(Path.Combine(reports!,sourceMatrix?"cql-source-composition-result.json":"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
                     File.Delete(journal);
                 }
             }
