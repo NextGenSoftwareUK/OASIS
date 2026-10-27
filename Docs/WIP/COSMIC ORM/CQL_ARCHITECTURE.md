@@ -201,3 +201,13 @@ Q01f foundation introduces CosmicEntityCompositionQuery with immutable filter/or
 ### Selection after entity stages
 
 `CosmicEntityProjectionQuery` retains immutable entity-stage intent separately from its detached selection definition. Its single-provider plan admits source stages and exact selected domains independently. Actual execution requires `ICosmicQueryEntityProjectionStorageProvider`; flat projection/row interfaces grant no substitution. `CosmicProjectionExecutor` owns both shapes through the same inherited physical-attempt boundary and native-cell validation/DTO construction sequence. Entity-stage acknowledgements also reject warnings and output counts exceeding the source/stage window bound shared with entity cardinality. This is currently a shared tested foundation; native providers, standard Select binding and selected-stage/numeric integration are pending.
+
+## Native point-source profiles
+
+`CosmicQueryCapabilities.ForStringMetadataPointLookup` admits exactly one bounded
+string metadata equality and one selected target. Immutable `BusinessPredicates`
+separates caller intent from mandatory read policy; the source adapter enforces
+that policy on canonical point evidence. The ActivityPub/Mastodon adapter proves
+this path without timeline scans or local query substitution. It reuses its
+status projection owner, propagates cancellation, bounds streamed payloads and
+rejects ambiguous JSON. [Verified scope and remaining gates](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).

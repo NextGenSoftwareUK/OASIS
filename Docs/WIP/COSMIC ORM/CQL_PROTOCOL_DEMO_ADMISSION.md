@@ -56,7 +56,9 @@ Logical source and execution profile must remain explicit throughout WEB4.
 
 ## Next action
 
-While retained IPFS/SOLID configuration is unresolved, implement the exact native
-status-key query contract for ActivityPub/Mastodon with controlled HTTP evidence.
+The exact native status-key profile is implemented and native-proven:311 provider
+controls,1,964 CQL regressions and one native manager/LINQ/sample gate pass.
+See [profile guide](CQL_ACTIVITYPUB_NATIVE_PROFILE.md). Next WEB4 read-profile and
+interactive-demo enrollment; broader queries remain red.
 Do not rerun its already-green social baseline without a reproduced bug.
 Resume IPFS/SOLID native acceptance when the original environment is located.
