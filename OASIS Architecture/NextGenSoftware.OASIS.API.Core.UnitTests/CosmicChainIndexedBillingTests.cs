@@ -16,6 +16,7 @@ public partial class CosmicChainIndexedExecutionTests
     [InlineData("rows")] [InlineData("empty")] [InlineData("actor")] [InlineData("missing")]
     [InlineData("begin")] [InlineData("receipt")] [InlineData("transport")] [InlineData("budget")]
     [InlineData("unmetered")] [InlineData("cancel-after-begin")]
+    [InlineData("unit-budget")] [InlineData("price-budget")] [InlineData("attempt-budget")]
     public async Task PreparedIndexedReadsOwnEachDurablePhysicalAttempt(string mode)
     {
         var f = Fixture(mode == "empty" ? "empty" : "rows");
@@ -38,7 +39,9 @@ public partial class CosmicChainIndexedExecutionTests
                 receipts.Add(receipt); return Task.CompletedTask;
             });
         var operation = new UsageOutboxOperation { Id = "indexed-billing", ExecutionOwner = "owner",
-            UserId = (mode == "actor" ? Guid.NewGuid() : actor).ToString("D"), Policy = new UsageEndpointPolicy() };
+            UserId = (mode == "actor" ? Guid.NewGuid() : actor).ToString("D"), Policy = new UsageEndpointPolicy { RequiresProviderMeasurement=true,
+                ReservedUnits=mode=="unit-budget"?1:100, EstimatedCostUsd=mode=="price-budget"?0:1,
+                MaximumProviderAttempts=mode=="attempt-budget"?1:100 } };
         var handle = new UsageExecutionHandle(operation, store.Object, new Web4UsageLedgerOptions(),
             new SubscriptionAuthorizationResult(), Mock.Of<IUsageReservationAuthority>());
         var prepared = new PreparedStorageExecution(handle, "indexed-billing", new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType, string>(),
@@ -64,14 +67,15 @@ public partial class CosmicChainIndexedExecutionTests
         else
         {
             Assert.True(result.IsError); Assert.Null(result.Result);
-            if (mode is "actor" or "missing") { Assert.Equal(0, reader.Calls); Assert.Empty(begins); }
+            if (mode is "actor" or "missing" or "unit-budget" or "price-budget" or "attempt-budget") { Assert.Equal(0, reader.Calls); Assert.Empty(begins); Assert.False(prepared.ProviderExecutionPossible); }
+            if (mode is "unit-budget" or "price-budget" or "attempt-budget") Assert.Equal("CQL_INDEX_RESERVATION_REQUIRED",result.ErrorCode);
             if (mode == "actor") Assert.Equal("CQL_ACTOR_MISMATCH", result.ErrorCode);
             if (mode == "missing") Assert.Equal("CQL_INDEXED_BILLING_UNSUPPORTED", result.ErrorCode);
             if (mode is "begin" or "cancel-after-begin") { Assert.Equal(0, reader.PhysicalCalls); Assert.Single(begins); Assert.Empty(receipts); }
             if (mode == "receipt") { Assert.Equal(1, reader.PhysicalCalls); Assert.Single(begins); Assert.Empty(receipts); }
             if (mode == "transport") { Assert.Equal(2, reader.PhysicalCalls); Assert.Equal(2, begins.Count); Assert.Single(receipts); }
             if (mode == "budget") { Assert.Equal("CQL_QUERY_LIMIT", result.ErrorCode); Assert.Equal(4, reader.PhysicalCalls); Assert.Equal(4, begins.Count); }
-            if (mode == "unmetered") { Assert.Equal("CQL_INDEXED_CAPTURE_INCOMPLETE", result.ErrorCode); Assert.Empty(begins); }
+            if (mode == "unmetered") { Assert.True(prepared.ProviderExecutionPossible); Assert.Equal("CQL_INDEXED_CAPTURE_INCOMPLETE", result.ErrorCode); Assert.Empty(begins); }
         }
         store.Verify(s => s.BeginProviderAttemptAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UsageProviderAttempt>(), It.IsAny<CancellationToken>()), Times.Exactly(begins.Count));
         store.Verify(s => s.AppendReceiptAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<UsageProviderReceipt>(), It.IsAny<CancellationToken>()), Times.Exactly(mode == "receipt" ? 1 : receipts.Count));

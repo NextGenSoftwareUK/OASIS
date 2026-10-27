@@ -679,3 +679,29 @@ enroll WEB4 or certify original native chain coverage.
 Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).
 
 [WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
+
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.
+
+## Indexed HTTP rows
+
+Use POST `/api/data/query-cql/indexed` with a server-registered alias. The host must
+bind its captured preparation and measured reservation before dispatch; automatic
+stock usage-middleware integration is still pending. No client endpoint, price,
+provider override or fabricated checkpoint is accepted.
+
+```json
+{
+  "alias": "solana-coffee",
+  "query": {
+    "orderBy": "Name",
+    "take": 5
+  }
+}
+```
+
+The response keeps logical provider and physical execution provider separate,
+with public rows, source checkpoint, fresh head and per-row source receipts.
+Slot values are strings, including values beyond JavaScript's integer precision.
+The server reserves maximum service cost and read units; completed SQL/RPC
+attempts are measured individually. Units count read attempts, not result rows.
+See [HTTP contract, examples and acceptance limits](CQL_INDEXED_HTTP.md).

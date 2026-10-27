@@ -19,3 +19,5 @@ Unsupported shapes fail explicitly; client materialization or silent fallback ca
 Indexed SDK rows, typed manager/LINQ and [prepared physical-read accounting](CQL_INDEXED_BILLING.md) now pass controlled/native-SQL gates. WEB4 server binding/reservation/HTTP acceptance and native declared-source-range acceptance remain next; original source recovery stays red.
 
 [WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
+
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.

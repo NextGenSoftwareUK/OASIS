@@ -12,7 +12,7 @@ public partial class CosmicChainIndexedExecutionTests
 {
     private CqlIndexedV1Binding WebBinding(Reader reader, Guid? principal = null) => new(reader,
         Mock.Of<ICosmicChainQuerySourceObserver>(), Tariffs(), position, 10, TimeSpan.FromSeconds(60),
-        CosmicQueryReadAccess.OwnerOrPublic(principal ?? actor).Result, maximumResults: 2);
+        CosmicQueryReadAccess.OwnerOrPublic(principal ?? actor).Result, Manager(), maximumResults: 2);
     private static CqlIndexedV1Request WebRequest() => new() { Alias = "solana-demo",
         Query = new() { OrderBy = "Id", Take = 1 } };
 
@@ -39,20 +39,20 @@ public partial class CosmicChainIndexedExecutionTests
     }
 
     [Theory]
-    [InlineData("age")] [InlineData("lag")] [InlineData("actor")] [InlineData("limit")] [InlineData("metadata")]
+    [InlineData("age")] [InlineData("lag")] [InlineData("actor")] [InlineData("limit")] [InlineData("metadata")] [InlineData("metadata-exists")]
     public void PreparationRejectsWeakerFreshnessWrongActorUnsupportedMetadataAndResultLimits(string mode)
     {
         var f = Fixture("rows"); var request = WebRequest();
         if (mode == "age") request.MaximumHeadAgeSeconds = 61;
         if (mode == "lag") request.MaximumLagSlots = 11;
         if (mode == "limit") request.Query.Take = 3;
-        if (mode == "metadata") request.Query.Filters = new[] { new CqlV1Filter {
-            MetadataPath = new[] { "private" }, Scalar = CqlV1Scalar.String, Operator = CqlV1Operator.Equal,
-            Value = JsonSerializer.SerializeToElement("value") } };
+        if (mode is "metadata" or "metadata-exists") request.Query.Filters = new[] { new CqlV1Filter {
+            MetadataPath = new[] { "private" }, Scalar = CqlV1Scalar.String, Operator = mode == "metadata" ? CqlV1Operator.Equal : CqlV1Operator.Exists,
+            Value = mode == "metadata" ? JsonSerializer.SerializeToElement("value") : default } };
         var registry = new BindingRegistry(WebBinding(f.Reader, mode == "actor" ? Guid.NewGuid() : actor));
         var result = CqlIndexedV1Preparation.Prepare(actor, request, registry);
         Assert.True(result.IsError); Assert.Null(result.Result);
-        Assert.Equal(mode == "actor" ? "CQL_INDEX_BINDING_INVALID" : mode == "metadata"
+        Assert.Equal(mode == "actor" ? "CQL_INDEX_BINDING_INVALID" : mode is "metadata" or "metadata-exists"
             ? "CQL_CAPABILITY_UNSUPPORTED" : "CQL_REQUEST_INVALID", result.ErrorCode);
         Assert.Equal(1, registry.Calls); Assert.Equal(0, f.Reader.Calls);
     }

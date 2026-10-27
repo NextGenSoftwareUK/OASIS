@@ -1,3 +1,5 @@
+HTTP status superseded by [indexed HTTP checkpoint](CQL_INDEXED_HTTP.md); preparation contract remains applicable.
+
 # WEB4 indexed frozen preparation
 
 27 October 2026. Server binding, query planning and reservation-bound preparation

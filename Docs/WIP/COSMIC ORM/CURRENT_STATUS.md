@@ -1,93 +1,61 @@
 # Current COSMIC ORM / CQL status
 
-Updated: 27 October 2026. Start here after compaction; update every milestone.
+Updated 27 October 2026. Read this first after compaction; update each milestone.
 
-## Phase and next action
+## Work and priority
 
-- Worktree `C:/Source/OASIS-cosmic`; parent/Core branch `work/cosmic-cql`; daily Development integration verified (Core08dec1c).
-- Full COSMIC programme remains incomplete. Active priority: eight-provider demo before full parity.
-- Cosmos:46 provider tests,47 native cases/5 manager-demo ops plus native HTTP rows/scalar/projection pass under controlled identity/receipts.405 affected tariff/WEB4 tests pass. Core08dec1c merge pushed/verified, parent pin updated. [Admission report](CQL_COSMOS_NATIVE_ADMISSION.md). Solana recovery is deferred (no known backup); see [retained-record/query admission](CQL_SOLANA_DEMO_ADMISSION.md); cloud numeric, hosted/prod auth-billing and conditional lifecycle remain open.
-- Order: existing Mongo/SQLite/Neo demo, Cosmos candidate, Solana, IPFS, SOLID, ActivityPub. See [demo roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). Defer unfinished parity-only depth; Q01f stays red.
-- Solana recovery remains red/deferred: no known backup, root/chunk unavailable. [Evidence](CQL_SOLANA_DEMO_ADMISSION.md). Indexed identity/checkpoint/receipt/lifetime and planning foundations pass; indexed execution/WEB4/ingestion remain open.
-- IPFS/SOLID: native storage52/52 each; CQL controls191/384; native manager/LINQ/C# sample and WEB4 row/receipt gates pass on both real backends. WEB4 tests use controlledidentity/outbox; productionJWT/durablesettlement remain open.
-- Interactive point teaching host: native HTML/API gates1pass/provider. IPFS explicit leave-running5088/query/shutdown/cleanup verified; SOLID automatic gate verifies sharedhost/shutdown. Services stopped. [Launch guide](CQL_INTERACTIVE_POINT_DEMO.md). ActivityPub nativeinteractivegate1pass; unified launcher previews/routes SQLite and3protocolpointdemos. Durable encrypted SQLite chain-index publication now passes11realDB tests (atomic checkpoint/history, replay, restart, competingwriters, corruption). Canonical Solana rangeobserver now passes14new/full779unitcases, no nativechainwrites. Sharedobserver→publisher bridge now passes54Core/17wiredrange/13store checks; no sourcewrites, controlledRPC. Native diagnostic1pass confirms start0 coverage rejected atFirstAvailableBlock1402, no records/checkpoint/index/submissions; validatorstopped. Originalfull-range acceptance remainsred. IndexedcanonicalSQLrow primitive now passes30SQLite/56Corechecks, explicit schema2/actor/tombstone/sourceproofs. Shared indexed-reader/result contract now passes62Core/30SQLitechecks; source/execution identities and bounded receipts preserved. Shared SDKindexedexecutor now passes76Core/30SQLitechecks, detached visible rows/receipt/freshness/completion gates; prepared billing rejects beforeIO. Typed indexedHolonManager now passes130Core/30SQLitechecks with cleantracking/receiptidentity and actualSQL gate. Indexed LINQpage adapter now passes179Core/31SQLitechecks, nativeSQL closure rebinding/typedtracking/receipts. Physical SQL/SolanaRPC attempt boundaries now pass94Core/31SQLite/782Solanaunitchecks; no nativechainwrites. Prepared exact-source physical-read tariffs now pass333Core/31SQLite/789Solanaunitchecks incl7wiredSQL/sourcebilling cases. [Billing](CQL_INDEXED_BILLING.md). Frozen WEB4alias/plan/freshness/reservation preparation now passes511combined checks, no queryIO. [Preparation](CQL_INDEXED_WEB4_PREPARATION.md). Exact next: HTTP bind frozenintent/admittedhandle, sameplan boundedresponse andHTTPacceptance, then native declaredrange/demo; scalar/projection stillopen; full8provider/commonquery stillopen. [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-- [ActivityPub native status point](CQL_ACTIVITYPUB_NATIVE_PROFILE.md):311 provider controls,1,964 affected CQL regressions and one native manager/LINQ/sample gate pass. Core1592bed: WEB4 row-route code and explicit tariff enrolled;718 affected regressions plus native HTTP gate pass (controlled identity/outbox). Interactive public-status host nativegate1pass, unifiedlauncher ready; production JWT/billing/host acceptance and broader queries stay red.
-- Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
-- Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
+- Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
+- Full roadmap remains active/incomplete. Demo breadth takes priority over remaining EF/NHibernate parity.
+- Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
+- HyperDrive V2 implementation only; document legacy gaps. Large POCO/migrations tooling remains deferred.
+- [Checklist](CQL_PARITY_CHECKLIST.md), [demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md), [completion roadmap](CQL_COMPLETION_ROADMAP.md).
 
-## Verified scope
+## Latest verified checkpoint
 
-| Scope | Current evidence |
-|---|---|
-| Investor demo | 12 scoped rows green on SQLite/MongoDB/Neo4j; full ORM parity incomplete |
-| Q23/Q23e/Q49a | Source/projected-All proofs and 24 C# examples pass; frozen |
-| Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
-| Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
-| Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,791 checks: SQLite603/Mongo593/Neo595, one test, no skips |
-| Focused provider CQL tests | SQLite47, Mongo216, Neo148 pass; provider builds pass |
-| Shared count foundation | 2,578 CQL regressions pass; both Core targets build; Core7da53a7 pushed/verified |
+- Indexed SDK: authenticated durable SQLite history/projection/checkpoint, canonical Solana observer/ingestion, typed manager/clean tracking, LINQ rows and explicit service-tariff physical-read capture implemented.
+- WEB4 indexed controller now consumes a frozen server alias/query/grant, exact usage handle/tariffs and sufficient cost/unit/attempt reservation. Changed intent and duplicate consumption reject before dispatch; public source/index/checkpoint/receipts retained. Slots are exact strings.
+- Full Core suite: 4,128 passed / 0 failed / 0 skipped. Solana unit suite: 789 passed. Actual SQLite indexed/store checks: 31 passed. Includes 12 controlled loopback HTTP requests, single-use/policy cases, receipt precision and reservation failures.
+- Shipping WEB4 and five shared-controller consumers build. Missing outputs/assets regenerated cache-only for 61 in-worktree projects; 8 external sibling projects read-only. Full Core's prior missing-host prerequisite failures are resolved.
+- [HTTP milestone/limits](CQL_INDEXED_HTTP.md), [billing contract](CQL_INDEXED_BILLING.md), [indexed SQL contract](CQL_INDEXED_SQL_ROWS.md).
+- Core 944484be9cb122100fa53e76ee60139dd842aebb pushed/remote-verified; parent manifest/gitlink advanced together in this milestone.
 
-Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
-forward elements now pass20 native cases/store; standard Reverse/Last/from-end now pass12 additional cases/store; explicit defaults now pass12 cases/store; projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
-Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
-Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
+## Exact next work
 
-Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `79E394F129D1BA5A675BD7D03E5B08EE066405DA18D98EF6EEA120691FCD8D6A`.
-Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `1FC2A66C94E24E39DF5DA538855B30245E9F186CE738E89875B5AD7A9CCF731E`.
-Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
-SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
-Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
-[Earlier checkpoint evidence](Archive/CURRENT_STATUS_pre_terminal_binding_2026-10-27.md) preserves other hashes/cohorts.
-Full Core suite is not green: earlier3,853 passes/six failures from missing built WEB4 host prerequisite remain unverified.
+1. Integrate frozen preparation with stock Web4UsageLedgerMiddleware and IPreparedStorageAdmissionFactory. Existing generic middleware hashes raw HTTP intent; current indexed preparation has a separate semantic fingerprint. Preserve both identities without a second billing pipeline or weakening checks. Controller currently requires explicit host binding.
+2. Prove actual SQLite plus canonical Solana observation over the real HTTP controller, then declared-range native chain acceptance. Current HTTP identity/outbox/transport boundaries are controlled; production JWT/durable settlement is not certified.
+3. Audit/reproduce minimum-position block identity when its slot is below checkpoint/head; do not overstate finality/ancestry assurance. Current label is trusted-source-observation, not inclusion proof.
+4. Complete indexed scalar/projection/metadata policy and common demo gaps. Running the same query across all eight providers remains open.
+5. Resume remaining red parity rows after demo acceptance, including Q01f Mongo/Neo projection/standard Select and numeric terminals.
 
-Forward elements: First/Single/int-index/default/predicate forms verified through native stage and typed hydration owners.
-Three new binding tests;20 native cases/store prove ambiguity before DTO construction, defaults/indexes, protected errors and tracking.
-Evidence `TestResults/CoreCurrent/entity-element-binding-regression.trx`, SHA256 `BE822F71BD8233CC3BA4A73EBFDE5DEC69AA563A09AD7CAC766A8D6710583F86`.
-Last/default/predicate and forward/from-end Index forms now bind native reversal; Last requires explicit sequence ordering. Explicit default-value overloads preserve caller identity only after acknowledged empty native selection. Staged projection/numeric integration remains pending.
+## Other verified scope / limits
 
-Native Reverse stage now passes6 cases/store: source/intermediate windows, double reversal, identity ties, protected errors and count.
-Independent permission verified. Standard/tail binding:3 new tests plus12 new native cases/store pass.
-Binding evidence `TestResults/CoreCurrent/entity-tail-binding-regression.trx`, SHA256 `922BCB725C78366588DF1D9A061DC76A48D848CA21693AD884382BAE5009344E`.
+- MongoDB/SQLite/Neo4j:12 original investor-demo rows green; Q01a-e, Q23/Q23e/Q49a scoped green. Q01f remains red despite native stages/count/element/default gates; SQLite entity projection only is integrated.
+- Cosmos:46 provider controls,47 native cases/5 manager demo operations and controlled-identity native HTTP rows/scalar/projection passed. Hosted cloud/production auth/billing, numeric metadata and conditional lifecycle remain open.
+- IPFS/SOLID:52 native storage checks each;191/384 CQL controls. Native manager/LINQ/sample and controlled-identity WEB4 point profiles passed. Persistent identities under LocalState/COSMIC retained; services stopped.
+- ActivityPub:311 provider controls,1,964 affected CQL regressions; native public-status manager/LINQ/sample/HTTP point gates passed. Broader queries/production admission remain open.
+- Solana original recovery stays red/deferred: no known backup; retained root/chunk unavailable. Native diagnostic rejects declared start 0 at first available block 1402, without writes/checkpoint/index. Never reset/replace the original retained ledger or claim a fresh demo repairs it.
+- [Solana admission](CQL_SOLANA_DEMO_ADMISSION.md), [interactive demo guide](CQL_INTERACTIVE_POINT_DEMO.md), [manual](CQL_MANUAL.md).
 
-Explicit defaults:3 new shared tests,12 native cases/store; errors/ambiguity never return the default and caller tracking is preserved.
-Evidence `TestResults/CoreCurrent/entity-default-binding-regression.trx`, SHA256 `622118AC0C0A393EEA73B8F10441C019FFEEE0FE6F8322DFBD253BF069EF1B02`.
+## Resources and recovery
 
-Shared entity-projection query/plan/contract/executor/V2 manager now preserve the immutable entity source and use existing native-cell validation/DTO construction ownership.
-Four new tests verify stage/capability capture, DTO validation order, impossible-window counts and cancellation/completion gates.
-Evidence `TestResults/CoreCurrent/entity-projection-regression.trx`, SHA256 `BB77C95E32C10A801B22650E17C332D46BB66F749F73139847A6F3520325EEEF`.
-SQLite entity projection enrolled:47 CQL tests and10 live projection cases pass; row/count/projection share source/stage proof checks.
-Evidence TestResults/CoreCurrent/sqlite-entity-projection-current.trx SHA256 8F7FB89EE07B43310682CA47B49D98D99CE128BE738BC068BA9DF52CDDAD04C4.
-Mongo/Neo entity projection and standard Select remain pending, deferred unless needed by the broader demo.
+- [Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records exact build/runtime/evidence identities. Latest inventory:TestResults/ProtocolCqlCurrent/index-http-build-resource-inventory.json; 1,770,881,866 observed build bytes, mixed inherited/regenerated ownership.
+- Latest owned HTTP listener 127.0.0.1:50259 stopped; no new native service/container/runtime installation. Fixed chain fixture DB directories verified empty after teardown.
+- TestResults/bin/obj are regenerable. Preserve LocalState/COSMIC identities/keys/journals and original failure evidence. Logs/TRX stay in TestResults, never Docs.
+- Shipping rebuild graph/target plans are in TestResults/ProtocolCqlCurrent/index-http-web4-*.json. 69 projects, 61 inside. Do not recursively build 8 outside sibling projects; reuse their binaries. Highest compatible runtime target precedes .NET Standard (ONET requires net8.0).
+- Earlier detailed status/hashes: [archived checkpoint](Archive/CURRENT_STATUS_before_indexed_http_2026-10-27.md).
 
-## Fixture and resource safety
-
-- Latest gate exact-cleaned six owned IDs/database; completed pending journal removed; services stopped.
-- Do not invoke reviewed reconciliation against the removed journal or replay creates.
-- Original retained journal: `LocalState/COSMIC/Neo4jCurrent/cql-v1-web4-fixture.json`.
-- SHA256 `892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5`; original unchanged.
-- Persistent ignored fixtures stay in `LocalState/COSMIC/`, separate from disposable `TestResults/`.
-- Reuse Mongo27029 and Neo Bolt17687; consult the [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
-
-## Commands (PowerShell, worktree above)
+## Key commands (worktree above)
 
 ```powershell
 git status --short
+git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' status --short
+# Fetch/inspect before daily integration; preserve concurrent changes.
 git fetch origin
-# Daily, after inspecting parent/submodule state:
-git merge --no-edit origin/Development
-git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' fetch origin
-git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' merge --no-edit origin/Development
-# Fresh gate only after confirming no pending fixture:
-& 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-cql' -Operation {
-    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlLinqRows
+# One build lease per batch; no nested leases.
+& 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner cosmic-cql -Operation {
+    dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj' --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --results-directory TestResults/ProtocolCqlCurrent
 }
+python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 ```
 
-Build flags `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse installed dependencies.
-Logs/TRX/JSON/seeds only in this worktree's `TestResults/`, never Docs or new commits.
-Commit named files only. Push/verify Core first; advance parent gitlink and Docker manifest together.
-Batch verified Development integration once/twice daily. No routine Providers-agent coordination.
-[Parity checklist](CQL_PARITY_CHECKLIST.md) owns acceptance; [archive](Archive/README.md) holds history.
+Commit named owned files only; Core push/ls-remote first, then parent gitlink/manifest. Batch verified Development integration once/twice daily; task-branch pushes do not imply a Development merge.
