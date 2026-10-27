@@ -81,8 +81,30 @@ counted and reported (`IsWarning`); a listing or reading failure stops the impor
 - Mongo: `Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/MongoNativeDataImportTests.cs`
   needs `OASIS_MONGO_NATIVE_IMPORT_CONNECTION` (a disposable deployment); it creates and drops its own databases.
 
+## API (WEB4 ONODE)
+
+`NativeDataController`, route `api/native-data`. Signed-in **Wizard** avatars only, because it reads the provider's own
+databases; on the sandbox (`OASIS_SANDBOX=true`) any signed-in demo avatar may use it, capped at 500 records per source.
+
+| Method | Route | Does |
+|---|---|---|
+| GET | `providers` | Registered providers that implement `INativeDataImportProvider` |
+| GET | `{provider}/sources` | Sources with estimated counts |
+| POST | `{provider}/sources/{source}/preview?count=5` | Body: optional mapping (`{}` for the convention). First records next to the holons they would become; saves nothing |
+| POST | `{provider}/sources/{source}/import` | Body: `{ mapping, pageSize, maximumRecords }`. Returns the import report |
+| POST | `{provider}/import-all` | Body: `{ mappings: { source: mapping }, pageSize, maximumRecordsPerSource }` |
+
+MongoDB reads its native database from DNA `StorageProviders.MongoDBOASIS.NativeImportDBName`.
+
+## Sandbox
+
+`POST api/sandbox/native-demo` (sandbox only) writes a fixed demo shop into `SANDBOX_NATIVE_APPS`: `customers`
+(ObjectId keys), `products` (SKU string keys, decimal prices, tag arrays) and `orders` (numeric keys, nested items). The
+sandbox page's Import tab seeds it, previews native records beside their holons, imports, and re-imports to show that
+holons are updated rather than duplicated.
+
 ## Not yet built
 
-- API / STAR CLI / sandbox surface for listing sources, importing and saving mappings.
+- STAR CLI commands for listing sources and importing.
 - Persisting mappings (as holons) so they are reused across runs.
 - Readers for SQLite, Neo4j, Azure, Solana, IPFS, SOLID and ActivityPub.

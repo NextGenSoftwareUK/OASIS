@@ -4,6 +4,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -118,5 +121,80 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             ProviderFaultGate.Restore(providerType);
             return Ok(new OASISResult<bool> { Result = true, Message = $"{providerType} is back online." });
         }
+        /// <summary>
+        /// Writes a small fixed dataset into the sandbox's native-apps Mongo database, standing in for an existing app that
+        /// has never heard of OASIS: customers keyed by ObjectId, products by SKU string, orders by number with nested items.
+        /// Idempotent (records are replaced by id), so visitors can call it any time before importing.
+        /// </summary>
+        [Authorize]
+        [HttpPost("native-demo")]
+        public async Task<ActionResult<OASISResult<Dictionary<string, long>>>> SeedNativeDemo()
+        {
+            if (!ProviderFaultGate.IsEnabled)
+                return NotFound();
+
+            OASISResult<IOASISStorageProvider> resolved = ProviderManager.Instance.ResolveStorageProvider(ProviderType.MongoDBOASIS);
+            if (resolved.IsError || resolved.Result is not MongoDBOASIS mongo || mongo.Database?.MongoClient == null)
+                return BadRequest(new OASISResult<Dictionary<string, long>> { IsError = true, Message = $"MongoDBOASIS is not available: {resolved.Message}" });
+            if (string.IsNullOrWhiteSpace(mongo.NativeImportDatabaseName) || mongo.NativeImportDatabaseName == mongo.DBName)
+                return BadRequest(new OASISResult<Dictionary<string, long>> { IsError = true, Message = "The sandbox DNA must set MongoDBOASIS.NativeImportDBName to a database other than the OASIS one." });
+
+            IMongoDatabase database = mongo.Database.MongoClient.GetDatabase(mongo.NativeImportDatabaseName);
+            var counts = new Dictionary<string, long>
+            {
+                ["customers"] = await Upsert(database, "customers", NativeDemoCustomers()),
+                ["products"] = await Upsert(database, "products", NativeDemoProducts()),
+                ["orders"] = await Upsert(database, "orders", NativeDemoOrders())
+            };
+            return Ok(new OASISResult<Dictionary<string, long>>(counts) { Message = $"Demo shop data is ready in '{mongo.NativeImportDatabaseName}'." });
+        }
+
+        private static async Task<long> Upsert(IMongoDatabase database, string collection, IEnumerable<BsonDocument> documents)
+        {
+            IMongoCollection<BsonDocument> target = database.GetCollection<BsonDocument>(collection);
+            var writes = documents.Select(document => new ReplaceOneModel<BsonDocument>(
+                Builders<BsonDocument>.Filter.Eq("_id", document["_id"]), document) { IsUpsert = true }).ToList();
+            await target.BulkWriteAsync(writes);
+            return writes.Count;
+        }
+
+        private static IEnumerable<BsonDocument> NativeDemoCustomers() => new[]
+        {
+            ("665f1c2a9b1e8a0001a1c001", "Ada Lovelace", "London", "gold", 1842),
+            ("665f1c2a9b1e8a0001a1c002", "Alan Turing", "Manchester", "silver", 1936),
+            ("665f1c2a9b1e8a0001a1c003", "Grace Hopper", "New York", "gold", 1952),
+            ("665f1c2a9b1e8a0001a1c004", "Katherine Johnson", "Hampton", "bronze", 1961),
+            ("665f1c2a9b1e8a0001a1c005", "Tim Berners-Lee", "Geneva", "silver", 1989)
+        }.Select(c => new BsonDocument
+        {
+            { "_id", ObjectId.Parse(c.Item1) }, { "name", c.Item2 }, { "city", c.Item3 }, { "tier", c.Item4 },
+            { "customerSince", new DateTime(c.Item5, 1, 1, 0, 0, 0, DateTimeKind.Utc) }, { "marketingOptIn", c.Item5 % 2 == 0 }
+        });
+
+        private static IEnumerable<BsonDocument> NativeDemoProducts() => new[]
+        {
+            ("SKU-ENGINE", "Analytical Engine kit", "Brass gears, punch cards included.", 249.00m, new[] { "hardware", "classic" }),
+            ("SKU-BOMBE", "Bombe replica", "Rotor drums for the patient codebreaker.", 499.50m, new[] { "hardware", "crypto" }),
+            ("SKU-COBOL", "COBOL field guide", "Readable by managers, they said.", 19.99m, new[] { "book" }),
+            ("SKU-WWW", "World Wide Web starter", "One server, one browser, endless links.", 0m, new[] { "software", "open" })
+        }.Select(p => new BsonDocument
+        {
+            { "_id", p.Item1 }, { "title", p.Item2 }, { "summary", p.Item3 }, { "price", new BsonDecimal128(p.Item4) },
+            { "tags", new BsonArray(p.Item5) }, { "inStock", p.Item4 > 0 }
+        });
+
+        private static IEnumerable<BsonDocument> NativeDemoOrders() => new[]
+        {
+            (1001, "665f1c2a9b1e8a0001a1c001", "SKU-ENGINE", 1, 249.00m, 3),
+            (1002, "665f1c2a9b1e8a0001a1c003", "SKU-COBOL", 3, 59.97m, 5),
+            (1003, "665f1c2a9b1e8a0001a1c002", "SKU-BOMBE", 1, 499.50m, 9),
+            (1004, "665f1c2a9b1e8a0001a1c005", "SKU-WWW", 2, 0m, 12),
+            (1005, "665f1c2a9b1e8a0001a1c001", "SKU-COBOL", 1, 19.99m, 20)
+        }.Select(o => new BsonDocument
+        {
+            { "_id", o.Item1 }, { "customerId", ObjectId.Parse(o.Item2) }, { "status", o.Item6 > 10 ? "delivered" : "shipped" },
+            { "total", new BsonDecimal128(o.Item5) }, { "placedAt", new DateTime(2026, 10, o.Item6, 9, 30, 0, DateTimeKind.Utc) },
+            { "items", new BsonArray { new BsonDocument { { "sku", o.Item3 }, { "quantity", o.Item4 } } } }
+        });
     }
 }
