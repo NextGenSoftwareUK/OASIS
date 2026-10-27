@@ -151,8 +151,47 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0,root.Take(0).Sum(row=>row.Version));Passed("empty source Sum");
         Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(
             ()=>root.Take(0).Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal"))).Code);Passed("required Average empty error");
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
-            ()=>root.Average(row=>CosmicQueryMetadata.Value<long>(row,"i64"))).Code);Passed("Int64 checked-prefix Average remains explicit gap");
+        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS)
+        {
+            Assert.AreEqual((double)9007199254740993L,
+                root.Average(row => CosmicQueryMetadata.Value<long>(row, "i64")));
+            Passed("checked Int64 Average double output");
+
+            Assert.AreEqual((double?)9007199254740993L,
+                root.Average(row => CosmicQueryMetadata.Value<long?>(row, "i64")));
+            Passed("participating nullable Int64 Average");
+            Assert.IsNull(root.Average(row => CosmicQueryMetadata.Value<long?>(row, "nullable")));
+            Passed("all-null Int64 Average");
+            Assert.IsNull(root.Take(0).Average(row => CosmicQueryMetadata.Value<long?>(row, "nullable")));
+            Passed("empty nullable Int64 Average");
+            Assert.AreEqual("CQL_EMPTY_SEQUENCE", Assert.ThrowsException<CosmicLinqException>(
+                () => root.Take(0).Average(row => CosmicQueryMetadata.Value<long>(row, "i64"))).Code);
+            Passed("empty required Int64 Average");
+
+            // MaxValue + 1 overflows before the final cancellation back to 1.
+            var checkedOrder = multi.OrderBy(row => CosmicQueryMetadata.Value<int>(row, "checkedOrder"));
+            Assert.AreEqual("CQL_SCALAR_OVERFLOW", Assert.ThrowsException<CosmicLinqException>(
+                () => checkedOrder.Average(row => CosmicQueryMetadata.Value<long>(row, "checked"))).Code);
+            Passed("overflowing prefix with in-range final sum");
+            Assert.AreEqual(new[] { -long.MaxValue, 1L, long.MaxValue }.Average(),
+                multi.OrderByDescending(row => CosmicQueryMetadata.Value<int>(row, "checkedOrder"))
+                    .Average(row => CosmicQueryMetadata.Value<long>(row, "checked")));
+            Passed("reversed non-overflowing prefixes");
+
+            // The excluded first row must not participate in the accumulator.
+            Assert.AreEqual(new[] { 1L, -long.MaxValue }.Average(),
+                checkedOrder.Skip(1).Average(row => CosmicQueryMetadata.Value<long>(row, "checked")));
+            Passed("checked prefix begins after source paging");
+            Assert.AreEqual((double)9007199254740993L,
+                root.Select(row => CosmicQueryMetadata.Value<long>(row, "i64")).Average());
+            Passed("plain selected checked Int64 Average");
+        }
+        else
+        {
+            Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", Assert.ThrowsException<CosmicLinqException>(
+                () => root.Average(row => CosmicQueryMetadata.Value<long>(row, "i64"))).Code);
+            Passed("Int64 checked-prefix Average remains explicit gap");
+        }
         Assert.AreEqual(version,root.Select(row=>row.Version).Sum());Passed("plain selected Sum");
         Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
         Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");

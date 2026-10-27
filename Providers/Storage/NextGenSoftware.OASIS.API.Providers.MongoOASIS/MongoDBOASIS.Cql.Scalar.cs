@@ -23,7 +23,7 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true)
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
             }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true);
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
@@ -42,8 +42,13 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
             var translator = new MongoCqlTranslator();
             if (plan.Query.Operation == CosmicScalarOperation.Sum || plan.Query.Operation == CosmicScalarOperation.Average)
             {
-                var numeric = await repository.ExecuteNativeCqlNumericAsync(translator.CompileNumeric(plan.Query),
-                    plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                var numericCommand = translator.CompileNumeric(plan.Query);
+                var numeric = plan.Query.UsesInt64DoubleAverage
+                    ? await repository.ExecuteNativeCqlCheckedNumericAsync(numericCommand, plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false)
+                    : await repository.ExecuteNativeCqlNumericAsync(numericCommand, plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
+                if (plan.Query.UsesInt64DoubleAverage)
+                    return CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query, numeric.High, numeric.Low, numeric.Count,
+                        numeric.PrefixOverflow ?? throw new InvalidOperationException("Checked native prefix acknowledgement is missing."));
                 if (numeric.FloatingParts != null)
                     return CosmicFloatingAggregateResults.FromParts(plan.Query, numeric.FloatingParts, numeric.Count);
                 return numeric.DecimalParts != null
