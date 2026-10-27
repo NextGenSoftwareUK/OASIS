@@ -1,6 +1,6 @@
 # Active projected-All / source relationship acceptance contract
 
-Status: Q49a and Q23e remain red. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
+Status: Q23e is verified on all three stores; Q49a remains red for its broader source-shape matrix. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
 
 ## Invariants
 
@@ -14,14 +14,14 @@ Status: Q49a and Q23e remain red. [CURRENT_STATUS](CURRENT_STATUS.md) owns curre
 
 ## Required gate
 
-The combined native test plans 168 checks: protected scopes before empty source/selected windows, visibility, exact scalar domains, cycles with valid-scalar controls, and rotated three-provider budgets/no partial success.
-The initial reviewed state is pinned by SHA256 in CURRENT_STATUS. Reviewed mode verifies exact six IDs/store and retained actors/versions, and skips all creates.
+The combined native test passed 168 checks: protected scopes before empty source/selected windows, visibility, exact scalar domains, cycles with valid-scalar controls, and rotated three-provider budgets/no partial success.
+The reviewed mode verified exact six IDs/store and retained actors/versions and skipped all creates. After all168 checks passed, exact owned cleanup was verified and the completed pending journal removed. The original fixture/journal remain unchanged. Counts, hashes and paths are in CURRENT_STATUS; do not replay the completed reviewed fixture.
 Do not start a fresh fixture, replay writes, reset a database or remove the journal to bypass a failure.
 The first unresolved native defect is Mongo scalar root translation receiving a Boolean/nested relationship AST.
 The isolated draft compiler fix passes 185 compiler tests; full native proof is still required.
 
 ## Promotion
 
-Complete this gate plus the already recorded focused boundary/window/cancellation cases before promoting Q23e. Complete every Q49a source shape independently before promoting that row.
+Q23e is promoted using this gate plus the already recorded focused boundary/window/cancellation cases; freeze it unless a bug is reproduced. Complete every Q49a source shape independently before promoting that row.
 Then update demos/docs and commit verified source separately. Do not turn a focused checkpoint into a full EF/NHibernate claim.
 [Full prior contract/history](Archive/CQL_PROJECTED_ALL_EXECUTION_CONTRACT_history_2026-10-27.md) retains implementation notes and historical evidence links.
