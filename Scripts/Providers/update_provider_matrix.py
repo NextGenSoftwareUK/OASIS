@@ -25,6 +25,7 @@ FAMILY_NAMES={
  'Distributed application storage':set("HoloOASIS HoloOASIS.Desktop HoloOASIS.Edge HoloOASIS.Unity PLANOASIS ONION-Protocol".split()),
  'Non-EVM chain':set("CosmosBlockChainOASIS CelestiaOASIS EclipseOASIS EOSIOOASIS SEEDSOASIS AztecOASIS".split())}
 def family(name,text,path):
+ if name=='ActivityPubOASIS':return 'Non-storage' # Mastodon social projections; generic record saves explicitly refused.
  if name in NON_STORAGE or path.parts[1]=='AI':return 'Non-storage'
  for category,names in FAMILY_NAMES.items():
   if name in names:return category
@@ -193,7 +194,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
 | Non-EVM | Existing encrypted record/version/query helpers + native SDK transports | Solana native4/52: read-only probe proves referenced memo chunk unavailable during collection decoding; fail-closed, original fixtures preserved. Baseline only, no contract/fee/recovery depth | Started 26 Oct; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Neo4j native52/52PASS with all304preexistinggraph elements unchanged; remaining native bindings pending | Started 27 Oct; ~1 day |
-| Non-storage | NonStorageConformance / capability-v1 | Identity, honest capabilities, activation, read-only SDK/API probe, deactivation; controlled harness7PASS, native factories pending | Foundation started 26 Oct; ~1 day |
+| Non-storage | NonStorageConformance / capability-v1 | ActivityPub Social/Network native5/5PASS with guarded real public Mastodon GETs and291controlled regressions; other native capability bindings pending, controlled shared harness7PASS | Foundation started 26 Oct; ~1 day |
 
 | Provider | Family | Real SDK/API source evidence | Applicable conformance passed | Blockers |
 |---|---|---|---|---|
