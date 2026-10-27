@@ -20,5 +20,6 @@
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqSelectedElementAcceptanceTests.cs" Link="CqlLinqSelectedElementAcceptanceTests.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqSelectedCardinalityAcceptanceTests.cs" Link="CqlLinqSelectedCardinalityAcceptanceTests.cs" />
   </ItemGroup>
 </Project>

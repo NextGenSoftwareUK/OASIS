@@ -16,7 +16,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
             CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
-            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true);
+            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true);
     }
     public static CosmicProjectionCompositionCapabilities CqlCompositionCapabilities => CompositionContract.Value;
     public CosmicProjectionCompositionCapabilities CompositionCapabilities => CqlCompositionCapabilities;
@@ -72,7 +72,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider
             using var transaction=await session.BeginTransactionAsync(config=>config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor=await transaction.RunAsync(command.Text,command.Parameters).ConfigureAwait(false);
-            var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null);
+            var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null, cardinality:plan?.RequestsCardinality == true);
             while(true)
             {
                 budget.Check();

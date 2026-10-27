@@ -100,3 +100,21 @@ new public async entry; the element result carries HasValue separately from Valu
 The IQueryable bridge binds source/selected predicates per execution and handles
 caller-supplied defaults only after acknowledged empty proof. Budgets include
 full bounded source participation and each terminal-lowering stage.
+
+Selected cardinality adds explicit RequestsCardinality intent to composition
+plans and independently enrolled SupportsCardinality. Legacy constructors keep
+that permission false. Empty stage lists are admitted only for cardinality intent.
+The shared composition attempt owner now accepts a typed finalizer after detached
+proof validation: row/element finalizers construct their selected output, while
+cardinality finalizers normalize native counts directly. Cardinality debits final
+proof payload and terminal scan work across providers before publishing values.
+
+CosmicProjectionCompositionPacket.NativeSelectedCount is mandatory for this
+intent and must equal complete validated output participation. SQLite executes a
+native count over the same materialized stage CTEs in its serializable owner.
+MongoDB executes a count facet in its existing snapshot session, explicitly
+acknowledging zero; its positive rank decoder permits zero only for this terminal.
+Neo4j preserves the acknowledged source/final-stage native header count. Missing
+or contradictory counts fail before result publication. No DTO constructor runs
+for Count/LongCount/Any. Standard selected predicates append after captured
+windows, with closure binding repeated per execution.

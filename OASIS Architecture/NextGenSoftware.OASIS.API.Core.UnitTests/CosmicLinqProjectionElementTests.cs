@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public sealed class CosmicLinqProjectionElementTests
+public sealed partial class CosmicLinqProjectionElementTests
 {
     public sealed class Dto
     {
@@ -22,6 +22,9 @@ public sealed class CosmicLinqProjectionElementTests
         public int Calls;
         public bool ReverseEnabled = true;
         public bool Corrupt;
+        public bool CardinalityEnabled = true;
+        public bool MissingCardinality;
+        public long? CountOverride;
         public string? Failure;
         public string?[] Values = { "a", "b", "c" };
         public ProviderType QueryProviderType => ProviderType.SQLLiteDBOASIS;
@@ -31,7 +34,7 @@ public sealed class CosmicLinqProjectionElementTests
         public CosmicProjectionCompositionCapabilities CompositionCapabilities => new(
             CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Ordering
                 | (ReverseEnabled ? CosmicSelectedStageFeatures.Reverse : CosmicSelectedStageFeatures.None),
-            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(string) });
+            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(string) }, 32, false, CardinalityEnabled);
 
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
@@ -66,7 +69,8 @@ public sealed class CosmicLinqProjectionElementTests
             var rows = current.Select(row => new CosmicProjectionCompositionRow(row.Id,
                 Corrupt ? "forged value" : row.Values[0])).ToArray();
             return Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>(
-                new CosmicProjectionCompositionPacket(input, proofs, rows, input.Length, work)) { IsLoaded = true });
+                new CosmicProjectionCompositionPacket(input, proofs, rows, input.Length, work,
+                    plan.RequestsCardinality && !MissingCardinality ? CountOverride ?? current.LongLength : null)) { IsLoaded = true });
         }
     }
 

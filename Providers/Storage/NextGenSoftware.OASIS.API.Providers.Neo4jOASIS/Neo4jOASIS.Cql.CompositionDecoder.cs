@@ -20,11 +20,12 @@ public partial class Neo4jOASIS
         private long sourceCount, work, inputBytes, proofBytes;
         private bool header;
         private readonly bool terminal;
+        private readonly bool cardinality;
         internal long? Counterexamples { get; private set; }
 
         internal NeoCqlCompositionDecoder(CosmicProjectionQuery<T, TResult> query,
-            CosmicProjectionCompositionExecutionLimits limits, Action check, bool terminal = false) : base(check)
-        { this.query = query; this.limits = limits; this.terminal = terminal; }
+            CosmicProjectionCompositionExecutionLimits limits, Action check, bool terminal = false, bool cardinality = false) : base(check)
+        { this.query = query; this.limits = limits; this.terminal = terminal; this.cardinality = cardinality; }
 
         internal void Add(IReadOnlyDictionary<string, object> record)
         {
@@ -94,7 +95,7 @@ public partial class Neo4jOASIS
         {
             check();
             if (!header || input.Count != sourceCount || stages.Count != query.ResultStages.Count
-                || stages.Count == 0 && !terminal || stages.Count > 0 && stages.Last().Count != counts.Last()
+                || stages.Count == 0 && !terminal && !cardinality || stages.Count > 0 && stages.Last().Count != counts.Last()
                 || terminal && !Counterexamples.HasValue)
                 throw Invalid("Native composition stream is incomplete.");
             long measuredWork = stages.Count == 0 ? 0 : input.Count;
@@ -104,21 +105,21 @@ public partial class Neo4jOASIS
             var output = new List<CosmicProjectionCompositionRow>();
             long outputBytes = 0;
             var final = stages.Count == 0 ? input.Select(row => row.Id).ToList() : stages.Last();
-            if (final.Count > limits.MaximumResults || terminal && checked(work + final.Count) > limits.MaximumStageRows)
+            if (final.Count > limits.MaximumResults || (terminal || cardinality) && checked(work + final.Count) > limits.MaximumStageRows)
                 throw new NeoCqlLimitException("All evidence or terminal scan exceeds its remaining work.");
             foreach (var id in final)
             {
                 check();
-                if (terminal) outputBytes = checked(outputBytes + 16);
+                if (terminal || cardinality) outputBytes = checked(outputBytes + 16);
                 var values = rows[id].Values.ToArray();
                 foreach (var value in values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
             }
-            if (terminal && checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+            if ((terminal || cardinality) && checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
                 throw new NeoCqlLimitException("All evidence exceeds its remaining proof-byte budget.");
             check();
             return new CosmicProjectionCompositionPacket(input, stages.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(),
-                output, sourceCount, work);
+                output, sourceCount, work, cardinality ? (stages.Count == 0 ? sourceCount : counts.Last()) : null);
         }
     }
 }

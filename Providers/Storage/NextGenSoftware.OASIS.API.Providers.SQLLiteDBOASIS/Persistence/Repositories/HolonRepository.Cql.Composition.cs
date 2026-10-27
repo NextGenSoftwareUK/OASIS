@@ -159,9 +159,8 @@ public partial class HolonRepository
                     }
                     if (!header || work != (stageIds.Length == 0 ? 0 : sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count)))
                         throw new InvalidDataException("Composition proof work/header is incomplete.");
-                    if (all != null)
+                    if (stageIds.Length == 0 && (all != null || plan?.RequestsCardinality == true))
                     {
-                        if (stageIds.Length == 0)
                             foreach (var row in input.Values)
                             {
                                 Check();
@@ -170,6 +169,9 @@ public partial class HolonRepository
                                 foreach (var value in row.Values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
                                 output.Add(new CosmicProjectionCompositionRow(row.Id, row.Values.ToArray()));
                             }
+                    }
+                    if (all != null)
+                    {
                         if (checked(work + output.Count) > limits.MaximumStageRows
                             || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
                             throw new SqliteCqlResourceException("All reduction/evidence exceeds its remaining work budget.");
@@ -180,9 +182,22 @@ public partial class HolonRepository
                             throw new InvalidDataException("All reduction disagrees with its complete selected sequence.");
                         reduction.Counterexamples = counterexamples;
                     }
+                    long? nativeSelectedCount = null;
+                    if (plan?.RequestsCardinality == true)
+                    {
+                        if (checked(work + output.Count) > limits.MaximumStageRows
+                            || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("Selected cardinality exceeds its remaining work/proof budget.");
+                        using var countCommand = Command(compiled.Cardinality);
+                        var countValue = await countCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                        Check();
+                        if (countValue is not long acknowledged || acknowledged < 0 || acknowledged != output.Count)
+                            throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
+                        nativeSelectedCount = acknowledged;
+                    }
                     Check();
                     var packet = new CosmicProjectionCompositionPacket(input.Values.ToArray(),
-                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work);
+                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work, nativeSelectedCount);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicProjectionCompositionPacket>(packet) { IsLoaded = true };
                 }
