@@ -80,13 +80,16 @@ public class CosmicAllDescendantTests
         Assert.StartsWith("CQL_", query.ErrorCode);
     }
     [Fact]
-    public void DescendantPredicateRelationshipRemainsExplicitUntilItsOwnOwnerExists()
+    public void DescendantPredicateRelationshipsRequireIndependentAdmission()
     {
         var bounds = CosmicQueryTraversalOptions.Create().Result;
         var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row,
             child => child.Children.Any(grandchild => grandchild.Name == "leaf"), bounds));
-        Assert.True(query.IsError);
-        Assert.Equal("CQL_EXPRESSION_UNSUPPORTED", query.ErrorCode);
+        Assert.False(query.IsError, query.Message);
+        var ordinary = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true, true);
+        Assert.True(ordinary.Admit(query.Result).IsError);
+        var nested = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true, true, true);
+        Assert.False(nested.Admit(query.Result).IsError);
     }
 
     [Fact]
@@ -101,6 +104,65 @@ public class CosmicAllDescendantTests
         var child = Assert.IsType<CosmicQueryAnyChild>(Assert.Single(query.Result.AllPredicate.Predicates));
         var descendant = Assert.IsType<CosmicQueryAnyDescendant>(child.Predicate);
         Assert.Equal("original", Assert.IsType<CosmicQueryComparison>(descendant.Predicate).Literal.Value);
+    }
+
+    [Fact]
+    public void NestedDescendantLiteralAndBoundsAreFrozen()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(2, 3).Result;
+        var original = bounds;
+        var name = "original";
+        var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row,
+            child => CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == name, bounds), bounds));
+        name = "changed"; bounds = CosmicQueryTraversalOptions.Create(1, 1).Result;
+        Assert.False(query.IsError, query.Message);
+        var outer = Assert.IsType<CosmicQueryAnyDescendant>(Assert.Single(query.Result.AllPredicate.Predicates));
+        var inner = Assert.IsType<CosmicQueryAnyDescendant>(outer.Predicate);
+        Assert.Same(original, inner.Traversal);
+        Assert.Equal("original", Assert.IsType<CosmicQueryComparison>(inner.Predicate).Literal.Value);
+    }
+
+    [Fact]
+    public void DescendantExpansionIsBoundedBeforeAnyNativeCommandAllocation()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(32, 10000).Result;
+        var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row,
+            child => CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), bounds));
+        Assert.True(query.IsError);
+        Assert.Equal("CQL_QUERY_LIMIT", query.ErrorCode);
+    }
+
+    [Fact]
+    public void NativeAdmissionAlsoEnforcesExpansionBounds()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(32, 10000).Result;
+        var source = CosmicQuery<Holon>.Create();
+        var compiled = CosmicQueryExpression.CompileAll<Holon>(row => CosmicQueryRelations.AnyDescendant(row,
+            child => CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), bounds));
+        Assert.False(compiled.IsError, compiled.Message);
+        var descriptor = CosmicQuery<Holon>.AllPredicateDescriptor(source.Scope, compiled.Result, null);
+        var query = new CosmicScalarQuery<Holon, bool>(source, CosmicScalarOperation.All, allPredicate: descriptor);
+        var capabilities = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true, true, true);
+        Assert.Equal("CQL_QUERY_LIMIT", capabilities.Admit(query).ErrorCode);
+    }
+
+    [Fact]
+    public void SingleDepth32TraversalRetainsItsExistingBounds()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(32, 10000).Result;
+        var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row, descendant => true, bounds));
+        Assert.False(query.IsError, query.Message);
+    }
+
+    [Fact]
+    public void InnerCapabilitiesRemainRequiredInsideDescendantPredicates()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(1, 2).Result;
+        var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row,
+            child => child.Children.Any(grandchild => CosmicQueryRelations.AnyDescendant(grandchild, leaf => true, bounds)), bounds));
+        Assert.False(query.IsError, query.Message);
+        var lacksChildDescendant = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true, false, true);
+        Assert.True(lacksChildDescendant.Admit(query.Result).IsError);
     }
 
 }

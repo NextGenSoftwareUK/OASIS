@@ -362,6 +362,50 @@ public static class V1AllQueries
                 trustedParent.All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
                     child, descendant => descendant.Name == "public behind private", visibleBounds))
                     && CosmicQueryRelations.AnyDescendant(row, descendant => descendant.Name == "owned child", trustedBounds)), true);
+            // Reverse composition: each visited descendant is the root of its
+            // own child/descendant predicate. Every protected scope completes.
+            await Show("Descendant -> child / trusted positive path",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "public behind private"), trustedBounds)), true);
+            await Show("Descendant -> child / hidden intermediate remains hidden",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "public behind private"), visibleBounds)), false);
+            await Show("Descendant -> child / descendant scalar AND",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Name == "private child" && child.Children.Any(grandchild => grandchild.Name == "public behind private"), trustedBounds)), true);
+            await Show("Descendant -> child / descendant scalar OR",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Name == "owned child" || child.Children.Any(grandchild => grandchild.Name == "public behind private"), trustedBounds)), true);
+            await Show("Descendant -> child / missing match",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "missing"), trustedBounds)), false);
+            await Show("Descendant -> descendant / independent bounded scopes",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == "public behind private", visibleBounds), shallowBounds)), true);
+            await Show("Descendant -> descendant / same actor on both scopes",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == "public behind private", visibleBounds), visibleBounds)), false);
+            await Show("Descendant -> descendant / roots do not invent ancestors",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == "C-public", visibleBounds), shallowBounds)), false);
+            await Show("Descendant -> descendant / negated inner existence",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => !CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == "public behind private", visibleBounds), shallowBounds)), true);
+            await Show("Descendant -> child -> descendant / absent fourth level",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => CosmicQueryRelations.AnyDescendant(grandchild, leaf => true, visibleBounds)), trustedBounds)), false);
+            await Show("Source traversal plus descendant -> child",
+                descendants.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "public behind private"), visibleBounds)), false);
+            await Show("Reverse composition after source Take(1)",
+                ordered.Take(1).All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => true), visibleBounds)), false);
+            await Show("Reverse composition after source Take(0)",
+                ordered.Take(0).All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => true), visibleBounds)), true);
+            await Show("Root scalar OR reverse relationship composition",
+                trustedParent.All(row => row.Name == "not this parent" || CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "public behind private"), trustedBounds)), true);
         }
 
         return completed;

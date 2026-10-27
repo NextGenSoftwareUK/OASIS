@@ -49,7 +49,9 @@ internal sealed partial class MongoCqlTranslator
                 if(secured.IsError)throw new NotSupportedException(secured.Message);
                 visibility=Translate(secured.Result.Predicates.Single(),0);
             }
-            var predicate=Translate(condition.Predicate,0);
+            var nested = CosmicScalarCapabilities.HasAllChildren(new[] { condition.Predicate })
+                || CosmicScalarCapabilities.HasAllDescendants(new[] { condition.Predicate });
+            var predicate = nested ? null : Translate(condition.Predicate, 0);
             BsonValue Id(string field)=>new BsonDocument("$toLower",new BsonDocument("$ifNull",
                 new BsonArray {"$"+field,Guid.Empty.ToString("D")}));
             var parent=new BsonDocument("$arrayElemAt",new BsonArray {
@@ -65,25 +67,37 @@ internal sealed partial class MongoCqlTranslator
             {
                 var active=Op("$and",Op("$eq","$error",Literal(0)),
                     Op("$not","$cycle"),Op("$not","$overBudget"));
-                pipeline.Add(new("$lookup",new BsonDocument {
-                    {"from","Holon"},
-                    {"let",new BsonDocument {{"frontier",Choose(active,"$frontier",Literal(new BsonArray()))},
-                        {"visited","$visited"}}},
-                    {"pipeline",new BsonArray {
-                        new BsonDocument("$match",new BsonDocument("$expr",Op("$and",
-                            Op("$gt",new BsonDocument("$size","$$frontier"),Literal(0)),membership,visibility))),
-                        new BsonDocument("$limit",maximum+1),
-                        new BsonDocument("$project",new BsonDocument {
-                            {"_id",0},{"id",Id("HolonId")},{"declared","$CosmicCqlMembership.declared"},
-                            {"members","$CosmicCqlMembership.members"},{"matched",predicate},
-                            {"cycle",Op("$in",Id("HolonId"),"$$visited")}})}},
-                    {"as","next"}
+                var candidates = new List<BsonDocument> {
+                    new("$match", new BsonDocument("$expr", Op("$and",
+                        Op("$gt", new BsonDocument("$size", "$$frontier"), Literal(0)), membership, visibility))),
+                    new("$limit", maximum + 1)
+                };
+                var errors = new List<BsonValue>();
+                var matched = nested ? AppendAllPredicate(candidates, new[] { condition.Predicate }, access, errors) : predicate;
+                var prefix = nested ? "row." : "";
+                var projected = new BsonDocument {
+                    { "_id", 0 }, { "id", Id(prefix + "HolonId") },
+                    { "declared", "$" + prefix + "CosmicCqlMembership.declared" },
+                    { "members", "$" + prefix + "CosmicCqlMembership.members" }, { "matched", matched },
+                    { "cycle", Op("$in", Id(prefix + "HolonId"), "$$visited") }
+                };
+                if (nested)
+                {
+                    var nestedError = AllErrorCode(errors);
+                    projected.Add("invalid", Op("$eq", nestedError, Literal(1)));
+                    projected.Add("limited", Op("$eq", nestedError, Literal(2)));
+                }
+                candidates.Add(new("$project", projected));
+                pipeline.Add(new("$lookup", new BsonDocument {
+                    { "from", "Holon" },
+                    { "let", new BsonDocument { { "frontier", Choose(active, "$frontier", Literal(new BsonArray())) }, { "visited", "$visited" } } },
+                    { "pipeline", new BsonArray(candidates) }, { "as", "next" }
                 }));
                 var ids=new BsonDocument("$map",new BsonDocument {{"input","$next"},{"as","node"},{"in","$$node.id"}});
                 var size=new BsonDocument("$size","$next");
                 BsonValue Any(string field)=>new BsonDocument("$anyElementTrue",new BsonArray {
                     new BsonDocument("$map",new BsonDocument {{"input","$next"},{"as","node"},{"in","$$node."+field}})});
-                pipeline.Add(new("$set",new BsonDocument {
+                var updates = new BsonDocument {
                     {"count",Op("$add","$count",size)},
                     {"cycle",Op("$or","$cycle",Any("cycle"),Op("$ne",size,new BsonDocument("$size",Op("$setUnion",ids,Literal(new BsonArray())))))},
                     {"overBudget",Op("$or","$overBudget",Op("$gt",Op("$add","$count",size),Literal(maximum)))},
@@ -91,12 +105,17 @@ internal sealed partial class MongoCqlTranslator
                     {"visited",Op("$setUnion","$visited",ids)},
                     {"frontier",new BsonDocument("$map",new BsonDocument {{"input","$next"},{"as","node"},
                         {"in",new BsonDocument {{"id","$$node.id"},{"declared","$$node.declared"},{"members","$$node.members"}}}})}
-                }));
+                };
+                if (nested)
+                    updates.Add("error", Choose(Any("invalid"), Literal(1),
+                        Choose(Op("$ne", "$error", Literal(0)), "$error", Choose(Any("limited"), Literal(2), Literal(0)))));
+                pipeline.Add(new("$set", updates));
                 pipeline.Add(new("$unset","next"));
             }
             pipeline.Add(new("$set",new BsonDocument {
-                {"error",Choose(Op("$ne","$error",Literal(0)),"$error",
-                    Choose("$cycle",Literal(1),Choose("$overBudget",Literal(2),Literal(0))))},
+                {"error", nested
+                    ? Choose("$cycle", Literal(1), Choose(Op("$ne", "$error", Literal(0)), "$error", Choose("$overBudget", Literal(2), Literal(0))))
+                    : Choose(Op("$ne","$error",Literal(0)),"$error",Choose("$cycle",Literal(1),Choose("$overBudget",Literal(2),Literal(0))))},
                 {"allMatched",Op("$and","$allMatched","$matched")}
             }));
         }
