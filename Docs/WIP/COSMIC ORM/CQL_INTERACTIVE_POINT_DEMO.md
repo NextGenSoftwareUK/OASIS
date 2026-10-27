@@ -1,8 +1,38 @@
-# Interactive IPFS and SOLID CQL point demo
+# Interactive protocol CQL point demos
 
-27 October2026. Loopback teaching host over an explicitly owned synthetic fixture.
+27 October2026. Loopback teaching host over one explicitly selected record: owned synthetic data
+for IPFS/SOLID, or an existing public Mastodon status for ActivityPub.
 This uses the real native backend, shared HolonManager/LINQ/planner/adapter.
 It is separate from the production WEB4 controller's authentication/billing path.
+
+## One launcher
+
+```powershell
+# Preview the source/scope without starting services.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ActivityPub -ShowPlan
+
+# Choose one point backend. Completed previous evidence is hash-archived explicitly.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider IPFS -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SOLID -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ActivityPub -ArchiveCompletedDemo
+
+# Existing SQLite coffee console/Swagger demo has the same launcher.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite
+```
+
+Run one command/provider at a time. Protocol pages use5088; SQLite Swagger uses5087.
+Add `-VerifyOnly` for bounded native verification instead of keeping a host open.
+Four-provider ShowPlan routing and script parsing pass; native protocol host gates
+are the stronger execution evidence. MongoDB/Neo4j/Cosmos/chain are not silently
+routed by this launcher; their existing runners/remaining integration are separate.
+
+ActivityPub uses only fixed-origin public Mastodon GETs, no credentials/account,
+posting or federation. It displays the correct public-source label and permits at
+most100 optional point-query clicks after canonical/automatic acceptance reads.
+The public status may become unavailable; source errors remain explicit. Automatic
+native interactive gate1/1 passes (2 discovery +3 adapter GETs). Interactive
+leave-running lifecycle is proven for the shared host on IPFS; ActivityPub's
+optional live mode was not separately left running in this milestone.
 
 ## Launch
 
@@ -67,11 +97,15 @@ No arbitrary metadata filtering, ordering, scalar/projection or query index is
 claimed. IPFS uses its authenticated current catalogue; SOLID uses one encrypted
 LDP resource. Production WEB4 HTTP tests separately prove rows/query receipts with
 controlled identity/outbox. Real JWT, durable billing, hosted-cloud acceptance,
-chain/index integration and full parity remain open. ActivityPub interactive-host
-wiring and a combined demo entry point remain open.
+chain/index integration and full parity remain open. A common launcher now covers SQLite plus the three protocol point demos. Full
+eight-provider/common-query integration remains open.
 
 | Evidence relative to worktree | SHA256 |
 |---|---|
 | TestResults/IPFSCurrent/ipfs-cql-interactive-native.trx | D7F8E5A03A772E965521AB78C4C3CCEF8C74E1A39CDA822AA04B311F29FE9C33 |
 | TestResults/SolidCurrent/solid-cql-interactive-native.trx | 3434E7F36CEF120B46BB4484B78574DE57FE1797B739A7A086663D88198C98DC |
 | TestResults/SolidCurrent/solid-cql-interactive-lifecycle.json | 1D8A23CC9F19F41F8F6C5A700EB2EE1706DF14CA166D3AD6D1786F87830275E3 |
+
+| ActivityPub native interactive evidence | SHA256 |
+|---|---|
+| TestResults/ActivityPubCurrent/activitypub-cql-interactive-native.trx | AE79CF903FA4A3246DD2766346B8C2F7A01496FCF8DDD488E6941D8610169517 |

@@ -1,4 +1,15 @@
 # COSMIC CQL demo
+## Unified demo launcher
+
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite` opens the existing coffee
+Swagger demo. Choose IPFS, SOLID or ActivityPub with `-ArchiveCompletedDemo` for
+an interactive native point page on5088. Use `-ShowPlan` to preview scope or
+`-VerifyOnly` to run bounded acceptance and stop. Run one provider at a time.
+
+ActivityPub reads one existing public Mastodon status, with no posting or account
+creation. IPFS/SOLID use owned synthetic records. The page makes that distinction
+explicit. [Commands, native evidence and remaining limits](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md).
+
 ## Interactive IPFS / SOLID point demo
 
 A readable loopback page now runs native CQL point reads through HolonManager/LINQ.

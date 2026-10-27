@@ -26,9 +26,9 @@ namespace NextGenSoftware.OASIS.Providers.TestSupport;
 
 internal static class ProtocolPointWeb4Acceptance
 {
-    internal static async Task VerifyTeachingHostAsync(IOASISStorageProvider provider,HolonManager manager,Guid actor,Guid recordId,string nativeKey)
+    internal static async Task VerifyTeachingHostAsync(IOASISStorageProvider provider,HolonManager manager,Guid actor,Guid recordId,string nativeKey,bool syntheticData=true)
     {
-        await using var app=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey,"http://127.0.0.1:0");
+        await using var app=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey,"http://127.0.0.1:0",syntheticData);
         await app.StartAsync();
         try{
             var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
@@ -46,7 +46,7 @@ internal static class ProtocolPointWeb4Acceptance
 
         // Explicit opt-in only: keep the verified synthetic fixture alive for the developer demo.
         if(Environment.GetEnvironmentVariable("OASIS_CQL_POINT_SERVE")=="1"){
-            await using var interactive=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey);
+            await using var interactive=CosmicCqlDemo.ProtocolPointApiHost.Build(manager,(ICosmicQueryStorageProvider)provider,actor,recordId,nativeKey,syntheticData:syntheticData);
             Console.WriteLine("Point demo: http://127.0.0.1:5088/ ; POST /demo/shutdown to stop and clean the fixture.");
             await interactive.RunAsync();
         }
