@@ -1,15 +1,15 @@
 # CQL completion roadmap
 
-Current phase: [CURRENT_STATUS](CURRENT_STATUS.md). The [parity checklist](CQL_PARITY_CHECKLIST.md) remains authoritative.
+[Current status](CURRENT_STATUS.md) owns the exact next action; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
 
-1. Q49a:216 native source checks pass across MongoDB, SQLite and Neo4j; freeze verified source composition.
-2. Q23e: completed168-check native gate; freeze verified projected-All behavior. Parent Q23 audit and24 shipping C# demo examples now pass; freeze these rows.
-3. Promote a database cell only when proving native evidence covers its full row. Unit/structural compilation does not establish native parity.
-4. Source/projected-All C# demos and maintained docs are updated; the24-example native demo passes. Continue Q01 IQueryable/IQueryProvider integration: selected elements, selected cardinality and entity cardinality predicates after windows are verified; all3 signed-integer staged Sum/Average now verified (Q01a); all3 wider domains Q01b now verified; all3 selected Min/Max Q01c now verified; repeated Select Q01d now verified all3; SQLite post-window entity elements Q01e now verified including expanded graphs/visibility; Q01e now verified on all3; next general post-window entity composition Q01f. Keep Q01 red until full scoped proof.
-5. Select the next red row; leave green features and federation cursors alone unless a reproducible bug requires a root fix.
-6. Finish large parity items, including POCO mapping and migration tooling, at their documented priority after demo/current priority acceptance.
-7. Perform a final requirement-by-requirement audit before claiming full EF/NHibernate or COSMIC completion.
+1. Publish the independently tested Q01f IQueryable bridge increment.
+2. Implement native entity stages on SQLite, then MongoDB and Neo4j, preserving source windows and protected errors.
+3. Complete staged terminal/projection integration and proving native tests before promoting Q01f cells.
+4. Continue remaining red rows in checklist priority order. Leave green rows/cursors frozen unless a bug is reproduced.
+5. Finish deferred large parity items, including POCO mapping and migrations tooling, at their assigned priority.
+6. Audit every declared requirement before claiming full EF/NHibernate or COSMIC completion.
 
-The 12 investor-demo rows are green. They are a scoped milestone, not full ORM parity.
-Source APIs remain capability-aware and provider-scoped; unsupported forms fail explicitly. No client materialization, silent retry or fallback may replace a missing native implementation.
-[Full roadmap/history](Archive/CQL_COMPLETION_ROADMAP_history_2026-10-27.md) retains the earlier acceptance criteria.
+The 12 investor-demo rows, Q23/Q23e/Q49a and Q01a–e are scoped completed milestones.
+Unsupported shapes fail explicitly; client materialization or silent fallback cannot replace native implementation.
+[Earlier checkpoints](Archive/CQL_COMPLETION_ROADMAP_checkpoint_2026-10-27.md) and
+[original roadmap](Archive/CQL_COMPLETION_ROADMAP_history_2026-10-27.md) preserve history.
