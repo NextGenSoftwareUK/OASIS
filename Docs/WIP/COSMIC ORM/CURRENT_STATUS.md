@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: implement independently admitted native entity reversal and tail element support.
+- Exact next step: bind standard entity Reverse/Last/from-end indexes using the independently admitted native reversal stage.
 - Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
@@ -20,9 +20,9 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
 | Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,691 checks: SQLite563/Mongo563/Neo565, one test, no skips |
-| Focused provider CQL tests | SQLite44, Mongo215, Neo147 pass; provider builds pass |
-| Shared count foundation | 2,566 CQL regressions pass; both Core targets build; Coreabe61f5 pushed/verified |
+| Latest native gate | 1,709 checks: SQLite569/Mongo569/Neo571, one test, no skips |
+| Focused provider CQL tests | SQLite45, Mongo216, Neo148 pass; provider builds pass |
+| Shared count foundation | 2,568 CQL regressions pass; both Core targets build; Coredf21e91 pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
 forward elements now pass20 native cases/store; tail/reversal, explicit defaults, projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
@@ -30,9 +30,9 @@ Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
 Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
 
 Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `67658EB34E895BAC50CD5FF1D4418E65EEC1386C2AEBA4568E6ACCA13385F9EA`.
+SHA256 `75569B1192EF5B3BD9E0B98AAACF0C3AF52EEB1CFE37D326455E56DA9C5B3695`.
 Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `EA2228648A34599821E9AC2E35A22B347A079F225CA168A4002BD08965A053B8`.
+SHA256 `6334B49009B46980BF218B21B48D29BE95A6E7AE70BB518668B63C5BD4E8FB8A`.
 Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
 SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
 Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
@@ -43,6 +43,10 @@ Forward elements: First/Single/int-index/default/predicate forms verified throug
 Three new binding tests;20 native cases/store prove ambiguity before DTO construction, defaults/indexes, protected errors and tracking.
 Evidence `TestResults/CoreCurrent/entity-element-binding-regression.trx`, SHA256 `BE822F71BD8233CC3BA4A73EBFDE5DEC69AA563A09AD7CAC766A8D6710583F86`.
 Last/from-end indexing, explicit default-value overloads and staged projection/numeric integration remain pending.
+
+Native Reverse stage now passes6 cases/store: source/intermediate windows, double reversal, identity ties, protected errors and count.
+Independent permission verified;2 new Core tests and1 new compiler/native test per store pass. Standard/tail binding pending.
+Core evidence `TestResults/CoreCurrent/entity-reverse-core.trx`, SHA256 `1A3C40D7B7C8CFF45BBBAC80769D5AF7B0A1259F0ED8DEEBD4A82300F2F46FAB`.
 
 ## Fixture and resource safety
 

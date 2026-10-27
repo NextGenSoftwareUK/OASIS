@@ -9,12 +9,12 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests;
 
 [TestClass]
-public sealed class CqlEntityCompositionSqlTests
+public sealed partial class CqlEntityCompositionSqlTests
 {
     private static object Compile(CosmicEntityCompositionQuery<Holon> query)
     {
         var capabilities = new CosmicEntityCompositionCapabilities(
-            CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
+            CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
             SQLLiteDBOASIS.CqlCapabilities);
         var planned = CosmicEntityCompositionPlanner.Plan(query, ProviderType.SQLLiteDBOASIS,
             new CosmicQueryTarget(ProviderType.SQLLiteDBOASIS, SQLLiteDBOASIS.CqlCapabilities), capabilities);

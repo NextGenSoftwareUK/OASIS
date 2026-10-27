@@ -69,7 +69,7 @@ public partial class HolonRepository
             if (composition != null)
             {
                 var stages = new CosmicEntityCompositionCapabilities(
-                    CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
+                    CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
                     SqliteCqlContract.Capabilities).Admit(composition.Query);
                 if (stages.IsError) return Error(stages.ErrorCode, stages.Message);
             }

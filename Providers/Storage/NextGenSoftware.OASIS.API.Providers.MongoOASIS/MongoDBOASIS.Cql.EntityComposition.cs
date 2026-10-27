@@ -43,7 +43,7 @@ public partial class MongoDBOASIS : ICosmicQueryEntityCountStorageProvider
     }
 
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
-        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
+        CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
         CqlCapabilities);
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
