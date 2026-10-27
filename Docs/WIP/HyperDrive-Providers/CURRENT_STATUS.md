@@ -21,7 +21,7 @@ Updated 2026-10-27. Read this first; the four current summaries plus this file a
 | Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile |
 | Controlled 52/52 only | KeyDB, ValKey, Dragonfly, Garnet; actual product-native runs pending |
 | Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication verified; full social operation gates remain open |
-| Partial native | Solana 4/52: unavailable referenced history chunk; preserve original outcomes |
+| Partial native | Solana4/52: unavailable referenced history chunk; Azure Blob2/52: missing save counts, original fixtures retained |
 | Blocked before native | SOLID, IPFS, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
 | Remaining families | Most matrix rows still lack a native shared-suite run |
 
@@ -29,7 +29,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Report migration published as `d70625e86`; existing linked reports remain in place.
+1. Exact next code step: repair Azure Blob save/read acknowledgement counts, add assertions, then reconcile the exact retained synthetic fixtures before rerun. See [Azure baseline](AZURE_BLOB_STORAGE_BASELINE.md). Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Report migration published as `d70625e86`; existing linked reports remain in place.
 2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
 3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.

@@ -254,6 +254,19 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
       "sha256": "8337aff5b9bdf797b8ba6dd7483806a0f70adcf3e0505c9cf45cd446624bf2f8",
       "blockers": []
+    },
+    {
+      "provider": "AzureStorageOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 2,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
+      "sha256": "15214f2dc98c5c69d9c260fa2f4b116d4205d732acf645e778df85ff92f25ffa",
+      "blockers": [
+        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
+        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
+      ]
     }
   ],
   "providerBlockers": {
