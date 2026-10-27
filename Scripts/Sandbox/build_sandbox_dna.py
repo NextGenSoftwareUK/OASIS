@@ -38,13 +38,18 @@ def build(dev_dna: dict) -> dict:
     for key in ("SmtpPass", "ResendKey"):
         email[key] = ""
 
+    # Offline-session grants are for Edge game releases and need signing keys the sandbox must not hold.
+    grants = oasis.get("OfflineSessionGrants")
+    if isinstance(grants, dict):
+        grants["Enabled"] = False
+
     storage = oasis["StorageProviders"]
     for name, value in list(storage.items()):
         if isinstance(value, dict) and name not in SANDBOX_PROVIDERS:
             storage[name] = None
     storage["MongoDBOASIS"] = {"DBName": "OASISAPI_SANDBOX", "ConnectionString": "${{MongoDB.MONGO_URL}}"}
     storage["SQLLiteDBOASIS"] = {"ConnectionString": "Data Source=/app/sandbox/oasis-sandbox.db"}
-    storage["Neo4jOASIS"] = {"Username": "neo4j", "Password": "${{Neo4j.NEO4J_PASSWORD}}",
+    storage["Neo4jOASIS"] = {"Username": "neo4j", "Password": "${{Neo4j.SANDBOX_NEO4J_PASSWORD}}",
                              "ConnectionString": "bolt://${{Neo4j.RAILWAY_PRIVATE_DOMAIN}}:7687"}
     storage["AutoFailOverEnabled"] = True
     storage["AutoReplicationEnabled"] = True
