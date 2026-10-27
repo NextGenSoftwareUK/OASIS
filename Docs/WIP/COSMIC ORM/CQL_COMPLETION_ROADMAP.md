@@ -3,7 +3,7 @@
 [Current status](CURRENT_STATUS.md) owns the exact next action; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
 
 1. Q01f shared IQueryable bridge is committed and tested; keep native database cells red.
-2. Verify MongoDB native stages against the retained environment, then implement Neo4j; SQLite focused row/graph/visibility/V2 acceptance passes. Extend cross-database native matrix, preserving source windows and protected errors.
+2. Implement Neo4j native stages; 18 live entity-stage cases each pass on MongoDB/SQLite, including graph/visibility/V2 acceptance. Extend cross-database native matrix, preserving source windows and protected errors.
 3. Complete staged terminal/projection integration and proving native tests before promoting Q01f cells.
 4. Continue remaining red rows in checklist priority order. Leave green rows/cursors frozen unless a bug is reproduced.
 5. Finish deferred large parity items, including POCO mapping and migrations tooling, at their assigned priority.

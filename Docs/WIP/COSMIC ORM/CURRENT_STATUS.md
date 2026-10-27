@@ -17,14 +17,14 @@ Updated: 27 October 2026. Update at every milestone; start here after compaction
 | Source composition Q49a | 216 native checks, 72/database |
 | Projected All Q23e | 168 native checks; Q23 parent audit and 24 C# demo examples pass |
 | Q01a–e | Selected numeric/extrema/reselection and post-window entity elements green on all three |
-| Latest native checkpoint | 1,501 checks: SQLite 500, MongoDB 500, Neo4j 501 |
+| Latest native checkpoint | 1,537 checks: SQLite 518, MongoDB 518, Neo4j 501 |
 | Latest committed shared entity-stage foundation | 2,545 CQL regressions pass; both Core targets build |
 
 Native evidence: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256: `DA19FFE682C85A4256106557FE7F1C556559A6C59E40E96962B789862A14D743`.
+SHA256: `8C912F4F21CBDD616ABBD10161A064CAC403897DC951517725BA64C26DEC8CE9`.
 Shared evidence: `TestResults/CoreCurrent/entity-composition-regression.trx`.
 SHA256: `44C39A2E37FD6503FEBF78931FCFA9D96CAB03B008C1A39905AAB21319E8D5FE`.
-These are separate cohorts: native proof predates the new shared stage foundation.
+These are separate cohorts: the latest native gate includes shared stage ownership and 18 new entity-stage cases each on SQLite/MongoDB.
 
 Q01f remains red on all databases: SQLite native rows/typed V2/graph/visibility checks pass; broader native matrix and terminal/projection integration remain pending.
 IQueryable bridge committed in Core `b9bccf0fdb2f035ff5a460186ac9f17055e7cd71`: 2,550 CQL regressions pass.
@@ -36,16 +36,17 @@ The full Core suite is not green: earlier run had 3,853 passes and six failures 
 SQLite entity-stage increment: 42 CQL provider tests pass, including seven new SQL/native-owner/graph tests.
 Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-graph-current.trx`.
 SHA256: `0691C0AA1A23F527EF3037DB2249E5C0B71EAC7E0195B28CA805C05ACC4661DF`.
+Native summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`, SHA256 `3AB39028B8B76F35F833D64B00A67F51CC15E5BA8AFFF24897BA2F5FE6C4BF90`.
 Provider build passes. Native materialized stages and ordinal positions share the row snapshot/budget/graph owner.
 
 Mongo entity stages implemented under the shared row/graph snapshot and deadline owner.
-Provider builds; 212 CQL compiler/admission tests pass, including five new tests. Live native proof pending.
+Provider builds; 212 CQL compiler/admission tests pass, including five new tests. Live native proof passes (18 new cases/database, SQLite and MongoDB).
 Evidence: `TestResults/CoreCurrent/mongo-entity-stage-current.trx`.
 SHA256: `CF8E2C8895AD2E6918D3A477C5BBDE33813840BB78633AB83B0A674413AFFBD1`.
 
 ## Exact next step
 
-Run MongoDB native entity-stage acceptance against retained fixtures, then implement Neo4j; extend the cross-database matrix and integrate staged terminals/projections.
+Implement Neo4j native entity stages; extend the native matrix, then integrate staged terminals/projections.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.
