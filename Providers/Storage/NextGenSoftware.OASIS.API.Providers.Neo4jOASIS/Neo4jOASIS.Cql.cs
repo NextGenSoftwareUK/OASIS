@@ -84,6 +84,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot,"
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
+            if (plan.PostWindowPredicate != null) query = CompileCqlPostWindowElement(compiled, plan);
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
