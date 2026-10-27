@@ -32,7 +32,7 @@ public partial class HolonRepository
             if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
-            var predicate = plan.Query.Predicates.Count == 0 ? "1" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
+            var predicate = translator.TranslateSource(plan.Query.Predicates);
             var ordering=translator.TranslateOrdering(plan.Query.Orderings);
             var fetch=plan.TailIndex.HasValue ? (plan.Query.Limit == 0 ? 0 : 1)
                 : plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
@@ -341,7 +341,8 @@ public partial class HolonRepository
                 var scope = " FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
                     +")=lower("+parent+") AND lower("+childId+")<>lower("+parent+") AND "+membershipSql
                     +" AND ("+visibility+")";
-                if (CosmicScalarCapabilities.HasAllDescendants(new[] { child.Predicate }))
+                if (CosmicScalarCapabilities.HasAllChildren(new[] { child.Predicate })
+                    || CosmicScalarCapabilities.HasAllDescendants(new[] { child.Predicate }))
                 {
                     var protectedChildValue = inner.ProtectTraversalScope(new[] { child.Predicate },
                         "CASE WHEN COALESCE((" + childMatch + "),0)<>0 THEN 1 ELSE 0 END");
