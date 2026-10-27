@@ -124,4 +124,12 @@ public class SqliteCosmicChainIndexStoreTests
         var store=new SqliteCosmicChainIndexStore(database,source,key);store.Dispose();
         Assert.IsTrue(store.ReadSnapshot().IsError);Assert.IsTrue(Publish(store,1,null).IsError);Assert.IsFalse(File.Exists(database));
     }
+
+    [DataTestMethod,DataRow(false),DataRow(true)]
+    public void SharedPublisherReturnsRealErrorsForMissingOrNullEntries(bool nullEntry){
+        using var store=new SqliteCosmicChainIndexStore(database,source,key);
+        var publisher=(NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexPublisher)store;
+        var result=publisher.Publish(Requirement(1),Checkpoint(1),Head(1),now,null,nullEntry?new CosmicChainQueryIndexEntry[]{null!}:null!);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsFalse(File.Exists(database));
+    }
 }
