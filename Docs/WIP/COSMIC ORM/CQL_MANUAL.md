@@ -705,3 +705,9 @@ Slot values are strings, including values beyond JavaScript's integer precision.
 The server reserves maximum service cost and read units; completed SQL/RPC
 attempts are measured individually. Units count read attempts, not result rows.
 See [HTTP contract, examples and acceptance limits](CQL_INDEXED_HTTP.md).
+
+
+The indexed HTTP acceptance suite also runs actual SQLite and canonical Solana
+decoding through shipping MVC and stock middleware: rows, empty results, missing
+source and wrong-network failures. RPC responses, identity and ledger remain
+controlled; see [HTTP evidence and remaining limits](CQL_INDEXED_HTTP.md).
