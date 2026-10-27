@@ -168,7 +168,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
 | SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; Oracle native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Existing DynamoDB owner for AWS alias + shared record policy | AWS/Dynamo factories bound; 27factory controlsPASS, native runtime missing0/52 | Started 26 Oct; ~1 day |
-| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | AWS S3 shipping factory bound; controlsPASS, native test-bucket config missing0/52 | Started 26 Oct; ~1 day |
+| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis native36/52: default-soft contract mismatch, 37controlsPASS; AWS S3 native config missing0/52 | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
 | Non-EVM | Shared record policy + native SDK transports | Baseline storage only; stop contract/fee/recovery depth | Not started; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Classify storage applicability and register factories | Not started; ~1 day |
