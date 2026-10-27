@@ -90,6 +90,11 @@ public partial class IPFSOASIS
     private async Task<T> ReadPrivateRecordAsync<T>(string cid,string kind,Guid id) where T:class,IHolonBase
     {
         var envelope=await LoadStringToJson(cid);
+        return DecodePrivateRecord<T>(cid,kind,id,envelope);
+    }
+
+    private T DecodePrivateRecord<T>(string cid,string kind,Guid id,string envelope) where T:class,IHolonBase
+    {
         var json=UnprotectRecord(kind,id,envelope);
         var record=OasisJson.DeserializeStored<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
         if(record.Id!=id) throw new InvalidDataException("IPFS private blob identity disagrees with its authenticated index.");

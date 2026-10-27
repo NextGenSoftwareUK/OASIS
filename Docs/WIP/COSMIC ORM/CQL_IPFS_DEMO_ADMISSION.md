@@ -5,7 +5,7 @@
 Current: fresh reusable offline IPFS environment created under explicit user
 instruction; original configuration absence is historical, not a current blocker.
 178 controlled tests pass after save/delete acknowledgement and live parent
-membership fixes. Native baseline52/52 passes; CQL is unenrolled.
+membership fixes. Native baseline52/52 passes; The CID point-profile implementation passes controlled tests; native CQL admission remains open.
 
 ## Environment and evidence
 
@@ -18,7 +18,7 @@ membership fixes. Native baseline52/52 passes; CQL is unenrolled.
 - Historical failed cohorts were independently verified before exact catalogue
   maintenance. Immutable blocks and archived DNA remain; no original save replay.
 
-## Source/query boundary
+## Source/query boundary (general-query gap)
 
 `IPFSOASIS.Init.cs: LoadLookupToJson` fetches and decrypts the configured lookup
 root CID into a dictionary. `IPFSOASIS.Load.cs: ReadProjectedHolonAsync` then uses
@@ -183,3 +183,46 @@ No new environments/downloads or GC. CQL remains red.
 | TestResults/IPFSCurrent/avatar-delete-before.trx | 70DAC7ABFF9D03229F573F2D5C175695C47A71C90154581DB558831DBCABCC0D |
 | TestResults/IPFSCurrent/avatar-delete-fixed.trx | F50742686A31823C096FB98E834506576652C1D4205F4853E98EF5C5C3A7CEA4 |
 | TestResults/IPFSCurrent/ipfs-parent-cleanup.trx | 190F4708508A0CF6826455BAE467512CE621AAE733F13B84D05C325CEE625E7C |
+
+## CQL current-CID point profile implementation
+
+`IPFSOASIS.Cql.cs` implements the shared `ICosmicQueryStorageProvider` contract.
+The generic HolonManager/planner/executor can discover the provider capability;
+this does not enroll IPFS in WEB4 tariffs, federation, scalar or projection APIs.
+
+```csharp
+// Explicit IPFS scope; use the CID acknowledged by SaveHolonAsync.
+var query = CosmicQuery<Holon>.Create(
+    CosmicQueryScope.Named(ProviderType.IPFSOASIS).Result);
+
+query = query.Where(holon =>
+    CosmicQueryMetadata.Value<string>(holon, IPFSOASIS.CqlRecordCidKey)
+        == acknowledgedRecordCid).Result;
+
+// Production callers bind authoritative read access through HolonManager.
+// A direct provider call is an execution primitive, not an authorization grant.
+```
+
+Only one exact `IPFSRecordCid` equality is admitted; ordering, graph expansion,
+indexed sources and additional business predicates reject before source I/O.
+Skip past the point or Take(0) produces an empty page without daemon reads.
+The selected configured immutable catalogue is authenticated/validated, then an
+exact dictionary CID lookup selects at most one authenticated holon blob. Current
+catalogue membership is required: historical or foreign CIDs return no row.
+This reads the whole encrypted catalogue (4MiB envelope budget), not an IPFS
+server-side metadata scan. A persistent query index is still needed for general
+queries. Shared codec expansion is bounded to4MiB; source reads accept cancellation.
+
+Deleted or denied records return no rows. Source errors fail with no partial rows;
+no public gateway, provider switching or native write occurs. Returned rows have
+no children, canonical source CID and an authoritative synthetic IPFSRecordCid key.
+
+13 new controlled cases cover public/owner/denied/deleted/absent records, invalid
+CID, cancellation, inactive provider, unsupported shape, empty window, corrupt
+catalogue/blob and oversized stream. Public case also uses the shared executor.
+Full provider controlled cohort191pass/0skip. Native Kubo query, HolonManager demo,
+WEB4 admission and broader indexed operators remain red.
+
+| Evidence | SHA256 |
+|---|---|
+| TestResults/IPFSCurrent/cql-controlled.trx (191 pass) | 298087E0DDC55E8BF6B6DE45182D9D7040299CCAA6367F51223B39FBA0BA95C1 |
