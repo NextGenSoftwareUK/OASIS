@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public sealed class CosmicEntityCountTests
+public sealed partial class CosmicEntityCountTests
 {
     private sealed class Native : ICosmicQueryEntityCountStorageProvider
     {
@@ -19,7 +19,7 @@ public sealed class CosmicEntityCountTests
         public string? Failure;
         public CosmicEntityCompositionPlan<Holon>? Seen;
         public ProviderType QueryProviderType => Identity;
-        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.Paging,
+        public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.Paging | CosmicQueryFeatures.Not,
             new[] { new CosmicQueryFieldCapability("Name",typeof(string),new[] { CosmicQueryComparisonOperator.Equal },Array.Empty<CosmicQueryStringOperator>()) });
         public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
             StageEnabled ? CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Paging : CosmicEntityStageFeatures.None,QueryCapabilities);
