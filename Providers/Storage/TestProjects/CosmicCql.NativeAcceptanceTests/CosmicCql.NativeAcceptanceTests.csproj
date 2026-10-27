@@ -12,6 +12,7 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <!-- Reuse the authoritative native gate; HTTP/WEB4 host contracts remain in their existing project. -->
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlProjectedAllAcceptanceTests.cs" Link="CqlProjectedAllAcceptanceTests.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlSourceCompositionAcceptanceTests.cs" Link="CqlSourceCompositionAcceptanceTests.cs" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
