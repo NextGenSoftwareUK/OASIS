@@ -1,3 +1,17 @@
+## Latest cursor lineage ownership correction — 26 October 2026
+
+The shared admission owner now returns its validated execution handle. Federation
+freezes the root operation GUID before application callbacks or provider awaits;
+response framing never reloads it from mutable HttpContext.Items. Existing resumed
+pages retain their protected root lineage. Three genuine initial-page regressions
+(removal, replacement and wrong-type context item) and three resumed controls now
+pass, including original receipt ownership.
+
+Full Core3,750pass0skip and shippingWEB4build pass. Evidence:
+Verification/cursor-lineage-{red,core}.trx.gz and cursor-lineage-identities.json.
+This focused owner-capture correction did not rerun the separately recorded
+526-settlement/608-attempt native gate. Broader roadmap acceptance remains open.
+
 ## Latest request ownership correction — 26 October 2026
 
 Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing
@@ -496,10 +510,6 @@ Final HTTP cursor gate: all3,739Core tests pass, twelve new endpoint/protocol ca
 
 26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
 
-### Next context-ownership audit item
+### Context-ownership audit item resolved
 
-Cursor framing still obtains root lineage from HttpContext.Items after execution.
-Capture the validated admitted operation identity before callbacks, and add an
-independent context-mutation schedule. This is an attribution/ownership gap;
-provider authorization and physical-attempt ownership already use the captured
-PreparedStorageExecution. It is not closed by the DTO snapshot milestone.
+Root lineage is now frozen from the validated admission before callbacks/awaits. The six context-mutation controls and full Core3,750 pass. See the latest correction and retained cursor-lineage evidence above.

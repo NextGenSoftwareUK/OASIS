@@ -104,7 +104,12 @@ public static partial class CqlV1Endpoint
     }
 
     private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission)
+        => CaptureAdmission(http, out actor, out admission, out _);
+
+    private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission,
+        out UsageExecutionHandle admittedExecution)
     {
+        admittedExecution = null;
         actor = (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty;
         admission = null;
         if (actor == Guid.Empty || http.User.Identity?.IsAuthenticated != true)
@@ -114,6 +119,7 @@ public static partial class CqlV1Endpoint
             !http.Items.TryGetValue(Web4UsageMeasurement.ExecutionKey, out var handle) ||
             handle is not UsageExecutionHandle execution || !admission.IsBoundTo(execution))
             return Failure(503, "CQL_ADMISSION_REQUIRED", "Configure the CQL route's authenticated storage admission and query tariffs.");
+        admittedExecution = execution;
         return null;
     }
 

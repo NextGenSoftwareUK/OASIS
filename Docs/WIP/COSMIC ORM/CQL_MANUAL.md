@@ -1,3 +1,17 @@
+## Latest cursor lineage ownership correction — 26 October 2026
+
+The shared admission owner now returns its validated execution handle. Federation
+freezes the root operation GUID before application callbacks or provider awaits;
+response framing never reloads it from mutable HttpContext.Items. Existing resumed
+pages retain their protected root lineage. Three genuine initial-page regressions
+(removal, replacement and wrong-type context item) and three resumed controls now
+pass, including original receipt ownership.
+
+Full Core3,750pass0skip and shippingWEB4build pass. Evidence:
+Verification/cursor-lineage-{red,core}.trx.gz and cursor-lineage-identities.json.
+This focused owner-capture correction did not rerun the separately recorded
+526-settlement/608-attempt native gate. Broader roadmap acceptance remains open.
+
 ## Latest request ownership correction — 26 October 2026
 
 Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing

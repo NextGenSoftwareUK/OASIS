@@ -22,7 +22,7 @@ public static partial class CqlV1Endpoint
     public static async Task<IActionResult> ExecuteFederationAsync(HttpContext http, CqlFederationV1Request request,
         ICqlV1Providers providers)
     {
-        var rejected = CaptureAdmission(http, out var actor, out var admission);
+        var rejected = CaptureAdmission(http, out var actor, out var admission, out var admittedExecution);
         if (rejected != null) return rejected;
         try
         {
@@ -43,6 +43,7 @@ public static partial class CqlV1Endpoint
             CqlFederationCursorHost cursorHost = null;
             CqlFederationCursorState cursor = null;
             DateTimeOffset issued = default, expires = default;
+            var lineage = Guid.Empty;
             if (request.EnableContinuation)
             {
                 cursorHost = http.RequestServices?.GetService<CqlFederationCursorHost>();
@@ -60,6 +61,8 @@ public static partial class CqlV1Endpoint
                 }
                 if (cursorHost.BindRequest(http, actor, cursor).IsError)
                     return Failure(400, "CQL_CURSOR_REQUEST_BINDING", "The exact continuation key must match this durable WEB4 admission.");
+                // Preserve the validated root identity before application callbacks or provider awaits.
+                lineage = cursor?.Lineage ?? Guid.Parse(admittedExecution.OperationId);
             }
 
             ProviderType Concrete(string value) => CqlV1Compiler.RequestedProvider(value)
@@ -239,7 +242,6 @@ public static partial class CqlV1Endpoint
                     {
                         if (cursorHost.UtcNow >= expires)
                             return Failure(400, "CQL_CURSOR_INVALID", "The fixed continuation lifetime expired.");
-                        var lineage = cursor?.Lineage ?? Guid.Parse(((UsageExecutionHandle)http.Items[Web4UsageMeasurement.ExecutionKey]).OperationId);
                         var state = new CqlFederationCursorState(actor, intent, cursorHost.Deployment, lineage, nextKey,
                             issued, expires, nextOffset, selectedProviders, tail.Result.InputRows,
                             selectedProviders.Select(value => tail.Result.ProviderRows[value]).ToArray(),
