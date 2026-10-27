@@ -79,9 +79,58 @@ value afterward, preserve earlier reports and put new TRX only in TestResults.
 
 ## Remaining red gates
 
-Production WEB4 endpoint/authorization/usage enrollment and the interactive demo
-host are not enabled for this provider. Scalar/projection/timeline/search queries,
+Production JWT/durable billing/host deployment acceptance and the interactive demo
+host remain open. WEB4 row-route code is now enrolled with explicit read policy and query tariff; see below. Scalar/projection/timeline/search queries,
 storage Save/deltas/versioning and complete common-demo coverage are not proved
 by this point-read milestone. No cross-server snapshot or freshness guarantee is
 claimed for a live social response. IPFS/SOLID retained configuration is still
 unresolved; Solana recovery remains deferred at the user's request.
+
+## WEB4 row-route milestone
+
+`POST /api/data/query-cql` now accepts the exact native point profile. Supply an
+already active configured provider, HyperDrive V2, authenticated actor, explicit
+server-authorized source catalogue and a server query tariff. Nothing activates
+or fails over on behalf of the request. The read enrollment does not enroll
+federation, composition, scalar/projection capabilities or CRUD tariffs.
+
+```json
+{
+  "Provider": "ActivityPubOASIS",
+  "OrderBy": "None",
+  "Take": 1,
+  "IncludeMetadata": true,
+  "Filters": [{
+    "MetadataPath": ["MastodonStatusId"],
+    "Scalar": "String",
+    "Operator": "Equal",
+    "Value": "<existing native status ID>"
+  }]
+}
+```
+
+`None` is an explicit protocol-point option: it does not silently ignore a
+requested sort. Other provider profiles retain their existing sort contract.
+Descending with None rejects. The regular default Name sort remains unsupported
+for this source; select None as shown.
+
+718 affected WEB4/tariff regressions pass, zero skips. A separate real-controller
+Kestrel/native-source gate passes: anonymous401, forged actor400, unsupported
+sort/scalar/projection400, valid rows200 with source URI/key and one explicit
+ActivityPub query receipt (unit1, server fixture price0.001USD/catalogue
+protocol-test-v1). Six local HTTP requests; five allowlisted public Mastodon GETs
+including independent discovery/canonical identity. Kestrel is stopped/disposed.
+This uses controlled validated identity/reservation/in-memory outbox, not real
+production JWT or durable settlement proof; no hosted deployment is claimed.
+
+Evidence relative to TestResults:
+
+| Evidence | SHA256 |
+|---|---|
+| CoreCurrent/web4-point-regression.trx | 1CE9737A1BFED1350D6BE336C36953F8A8A5D32F992C27CA3965EBFE7226B4EB |
+| ActivityPubCurrent/web4-point-native-final.trx | B697D01EFAC86E522922FC3AB47C9A6BC71B4CFA0539746CCD568019DB0CDB29 |
+
+The first HTTP fixture503 came from an unbound test policy. It is retained as
+web4-point-native.trx; the fixture now supplies the exact canonical projection
+ID to AuthoritativeRecords. Production policy validation was not weakened.
+Next: interactive read-only demo host. Broader query capabilities remain red.

@@ -536,3 +536,9 @@ The existing three-database walkthroughs demonstrate a wider profile; Cosmos
 numeric metadata, save-state/concurrency/delta integration,
 HTTP demo and hosted Azure acceptance remain open. Local emulator proof must be
 labeled as such. Each query is an independent read, not one shared snapshot.
+
+The Mastodon point profile also has a verified WEB4 row request using
+`Provider: ActivityPubOASIS`, `OrderBy: None` and the exact native status-key
+filter. See the [profile guide](../../Docs/WIP/COSMIC%20ORM/CQL_ACTIVITYPUB_NATIVE_PROFILE.md)
+for JSON and required server admission. The interactive demo host switch is still
+pending; this does not enable AP in the three-provider federation demo.
