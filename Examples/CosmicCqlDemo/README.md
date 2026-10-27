@@ -420,3 +420,14 @@ The SDK walkthrough now has 105 cases/store (315), plus 138 HTTP cases and
 System.Index after a source window. The same native code path covers graphs,
 null/tie ranks and exact scalar ordering. Total SDK walkthrough:135cases/store
 (405), plus138HTTPcases and30savechecks. All remains unimplemented.
+
+### Scalar All examples (136–157)
+
+See `V1AllQueries.cs` for universal predicates over an already composed source:
+stock checks, empty input, null/missing metadata, ordinal strings, membership,
+field comparisons and source windows. `All` evaluates after Skip/Take; an empty
+source returns true. Child/descendant filters may define the source. Traversal
+inside the terminal predicate is still unsupported. Use the same scalar planner
+and manager executor as the other scalar examples. All 22 cases passed on each
+of MongoDB, SQLite and Neo4j in the read-only retained-fixture regression; the
+complete extended walkthrough has not yet passed end to end.

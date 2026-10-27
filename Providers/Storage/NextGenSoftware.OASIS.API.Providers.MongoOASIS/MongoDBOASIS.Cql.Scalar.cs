@@ -15,7 +15,7 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
     private static class ScalarContract
     {
         internal static readonly CosmicScalarCapabilities Capabilities = new(
-            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All },
             new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
@@ -56,7 +56,8 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                     plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
                 return CosmicSelectedScalarResults.FromValue(plan.Query, selected.Value, selected.HasValue);
             }
-            var command = translator.CompileCount(plan.Query.Source);
+            var command = plan.Query.Operation == CosmicScalarOperation.All
+                ? translator.CompileAll(plan.Query) : translator.CompileCount(plan.Query.Source);
             var count = await repository.ExecuteNativeCqlCountAsync(command, cancellationToken).ConfigureAwait(false);
             return CosmicScalarResults.FromCount(plan.Query, count);
         }
