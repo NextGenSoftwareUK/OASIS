@@ -104,6 +104,16 @@ internal sealed partial class MongoCqlTranslator
                     current.Add(new("$unset", "nextRank"));
                 }
             }
+            else if (stage is CosmicSelectedReverseStage)
+            {
+                current.Add(new("$setWindowFields", new BsonDocument
+                {
+                    { "sortBy", new BsonDocument("rank", -1) },
+                    { "output", new BsonDocument("nextRank", CompositionRank()) }
+                }));
+                current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
+                current.Add(new("$unset", "nextRank"));
+            }
             else if (stage is CosmicSelectedWindowStage window)
             {
                 // A window reads the previous stage's deterministic rank.
