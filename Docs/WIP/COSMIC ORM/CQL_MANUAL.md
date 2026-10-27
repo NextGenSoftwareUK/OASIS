@@ -155,8 +155,13 @@ SQLite runs a connection-owned aggregate in explicit SQL aggregate order,
 using a checked Int64 total and an overflow latch. Source paging precedes this
 accumulator; exact native sum limbs/count are validated by the shared owner.
 The hook checks the read budget and is removed when its owner is disposed.
-Neo4j remains explicitly unsupported for this mode until its native
-checked-prefix implementation is verified. Existing fluent `Average(long)`
+Neo4j collects ordered participating scalar values inside its native query
+**after** source paging, then uses a guarded Cypher reduction. Sign-specific
+boundary checks precede every addition and an overflow flag remains latched.
+A mandatory Boolean acknowledgement accompanies its exact limb/count packet.
+This server-side collection uses memory proportional to the selected input count;
+the numeric work bound, transaction timeout and server memory limits still apply.
+No selected rows are fetched for a client accumulator. Existing fluent `Average(long)`
 keeps its decimal result. Aggregates after selected result stages remain
 explicitly unsupported pending a native selected-reduction contract.
 Q01 remains red.
