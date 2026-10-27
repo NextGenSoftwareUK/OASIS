@@ -711,3 +711,8 @@ The indexed HTTP acceptance suite also runs actual SQLite and canonical Solana
 decoding through shipping MVC and stock middleware: rows, empty results, missing
 source and wrong-network failures. RPC responses, identity and ledger remain
 controlled; see [HTTP evidence and remaining limits](CQL_INDEXED_HTTP.md).
+
+Indexed freshness includes block identity: older minimum/checkpoint/previous slots
+require independent finalized anchors, even for empty results. Missing or conflicting
+anchors reject the whole page. Custom source observers must implement the bounded
+requiredSlots head contract; [details](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).

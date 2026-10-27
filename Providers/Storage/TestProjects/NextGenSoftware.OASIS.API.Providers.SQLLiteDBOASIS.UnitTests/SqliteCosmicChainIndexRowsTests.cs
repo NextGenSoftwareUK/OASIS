@@ -152,7 +152,7 @@ public class SqliteCosmicChainIndexRowsTests
             var row=entries.Single(e=>e.Receipt.CommitReference==commit);
             return Task.FromResult(new OASISResult<CosmicChainQueryObservedRecord>(new(row.Receipt,mode=="source-changed"?"altered":row.CanonicalJson)));
         }
-        public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveHeadAsync(CosmicChainQuerySource selected,CancellationToken token){
+        public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveHeadAsync(CosmicChainQuerySource selected,IReadOnlyList<long> requiredSlots,CancellationToken token){
             HeadCalls++;return Task.FromResult(new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow-(mode=="stale"?TimeSpan.FromHours(1):TimeSpan.Zero))));
         }
     }

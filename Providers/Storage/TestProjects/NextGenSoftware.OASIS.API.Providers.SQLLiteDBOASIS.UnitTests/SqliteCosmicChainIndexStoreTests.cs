@@ -36,7 +36,7 @@ public class SqliteCosmicChainIndexStoreTests
     private CosmicChainQueryPosition Position(long slot)=>new(slot,"block-"+slot);
     private CosmicChainQueryCheckpoint Checkpoint(long slot)=>new(source,Position(slot),0);
     private CosmicChainQueryReadRequirement Requirement(long slot)=>new(source,Position(slot),0,TimeSpan.FromMinutes(1));
-    private CosmicChainQueryFinalizedHead Head(long slot)=>new(source.SourceProvider,source.NetworkIdentity,Position(slot),now);
+    private CosmicChainQueryFinalizedHead Head(long slot)=>new(source.SourceProvider,source.NetworkIdentity,Position(slot),now,Enumerable.Range(0,(int)Math.Min(slot,3)).Select(i=>Position(i)));
     private CosmicChainIndexEntry Entry(Guid id,long slot,int version=1,bool deleted=false){
         var holon=new Holon{Id=id,Version=version,VersionId=Guid.NewGuid(),Name="controlled secret payload"};
         if(deleted)holon.DeletedDate=DateTime.UtcNow;

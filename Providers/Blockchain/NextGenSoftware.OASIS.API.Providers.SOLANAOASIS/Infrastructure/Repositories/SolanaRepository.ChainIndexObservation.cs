@@ -146,10 +146,17 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
         }catch(Exception error){return ChainObservationError<SolanaChainObservedRange>(error);}
     }
 
-    public async Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveFinalizedHeadAsync(CosmicChainQuerySource source,CancellationToken cancellationToken=default)
+    public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveFinalizedHeadAsync(CosmicChainQuerySource source,CancellationToken cancellationToken=default)
+        => ObserveFinalizedHeadAsync(source,Array.Empty<long>(),cancellationToken);
+
+    private async Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveFinalizedHeadAsync(CosmicChainQuerySource source,
+        IReadOnlyList<long> requiredSlots,CancellationToken cancellationToken)
     {
         try{
             RequireChainIndexSource(source);cancellationToken.ThrowIfCancellationRequested();
+            var slots=requiredSlots?.Take(4).ToArray();
+            if(slots==null||slots.Length>3||slots.Any(slot=>slot<0)||slots.Distinct().Count()!=slots.Length)
+                throw new ArgumentException("At most three distinct nonnegative finalized anchor slots are required.");
             var genesis=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceGenesis,()=>rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken),cancellationToken);
             if(genesis==null||!genesis.WasSuccessful||genesis.HttpStatusCode!=HttpStatusCode.OK||genesis.Result!=source.NetworkIdentity)
                 throw new InvalidOperationException("Source network differs or is unavailable.");
@@ -157,7 +164,13 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
             if(head==null||!head.WasSuccessful||head.HttpStatusCode!=HttpStatusCode.OK||head.Result<(ulong)source.CoverageStartSlot)
                 throw new InvalidOperationException("Finalized head does not cover the selected range.");
             var position=await ReadFinalizedPositionAsync(head.Result,cancellationToken);
-            return new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow)){IsLoaded=true,LoadedCount=1};
+            var anchors=new List<CosmicChainQueryPosition>();
+            foreach(var slot in slots){
+                cancellationToken.ThrowIfCancellationRequested();
+                if(slot>position.Slot)throw new InvalidOperationException("Required anchor exceeds the actual finalized head.");
+                anchors.Add(slot==position.Slot?position:await ReadFinalizedPositionAsync((ulong)slot,cancellationToken));
+            }
+            return new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow,anchors)){IsLoaded=true,LoadedCount=1};
         }catch(Exception error){return ChainObservationError<CosmicChainQueryFinalizedHead>(error);}
     }
 
@@ -178,8 +191,8 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
         return result;
     }
 
-    Task<OASISResult<CosmicChainQueryFinalizedHead>> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver.ObserveHeadAsync(CosmicChainQuerySource source,CancellationToken token)
-        =>ObserveFinalizedHeadAsync(source,token);
+    Task<OASISResult<CosmicChainQueryFinalizedHead>> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver.ObserveHeadAsync(CosmicChainQuerySource source,IReadOnlyList<long> requiredSlots,CancellationToken token)
+        =>ObserveFinalizedHeadAsync(source,requiredSlots,token);
 
     private static OASISResult<T> ChainObservationError<T>(Exception error)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=error is CosmicIndexedReadException indexed?indexed.Code:
