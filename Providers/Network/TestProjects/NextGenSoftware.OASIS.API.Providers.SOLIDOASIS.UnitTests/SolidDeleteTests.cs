@@ -40,6 +40,7 @@ public class SolidDeleteTests
         var result=sync?(byKey?provider.DeleteHolon(transport.Id.ToString()):provider.DeleteHolon(transport.Id)):
             (byKey?await provider.DeleteHolonAsync(transport.Id.ToString()):await provider.DeleteHolonAsync(transport.Id));
         Assert.False(result.IsError,result.Exception?.ToString());Assert.Equal(transport.Id,result.Result.Id);
+        Assert.True(result.IsDeleted);Assert.Equal(1,result.DeletedCount);
         Assert.Equal(1,transport.Deletes);Assert.False(transport.Present);
     }
     [Theory][InlineData("missing-tag",0,false)][InlineData("weak-tag",0,false)][InlineData("conflict",1,false)][InlineData("transport",1,true)][InlineData("stale",1,true)]
@@ -48,7 +49,7 @@ public class SolidDeleteTests
         var transport=new Transport{Mode=mode};using var provider=new SOLIDOASIS(Root.AbsoluteUri,"",Key,transport);
         Assert.False((await provider.ActivateProviderAsync()).IsError);
         var result=await provider.DeleteHolonAsync(transport.Id);
-        Assert.True(result.IsError);Assert.Null(result.Result);Assert.True(transport.Present);Assert.Equal(deletes,transport.Deletes);
+        Assert.True(result.IsError);Assert.False(result.IsDeleted);Assert.Equal(0,result.DeletedCount);Assert.Null(result.Result);Assert.True(transport.Present);Assert.Equal(deletes,transport.Deletes);
         Assert.Equal(uncertain,result.Exception is SolidRecordReconciliationException);
         if(result.Exception is SolidRecordReconciliationException reconciliation)Assert.Equal(mode=="stale",reconciliation.WriteAcknowledged);
         if(mode=="conflict")Assert.Equal(HttpStatusCode.PreconditionFailed,Assert.IsType<HttpRequestException>(result.Exception).StatusCode);
