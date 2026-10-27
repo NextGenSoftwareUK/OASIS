@@ -329,4 +329,24 @@ var minimumVersion = page.Min(row => row.Version);
 var maximumVersion = page.Max(row => row.Version);
 ```
 
-Repeated Select (Q01d) now has a shared exact-column binding implementation; native acceptance is still pending on the three databases. It supports scalar/flat-record rename, reorder, duplicate, drop and identity selection, preserving earlier windows and filters. Computations/conversions, nested shapes and indexed selectors remain explicit errors. Intermediate records are not constructed; retained native inputs remain subject to capability/data validation and payload/work budgets.
+Repeated Select (Q01d) is verified on SQLite, MongoDB and Neo4j with26 native cases per store. It supports scalar/flat-record rename, reorder, duplicate, drop and identity selection, preserving earlier windows and filters. Computations/conversions, nested shapes and indexed selectors remain explicit errors. Intermediate records are not constructed; retained native inputs remain subject to capability/data validation and payload/work budgets.
+
+```csharp
+// Select again without constructing the intermediate anonymous records.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(row => row.Name)
+    .Skip(1)
+    .Take(10);
+
+// Rename a field, then choose a scalar. The earlier page stays fixed.
+var revisions = page
+    .Select(row => new { Revision = row.Version })
+    .Select(row => row.Revision);
+
+var count = revisions.Count();
+var maximum = revisions.Max();
+var values = await revisions.ToCosmicListAsync();
+```
+
+Retained native columns remain validated even if the last Select drops them. A selection does not bypass source authorization, data-domain errors or the existing work/payload limits. A closure in an earlier Where is rebound on each standard IQueryable execution; fluent CQL capture remains immutable.
