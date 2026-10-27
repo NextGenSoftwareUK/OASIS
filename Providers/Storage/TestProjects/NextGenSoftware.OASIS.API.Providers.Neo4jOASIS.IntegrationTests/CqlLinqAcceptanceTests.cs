@@ -152,7 +152,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(
             ()=>root.Take(0).Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal"))).Code);Passed("required Average empty error");
         if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS
-            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS)
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS)
         {
             Assert.AreEqual((double)9007199254740993L,
                 root.Average(row => CosmicQueryMetadata.Value<long>(row, "i64")));
@@ -186,6 +187,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual((double)9007199254740993L,
                 root.Select(row => CosmicQueryMetadata.Value<long>(row, "i64")).Average());
             Passed("plain selected checked Int64 Average");
+
+            Assert.AreEqual("CQL_SCALAR_OVERFLOW", Assert.ThrowsException<CosmicLinqException>(
+                () => checkedOrder.Average(row => CosmicQueryMetadata.Value<long>(row, "checkedNegative"))).Code);
+            Passed("negative overflowing prefix with in-range final sum");
+            Assert.AreEqual(new[] { long.MaxValue, -1L, long.MinValue }.Average(),
+                multi.OrderByDescending(row => CosmicQueryMetadata.Value<int>(row, "checkedOrder"))
+                    .Average(row => CosmicQueryMetadata.Value<long>(row, "checkedNegative")));
+            Passed("reversed non-overflowing negative prefixes");
+            Assert.AreEqual((double)long.MinValue,
+                root.Average(row => CosmicQueryMetadata.Value<long>(row, "checkedNegative")));
+            Passed("Int64 minimum mean remains exact result domain");
+            Assert.AreEqual("CQL_EMPTY_SEQUENCE", Assert.ThrowsException<CosmicLinqException>(
+                () => root.Where(row => row.Name == "no such checked mean")
+                    .Average(row => CosmicQueryMetadata.Value<long>(row, "i64"))).Code);
+            Passed("native empty required checked mean");
+            Assert.IsNull(root.Where(row => row.Name == "no such checked mean")
+                .Average(row => CosmicQueryMetadata.Value<long?>(row, "i64")));
+            Passed("native empty nullable checked mean");
         }
         else
         {

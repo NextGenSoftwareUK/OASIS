@@ -50,7 +50,7 @@ Queryable value aggregates bind typed paths and exact result domains before
 planning against independent scalar-selection capabilities. Plain scalar Select
 can lower into the same native selector aggregate; selected stages are never
 moved across the reduction. Int32 Average now has an independently admitted double-output contract; Int64
-uses independent checked-prefix enrollment, currently MongoDB and SQLite. The existing decimal-output
+uses independent checked-prefix enrollment, now verified on MongoDB, SQLite and Neo4j. The existing decimal-output
 CQL contract is preserved rather than approximated with a client conversion.
 The Int32 double-output mode shares integer-packet validation with decimal means
 and grouped slots, and adds no provider row buffer. The scalar descriptor records
@@ -65,7 +65,7 @@ packet includes a strict Boolean `prefixOverflow`; missing, numeric or additiona
 fields are invalid. The shared numeric owner checks exact limbs/count, rejects
 contradictory no-overflow sums, and returns overflow for any visited prefix.
 Only an acknowledged checked Int64 total is converted once to double before
-division. Neo4j does not advertise this mode yet. No client row accumulator
+division. Neo4j also independently advertises this mode. No client row accumulator
 or decimal-mean conversion grants this capability.
 
 SQLite attaches a connection-owned checked Int64 prefix aggregate under the
@@ -77,3 +77,14 @@ the independent exact limb/count packet in the same statement. The owner checks
 hook failures before interpreting its strict 0/1 acknowledgement and unregisters
 the hook on disposal. Kernel and V2 manager native gates prove reverse ordering,
 post-page prefixes, nulls, overflow, cancellation and teardown.
+
+Neo4j checked Int64 means reassert the admitted source ordering plus identity
+immediately before native collect, after SKIP/LIMIT. Cypher reduce retains a
+checked total and overflow latch. Positive and negative branches use their own
+safe boundary subtraction; only an admitted branch performs addition. The
+ordered participating-value list remains on the server and uses proportional
+memory within the input-work bound and native transaction memory/timeout limits.
+The exact eight-field integer packet includes Boolean prefixOverflow in every
+normal/error union branch. Empty windows and genuinely empty sources retain the
+same required/nullable shared-owner semantics. Unit packet tests and83 native
+checks/store prove both overflow directions, reversal, paging and empty results.
