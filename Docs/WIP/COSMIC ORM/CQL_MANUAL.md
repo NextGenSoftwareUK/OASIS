@@ -311,3 +311,5 @@ one terminal record, including an explicit empty packet. Complete selected proof
 and numeric participation are validated before the result is published. This
 retains the selected owner’s existing consistency contract; it adds no separate
 MATCH or stronger database snapshot promise.
+
+Selected Min/Max (Q01c) has a shared V2 plan/executor foundation but remains unenrolled on the three databases pending native acceptance. Calls fail explicitly until enrolled; source/unstaged extrema support is unchanged. The new owner preserves windows, ignores null participants and reads the winning field without constructing a selected record.
