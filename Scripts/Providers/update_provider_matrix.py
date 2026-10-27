@@ -13,6 +13,7 @@ SDK={'Nethereum':r'new (?:Nethereum\.)?Web3\b|new Web3CoreOASIS\b','Npgsql':r'ne
 # Explicit product roles override inherited template capabilities and incidental crypto SDK imports.
 NON_STORAGE=set("CargoOASIS HolonymOASIS ProofOfHumanityOASIS SelfProtocolOASIS CivicOASIS ReclaimProtocolOASIS BittensorOASIS GaladrielOASIS RitualOASIS IntelOpenVINOOASIS MapboxOASIS GoogleMapsOASIS GOMapOASIS HEREMapsOASIS MapLibreOASIS NianticLightshipOASIS WRLD3DOASIS ReadyPlayerMeOASIS DecentralandOASIS TheSandboxOASIS DuneAnalyticsOASIS CovalentOASIS TheGraphOASIS SubqueryOASIS GoldskyOASIS NansenOASIS ZapperOASIS BlockscoutOASIS MoralisOASIS MoralisStreamsOASIS AlchemyOASIS AnkrOASIS InfuraOASIS QuickNodeOASIS TenderlyOASIS ReservoirOASIS ENSOASIS ENSOffchainOASIS PolygonIDOASIS PrivyOASIS PrivyServerWalletsOASIS zkPassOASIS GitcoinPassportOASIS SuiZkLoginOASIS SafeOASIS ZkSyncSSOOASIS WorldIDOASIS LayerZeroOASIS PushProtocolOASIS WakuOASIS AkashOASIS LivepeerOASIS TemporalOASIS OrionProtocolOASIS LitProtocolOASIS".split())
 FAMILY_NAMES={
+ 'IPFS/content-addressed':{'FilecoinOASIS'},
  'Document':set("FirebaseOASIS AppwriteOASIS FaunaOASIS ConvexOASIS PocketBaseOASIS PolybaseOASIS GUNOASIS OrbitDBOASIS PouchDBOASIS SurrealDBOASIS AWSOASIS GoogleCloudOASIS".split()),
  'SQL':set("CloudflareD1OASIS TursoOASIS TablelandOASIS PlanetScaleOASIS NileOASIS PgVectorOASIS MotherDuckOASIS FlyIOOASIS".split()),
  'Key-value/object':set("UpstashOASIS AzureStorageOASIS CloudflareOASIS ThreeFoldOASIS CloudinaryOASIS OracleObjectStorageOASIS DragonflyOASIS GarnetOASIS".split()),
@@ -174,7 +175,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL v1 native12/52 historical, detail read-count fixed/targeted2PASS; Oracle v2 native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Existing DynamoDB owner for AWS alias + shared record policy | AWS/Dynamo factories bound; 27factory controlsPASS, native runtime missing0/52 | Started 26 Oct; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis v2 native52/52PASS; KeyDB/Valkey/Dragonfly/Garnet thin shared facades52/52CONTROLLED each/native pending; AWS S3 native config missing0/52 historical | Started 26 Oct; ~1 day |
-| IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
+| IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
 | Non-EVM | Shared record policy + native SDK transports | Baseline storage only; stop contract/fee/recovery depth | Not started; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Classify storage applicability and register factories | Not started; ~1 day |
 | Non-storage | NonStorageConformance / capability-v1 | Identity, honest capabilities, activation, read-only SDK/API probe, deactivation; controlled harness7PASS, native factories pending | Foundation started 26 Oct; ~1 day |

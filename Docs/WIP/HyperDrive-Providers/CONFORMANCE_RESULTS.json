@@ -164,6 +164,19 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-garnetoasis-current.json",
       "sha256": "d7120f6681f094953f0eee15f7c2800db62a5808f54838d82ebb0120ad271f04",
       "blockers": []
+    },
+    {
+      "provider": "IPFSOASIS",
+      "suite": "core-storage-v2",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
+      "sha256": "f306f92152d5d05e6bedc12ff6ce672434313185027805a9cfbc3a95cf42f4a5",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
@@ -221,6 +234,15 @@
     ],
     "GarnetOASIS": [
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "IPFSOASIS": [
+      "Canonical v2 binding builds; original retained Kubo repository/config and DPAPI storage key missing from both documented work directories. Recover original identity/key; no replacement repository, download or native dispatch attempted. Bundled SDK uses legacy full PDB, so portable source-identity validation is unavailable for that assembly; no native acceptance claim."
+    ],
+    "PinataOASIS": [
+      "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
+    ],
+    "FilecoinOASIS": [
+      "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
     ]
   },
   "suites": [
