@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -74,4 +76,52 @@ public sealed class NeoCqlSelectedIntegerTests
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", CosmicProjectionCompositionPlanner.Admit(plan.Composition,
             ProviderType.Neo4jOASIS, Neo4jOASIS.CqlCapabilities, Neo4jOASIS.CqlProjectionCapabilities, legacy).ErrorCode);
     }
+    [DataTestMethod]
+    [DataRow(typeof(decimal), 7)]
+    [DataRow(typeof(float), 10)]
+    [DataRow(typeof(double), 70)]
+    [DataRow(typeof(ulong), 2)]
+    [DataRow(typeof(decimal?), 7)]
+    [DataRow(typeof(float?), 10)]
+    [DataRow(typeof(double?), 70)]
+    [DataRow(typeof(ulong?), 2)]
+    public void WiderSelectedPacketsRequireExactDomainWords(Type domain, int width)
+    {
+        GetType().GetMethod(nameof(VerifyWidePacket), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+            .MakeGenericMethod(domain).Invoke(null, new object[] { width });
+    }
+
+    private static void VerifyWidePacket<T>(int width)
+    {
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.Neo4jOASIS).Result)
+            .Select(row => CosmicQueryMetadata.Value<T>(row, "value")).Take(0).Result;
+        var planned = CosmicProjectedNumericPlanner.Plan<Holon, T, T>(query, 0, CosmicScalarOperation.Sum,
+            ProviderType.Neo4jOASIS, new[] { new CosmicProjectionCompositionTarget(ProviderType.Neo4jOASIS,
+                Neo4jOASIS.CqlCapabilities, Neo4jOASIS.CqlProjectionCapabilities, Neo4jOASIS.CqlCompositionCapabilities) });
+        Assert.IsFalse(planned.IsError, planned.Message);
+        var plan = planned.Result;
+        var o = plan.Composition.Options;
+        var command = Neo4jOASIS.CompileCqlComposition(plan.Composition, new CosmicProjectionCompositionExecutionLimits(
+            o.MaximumInputRows, o.MaximumInputPayloadBytes, o.MaximumStageRows, o.MaximumProofPayloadBytes,
+            10000, CosmicProjectionResults.MaximumPayloadLimit));
+        var reduction = command.Text.Substring(command.Text.LastIndexOf("UNION ALL WITH", StringComparison.Ordinal));
+        StringAssert.Contains(reduction, "proofBytes+" + (9 + 8 * width) + "<=");
+        Assert.IsFalse(reduction.Contains("MATCH", StringComparison.Ordinal));
+        var words = Enumerable.Repeat<object>(0L, width).ToArray();
+        var body = width == 2 ? new Dictionary<string, object> { ["high"] = 0L, ["low"] = 0L }
+            : new Dictionary<string, object> { ["parts"] = words };
+        var packet = Neo4jOASIS.ReadSelectedIntegerReduction(body, 0, plan.Composition.NumericReduction);
+        Assert.AreEqual(width, packet.Parts.Count);
+        Assert.IsFalse(CosmicProjectedNumericResults.FromPacket(plan.Scalar, packet).IsError);
+        if (width != 2)
+        {
+            words[0] = 0d;
+            Assert.ThrowsException<InvalidDataException>(() => Neo4jOASIS.ReadSelectedIntegerReduction(body, 0, plan.Composition.NumericReduction));
+            body["parts"] = words.Skip(1).ToArray();
+            Assert.ThrowsException<InvalidDataException>(() => Neo4jOASIS.ReadSelectedIntegerReduction(body, 0, plan.Composition.NumericReduction));
+        }
+        body["extra"] = 0L;
+        Assert.ThrowsException<InvalidDataException>(() => Neo4jOASIS.ReadSelectedIntegerReduction(body, 0, plan.Composition.NumericReduction));
+    }
+
 }

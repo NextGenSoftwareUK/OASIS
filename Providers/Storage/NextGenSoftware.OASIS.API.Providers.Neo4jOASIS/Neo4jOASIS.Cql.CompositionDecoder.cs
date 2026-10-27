@@ -127,7 +127,7 @@ public partial class Neo4jOASIS
                 foreach (var value in values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
             }
-            if ((terminal || cardinality || numeric != null) && checked(proofBytes + outputBytes + (numeric == null ? 0 : 25)) > limits.MaximumProofPayloadBytes)
+            if ((terminal || cardinality || numeric != null) && checked(proofBytes + outputBytes + (numeric == null ? 0 : 9 + 8 * SelectedNumericWidth(numeric.InputType))) > limits.MaximumProofPayloadBytes)
                 throw new NeoCqlLimitException("All evidence exceeds its remaining proof-byte budget.");
             check();
             return new CosmicProjectionCompositionPacket(input, stages.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(),

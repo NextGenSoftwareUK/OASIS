@@ -148,7 +148,7 @@ native reduction runs over the final materialized stage CTE in the same
 serializable owner. Two integer sum words retain exact totals; Int64 double means
 reuse the checked aggregate hook ordered by the final stage rank. The hook checks
 budgets and is removed on disposal. Selected ordering/offset occurs before prefix
-accumulation. SQLite now also enrolls decimal/Single/Double/UInt64 and nullable selected reductions; Neo4j wider domains remain unenrolled;
+accumulation. SQLite now also enrolls decimal/Single/Double/UInt64 and nullable selected reductions; all3 wider domains are independently enrolled;
 selected Min/Max needs its own extrema contract. Q01 remains red.
 
 MongoDB Q01a now independently enrolls signed Int32/Int64 Sum/Average and nullable
@@ -175,3 +175,5 @@ Q01a is green while wider domains and selected extrema remain red.
 SQLite Q01b reuses existing decimal limb, UInt64 split and floating packet kernels against the final selected CTE. Floating hooks belong to the same serializable connection owner, enforce its deadline and release on disposal. The decoder validates domain-specific packet width and participation before the shared typed finalizer. No client-side aggregation or record construction is introduced. Native proof:37 wider-domain cases in `CqlLinqStagedWideAcceptanceTests.cs`.
 
 Mongo Q01b sends final selected cells to existing exact kernels within the same snapshot session. Empty packets preserve native domain types (Decimal128 decimal words; Int64 floating words). Strict scalar decoding owns packet validation; terminal proof budgets charge actual domain width. No client aggregation or DTO construction.
+
+Neo Q01b derives exact decimal/floating words from captured final selected values and reduces each word natively. UInt64 uses the existing canonical20-digit splitter. The same single-query owner validates complete stages before normalization; packet widths and proof charges are domain-specific. No extra MATCH, client aggregation or DTO construction. This does not strengthen Neo repeatable-read guarantees.
