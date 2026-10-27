@@ -36,7 +36,10 @@ public class SolanaChainIndexObservationTests
             var source=new CosmicChainQuerySource(ProviderType.SolanaOASIS,RangeRpc.Genesis,ProviderType.SQLLiteDBOASIS,Guid.NewGuid(),1,
                 scenario=="catalogue"?new string('B',64):SolanaRepository.ChainHolonCatalogueHash(proxy.Writer,RangeRpc.Genesis),1);
             using var cancellation=new CancellationTokenSource();if(scenario=="cancelled")cancellation.Cancel();
-            var result=await repository.ObserveFinalizedHolonRangeAsync(source,cancellation.Token);
+            var attempts=new AttemptOwner();
+            var result=await CosmicIndexedReadAttempts.RunAsync(source,attempts,
+                ()=>repository.ObserveFinalizedHolonRangeAsync(source,cancellation.Token));
+            Assert.AreEqual(proxy.Calls,attempts.Operations.Count,"Each actual RPC must have its own attempt boundary.");
             if(scenario is "valid" or "empty"){
                 Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsLoaded);
                 Assert.AreEqual(10L,result.Result.Checkpoint.Position.Slot);Assert.AreEqual(1L,result.Result.Checkpoint.CompleteFromSlot);
@@ -56,6 +59,14 @@ public class SolanaChainIndexObservationTests
             }
             Assert.AreEqual(0,proxy.Writes);
         }finally{CryptographicOperations.ZeroMemory(key);}
+    }
+
+    private sealed class AttemptOwner:ICosmicIndexedReadAttemptOwner
+    {
+        public readonly List<CosmicIndexedReadOperation> Operations=new();
+        public async Task<T> ExecuteAsync<T>(CosmicChainQuerySource source,CosmicIndexedReadOperation operation,
+            Func<Task<T>> invoke,CancellationToken cancellationToken)
+        { Operations.Add(operation);return await invoke(); }
     }
 
     public class RangeRpc:DispatchProxy

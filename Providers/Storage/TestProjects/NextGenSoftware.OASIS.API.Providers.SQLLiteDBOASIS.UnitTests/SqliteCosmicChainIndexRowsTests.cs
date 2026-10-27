@@ -101,11 +101,13 @@ public class SqliteCosmicChainIndexRowsTests
         var name="A";
         var query=created.Result.Where(row=>row.Name==name).OrderBy(row=>row.Name).Take(1);
         Assert.AreEqual(0,observer.RecordCalls);
-        var first=await query.ToCosmicIndexedPageAsync();
+        var attempts=new SqlAttemptOwner();
+        var first=await CosmicIndexedReadAttempts.RunAsync(source,attempts,()=>query.ToCosmicIndexedPageAsync());
         Assert.IsFalse(first.IsError,first.Exception?.ToString());
         Assert.AreEqual("A",first.Result.Rows.Single().Name);
         name="B";
-        var second=await query.ToCosmicIndexedPageAsync();
+        var second=await CosmicIndexedReadAttempts.RunAsync(source,attempts,()=>query.ToCosmicIndexedPageAsync());
+        Assert.AreEqual(2,attempts.Count,"Each actual SQL snapshot has one physical boundary.");
         Assert.IsFalse(second.IsError,second.Exception?.ToString());
         var row=second.Result.Rows.Single();Assert.AreEqual("B",row.Name);
         Assert.AreEqual(b.Receipt.Record.Id,second.Result.Receipts.Single().Record.Id);
@@ -153,5 +155,12 @@ public class SqliteCosmicChainIndexRowsTests
         public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveHeadAsync(CosmicChainQuerySource selected,CancellationToken token){
             HeadCalls++;return Task.FromResult(new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow-(mode=="stale"?TimeSpan.FromHours(1):TimeSpan.Zero))));
         }
+    }
+    private sealed class SqlAttemptOwner:ICosmicIndexedReadAttemptOwner
+    {
+        public int Count;
+        public async Task<T> ExecuteAsync<T>(CosmicChainQuerySource source,CosmicIndexedReadOperation operation,
+            Func<Task<T>> invoke,CancellationToken cancellationToken)
+        { Assert.AreEqual(CosmicIndexedReadOperation.IndexSqlSnapshot,operation);Count++;return await invoke(); }
     }
 }
