@@ -1,7 +1,7 @@
 # Provider breadth-first status matrix
 
 Generated from **229 shipping provider projects** by `python Scripts/Providers/update_provider_matrix.py`.
-Current roles: **55 non-storage**, **174 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **9** have hash-bound source reviews proving the current adapter is missing.
+Current roles: **56 non-storage**, **173 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **9** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **core-storage-v2**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
@@ -22,7 +22,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
 | Non-EVM | Existing encrypted record/version/query helpers + native SDK transports | Solana native4/52: read-only probe proves referenced memo chunk unavailable during collection decoding; fail-closed, original fixtures preserved. Baseline only, no contract/fee/recovery depth | Started 26 Oct; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Neo4j native52/52PASS with all304preexistinggraph elements unchanged; remaining native bindings pending | Started 27 Oct; ~1 day |
-| Non-storage | NonStorageConformance / capability-v1 | Identity, honest capabilities, activation, read-only SDK/API probe, deactivation; controlled harness7PASS, native factories pending | Foundation started 26 Oct; ~1 day |
+| Non-storage | NonStorageConformance / capability-v1 | ActivityPub Social/Network native5/5PASS with guarded real public Mastodon GETs and291controlled regressions; other native capability bindings pending, controlled shared harness7PASS | Foundation started 26 Oct; ~1 day |
 
 | Provider | Family | Real SDK/API source evidence | Applicable conformance passed | Blockers |
 |---|---|---|---|---|
@@ -124,7 +124,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | [ReadyPlayerMeOASIS](../../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [TheSandboxOASIS](../../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [WRLD3DOASIS](../../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS.csproj) | Non-storage | No - reviewed missing adapter | Not run (capability-v1) | Source-reviewed legacy map facade contains 47 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate; Capability identity/activation/read-only probe pending; storage suite N/A; Source-reviewed project has no active native SDK/API adapter; implementation required |
-| [ActivityPubOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj) | Federated web | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
+| [ActivityPubOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.csproj) | Non-storage | Yes - HTTP API client | 5/5 (native; capability-v1) | None recorded within suite scope |
 | [AkashOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/NextGenSoftware.OASIS.API.Providers.AkashOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [AlchemyOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.AlchemyOASIS/NextGenSoftware.OASIS.API.Providers.AlchemyOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [AnkrOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.AnkrOASIS/NextGenSoftware.OASIS.API.Providers.AnkrOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |

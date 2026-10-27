@@ -10,6 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ActivityPubCapabilityConformanceTests.cs" />
+    <Compile Include="ActivityPubCapabilityConformanceTests.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NonStorageConformance.cs" Link="TestSupport/NonStorageConformance.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
