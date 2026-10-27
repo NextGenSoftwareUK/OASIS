@@ -170,3 +170,30 @@ Scalar/projection/graph/arbitrary filters remain unsupported for both adapters.
 |---|---|
 | TestResults/ProtocolCqlCurrent/web4-before.trx | 0AC4E701C70CC8C698ADC45FC9E94CE331DDE042C87A71734939773DD86675AB |
 | TestResults/ProtocolCqlCurrent/web4-fixed.trx | 3B931C119A8534C053C703D7B890685A78DAB61F9C5FE8D44B5BFDB8AE278A74 |
+
+## Native WEB4 row / receipt acceptance milestone
+
+Both new native gates pass1/1, no skips: actual offline Kubo and retained private
+CSS Pod. Each uses the production CqlV1Controller, resource filter, compiler and
+endpoint sources through a real loopback Kestrel listener. Shared test helper
+`Providers/Shared/TestSupport/ProtocolPointWeb4Acceptance.cs` checks six requests:
+anonymous401, forged actor400, unsupported sort/scalar/projection400, valid rows200.
+The row carries the native record CID or canonical Pod resource URI. Exactly one
+provider query receipt is appended, unit1, fixture tariff0.001USD/catalogue
+protocol-test-v1. Other requests produce no provider query receipts.
+
+Identity/reservation/read catalogue/outbox are controlled test fixtures; this does
+not certify production JWT, durable settlement or hosted deployment. Source adapters
+are real native backends. Exact owned fixtures are verified/cleaned, durable
+cql-web4-complete closures retained, Kestrel disposed and backend services stopped.
+No native write replay. Core1db9017 adds only friend access for the two native test
+assemblies; no public API expansion. Gitlink and Docker pin advance jointly.
+
+Next: interactive/demo-host enrollment for the proven point profiles, rich query
+index designs and the remaining common-demo/production acceptance gates.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/IPFSCurrent/ipfs-cql-web4-native.trx | 5453B1199EE6E53AE154BC7C1B7637E8A85986444D69B6442D09D5FF58E13009 |
+| TestResults/SolidCurrent/solid-cql-web4-native.trx | 4EDCCD7E24F5BFB44AC02F81F1C017133AC82899DCC2E1AD8F88EB6112593F6E |
+| TestResults/SolidCurrent/solid-cql-web4-lifecycle.json | A9C6CD6BFC17F30DA6380A0802E84A374173C1F52163FC116EE9D7C51A85DD29 |

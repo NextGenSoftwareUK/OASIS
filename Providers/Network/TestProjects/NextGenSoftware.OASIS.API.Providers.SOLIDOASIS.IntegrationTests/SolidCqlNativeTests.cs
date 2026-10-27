@@ -12,10 +12,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 public class SolidCqlNativeTests
 {
     [Fact,Trait("Category","SolidCqlNative")]
-    public async Task ActualPrivatePodPointThroughManagerLinqAndDemoMatchesCanonicalRead()
+    public Task ActualPrivatePodPointThroughManagerLinqAndDemoMatchesCanonicalRead()=>RunAsync(false);
+
+    [Fact,Trait("Category","SolidCqlWeb4Native")]
+    public Task ActualPrivatePodPointThroughWeb4RowsAndMeasuredReceipt()=>RunAsync(true);
+
+    private async Task RunAsync(bool web4)
     {
         var original=Environment.GetEnvironmentVariable("OASIS_SOLID_COLD_READONLY_WORK")!;
-        var pending=Path.Combine(original,"cql-point.pending.json");var closed=Path.Combine(original,"cql-point-complete.json");
+        var prefix=web4?"cql-web4":"cql-point";
+        var pending=Path.Combine(original,prefix+".pending.json");var closed=Path.Combine(original,prefix+"-complete.json");
         Assert.False(File.Exists(pending)||File.Exists(pending+".next")||File.Exists(closed),"Preserve native CQL ownership before rerunning.");
         const string keyVariable="OASIS_SOLID_CQL_KEY",secretVariable="OASIS_SOLID_CQL_SECRET";
         var priorKey=Environment.GetEnvironmentVariable(keyVariable);var priorSecret=Environment.GetEnvironmentVariable(secretVariable);
@@ -75,6 +81,12 @@ public class SolidCqlNativeTests
                 Assert.True(denied.StatusCode is System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden);
                 var hidden=await CosmicCqlDemo.SolidPointWalkthrough.RunAsync(manager,provider,record.Id.ToString("D"),Guid.NewGuid(),TextWriter.Null,timeout.Token);
                 Assert.Empty(hidden);phase="query-verified";await Checkpoint();
+
+                if(web4){
+                    await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.RunAsync(
+                        provider,manager,owner,"SolidRecordId",record.Id.ToString("D"),"SolidRecordResource",resource.AbsoluteUri,record.Id);
+                    phase="web4-verified";await Checkpoint();
+                }
 
                 // Conditional deletion of only this exact independently verified owned fixture.
                 Assert.Equal(owner,canonical.Result.CreatedByAvatarId);phase="before-cleanup";await Checkpoint();

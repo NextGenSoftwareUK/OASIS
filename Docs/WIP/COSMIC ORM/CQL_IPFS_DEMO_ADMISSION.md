@@ -250,3 +250,5 @@ acceptance remain open. This is not full IPFS/CQL parity.
 | LocalState/COSMIC/IPFSCurrent/cql-point-complete.json | 5AF34CB600CC775619D1D3805B358E6F6AD414B98EF6DD5C36AD22C8D2B9C078 |
 
 WEB4 explicit row-profile/compiler/readtariff enrollment now passes721 affected controls. Native HTTP/receipt acceptance and interactive host remain open. [Request contract/evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
+
+Native real-controller Kestrel/WEB4 row-and-receipt gate now passes1/1, with sixrequests, exactonequeryreceipt and real backend source. Identity/outbox controlled, productionJWT/durablesettlement/interactivehosting stillopen. Exactfixtures cleaned, listeners/services stopped. [Evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).

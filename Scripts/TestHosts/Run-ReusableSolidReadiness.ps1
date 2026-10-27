@@ -1,8 +1,8 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$CqlPoint,[switch]$ReconcileCore,[switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
+param([switch]$CqlWeb4,[switch]$CqlPoint,[switch]$ReconcileCore,[switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
-if(@(@($CqlPoint,$CoreStorage,$ReconcileCore)|Where-Object {$_}).Count -gt 1){throw 'Select one native mode.'}
+if(@(@($CqlWeb4,$CqlPoint,$CoreStorage,$ReconcileCore)|Where-Object {$_}).Count -gt 1){throw 'Select one native mode.'}
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskSolidWork=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'}
 $taskSolidResults=Join-Path $taskSolidRoot 'TestResults/SolidCurrent'
@@ -10,11 +10,11 @@ New-Item -ItemType Directory -Path $taskSolidResults -Force|Out-Null
 if(!(Test-Path -LiteralPath $taskSolidWork -PathType Container)){throw 'Retained SOLID work directory required.'}
 $taskSolidLease=[IO.File]::Open((Join-Path $taskSolidWork 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $taskSolidStarted=$false;$taskSolidPrior=$env:OASIS_SOLID_COLD_READONLY_WORK
-$taskSolidReport=Join-Path $taskSolidResults $(if($CqlPoint){'solid-cql-lifecycle.json'}elseif($ReconcileCore){'solid-core-cleanup-lifecycle.json'}elseif($CoreStorage){'solid-core-lifecycle.json'}else{'solid-readiness-current.json'})
-$taskSolidTrxName=if($CqlPoint){'solid-cql-native.trx'}elseif($ReconcileCore){'solid-core-cleanup.trx'}elseif($CoreStorage){'solid-core-current.trx'}else{'solid-ready-read-current.trx'}
+$taskSolidReport=Join-Path $taskSolidResults $(if($CqlWeb4){'solid-cql-web4-lifecycle.json'}elseif($CqlPoint){'solid-cql-lifecycle.json'}elseif($ReconcileCore){'solid-core-cleanup-lifecycle.json'}elseif($CoreStorage){'solid-core-lifecycle.json'}else{'solid-readiness-current.json'})
+$taskSolidTrxName=if($CqlWeb4){'solid-cql-web4-native.trx'}elseif($CqlPoint){'solid-cql-native.trx'}elseif($ReconcileCore){'solid-core-cleanup.trx'}elseif($CoreStorage){'solid-core-current.trx'}else{'solid-ready-read-current.trx'}
 $taskSolidTrx=Join-Path $taskSolidResults $taskSolidTrxName
 $taskSolidSamples=[Collections.Generic.List[object]]::new()
-$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=$(if($CqlPoint){'native private Pod CQL/sharedmanager/LINQ/demo with exact owned fixture cleanup'}elseif($ReconcileCore){'exact original owned fixture readback and conditional cleanup; deleted children never replayed'}elseif($CoreStorage){'current-source shared storage baseline in explicitly selected owned Pod'}else{'frozen-output readiness and one authenticated read; not current-source acceptance'});freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
+$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=$(if($CqlWeb4){'native private Pod WEB4 rows and measured query receipt; controlled identity/outbox'}elseif($CqlPoint){'native private Pod CQL/sharedmanager/LINQ/demo with exact owned fixture cleanup'}elseif($ReconcileCore){'exact original owned fixture readback and conditional cleanup; deleted children never replayed'}elseif($CoreStorage){'current-source shared storage baseline in explicitly selected owned Pod'}else{'frozen-output readiness and one authenticated read; not current-source acceptance'});freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
 try{
     if((Test-Path $taskSolidReport) -or (Test-Path $taskSolidTrx)){throw 'Preserve original readiness evidence before another run.'}
     $taskSolidPending=@(Get-ChildItem -LiteralPath $taskSolidWork -Filter '*pending*.json')
@@ -38,7 +38,7 @@ try{
         throw 'Retained SOLID identity or lifecycle differs; inspect without replacement.'
     }
     $taskSolidProject=Join-Path $taskSolidRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
-    if($CqlPoint -or $CoreStorage -or $ReconcileCore){
+    if($CqlWeb4 -or $CqlPoint -or $CoreStorage -or $ReconcileCore){
         if($CoreStorage){
         foreach($taskSolidMode in @('async','sync')){
             if(Test-Path -LiteralPath (Join-Path $taskSolidRoot "TestResults/ProviderConformanceCurrent/SOLIDOASIS/$taskSolidMode/report.json")){
@@ -65,7 +65,7 @@ try{
     $taskSolidEvidence.socketReadyMs=$taskSolidTimer.ElapsedMilliseconds
     foreach($taskSolidSample in $taskSolidObserved.Samples){$taskSolidSamples.Add($taskSolidSample)}
     $env:OASIS_SOLID_COLD_READONLY_WORK=$taskSolidWork
-    $taskSolidFilter=if($CqlPoint){'Category=SolidCqlNative'}elseif($ReconcileCore){'Category=SolidCoreFixtureCleanup'}elseif($CoreStorage){'Category=SolidCoreStorageConformance'}else{'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead'}
+    $taskSolidFilter=if($CqlWeb4){'Category=SolidCqlWeb4Native'}elseif($CqlPoint){'Category=SolidCqlNative'}elseif($ReconcileCore){'Category=SolidCoreFixtureCleanup'}elseif($CoreStorage){'Category=SolidCoreStorageConformance'}else{'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead'}
     & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter $taskSolidFilter --logger "trx;LogFileName=$taskSolidTrxName" --results-directory $taskSolidResults -v:q
     $taskSolidEvidence.testExit=$LASTEXITCODE
     if($LASTEXITCODE -ne 0){throw 'Discovery/authenticated-read diagnostic failed; preserve original evidence.'}
