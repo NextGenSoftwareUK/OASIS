@@ -202,7 +202,7 @@ public partial class HolonRepository
             if (command.Numeric != null)
             {
                 if (command.NumericIntent == null || checked(work + current.Count) > limits.MaximumStageRows
-                    || checked(proofBytes + outputBytes + 25) > limits.MaximumProofPayloadBytes)
+                    || checked(proofBytes + outputBytes + 9 + 8 * MongoCqlTranslator.SelectedNumericWidth(command.NumericIntent.InputType)) > limits.MaximumProofPayloadBytes)
                     throw new MongoCqlLimitException();
                 using var numericCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Numeric,
                     Options(), deadline.Token).ConfigureAwait(false);
