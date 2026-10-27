@@ -138,3 +138,23 @@ record, compute its canonical hash, observe the actual network/head and verify
 ancestry. Passing the same unverified index claim twice does not supply that
 independent evidence. Snapshot-wide row/scalar/projection publication, query
 binding, durable ingestion and native acceptance are the next integration gates.
+
+## Explicit source planning milestone
+
+Core `2f441eb` adds `WithIndexedSource(requirement)` to the immutable query.
+It requires one explicitly named logical source and freezes the requirement.
+Predicate/order/window/graph/access composition preserves it. Row, scalar and
+projection targets carry the server-authorized index profile; planning rejects
+mode or binding substitution. Native capability admission and the shared native
+attempt owner reject indexed requests before provider I/O. No implicit native
+execution, fallback or storage adapter is introduced.
+
+Six new planning/composition controls pass;44 focused foundation tests pass.
+Final affected regression cohort:1,949 passes, zero skips. Both Core targets and
+consumer build. Evidence `TestResults/CoreCurrent/indexed-source-final.trx`,
+SHA256 `313625967BCAF960A17C3C83849464612A9E2BC9E80B94AA8D24672D0DA9A3E7`.
+No WEB4 request binding, indexed snapshot execution or ingestion is enrolled.
+
+User reports no known Solana backup and requests other demo work. Preserve the
+failed source, defer recovery and continue with the IPFS admission audit; these
+foundations remain available when chain/index execution resumes.
