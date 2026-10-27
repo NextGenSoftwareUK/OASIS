@@ -1,4 +1,4 @@
-﻿//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
 //using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 //using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.EthereumOASIS:
                             {
-                                var ethereumProvider = EthereumProviderFactory.Create(OASISDNA.OASIS.StorageProviders.EthereumOASIS,overrideConnectionString);
+                                var ethereumProvider = EthereumProviderFactory.CreateForMode(OASISDNA.OASIS.StorageProviders.EthereumOASIS,OASISDNA.OASIS.HyperDriveMode,overrideConnectionString);
                                 ethereumProvider.OnStorageProviderError += EthereumOASIS_StorageProviderError;
                                 result.Result = ethereumProvider;
                             }

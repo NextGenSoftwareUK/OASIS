@@ -1,23 +1,38 @@
-"""Register only actually executed, hash-bound shared-suite results. No old test-total promotion."""
-import hashlib,json
+"""Register executed shared-suite reports; package/unit evidence never becomes a provider pass."""
+import argparse,hashlib,json,re
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/'Docs/WIP/HyperDrive-Providers'
-work=ROOT/'TestResults/ProviderConformanceCurrent/LocalFileOASIS'
-runs=[]
-for mode in ['async','sync']:
- p=work/mode/'report.json'
- if p.exists():runs.append(json.loads(p.read_text(encoding='utf-8-sig')))
-if not runs:raise SystemExit('No executed LocalFile conformance reports to register')
-assert all(r['SuiteVersion']=='core-storage-v1' and r['Provider']=='LocalFileOASIS' and r['Mode']=='native' for r in runs)
-archive=DOC/'NativeEvidence/conformance-localfile-current.json'
-archive.write_text(json.dumps({'suite':'core-storage-v1','runs':runs},indent=2)+'\n',encoding='utf-8')
-passed=sum(len(r['Passed']) for r in runs)
-blockers=[r['CurrentCase']+': '+r['FailureType'] for r in runs if not r['Succeeded']]
-if len(runs)!=2:blockers.append('One sync/async mode did not execute')
-registry=DOC/'CONFORMANCE_RESULTS.json';data=json.loads(registry.read_text(encoding='utf-8-sig'))
-data['results']=[r for r in data['results'] if r['provider']!='LocalFileOASIS']
-data['results'].append({'provider':'LocalFileOASIS','suite':'core-storage-v1','mode':'native','passed':passed,'total':52,
- 'report':archive.relative_to(ROOT).as_posix(),'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'blockers':blockers})
-registry.write_text(json.dumps(data,indent=2)+'\n',encoding='utf-8')
-print(f'Registered LocalFile: {passed}/52 shared contract checks; blockers={len(blockers)}')
+
+def register(names):
+    roles={}
+    for line in (DOC/'PROVIDER_MATRIX.md').read_text(encoding='utf-8').splitlines():
+        if line.startswith('| ['):roles[line.split(']')[0][3:]]=line.split('|')[2].strip()
+    registry=DOC/'CONFORMANCE_RESULTS.json';data=json.loads(registry.read_text(encoding='utf-8-sig'))
+    for name in names:
+        if name not in roles or not re.fullmatch(r'[A-Za-z0-9_.-]+',name):raise ValueError('Unknown provider identity')
+        capability=roles[name]=='Non-storage';suite='capability-v1' if capability else 'core-storage-v1'
+        modes=['async'] if capability else ['async','sync'];runs=[];blockers=[]
+        for mode in modes:
+            p=ROOT/'TestResults/ProviderConformanceCurrent'/name/mode/'report.json'
+            if not p.exists():blockers.append(mode+': no executed report');continue
+            r=json.loads(p.read_text(encoding='utf-8-sig'))
+            if r['SuiteVersion']!=suite or r['Provider']!=name or r['Mode'] not in {'native','controlled'}:raise ValueError('Report identity/suite/mode mismatch')
+            if not capability and r['Synchronous']!=(mode=='sync'):raise ValueError('Report sync mode mismatch')
+            runs.append(r)
+            if not r['Succeeded']:blockers.append(mode+': '+r['CurrentCase']+': '+r['FailureType'])
+        if not runs:raise ValueError('No executed reports for '+name)
+        if len({r['Mode'] for r in runs})!=1:raise ValueError('Do not combine native and controlled provider results')
+        stem='localfile' if name=='LocalFileOASIS' else name.lower()
+        archive=DOC/'NativeEvidence'/('conformance-'+stem+'-current.json')
+        archive.write_text(json.dumps({'suite':suite,'runs':runs},indent=2)+'\n',encoding='utf-8')
+        passed=sum(len(r['Passed']) for r in runs);total=(5 if capability else 26)*len(modes)
+        execution='blocked-before-native' if all(r['CurrentCase']=='configuration' and not r['Passed'] for r in runs) else runs[0]['Mode']
+        data['results']=[r for r in data['results'] if r['provider']!=name]
+        data['results'].append({'provider':name,'suite':suite,'mode':execution,'passed':passed,'total':total,
+            'report':archive.relative_to(ROOT).as_posix(),'sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'blockers':blockers})
+        print(f'Registered {name}: {passed}/{total}, {execution}; blockers={len(blockers)}')
+    registry.write_text(json.dumps(data,indent=2)+'\n',encoding='utf-8')
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--providers',nargs='+',default=['LocalFileOASIS']);register(parser.parse_args().providers)
