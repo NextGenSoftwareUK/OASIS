@@ -130,8 +130,21 @@ This is a typed path transformation into the same native aggregate, with no DTO
 construction, row fetching or client sum. Exact Int64 values beyond2^53, decimal
 precision, floating means, nullable Sum and empty inputs are verified natively.
 
-Integer Average remains a specific gap: fluent CQL's exact-decimal contract differs
-from standard LINQ's double return domain. The bridge rejects it explicitly until
-the native result contract is implemented; it does not cast a decimal result on
-the client. Aggregates after selected filters/order/windows also remain explicitly
-unsupported pending a native selected-reduction contract. Q01 remains red.
+Int32 and nullable Int32 Average now support the standard double/double? result
+through independent `SupportsInt32DoubleAverage` capability enrollment on the
+three native providers. Existing fluent `Average(int-selector)` still returns
+its exact decimal result. `AverageAsDouble(int-selector)` exposes the explicit
+new fluent result contract; standard Queryable Average selects it automatically.
+
+The shared numeric owner validates native high/low/count bounds, converts the
+bounded Int64 sum once to double, then divides by the count. No decimal result or
+input rows are converted on the client. This matches the pinned [.NET10 Int32
+Average reference](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Linq/src/System/Linq/Average.cs).
+Tests compare standard runtime results, nullable/empty behavior, boundary packets
+and a sum above binary64's exact integer range.
+
+Int64 Average remains a gap: standard checked-prefix accumulation requires its
+own native overflow evidence before double-output enrollment. Aggregates after
+selected result stages also remain explicitly unsupported pending a native
+selected-reduction contract.
+Q01 remains red.
