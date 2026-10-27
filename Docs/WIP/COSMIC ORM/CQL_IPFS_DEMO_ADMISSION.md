@@ -248,3 +248,5 @@ acceptance remain open. This is not full IPFS/CQL parity.
 |---|---|
 | TestResults/IPFSCurrent/ipfs-cql-native.trx | 45C77791DFA846EBA0852C1FA6E4DD298FF9FE7783EC92DE80EF5E5A882D159A |
 | LocalState/COSMIC/IPFSCurrent/cql-point-complete.json | 5AF34CB600CC775619D1D3805B358E6F6AD414B98EF6DD5C36AD22C8D2B9C078 |
+
+WEB4 explicit row-profile/compiler/readtariff enrollment now passes721 affected controls. Native HTTP/receipt acceptance and interactive host remain open. [Request contract/evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).

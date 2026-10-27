@@ -616,3 +616,12 @@ LINQ, with public/unlisted visibility and mandatory access checks. See the
 [native profile guide and C# example](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
 The WEB4 row-route code is enrolled with explicit server catalogue/tariff admission;
 production JWT/durable billing/host deployment and interactive-demo acceptance remain open. Broader metadata/scalar/projection/storage semantics remain open.
+
+## IPFS and SOLID native point reads
+
+Spaced C# examples: `Examples/CosmicCqlDemo/IpfsPointWalkthrough.cs` and
+`SolidPointWalkthrough.cs`. Both use HolonManager/LINQ and explicit read policies;
+native source gates pass. Exact CID/GUID point rows only; richer index queries
+remain open. WEB4 request/compiler/tariff code now admits their explicit row
+profiles with OrderBy None, with721 affected controls passing. Native HTTP and
+interactive deployment acceptance remain open. See [request examples and limits](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
