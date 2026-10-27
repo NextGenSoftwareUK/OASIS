@@ -17,14 +17,9 @@ Today's data is locked inside thousands of separate systems that cannot talk to 
 
 WEB4 is one universal API that sits in front of the world's databases, clouds, blockchains and platforms. Every system connects through the same holonic standard, so an app written once can read and write data anywhere.
 
-```mermaid
-flowchart TB
-    apps["<b>Apps, dApps, websites and AI agents</b><br/>Anything that needs data,<br/>identity or payments"]
-    api["<b>WEB4 API</b><br/>One holonic standard<br/>Portable avatar identity<br/>CQL queries across everything"]
-    hd["<b>HyperDrive</b><br/>Sends each job to the best provider<br/>Replicates data<br/>Fails over automatically"]
-    providers["<b>200+ providers, one standard</b><br/>Databases: SQL, MongoDB, Neo4j<br/>Clouds: Azure, AWS, Google Cloud<br/>Blockchains: Ethereum, Solana, NEAR<br/>Storage: IPFS and other networks<br/>Social: ActivityPub, SOLID<br/>Any Web2 API or legacy system"]
-    apps --> api --> hd --> providers
-```
+![How WEB4 fits together: 3 layers over 6 provider families](Images/web4-overview.svg)
+
+*How WEB4 fits together · 3 layers over 6 provider families*
 
 Apps talk only to the WEB4 API; HyperDrive decides which providers store and serve each piece of data, and automatically switches to another when one is unavailable.
 
