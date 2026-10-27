@@ -6,7 +6,7 @@
 - The 12 investor-demo rows are green on SQLite, MongoDB and Neo4j.
 - Q23/Q23e/Q49a and Q01a–e are verified within their checklist scopes.
 - Active red row Q01f: shared stage contract is committed; IQueryable bridge is committed in Core b9bccf0.
-- SQLite native stages are implemented with 42 passing CQL provider tests, including native V2 typed/graph/visibility and protected traversal acceptance; broader cross-database acceptance remains pending. MongoDB/Neo4j native stages and staged terminal/projection integration remain pending.
+- SQLite native stages are implemented with 42 passing CQL provider tests, including native V2 typed/graph/visibility and protected traversal acceptance; broader cross-database acceptance remains pending. MongoDB native stages are implemented with 212 passing compiler/admission tests; live native proof is pending. Neo4j native stages and staged terminal/projection integration remain pending.
 - Latest native checkpoint: 1,501 checks; it predates the shared entity-stage increment.
 - Current shared bridge regression: 2,550 passes. Full Core suite still has an unverified WEB4 host prerequisite.
 - Green features/federation cursors stay frozen unless a reproducible bug appears.

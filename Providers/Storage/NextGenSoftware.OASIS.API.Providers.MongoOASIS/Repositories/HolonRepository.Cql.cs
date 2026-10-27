@@ -27,7 +27,7 @@ public partial class HolonRepository
         }
         try
         {
-            using var session=command.RequiresMembership
+            using var session=command.RequiresMembership || command.EntityComposition != null
                 ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions{Snapshot=true,CausalConsistency=false},deadline.Token).ConfigureAwait(false)
                 : null;
             return await ReadNativeCqlRowsAsync(command,maximumResults,64*1024*1024,session,Options,deadline.Token).ConfigureAwait(false);
@@ -40,6 +40,22 @@ public partial class HolonRepository
         int maximumBytes,IClientSessionHandle session,Func<AggregateOptions> options,CancellationToken cancellationToken,
         Action<int> reserveNativeBytes=null)
     {
+        if(command.EntityComposition != null)
+        {
+            if (session == null) throw new InvalidOperationException("Entity stages require their native snapshot owner.");
+            var composition = command.EntityComposition;
+            var inputCount = (await ReadNativeCqlRowsAsync(composition.Source, composition.Options.MaximumInputRows,
+                composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
+            long work = 0;
+            foreach (var stage in composition.Stages)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                work = checked(work + inputCount);
+                if (work > composition.Options.MaximumStageRows) throw new MongoCqlLimitException();
+                inputCount = (await ReadNativeCqlRowsAsync(stage, composition.Options.MaximumInputRows,
+                    composition.Options.MaximumInputPayloadBytes, session, options, cancellationToken).ConfigureAwait(false)).Count;
+            }
+        }
         if(command.FetchCount==0 && !command.RequiresMembership && !command.HasTraversalEnvelope)return Array.Empty<IHolon>();
         if(command.RequiresMembership)
         {

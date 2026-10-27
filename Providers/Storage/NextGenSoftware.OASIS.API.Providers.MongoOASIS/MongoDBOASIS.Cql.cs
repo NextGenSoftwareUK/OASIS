@@ -16,8 +16,12 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
     Core.Enums.ProviderType ICosmicQueryStorageProvider.QueryProviderType=>Core.Enums.ProviderType.MongoDBOASIS;
     CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities=>CqlCapabilities;
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
+
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null) where T:IHolon
     {
         try
         {
@@ -28,8 +32,14 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
             // Re-admit against this adapter's actual contract, not a caller-supplied capability profile.
             var admission = CqlCapabilities.AdmitPlan(plan);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
+            if (composition != null)
+            {
+                var stages = EntityCompositionCapabilities.Admit(composition.Query);
+                if (stages.IsError) return CqlFailure(stages.ErrorCode, stages.Message);
+            }
             var translator = new MongoCqlTranslator();
-            var command = plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
+            var command = composition != null ? translator.CompileEntityComposition(composition, maximumResults)
+                : plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
                 : translator.CompileExecution(plan.Query,maximumResults,plan.TailIndex);
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
