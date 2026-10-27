@@ -190,6 +190,19 @@
         "async: avatar-id: System.InvalidOperationException",
         "sync: avatar-id: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "CosmosBlockChainOASIS",
+      "suite": "core-storage-v2",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-cosmosblockchainoasis-current.json",
+      "sha256": "3e861f694560ef04b44d84ccef6077927954645198966fe93e9bc4bfa6cc6b3a",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
@@ -259,6 +272,9 @@
     ],
     "SOLANAOASIS": [
       "Current canonical v2 native gate remains4/52: activation/avatar-save pass both modes, avatar-id fails. Hash-bound read-only probe of both original IDs proves collection decoding fails at DecodeStoredMemoAsync line68 because a referenced finalized memo chunk is unavailable. No cause/timing of chunk unavailability or affected commit identity proved; do not label this an acknowledgement bug or silently skip broken history. Two original synthetic avatars/ledger/report preserved; no replay/reset/cleanup/new application writes. Durable retrieval/history completeness remains an implementation/acceptance blocker, not a conformance pass."
+    ],
+    "CosmosBlockChainOASIS": [
+      "Canonical v2 shipping factory builds; both modes blocked before native dispatch (0/52). Retained wasmd container/contract state is preserved, but the source SDK dependency junction points at deleted old-worktree node_modules. Pinned CosmJS0.39.0 requires one canonical repair/restore; automatic approval review rejected the combined repair/npm command before execution (no detailed reason). No SDK download, link deletion, node start, key retrieval, deployment or write performed. Old HyperDriveCosmos evidence directory absent; unknown historical outcomes remain unverified, never reset or replayed."
     ]
   },
   "suites": [
