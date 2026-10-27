@@ -71,7 +71,7 @@ public sealed partial class CqlV1Web4NativeTests
         => ShippingReadHost(sources, policy, new[] { provider }, outbox, authority, secret);
 
     private static WebApplication ShippingReadHost(ShippingProviders sources, ShippingPolicy policy,
-        ProviderType[] providers, MongoUsageOutboxStore outbox, Authority authority, string secret,
+        ProviderType[] providers, MongoUsageOutboxStore outbox, IUsageReservationAuthority authority, string secret,
         ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlFederationCursorHost? cursors = null)
     {
         var builder = WebApplication.CreateBuilder();
