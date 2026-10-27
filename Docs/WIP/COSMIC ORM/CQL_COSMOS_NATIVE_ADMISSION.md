@@ -68,3 +68,9 @@ stored representation above. Keep all gates open until their proving evidence ex
 CosmosDbClient.CqlRead.cs now owns parameterized SDK stream iteration with explicit cumulative response-byte, page and row limits plus cancellation. It publishes only after every page validates and uses canonical exact-number decoding. No CQL capability is enrolled yet.
 
 CqlBoundedReadTests: six passed, zero failed/skipped; provider build passed. These simulated SDK pages prove transport behavior, not hosted/native SQL semantics. Evidence: TestResults/CosmosCqlCurrent/cosmos-cql-bounded-read.trx; SHA256 C76FFC3EBA3E17211454D1127189C61B8B62734187AC5DB3F4C9ADA8F74CDF45. Translator, visibility, numeric-domain admission and native/cloud gates remain open.
+
+## Canonical predicate compiler checkpoint
+
+CosmosCqlPredicateSql now translates Boolean composition and whitelisted Name/Description, IsActive/IsPublic and Int32 Version comparisons with SDK parameters. String null/missing and inequality normalization are explicit. Unsupported fields, metadata and mixed numeric comparisons reject before command execution. This is an internal compiler foundation, not provider enrollment or native semantic proof; metadata/string/numeric admission and record-domain validation remain open.
+
+Provider build passes; ten focused tests pass (six transport plus four compiler tests), no skips. Compiler tests cover parameter isolation, string missing/null normalization and numeric metadata rejection. Evidence TestResults/CosmosCqlCurrent/cosmos-cql-predicate.trx; SHA256 DD67ABF3B05155FB579139C187020C33D6A82ABC7A0DC271365E42C174FC528A. Next: complete query/visibility/record-validation owner and native acceptance before exposing capabilities.
