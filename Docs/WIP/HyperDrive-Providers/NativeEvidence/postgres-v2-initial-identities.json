@@ -1,0 +1,35 @@
+{
+  "scope": "Initialv2 native26/52; all4 original rows preserved. Producer/consumer source verified during run; production count fix+host read regression edited afterward, not attributed to this binary cohort.",
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Core",
+      "sha256": "8d00f6bf8897b979e8b4481b996fb612046a20cd0c0c8c5eb13898b505f13b92",
+      "pdbSha256": "973d57ed26f1d52f7770f29e52a81cb4f81e2811ed58e5910e5559e8c56d198b",
+      "sourceDocumentsVerifiedDuringRun": null
+    },
+    {
+      "name": "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "sha256": "1fb2137c678e552d006ada1d135c3f45a1ba40be33f99a6bd2b7317080c87e32",
+      "pdbSha256": "f259ffef900b82738b2d0dd17dabb50b91d2a5ad8ab51378faf72f8dd4e97018",
+      "sourceDocumentsVerifiedDuringRun": null
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS",
+      "sha256": "793211ea8f6afb8f2ca87418842cc3cf482e3380149cfff357576a70ec5202e5",
+      "pdbSha256": "36e493e93ad2c2d15acfaa51a374b765362adf233f4dd8dba66c193d35ef9fd9",
+      "sourceDocumentsVerifiedDuringRun": 9
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests",
+      "sha256": "be5a8f13e3f6a864bdf22eb6f70f93bd8fd3bc81c11b33865e7bcd5d03cbd882",
+      "pdbSha256": "18c2527b410df0972cc6e3b25d6cbd25640e59cb007d3322602d7073ec054a26",
+      "sourceDocumentsVerifiedDuringRun": 15
+    }
+  ],
+  "trx": {
+    "rawBytes": 5428,
+    "gzipBytes": 1429,
+    "sha256": "928daf2abddbd9b3778c5dc8e808bf32161314ba3bf997613a943f0d30582a53",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

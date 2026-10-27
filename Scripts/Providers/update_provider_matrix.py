@@ -187,7 +187,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL v1 native12/52 historical, detail read-count fixed/targeted2PASS; Oracle v2 native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | PostgreSQL and Oracle v2 native52/52PASS; PostgreSQL shared collection counts fixed with original-fixture read2PASS; Cockroach/Timescale thin facades, other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Existing Mongo/Azure Cosmos/Firestore owners; DynamoDB owner for AWS alias + shared record policy | Mongo, Azure Cosmos and Google Firestore native52/52PASS each; AWS/Dynamo factories bound, native runtime missing0/52 | Started 26 Oct; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis v2 native52/52PASS; KeyDB/Valkey/Dragonfly/Garnet thin shared facades52/52CONTROLLED each/native pending; AWS S3 native config missing0/52 historical | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
