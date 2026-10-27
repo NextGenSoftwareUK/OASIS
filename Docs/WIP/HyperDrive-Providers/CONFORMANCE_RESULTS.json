@@ -223,6 +223,16 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-azurecosmosdboasis-current.json",
       "sha256": "0f07255be037cc31324085046d4363ef5b25c9da6ed24c70099d100d70844c45",
       "blockers": []
+    },
+    {
+      "provider": "GoogleCloudOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-googlecloudoasis-current.json",
+      "sha256": "a342d0ed9fb94193ca95de88b3222e62db037aaac4ae833b9fa8bbde6d03a7e0",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -295,6 +305,9 @@
     ],
     "CosmosBlockChainOASIS": [
       "Canonical v2 shipping factory builds; both modes blocked before native dispatch (0/52). Retained wasmd container/contract state is preserved, but the source SDK dependency junction points at deleted old-worktree node_modules. Pinned CosmJS0.39.0 requires one canonical repair/restore; automatic approval review rejected the combined repair/npm command before execution (no detailed reason). No SDK download, link deletion, node start, key retrieval, deployment or write performed. Old HyperDriveCosmos evidence directory absent; unknown historical outcomes remain unverified, never reset or replayed."
+    ],
+    "GoogleCloudOASIS": [
+      "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
     ]
   },
   "suites": [
