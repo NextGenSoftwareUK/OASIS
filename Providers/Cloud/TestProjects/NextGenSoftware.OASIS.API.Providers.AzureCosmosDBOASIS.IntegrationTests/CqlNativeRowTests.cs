@@ -14,13 +14,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 [DoNotParallelize]
 public class CqlNativeRowTests
 {
+    public sealed class UnconstructibleCountRow : Holon
+    {
+        public UnconstructibleCountRow() => throw new InvalidOperationException("Native cardinality must not hydrate entities.");
+    }
     [TestMethod]
     public async Task JournaledNativeRowsRespectVisibilityWindowsAndBounds()
     {
         Assert.AreEqual("1", Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_NATIVE"));
         var work = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_STATE") ?? throw new InvalidOperationException("Durable fixture directory required.");
         var journal = Path.Combine(work, "rows.pending.json");
-        Assert.IsFalse(File.Exists(journal), "Preserve/reconcile the original intent; never replay creates.");
+        var reviewed = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_COUNT") == "1";
+        Guid[]? reviewedIds = null;
+        var actor = Guid.NewGuid();
+        if (reviewed)
+        {
+            var bytes = await File.ReadAllBytesAsync(journal);
+            Assert.AreEqual("ACEC97647EBBF2041FD0241FEF38A41A28FE3BCB63315081DEDCF80704327470", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
+            using var original = JsonDocument.Parse(bytes);
+            Assert.AreEqual("oasis-cql-demo", original.RootElement.GetProperty("databaseName").GetString());
+            actor = original.RootElement.GetProperty("actor").GetGuid();
+            reviewedIds = original.RootElement.GetProperty("ids").EnumerateArray().Select(id => id.GetGuid()).ToArray();
+            Assert.AreEqual(4, reviewedIds.Length);
+            Assert.AreEqual(4, reviewedIds.Distinct().Count());
+        }
+        else Assert.IsFalse(File.Exists(journal), "Preserve/reconcile the original intent; never replay creates.");
         const string databaseName = "oasis-cql-demo";
         const string key = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
         using var client = new CosmosClient("https://127.0.0.1:8081", key, new CosmosClientOptions
@@ -31,11 +49,10 @@ public class CqlNativeRowTests
                 ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             })
         });
-        var actor = Guid.NewGuid();
         var other = Guid.NewGuid();
         var seeds = Enumerable.Range(0, 4).Select(i => new Holon
         {
-            Id = Guid.NewGuid(), Name = "cql-coffee-" + i, Version = i + 2,
+            Id = reviewedIds == null ? Guid.NewGuid() : reviewedIds[i], Name = "cql-coffee-" + i, Version = i + 2,
             CreatedByAvatarId = i == 0 ? actor : other, IsPublic = i is 1 or 3, IsActive = i != 3
         }).ToArray();
         const string precise = "9007199254740993.125";
@@ -51,9 +68,10 @@ public class CqlNativeRowTests
         }
         seeds[0].MetaData["precise"] = decimal.Parse(precise, System.Globalization.CultureInfo.InvariantCulture);
         seeds[1].MetaData["precise"] = precise;
-        Directory.CreateDirectory(work);
-        using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
+        if (!reviewed)
         {
+            Directory.CreateDirectory(work);
+            using var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough);
             await file.WriteAsync(JsonSerializer.SerializeToUtf8Bytes(new { databaseName, container = "holonItems", actor, ids = seeds.Select(h => h.Id).ToArray(), stage = "before-setup" }));
             file.Flush(true);
         }
@@ -62,6 +80,7 @@ public class CqlNativeRowTests
         try { await database.ReadAsync(); }
         catch (CosmosException cause) when (cause.StatusCode == HttpStatusCode.NotFound)
         {
+            Assert.IsFalse(reviewed, "Original database must exist; no recovery create.");
             database = (await client.CreateDatabaseAsync(databaseName)).Database;
         }
         var containers = new List<string>();
@@ -69,7 +88,12 @@ public class CqlNativeRowTests
             while (iterator.HasMoreResults) containers.AddRange((await iterator.ReadNextAsync()).Select(c => c.Id));
         Assert.IsTrue(containers.All(c => c is "holonItems" or "avatarItems" or "avatarDetailItems"), "Unexpected retained containers; preserve state.");
         var container = database.GetContainer("holonItems");
-        if (!containers.Contains("holonItems")) container = (await database.CreateContainerAsync(new ContainerProperties("holonItems", "/id"))).Container;
+        if (!containers.Contains("holonItems"))
+        {
+            Assert.IsFalse(reviewed, "Original container must exist; no recovery create.");
+            container = (await database.CreateContainerAsync(new ContainerProperties("holonItems", "/id"))).Container;
+        }
+        if (reviewed) Assert.AreEqual(3, containers.Count, "All original provider containers must exist.");
         async Task AssertCount(long expected)
         {
             using var iterator = container.GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");
@@ -77,10 +101,19 @@ public class CqlNativeRowTests
             while (iterator.HasMoreResults) count += (await iterator.ReadNextAsync()).Single();
             Assert.AreEqual(expected, count, "Unexpected retained fixture data; preserve original state.");
         }
-        await AssertCount(0);
+        await AssertCount(reviewed ? 4 : 0);
         using var factory = new CosmosDbClientFactory(client, databaseName, new() { "holonItems" });
         var repository = new HolonRepository(factory);
-        foreach (var seed in seeds) await repository.AddAsync(seed);
+        if (!reviewed) foreach (var seed in seeds) await repository.AddAsync(seed);
+        else foreach (var seed in seeds)
+        {
+            var original = await repository.GetByIdAsync(seed.Id.ToString("D"));
+            Assert.IsNotNull(original);
+            Assert.AreEqual(seed.Name, original.Name);
+            Assert.AreEqual(seed.Version, original.Version);
+            Assert.AreEqual(seed.IsActive, original.IsActive);
+            Assert.AreEqual(seed.IsPublic, original.IsPublic);
+        }
         await AssertCount(4);
 
         var provider = new AzureCosmosDBOASIS(new Uri("https://127.0.0.1:8081"), key, databaseName,
@@ -130,6 +163,27 @@ public class CqlNativeRowTests
             Assert.AreEqual(2, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "category") != "coffee").Result)).Count);
             Assert.AreEqual(0, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "flag") == "True").Result)).Count);
             Assert.AreEqual(seeds[0].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<bool>(h, "flag") == true).Result)).Single().Id);
+
+            async Task<TResult> Scalar<T, TResult>(CosmicScalarQuery<T, TResult> query) where T : IHolon
+            {
+                var plan = CosmicScalarPlanner.Plan(query, ProviderType.AzureCosmosDBOASIS,
+                    new[] { new CosmicScalarTarget(ProviderType.AzureCosmosDBOASIS, AzureCosmosDBOASIS.CqlCapabilities, AzureCosmosDBOASIS.CqlScalarCapabilities) });
+                Assert.IsFalse(plan.IsError, plan.Message);
+                var result = await provider.ExecuteCosmicScalarAsync(plan.Result);
+                Assert.IsFalse(result.IsError, result.Message + "; " + result.Exception);
+                Assert.IsTrue(result.IsLoaded);
+                return result.Result;
+            }
+
+            Assert.AreEqual(2, await Scalar(visible.Count().Result));
+            Assert.AreEqual(2L, await Scalar(visible.LongCount().Result));
+            Assert.IsTrue(await Scalar(visible.Any().Result));
+            Assert.AreEqual(1, await Scalar(window.Count().Result));
+            Assert.IsFalse(await Scalar(CosmicQuery<Holon>.Create().Where(h => h.Name == "absent-owned-cql").Any().Result));
+            Assert.AreEqual(0, await Scalar(CosmicQuery<Holon>.Create().Skip(100).Count().Result));
+            Assert.AreEqual(0, await Scalar(CosmicQuery<Holon>.Create().Take(0).Count().Result));
+            Assert.AreEqual(1, await Scalar(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "precise") == precise).Count().Result));
+            Assert.AreEqual(3L, await Scalar(CosmicQuery<UnconstructibleCountRow>.Create().Where(h => h.IsActive).LongCount().Result));
 
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)
