@@ -40,6 +40,9 @@ def family(name,text,path):
 # Match actual client use, including injected clients and target-typed constructors.
 # Namespace/type guard avoids confusing an unrelated JsonRpcClientFactory with Solnet.
 CS_SDK_RULES=[
+ ('OCI Object Storage SDK',r'\bOci\.ObjectstorageService\b',r'\.(?:GetObject|PutObject|ListObjects|DeleteObject)\('),
+ ('StackExchange.Redis',r'\bStackExchange\.Redis\b',r'\bConnectionMultiplexer\.(?:Connect|ConnectAsync)\(|\.(?:StringGetAsync|StringSetAsync|ScriptEvaluateAsync)\('),
+ ('Microsoft.Data.SqlClient',r'\bMicrosoft\.Data\.SqlClient\b',r'new\s+SqlConnection\b|\bSqlConnection\s+\w+\s*=\s*new\s*\('),
  ('Nethereum',r'\bNethereum\b',r'CreateWeb3WithAccount\s*\(|\.Eth\.[\w.]+(?:SendRequestAsync|SendTransactionAsync)\s*\(|new\s+(?:Nethereum\.Web3\.)?Web3\b'),
  ('MongoDB.Driver',r'MongoDB\.Driver|\bIMongoDatabase\b',r'new\s+MongoClient\b|\.MongoClient\.(?:GetDatabase|StartSessionAsync)|\.(?:FindAsync|InsertOneAsync|ReplaceOneAsync)\('),
  ('AWS S3 SDK',r'Amazon\.S3|\bIAmazonS3\b',r'AmazonS3Client|\.(?:GetObjectAsync|PutObjectAsync|ListObjectsV2Async)\('),
@@ -146,7 +149,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Native document transports + shared record policy | Extract common policy without conflating native dialects | Not started; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | One suite for all backend factories | Suite implementation started; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |

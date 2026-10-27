@@ -28,6 +28,14 @@ class ProviderMatrixTests(unittest.TestCase):
         self.assertIn('Solnet',m.detect_cs_sdk('using Solnet.Rpc; ClientFactory.GetClient(endpoint);'))
         self.assertIn('HTTP API client',m.detect_cs_sdk('using System.Net.Http; await client.GetAsync(endpoint);'))
 
+    def test_priority_injected_oci_and_native_sql_redis_evidence(self):
+        self.assertIn('OCI Object Storage SDK',m.detect_cs_sdk('using Oci.ObjectstorageService; ObjectStorageClient client; await client.GetObject(request);'))
+        self.assertIn('StackExchange.Redis',m.detect_cs_sdk('using StackExchange.Redis; await ConnectionMultiplexer.ConnectAsync(options);'))
+        self.assertIn('Microsoft.Data.SqlClient',m.detect_cs_sdk('using Microsoft.Data.SqlClient; var client=new SqlConnection(settings);'))
+        self.assertNotIn('OCI Object Storage SDK',m.detect_cs_sdk('await unrelated.GetObject(request);'))
+        self.assertNotIn('StackExchange.Redis',m.detect_cs_sdk('// using StackExchange.Redis; ConnectionMultiplexer.ConnectAsync(options);'))
+        self.assertNotIn('Microsoft.Data.SqlClient',m.detect_cs_sdk('using Microsoft.Data.SqlClient; /* new SqlConnection(settings); */'))
+
     def test_package_presence_and_unrelated_client_factory_do_not_prove_an_sdk(self):
         self.assertEqual([],m.detect_cs_sdk('<PackageReference Include="Nethereum.Web3" />'))
         self.assertEqual([],m.detect_cs_sdk('// using Nethereum.Web3; CreateWeb3WithAccount(account, endpoint);'))
