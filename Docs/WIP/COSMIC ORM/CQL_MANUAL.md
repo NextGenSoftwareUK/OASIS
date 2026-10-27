@@ -510,11 +510,22 @@ and Int32 Version comparisons. Nested metadata supports string, Boolean/nullable
 Boolean equality/inequality, explicit nulls, existence and null tests. Missing paths
 and wrong types do not satisfy a metadata comparison; explicit nullable nulls obey
 inequality semantics. Exact-number wire strings remain outside the string domain.
-Numeric metadata, graph expansion, projection, count and mixed numeric semantics
+Numeric metadata, graph expansion, projection and mixed numeric semantics
 are rejected during admission. Compound ordering
 requires an explicitly configured Cosmos composite index; no index is created by
 CQL. Id ordering is native-proven; broader index/operator acceptance remains open.
 
-Native emulator evidence: 27 focused tests plus a fourteen-case public-provider gate.
+Count, LongCount and Any use the independent `ICosmicQueryScalarStorageProvider`
+contract. Build a terminal with `query.Count()`, `query.LongCount()` or `query.Any()`,
+plan it with `CosmicScalarPlanner` and a `CosmicScalarTarget` carrying both
+`AzureCosmosDBOASIS.CqlCapabilities` and `AzureCosmosDBOASIS.CqlScalarCapabilities`,
+then call `cosmos.ExecuteCosmicScalarAsync(plan.Result)` after checking each result.
+The native source count is mapped to the immutable source window using exact
+integer arithmetic, without fetching rows. This also works for a typed source
+whose constructor cannot run. Counts above Cosmos's exact binary64 integer domain
+are rejected; Count additionally checks Int32 overflow. Post-window terminal
+predicates, All and selected numeric aggregates remain unsupported.
+
+Native emulator evidence: 34 focused tests plus a twenty-three-case public-provider gate.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
