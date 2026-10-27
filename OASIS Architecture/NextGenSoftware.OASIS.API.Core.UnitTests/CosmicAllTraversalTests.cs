@@ -79,12 +79,35 @@ public class CosmicAllTraversalTests
     }
 
     [Fact]
-    public void NestedChildTraversalRemainsAnExplicitGap()
+    public void NestedChildTraversalRetainsItsImmutableShape()
     {
         var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
             child.Children.Any(grandchild => grandchild.Name == "nested")));
+        Assert.False(query.IsError, query.Message);
+        var first = Assert.IsType<CosmicQueryAnyChild>(Assert.Single(query.Result.AllPredicate.Predicates));
+        Assert.IsType<CosmicQueryAnyChild>(first.Predicate);
+    }
+
+    [Fact]
+    public void NestedChildCannotCorrelateToAnOuterChildParameter()
+    {
+        var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
+            child.Children.Any(grandchild => grandchild.Name == child.Name)));
         Assert.True(query.IsError);
-        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", query.ErrorCode);
+        Assert.StartsWith("CQL_", query.ErrorCode);
+    }
+
+    [Fact]
+    public void NestedCaptureIsFrozenAtConstruction()
+    {
+        var name = "original grandchild";
+        var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
+            child.Children.Any(grandchild => grandchild.Name == name)));
+        name = "changed";
+        Assert.False(query.IsError, query.Message);
+        var first = Assert.IsType<CosmicQueryAnyChild>(Assert.Single(query.Result.AllPredicate.Predicates));
+        var second = Assert.IsType<CosmicQueryAnyChild>(first.Predicate);
+        Assert.Equal("original grandchild", Assert.IsType<CosmicQueryComparison>(second.Predicate).Literal.Value);
     }
 
 }

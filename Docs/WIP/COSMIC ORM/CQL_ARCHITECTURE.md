@@ -2011,3 +2011,26 @@ unchanged. Negation, AND/OR and multiple child tests remain native. Snapshots an
 membership validation retain their provider owners. Nested-child/descendant
 terminal predicates remain rejected and full Q23 remains red. Native proof:
 [114 checks](Verification/all-child-native.trx.gz); Core: 3,815 tests pass.
+
+## Nested-child All verification in progress
+
+Nested `Children.Any(...)` expressions now preserve their lexical native scopes.
+SQLite and Neo4j aliases include relationship depth, so an inner child cannot
+accidentally capture an outer alias when no parameter was bound between them.
+MongoDB evaluates nested Boolean child predicates inside the corresponding
+lookup scope using the same canonical membership/visibility owner. No loaded
+child collections are enumerated. Correlation to an outer lambda parameter is
+still rejected; captured literals remain frozen.
+
+Core: 3,817 tests pass with zero skips; both target frameworks build. Eight
+additional native cases per provider are pending. The host-only positive case
+explicitly omits access filtering to observe a grandchild through the fixture's
+private parent; the actor-filtered version must return false. Remote policy
+handling is unchanged. Full Q23 remains red, including descendant traversal.
+
+Nested-child verification completed: all 46 All examples per store pass (138
+checks), 3,817 Core tests pass, both framework builds and demo console build pass.
+The no-access-policy positive native case locks lexical alias separation even
+when no bind is allocated between child levels. Q23c is green on this scoped
+evidence. Full Q23 stays red for descendant predicates; complete walkthrough
+rerun remains pending. [Native proof](Verification/all-nested-native.trx.gz).

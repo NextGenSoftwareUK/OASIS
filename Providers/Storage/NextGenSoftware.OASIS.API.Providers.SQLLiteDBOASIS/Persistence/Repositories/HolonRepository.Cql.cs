@@ -134,11 +134,12 @@ public partial class HolonRepository
     private sealed partial class CqlSqlTranslator
     {
         internal readonly List<SqliteParameter> Parameters;
+        private readonly int _relationshipDepth;
         private readonly string _table;
         private readonly CosmicQueryReadAccess _access;
         internal CqlSqlTranslator(CosmicQueryReadAccess access=null):this("Holon",new List<SqliteParameter>(),access){}
-        internal CqlSqlTranslator(string table,List<SqliteParameter> parameters,CosmicQueryReadAccess access)
-        { _table=table;Parameters=parameters;_access=access; }
+        internal CqlSqlTranslator(string table,List<SqliteParameter> parameters,CosmicQueryReadAccess access,int relationshipDepth=0)
+        { _table=table;Parameters=parameters;_access=access;_relationshipDepth=relationshipDepth; }
         internal string Bind(object value)
         {
             if (Parameters.Count >= 900) throw new CqlTranslationLimitException();
@@ -330,8 +331,8 @@ public partial class HolonRepository
             if(predicate is CosmicQueryAnyChild child)
             {
                 HasRelationship=true;
-                var alias="c"+Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                var inner=new CqlSqlTranslator(alias,Parameters,_access);
+                var alias="c"+_relationshipDepth.ToString(System.Globalization.CultureInfo.InvariantCulture)+"_"+Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var inner=new CqlSqlTranslator(alias,Parameters,_access,_relationshipDepth+1);
                 var parent=CanonicalColumn("Id");
                 var childId=inner.CanonicalColumn("Id");
                 var membershipSql=MembershipSql(this,inner);

@@ -10,7 +10,7 @@ namespace CosmicCqlDemo;
 public static class V1AllQueries
 {
     public static async Task<int> RunAsync(HolonManager manager, ICosmicQueryStorageProvider adapter,
-        CosmicQuery<Holon> visible, TextWriter output)
+        CosmicQuery<Holon> visible, TextWriter output, string fixtureTag = null)
     {
         var completed = 0;
         var scalar = adapter as ICosmicQueryScalarStorageProvider
@@ -212,6 +212,65 @@ public static class V1AllQueries
             absentParents.All(row => row.Children.Any(child => child.Name == "public child")),
             true);
 
+
+        // Nested child navigation is still a bounded native expression, not a
+        // recursive enumeration of loaded Children collections. The trusted
+        // host-only query below omits access filtering explicitly to prove the
+        // positive path through the fixture's otherwise hidden parent.
+        if (fixtureTag != null)
+        {
+            var trustedParent = Value(CosmicQuery<Holon>.Create(visible.Scope)
+                .Where(row => CosmicQueryMetadata.Value<string>(row, "fixture") == fixtureTag
+                    && row.Name == "C-public"));
+
+            await Show(
+                "Nested positive path without visibility filtering",
+                trustedParent.All(row => row.Children.Any(child => child.Children.Any(
+                    grandchild => grandchild.Name == "public behind private"))),
+                true);
+
+            await Show(
+                "Nested path respects the source actor's hidden parent",
+                publicParent.All(row => row.Children.Any(child => child.Children.Any(
+                    grandchild => grandchild.Name == "public behind private"))),
+                false);
+
+            await Show(
+                "Nested predicate with child scalar guard",
+                trustedParent.All(row => row.Children.Any(child => child.Name == "private child"
+                    && child.Children.Any(grandchild => grandchild.Name == "public behind private"))),
+                true);
+
+            await Show(
+                "Nested missing child remains false",
+                trustedParent.All(row => row.Children.Any(child => child.Children.Any(
+                    grandchild => grandchild.Name == "does not exist"))),
+                false);
+
+            await Show(
+                "Negated nested predicate remains native",
+                publicParent.All(row => !row.Children.Any(child => child.Children.Any(
+                    grandchild => grandchild.Name == "public behind private"))),
+                true);
+
+            await Show(
+                "Nested OR combines child scalar and navigation predicates",
+                trustedParent.All(row => row.Children.Any(child => child.Name == "missing"
+                    || child.Children.Any(grandchild => grandchild.Name == "public behind private"))),
+                true);
+
+            await Show(
+                "Nested literal is not a native field reference",
+                trustedParent.All(row => row.Children.Any(child => child.Children.Any(
+                    grandchild => grandchild.Name != "$row.Name"))),
+                true);
+
+            await Show(
+                "Three child levels do not invent a fourth node",
+                trustedParent.All(row => row.Children.Any(child => child.Children.Any(grandchild =>
+                    grandchild.Children.Any(greatGrandchild => greatGrandchild.Name == "public behind private")))),
+                false);
+        }
 
         return completed;
 
