@@ -30,7 +30,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Next code step: redirect `record_conformance_results.py` and its related archivers to `TestResults/HyperDrive-Providers/`, with matching registry/reference updates. Existing linked evidence stays until consumers migrate. Do this before generating new raw evidence.
+1. Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Next: publish the verified ActivityPub batch after reviewing its exact source/evidence diff.
 2. Publish the already verified, still-uncommitted ActivityPub Social/Network declaration and shared account/detail `IsLoaded` fix with its evidence. Keep unrelated Core/CQL/user changes out.
 3. SOLID: recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
