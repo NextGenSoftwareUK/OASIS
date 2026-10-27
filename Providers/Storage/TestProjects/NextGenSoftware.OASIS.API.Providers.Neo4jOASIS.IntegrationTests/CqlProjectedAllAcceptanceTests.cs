@@ -49,22 +49,46 @@ public sealed class CqlProjectedAllAcceptanceTests
     }
 
     [TestMethod]
-    public async Task NativeProjectedAllProtectedScopesCyclesAndPhysicalBudgets()
+    public Task NativeProjectedAllProtectedScopesCyclesAndPhysicalBudgets()=>VerifyFixture(reviewed:false);
+
+    [TestMethod]
+    public Task ReviewedProjectedAllInitialFixtureContinuesWithoutReplayingCreates()=>VerifyFixture(reviewed:true);
+
+    private static async Task VerifyFixture(bool reviewed)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
         var originalPath=Path.Combine(work,"cql-v1-web4-fixture.json");
         var original=await File.ReadAllBytesAsync(originalPath);
         Assert.AreEqual("892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5",Convert.ToHexString(SHA256.HashData(original)));
         var journal=Path.Combine(work,"cql-projected-all-acceptance-fixture.json");
-        Assert.IsFalse(File.Exists(journal),"Preserve/reconcile prior fixture; never replay or reset.");
-        var ids=Enumerable.Range(0,6).Select(_=>Guid.NewGuid()).ToArray();var textIds=ids.Select(id=>id.ToString("D")).ToArray();
-        var actor=Guid.NewGuid();var other=Guid.NewGuid();var states=new List<object>();var checks=new List<object>();
-        async Task Checkpoint(string stage)=>await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{ids,stage,states,owner=nameof(NativeProjectedAllProtectedScopesCyclesAndPhysicalBudgets)}));
-        await Checkpoint("before-preflight");
+        Guid[] ids;var states=new List<object>();
+        if(reviewed)
+        {
+            var preserved=await File.ReadAllBytesAsync(journal);
+            Assert.AreEqual("FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",Convert.ToHexString(SHA256.HashData(preserved)),"Only the inspected initial fixture may continue.");
+            using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
+            Assert.AreEqual("created-Neo4jOASIS",prior.GetProperty("stage").GetString());
+            ids=prior.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
+            var created=prior.GetProperty("states").EnumerateArray().ToArray();Assert.AreEqual(3,created.Length);
+            foreach(var state in created){Assert.IsTrue(state.GetProperty("created").GetBoolean());states.Add(state.Clone());}
+        }
+        else {Assert.IsFalse(File.Exists(journal),"Preserve/reconcile prior fixture; never replay or reset.");ids=Enumerable.Range(0,6).Select(_=>Guid.NewGuid()).ToArray();}
+        Assert.AreEqual(6,ids.Length);Assert.AreEqual(6,ids.Distinct().Count());Assert.IsFalse(ids.Contains(Guid.Empty));
+        var textIds=ids.Select(id=>id.ToString("D")).ToArray();
+        var actor=Guid.NewGuid();var other=Guid.NewGuid();var checks=new List<object>();
+        async Task Checkpoint(string stage)=>await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{ids,actor,other,stage,states,reviewed,owner=nameof(NativeProjectedAllProtectedScopesCyclesAndPhysicalBudgets)}));
+        if(!reviewed)await Checkpoint("before-preflight");
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         var records=new MongoClient(uri).GetDatabase("cosmic_cql_v1_web4_storage").GetCollection<BsonDocument>("Holon");
         var mongoIds=new BsonDocument("HolonId",new BsonDocument("$in",new BsonArray(textIds)));
+        if(reviewed)
+        {
+            var root=await records.Find(new BsonDocument("HolonId",textIds[0])).SingleAsync();
+            var child=await records.Find(new BsonDocument("HolonId",textIds[2])).SingleAsync();
+            actor=Guid.Parse(root["CreatedByAvatarId"].AsString);other=Guid.Parse(child["CreatedByAvatarId"].AsString);
+            Assert.AreNotEqual(Guid.Empty,actor);Assert.AreNotEqual(actor,other);
+        }
         await using var sql=new SqliteConnection("Data Source="+Path.Combine(work,"cql-v1-web4.sqlite"));await sql.OpenAsync();
         async Task<long> Sql(string statement,string? one=null,string? parent=null)
         {
@@ -77,8 +101,9 @@ public sealed class CqlProjectedAllAcceptanceTests
         using var driver=GraphDatabase.Driver("bolt://127.0.0.1:17687",AuthTokens.Basic("neo4j","oasis-local-test-only"));
         using var inspection=driver.AsyncSession();
         async Task<long> NeoCount()=> (await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids RETURN count(h) AS total",new{ids=textIds})).SingleAsync())["total"].As<long>();
-        Assert.AreEqual(0L,await records.CountDocumentsAsync(mongoIds));
-        Assert.AreEqual(0L,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(0L,await NeoCount());
+        var expected=reviewed?6L:0L;
+        Assert.AreEqual(expected,await records.CountDocumentsAsync(mongoIds));
+        Assert.AreEqual(expected,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(expected,await NeoCount());
         var providers=new IOASISStorageProvider[]{new MongoProvider(uri,"cosmic_cql_v1_web4_storage"){IsVersionControlEnabled=false},
             new SqliteProvider("Data Source="+Path.Combine(work,"cql-v1-web4.sqlite")){IsVersionControlEnabled=false},
             new Neo4jOASIS("bolt://127.0.0.1:17687","neo4j","oasis-local-test-only"){IsVersionControlEnabled=false}};
@@ -90,6 +115,15 @@ public sealed class CqlProjectedAllAcceptanceTests
             for(var index=0;index<providers.Length;index++)
             {
                 var provider=providers[index];Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);active.Add(provider);
+                if(reviewed)
+                {
+                    var retained=await provider.LoadHolonAsync(rootId,loadChildren:false);
+                    Assert.IsFalse(retained.IsError,retained.Message+retained.Exception);Assert.AreEqual(actor,retained.Result.CreatedByAvatarId);
+                    Assert.AreEqual(index+1,retained.Result.Version);Assert.AreEqual("protected source root",retained.Result.Name);
+                    var cycleControl=await provider.LoadHolonAsync(cycleId,loadChildren:false);
+                    Assert.IsFalse(cycleControl.IsError,cycleControl.Message+cycleControl.Exception);Assert.AreEqual(Guid.Empty,cycleControl.Result.ParentHolonId);
+                    continue; // All creates are acknowledged already; never replay them.
+                }
                 var root=new Holon{Id=rootId,Name="protected source root",CreatedByAvatarId=actor,IsPublic=true,Version=index+1};
                 root.MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,
                     ["double"]=1d+2.220446049250313e-16d,["float"]=1f+1.1920929e-7f,["guid"]=actor,
