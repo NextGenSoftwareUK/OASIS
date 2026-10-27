@@ -24,7 +24,7 @@ public class ActivityPubOASISTests
         Assert.Equal("ActivityPubOASIS", provider.ProviderName);
         Assert.Equal("ActivityPub Provider - Federated social network protocol", provider.ProviderDescription);
         Assert.Equal(ProviderType.ActivityPubOASIS, provider.ProviderType.Value);
-        Assert.Equal(ProviderCategory.StorageAndNetwork, provider.ProviderCategory.Value);
+        Assert.Equal(ProviderCategory.Social, provider.ProviderCategory.Value);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class ActivityPubOASISTests
     }
 
     [Fact]
-    public void ProviderCategory_ShouldBeStorageAndNetwork()
+    public void ProviderCategory_ShouldBeSocial()
     {
         // Arrange
         var provider = new ActivityPubOASIS(TestInstanceUrl, TestAccessToken);
@@ -80,7 +80,7 @@ public class ActivityPubOASISTests
         var category = provider.ProviderCategory.Value;
 
         // Assert
-        Assert.Equal(ProviderCategory.StorageAndNetwork, category);
+        Assert.Equal(ProviderCategory.Social, category);
     }
 
     [Theory]

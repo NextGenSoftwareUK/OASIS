@@ -1,0 +1,9 @@
+# Earlier compact-ledger checkpoints
+
+Rolled from the current ledger on 2026-10-27. Original entry bytes follow unchanged; not a default recovery document.
+
+- `f446b70a2`: repo-relative Dynamo paths; native AWS/Dynamo52/52 each + factory27; raw table counts0; stopped compaction reduced data66,871â†’43,319 B including marker. No new download/image/environment.
+- ActivityPub (verified baseline): existing HTTP clients/hosts reused; controlled291 and native capability5/5 passed. Initial/red/final evidence stays distinct; no token/social mutation.
+- Docs tidy-up: no code/test changes or test execution. Four chronologies and old README preserved byte-for-byte in Archive; two stale handoffs retain their original bodies after a superseded note. Moved 27 unreferenced raw files (633,925 B), hashes unchanged; 269 linked files retained. Scan/move metadata are fixed under TestResults/HyperDrive-Providers; no disk reclaim is claimed.
+- 2026-10-27 report-writer migration: reused Python312; six report controls passed. Temporary `%TEMP%/oasis-report-control-*` directories held synthetic JSON only (size unmeasured), created/removed by TemporaryDirectory within the test; no services, SDK restores or native data touched. Future aggregates/archival outputs reuse `C:/Source/OASIS/TestResults/HyperDrive-Providers/NativeEvidence`; retained evidence is hash-bound by the registry. No download or environment created.
+- 2026-10-27 ActivityPub publication: moved nine unpublished proof files (144,754 B) byte-for-byte to `C:/Source/OASIS/TestResults/HyperDrive-Providers/NativeEvidence`; audit lists exact sizes/hashes. Existing Python312 and frozen provider/test bin/PDB files reused, no rebuild/download/native call. PDB/source and compressed report hashes verified;13 matrix +6 report controls passed. Temporary report controls removed their synthetic directories. C free125,954,445,312 B observed; proof files retained for reproducibility, no process/port dependency.

@@ -37,7 +37,7 @@ public partial class LocalFileOASIS
             var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,true,
                 row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
             result.Result=records.Where(row=>(type==HolonType.All || row.HolonType==type) && select(row)).Select(project).ToList();
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -54,7 +54,7 @@ public partial class LocalFileOASIS
             result.IsLoaded=false;result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             OASISErrorHandling.HandleError(ref result,"Local holon selector is ambiguous.",new StorageIdentityAmbiguousException());return result;
         }
-        result.Result=matches.SingleOrDefault();result.IsLoaded=result.Result!=null;
+        result.Result=matches.SingleOrDefault();result.IsLoaded=result.Result!=null;result.LoadedCount=result.IsLoaded?1:0;
         return result;
     }
 
@@ -62,7 +62,7 @@ public partial class LocalFileOASIS
     {
         var loaded=await LoadAllHolonsAsync(type,children,recursive,depth,initialDepth,continueOnError,fromProvider,version);
         if(loaded.IsError) return loaded;
-        loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==parent).ToList();return loaded;
+        loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==parent).ToList();loaded.LoadedCount=loaded.Result.Count();return loaded;
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadGraphMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,

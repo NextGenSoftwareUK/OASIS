@@ -28,7 +28,7 @@ class ProviderMatrixTests(unittest.TestCase):
                 with self.subTest(provider=name):self.assertEqual(family,m.family(name,'',Path('Providers/Cloud/provider.csproj')))
 
     def test_nonstorage_product_roles_override_old_template_storage_and_evm_imports(self):
-        for name in ['MapboxOASIS','GoogleMapsOASIS','BittensorOASIS','DuneAnalyticsOASIS','CovalentOASIS','CivicOASIS']:
+        for name in ['MapboxOASIS','GoogleMapsOASIS','BittensorOASIS','DuneAnalyticsOASIS','CovalentOASIS','CivicOASIS','ActivityPubOASIS']:
             with self.subTest(provider=name):self.assertEqual('Non-storage',m.family(name,'Nethereum Web3CoreOASISBaseProvider',Path('Providers/Blockchain/provider.csproj')))
         self.assertEqual('Non-EVM chain',m.family('EOSIOOASIS','using Nethereum;',Path('Providers/Blockchain/provider.csproj')))
         self.assertEqual('Non-EVM chain',m.family('CosmosBlockChainOASIS','KeyValueStorageProviderBase',Path('Providers/Blockchain/provider.csproj')))

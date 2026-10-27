@@ -1,13 +1,13 @@
 """Archive the reviewed SQL baseline failures without touching database fixtures."""
 import argparse, hashlib, json
 from pathlib import Path
+from record_conformance_results import registered_report
 
 ROOT=Path(__file__).resolve().parents[2]
-DOC=ROOT/'Docs/WIP/HyperDrive-Providers/NativeEvidence'
+DOC=ROOT/'TestResults/HyperDrive-Providers/NativeEvidence'
 
 def retire(check_only=False,suite='core-storage-v1',visibility=False):
-    archive=DOC/'conformance-postgresqloasis-current.json'
-    original=archive.read_bytes()
+    original=registered_report('PostgreSQLOASIS')
     data=json.loads(original)
     case={'core-storage-v1':'detail-id','core-storage-v2':'parent-query'}[suite]
     if visibility and suite!='core-storage-v2':raise ValueError('Visibility evidence is v2 only')
@@ -34,6 +34,7 @@ def retire(check_only=False,suite='core-storage-v1',visibility=False):
         print('Two unchanged failed '+suite+' reports verified; no files or database changed')
         return
     # Persist original aggregate before moving checkpoints; no row deletion or replay.
+    preserved.parent.mkdir(parents=True,exist_ok=True)
     if not preserved.exists():
         with preserved.open('xb') as out:out.write(original)
     evidence={'scope':'report archival only; original database rows preserved',

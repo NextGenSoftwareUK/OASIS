@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference='Stop'
 # The original installation was removed. Restore exactly one reviewed official archive,
 # never a floating latest version, alternate cache, container, or historical database.
-$awsRuntimeRoot='C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence'
+$awsRuntimeRoot=Join-Path ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))) 'TestResults/AWSProviderEvidence'
 $awsRuntimePath=Join-Path $awsRuntimeRoot 'runtime'
 $awsRuntimeZip=Join-Path $awsRuntimeRoot 'runtime-download.zip'
 $awsRuntimeDigest='667CDE09F96F4785CEDE4D107D8066011E5EECEB5DD4566EA8C74C0D378FE919'

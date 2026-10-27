@@ -44,7 +44,7 @@ public partial class AzureStorageOASIS
             var matches=loaded.Result.Where(predicate).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Azure avatar matches selector.";}
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);
@@ -81,7 +81,7 @@ public partial class AzureStorageOASIS
             if(detail==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure detail version not found.";return result;}
             detail=DecodeDetail(Serialise(detail),key);
             if(detail.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure detail is deleted.";}
-            else {result.Result=detail;result.IsLoaded=true;}
+            else {result.Result=detail;result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
             result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure detail not found.";
@@ -105,7 +105,7 @@ public partial class AzureStorageOASIS
                 detail=DecodeDetail(Serialise(detail),blob.Name);
                 if(includeDeleted||!detail.IsDeleted) details.Add(detail);
             }
-            result.Result=details;result.IsLoaded=true;
+            result.Result=details;result.IsLoaded=true;result.LoadedCount=details.Count;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -122,7 +122,7 @@ public partial class AzureStorageOASIS
             var matches=loaded.Result.Where(row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Azure detail matches selector.";}
-            else {result.Result=matches[0];result.IsLoaded=true;}
+            else {result.Result=matches[0];result.IsLoaded=true;result.LoadedCount=1;}
         }
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);
@@ -149,7 +149,7 @@ public partial class AzureStorageOASIS
             PublishBlobVersion(source,committed);
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
-            result.Result=source;result.IsSaved=true;
+            result.Result=source;result.IsSaved=true;result.SavedCount=1;
         }
         catch(Exception cause) {HandleBlobSaveError(ref result,cause);}
         return result;
