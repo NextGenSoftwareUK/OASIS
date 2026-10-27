@@ -246,6 +246,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await VerifyStagedNumeric(adapter, rootId, root, multi, version, checks);
         await VerifyStagedWide(adapter, rootId, actor, root, multi, checks);
         VerifySelectedExtrema(adapter, root, multi, checks);
+        await VerifyRepeatedSelect(adapter, root, multi, checks);
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
