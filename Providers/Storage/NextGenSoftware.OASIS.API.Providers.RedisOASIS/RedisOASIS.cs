@@ -27,7 +27,7 @@ public class RedisOASIS : KeyValueStorageProviderBase, IDisposable
     private RedisOASIS(RedisConnectionOwner owner,Func<byte[]> resolver,string prefix)
         :this(new RedisKeyValueBackend(owner.DatabaseAsync,owner.PrimariesAsync,PrivatePhysicalPrefix){VerifyAdmission=owner.RequireReviewedLayoutAsync},resolver,prefix)
         =>_owner=owner;
-    internal RedisOASIS(IKeyValueBackend nativeBackend,Func<byte[]> resolver,string keyPrefix=DefaultPrefix)
+    protected internal RedisOASIS(IKeyValueBackend nativeBackend,Func<byte[]> resolver,string keyPrefix=DefaultPrefix)
         :this(PersistedPrivateKeyValueBackend.Create(nativeBackend,resolver),keyPrefix){}
     private RedisOASIS(PersistedPrivateKeyValueBackend backend,string prefix):base(backend,prefix)
     {

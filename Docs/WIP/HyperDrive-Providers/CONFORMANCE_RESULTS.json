@@ -124,6 +124,46 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
       "sha256": "82ccdc458e33f210cf6b2c36b10dec89b125342fba12fc6822624a8f13c47c84",
       "blockers": []
+    },
+    {
+      "provider": "KeyDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-keydboasis-current.json",
+      "sha256": "9124c51e0d60cb846abe62385f3287c71b1b5b8f3650c3c95dc255869b76c748",
+      "blockers": []
+    },
+    {
+      "provider": "ValKeyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-valkeyoasis-current.json",
+      "sha256": "797522ac338635f66e84d1671aa5acdaf224e725af05b1e3c1d218e752e7aa5e",
+      "blockers": []
+    },
+    {
+      "provider": "DragonflyOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dragonflyoasis-current.json",
+      "sha256": "072ee08b11cb18e35e7362bb01a538f3b2cda2cbd03b579e29237a54e900ef10",
+      "blockers": []
+    },
+    {
+      "provider": "GarnetOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-garnetoasis-current.json",
+      "sha256": "d7120f6681f094953f0eee15f7c2800db62a5808f54838d82ebb0120ad271f04",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -169,7 +209,19 @@
     "AWSS3OASIS": [
       "Canonical shipping S3 factory bound; existing isolated test-bucket/region/persisted-key-variable and explicit request-cost opt-in absent; no cloud requests dispatched; 27 factory controls are not native conformance"
     ],
-    "RedisOASIS": []
+    "RedisOASIS": [],
+    "KeyDBOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "ValKeyOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "DragonflyOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ],
+    "GarnetOASIS": [
+      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+    ]
   },
   "suites": [
     "core-storage-v1",
