@@ -8,7 +8,7 @@ $selectedModes=@($CapacityReadOnly,$CleanupSizeAdmission,$InspectSizeAdmission,$
 if($selectedModes.Count -gt 1){throw 'Choose one explicit runner mode.'}
 if($CleanupVerifiedAwsRun -ne [bool]$VerifiedReportSha256){throw 'Verified cleanup requires its explicit original full-suite report SHA256, exclusively.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$runtime='C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\runtime'
+$runtime=Join-Path $root 'TestResults/AWSProviderEvidence/runtime'
 $work=Join-Path $root 'TestResults/DynamoHistoryCurrent'
 if($ItemSizeBoundary -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-size-boundary-full-native.trx'))){throw 'Preserve the original size-boundary native report before another run.'}
 if($AllVersionExports -and (Test-Path -LiteralPath (Join-Path $work 'dynamo-all-version-export-native-current.trx'))){throw 'Preserve the original all-version export native report before another run.'}
@@ -28,7 +28,7 @@ if($FullAwsSuite){
 }
 if($FullAwsSuite -and (Test-Path -LiteralPath (Join-Path $work 'aws-full-suite-cleanup-current.json'))){throw 'Review and preserve prior cleanup inventory BEFORE starting another native suite.'}
 $data=Join-Path (Split-Path $runtime) 'retained-history-data'
-if(!(Test-Path -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')) -or (Get-Content (Join-Path $runtime 'runtime-source-sha256.txt') -Raw).Trim() -ne 'A3CB28740EA3875A7B0E14CFB13CED686F36CE27BC00F13F8A7D72DDEEE6C9B1'){throw 'Reviewed retained DynamoDB runtime/provenance required; no download/install.'}
+if(!(Test-Path -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')) -or (Get-Content (Join-Path $runtime 'runtime-source-sha256.txt') -Raw).Trim() -ne '667CDE09F96F4785CEDE4D107D8066011E5EECEB5DD4566EA8C74C0D378FE919'){throw 'Reviewed retained DynamoDB runtime/provenance required; no download/install.'}
 if(Get-NetTCPConnection -State Listen -LocalPort 18000,18001 -ErrorAction SilentlyContinue){throw 'Reserved DynamoDB ports occupied; no duplicate service.'}
 New-Item -ItemType Directory -Force -Path $work,$data | Out-Null
 $lease=[IO.File]::Open((Join-Path (Split-Path $runtime) 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)

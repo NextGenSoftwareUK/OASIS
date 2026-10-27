@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -543,6 +543,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 KnownNetworks = { },
                 KnownProxies = { }
             });
+
+            // The public WEB4 sandbox deployment lets visitors take providers offline to see HyperDrive fail over.
+            // Only that deployment sets OASIS_SANDBOX=true; everywhere else SandboxController answers 404.
+            if (string.Equals(Environment.GetEnvironmentVariable("OASIS_SANDBOX"), "true", StringComparison.OrdinalIgnoreCase))
+                NextGenSoftware.OASIS.API.Core.Managers.ProviderFaultGate.Enable();
 
             // Fail loudly at startup when outbound email is not configured - a stale/blank Resend key
             // previously only showed up as a per-registration warning in the client response.
