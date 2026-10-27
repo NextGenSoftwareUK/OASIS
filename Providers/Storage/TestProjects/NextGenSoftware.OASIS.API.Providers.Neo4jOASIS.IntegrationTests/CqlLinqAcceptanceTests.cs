@@ -231,6 +231,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual((double?)-7d,root.Select(row=>CosmicQueryMetadata.Value<int?>(row,"int")).Average());
         Passed("plain selected nullable Int32 Average");
 
+        await VerifySelectedElements(adapter, root, multi, checks);
+
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
 }

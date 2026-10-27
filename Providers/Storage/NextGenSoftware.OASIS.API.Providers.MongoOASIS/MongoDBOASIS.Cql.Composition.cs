@@ -16,7 +16,7 @@ public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider
     private static class CompositionContract
     {
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
-            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging,
+            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
             CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true);
     }
