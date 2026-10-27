@@ -62,3 +62,9 @@ changes database ownership after failure must be understood before adding fixtur
 Next: inspect the Core row-query capability/AST contract and Cosmos runner's resource
 inventory; define the first native translator profile and focused tests against the
 stored representation above. Keep all gates open until their proving evidence exists.
+
+## Bounded transport checkpoint
+
+CosmosDbClient.CqlRead.cs now owns parameterized SDK stream iteration with explicit cumulative response-byte, page and row limits plus cancellation. It publishes only after every page validates and uses canonical exact-number decoding. No CQL capability is enrolled yet.
+
+CqlBoundedReadTests: six passed, zero failed/skipped; provider build passed. These simulated SDK pages prove transport behavior, not hosted/native SQL semantics. Evidence: TestResults/CosmosCqlCurrent/cosmos-cql-bounded-read.trx; SHA256 C76FFC3EBA3E17211454D1127189C61B8B62734187AC5DB3F4C9ADA8F74CDF45. Translator, visibility, numeric-domain admission and native/cloud gates remain open.
