@@ -15,3 +15,5 @@ The 12 investor-demo rows, Q23/Q23e/Q49a and Q01a–e are scoped completed miles
 Unsupported shapes fail explicitly; client materialization or silent fallback cannot replace native implementation.
 [Earlier checkpoints](Archive/CQL_COMPLETION_ROADMAP_checkpoint_2026-10-27.md) and
 [original roadmap](Archive/CQL_COMPLETION_ROADMAP_history_2026-10-27.md) preserve history.
+
+Indexed SDK rows, typed manager/LINQ and [prepared physical-read accounting](CQL_INDEXED_BILLING.md) now pass controlled/native-SQL gates. WEB4 server binding/reservation/HTTP acceptance and native declared-source-range acceptance remain next; original source recovery stays red.
