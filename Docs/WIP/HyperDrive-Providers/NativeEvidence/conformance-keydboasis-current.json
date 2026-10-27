@@ -1,0 +1,129 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "KeyDBOASIS",
+      "Mode": "controlled",
+      "Synchronous": false,
+      "OwnerId": "32a37f19-92bf-4286-a5fb-66cca37a21c0",
+      "RootId": "33e4ef8b-d012-49d0-906e-642455d56215",
+      "ChildId": "2e0757c8-5496-4573-898d-dd15a6a080d2",
+      "BatchIds": [
+        "e0ff93b0-a656-497c-b1d4-c03db8f404c6",
+        "08feb365-8d11-443a-b6c0-bbf7b129c693"
+      ],
+      "ImportId": "484a3335-03f9-4866-b250-b74f933c58a4",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export",
+        "holon-delete-2e0757c854964573898ddd15a6a080d2",
+        "holon-delete-33e4ef8bd01249d0906e642455d56215",
+        "holon-delete-484a333503f94866b250b74f933c58a4",
+        "holon-delete-e0ff93b0a656497cb1d4c03db8f404c6",
+        "holon-delete-08feb3658d11443ab6c0bbf7b129c693",
+        "avatar-delete",
+        "avatar-detail-absence",
+        "deactivate"
+      ],
+      "CurrentCase": "complete",
+      "FailureType": "",
+      "DeletionKinds": {
+        "2e0757c8-5496-4573-898d-dd15a6a080d2": "soft",
+        "33e4ef8b-d012-49d0-906e-642455d56215": "soft",
+        "484a3335-03f9-4866-b250-b74f933c58a4": "soft",
+        "e0ff93b0-a656-497c-b1d4-c03db8f404c6": "soft",
+        "08feb365-8d11-443a-b6c0-bbf7b129c693": "soft"
+      },
+      "HardCleanedFixtures": [
+        "2e0757c8-5496-4573-898d-dd15a6a080d2",
+        "33e4ef8b-d012-49d0-906e-642455d56215",
+        "484a3335-03f9-4866-b250-b74f933c58a4",
+        "e0ff93b0-a656-497c-b1d4-c03db8f404c6",
+        "08feb365-8d11-443a-b6c0-bbf7b129c693"
+      ],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
+      "Succeeded": true
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "KeyDBOASIS",
+      "Mode": "controlled",
+      "Synchronous": true,
+      "OwnerId": "c9244595-f43e-4fff-852e-2b765336acef",
+      "RootId": "f370198a-29c3-411f-96d3-bd1e3c7ff2e1",
+      "ChildId": "1e0b9a1b-4ee4-4554-ad89-b0feb658b6e4",
+      "BatchIds": [
+        "42a50a1b-5b6d-47dd-ad60-1d665e626ef3",
+        "d324ebec-1310-46d3-b69b-79b844e2bebc"
+      ],
+      "ImportId": "44d052b8-98ee-4c36-a664-9687d6bab4a3",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export",
+        "holon-delete-1e0b9a1b4ee44554ad89b0feb658b6e4",
+        "holon-delete-f370198a29c3411f96d3bd1e3c7ff2e1",
+        "holon-delete-44d052b898ee4c36a6649687d6bab4a3",
+        "holon-delete-42a50a1b5b6d47ddad601d665e626ef3",
+        "holon-delete-d324ebec131046d3b69b79b844e2bebc",
+        "avatar-delete",
+        "avatar-detail-absence",
+        "deactivate"
+      ],
+      "CurrentCase": "complete",
+      "FailureType": "",
+      "DeletionKinds": {
+        "1e0b9a1b-4ee4-4554-ad89-b0feb658b6e4": "soft",
+        "f370198a-29c3-411f-96d3-bd1e3c7ff2e1": "soft",
+        "44d052b8-98ee-4c36-a664-9687d6bab4a3": "soft",
+        "42a50a1b-5b6d-47dd-ad60-1d665e626ef3": "soft",
+        "d324ebec-1310-46d3-b69b-79b844e2bebc": "soft"
+      },
+      "HardCleanedFixtures": [
+        "1e0b9a1b-4ee4-4554-ad89-b0feb658b6e4",
+        "f370198a-29c3-411f-96d3-bd1e3c7ff2e1",
+        "44d052b8-98ee-4c36-a664-9687d6bab4a3",
+        "42a50a1b-5b6d-47dd-ad60-1d665e626ef3",
+        "d324ebec-1310-46d3-b69b-79b844e2bebc"
+      ],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
+      "Succeeded": true
+    }
+  ]
+}
