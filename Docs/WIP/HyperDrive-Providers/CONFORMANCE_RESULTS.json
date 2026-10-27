@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "suite": "core-storage-v1",
+  "results": [
+    {
+      "provider": "LocalFileOASIS",
+      "suite": "core-storage-v1",
+      "mode": "native",
+      "passed": 2,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
+      "sha256": "bfc2e037d8ebd126fff7de9cc798a698f2fdb94be183dbcca31d1cdf694496d5",
+      "blockers": [
+        "avatar-save: System.InvalidOperationException",
+        "avatar-save: System.InvalidOperationException"
+      ]
+    }
+  ],
+  "providerBlockers": {
+    "PostgreSQLOASIS": [
+      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ],
+    "CockroachDBOASIS": [
+      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ],
+    "TimescaleDBOASIS": [
+      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ]
+  }
+}

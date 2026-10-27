@@ -1,5 +1,10 @@
 # HyperDrive and provider working reports
 
+Current execution strategy: **breadth before depth**. [Provider matrix](PROVIDER_MATRIX.md) is the single per-provider status table; regenerate with `python Scripts/Providers/update_provider_matrix.py` (`--check` detects drift). One canonical `Providers/Shared/TestSupport/CoreStorageConformance.cs` exercises the core interface for every family through registered provider factories; existing family test hosts link this exact source rather than copying cases. Initial reusable host: `Scripts/Providers/Run-CoreStorageConformance.ps1` (model controls +native LocalFile; SQL family identity controls use the existing PostgreSQL host). This is the initial host binding, not a claim all230 provider factories are already configured. Register remaining family factories against the SAME suite and record blocked access explicitly. `CONFORMANCE_RESULTS.json` counts only hash-bound actual shared-suite reports, not older isolated unit totals.
+
+Approximately one working day per family; record blockers and move on. Reuse existing EVM Nethereum and key-value bases; consolidate compatible SQL/document/IPFS/non-EVM policy without inventing empty base classes or forcing incompatible service protocols together. No more Polkadot/NEAR/SQLite depth in this phase. Global HyperDrive routing follows every applicable provider passing baseline; custom contracts, fee ledgers and crash recovery come afterward, priority providers first. Existing resources/cleanup ledger remains authoritative; no fresh runtimes or worktrees for this reorganization.
+
+
 This folder contains this workstream's transient reports, audits, evidence inventories and handoffs. It is not the published product documentation and does not certify completion. Keep new reports here instead of adding them to `Docs/`, `Docs/Devs/` or the top level of `Docs/WIP/`.
 
 ## Start here
