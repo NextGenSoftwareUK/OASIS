@@ -10,6 +10,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
@@ -21,29 +22,56 @@ public partial class HolonRepository
 {
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
-        => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
+        => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan, maximumResults, cancellationToken));
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
-        => ExecuteCqlRowsAsync(plan?.Source, maximumResults, cancellationToken, plan);
+        => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Source, maximumResults, cancellationToken, plan));
 
-    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
-        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null) where T : IHolon
+    private sealed class CqlReadOutcome
     {
+        internal IReadOnlyList<IHolon> Rows;
+        internal long Count;
+        internal CqlReadOutcome(IReadOnlyList<IHolon> rows=null, long count=0) { Rows=rows; Count=count; }
+    }
+
+    private static async Task<OASISResult<IReadOnlyList<IHolon>>> ProjectCqlRowsAsync(Task<OASISResult<CqlReadOutcome>> operation)
+    {
+        var result=await operation.ConfigureAwait(false);
+        var projected=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result,new OASISResult<IReadOnlyList<IHolon>>());
+        if (!result.IsError) projected.Result=result.Result.Rows;
+        return projected;
+    }
+
+    public async Task<OASISResult<long>> ExecuteCosmicEntityCountAsync<T>(CosmicEntityCompositionPlan<T> plan,
+        CancellationToken cancellationToken) where T:IHolon
+    {
+        var result=await ExecuteCqlReadAsync(plan?.Source,10000,cancellationToken,plan,countOnly:true).ConfigureAwait(false);
+        var projected=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(result,new OASISResult<long>());
+        if (!result.IsError) projected.Result=result.Result.Count;
+        return projected;
+    }
+
+    private async Task<OASISResult<CqlReadOutcome>> ExecuteCqlReadAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null,
+        bool countOnly=false) where T : IHolon
+    {
+        OASISResult<CqlReadOutcome> Error(string code,string message,Exception cause=null)
+            => new() { IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause };
         try
         {
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.SQLLiteDBOASIS)
-                return CqlError("CQL_PLAN_INVALID", "SQLite execution requires an exclusively SQLite plan.");
+                return Error("CQL_PLAN_INVALID", "SQLite execution requires an exclusively SQLite plan.");
             if (maximumResults < 1 || maximumResults > 10000)
-                return CqlError("CQL_QUERY_LIMIT", "SQLite CQL result limit must be between one and 10,000.");
+                return Error("CQL_QUERY_LIMIT", "SQLite CQL result limit must be between one and 10,000.");
             var admission=SqliteCqlContract.Capabilities.AdmitPlan(plan);
-            if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
+            if(admission.IsError)return Error(admission.ErrorCode,admission.Message);
             if (composition != null)
             {
                 var stages = new CosmicEntityCompositionCapabilities(
                     CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
                     SqliteCqlContract.Capabilities).Admit(composition.Query);
-                if (stages.IsError) return CqlError(stages.ErrorCode, stages.Message);
+                if (stages.IsError) return Error(stages.ErrorCode, stages.Message);
             }
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
@@ -98,7 +126,7 @@ public partial class HolonRepository
             var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true
                 || entitySql?.HasRelationship == true;
             cancellationToken.ThrowIfCancellationRequested();
-            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(Array.Empty<IHolon>())){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
             // native hook/limit. Nested EF enumeration uses the same logical scope.
             using var exclusive=_dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -111,7 +139,7 @@ public partial class HolonRepository
                 using var traversal=hasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
                 if ((composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
-                    return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
+                    return Error("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
                 using var graphTransaction = (composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
@@ -158,6 +186,18 @@ public partial class HolonRepository
                             .SingleAsync(cancellationToken).ConfigureAwait(false);
                         budget.Check(); traversal.Check();
                     }
+                    if (countOnly)
+                    {
+                        // Reduce the complete native stage relation only after its
+                        // source/protected/work proofs. No final row decoding or
+                        // graph expansion participates in cardinality.
+                        var count=await _dbContext.Database.SqlQueryRaw<long>(
+                            "SELECT count(*) AS Value FROM (" + entitySql.Rows + ") AS entityCount",
+                            translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+                        budget.Check(); traversal?.Check();
+                        graphTransaction?.Commit();
+                        return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(count:count)){IsLoaded=true};
+                    }
                     var query=_dbContext.Holons.FromSqlRaw(sql,
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
@@ -181,12 +221,12 @@ public partial class HolonRepository
                                 ReadChildren, cancellationToken, budget.Check).ConfigureAwait(false)
                             : await HolonGraphQueryExpansion.ExpandAsync(rows.AsReadOnly(), plan.Query.GraphOptions,
                                 plan.Query.ReadAccess, ReadChildren, cancellationToken, budget.Check).ConfigureAwait(false);
-                        if (graph.IsError) return graph;
+                        if (graph.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(graph,new OASISResult<CqlReadOutcome>());
                         budget.Check();
                         graphTransaction?.Commit();
-                        return graph;
+                        return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(graph.Result)){IsLoaded=true};
                     }
-                    return new OASISResult<IReadOnlyList<IHolon>>(rows.AsReadOnly()){IsLoaded=true};
+                    return new OASISResult<CqlReadOutcome>(new CqlReadOutcome(rows.AsReadOnly())){IsLoaded=true};
                 }
                 catch(SqliteException cause) when(cause.SqliteErrorCode==9){budget.Check();throw;}
             }
@@ -195,14 +235,14 @@ public partial class HolonRepository
                 if(opened)await _dbContext.Database.CloseConnectionAsync().ConfigureAwait(false);
             }
         }
-        catch (System.IO.InvalidDataException cause){return CqlError("CQL_DATA_INVALID",cause.Message,cause);}
-        catch (SqliteCqlDeadlineException cause){return CqlError("CQL_QUERY_TIMEOUT",cause.Message,cause);}
-        catch (SqliteCqlResourceException cause){return CqlError("CQL_QUERY_LIMIT",cause.Message,cause);}
-        catch (SqliteException cause) when(cause.SqliteErrorCode==18){return CqlError("CQL_QUERY_LIMIT","SQLite CQL exceeds its native record-size budget.",cause);}
-        catch (CqlTranslationLimitException cause) { return CqlError("CQL_QUERY_LIMIT", cause.Message, cause); }
-        catch (NotSupportedException cause) { return CqlError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
-        catch (OperationCanceledException cause) { return CqlError("CQL_QUERY_CANCELLED", "SQLite CQL execution was cancelled.", cause); }
-        catch (Exception cause) { return CqlError("CQL_QUERY_FAILED", "SQLite CQL execution failed: " + cause.Message, cause); }
+        catch (System.IO.InvalidDataException cause){return Error("CQL_DATA_INVALID",cause.Message,cause);}
+        catch (SqliteCqlDeadlineException cause){return Error("CQL_QUERY_TIMEOUT",cause.Message,cause);}
+        catch (SqliteCqlResourceException cause){return Error("CQL_QUERY_LIMIT",cause.Message,cause);}
+        catch (SqliteException cause) when(cause.SqliteErrorCode==18){return Error("CQL_QUERY_LIMIT","SQLite CQL exceeds its native record-size budget.",cause);}
+        catch (CqlTranslationLimitException cause) { return Error("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (NotSupportedException cause) { return Error("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
+        catch (OperationCanceledException cause) { return Error("CQL_QUERY_CANCELLED", "SQLite CQL execution was cancelled.", cause); }
+        catch (Exception cause) { return Error("CQL_QUERY_FAILED", "SQLite CQL execution failed: " + cause.Message, cause); }
     }
 
     private static readonly System.Reflection.PropertyInfo[] CqlStringColumns=typeof(Entities.HolonModel).GetProperties()

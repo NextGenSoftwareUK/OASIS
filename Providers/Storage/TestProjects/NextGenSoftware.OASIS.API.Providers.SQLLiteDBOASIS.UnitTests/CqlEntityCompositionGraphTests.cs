@@ -109,6 +109,9 @@ public sealed partial class CqlEntityCompositionOwnerTests
             var failed = await provider.ExecuteCosmicEntityCompositionAsync(Plan(query), 10);
             Assert.IsTrue(failed.IsError); Assert.AreEqual("CQL_QUERY_LIMIT", failed.ErrorCode, failed.Message + failed.Exception);
             Assert.IsFalse(failed.IsLoaded);
+            var counted = await provider.ExecuteCosmicEntityCountAsync(Plan(query));
+            Assert.AreEqual("CQL_QUERY_LIMIT", counted.ErrorCode, counted.Message + counted.Exception);
+            Assert.IsFalse(counted.IsLoaded);
         }
         var valid = CosmicQueryTraversalOptions.Create(3, 3).Result;
         var match = source.Compose().Result.Where(row => CosmicQueryRelations.AnyDescendant(row,
@@ -135,6 +138,9 @@ public sealed partial class CqlEntityCompositionOwnerTests
         var invalid = await provider.ExecuteCosmicEntityCompositionAsync(Plan(cyclic), 10);
         Assert.AreEqual("CQL_DATA_INVALID", invalid.ErrorCode, invalid.Message + invalid.Exception);
         Assert.IsFalse(invalid.IsLoaded);
+        var countedCycle = await provider.ExecuteCosmicEntityCountAsync(Plan(cyclic));
+        Assert.AreEqual("CQL_DATA_INVALID", countedCycle.ErrorCode, countedCycle.Message + countedCycle.Exception);
+        Assert.IsFalse(countedCycle.IsLoaded);
     }
 }
 
