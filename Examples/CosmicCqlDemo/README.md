@@ -592,3 +592,14 @@ The Mastodon point profile also has a verified WEB4 row request using
 filter. See the [profile guide](../../Docs/WIP/COSMIC%20ORM/CQL_ACTIVITYPUB_NATIVE_PROFILE.md)
 for JSON and required server admission. The interactive demo host switch is still
 pending; this does not enable AP in the three-provider federation demo.
+
+## WEB4 native point HTTP checks
+
+IPFS and SOLID now pass actual-controller HTTP checks against their native test
+backends. These use controlled identity/outbox fixtures, with one measured receipt
+for the accepted query. They do not start a persistent interactive demo host.
+Run with `-CqlWeb4` instead of `-CqlPoint` on the corresponding reusable runner,
+inside the same build lease shown above. Preserve existing `cql-web4` closure and
+fixture evidence before rerunning; no unknown writes may be replayed.
+
+[HTTP request examples, evidence and remaining host gates](../../Docs/WIP/COSMIC%20ORM/CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
