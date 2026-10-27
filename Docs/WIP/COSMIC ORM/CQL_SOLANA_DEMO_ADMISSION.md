@@ -120,3 +120,5 @@ location has been requested. Recovery stays red; continue the explicit chain
 query execution/source-proof design while backup availability is resolved.
 
 A durable SQLite ingestion-store primitive now passes11realDB tests without anySolanasubmissions, node/key changes or sourcehistoryreplay. It atomically binds encryptedhistory/checkpoint and rejects competingwriters/conflicts. This doesnotrecover originals or enroll Solana CQL. [Contract and nextgates](CQL_CHAIN_QUERY_CONTRACT.md#durable-sqlite-ingestion-store-milestone).
+
+Canonical read-only configured-range observer now passes14controlledcases/full779Solanaunits. It bindswriter/network, head/block and retention, retainsrevisions/tombstones, independentlyrereadsreceipt and rejectspartial/pruned/corruptcoverage withzerosubmissions. No nativevalidatorprobe, originalrecordrecovery or CQLexecutionenrollment is claimed. [Observer contract/limits](CQL_CHAIN_QUERY_CONTRACT.md#canonical-solana-range-observer-milestone). Next publisherbridge/nativecoverage andindexedSQLexecution.
