@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/SolidPointWalkthrough.cs" Link="Demo/SolidPointWalkthrough.cs" />
     <Compile Remove="SolidCoreStorageConformanceTests.cs" />
     <Compile Include="SolidCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
