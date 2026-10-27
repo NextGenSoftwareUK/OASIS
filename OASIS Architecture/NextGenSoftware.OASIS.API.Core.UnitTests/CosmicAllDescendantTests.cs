@@ -59,13 +59,16 @@ public class CosmicAllDescendantTests
     }
 
     [Fact]
-    public void DescendantInsideChildRemainsExplicitUntilItsErrorOwnerExists()
+    public void DescendantInsideChildRequiresIndependentScalarAdmission()
     {
         var bounds = CosmicQueryTraversalOptions.Create().Result;
         var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
             CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == "leaf", bounds)));
-        Assert.True(query.IsError);
-        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", query.ErrorCode);
+        Assert.False(query.IsError, query.Message);
+        var ordinary = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true);
+        Assert.True(ordinary.Admit(query.Result).IsError);
+        var nested = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All }, Array.Empty<CosmicScalarSelectionCapability>(), true, true, true);
+        Assert.False(nested.Admit(query.Result).IsError);
     }
 
     [Fact]
@@ -76,4 +79,28 @@ public class CosmicAllDescendantTests
         Assert.True(query.IsError);
         Assert.StartsWith("CQL_", query.ErrorCode);
     }
+    [Fact]
+    public void DescendantPredicateRelationshipRemainsExplicitUntilItsOwnOwnerExists()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create().Result;
+        var query = CosmicQuery<Holon>.Create().All(row => CosmicQueryRelations.AnyDescendant(row,
+            child => child.Children.Any(grandchild => grandchild.Name == "leaf"), bounds));
+        Assert.True(query.IsError);
+        Assert.Equal("CQL_EXPRESSION_UNSUPPORTED", query.ErrorCode);
+    }
+
+    [Fact]
+    public void ChildDescendantCaptureIsFrozen()
+    {
+        var bounds = CosmicQueryTraversalOptions.Create(2, 3).Result;
+        var name = "original";
+        var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
+            CosmicQueryRelations.AnyDescendant(child, descendant => descendant.Name == name, bounds)));
+        name = "changed";
+        Assert.False(query.IsError, query.Message);
+        var child = Assert.IsType<CosmicQueryAnyChild>(Assert.Single(query.Result.AllPredicate.Predicates));
+        var descendant = Assert.IsType<CosmicQueryAnyDescendant>(child.Predicate);
+        Assert.Equal("original", Assert.IsType<CosmicQueryComparison>(descendant.Predicate).Literal.Value);
+    }
+
 }

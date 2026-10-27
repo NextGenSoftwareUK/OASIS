@@ -451,3 +451,10 @@ page. They demonstrate depth, visibility, independent traversal predicates and
 node-budget errors that Boolean branches cannot hide. All 66 All examples pass
 per store (198 checks). Native cycle proof and nested child/descendant composition
 remain incomplete, and the complete extended walkthrough has not yet passed.
+
+Child-to-descendant All examples202–213 now show descendant matching inside
+Children.Any, with separate scalar admission and per-level actor visibility.
+All78All examples/store pass (234checks), plus24cycle and27protected-child
+checks. The latter prove that earlier matches and Boolean branches cannot hide
+another child's traversal failure. Relationships inside descendant predicates
+and mixed-scope cycle proof remain incomplete; full639SDKwalkthroughpending.

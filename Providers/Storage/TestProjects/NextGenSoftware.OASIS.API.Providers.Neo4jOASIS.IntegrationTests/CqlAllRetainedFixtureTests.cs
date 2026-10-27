@@ -53,7 +53,7 @@ public sealed partial class CqlAllRetainedFixtureTests
                 {
                     IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
                 };
-                Assert.AreEqual(66, await V1AllQueries.RunAsync(new HolonManager(provider, dna, registry),
+                Assert.AreEqual(78, await V1AllQueries.RunAsync(new HolonManager(provider, dna, registry),
                     adapter, visible.Result, TextWriter.Null, tag));
             }
             finally { Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError); }

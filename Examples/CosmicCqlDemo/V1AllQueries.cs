@@ -323,6 +323,45 @@ public static class V1AllQueries
                 publicParent.All(row => row.Name == "not C" || CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
             await Show("Descendant / true AND false traversal",
                 publicParent.All(row => row.Name == "C-public" && CosmicQueryRelations.AnyDescendant(row, child => child.Name == "no such child", visibleBounds)), false);
+            // Descendant scope belongs to EACH visible direct child. The
+            // parent Any result and protected errors are reduced separately.
+            await Show("Child -> descendant / trusted positive path",
+                trustedParent.All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), true);
+            await Show("Child -> descendant / hidden parent is excluded",
+                publicParent.All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), false);
+            await Show("Child -> descendant / scalar AND in child scope",
+                trustedParent.All(row => row.Children.Any(child => child.Name == "private child" && CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), true);
+            await Show("Child -> descendant / scalar OR in child scope",
+                trustedParent.All(row => row.Children.Any(child => child.Name == "owned child" || CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), true);
+            await Show("Child -> descendant / negation within child scope",
+                trustedParent.All(row => row.Children.Any(child => !CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), true);
+            await Show("Child -> descendant / negated parent result",
+                publicParent.All(row => !row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))), true);
+            await Show("Child -> descendant / source Take selects B first",
+                ordered.Take(1).All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => true, visibleBounds))), false);
+            await Show("Child -> descendant / source Skip selects secured C",
+                ordered.Skip(1).Take(1).All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => true, visibleBounds))), false);
+            await Show("Child -> descendant / empty source window",
+                ordered.Take(0).All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => true, visibleBounds))), true);
+            await Show("Child -> descendant / empty filtered source",
+                absentParents.All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => true, visibleBounds))), true);
+            await Show("Child -> descendant / false child scalar remains false",
+                trustedParent.All(row => row.Children.Any(child => child.Name == "missing" && CosmicQueryRelations.AnyDescendant(
+                    child, descendant => true, visibleBounds))), false);
+            await Show("Child -> descendant / independent root traversal",
+                trustedParent.All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(
+                    child, descendant => descendant.Name == "public behind private", visibleBounds))
+                    && CosmicQueryRelations.AnyDescendant(row, descendant => descendant.Name == "owned child", trustedBounds)), true);
         }
 
         return completed;

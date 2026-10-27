@@ -337,9 +337,19 @@ public partial class HolonRepository
                 var childId=inner.CanonicalColumn("Id");
                 var membershipSql=MembershipSql(this,inner);
                 var visibility=VisibilitySql(inner);
-                return "(CASE WHEN "+MembershipObservationSql(this)+"=0 THEN 0 ELSE EXISTS (SELECT 1 FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
+                var childMatch = inner.Translate(child.Predicate);
+                var scope = " FROM Holon AS \""+alias+"\" WHERE lower("+inner.CanonicalColumn("ParentHolonId")
                     +")=lower("+parent+") AND lower("+childId+")<>lower("+parent+") AND "+membershipSql
-                    +" AND ("+visibility+") AND ("+inner.Translate(child.Predicate)+")) END)";
+                    +" AND ("+visibility+")";
+                if (CosmicScalarCapabilities.HasAllDescendants(new[] { child.Predicate }))
+                {
+                    var protectedChildValue = inner.ProtectTraversalScope(new[] { child.Predicate },
+                        "CASE WHEN COALESCE((" + childMatch + "),0)<>0 THEN 1 ELSE 0 END");
+                    return "(CASE WHEN " + MembershipObservationSql(this) + "=0 THEN 0 ELSE (SELECT coalesce(sum("
+                        + protectedChildValue + "),0)>0" + scope + ") END)";
+                }
+                return "(CASE WHEN "+MembershipObservationSql(this)+"=0 THEN 0 ELSE EXISTS (SELECT 1" + scope
+                    +" AND ("+childMatch+")) END)";
             }
             if (predicate is CosmicQueryMembership membership)
             {
