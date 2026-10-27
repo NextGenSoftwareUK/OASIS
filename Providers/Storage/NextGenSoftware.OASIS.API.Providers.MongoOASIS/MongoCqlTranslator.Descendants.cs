@@ -11,7 +11,12 @@ internal sealed partial class MongoCqlTranslator
 {
     private bool AddDescendantExistence<T>(List<BsonDocument> pipeline, CosmicQuery<T> query) where T : IHolon
     {
-        var conditions=query.Predicates.OfType<CosmicQueryAnyDescendant>().ToArray();
+        return AddDescendantEvaluation(pipeline, query.Predicates.OfType<CosmicQueryAnyDescendant>().ToArray(), query.ReadAccess, true);
+    }
+
+    private bool AddDescendantEvaluation(List<BsonDocument> pipeline, CosmicQueryAnyDescendant[] conditions,
+        CosmicQueryReadAccess access, bool filterMatches)
+    {
         if(conditions.Length==0)return false;
         // Reserve flat stages before allocating lookup trees. A small AST can
         // otherwise expand into thousands of stages before the final BSON guard.
@@ -38,9 +43,9 @@ internal sealed partial class MongoCqlTranslator
                 {"cycle",Literal(false)},{"overBudget",Literal(false)}
             }));
             BsonValue visibility=Literal(true);
-            if(query.ReadAccess!=null)
+            if(access!=null)
             {
-                var secured=CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(query.ReadAccess);
+                var secured=CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(access);
                 if(secured.IsError)throw new NotSupportedException(secured.Message);
                 visibility=Translate(secured.Result.Predicates.Single(),0);
             }
@@ -97,7 +102,8 @@ internal sealed partial class MongoCqlTranslator
         }
         // Complete every condition's scope before the business conjunction.
         // An earlier negative match cannot suppress a later scope error.
-        pipeline.Add(new("$match",new BsonDocument("$expr",Op("$or",Op("$gt","$error",Literal(0)),"$allMatched"))));
+        if (filterMatches)
+            pipeline.Add(new("$match",new BsonDocument("$expr",Op("$or",Op("$gt","$error",Literal(0)),"$allMatched"))));
         return true;
     }
 

@@ -139,10 +139,11 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
 | Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
 | Q22 | Any terminal | [✅][D9] | [✅][D9] | [✅][D9] | V1 example9. |
-| Q23 | All terminal | ❌ | ❌ | ❌ | Full parent retained red: descendant traversal inside the terminal predicate remains unimplemented. Q23a/Q23b/Q23c isolate proved scalar/direct-child/nested-child predicates without removing that requirement. |
+| Q23 | All terminal | ❌ | ❌ | ❌ | Full parent retained red: bounded descendant markers now execute, but native cycle proof and mixed child/descendant composition remain missing. Q23a–Q23c retain proved subsets; Q23d records remaining descendant acceptance. |
 | Q23a | All with scalar/metadata predicates after the composed source window | [✅][AU] | [✅][AU] | [✅][AU] | [Native examples 136–157][AD]: 22 cases/store, empty/null/missing, windows, access and graph-filtered sources; [retained-fixture native proof][AG] passes all three. Full Q23 parent remains red. This is not a completed full-walkthrough claim. |
 | Q23b | Direct-child Any predicates inside All, after source paging, with visibility and Boolean combinations | [✅][AC] | [✅][AC] | [✅][AC] | Examples 158–173 in [All demo][AD]; [retained native proof][ACG] passes 38 All cases/store (114 total), with 3,815 Core tests. Independent post-window capability; nested/descendant traversal remains in full Q23. Full walkthrough rerun pending. |
 | Q23c | Nested-child Any predicates inside All, including lexical scopes and per-level visibility | [✅][AN] | [✅][AN] | [✅][AN] | [All examples 174–181][AD], [138 retained native checks][ANG] (46/store), 3,817 Core tests. Two/three child levels, scalar/Boolean child predicates, literal capture and hidden intermediate parent. Full Q23 descendant requirement remains red; full walkthrough pending. |
+| Q23d | Bounded descendant traversal inside All, with complete protected error/composition semantics | ❌ | ❌ | ❌ | [Core tests][AX], [native examples 182–201][AD] and [198 native All checks][AXG] prove depth, visibility, source windows and node-budget errors under Boolean branches. Still red: actual native cycle propagation proof and child/descendant nested composition are incomplete. Full 603-SDK walkthrough pending. |
 | Q24 | Min terminal over declared scalar selections | [✅][D11] | [✅][D11] | [✅][D11] | V1 example11; domain-specific expansion tracked below. |
 | Q25 | Max terminal over declared scalar selections | [✅][D12] | [✅][D12] | [✅][D12] | V1 example12. |
 | Q26 | Exact integer Sum | [✅][D13] | [✅][D13] | [✅][D13] | V1 example13. |
@@ -411,3 +412,8 @@ families, not a claim that either ORM supplies every feature on every backend.
 [ANG]: Verification/all-nested-native.trx.gz
 
 - 27 October 2026: Q23c nested-child All proved on all three native stores (138 total All checks, 3,817 Core tests). Native lexical depth prevents inner/outer alias capture without intervening bind parameters. Descendant All remains red; full 543-SDK walkthrough pending. No unrelated green/cursor hardening.
+
+[AX]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllDescendantTests.cs
+[AXG]: Verification/all-descendant-native.trx.gz
+
+- 27 October 2026: bounded descendant All implemented with separate scalar admission and protected terminal error envelopes; 198 native All checks and 3,824 Core tests pass. Q23/Q23d stay red for native cycle proof and mixed nested traversal. No green/cursor hardening; no full603SDKwalkthrough success claim.
