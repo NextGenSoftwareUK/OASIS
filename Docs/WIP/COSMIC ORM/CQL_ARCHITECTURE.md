@@ -148,7 +148,7 @@ native reduction runs over the final materialized stage CTE in the same
 serializable owner. Two integer sum words retain exact totals; Int64 double means
 reuse the checked aggregate hook ordered by the final stage rank. The hook checks
 budgets and is removed on disposal. Selected ordering/offset occurs before prefix
-accumulation. Wider numeric domains remain unenrolled on all3;
+accumulation. SQLite now also enrolls decimal/Single/Double/UInt64 and nullable selected reductions; MongoDB/Neo4j wider domains remain unenrolled;
 selected Min/Max needs its own extrema contract. Q01 remains red.
 
 MongoDB Q01a now independently enrolls signed Int32/Int64 Sum/Average and nullable
@@ -171,3 +171,5 @@ proof payload plus terminal scan work. Empty input has an explicit zero packet.
 The shared owner validates participating count and normalizes the result without
 constructing DTOs. All27 integer cases/store and129 Neo focused CQL tests pass;
 Q01a is green while wider domains and selected extrema remain red.
+
+SQLite Q01b reuses existing decimal limb, UInt64 split and floating packet kernels against the final selected CTE. Floating hooks belong to the same serializable connection owner, enforce its deadline and release on disposal. The decoder validates domain-specific packet width and participation before the shared typed finalizer. No client-side aggregation or record construction is introduced. Native proof:37 wider-domain cases in `CqlLinqStagedWideAcceptanceTests.cs`.

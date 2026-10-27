@@ -93,7 +93,7 @@ public partial class HolonRepository
             Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
                 + " ORDER BY phase,ordinal,position", Reduction = reduction,
             Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count,
-            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedIntegerReduction(numeric, "c" + query.ResultStages.Count, previousRank)
+            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedNumericReduction(numeric, "c" + query.ResultStages.Count, previousRank)
         };
 
         void Cell(CosmicQueryPath path, string alias)
