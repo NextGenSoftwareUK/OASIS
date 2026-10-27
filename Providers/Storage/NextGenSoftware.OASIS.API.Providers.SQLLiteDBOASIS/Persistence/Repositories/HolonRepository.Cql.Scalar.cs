@@ -62,7 +62,7 @@ public partial class HolonRepository
                 }
             }
             if (selected) sql = numeric
-                ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings))
+                ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings), plan.Query.UsesInt64DoubleAverage)
                 : translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation, predicate, translator.TranslateOrdering(source.Orderings));
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -73,6 +73,7 @@ public partial class HolonRepository
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var floating = numeric && FloatingNumeric(plan.Query.Selector.ValueType) ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
+                using var checkedAverage = plan.Query.UsesInt64DoubleAverage ? new SqliteCqlCheckedInt64Average(connection, budget.Check) : null;
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || (selected || all) && translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
@@ -97,7 +98,7 @@ public partial class HolonRepository
                         {
                             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                                 throw new System.IO.InvalidDataException("Native scalar envelope is missing.");
-                            budget.Check(); traversal?.Check(); floating?.Check();
+                            budget.Check(); traversal?.Check(); floating?.Check(); checkedAverage?.Check();
                             if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
                             if (numeric)
                             {
@@ -114,7 +115,12 @@ public partial class HolonRepository
                                 var decimalInput = (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
                                 if (reader.GetInt64(decimalInput ? 9 : 4) != 0)
                                     throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
-                                result = decimalInput
+                                if (plan.Query.UsesInt64DoubleAverage && (reader.IsDBNull(5) || reader.GetInt64(5) is not (0 or 1)))
+                                    throw new System.IO.InvalidDataException("Checked Int64 reduction requires its exact prefix acknowledgement.");
+                                result = plan.Query.UsesInt64DoubleAverage
+                                    ? CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query,
+                                        reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1), reader.GetInt64(5) == 1)
+                                    : decimalInput
                                     ? CosmicDecimalScalarResults.FromParts(plan.Query,
                                         Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(index => reader.GetInt64(2 + index)).ToArray(), reader.GetInt64(1))
                                     : CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
@@ -139,7 +145,7 @@ public partial class HolonRepository
                             .SingleAsync(cancellationToken).ConfigureAwait(false);
                         result = CosmicScalarResults.FromCount(plan.Query, count);
                     }
-                    budget.Check(); traversal?.Check(); floating?.Check();
+                    budget.Check(); traversal?.Check(); floating?.Check(); checkedAverage?.Check();
                     if (result.IsError) return result;
                     transaction?.Commit(); budget.Check();
                     return result;

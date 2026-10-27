@@ -84,7 +84,7 @@ public partial class HolonRepository
             }).ToArray();
         }
 
-        internal string TranslateNumericAggregate(CosmicQueryPath path, string predicate, string ordering)
+        internal string TranslateNumericAggregate(CosmicQueryPath path, string predicate, string ordering, bool checkedPrefix = false)
         {
             var operand = ProjectionOperand(path, "cqlnumeric", comparable: true);
             var optional = Nullable.GetUnderlyingType(path.ValueType) != null;
@@ -111,13 +111,17 @@ public partial class HolonRepository
             // Even max+1 rows keep both signed limb sums within Int64. Validate
             // all mandatory traversal scopes separately before the source page.
             return "/* COSMIC numeric aggregate */ WITH selected AS (SELECT " + operand.State + " AS s," + operand.Value
-                + " AS v FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset),"
-                + " bounded AS (SELECT s,v FROM selected LIMIT " + sentinel + "),"
+                + " AS v" + (checkedPrefix ? ",row_number() OVER (ORDER BY " + ordering + ") AS ordinal" : "")
+                + " FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset),"
+                + " bounded AS (SELECT s,v" + (checkedPrefix ? ",ordinal" : "") + " FROM selected"
+                + (checkedPrefix ? " ORDER BY ordinal" : "") + " LIMIT " + sentinel + "),"
                 + " aggregated AS (SELECT count(*) AS inputs,COALESCE(sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END),0) AS invalid,"
                 + "COALESCE(sum(CASE WHEN s=2 THEN 1 ELSE 0 END),0) AS present,"
                 + string.Join(",", fields.Select(field => "COALESCE(sum(CASE WHEN s=2 THEN " + field.Value + " ELSE 0 END),0) AS " + field.Name))
+                + (checkedPrefix ? "," + SqliteCqlCheckedInt64Average.Function + "(CASE WHEN s=2 THEN v ELSE NULL END ORDER BY ordinal) AS prefixOverflow" : "")
                 + " FROM bounded) SELECT invalid,present," + string.Join(",", fields.Select(field => field.Name)) + ",CASE WHEN inputs>"
-                + maximum.ToString(System.Globalization.CultureInfo.InvariantCulture) + " THEN 1 ELSE 0 END AS overWork FROM aggregated";
+                + maximum.ToString(System.Globalization.CultureInfo.InvariantCulture) + " THEN 1 ELSE 0 END AS overWork"
+                + (checkedPrefix ? ",prefixOverflow" : "") + " FROM aggregated";
         }
 
         internal string TranslateExtremum(CosmicQueryPath path, CosmicScalarOperation operation,
