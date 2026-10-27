@@ -139,12 +139,12 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
 | Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
 | Q22 | Any terminal | [✅][D9] | [✅][D9] | [✅][D9] | V1 example9. |
-| Q23 | All terminal (full parent scope) | ❌ | ❌ | ❌ | Entity-query predicates, including bounded nested relationships, are proved in Q23a–Q23d. Full parent remains red: All over selected/projected sequences (Q23e) has captured intent/admission and generic execution, but no enrolled native reduction yet. No requirement is removed from this parent. |
+| Q23 | All terminal (full parent scope) | ❌ | ❌ | ❌ | Entity-query predicates, including bounded nested relationships, are proved in Q23a–Q23d. Full parent remains red: All over selected/projected sequences (Q23e) has native implementations on all three stores; complete protected-scope/cycle and cross-provider acceptance remains pending (Q23e/Q49a). No requirement is removed from this parent. |
 | Q23a | All with scalar/metadata predicates after the composed source window | [✅][AU] | [✅][AU] | [✅][AU] | [Native examples 136–157][AD]: 22 cases/store, empty/null/missing, windows, access and graph-filtered sources; [retained-fixture native proof][AG] passes all three. Full Q23 parent remains red. This is not a completed full-walkthrough claim. |
 | Q23b | Direct-child Any predicates inside All, after source paging, with visibility and Boolean combinations | [✅][AC] | [✅][AC] | [✅][AC] | Examples 158–173 in [All demo][AD]; [retained native proof][ACG] passes 38 All cases/store (114 total), with 3,815 Core tests. Independent post-window capability; nested/descendant traversal remains in full Q23. Full walkthrough rerun pending. |
 | Q23c | Nested-child Any predicates inside All, including lexical scopes and per-level visibility | [✅][AN] | [✅][AN] | [✅][AN] | [All examples 174–181][AD], [138 retained native checks][ANG] (46/store), 3,817 Core tests. Two/three child levels, scalar/Boolean child predicates, literal capture and hidden intermediate parent. Full Q23 descendant requirement remains red; full walkthrough pending. |
 | Q23d | Bounded descendant traversal inside entity All, with complete protected error/composition semantics | [✅][DP] | [✅][DP] | [✅][DP] | Both relationship orientations and nested descendant scopes pass [390 native checks][DPG]:276All examples,24self-cycle,45protected-scope and45mixed-cycle checks. 3,831 Core tests/bothTFMs/console pass; expansion bounded before allocation and re-admitted natively. [Examples214–227][AD]. Full Q23 remains red for projected-source All; full681SDKwalkthroughpending. |
-| Q23e | All over selected/projected sequences, preserving selected-result filters/order/windows and empty/error semantics | ❌ | ❌ | ❌ | Core intent/admission/execution and V2 HolonManager entry pass 3,847 tests. Native implementations now exist on all three: [SQLite 47 tests](Verification/projected-all-sqlite.trx.gz), [MongoDB 49 tests](Verification/projected-all-mongo.trx.gz), [Neo4j 18 tests](Verification/projected-all-neo4j.trx.gz). The full three-store gate is written but stopped at the separate nested-source grammar gap Q49a before completion; its six-ID fixture is preserved without replay. Protected relationship-scope/cycle and physical cross-provider remaining-work acceptance are still pending; keep every cell red until that complete gate passes. No client materialization substitute. [Execution contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md). |
+| Q23e | All over selected/projected sequences, preserving selected-result filters/order/windows and empty/error semantics | ❌ | ❌ | ❌ | Core intent/admission/execution and V2 HolonManager entry pass 3,847 tests. Native implementations now exist on all three: [SQLite 47 tests](Evidence/Verification/projected-all-sqlite.trx.gz), [MongoDB 49 tests](Evidence/Verification/projected-all-mongo.trx.gz), [Neo4j 18 tests](Evidence/Verification/projected-all-neo4j.trx.gz). The full three-store gate is written but stopped at the separate nested-source grammar gap Q49a before completion; its six-ID fixture is preserved without replay. Protected relationship-scope/cycle and physical cross-provider remaining-work acceptance are still pending; keep every cell red until that complete gate passes. No client materialization substitute. [Execution contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md). |
 | Q24 | Min terminal over declared scalar selections | [✅][D11] | [✅][D11] | [✅][D11] | V1 example11; domain-specific expansion tracked below. |
 | Q25 | Max terminal over declared scalar selections | [✅][D12] | [✅][D12] | [✅][D12] | V1 example12. |
 | Q26 | Exact integer Sum | [✅][D13] | [✅][D13] | [✅][D13] | V1 example13. |
@@ -171,7 +171,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q47 | Correlated subqueries beyond child/descendant Exists | ❌ | ❌ | ❌ | No general correlated scalar/query support proof. |
 | Q48 | Direct child Any/Exists predicates | [✅][D5] | [✅][D5] | [✅][D5] | V1 example5; visibility before root paging. |
 | Q49 | Bounded recursive descendant Exists predicates | [✅][D6] | [✅][D6] | [✅][D6] | V1 example6; independent depth/node limits. |
-| Q49a | Source relationship predicates nested in child/descendant bodies or composed with root Boolean logic | ❌ | ❌ | ❌ | Required by full parity and projected-All protected-scope acceptance. Reproduced builder rejection in [preserved native gate](Verification/projected-all-acceptance-initial.trx.gz); existing Compile allows scalar source bodies only, while CompileAll independently permits nested relationships. Core intent/admission now passes [3,851 tests](Verification/source-relationships-core.trx.gz): separate SourceRelationshipComposition capability, preserved scalar grammar, frozen literals and pre-dispatch expansion bounds ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSourceRelationshipTests.cs)). Native enrollment and three-store proof are still pending; do not silently expand green Q48/Q49 claims. |
+| Q49a | Source relationship predicates nested in child/descendant bodies or composed with root Boolean logic | ❌ | ❌ | ❌ | Required by full parity and projected-All protected-scope acceptance. Reproduced builder rejection in [preserved native gate](Evidence/Verification/projected-all-acceptance-initial.trx.gz); existing Compile allows scalar source bodies only, while CompileAll independently permits nested relationships. Core intent/admission now passes [3,851 tests](Evidence/Verification/source-relationships-core.trx.gz): separate SourceRelationshipComposition capability, preserved scalar grammar, frozen literals and pre-dispatch expansion bounds ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicSourceRelationshipTests.cs)). Native enrollment and three-store proof are still pending; do not silently expand green Q48/Q49 claims. |
 | Q50 | Union with independent source/result windows | ❌ | ❌ | ❌ | Composition Where/order/page examples do not prove set union. |
 | Q51 | Concat preserving duplicate rows | ❌ | ❌ | ❌ | No complete native operator proof. |
 | Q52 | Distinct selected scalar rows | ❌ | ❌ | ❌ | Selected-value composition is not Distinct. |
@@ -224,11 +224,11 @@ These remain explicit roadmap items; they do not inflate EF/NHibernate parity.
 | X01 | Explicit complete-source cross-provider federation/global page | [✅][F] | [✅][F] | [✅][F] | Shared federation native tests + demo; moving reads only. |
 | X02 | Protected bounded continuation with fixed scope and budgets | [✅][C] | [✅][C] | [✅][C] | Native 20 requests / 18 settlements / 32 attempts and duplicate controls. |
 | X03 | Cursor survives actual process restart with persisted protected key | [✅][P] | [✅][P] | [✅][P] | Same-user Windows DPAPI gate; multi-host topology is separate. |
-| X04 | Distributed inner/left join execution over independently scoped sources | ❌ | ❌ | ❌ | [Deferred intent](Deferred/CosmicDistributedJoinQuery.cs.txt) has no planner/executor/provider acceptance. |
+| X04 | Distributed inner/left join execution over independently scoped sources | ❌ | ❌ | ❌ | [Deferred intent](Evidence/Deferred/CosmicDistributedJoinQuery.cs.txt) has no planner/executor/provider acceptance. |
 | X05 | Cross-provider causal agreement / authoritative conflict resolution | ❌ | ❌ | ❌ | Provider priority is not causal proof. |
 | X06 | Repeatable distributed snapshots | ❌ | ❌ | ❌ | Moving reads are not a consistent cut. |
 | X07 | Multi-host/container/KMS key-ring deployment acceptance | ❌ | ❌ | ❌ | Local same-user DPAPI proof is narrower. |
-| X08 | Per-save committed delta/history API (full parent scope) | ❌ | ❌ | ❌ | Parent retained red. X08a is the separately scoped demo summary child; [historical stored-value authorization/decryption, old-key access, retention and tooling remain missing](COMMITTED_DELTAS.md#values-encryption-and-membership). Full parent completion is not inferred from its child. |
+| X08 | Per-save committed delta/history API (full parent scope) | ❌ | ❌ | ❌ | Parent retained red. X08a is the separately scoped demo summary child; [historical stored-value authorization/decryption, old-key access, retention and tooling remain missing](Archive/COMMITTED_DELTAS.md#values-encryption-and-membership). Full parent completion is not inferred from its child. |
 | X08a | Operation-bound committed change summaries: added/removed/modified paths, create/update/hard-delete classification, original-summary recovery | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 3–10][SV]: local preview, operation-bound committed path/classification summaries, original summary after update/delete, and foreign-actor rejection. [All-three gate][G]. Full parent X08 remains red. |
 | X09 | Web2/web3 migration with resumable verified equivalence | ❌ | ❌ | ❌ | Full migration acceptance remains open. |
 | X10 | HyperDrive V2 replica convergence/placement under failures | ❌ | ❌ | ❌ | Broader provider programme; not certified by CQL tests. |
@@ -257,7 +257,7 @@ Unrestricted POCO mapping (M01), migrations (M26/M27), scaffolding/tooling
 (M28/M30), unit-of-work/identity-map programmes and every other untagged row are
 **deferred until the demo set is green**. They remain full parity requirements,
 not deleted scope. Distributed joins (X04) stay deferred with their preserved
-[untested source](Deferred/CosmicDistributedJoinQuery.cs.txt).
+[untested source](Evidence/Deferred/CosmicDistributedJoinQuery.cs.txt).
 
 For each tagged ❌ row: reconcile any existing proving test first, implement only
 its actual missing semantics, add the necessary tests/demo, record the native
@@ -299,13 +299,13 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [F]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Federation.cs
 [C]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedCursors.cs
 [P]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.CursorProcess.cs
-[G]: Verification/tail-elements-native-result.json
-[GS]: Verification/tail-elements-native-source.json.gz
-[GB]: Verification/tail-elements-native-binaries.json
-[GT]: Verification/tail-elements-native.trx.gz
+[G]: Evidence/Verification/tail-elements-native-result.json
+[GS]: Evidence/Verification/tail-elements-native-source.json.gz
+[GB]: Evidence/Verification/tail-elements-native-binaries.json
+[GT]: Evidence/Verification/tail-elements-native.trx.gz
 [NC]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.cs#L866
 [SC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicScalarQueryTests.cs#L119
-[LC]: Verification/cursor-lineage-core.trx.gz
+[LC]: Evidence/Verification/cursor-lineage-core.trx.gz
 
 ## External feature baselines
 
@@ -332,7 +332,7 @@ families, not a claim that either ORM supplies every feature on every backend.
 
 [E]: ../../../Examples/CosmicCqlDemo/V1ElementQueries.cs
 [EU]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicElementQueryTests.cs
-[EG]: Verification/element-terminals-core.trx.gz
+[EG]: Evidence/Verification/element-terminals-core.trx.gz
 
 - Demo operator acceptance in progress: new `V1OperatorQueries` examples 59–90
   exercise presence/null/missing, true/false native field comparisons, bounded
@@ -378,7 +378,7 @@ families, not a claim that either ORM supplies every feature on every backend.
 
 [IX]: ../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs
 [IT]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicIndexedElementTests.cs
-[IG]: Verification/indexed-elements-core.trx.gz
+[IG]: Evidence/Verification/indexed-elements-core.trx.gz
 
 - Native tail selection in progress for Q18/Q19: immutable plan TailIndex and
   TailPaging capability, SQLite nested source SELECT, Mongo same-aggregate
@@ -395,44 +395,44 @@ families, not a claim that either ORM supplies every feature on every backend.
 
 [TL]: ../../../Examples/CosmicCqlDemo/V1TailQueries.cs
 [TT]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicTailElementTests.cs
-[TG]: Verification/tail-elements-core.trx.gz
+[TG]: Evidence/Verification/tail-elements-core.trx.gz
 
 [AU]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllQueryTests.cs
 [AD]: ../../../Examples/CosmicCqlDemo/V1AllQueries.cs
-[AG]: Verification/all-predicate-retained-native.trx.gz
+[AG]: Evidence/Verification/all-predicate-retained-native.trx.gz
 
 - 27 October 2026: Q23a scalar All promoted after 3,807 Core tests and 66 read-only native cases on the exact retained fixture. New Neo4j empty-input aggregate bug reproduced and fixed. Full walkthrough did not complete; its failed fixture/receipts remain preserved. Full Q23 traversal-inside-predicate remains red. Demo greens and federation cursor implementations unchanged.
 
-- 27 October 2026: Q23 internal child-navigation compiler foundation passes 3,811 Core tests and both target frameworks ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs), [proof](Verification/all-traversal-compiler-core.trx.gz)). Public All traversal remains rejected pending post-window native ownership/error semantics and three-provider proof. Q23 stays red; no new green cell.
+- 27 October 2026: Q23 internal child-navigation compiler foundation passes 3,811 Core tests and both target frameworks ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs), [proof](Evidence/Verification/all-traversal-compiler-core.trx.gz)). Public All traversal remains rejected pending post-window native ownership/error semantics and three-provider proof. Q23 stays red; no new green cell.
 
 [AC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs
-[ACG]: Verification/all-child-native.trx.gz
+[ACG]: Evidence/Verification/all-child-native.trx.gz
 
 - 27 October 2026: Q23b direct-child All promoted on three native stores after 114 retained-fixture checks and 3,815 Core tests. Full Q23 remains red for nested/descendant predicates. No cursor/green-feature hardening; source-child lookup logic factored only to share the required terminal membership/visibility owner.
 
 [AN]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs
-[ANG]: Verification/all-nested-native.trx.gz
+[ANG]: Evidence/Verification/all-nested-native.trx.gz
 
 - 27 October 2026: Q23c nested-child All proved on all three native stores (138 total All checks, 3,817 Core tests). Native lexical depth prevents inner/outer alias capture without intervening bind parameters. Descendant All remains red; full 543-SDK walkthrough pending. No unrelated green/cursor hardening.
 
 [AX]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllDescendantTests.cs
-[AXG]: Verification/all-descendant-native.trx.gz
+[AXG]: Evidence/Verification/all-descendant-native.trx.gz
 
 - 27 October 2026: bounded descendant All implemented with separate scalar admission and protected terminal error envelopes; 198 native All checks and 3,824 Core tests pass. Q23/Q23d stay red for native cycle proof and mixed nested traversal. No green/cursor hardening; no full603SDKwalkthrough success claim.
 
-[CY]: Verification/all-cycle-result.json
+[CY]: Evidence/Verification/all-cycle-result.json
 
-- 27 October 2026: native All cycle acceptance passes on MongoDB/SQLite/Neo4j (24 checks; [test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlAllCycleFixtureTests.cs), [TRX](Verification/all-cycle-native.trx.gz)). Companion198AllchecksPASS. Exact synthetic records removed, original892A8fixture unchanged. No production/Core code changed; Q23/Q23d remain red for mixed nested traversal.
+- 27 October 2026: native All cycle acceptance passes on MongoDB/SQLite/Neo4j (24 checks; [test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlAllCycleFixtureTests.cs), [TRX](Evidence/Verification/all-cycle-native.trx.gz)). Companion198AllchecksPASS. Exact synthetic records removed, original892A8fixture unchanged. No production/Core code changed; Q23/Q23d remain red for mixed nested traversal.
 
-[CDG]: Verification/all-child-descendant-native.trx.gz
+[CDG]: Evidence/Verification/all-child-descendant-native.trx.gz
 
-- 27 October 2026: child-to-descendant All implemented with independent scalar admission; 3,826 Core tests/bothTFMs/console and285nativechecksPASS. Dedicated27checks (9/store) prove an earlier match and outer Boolean cannot hide later child error. SQLite bug reproduced, corrected at protected scope boundary, then proved read-only against pinned failed fixture before exactcleanup ([reconciliation](Verification/all-child-descendant-reconciled.json)). Q23/Q23d remain red for reverse/deeper descendant composition and mixed-scope cycle proof. Full639SDKwalkthroughpending; no cursor/green-feature hardening.
+- 27 October 2026: child-to-descendant All implemented with independent scalar admission; 3,826 Core tests/bothTFMs/console and285nativechecksPASS. Dedicated27checks (9/store) prove an earlier match and outer Boolean cannot hide later child error. SQLite bug reproduced, corrected at protected scope boundary, then proved read-only against pinned failed fixture before exactcleanup ([reconciliation](Evidence/Verification/all-child-descendant-reconciled.json)). Q23/Q23d remain red for reverse/deeper descendant composition and mixed-scope cycle proof. Full639SDKwalkthroughpending; no cursor/green-feature hardening.
 
-[MCY]: Verification/all-mixed-cycle-result.json
+[MCY]: Evidence/Verification/all-mixed-cycle-result.json
 
 - 27 October 2026: mixed child-to-descendant cycle acceptance passes on three native stores:30newchecks; full4testgate315checksPASS. Sharedfixture preserves24self-cycle checks and adds consistent2-nodecycle, actorhidden-child/empty-window controls, exactcleanup. No production/Core change. Q23/Q23d remain red only for relationships inside descendant predicates; full639SDKwalkthroughpending.
 
 [DP]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllDescendantTests.cs
-[DPG]: Verification/all-descendant-predicate-native.trx.gz
+[DPG]: Evidence/Verification/all-descendant-predicate-native.trx.gz
 
 - 27 October 2026: Q23d entity nested-relationship acceptance promoted on three stores after390nativechecks/3,831Coretests, including independent admission, bounded preallocation, all visited-scope errors and both nesting orientations. Full Q23 stays red: audit of current projection API found selected/projected-source All missing (Q23e). Parent scope retained; no total All/EF parity claim, no green/cursor hardening, full681SDKwalkthroughpending.

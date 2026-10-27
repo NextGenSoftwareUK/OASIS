@@ -110,7 +110,7 @@ Swagger `/swagger` has a prefilled v1 request, synthetic Alice authorization and
 
 Read **V1NativeQueries.cs** (LINQ-style SDK), **V1Walkthrough.cs** (C# HTTP), then **V1DemoPresentation.cs** / **V1SwaggerExample.cs** (presentation). The fixture's native acceptance matrix runs first. Transcript/result: `TestResults/CosmicCqlDemo/v1-walkthrough.txt` / `v1-demo-result.json`.
 
-[Manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md) · [Architecture](../../Docs/WIP/COSMIC%20ORM/CQL_ARCHITECTURE.md) · [Presenter script](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_RUNBOOK.md).
+[Manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md) · [Architecture](../../Docs/WIP/COSMIC%20ORM/CQL_ARCHITECTURE.md) · [Presenter script](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DEMO_RUNBOOK.md).
 
 ## Original SQLite coffee ORM walkthrough
 
@@ -125,7 +125,7 @@ From the repository root in PowerShell:
 
 For the second command, open http://127.0.0.1:5087/swagger. Ctrl+C stops the loopback-only synthetic demo and cleans its owned database. The sample is not a production ONODE endpoint.
 
-[Full walkthrough, requests and verification](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_RUNBOOK.md).
+[Full walkthrough, requests and verification](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DEMO_RUNBOOK.md).
 
 Read the source in this order:
 
@@ -138,7 +138,7 @@ Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holo
 
 The current walkthrough has **twenty-seven** spaced/commented examples per provider: 81 SDK queries and 81 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
-Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
+Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
 Maintainer verification can combine the expanded walkthrough with the broad native save/delete/CQL regression in one environment lifecycle: `pwsh -File Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -IncludeRegression`. The same runner owns fresh-result checks and cleanup; `-Serve` remains the interactive mode.
 
@@ -147,7 +147,7 @@ Maintainer verification can combine the expanded walkthrough with the broad nati
 
 Examples11–12 demonstrate native Min/Max in both spaced/commented C# walkthroughs. Hidden roots contain stronger extrema; actor visibility is applied before reduction. Exact signed Int64 values remain decimal text. Browser presets and Swagger show the Selection shape.
 
-Earlier Min/Max verification passed **175native regression tests,36SDK queries and36HTTP examples**, with zero skips on MongoDB, SQLite and Neo4j. The run records216settled operations/211physical attempts. Full Core/HTTP tests pass2,117. The exact retained fixture was reconciled before this fresh run; owned data was cleaned after verified teardown. [Current contract/evidence](../../Docs/WIP/COSMIC%20ORM/CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026). Use current JSON/transcript evidence, not historical30/30results.
+Earlier Min/Max verification passed **175native regression tests,36SDK queries and36HTTP examples**, with zero skips on MongoDB, SQLite and Neo4j. The run records216settled operations/211physical attempts. Full Core/HTTP tests pass2,117. The exact retained fixture was reconciled before this fresh run; owned data was cleaned after verified teardown. [Current contract/evidence](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026). Use current JSON/transcript evidence, not historical30/30results.
 
 
 ## Numeric examples — verified across all three providers
@@ -265,7 +265,7 @@ attempts across all three providers. Generated Swagger examples and native resul
 checks passed. This is the dedicated joint acceptance case, not a new full269-case
 regression. The earlier63/63 UTC report retains its historical scope. Native
 UInt64 and compiler coverage are documented in
-[the contract](../../Docs/WIP/COSMIC%20ORM/CQL_UINT64_CONTRACT.md).
+[the contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_UINT64_CONTRACT.md).
 
 
 ## Examples 24–25: Decimal prices with exact fractions
@@ -288,7 +288,7 @@ metadata enrollment.
 The expanded live gate passes: **75 SDK queries and75 signed HTTP examples**,
 255 settled operations and250 provider attempts, zero failures/skips. Compiler coverage passes
 2,500 linked unit tests; native Decimal cohorts are recorded separately in the
-[Decimal contract](../../Docs/WIP/COSMIC%20ORM/CQL_DECIMAL_METADATA_CONTRACT.md).
+[Decimal contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DECIMAL_METADATA_CONTRACT.md).
 The reusable offline UI check is `node Scripts/TestHosts/Test-CqlV1DemoPresentation.cjs`;
 it tests script behavior without browser interaction or network calls.
 
@@ -379,7 +379,7 @@ Actual cursor process acceptance: abrupt first-host termination, a different fre
 MongoDB, SQLite and Neo4j through HolonManager. Native queries request at most
 one or two rows, preserve source windows, and distinguish empty/default results
 from provider failures or ambiguous Single results. See the
-[manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md#native-element-terminals-c-sdk).
+[manual](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_MANUAL_history_2026-10-27.md#native-element-terminals-c-sdk).
 These element-terminal examples occupy cases 47–58; operator examples 59–90
 follow them. The separate HTTP walkthrough has 46 cases per store and no new
 element-terminal route.
