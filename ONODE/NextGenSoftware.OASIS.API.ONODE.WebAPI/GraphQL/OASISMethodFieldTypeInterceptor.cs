@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
             List<ObjectFieldConfiguration> methodFields = objectTypeDefinition.Fields
                 .Where(field => field.Member is MethodInfo || field.ResolverMember is MethodInfo ||
-                    field.Member is PropertyInfo property && property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData))
+                    field.Member is PropertyInfo property && !OASISDataTypes.IsExposedProperty(property))
                 .ToList();
 
             foreach (var methodField in methodFields)

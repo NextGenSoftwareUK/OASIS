@@ -5,6 +5,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests;
 
 public class ActivityPubAvatarStorageBoundaryTests
 {
+    [Fact]
+    public void SocialAdapterCannotAdvertiseRecordStorageEligibility()
+    {
+        using var provider=new ActivityPubOASIS("http://127.0.0.1:1","");
+        Assert.NotEmpty(provider.ProviderCapabilities);
+        Assert.DoesNotContain(provider.ProviderCapabilities,c=>c.Value is
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Storage or
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageLocal or
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageAndNetwork or
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageLocalAndNetwork);
+    }
     private sealed class Transport : HttpMessageHandler
     {
         public int Requests;
