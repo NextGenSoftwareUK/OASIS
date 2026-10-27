@@ -68,7 +68,7 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable Select, selected composition and numeric/element terminals remain
+Queryable numeric/element terminals, selected cardinality and repeated Select remain
 unimplemented and fail explicitly; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
@@ -82,3 +82,26 @@ Count/LongCount/Any predicate overloads work on unwindowed sources. A predicate
 on one of these terminals after Skip/Take currently returns the explicit
 `CQL_COMPOSITION_UNSUPPORTED` exception. It is not moved before the window.
 This remains Q01 work; All already has an independent post-window predicate.
+Standard scalar/flat-record `Select` now supports selected `Where`, ordering and
+paging, followed by synchronous or async enumeration or native selected `All`.
+For example, after checking `CosmicLinq.Create(...)`:
+
+```csharp
+var selected = created.Result
+    .Select(row => new { row.Name, row.Version })
+    .Where(value => value.Version > 0)
+    .OrderBy(value => value.Name)
+    .Take(5);
+
+var rows = await selected.ToCosmicListAsync(cancellationToken);
+if (rows.IsError)
+    throw new InvalidOperationException(rows.ErrorCode + ": " + rows.Message);
+
+bool allMatch = selected.All(value => value.Name == expectedName);
+```
+
+Selected aliases bind to native columns, not hydrated holons. Each execution
+rebinds captured variables in source and selected predicates. The projection
+planner or composition planner admits the exact stages; selected All uses its
+independent native reduction owner. Unsupported selectors never compile to
+client delegates, and missing projection capability never fetches entity rows.

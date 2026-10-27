@@ -102,7 +102,7 @@ public sealed class CosmicLinqTests
     {
         var adapter = new Adapter(); var query = Root(adapter);
         Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => index > 0));
-        Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name));
+        Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name.ToUpperInvariant()));
         Assert.Throws<CosmicLinqException>(() => query.OrderBy(row => row.Name, StringComparer.OrdinalIgnoreCase));
         Assert.Throws<CosmicLinqException>(() => query.Sum(row => row.Version));
         Assert.Equal(0, adapter.Calls);
@@ -176,5 +176,37 @@ public sealed class CosmicLinqTests
         var adapter = new Adapter { Fault = "OWNED_SCALAR_ERROR" };
         Assert.Equal("OWNED_SCALAR_ERROR", Assert.Throws<CosmicLinqException>(() => Root(adapter).Count()).Code);
         Assert.Equal(1, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
+    }
+    public sealed class ProjectionDto
+    {
+        public static int Constructions;
+        public ProjectionDto() { Constructions++; }
+        public string Name { get; set; } = "";
+    }
+
+    [Fact]
+    public async Task SelectNeverInvokesConstructorsOrFetchesEntityRowsWithoutProjectionCapability()
+    {
+        ProjectionDto.Constructions = 0;
+        var adapter = new Adapter();
+        var selected = Root(adapter).Select(row => new ProjectionDto { Name = row.Name });
+        Assert.Equal(0, ProjectionDto.Constructions); Assert.Equal(0, adapter.Calls);
+        var result = await selected.ToCosmicListAsync();
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", result.ErrorCode);
+        Assert.Null(result.Result); Assert.False(result.IsLoaded);
+        Assert.Equal(0, ProjectionDto.Constructions); Assert.Equal(0, adapter.Calls);
+        Assert.Equal(0, adapter.ScalarCalls);
+    }
+
+    [Fact]
+    public async Task SelectedCancellationAndUnsupportedCallbacksRemainExplicit()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Throws<CosmicLinqException>(() => root.Select((row, index) => row.Name));
+        var selected = root.Select(row => row.Name).Where(value => value == "coffee").Take(1);
+        Assert.Throws<CosmicLinqException>(() => selected.Select(value => value.ToUpperInvariant()));
+        using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
+        Assert.Equal("CQL_QUERY_CANCELLED", (await selected.ToCosmicListAsync(cancellation.Token)).ErrorCode);
+        Assert.Equal(0, adapter.Calls); Assert.Equal(0, adapter.ScalarCalls);
     }
 }
