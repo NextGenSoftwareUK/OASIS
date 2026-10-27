@@ -328,3 +328,5 @@ var page = query
 var minimumVersion = page.Min(row => row.Version);
 var maximumVersion = page.Max(row => row.Version);
 ```
+
+Repeated Select (Q01d) now has a shared exact-column binding implementation; native acceptance is still pending on the three databases. It supports scalar/flat-record rename, reorder, duplicate, drop and identity selection, preserving earlier windows and filters. Computations/conversions, nested shapes and indexed selectors remain explicit errors. Intermediate records are not constructed; retained native inputs remain subject to capability/data validation and payload/work budgets.
