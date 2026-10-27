@@ -143,7 +143,7 @@ Average reference](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/
 Tests compare standard runtime results, nullable/empty behavior, boundary packets
 and a sum above binary64's exact integer range.
 
-MongoDB now enrolls `SupportsInt64DoubleAverage`: standard `Average(long)` and
+MongoDB and SQLite now enroll `SupportsInt64DoubleAverage`: standard `Average(long)` and
 `Average(long?)`, including unstaged scalar Select, return double/double?. The
 fluent `AverageAsDouble(long-selector)` exposes the same explicit result mode.
 MongoDB computes ordered Decimal128 prefix sums **after** source paging and
@@ -151,8 +151,12 @@ returns a mandatory Boolean overflow acknowledgement alongside exact sum limbs
 and count. Any visited prefix outside Int64 throws `CQL_SCALAR_OVERFLOW`, even
 when later cancellation makes the final sum fit. Nullable inputs do not
 participate; empty required means fail and empty nullable means return null.
-SQLite and Neo4j remain explicitly unsupported for this mode until their native
-checked-prefix implementations are verified. Existing fluent `Average(long)`
+SQLite runs a connection-owned aggregate in explicit SQL aggregate order,
+using a checked Int64 total and an overflow latch. Source paging precedes this
+accumulator; exact native sum limbs/count are validated by the shared owner.
+The hook checks the read budget and is removed when its owner is disposed.
+Neo4j remains explicitly unsupported for this mode until its native
+checked-prefix implementation is verified. Existing fluent `Average(long)`
 keeps its decimal result. Aggregates after selected result stages remain
 explicitly unsupported pending a native selected-reduction contract.
 Q01 remains red.
