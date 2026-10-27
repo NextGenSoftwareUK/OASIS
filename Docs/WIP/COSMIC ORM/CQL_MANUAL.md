@@ -19,4 +19,32 @@ Check every OASISResult error/acknowledgement before reading Result. Unsupported
 
 Detailed references retain historical checkpoints; use the checklist/current status for present support, not old dated completion claims.
 Investor-demo rows, projected All (Q23e) and source relationship composition (Q49a) are green on the three focus stores; this does not mean full EF/NHibernate parity.
-Source composition captures nested child/descendant predicates and AND/OR/NOT through the ordinary Where/WhereAnyChild/WhereAnyDescendant builders. Independent capability and expansion admission precede native execution. Protected scope errors survive Boolean short-circuiting and empty windows. See the216-check source matrix and168-check selected-All gate linked from the checklist; developer-demo updates are next.
+Source composition captures nested child/descendant predicates and AND/OR/NOT through the ordinary Where/WhereAnyChild/WhereAnyDescendant builders. Independent capability and expansion admission precede native execution. Protected scope errors survive Boolean short-circuiting and empty windows. See the216-check source matrix and168-check selected-All gate linked from the checklist; the runnable developer walkthrough is linked below.
+
+## Source composition and projected All in C#
+
+[SourceAndProjectedAllDemo.cs](../../../Examples/CosmicCqlDemo/SourceAndProjectedAllDemo.cs)
+contains eight complete examples with error handling and capability-aware planning.
+Its host supplies a V2 HolonManager, one activated native adapter and owned fixture
+IDs; see the [demo runner instructions](../../../Examples/CosmicCqlDemo/README.md).
+
+| Example | What it demonstrates |
+|---|---|
+| 1 | WhereAnyChild with bounded AnyDescendant, then native entity rows |
+| 2 | NOT relationship predicate followed by native LongCount |
+| 3 | Owner/public visibility at every hop before a flat projection |
+| 4–5 | Select, selected Where/OrderBy/Skip/Take, then native All; true and false |
+| 6–7 | Empty selected/source windows produce true after successful source validation |
+| 8 | A true OR branch and empty page cannot conceal a protected CQL_QUERY_LIMIT error |
+
+Use an explicit provider scope. Bound descendant depth and visited nodes. Capture
+query intent, check each OASISResult, and plan against the actual adapter's query,
+projection and composition capabilities before passing the plan to HolonManager.
+A returned false Boolean is successful execution with a counterexample. An error
+has no successful Boolean or partial result to consume.
+
+Source predicates choose holons before selection. Selected predicates operate on
+the selected aliases after Select. All reduces the final selected sequence after
+its filters and windows. CQL performs these operations natively; developers do not
+need to fetch records and call Enumerable.All. The result preserves a separate
+Boolean per physical provider; no distributed snapshot or consensus is implied.

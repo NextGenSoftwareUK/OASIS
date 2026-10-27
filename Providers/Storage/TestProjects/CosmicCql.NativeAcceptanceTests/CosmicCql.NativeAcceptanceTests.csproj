@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/SourceAndProjectedAllDemo.cs" Link="Demo/SourceAndProjectedAllDemo.cs" />
     <!-- Reuse the authoritative native gate; HTTP/WEB4 host contracts remain in their existing project. -->
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlProjectedAllAcceptanceTests.cs" Link="CqlProjectedAllAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlSourceCompositionAcceptanceTests.cs" Link="CqlSourceCompositionAcceptanceTests.cs" />
