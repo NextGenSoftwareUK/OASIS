@@ -1,8 +1,8 @@
 # COSMIC ORM work
 
-Latest parity addition: [integer-index terminals verified](CQL_DEMO_RUNBOOK.md) on all three stores; Q19a green, full Q19/from-end, Last and All remain red. Current native walkthrough:315 SDK cases/138 HTTP cases/30 save checks; Core3,782PASS.
+Latest parity milestone: [Last and System.Index verified](CQL_DEMO_RUNBOOK.md), Q18/Q19 green on SQLite/MongoDB/Neo4j. Native405SDK/138HTTP/30save, Core3,797PASS. All and remaining red rows are open.
 
-Latest milestone: [all 12 scoped investor-demo rows verified](CQL_DEMO_RUNBOOK.md) on SQLite, MongoDB and Neo4j. Delta summaries are the demo child X08a; full-history parent X08 and broader EF/NHibernate parity remain red. The checklist continues to control remaining work.
+Demo milestone: [all 12 scoped investor-demo rows verified](CQL_DEMO_RUNBOOK.md) on SQLite, MongoDB and Neo4j. Delta summaries are the demo child X08a; full-history parent X08 and broader EF/NHibernate parity remain red. The checklist continues to control remaining work.
 
 Current parity work queue: [EF / NHibernate feature checklist](CQL_PARITY_CHECKLIST.md). Each database cell requires linked proof. Work only on ❌ cells; ✅ cells remain frozen unless a bug is found.
 
