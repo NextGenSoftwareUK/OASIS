@@ -146,3 +146,43 @@ open. No production chain/CQL acceptance claim is added.
 
 - `TestResults/ProtocolCqlCurrent/index-executor-core.trx` SHA256 `F8F29D8890A88191278FD84BEDA39BBAB5B472941579DBDA4217AD5961BB5DBE`.
 - `TestResults/ProtocolCqlCurrent/index-executor-sqlite.trx` SHA256 `0F78B95DE8F2779D9D8A2AFFACEAA567552C0B0DAFFF49599389AA3610D5EEB4`.
+
+## Typed HolonManager checkpoint
+
+ExecuteIndexedQueryAsync<T> now provides explicit HyperDrive V2 typed indexed
+execution. CosmicIndexedQueryExecution<T> keeps typed Rows, Checkpoint, Head and
+per-row Receipts; SourceProvider and ExecutionProvider remain under the checkpoint.
+It reuses MapCqlQueryExecution and the existing metadata decryption/hydration/clean
+tracking owner, without a second mapping or tracking implementation. Hydrated
+Id/version/versionID/deletion must still match the receipt. Typed setter failure
+or identity mutation returns an error with no partial typed result.
+
+```csharp
+// Check plan/result envelopes before using Result. Keep the evidence-bearing page.
+var result = await manager.ExecuteIndexedQueryAsync(plan.Result, index, observer);
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+
+var page = result.Result;
+foreach (var row in page.Rows)
+{
+    // CustomOASISProperty fields are hydrated; initial change tracking is clean.
+    Console.WriteLine(row.Name);
+}
+
+Console.WriteLine(page.Checkpoint.Source.SourceProvider);    // Logical source.
+Console.WriteLine(page.Checkpoint.Source.ExecutionProvider); // Physical index.
+```
+
+Five new manager cases prove typed custom metadata, clean-to-dirty tracking, empty
+evidence retention, hydration failure, receipt-bound identity mutation rejection
+and V1 rejection before reader I/O. Combined chain/typed regression cohort130pass;
+SQLite30pass with15real index scenarios now executing through HolonManager, with
+clean baseline assertions on successful rows. Both Core targets/SQLite build.
+Prepared contexts remain rejected before I/O by the shared executor. LINQ indexed
+result adaptation, explicit dual-resource accounting, scalars/projections, WEB4
+and native full-range source acceptance remain open. Indexed read success does
+not claim Solana conditional-save support or repair original missing history.
+
+- `TestResults/ProtocolCqlCurrent/index-typed-core.trx` SHA256 `900BEBB74EB0F17FB64EB34AEC477E7D36ECAD7E0403CE5DA97CD90B9A8A1F8F`.
+- `TestResults/ProtocolCqlCurrent/index-typed-sqlite.trx` SHA256 `763CFD628106EC3E2A54053074853688F16B6EA9DD219D6937729C77929AC50A`.
