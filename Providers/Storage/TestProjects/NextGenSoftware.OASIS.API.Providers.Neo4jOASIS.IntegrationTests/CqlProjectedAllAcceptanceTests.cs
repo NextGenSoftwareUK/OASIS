@@ -139,23 +139,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 root.MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,
                     ["double"]=1d+2.220446049250313e-16d,["float"]=1f+1.1920929e-7f,["guid"]=actor,
                     ["utc"]=new DateTime(2026,10,27,0,0,0,DateTimeKind.Utc).AddTicks(7),["text"]="Café 😀",["bool"]=true,
-                    ["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7,["checked"]=long.MaxValue,["checkedOrder"]=0};
+                    ["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7,["checked"]=long.MaxValue,["checkedNegative"]=long.MinValue,["checkedOrder"]=0};
                 root.Children.Add(new Holon{Id=ids[1],ParentHolonId=rootId,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1,
-                    MetaData=new(){["checked"]=1L,["checkedOrder"]=1}});
+                    MetaData=new(){["checked"]=1L,["checkedNegative"]=-1L,["checkedOrder"]=1}});
                 var later=new Holon{Id=ids[2],ParentHolonId=rootId,Name="private branch",CreatedByAvatarId=other,Version=1};
                 later.Children.Add(new Holon{Id=ids[3],ParentHolonId=later.Id,Name="grandchild one",CreatedByAvatarId=other,IsPublic=true,Version=1});
                 later.Children.Add(new Holon{Id=ids[4],ParentHolonId=later.Id,Name="grandchild two",CreatedByAvatarId=other,IsPublic=true,Version=1});root.Children.Add(later);
                 await Checkpoint("before-create-"+provider.ProviderName);
                 var saved=await provider.SaveHolonAsync(root,saveChildren:true);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
                 var cycle=await provider.SaveHolonAsync(new Holon{Id=cycleId,Name="owned cycle",CreatedByAvatarId=actor,IsPublic=true,Version=1,
-                    MetaData=new(){["checked"]=-long.MaxValue,["checkedOrder"]=2}},saveChildren:false);
+                    MetaData=new(){["checked"]=-long.MaxValue,["checkedNegative"]=long.MaxValue,["checkedOrder"]=2}},saveChildren:false);
                 Assert.IsFalse(cycle.IsError,cycle.Message+cycle.Exception);states.Add(new{provider=provider.ProviderName,created=true});await Checkpoint("created-"+provider.ProviderName);
             }
             var adapters=providers.Cast<ICosmicQueryProjectedAllStorageProvider>().ToArray();
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                Assert.AreEqual(226,checks.Count);complete=true;return;
+                Assert.AreEqual(249,checks.Count);complete=true;return;
             }
             if(demo)
             {

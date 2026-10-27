@@ -14,6 +14,7 @@ public partial class Neo4jOASIS
         internal long High { get; }
         internal long Low { get; }
         internal long Count { get; }
+        internal bool? PrefixOverflow { get; }
         internal long[] DecimalParts { get; }
         internal long[] FloatingParts { get; }
 
@@ -23,8 +24,11 @@ public partial class Neo4jOASIS
             Count = count;
         }
 
-        internal NeoCqlNumericValue(long high, long low, long count)
+        internal NeoCqlNumericValue(long high, long low, long count) : this(high, low, count, null) { }
+
+        internal NeoCqlNumericValue(long high, long low, long count, bool? prefixOverflow)
         {
+            PrefixOverflow = prefixOverflow;
             High = high;
             Low = low;
             Count = count;
@@ -32,12 +36,18 @@ public partial class Neo4jOASIS
     }
 
     internal static NeoCqlNumericValue DecodeCqlNumeric(IReadOnlyDictionary<string, object> row, bool decimalInput = false, bool required = false, int floatingWidth = 0)
+        => DecodeNumericCore(row, decimalInput, required, floatingWidth, false);
 
+    internal static NeoCqlNumericValue DecodeCqlCheckedNumeric(IReadOnlyDictionary<string, object> row, bool required)
+        => DecodeNumericCore(row, false, required, 0, true);
+
+    private static NeoCqlNumericValue DecodeNumericCore(IReadOnlyDictionary<string, object> row,
+        bool decimalInput, bool required, int floatingWidth, bool checkedPrefix)
     {
         if (floatingWidth != 0 && floatingWidth != CosmicFloatingAggregateResults.SingleLimbCount
             && floatingWidth != CosmicFloatingAggregateResults.DoubleLimbCount || floatingWidth != 0 && decimalInput)
             throw new InvalidDataException("One explicit numeric packet domain is required.");
-        if (row.Count != (decimalInput || floatingWidth != 0 ? 6 : 7) || !row.TryGetValue("present", out var present) || present is not long count
+        if (row.Count != (decimalInput || floatingWidth != 0 ? 6 : checkedPrefix ? 8 : 7) || !row.TryGetValue("present", out var present) || present is not long count
             || !row.TryGetValue("inputs", out var inputs) || inputs is not long work
             || !row.TryGetValue("valid", out var valid) || valid is not bool
             || !row.TryGetValue("traversalCycle", out var cycle) || cycle is not bool
@@ -59,7 +69,14 @@ public partial class Neo4jOASIS
         if (!row.TryGetValue("high", out var high) || high is not long highInteger
             || !row.TryGetValue("low", out var low) || low is not long lowInteger)
             throw new InvalidDataException("Integer reduction requires exact Int64 limbs.");
-        return new NeoCqlNumericValue(highInteger, lowInteger, count);
+        bool? overflow = null;
+        if (checkedPrefix)
+        {
+            if (!row.TryGetValue("prefixOverflow", out var flag) || flag is not bool)
+                throw new InvalidDataException("Checked Int64 reduction requires its Boolean prefix acknowledgement.");
+            overflow = (bool)flag;
+        }
+        return new NeoCqlNumericValue(highInteger, lowInteger, count, overflow);
     }
 
     private static long[] ReadFloatingAggregateParts(object raw, int width)
@@ -96,6 +113,19 @@ public partial class Neo4jOASIS
         return ("(" + value + "/4294967296)", "(" + value + "%4294967296)");
     }
 
+    private static string CheckedInt64Prefix(Func<object, string> bind)
+    {
+        var maximum = bind(long.MaxValue);
+        var minimum = bind(long.MinValue);
+        const string failed = "{total:prefix.total,overflow:true}";
+        const string added = "{total:prefix.total+value,overflow:false}";
+        return "(reduce(prefix={total:0,overflow:false},value IN checkedValues | "
+            + "CASE WHEN prefix.overflow THEN prefix WHEN value>0 THEN "
+            + "CASE WHEN prefix.total>" + maximum + "-value THEN " + failed + " ELSE " + added + " END "
+            + "WHEN value<0 THEN CASE WHEN prefix.total<" + minimum + "-value THEN " + failed + " ELSE " + added + " END "
+            + "ELSE prefix END)).overflow";
+    }
+
     private static string CompileCqlNumeric<T, TResult>(NeoCqlSource compiled, CosmicScalarQuery<T, TResult> query) where T : IHolon
     {
         if (query.Selector == null || (query.Operation != CosmicScalarOperation.Sum && query.Operation != CosmicScalarOperation.Average))
@@ -111,12 +141,16 @@ public partial class Neo4jOASIS
             : inputType == typeof(double) ? CosmicFloatingAggregateResults.DoubleLimbCount : 0;
         var parts = wide ? default : IntegralParts(query.Selector.ValueType, "selectedValue");
         var fields = wide ? "parts,present,inputs" : "high,low,present,inputs";
+        if (query.UsesInt64DoubleAverage) fields += ",prefixOverflow";
         var reductions = wide
             ? string.Join(",", Enumerable.Range(0, width).Select(index => "sum(numericParts[" + index + "]) AS d" + index))
             : "sum(CASE WHEN selectedState=2 THEN " + parts.High + " ELSE 0 END) AS high,"
                 + "sum(CASE WHEN selectedState=2 THEN " + parts.Low + " ELSE 0 END) AS low";
+        if (query.UsesInt64DoubleAverage)
+            reductions += ",collect(CASE WHEN selectedState=2 THEN selectedValue ELSE null END) AS checkedValues";
         var reduced = wide ? "[" + string.Join(",", Enumerable.Range(0, width).Select(index => "d" + index))
-            + "] AS parts,present,inputs" : fields;
+            + "] AS parts,present,inputs" : query.UsesInt64DoubleAverage
+                ? "high,low,present,inputs," + CheckedInt64Prefix(translator.Bind) + " AS prefixOverflow" : fields;
         var zeroParts = "[" + string.Join(",", Enumerable.Repeat("0", width)) + "]";
         var nativeParts = floating ? FloatingAggregateParts("selectedValue", inputType == typeof(float), translator.Bind)
             : decimalInput ? DecimalAggregateParts("selectedValue") : null;
@@ -130,7 +164,8 @@ public partial class Neo4jOASIS
         translator.Parameters.Add("numericTake", Math.Min(query.Source.Limit.HasValue ? (long)query.Source.Limit.Value : long.MaxValue,
             (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1));
         var invalid = Nullable.GetUnderlyingType(query.Selector.ValueType) == null ? "selectedState <> 2" : "selectedState = 3";
-        var zeros = (wide ? zeroParts + " AS parts" : "0 AS high,0 AS low") + ",0 AS present,0 AS inputs";
+        var zeros = (wide ? zeroParts + " AS parts" : "0 AS high,0 AS low") + ",0 AS present,0 AS inputs"
+            + (query.UsesInt64DoubleAverage ? ",false AS prefixOverflow" : "");
         var traversal = translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit
             + " RETURN " + zeros + ",false AS valid," + compiled.Cycle + " AS traversalCycle,"
@@ -144,6 +179,9 @@ public partial class Neo4jOASIS
             + ") AND NOT(" + compiled.Cycle + " OR " + compiled.TraversalLimit + ") "
             + "WITH h,p" + keyValues + " ORDER BY " + order + " SKIP $numericOffset LIMIT $numericTake "
             + "WITH " + cell.State + " AS selectedState," + cell.Value + " AS selectedValue "
+            + (query.UsesInt64DoubleAverage ? "," + string.Join(",", aliases.Concat(new[] { "p.f_Id AS checkedIdentity" }))
+                + " ORDER BY " + string.Join(",", keys.Select((key,index) => aliases[index] + (key.Descending ? " DESC" : " ASC"))
+                    .Concat(new[] { "checkedIdentity ASC" })) + " " : "")
             + (wide ? "WITH *,CASE WHEN selectedState=2 THEN " + nativeParts + " ELSE " + zeroParts + " END AS numericParts " : "")
             + "WITH count(*) AS inputs,sum(CASE WHEN " + invalid + " THEN 1 ELSE 0 END) AS invalid,"
             + "sum(CASE WHEN selectedState=2 THEN 1 ELSE 0 END) AS present,"
