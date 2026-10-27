@@ -8,12 +8,13 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 - Full COSMIC roadmap remains active. Current focus: CQL parity on SQLite/MongoDB/Neo4j.
 - Work only on red checklist rows. Green features and federation cursors are frozen unless a bug is reproduced.
 - The 12 investor-demo rows are green; full EF/NHibernate parity is not complete.
-- Current red rows: **Q49a source relationship composition**, then **Q23e projected All acceptance**.
+- Current red row: **Q49a source relationship composition**. Q23e projected-All acceptance is verified on all three databases.
 
 ## Verified checkpoints (separate cohorts)
 
 | Scope | Result | Evidence location |
 |---|---|---|
+| Combined native projected-All acceptance | 168 checks passed:50/store plus18 rotated shared-budget cases; one test, no skips | `TestResults/Neo4jCurrent/neo4j-native-current.trx` and `cql-projected-all-acceptance-result.json` |
 | Core source capture/admission | 3,851 passed, zero skips; net10.0/netstandard2.1 builds passed | Historical [Core TRX](Evidence/Verification/source-relationships-core.trx.gz) |
 | SQLite projected All | 47 native + 9 compiler passed | Historical Evidence/Verification/projected-all-sqlite*.trx.gz |
 | MongoDB projected All | 49 native passed | Historical Evidence/Verification/projected-all-mongo.trx.gz |
@@ -29,28 +30,18 @@ The isolated Mongo fix and four new compiler tests are checkpointed separately f
 Native TRX SHA256: `F2823DBE989A4950244CF6EA74930A408E3EF6FF4AE935EF978E685CB944ED3F`.
 Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationships-current.trx`; the fixture summary is alongside it. Documentation-only commits must not stage code or tests.
 
-## Open defect and preserved state
+## Current state and next step
 
-- The combined 168-check native gate is incomplete. The reviewed run verified six fixture IDs/store and matching actor/version controls, without creates.
-- Reproduced defect: Mongo scalar root translation rejects relationships nested below Boolean logic.
-- Mongo fix reuses its existing protected relationship evaluator and full-AST membership detection; 185 compiler tests and 53 focused native checks pass; full three-provider acceptance remains pending.
-- Mongo source capability enrollment has focused native proof; SQLite source composition is natively enrolled with focused proof. Neo4j full-AST source separation is compiler-verified but remains unenrolled pending native proof.
-- No cycle mutation, create replay, reset or fixture cleanup has occurred.
-- Persistent fixture data/journals: ignored `LocalState/COSMIC/`; **never clear it with TestResults**.
-- Pending journal SHA256: `FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F`.
-- Original WEB4 journal SHA256: `892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5`.
-
-Documentation consolidation is complete: 10 active root reports, 126 archived reports and 334 historical artifacts moved without changing their bytes. Recovery read set stays below 300 lines.
-
-## Exact next step
-
-1. Continue Q49a: prove/enroll Neo4j source composition natively, then run the pinned combined acceptance gate.
-2. Read `MongoCqlTranslator.Ordering.cs`, `MongoCqlTranslator.cs` and the active [acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md).
-3. Bootstrap only missing local consumer dependencies from the global NuGet cache; reuse existing runtimes and frozen sibling-library inputs, never build in the old checkout.
-4. Bootstrap missing Neo4j native consumers from cache; verify source composition before enrollment.
-5. Complete all protected-scope, scalar-domain, cycle and rotated cross-provider budget checks before promoting Q49a/Q23e.
-6. Once green, update demos/docs, commit named source files, push and resume the next red checklist row.
-
+- All three providers enroll source composition. Mongo185 compiler/53 native checks, SQLite35 compiler/26 native tests, Neo4j163 compiler tests; combined gate now proves the protected-source/selected-All intersection natively.
+- Q23e gate passed all168 checks, including protected scopes before empty windows, visibility,12 exact scalar domains, cycles, rotated shared budgets and zero-budget empty participation.
+- The reviewed gate replayed no creates, then installed its owned cycle controls and verified exact cleanup of its six IDs/store. Its completed pending journal was removed only after success. Do not invoke reviewed reconciliation again against the removed fixture.
+- Original WEB4 fixture/journal unchanged: SHA256 `892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5`.
+- Persistent data/original journal remain ignored in `LocalState/COSMIC/`; never clear this with TestResults. Mongo27029 and Neo4j17687 stopped after the gate.
+- Native test SHA256: `C5D5DF88D3C5F95818BB08B820091CDC8A04A6AD244EDB6AE3B4B389A38F189C`; summary SHA256: `1E28A326798382BC5DC8236AB5F91E5B97C8BE1FBCC342A95F20C7CB47CC76E2`.
+- Next: complete Q49a native proof of child/child, child/descendant, descendant/child, descendant/descendant and NOT source shapes independently per database; do not infer these from the168-check gate's narrower source cases. Mongo's focused53-check cohort already covers additional shapes.
+- Use the small `Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/` project for native-only acceptance. It links the same authoritative gate without requiring the unrelated WEB4 host graph.
+- Then update the developer demos/manual, audit Q49a for promotion, and select the next red row. Q23e is frozen unless a reproducible bug is found.
+- Documentation consolidation:10 active root reports,126 archived reports,334 byte-preserved historical artifacts; recovery set stays below300 lines.
 ## Key commands (PowerShell, cwd above)
 
 ```powershell
@@ -59,9 +50,9 @@ git fetch origin
 git merge --no-edit origin/Development
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' fetch origin
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' merge --no-edit origin/Development
-# Prepared reviewed native gate; missing local build assets must be bootstrapped first.
+# Native-only acceptance: fresh owned fixture only after the previous gate has completed exact cleanup.
 & 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-cql' -Operation {
-    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlProjectedAllAcceptanceReconcile
+    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlProjectedAllAcceptance
 }
 ```
 
