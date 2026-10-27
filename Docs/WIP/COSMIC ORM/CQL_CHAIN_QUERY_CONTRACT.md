@@ -158,3 +158,52 @@ No WEB4 request binding, indexed snapshot execution or ingestion is enrolled.
 User reports no known Solana backup and requests other demo work. Preserve the
 failed source, defer recovery and continue with the IPFS admission audit; these
 foundations remain available when chain/index execution resumes.
+
+## Durable SQLite ingestion store milestone
+
+`SqliteCosmicChainIndexStore` is now a real SQLite persistence primitive inside
+the existing SQLite provider. It is not an ICosmicQueryStorageProvider adapter,
+a complete index, source observer or actor authorization grant.
+
+Trusted ingestion supplies a complete checkpoint/independent head, expected prior
+position, source receipt, independently decoded receipt and canonical JSON bytes.
+Shared admission checks source/network/catalogue/schema/coverage/finality/freshness;
+the publisher additionally checks the canonical SHA256 and decoded logical
+ID/version/versionID/deletion state before opening a publication transaction.
+Maximum1000entries,4MiB per payload/16MiB per batch; bounded reads reject truncation.
+
+One immediate SQLite transaction owns expected-checkpoint comparison, immutable
+revision insertion and checkpoint publication. Two independent clients cannot both
+advance the same prior position. Exact current-batch replay acknowledges no new
+write. Conflicting revisions/checkpoints and newly discovered commits inside an
+already acknowledged complete range reject. Existing revisions may be reobserved
+only with exact matching source receipt/payload. Subsequent versions advance byone;
+initial coverage/bootstrap correctness remains the trusted source owner's duty.
+
+Canonical payloads and checkpoint/batch/count envelope use the existing AES256GCM
+codec with source/index/receipt-specific authenticated contexts. Source receipts
+and index identity columns remain stored for future SQL projection/query work;
+payload history is encrypted. This is not arbitrary plaintext field indexing.
+History count and indexed identity columns are checked against authenticated
+state/receipts; missing/modified data fails without partial snapshots. A loaded
+stored receipt is explicitly not returned as an independently decoded source proof.
+
+Commit exceptions are marked CQL_INDEX_PUBLICATION_UNCERTAIN; reconcile the exact
+checkpoint/history before replay. Pre-commit errors return no successful publication.
+No source transaction is submitted or retried by this store.
+
+11 real SQLite tests pass: restart/encrypted persistence and exact replay;
+forced second-insert failure rolls back earlier row and checkpoint; independent
+writer race permits one winner; tombstone history/immutable conflict; altered
+payload/late covered commit; deleted history/modified checkpoint/identity columns;
+wrong network/key; disposed owner. Exact owned DB files are removed after all
+nonpooled connections stop. No chain/node/key/environment is created.
+
+Next: canonical source observer and complete-range bootstrap evidence, durable
+index projections with actor-visible native SQL query execution, then row/scalar/
+projection receipts through shared CQL and WEB4. Original Solana source recovery
+remains separate/red. No parity/demo cell is promoted from this storage primitive.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/ProtocolCqlCurrent/chain-index-store.trx (11pass/0skip) | 7ED43F3368469080D7AAB004D427EB9AC3C4CC857E22EC82FFD59D6BC1EFD824 |
