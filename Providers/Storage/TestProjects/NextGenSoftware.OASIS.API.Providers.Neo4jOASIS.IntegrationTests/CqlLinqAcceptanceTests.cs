@@ -213,10 +213,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(version,root.Select(row=>row.Version).Sum());Passed("plain selected Sum");
         Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
         Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");
-        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS)
+        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS)
         {
             Assert.AreEqual(version, root.Select(row => row.Version).Where(value => value > 0).Sum());
-            Passed("native SQLite staged integer reduction");
+            Passed("native enrolled staged integer reduction");
         }
         else
         {
