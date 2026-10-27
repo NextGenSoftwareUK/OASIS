@@ -21,11 +21,13 @@ public partial class Neo4jOASIS
         private bool header;
         private readonly bool terminal;
         private readonly bool cardinality;
+        private readonly CosmicProjectedNumericIntent numeric;
+        private CosmicProjectedNumericPacket nativeNumeric;
         internal long? Counterexamples { get; private set; }
 
         internal NeoCqlCompositionDecoder(CosmicProjectionQuery<T, TResult> query,
-            CosmicProjectionCompositionExecutionLimits limits, Action check, bool terminal = false, bool cardinality = false) : base(check)
-        { this.query = query; this.limits = limits; this.terminal = terminal; this.cardinality = cardinality; }
+            CosmicProjectionCompositionExecutionLimits limits, Action check, bool terminal = false, bool cardinality = false, CosmicProjectedNumericIntent numeric = null) : base(check)
+        { this.query = query; this.limits = limits; this.terminal = terminal; this.cardinality = cardinality; this.numeric = numeric; }
 
         internal void Add(IReadOnlyDictionary<string, object> record)
         {
@@ -46,7 +48,17 @@ public partial class Neo4jOASIS
                 sourceCount = count; work = reportedWork; header = true;
                 return;
             }
-            if (reportedWork != work || Counterexamples.HasValue) throw Invalid("Native selected count/work proof changed.");
+            if (reportedWork != work || Counterexamples.HasValue || nativeNumeric != null) throw Invalid("Native selected count/work proof changed.");
+            if (numeric != null && phase == query.ResultStages.Count)
+            {
+                if (count < 0) throw new NeoCqlLimitException("Selected numeric reduction exceeds remaining native work.");
+                if (position != -1 || sourcePosition != -1 || input.Count != sourceCount
+                    || stages.Count != query.ResultStages.Count || stages.Count > 0 && stages.Last().Count != counts.Last()
+                    || count > (stages.Count == 0 ? input.Count : stages.Last().Count))
+                    throw Invalid("Native numeric reduction is outside its complete selected sequence.");
+                nativeNumeric = ReadSelectedIntegerReduction(proof, count, numeric);
+                return;
+            }
             if (terminal && phase == query.ResultStages.Count)
             {
                 if (count < 0) throw new NeoCqlLimitException("All reduction exceeds remaining native work.");
@@ -95,8 +107,8 @@ public partial class Neo4jOASIS
         {
             check();
             if (!header || input.Count != sourceCount || stages.Count != query.ResultStages.Count
-                || stages.Count == 0 && !terminal && !cardinality || stages.Count > 0 && stages.Last().Count != counts.Last()
-                || terminal && !Counterexamples.HasValue)
+                || stages.Count == 0 && !terminal && !cardinality && numeric == null || stages.Count > 0 && stages.Last().Count != counts.Last()
+                || terminal && !Counterexamples.HasValue || numeric != null && nativeNumeric == null)
                 throw Invalid("Native composition stream is incomplete.");
             long measuredWork = stages.Count == 0 ? 0 : input.Count;
             for (var index = 0; index < stages.Count - 1; index++) measuredWork = checked(measuredWork + stages[index].Count);
@@ -105,21 +117,21 @@ public partial class Neo4jOASIS
             var output = new List<CosmicProjectionCompositionRow>();
             long outputBytes = 0;
             var final = stages.Count == 0 ? input.Select(row => row.Id).ToList() : stages.Last();
-            if (final.Count > limits.MaximumResults || (terminal || cardinality) && checked(work + final.Count) > limits.MaximumStageRows)
+            if (final.Count > limits.MaximumResults || (terminal || cardinality || numeric != null) && checked(work + final.Count) > limits.MaximumStageRows)
                 throw new NeoCqlLimitException("All evidence or terminal scan exceeds its remaining work.");
             foreach (var id in final)
             {
                 check();
-                if (terminal || cardinality) outputBytes = checked(outputBytes + 16);
+                if (terminal || cardinality || numeric != null) outputBytes = checked(outputBytes + 16);
                 var values = rows[id].Values.ToArray();
                 foreach (var value in values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
             }
-            if ((terminal || cardinality) && checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+            if ((terminal || cardinality || numeric != null) && checked(proofBytes + outputBytes + (numeric == null ? 0 : 25)) > limits.MaximumProofPayloadBytes)
                 throw new NeoCqlLimitException("All evidence exceeds its remaining proof-byte budget.");
             check();
             return new CosmicProjectionCompositionPacket(input, stages.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(),
-                output, sourceCount, work, cardinality ? (stages.Count == 0 ? sourceCount : counts.Last()) : null);
+                output, sourceCount, work, cardinality ? (stages.Count == 0 ? sourceCount : counts.Last()) : null, nativeNumeric);
         }
     }
 }

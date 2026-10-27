@@ -25,9 +25,9 @@ public partial class Neo4jOASIS
     {
         if (plan == null || limits == null || limits.Admit(plan.Options).IsError
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS
-            || plan.Query.ResultStages.Count == 0 && !plan.RequestsCardinality)
+            || plan.Query.ResultStages.Count == 0 && !plan.IsScalarTerminal)
             throw new ArgumentException("Composition requires a matching single-provider plan and admitted remaining limits.");
-        return CompileCqlSelected(plan.Query, limits);
+        return CompileCqlSelected(plan.Query, limits, numeric: plan.NumericReduction);
     }
 
     internal static NeoCqlCompositionCommand CompileCqlProjectedAll<T, TResult>(
@@ -40,7 +40,7 @@ public partial class Neo4jOASIS
     }
 
     private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null) where T : IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, CosmicProjectedNumericIntent numeric = null) where T : IHolon
     {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Graph-source composition requires separate enrollment.");
         var parameters = new Dictionary<string, object>(StringComparer.Ordinal);
@@ -132,6 +132,9 @@ public partial class Neo4jOASIS
                 .Append(" THEN size([position IN ").Append(final).Append(" WHERE NOT coalesce((")
                 .Append(filters.Translate(terminal)).Append("),false)]) ELSE -1 END AS nativeCount,work AS stageWork ");
         }
+        if (numeric != null)
+            AppendSelectedIntegerReduction(text, import, "s" + query.ResultStages.Count, query.ResultStages.Count,
+                maximumWork, maximumProof, numeric, binder.Bind);
         text.Append("} RETURN phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase ASC,position ASC");
         if (text.Length > 1024 * 1024) throw new NeoCqlLimitException("Native composition exceeds its statement-size budget.");
         return new NeoCqlCompositionCommand(text.ToString(), parameters);
