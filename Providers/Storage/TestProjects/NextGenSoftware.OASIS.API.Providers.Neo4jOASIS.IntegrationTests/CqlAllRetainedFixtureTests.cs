@@ -13,8 +13,8 @@ using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLit
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
-[TestClass]
-public sealed class CqlAllRetainedFixtureTests
+[TestClass, DoNotParallelize]
+public sealed partial class CqlAllRetainedFixtureTests
 {
     [TestMethod]
     public async Task ReviewedAllPredicatesPreserveExistingFixtureAndProveEmptyInput()
