@@ -4,7 +4,7 @@ Updated 2026-10-27. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-
 
 ## Current phase
 
-Provider-family implementations and shared baseline verification precede global routing and depth work. Ten storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
+Provider-family implementations and shared baseline verification precede global routing and depth work. Eleven storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
 
 ## Open gates and next action
 
@@ -12,7 +12,7 @@ Provider-family implementations and shared baseline verification precede global 
 |---|---|
 | SOLID storage | Original `storage-key.dpapi`, `private-local-client.dpapi`, `private-local-pod.dpapi` missing from `C:/Source/OASIS/TestResults/SolidCurrent/`; restore trusted originals under the same Windows user or locate their existing protected location. No replacement over retained encrypted records. 0/52, no HTTP/server start |
 | Oracle cloud | Local Oracle 52/52 is not Autonomous Database or OCI Object Storage acceptance. Need protected OCI profile/key, region/namespace/test bucket and database connection/wallet |
-| Azure Blob | Native25/52 partial:109controls pass after count fixes; async checkpoint publication interrupted and sync parent count failed before final fix. Preserve graph fixtures/.next and review before rerun. Hidden startup rechecked1.44s; full automatic runner still pending; see AZURE_BLOB_STORAGE_BASELINE.md |
+| Azure Blob hosted acceptance | Local automatic baseline52/52 +111controls passes; graceful stop persists0blobs/blocks. Real Azure account/IAM/cloud durability acceptance remains separate; see AZURE_BLOB_STORAGE_BASELINE.md |
 | AWS S3 / hosted AWS | Need explicit test bucket/region, protected credentials and persisted storage key; billable-request policy/configuration remains separate. Local DynamoDB 52/52 is not hosted acceptance |
 | EVM family | Compatible existing contract, loopback RPC/chain ID, signer and persisted storage key absent in last inspection; inspect existing runtime/cache before any last-resort setup. Old uncertain outcomes remain unverified |
 | IPFS | Original Kubo repo/config and protected storage key unavailable; do not initialize over unknown identity |
