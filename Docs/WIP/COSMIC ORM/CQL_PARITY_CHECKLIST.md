@@ -25,7 +25,7 @@ older chronological roadmap is supporting history, not the source of green statu
   preserve its parent/history and never make a broad row green from a narrow case.
 - Existing native evidence: [three-store result][G], [source hashes][GS],
   [seven producer/consumer pairs][GB], [test result][GT]. It covers 526 settled
-  operations / 608 attempts, 315 SDK cases, 138 HTTP cases and 30 save-demo checks; this total is not a parity percentage. The latest lineage
+  operations / 608 attempts, 405 SDK cases, 138 HTTP cases and 30 save-demo checks; this total is not a parity percentage. The latest lineage
   correction has separate [unit evidence][LC] and is included in this fresh native gate.
 
 ## Mapping and schema
@@ -133,8 +133,8 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q15 | FirstOrDefault terminal | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
 | Q16 | Single terminal: reject empty and multiple matches | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
 | Q17 | SingleOrDefault terminal | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
-| Q18 | Last/LastOrDefault terminals with explicit order | ❌ | ❌ | ❌ | No dedicated terminal proof. |
-| Q19 | ElementAt/ElementAtOrDefault terminal family (full parent scope) | ❌ | ❌ | ❌ | Parent retained red until integer and System.Index/from-end forms are covered. Q19a isolates the Int32 implementation; from-end indexing needs native source-window handling. |
+| Q18 | Last/LastOrDefault terminals with explicit order | [✅][TL] | [✅][TL] | [✅][TL] | Explicit-order Last/LastOrDefault preserve source Skip/Take inside one native read, including graph expansion and exact scalar/tie ordering. [Examples 106–135][TL], [Core tests][TT], [native gate][G]. |
+| Q19 | ElementAt/ElementAtOrDefault terminal family (full parent scope) | [✅][TL] | [✅][TL] | [✅][TL] | Int32 and System.Index (from-start/from-end) forms now covered. Zero/end/out-of-range/default semantics and window-relative ^N proven; bounded limits remain explicit. [Examples][TL], [Core gate][TG], [native gate][G]. |
 | Q19a | ElementAt/ElementAtOrDefault with zero-based Int32 index | [✅][IX] | [✅][IX] | [✅][IX] | [Examples 91–105][IX] pass on all3stores; [15 boundary/window/admission tests][IT] in [3,782-test gate][IG]. Known-empty defaults avoid I/O; native failures remain errors. No from-end/System.Index claim; parent Q19 remains red. |
 | Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
 | Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
@@ -293,10 +293,10 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [F]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Federation.cs
 [C]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedCursors.cs
 [P]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.CursorProcess.cs
-[G]: Verification/indexed-elements-native-result.json
-[GS]: Verification/indexed-elements-native-source.json.gz
-[GB]: Verification/indexed-elements-native-binaries.json
-[GT]: Verification/indexed-elements-native.trx.gz
+[G]: Verification/tail-elements-native-result.json
+[GS]: Verification/tail-elements-native-source.json.gz
+[GB]: Verification/tail-elements-native-binaries.json
+[GT]: Verification/tail-elements-native.trx.gz
 [NC]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.cs#L866
 [SC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicScalarQueryTests.cs#L119
 [LC]: Verification/cursor-lineage-core.trx.gz
@@ -319,7 +319,7 @@ families, not a claim that either ORM supplies every feature on every backend.
   hardening was needed. Q20 now links its Count example rather than LongCount.
 
 - 26 October 2026: DEMO Q14–Q17 promoted on SQLite/MongoDB/Neo4j after native
-  examples 47–58 pass (36 new terminal cases; total 315 SDK cases). Shared Core
+  examples 47–58 pass (36 new terminal cases; total 405 SDK cases). Shared Core
   tests: 3,767 passed, zero skips; Core net10.0/netstandard2.1 and shipping WEB4
   build pass. Native source snapshots unchanged; seven binary pairs match.
   Eight DEMO rows / 24 database cells remain red. No cursor code was changed.
@@ -365,7 +365,7 @@ families, not a claim that either ORM supplies every feature on every backend.
   would not preserve a native source window under concurrent writes.
 
 - 26 October 2026: Q19a integer indexing passes native examples 91–105 on each
-  store (315 SDK cases total), 138 HTTP cases and 30 save checks. Core3,782PASS,
+  store (405 SDK cases total), 138 HTTP cases and 30 save checks. Core3,782PASS,
   zero skips; net10/netstandard, shipping WEB4 and console builds pass. Source
   unchanged/seven native binary pairs and UnitCore copy match. Q19 parent,
   Q18 Last and Q23 All remain red; demo greens/cursor code were not hardened.
@@ -373,3 +373,20 @@ families, not a claim that either ORM supplies every feature on every backend.
 [IX]: ../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs
 [IT]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicIndexedElementTests.cs
 [IG]: Verification/indexed-elements-core.trx.gz
+
+- Native tail selection in progress for Q18/Q19: immutable plan TailIndex and
+  TailPaging capability, SQLite nested source SELECT, Mongo same-aggregate
+  post-window selection and Neo4j post-window WITH stage. Parent/Last cells remain
+  red pending real provider acceptance. Source graph/scalar-order cases are in
+  new examples 106–135. No changes to green cursor code; All remains red.
+
+- 26 October 2026: Q18/Q19 promoted only after native examples 106–135 pass on
+  SQLite/MongoDB/Neo4j. Core3,797PASS0skip; full native405SDK/138HTTP/30save,
+  526settlements608attempts; sources unchanged/sevenpairs/UnitCorecopy match.
+  Last/from-end selection remains inside one native operation after its source
+  window, including graph and exact scalar-order tests. Q19a remains the prior
+  integer child evidence. Q23 All and other red rows remain open; no cursor edits.
+
+[TL]: ../../../Examples/CosmicCqlDemo/V1TailQueries.cs
+[TT]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicTailElementTests.cs
+[TG]: Verification/tail-elements-core.trx.gz

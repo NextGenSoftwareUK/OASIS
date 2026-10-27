@@ -1,3 +1,21 @@
+## Last and from-end indexing verified — 26 October 2026
+
+[Examples 106–135](../../../Examples/CosmicCqlDemo/V1TailQueries.cs) run on all
+three stores. Last/LastOrDefault and System.Index select after the original source
+window in one native operation. Graph visibility, null ranks, secondary ties and
+exact UTC/UInt64/Double/Decimal ordering are included. Q18/Q19 are green; All
+and the rest of the red parity backlog remain open. Demo/cursor code was not hardened.
+
+**405 SDK cases + 138 HTTP cases + 30 save checks**, 526settlements/608attempts.
+Core **3,797PASS0skip**; net10/netstandard, shipping WEB4 and console builds pass.
+Sources unchanged, seven native producer/consumer pairs and UnitCore copy match.
+
+[Native result](Verification/tail-elements-native-result.json),
+[native test](Verification/tail-elements-native.trx.gz),
+[Core tests](Verification/tail-elements-core.trx.gz),
+[source identities](Verification/tail-elements-native-source.json.gz),
+[binary identities](Verification/tail-elements-native-binaries.json).
+
 ## Integer indexing verified after demo acceptance — 26 October 2026
 
 [Examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs) verify

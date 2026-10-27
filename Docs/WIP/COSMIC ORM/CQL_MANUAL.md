@@ -2647,7 +2647,41 @@ still validates source scope/capabilities; an unsupported or unauthorized source
 is not silently accepted. Unknown-length offset addition uses the existing CQL
 maximum offset (1,000,000); exceeding that bound returns `CQL_QUERY_LIMIT`.
 
-Use explicit ordering for reproducible indexes. System.Index/from-end overloads,
-Last/LastOrDefault and All are separate red work requiring faithful native
-source-window composition. See [examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs)
-and checklist Q19a for native acceptance status; parent Q19 remains red.
+Use explicit ordering for reproducible indexes. System.Index/from-end and Last/LastOrDefault are now implemented through native
+post-window selection (see below). All remains separate red work. See [examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs)
+and checklist Q19/Q19a for native acceptance status.
+
+## Last and System.Index after a source window
+
+Last requires explicit ordering. Use the same element planner and HolonManager
+execution method as First/ElementAt; adapters must advertise TailPaging.
+
+```csharp
+var ordered = visible.OrderBy(row => row.Name).Result;
+
+// B-owned,C-public,D-owned: Last is D-owned.
+var last = ordered.Last();
+
+// Source Take happens first: Last of B-owned,C-public is C-public.
+var lastInWindow = ordered.Take(2).Last();
+
+// ^1 is the final element, ^2 the preceding one, ^0 is past the end.
+var previous = ordered.ElementAt(^2);
+var absentDefault = ordered.ElementAtOrDefault(^4);
+
+// System.Index also supports ordinary from-start positions.
+var second = ordered.ElementAt(new Index(1));
+```
+
+Last on a successful empty sequence returns CQL_SEQUENCE_EMPTY; LastOrDefault
+returns a successful default. ElementAt(^0) is a construction range error;
+ElementAtOrDefault(^0) returns a successful default without reading storage.
+From-end indexes outside an explicit source Take are also known empty. Other
+from-end operations select natively from the composed window. Existing bounds,
+cancellation, read policy, provider errors and typed loading rules still apply.
+
+Source ordering, Skip/Take and reverse-tail selection run in one native SQL
+statement/aggregate/Cypher query. No separate count/read sequence or complete
+client-side scan is used. Graph expansion retains the existing native read owner.
+A global multi-provider tail needs an explicit federation contract and is rejected.
+All is still unimplemented. See [examples 106–135](../../../Examples/CosmicCqlDemo/V1TailQueries.cs).

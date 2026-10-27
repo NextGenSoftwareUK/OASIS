@@ -14,13 +14,13 @@ public partial class HolonRepository
             return (Nullable.GetUnderlyingType(declared)??declared)==typeof(Guid)
                 ? "lower(replace("+value+",'-','')) COLLATE BINARY" : value;
         }
-        internal string TranslateOrdering(IReadOnlyList<CosmicQueryOrdering> orderings)
+        internal string TranslateOrdering(IReadOnlyList<CosmicQueryOrdering> orderings, bool reverse = false)
         {
             var keys=new List<string>();
             for(var index=0;index<orderings.Count;index++)
             {
                 var ordering=orderings[index];var path=ordering.Path;
-                var direction=ordering.Descending?" DESC":" ASC";
+                var direction=(ordering.Descending ^ reverse)?" DESC":" ASC";
                 if(path.IsMetadata)
                 {
                     // Missing, explicit null, valid scalar, invalid domain. Invalid
@@ -43,7 +43,7 @@ public partial class HolonRepository
                 }
             }
             // Logical identity makes ties deterministic within this native query.
-            keys.Add(CanonicalColumn("Id")+" COLLATE BINARY ASC");
+            keys.Add(CanonicalColumn("Id")+" COLLATE BINARY"+(reverse?" DESC":" ASC"));
             return string.Join(", ",keys);
         }
     }

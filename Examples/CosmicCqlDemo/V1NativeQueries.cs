@@ -919,6 +919,10 @@ public static class V1NativeQueries
         // window; known-empty/default cases require no provider read.
         completedQueries += await V1IndexedQueries.RunAsync(manager, adapter, visible, output);
 
+        // 106–135. Last and System.Index select after the original source
+        // window inside one native operation, including graph/scalar ordering.
+        completedQueries += await V1TailQueries.RunAsync(manager, adapter, visible, output);
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,

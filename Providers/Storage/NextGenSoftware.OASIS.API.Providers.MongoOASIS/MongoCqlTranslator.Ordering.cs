@@ -33,14 +33,15 @@ internal sealed partial class MongoCqlTranslator
         return path.IsMetadata?Metadata(path.Segments,Key,prefix):Key(Canonical(path));
     }
 
-    internal MongoCqlCommand CompileExecution<T>(CosmicQuery<T> query,int maximumResults) where T:IHolon
+    internal MongoCqlCommand CompileExecution<T>(CosmicQuery<T> query,int maximumResults,int? tailIndex = null) where T:IHolon
     {
         var source = CompileSource(query, out var traverses);
         var resultBudget = query.GraphOptions == null ? maximumResults : Math.Min(maximumResults, query.GraphOptions.MaximumNodes);
-        var fetch = query.Limit.HasValue ? Math.Min(query.Limit.Value, resultBudget + 1) : resultBudget + 1;
+        var fetch = tailIndex.HasValue ? (query.Limit == 0 ? 0 : 1)
+            : query.Limit.HasValue ? Math.Min(query.Limit.Value, resultBudget + 1) : resultBudget + 1;
         // Share the selected-window owner: Take(0) suppresses rows while the
         // outer source still produces protected traversal error envelopes.
-        var pipeline = SelectedWindow(query, fetch);
+        var pipeline = tailIndex.HasValue ? SelectedTailWindow(query, tailIndex.Value) : SelectedWindow(query, fetch);
         if(traverses)FinishDescendantEnvelope(source,pipeline);else source.AddRange(pipeline);
         pipeline=source;
         ValidatePipeline(pipeline);
