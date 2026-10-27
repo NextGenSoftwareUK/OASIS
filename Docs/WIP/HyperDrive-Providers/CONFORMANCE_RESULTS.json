@@ -75,6 +75,45 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
       "sha256": "838e84fba937ade8c5717e308dd0227afd7d3cfe6030281f00d731260806c04d",
       "blockers": []
+    },
+    {
+      "provider": "AWSOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
+      "sha256": "102631e13e2f7a10f8350841e2de265cc3c3e348eed7b8103690bbe3db819bf0",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "DynamoDBOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
+      "sha256": "8aa673690a47e39eb9f3e321782e64cf9342106fcc6054f7124513870309985d",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "AWSS3OASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "286e49489debc8fd63556dcd945ed41aedf5d618684c51f32fe732d36abf3ccb",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
@@ -95,6 +134,30 @@
     ],
     "PolygonOASIS": [
       "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "GoogleMapsOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "HEREMapsOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "MapLibreOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "NianticLightshipOASIS": [
+      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "WRLD3DOASIS": [
+      "Source-reviewed legacy map facade contains 47 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+    ],
+    "AWSOASIS": [
+      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+    ],
+    "DynamoDBOASIS": [
+      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+    ],
+    "AWSS3OASIS": [
+      "Canonical shipping S3 factory bound; existing isolated test-bucket/region/persisted-key-variable and explicit request-cost opt-in absent; no cloud requests dispatched; 27 factory controls are not native conformance"
     ]
   },
   "suites": [

@@ -14,8 +14,8 @@ SDK={'Nethereum':r'new (?:Nethereum\.)?Web3\b|new Web3CoreOASIS\b','Npgsql':r'ne
 NON_STORAGE=set("CargoOASIS HolonymOASIS ProofOfHumanityOASIS SelfProtocolOASIS CivicOASIS ReclaimProtocolOASIS BittensorOASIS GaladrielOASIS RitualOASIS IntelOpenVINOOASIS MapboxOASIS GoogleMapsOASIS GOMapOASIS HEREMapsOASIS MapLibreOASIS NianticLightshipOASIS WRLD3DOASIS ReadyPlayerMeOASIS DecentralandOASIS TheSandboxOASIS DuneAnalyticsOASIS CovalentOASIS TheGraphOASIS SubqueryOASIS GoldskyOASIS NansenOASIS ZapperOASIS BlockscoutOASIS MoralisOASIS MoralisStreamsOASIS AlchemyOASIS AnkrOASIS InfuraOASIS QuickNodeOASIS TenderlyOASIS ReservoirOASIS ENSOASIS ENSOffchainOASIS PolygonIDOASIS PrivyOASIS PrivyServerWalletsOASIS zkPassOASIS GitcoinPassportOASIS SuiZkLoginOASIS SafeOASIS ZkSyncSSOOASIS WorldIDOASIS LayerZeroOASIS PushProtocolOASIS WakuOASIS AkashOASIS LivepeerOASIS TemporalOASIS OrionProtocolOASIS LitProtocolOASIS".split())
 FAMILY_NAMES={
  'Document':set("FirebaseOASIS AppwriteOASIS FaunaOASIS ConvexOASIS PocketBaseOASIS PolybaseOASIS GUNOASIS OrbitDBOASIS PouchDBOASIS SurrealDBOASIS AWSOASIS GoogleCloudOASIS".split()),
- 'SQL':set("CloudflareD1OASIS TursoOASIS TablelandOASIS PlanetScaleOASIS NileOASIS PgVectorOASIS MotherDuckOASIS".split()),
- 'Key-value/object':set("UpstashOASIS AzureStorageOASIS CloudflareOASIS ThreeFoldOASIS CloudinaryOASIS FlyIOOASIS DragonflyOASIS GarnetOASIS".split()),
+ 'SQL':set("CloudflareD1OASIS TursoOASIS TablelandOASIS PlanetScaleOASIS NileOASIS PgVectorOASIS MotherDuckOASIS FlyIOOASIS".split()),
+ 'Key-value/object':set("UpstashOASIS AzureStorageOASIS CloudflareOASIS ThreeFoldOASIS CloudinaryOASIS OracleObjectStorageOASIS DragonflyOASIS GarnetOASIS".split()),
  'Graph':set("ArangoDBOASIS ArcadeDBOASIS".split()),
  'Search/vector storage':set("AlgoliaOASIS ChromaOASIS ElasticsearchOASIS LanceDBOASIS MarqoOASIS MeilisearchOASIS MilvusOASIS OpenSearchOASIS PineconeOASIS QdrantOASIS SolrOASIS TypesenseOASIS WeaviateOASIS XataOASIS ZillizOASIS".split()),
  'Analytical SQL':set("BigQueryOASIS ClickHouseOASIS DatabricksOASIS DruidOASIS InfluxDBOASIS PinotOASIS QuestDBOASIS RedshiftOASIS SnowflakeOASIS".split()),
@@ -40,6 +40,19 @@ def family(name,text,path):
 # Match actual client use, including injected clients and target-typed constructors.
 # Namespace/type guard avoids confusing an unrelated JsonRpcClientFactory with Solnet.
 CS_SDK_RULES=[
+ ('DuckDB.NET','\\bDuckDB\\.NET\\.Data\\b','new\\s+DuckDBConnection\\b'),
+ ('MySqlConnector','\\bMySqlConnector\\b','new\\s+MySqlConnection\\b'),
+ ('Snowflake.Data','\\bSnowflake\\.Data\\.Client\\b','new\\s+SnowflakeDbConnection\\b'),
+ ('Cassandra C# driver','\\bCassandra\\b','\\bCluster\\.Builder\\('),
+ ('Couchbase SDK','\\bCouchbase\\b','\\b(?:Couchbase\\.)?Cluster\\.ConnectAsync\\('),
+ ('RavenDB client','\\bRaven\\.Client\\.Documents\\b','new\\s+DocumentStore\\b'),
+ ('NATS.Net','\\bNATS\\.Client\\.Core\\b','new\\s+NatsConnection\\b'),
+ ('Dapr SDK','\\bDapr\\.Client\\b','new\\s+DaprClientBuilder\\b'),
+ ('Temporal SDK','\\bTemporalio\\.Client\\b','\\bTemporalClient\\.ConnectAsync\\('),
+ ('ClickHouse.Client','\\bClickHouse\\.Client\\.ADO\\b','new\\s+ClickHouseConnection\\b'),
+ ('InfluxDB.Client','\\bInfluxDB\\.Client\\b','\\bInfluxDBClientFactory\\.Create\\('),
+ ('Enyim Memcached','\\bEnyim\\.Caching\\b','new\\s+MemcachedClient\\b'),
+ ('SurrealDb.Net','\\bSurrealDb\\.Net\\b','new\\s+SurrealDbClient\\b'),
  ('OCI Object Storage SDK',r'\bOci\.ObjectstorageService\b',r'\.(?:GetObject|PutObject|ListObjects|DeleteObject)\('),
  ('StackExchange.Redis',r'\bStackExchange\.Redis\b',r'\bConnectionMultiplexer\.(?:Connect|ConnectAsync)\(|\.(?:StringGetAsync|StringSetAsync|ScriptEvaluateAsync)\('),
  ('Microsoft.Data.SqlClient',r'\bMicrosoft\.Data\.SqlClient\b',r'new\s+SqlConnection\b|\bSqlConnection\s+\w+\s*=\s*new\s*\('),
@@ -81,7 +94,7 @@ def source_text(project):
  return '\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in sorted(source_files(project.parent)))
 
 def node_sdk_evidence(directory):
- known={'near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js'}
+ known={'arweave','near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js'}
  found=[]
  for current,dirs,files in os.walk(directory):
   dirs[:]=[d for d in dirs if d not in {'bin','obj','node_modules','.git'}]
@@ -106,7 +119,11 @@ def sdk_evidence(project,visited=None):
   path=(project.parent/ref.attrib['Include'].replace('\\','/')).resolve()
   if path.is_file() and path.name.startswith(('NextGenSoftware.OASIS.API.Providers.','NextGenSoftware.OASIS.Providers.Shared.')):
    namespace=ET.parse(path).findtext('.//RootNamespace') or path.stem
-   if namespace in source_text(project):found+=sdk_evidence(path,visited)
+   current_source=strip_cs_comments(source_text(project))
+   short=namespace.rsplit('.',1)[-1]
+   relative_base=re.search(r':\s*'+re.escape(short)+r'\.'+re.escape(short)+r'\b',current_source)
+   same_provider_root=namespace.rsplit('.',1)[0] in current_source
+   if namespace in current_source or (relative_base and same_provider_root):found+=sdk_evidence(path,visited)
  return sorted(set(found))
 
 def build():
@@ -150,8 +167,8 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
 | SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; Oracle native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
-| Document | Native document transports + shared record policy | Extract common policy without conflating native dialects | Not started; ~1 day |
-| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | One suite for all backend factories | Suite implementation started; ~1 day |
+| Document | Existing DynamoDB owner for AWS alias + shared record policy | AWS/Dynamo factories bound; 27factory controlsPASS, native runtime missing0/52 | Started 26 Oct; ~1 day |
+| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | AWS S3 shipping factory bound; controlsPASS, native test-bucket config missing0/52 | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
 | Non-EVM | Shared record policy + native SDK transports | Baseline storage only; stop contract/fee/recovery depth | Not started; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Classify storage applicability and register factories | Not started; ~1 day |

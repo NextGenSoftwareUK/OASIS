@@ -10,8 +10,8 @@ class ProviderMatrixTests(unittest.TestCase):
     def test_requested_document_sql_and_object_roles(self):
         for family,names in {
             'Document':['FirebaseOASIS','AppwriteOASIS','FaunaOASIS','ConvexOASIS','PocketBaseOASIS'],
-            'SQL':['CloudflareD1OASIS','TursoOASIS','TablelandOASIS'],
-            'Key-value/object':['UpstashOASIS','AzureStorageOASIS']}.items():
+            'SQL':['CloudflareD1OASIS','TursoOASIS','TablelandOASIS','FlyIOOASIS'],
+            'Key-value/object':['UpstashOASIS','AzureStorageOASIS','OracleObjectStorageOASIS']}.items():
             for name in names:
                 with self.subTest(provider=name):self.assertEqual(family,m.family(name,'',Path('Providers/Cloud/provider.csproj')))
 
@@ -36,6 +36,15 @@ class ProviderMatrixTests(unittest.TestCase):
         self.assertNotIn('StackExchange.Redis',m.detect_cs_sdk('// using StackExchange.Redis; ConnectionMultiplexer.ConnectAsync(options);'))
         self.assertNotIn('Microsoft.Data.SqlClient',m.detect_cs_sdk('using Microsoft.Data.SqlClient; /* new SqlConnection(settings); */'))
 
+    def test_native_family_sdk_guards_and_real_client_calls(self):
+        rows=[('DuckDB.NET', 'DuckDB.NET.Data', 'var client=new DuckDBConnection(settings);'), ('MySqlConnector', 'MySqlConnector', 'var client=new MySqlConnection(settings);'), ('Snowflake.Data', 'Snowflake.Data.Client', 'var client=new SnowflakeDbConnection();'), ('Cassandra C# driver', 'Cassandra', 'var client=Cluster.Builder();'), ('Couchbase SDK', 'Couchbase', 'await Cluster.ConnectAsync(settings);'), ('RavenDB client', 'Raven.Client.Documents', 'var client=new DocumentStore();'), ('NATS.Net', 'NATS.Client.Core', 'var client=new NatsConnection(options);'), ('Dapr SDK', 'Dapr.Client', 'var client=new DaprClientBuilder();'), ('Temporal SDK', 'Temporalio.Client', 'await TemporalClient.ConnectAsync(options);'), ('ClickHouse.Client', 'ClickHouse.Client.ADO', 'var client=new ClickHouseConnection(settings);'), ('InfluxDB.Client', 'InfluxDB.Client', 'var client=InfluxDBClientFactory.Create(settings);'), ('Enyim Memcached', 'Enyim.Caching', 'var client=new MemcachedClient(options);'), ('SurrealDb.Net', 'SurrealDb.Net', 'var client=new SurrealDbClient(endpoint);')]
+        for name,namespace,code in rows:
+            with self.subTest(sdk=name):
+                self.assertIn(name,m.detect_cs_sdk('using '+namespace+'; '+code))
+                self.assertNotIn(name,m.detect_cs_sdk('using '+namespace+';'))
+                self.assertNotIn(name,m.detect_cs_sdk(code))
+                self.assertNotIn(name,m.detect_cs_sdk('// using '+namespace+'; '+code))
+
     def test_package_presence_and_unrelated_client_factory_do_not_prove_an_sdk(self):
         self.assertEqual([],m.detect_cs_sdk('<PackageReference Include="Nethereum.Web3" />'))
         self.assertEqual([],m.detect_cs_sdk('// using Nethereum.Web3; CreateWeb3WithAccount(account, endpoint);'))
@@ -46,6 +55,12 @@ class ProviderMatrixTests(unittest.TestCase):
     def test_existing_pinned_node_bridge_import_is_recognized_without_installing(self):
         directory=m.ROOT/'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS'
         self.assertTrue(any(x.startswith('near-api-js 7.3.1') for x in m.node_sdk_evidence(directory)))
+
+    def test_real_relative_provider_inheritance_and_arweave_bridge(self):
+        project=m.ROOT/'Providers/Storage/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS.csproj'
+        self.assertIn('Npgsql',m.sdk_evidence(project))
+        directory=m.ROOT/'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS'
+        self.assertIn('arweave 2.1.0 (bridge import)',m.node_sdk_evidence(directory))
 
     def test_unused_provider_reference_cannot_lend_its_sdk_to_an_empty_project(self):
         p=m.ROOT/'Providers/Other/NextGenSoftware.OASIS.API.Providers.CargoOASIS/NextGenSoftware.OASIS.API.Providers.CargoOASIS.csproj'
