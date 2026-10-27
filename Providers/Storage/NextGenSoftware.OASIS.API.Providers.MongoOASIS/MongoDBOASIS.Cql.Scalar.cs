@@ -24,7 +24,7 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) })
-            });
+            }, supportsAllChildren: true);
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
