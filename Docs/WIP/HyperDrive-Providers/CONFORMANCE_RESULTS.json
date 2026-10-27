@@ -233,6 +233,16 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-googlecloudoasis-current.json",
       "sha256": "a342d0ed9fb94193ca95de88b3222e62db037aaac4ae833b9fa8bbde6d03a7e0",
       "blockers": []
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-neo4joasis-current.json",
+      "sha256": "35c91c8a78f48bd84639ac4a1f1793d5daa849280d8d34c9ef9370fb8f13db89",
+      "blockers": []
     }
   ],
   "providerBlockers": {
