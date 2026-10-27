@@ -16,3 +16,5 @@ Historical ORM, replication, billing, history, child graph, encryption and trans
 [Full implementation history](Archive/IMPLEMENTATION_STATUS_history_2026-10-27.md) preserves prior detail, including original bytes with legacy encoding.
 
 Full Core run:3,853 passed/6 failed for missing new-worktree WEB4 host artifact; no skips. This prerequisite remains unverified, not a full-suite success.
+
+Q01d shared repeated-selection owner implemented;2,536 CQL regression tests pass including4 new binding/closure/shape/error cases, both Core targets build. Native matrix is the next acceptance gate; Q01d cells remain red.

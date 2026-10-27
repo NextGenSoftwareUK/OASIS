@@ -42,8 +42,8 @@ public sealed partial class CosmicLinqProjectionElementTests
             CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Ordering | (ExtremaEnabled ? CosmicSelectedStageFeatures.Filter : CosmicSelectedStageFeatures.None)
                 | (ReverseEnabled ? CosmicSelectedStageFeatures.Reverse : CosmicSelectedStageFeatures.None),
             ExtremaEnabled ? CosmicQueryFeatures.NullLiteral : CosmicQueryFeatures.None,
-            ExtremaEnabled ? new[] { new CosmicQueryMetadataCapability(typeof(string), new[] { CosmicQueryComparisonOperator.NotEqual }),
-                new CosmicQueryMetadataCapability(typeof(int?), new[] { CosmicQueryComparisonOperator.NotEqual }) } : Array.Empty<CosmicQueryMetadataCapability>(),
+            ExtremaEnabled ? new[] { new CosmicQueryMetadataCapability(typeof(string), new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual }),
+                new CosmicQueryMetadataCapability(typeof(int?), new[] { CosmicQueryComparisonOperator.Equal, CosmicQueryComparisonOperator.NotEqual }) } : Array.Empty<CosmicQueryMetadataCapability>(),
             new[] { typeof(string), typeof(int), typeof(int?) }, 32, false, CardinalityEnabled,
             NumericEnabled ? new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
             {
@@ -79,7 +79,7 @@ public sealed partial class CosmicLinqProjectionElementTests
                 current = stage switch
                 {
                     CosmicSelectedReverseStage => current.Reverse().ToArray(),
-                    CosmicSelectedFilterStage => current.Where(row => row.Values[0] != null).ToArray(),
+                    CosmicSelectedFilterStage filter => current.Where(row => CosmicSelectedPredicateEvaluation.Evaluate(filter.Predicate, _ => row.Values[0], cancellationToken)).ToArray(),
                     CosmicSelectedOrderStage order => (order.Orderings[0].Descending
                         ? current.OrderByDescending(row => row.Values[0], Comparer<object>.Create(Compare))
                         : current.OrderBy(row => row.Values[0], Comparer<object>.Create(Compare))).ToArray(),
