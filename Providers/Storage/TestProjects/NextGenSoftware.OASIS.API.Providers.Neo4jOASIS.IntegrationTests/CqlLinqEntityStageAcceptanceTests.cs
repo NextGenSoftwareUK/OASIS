@@ -63,12 +63,20 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual("CQL_QUERY_LIMIT", rejected.ErrorCode, rejected.Message + rejected.Exception);
             Passed("source/stage budget " + budget.MaximumInputRows + "/" + budget.MaximumInputPayloadBytes + "/" + budget.MaximumStageRows);
         }
-        var graph = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot, maxChildDepth: 1, maximumNodes: 2).Result;
+        var consistency = adapter.QueryProviderType == ProviderType.Neo4jOASIS
+            ? CosmicQueryGraphConsistency.ProviderDefault : CosmicQueryGraphConsistency.ProviderSnapshot;
+        if (adapter.QueryProviderType == ProviderType.Neo4jOASIS)
+        {
+            var unsupported = source.WithChildren(CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot).Result).Result;
+            var denied = await CosmicLinq.Create(NativeManager(adapter), adapter, unsupported).Result.Take(1).Where(row => true).ToCosmicListAsync();
+            Assert.AreEqual("CQL_CONSISTENCY_UNSUPPORTED", denied.ErrorCode); Passed("snapshot request explicitly rejected");
+        }
+        var graph = CosmicQueryGraphOptions.Create(consistency, maxChildDepth: 1, maximumNodes: 2).Result;
         var visibleSource = source.WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).WithChildren(graph).Result;
         var visible = (await Rows(CosmicLinq.Create(NativeManager(adapter), adapter, visibleSource).Result.Take(1).Where(row => true))).Single();
         Assert.AreEqual("visible match", visible.Children.Single().Name); Assert.AreEqual(0, visible.Children.Single().Children.Count());
         Passed("snapshot graph visibility/depth");
-        var tinyGraph = CosmicQueryGraphOptions.Create(CosmicQueryGraphConsistency.ProviderSnapshot, maximumNodes: 1).Result;
+        var tinyGraph = CosmicQueryGraphOptions.Create(consistency, maximumNodes: 1).Result;
         // Graph options must be bound before the source page; the graph budget
         // applies to selected output, never truncates earlier source candidates.
         var graphCandidates = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
