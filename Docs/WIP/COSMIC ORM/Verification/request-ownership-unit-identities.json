@@ -1,0 +1,42 @@
+{
+  "Files": [
+    {
+      "SHA256": "C555A3397285FCDB032617384B564BC9047A2D9AFC2C45E4E0E0A410AC847520",
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlRequestCapture.cs",
+      "Bytes": 4319
+    },
+    {
+      "SHA256": "11F35FEFC09AE222F72E256181190CC53E2DEBFEB58447FC940C4D2C56041365",
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlV1Endpoint.cs",
+      "Bytes": 13624
+    },
+    {
+      "SHA256": "71740D516E9C7DF912E1D3130E233EA447CC2AF51AC33E85A8145C463D939F8A",
+      "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlFederationV1Endpoint.cs",
+      "Bytes": 21092
+    },
+    {
+      "SHA256": "E6A8E608CB6116D3E579A51E6A0C79596F3842AC8E00884CDDDA26F3EDEF0CA8",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CqlFederationRequestOwnershipTests.cs",
+      "Bytes": 5578
+    },
+    {
+      "SHA256": "D63F0B7B2EFD271AB09C728F437EBF52BD86BBD910E8677440E60048D99A732E",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\NextGenSoftware.OASIS.API.Core.UnitTests.csproj",
+      "Bytes": 7561
+    },
+    {
+      "SHA256": "052BBE642F122E9E441EDA4787F9AFCF610E78CCFAC647E87963F73B472EE0B9",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "Bytes": 3503104
+    },
+    {
+      "SHA256": "052BBE642F122E9E441EDA4787F9AFCF610E78CCFAC647E87963F73B472EE0B9",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "Bytes": 3503104
+    }
+  ],
+  "CoreTests": 3744,
+  "BaselineFailed": 2,
+  "Utc": "2026-10-27T00:25:37.9610071Z"
+}

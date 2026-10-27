@@ -56,6 +56,7 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            request = CqlRequestCapture.Capture(request);
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider);
             // Bind the captured server policy before any source window is compiled.
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
