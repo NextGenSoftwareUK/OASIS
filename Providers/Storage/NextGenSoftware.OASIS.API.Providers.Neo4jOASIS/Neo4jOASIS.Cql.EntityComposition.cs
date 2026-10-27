@@ -10,14 +10,32 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryEntityCompositionStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 {
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
         CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging, CqlCapabilities);
 
     public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
         int maximumResults=100, CancellationToken cancellationToken=default) where T:IHolon
-        => ExecuteCqlRowsAsync(plan?.Source, maximumResults, cancellationToken, plan);
+        => ProjectCqlRowsAsync(ExecuteCqlReadAsync(plan?.Source, maximumResults, cancellationToken, plan));
+
+    public bool SupportsEntityCount => true;
+
+    public async Task<OASISResult<long>> ExecuteCosmicEntityCountAsync<T>(CosmicEntityCompositionPlan<T> plan,
+        CancellationToken cancellationToken=default) where T:IHolon
+    {
+        var read=await ExecuteCqlReadAsync(plan?.Source,10000,cancellationToken,plan,countOnly:true).ConfigureAwait(false);
+        var result=Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(read,new OASISResult<long>());
+        if (!read.IsError) result.Result=read.Result.Count;
+        return result;
+    }
+
+    internal static (string Text, IReadOnlyDictionary<string, object> Parameters) CompileCqlEntityCount<T>(
+        CosmicEntityCompositionPlan<T> plan) where T:IHolon
+    {
+        var compiled=CompileCqlSource(plan.Query.Source);
+        return (CompileCqlEntityComposition(compiled,plan,10000,countOnly:true),compiled.Translator.Parameters);
+    }
 
     internal static (string Text, IReadOnlyDictionary<string, object> Parameters) CompileCqlEntityComposition<T>(
         CosmicEntityCompositionPlan<T> plan, int maximumResults) where T:IHolon
@@ -27,7 +45,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCompositionStorageProvider
     }
 
     private static string CompileCqlEntityComposition<T>(NeoCqlSource compiled, CosmicEntityCompositionPlan<T> plan,
-        int maximumResults) where T:IHolon
+        int maximumResults, bool countOnly=false) where T:IHolon
     {
         var translator = compiled.Translator;
         var parameters = translator.Parameters;
@@ -37,7 +55,8 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCompositionStorageProvider
         parameters.Add("entityWorkBound", plan.Options.MaximumStageRows);
         parameters.Add("entityOutputTake", maximumResults + 1);
         const string invalid = "null AS id,null AS revision,false AS valid,null AS snapshot,";
-        const string fields = "id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput";
+        var fields = "id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput" + (countOnly ? ",entityCount" : "");
+        var nullCount = countOnly ? ",null AS entityCount" : "";
         var keys = translator.TranslateOrdering(plan.Query.Source.Orderings);
         var projected = string.Concat(keys.Select((key,index) => "," + key.Expression + " AS entitySort" + index));
         var ordering = string.Join(",", keys.Select((key,index) => "entitySort" + index + (key.Descending ? " DESC" : " ASC"))
@@ -89,15 +108,15 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCompositionStorageProvider
         }
         text.Append("UNWIND CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
             + "ELSE [item IN entitySource | {h:item.h,p:item.p,input:true}] + "
-            + "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}] END AS entry ")
+            + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}]") + " END AS entry ")
             .Append("RETURN entry.h.Id AS id,entry.h.ProviderRevisionId AS revision,NOT(entityCycle OR entityLimit) AS valid,"
                 + "CASE WHEN size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END AS snapshot,"
-                + "entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput ");
+                + "entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput" + (countOnly ? ",entry.count AS entityCount " : " "));
         var sourceErrors = compiled.Translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + invalid
-            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput LIMIT 1";
+            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount + " LIMIT 1";
         return "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + invalid
-            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput LIMIT 1" + sourceErrors
+            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput" + nullCount + " LIMIT 1" + sourceErrors
             + " UNION ALL " + text + " } RETURN " + fields;
     }
 }
