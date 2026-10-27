@@ -12,7 +12,7 @@ if($InspectCurrentCaptureSqlite -or $InspectCurrentCaptureDynamo -or $CleanupCur
         if(Test-Path (Join-Path $awsInspectWork $name)){throw 'Preserve current original inspection; no overwrite.'}
     }
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'Read-only current AWS SQLite acknowledgement inspection' -Operation {
-        $lease=[IO.File]::Open('C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\environment.lock',[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+        $lease=[IO.File]::Open((Join-Path $awsInspectRoot 'TestResults/AWSProviderEvidence/environment.lock'),[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
         $previous=$env:OASIS_DYNAMO_HISTORY_WORK
         $previousEndpoint=$env:DYNAMODB_SERVICE_URL;$previousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY;$currentOwned=$null
         try{
@@ -48,7 +48,7 @@ if($CleanupReviewedOriginal){
 }elseif(Test-Path (Join-Path $awsInspectWork 'aws-generated-graph-original-inspection.json')){throw 'Preserve original inspection proof; do not overwrite.'}
 if(Test-Path (Join-Path $awsInspectWork $awsInspectReport)){throw 'Preserve original report; do not overwrite.'}
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'Read-only original AWS graph inspection' -Operation {
-    $awsInspectLease=[IO.File]::Open('C:\Source\OASIS-hyperdrive-v2-gaps\TestResults\AWSProviderEvidence\environment.lock',[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+    $awsInspectLease=[IO.File]::Open((Join-Path $awsInspectRoot 'TestResults/AWSProviderEvidence/environment.lock'),[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
     $awsInspectOwned=$null;$awsInspectPreviousEndpoint=$env:DYNAMODB_SERVICE_URL;$awsInspectPreviousWork=$env:OASIS_DYNAMO_HISTORY_WORK
     $awsInspectPreviousCleanup=$env:OASIS_AWS_CLEANUP_AUTHORITY
     try{

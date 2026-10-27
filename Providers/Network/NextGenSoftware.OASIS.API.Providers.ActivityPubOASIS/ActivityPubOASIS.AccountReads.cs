@@ -90,7 +90,7 @@ public partial class ActivityPubOASIS
             var path=nativeId?"/api/v1/accounts/"+Uri.EscapeDataString(selected):"/api/v1/accounts/lookup?acct="+Uri.EscapeDataString(selected);
             using var response=await _httpClient.GetAsync(path);response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var account=document.RootElement;
-            result.Result=project(ReadMastodonPublicProfile(account,nativeId?selected:null));result.LoadedCount=1;
+            result.Result=project(ReadMastodonPublicProfile(account,nativeId?selected:null));result.IsLoaded=true;result.LoadedCount=1;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon public account read failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;

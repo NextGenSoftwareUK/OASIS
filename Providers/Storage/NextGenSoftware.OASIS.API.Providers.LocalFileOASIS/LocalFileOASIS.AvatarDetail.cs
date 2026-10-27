@@ -60,6 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by verification token";
                                 return result;
                             }
@@ -117,6 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by reset token";
                                 return result;
                             }
@@ -174,6 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by refresh token";
                                 return result;
                             }
@@ -241,6 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 result.Result = avatars;
                 result.IsError = false;
                 result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
                 result.Message = $"Loaded {avatars.Count} avatars";
             }
             catch (Exception ex)
@@ -281,6 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         result.Result = avatarDetail;
                         result.IsError = false;
                         result.IsLoaded = true;
+                        result.LoadedCount = 1;
                         result.Message = "Avatar detail loaded successfully";
                     }
                     else
@@ -342,6 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatarDetail;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar detail loaded successfully by email";
                                 return result;
                             }
@@ -403,6 +409,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatarDetail;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar detail loaded successfully by username";
                                 return result;
                             }
@@ -474,6 +481,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 result.Result = avatarDetails;
                 result.IsError = false;
                 result.IsLoaded = true;
+                result.LoadedCount = avatarDetails.Count;
                 result.Message = $"Loaded {avatarDetails.Count} avatar details";
             }
             catch (Exception ex)

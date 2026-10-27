@@ -22,7 +22,9 @@ try{
     [string[]]$inspectionArguments=@()
     if($FeeRules){$inspectionArguments=@('--fee-rules')}
     if($VMFeeRules){$inspectionArguments=@('--vm-fee-rules')}
-    $raw=& wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/inspect-retained-tron-jar.sh @inspectionArguments
+    $inspectionScript=(& wsl -d Ubuntu -- wslpath -u ((Join-Path $taskRoot 'Scripts/TestHosts/inspect-retained-tron-jar.sh').Replace('\','/'))).Trim()
+    if($LASTEXITCODE){throw 'Cannot resolve repository inspection helper.'}
+    $raw=& wsl -d Ubuntu -u root -- bash $inspectionScript @inspectionArguments
     if($LASTEXITCODE-ne 0){throw 'Offline retained JAR inspection failed; no runtime replaced.'}
     $metadata=($raw-join "`n")|ConvertFrom-Json
     $materials=@([pscustomobject]@{entry='org/tron/program/Version.class';sha256=$metadata.versionClassSha256;base64=$metadata.versionClassBase64})

@@ -187,6 +187,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
                 result.Result = allData;
                 result.IsError = false;
+                result.IsLoaded = true;
+                result.LoadedCount = allData.Count;
                 result.Message = $"Exported {allData.Count} holons for avatar";
             }
             catch (Exception ex)
@@ -265,6 +267,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
                 result.Result = allData;
                 result.IsError = false;
+                result.IsLoaded = true;
+                result.LoadedCount = allData.Count;
                 result.Message = $"Exported {allData.Count} holons";
             }
             catch (Exception ex)

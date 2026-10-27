@@ -421,6 +421,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by provider key";
                                 return result;
                             }
@@ -476,6 +477,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         result.Result = avatar;
                         result.IsError = false;
                         result.IsLoaded = true;
+                        result.LoadedCount = 1;
                         result.Message = "Avatar loaded successfully";
                     }
                     else
@@ -537,6 +539,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by email";
                                 return result;
                             }
@@ -599,6 +602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 result.Result = avatar;
                                 result.IsError = false;
                                 result.IsLoaded = true;
+                                result.LoadedCount = 1;
                                 result.Message = "Avatar loaded successfully by username";
                                 return result;
                             }

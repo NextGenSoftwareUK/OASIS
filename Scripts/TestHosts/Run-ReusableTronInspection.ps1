@@ -32,7 +32,9 @@ try{
     if($LASTEXITCODE -ne 0){throw 'TRON inspection consumer build failed.'}
     if((Inspect-OwnedRuntime).State.Status -ne 'exited'){throw 'Retained runtime became active before ownership was acquired.'}
     $started=$true
-    & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/recover-owned-tron-test-node.sh
+    $recoverScript=(& wsl -d Ubuntu -- wslpath -u ((Join-Path $taskRoot 'Scripts/TestHosts/recover-owned-tron-test-node.sh').Replace('\','/'))).Trim()
+    if($LASTEXITCODE){throw 'Cannot resolve repository recovery helper.'}
+    & wsl -d Ubuntu -u root -- bash $recoverScript
     if($LASTEXITCODE -ne 0){throw 'Retained TRON resume failed; preserve state and inspect.'}
     $ready=$false;$readinessError=$null;$deadline=[DateTime]::UtcNow.AddSeconds(90)
     while([DateTime]::UtcNow -lt $deadline){
@@ -71,7 +73,9 @@ try{
         if($started){
             $runtime=Inspect-OwnedRuntime
             if($runtime.State.Status -eq 'running'){
-                & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-tron-test-node.sh
+                $stopScript=(& wsl -d Ubuntu -- wslpath -u ((Join-Path $taskRoot 'Scripts/TestHosts/stop-owned-tron-test-node.sh').Replace('\','/'))).Trim()
+                if($LASTEXITCODE){throw 'Cannot resolve repository teardown helper.'}
+                & wsl -d Ubuntu -u root -- bash $stopScript
                 if($LASTEXITCODE -ne 0){throw 'Owned TRON graceful termination signal failed.'}
             }
             if((Inspect-OwnedRuntime).State.Status -ne 'exited'){throw 'Owned TRON has not exited; no escalation/restart performed.'}

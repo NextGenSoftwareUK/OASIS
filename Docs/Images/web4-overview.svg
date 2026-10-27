@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 488" role="img" aria-label="One API in front of every database, cloud and chain" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13">
+  <defs>
+    <marker id="web4-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7d8aa6"/></marker>
+  </defs>
+  <rect width="760" height="488" rx="12" fill="#0b1224"/>
+  <text x="24" y="34" font-size="15" font-weight="600" fill="#ffffff">One API in front of every database, cloud and chain</text>
+
+  <rect x="24" y="60" width="712" height="56" rx="8" fill="none" stroke="#7d8aa6" stroke-width="1.25"/>
+  <text x="380" y="84" text-anchor="middle" font-weight="600" fill="#ffffff">Apps, dApps, websites and AI agents</text>
+  <text x="380" y="100" text-anchor="middle" font-size="11.5" fill="#a8b6d0">Anything that needs data, identity or payments</text>
+
+  <path d="M380 116V136" stroke="#7d8aa6" stroke-width="1.25" marker-end="url(#web4-arrow)"/>
+  <path d="M380 192V212" stroke="#7d8aa6" stroke-width="1.25" marker-end="url(#web4-arrow)"/>
+  <path d="M380 268V288" stroke="#7d8aa6" stroke-width="1.25" marker-end="url(#web4-arrow)"/>
+
+  <rect x="24" y="136" width="712" height="56" rx="8" fill="#00e5ff" fill-opacity="0.12" stroke="#00e5ff" stroke-width="2"/>
+  <text x="380" y="160" text-anchor="middle" font-weight="600" fill="#ffffff">WEB4 API</text>
+  <text x="380" y="176" text-anchor="middle" font-size="11.5" fill="#ffffff">One holonic standard · portable avatar identity · CQL queries across everything</text>
+
+  <rect x="24" y="212" width="712" height="56" rx="8" fill="none" stroke="#7d8aa6" stroke-width="1.25"/>
+  <text x="380" y="236" text-anchor="middle" font-weight="600" fill="#ffffff">HyperDrive</text>
+  <text x="380" y="252" text-anchor="middle" font-size="11.5" fill="#a8b6d0">Sends each job to the provider best at it · replicates data · fails over automatically</text>
+
+  <rect x="24" y="288" width="712" height="176" rx="8" fill="#ffffff" fill-opacity="0.04" stroke="#7d8aa6" stroke-width="1.25"/>
+  <text x="380" y="312" text-anchor="middle" font-weight="600" fill="#ffffff">More than 200 providers, all speaking the same standard</text>
+
+  <g fill="none" stroke="#7d8aa6" stroke-width="1.25">
+    <rect x="40" y="328" width="216" height="56" rx="8"/><rect x="272" y="328" width="216" height="56" rx="8"/><rect x="504" y="328" width="216" height="56" rx="8"/>
+    <rect x="40" y="400" width="216" height="56" rx="8"/><rect x="272" y="400" width="216" height="56" rx="8"/><rect x="504" y="400" width="216" height="56" rx="8"/>
+  </g>
+  <g text-anchor="middle">
+    <text x="148" y="352" font-weight="600" fill="#ffffff">Databases</text><text x="148" y="368" font-size="11.5" fill="#a8b6d0">SQL, MongoDB, Neo4j</text>
+    <text x="380" y="352" font-weight="600" fill="#ffffff">Clouds</text><text x="380" y="368" font-size="11.5" fill="#a8b6d0">Azure, AWS, Google Cloud</text>
+    <text x="612" y="352" font-weight="600" fill="#ffffff">Blockchains</text><text x="612" y="368" font-size="11.5" fill="#a8b6d0">Ethereum, Solana, NEAR and more</text>
+    <text x="148" y="424" font-weight="600" fill="#ffffff">Decentralised storage</text><text x="148" y="440" font-size="11.5" fill="#a8b6d0">IPFS and other networks</text>
+    <text x="380" y="424" font-weight="600" fill="#ffffff">Social protocols</text><text x="380" y="440" font-size="11.5" fill="#a8b6d0">ActivityPub, SOLID</text>
+    <text x="612" y="424" font-weight="600" fill="#ffffff">Any API or platform</text><text x="612" y="440" font-size="11.5" fill="#a8b6d0">Web2 services, legacy systems</text>
+  </g>
+</svg>

@@ -45,7 +45,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             this.ProviderName = "ActivityPubOASIS";
             this.ProviderDescription = "ActivityPub Provider - Federated social network protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ActivityPubOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social);
+            // Native social projections are not an arbitrary private OASIS record store.
+            this.ProviderCapabilities = new List<EnumValue<ProviderCategory>> {
+                new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Social),
+                new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network)
+            };
 
             ArgumentNullException.ThrowIfNull(instanceUrl);
             if(!Uri.TryCreate(instanceUrl,UriKind.Absolute,out var root)
