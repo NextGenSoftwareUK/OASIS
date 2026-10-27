@@ -63,3 +63,13 @@ now passes718 affected controls and a native HTTP gate. Next
 interactive-demo enrollment; broader queries remain red.
 Do not rerun its already-green social baseline without a reproduced bug.
 Resume IPFS/SOLID native acceptance when the original environment is located.
+
+## Fresh environment authorization and resolution
+
+User subsequently explicitly authorized creating missing environments. Cached
+Kubo and retained CSS container/volume were reused to create a new IPFS repository
+and isolated SOLID demo account/Pod/client/key. Native offline IPFS readiness and
+SOLID issuer/DPoP ACL read now pass; both services stopped cleanly. See
+[environment commands/evidence](CQL_DEMO_ENVIRONMENTS.md). The earlier missing
+configuration findings remain historical; current baseline/CQL verification is
+next, with no claim of recovering original data. Resume IPFS first, then SOLID.
