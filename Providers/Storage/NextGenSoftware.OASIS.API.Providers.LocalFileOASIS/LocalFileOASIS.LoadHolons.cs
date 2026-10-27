@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 result.Result = Avatar;
                 result.IsError = false;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = "Avatar saved successfully";
             }
             catch (Exception ex)
@@ -104,6 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 result.Result = Avatar;
                 result.IsError = false;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = "Avatar detail saved successfully";
             }
             catch (Exception ex)
@@ -145,7 +147,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             loadResult.Result.DeletedDate = DateTime.UtcNow;
                             loadResult.Result.IsActive = false;
                             var saveResult = await SaveAvatarAsync(loadResult.Result);
-                            result.Result = !saveResult.IsError;
+                            result.Result = !saveResult.IsError && saveResult.IsSaved;
+                            result.IsDeleted = result.Result;
                             result.IsError = saveResult.IsError;
                             result.Message = saveResult.IsError ? saveResult.Message : "Avatar soft deleted successfully";
                         }
@@ -164,6 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         result.Result = true;
                         result.IsError = false;
                         result.Message = "Avatar deleted successfully";
+                        result.IsDeleted = true;
                     }
                 }
                 else
@@ -466,6 +470,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 result.Result = savedHolons;
                 result.IsError = false;
                 result.IsSaved = true;
+                result.SavedCount = savedHolons.Count;
                 result.Message = $"Saved {savedHolons.Count} holons successfully";
             }
             catch (Exception ex)

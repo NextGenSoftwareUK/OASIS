@@ -2,19 +2,6 @@
   "schemaVersion": 1,
   "results": [
     {
-      "provider": "LocalFileOASIS",
-      "suite": "core-storage-v1",
-      "mode": "native",
-      "passed": 2,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
-      "sha256": "bfc2e037d8ebd126fff7de9cc798a698f2fdb94be183dbcca31d1cdf694496d5",
-      "blockers": [
-        "avatar-save: System.InvalidOperationException",
-        "avatar-save: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "EthereumOASIS",
       "suite": "core-storage-v1",
       "mode": "blocked-before-native",
@@ -256,6 +243,16 @@
       "total": 5,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-activitypuboasis-current.json",
       "sha256": "cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c",
+      "blockers": []
+    },
+    {
+      "provider": "LocalFileOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
+      "sha256": "8337aff5b9bdf797b8ba6dd7483806a0f70adcf3e0505c9cf45cd446624bf2f8",
       "blockers": []
     }
   ],

@@ -7,10 +7,10 @@ Updated 2026-10-27. [CURRENT_STATUS.md](CURRENT_STATUS.md) is the recovery entry
 | Gate | Recorded scope |
 |---|---|
 | `core-storage-v2` | 26 sync + 26 async checks covering identity, avatar/detail save/read, graph/metadata/parent queries, batch/import/export, acknowledged deletion and owned-fixture interface absence |
-| Native52/52 | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS and DynamoDBOASIS; local engines/emulators, not hosted certification |
+| Native52/52 | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS and LocalFile; local engines/emulators, not hosted certification |
 | Controlled52/52 | KeyDB, ValKey, Dragonfly, Garnet; native product runtime/conditional/scan acceptance remains open |
-| `capability-v1` | Identity, honest capabilities, activation, read-only service response and deactivation; ActivityPub local5/5 pass, source publication pending |
-| Partial/blocked | Solana4/52; LocalFile2/52 from v1; SOLID/IPFS/Cosmos/EVM/S3 configuration or runtime gates; most other rows not run |
+| `capability-v1` | Identity, honest capabilities, activation, read-only service response and deactivation; ActivityPub published5/5 public-read baseline (`00235929a`) |
+| Partial/blocked | Solana4/52; SOLID/IPFS/Cosmos/EVM/S3 configuration or runtime gates; most other rows not run |
 
 Deletion checks preserve the shipping contract: valid tombstones or independent absence are allowed as declared, with acknowledged counts and no live/corrupt raw collection result. Optional fixture maintenance does not replace the API under test. Interface absence is not physical backup/ledger erasure.
 
@@ -25,8 +25,8 @@ Deletion checks preserve the shipping contract: valid tombstones or independent 
 
 ## Next verification
 
-1. Migrate evidence writers/references to TestResults in a separate code change, preserving linked legacy files meanwhile.
-2. Publish the verified ActivityPub acknowledgement/capability work without unrelated user/Core changes.
+1. Evidence writers migrated (`d70625e86`); keep linked legacy files until each reference is reviewed.
+2. ActivityPub published; LocalFile native52/52 completed with source/PDB and empty-current-fixture verification.
 3. Recover SOLID protected inputs or keep its configuration gate explicit; continue EVM/remaining priority families without fresh duplicate environments.
 4. Run only the relevant bounded native suite using existing cached hosts/runtimes; update registry, matrix and CURRENT_STATUS at the milestone.
 
