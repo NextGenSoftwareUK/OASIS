@@ -51,3 +51,11 @@ Next: locate an existing retained environment through configuration/inventory.
 If none can be recovered, keep IPFS native acceptance red and move to SOLID;
 code-level CID/catalogue query design remains possible without starting storage.
 No source or demo/parity cell is marked complete by this audit.
+
+## Fresh demo environment (user authorized)
+
+A new owned persistent repo/key now exists, using the cached Kubo0.43.1 runtime.
+Create/reuse and offline native identity/version checks pass; daemon stopped.
+See [environment report](CQL_DEMO_ENVIRONMENTS.md). The original historical repo
+was not recovered. Next native V2 storage acceptance on the new owned fixture,
+then the explicit CQL/source/index gates above. No storage/CQL cell is green yet.

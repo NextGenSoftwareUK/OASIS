@@ -57,3 +57,8 @@ does not establish global failover or 100% uptime.
 - Cosmos canonical and string/Boolean metadata rows are enrolled/native-proven; native Count/LongCount/Any and projection also pass; conditional Save/durable deltas are explicitly unsupported with pre-activation rejection tests; next implement numeric semantics and remaining lifecycle/HTTP/hosted acceptance; shared manager/LINQ row demo and canonical Version/Id index profile now pass.
 - Active next: [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md), then SOLID/ActivityPub. User reports no known Solana backup and requests other demo work. Preserve the failed source and defer recovery; [chain query contracts](CQL_CHAIN_QUERY_CONTRACT.md) now cover identity/checkpoint/receipts/lifetime and explicit composition/planning, but indexed execution/ingestion/WEB4 remain open. Continue IPFS, SOLID and ActivityPub in order; retain cloud numeric/lifecycle/hosted gaps on the full roadmap.
 - Keep the full parity checklist strict and update CURRENT_STATUS each milestone. Unfinished Q01f depth remains deferred, not complete.
+
+Environment update: user explicitly authorized creating missing environments.
+Fresh persistent IPFS and isolated SOLID demo identities now pass native readiness
+using cached runtimes; [commands/evidence](CQL_DEMO_ENVIRONMENTS.md). Active next
+IPFS V2 storage baseline/CQL admission, then SOLID; old-data recovery stays open.
