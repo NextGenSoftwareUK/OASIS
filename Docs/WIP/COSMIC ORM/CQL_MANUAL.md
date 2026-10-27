@@ -2731,3 +2731,25 @@ and must not be described as a successful 471-query gate. Its failed fixture,
 original writes and receipts remain preserved for verified reconciliation.
 See Verification/all-predicate-retained-native.trx.gz and the proving test
 CqlAllRetainedFixtureTests.cs. No green feature or cursor work was added.
+
+## Direct-child predicates inside All — verification in progress
+
+The new C# shape is `query.All(parent => parent.Children.Any(child => ...))`.
+The source window is evaluated first. Child existence then observes currently
+parented canonical members under the same actor visibility policy. Loaded
+`Children` objects are not enumerated. Negation and Boolean combinations remain
+native scalar expressions. An independent scalar capability admits this shape;
+ordinary row-child support and scalar All alone do not grant it.
+
+Core verification currently passes 3,815 tests and both target frameworks.
+Native verification of 16 added cases per provider is pending. Nested children
+and descendants inside the terminal remain explicit gaps; full Q23 stays red.
+The previous 22 scalar cases remain in the same native regression as necessary
+coverage of the changed All owner, with no unrelated green/cursor work added.
+
+Direct-child All native proof passes: 38 cases per provider, 114 total, on the
+unchanged retained fixture. Core: 3,815 pass with zero skips; net10.0 and
+netstandard2.1 build; spaced demo console build passes. Q23b is green on this
+scope. Full Q23 stays red for nested-child and descendant traversal inside All.
+The complete 519-SDK-query walkthrough still needs a reconciled clean rerun;
+its earlier failed fixture and durable receipts remain preserved.

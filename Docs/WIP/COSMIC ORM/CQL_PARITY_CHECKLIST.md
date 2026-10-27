@@ -139,8 +139,9 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
 | Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
 | Q22 | Any terminal | [✅][D9] | [✅][D9] | [✅][D9] | V1 example9. |
-| Q23 | All terminal | ❌ | ❌ | ❌ | Full parent retained red: child/descendant traversal inside the terminal predicate is not implemented. Q23a isolates scalar predicates without removing this requirement. |
+| Q23 | All terminal | ❌ | ❌ | ❌ | Full parent retained red: nested-child and descendant traversal inside the terminal predicate are not implemented. Q23a/Q23b isolate proved scalar/direct-child predicates without removing those requirements. |
 | Q23a | All with scalar/metadata predicates after the composed source window | [✅][AU] | [✅][AU] | [✅][AU] | [Native examples 136–157][AD]: 22 cases/store, empty/null/missing, windows, access and graph-filtered sources; [retained-fixture native proof][AG] passes all three. Full Q23 parent remains red. This is not a completed full-walkthrough claim. |
+| Q23b | Direct-child Any predicates inside All, after source paging, with visibility and Boolean combinations | [✅][AC] | [✅][AC] | [✅][AC] | Examples 158–173 in [All demo][AD]; [retained native proof][ACG] passes 38 All cases/store (114 total), with 3,815 Core tests. Independent post-window capability; nested/descendant traversal remains in full Q23. Full walkthrough rerun pending. |
 | Q24 | Min terminal over declared scalar selections | [✅][D11] | [✅][D11] | [✅][D11] | V1 example11; domain-specific expansion tracked below. |
 | Q25 | Max terminal over declared scalar selections | [✅][D12] | [✅][D12] | [✅][D12] | V1 example12. |
 | Q26 | Exact integer Sum | [✅][D13] | [✅][D13] | [✅][D13] | V1 example13. |
@@ -399,3 +400,8 @@ families, not a claim that either ORM supplies every feature on every backend.
 - 27 October 2026: Q23a scalar All promoted after 3,807 Core tests and 66 read-only native cases on the exact retained fixture. New Neo4j empty-input aggregate bug reproduced and fixed. Full walkthrough did not complete; its failed fixture/receipts remain preserved. Full Q23 traversal-inside-predicate remains red. Demo greens and federation cursor implementations unchanged.
 
 - 27 October 2026: Q23 internal child-navigation compiler foundation passes 3,811 Core tests and both target frameworks ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs), [proof](Verification/all-traversal-compiler-core.trx.gz)). Public All traversal remains rejected pending post-window native ownership/error semantics and three-provider proof. Q23 stays red; no new green cell.
+
+[AC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs
+[ACG]: Verification/all-child-native.trx.gz
+
+- 27 October 2026: Q23b direct-child All promoted on three native stores after 114 retained-fixture checks and 3,815 Core tests. Full Q23 remains red for nested/descendant predicates. No cursor/green-feature hardening; source-child lookup logic factored only to share the required terminal membership/visibility owner.

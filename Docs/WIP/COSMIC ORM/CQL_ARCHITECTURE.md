@@ -1997,3 +1997,17 @@ net10.0 and netstandard2.1 builds pass. Retained proof:
 [compiler tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs),
 [TRX](Verification/all-traversal-compiler-core.trx.gz).
 Full Q23 remains red; no additional parity cell is promoted.
+
+### Direct-child All execution
+
+`All(parent => parent.Children.Any(child => ...))` now uses an independently
+admitted `SupportsAllChildren` scalar capability. The predicate descriptor carries
+the source access policy. SQLite and Neo4j use correlated child existence inside
+the existing post-window scalar expression. MongoDB wraps the selected root,
+uses the same child lookup owner as source filtering, and retains lookup results
+as Boolean values instead of filtering selected roots. Scalar field references
+are rebound to the row envelope; `$literal` values and lexical variables remain
+unchanged. Negation, AND/OR and multiple child tests remain native. Snapshots and
+membership validation retain their provider owners. Nested-child/descendant
+terminal predicates remain rejected and full Q23 remains red. Native proof:
+[114 checks](Verification/all-child-native.trx.gz); Core: 3,815 tests pass.

@@ -431,3 +431,9 @@ inside the terminal predicate is still unsupported. Use the same scalar planner
 and manager executor as the other scalar examples. All 22 cases passed on each
 of MongoDB, SQLite and Neo4j in the read-only retained-fixture regression; the
 complete extended walkthrough has not yet passed end to end.
+
+Direct-child `All` examples 158–173 now demonstrate native child existence after
+paging, visibility, negation, Boolean combinations, multiple child predicates
+and a descendant-filtered source. All 38 cases in `V1AllQueries.cs` pass on each
+store (114 checks). Nested-child and descendant traversal inside the terminal
+remain unsupported. The complete extended walkthrough rerun remains pending.

@@ -48,4 +48,43 @@ public class CosmicAllTraversalTests
         Assert.True(terminal.IsError);
         Assert.StartsWith("CQL_", terminal.ErrorCode);
     }
+    [Fact]
+    public void AllChildPredicateRetainsItsSourceWindow()
+    {
+        var source = CosmicQuery<Holon>.Create().OrderBy(row => row.Name).Skip(1).Take(1).Result;
+        var query = source.All(row => row.Children.Any(child => child.Name == "public child"));
+        Assert.False(query.IsError, query.Message);
+        Assert.Same(source, query.Result.Source);
+        Assert.Empty(source.Predicates);
+        Assert.IsType<CosmicQueryAnyChild>(Assert.Single(query.Result.AllPredicate.Predicates));
+    }
+
+    [Fact]
+    public void ScalarAllAndRowChildSupportDoNotGrantPostWindowChildSupport()
+    {
+        var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child => child.Name == "child")).Result;
+        Assert.True(new CosmicScalarCapabilities(CosmicScalarOperation.All).Admit(query).IsError);
+        var capable = new CosmicScalarCapabilities(new[] { CosmicScalarOperation.All },
+            Array.Empty<CosmicScalarSelectionCapability>(), supportsAllChildren: true);
+        Assert.False(capable.Admit(query).IsError);
+    }
+
+    [Fact]
+    public void ChildPredicateCarriesSourceVisibility()
+    {
+        var access = CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        var source = CosmicQuery<Holon>.Create().WithReadAccess(access).Result;
+        var query = source.All(row => row.Children.Any(child => child.Name == "child")).Result;
+        Assert.Same(access, query.AllPredicate.ReadAccess);
+    }
+
+    [Fact]
+    public void NestedChildTraversalRemainsAnExplicitGap()
+    {
+        var query = CosmicQuery<Holon>.Create().All(row => row.Children.Any(child =>
+            child.Children.Any(grandchild => grandchild.Name == "nested")));
+        Assert.True(query.IsError);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", query.ErrorCode);
+    }
+
 }

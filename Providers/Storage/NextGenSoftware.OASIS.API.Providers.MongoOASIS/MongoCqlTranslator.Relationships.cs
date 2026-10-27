@@ -16,14 +16,23 @@ internal sealed partial class MongoCqlTranslator
         // Keep the original row inside an envelope. Persisted fields named row or
         // exists cannot collide with derived lookup state or disappear on return.
         pipeline.Add(new("$replaceRoot", new BsonDocument("newRoot", new BsonDocument("row", "$$ROOT"))));
-        BsonValue GuidField(string name) => new BsonDocument("$toLower",
-            new BsonDocument("$ifNull", new BsonArray { "$" + name, Guid.Empty.ToString("D") }));
         foreach (var child in conditions)
         {
+            pipeline.Add(ChildExistenceLookup(child, query.ReadAccess, "exists"));
+            pipeline.Add(new("$match", new BsonDocument("exists.0", new BsonDocument("$exists", true))));
+            pipeline.Add(new("$unset", "exists"));
+        }
+        pipeline.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
+    }
+    // One native membership/visibility owner for source filters and terminal tests.
+    private BsonDocument ChildExistenceLookup(CosmicQueryAnyChild child, CosmicQueryReadAccess access, string alias)
+    {
+        BsonValue GuidField(string name) => new BsonDocument("$toLower",
+            new BsonDocument("$ifNull", new BsonArray { "$" + name, Guid.Empty.ToString("D") }));
             BsonValue visibility = Literal(true);
-            if (query.ReadAccess != null)
+            if (access != null)
             {
-                var secured = CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(query.ReadAccess);
+                var secured = CosmicQuery<Core.Holons.Holon>.Create().WithReadAccess(access);
                 if (secured.IsError) throw new NotSupportedException(secured.Message);
                 visibility = Translate(secured.Result.Predicates.Single(), 0);
             }
@@ -32,7 +41,7 @@ internal sealed partial class MongoCqlTranslator
                 Op("$ne", GuidField("HolonId"), "$$parent"),
                 Op("$or", Op("$eq", "$$declared", Literal(false)), Op("$in", GuidField("HolonId"), "$$members")),
                 visibility, Translate(child.Predicate, 0));
-            pipeline.Add(new("$lookup", new BsonDocument
+            return new("$lookup", new BsonDocument
             {
                 { "from", "Holon" },
                 { "let", new BsonDocument { { "parent", new BsonDocument("$toLower", "$row.HolonId") },
@@ -40,11 +49,8 @@ internal sealed partial class MongoCqlTranslator
                 { "pipeline", new BsonArray { new BsonDocument("$match", new BsonDocument("$expr", match)),
                     new BsonDocument("$limit", 1),
                     new BsonDocument("$project", new BsonDocument { { "_id", 0 }, { "present", Literal(1) } }) } },
-                { "as", "exists" }
-            }));
-            pipeline.Add(new("$match", new BsonDocument("exists.0", new BsonDocument("$exists", true))));
-            pipeline.Add(new("$unset", "exists"));
-        }
-        pipeline.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
+                { "as", alias }
+            });
     }
+
 }
