@@ -189,7 +189,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis v2 native52/52PASS; KeyDB/Valkey/Dragonfly/Garnet thin shared facades52/52CONTROLLED each/native pending; AWS S3 native config missing0/52 historical | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
 | Non-EVM | Existing encrypted record/version/query helpers + native SDK transports | Solana native4/52: read-only probe proves referenced memo chunk unavailable during collection decoding; fail-closed, original fixtures preserved. Baseline only, no contract/fee/recovery depth | Started 26 Oct; ~1 day |
-| Graph/federated/filesystem/other | Existing native owners | Classify storage applicability and register factories | Not started; ~1 day |
+| Graph/federated/filesystem/other | Existing native owners | Neo4j native52/52PASS with all304preexistinggraph elements unchanged; remaining native bindings pending | Started 27 Oct; ~1 day |
 | Non-storage | NonStorageConformance / capability-v1 | Identity, honest capabilities, activation, read-only SDK/API probe, deactivation; controlled harness7PASS, native factories pending | Foundation started 26 Oct; ~1 day |
 
 | Provider | Family | Real SDK/API source evidence | Applicable conformance passed | Blockers |
