@@ -2111,3 +2111,15 @@ The full four-test native gate passes315checks. Exact synthetic cleanup and
 unchanged original fixture are verified. No production change was needed.
 Q23/Q23d remain red for relationships inside descendant predicates.
 [Proof](Verification/all-mixed-cycle-result.json).
+
+Final reverse-relationship acceptance:390nativechecks/3,831Coretests/bothTFMs/
+SQLiteproducer/demo console pass. Each Mongo visited candidate evaluates its
+nested relationship scope and carries flags through breadth reduction; Neo4j
+binds actual candidate/projection aliases before nested CALLs and aggregates
+inner error flags; SQLite completes protected visited-candidate reductions.
+Core rejects excessive expansion before native allocation and re-admits the
+same budget at execution. Both nesting orientations, cycles, earlier matches,
+Boolean branches, visibility and empty/source-window controls are proved.
+[Proof](Verification/all-descendant-predicate-native.trx.gz).
+Completion audit keeps parent Q23 red: current projection/composition classes
+have no All terminal, tracked explicitly as Q23e. No parent requirement removed.

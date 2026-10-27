@@ -36,22 +36,28 @@ internal sealed partial class NeoCqlTranslator
             if (secured.IsError) throw new System.NotSupportedException(secured.Message);
             visible = new NeoCqlTranslator(childNode, child, Parameters, _access).Translate(secured.Result.Predicates.Single());
         }
-        var matched = new NeoCqlTranslator("last(" + nodes + ")", "last(" + projections + ")", Parameters, _access)
-            .Translate(descendant.Predicate);
+        var candidate = "candidate" + suffix;
+        var candidateProjection = "candidateProjection" + suffix;
+        var inner = new NeoCqlTranslator(candidate, candidateProjection, Parameters, _access, _relationshipDepth + 1);
+        var matched = inner.Translate(descendant.Predicate);
+        var innerCycle = inner.TraversalCycles.Count == 0 ? "false" : "(" + string.Join(" OR ", inner.TraversalCycles) + ")";
+        var innerLimit = inner.TraversalLimits.Count == 0 ? "false" : "(" + string.Join(" OR ", inner.TraversalLimits) + ")";
         var edge = "EXISTS { MATCH ("+parentNode+")-["+parent+":HAS_CQL_PROJECTION]->("+parentNode+") MATCH ("+childNode+")-["+child+":HAS_CQL_PROJECTION]->("+childNode+") WHERE "+child + ".f_ParentHolonId=" + parent + ".f_Id AND (NOT " + parent
             + ".f_HasChildManifest OR " + child + ".f_Id IN " + parent + ".f_ChildIds) AND (" + visible + ") }";
         // Prefixes are simple paths. A repeated final identity is retained as a
         // cycle outcome, never expanded into arbitrary further cyclic paths.
         TraversalClauses.Add("CALL { WITH " + _node + "," + _projection
-            + " MATCH " + path + "=(" + _node + ") (("+parentNode+":Holon)-[:HAS_CHILD]->("+childNode+":Holon) WHERE "+edge+"){1,"+depth+"}(descendant:Holon)"
-            + " WITH descendant,nodes(" + path + ") AS " + nodes + ", [" + projectionNode + " IN nodes(" + path
+            + " MATCH " + path + "=(" + _node + ") (("+parentNode+":Holon)-[:HAS_CHILD]->("+childNode+":Holon) WHERE "+edge+"){1,"+depth+"}(" + candidate + ":Holon)"
+            + " WITH " + candidate + ",nodes(" + path + ") AS " + nodes + ", [" + projectionNode + " IN nodes(" + path
             + ") | head([(" + projectionNode + ")-[" + projectionEdge + ":HAS_CQL_PROJECTION]->(" + projectionNode + ") | " + projectionEdge + "])] AS " + projections
             + " WHERE all(" + index + " IN range(0,size(" + nodes + ")-2) WHERE single(prefixNode IN " + nodes
             + "[0..-1] WHERE prefixNode=" + nodes + "[" + index + "]))"
-            + " WITH DISTINCT descendant,any(prefixNode IN " + nodes + "[0..-1] WHERE prefixNode=last(" + nodes + ")) AS cycle,"
-            + matched + " AS matched LIMIT " + fetch
-            + " WITH collect({cycle:cycle,matched:matched}) AS states RETURN {cycle:any(s IN states WHERE s.cycle),"
-            + "overBudget:size(states)>" + budget + ",matched:any(s IN states WHERE s.matched)} AS " + state + " } ");
+            + " WITH DISTINCT " + candidate + ",last(" + projections + ") AS " + candidateProjection + ","
+            + "any(prefixNode IN " + nodes + "[0..-1] WHERE prefixNode=last(" + nodes + ")) AS pathCycle LIMIT " + fetch
+            + " " + string.Concat(inner.TraversalClauses)
+            + " WITH (pathCycle OR " + innerCycle + ") AS cycle," + innerLimit + " AS limited,coalesce((" + matched + "),false) AS matched"
+            + " WITH collect({cycle:cycle,limited:limited,matched:matched}) AS states RETURN {cycle:any(s IN states WHERE s.cycle),"
+            + "overBudget:size(states)>" + budget + " OR any(s IN states WHERE s.limited),matched:any(s IN states WHERE s.matched)} AS " + state + " } ");
         TraversalCycles.Add(state + ".cycle");
         TraversalLimits.Add(state + ".overBudget");
         TraversalStates.Add(state);

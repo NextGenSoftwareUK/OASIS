@@ -98,7 +98,7 @@ try {
         }
         if ($report.processRestartProvidersVerified -ne 3) { throw 'Actual process-interruption recovery proof is incomplete.' }
         if ($report.hostedReadPolicyProvidersVerified -ne 3 -or $report.hostedReadPolicyRequests -ne 30) { throw 'Shipping authoritative read-policy proof is incomplete.' }
-        if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 639 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
+        if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 681 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
         if ($report.shippingRestRequests -ne 78 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
