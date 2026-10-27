@@ -12,7 +12,7 @@ checkpoint statements that all prepared indexed execution is unsupported.
 - All five read operations require explicit service tariffs: SQL snapshot,
   source genesis, slot, block and transaction. History/range/bootstrap operations
   are not enrolled in prepared query execution. Maximum physical reads is explicit
-  (4–100,000); budget exhaustion rejects before another durable begin or dispatch.
+  (4-512); budget exhaustion rejects before another durable begin or dispatch.
 - An inherited actor must match the admitted usage handle. Missing exact policy
   or actor mismatch rejects before calling the registered reader.
 - Each actual SQL snapshot/RPC durably begins before I/O. Each completed invocation
@@ -96,3 +96,5 @@ red. Scalar/projection/graph indexed execution and full ORM parity remain open.
 - `TestResults/ProtocolCqlCurrent/index-billing-wired.trx` SHA256 `B54C1B75B02A32BD1687203A1BCF37C4484D9D7A611368B4246FE43DE8984195`.
 
 [WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
+
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.

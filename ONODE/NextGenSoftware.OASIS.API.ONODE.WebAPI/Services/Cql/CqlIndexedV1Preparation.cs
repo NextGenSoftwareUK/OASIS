@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -24,15 +27,17 @@ public sealed class CqlIndexedV1Binding
     public CosmicChainQueryReadRequirement Baseline { get; }
     public CosmicQueryReadAccess Access { get; }
     public int MaximumResults { get; }
+    public HolonManager Manager { get; }
 
     public CqlIndexedV1Binding(ICosmicChainQueryIndexReader reader, ICosmicChainQuerySourceObserver observer,
         CosmicIndexedReadTariffPolicy tariffs, CosmicChainQueryPosition minimumPosition, long maximumLagSlots,
-        TimeSpan maximumHeadAge, CosmicQueryReadAccess access, int maximumResults = 100)
+        TimeSpan maximumHeadAge, CosmicQueryReadAccess access, HolonManager manager, int maximumResults = 100)
     {
         Reader = reader ?? throw new ArgumentNullException(nameof(reader));
         Observer = observer ?? throw new ArgumentNullException(nameof(observer));
         Tariffs = tariffs ?? throw new ArgumentNullException(nameof(tariffs));
         Access = access ?? throw new ArgumentNullException(nameof(access));
+        Manager = manager ?? throw new ArgumentNullException(nameof(manager));
         if(maximumResults is < 1 or > 100)throw new ArgumentException("Indexed rows require a bounded server result limit.");
         MaximumResults = maximumResults;
         Baseline = new(tariffs.Source, minimumPosition, maximumLagSlots, maximumHeadAge);
@@ -53,14 +58,17 @@ public sealed class CqlIndexedV1Preparation
     public bool IncludeMetadata { get; }
     public int MaximumResults { get; }
     public decimal MaximumServiceCostUsd { get; }
+    public long MaximumUnits => Binding.Tariffs.MaximumPhysicalReads;
+    public string RequestFingerprint { get; }
 
     private CqlIndexedV1Preparation(string alias, Guid actor, CqlIndexedV1Binding binding,
-        CosmicQueryPlan<Holon> plan, bool includeMetadata, int maximumResults)
+        CosmicQueryPlan<Holon> plan, bool includeMetadata, int maximumResults, string fingerprint)
     {
+        RequestFingerprint=fingerprint;
         Alias=alias;Actor=actor;Binding=binding;Plan=plan;IncludeMetadata=includeMetadata;MaximumResults=maximumResults;
         // Even an erroneous reader exhausting its full admitted physical budget is
         // covered; this is a conservative reservation bound, never an actual invoice.
-        MaximumServiceCostUsd=checked(binding.Tariffs.MaximumPhysicalReads*binding.Tariffs.Tariffs.Max(t=>t.CostUsd));
+        MaximumServiceCostUsd=binding.Tariffs.MaximumServiceCostUsd;
     }
 
     public static OASISResult<CqlIndexedV1Preparation> Prepare(Guid actor, CqlIndexedV1Request request,
@@ -75,6 +83,7 @@ public sealed class CqlIndexedV1Preparation
             if(string.IsNullOrEmpty(alias)||alias.Length>64||alias.Any(c=>!(c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '-' or '_' or '.'))
                 ||query.Provider!=null||query.Graph!=null||query.Take is <1 or >100)
                 throw new ArgumentException("An explicit bounded alias and alias-owned leaf query are required.");
+            var fingerprint=Fingerprint(new CqlIndexedV1Request{Alias=alias,Query=query,MaximumLagSlots=lag,MaximumHeadAgeSeconds=age});
             var resolved=bindings.Resolve(actor,alias);
             if(resolved?.IsError==true)return Error("CQL_INDEX_FORBIDDEN","Server alias policy did not authorize this query.",resolved.Exception);
             if(resolved==null||resolved.IsWarning||resolved.Result==null)
@@ -91,10 +100,27 @@ public sealed class CqlIndexedV1Preparation
             var plan=CosmicQueryPlanner.Plan(intent,source.SourceProvider,new[]{
                 new CosmicQueryTarget(source.SourceProvider,binding.Reader.IndexedRowCapabilities,binding.Reader.Source)});
             if(plan.IsError)return Error(plan.ErrorCode,"The indexed profile does not support the complete query.",plan.Exception);
-            return new(new(alias,actor,binding,plan.Result,query.IncludeMetadata,query.Take));
+            return new(new(alias,actor,binding,plan.Result,query.IncludeMetadata,query.Take,fingerprint));
         }
         catch(ArgumentException cause){return Error("CQL_REQUEST_INVALID","Invalid bounded indexed query description.",cause);}
         catch(Exception cause){return Error("CQL_INDEX_BINDING_FAILED","Server indexed preparation failed; no alternative was selected.",cause);}
+    }
+
+    internal bool Matches(CqlIndexedV1Request request)
+    {
+        if(request==null)return false;
+        var captured=new CqlIndexedV1Request{Alias=request.Alias,Query=CqlRequestCapture.Capture(request.Query),
+            MaximumLagSlots=request.MaximumLagSlots,MaximumHeadAgeSeconds=request.MaximumHeadAgeSeconds};
+        return string.Equals(RequestFingerprint,Fingerprint(captured),StringComparison.Ordinal);
+    }
+
+    private static string Fingerprint(CqlIndexedV1Request request)
+    {
+        // Include a route/version domain so this admission cannot become another result shape.
+        var wire=JsonSerializer.SerializeToUtf8Bytes(new{Contract="WEB4.CQL.indexed.rows.v1",Request=request},
+            new JsonSerializerOptions{DefaultIgnoreCondition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault});
+        if(wire.Length>32768)throw new ArgumentException("Indexed intent exceeds the bounded wire contract.");
+        return Convert.ToHexString(SHA256.HashData(wire)).ToLowerInvariant();
     }
 
     private static OASISResult<CqlIndexedV1Preparation> Error(string code,string message,Exception cause=null)

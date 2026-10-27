@@ -51,7 +51,7 @@ public class SolanaChainIndexedBillingTests
             var selected=created.Result.Where(row=>row.Name==selectedName).OrderBy(row=>row.Name).Take(1);
             var outbox=DispatchProxy.Create<IUsageOutboxStore,EvidenceProxy>();var evidence=(EvidenceProxy)(object)outbox;evidence.Mode=mode;
             var authority=DispatchProxy.Create<IUsageReservationAuthority,EvidenceProxy>();
-            var handle=new UsageExecutionHandle(new UsageOutboxOperation{Id="wired-index-billing",UserId=actor.ToString("D"),ExecutionOwner="owner",Policy=new UsageEndpointPolicy()},
+            var handle=new UsageExecutionHandle(new UsageOutboxOperation{Id="wired-index-billing",UserId=actor.ToString("D"),ExecutionOwner="owner",Policy=new UsageEndpointPolicy{RequiresProviderMeasurement=true,ReservedUnits=100,EstimatedCostUsd=0.1m,MaximumProviderAttempts=100}},
                 outbox,new Web4UsageLedgerOptions(),new SubscriptionAuthorizationResult(),authority);
             var tariffs=new CosmicIndexedReadTariffPolicy(source,mode=="budget"?4:100,CosmicIndexedReadTariffPolicy.Required.Select(operation=>new CosmicIndexedReadTariff(operation,0.001m,"wired-index-v1")));
             var prepared=new PreparedStorageExecution(handle,"wired-index",new Dictionary<ProviderType,string>(),Array.Empty<ProviderType>(),null,null,false,new[]{tariffs});
