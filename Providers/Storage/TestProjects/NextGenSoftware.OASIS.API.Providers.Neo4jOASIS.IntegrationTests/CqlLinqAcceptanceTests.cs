@@ -152,12 +152,25 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(
             ()=>root.Take(0).Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal"))).Code);Passed("required Average empty error");
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
-            ()=>root.Average(row=>row.Version)).Code);Passed("integer Average result domain remains explicit gap");
+            ()=>root.Average(row=>CosmicQueryMetadata.Value<long>(row,"i64"))).Code);Passed("Int64 checked-prefix Average remains explicit gap");
         Assert.AreEqual(version,root.Select(row=>row.Version).Sum());Passed("plain selected Sum");
         Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
         Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");
         Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
             ()=>root.Select(row=>row.Version).Where(value=>value>0).Sum()).Code);Passed("staged numeric reduction remains explicit gap");
+
+        Assert.AreEqual((double)version,root.Average(row=>row.Version));Passed("native Int32 Average double output");
+        Assert.AreEqual((double)version,root.Select(row=>row.Version).Average());Passed("plain selected Int32 Average");
+        Assert.IsNull(root.Average(row=>CosmicQueryMetadata.Value<int?>(row,"nullable")));Passed("nullable Int32 Average all-null");
+        Assert.AreEqual(-7d,root.Average(row=>CosmicQueryMetadata.Value<int>(row,"int")));Passed("negative Int32 Average");
+        Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(()=>root.Take(0).Average(row=>row.Version)).Code);
+        Passed("required Int32 Average empty error");
+        Assert.IsNull(root.Take(0).Average(row=>CosmicQueryMetadata.Value<int?>(row,"nullable")));Passed("nullable Int32 Average empty");
+
+        Assert.AreEqual((double?)-7d,root.Average(row=>CosmicQueryMetadata.Value<int?>(row,"int")));
+        Passed("participating nullable Int32 Average");
+        Assert.AreEqual((double?)-7d,root.Select(row=>CosmicQueryMetadata.Value<int?>(row,"int")).Average());
+        Passed("plain selected nullable Int32 Average");
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }

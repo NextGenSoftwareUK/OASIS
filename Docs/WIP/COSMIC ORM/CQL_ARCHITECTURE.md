@@ -49,6 +49,12 @@ native failure or ambiguous cardinality with a default object.
 Queryable value aggregates bind typed paths and exact result domains before
 planning against independent scalar-selection capabilities. Plain scalar Select
 can lower into the same native selector aggregate; selected stages are never
-moved across the reduction. A standard integer Average result needs an explicitly
-implemented double-output contract; the existing decimal-output CQL contract is
-preserved rather than approximated with a client conversion.
+moved across the reduction. Int32 Average now has an independently admitted double-output contract; Int64
+requires additional checked-prefix overflow evidence. The existing decimal-output
+CQL contract is preserved rather than approximated with a client conversion.
+The Int32 double-output mode shares integer-packet validation with decimal means
+and grouped slots, and adds no provider row buffer. The scalar descriptor records
+the exact result mode; scalar selection admission checks the independent flag
+again at execution. The selected-scalar validator also verifies the new result's
+finite Double type and Int32 input bounds. Existing capability constructors leave
+the flag false, so no other provider is silently enrolled.
