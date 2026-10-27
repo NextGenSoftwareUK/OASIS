@@ -301,3 +301,5 @@ indexed execution and parity cells remain red.
 | TestResults/ProtocolCqlCurrent/chain-index-store.trx | 74D71CDDDFDA9381D8F3E658C7749651F7CCDC025B668A7FFB775C53747A778B |
 
 Native original-range probe now verifies fail-closed behavior: retained FirstAvailableBlock1402 cannot cover start0; observer returns no records/checkpoint and performs no submissions/publication.1native diagnosticpass is notCQL/bootstrap acceptance. [Exact evidence](CQL_SOLANA_DEMO_ADMISSION.md#native-declared-range-rejection-verified). Next indexedSQL/query execution and controlled-source gates while originalfull-history coverage remainsred.
+
+Indexed canonical SQL row execution primitive now passes30realSQLite/56Corechecks. Explicit schema2 plaintextcanonicalprojection/encryptedfullpayload; atomiccheckpoint/projection integrity, nativeSQLactor/tombstone/filter/order/page and independentrecord/head evidence. Two beforefailures caughttombstonesoccupyingwindows, fixedatSQLselection. Genericmanager/LINQ/tracking/scalar/projection/metadata/WEB4 integration remainred. [Contract, policy, evidence andnext](CQL_INDEXED_SQL_ROWS.md).
