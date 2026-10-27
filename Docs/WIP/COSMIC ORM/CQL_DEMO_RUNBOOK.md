@@ -1,3 +1,25 @@
+## Integer indexing verified after demo acceptance — 26 October 2026
+
+[Examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs) verify
+ElementAt(int)/ElementAtOrDefault(int) on SQLite, MongoDB and Neo4j. Indexing
+preserves the composed source window; negative defaults and indexes outside
+an explicit Take need no provider read. Cancellation/inherited actor checks
+still apply. Unknown-length native failures remain errors.
+
+Q19a is green. Full parent Q19 retains System.Index/from-end scope; Last and All
+remain red. The existing 12 scoped demo rows remain green without new cursor work.
+
+Final proof: **315 SDK cases, 138 HTTP cases, 30 save checks; 526 settlements /
+608 physical attempts**. Core **3,782 tests pass, zero skips**; net10/netstandard,
+shipping WEB4 and standalone console builds pass. Sources unchanged, seven
+producer/consumer pairs and UnitCore copy match.
+
+[Native result](Verification/indexed-elements-native-result.json),
+[native test](Verification/indexed-elements-native.trx.gz),
+[Core tests](Verification/indexed-elements-core.trx.gz),
+[source identities](Verification/indexed-elements-native-source.json.gz),
+[binary identities](Verification/indexed-elements-native-binaries.json).
+
 ## Scoped investor demo set verified — 26 October 2026
 
 All 12 **DEMO** rows in the [parity checklist](CQL_PARITY_CHECKLIST.md) now have

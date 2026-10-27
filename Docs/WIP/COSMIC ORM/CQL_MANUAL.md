@@ -2603,3 +2603,51 @@ Returning or recovering a redacted summary does not complete that row. See
 [committed delta format and remaining scope](COMMITTED_DELTAS.md).
 
 Save-demo acceptance: [30 checks across all three stores](Verification/save-demo-native-result.json), with generated-ID and no-op preparation/mutation observations. X08a summary demo is verified; parent X08 remains incomplete.
+
+## Integer-index entity terminals
+
+`ElementAt(int)` and `ElementAtOrDefault(int)` use zero-based indexes relative
+to the composed source. The shared Core element planner lowers a normal index
+to the original source's `Skip(index).Take(1)`; native adapters apply visibility,
+filters and ordering before that page. No complete-source client scan is used.
+
+```csharp
+// The source carries its trusted read policy and provider scope.
+var ordered = visible.OrderBy(row => row.Name).Result;
+
+// Skip(1)/Take(2) selects C-public,D-owned. Index 1 means D-owned.
+var intent = ordered.Skip(1).Take(2).ElementAt(1).Result;
+var plan = CosmicElementPlanner.Plan(
+    intent,
+    adapter.QueryProviderType,
+    new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await manager.ExecuteElementQueryAsync(plan.Result, new[] { adapter });
+
+if (result.IsError)
+    throw new InvalidOperationException(result.Message);
+
+Console.WriteLine(result.Result.Name);
+```
+
+| Case | ElementAt | ElementAtOrDefault |
+|---|---|---|
+| Existing index | Typed, detached, tracked element | Same |
+| Negative index | `CQL_INDEX_OUT_OF_RANGE` at construction | Successful default, no provider read |
+| Index outside explicit source Take | `CQL_INDEX_OUT_OF_RANGE`, no provider read | Successful default, no provider read |
+| Index beyond actual native input | `CQL_INDEX_OUT_OF_RANGE` | Successful default after successful empty read |
+| Native execution failure | Explicit error | Explicit error |
+
+Successful defaults have `IsLoaded = true`. Cancellation and inherited
+admission actor/lifetime checks still apply to known-empty execution. Planning
+still validates source scope/capabilities; an unsupported or unauthorized source
+is not silently accepted. Unknown-length offset addition uses the existing CQL
+maximum offset (1,000,000); exceeding that bound returns `CQL_QUERY_LIMIT`.
+
+Use explicit ordering for reproducible indexes. System.Index/from-end overloads,
+Last/LastOrDefault and All are separate red work requiring faithful native
+source-window composition. See [examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs)
+and checklist Q19a for native acceptance status; parent Q19 remains red.
