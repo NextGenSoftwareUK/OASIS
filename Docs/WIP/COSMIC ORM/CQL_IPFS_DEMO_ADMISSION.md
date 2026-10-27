@@ -133,10 +133,26 @@ second result contract. Full controlled cohort178pass/no skips.
 |---|---|
 | graph-ack-before.trx (4 genuine failures) | 8A8E5AB78A45AC8A304570F2561D127D08FE87AFE3105C9345789CD54CF6E790 |
 | graph-ack-fixed.trx (178 pass) | 0CDAF163D8AB27980E792B4CF02D92455143F41317B4C1C16713DAB1620B292E |
-| ipfs-core-current.trx (current18/52, two failed graph schedules) | 11CFF4321E23D3C3686B3BAA3BB78B1CE4246812F5DFD501DA792760DD0CA476 |
+| Archive/graph-ack-original-core.trx (historical18/52 graph failure) | 11CFF4321E23D3C3686B3BAA3BB78B1CE4246812F5DFD501DA792760DD0CA476 |
 
-The fresh cohort's avatar/detail/root/child intents and DNA remain in persistent
-state. Next: independently read and bind its exact catalogue/records, reconcile
-only those fixtures, then verify a fresh full baseline. Do not replay graph-save
-or use the earlier pinned avatar-only review against the newer cohort. Services
-are stopped; CQL and full native certification remain red.
+Both graph catalogues and all four owned records per mode were independently
+verified before exact logical index cleanup. Native cleanup1pass, durable closure
+`LocalState/COSMIC/IPFSCurrent/graph-ack-cleanup.json`; original DNA, journals and
+reports hash-archived with immutable blocks preserved. No graph save replay.
+
+The next full native run reached36/52 (18 checks per mode), stopping at the first
+holon deletion acknowledgement. The tombstone publication succeeded but the result
+omitted IsDeleted/DeletedCount. Four controlled SDK tests reproduce this failure;
+the publication owner now sets deletion acknowledgement/count after durable save.
+The full controlled suite passes178, zero skips. Current native fixtures remain
+preserved pending independent reconciliation; do not replay the suite or delete.
+
+| Evidence relative to TestResults/IPFSCurrent | SHA256 |
+|---|---|
+| delete-contract-before.trx (4 reproduced failures) | DAD18F0CBC0A3A653791786BB0A8B194983D5E3F387621B46BD55F1F2D831A96 |
+| delete-contract-fixed.trx (178 pass) | E28A4520F37608174A834EED0C68F8284C599D898F7C5563EDAAEDEA1096CD57 |
+| ipfs-core-current.trx (native36/52) | 6260487505F769B6AFEC5F00F44E265C7EC33710E7A120D2ECC0DEB3F028F77B |
+| ipfs-graph-cleanup.trx (exact graph cleanup1pass) | 589985541C57680D8121F7ECA2112FF6854C830F7D4D3AD873BCFA35B9BCDA35 |
+
+Next: independently reconcile exact latest tombstone fixtures, then full native baseline.
+Services are stopped; CQL and full native certification remain red.
