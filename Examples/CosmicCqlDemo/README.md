@@ -405,3 +405,11 @@ explicit write-operation identities. The gate executes 30 save checks alongside
 The scoped investor demo set is green. Full historical-value/decryption access
 and broader EF/NHibernate parity remain tracked gaps; redacted summaries do not
 complete that larger history API.
+
+## Integer-index examples
+
+[V1IndexedQueries.cs](V1IndexedQueries.cs) contains spaced/commented examples
+91–105 for zero-based integer indexing. They cover source windows, empty input,
+negative defaults and range errors through HolonManager on all three stores.
+The SDK walkthrough now has 105 cases/store (315), plus 138 HTTP cases and
+30 save checks. System.Index/from-end overloads remain separate red work.

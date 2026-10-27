@@ -1912,3 +1912,21 @@ protocol, cancellation and hydration errors remain explicit OASISResult errors.
 
 These are C# entity-query terminals. HTTP, selected-value and grouped variants
 must be tracked independently rather than inferred from this implementation.
+
+## Indexed-element lowering
+
+The element intent retains an optional Int32 index. Q19a's ordinary path composes
+native Skip/Take through the existing immutable source window, reusing the row
+planner/executor and HolonManager's typed publication owner. It requests one row.
+The existing First/Single paths retain their previous lowering.
+
+A negative default index or an index outside an explicit source Take has known
+empty cardinality. The plan still resolves/adopts its source policy and concrete
+scope; execution checks cancellation and captures the inherited actor/lifetime
+owner before returning its default or range error without a physical read.
+Unknown-length sequences still read natively, and provider errors remain errors.
+
+Parent Q19 includes the remaining System.Index/from-end forms. Last/All and
+from-end indexing need native composition around an already windowed source;
+a separate count followed by an offset read would allow concurrent writes to
+change the sequence between statements. Those rows remain unimplemented/red.

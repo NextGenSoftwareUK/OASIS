@@ -915,6 +915,10 @@ public static class V1NativeQueries
         // source: null/missing, field comparison, membership, strings and ties.
         completedQueries += await V1OperatorQueries.RunAsync(manager, adapter, visible, output);
 
+        // 91–105. Zero-based element indexing composes with the native source
+        // window; known-empty/default cases require no provider read.
+        completedQueries += await V1IndexedQueries.RunAsync(manager, adapter, visible, output);
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,
