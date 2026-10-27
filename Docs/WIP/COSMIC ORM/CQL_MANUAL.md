@@ -68,7 +68,7 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable numeric/element terminals, selected cardinality and repeated Select remain
+Queryable numeric/selected-element terminals, selected cardinality and repeated Select remain
 unimplemented and fail explicitly; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
@@ -105,3 +105,21 @@ rebinds captured variables in source and selected predicates. The projection
 planner or composition planner admits the exact stages; selected All uses its
 independent native reduction owner. Unsupported selectors never compile to
 client delegates, and missing projection capability never fetches entity rows.
+Entity sequences now support standard First/FirstOrDefault, Single/SingleOrDefault,
+Last/LastOrDefault and ElementAt/ElementAtOrDefault (Int32 and Index). The bridge
+uses CosmicElementPlanner and V2 typed hydration; it never fetches a whole list to
+pick an element locally. Last and from-end indexing require the existing explicit
+ordering/tail capabilities.
+
+```csharp
+var first = query.FirstOrDefault();
+var last = query.OrderBy(row => row.Name).LastOrDefault();
+var fromEnd = query.OrderBy(row => row.Name).ElementAt(^1);
+```
+
+Supplied OrDefault values are returned only after successful empty-sequence proof.
+Native errors and multiple matches never return that supplied value. Single checks
+cardinality before invoking application entity constructors. Empty/multiple/index
+errors preserve their CQL codes through CosmicLinqException. Entity terminal
+predicates after a source window remain explicitly unsupported; they are not moved
+before the window. Element terminals on selected sequences are still Q01 work.
