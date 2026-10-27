@@ -80,3 +80,5 @@ The full COSMIC/CQL roadmap remains incomplete.
 | TestResults/SolidCurrent/solid-cql-native.trx | F3DAB0F8C9F5DA5D960B65EFDDE6585C3AF8E8513749BBD4F5A144BB4ACA8A37 |
 | TestResults/SolidCurrent/solid-cql-lifecycle.json | 06A7FF8D26199AFF8A964A652B406D11EF019BA6020F8E4252621769F1E48D89 |
 | LocalState/COSMIC/SolidCurrent/cql-point-complete.json | FC145182C60C525DD0085F0629540DE40F1CF6F5D54002D77F64F727787A0AE4 |
+
+WEB4 explicit row-profile/compiler/readtariff enrollment now passes721 affected controls. Native HTTP/receipt acceptance and interactive host remain open. [Request contract/evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
