@@ -513,7 +513,21 @@ inequality semantics. Exact-number wire strings remain outside the string domain
 Numeric metadata, graph expansion and mixed numeric semantics
 are rejected during admission. Compound ordering
 requires an explicitly configured Cosmos composite index; no index is created by
-CQL. Id ordering is native-proven; broader index/operator acceptance remains open.
+CQL. `AzureCosmosDBOASIS.GetCqlCompositeIndexDefinitions()` returns detached SDK
+definitions for explicit deployment setup:
+
+| Composite index | First path | Second path |
+|---|---|---|
+| A | `/Version` ascending | `/Id` ascending |
+| B | `/Version` descending | `/Id` ascending |
+
+Opposite-direction scans cover the other two Version/Id combinations. Merge these
+definitions into the existing container policy without discarding other paths or
+settings, use the observed container ETag, and verify index readiness before the
+demo. The helper performs no network or policy mutation. Duplicate ordering keys
+are redundant, and a canonical Id key completes a total order; trailing keys are
+removed before SQL construction. All four Version/Id combinations, ties and a
+compound-order projection now pass the native emulator gate.
 
 Count, LongCount and Any use the independent `ICosmicQueryScalarStorageProvider`
 contract. Build a terminal with `query.Count()`, `query.LongCount()` or `query.Any()`,
@@ -542,6 +556,7 @@ strings and missing non-nullable values reject the result. Source identity and
 visibility proofs remain required even when Id is not selected. Selected-result
 composition and entity-stage projection are not yet enrolled for Cosmos.
 
-Native emulator evidence: 39 focused tests plus a thirty-one-case public-provider gate.
+Native emulator evidence: 41 focused tests, 38 native cases and five shared
+HolonManager/LINQ demo operations.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).

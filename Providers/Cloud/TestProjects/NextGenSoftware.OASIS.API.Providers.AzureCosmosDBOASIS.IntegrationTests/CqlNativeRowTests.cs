@@ -58,7 +58,7 @@ public class CqlNativeRowTests
         var other = Guid.NewGuid();
         var seeds = Enumerable.Range(0, 4).Select(i => new Holon
         {
-            Id = reviewedIds == null ? Guid.NewGuid() : reviewedIds[i], Name = "cql-coffee-" + i, Version = i + 2,
+            Id = reviewedIds == null ? Guid.NewGuid() : reviewedIds[i], Name = "cql-coffee-" + i, Version = i == 1 ? 2 : i + 2,
             CreatedByAvatarId = i == 0 ? actor : other, IsPublic = i is 1 or 3, IsActive = i != 3
         }).ToArray();
         const string precise = "9007199254740993.125";
@@ -109,6 +109,24 @@ public class CqlNativeRowTests
             Assert.AreEqual(expected, count, "Unexpected retained fixture data; preserve original state.");
         }
         await AssertCount(reviewed ? 4 : 0);
+        if (!reviewed)
+        {
+            // Explicit owned-fixture deployment setup. Native query execution
+            // never changes a container's indexing policy.
+            var observed = await container.ReadContainerAsync();
+            var properties = observed.Resource;
+            var changed = false;
+            foreach (var definition in AzureCosmosDBOASIS.GetCqlCompositeIndexDefinitions())
+            {
+                if (properties.IndexingPolicy.CompositeIndexes.Any(existing =>
+                    existing.Count == definition.Count && existing.Zip(definition).All(pair =>
+                        pair.First.Path == pair.Second.Path && pair.First.Order == pair.Second.Order))) continue;
+                properties.IndexingPolicy.CompositeIndexes.Add(definition);
+                changed = true;
+            }
+            if (changed) await container.ReplaceContainerAsync(properties,
+                new ContainerRequestOptions { IfMatchEtag = observed.Headers.ETag });
+        }
         using var factory = new CosmosDbClientFactory(client, databaseName, new() { "holonItems" });
         var repository = new HolonRepository(factory);
         if (!reviewed) foreach (var seed in seeds) await repository.AddAsync(seed);
@@ -235,6 +253,22 @@ public class CqlNativeRowTests
             Assert.AreEqual(3, (await Project(CosmicQuery<UnconstructibleCountRow>.Create().Where(h => h.IsActive)
                 .Select(h => new { h.Name }).Result)).Count);
             Assert.IsTrue((await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(visible.Select(h => h.Name).Result), maximumPayloadBytes: 1)).IsError);
+
+            // Version ties exercise the explicit deployment index profile and
+            // stable Id tie-breaks in all four direction combinations.
+            var ascending = seeds.OrderBy(h => h.Version).ThenBy(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray();
+            var descending = seeds.OrderByDescending(h => h.Version).ThenBy(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray();
+            CollectionAssert.AreEqual(ascending, (await Read(CosmicQuery<Holon>.Create().OrderBy(h => h.Version).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(descending, (await Read(CosmicQuery<Holon>.Create().OrderByDescending(h => h.Version).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(seeds.OrderBy(h => h.Version).ThenByDescending(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray(),
+                (await Read(CosmicQuery<Holon>.Create().OrderBy(h => h.Version).ThenByDescending(h => h.Id).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(seeds.OrderByDescending(h => h.Version).ThenByDescending(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray(),
+                (await Read(CosmicQuery<Holon>.Create().OrderByDescending(h => h.Version).ThenByDescending(h => h.Id).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(ascending, (await Read(CosmicQuery<Holon>.Create().OrderBy(h => h.Version).ThenByDescending(h => h.Version).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(seeds.OrderBy(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray(),
+                (await Read(CosmicQuery<Holon>.Create().OrderBy(h => h.Id).ThenByDescending(h => h.Version).Result)).Select(h => h.Id).ToArray());
+            CollectionAssert.AreEqual(ascending.Take(2).ToArray(), (await Project(CosmicQuery<Holon>.Create()
+                .OrderBy(h => h.Version).Take(2).Select(h => h.Id).Result)).ToArray());
 
             // Exercise the same provider-neutral demo source used by developers,
             // through the existing V2 manager and standard IQueryable binding.

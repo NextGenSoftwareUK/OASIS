@@ -518,6 +518,6 @@ var report = await CloudRowsWalkthrough.RunAsync(
 This component is exercised verbatim by the Cosmos native integration gate. It is
 not a new command-line switch for the existing SQLite console/Swagger host.
 The existing three-database walkthroughs demonstrate a wider profile; Cosmos
-numeric metadata, compound index coverage, save-state/concurrency/delta integration,
+numeric metadata, save-state/concurrency/delta integration,
 HTTP demo and hosted Azure acceptance remain open. Local emulator proof must be
 labeled as such. Each query is an independent read, not one shared snapshot.
