@@ -20,3 +20,5 @@ Full Core run:3,853 passed/6 failed for missing new-worktree WEB4 host artifact;
 Q01d shared repeated-selection owner implemented;2,536 CQL regression tests pass including4 new binding/closure/shape/error cases, both Core targets build. All3 native matrix now passes26 cases/store (1,365 total checks); Q01d cells are green. Next Q01e.
 
 Q01e shared post-window element intent/admission/physical ownership implemented;23 focused/2,539 CQL regression tests pass including3 new tests, both Core targets build. SQLite native lowering and expanded-graph acceptance pass45 cases;35 compiler tests also pass. Neo native46-case gate and141 compiler tests now pass. Next Q01f.
+
+Q01f shared entity-stage contract/planning/owned dispatch implemented;5 new tests/2,545 CQL regressions pass, both Core targets build. Standard IQueryable bridge, native provider stages and their terminal/projection integration remain pending; all cells stay red.
