@@ -677,3 +677,5 @@ for composition, per-RPC receipts and failure semantics. This SDK profile does n
 enroll WEB4 or certify original native chain coverage.
 
 Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).
+
+[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
