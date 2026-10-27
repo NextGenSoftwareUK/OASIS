@@ -27,15 +27,16 @@ SHA256: `44C39A2E37FD6503FEBF78931FCFA9D96CAB03B008C1A39905AAB21319E8D5FE`.
 These are separate cohorts: native proof predates the new shared stage foundation.
 
 Q01f remains red on all databases: native stage enrollment and terminal/projection integration are pending.
-A local, uncommitted IQueryable bridge increment has 2,550 passing CQL regressions;
-review/publish it separately from this documentation-only commit.
+IQueryable bridge committed in Core `b9bccf0fdb2f035ff5a460186ac9f17055e7cd71`: 2,550 CQL regressions pass.
+Both Core targets build; deferred capture and typed hydration/tracking share the existing owner.
 Evidence: `TestResults/CoreCurrent/entity-stage-bridge-regression.trx`.
+SHA256: `2BD5563C7108302BE8949D9E4F15A37E37D99A7305033C0B4F55B544BDCEAB25`.
 The full Core suite is not green: earlier run had 3,853 passes and six failures from a missing built WEB4 host prerequisite.
 
 ## Exact next step
 
-Review and commit the tested IQueryable bridge separately, preserving typed hydration and stage order.
-Then implement SQLite native entity stages and acceptance, followed by MongoDB and Neo4j.
+Implement SQLite native entity stages and acceptance, followed by MongoDB and Neo4j.
+Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.
 Large POCO mapping and migrations tooling retain their deferred priority.
