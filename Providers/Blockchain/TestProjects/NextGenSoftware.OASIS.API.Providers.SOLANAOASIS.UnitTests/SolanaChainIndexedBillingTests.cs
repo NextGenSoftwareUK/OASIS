@@ -19,12 +19,12 @@ using Solnet.Wallet.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 
 [TestClass,DoNotParallelize]
-public class SolanaChainIndexedBillingTests
+public partial class SolanaChainIndexedBillingTests
 {
-    [DataTestMethod,DataRow("rows"),DataRow("empty"),DataRow("budget"),DataRow("begin"),DataRow("receipt"),DataRow("source-begin"),DataRow("source-receipt")]
+    [DataTestMethod,DataRow("rows"),DataRow("empty"),DataRow("budget"),DataRow("begin"),DataRow("receipt"),DataRow("source-begin"),DataRow("source-receipt"),DataRow("http-rows"),DataRow("http-empty"),DataRow("http-missing"),DataRow("http-network")]
     public async Task RealSqlAndCanonicalSolanaReadsRetainSeparatePreparedAttemptReceipts(string mode)
     {
-        var empty=mode=="empty";
+        var empty=mode is "empty" or "http-empty";
         var root=new DirectoryInfo(AppContext.BaseDirectory);while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
         Assert.IsNotNull(root);var folder=Path.Combine(root.FullName,"TestResults","CosmicChainIngestion");Directory.CreateDirectory(folder);
         var database=Path.Combine(folder,"index.db");foreach(var path in new[]{database,database+"-wal",database+"-shm"})Assert.IsFalse(File.Exists(path),"Preserve unknown fixture.");
@@ -44,6 +44,10 @@ public class SolanaChainIndexedBillingTests
             Assert.IsFalse(published.IsError,published.Exception?.ToString());
             var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2}};
             var manager=new HolonManager(null,dna,new ProviderManager(null,dna));
+            if(mode.StartsWith("http-",StringComparison.Ordinal)){
+                await VerifyHttpAsync(manager,index,repository,source,requirement,actor,proxy,empty,mode);
+                return;
+            }
             var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(source.SourceProvider).Result).WithIndexedSource(requirement).Result
                 .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result).Result;
             var created=CosmicLinq.CreateIndexed(manager,index,repository,query);Assert.IsFalse(created.IsError,created.Message);
