@@ -79,7 +79,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         if(reviewed)
         {
             var preserved=await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual(linq ? "1A61414E89469A3094262532A4CE370D6EF55E7EFE10963879378D049D383156"
+            Assert.AreEqual(linq ? "92546A70CEC04B7D1DE3B0BD01F1E383DCD66725033285B11BA1234F63E7FF14"
                 : "FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",
                 Convert.ToHexString(SHA256.HashData(preserved)),"Only the exact inspected fixture may continue.");
             using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
@@ -166,7 +166,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                Assert.AreEqual(1455,checks.Count);complete=true;return;
+                Assert.AreEqual(1501,checks.Count);complete=true;return;
             }
             if(demo)
             {
