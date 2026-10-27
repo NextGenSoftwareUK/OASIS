@@ -114,7 +114,7 @@ public sealed class CosmicLinqTests
         Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => index > 0));
         Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name.ToUpperInvariant()));
         Assert.Throws<CosmicLinqException>(() => query.OrderBy(row => row.Name, StringComparer.OrdinalIgnoreCase));
-        Assert.Throws<CosmicLinqException>(() => query.Reverse());
+        Assert.Throws<CosmicLinqException>(() => query.Reverse().ToArray());
         Assert.Equal(0, adapter.Calls);
     }
 

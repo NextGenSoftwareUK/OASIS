@@ -41,5 +41,20 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_QUERY_LIMIT",failed.ErrorCode,failed.Message+failed.Exception);Passed("reverse keeps preceding protected failure");
         var count=await NativeManager(adapter).ExecuteEntityCountQueryAsync(Plan(original.Reverse().Result.Take(2).Result),new ICosmicQueryStorageProvider[] {adapter});
         Assert.IsFalse(count.IsError,count.Message+count.Exception);Assert.AreEqual(2L,count.Result.Providers.Single().Value);Passed("count admits native reversal");
+
+        var query=CosmicLinq.Create(NativeManager(adapter),adapter,source).Result.Reverse();
+        CollectionAssert.AreEqual(baseline.Select(row=>row.Id).Reverse().ToArray(),query.ToArray().Select(row=>row.Id).ToArray());Passed("standard Reverse");
+        CollectionAssert.AreEqual(baseline.Select(row=>row.Id).Reverse().Take(2).Reverse().ToArray(),query.Take(2).Reverse().ToArray().Select(row=>row.Id).ToArray());Passed("standard Reverse preserves intermediate page");
+        Assert.AreEqual(baseline[0].Id,query.Last().Id);Passed("standard staged Last");
+        Assert.AreEqual(rootId,query.Last(row=>row.Name=="protected source root").Id);Passed("standard staged Last predicate");
+        Assert.IsNull(query.LastOrDefault(row=>row.Name=="missing"));Passed("standard staged Last default false predicate");
+        Assert.IsNull(query.Take(0).LastOrDefault());Passed("standard staged Last empty default");
+        Assert.AreEqual(rootId,query.ElementAt(^2).Id);Passed("standard staged from-end index");
+        Assert.IsNull(query.ElementAtOrDefault(^9));Passed("standard staged from-end missing default");
+        Assert.AreEqual("CQL_QUERY_LIMIT",Assert.ThrowsException<CosmicLinqException>(()=>query.Last(row=>row.Name!="missing" ||
+            CosmicQueryRelations.AnyDescendant(row,child=>true,tight))).Code);Passed("standard staged Last protected scope");
+        Assert.AreEqual(2,query.Take(2).Reverse().Count());Passed("standard count after native reversal");
+        Assert.IsNull(query.ElementAtOrDefault(^0));Assert.ThrowsException<ArgumentOutOfRangeException>(()=>query.ElementAt(^0));Passed("standard zero tail index semantics");
+        Assert.AreEqual("CQL_SEQUENCE_EMPTY",Assert.ThrowsException<CosmicLinqException>(()=>query.Take(0).Last()).Code);Passed("standard staged Last empty error");
     }
 }

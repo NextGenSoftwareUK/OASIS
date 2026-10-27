@@ -66,7 +66,7 @@ public sealed partial class CosmicEntityCompositionTests
         Assert.Equal("CQL_QUERY_CANCELLED",(await Manager().ExecuteEntityElementQueryAsync(plan,new[] {native},cancel.Token)).ErrorCode);
         var tail=CosmicEntityElementPlanner.Plan(ElementSource<Holon>(),CosmicElementOperation.Last,native.QueryProviderType,
             new CosmicQueryTarget(native.QueryProviderType,native.QueryCapabilities),native.EntityCompositionCapabilities);
-        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",tail.ErrorCode);
+        Assert.Equal("CQL_ORDER_REQUIRED",tail.ErrorCode);
         native.Enabled=false;
         Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",(await Manager().ExecuteEntityElementQueryAsync(plan,new[] {native})).ErrorCode);
         Assert.Equal(0,native.StageCalls);Assert.Equal(0,native.RowCalls);
