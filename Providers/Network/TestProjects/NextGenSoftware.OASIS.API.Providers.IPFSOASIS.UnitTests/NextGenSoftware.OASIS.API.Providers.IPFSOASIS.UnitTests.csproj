@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IpfsPointWalkthrough.cs" Link="Demo/IpfsPointWalkthrough.cs" />
     <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="IpfsCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
   </ItemGroup>
