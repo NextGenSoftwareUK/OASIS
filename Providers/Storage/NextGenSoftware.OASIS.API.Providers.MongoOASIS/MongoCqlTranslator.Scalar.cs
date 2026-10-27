@@ -13,8 +13,10 @@ internal sealed class MongoCqlScalarCommand
     internal bool RequiresSnapshot { get; }
     internal bool IsEmpty { get; }
     internal bool HasTraversalEnvelope { get; }
-    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty, bool traverses = false)
-    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; HasTraversalEnvelope = traverses; }
+    internal MongoCqlEntityCompositionCommand EntityComposition { get; }
+    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty, bool traverses = false,
+        MongoCqlEntityCompositionCommand entityComposition=null)
+    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; HasTraversalEnvelope = traverses; EntityComposition=entityComposition; }
 }
 
 internal sealed partial class MongoCqlTranslator
