@@ -10,7 +10,6 @@
     # Whole-directory test outputs, emptied on every run.
     TestOutputs = @(
         'TestResults'
-        'C:/Source/OASIS-hyperdrive-v2-gaps/TestResults'
     )
     ArtifactOutputs = @(
         'artifacts/global-release-validation'
@@ -26,6 +25,6 @@
         'artifacts/unity/com.nextgensoftware.oasis.edge.tgz'
         'artifacts/release-promotion/package-verification'
     )
-    # Registered old checkout whose bin/obj and TestResults are also reclaimed.
-    AdditionalBuildRepositories = @('C:/Source/OASIS-hyperdrive-v2-gaps')
+    # Other registered checkouts whose bin/obj and TestResults are also reclaimed.
+    AdditionalBuildRepositories = @()
 }
