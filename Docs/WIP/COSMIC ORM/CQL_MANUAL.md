@@ -350,3 +350,5 @@ var values = await revisions.ToCosmicListAsync();
 ```
 
 Retained native columns remain validated even if the last Select drops them. A selection does not bypass source authorization, data-domain errors or the existing work/payload limits. A closure in an earlier Where is rebound on each standard IQueryable execution; fluent CQL capture remains immutable.
+
+Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but SQLite/MongoDB/Neo4j native enrollment remains pending. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. Expanded-graph source support for this terminal shape is also pending. Existing pre-window predicate behavior remains unchanged.

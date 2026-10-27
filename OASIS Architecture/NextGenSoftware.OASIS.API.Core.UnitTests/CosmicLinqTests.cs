@@ -274,7 +274,7 @@ public sealed class CosmicLinqTests
     public void ElementPredicatesDoNotMoveAheadOfAWindowAndLastNeedsOrdering()
     {
         var adapter = new Adapter(); var root = Root(adapter);
-        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => root.Take(1).First(row => row.Name == "coffee")).Code);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => root.Take(1).First(row => row.Name == "coffee")).Code);
         Assert.Equal("CQL_ORDER_REQUIRED", Assert.Throws<CosmicLinqException>(() => root.Last()).Code);
         Assert.Equal(0, adapter.Calls);
     }

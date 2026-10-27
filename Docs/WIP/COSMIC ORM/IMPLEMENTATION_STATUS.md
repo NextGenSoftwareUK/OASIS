@@ -18,3 +18,5 @@ Historical ORM, replication, billing, history, child graph, encryption and trans
 Full Core run:3,853 passed/6 failed for missing new-worktree WEB4 host artifact; no skips. This prerequisite remains unverified, not a full-suite success.
 
 Q01d shared repeated-selection owner implemented;2,536 CQL regression tests pass including4 new binding/closure/shape/error cases, both Core targets build. All3 native matrix now passes26 cases/store (1,365 total checks); Q01d cells are green. Next Q01e.
+
+Q01e shared post-window element intent/admission/physical ownership implemented;23 focused/2,539 CQL regression tests pass including3 new tests, both Core targets build. Provider native lowering and expanded-graph acceptance remain pending; all Q01e cells stay red. Next SQLite native implementation.
