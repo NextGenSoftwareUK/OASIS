@@ -42,8 +42,8 @@ public partial class HolonRepository
             HasRelationship = true;
             var suffix = Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
             var walk = "w" + suffix;
-            var parent = new CqlSqlTranslator("p" + suffix, Parameters, _access);
-            var child = new CqlSqlTranslator("d" + suffix, Parameters, _access);
+            var parent = new CqlSqlTranslator("p" + suffix, Parameters, _access, _relationshipDepth + 1);
+            var child = new CqlSqlTranslator("d" + suffix, Parameters, _access, _relationshipDepth + 1);
             var rootId = "lower(" + CanonicalColumn("Id") + ")";
             var childId = "lower(" + child.CanonicalColumn("Id") + ")";
             var childParent = "lower(" + child.CanonicalColumn("ParentHolonId") + ")";
@@ -52,6 +52,14 @@ public partial class HolonRepository
             var fetch = Bind(descendant.Traversal.MaximumNodes + 1);
             var visibility = VisibilitySql(child);
             var predicate = child.Translate(descendant.Predicate);
+            var nested = CosmicScalarCapabilities.HasAllChildren(new[] { descendant.Predicate })
+                || CosmicScalarCapabilities.HasAllDescendants(new[] { descendant.Predicate });
+            var candidateMatch = nested
+                ? "(SELECT coalesce(sum(" + child.ProtectTraversalScope(new[] { descendant.Predicate },
+                    "CASE WHEN COALESCE((" + predicate + "),0)<>0 THEN 1 ELSE 0 END") + "),0)>0 FROM " + walk
+                    + " JOIN Holon AS \"" + child._table + "\" ON " + child.CanonicalColumn("Id") + "=" + walk + ".id)"
+                : "EXISTS(SELECT 1 FROM " + walk + " JOIN Holon AS \"" + child._table + "\" ON "
+                    + child.CanonicalColumn("Id") + "=" + walk + ".id WHERE (" + predicate + "))";
             return "(CASE WHEN " + MembershipObservationSql(this) + "=0 THEN 0 ELSE (WITH RECURSIVE " + walk + "(id,depth,path,cycle) AS ("
                 + "SELECT " + child.CanonicalColumn("Id") + ",1,'|'||" + rootId + "||'|'||" + childId + "||'|'," + childId + "=" + rootId
                 + " FROM Holon AS \"" + child._table + "\" WHERE " + childParent + "=" + rootId
@@ -64,8 +72,7 @@ public partial class HolonRepository
                 + " AND " + MembershipSql(parent, child) + " AND (" + visibility + ") LIMIT " + fetch + ") "
                 + "SELECT CASE WHEN coalesce(max(cycle),0)>0 THEN " + SqliteCqlTraversalGuard.FunctionName + "(1)"
                 + " WHEN count(*)>" + maximumNodes + " THEN " + SqliteCqlTraversalGuard.FunctionName + "(2)"
-                + " ELSE EXISTS(SELECT 1 FROM " + walk + " JOIN Holon AS \"" + child._table + "\" ON "
-                + child.CanonicalColumn("Id") + "=" + walk + ".id WHERE (" + predicate + ")) END FROM " + walk + ") END)";
+                + " ELSE " + candidateMatch + " END FROM " + walk + ") END)";
         }
     }
 }

@@ -458,3 +458,9 @@ All78All examples/store pass (234checks), plus24cycle and27protected-child
 checks. The latter prove that earlier matches and Boolean branches cannot hide
 another child's traversal failure. Relationships inside descendant predicates
 and mixed-scope cycle proof remain incomplete; full639SDKwalkthroughpending.
+
+Examples214–227 now show child/descendant relationships inside descendant
+predicates, with independent bounded scopes, actor visibility, source windows
+and nested error propagation. All92All examples/store pass (276checks), plus
+114scope/cycle checks. Projected-source All is still missing; full Q23 stays red.
+The full681SDKwalkthrough rerun remains pending.

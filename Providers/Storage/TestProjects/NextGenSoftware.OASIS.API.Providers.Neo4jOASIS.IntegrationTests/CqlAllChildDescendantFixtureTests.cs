@@ -81,6 +81,8 @@ public sealed partial class CqlAllRetainedFixtureTests
                 var source = CosmicQuery<Holon>.Create().Where(row => row.Id == rootId).Result;
                 var tight = CosmicQueryTraversalOptions.Create(2, 1).Result;
                 var sufficient = CosmicQueryTraversalOptions.Create(2, 2).Result;
+                var outerShallow = CosmicQueryTraversalOptions.Create(1, 2).Result;
+                var outerDeep = CosmicQueryTraversalOptions.Create(2, 4).Result;
                 async Task<NextGenSoftware.OASIS.Common.OASISResult<T>> Read<T>(CosmicScalarQuery<Holon, T> query)
                 {
                     var plan = CosmicScalarPlanner.Plan(query, adapter.QueryProviderType,
@@ -96,6 +98,14 @@ public sealed partial class CqlAllRetainedFixtureTests
                     source.All(row => !row.Children.Any(child => child.Name == "matching child" || CosmicQueryRelations.AnyDescendant(child, descendant => true, tight))),
                     source.All(row => row.Name == "protected child root" || row.Children.Any(child => CosmicQueryRelations.AnyDescendant(child, descendant => true, tight))),
                     source.All(row => row.Name == "never" && row.Children.Any(child => CosmicQueryRelations.AnyDescendant(child, descendant => true, tight))) };
+                errors = errors.Concat(new[] {
+                    source.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "matching child"
+                        || CosmicQueryRelations.AnyDescendant(child, descendant => true, tight), outerShallow)),
+                    source.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "never"
+                        && CosmicQueryRelations.AnyDescendant(child, descendant => true, tight), outerShallow)),
+                    source.All(row => row.Name == "protected child root" || CosmicQueryRelations.AnyDescendant(row,
+                        child => CosmicQueryRelations.AnyDescendant(child, descendant => true, tight), outerShallow))
+                }).ToArray();
                 foreach (var query in errors)
                 {
                     Assert.IsFalse(query.IsError, query.Message);
@@ -112,7 +122,16 @@ public sealed partial class CqlAllRetainedFixtureTests
                 Assert.IsFalse(hidden.IsError, hidden.Message); Assert.IsTrue(hidden.Result);
                 var empty = await Read(source.Take(0).All(row => row.Children.Any(child => CosmicQueryRelations.AnyDescendant(child, descendant => true, tight))).Result);
                 Assert.IsFalse(empty.IsError, empty.Message); Assert.IsTrue(empty.Result);
-                proofs.Add(new { provider = provider.ProviderName, protectedErrors = errors.Length, ordinaryCount = 1, positive = true, hiddenScopeExcluded = true, emptyTerminal = true });
+                var reverse = await Read(source.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "grandchild one"), outerDeep)).Result);
+                Assert.IsFalse(reverse.IsError, reverse.Message); Assert.IsTrue(reverse.Result);
+                var reverseHidden = await Read(secured.All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => child.Children.Any(grandchild => grandchild.Name == "grandchild one"), outerDeep)).Result);
+                Assert.IsFalse(reverseHidden.IsError, reverseHidden.Message); Assert.IsFalse(reverseHidden.Result);
+                var reverseEmpty = await Read(source.Take(0).All(row => CosmicQueryRelations.AnyDescendant(row,
+                    child => CosmicQueryRelations.AnyDescendant(child, descendant => true, tight), outerShallow)).Result);
+                Assert.IsFalse(reverseEmpty.IsError, reverseEmpty.Message); Assert.IsTrue(reverseEmpty.Result);
+                proofs.Add(new { provider = provider.ProviderName, protectedErrors = errors.Length, ordinaryCount = 1, positive = true, hiddenScopeExcluded = true, emptyTerminal = true, reversePositive = true, reverseHiddenScopeExcluded = true, reverseEmptyTerminal = true });
                 complete = true;
             }
             finally
@@ -144,7 +163,7 @@ public sealed partial class CqlAllRetainedFixtureTests
         CollectionAssert.AreEqual(original, await File.ReadAllBytesAsync(originalPath));
         Assert.AreEqual(0L, await records.CountDocumentsAsync(mongoIds));
         Assert.AreEqual(0L, await SqlCount()); Assert.AreEqual(0L, await NeoCount());
-        await File.WriteAllTextAsync(Path.Combine(work, "cql-all-child-descendant-result.json"), JsonSerializer.Serialize(new { ids, checks = 27, providers = proofs, exactCleanupVerified = true, originalFixtureUnchanged = true }));
+        await File.WriteAllTextAsync(Path.Combine(work, "cql-all-child-descendant-result.json"), JsonSerializer.Serialize(new { ids, checks = 45, providers = proofs, exactCleanupVerified = true, originalFixtureUnchanged = true }));
         File.Delete(journal);
     }
 }

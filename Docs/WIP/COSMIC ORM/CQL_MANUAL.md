@@ -2880,3 +2880,23 @@ opposite direction: a descendant predicate containing a child or descendant
 relationship. The full639SDKwalkthrough rerun remains pending.
 [Outcome](Verification/all-mixed-cycle-result.json),
 [TRX](Verification/all-mixed-cycle-native.trx.gz).
+
+## Descendant predicate relationships — native acceptance
+
+Both relationship orientations now run natively: Children.Any may contain a
+bounded AnyDescendant marker, and a descendant predicate may contain child or
+further descendant predicates. Captures stay immutable and each visited candidate
+retains its own visibility, membership, match and protected error scope.
+`SupportsAllDescendantPredicates` is required independently. Nested expansion is
+bounded to1,000 conservative native units before command allocation and during
+native scalar admission; a depth32 single traversal retains its existing bounds.
+
+All four native tests pass390checks:276All examples,24self-cycle,45protected-scope
+and45mixed-cycle checks. Core:3,831 pass, zero skipped; both framework builds and
+demo console pass. Synthetic fixtures cleaned exactly; original892A8unchanged.
+[Native evidence](Verification/all-descendant-predicate-native.trx.gz).
+
+Q23d is green. The full Q23 parent remains red: selected/projected sequences have
+no All terminal yet (Q23e). Current All accepts entity CosmicQuery sources only;
+projected-source All must preserve selected-result windows and native execution.
+The full681SDKwalkthrough also still needs verified reconciliation and a clean run.

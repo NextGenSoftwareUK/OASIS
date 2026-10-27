@@ -125,6 +125,7 @@ public sealed partial class CqlAllRetainedFixtureTests
                 var scalar = (ICosmicQueryScalarStorageProvider)provider;
                 var source = CosmicQuery<Holon>.Create().Where(row => row.Id == id).Result;
                 var bounds = CosmicQueryTraversalOptions.Create(2, 2).Result;
+                var shallow = CosmicQueryTraversalOptions.Create(1, 2).Result;
                 async Task<NextGenSoftware.OASIS.Common.OASISResult<T>> Read<T>(CosmicScalarQuery<Holon, T> query)
                 {
                     var plan = CosmicScalarPlanner.Plan(query, adapter.QueryProviderType,
@@ -150,6 +151,17 @@ public sealed partial class CqlAllRetainedFixtureTests
                     source.All(row => !CosmicQueryRelations.AnyDescendant(row, child => true, bounds)),
                     source.WhereAnyDescendant(child => true, bounds).Take(0).All(row => true),
                     source.All(row => row.Children.Any(child => true) || CosmicQueryRelations.AnyDescendant(row, child => true, bounds)) };
+                if (mixed)
+                    cases = cases.Concat(new[] {
+                        source.All(row => CosmicQueryRelations.AnyDescendant(row,
+                            child => CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), shallow)),
+                        source.All(row => CosmicQueryRelations.AnyDescendant(row,
+                            child => child.Name == "owned All mixed cycle child" || CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), shallow)),
+                        source.All(row => CosmicQueryRelations.AnyDescendant(row,
+                            child => child.Name == "never" && CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), shallow)),
+                        source.All(row => CosmicQueryRelations.AnyDescendant(row,
+                            child => child.Children.Any(grandchild => CosmicQueryRelations.AnyDescendant(grandchild, descendant => true, bounds)), shallow))
+                    }).ToArray();
                 foreach (var query in cases)
                 {
                     Assert.IsFalse(query.IsError, query.Message);
@@ -171,9 +183,13 @@ public sealed partial class CqlAllRetainedFixtureTests
                         CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds))).Result);
                     Assert.IsFalse(hidden.IsError, hidden.Message);
                     Assert.IsFalse(hidden.Result);
+                    var reverseHidden = await Read(secured.All(row => CosmicQueryRelations.AnyDescendant(row,
+                        child => CosmicQueryRelations.AnyDescendant(child, descendant => true, bounds), shallow)).Result);
+                    Assert.IsFalse(reverseHidden.IsError, reverseHidden.Message);
+                    Assert.IsFalse(reverseHidden.Result);
                 }
                 proofs.Add(new { provider = provider.ProviderName, cycleErrors = cases.Length, ordinaryCount = 1,
-                    emptyTerminal = true, hiddenChildExcluded = mixed });
+                    emptyTerminal = true, hiddenChildExcluded = mixed, reverseHiddenScopeExcluded = mixed });
                 complete = true;
             }
             finally
@@ -205,7 +221,7 @@ public sealed partial class CqlAllRetainedFixtureTests
         Assert.AreEqual(0L, await records.CountDocumentsAsync(mongoId));
         Assert.AreEqual(0L, await Sql("SELECT count(*) FROM Holon WHERE Id IN ($id,$child)"));
         Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids RETURN count(h) AS total", new { ids = ownedIds })).SingleAsync())["total"].As<long>());
-        await File.WriteAllTextAsync(Path.Combine(work, mixed ? "cql-all-mixed-cycle-result.json" : "cql-all-cycle-result.json"), JsonSerializer.Serialize(new { id, ids = ownedIds, checks = mixed ? 30 : 24, providers = proofs, exactCleanupVerified = true, originalFixtureUnchanged = true }));
+        await File.WriteAllTextAsync(Path.Combine(work, mixed ? "cql-all-mixed-cycle-result.json" : "cql-all-cycle-result.json"), JsonSerializer.Serialize(new { id, ids = ownedIds, checks = mixed ? 45 : 24, providers = proofs, exactCleanupVerified = true, originalFixtureUnchanged = true }));
         File.Delete(journal);
     }
 }
