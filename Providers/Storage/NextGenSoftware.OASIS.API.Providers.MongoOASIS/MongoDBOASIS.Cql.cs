@@ -28,7 +28,9 @@ public partial class MongoDBOASIS:ICosmicQueryStorageProvider
             // Re-admit against this adapter's actual contract, not a caller-supplied capability profile.
             var admission = CqlCapabilities.AdmitPlan(plan);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
-            var command=new MongoCqlTranslator().CompileExecution(plan.Query,maximumResults,plan.TailIndex);
+            var translator = new MongoCqlTranslator();
+            var command = plan.PostWindowPredicate != null ? translator.CompilePostWindowElement(plan, maximumResults)
+                : translator.CompileExecution(plan.Query,maximumResults,plan.TailIndex);
             if(!IsProviderActivated||_holonRepository is not HolonRepository repository)
                 return CqlFailure("CQL_PROVIDER_NOT_READY","Activate MongoDB before native CQL execution.");
             if(plan.Query.GraphOptions!=null)
