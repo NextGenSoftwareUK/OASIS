@@ -54,19 +54,6 @@
       ]
     },
     {
-      "provider": "PostgreSQLOASIS",
-      "suite": "core-storage-v1",
-      "mode": "native",
-      "passed": 12,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-postgresqloasis-current.json",
-      "sha256": "53976a4b3d24ce48592c7192b1c21b7b9e7cbe174c6e3a245a3f202fc9fb0594",
-      "blockers": [
-        "async: detail-id: System.InvalidOperationException",
-        "sync: detail-id: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "AWSOASIS",
       "suite": "core-storage-v1",
       "mode": "blocked-before-native",
@@ -242,6 +229,16 @@
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-neo4joasis-current.json",
       "sha256": "35c91c8a78f48bd84639ac4a1f1793d5daa849280d8d34c9ef9370fb8f13db89",
+      "blockers": []
+    },
+    {
+      "provider": "PostgreSQLOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-postgresqloasis-current.json",
+      "sha256": "3e6afdc4bf364acb414c7d68b2c1082e56661587a120bce283d1dfd84550f168",
       "blockers": []
     }
   ],

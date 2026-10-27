@@ -1,0 +1,81 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "eb437d3a-194e-42ab-8a69-a11304b725d3",
+      "RootId": "29feb396-016b-4140-81ba-a09c5622fa3d",
+      "ChildId": "fe7f85bf-345e-4326-9a6f-2f7793fbd9aa",
+      "BatchIds": [
+        "f38c9878-6a86-4691-b5d9-7bf874f30b4e",
+        "196842af-55b5-4b38-9593-bbff4eb7c2d6"
+      ],
+      "ImportId": "6b406a40-d00b-480a-b94d-38965b4329db",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read"
+      ],
+      "CurrentCase": "parent-query",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "collection count",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "39d7238c-73fd-4c4d-9303-66c6825e1175",
+      "RootId": "0dddd80f-723f-4fe7-9a59-4b6839ccffc7",
+      "ChildId": "e0653d38-fea9-4834-a0b1-75acc824d044",
+      "BatchIds": [
+        "035881ef-c2be-4f56-a32e-5c2cd31c8dd6",
+        "35bfe4b2-dd55-449f-a2cb-8474db0692fa"
+      ],
+      "ImportId": "ff4243af-ed0c-4da5-8e80-a7f1b4496678",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read"
+      ],
+      "CurrentCase": "parent-query",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "collection count",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}

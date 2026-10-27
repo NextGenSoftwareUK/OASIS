@@ -1,0 +1,95 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "abf493a2-6687-4cbf-bc2d-1ef05782d98b",
+      "RootId": "983efc90-22d4-4067-800c-6670bc696eb9",
+      "ChildId": "dbc7a359-5493-4e84-a819-ddd37f29a929",
+      "BatchIds": [
+        "971c8551-15ca-4629-99a1-c90a53f361bc",
+        "cb1d4291-73c4-4ec8-93fe-cf9718b8dfbd"
+      ],
+      "ImportId": "b2cc4c1e-fdd3-4e62-bdee-d5243e215727",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "CurrentCase": "holon-delete-dbc7a35954934e84a819ddd37f29a929",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "declared shipping default deletion contract",
+      "DeletionKinds": {
+        "dbc7a359-5493-4e84-a819-ddd37f29a929": "absent"
+      },
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "PostgreSQLOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "6bd15cf4-0dd1-49c0-a8df-97aea6265499",
+      "RootId": "c112fe9d-09da-4601-98ea-7703c7b18c24",
+      "ChildId": "bde174b1-eaed-4abc-bafd-d48a18eb5b85",
+      "BatchIds": [
+        "086e3df7-a159-418e-bbc7-b7949c53db5b",
+        "0fdbbbf1-83e0-4a65-877d-75653f3680cc"
+      ],
+      "ImportId": "d03fa18f-58d2-4824-a044-d2df201ead73",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "CurrentCase": "holon-delete-bde174b1eaed4abcbafdd48a18eb5b85",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "declared shipping default deletion contract",
+      "DeletionKinds": {
+        "bde174b1-eaed-4abc-bafd-d48a18eb5b85": "absent"
+      },
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}
