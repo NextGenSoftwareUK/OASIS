@@ -397,3 +397,5 @@ families, not a claim that either ORM supplies every feature on every backend.
 [AG]: Verification/all-predicate-retained-native.trx.gz
 
 - 27 October 2026: Q23a scalar All promoted after 3,807 Core tests and 66 read-only native cases on the exact retained fixture. New Neo4j empty-input aggregate bug reproduced and fixed. Full walkthrough did not complete; its failed fixture/receipts remain preserved. Full Q23 traversal-inside-predicate remains red. Demo greens and federation cursor implementations unchanged.
+
+- 27 October 2026: Q23 internal child-navigation compiler foundation passes 3,811 Core tests and both target frameworks ([tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs), [proof](Verification/all-traversal-compiler-core.trx.gz)). Public All traversal remains rejected pending post-window native ownership/error semantics and three-provider proof. Q23 stays red; no new green cell.
