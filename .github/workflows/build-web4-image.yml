@@ -1,0 +1,74 @@
+name: Build WEB4 image
+
+# Builds Docker/Dockerfile.web4 on a GitHub runner and publishes it to GHCR.
+# Railway's builder runs out of resources during `dotnet publish` of the ONODE
+# WebAPI with no error text, so the sandbox deploys this finished image instead.
+# Private dependencies are cloned inside the Dockerfile at the revisions pinned
+# in Docker/oasis-dependency-versions.env using PRIVATE_SUBMODULE_PAT; the token
+# is a build-stage ARG and never reaches the published final stage.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or SHA of the parent repository to build
+        required: true
+        type: string
+        default: Development
+      tag:
+        description: Extra image tag besides the commit SHA (for example sandbox)
+        required: false
+        type: string
+        default: sandbox
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-web4-image
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out the parent repository (no submodules; the Dockerfile clones pinned ones)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          submodules: false
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image names
+        id: names
+        run: |
+          repo="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/oasis-web4"
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/Dockerfile.web4
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}
+            ${{ steps.names.outputs.repo }}:${{ inputs.tag }}
+          build-args: |
+            GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        run: echo "Published ${{ steps.names.outputs.repo }}:${{ steps.names.outputs.sha }}" >> "$GITHUB_STEP_SUMMARY"
