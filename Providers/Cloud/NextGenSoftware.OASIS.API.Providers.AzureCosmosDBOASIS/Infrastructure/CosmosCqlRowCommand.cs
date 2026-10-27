@@ -54,9 +54,16 @@ internal static class CosmosCqlRowCommand
         var translator = new CosmosCqlPredicateSql();
         var predicate = query.Predicates.Count == 0 ? "true" :
             string.Join(" AND ", query.Predicates.Select(translator.Translate));
-        var ordering = query.Orderings.Select(order => "c[\"" + order.Path.Segments.Single() +
-            "\"] " + (order.Descending ? "DESC" : "ASC")).ToList();
-        if (!query.Orderings.Any(order => order.Path.Segments.Count == 1 && order.Path.Segments[0] == "Id"))
+        var ordering = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var order in query.Orderings)
+        {
+            var name = order.Path.Segments.Single();
+            if (!seen.Add(name)) continue; // A repeated key cannot resolve a tie.
+            ordering.Add("c[\"" + name + "\"] " + (order.Descending ? "DESC" : "ASC"));
+            if (name == "Id") break; // Canonical identities already establish a total order.
+        }
+        if (!seen.Contains("Id"))
             ordering.Add("c[\"Id\"] ASC");
         // One extra row exposes overflow instead of silently truncating a source
         // whose caller did not request a small enough window.

@@ -62,4 +62,25 @@ public class CqlRowCommandTests
         var plan = Plan(query.Result, capabilities: capabilities);
         Assert.ThrowsException<NotSupportedException>(() => CosmosCqlRowCommand.Compile(plan, 10));
     }
+
+    [TestMethod]
+    public void RedundantKeysDoNotRequireImpossibleDuplicatePathIndexes()
+    {
+        var query = CosmicQuery<Holon>.Create().OrderBy(h => h.Version)
+            .ThenByDescending(h => h.Version).ThenBy(h => h.Id).ThenByDescending(h => h.Version);
+        Assert.IsFalse(query.IsError, query.Message);
+        var command = CosmosCqlRowCommand.Compile(Plan(query.Result), 10);
+        StringAssert.Contains(command.QueryText, "ORDER BY c[\"Version\"] ASC, c[\"Id\"] ASC OFFSET");
+    }
+
+    [TestMethod]
+    public void DeploymentDefinitionsAreDetachedAndDoNotMutateSharedState()
+    {
+        var first = AzureCosmosDBOASIS.GetCqlCompositeIndexDefinitions();
+        first[0][0].Path = "/caller-change";
+        var second = AzureCosmosDBOASIS.GetCqlCompositeIndexDefinitions();
+        Assert.AreEqual(2, second.Count);
+        Assert.AreEqual("/Version", second[0][0].Path);
+        Assert.AreEqual("/Id", second[0][1].Path);
+    }
 }
