@@ -48,4 +48,36 @@ public class CqlPredicateSqlTests
         Assert.IsFalse(query.IsError, query.Message);
         Assert.ThrowsException<NotSupportedException>(() => new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single()));
     }
+
+    [TestMethod]
+    public void MetadataStringDomainExcludesFramedNumericPaths()
+    {
+        var query = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "precise") == "9007199254740993.125");
+        Assert.IsFalse(query.IsError, query.Message);
+        var sql = new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single());
+        StringAssert.Contains(sql, "NOT EXISTS");
+        StringAssert.Contains(sql, "_oasis_exact_numbers");
+        StringAssert.Contains(sql, "ARRAY_LENGTH");
+    }
+
+    [TestMethod]
+    public void MetadataNullIsExplicitAndDoesNotAdmitMissing()
+    {
+        var query = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "category") == null);
+        Assert.IsFalse(query.IsError, query.Message);
+        var sql = new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single());
+        StringAssert.Contains(sql, "IS_DEFINED");
+        StringAssert.Contains(sql, "IS_NULL");
+        Assert.IsFalse(sql.Contains("NOT IS_DEFINED"));
+    }
+
+    [TestMethod]
+    public void MetadataSegmentsAreEscapedAsJsonIdentifiers()
+    {
+        const string segment = "x\"] OR true --";
+        var query = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Exists(h, segment));
+        Assert.IsFalse(query.IsError, query.Message);
+        var sql = new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single());
+        StringAssert.Contains(sql, Newtonsoft.Json.JsonConvert.SerializeObject(segment));
+    }
 }

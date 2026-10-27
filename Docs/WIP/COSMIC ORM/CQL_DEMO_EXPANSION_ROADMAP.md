@@ -8,7 +8,7 @@ The original full roadmap remains active; defer depth the demo does not need.
 | Order | Provider | Evidence and next work |
 |---|---|---|
 | Baseline | MongoDB, SQLite, Neo4j | Existing 12-row demo set is green. Use the proven common query subset; unfinished Q01f parity must not delay expansion. |
-| 1: cloud | **Azure Cosmos DB for NoSQL** | Recommended first. Matrix records 52/52 storage checks with no blocker in that suite. Existing SDK/document owner and native SQL query language offer a direct translation path. CQL and hosted-cloud acceptance remain unverified. Audit stored schema, indexes, encryption and existing configuration before implementing the demo subset. |
+| 1: cloud | **Azure Cosmos DB for NoSQL** | Recommended first. Matrix records 52/52 storage checks with no blocker in that suite. Existing SDK/document owner and native SQL query language offer a direct translation path. Canonical and nested string/Boolean metadata CQL rows now pass a fourteen-case emulator gate plus27 focused tests; full common-demo and hosted-cloud acceptance remain open. See [native admission report](CQL_COSMOS_NATIVE_ADMISSION.md). |
 | Alternatives | Firestore, AWS DynamoDB, Oracle | Firestore 52/52 is retained-emulator evidence, hosted acceptance pending. AWS/Dynamo also has historical runtime/environment caveats. Oracle 52/52 proves database storage, not OCI hosting. Reconsider if Cosmos access or schema creates a larger blocker; do not implement every cloud first. |
 | 2: chain | **Solana** | First candidate, as requested. Existing SDK/signing/finalization work and retained validator are useful. Latest breadth matrix records 4/52, with an unavailable referenced memo chunk during collection decoding. Repair/verify current-record reads without replaying transactions, then implement scoped CQL and demonstrate labeled chain persistence/finality. |
 | 3 | **IPFS** | Latest matrix records 0/52 blocked before native: original retained repository/configuration and storage key are missing. Locate/recover the existing resources rather than silently replacing them; then prove CID-backed records and declared querying. |
@@ -54,6 +54,6 @@ does not establish global failover or 100% uptime.
 ## Next actions
 
 - Checkpoint the SQLite projection step already running when the priority changed.
-- Audit Cosmos schema, native query surface and reusable runtime/auth configuration; implement the common demo contract.
+- Cosmos canonical and string/Boolean metadata rows are enrolled/native-proven; next implement remaining common demo projection/count, numeric semantics, index/profile and manager/hosted acceptance.
 - Then progress through Solana, IPFS, SOLID and ActivityPub in order, recording configuration blockers early.
 - Keep the full parity checklist strict and update CURRENT_STATUS each milestone. Unfinished Q01f depth remains deferred, not complete.

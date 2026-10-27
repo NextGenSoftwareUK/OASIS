@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
@@ -28,6 +30,7 @@ internal sealed class CosmosCqlPredicateSql
                 (logical.IsAnd ? " AND " : " OR ") + Translate(logical.Right) + ")",
             CosmicQueryNot not => "(NOT " + Translate(not.Operand) + ")",
             CosmicQueryComparison comparison => Compare(comparison),
+            CosmicQueryMetadataTest test => MetadataTest(test),
             _ => throw new NotSupportedException("Cosmos CQL predicate has not been admitted.")
         };
     }
@@ -35,7 +38,8 @@ internal sealed class CosmosCqlPredicateSql
     private string Compare(CosmicQueryComparison comparison)
     {
         var path = comparison.Path;
-        if (path.IsMetadata || path.Segments.Count != 1)
+        if (path.IsMetadata) return MetadataCompare(comparison);
+        if (path.Segments.Count != 1)
             throw new NotSupportedException("Cosmos CQL metadata/path semantics require separate admission.");
 
         var name = path.Segments[0];
@@ -83,5 +87,65 @@ internal sealed class CosmosCqlPredicateSql
         var guard = expected == typeof(string) || expected == typeof(Guid) ? "IS_STRING" : expected == typeof(bool) ? "IS_BOOL" : "IS_NUMBER";
         var normalized = "IIF(" + guard + "(" + field + "), " + field + " " + symbol + " " + parameter + ", false)";
         return operation == CosmicQueryComparisonOperator.NotEqual ? "(NOT " + normalized + ")" : normalized;
+    }
+
+    private string Bind(object value)
+    {
+        var name = "@cql" + _parameters.Count;
+        _parameters.Add((name, value));
+        return name;
+    }
+
+    private static (string Field, string Exists) MetadataPath(IReadOnlyList<string> segments)
+    {
+        if (segments.Count < 1 || segments.Count > 16) throw new NotSupportedException("Bounded metadata path required.");
+        var field = "c[\"MetaData\"]";
+        var ancestors = new List<string> { "IS_OBJECT(" + field + ")" };
+        for (var i = 0; i < segments.Count; i++)
+        {
+            field += "[" + JsonConvert.SerializeObject(segments[i]) + "]";
+            if (i + 1 < segments.Count) ancestors.Add("IS_OBJECT(" + field + ")");
+        }
+        ancestors.Add("IS_DEFINED(" + field + ")");
+        return (field, "(" + string.Join(" AND ", ancestors) + ")");
+    }
+
+    private string MetadataTest(CosmicQueryMetadataTest test)
+    {
+        var (field, exists) = MetadataPath(test.Segments);
+        return test.Kind == CosmicQueryMetadataTestKind.Exists ? exists : "(" + exists + " AND IS_NULL(" + field + "))";
+    }
+
+    private string MetadataCompare(CosmicQueryComparison comparison)
+    {
+        var path = comparison.Path;
+        var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
+        if (type != typeof(string) && type != typeof(bool) ||
+            comparison.Operator is not CosmicQueryComparisonOperator.Equal and not CosmicQueryComparisonOperator.NotEqual)
+            throw new NotSupportedException("Cosmos metadata comparison domain is not admitted.");
+        var (field, exists) = MetadataPath(path.Segments);
+        var nullable = type == typeof(string) || Nullable.GetUnderlyingType(path.ValueType) != null;
+        var guard = (type == typeof(string) ? "IS_STRING(" : "IS_BOOL(") + field + ")";
+        if (type == typeof(string))
+        {
+            // Exact numeric literals are native strings on the wire. Exclude
+            // their framed structural paths from the canonical string domain.
+            var steps = new[] { "MetaData" }.Concat(path.Segments).ToArray();
+            var matches = new List<string> { "ARRAY_LENGTH(cqlNumber[\"path\"]) = " + steps.Length };
+            for (var i = 0; i < steps.Length; i++)
+                matches.Add("cqlNumber[\"path\"][" + i + "] = " + Bind(steps[i]));
+            guard = "(" + guard + " AND NOT EXISTS(SELECT VALUE cqlNumber FROM cqlNumber IN c[\"_oasis_exact_numbers\"][\"values\"] WHERE " + string.Join(" AND ", matches) + "))";
+        }
+        var unequal = comparison.Operator == CosmicQueryComparisonOperator.NotEqual;
+        if (comparison.Literal.Kind == CosmicQueryScalarKind.Null)
+        {
+            if (!nullable) throw new NotSupportedException("Non-nullable metadata cannot be compared with null.");
+            return "(" + exists + " AND " + (unequal ? guard : "IS_NULL(" + field + ")") + ")";
+        }
+        if (comparison.Literal.Kind != path.ScalarKind)
+            throw new NotSupportedException("Cosmos metadata literal type differs from its declared domain.");
+        var valueTest = "IIF(" + guard + ", " + field + (unequal ? " != " : " = ") + Bind(comparison.Literal.Value) + ", false)";
+        if (unequal && nullable) valueTest = "(" + valueTest + " OR IS_NULL(" + field + "))";
+        return "(" + exists + " AND " + valueTest + ")";
     }
 }
