@@ -17,16 +17,16 @@ Updated: 27 October 2026. Update at every milestone; start here after compaction
 | Source composition Q49a | 216 native checks, 72/database |
 | Projected All Q23e | 168 native checks; Q23 parent audit and 24 C# demo examples pass |
 | Q01a–e | Selected numeric/extrema/reselection and post-window entity elements green on all three |
-| Latest native checkpoint | 1,537 checks: SQLite 518, MongoDB 518, Neo4j 501 |
+| Latest native checkpoint | 1,556 checks: SQLite 518, MongoDB 518, Neo4j 520 |
 | Latest committed shared entity-stage foundation | 2,545 CQL regressions pass; both Core targets build |
 
 Native evidence: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256: `8C912F4F21CBDD616ABBD10161A064CAC403897DC951517725BA64C26DEC8CE9`.
+SHA256: `79A6FEECC205428B6DC0A9ACFC8BEB92A825FF4EAA89958047ACA3E22FE484E7`.
 Shared evidence: `TestResults/CoreCurrent/entity-composition-regression.trx`.
 SHA256: `44C39A2E37FD6503FEBF78931FCFA9D96CAB03B008C1A39905AAB21319E8D5FE`.
-These are separate cohorts: the latest native gate includes shared stage ownership and 18 new entity-stage cases each on SQLite/MongoDB.
+These are separate cohorts: the latest native gate includes shared stage ownership and 18 entity-stage cases each on all three plus Neo snapshot rejection.
 
-Q01f remains red on all databases: SQLite native rows/typed V2/graph/visibility checks pass; broader native matrix and terminal/projection integration remain pending.
+Q01f remains red on all databases: Native rows/typed V2/graph/visibility checks pass on all three; staged terminal/projection integration remains pending.
 IQueryable bridge committed in Core `b9bccf0fdb2f035ff5a460186ac9f17055e7cd71`: 2,550 CQL regressions pass.
 Both Core targets build; deferred capture and typed hydration/tracking share the existing owner.
 Evidence: `TestResults/CoreCurrent/entity-stage-bridge-regression.trx`.
@@ -36,7 +36,7 @@ The full Core suite is not green: earlier run had 3,853 passes and six failures 
 SQLite entity-stage increment: 42 CQL provider tests pass, including seven new SQL/native-owner/graph tests.
 Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-graph-current.trx`.
 SHA256: `0691C0AA1A23F527EF3037DB2249E5C0B71EAC7E0195B28CA805C05ACC4661DF`.
-Native summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`, SHA256 `3AB39028B8B76F35F833D64B00A67F51CC15E5BA8AFFF24897BA2F5FE6C4BF90`.
+Native summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`, SHA256 `68D8F74975472953999DB71FDDE35FF948F80794E55F15EEFE9D551B36488D6B`.
 Provider build passes. Native materialized stages and ordinal positions share the row snapshot/budget/graph owner.
 
 Mongo entity stages implemented under the shared row/graph snapshot and deadline owner.
@@ -44,9 +44,13 @@ Provider builds; 212 CQL compiler/admission tests pass, including five new tests
 Evidence: `TestResults/CoreCurrent/mongo-entity-stage-current.trx`.
 SHA256: `CF8E2C8895AD2E6918D3A477C5BBDE33813840BB78633AB83B0A674413AFFBD1`.
 
+Neo entity stages: single native statement, bounded candidate references, sticky work/traversal outcomes and streamed source byte proof.
+144 CQL/compiler tests pass; native gate includes 19 new Neo cases. ProviderSnapshot remains explicitly unsupported.
+Unit evidence: `TestResults/CoreCurrent/neo-entity-stage-current.trx`, SHA256 `AD0C5715452DEACB8563D73C272E2ACA2AEEFB8BA30E6396C8DB1883EA712D0A`.
+
 ## Exact next step
 
-Implement Neo4j native entity stages; extend the native matrix, then integrate staged terminals/projections.
+Integrate entity-stage scalar/element terminals and projections without flattening the source or bypassing stage ownership.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.

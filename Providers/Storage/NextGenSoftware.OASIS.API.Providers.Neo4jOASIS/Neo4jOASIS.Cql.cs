@@ -21,8 +21,12 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
     CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities => CqlCapabilities;
     public static CosmicQueryCapabilities CqlCapabilities => NeoCqlContract.Capabilities;
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
+
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition=null) where T:IHolon
     {
         NeoCqlReadBudget readBudget = null;
         try
@@ -33,6 +37,11 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL result limit must be between one and 10,000.");
             var admission = CqlCapabilities.AdmitPlan(plan);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
+            if (composition != null)
+            {
+                var stages = EntityCompositionCapabilities.Admit(composition.Query);
+                if (stages.IsError) return CqlFailure(stages.ErrorCode, stages.Message);
+            }
             var compiled=CompileCqlSource(plan.Query);
             var translator=compiled.Translator;
             var descendantPredicate=compiled.DescendantPredicate;
@@ -45,7 +54,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
-            if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             if (!IsProviderActivated || _driver == null) return CqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
             // Validation is outside the page branch: SKIP must never hide an invalid
             // projection. Both branches execute inside one native read query.
@@ -85,6 +94,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot,"
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;
             if (plan.PostWindowPredicate != null) query = CompileCqlPostWindowElement(compiled, plan);
+            if (composition != null) query = CompileCqlEntityComposition(compiled, composition, maximumResults);
             using var budget=readBudget=new NeoCqlReadBudget(plan.Query.GraphOptions?.MaximumPayloadBytes??32*1024*1024,cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
@@ -92,7 +102,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             using var transaction = await session.BeginTransactionAsync(config => config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
-            var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget).ConfigureAwait(false);
+            var rows=await ReadCqlRowsAsync(cursor,rootBudget,budget,composition?.Options).ConfigureAwait(false);
             if(plan.Query.GraphOptions!=null)
             {
                 Task<IReadOnlyList<IHolon>> ReadChildren(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CosmicQueryChildSelection selection,CancellationToken token)

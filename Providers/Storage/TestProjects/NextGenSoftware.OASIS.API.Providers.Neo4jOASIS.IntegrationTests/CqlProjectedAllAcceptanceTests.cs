@@ -79,7 +79,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         if(reviewed)
         {
             var preserved=await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual(linq ? "92546A70CEC04B7D1DE3B0BD01F1E383DCD66725033285B11BA1234F63E7FF14"
+            Assert.AreEqual(linq ? "FAB22BCE0B767D8E0CB623EAAEF3E63148FA1BCD550AF77A3E8C0D47F3ED504C"
                 : "FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",
                 Convert.ToHexString(SHA256.HashData(preserved)),"Only the exact inspected fixture may continue.");
             using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
@@ -166,9 +166,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                foreach (var adapter in adapters.Where(item => item.QueryProviderType != ProviderType.Neo4jOASIS))
+                foreach (var adapter in adapters)
                     await VerifyEntityStages((ICosmicQueryEntityCompositionStorageProvider)adapter, rootId, checks);
-                Assert.AreEqual(1537,checks.Count);complete=true;return;
+                Assert.AreEqual(1556,checks.Count);complete=true;return;
             }
             if(demo)
             {
