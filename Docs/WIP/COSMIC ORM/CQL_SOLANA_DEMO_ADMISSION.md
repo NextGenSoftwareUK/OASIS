@@ -118,3 +118,5 @@ All owned validators stopped; retained source ledger/keys/journals preserved.
 No application writes, funding, new environment or downloads. An older backup
 location has been requested. Recovery stays red; continue the explicit chain
 query execution/source-proof design while backup availability is resolved.
+
+A durable SQLite ingestion-store primitive now passes11realDB tests without anySolanasubmissions, node/key changes or sourcehistoryreplay. It atomically binds encryptedhistory/checkpoint and rejects competingwriters/conflicts. This doesnotrecover originals or enroll Solana CQL. [Contract and nextgates](CQL_CHAIN_QUERY_CONTRACT.md#durable-sqlite-ingestion-store-milestone).
