@@ -1,18 +1,25 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param([switch]$DynamoOnly,[switch]$ArchiveConfigurationReports,[switch]$InitializeSyntheticStore)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-foreach($name in @('AWSOASIS','DynamoDBOASIS','AWSS3OASIS')){
+$awsSelectedNames=if($DynamoOnly){@('AWSOASIS','DynamoDBOASIS')}else{@('AWSOASIS','DynamoDBOASIS','AWSS3OASIS')}
+if($ArchiveConfigurationReports){
+    & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames --check-only
+    if($LASTEXITCODE){throw 'Original AWS configuration evidence changed.'}
+}
+foreach($name in $awsSelectedNames){
     foreach($mode in @('async','sync')){
         $report=Join-Path $root ('TestResults/ProviderConformanceCurrent/'+$name+'/'+$mode+'/report.json')
-        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){throw 'Review preserved AWS conformance evidence before another run.'}
+        if(!$ArchiveConfigurationReports -and ((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next')))){throw 'Review preserved AWS conformance evidence before another run.'}
     }
 }
 $results=Join-Path $root 'TestResults/ProviderConformanceCurrent'
-foreach($name in @('aws-family-current.trx','aws-factory-current.trx')){if(Test-Path -LiteralPath (Join-Path $results $name)){throw 'Preserve the prior AWS conformance/factory TRX.'}}
+$awsNativeReport=if($DynamoOnly){'dynamo-core-current.trx'}else{'aws-family-current.trx'}
+foreach($name in @($awsNativeReport,'aws-factory-current.trx')){if(Test-Path -LiteralPath (Join-Path $results $name)){throw 'Preserve the prior AWS conformance/factory TRX.'}}
 & (Join-Path $root 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1') -Owner 'AWS document/object canonical storage breadth' -Operation {
     $projects=@(
+        'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
         'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj',
         'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj',
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/NextGenSoftware.OASIS.Providers.Shared.S3.csproj',
@@ -25,31 +32,43 @@ foreach($name in @('aws-family-current.trx','aws-factory-current.trx')){if(Test-
         & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE){throw 'AWS canonical host build failed.'}
     }
-    $consumer=Join-Path (Split-Path $project) 'bin/Debug/net10.0'
-    . (Join-Path $root 'Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $consumer -VerifySourceDocuments
+    $awsConsumerOutput=Join-Path (Split-Path $project) 'bin/Debug/net10.0'
+    . (Join-Path $root 'Scripts/TestHosts/Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $awsConsumerOutput -VerifySourceDocuments
     foreach($name in @('NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS','NextGenSoftware.OASIS.API.Providers.AWSOASIS','NextGenSoftware.OASIS.Providers.Shared.S3','NextGenSoftware.OASIS.API.Providers.AWSS3OASIS','NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests')){
-        Write-Output ($name+': sources='+(Assert-SourceDocuments (Join-Path $consumer ($name+'.dll')) $root))
+        Write-Output ($name+': sources='+(Assert-SourceDocuments (Join-Path $awsConsumerOutput ($name+'.dll')) $root))
     }
     & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~AwsBootConfigurationTests|FullyQualifiedName~AwsS3ConfigurationTests' --logger 'trx;LogFileName=aws-factory-current.trx' --results-directory $results -v:q
     if($LASTEXITCODE){throw 'Shipping AWS/S3 factory controls failed; no native run.'}
+    [xml]$awsFactoryTrx=Get-Content -LiteralPath (Join-Path $results 'aws-factory-current.trx') -Raw
+    $awsFactoryCounts=$awsFactoryTrx.TestRun.ResultSummary.Counters
+    if([int]$awsFactoryCounts.total -ne 27 -or [int]$awsFactoryCounts.passed -ne 27 -or [int]$awsFactoryCounts.notExecuted -ne 0){throw 'Exactly 27 executed shipping factory controls required before native dispatch.'}
+    if($ArchiveConfigurationReports){
+        & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames
+        if($LASTEXITCODE){throw 'Original configuration report archival incomplete.'}
+    }
     $runtime='C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime'
     $priorEndpoint=$env:DYNAMODB_SERVICE_URL;$owned=$null;$environmentLease=$null
     try{
         $env:DYNAMODB_SERVICE_URL=$null
         if(Test-Path -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')){
-            if((Get-FileHash -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')).Hash -ne '72640F61583045B630971AF8D9F34AC311CF3FD0A7F077EA96EC0D04BCBE1E10'){throw 'Existing DynamoDB runtime identity differs; no replacement.'}
-            if((Get-Content -LiteralPath (Join-Path $runtime 'runtime-source-sha256.txt') -Raw).Trim() -ne 'A3CB28740EA3875A7B0E14CFB13CED686F36CE27BC00F13F8A7D72DDEEE6C9B1'){throw 'Existing DynamoDB provenance differs.'}
+            if((Get-FileHash -LiteralPath (Join-Path $runtime 'DynamoDBLocal.jar')).Hash -ne '67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620'){throw 'Existing DynamoDB runtime identity differs; no replacement.'}
+            if((Get-Content -LiteralPath (Join-Path $runtime 'runtime-source-sha256.txt') -Raw).Trim() -ne '667CDE09F96F4785CEDE4D107D8066011E5EECEB5DD4566EA8C74C0D378FE919'){throw 'Existing DynamoDB provenance differs.'}
             $environmentLease=[IO.File]::Open((Join-Path (Split-Path $runtime) 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
-            $owned=& (Join-Path $root 'Scripts/TestHosts/Use-ReusableDynamoContainer.ps1')
+            $owned=& (Join-Path $root 'Scripts/TestHosts/Use-ReusableDynamoContainer.ps1') -InitializeSyntheticStore:$InitializeSyntheticStore
             $env:DYNAMODB_SERVICE_URL='http://127.0.0.1:18000'
         }
-        & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~AwsStorageConformanceTests' --logger 'trx;LogFileName=aws-family-current.trx' --results-directory $results -v:q
+        $awsNativeFilter=if($DynamoOnly){'FullyQualifiedName~AwsStorageConformanceTests.SharedDynamoStorageInterface'}else{'FullyQualifiedName~AwsStorageConformanceTests'}
+        & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter $awsNativeFilter --logger "trx;LogFileName=$awsNativeReport" --results-directory $results -v:q
         $testExit=$LASTEXITCODE
-        & python (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers AWSOASIS DynamoDBOASIS AWSS3OASIS
+        & python -B (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers @awsSelectedNames
         if($LASTEXITCODE){throw 'AWS shared report registration failed.'}
         & python (Join-Path $PSScriptRoot 'update_provider_matrix.py')
         if($LASTEXITCODE){throw 'AWS matrix update failed.'}
         if($testExit){throw 'AWS canonical conformance recorded blockers; no routing/depth or Dev promotion.'}
+        [xml]$awsNativeTrx=Get-Content -LiteralPath (Join-Path $results $awsNativeReport) -Raw
+        $awsNativeCounts=$awsNativeTrx.TestRun.ResultSummary.Counters
+        $awsExpectedNative=if($DynamoOnly){4}else{6}
+        if([int]$awsNativeCounts.total -ne $awsExpectedNative -or [int]$awsNativeCounts.passed -ne $awsExpectedNative -or [int]$awsNativeCounts.notExecuted -ne 0){throw 'Every selected native schedule must execute without skips.'}
     }
     finally{
         $env:DYNAMODB_SERVICE_URL=$priorEndpoint

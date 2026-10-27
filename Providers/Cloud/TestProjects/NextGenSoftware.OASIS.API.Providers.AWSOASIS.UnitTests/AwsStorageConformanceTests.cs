@@ -14,8 +14,12 @@ public class AwsStorageConformanceTests
     [DataTestMethod]
     [DataRow("AWSOASIS",false)] [DataRow("AWSOASIS",true)]
     [DataRow("DynamoDBOASIS",false)] [DataRow("DynamoDBOASIS",true)]
-    [DataRow("AWSS3OASIS",false)] [DataRow("AWSS3OASIS",true)]
-    public async Task SharedStorageInterfaceAgainstConfiguredAws(string name,bool sync)
+    public Task SharedDynamoStorageInterface(string name,bool sync)=>Run(name,sync);
+
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public Task SharedS3StorageInterface(bool sync)=>Run("AWSS3OASIS",sync);
+
+    private async Task Run(string name,bool sync)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);
         while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
@@ -63,7 +67,7 @@ public class AwsStorageConformanceTests
         }
         try
         {
-            var result=await CoreStorageConformance.RunAsync(provider,name,"native",sync,Checkpoint);
+            var result=await CoreStorageConformance.RunAsync(provider,name,"native",sync,Checkpoint,expectedDefaultDeletion:name=="AWSS3OASIS"?null:"absent");
             Assert.IsTrue(result.Succeeded,result.CurrentCase+": "+result.FailureType);
         }
         finally {if(provider is IDisposable disposable)disposable.Dispose();}
