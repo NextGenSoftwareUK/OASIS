@@ -26,21 +26,21 @@ Shared evidence: `TestResults/CoreCurrent/entity-composition-regression.trx`.
 SHA256: `44C39A2E37FD6503FEBF78931FCFA9D96CAB03B008C1A39905AAB21319E8D5FE`.
 These are separate cohorts: native proof predates the new shared stage foundation.
 
-Q01f remains red on all databases: SQLite native rows are implemented; graph/visibility acceptance and terminal/projection integration remain pending.
+Q01f remains red on all databases: SQLite native rows/typed V2/graph/visibility checks pass; broader native matrix and terminal/projection integration remain pending.
 IQueryable bridge committed in Core `b9bccf0fdb2f035ff5a460186ac9f17055e7cd71`: 2,550 CQL regressions pass.
 Both Core targets build; deferred capture and typed hydration/tracking share the existing owner.
 Evidence: `TestResults/CoreCurrent/entity-stage-bridge-regression.trx`.
 SHA256: `2BD5563C7108302BE8949D9E4F15A37E37D99A7305033C0B4F55B544BDCEAB25`.
 The full Core suite is not green: earlier run had 3,853 passes and six failures from a missing built WEB4 host prerequisite.
 
-SQLite entity-stage increment: 39 CQL provider tests pass, including four new SQL/native-owner tests.
-Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-owner-current.trx`.
-SHA256: `2E2A6F666A9AEA24A3CF49D89D248660C881B3F00870FB92EF7ABD774AEAB96B`.
+SQLite entity-stage increment: 42 CQL provider tests pass, including seven new SQL/native-owner/graph tests.
+Evidence: `TestResults/CoreCurrent/sqlite-entity-stage-graph-current.trx`.
+SHA256: `0691C0AA1A23F527EF3037DB2249E5C0B71EAC7E0195B28CA805C05ACC4661DF`.
 Provider build passes. Native materialized stages and ordinal positions share the row snapshot/budget/graph owner.
 
 ## Exact next step
 
-Extend SQLite native acceptance to protected traversals, visibility, expanded graphs and V2 typed IQueryable rows; then MongoDB and Neo4j.
+Implement MongoDB native entity stages, then Neo4j; extend the cross-database native matrix and integrate staged terminals/projections.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.
