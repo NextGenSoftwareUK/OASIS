@@ -23,7 +23,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static async Task VerifyStagedWide(ICosmicQueryStorageProvider adapter, Guid rootId, Guid actor,
         IQueryable<Holon> root, IQueryable<Holon> multi, List<object> checks)
     {
-        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS) return;
+        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS) return;
         const decimal exact = 1.0000000000000000000000000001m;
         const double exactDouble = 1d + 2.220446049250313e-16d;
         const float exactSingle = 1f + 1.1920929e-7f;
