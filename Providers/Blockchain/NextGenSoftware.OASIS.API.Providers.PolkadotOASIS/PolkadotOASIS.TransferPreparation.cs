@@ -16,9 +16,9 @@ public partial class PolkadotOASIS
         => VerifyNativeTokenTransferPreparationAsync(preparation, CancellationToken.None);
 
     public Task<OASISResult<JsonElement>> VerifyNativeTokenTransferPreparationAsync(JsonElement preparation, CancellationToken cancellationToken)
-        => VerifyOriginalPreparationAsync(preparation, false, cancellationToken);
+        => VerifyOriginalPreparationAsync(preparation, NativeMutationKind.Native, cancellationToken);
 
-    private async Task<OASISResult<JsonElement>> VerifyOriginalPreparationAsync(JsonElement preparation, bool asset, CancellationToken cancellationToken)
+    private async Task<OASISResult<JsonElement>> VerifyOriginalPreparationAsync(JsonElement preparation, NativeMutationKind kind, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
@@ -26,7 +26,7 @@ public partial class PolkadotOASIS
             cancellationToken.ThrowIfCancellationRequested();
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before checking original preparation.");
             var original = preparation.Clone();
-            var identity = await InvokePolkadotSdkAsync(new { operation = asset ? "verifyAssetPreparation" : "verifyNativePreparation", endpoint = _rpcEndpoint,
+            var identity = await InvokePolkadotSdkAsync(new { operation = MutationOperations(kind).Verify, endpoint = _rpcEndpoint,
                 genesisHash = ReportedGenesisHash, preparation = original }, cancellationToken);
             if (identity.ValueKind != JsonValueKind.Object || !identity.TryGetProperty("verified", out var verified)
                 || verified.ValueKind != JsonValueKind.True
@@ -34,6 +34,16 @@ public partial class PolkadotOASIS
                 || identity.GetProperty("sender").GetString() != original.GetProperty("sender").GetString()
                 || identity.GetProperty("chainId").GetString() != ReportedGenesisHash)
                 throw new InvalidDataException("SDK verification did not bind the exact original transaction, sender and configured chain.");
+            if(kind==NativeMutationKind.Nft&&(_nftConfiguration==null
+                ||identity.GetProperty("contractCodeHash").GetString()!=_nftConfiguration.CodeHash
+                ||original.GetProperty("contractCodeHash").GetString()!=_nftConfiguration.CodeHash))
+                throw new InvalidDataException("NFT original differs from the configured reviewed implementation.");
+            if(kind==NativeMutationKind.TokenEscrow&&(_tokenEscrowConfiguration==null
+                ||identity.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash
+                ||original.GetProperty("contractCodeHash").GetString()!=_tokenEscrowConfiguration.CodeHash
+                ||identity.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId
+                ||original.GetProperty("contractAddress").GetString()!=_tokenEscrowConfiguration.ContractAccountId))
+                throw new InvalidDataException("Token escrow original differs from the explicitly configured reviewed contract.");
             result.Result = identity;
             result.Message = "Original signed operation verified; no submission or fee authorization.";
         }

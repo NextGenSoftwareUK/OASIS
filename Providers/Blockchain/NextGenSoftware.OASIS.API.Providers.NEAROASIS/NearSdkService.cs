@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
-internal sealed class NearSdkService
+internal sealed partial class NearSdkService
 {
     private readonly string _rpcEndpoint;
     private readonly string _networkId;
@@ -84,8 +84,7 @@ internal sealed class NearSdkService
         using var codec=OpenStorageCodec();
         var encrypted=codec.Encrypt(StorageContext(key),value);
         EnsureWritable();
-        using var response = await InvokeAsync("put", new { key, value=encrypted });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        return await CallAsync("put",new { key, value=encrypted }).ConfigureAwait(false);
     }
 
     private Dictionary<string,object> PrepareCheckedRecordArguments(StoredSnapshot observed,string plaintext,string archiveKey,string archivePlaintext)
@@ -115,10 +114,11 @@ internal sealed class NearSdkService
         var args=PrepareCheckedRecordArguments(observed,plaintext,archiveKey,archivePlaintext);
         EnsureWritable();
         try{
-            using var response=await InvokeAsync("putRecordChecked",new{args});
+            using var response=await InvokeAsync("putRecordChecked",new{argsBase64=Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(args))});
             return ReadCheckedRecordOutcome(response.RootElement);
         }
         catch(NearRecordAdmissionException){throw;}
+        catch(NearMutationUncertainException){throw;}
         catch(NearRecordWriteRejectedException){throw;}
         catch(NearRecordMutationUncertainException){throw;}
         catch(Exception cause){throw new NearRecordMutationUncertainException(null,cause);}
@@ -148,8 +148,7 @@ internal sealed class NearSdkService
         using var codec=OpenStorageCodec();
         _=StorageContext(key);
         EnsureWritable();
-        using var response = await InvokeAsync("delete", new { key });
-        return response.RootElement.GetProperty("transactionHash").GetString();
+        return await CallAsync("delete_record",new { key }).ConfigureAwait(false);
     }
 
     private static EncryptedRecordCodec OpenStorageCodec()
@@ -285,6 +284,7 @@ internal sealed class NearSdkService
             return hash;
         }
         catch(NearMutationRejectedException){throw;}
+        catch(NearMutationUncertainException){throw;}
         catch(Exception cause){throw new NearMutationUncertainException(hash,cause);}
     }
 
@@ -296,6 +296,9 @@ internal sealed class NearSdkService
 
     public async Task<string> GetTransactionStatusAsync(string transactionHash, string signerAccountId = null,
         CancellationToken cancellationToken = default)
+        =>ClassifyTransactionOutcome(await ReadTransactionOutcomeAsync(transactionHash,signerAccountId,cancellationToken));
+
+    private async Task<JsonElement> ReadTransactionOutcomeAsync(string transactionHash,string signerAccountId,CancellationToken cancellationToken)
     {
         if(string.IsNullOrWhiteSpace(transactionHash))throw new ArgumentException("A transaction hash is required.",nameof(transactionHash));
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -312,7 +315,30 @@ internal sealed class NearSdkService
         var outcome=response.RootElement.GetProperty("outcome");
         if(outcome.GetProperty("transaction_outcome").GetProperty("id").GetString()!=transactionHash)
             throw new InvalidDataException("NEAR status outcome does not match the requested transaction.");
-        return ClassifyTransactionOutcome(outcome);
+        _=ClassifyTransactionOutcome(outcome);
+        return outcome.Clone();
+    }
+
+    internal async Task<string> VerifyNftLockSourceAsync(string transactionHash,string tokenId,CancellationToken token=default)
+    {
+        var outcome=await ReadTransactionOutcomeAsync(transactionHash,_accountId,token);
+        if(ClassifyTransactionOutcome(outcome)!="Completed")throw new InvalidDataException("Source NFT lock must be finalized successfully.");
+        var transaction=outcome.GetProperty("transaction");
+        if(transaction.GetProperty("signer_id").GetString()!=_accountId||transaction.GetProperty("receiver_id").GetString()!=_contractId)
+            throw new InvalidDataException("Source NFT lock signer or contract differs from the configured owner.");
+        var gas=transaction.GetProperty("actions")[0].GetProperty("FunctionCall").GetProperty("gas").GetUInt64();
+        if(gas==0)throw new InvalidDataException("Source NFT lock gas is invalid.");
+        using var args=JsonDocument.Parse(Convert.FromBase64String(transaction.GetProperty("actions")[0].GetProperty("FunctionCall").GetProperty("args").GetString()));
+        var id=RequireNftLockId(args.RootElement.GetProperty("lock_id").GetString());
+        ValidateMutationAction(transaction,new MutationIntent("FunctionCall","0","nft_set_locked",JsonSerializer.SerializeToElement(new{token_id=tokenId,locked=true,lock_id=id}),gas));
+        return id;
+    }
+
+    internal static string RequireNftLockId(string id)
+    {
+        if(!Guid.TryParseExact(id,"N",out var value)||value==Guid.Empty||value.ToString("N")!=id)
+            throw new InvalidDataException("Canonical nonempty native NFT deposit ID required.");
+        return id;
     }
 
     internal static string ClassifyTransactionOutcome(JsonElement outcome)
@@ -337,9 +363,49 @@ internal sealed class NearSdkService
             throw new InvalidOperationException("NEAR accountId and privateKey are required for storage writes.");
     }
 
+    private readonly OwnedPreparationScope _preparationScope=new();
+    internal bool HasPreparationOwner=>_preparationScope.HasCurrent;
+    internal Task<T> WithPreparationAsync<T>(Func<Task<T>> operation,Func<string,string,PreparedSubmissionServer> factory,CancellationToken token)
+        =>_preparationScope.RunAsync(operation,factory,token);
+
     private async Task<JsonDocument> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
+        var scopeToken=_preparationScope.CurrentToken;
+        using var linked=scopeToken.CanBeCanceled&&cancellationToken.CanBeCanceled
+            ?CancellationTokenSource.CreateLinkedTokenSource(scopeToken,cancellationToken):null;
+        cancellationToken=linked?.Token??(scopeToken.CanBeCanceled?scopeToken:cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
+        using var server=operation is "transfer" or "call" or "putRecordChecked"
+            ?_preparationScope.CreateCurrent(operation,PreparationContext(operation,args)):null;
+        return await InvokeCoreAsync(operation,args,cancellationToken,server).ConfigureAwait(false);
+    }
+
+    private string PreparationContext(string operation,object args)
+    {
+        var input=JsonSerializer.SerializeToElement(args);
+        var sender=input.TryGetProperty("accountId",out var supplied)?supplied.GetString():_accountId;
+        var intent=new Dictionary<string,object>();
+        if(operation=="transfer"){
+            intent["kind"]="transfer";intent["recipient"]=input.GetProperty("receiverId").GetString();
+            intent["depositUnits"]=CanonicalNativeAmount(input.GetProperty("amountYocto").GetString());
+        }else{
+            intent["kind"]="functionCall";
+            intent["recipient"]=operation=="putRecordChecked"?_contractId:input.GetProperty("targetContractId").GetString();
+            intent["depositUnits"]=operation=="putRecordChecked"?"0":CanonicalNativeAmount(input.GetProperty("depositYocto").GetString());
+            intent["methodName"]=operation=="putRecordChecked"?"put_record_checked":input.GetProperty("methodName").GetString();
+            intent["gasUnits"]="100000000000000";
+            intent["argsBase64"]=input.GetProperty("argsBase64").GetString();
+        }
+        return JsonSerializer.Serialize(new{sender,intent});
+    }
+
+    private async Task<JsonDocument> InvokeCoreAsync(string operation,object args,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var submitting=preparationServer!=null;
+        using var expectedContext=preparationServer!=null&&operation is "transfer" or "call" or "putRecordChecked"
+            ?JsonDocument.Parse(PreparationContext(operation,args)):null;
+        if(operation=="submitNativePreparation"&&preparationServer==null)throw new InvalidOperationException("NEAR original submission requires the existing owned preparation server.");
         var request = new Dictionary<string, object>
         {
             ["operation"] = operation,
@@ -352,6 +418,9 @@ internal sealed class NearSdkService
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
                 request[property.Name] = property.GetValue(args);
+        // Only these operations construct a native signature. Observation, key
+        // generation and submission of an already signed original need no service key.
+        if(operation is not ("transfer" or "call" or "putRecordChecked" or "prepareNativeAction"))request.Remove("privateKey");
 
         var startInfo = new ProcessStartInfo
         {
@@ -366,33 +435,73 @@ internal sealed class NearSdkService
             CreateNoWindow = true
         };
         startInfo.ArgumentList.Add(_bridgePath);
+        startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        startInfo.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        startInfo.Environment.Remove("NEAROASIS_PRIVATEKEY");
+        startInfo.Environment.Remove("OASIS_NEAR_STORAGE_ENCRYPTION_KEY");
+        preparationServer?.ConfigureChild(startInfo,Path.Combine(AppContext.BaseDirectory,"NearSdkBridge","prepared-submission.mjs"));
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        if(preparationServer!=null||operation is "prepareNativeAction" or "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")
+            deadline.CancelAfter(TimeSpan.FromSeconds(45));
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start the official NEAR SDK bridge.");
-        await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request));
-        process.StandardInput.Close();
+        var serving=preparationServer?.ServeAsync(deadline.Token);
+        var servingObserved=false;
         var stdoutTask = process.StandardOutput.ReadToEndAsync();
         var stderrTask = process.StandardError.ReadToEndAsync();
-        try{await process.WaitForExitAsync(cancellationToken);}
-        catch(OperationCanceledException)
+        try
         {
-            // Only observations/local key operations supply cancellation. Never cancel/replay a submitted mutation.
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(),deadline.Token);
+            process.StandardInput.Close();
+            await process.WaitForExitAsync(deadline.Token);
+            var stdout=await stdoutTask;var stderr=await stderrTask;
+            if(string.IsNullOrWhiteSpace(stdout))throw new InvalidOperationException($"NEAR SDK bridge returned no response (exit {process.ExitCode}): {stderr}");
+            using var envelope=JsonDocument.Parse(stdout);
+            if(process.ExitCode!=0||!envelope.RootElement.TryGetProperty("ok",out var ok)||!ok.GetBoolean())
+            {
+                if(serving!=null){
+                    deadline.Cancel();
+                    try{await serving;}
+                    catch(OperationCanceledException cancelled) when(cancelled.CancellationToken==deadline.Token&&!cancellationToken.IsCancellationRequested){}
+                    finally{servingObserved=true;}
+                }
+                var error=envelope.RootElement.TryGetProperty("error",out var value)?value.GetString():stderr;
+                if(operation=="putRecordChecked"&&envelope.RootElement.TryGetProperty("checkedWritePhase",out var phase)&&phase.ValueKind==JsonValueKind.String&&phase.GetString()=="before-submission")
+                    throw new NearRecordAdmissionException($"NEAR checked-write admission failed: {error}");
+                throw new InvalidOperationException($"NEAR SDK operation failed: {error}");
+            }
+            var result=envelope.RootElement.GetProperty("result");
+            if(serving!=null){
+                try{await serving;}finally{servingObserved=true;}
+                if(preparationServer.PreparedTransactionId==null||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
+                    ||!result.GetProperty("persisted").GetBoolean()||!result.GetProperty("submitted").GetBoolean())
+                    throw new InvalidDataException("NEAR submission reply differs from the durably acknowledged original.");
+                if(expectedContext!=null){
+                    var original=JsonSerializer.SerializeToElement(new{transactionHash=preparationServer.PreparedTransactionId,
+                        sender=expectedContext.RootElement.GetProperty("sender").GetString(),intent=expectedContext.RootElement.GetProperty("intent")});
+                    _=ValidatePreparedOutcome(original,result.GetProperty("outcome"));
+                    if(operation=="putRecordChecked"&&(result.GetProperty("finalExecutionStatus").GetString()!=result.GetProperty("outcome").GetProperty("final_execution_status").GetString()
+                        ||!JsonElement.DeepEquals(result.GetProperty("nativeStatus"),result.GetProperty("outcome").GetProperty("status"))))
+                        throw new InvalidDataException("Checked-write projection differs from its bound native outcome.");
+                }
+            }
+            return JsonDocument.Parse(result.GetRawText());
+        }
+        catch(Exception failure) when(submitting&&preparationServer.PreparedTransactionId!=null&&failure is not Core.Interfaces.INativeMutationReconciliationRequired)
+        {
+            throw new NearMutationUncertainException(preparationServer.PreparedTransactionId,failure);
+        }
+        finally
+        {
+            deadline.Cancel();
             if(!process.HasExited)process.Kill(entireProcessTree:true);
             await process.WaitForExitAsync();
-            await Task.WhenAll(stdoutTask,stderrTask);
-            throw;
+            try{await Task.WhenAll(stdoutTask,stderrTask);}catch(Exception error) when(error is IOException or DecoderFallbackException){}
+            if(serving!=null){
+                try{await serving;}
+                catch(OperationCanceledException) when(deadline.IsCancellationRequested){}
+                catch(Exception) when(servingObserved){}
+            }
         }
-        var stdout = await stdoutTask;
-        var stderr = await stderrTask;
-        if (string.IsNullOrWhiteSpace(stdout))
-            throw new InvalidOperationException($"NEAR SDK bridge returned no response (exit {process.ExitCode}): {stderr}");
-        using var envelope = JsonDocument.Parse(stdout);
-        if (process.ExitCode != 0 || !envelope.RootElement.TryGetProperty("ok", out var ok) || !ok.GetBoolean())
-        {
-            var error = envelope.RootElement.TryGetProperty("error", out var value) ? value.GetString() : stderr;
-            if(operation=="putRecordChecked"&&envelope.RootElement.TryGetProperty("checkedWritePhase",out var phase)&&phase.ValueKind==JsonValueKind.String&&phase.GetString()=="before-submission")
-                throw new NearRecordAdmissionException($"NEAR checked-write admission failed: {error}");
-            throw new InvalidOperationException($"NEAR SDK operation failed: {error}");
-        }
-        return JsonDocument.Parse(envelope.RootElement.GetProperty("result").GetRawText());
     }
 }
 

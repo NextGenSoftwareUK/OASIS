@@ -1,4 +1,85 @@
+## Latest cursor lineage ownership correction — 26 October 2026
+
+The shared admission owner now returns its validated execution handle. Federation
+freezes the root operation GUID before application callbacks or provider awaits;
+response framing never reloads it from mutable HttpContext.Items. Existing resumed
+pages retain their protected root lineage. Three genuine initial-page regressions
+(removal, replacement and wrong-type context item) and three resumed controls now
+pass, including original receipt ownership.
+
+Full Core3,750pass0skip and shippingWEB4build pass. Evidence:
+Verification/cursor-lineage-{red,core}.trx.gz and cursor-lineage-identities.json.
+This focused owner-capture correction did not rerun the separately recorded
+526-settlement/608-attempt native gate. Broader roadmap acceptance remains open.
+
+## Latest request ownership correction — 26 October 2026
+
+Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing
+IncludeMetadata or MaximumOutputBytes while a provider await was suspended could
+expand disclosure or bypass the admitted public wire ceiling. CqlRequestCapture
+now detaches row and federation requests before application callbacks or awaits,
+including provider/priority arrays, nested relationship/filter/path descriptors,
+graph shape and owned scalar JsonElements. The compiler remains the semantic
+admission owner; capture ceilings only bound allocation. No retry, alternate
+writer or provider fallback was introduced.
+
+Full Core3,744pass0skip and shippingWEB4build pass. Five new controls cover the two
+original regressions, ordinary-row disclosure, nested mutation/disposed JSON and
+Exists-without-Value compatibility. Fresh native526settlements608attempts passes
+all three providers, cursor/key/process restart, graph and transport checks;
+source snapshots unchanged and seven producer/consumer pairs match. Owned test
+fixtures, temporary protected keys and services were verified clean.
+
+Evidence: Verification/request-ownership-{red,core,native,process-second}.trx.gz,
+-native-source.json.gz, -native-binaries.json, -native-result.json,
+-process-pids.json and -unit-identities.json. The overall roadmap remains open.
+
+## Latest: actual cursor process restart verified — 26 October 2026
+
+A settled three-provider page survives abrupt termination of its hosting process.
+A distinct fresh host resumes the exact protected cursor using the unchanged
+Windows DPAPI-protected persisted key. Three pages/nine provider attempts settle
+through one parent reservation authority and the production HTTP authorization
+client; a duplicate redemption is rejected without another execution start.
+Readiness JSON is published atomically. This is actual process evidence, separate
+from the earlier in-process host restart/key-rotation matrix.
+
+Full native cohort:526settled operations/608physical attempts, unchanged sources,
+seven matching producer/consumer pairs. Original twenty cursor requests and
+existing writer-process recovery remain green. The owning fixture removed its
+small test key/config directory after both process trees stopped; no private key
+or controlled credential was archived. Native databases/services were cleaned.
+
+Evidence: Verification/federation-cursor-process{.trx.gz,-second.trx.gz,
+-source.json.gz,-binaries.json,-result.json,-pids.json}; earlier initial proof is
+retained separately. Scope is same-user Windows DPAPI persistence. Multi-host,
+container/KMS key deployments, broader failure windows, causal agreement,
+repeatable distributed snapshots, distributed joins and the full remaining ORM
+roadmap are still open. Core3,739 is the separate preceding regression gate.
+
 # CQL architecture
+
+## Request routing ownership — 26 October 2026
+
+`ProviderRoutingPolicy` is an immutable observation of the three routing flags,
+ordered provider lists and preferred provider. `ProviderRoutingOverrides` keeps
+inheritance distinct from explicit values. Converting an observation back to
+overrides retains every captured value, including the absence of a default.
+`ProviderManager` owns capture, validation and atomic explicit publication;
+request completion never restores a prior global snapshot.
+
+`HolonManager.CreateRequestContext` creates an isolated routing registry over
+existing registered provider instances and the existing runtime DNA. It shares
+performance monitoring and load-balancer selection history, preserving fairness,
+but owns its routing lists and current/default pointers. Construction performs no
+provider activation and adds no persistent provider event subscriptions. Original
+public constructor signatures remain available.
+
+WEB4 graph-save actions bind their manager and detailed response to the same
+observation. This does not authorize access, change conditional write authority,
+replace usage admission, or deep-copy all configuration. Non-migrated routes
+still require separate migration and cross-route verification. See
+[ownership and evidence](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
 
 ## Conditional serialized graph planning — 26 October 2026
 
@@ -1608,3 +1689,477 @@ service tariffs in the existing prepared ledger. Query tariffs do not price
 writes; configured save routes require bounded complete profiles. See
 [storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
 price-versus-native-invoice distinction and remaining joined settlement proof.
+
+## Signed save transport/response ownership — 26 October 2026
+
+GraphQL creates and recursive gRPC saves reuse the same request-owned manager,
+conditional owned-save planner, generic holon serializer and prepared usage
+execution as REST. gRPC marks domain failures explicitly because HTTP200 and
+`grpc-status: 0` do not establish application success. The usage buffer completes
+its response feature before envelope inspection and durable publication so unary
+BodyWriter bytes cannot disappear after a committed write.
+
+The focused signed three-provider gate passes24transportrequests, alongside the
+existing CQL/REST suite:402settledoperations/436attempts. Seven producer/native
+copies and three refreshed unit-consumer copies match; source freeze holds.
+This does not certify full deployed GraphQL startup or other gRPC/delete paths.
+
+## 26 October: authoritative access SDK and native policy verification
+
+Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.
+
+## 26 October: hosted authoritative read-policy enrollment verified
+
+All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once to the authenticated actor and captured eligible provider before source windows. Denial/invalid grants/null DI registrations fail without owner-public fallback or manager acquisition. Final Core3530PASS/WEB4313PASS+oneexistingStripeSkip; actualshippingcontroller30signedpolicyrequests pass on all3providers, complete native492settlements/541attempts including process-interruption recovery. Sourcesunchanged/sevennative+threeunitbinarypairs match; ownedfixtures/services cleaned. See [contract and evidence](CQL_HOSTED_READ_POLICY.md). Application-specific authoritative grant discovery, scalable authorization I/O/cancellation/billing, tenant deployment readiness, federation and broader ORM acceptance remain open.
+
+## 26 October: required authoritative policy deployment verified
+
+CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## Authorization policy lifetime ownership
+
+CQL and operation-recovery readiness borrow disposable DI scopes for composition checks. They do not authorize actors or select storage at startup. Scoped policies end with the check; singleton policies remain container-owned. Request handlers resolve their own request-scoped policy rather than retaining a startup instance. Recovery's root-container lifetime regressions and the full 320-case shipping WEB4 pass are documented in [hosted operation recovery](HOSTED_OPERATION_RECOVERY.md). The earlier native matrix is a separate cohort.
+
+## Bounded SDK federation — 26 October 2026
+
+Core now owns explicit federation options/planning, all-adapter preflight,
+complete input capture and global row merging through CosmicFederationExecutor.
+Input capture calls the existing CosmicQueryExecutor, which retains native
+admission and CosmicQueryAttemptOwner receipt ownership. The same cumulative
+budget continues through identity resolution, exact ordering and global paging.
+ProviderPriority returns observed copies and a deterministic choice, without a
+causal freshness claim. Ordinary per-provider execution retains its existing API.
+
+The SDK merge passes 3,591 Core tests but has not yet passed the real-provider or
+HTTP federation acceptance gate. Cursor continuity, causal agreement, distributed
+snapshots and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md for
+the precise contract and remaining gates; CQL_MANUAL.md has the SDK example.
+
+## 26 October native SDK federation acceptance
+
+Fourteen read-only SDK federation scenarios now pass on the retained real
+MongoDB, SQLite and Neo4j fixture: complete sources, visibility before global
+paging, provider priority/copy provenance, independent source/global windows,
+cumulative input rejection and exact decimal/UInt64/Single/Double/Int64/UTC/GUID/
+nullable metadata ordering. The ordinary signed HTTP/recovery cohort remains
+492 settled operations / 541 attempts; sources stayed unchanged and all seven
+native producer/consumer binary pairs matched. The SDK federation scenarios run
+before hosted usage enrollment. They do not prove signed federation billing or a
+federation HTTP endpoint; both remain open, along with cursors/distributed joins.
+
+The gate exposed a scalar-contract mismatch before any native fixture was
+started: federation rejected JSON decimal/integer normalization admitted by
+native Single/Double ordering. Two red regressions reproduced it. Core now uses
+its existing exact rational ties-to-even IEEE rounding owner, once, and verifies
+normalized ties by logical ID. Exact integer/decimal conversions still reject
+precision loss; floating normalization follows the explicit declared IEEE domain.
+Core dual-target build and all 3,595 unit tests pass, including four new cases.
+
+Evidence: Verification/federation-normalization-{red,core}.trx.gz,
+federation-normalization-identities.json, federation-native.trx.gz,
+federation-native-source.json.gz, federation-native-binaries.json and
+federation-native-result.json. The reusable runner requires all fourteen scenarios
+and all three providers before it accepts success. No new environment/download
+was used; fixture teardown and cleanup are recorded in the resource ledger.
+
+26 October target-specific authorization: the generic federation planner snapshots complete per-target read policies and validates one actor/matching authorities before native source windows. Capture checks each target actor against inherited usage admission before any physical attempt. Existing source policies cannot be replaced; output checks stay target-specific. Core3,607 tests pass. Hosted policy service enrollment and multi-provider signed billing remain pending (CQL_FEDERATION_CONTRACT.md).
+
+## HolonManager federation materialization — 26 October 2026
+
+`HolonManager.ExecuteFederationQueryAsync<T>` now routes V2 federation through
+the existing collection metadata decryption, typed hydration and tracking owner.
+Selected copies and observed alternatives retain provider/identity provenance;
+mapping cannot change identity or escape the target read policy. Native rows
+remain detached. The existing reserved metadata/encryption policy is reused,
+without a second decryption implementation. Wrong keys, plaintext envelopes,
+duplicate or conflicting encrypted fields, and typed setter failures return real
+errors with no result. Legacy mode rejects before native execution.
+
+The same federation budget continues through mapping and final canonical output.
+An output regression exposed the persistence serializer dropping Copy.Row as an
+IHolon navigation member, undercounting row payload. Federation now captures each
+entity root explicitly in a data-only envelope containing all selected/observed
+copies and provenance; it does not change the persistence navigation contract.
+The earlier fixture-only diagnosis was incorrect and is superseded by this root
+fix. Both raw large metadata and expanded typed output now hit the output bound.
+
+Dual-target Core build and all3,617 tests pass, including ten new manager,
+encryption-fault, tracking, error, V2-guard and row-payload cases. Evidence:
+Verification/federation-materialization-{core,initial,row-omission}.trx.gz and
+federation-materialization-identities.json. Earlier14native SDK scenarios predate
+this finalizer and the per-target policy extension. Native manager/hosted
+federation authorization, HTTP, billing, cursors and distributed joins remain open.
+
+26 October federation HTTP boundary: the seventh exact CQL route binds authenticated admission before provider lookup, compiles unbound business intent only internally, captures one policy per target, then uses generic federation planning and HolonManager materialization. Resource filtering, durable query attempt ownership and public leaf projection are shared with existing CQL. Wire size and canonical output are separately bounded. Core3,636/shipping320+1existing skip pass; signed native federation HTTP/billing remains open. See CQL_FEDERATION_HTTP_CONTRACT.md.
+
+## 26 October: signed native federation and demos verified
+
+The actual shipping controller passes13requests (12admitted/settled, one anonymous)
+with23durable provider attempts on real MongoDB, SQLite and Neo4j. Cases cover
+provider-specific private grants, visibility before global paging, priority/copy
+provenance, revocation, late denial and authority mismatch with zero attempts,
+input/output exhaustion, empty sources, schema rejection, captured default,
+three-store metadata decryption, wrong-key rejection and unchanged stored
+ciphertext. Every admitted operation settles with the expected exact tariff cost;
+completed read receipts survive later service errors. No billing account is used.
+
+The reusable demo also executes the spaced/commented
+Examples/CosmicCqlDemo/V1FederationWalkthrough.cs: one global SDK example and one
+signed global HTTP example, in addition to138SDK/138HTTP per-provider examples.
+Swagger has a federation request example; its token interceptor derives allowed
+paths from the shared CQL catalogue, including composition and federation. Demo
+federation admission reserves three attempts; leaf routes retain one.
+
+The complete cohort passes505settled operations/567attempts,14SDK federation
+scenarios and process-restart recovery on all3providers. Native source snapshots
+are unchanged and seven producer/consumer pairs match. The controller's source
+hash matches the earlier HTTP capture; the reusable snapshot list now includes
+that file explicitly for future runs. Owned fixtures/services were verified and
+removed; no installation, download or new environment was used.
+
+Evidence: Verification/federation-hosted-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}
+and federation-hosted-controller-identity.json. Core3,636 tests and the existing
+shipping320tests/one Stripe sandbox skip are separate prior regression gates.
+Authenticated cursors, causal agreement/repeatable distributed snapshots,
+distributed joins and full remaining ORM roadmap acceptance remain open.
+
+## Canonical continuation intent binding — 26 October 2026
+
+`CosmicFederationIntentFingerprint.Create(plan)` now computes a streaming,
+culture-independent SHA256 identity for the complete admitted intent. It binds
+model/engine artifact identities, original/resolved provider scopes, source and
+global windows, ordering, predicate kinds and exact scalar representations,
+identity priority, consistency and every budget ceiling. Every target's actual
+mandatory predicate is included, so authoritative record IDs and actors are bound
+rather than only a provider name. Equivalent sorted grant catalogues bind equally.
+
+The visitor accepts only known immutable CQL nodes and never constructs entities
+or executes provider queries. JSON framing separates path segments and node
+boundaries. The encoding is streamed directly into the hash with a1MiB hard bound;
+excess returns CQL_FEDERATION_BINDING_LIMIT and no digest. Model/engine artifact
+changes deliberately invalidate bindings instead of assuming compatible semantics.
+
+Dual-target Core build and all3,654 tests pass, including18culture/snapshot,
+policy/actor/catalogue, scope/priority, windows/budgets, traversal/predicate,
+no-materialization and size-limit cases. Evidence:
+Verification/federation-binding-core.trx.gz and federation-binding-identities.json.
+
+This is an unkeyed intent digest, not authentication or an authorization grant.
+It is not accepted as a cursor. Protected host-owned token state, key ownership/
+rotation, expiry, continuation idempotency/replay prevention, cumulative remaining
+budgets and signed/native paging acceptance remain required. Provider-specific
+contract/deployment identities and the original HTTP scope intent also belong in
+the host's final protected binding. HTTP currently continues to reject Cursor.
+
+## Protected continuation-state codec — 26 October 2026
+
+An internal WEB4 codec now uses host-supplied ASP.NET Data Protection with a
+versioned purpose and fixed182byte binary payload. It authenticates/encrypts
+actor, intent/deployment digests, lineage, exact next-request key, issue/expiry,
+global offset, pinned provider scope and remaining global/per-target budgets.
+Input arrays are snapshotted; unused slots and layout/version are canonical.
+Expiry is at most five minutes; foreign actors/deployments, future/expired state,
+wrong key owner/purpose, tampering and malformed/oversized tokens fail closed.
+
+No default key provider, filesystem key ring or HTTP enrollment is created.
+Production key persistence/sharing/rotation/revocation belong to the host. Tests
+use memory-only ephemeral keys. Full Core3,675 tests pass, including21codec cases;
+the shipping WEB4 build passes. Evidence:
+Verification/federation-cursor-codec-core.trx.gz and
+federation-cursor-codec-identities.json.
+
+This is protected state only, not a redemption protocol. Fresh-policy/intent
+validation, binding the exact next key to durable usage idempotency, atomic replay
+rejection, cumulative remaining-budget execution, publication and signed/native
+paging acceptance remain unimplemented. HTTP still rejects Cursor input. The
+prior505/567 native federation checkpoint is separate and predates this codec.
+
+26 October durable request-key binding prerequisite verified: UsageExecutionHandle.IsBoundToRequest(service, avatar, key) reuses UsageCanonical.OperationId against the captured durable owner, independent of later options mutation. Admission and binding share key validation. Ten strict memory-only controls reject foreign keys/avatars/services, invalid key lengths/control characters and empty avatars without authority/outbox calls. Core dual-target build/all3,685 tests pass, zero skips. Evidence: Verification/federation-request-binding-core.trx.gz and federation-request-binding-identities.json. HTTP cursor redemption, priced-handle binding coverage, cumulative budgets and signed/native paging acceptance remain open.
+
+
+26 October cumulative budget groundwork verified: internal immutable remaining accounting preserves global/per-provider rows, input/output bytes, work, attempts and active duration across resume. Original scope/ceilings and global/provider consumption consistency must match. Zero limits remain zero; terminal/cancelled executions cannot publish snapshots. Active time rounds up to prevent fractional reset; client think time is excluded and still needs independent absolute cursor expiry. Core dual-target build/all3,696tests pass, eleven new cases. Evidence: Verification/federation-budget-resume-{core,initial-core}.trx.gz and federation-budget-resume-identities.json. This is not yet connected to executor/manager/HTTP cursor flow; protected redemption, accounting publication and signed/native continuation acceptance remain open.
+
+
+26 October executor/manager accounting integration verified: successful federation results publish RemainingBudget only after complete reads, merge, typed materialization and canonical output charging. ExecuteWithBudgetAsync / HolonManager.ExecuteFederationQueryWithBudgetAsync propagate validated remaining scope/vector/ceilings, per-target capture limits and active deadline. Depleted complete sets reject before provider dispatch; null state cannot reset limits; errors publish no success snapshot. Public Restore returns OASISResult with structural validation but is not cursor authentication, authorization or replay control. Core dual-target/all3,707tests and shippingWEB4build pass. Evidence: Verification/federation-accounting-integration-{core,initial-core}.trx.gz and identities.json. HTTP cursor redemption/settlement-safe publication and signed/native continuation acceptance remain open; route still rejects Cursor. Manual includes a spaced C# SDK accounting example.
+
+
+26 October host cursor binding groundwork verified: CqlFederationCursorHost uses explicit shared key ownership/deployment-contract SHA256; binds host/Core artifacts, actual adapter types/artifacts, original HTTP scope/includeMetadata and the canonical fresh-policy Core plan. Exact canonical Guid request header must match server-issued next key AND UsageExecutionHandle's captured WEB4/avatar/key admission. Expiry/deployment/key-owner mismatches and inconsistent remaining accounting reject without provider I/O. Core3,727tests/shippingbuild pass, twenty new controls; Verification/federation-cursor-host-{core,initial}.trx.gz and identities.json retained. No registration/key store/HTTP schema change: service is groundwork, not completed redemption. Endpoint integration, atomic replay/settlement publication and signed/native continuation acceptance remain required.
+
+
+26 October HTTP cursor integration controlled gate: explicit opt-in, protected original intent/offset/pinned targets/fixed expiry/next key, fresh target policies and durable admitted-handle binding implemented. Shared budget-owner read-set preflight runs before dispatch; per-read capture also respects source Take. Whole-request active time, host work and canonical+reserved wire bytes accumulate; final protection/framing reserves100ms/4096token characters with checked publication. Exhausted chains report hasMore with null continuation/BudgetExhausted. Core dual-target build/all3,737tests and shippingWEB4build pass, ten new endpoint/protocol cases (including three pages, concurrent atomic claim, changed key/intent/policy and captured default). No native continuation acceptance yet; earlier505/567 evidence predates this feature. Existing outbox owns replay; no key store, environment or provider I/O in this gate. See CQL_MANUAL.md for enrollment and request sequence. Signed/native paging, key rotation/restart, uncertain failures and broader distributed features remain open.
+
+
+Final HTTP cursor gate: all3,739Core tests pass, twelve new endpoint/protocol cases including missing enrollment and depleted protected state preserving no-dispatch evidence. Shipping build passes with original257warnings; new host XML/nullability warnings corrected. Required Verification/federation-cursor-http-{core,initial,first-core,expiry-core}.trx.gz and federation-cursor-http-identities.json retained. Whole-request active time includes host preparation/execution/projection and checked100ms finalization reservation; fixed expiry bounds dispatch/publication. Signed native continuation/restart/key-rotation and broader roadmap acceptance remain open.
+
+
+26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
+
+## Element-terminal ownership
+
+`CosmicElementQuery<T>` retains the immutable composed source and terminal kind.
+`CosmicElementPlanner` lowers First/FirstOrDefault to `Take(1)` and Single/
+SingleOrDefault to `Take(2)`, using the existing composition rules so earlier
+source windows remain intact. The ordinary authorized row planner admits the
+bounded query against native paging capabilities and rejects ambiguous
+multi-provider pages. No provider-specific element implementation is required.
+
+`CosmicElementExecutor` delegates the one native read to `CosmicQueryExecutor`
+and establishes zero/one/multiple cardinality. HolonManager then maps only the
+selected row through its existing typed loading, decryption and tracking owner.
+An ambiguous Single never invokes application property setters. Default-result
+semantics apply only to a successful empty native result; provider, policy,
+protocol, cancellation and hydration errors remain explicit OASISResult errors.
+
+These are C# entity-query terminals. HTTP, selected-value and grouped variants
+must be tracked independently rather than inferred from this implementation.
+
+## Indexed-element lowering
+
+The element intent retains an optional Int32 index. Q19a's ordinary path composes
+native Skip/Take through the existing immutable source window, reusing the row
+planner/executor and HolonManager's typed publication owner. It requests one row.
+The existing First/Single paths retain their previous lowering.
+
+A negative default index or an index outside an explicit source Take has known
+empty cardinality. The plan still resolves/adopts its source policy and concrete
+scope; execution checks cancellation and captures the inherited actor/lifetime
+owner before returning its default or range error without a physical read.
+Unknown-length sequences still read natively, and provider errors remain errors.
+
+System.Index/from-end and Last now use the native tail plan below. All still
+needs native predicate evaluation after a source window. A separate count
+followed by an offset read would allow concurrent writes to change the sequence
+between statements; that shortcut is not used.
+
+## Native tail selection (Q18/Q19 verified)
+
+The admitted row plan carries an optional one-based TailIndex. This is a physical
+selection stage after the immutable query source, not a rewritten source Take.
+TailPaging is a separate capability; the element planner and live row/provider
+admission check it, and single-target binding preserves the descriptor.
+
+```mermaid
+flowchart LR
+    subgraph Native[One native read operation]
+      P[Source visibility and predicates] --> O[Complete source ordering]
+      O --> W[Source Skip / Take]
+      W --> R[Reverse full ordering including identity ties]
+      R --> T[Skip tail index minus 1 / Take 1]
+    end
+    T --> H[Existing detached typed hydration and tracking]
+```
+
+SQLite nests the source SELECT before reversing its ordering. MongoDB adds the
+reverse sort/skip/limit to the same aggregate after the existing SelectedWindow.
+Neo4j adds a second WITH stage after its source window. Each path retains its
+existing native read budget, traversal validation and graph snapshot owner.
+No separate count request or full-source client enumeration is introduced.
+
+Last requires explicit source ordering. System.Index from-end forms use the
+native sequence ordering, with existing stable identity ties. ^0 and indexes
+past an explicit source bound have their declared pure error/default semantics.
+Provider errors do not become defaults. Core3,797 tests and all-three-provider native examples 106–135 pass; All is
+separate unfinished work. See the checklist for retained source/binary/test proof.
+
+## Scalar All: native counterexamples after the source window
+
+`CosmicScalarQuery.AllPredicate` is a separately compiled immutable predicate;
+it is not appended to the source filter. The scalar planner admits the source
+and predicate against actual provider capabilities. A single native operation
+counts nonmatching rows after source ordering, Skip and Take. `FromCount`
+returns true iff the counterexample count is zero; negative counts and native
+errors remain errors. SQLite uses a windowed subquery, MongoDB a post-window
+aggregate projection and Neo4j a post-window aggregate-only WITH before result
+flags. Separating Neo4j's aggregate from grouping flags preserves an empty row.
+Existing source graph filters retain their current validation/read owners.
+Traversal inside the terminal predicate is explicitly rejected and full Q23
+remains red. Scoped proof: 3,807 Core tests; 22 native cases on each database
+against the unchanged retained fixture. The full walkthrough remains incomplete.
+
+## Q23 traversal compiler checkpoint — 27 October 2026
+
+The internal `CosmicQueryExpression.CompileAll` compiler now lowers canonical
+`Children.Any(child => ...)` navigation to the existing immutable child predicate.
+It never enumerates the loaded collection or invokes the navigation getter.
+Captured scalar literals freeze at construction, nested predicate nodes charge
+the enclosing expression budget, and outer-row correlations remain unsupported.
+Existing row and selected-result grammars retain their previous admission.
+
+This is a foundation for the red All traversal requirement, not a shipped
+terminal capability. The public All builder remains unchanged and rejects
+traversal. Required next work: independently scoped post-window traversal state
+and error envelopes on all three providers, child visibility/membership, bounded
+descendant cycle/node outcomes, Boolean combinations and real native proof.
+Source traversal failures remain protected outside the source page; terminal
+traversal evaluates only selected roots. Do not reuse a pre-window filter as a
+post-window Boolean result. Core proof: 3,811 tests pass with zero skips;
+net10.0 and netstandard2.1 builds pass. Retained proof:
+[compiler tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs),
+[TRX](Verification/all-traversal-compiler-core.trx.gz).
+Full Q23 remains red; no additional parity cell is promoted.
+
+### Direct-child All execution
+
+`All(parent => parent.Children.Any(child => ...))` now uses an independently
+admitted `SupportsAllChildren` scalar capability. The predicate descriptor carries
+the source access policy. SQLite and Neo4j use correlated child existence inside
+the existing post-window scalar expression. MongoDB wraps the selected root,
+uses the same child lookup owner as source filtering, and retains lookup results
+as Boolean values instead of filtering selected roots. Scalar field references
+are rebound to the row envelope; `$literal` values and lexical variables remain
+unchanged. Negation, AND/OR and multiple child tests remain native. Snapshots and
+membership validation retain their provider owners. Nested-child/descendant
+terminal predicates remain rejected and full Q23 remains red. Native proof:
+[114 checks](Verification/all-child-native.trx.gz); Core: 3,815 tests pass.
+
+## Nested-child All verification in progress
+
+Nested `Children.Any(...)` expressions now preserve their lexical native scopes.
+SQLite and Neo4j aliases include relationship depth, so an inner child cannot
+accidentally capture an outer alias when no parameter was bound between them.
+MongoDB evaluates nested Boolean child predicates inside the corresponding
+lookup scope using the same canonical membership/visibility owner. No loaded
+child collections are enumerated. Correlation to an outer lambda parameter is
+still rejected; captured literals remain frozen.
+
+Core: 3,817 tests pass with zero skips; both target frameworks build. Eight
+additional native cases per provider are pending. The host-only positive case
+explicitly omits access filtering to observe a grandchild through the fixture's
+private parent; the actor-filtered version must return false. Remote policy
+handling is unchanged. Full Q23 remains red, including descendant traversal.
+
+Nested-child verification completed: all 46 All examples per store pass (138
+checks), 3,817 Core tests pass, both framework builds and demo console build pass.
+The no-access-policy positive native case locks lexical alias separation even
+when no bind is allocated between child levels. Q23c is green on this scoped
+evidence. Full Q23 stays red for descendant predicates; complete walkthrough
+rerun remains pending. [Native proof](Verification/all-nested-native.trx.gz).
+
+## Descendant All acceptance plan — 27 October 2026
+
+Full Q23 remains red. The next implementation must provide an explicit bounded
+`AnyDescendant` expression marker: the immutable traversal options are captured
+without invoking callbacks. Ordinary row/selected grammars must not acquire a
+new unsupported shape. A separate post-window scalar capability is required.
+
+Source traversal validation retains its current scope before paging. Terminal
+traversal runs only for selected roots, but must complete its own visible
+membership scope even when the Boolean predicate is already true/false. Native
+cycle/node-budget failures remain errors; they cannot become a counterexample
+or an empty successful result.
+
+MongoDB will share the existing bounded traversal stage owner with filtering
+optional only for terminal evaluation: selected roots retain matched/error
+values through a correlated lookup and final reduction. Neo4j will compile
+terminal traversal state separately from source traversal state and invoke it
+after the source window, before the aggregate. SQLite will evaluate protected
+terminal traversal guards before the business Boolean expression in its native
+aggregate so short-circuiting cannot hide a traversal error.
+
+Acceptance includes depth1/depth2 differences, actor-hidden intermediate nodes,
+source-window isolation, true/false Boolean combinations, empty input, node
+budget errors after an earlier match and under a false/true Boolean branch,
+cycle propagation, and retained source-traversal errors. Combinations of child
+and descendant traversal must remain explicit incomplete work until supported
+and proved; no parent row is promoted merely because one subset passes.
+
+Bounded descendant implementation/proof checkpoint: MongoDB shares the bounded
+traversal stage owner, retaining matched/error outcomes in post-window correlated
+lookups; Neo4j owns terminal traversal state separately after paging; SQLite's
+native reduction forces protected traversal observations before the business
+Boolean. Native node errors survive early matches, false AND, true OR and
+source Take(0). All 66 All examples/store pass (198 total), with 3,824 Core tests.
+Actual cycle proof and mixed nested relationship/descendant predicates remain
+missing; Q23/Q23d stay red. No completed full-walkthrough claim is made.
+[Native proof](Verification/all-descendant-native.trx.gz).
+
+Native cycle acceptance now passes:24checks over three stores, six typed cycle
+errors/store plus ordinary-count and empty-terminal controls. Source validation
+still catches cycles before an empty source page; terminal traversal over no
+selected roots does not inspect the cycle. Each synthetic record is separately
+journalled and removed only after successful proof; original walkthrough data
+remains unchanged. No production change was needed in this acceptance batch.
+Q23/Q23d remain red for mixed nested traversal. [Proof](Verification/all-cycle-result.json).
+
+Descendant-inside-child implementation: `SupportsAllChildDescendants` admits the
+physical nested error owner independently. MongoDB's child outcome aggregate
+uses the shared membership/visibility scope and retains matched/error values
+across every visible child. Neo4j's protected-child CALL owns nested traversal
+states and reduces match/cycle/limit flags without a first-match shortcut.
+SQLite's child reduction completes protected scopes before reducing Any, using
+the same child membership/access predicates and protected-guard owner as the
+terminal root. No client enumeration or fallback is introduced. Source and
+selected-result grammars remain unchanged. Core proof:3,826 tests/both targets.
+Native composition proof is pending; descendants containing relationships and
+native multi-child error acceptance remain full Q23 gaps.
+
+Final child-to-descendant checkpoint:285native checks pass (234All,24cycle,
+27protected-child), with3,826Coretests/bothTFMs/console. SQLite's reproduced
+outer-Boolean bypass was fixed in ProtectTraversalScope: a child scope containing
+protected traversal must itself be observed before the enclosing Boolean.
+The pinned failed fixture was proved read-only before exact cleanup; final
+fixtures also cleaned exactly. Native match/error reductions preserve visibility
+and selected-root scope. [Proof](Verification/all-child-descendant-native.trx.gz).
+Q23/Q23d remain red for relationships inside descendant predicates and mixed-scope
+cycle proof; no completed full walkthrough is claimed.
+
+Mixed-cycle acceptance completed:sharedcycle fixture retains self-cycle mode
+and adds a consistently stored two-node cycle. Thirty checks prove protected
+child-to-descendant error propagation under inner/outer Boolean branches and
+source-window boundaries; empty/actor-hidden scopes remain successful controls.
+The full four-test native gate passes315checks. Exact synthetic cleanup and
+unchanged original fixture are verified. No production change was needed.
+Q23/Q23d remain red for relationships inside descendant predicates.
+[Proof](Verification/all-mixed-cycle-result.json).
+
+Final reverse-relationship acceptance:390nativechecks/3,831Coretests/bothTFMs/
+SQLiteproducer/demo console pass. Each Mongo visited candidate evaluates its
+nested relationship scope and carries flags through breadth reduction; Neo4j
+binds actual candidate/projection aliases before nested CALLs and aggregates
+inner error flags; SQLite completes protected visited-candidate reductions.
+Core rejects excessive expansion before native allocation and re-admits the
+same budget at execution. Both nesting orientations, cycles, earlier matches,
+Boolean branches, visibility and empty/source-window controls are proved.
+[Proof](Verification/all-descendant-predicate-native.trx.gz).
+Completion audit keeps parent Q23 red: current projection/composition classes
+have no All terminal, tracked explicitly as Q23e. No parent requirement removed.
+
+### Projected All contract checkpoint (27 October 2026)
+
+Q23e remains **incomplete on all three databases**. The Core builder captures a scalar or record predicate against selected aliases, after the complete selected filter/order/window sequence. The predicate is separate from that sequence: adding All cannot move it ahead of paging or consume a selected-stage slot. Captured constants are frozen and arbitrary callbacks are rejected without invocation.
+
+The planner independently requires terminal admission. Existing composition adapters default to no All capability; none of the three native adapters is enabled yet. Source admission, selected-column domains and bounded composition options must also pass at execution. This checkpoint provides intent and admission contracts, not an executable demo feature.
+
+Validation: 3,838 Core tests passed with zero failures/skips, and the netstandard2.1 build passed. See [contract tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicProjectedAllTests.cs) and [compressed results](Verification/projected-all-core.trx.gz). Remaining work is native boolean reduction, generic executor/HolonManager ownership, then three-store acceptance for empty sources, selected windows, errors and work overflow. No green feature or federation cursor was hardened.
+
+Projected All execution checkpoint: the Core executor and V2 HolonManager entry are now implemented; 3,847 tests/both Core targets pass. Native counterexample count plus complete source/stage proof replaces the draft bool-only interface, allowing query-wide work consumption across providers without DTO construction or row-page truncation. Native SQLite/MongoDB/Neo4j enrollment is still pending. See [execution contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md). Q23e remains red.
+
+## SQLite projected All checkpoint (27 October 2026)
+
+SQLite now implements the projected terminal in the existing serializable selected-query snapshot. Its one shared compiler emits the original source and every selected filter/order/window, followed by a native counterexample count. It validates the complete bounded source before selected stages, and checks terminal stage-work and evidence-byte limits before reducing. No source entity or selected DTO is constructed. Existing composition continues to use the same compiler/read owner.
+
+[Native tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/CqlProjectedAllNativeTests.cs) prove scalar and record predicates, both paging sequences, empty input/Take(0), 150-row late counterexamples, 32 selected stages, null comparisons, malformed values hidden by later filters, exact input/reduction work boundaries, cancellation before/inside SQL, reuse after cancellation, activation checks and actual shipping-adapter save/read. The 14 new cases and 33 composition regression cases pass (47 total); 9 existing compiler tests also pass. See [native TRX](Verification/projected-all-sqlite.trx.gz), [compiler TRX](Verification/projected-all-sqlite-compiler.trx.gz), and [matching binary cohort](Verification/projected-all-sqlite-cohort.json).
+
+Q23e remains red on all three databases. MongoDB/Neo4j reducers are not implemented yet; complete protected relationship-scope and physical cross-provider work acceptance is still pending. These focused SQLite tests do not prove the entire parent row. Green features/cursors were not hardened; existing composition was rerun because its owner is shared by the new red terminal.
+
+## MongoDB projected All checkpoint (27 October 2026)
+
+MongoDB now compiles the terminal after the complete selected pipeline and performs a native grouped counterexample count. Source validation, selected stages and terminal reduction share one snapshot session and one cumulative 30-second deadline. The same source/stage compiler and snapshot owner serve ordinary selected composition; terminal output evidence includes its identity cost, and terminal scanning consumes stage work. Native counts must agree with the complete selected sequence before acknowledgement.
+
+The [18 new native cases](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicCqlNativeTests.ProjectedAll.cs) prove a 150-row late counterexample, selected windows/order/filters, empty source/Take(0), 32 stages, missing/wrong-domain required values, exact work boundaries, all six remaining budgets with fresh reuse, null semantics, no DTO construction, cancellation and a real concurrent write between source capture and terminal reduction. In that concurrent test the in-flight result observes the original snapshot and a fresh query observes the update.
+
+All 49 focused tests pass: 18 new terminal cases plus 31 regression cases required by the shared owner. See [native TRX](Verification/projected-all-mongo.trx.gz), [replica initialization](Verification/projected-all-mongo-init.trx.gz) and [matching binary cohort](Verification/projected-all-mongo-cohort.json). The retained replica environment was reused; the owned test database was removed after acknowledged writes/queries, failpoints disabled, owned service stopped, original WEB4 fixture preserved.
+
+Q23e remains red for every database until full acceptance is satisfied. SQLite and MongoDB have native implementations; Neo4j is next. Remaining acceptance includes protected relationship scopes and cross-provider work behavior. This checkpoint does not claim full All/EF parity or harden green features/cursors.
+
+## Neo4j projected All checkpoint (27 October 2026)
+
+Neo4j now reduces the final selected sequence natively from the same captured scalar cells used by its selected-stage pipeline. The compiler emits a terminal count envelope after all source/stage proof rows; it does not re-MATCH mutable holons. A negative native count explicitly signals exhausted stage work. The decoder requires complete source/stage evidence and one valid terminal acknowledgement, verifies counterexample bounds, and charges terminal scanning plus final evidence against remaining work. Both selected composition and All use the same decoder and read owner.
+
+This is captured-source consistency within one native statement; Neo4j does not gain a repeatable-snapshot capability. Existing source consistency admission still applies. Empty input is true only after successful source/error validation.
+
+The [18 focused native cases](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jNativeCqlProjectedAll.cs) pass: 17 terminal cases and one scoped shared-decoder composition regression. They cover a 150-row late counterexample, both window sequences, 32 stages, empty input/Take(0), missing/wrong-domain required cells, exact input/scan boundaries, six remaining budgets, null semantics, no DTO construction and cancellation/reuse. Every case scopes reads to its owned creator and fingerprints every pre-existing node/edge/label/property before and after exact fixture cleanup. The retained original WEB4 journal remains unchanged.
+
+See [native TRX](Verification/projected-all-neo4j.trx.gz) and [matching binary cohort](Verification/projected-all-neo4j-cohort.json). Initial test setup failures (default Version=0 and a 150-ID membership predicate exceeding the existing 128-value contract) are preserved in [the initial report](Verification/projected-all-neo4j-initial-test-failures.trx.gz). Test data/scope were corrected without changing either shipping contract.
+
+All three native adapters now implement projected All. Q23e still remains red: protected relationship-scope/cycle acceptance and physical cross-provider work acceptance must run across the three real stores before promotion. The new focused tests do not replace that remaining gate. Green features and federation cursors remain frozen.

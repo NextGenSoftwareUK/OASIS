@@ -1,12 +1,24 @@
 #Requires -Version 7.0
-param([switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
+param([switch]$ConformanceOnly,[switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
+if($ConformanceOnly -and ($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion -or $InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault)){
+    throw 'Select shared conformance alone; do not combine fresh fixtures with inspection/reconciliation.'
+}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskRoot 'TestResults/IPFSCurrent'}
 if(!(Test-Path -LiteralPath (Join-Path $work 'repo/config')) -or !(Test-Path -LiteralPath (Join-Path $work 'storage-key.dpapi'))){
     throw 'Retained IPFS repository and original protected storage key required. Select the existing EnvironmentPath; never initialize a duplicate or replace its key.'
 }
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/IPFSOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next')) -or
+           (Test-Path -LiteralPath (Join-Path $work ('conformance-'+$mode+'-dna.json')))){
+            $lease.Dispose();throw 'Preserve the prior shared-suite report/fixture before rerunning IPFS.'
+        }
+    }
+}
 $owned=$null
 $previous=@{}
 foreach($name in @('IPFS_PATH','OASIS_IPFS_STORAGE_ENCRYPTION_KEY','OASIS_IPFS_TEST_RPC','OASIS_IPFS_TEST_DNA_PATH')){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
@@ -35,7 +47,9 @@ try {
     $providerProject=Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
     $sharedProject=Join-Path $taskRoot 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'
     $ipfsClientProject=Join-Path $taskRoot 'External Libs/net-ipfs-http-client-master/src/IpfsHttpClient.csproj'
-    & dotnet build $ipfsClientProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    # Cached System.Memory 4.5.5 satisfies the bundled SDK's >=4.5.2 constraint.
+    # Keep NU1603 visible without downloading the obsolete minimum solely to build this host.
+    & dotnet build $ipfsClientProject --no-restore /p:WarningsNotAsErrors=NU1603 /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'IPFS SDK producer build failed.'}
     & dotnet build $sharedProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Shared storage build failed.'}
@@ -47,7 +61,7 @@ try {
     if($LASTEXITCODE){throw 'Local file provider build failed.'}
     & dotnet build $providerProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Provider build failed.'}
-    & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Consumer build failed.'}
     $owned=Start-Process -FilePath $binary -ArgumentList @('daemon','--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'daemon-current.log') -RedirectStandardError (Join-Path $work 'daemon-current.err')
     $ready=$false; $lastObservation='No RPC response'; $deadline=[DateTime]::UtcNow.AddSeconds(20)
@@ -58,11 +72,18 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    $filter=if($InspectDeleteFault){'Category=IPFSDeleteFaultInspection'}elseif($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
-    $reportName=if($InspectDeleteFault){'ipfs-delete-fault-inspection-current.trx'}elseif($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
+    $filter=if($ConformanceOnly){'Category=IPFSCoreStorageConformance'}elseif($InspectDeleteFault){'Category=IPFSDeleteFaultInspection'}elseif($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
+    $reportName=if($ConformanceOnly){'ipfs-core-current.trx'}elseif($InspectDeleteFault){'ipfs-delete-fault-inspection-current.trx'}elseif($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
-    if($LASTEXITCODE){throw 'Native IPFS storage verification failed.'}
-    if(!$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault){
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python (Join-Path $taskRoot 'Scripts/Providers/record_conformance_results.py') --providers IPFSOASIS
+        if($LASTEXITCODE){throw 'IPFS shared report registration failed.'}
+        & python (Join-Path $taskRoot 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'IPFS matrix update failed.'}
+    }
+    if($testExit){throw 'Native IPFS storage verification failed; preserve exact fixture evidence.'}
+    if(!$ConformanceOnly -and !$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault){
         $collected=@(& $binary repo gc --quiet)
         if($LASTEXITCODE){throw 'Owned repository garbage collection failed; inspect retained content.'}
         Write-Output "Owned offline repository garbage-collected $($collected.Count) unpinned blocks."
@@ -71,7 +92,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
+    $expected=if($ConformanceOnly){2}elseif($InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {

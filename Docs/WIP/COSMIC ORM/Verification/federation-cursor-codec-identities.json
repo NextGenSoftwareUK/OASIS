@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cql\\CqlFederationCursorCodec.cs",
+    "Hash": "0F4FAEBA40C21F68E8CDD99DF10D1EF9D301DE0C7422C36962747525D509D05B"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CqlFederationCursorCodecTests.cs",
+    "Hash": "ED02A375E65670181504D49CB54FA1D12DC95362358C65BF10D01C43158B0271"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\NextGenSoftware.OASIS.API.Core.UnitTests.csproj",
+    "Hash": "6EFF472524EE9C8E4C080DF58C309682FD58353EF2BF7E4F02AF70D877BB7C10"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+    "Hash": "FAE6EBEE02B2381E2FC6A40FDB653F62704B2BD3F5CFD1A3CB7506871A1939F1"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "A41D737BDA952FC336ED874FBB12998C300B424174B80F7085080118A480C39E"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "A41D737BDA952FC336ED874FBB12998C300B424174B80F7085080118A480C39E"
+  }
+]

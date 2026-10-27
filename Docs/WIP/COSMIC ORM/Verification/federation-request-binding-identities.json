@@ -1,0 +1,39 @@
+{
+  "Skipped": 0,
+  "Tests": 3685,
+  "Files": [
+    {
+      "Bytes": 30854,
+      "SHA256": "E68AF70B44F974F15EE5DD1C476F56460DFD905601C5DC7E2472A250B8C7EC37",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Services\\Subscriptions\\Web4UsageExecution.cs"
+    },
+    {
+      "Bytes": 21900,
+      "SHA256": "EF68AD2F185BDE9EF192A43E09C21141852084F77AFFB5FFA7AAE04CD9AE2BA7",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Services\\Subscriptions\\UsageExecutionContracts.cs"
+    },
+    {
+      "Bytes": 2160,
+      "SHA256": "4CAF84EE2203CB4991785333592B9ECB8B84071B2B868B55ECCAB50AEF10C7A9",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\UsageRequestBindingTests.cs"
+    },
+    {
+      "Bytes": 3496448,
+      "SHA256": "B7BFF4A0B709F3FB422CE61514FB4B7B50694DD39A904B98D68FDD65C92C8552",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll"
+    },
+    {
+      "Bytes": 3081216,
+      "SHA256": "7E75463F6926E18176EC1B620C09AB96009276EAD2F5FC7AE2EA6D4DD4FB604D",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\netstandard2.1\\NextGenSoftware.OASIS.API.Core.dll"
+    },
+    {
+      "Bytes": 3496448,
+      "SHA256": "B7BFF4A0B709F3FB422CE61514FB4B7B50694DD39A904B98D68FDD65C92C8552",
+      "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll"
+    }
+  ],
+  "Failed": 0,
+  "Utc": "2026-10-26T23:06:20.0505609Z",
+  "RawTrxSHA256": "59810B0A936F4D5F8E575339B15820C63D71642615472F94B55AED7ADE436DE2"
+}

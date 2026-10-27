@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 param(
+    [switch]$ConformanceOnly,
     [switch]$BootstrapSchema,
     [switch]$Coverage,
     [switch]$RestartDatabaseBetweenPhases,
@@ -27,7 +28,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($ConformanceOnly,$BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileExportVisibility,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
@@ -82,6 +83,14 @@ function Assert-OracleProcessStopped {
 }
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/OracleCurrent'
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $prior=Join-Path $root ('TestResults/ProviderConformanceCurrent/OracleDBOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $prior) -or (Test-Path -LiteralPath ($prior+'.next'))){throw 'Review preserved Oracle conformance evidence before another run.'}
+    }
+    if(Test-Path -LiteralPath (Join-Path $work 'oracle-core-conformance.trx')){throw 'Preserve prior Oracle conformance TRX.'}
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+}
 if(!(Test-Path -LiteralPath $work)){throw 'Retained Oracle work directory required; do not recreate an environment.'}
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $previousConnection=$env:ORACLEDBOASIS_CONNECTIONSTRING;$previousWork=$env:OASIS_ORACLE_TEST_WORK;$previousResume=$env:OASIS_ORACLE_RESUME_CANONICAL
@@ -165,10 +174,21 @@ try{
         if($oracleInitialRuntime.Status -ne 'exited'){throw 'Restart proof requires an initially stopped runtime owned/started by this invocation; never interrupt an already running service.'}
     }
     foreach($project in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj')){
-        & dotnet build (Join-Path $root $project) --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($ConformanceOnly){
+            & dotnet restore (Join-Path $root $project) --source (Join-Path $env:USERPROFILE '.nuget/packages') --source 'C:/Program Files/dotnet/library-packs' /p:RestoreRecursive=false /p:NuGetAudit=false /p:IncludeCoreStorageConformance=true /m:2 /nr:false -v:q
+            if($LASTEXITCODE){throw 'Cached Oracle metadata unavailable; no automatic download or duplicate environment.'}
+        }
+        & dotnet build (Join-Path $root $project) --no-restore --no-incremental /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent.ToString().ToLowerInvariant()) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Cached Oracle build failed.'}
     }
     & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
+    if($ConformanceOnly){
+        . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0' -VerifySourceDocuments
+        foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.OracleDBOASIS','NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests')){
+            $dll=Join-Path $root ('Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/'+$assembly+'.dll')
+            Write-Output ($assembly+': sources='+(Assert-SourceDocuments $dll $root))
+        }
+    }
     if($Coverage){
         $coverageAssembly=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.dll'
         $coverageOriginalHash=(Get-FileHash -LiteralPath $coverageAssembly).Hash
@@ -325,9 +345,17 @@ try{
     if($Coverage){$report='oracle-native-coverage-current.trx'}
     if($ReconcileExportVisibility){$report='oracle-export-visibility-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAvatarExportVisibilityFixture'}
     if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
+    if($ConformanceOnly){$report='oracle-core-conformance.trx';$filter='FullyQualifiedName~CoreStorageSuiteAgainstRetainedOracle'}
     $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj') --no-build --no-restore --filter $filter --logger "trx;LogFileName=$report" --results-directory $testResults /m:2 /nr:false @coverageArgs
-    if($LASTEXITCODE -ne 0){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python (Join-Path $root 'Scripts/Providers/record_conformance_results.py') --providers OracleDBOASIS
+        if($LASTEXITCODE){throw 'Oracle shared report registration failed.'}
+        & python (Join-Path $root 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Oracle matrix update failed.'}
+    }
+    if($testExit -ne 0){throw 'Native Oracle verification incomplete; preserve originals, no cleanup/reset/replay.'}
     if($InspectReadConnections){
         $remaining=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
         if($remaining.Count -ne 1 -or $remaining[0].Name -ne 'read-acknowledgements.pending.json' -or
@@ -338,6 +366,7 @@ try{
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){20}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){24}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){112}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{571}
     if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
+    if($ConformanceOnly){$expected=2}
     if($BootstrapSchema){$expected=1}
     if($ReconcileExportVisibility){$expected=1}
     if($reportFile.LastWriteTimeUtc -lt $testStarted -or [int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw 'Fresh complete unskipped Oracle native report required.'}

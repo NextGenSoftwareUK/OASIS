@@ -138,8 +138,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         public async Task<IHolon?> SaveHolon(
             string name,
             string description,
-            string holonType)
+            string holonType,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
+            Guid? operationId = null,
+            string providerType = "Default",
+            Guid? id = null)
         {
+            var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+            var engine = Helpers.HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+            if (engine.IsError)
+                throw new GraphQLException(ErrorBuilder.New().SetCode(engine.ErrorCode).SetMessage(engine.Message).Build());
+            if (dna?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+            {
+                if (!System.Enum.TryParse<HolonType>(holonType, true, out var selectedType) ||
+                    !System.Enum.IsDefined(typeof(HolonType), selectedType) ||
+                    selectedType == HolonType.All || selectedType == HolonType.Default || id == Guid.Empty)
+                    throw new GraphQLException(ErrorBuilder.New().SetCode("COSMIC_WRITE_INTENT_INVALID")
+                        .SetMessage("Supply a concrete holon type.").Build());
+
+                var written = await Helpers.HostedHolonWriteEndpoint.SaveAsync(httpContextAccessor?.HttpContext,
+                    dna.OASIS.HyperDriveMode, new Models.Data.SaveHolonRequest
+                    {
+                        Holon = new Holon { Id = id ?? Guid.Empty, Name = name, Description = description, HolonType = selectedType },
+                        OperationId = operationId, ProviderType = providerType, SaveChildren = false,
+                        ExpectedRevisions = id.HasValue ? new Dictionary<Guid, Guid?> { [id.Value] = null } : null
+                    }, () => new HolonManager(null, dna, ProviderManager.Instance));
+                if (written.IsError)
+                    throw new GraphQLException(ErrorBuilder.New().SetCode(written.ErrorCode ?? "COSMIC_WRITE_FAILED")
+                        .SetMessage(written.Message ?? "The conditional write failed.").Build());
+                return written.Result;
+            }
+
             var manager = CreateHolonManager();
             var holon = new Holon
             {
@@ -151,8 +180,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return result.IsError ? null : result.Result;
         }
 
-        public async Task<bool> DeleteHolon(Guid id, bool softDelete = true)
+        public async Task<bool> DeleteHolon(Guid id,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
+            bool softDelete = true, Guid? operationId = null, Guid? expectedRevision = null,
+            string providerType = "Default")
         {
+            var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+            var mode = Helpers.HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+            if (mode.IsError)
+                throw new GraphQLException(ErrorBuilder.New().SetCode(mode.ErrorCode).SetMessage(mode.Message).Build());
+            if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+            {
+                var deleted = await Helpers.HostedHolonWriteEndpoint.DeleteAsync(httpContextAccessor?.HttpContext,
+                    dna.OASIS.HyperDriveMode, new Models.Data.DeleteHolonRequest
+                    {
+                        Id = id, SoftDelete = softDelete, OperationId = operationId, ProviderType = providerType,
+                        ExpectedRevisions = expectedRevision.HasValue ? new Dictionary<Guid, Guid?> { [id] = expectedRevision } : null
+                    }, () => new HolonManager(null, dna, ProviderManager.Instance));
+                if (deleted.IsError)
+                    throw new GraphQLException(ErrorBuilder.New().SetCode(deleted.ErrorCode ?? "COSMIC_DELETE_FAILED")
+                        .SetMessage(deleted.Message ?? "The conditional deletion failed.").Build());
+                return deleted.IsDeleted;
+            }
+
             var manager = CreateHolonManager();
             var result = await manager.DeleteHolonAsync(id, Guid.Empty, softDelete);
             return !result.IsError;

@@ -12,6 +12,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryAdmissionTests
 {
     [Fact]
+    public async Task TargetSpecificFederationActorIsCheckedBeforeAnyPhysicalAdmissionOrRead()
+    {
+        var store = new Mock<IUsageOutboxStore>(MockBehavior.Strict);
+        var provider = ProviderType.MongoDBOASIS;
+        var adapter = Adapter(provider);
+        var capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.Or | CosmicQueryFeatures.And,
+            new[] { new CosmicQueryFieldCapability("IsPublic", typeof(bool), CosmicQueryComparisonOperator.Equal),
+                new CosmicQueryFieldCapability("CreatedByAvatarId", typeof(Guid), CosmicQueryComparisonOperator.Equal) },
+            Array.Empty<CosmicQueryMetadataCapability>());
+        adapter.Query.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
+        var plan = CosmicFederationPlanner.Plan(CosmicQuery<Holon>.Create(), CosmicFederationOptions.Create().Result,
+            provider, new[] { new CosmicQueryTarget(provider, capabilities) },
+            new[] { new CosmicFederationReadPolicy(provider, CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result) });
+        Assert.False(plan.IsError, plan.Message);
+        Assert.Null(plan.Result.Source.ReadAccess);
+        var result = await Policy(store, provider).RunAsync(() => CosmicFederationExecutor.ExecuteAsync(plan.Result,
+            new[] { adapter.Query.Object }));
+        Assert.Equal("CQL_ACTOR_MISMATCH", result.ErrorCode);
+        Assert.Null(result.Result);
+        NeverRead(adapter.Query);
+        store.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task AccessActorMustMatchTheAdmittedExecutionBeforeAnyProviderAttempt()
     {
         var store=new Mock<IUsageOutboxStore>(MockBehavior.Strict);

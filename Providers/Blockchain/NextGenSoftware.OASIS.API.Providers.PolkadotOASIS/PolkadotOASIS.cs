@@ -35,14 +35,16 @@ using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 {
-    public partial class PolkadotOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
+    public partial class PolkadotOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
         private readonly string _chainId;
         private readonly string _privateKey;
-        private readonly string _contractAddress;
         private readonly string _bridgePoolAddress;
+        private readonly PolkadotConfiguredRecordBackend _recordStorage;
+        private readonly PolkadotNftConfiguration _nftConfiguration;
+        private readonly PolkadotTokenEscrowConfiguration _tokenEscrowConfiguration;
         private bool _isActivated;
         private bool _isDisposed;
         private int _rpcRequestId;
@@ -73,7 +75,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         /// <summary>Explicit pool destination; never inferred from the chain name or a fabricated address.</summary>
         public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress)
+            : this(rpcEndpoint, chainId, privateKey, bridgePoolAddress, PolkadotStorageConfiguration.FromEnvironment()) { }
+
+        public PolkadotOASIS(string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress, PolkadotStorageConfiguration storage)
+            : this(rpcEndpoint,chainId,privateKey,bridgePoolAddress,storage,PolkadotNftConfiguration.FromEnvironment()) { }
+
+        public PolkadotOASIS(string rpcEndpoint,string chainId,string privateKey,string bridgePoolAddress,
+            PolkadotStorageConfiguration storage,PolkadotNftConfiguration nft)
+            : this(rpcEndpoint,chainId,privateKey,bridgePoolAddress,storage,nft,PolkadotTokenEscrowConfiguration.FromEnvironment()) { }
+
+        public PolkadotOASIS(string rpcEndpoint,string chainId,string privateKey,string bridgePoolAddress,
+            PolkadotStorageConfiguration storage,PolkadotNftConfiguration nft,PolkadotTokenEscrowConfiguration tokenEscrow)
+            : this(new PolkadotConfiguredRecordBackend(storage),rpcEndpoint,chainId,privateKey,bridgePoolAddress,nft,tokenEscrow) { }
+
+        private PolkadotOASIS(PolkadotConfiguredRecordBackend backend, string rpcEndpoint, string chainId, string privateKey, string bridgePoolAddress,PolkadotNftConfiguration nft,PolkadotTokenEscrowConfiguration tokenEscrow)
+            : base(backend)
         {
+            _recordStorage = backend;
+            _nftConfiguration=nft;
+            _tokenEscrowConfiguration=tokenEscrow;
+            backend.Bind(configuration => CreateRecordBackend(configuration.ContractAccountId, configuration.CodeHash, configuration.OwnerAccountId), EnsureRecordActivation);
             this.ProviderName = "PolkadotOASIS";
             this.ProviderDescription = "Polkadot Provider - Multi-chain interoperability protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PolkadotOASIS);

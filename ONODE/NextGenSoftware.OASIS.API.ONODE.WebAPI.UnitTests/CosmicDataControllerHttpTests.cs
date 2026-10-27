@@ -282,16 +282,16 @@ public sealed partial class CosmicDataControllerHttpTests
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public async Task RejectedWritesReturnRealStatusAndRestoreRequestSettings(bool bulk, bool lookupThrows)
+    public async Task RejectedWritesReportRequestSettingsWithoutMutatingGlobalPolicy(bool bulk, bool lookupThrows)
     {
         await WithHost(false, async (client, actor, provider) =>
         {
             var id = Guid.NewGuid();
-            var sawRequestSetting = false;
+            var sawUnchangedGlobalPolicy = false;
             provider.Setup(value => value.LoadHolonAsync(id, false, true, 0, true, false, 0))
                 .ReturnsAsync(() =>
                 {
-                    sawRequestSetting = !ProviderManager.Instance.IsAutoReplicationEnabled;
+                    sawUnchangedGlobalPolicy = ProviderManager.Instance.IsAutoReplicationEnabled;
                     if (lookupThrows)
                         throw new IOException("Controlled authority outage");
                     return new OASISResult<IHolon>(new Holon
@@ -309,9 +309,10 @@ public sealed partial class CosmicDataControllerHttpTests
                 bulk ? "/api/data/save-holons" : "/api/data/save-holon", body);
 
             Assert.Equal(lookupThrows ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Forbidden, response.StatusCode);
-            Assert.True(sawRequestSetting);
+            Assert.True(sawUnchangedGlobalPolicy);
             Assert.True(ProviderManager.Instance.IsAutoReplicationEnabled);
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.False(json.RootElement.GetProperty("autoReplicationEnabled").GetBoolean());
             Assert.Equal(lookupThrows ? "COSMIC_WRITE_OWNERSHIP_LOOKUP_FAILED" : "COSMIC_WRITE_FORBIDDEN",
                 json.RootElement.GetProperty("result").GetProperty("errorCode").GetString());
             Assert.Empty(provider.Invocations.Where(call => call.Method.Name.Contains("Save") ||
@@ -370,7 +371,10 @@ public sealed partial class CosmicDataControllerHttpTests
         var providers = new ProviderManager(null, dna);
         providers.RegisterProvider(provider.Object);
         Assert.False(providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError);
-        var manager = new HolonManager(null, dna, providers);
+        // This host owns an isolated SQLite provider, independently of the global
+        // registry's default. Declare that affinity explicitly so a captured
+        // missing global default cannot supply or replace this fixture's authority.
+        var manager = new HolonManager(provider.Object, dna, providers);
         PreparedStorageExecution? admission = null;
         UsageExecutionHandle? admittedHandle = null;
         if (admitted)

@@ -1,5 +1,25 @@
 # COSMIC CQL demo
 
+## Federation demo — verified 26 October 2026
+
+Read [V1FederationWalkthrough.cs](V1FederationWalkthrough.cs) for the spaced and
+commented C# and HTTP examples. The SDK example preserves copies and returns a
+five-row global page; the HTTP example chooses an explicit provider priority
+before its two-identity global page. Neither claims cross-provider freshness.
+
+Run `pwsh -File Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -Serve` from the OASIS
+root using the retained environment. Open the printed Swagger URL, choose
+`POST /api/data/query-cql/federation`, replace the fixture-tag placeholder with
+the running demo tag, and use a fresh idempotency key. The demo supplies Alice's
+bearer token at dispatch. Its federation admission allows three provider attempts;
+leaf query admission remains one. Finish using the demo page for verified cleanup.
+
+Both new global examples execute in the native gate alongside the existing
+138SDK/138HTTP walkthrough. Latest full cohort526operations/608attempts passes, plus
+13actual-shipping-controller federation requests with exact durable tariffs,
+per-target private grants, revocation, limits and real encrypted metadata handling.
+Sources and seven binary pairs match. Protected cursors now pass native, host/key-lifecycle and actual Windows process-restart gates. Causal agreement/distributed joins remain open. See the COSMIC ORM HTTP contract.
+
 ## Floating Swagger examples — verified 25 October 2026
 
 Swagger now includes `SingleSum`, `SingleAverage`, `SingleTotalsAndMeans`,
@@ -347,3 +367,100 @@ nullable data. Replace both Swagger fixture tags with the current session tag.
 
 The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
 Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.
+
+Earlier native cursor checkpoint: twenty signed shipping-controller requests, eighteen settlements/thirty-two attempts, duplicate-claim rejection, pinned scope, host restart and key rotation/revocation pass. Full cohort523operations599attempts, unchanged sources/sevenbinarypairs. The presenter UI examples above remain separate; use the CQL manual's opt-in cursor enrollment/request sequence. Actual same-user Windows cursor process persistence is now verified separately; other key deployments and broader distributed features remain open.
+
+Actual cursor process acceptance: abrupt first-host termination, a different fresh host, unchanged DPAPI-protected persisted key, three native pages/nine attempts, and duplicate rejection pass. Full cohort526/608; test keys/config/fixtures removed after verified teardown. See the CQL manual for deployment boundaries.
+
+## C# element-terminal examples
+
+[V1ElementQueries.cs](V1ElementQueries.cs) contains spaced, commented examples
+47–58 for First/FirstOrDefault/Single/SingleOrDefault. The same code runs on
+MongoDB, SQLite and Neo4j through HolonManager. Native queries request at most
+one or two rows, preserve source windows, and distinguish empty/default results
+from provider failures or ambiguous Single results. See the
+[manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md#native-element-terminals-c-sdk).
+These element-terminal examples occupy cases 47–58; operator examples 59–90
+follow them. The separate HTTP walkthrough has 46 cases per store and no new
+element-terminal route.
+
+## C# operator examples
+
+[V1OperatorQueries.cs](V1OperatorQueries.cs) contains examples 59–90 for metadata
+null/missing, field comparisons, closed-set membership, ordinal strings and
+secondary ordering with actual tied primary values. The same 32 assertions run
+on all three native databases. Total: 90 SDK cases/store (270), with the separate
+HTTP walkthrough retaining 46/store (138). No provider-specific demo engine or
+client-side source scan is used.
+
+## Save lifecycle examples
+
+[V1SaveQueries.cs](V1SaveQueries.cs) demonstrates ten save steps on each native
+store: generated ID ownership, no-op saves, dirty detection, pending previews,
+committed path summaries, typed reload, rejected intents, hard deletion and
+historical summary lookup. The host supplies the trusted protection policy and
+explicit write-operation identities. The gate executes 30 save checks alongside
+270 SDK query cases and 138 HTTP cases.
+
+The scoped investor demo set is green. Full historical-value/decryption access
+and broader EF/NHibernate parity remain tracked gaps; redacted summaries do not
+complete that larger history API.
+
+## Integer-index examples
+
+[V1IndexedQueries.cs](V1IndexedQueries.cs) contains spaced/commented examples
+91–105 for zero-based integer indexing. They cover source windows, empty input,
+negative defaults and range errors through HolonManager on all three stores.
+The SDK walkthrough now has 105 cases/store (315), plus 138 HTTP cases and
+30 save checks. System.Index/from-end overloads remain separate red work.
+
+## Last and from-end examples
+
+[V1TailQueries.cs](V1TailQueries.cs) contains examples 106–135 for Last and
+System.Index after a source window. The same native code path covers graphs,
+null/tie ranks and exact scalar ordering. Total SDK walkthrough:135cases/store
+(405), plus138HTTPcases and30savechecks. All remains unimplemented.
+
+### Scalar All examples (136–157)
+
+See `V1AllQueries.cs` for universal predicates over an already composed source:
+stock checks, empty input, null/missing metadata, ordinal strings, membership,
+field comparisons and source windows. `All` evaluates after Skip/Take; an empty
+source returns true. Child/descendant filters may define the source. Traversal
+inside the terminal predicate is still unsupported. Use the same scalar planner
+and manager executor as the other scalar examples. All 22 cases passed on each
+of MongoDB, SQLite and Neo4j in the read-only retained-fixture regression; the
+complete extended walkthrough has not yet passed end to end.
+
+Direct-child `All` examples 158–173 now demonstrate native child existence after
+paging, visibility, negation, Boolean combinations, multiple child predicates
+and a descendant-filtered source. All 38 cases in `V1AllQueries.cs` pass on each
+store (114 checks). Nested-child and descendant traversal inside the terminal
+remain unsupported. The complete extended walkthrough rerun remains pending.
+
+Nested-child All examples 174–181 demonstrate two/three navigation levels,
+per-level visibility, child scalar/Boolean predicates and literal handling.
+All 46 All examples pass on each store (138 checks). The trusted host-only
+positive example explicitly omits access filtering; the secured version
+excludes its hidden intermediate parent. Descendant All remains unsupported;
+the full extended walkthrough rerun remains pending.
+
+Bounded descendant All examples 182–201 use
+`CosmicQueryRelations.AnyDescendant(parent, predicate, bounds)` after the source
+page. They demonstrate depth, visibility, independent traversal predicates and
+node-budget errors that Boolean branches cannot hide. All 66 All examples pass
+per store (198 checks). Native cycle proof and nested child/descendant composition
+remain incomplete, and the complete extended walkthrough has not yet passed.
+
+Child-to-descendant All examples202–213 now show descendant matching inside
+Children.Any, with separate scalar admission and per-level actor visibility.
+All78All examples/store pass (234checks), plus24cycle and27protected-child
+checks. The latter prove that earlier matches and Boolean branches cannot hide
+another child's traversal failure. Relationships inside descendant predicates
+and mixed-scope cycle proof remain incomplete; full639SDKwalkthroughpending.
+
+Examples214–227 now show child/descendant relationships inside descendant
+predicates, with independent bounded scopes, actor visibility, source windows
+and nested error propagation. All92All examples/store pass (276checks), plus
+114scope/cycle checks. Projected-source All is still missing; full Q23 stays red.
+The full681SDKwalkthrough rerun remains pending.

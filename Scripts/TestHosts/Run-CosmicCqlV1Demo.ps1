@@ -32,12 +32,26 @@ try {
             $roots = @(
                 'Examples/CosmicCqlDemo',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedHolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicRecoveryEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Recovery.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/GrpcHolonWriteContract.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GraphQL',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GrpcServices/DataGrpcService.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Protos/data.proto',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonJsonContracts.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/OASISHttpResponseMessage.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISConfigResult.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Save.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Delete.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.ProviderKey.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.MetaData.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/OASISControllerBase.cs',
                 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Properties/AssemblyInfo.cs',
@@ -55,7 +69,7 @@ try {
                 Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File |
                     Where-Object {
                         $_.FullName -notmatch '\\(bin|obj)\\' -and
-                        ($_.Extension -in '.cs', '.csproj', '.props', '.snk' -or $_.Name -eq 'windowsZones.xml')
+                        ($_.Extension -in '.cs', '.csproj', '.props', '.proto', '.snk' -or $_.Name -eq 'windowsZones.xml')
                     }
             } | Get-FileHash | Select-Object Path,Hash) | ConvertTo-Json -Compress
         }
@@ -79,11 +93,46 @@ try {
         $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
         if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
         $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
-        if ($report.status -ne 'passed' -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 138 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
+        if ($report.saveDemoProvidersVerified -ne 3 -or $report.saveDemoChecks -ne 30 -or $report.generatedIdCommitObservations -ne 3) {
+            throw 'Generated identity / tracking / save-summary native demo proof is incomplete.'
+        }
+        if ($report.processRestartProvidersVerified -ne 3) { throw 'Actual process-interruption recovery proof is incomplete.' }
+        if ($report.hostedReadPolicyProvidersVerified -ne 3 -or $report.hostedReadPolicyRequests -ne 30) { throw 'Shipping authoritative read-policy proof is incomplete.' }
+        if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 681 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
             throw 'Three-provider demo proof is incomplete.'
         }
-        if ($report.shippingRestRequests -ne 36 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 33) {
+        if ($report.shippingRestRequests -ne 78 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
             throw 'Shipping REST/native storage settlement proof is incomplete.'
+        }
+        if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {
+            throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
+        }
+        if ($report.nativeFederationQueries -ne 14 -or $report.nativeFederationProvidersVerified -ne 3) {
+            throw 'Complete-source SDK federation/native proof is incomplete.'
+        }
+        if ($report.hostedFederationRequests -ne 13 -or $report.hostedFederationProvidersVerified -ne 3 -or
+            $report.settledFederationOperations -ne 12 -or $report.federationProviderAttempts -ne 23) {
+            throw 'Signed three-provider federation policy/materialization/settlement proof is incomplete.'
+        }
+        if ($report.sdkFederationExamples -ne 1 -or $report.demoFederationRequests -ne 1) {
+            throw 'Annotated SDK/HTTP global federation demo verification is incomplete.'
+        }
+        if ($report.hostedCursorRequests -ne 20 -or $report.settledCursorOperations -ne 18 -or
+            $report.cursorProviderAttempts -ne 32 -or $report.cursorDuplicateRejections -ne 2 -or
+            $report.cursorProvidersVerified -ne 3 -or $report.cursorHostRestarts -ne 2 -or
+            $report.cursorKeyRotations -ne 1 -or $report.cursorKeyRevocations -ne 1) {
+            throw 'Signed native cursor paging/claim/restart/key-lifecycle proof is incomplete.'
+        }
+        if ($report.cursorProcessProvidersVerified -ne 3 -or $report.cursorProcessPages -ne 3 -or
+            $report.cursorProcessAttempts -ne 9 -or $report.cursorProcessDuplicateRejections -ne 1) {
+            throw 'Actual cursor process-restart/persisted-key/native settlement proof is incomplete.'
+        }
+        # Interactive presenters may run additional queries before Finish.
+        # Bounded verification retains exact totals; both require all recovery cases.
+        if ($report.settledRecoveryOperations -ne 12 -or
+            (!$Serve -and ($report.settledOperations -ne 526 -or $report.providerAttempts -ne 608)) -or
+            ($Serve -and ($report.settledOperations -lt 526 -or $report.providerAttempts -lt 608))) {
+            throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 
         # Capture the tested producer/consumer identities before releasing the

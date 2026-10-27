@@ -1,0 +1,17 @@
+{
+  "capturedUtc": "2026-10-26T20:25:48.3567662Z",
+  "consumer": "C:/Source/OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+  "sha256": "C021506AB041EB91B6756CAD86C29E4D7D6B541EB3F5142450C4EF298372E1BB",
+  "producer": "C:/Source/OASIS/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/bin/Debug/net10.0/NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+  "buildLeaseHeld": true,
+  "sources": [
+    {
+      "sha256": "8BE217886531B36810D10B78227046823F927140A75F818549CF39B4B9512D18",
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI\\Services\\Cosmic\\CosmicRecoveryReadiness.cs"
+    },
+    {
+      "sha256": "ED26F86C167E2849FB0CF0649E2439A60C32444B554BA04161737F5BFFBC4536",
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\CosmicRecoveryPolicyLifetimeTests.cs"
+    }
+  ]
+}

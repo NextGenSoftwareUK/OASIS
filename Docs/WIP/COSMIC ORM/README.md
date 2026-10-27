@@ -1,5 +1,19 @@
 # COSMIC ORM work
 
+Latest parity milestone: [Last and System.Index verified](CQL_DEMO_RUNBOOK.md), Q18/Q19 green on SQLite/MongoDB/Neo4j. Native405SDK/138HTTP/30save, Core3,797PASS. All and remaining red rows are open.
+
+Demo milestone: [all 12 scoped investor-demo rows verified](CQL_DEMO_RUNBOOK.md) on SQLite, MongoDB and Neo4j. Delta summaries are the demo child X08a; full-history parent X08 and broader EF/NHibernate parity remain red. The checklist continues to control remaining work.
+
+Current parity work queue: [EF / NHibernate feature checklist](CQL_PARITY_CHECKLIST.md). Each database cell requires linked proof. Work only on ❌ cells; ✅ cells remain frozen unless a bug is found.
+
+Latest host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including per-record write enrollment, two-read pricing, signed three-provider acceptance and remaining fault/restart gates.
+
+Latest query addition: [authority-bound record access](CQL_AUTHORITATIVE_ACCESS.md), with immutable trusted catalogues and native paging/graph/join/composition verification on all three providers. Application grant discovery and scalable tenant scopes remain open.
+
+Latest hosted addition: [authoritative CQL read-policy enrollment](CQL_HOSTED_READ_POLICY.md) across all six query families, with 30 signed shipping-controller requests on all three stores. Current native cohort: 492 settlements / 541 attempts. Application grant discovery, scalable tenant scopes and federation remain open.
+
+Tenant deployments can require that policy with `CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true`. Startup readiness and every query family reject missing policy composition; scoped policy lifetime and actual shipping host startup are verified.
+
 Start with [implementation status](IMPLEMENTATION_STATUS.md), the [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) and the [source integration boundary](INTEGRATION_BOUNDARY.md). They identify verified scope, unfinished acceptance criteria and publication constraints.
 
 These are working documents. Dated reports retain historical evidence; earlier counts and findings do not override current status. Legacy Hyperdrive is documented only. Implementation targets V2.

@@ -24,7 +24,14 @@
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalAssetTransferTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalHistoryTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotRecordBackendNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotPublicStorageNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicReadNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicMutationNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftCustodyNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftEscrowNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotTokenEscrowNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <None Update="submission-process-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="worker-environment-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 

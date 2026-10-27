@@ -41,7 +41,7 @@ public sealed partial class CqlV1Web4NativeTests
         }
     }
 
-    private sealed record RestResponse(string Key, string Payload, string OperationId, JsonElement Body);
+    private sealed record RestResponse(string Key, string Payload, string OperationId, JsonElement Body, Guid IntentId);
 
     private static async Task<int> VerifyShippingRestAsync(
         Dictionary<ProviderType, IOASISStorageProvider> providers, MongoUsageOutboxStore outbox,
@@ -86,7 +86,12 @@ public sealed partial class CqlV1Web4NativeTests
                 seed = await manager.SaveHolonAsync(second, actor, saveChildren: false, providerType: pair.Key);
                 Assert.IsFalse(seed.IsError, seed.Message + seed.Exception);
 
-                await using var app = RestHost(pair.Key, pair.Value, outbox, authority, secret);
+                var keyRead = await manager.LoadHolonAsync(restIds[1], loadChildren: false, providerType: pair.Key);
+                Assert.IsFalse(keyRead.IsError, keyRead.Message);
+                var deleteKey = keyRead.Result.ProviderUniqueStorageKey[pair.Key];
+                Assert.IsFalse(string.IsNullOrWhiteSpace(deleteKey));
+                var deletePath = "/api/data/delete-holon-by-providerkey/" + Uri.EscapeDataString(deleteKey);
+                await using var app = RestHost(pair.Key, pair.Value, outbox, authority, secret, deleteKey: deleteKey);
                 await app.StartAsync();
                 try
                 {
@@ -111,17 +116,19 @@ public sealed partial class CqlV1Web4NativeTests
                     }
                     Guid Revision(IHolon value) => CosmicConcurrency.GetProviderRevisionId(value, pair.Key)!.Value;
                     async Task<RestResponse> Send(object payload, Guid intent, HttpStatusCode expected,
-                        int attempts, decimal cost, string path = "/api/data/save-holon", HttpClient? caller = null)
+                        int attempts, decimal cost, string path = "/api/data/save-holon", HttpClient? caller = null,
+                        HttpMethod? method = null, IReadOnlyDictionary<string, string>? headers = null, Guid? admittedActor = null)
                     {
                         var key = "rest-" + Guid.NewGuid().ToString("N");
                         var raw = payload is string text ? text : JsonSerializer.Serialize(payload, jsonOptions);
                         if (intent != Guid.Empty) conditionalOperations.Add(intent.ToString("D"));
                         await journal("before-rest-http", new { provider = pair.Key.ToString(), actor, path, key, intent });
-                        using var request = new HttpRequestMessage(HttpMethod.Post, path)
+                        using var request = new HttpRequestMessage(method ?? HttpMethod.Post, path)
                         {
                             Content = new StringContent(raw, Encoding.UTF8, "application/json")
                         };
                         request.Headers.Add("Idempotency-Key", key);
+                        if (headers != null) foreach (var header in headers) request.Headers.Add(header.Key, header.Value);
                         using var response = await (caller ?? client).SendAsync(request);
                         var responseText = await response.Content.ReadAsStringAsync();
                         Assert.AreEqual(expected, response.StatusCode, responseText);
@@ -129,7 +136,7 @@ public sealed partial class CqlV1Web4NativeTests
                         var operationId = operationHeaders!.Single();
                         var operation = await outbox.GetAsync(operationId, CancellationToken.None);
                         Assert.AreEqual("settled", operation.State, "Preserve uncertain operations instead of resetting the fixture.");
-                        Assert.AreEqual(actor.ToString("D"), operation.UserId);
+                        Assert.AreEqual((admittedActor ?? actor).ToString("D"), operation.UserId);
                         Assert.AreEqual(attempts, operation.ProviderAttempts.Count);
                         Assert.AreEqual(attempts, operation.Receipts.Count);
                         Assert.AreEqual(cost, authority.Settlements[operationId].ActualCostUsd);
@@ -147,7 +154,7 @@ public sealed partial class CqlV1Web4NativeTests
                         }
                         using var body = JsonDocument.Parse(responseText);
                         requests++;
-                        return new RestResponse(key, raw, operationId, body.RootElement.Clone());
+                        return new RestResponse(key, raw, operationId, body.RootElement.Clone(), intent);
                     }
 
                     // Both model rejection and action preflight must release the
@@ -268,6 +275,88 @@ public sealed partial class CqlV1Web4NativeTests
                         { [completeGraph.Id] = Revision(completeGraph), [completeChild.Id] = Revision(completeChild) }
                     }, graphIntent, HttpStatusCode.OK, 3, 0.005m);
                     Assert.AreEqual("committed", (await Read(restIds[2])).MetaData["rest-child-write"].ToString());
+
+                    // Reuse only this actor's already journalled records. Exact
+                    // endpoint enrollment cannot turn a key into a permission grant.
+                    initial = await Read(restIds[0]);
+                    second = await Read(restIds[1]);
+                    var originalRootRevision = Revision(initial);
+                    var originalSecondRevision = Revision(second);
+                    var retainedChild = await Read(restIds[2]);
+                    var retainedChildRevision = Revision(retainedChild);
+                    async Task<RestResponse> Delete(Guid id, Guid revision, bool byKey, HttpStatusCode status,
+                        int attempts, bool missingIdentity = false, bool missingOperation = false, bool missingRevision = false)
+                    {
+                        var intent = missingOperation ? Guid.Empty : Guid.NewGuid();
+                        var headers = new Dictionary<string, string>();
+                        if (!missingOperation) headers.Add("X-COSMIC-Operation-Id", intent.ToString("D"));
+                        if (!missingRevision) headers.Add("X-COSMIC-Expected-Revision", revision.ToString("D"));
+                        if (byKey && !missingIdentity) headers.Add("X-COSMIC-Holon-Id", id.ToString("D"));
+                        var payload = byKey ? (object)new { } : new { id, softDelete = true };
+                        var path = byKey ? deletePath + "?softDelete=false&providerType=" + pair.Key : "/api/data/delete-holon";
+                        var cost = attempts == 0 ? 0m : attempts == 1 ? 0.001m : 0.004m;
+                        return await Send(payload, intent, status, attempts, cost, path,
+                            method: HttpMethod.Delete, headers: headers);
+                    }
+                    await Delete(second.Id, originalSecondRevision, true, HttpStatusCode.BadRequest, 0, missingIdentity: true);
+                    await Delete(second.Id, originalSecondRevision, true, HttpStatusCode.BadRequest, 0, missingOperation: true);
+                    await Delete(second.Id, originalSecondRevision, true, HttpStatusCode.BadRequest, 0, missingRevision: true);
+                    await Delete(initial.Id, originalSecondRevision, true, HttpStatusCode.BadRequest, 1);
+                    await Delete(foreignId, Guid.NewGuid(), false, HttpStatusCode.Forbidden, 1);
+                    await Delete(initial.Id, Guid.NewGuid(), false, HttpStatusCode.Conflict, 2);
+                    await Delete(second.Id, Guid.NewGuid(), true, HttpStatusCode.Conflict, 2);
+                    Assert.AreEqual(originalRootRevision, Revision(await Read(initial.Id)));
+                    Assert.AreEqual(originalSecondRevision, Revision(await Read(second.Id)));
+                    var soft = await Delete(initial.Id, originalRootRevision, false, HttpStatusCode.OK, 2);
+                    Assert.IsTrue(soft.Body.GetProperty("result").GetProperty("isDeleted").GetBoolean());
+                    var persistedSoft = await pair.Value.LoadHolonAsync(initial.Id, false, true, 0, true, false, 0);
+                    Assert.IsTrue(persistedSoft.Result.IsDeleted);
+                    Assert.AreEqual(actor, persistedSoft.Result.DeletedByAvatarId);
+                    var hard = await Delete(second.Id, originalSecondRevision, true, HttpStatusCode.OK, 2);
+                    Assert.IsTrue(hard.Body.GetProperty("result").GetProperty("isDeleted").GetBoolean());
+                    Assert.IsTrue(hard.Body.GetProperty("result").GetProperty("metaData").TryGetProperty("COSMIC.CommittedDelta", out _));
+                    var persistedHard = await pair.Value.LoadHolonAsync(second.Id, false, true, 0, true, false, 0);
+                    Assert.IsNull(persistedHard.Result);
+                    var unchangedChild = await Read(restIds[2]);
+                    Assert.IsFalse(unchangedChild.IsDeleted, "Root-only deletion must not delete unselected children.");
+                    Assert.AreEqual(retainedChildRevision, Revision(unchangedChild));
+
+                    // Three fresh priced observations recover original save,
+                    // soft-delete and hard-delete receipts without re-execution.
+                    foreach (var originalIntent in new[] { firstIntent, soft.IntentId, hard.IntentId })
+                    {
+                        var recovery = await Send(new { operationId = originalIntent, providerType = pair.Key.ToString() },
+                            Guid.Empty, HttpStatusCode.OK, 2, 0.006m, CosmicOperationRecoveryRoutes.Recover);
+                        var outcome = recovery.Body.GetProperty("result").GetProperty("result");
+                        Assert.AreEqual(originalIntent, outcome.GetProperty("operationId").GetGuid());
+                        Assert.AreEqual("Committed", outcome.GetProperty("receiptState").GetString());
+                    }
+                    var foreignActor = Guid.NewGuid();
+                    var foreignBearer = Token(foreignActor, new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)), lifetimeMinutes: 15);
+                    authority.Tokens.Add(foreignBearer, foreignActor);
+                    using (var foreignClient = new HttpClient { BaseAddress = client.BaseAddress })
+                    {
+                        foreignClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", foreignBearer);
+                        await Send(new { operationId = firstIntent, providerType = pair.Key.ToString() }, Guid.Empty,
+                            HttpStatusCode.Forbidden, 1, 0.003m, CosmicOperationRecoveryRoutes.Recover,
+                            caller: foreignClient, admittedActor: foreignActor);
+                    }
+                    var beforeAnonymous = authority.Started.Count;
+                    var anonymousKey = "anonymous-recovery-" + Guid.NewGuid().ToString("N");
+                    await journal("before-anonymous-recovery", new { provider = pair.Key.ToString(), key = anonymousKey, original = firstIntent });
+                    using (var anonymous = new HttpClient { BaseAddress = client.BaseAddress })
+                    using (var request = new HttpRequestMessage(HttpMethod.Post, CosmicOperationRecoveryRoutes.Recover)
+                    { Content = new StringContent(JsonSerializer.Serialize(new { operationId = firstIntent, providerType = pair.Key.ToString() }), Encoding.UTF8, "application/json") })
+                    {
+                        request.Headers.Add("Idempotency-Key", anonymousKey);
+                        using var rejected = await anonymous.SendAsync(request);
+                        Assert.AreEqual(HttpStatusCode.Unauthorized, rejected.StatusCode);
+                    }
+                    requests++;
+                    Assert.AreEqual(beforeAnonymous, authority.Started.Count);
+                    Assert.IsTrue((await Read(initial.Id)).IsDeleted);
+                    Assert.IsNull((await pair.Value.LoadHolonAsync(second.Id, false, true, 0, true, false, 0)).Result);
+
                 }
                 finally { await app.StopAsync(); }
             }
@@ -287,22 +376,34 @@ public sealed partial class CqlV1Web4NativeTests
     }
 
     private static WebApplication RestHost(ProviderType provider, IOASISStorageProvider storage,
-        MongoUsageOutboxStore outbox, Authority authority, string secret)
+        MongoUsageOutboxStore outbox, Authority authority, string secret, bool transportMode = false, string? deleteKey = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
-        var paths = new[] { "/api/data/save-holon", "/api/data/save-holons" };
+        if (transportMode)
+            builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, 0,
+                endpoint => endpoint.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2));
+        else builder.WebHost.UseUrls("http://127.0.0.1:0");
+        var paths = transportMode ? new[] { "/graphql", "/oasis.web4.DataService/SaveHolon", "/oasis.web4.DataService/DeleteHolon" }
+            : new[] { "/api/data/save-holon", "/api/data/save-holons" };
+        var routes = paths.Select(path => (Method: "POST", Path: path)).ToList();
+        if (!transportMode) routes.Add(("POST", CosmicOperationRecoveryRoutes.Recover));
+        if (deleteKey != null)
+        {
+            routes.Add(("DELETE", "/api/data/delete-holon"));
+            routes.Add(("DELETE", "/api/data/delete-holon-by-providerkey/" + Uri.EscapeDataString(deleteKey)));
+        }
         var deployment = new StorageAdmissionDeployment
         {
             NativeProviders = Array.Empty<NativeStorageAdmissionBinding>(), OrdinaryProviders = new[] { provider },
             StorageTariffs = StorageAttemptTariff.SupportedOperations.Select(operation =>
-                new StorageAttemptTariff(provider, operation, operation == "LoadHolon" ? 0.001m : 0.003m, "owned-storage-v1")).ToArray(),
-            Routes = paths.Select(path => new StorageAdmissionRoute("POST", path, new UsageEndpointPolicy
+                new StorageAttemptTariff(provider, operation, operation is "LoadHolon" or "LoadHolonByProviderKey" ? 0.001m : 0.003m, "owned-storage-v1")).ToArray(),
+            Routes = routes.Select(route => new StorageAdmissionRoute(route.Method, route.Path, new UsageEndpointPolicy
             {
                 MeterCategory = "cosmic.write", PricingCatalogueVersion = "owned-storage-v1",
                 ReservedUnits = 6, EstimatedCostUsd = 0.018m, FixedCostUsd = 0,
-                RequiresProviderMeasurement = true, MaximumProviderAttempts = 6, MaximumNativeFeeCostUsd = 0
+                RequiresProviderMeasurement = true, MaximumProviderAttempts = route.Path == CosmicOperationRecoveryRoutes.Recover ? 2 : 6, MaximumNativeFeeCostUsd = 0,
+                UsesGraphQlResponseEnvelope = route.Path == "/graphql"
             })).ToArray()
         };
         var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
@@ -316,6 +417,9 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions { Service = "WEB4", EndpointPolicy = select });
         builder.Services.AddSingleton<Web4UsageExecution>();
+        builder.Services.AddSingleton<ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic.ICosmicOperationRecoveryPolicy>(new ShippingProtection(provider));
+        builder.Services.AddHostedService<ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic.CosmicRecoveryReadiness>();
+        if (transportMode) AddShippingTransportServices(builder.Services);
         builder.Services.AddControllers(options => options.Filters.Add<UsageResultFilter>())
             .AddJsonOptions(options =>
             {
@@ -340,6 +444,7 @@ public sealed partial class CqlV1Web4NativeTests
         app.UseMiddleware<Web4UsageLedgerMiddleware>();
         app.UseConfiguredStorageAdmission();
         app.MapControllers();
+        if (transportMode) MapShippingTransports(app);
         return app;
     }
 }

@@ -1,6 +1,24 @@
 # CQL v1 developer demo verification
 
-## Shipping REST/native settlement — verified 26 October 2026
+## Signed GraphQL/gRPC/native settlement — verified 26 October 2026
+
+The retained runner now requires 24 signed HTTP/2 GraphQL/gRPC save requests on
+MongoDB, SQLite and Neo4j, in addition to 36 shipping REST requests and the
+138 SDK /138 signed CQL walkthrough. It verifies stored ownership, selected child
+graphs, stale revisions, create-only conflicts, malformed intent, committed delta
+responses, explicit zero-execution rejection, physical attempts, receipts, prices
+and terminal outcomes through the existing reservation/admission/outbox owners.
+
+The passing report records **402 settled operations /436 attempts**: 345 CQL,
+33 REST and 24 transport operations. Sources remain unchanged, seven binary pairs
+match and exact owned fixtures/services are torn down. Required source/binary
+identities, report and compressed TRX are retained as
+`Verification/signed-transports-final*`. Core3,372/WEB4250/usage387 gates pass;
+both Core targets and shipping WEB4 build. This is focused shipping-save resolver
+acceptance, not full GraphQL startup, other gRPC methods, deletion, federation or
+the full ORM roadmap. See [transport scope](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+
+## Prior shipping REST/native settlement — verified 26 October 2026
 
 The retained demo runner now also certifies36 signed requests through the actual
 shipping DataController on MongoDB, SQLite and Neo4j. It checks single/batch saves,

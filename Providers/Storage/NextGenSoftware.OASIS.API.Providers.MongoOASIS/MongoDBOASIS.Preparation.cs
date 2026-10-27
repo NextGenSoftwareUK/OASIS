@@ -6,8 +6,16 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IHolonWritePreparationStorageProvider
+public partial class MongoDBOASIS : IHolonWritePreparationRecoveryStorageProvider
 {
+    public Task<OASISResult<HolonWritePreparation>> ReadHolonWritePreparationAsync(Guid operationId, Guid actorId,
+        CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested) return Task.FromResult(PreparationAdmissionFailure("COSMIC_PREPARATION_CANCELLED", "Preparation read was cancelled.", new OperationCanceledException(cancellationToken)));
+        if (operationId == Guid.Empty || actorId == Guid.Empty) return Task.FromResult(PreparationAdmissionFailure("COSMIC_PREPARATION_INVALID", "Operation and authenticated actor are required."));
+        if (!IsProviderActivated || _holonRepository == null) return Task.FromResult(PreparationAdmissionFailure("COSMIC_PREPARATION_PROVIDER_NOT_READY", "Activate MongoDB before reading preparation."));
+        return _holonRepository.ReadHolonWritePreparationAsync(operationId, actorId, cancellationToken);
+    }
     public OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate)
         => ClaimHolonWritePreparationAsync(candidate).GetAwaiter().GetResult();
     public Task<OASISResult<HolonWritePreparation>> ClaimHolonWritePreparationAsync(HolonWritePreparation candidate,

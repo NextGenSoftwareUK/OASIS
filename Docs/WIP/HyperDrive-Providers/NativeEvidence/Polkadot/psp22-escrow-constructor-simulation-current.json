@@ -1,0 +1,22 @@
+{
+  "genesisHash": "0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208",
+  "blockHash": "0x93edec746fb6eb0b7d41ab132206f0464baf446b46609de48c2b7749f7ec5bf9",
+  "runtimeSpecVersion": "100",
+  "codeHash": "0xf5bc8dd4c423cc6d5946e9c5cb17a3a522d3a6446c04fdf7a7de8a76aeefb050",
+  "artifactSha256": "2e1711ef8ceeb117e1555982444c6b24cd88c7b519bbc56158ce1e504202068f",
+  "address": "0xbe43c50a0fdb5ff88cd5d5cac7072c98b1470ee67d9ff3ca9507f8d91db45d21",
+  "sender": "0x1a4fee48c1ba1a48e8cd43782a8485d635aa91cfb82cbb477f0c1c576bc4031c",
+  "data": "0x00000001",
+  "salt": "0x6f617369732d746f6b656e2d657363726f772d7632",
+  "fields": null,
+  "gasRequired": {
+    "refTime": 297609719,
+    "proofSize": 26643
+  },
+  "storageDeposit": {
+    "charge": 521255000000
+  },
+  "simulationPassed": true,
+  "nativeDeploymentVerified": false,
+  "signedOrSubmitted": false
+}

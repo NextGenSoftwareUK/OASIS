@@ -1,5 +1,7 @@
 # NEAR transaction-status observation
 
+Current26October continuation: ordinary encrypted put/delete now reuse the existing bound final mutation owner; controlled357/357 and scoped native2originals pass. See [current signer/receipt audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md) for exact evidence and remaining durable-outbox/full-interface gates. Historical checkpoints below are not current full-provider certification; old Windows reports absent after cleanup are not recreated or relabelled.
+
 2026-10-19. Scoped correction, not whole-provider certification.
 
 ## Invariant and implementation

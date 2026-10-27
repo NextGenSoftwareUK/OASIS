@@ -25,9 +25,9 @@ export async function readFinalizedExtrinsicContext(api, request) {
   const index = matches[0];
   const at = await api.at(request.blockHash);
   const events = await at.query.system.events();
-  const own = events.filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === index)
-    .map(({ event }) => event);
-  return { header, index, own };
+  const ownRecords = events.filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.toNumber() === index);
+  const own = ownRecords.map(({ event }) => event);
+  return { header, index, own, ownRecords };
 }
 
 export function dispatchOutcome(own) {

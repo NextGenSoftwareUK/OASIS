@@ -2,8 +2,13 @@
 
 Status: operation pricing, configured admission and the joined shipping
 HTTP/native-store/outbox write gate pass on MongoDB, SQLite and Neo4j.
-Broader deployed-startup, remaining transports and full CQL/ORM certification
-remain open.
+The focused signed GraphQL/gRPC save gate also passes on all three stores:
+24 transport operations join 33 REST and 345 CQL operations for 402 settled
+operations /436 physical attempts. Required proof is retained in
+`Verification/signed-transports-final*`; see
+[transport contract and limits](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+Broader deployed-startup, other transport methods, deletion and full CQL/ORM
+certification remain open.
 
 Creator-owned graph saves perform physical ownership reads before one conditional
 write. Those reads are not free or query attempts by implication. The existing

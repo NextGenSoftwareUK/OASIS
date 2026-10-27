@@ -1,6 +1,140 @@
+## Current work order — investor demo first (26 October 2026)
+
+The [parity checklist](CQL_PARITY_CHECKLIST.md#investor-demo-priority-and-work-ordering)
+is authoritative. Work only on its **DEMO**-tagged ❌ cells until that set is green
+on SQLite, MongoDB and Neo4j. Untagged POCO/model/migrations/tooling work remains
+in the full backlog but is deferred. Existing ✅ features and federation cursors
+are frozen unless a reproducible bug is found. Historical sections below are
+not permission to resume hardening completed features.
+
+## Latest cursor lineage ownership correction — 26 October 2026
+
+The shared admission owner now returns its validated execution handle. Federation
+freezes the root operation GUID before application callbacks or provider awaits;
+response framing never reloads it from mutable HttpContext.Items. Existing resumed
+pages retain their protected root lineage. Three genuine initial-page regressions
+(removal, replacement and wrong-type context item) and three resumed controls now
+pass, including original receipt ownership.
+
+Full Core3,750pass0skip and shippingWEB4build pass. Evidence:
+Verification/cursor-lineage-{red,core}.trx.gz and cursor-lineage-identities.json.
+This focused owner-capture correction did not rerun the separately recorded
+526-settlement/608-attempt native gate. Broader roadmap acceptance remains open.
+
+## Latest request ownership correction — 26 October 2026
+
+Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing
+IncludeMetadata or MaximumOutputBytes while a provider await was suspended could
+expand disclosure or bypass the admitted public wire ceiling. CqlRequestCapture
+now detaches row and federation requests before application callbacks or awaits,
+including provider/priority arrays, nested relationship/filter/path descriptors,
+graph shape and owned scalar JsonElements. The compiler remains the semantic
+admission owner; capture ceilings only bound allocation. No retry, alternate
+writer or provider fallback was introduced.
+
+Full Core3,744pass0skip and shippingWEB4build pass. Five new controls cover the two
+original regressions, ordinary-row disclosure, nested mutation/disposed JSON and
+Exists-without-Value compatibility. Fresh native526settlements608attempts passes
+all three providers, cursor/key/process restart, graph and transport checks;
+source snapshots unchanged and seven producer/consumer pairs match. Owned test
+fixtures, temporary protected keys and services were verified clean.
+
+Evidence: Verification/request-ownership-{red,core,native,process-second}.trx.gz,
+-native-source.json.gz, -native-binaries.json, -native-result.json,
+-process-pids.json and -unit-identities.json. The overall roadmap remains open.
+
+## Latest: actual cursor process restart verified — 26 October 2026
+
+A settled three-provider page survives abrupt termination of its hosting process.
+A distinct fresh host resumes the exact protected cursor using the unchanged
+Windows DPAPI-protected persisted key. Three pages/nine provider attempts settle
+through one parent reservation authority and the production HTTP authorization
+client; a duplicate redemption is rejected without another execution start.
+Readiness JSON is published atomically. This is actual process evidence, separate
+from the earlier in-process host restart/key-rotation matrix.
+
+Full native cohort:526settled operations/608physical attempts, unchanged sources,
+seven matching producer/consumer pairs. Original twenty cursor requests and
+existing writer-process recovery remain green. The owning fixture removed its
+small test key/config directory after both process trees stopped; no private key
+or controlled credential was archived. Native databases/services were cleaned.
+
+Evidence: Verification/federation-cursor-process{.trx.gz,-second.trx.gz,
+-source.json.gz,-binaries.json,-result.json,-pids.json}; earlier initial proof is
+retained separately. Scope is same-user Windows DPAPI persistence. Multi-host,
+container/KMS key deployments, broader failure windows, causal agreement,
+repeatable distributed snapshots, distributed joins and the full remaining ORM
+roadmap are still open. Core3,739 is the separate preceding regression gate.
+
 # CQL completion roadmap - MongoDB, SQLite and Neo4j
 
-## Latest joined HTTP/native gate — 26 October 2026
+## Current recovery integration checkpoint — 26 October 2026
+
+The signed REST, GraphQL and gRPC creator-owned conditional delete matrix is
+verified on MongoDB, SQLite and Neo4j. Read-only receipt recovery and original
+protected preparation retrieval are implemented on all three stores. Actual
+hard-delete commits followed by injected acknowledgement loss recover through
+read-only receipts without replay. The latest retained native cohort has
+492 settled operations / 541 physical attempts, unchanged sources and seven
+matching producer/consumer pairs. Actual writer-process termination after commit
+and authenticated recovery in a distinct fresh process now also pass on all three
+providers; compact original-operation/PID proof is retained in Verification.
+
+Core's new pinned preparation routing and stored-only reconstruction workflow
+and protected conditional-delete enrollment, including inherited request protection,
+have a 3,546-test Core regression checkpoint; both current Core targets build.
+The shipping hosted boundaries have 316 passing WEB4 tests with
+one unrelated Stripe sandbox skip, and 408 passing real-Mongo usage tests. See
+[protected preparation contracts and evidence](WRITE_PREPARATION.md) and
+[current implementation status](IMPLEMENTATION_STATUS.md) for scoped cohorts.
+
+The [hosted recovery boundary](HOSTED_OPERATION_RECOVERY.md) now includes
+authorized write enrollment and signed native HTTP acceptance for saves and both
+delete kinds on all three stores, including foreign/anonymous rejection and exact
+read billing. Protected public-manager hard-delete acknowledgement loss and
+post-commit writer-process interruption/fresh-process recovery are verified.
+Application-owned authoritative catalogue enrollment is now verified across all
+six CQL HTTP query families on all three stores. Application grant discovery,
+scalable tenant scopes, federation certification and the broader ORM roadmap
+remain open. Provider reactivation alone is not process-restart evidence.
+
+## Earlier owned-delete SDK checkpoint — 26 October 2026
+
+Core is published at `5e483cb`. Logical-ID and provider-key creator-owned
+conditional-delete SDK boundaries are implemented. Latest full Core: **3,412**
+passed, zero skips; both Core targets build. Latest shipping WEB4 gate remains
+**264**; latest real-Mongo usage gate is **390**. These are separate verification
+cohorts, not a new combined native certification.
+
+HTTP admission now requires an explicit ordinary-operation tariff regardless of
+transport path (`60adf1c`). Three regressions reproduced the old query-price bypass
+and pass after the shared factory correction. Provider-key SDK adds 19 controls
+for key-to-ID agreement, owner, stale conditions, pinned authority and invalid keys.
+The HTTP provider-key route and native deletion acceptance remain open; see the
+[provider-key contract and required matrix](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+The completed signed-save gate is pinned separately to Core `361f3d6`:
+Core 3,372 / WEB4 250 / usage-protocol 387 tests passed. Signed MongoDB
+GraphQL create/conflict/missing-intent checks passed; the first native gRPC graph
+request exposed string-enum decoding rejection before any provider attempt.
+That failure was reproduced in a unit test and fixed at the serializer owner.
+That correction exposed unflushed response-writer bytes after a successful gRPC
+commit. The shared usage buffer now completes its response feature before
+inspection/publication. Both failed fixtures' 382 original operations and owned
+contents were verified before exact cleanup, without replay. Fresh signed
+three-provider acceptance passes: 24 GraphQL/gRPC requests, 402 settled operations
+and 436 physical attempts including the existing CQL/REST checks. Sources stayed
+frozen, seven producer/consumer pairs matched, and owned fixtures were removed. See
+[transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+
+After save acceptance, transport deletion is a priority before recipient/tenant
+query enrollment. Canonical REST/logical-ID aliases and GraphQL/gRPC now bind
+authenticated identity and caller revisions through the owned-delete facade;
+shipping build and WEB4 **264** tests pass. Provider-key binding and native
+deletion/admission acceptance remain open. Ordinary trusted SDK deletion is not
+itself a host permission boundary.
+
+## Historical joined HTTP/native gate — 26 October 2026
 
 Verified: Core3,342/WEB4221;36 signed shipping DataController REST requests on all
 three stores,33 settled REST operations,345 settled CQL operations and403 physical
@@ -2027,3 +2161,145 @@ and `TestResults/CosmicCqlDemo/storage-pricing-evidence.json`.
 This closes the explicit pricing kernel, not the joined shipping DataController
 HTTP/native-store/admission/outbox settlement gate. That proof remains next;
 gRPC/GraphQL authority migration and broader CQL/ORM acceptance remain open.
+
+## Verified request-routing checkpoint — 26 October 2026
+
+Canonical V2 WEB4 single/batch graph writes now use immutable request-owned
+routing contexts. Global publication is atomic; request completion cannot restore
+an older global policy. Captured preferred identity includes a missing default.
+Performance and load-balancer history remain shared; construction performs no
+provider activation or extra persistent event subscriptions.
+
+Core netstandard2.1/net10.0 and shipping WEB4 builds pass. Full suites: 3,368 Core
+and 231 WEB4 tests, no failures/skips. Fresh three-provider native acceptance:
+138 SDK /138 HTTP walkthrough queries,36 shipping REST requests,378 settled
+operations/403 attempts. Source freeze held and all seven binary pairs matched.
+Required compressed reports and safe source/binary summaries are retained in
+`Verification/configuration-*`. Core implementation is published as `2cb7f88`.
+
+This closes this routing checkpoint, not the roadmap. Non-migrated routes,
+cross-route concurrency, deep DNA/security/strategy ownership, gRPC/GraphQL
+identity, recipient/tenant queries, federation and remaining ORM work stay open.
+See [request policy ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
+
+## GraphQL conditional-create checkpoint — 26 October 2026
+
+V2 saveHolon now binds the HTTP actor, stable operation intent and explicit provider through the shared hosted/owned conditional boundary. Real focused schema execution caught and fixed implicit IHolon mutation-member discovery by binding declared output fields. Shipping build/fullWEB4239tests pass without skips. Required original schema-red/final reports retained under Verification/graphql-*.trx.gz (59053/57306bytes). Signed GraphQL deployment/native acceptance, admission/settlement and delta response enrollment remain open; gRPC migration is next. Core is unchanged at289fa01 for this checkpoint.
+
+## gRPC V2 envelope checkpoint — 26 October 2026
+
+Operation/revision/recursive-holon input and error/delta/metadata output now use the existing REST serializer and hosted conditional-write owner. Ambiguous old/new inputs, invalid revisions and cross-provider conditional graph flags reject explicitly. FullWEB4250testsPASS0skip, shippingbuildPASS; includes2realHTTP2shippingservicecallswithcontrolledauth. Requiredreport Verification/grpc-write-full.trx.gz. Signed GraphQL/gRPC native/admission/settlement acceptance and broader read-routing/access migration remain open. Core289fa01unchanged.
+
+## 26 October: protected public-manager hard-delete fault gate verified
+
+MongoDB, SQLite and Neo4j now pass healthy protected preparation enrollment followed by exactly one native mutation commit with acknowledgement loss. Caller snapshot remains unchanged; after provider reactivation stored-only recovery authenticates the original preparation and finds the committed hard-delete receipt without replay. Complete native cohort: 465 settlements / 517 attempts; sources unchanged; seven producer/consumer identities match; owned fixture removed. Evidence and remaining process-restart/transport/tenant/federation work: [hosted recovery](HOSTED_OPERATION_RECOVERY.md). The overall roadmap remains open.
+
+## 26 October: actual writer-process interruption and fresh-process recovery verified
+
+MongoDB, SQLite and Neo4j pass abrupt writer termination after the native hard-delete commit, followed by authenticated stored-only recovery in a separate process. Each original operation retains its identity; writer/reader PIDs differ; no replay. Full native465 settlements/517attempts; sources unchanged; seven binary pairs match; owned services and fixtures cleaned. See [hosted recovery evidence and remaining acceptance](HOSTED_OPERATION_RECOVERY.md). Operator retention/reconciliation and broader tenant/query/federation work remain open.
+
+## 26 October: authoritative access SDK and native policy verification
+
+Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.
+
+## 26 October: hosted authoritative read-policy enrollment verified
+
+All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once to the authenticated actor and captured eligible provider before source windows. Denial/invalid grants/null DI registrations fail without owner-public fallback or manager acquisition. Final Core3530PASS/WEB4313PASS+oneexistingStripeSkip; actualshippingcontroller30signedpolicyrequests pass on all3providers, complete native492settlements/541attempts including process-interruption recovery. Sourcesunchanged/sevennative+threeunitbinarypairs match; ownedfixtures/services cleaned. See [contract and evidence](CQL_HOSTED_READ_POLICY.md). Application-specific authoritative grant discovery, scalable authorization I/O/cancellation/billing, tenant deployment readiness, federation and broader ORM acceptance remain open.
+
+## 26 October: required authoritative policy deployment verified
+
+CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
+
+## 26 October: recovery policy lifetime ownership
+
+Recovery readiness now validates application policy inside a short DI scope. Two genuine regressions covered both scope-validation modes; singleton ownership and unenrolled/cancelled checks have positive controls. Shipping build and 320 WEB4 tests pass, with one existing Stripe sandbox skip. Source and producer/consumer identities are retained in [the recovery contract](HOSTED_OPERATION_RECOVERY.md). This DI-only checkpoint did not rerun the separately recorded Core/native matrices. Grant discovery, scalable authorization, federation and remaining ORM acceptance stay open.
+
+26 October SDK federation checkpoint: complete-source row merging, preserve copies/provider priority provenance, exact common global ordering and independent global paging are implemented. Core dual-target build and 3,591 unit tests pass. Native provider/billing federation acceptance, HTTP enrollment, authenticated cursors, causal agreement/repeatable consistency and distributed joins remain open; this does not mark the full federation roadmap complete. See CQL_FEDERATION_CONTRACT.md and CQL_MANUAL.md.
+
+## 26 October native SDK federation acceptance
+
+Fourteen read-only SDK federation scenarios now pass on the retained real
+MongoDB, SQLite and Neo4j fixture: complete sources, visibility before global
+paging, provider priority/copy provenance, independent source/global windows,
+cumulative input rejection and exact decimal/UInt64/Single/Double/Int64/UTC/GUID/
+nullable metadata ordering. The ordinary signed HTTP/recovery cohort remains
+492 settled operations / 541 attempts; sources stayed unchanged and all seven
+native producer/consumer binary pairs matched. The SDK federation scenarios run
+before hosted usage enrollment. They do not prove signed federation billing or a
+federation HTTP endpoint; both remain open, along with cursors/distributed joins.
+
+The gate exposed a scalar-contract mismatch before any native fixture was
+started: federation rejected JSON decimal/integer normalization admitted by
+native Single/Double ordering. Two red regressions reproduced it. Core now uses
+its existing exact rational ties-to-even IEEE rounding owner, once, and verifies
+normalized ties by logical ID. Exact integer/decimal conversions still reject
+precision loss; floating normalization follows the explicit declared IEEE domain.
+Core dual-target build and all 3,595 unit tests pass, including four new cases.
+
+Evidence: Verification/federation-normalization-{red,core}.trx.gz,
+federation-normalization-identities.json, federation-native.trx.gz,
+federation-native-source.json.gz, federation-native-binaries.json and
+federation-native-result.json. The reusable runner requires all fourteen scenarios
+and all three providers before it accepts success. No new environment/download
+was used; fixture teardown and cleanup are recorded in the resource ledger.
+
+26 October hosted federation prerequisite: generic complete per-target policy binding and admission/visibility controls implemented; Core dual-target/all3,607 tests pass. No federation HTTP route or signed multi-provider policy/billing acceptance claimed. These remain the next gate before cursor/distributed-join work. See CQL_FEDERATION_CONTRACT.md.
+
+26 October materialization prerequisite verified: V2 HolonManager.ExecuteFederationQueryAsync<T> reuses collection decryption/hydration/tracking and retains one budget through actual final canonical row payload. Core dual-target/all3,617 tests pass. Native manager/hosted federation HTTP/billing, cursors and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md for the output-accounting root fix and evidence.
+
+26 October federation HTTP route/schema/scope/authorization/materialization/public projection implemented and unit verified: Core3,636 passes; shipping build/320 tests pass, one existing skip. Next acceptance gate is signed actual-controller multi-provider native policies, exact durable federation receipts, encrypted typed mapping and demos. Cursors/causal agreement/distributed joins remain open. See CQL_FEDERATION_HTTP_CONTRACT.md.
+
+## 26 October: signed native federation and demos verified
+
+The actual shipping controller passes13requests (12admitted/settled, one anonymous)
+with23durable provider attempts on real MongoDB, SQLite and Neo4j. Cases cover
+provider-specific private grants, visibility before global paging, priority/copy
+provenance, revocation, late denial and authority mismatch with zero attempts,
+input/output exhaustion, empty sources, schema rejection, captured default,
+three-store metadata decryption, wrong-key rejection and unchanged stored
+ciphertext. Every admitted operation settles with the expected exact tariff cost;
+completed read receipts survive later service errors. No billing account is used.
+
+The reusable demo also executes the spaced/commented
+Examples/CosmicCqlDemo/V1FederationWalkthrough.cs: one global SDK example and one
+signed global HTTP example, in addition to138SDK/138HTTP per-provider examples.
+Swagger has a federation request example; its token interceptor derives allowed
+paths from the shared CQL catalogue, including composition and federation. Demo
+federation admission reserves three attempts; leaf routes retain one.
+
+The complete cohort passes505settled operations/567attempts,14SDK federation
+scenarios and process-restart recovery on all3providers. Native source snapshots
+are unchanged and seven producer/consumer pairs match. The controller's source
+hash matches the earlier HTTP capture; the reusable snapshot list now includes
+that file explicitly for future runs. Owned fixtures/services were verified and
+removed; no installation, download or new environment was used.
+
+Evidence: Verification/federation-hosted-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}
+and federation-hosted-controller-identity.json. Core3,636 tests and the existing
+shipping320tests/one Stripe sandbox skip are separate prior regression gates.
+Authenticated cursors, causal agreement/repeatable distributed snapshots,
+distributed joins and full remaining ORM roadmap acceptance remain open.
+
+26 October cursor prerequisite: generic canonical full-plan/target-policy fingerprint implemented, streaming1MiB cap, Core dual-target/all3,654 tests pass. This unkeyed digest is not an authenticated cursor. Protected token/key/expiry/replay/remaining-budget workflow and signed/native continuation acceptance remain open, as do causal agreement/distributed joins and remaining ORM gates (CQL_FEDERATION_CONTRACT.md).
+
+26 October protected cursor state codec implemented with host-supplied Data Protection; Core3,675tests/shippingbuild pass. No key store or cursor HTTP enrollment. Durable next-key replay binding, fresh policy/intent checks, remaining-budget execution and signed/native continuation acceptance remain required (CQL_FEDERATION_CONTRACT.md).
+
+26 October durable request-key binding prerequisite verified: UsageExecutionHandle.IsBoundToRequest(service, avatar, key) reuses UsageCanonical.OperationId against the captured durable owner, independent of later options mutation. Admission and binding share key validation. Ten strict memory-only controls reject foreign keys/avatars/services, invalid key lengths/control characters and empty avatars without authority/outbox calls. Core dual-target build/all3,685 tests pass, zero skips. Evidence: Verification/federation-request-binding-core.trx.gz and federation-request-binding-identities.json. HTTP cursor redemption, priced-handle binding coverage, cumulative budgets and signed/native paging acceptance remain open.
+
+
+26 October cumulative budget groundwork verified: internal immutable remaining accounting preserves global/per-provider rows, input/output bytes, work, attempts and active duration across resume. Original scope/ceilings and global/provider consumption consistency must match. Zero limits remain zero; terminal/cancelled executions cannot publish snapshots. Active time rounds up to prevent fractional reset; client think time is excluded and still needs independent absolute cursor expiry. Core dual-target build/all3,696tests pass, eleven new cases. Evidence: Verification/federation-budget-resume-{core,initial-core}.trx.gz and federation-budget-resume-identities.json. This is not yet connected to executor/manager/HTTP cursor flow; protected redemption, accounting publication and signed/native continuation acceptance remain open.
+
+
+26 October executor/manager accounting integration verified: successful federation results publish RemainingBudget only after complete reads, merge, typed materialization and canonical output charging. ExecuteWithBudgetAsync / HolonManager.ExecuteFederationQueryWithBudgetAsync propagate validated remaining scope/vector/ceilings, per-target capture limits and active deadline. Depleted complete sets reject before provider dispatch; null state cannot reset limits; errors publish no success snapshot. Public Restore returns OASISResult with structural validation but is not cursor authentication, authorization or replay control. Core dual-target/all3,707tests and shippingWEB4build pass. Evidence: Verification/federation-accounting-integration-{core,initial-core}.trx.gz and identities.json. HTTP cursor redemption/settlement-safe publication and signed/native continuation acceptance remain open; route still rejects Cursor. Manual includes a spaced C# SDK accounting example.
+
+
+26 October host cursor binding groundwork verified: CqlFederationCursorHost uses explicit shared key ownership/deployment-contract SHA256; binds host/Core artifacts, actual adapter types/artifacts, original HTTP scope/includeMetadata and the canonical fresh-policy Core plan. Exact canonical Guid request header must match server-issued next key AND UsageExecutionHandle's captured WEB4/avatar/key admission. Expiry/deployment/key-owner mismatches and inconsistent remaining accounting reject without provider I/O. Core3,727tests/shippingbuild pass, twenty new controls; Verification/federation-cursor-host-{core,initial}.trx.gz and identities.json retained. No registration/key store/HTTP schema change: service is groundwork, not completed redemption. Endpoint integration, atomic replay/settlement publication and signed/native continuation acceptance remain required.
+
+
+26 October HTTP cursor integration controlled gate: explicit opt-in, protected original intent/offset/pinned targets/fixed expiry/next key, fresh target policies and durable admitted-handle binding implemented. Shared budget-owner read-set preflight runs before dispatch; per-read capture also respects source Take. Whole-request active time, host work and canonical+reserved wire bytes accumulate; final protection/framing reserves100ms/4096token characters with checked publication. Exhausted chains report hasMore with null continuation/BudgetExhausted. Core dual-target build/all3,737tests and shippingWEB4build pass, ten new endpoint/protocol cases (including three pages, concurrent atomic claim, changed key/intent/policy and captured default). No native continuation acceptance yet; earlier505/567 evidence predates this feature. Existing outbox owns replay; no key store, environment or provider I/O in this gate. See CQL_MANUAL.md for enrollment and request sequence. Signed/native paging, key rotation/restart, uncertain failures and broader distributed features remain open.
+
+
+Final HTTP cursor gate: all3,739Core tests pass, twelve new endpoint/protocol cases including missing enrollment and depleted protected state preserving no-dispatch evidence. Shipping build passes with original257warnings; new host XML/nullability warnings corrected. Required Verification/federation-cursor-http-{core,initial,first-core,expiry-core}.trx.gz and federation-cursor-http-identities.json retained. Whole-request active time includes host preparation/execution/projection and checked100ms finalization reservation; fixed expiry bounds dispatch/publication. Signed native continuation/restart/key-rotation and broader roadmap acceptance remain open.
+
+
+26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.

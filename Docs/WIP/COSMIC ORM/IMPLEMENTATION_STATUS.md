@@ -1,6 +1,181 @@
+26 October lineage root fix: capture validated execution owner and freeze original operation GUID before callbacks/awaits. Three genuine initial regressions and three resumed controls pass; fullCore3,750PASS0skip/shippingbuildPASS. Evidence Verification/cursor-lineage-*. Native526/608 remains separately scoped; full roadmap active.
+
+26 October request ownership root fix: two genuine disclosure/wire-cap mutation regressions fixed through shared bounded detached row/federation capture. Core3,744PASS0skip/shippingbuildPASS/fresh native526settlements608attempts; source unchanged/seven pairs; cleanup verified. Evidence Verification/request-ownership-*. Full roadmap active.
+
+26 October latest: actual abrupt cursor-host process termination/fresh-process continuation with unchanged DPAPI-protected persisted key passes on all3stores. Full native526settlements608attempts, unchanged sources/seven pairs, owned teardown verified. Evidence Verification/federation-cursor-process*. Core3,739 separate. Multi-host key topologies/broader failure windows/distributed features/full ORM roadmap remain open.
+
+26 October latest native cursor checkpoint: 20 signed requests, 18 settlements, 32 attempts, 2 duplicate rejections, host restart/key rotation/revocation pass. Full native523/599, source unchanged/seven binary pairs, owned cleanup verified. Core3,739 separate regression gate. Actual OS-process cursor persistence and full ORM roadmap remain open. Evidence: Verification/federation-cursor-native-*; assessment: WEB4_VISION_AND_AI_NEXT_STEPS.md.
+
+26 October protected cursor codec checkpoint: host-supplied Data Protection/fixed bounded state implemented; Core3,675 tests and shipping build pass. No new keys/store/environment and no cursor HTTP acceptance. Durable next-key replay binding, fresh policy/intent checks, cumulative remaining budgets and signed/native paging remain open. Full ORM goal active.
+
+26 October cursor intent-binding checkpoint: bounded canonical full-plan/target-policy SHA256 binding implemented; Core dual-target/all3,654 tests pass. This is not a cursor or authentication. Protected state/key ownership/rotation, expiry, replay/idempotency and remaining-budget integration plus signed/native continuation acceptance remain open. Earlier signed federation505/567 remains the execution checkpoint; full ORM goal active.
+
+26 October signed native federation checkpoint: actual shipping controller13requests/12settlements23attempts across MongoDB/SQLite/Neo4j passes grants, decryption, limits and exact receipts. Annotated global SDK/HTTP demos and Swagger verified; full505operations567attempts,14SDK federation controls, unchanged sources/sevenbinarypairs. Core3,636/shipping320+one existing skip are prior regression gates. Cursors, causal agreement, distributed joins and remaining ORM programme still open.
+
+26 October hosted federation HTTP checkpoint: POST /api/data/query-cql/federation implements explicit scope, target-specific authorization, manager materialization, tariff-owned attempts and canonical/public output bounds. Core3,636 tests and320 shipping WEB4 tests pass (one existing Stripe skip); builds pass. Signed real-provider federation HTTP/billing/native materialization/demo acceptance, cursors and distributed joins remain open. See CQL_FEDERATION_HTTP_CONTRACT.md.
+
+26 October federation materialization checkpoint: V2 HolonManager reuses typed hydration/decryption/tracking; same budget now counts actual final row payload and provenance. Fixed persistence-resolver omission in output accounting. Core dual-target/all3,617 unit tests pass. Native manager/hosted federation HTTP/billing, cursors and distributed joins remain open; earlier14native SDK scenarios predate this extension.
+
+26 October 2026 target-specific federation authorization: complete per-provider policies now bind before native source windows, require one actor/matching authorities, preserve existing source restrictions and reject cross-provider catalogue borrowing. Core dual-target/all3,607 unit tests pass. Earlier14native SDK scenarios predate this extension; hosted federation HTTP/authorization/billing, cursors and distributed joins remain open.
+
+26 October 2026 native SDK federation checkpoint: fourteen scenarios pass on real MongoDB/SQLite/Neo4j; Core dual-target build and 3,595 unit tests pass. Full signed HTTP/recovery cohort remains492/541, unchanged sources/seven binary pairs. Signed federation HTTP/billing, cursors, causal agreement and distributed joins remain open. Full ORM goal remains active.
+
+26 October 2026 SDK federation checkpoint: explicit complete-source row federation now supports preserved copies, deterministic provider priority with observed copy provenance, exact global ordering and global Skip/Take. Core dual-target build and 3,591 unit tests pass (zero skips). Native MongoDB/SQLite/Neo4j federation/billing, HTTP enrollment, cursors, causal agreement and distributed joins remain open. See CQL_FEDERATION_CONTRACT.md and CQL_MANUAL.md. Full COSMIC ORM goal remains active.
+
+26 October focused checkpoint: recovery readiness now owns a short DI scope for scoped policies, preserving container-owned singletons. Two red regressions fixed; shipping build/full WEB4 320 passed plus existing Stripe skip. Evidence HOSTED_OPERATION_RECOVERY.md / Verification/recovery-policy-lifetime-*. Core3546 and native492/541 are earlier separate cohorts, not rerun for this DI-only change. Full ORM roadmap remains open.
+
+26 October checkpoint: required authoritative CQL policy deployment/readiness implemented, scoped lifecycle + all6 runtime guards verified. FullCore3546PASS/WEB4316PASS+existingStripeSkip; required-mode native492settlements541attempts/all3providers/sourceunchanged7native3unitpairs. Evidence CQL_HOSTED_READ_POLICY.md and Verification/read-policy-readiness-*. Grant discovery/scalableauth/federation/fullORMremainOPEN.
+
+26 October checkpoint: hosted authoritative read-policy enrollment verified all6CQLfamilies/all3providers. FullCore3530PASS/WEB4313PASS+existingStripeSkip;30signedshippingrequests/fullnative492settlements541attempts; sourceunchanged7native+3unitbinarypairs. Docs CQL_HOSTED_READ_POLICY.md / Verification/hosted-read-policy-*. Grant discovery/scalableauthI-O/tenantreadiness/federation/fullORMremainOPEN.
+
+26 October checkpoint: authoritative actor/provider-bound record catalogue SDK implemented; private-row paging/graph/join/composition verified all3. DualCoretargets/full3514PASS/native465settlements517attempts/sourceunchanged7binarypairs. Hosted authoritative tenant/recipient enrollment and fullroadmap remain OPEN. See CQL_AUTHORITATIVE_ACCESS.md and Verification/authoritative-access-*.
+
+26 October checkpoint: actual writer-process interruption after native hard-delete commit + fresh-process protected recovery PASS all3providers. Full native465settlements/517attempts, source unchanged/sevenbinarypairs, services/fixtures clean. Evidence HOSTED_OPERATION_RECOVERY.md and Verification/process-restart-*. Overall roadmap remains open.
+
+26 October checkpoint: protected public-manager hard-delete acknowledgement-loss PASS on all three providers; stored-only authenticated recovery, caller unchanged, one native commit. Full native465 settlements/517attempts; seven binary pairs match and sources unchanged. See HOSTED_OPERATION_RECOVERY.md and Verification/protected-hard-delete-*. Actual OS-process restart and broader roadmap remain open.
+
+## Hosted write enrollment and signed recovery - 26 October 2026
+
+Configured app grants now protect every selected record on request-owned save/batch/delete managers, including new assigned IDs and runtime contract admission, without fallback on denial. REST aliases/provider-key deletion and the GraphQL/gRPC wrapper share this enrollment. Core3501PASS0skip/WEB4313PASS1StripeSkip/bothCoretargets+shippingbuildPASS. Signed native save/soft/hard recovery passes MongoDB/SQLite/Neo4j; foreign/anonymous controls and exactbilling verified. Currentcohort465settlements517attempts/12recoveryssettlements, unchangedsource/sevenmatchedpairs/ownedteardown. [Contract and evidence](HOSTED_OPERATION_RECOVERY.md).
+
+Next: protected hard-delete acknowledgement-loss and actual process-restart gates, then remaining recipient/tenant query scope, federation, retention and broader ORM roadmap. Fullroadmap remains incomplete.
+
+## Authenticated recovery boundary milestone - 26 October 2026
+
+Added POST /api/data/recover-conditional-operation with authenticated actor capture, required priced exact-route admission, explicit actor/authority application grants, per-record authorized key contexts and bounded concrete type catalogues. Startup rejects enrolled recovery without policy or both prices/two-read budget. ShippingWEB4/bothCoretargets build; WEB4305PASS/1existingStripeSandboxSkip/0fail and realMongoUsage408PASS0skip. Matchingproducer/consumer/source evidence retained. [Contract and remaining acceptance](HOSTED_OPERATION_RECOVERY.md).
+
+This boundary is unit/configuration verified. Signed native HTTP recovery on all3providers, automatic hosted write protection enrollment, protectedharddelete native ACK-loss and processrestart remain open. Earlier native SDK453/496 cohort does not certify this new HTTP endpoint; fullroadmap incomplete.
+
+## Request-owned protection policy retention - 26 October 2026
+
+Fixed CreateRequestContext dropping configured metadata/preparation policies. New request managers retain immutable policy snapshots; parent changes and overlapping request overrides stay isolated. Two genuine failing regressions plus one positive concurrency control now pass within fullCore3497/3497, zero skips/failures; both targets build. Native inherited context protection and encrypted soft-delete recovery pass MongoDB/SQLite/Neo4j; source/binary/owned teardown verified,453settlements496attemptsunchanged. [Contract and exact evidence](WRITE_PREPARATION.md).
+
+Remaining priorities: authorized hosted policy enrollment, authenticated recovery endpoint, protected hard-delete native ACK-loss and actual process interruption/restart. Fullroadmap remains incomplete.
+
+## Protected conditional delete enrollment - 26 October 2026
+
+Conditional deletes now use the shared protected preparation owner when explicit protection is configured, binding actual soft/hard operation kind before mutation. Genuine regression:12failed+4unprotectedcontrols passed against previous Core; corrected fullCore3494/3494 passes0skip and both targets build. Native encrypted manager soft-delete enrollment and stored-only recovery after reconnection pass all3providers, alongside existing hard-delete ACK-loss controls. Native453settlements/496attempts/source and binary identity/owned teardown verified. See [contract and exact evidence scope](WRITE_PREPARATION.md).
+
+Next: request-scoped authorized host protection/enrollment, authenticated recovery boundary, protected hard-delete native ACK-loss and actual process-restart gates. The full roadmap remains incomplete.
+
+## Pinned preparation routing and stored-only SDK recovery - 26 October 2026
+
+HolonManager/HyperDrive now route original-bound preparation lookup without claims/mutation/replication. A new SDK workflow authenticates stored protected intent with trusted policy/type callbacks before read-only receipt lookup. Full Core3478, usage404 plus separate replica-init control, both Core targets and native three-provider routed/direct equivalence pass. Sources and seven binary pairs match; owned fixture/service teardown verified. Native453 settlements/496 attempts unchanged. See [contract, example and retained evidence](WRITE_PREPARATION.md).
+
+Authenticated hosted recovery, explicit authorized durable writer/delete intent enrollment, startup validation, and actual OS-process interruption/restart remain open. Full ORM/CQL roadmap is incomplete.
+
+## Three-provider preparation retrieval - 26 October 2026
+
+Read-only original preparation lookup is implemented for MongoDB, SQLite and Neo4j through an additive provider capability. Full Shared1242/Mongo575/SQLite95/Neo566 unit tests pass with zero skips/failures; both Core targets build. Native fifteen-operation preparation retrieval after reconnection and foreign-actor rejection passes, with the existing lost-acknowledgement recovery and 453-settlement/496-attempt cohort green. Sources/binary pairs/owned teardown verified. See [contract and retained evidence](WRITE_PREPARATION.md).
+
+Next: pinned HyperDrive lookup routing and authenticated hosted recovery with explicit durable protection policy. Actual OS-process crash/restart and the broader ORM roadmap remain incomplete.
+
+## Protected original-intent reconstruction - 26 October 2026
+
+Stored-only status reconstruction passes sixteen new controls and full Core 3,449/3,449, zero skips/failures; portable and net10 builds pass. It reuses encrypted preparation and authenticates every selected record before entity construction. Save, soft-delete and hard-delete kinds are supported; existing retry intent comparison remains. See [contract and evidence](WRITE_PREPARATION.md).
+
+Provider preparation lookup, authenticated hosted recovery and actual process termination/restart remain open. Chronological checkpoints below do not prove completion of the full roadmap.
+
+## Native acknowledgement-loss recovery - verified
+
+Actual hard-delete commits followed by controlled acknowledgement loss now pass on MongoDB, SQLite and Neo4j: exactly one commit, preserved reconciliation/original-operation evidence, no caller deletion publication, and read-only committed receipt recovery after reconnection without replay. Full signed cohort remains453 settlements/496 attempts; sources/binaries/owned teardown are verified. Mongo571 modern unit tests pass; atomic error metadata forwarding is fixed. [Evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Authenticated hosted recovery, durable original hosted intent retrieval/reconstruction and OS-process crash/restart remain open. The full roadmap remains incomplete.
+
+## Generic routed recovery SDK - verified
+
+Core `1832d0b` routes original-bound read-only operation recovery through HolonManager/HyperDrive. Actor, authority, detached intent, provider capability and returned binding controls pass. Full Core3433 and usage402 tests pass without skips; native routed receipts pass on MongoDB/SQLite/Neo4j with the unchanged453-settlement/496-attempt cohort. Sources, seven producer/consumer pairs and cleanup are verified. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Authenticated host recovery and durable original hosted intent remain unimplemented; actual lost native acknowledgement and OS-process restart gates remain open. The full roadmap is incomplete.
+
+## Three-provider read-only operation recovery SDK - native verified
+
+Core `b3d4df4` and MongoDB/SQLite/Neo4j provide exact-original conditional receipt lookup without re-execution. Native create/soft-delete/hard-delete receipts survive provider reconnection; absent, repeated, foreign-actor and redaction cases pass on all three stores. Core3420, Neo4j559 and SQLite90 tests pass without skips. Existing453-settlement/496-attempt signed cohort remains green; required source/binary/teardown evidence is preserved. [Scope and remaining recovery gates](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+This does not yet provide generic routed/admitted recovery or authenticated host status. Actual lost native acknowledgement, OS process restart and durable original hosted intent remain to implement/verify.
+
+## Read-only conditional-operation recovery gap - source verified
+
+The generic conditional-write capability currently exposes execution but no read-only status lookup for an original operation. Providers retain internal receipts, yet an authenticated host cannot generically reconcile an uncertain delete through that interface without re-entering mutation. A new receipt/status capability must bind actor, authority and original operation and distinguish committed, absent and unavailable evidence without assuming absence proves rejection. Service-attempt charges and uncertain mutation state remain separate. [Required recovery behavior](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+## Uncertain delete result ownership - 26 October 2026
+
+Four new controlled SDK cases preserve provider-declared reconciliation evidence and the original operation/transaction without retry or publishing deletion/new revision. Focused4/4 and fullCore3420PASS/0skip. This does not close durable hosted/native unknown-outcome recovery. [Scope and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+## Concurrent hosted delete provider isolation - 26 October 2026
+
+Four new barrier-controlled cases pass: one provider read pauses while another provider request completes, the registry default changes, and the original mutable transport request changes. Both requests retain their captured provider and conditional intent. Focused4/4 and fullWEB4285 PASS/1unrelated Stripe sandbox skip/0fail. No production correction required. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md). Native outage/unknown-outcome/startup gates remain open.
+
+## Hosted delete authorization and pinned-authority failures - 26 October 2026
+
+Fourteen new controls pass: ten for captured authenticated actor/Wizard role, logical/key identity and unchanged original conditional intent; four ensuring an unavailable authority cannot borrow ownership from an available failover replica. Full Core3416 PASS/0skip; WEB4281 PASS/1unrelated Stripe sandbox credentialskip/0fail. These are controlled-provider host/SDK tests, separate from the preceding signed native delete cohort. [Evidence and scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+## Signed native REST logical/key deletion - 26 October 2026
+
+Twenty-seven new signed REST deletion cases pass on MongoDB, SQLite and Neo4j, including zero-I/O intent validation, key-to-ID binding, stored ownership, stale conditions, persisted soft deletion, physical key hard deletion/delta and preservation of unselected children. The complete native cohort has63 REST+48 GraphQL/gRPC requests,453 settled operations and496 physical attempts. Source/binary identity and owned teardown checks pass. [Contract and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Wizard, concurrent provider scope, unavailable-primary/replica, unknown-outcome recovery and full startup/schema gates remain open. This does not complete the broader ORM roadmap.
+
+## Signed native GraphQL/gRPC deletion - 2026-10-26
+
+The fresh native gate passes across MongoDB, SQLite and Neo4j: 24 signed deletion requests added to24 existing transport saves, with426 settled operations and466 physical attempts across the full joined cohort. Missing intent, foreign owner, stale revision, persisted GraphQL soft deletion and acknowledged gRPC hard deletion/delta are verified. Source snapshots are unchanged; seven producer/consumer pairs match; owned services stopped and fixtures removed. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
+
+Signed REST logical/provider-key deletion and further authority/failure/recovery gates remain open. The broader CQL/ORM roadmap remains incomplete.
+
+## Provider-key HTTP deletion and explicit operation pricing - 2026-10-26
+
+Core `6dfd238` adds exact LoadHolonByProviderKey/DeleteHolon tariffs and route-specific startup requirements. Save-only profiles retain their existing three-operation requirements; GraphQL/gRPC/delete routes require the relevant operations. All fifteen provider/operation rows fit the bounded catalogue. Runtime HTTP admission remains fail-closed independent of route classification.
+
+The V2 provider-key HTTP alias now delegates the canonical scoped conditional-delete boundary with an explicit X-COSMIC-Holon-Id header, operation ID, original revision and optional providerType query. Native key and logical ID must agree, including Wizard observations; stored ownership and original conditional revision remain authoritative. Generic response projection retains request routing policy and handles missing error payloads without a mapper exception. Legacy is unchanged.
+
+Verified cohort: usage **400 passed/0 skipped**; Core **3412 passed/0 skipped**; WEB4 **271 passed/1 unrelated Stripe sandbox credential skip/0 failures**; shipping WEB4 and portable Core builds passed. Six new MVC and ten configuration cases are included. Compressed red/green evidence and complete contract are linked from [provider-key acceptance](PROVIDER_KEY_DELETE_ACCEPTANCE.md). Signed native delete acceptance remains pending; the overall roadmap is incomplete.
+
+## Provider-key owned deletion SDK � 2026-10-26
+
+Core `5e483cb` adds `LoadHolonForWriteByProviderKeyAsync(key, actor, provider)` and `DeleteOwnedHolonByProviderKeyAsync(key, id, actor, options, softDelete, provider)`. The key observation uses one pinned V2 authority. Deletion requires an explicit logical ID, authenticated host actor and exactly one original non-null revision condition. A key resolving to another ID is rejected, even if the caller owns that record. Stored creator authorization precedes conditional mutation. Soft/hard deletion retains the original revision and captured authority after defaults change. Invalid/oversized keys reject before provider access. Legacy rejects without repair.
+
+Verification: 19 focused cases; 3,412 full Core tests passed, zero skips; net10.0 and netstandard2.1 Core builds passed. Production-source test links now include the delete request model and its base class. Eight numeric compatibility tests cover the peer-requested append-only `NFTStandardType.PSP34 = 7`. Evidence: `Verification/provider-key-owned-delete.trx.gz` and `Verification/provider-key-full.trx.gz`.
+
+The REST provider-key route migration, explicit key-read/delete operation tariffs, and signed native delete acceptance remain open. This SDK gate is not proof of those transport/provider scenarios.
+
+## HTTP storage operation pricing � 2026-10-26
+
+Core `60adf1c` fixes an admission gap shared by GraphQL, gRPC and other selected HTTP storage routes. A query tariff cannot authorize an ordinary storage operation. The HTTP factory now always requires an exact ordinary operation tariff before provider execution; explicit SDK optional-price policies retain their existing contract. URL classification no longer controls this runtime invariant.
+
+Evidence: three new real-Mongo cases failed before the fix (387 passed, 3 failed), then all 390 usage tests passed with zero skips. Compressed reports: `Verification/http-storage-tariff-red.trx.gz` and `Verification/http-storage-tariff-green.trx.gz`. The reusable runner now requires exactly 390 passing cases. This does not certify native deletion or provider-key transport acceptance: those remain in progress. Current provider-key manager edits are uncommitted and were present during the build; they are excluded from the pricing commit.
+
 # COSMIC ORM implementation status
 
-## Joined shipping REST/native write settlement — 26 October 2026
+## Creator-owned conditional-delete SDK — 26 October 2026
+
+Core `5ec9ccc` adds `DeleteOwnedHolonAsync`: one pinned stored-owner observation,
+the caller's unchanged original revision and the existing atomic-delete engine.
+Missing actor/identity/revision rejects before I/O; a foreign owner cannot mutate.
+Both soft/hard paths, stale conditions across a default-provider change and full
+failure evidence have controls. Full Core **3,385** / WEB4 **250** tests pass with
+zero skips; portable and shipping builds pass. This addition is SDK-only: existing
+logical-ID transport adapters now pass 264 WEB4 tests; provider-key binding and
+native deletion acceptance remain open. See
+[the contract](CQL_TRANSPORT_WRITE_AUTHORITY.md).
+
+## Signed save transports — 26 October 2026
+
+The focused shipping GraphQL/gRPC save gate passes on all three stores with real
+JWT validation, configured admission, exact physical attempt/receipt/cost checks
+and durable settlement. Combined with CQL/REST: **402 settled operations,
+436 attempts**, including **24 signed GraphQL/gRPC requests**. Sources stay frozen,
+seven binary pairs match, and owned fixtures/services are removed. Core3,372,
+WEB4250 and usage387 tests pass with no skips. Both Core targets and shipping
+WEB4 build. Required proof is retained in `Verification/signed-transports-final*`.
+
+Root fixes included recursive enum compatibility and completing buffered response
+writers before envelope inspection/acknowledgement release. Failed originals were
+verified before exact cleanup; no committed operation was replayed. The next
+priority is authenticated conditional deletion across transports and aliases,
+followed by remaining read/configuration/startup and recipient/tenant/federation
+gates. Full CQL/ORM completion is not claimed.
+
+## Prior joined shipping REST/native write settlement — 26 October 2026
 
 Core **3,342** and normal WEB4 **221** tests pass with zero skips. The native
 MongoDB/SQLite/Neo4j runner passes **36 signed shipping REST requests**, including

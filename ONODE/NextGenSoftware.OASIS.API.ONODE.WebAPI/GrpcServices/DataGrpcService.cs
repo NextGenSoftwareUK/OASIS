@@ -10,6 +10,8 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 {
@@ -27,6 +29,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
+                var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+                var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+                if (mode.IsError) return GrpcHolonWriteContract.Encode(mode, context.GetHttpContext());
+                if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var decoded = GrpcHolonWriteContract.Decode(request);
+                    if (decoded.IsError)
+                        return GrpcHolonWriteContract.Encode(
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Models.Data.SaveHolonRequest, IHolon>(decoded),
+                            context.GetHttpContext());
+                    var written = await HostedHolonWriteEndpoint.SaveAsync(context.GetHttpContext(),
+                        dna.OASIS.HyperDriveMode, decoded.Result,
+                        () => new HolonManager(null, dna, ProviderManager.Instance));
+                    return GrpcHolonWriteContract.Encode(written, context.GetHttpContext());
+                }
+
                 await ActivateProviderIfSpecifiedAsync(request.ProviderType, request.SetGlobally);
 
                 var holon = MapToHolon(request.Holon);
@@ -68,6 +86,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                     maxChildDepth: request.MaxChildDepth,
                     continueOnError: request.ContinueOnError,
                     version: request.Version);
+
+                if (manager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var response = GrpcHolonWriteContract.Encode(result, context.GetHttpContext());
+                    if (!result.IsError && result.Result != null) response.Holon = MapHolon(result.Result);
+                    return response;
+                }
 
                 return result.IsError
                     ? new HolonResponse { IsError = true, Message = result.Message }
@@ -115,6 +140,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
+                var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
+                var mode = HolonWriteEndpoint.ValidateEngineMode<IHolon>(dna?.OASIS?.HyperDriveMode);
+                if (mode.IsError) return GrpcHolonWriteContract.EncodeDelete(mode, context.GetHttpContext());
+                if (dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                {
+                    var decoded = GrpcHolonWriteContract.DecodeDelete(request);
+                    if (decoded.IsError)
+                        return GrpcHolonWriteContract.EncodeDelete(
+                            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Models.Data.DeleteHolonRequest, IHolon>(decoded),
+                            context.GetHttpContext());
+                    var deleted = await HostedHolonWriteEndpoint.DeleteAsync(context.GetHttpContext(),
+                        dna.OASIS.HyperDriveMode, decoded.Result,
+                        () => new HolonManager(null, dna, ProviderManager.Instance));
+                    return GrpcHolonWriteContract.EncodeDelete(deleted, context.GetHttpContext());
+                }
+
                 await ActivateProviderIfSpecifiedAsync(request.ProviderType, request.SetGlobally);
 
                 if (!Guid.TryParse(request.Id, out var id))

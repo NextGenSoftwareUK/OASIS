@@ -14,7 +14,7 @@ public partial class HolonRepository
     // validate the entire source before any selected filter/window can hide it.
     private sealed class CompositionSql
     {
-        internal string Source, Proof, Predicate;
+        internal string Source, Proof, Predicate, Reduction;
         internal bool HasRelationship;
         internal List<SqliteParameter> Parameters;
     }
@@ -24,10 +24,17 @@ public partial class HolonRepository
     {
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.SQLLiteDBOASIS)
             throw new ArgumentException("SQLite composition requires one matching plan and remaining limits.");
-        var bounded = limits.Admit(plan.Options);
+        return CompileSelectedSql(plan.Query, plan.Options, limits);
+    }
+
+    // One compiler owns both the selected pipeline and its terminal reduction.
+    private static CompositionSql CompileSelectedSql<T, TResult>(CosmicProjectionQuery<T, TResult> query,
+        CosmicProjectionCompositionOptions options, CosmicProjectionCompositionExecutionLimits limits,
+        CosmicQueryPredicate terminal = null) where T : IHolon
+    {
+        var bounded = limits.Admit(options);
         if (bounded.IsError) throw new ArgumentException(bounded.Message);
-        var query = plan.Query;
-        if (query.ResultStages.Count == 0) throw new ArgumentException("A selected-result pipeline is required.");
+        if (query.ResultStages.Count == 0 && terminal == null) throw new ArgumentException("A selected-result pipeline is required.");
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var parameters = new List<SqliteParameter>();
         var translator = new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
@@ -74,12 +81,15 @@ public partial class HolonRepository
             previousRank = rank;
         }
         var header = "SELECT -1 AS phase,0 AS position,0 AS ordinal,(SELECT count(*) FROM c0) AS sourceCount,"
-            + string.Join("+", work) + " AS stageRows";
+            + (work.Count == 0 ? "0" : string.Join("+", work)) + " AS stageRows";
+        var common = "WITH " + string.Join(",", stages) + " ";
+        var reduction = terminal == null ? null : common + "SELECT count(*) FROM c" + query.ResultStages.Count
+            + " WHERE NOT (" + translator.TranslateCompositionPredicate(query, terminal) + ")";
         return new CompositionSql
         {
             Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship, Parameters = parameters,
-            Proof = "WITH " + string.Join(",", stages) + " " + header + " UNION ALL " + string.Join(" UNION ALL ", proof)
-                + " ORDER BY phase,ordinal,position"
+            Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
+                + " ORDER BY phase,ordinal,position", Reduction = reduction
         };
 
         void Cell(CosmicQueryPath path, string alias)

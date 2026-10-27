@@ -56,6 +56,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Validate required authorization before storage initialization hosts start.
+            Services.Cql.CqlReadPolicyEnrollment.AddConfiguredCqlReadAccessPolicy(services, Configuration);
             services.Configure<HostOptions>(options =>
                 options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore);
 
@@ -432,6 +434,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             services.AddSingleton<Services.Cql.ICqlV1Providers, Services.Cql.CqlV1Providers>();
             services.AddSingleton<Services.Cql.CqlV1ResourceFilter>();
+            services.AddHostedService<Services.Cosmic.CosmicRecoveryReadiness>();
             var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
                 services,Configuration,subscriptionUsageEnabled,_=>null,
                 ()=>NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance.GetAllRegisteredProviders());
