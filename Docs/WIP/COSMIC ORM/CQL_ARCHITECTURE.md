@@ -22,3 +22,10 @@ HolonManager with an explicit provider registry. The source/composition demo che
 both successful results and protected errors through that manager. Fixture creation,
 ownership journals and exact cleanup stay in the test host, outside the read-only
 public example. HTTP host contracts remain in their separate integration project.
+The partial IQueryable bridge is shared Core code, independent of database type.
+It registers owned expression chains with weak keys, binds standard LINQ closure
+parameters per execution, captures an immutable CosmicQuery, then re-admits live
+capabilities and invokes the existing V2 typed query owner. It neither compiles
+application predicates to delegates nor fetches rows for client filtering. The
+initial increment flattens exactly one explicitly named physical sequence;
+projection/terminal dispatch remains Q01 work, with explicit unsupported errors.

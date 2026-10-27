@@ -115,7 +115,7 @@ older chronological roadmap is supporting history, not the source of green statu
 
 | ID | EF / NHibernate feature and required semantics | SQLite | MongoDB | Neo4j | Proving evidence or exact remaining gap |
 |---|---|---|---|---|---|
-| Q01 | Standard IQueryable / IQueryProvider execution | ❌ | ❌ | ❌ | Fluent CosmicQuery expressions are not an IQueryable provider. |
+| Q01 | Standard IQueryable / IQueryProvider execution | ❌ | ❌ | ❌ | Initial entity-row bridge exists in shared [CosmicLinq](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core/Queries/CosmicLinq.cs): standard Where/order/Skip/Take, deferred synchronous enumeration and async OASISResult reads through V2 HolonManager.8 focused/1,814 CQL unit tests and21 native checks pass (7/store), including per-execution closure binding, negative counts and explicit errors. [Native test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs). Select/selected composition and scalar/element terminals still missing; named single-provider scope only. Keep all cells red. [Evidence counts/hashes/paths](CURRENT_STATUS.md). |
 | Q02 | C# query-comprehension syntax with standard LINQ operators | ❌ | ❌ | ❌ | No complete standard query-provider proof. |
 | Q03 | Typed expression Where with declared metadata equality | [✅][F] | [✅][F] | [✅][F] | Native SDK federation tests and typed federation demo; declared subset. |
 | Q04 | Conjunction/disjunction and nested metadata predicates | [✅][D2] | [✅][D2] | [✅][D2] | V1 example2 on all three stores. |
