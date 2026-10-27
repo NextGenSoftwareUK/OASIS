@@ -134,3 +134,17 @@ The first HTTP fixture503 came from an unbound test policy. It is retained as
 web4-point-native.trx; the fixture now supplies the exact canonical projection
 ID to AuthoritativeRecords. Production policy validation was not weakened.
 Next: interactive read-only demo host. Broader query capabilities remain red.
+
+## Interactive point host milestone
+
+Shared teaching host now supports an existing public Mastodon status, correctly
+labelled as public source data. Automatic native test1pass/0skip checks the page,
+valid shared-manager native query, wrong-key400, forged-actor400 and shutdown.
+Two discovery GETs and three fixed-origin adapter GETs; no authentication/account,
+post/federation or remote mutation. HTTP query output exposes identity/sourceURI,
+not untrusted content HTML. Optional serve guard permits100 extra reads maximum.
+
+Unified launcher supports `-Provider ActivityPub -ArchiveCompletedDemo`, with
+`-ShowPlan` and `-VerifyOnly`. No hosted deployment/productionJWT/billing claim.
+See [interactive guide/evidence](CQL_INTERACTIVE_POINT_DEMO.md). Broader CQL remains
+red; existing green social/query gates were not rerun.

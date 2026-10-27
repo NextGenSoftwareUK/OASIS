@@ -62,3 +62,5 @@ Environment update: user explicitly authorized creating missing environments.
 Fresh persistent IPFS and isolated SOLID demo identities now pass native readiness
 using cached runtimes; [commands/evidence](CQL_DEMO_ENVIRONMENTS.md). Active next
 IPFS V2 storage baseline/CQL admission, then SOLID; old-data recovery stays open.
+
+Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.

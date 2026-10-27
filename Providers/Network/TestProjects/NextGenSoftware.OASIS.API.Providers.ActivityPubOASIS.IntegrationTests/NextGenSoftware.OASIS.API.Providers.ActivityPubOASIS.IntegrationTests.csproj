@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ProtocolPointApiHost.cs" Link="Demo/ProtocolPointApiHost.cs" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
              Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs"

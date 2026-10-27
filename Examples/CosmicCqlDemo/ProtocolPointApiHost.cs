@@ -20,7 +20,7 @@ public sealed class ProtocolPointRequest
 }
 
 /// <summary>
-/// Loopback teaching host over one explicitly owned synthetic fixture.
+/// Loopback teaching host over one explicitly selected demonstration record.
 /// Production WEB4 authentication and billing are tested through its separate controller.
 /// This host never accepts an actor, provider, price or arbitrary source from the browser.
 /// </summary>
@@ -32,7 +32,8 @@ public static class ProtocolPointApiHost
         Guid actor,
         Guid fixtureId,
         string nativeKey,
-        string address = "http://127.0.0.1:5088")
+        string address = "http://127.0.0.1:5088",
+        bool syntheticData = true)
     {
         var provider = adapter.QueryProviderType;
         var metadataKey = provider switch
@@ -44,7 +45,7 @@ public static class ProtocolPointApiHost
         };
 
         if (actor == Guid.Empty || fixtureId == Guid.Empty || string.IsNullOrWhiteSpace(nativeKey) || nativeKey.Length > 128)
-            throw new ArgumentException("An explicit synthetic fixture and actor are required.");
+            throw new ArgumentException("An explicit source record and actor are required.");
         if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) || uri.Scheme != "http" || uri.Host != "127.0.0.1")
             throw new ArgumentException("Use an explicit IPv4 loopback HTTP listener.");
 
@@ -61,10 +62,10 @@ public static class ProtocolPointApiHost
             .Where(holon => CosmicQueryMetadata.Value<string>(holon, metadataKey) == nativeKey);
         if (source.IsError) throw new InvalidOperationException(source.Message);
 
-        app.MapGet("/", () => Results.Content(Page(provider.ToString(), nativeKey), "text/html"));
+        app.MapGet("/", () => Results.Content(Page(provider.ToString(), nativeKey, syntheticData), "text/html"));
         app.MapGet("/health", () => Results.Ok(new
         {
-            status = "ready", provider = provider.ToString(), syntheticData = true,
+            status = "ready", provider = provider.ToString(), syntheticData,
             profile = "One native record point; no ordering, scalar or general metadata queries"
         }));
 
@@ -99,19 +100,20 @@ public static class ProtocolPointApiHost
         return app;
     }
 
-    private static string Page(string provider, string key) => """
+    private static string Page(string provider, string key, bool syntheticData) => """
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>COSMIC CQL native point demo</title>
 <style>body{max-width:850px;margin:50px auto;font:18px/1.65 system-ui;padding:20px}input{width:95%;padding:12px}button{margin:22px 0;padding:12px 24px}pre{white-space:pre-wrap;background:#eee;padding:24px}</style></head>
 <body><h1>COSMIC CQL native point demo</h1>
 <p>Provider: <strong>PROVIDER</strong></p>
-<p>Current native record. This local teaching host reads one owned synthetic fixture through HolonManager and LINQ. Actor and provider are selected by the server.</p>
+<p>Current native record. This local teaching host reads one selected record through HolonManager and LINQ. Actor and provider are selected by the server.</p>
+<p>SOURCETYPE</p>
 <p>General filtering, ordering and aggregation require a separately supported query profile. Production WEB4 authentication and billing are separate.</p>
 <label>Native record key <input id="key" readonly value="RECORDKEY"></label>
 <button id="run">Run native CQL query</button>
 <pre id="result">Click Run to query the native backend.</pre>
 <script>document.getElementById('run').onclick=async()=>{const r=await fetch('/api/cql/point',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nativeKey:document.getElementById('key').value})});document.getElementById('result').textContent=JSON.stringify(await r.json(),null,2);};</script>
 </body></html>
-""".Replace("PROVIDER", HtmlEncoder.Default.Encode(provider)).Replace("RECORDKEY", HtmlEncoder.Default.Encode(key));
+""".Replace("SOURCETYPE", syntheticData ? "Source: owned synthetic fixture." : "Source: existing public record; no remote writes.").Replace("PROVIDER", HtmlEncoder.Default.Encode(provider)).Replace("RECORDKEY", HtmlEncoder.Default.Encode(key));
 }
