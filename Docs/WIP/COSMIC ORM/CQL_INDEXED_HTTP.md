@@ -136,3 +136,28 @@ JWT, durable settlement or real-backend HTTP acceptance.
 Evidence: `TestResults/ProtocolCqlCurrent/index-stock-full-core.trx`; shipping
 WEB4 build: `index-stock-web4-build.log`; shared-controller builds:
 `index-stock-*-build.log`. Raw evidence stays outside Docs.
+
+
+## Actual SQLite and canonical decoder over HTTP
+
+Four additional cases now execute the shipping controller assembly and stock usage
+and storage middleware, with actual SQLite history/projection/checkpoint reads,
+independent Solana canonical memo decoding and typed manager execution. Rows and
+empty pages pass with exactly seven/four billed physical reads respectively.
+Returned rows carry the current source commit and string checkpoint position.
+Replay adds no SQL/RPC execution or settlement.
+
+After publishing a valid index, removing the source transaction or changing the
+observed network rejects the HTTP page with 503 and no rows. Completed SQL/RPC
+attempts still settle with their actual units/cost; neither error is mislabeled
+as no-provider-execution. Tests issue no chain writes. Identity, RPC responses and
+ledger storage/authority are controlled. A live source, production JWT and durable
+settlement remain separate red acceptance gates.
+
+Full Solana suite: 793 passed / zero failed / zero skipped. Proving test:
+`Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests/SolanaChainIndexedHttpTests.cs`,
+called by `SolanaChainIndexedBillingTests` http-* cases. Evidence:
+`TestResults/ProtocolCqlCurrent/index-native-http-full.trx`. The test links the
+shipping WEB4 project directly, rather than a second controller implementation.
+The fixed fixture DB is removed and key bytes zeroed by its existing finally;
+loopback listeners stop in finally. No persistent environment was allocated.
