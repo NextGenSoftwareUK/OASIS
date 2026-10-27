@@ -1,5 +1,9 @@
 # HyperDrive V2 current release gates
 
+## SOLID shared baseline input recovery — 27 October
+
+Pending input recovery: the retained `oasis-solid` container/image/volume exist, but the documented `C:/Source/OASIS/TestResults/SolidCurrent/` protected key and client identity files are absent. Restore the original `storage-key.dpapi`, `private-local-client.dpapi` and `private-local-pod.dpapi` from trusted backup under the same Windows user, or identify their existing protected location. Never publish their contents or replace the key over existing encrypted records. The canonical binding compiled after three cache-only builds; both schedules recorded configuration failures before HTTP/storage, **0/52 native checks**. The server remained stopped. Earlier provider-specific native tests do not prove the shared gate. Details: [SOLID authentication](SOLID_AUTHENTICATION.md).
+
 ## NEAR worker credential routing — 26 October
 
 Controlled baselines reproduced10request-field failures and17ambient-credential failures. Final470unitPASS0skip31s after central request key allowlist and child-only removal of known NEAR signing/storage environment keys. Explicit selected signing/derivation inputs and parent record crypto retained. Same environment/no native mutation/download. Independent-payer/hosted/native-loss/full-provider gates remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).

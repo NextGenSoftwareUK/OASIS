@@ -234,6 +234,19 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
       "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
       "blockers": []
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "suite": "core-storage-v2",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
+      "sha256": "024c788283ad82003b8e389ac39ac594fa6b870af0382578cfb35273f3c1b574",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
