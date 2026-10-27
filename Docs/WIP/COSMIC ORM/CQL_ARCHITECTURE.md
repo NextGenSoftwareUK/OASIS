@@ -1975,3 +1975,25 @@ Existing source graph filters retain their current validation/read owners.
 Traversal inside the terminal predicate is explicitly rejected and full Q23
 remains red. Scoped proof: 3,807 Core tests; 22 native cases on each database
 against the unchanged retained fixture. The full walkthrough remains incomplete.
+
+## Q23 traversal compiler checkpoint — 27 October 2026
+
+The internal `CosmicQueryExpression.CompileAll` compiler now lowers canonical
+`Children.Any(child => ...)` navigation to the existing immutable child predicate.
+It never enumerates the loaded collection or invokes the navigation getter.
+Captured scalar literals freeze at construction, nested predicate nodes charge
+the enclosing expression budget, and outer-row correlations remain unsupported.
+Existing row and selected-result grammars retain their previous admission.
+
+This is a foundation for the red All traversal requirement, not a shipped
+terminal capability. The public All builder remains unchanged and rejects
+traversal. Required next work: independently scoped post-window traversal state
+and error envelopes on all three providers, child visibility/membership, bounded
+descendant cycle/node outcomes, Boolean combinations and real native proof.
+Source traversal failures remain protected outside the source page; terminal
+traversal evaluates only selected roots. Do not reuse a pre-window filter as a
+post-window Boolean result. Core proof: 3,811 tests pass with zero skips;
+net10.0 and netstandard2.1 builds pass. Retained proof:
+[compiler tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllTraversalTests.cs),
+[TRX](Verification/all-traversal-compiler-core.trx.gz).
+Full Q23 remains red; no additional parity cell is promoted.
