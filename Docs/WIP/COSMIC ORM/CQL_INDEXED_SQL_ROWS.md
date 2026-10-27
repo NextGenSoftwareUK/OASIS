@@ -95,3 +95,24 @@ Full COSMIC/EF parity and original source recovery remain open.
 | TestResults/ProtocolCqlCurrent/indexed-rows-before-tombstone.trx | 11B7DDC91C3FB8C0C67CE104EDBA447C23FFA1BD902083D0CD2E19680172E285 |
 | TestResults/ProtocolCqlCurrent/indexed-rows.trx | 1950EC2F3841352DF566B8FC7D22BEDDEB3FBBD735813F034EFBAEB4E2C1257C |
 | TestResults/ProtocolCqlCurrent/indexed-core.trx | A6DA5F89888014B4B2483804E2A905A0CBC71406A934229F7E0E579FB0D8E895 |
+
+## Shared reader contract follow-up
+
+Core now owns ICosmicChainQueryIndexReader and CosmicChainIndexRows. SQLite
+implements that explicit indexed contract; the shared result captures bounded
+collections (10,000 maximum) with one non-null receipt per non-null row. It keeps
+checkpoint and fresh head even for empty pages. Row objects remain provider-owned
+until the future shared materialization owner detaches them. Construction alone
+is not evidence admission. The actual SQLite owner still validates source proofs.
+
+Six new Core tests cover collection capture, empty evidence and invalid/unbounded
+pages. All 62 focused Core checks and 30 real SQLite checks pass; SQLite tests now
+invoke the reader interface and verify actual binding/capabilities. Both Core
+targets and SQLite build. No native route or inherited billing enrollment added.
+
+The existing attempt owner deliberately rejects indexed plans. Next implement
+explicit indexed physical-attempt/receipt ownership before manager/LINQ mapping;
+do not route indexed plans through native execution or bypass prepared billing.
+
+- `TestResults/ProtocolCqlCurrent/index-contract-core.trx` SHA256 `C63174EE2E9E7E10DCC84D291AB041A0DCE553B2EF970D10543062C1B88085B7`.
+- `TestResults/ProtocolCqlCurrent/index-contract-sqlite.trx` SHA256 `EE40EABB849A4FF571BB01D1CC16C648C44365742FFCEDE86DE1837A663A6249`.
