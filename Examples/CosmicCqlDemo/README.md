@@ -444,3 +444,10 @@ All 46 All examples pass on each store (138 checks). The trusted host-only
 positive example explicitly omits access filtering; the secured version
 excludes its hidden intermediate parent. Descendant All remains unsupported;
 the full extended walkthrough rerun remains pending.
+
+Bounded descendant All examples 182–201 use
+`CosmicQueryRelations.AnyDescendant(parent, predicate, bounds)` after the source
+page. They demonstrate depth, visibility, independent traversal predicates and
+node-budget errors that Boolean branches cannot hide. All 66 All examples pass
+per store (198 checks). Native cycle proof and nested child/descendant composition
+remain incomplete, and the complete extended walkthrough has not yet passed.
