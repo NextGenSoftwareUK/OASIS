@@ -6,14 +6,14 @@ must not cause silent replacement or stop independent implementation.
 
 | Provider | Current source/environment evidence | CQL implication |
 |---|---|---|
-| IPFS | Cached Kubo exists. Original published `C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/IPFSCurrent/repo/config` and `storage-key.dpapi` are absent, as are the known cosmic worktree locations. | Native storage acceptance remains blocked. Encrypted catalogue download plus managed selection is not native CQL metadata filtering. See [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md). |
-| SOLID | Retained `oasis-solid` image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a exists and is exited. Known cosmic `TestResults/SolidCurrent` and `LocalState/COSMIC/SolidCurrent` locations lack private-local-client.dpapi, private-local-pod.dpapi and storage-key.dpapi. | Do not regenerate identities/keys over retained Pod data. Locate the retained configuration first. Existing controlled/native histories do not prove current CQL acceptance. |
+| IPFS | Fresh authorized reusable offline environment. Native storage52/52, controlled191pass and native CQL/HolonManager/LINQ/C# walkthrough1pass. | Current-CID row profile proven; WEB4 HTTP and rich indexed/general demo remain open. See [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md). |
+| SOLID | Retained pinned container reused with isolated fresh demoPod/client/key. Native discovery/DPoP read passes; adapted sharedstorage suite36/52 exposes missing DeletedCount on confirmed holonDELETE. Fixed with362controlledpass. | Preserve exact native corependingjournals; independently reconcile original deletion outcomes/remaining owned records, then fresh52check baseline and explicit CQL. |
 | ActivityPub | Published matrix records native capability-v1 Social/Network5/5 and291 controlled regressions. Source uses the Mastodon HTTP API to project accounts/statuses. | Public read-only capability offers an independent implementation path. It does not establish generic ActivityPub storage, arbitrary LINQ or native CQL enrollment. |
 
 Only exact configuration-path existence and the SOLID container's image/state
 were inspected. No credential contents, keys, private Pod resources, daemon
 starts, native reruns, downloads or replacement environments were involved.
-User confirms no known retained configuration. Preserve the existing data; native IPFS/SOLID acceptance remains blocked.
+Historical finding: no known retained configuration. User later authorized fresh isolated environments; see current table and resolution below.
 
 ## SOLID query boundary
 
@@ -62,7 +62,7 @@ See [profile guide](CQL_ACTIVITYPUB_NATIVE_PROFILE.md). WEB4 point row-route cod
 now passes718 affected controls and a native HTTP gate. Next
 interactive-demo enrollment; broader queries remain red.
 Do not rerun its already-green social baseline without a reproduced bug.
-Resume IPFS/SOLID native acceptance when the original environment is located.
+Continue SOLID exact fixture reconciliation and native storage verification; fresh environments are now available.
 
 ## Fresh environment authorization and resolution
 
@@ -73,3 +73,34 @@ SOLID issuer/DPoP ACL read now pass; both services stopped cleanly. See
 [environment commands/evidence](CQL_DEMO_ENVIRONMENTS.md). The earlier missing
 configuration findings remain historical; current baseline/CQL verification is
 next, with no claim of recovering original data. Resume IPFS first, then SOLID.
+
+## SOLID storage admission milestone
+
+The shared native suite now takes its Pod namespace from the persistent demo
+manifest and validates the protected identity WebID against that root. Original
+hardcoded `oasis-auth-local` and cleanup-prone credential paths are not used by
+this gate. Ownership/dispatch intent is persisted before writes in
+`LocalState/COSMIC/SolidCurrent/core-{async|sync}.pending.json`.
+
+Both modes reached18checks (36/52) and failed the first holon-delete count gate.
+Conditional DELETE confirms source absence but omitted DeletedCount; four
+sync/async GUID/key controls reproduce count0 instead of1. Fix sets count1 only
+after successful conditional delete plus absence verification. Five failed-delete
+controls assert no deletion acknowledgement/count. Full controlled suite362pass,
+zero skips. Native original deletion is not replayed. Container stopped normally;
+full native baseline and CQL remain red.
+
+Commands from the cosmic worktree (do not replay while original journals exist):
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solid-core -Operation {
+    & Scripts/TestHosts/Run-ReusableSolidReadiness.ps1 -CoreStorage -RequireCleanShutdown
+}
+```
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/SolidCurrent/solid-core-current.trx | BB0ED61B2586DF9A5498307D03B2E1459A93CEA8A7E192104CD5E7E6E390C92A |
+| TestResults/SolidCurrent/delete-before.trx | B5C8E9E2A147721FBFBBA75DBB00FF6E9D5EF362C6A9758D5469641AC7AFADD9 |
+| TestResults/SolidCurrent/delete-fixed.trx | D8B6CC4E7EB8FF029D6592116F9C0EC83D40E59FE5B9460BA33C59B1067B6AE2 |
+| TestResults/SolidCurrent/solid-core-lifecycle.json | C5DF48CCE542DA0B45E37410F7926A0EF3AD0D023046FAC7CBAAA849C2DF468E |

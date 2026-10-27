@@ -93,7 +93,7 @@ public partial class SOLIDOASIS
             RequirePrivateStorage();
             var state=await ReadPrivateRecordStateAsync<IHolon>(id);
             await DeletePrivateResourceAsync(_privateRecords.Resource<IHolon>(id),state.ETag);
-            result.Result=state.Record;result.IsDeleted=true;
+            result.Result=state.Record;result.IsDeleted=true;result.DeletedCount=1;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"SOLID conditional holon deletion failed.",error);
             if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
