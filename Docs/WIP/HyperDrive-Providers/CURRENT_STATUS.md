@@ -32,7 +32,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 1. Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Report migration published as `d70625e86`; existing linked reports remain in place.
 2. ActivityPub Social/Network declaration and account/detail `IsLoaded` fix verified for publication: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
-3. SOLID: recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
+3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
 5. Continue Oracle cloud/AWS S3 acceptance when access is configured, then remaining families. No completion claim until every applicable gate has evidence.
 
@@ -42,7 +42,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 - Moved DynamoDB JAR hash: `67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620`.
 - DynamoDB rerun: AWS/Dynamo 52/52 each + 27 factory controls; all five tables empty. SQLite database 43,008 bytes; evidence folder about 50.9 MB; container stopped.
 - SOLID binding builds; 0/52 due missing original protected inputs. Container not started; no key/identity/ACL mutation.
-- ActivityPub scoped source/tests and evidence summary reviewed; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
+- ActivityPub scoped source/tests and evidence summary published as `00235929a`; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
 - Other dirty work includes a Core submodule and unrelated WIP moves/reports; inspect `git status` before staging.
 - This docs checkpoint preserves history and moves only unlinked evidence; no code/test changes or test execution.
 
