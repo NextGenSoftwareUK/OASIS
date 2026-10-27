@@ -130,8 +130,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.SingleOrDefault(supplied)).Code);
         Passed("SingleOrDefault default cannot mask multiple");
         Assert.AreEqual(rootId,root.First(row=>row.Name==name).Id); Passed("First predicate before window");
-        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
-            ()=>root.Take(1).First(row=>row.Name==name)).Code); Passed("First predicate after window explicit unsupported");
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Take(1).First(row=>row.Name==name)).Code); Passed("First predicate after window requires independent enrollment");
         Assert.AreSame(supplied,root.Where(row=>row.Name=="absent").FirstOrDefault(supplied)); Passed("FirstOrDefault supplied default");
         Assert.IsNull(root.ElementAtOrDefault(-1)); Passed("negative ElementAtOrDefault");
 
