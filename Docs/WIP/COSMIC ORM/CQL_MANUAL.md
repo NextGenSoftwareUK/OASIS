@@ -286,7 +286,7 @@ scalar and cardinality permissions. Exact native words and participating counts
 are validated under the selected snapshot owner before normalization. Int64 double
 means additionally require checked-prefix evidence after every selected window.
 Complete source/stage participation and terminal work/proof budgets still apply.
-SQLite, MongoDB and Neo4j also support staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. Selected Min/Max is enrolled on SQLite; Neo4j remains unfinished (Q01c) and reject missing contracts explicitly.
+SQLite, MongoDB and Neo4j also support staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. Selected Min/Max (Q01c) is enrolled on SQLite, MongoDB and Neo4j.
 
 ```csharp
 // SQLite: reduce the selected page using the exact native decimal kernel.
@@ -312,6 +312,19 @@ and numeric participation are validated before the result is published. This
 retains the selected owner’s existing consistency contract; it adds no separate
 MATCH or stronger database snapshot promise.
 
-Selected Min/Max (Q01c) has a shared V2 plan/executor foundation; SQLite native acceptance now passes, Neo4j remains pending. Calls fail explicitly until enrolled; source/unstaged extrema support is unchanged. The new owner preserves windows, ignores null participants and reads the winning field without constructing a selected record.
+Selected Min/Max (Q01c) has a shared V2 plan/executor foundation; all three databases now pass native acceptance. Calls fail explicitly until enrolled; source/unstaged extrema support is unchanged. The new owner preserves windows, ignores null participants and reads the winning field without constructing a selected record.
 
-SQLite now enrolls selected Min/Max (Q01c) for its exact selected ordering domains. For example, `prices.Take(10).Min()` reduces that page; `page.Max(value => value.Version)` reads the winning field without constructing records. Nullable/reference Min/Max ignore null/missing cells and return null when none participate; required value types report `CQL_EMPTY_SEQUENCE`. The218-case native proof covers33 domains and record/window behavior. Neo4j remains unenrolled pending native proof. String ordering follows the declared CQL ordinal contract.
+SQLite, MongoDB and Neo4j now enroll selected Min/Max (Q01c) for its exact selected ordering domains. For example, `prices.Take(10).Min()` reduces that page; `page.Max(value => value.Version)` reads the winning field without constructing records. Nullable/reference Min/Max ignore null/missing cells and return null when none participate; required value types report `CQL_EMPTY_SEQUENCE`. The218-case native proof covers33 domains and record/window behavior. All three pass the same218-case matrix. String ordering follows the declared CQL ordinal contract.
+
+```csharp
+// All three stores: the page is fixed before Min/Max.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(row => row.Name)
+    .Skip(1)
+    .Take(10);
+
+// Native extrema read the winning field; no selected records are constructed.
+var minimumVersion = page.Min(row => row.Version);
+var maximumVersion = page.Max(row => row.Version);
+```
