@@ -44,6 +44,8 @@ internal sealed class CosmosCqlPredicateSql
             "Name" or "Description" => typeof(string),
             "IsActive" or "IsPublic" => typeof(bool),
             "Version" => typeof(int),
+            "Id" or "ParentHolonId" or "VersionId" or "PreviousVersionId" or
+                "CreatedByAvatarId" or "ModifiedByAvatarId" => typeof(Guid),
             _ => throw new NotSupportedException("Cosmos CQL canonical field has not been admitted: " + name)
         };
         if (path.ValueType != expected)
@@ -65,7 +67,8 @@ internal sealed class CosmosCqlPredicateSql
             throw new NotSupportedException("Cosmos CQL mixed numeric semantics have not been admitted.");
 
         var parameter = "@cql" + _parameters.Count;
-        _parameters.Add((parameter, comparison.Literal.Value));
+        _parameters.Add((parameter, expected == typeof(Guid)
+            ? ((Guid)comparison.Literal.Value).ToString("D") : comparison.Literal.Value));
         var symbol = operation switch
         {
             CosmicQueryComparisonOperator.Equal or CosmicQueryComparisonOperator.NotEqual => "=",
@@ -77,7 +80,7 @@ internal sealed class CosmosCqlPredicateSql
         };
         // Cosmos undefined must become false before Boolean composition. String
         // inequality is the complement of equality, including absent/null values.
-        var guard = expected == typeof(string) ? "IS_STRING" : expected == typeof(bool) ? "IS_BOOL" : "IS_NUMBER";
+        var guard = expected == typeof(string) || expected == typeof(Guid) ? "IS_STRING" : expected == typeof(bool) ? "IS_BOOL" : "IS_NUMBER";
         var normalized = "IIF(" + guard + "(" + field + "), " + field + " " + symbol + " " + parameter + ", false)";
         return operation == CosmicQueryComparisonOperator.NotEqual ? "(NOT " + normalized + ")" : normalized;
     }
