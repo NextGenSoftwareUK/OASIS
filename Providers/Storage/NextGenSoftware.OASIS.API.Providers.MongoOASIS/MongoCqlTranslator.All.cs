@@ -39,7 +39,7 @@ internal sealed partial class MongoCqlTranslator
                 Choose(Op("$gt", "$limited", Literal(0)), Literal(2), Literal(0))) }
         }));
         ValidatePipeline(source);
-        var membership = hasChildren || hasDescendants || query.Source.Predicates.Any(value => value is CosmicQueryAnyChild || value is CosmicQueryAnyDescendant);
+        var membership = hasChildren || hasDescendants || query.Source.Predicates.Any(HasRelationships);
         return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
             query.Source.Limit == 0, traverses || hasDescendants);
     }

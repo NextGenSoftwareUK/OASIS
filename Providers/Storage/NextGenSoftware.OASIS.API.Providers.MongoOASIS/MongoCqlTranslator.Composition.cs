@@ -74,7 +74,7 @@ internal sealed partial class MongoCqlTranslator
         page.Add(new("$sort", (BsonDocument)sourceSort.DeepClone()));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
-        var membership = query.Source.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
+        var membership = query.Source.Predicates.Any(HasRelationships);
         var command = new MongoCqlProjectionCommand(source.ToArray(), membership, true, traverses, fetch == 0);
         var current = source.Select(stage => (BsonDocument)stage.DeepClone()).ToList();
         if (traverses)

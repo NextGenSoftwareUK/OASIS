@@ -11,10 +11,22 @@ internal sealed partial class MongoCqlTranslator
 {
     private int nodes;
     private BsonDocument CompileRootPredicates<T>(CosmicQuery<T> query) where T:Core.Interfaces.IHolon
+        => CompileRootPredicatesCore(query, false);
+
+    private static bool HasRelationships(CosmicQueryPredicate predicate)
+        => CosmicScalarCapabilities.HasAllChildren(new[] { predicate }) || CosmicScalarCapabilities.HasAllDescendants(new[] { predicate });
+
+    private static bool NeedsComposedSource(CosmicQueryPredicate predicate)
+        => predicate is CosmicQueryAnyChild child ? HasRelationships(child.Predicate)
+            : predicate is CosmicQueryAnyDescendant descendant ? HasRelationships(descendant.Predicate)
+            : HasRelationships(predicate);
+
+    private BsonDocument CompileRootPredicatesCore<T>(CosmicQuery<T> query, bool omitRelationships) where T:Core.Interfaces.IHolon
     {
         var admitted=MongoCqlContract.Capabilities.Admit(query);
         if(admitted.IsError)throw new NotSupportedException(admitted.Message);
-        var predicates=query.Predicates.Where(predicate=>predicate is not CosmicQueryAnyChild && predicate is not CosmicQueryAnyDescendant).Select(predicate=>Translate(predicate,0)).ToArray();
+        var predicates=query.Predicates.Where(predicate=>predicate is not CosmicQueryAnyChild && predicate is not CosmicQueryAnyDescendant
+            && (!omitRelationships || !HasRelationships(predicate))).Select(predicate=>Translate(predicate,0)).ToArray();
         var expression=predicates.Length==0?Literal(true):Op("$and",predicates);
         var filter=new BsonDocument("$expr",expression);
         var pending=new Stack<(BsonValue Value,int Depth)>();pending.Push((filter,0));
