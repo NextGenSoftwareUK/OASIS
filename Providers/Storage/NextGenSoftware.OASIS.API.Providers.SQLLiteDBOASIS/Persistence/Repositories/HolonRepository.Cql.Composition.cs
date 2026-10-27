@@ -19,16 +19,41 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
 public partial class HolonRepository
 {
-    public async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicProjectionCompositionAsync<T, TResult>(
+    public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicProjectionCompositionAsync<T, TResult>(
         CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
         CancellationToken cancellationToken = default) where T : IHolon
+        => ExecuteSelectedSnapshotAsync(plan, limits, cancellationToken);
+
+    private sealed class AllReduction { internal long? Counterexamples; }
+
+    public async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T, TResult>(
+        CosmicProjectedAllPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken = default) where T : IHolon
+    {
+        var reduction = new AllReduction();
+        var result = await ExecuteSelectedSnapshotAsync<T, TResult>(null, limits, cancellationToken, plan, reduction).ConfigureAwait(false);
+        if (result.IsError)
+            return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionCompositionPacket, CosmicProjectedAllPacket>(result);
+        if (!result.IsLoaded || !reduction.Counterexamples.HasValue)
+            return new OASISResult<CosmicProjectedAllPacket> { IsError = true, ErrorCode = "CQL_PROVIDER_RESULT_INVALID",
+                Message = "SQLite projected All did not acknowledge a complete native reduction." };
+        return new OASISResult<CosmicProjectedAllPacket>(new CosmicProjectedAllPacket(result.Result, reduction.Counterexamples.Value)) { IsLoaded = true };
+    }
+
+    private async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteSelectedSnapshotAsync<T, TResult>(
+        CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken, CosmicProjectedAllPlan<T, TResult> all = null, AllReduction reduction = null) where T : IHolon
     {
         try
         {
-            var admitted = CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
-                SqliteCqlContract.Capabilities, SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits);
+            var admitted = all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
+                SqliteCqlContract.Capabilities, SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits)
+                : CosmicProjectedAllPlanner.AdmitExecution(all, ProviderType.SQLLiteDBOASIS, SqliteCqlContract.Capabilities,
+                    SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits);
             if (admitted.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, CosmicProjectionCompositionPacket>(admitted);
-            var compiled = CompileCompositionSql(plan, limits);
+            var query = all == null ? plan.Query : all.Query.Projection;
+            var compiled = all == null ? CompileCompositionSql(plan, limits)
+                : CompileSelectedSql(query, all.Options, limits, all.Query.Predicate);
             cancellationToken.ThrowIfCancellationRequested();
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -79,7 +104,7 @@ public partial class HolonRepository
                             var visible = (bool)DecodeProjectionCell(reader.GetValue(2), typeof(bool));
                             var creator = reader.IsDBNull(3) ? Guid.Empty : (Guid)DecodeProjectionCell(reader.GetValue(3), typeof(Guid));
                             if (id == Guid.Empty || position <= 0 || input.ContainsKey(position) || !identities.Add(id)
-                                || plan.Query.Source.ReadAccess != null && !plan.Query.Source.ReadAccess.CanRead(id,visible,creator))
+                                || query.Source.ReadAccess != null && !query.Source.ReadAccess.CanRead(id,visible,creator))
                                 throw new InvalidDataException("Composition source identity/access proof is invalid.");
                             inputBytes = checked(inputBytes + 48); var offset = 4;
                             object Cell(Type declared, bool allowAbsent = false)
@@ -91,15 +116,15 @@ public partial class HolonRepository
                                     throw new InvalidDataException("A required composition source value is missing or null.");
                                 Reserve(value, ref inputBytes, limits.MaximumInputPayloadBytes); return value;
                             }
-                            var values = plan.Query.Columns.Select(column => Cell(column.Path.ValueType)).ToArray();
-                            var states = new int[plan.Query.Source.Orderings.Count]; var ordering = new object[states.Length];
+                            var values = query.Columns.Select(column => Cell(column.Path.ValueType)).ToArray();
+                            var states = new int[query.Source.Orderings.Count]; var ordering = new object[states.Length];
                             for (var index = 0; index < states.Length; index++)
-                            { states[index] = checked((int)reader.GetInt64(offset)); ordering[index] = Cell(plan.Query.Source.Orderings[index].Path.ValueType, true); }
+                            { states[index] = checked((int)reader.GetInt64(offset)); ordering[index] = Cell(query.Source.Orderings[index].Path.ValueType, true); }
                             input.Add(position, new CosmicProjectionInputRow(id, visible, creator, values, ordering, states));
                         }
                     }
                     if (sourceCount != input.Count) throw new InvalidDataException("Composition source stream is incomplete.");
-                    var stageIds = Enumerable.Range(0, plan.Query.ResultStages.Count).Select(_ => new List<Guid>()).ToArray();
+                    var stageIds = Enumerable.Range(0, query.ResultStages.Count).Select(_ => new List<Guid>()).ToArray();
                     var stagePositions = Enumerable.Range(0, stageIds.Length).Select(_ => new HashSet<long>()).ToArray();
                     var output = new List<CosmicProjectionCompositionRow>();
                     var header = false; long work = 0, proofBytes = 0, outputBytes = 0;
@@ -132,8 +157,29 @@ public partial class HolonRepository
                             }
                         }
                     }
-                    if (!header || work != sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count))
+                    if (!header || work != (stageIds.Length == 0 ? 0 : sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count)))
                         throw new InvalidDataException("Composition proof work/header is incomplete.");
+                    if (all != null)
+                    {
+                        if (stageIds.Length == 0)
+                            foreach (var row in input.Values)
+                            {
+                                Check();
+                                if (output.Count >= limits.MaximumResults) throw new SqliteCqlResourceException("All evidence exceeds its row budget.");
+                                outputBytes = checked(outputBytes + 16);
+                                foreach (var value in row.Values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
+                                output.Add(new CosmicProjectionCompositionRow(row.Id, row.Values.ToArray()));
+                            }
+                        if (checked(work + output.Count) > limits.MaximumStageRows
+                            || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("All reduction/evidence exceeds its remaining work budget.");
+                        using var command = Command(compiled.Reduction);
+                        var counterexamples = (long)await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                        Check();
+                        if (counterexamples < 0 || counterexamples > output.Count)
+                            throw new InvalidDataException("All reduction disagrees with its complete selected sequence.");
+                        reduction.Counterexamples = counterexamples;
+                    }
                     Check();
                     var packet = new CosmicProjectionCompositionPacket(input.Values.ToArray(),
                         stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work);
