@@ -11,7 +11,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static void VerifyPostWindowElements(ICosmicQueryStorageProvider adapter, Guid rootId, Guid actor,
         IQueryable<Holon> root, IQueryable<Holon> multi, List<object> checks)
     {
-        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS) return;
+        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS) return;
         var before = checks.Count;
         const string name = "protected source root";
         var ordered = multi.OrderBy(row => row.Name);
