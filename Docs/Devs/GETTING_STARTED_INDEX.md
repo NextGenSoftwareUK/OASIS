@@ -21,6 +21,8 @@ As a **universal abstraction layer**, OASIS eliminates walled gardens and silos 
 
 The multilayer architecture features a REST API as the primary presentation layer (with gRPC and GraphQL endpoints planned). The WEB5 STAR ODK CLI provides a low-code metaverse generator on top.
 
+> New to WEB4? Start with [WEB4: One World of Data](../WEB4_One_World_Of_Data.md) for what it is and the use cases it unlocks.
+>
 > For a deeper dive see the [OASIS Comprehensive Whitepaper](../THE_OASIS_COMPREHENSIVE_WHITEPAPER.md) and the [Technology Summary & Use Cases](../OASIS_TECHNOLOGY_SUMMARY_AND_USE_CASES.md).
 
 ---
