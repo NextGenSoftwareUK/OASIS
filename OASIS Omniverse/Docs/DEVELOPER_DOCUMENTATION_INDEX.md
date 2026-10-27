@@ -77,6 +77,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🚀 **Revolutionary Systems Documentation**
 
 ### **OASIS HyperDrive**
+- **[WEB4: One World of Data](../../Docs/WEB4_One_World_Of_Data.md)** - What WEB4 is and the use cases it unlocks
 - **[OASIS HyperDrive Whitepaper](../../Docs/OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization
