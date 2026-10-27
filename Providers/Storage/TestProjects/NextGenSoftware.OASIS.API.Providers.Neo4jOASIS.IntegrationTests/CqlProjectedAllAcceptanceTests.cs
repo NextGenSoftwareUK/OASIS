@@ -172,7 +172,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                     await VerifyEntityCount((ICosmicQueryEntityCountStorageProvider)adapter,rootId,checks);
                 foreach (var adapter in adapters) VerifyEntityElements(adapter,rootId,checks);
                 foreach (var adapter in adapters) await VerifyEntityReverse((ICosmicQueryEntityCompositionStorageProvider)adapter,rootId,checks);
-                Assert.AreEqual(1745,checks.Count);complete=true;return;
+                Assert.AreEqual(1781,checks.Count);complete=true;return;
             }
             if(demo)
             {

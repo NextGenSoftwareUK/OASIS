@@ -30,10 +30,9 @@ public sealed partial class CosmicEntityCompositionTests
         Assert.Equal(2,Assert.IsType<CosmicEntityWindowStage>(native.Seen.Query.Stages[1]).Count);
     }
     [Fact]
-    public void ExplicitDefaultsTailIndexesAndForeignResultTypesCannotUseFlatSource()
+    public void UnenrolledTailOperationsCannotUseFlatSource()
     {
         var native=Data("a","b");var root=Root(native).Take(2).OrderBy(row=>row.Name);
-        Assert.Throws<CosmicLinqException>(()=>root.FirstOrDefault(new Holon()));
         Assert.Throws<CosmicLinqException>(()=>root.ElementAt(^1));
         Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>root.Last()).Code);
         Assert.Equal(0,native.StageCalls);Assert.Equal(0,native.RowCalls);

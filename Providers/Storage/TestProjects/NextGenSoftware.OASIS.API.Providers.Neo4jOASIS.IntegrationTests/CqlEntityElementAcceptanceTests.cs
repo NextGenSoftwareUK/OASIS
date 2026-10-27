@@ -42,5 +42,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>native.Single()).Code);Passed("standard staged Single before DTO constructor");
         var selected=root.First();Assert.IsFalse(HolonChangeTracking.HasChanges(selected));
         selected.Name="local staged change";Assert.IsTrue(HolonChangeTracking.HasChanges(selected));Passed("standard staged element shared tracking");
+
+        var fallback=new Holon {Name="caller-local-default"};var changed=HolonChangeTracking.HasChanges(fallback);
+        var tail=root.OrderBy(row=>row.Name);
+        Assert.AreSame(fallback,root.Take(0).FirstOrDefault(fallback));Passed("explicit First default after empty page");
+        Assert.AreSame(fallback,root.Take(0).SingleOrDefault(fallback));Passed("explicit Single default after empty page");
+        Assert.AreSame(fallback,tail.Take(0).LastOrDefault(fallback));Passed("explicit Last default after empty page");
+        Assert.AreSame(fallback,root.FirstOrDefault(row=>row.Name=="missing",fallback));Passed("explicit First predicate default");
+        Assert.AreSame(fallback,root.SingleOrDefault(row=>row.Name=="missing",fallback));Passed("explicit Single predicate default");
+        Assert.AreSame(fallback,tail.LastOrDefault(row=>row.Name=="missing",fallback));Passed("explicit Last predicate default");
+        Assert.AreEqual(rootId,root.FirstOrDefault(fallback).Id);Passed("present First ignores explicit default");
+        Assert.AreEqual(rootId,root.SingleOrDefault(fallback).Id);Passed("present Single ignores explicit default");
+        Assert.AreEqual(rootId,tail.LastOrDefault(fallback).Id);Passed("present Last ignores explicit default");
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>ordered.SingleOrDefault(fallback)).Code);Passed("explicit default cannot conceal ambiguity");
+        Assert.AreEqual("CQL_QUERY_LIMIT",Assert.ThrowsException<CosmicLinqException>(()=>root.FirstOrDefault(row=>
+            row.Name=="protected source root" || CosmicQueryRelations.AnyDescendant(row,child=>true,tight),fallback)).Code);Passed("explicit First default cannot conceal protected failure");
+        Assert.AreEqual("CQL_QUERY_LIMIT",Assert.ThrowsException<CosmicLinqException>(()=>tail.LastOrDefault(row=>
+            row.Name=="missing" && CosmicQueryRelations.AnyDescendant(row,child=>true,tight),fallback)).Code);Passed("explicit Last default cannot conceal protected failure");
+        Assert.AreEqual("caller-local-default",fallback.Name);Assert.AreEqual(changed,HolonChangeTracking.HasChanges(fallback));
     }
 }
