@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: implement native projection after entity stages, then complete remaining numeric/aggregate integration.
+- Exact next step: implement SQLite native entity-stage projection using the shared projection contract, then Mongo/Neo, standard Select and numeric/aggregate integration.
 - Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
@@ -22,7 +22,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
 | Latest native gate | 1,781 checks: SQLite593/Mongo593/Neo595, one test, no skips |
 | Focused provider CQL tests | SQLite45, Mongo216, Neo148 pass; provider builds pass |
-| Shared count foundation | 2,574 CQL regressions pass; both Core targets build; Core7127682 pushed/verified |
+| Shared count foundation | 2,578 CQL regressions pass; both Core targets build; Core7da53a7 pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
 forward elements now pass20 native cases/store; standard Reverse/Last/from-end now pass12 additional cases/store; explicit defaults now pass12 cases/store; projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
@@ -50,6 +50,11 @@ Binding evidence `TestResults/CoreCurrent/entity-tail-binding-regression.trx`, S
 
 Explicit defaults:3 new shared tests,12 native cases/store; errors/ambiguity never return the default and caller tracking is preserved.
 Evidence `TestResults/CoreCurrent/entity-default-binding-regression.trx`, SHA256 `622118AC0C0A393EEA73B8F10441C019FFEEE0FE6F8322DFBD253BF069EF1B02`.
+
+Shared entity-projection query/plan/contract/executor/V2 manager now preserve the immutable entity source and use existing native-cell validation/DTO construction ownership.
+Four new tests verify stage/capability capture, DTO validation order, impossible-window counts and cancellation/completion gates.
+Evidence `TestResults/CoreCurrent/entity-projection-regression.trx`, SHA256 `BB77C95E32C10A801B22650E17C332D46BB66F749F73139847A6F3520325EEEF`.
+No provider enrollment or standard staged Select yet. The1,781 native checkpoint predates this Core increment.
 
 ## Fixture and resource safety
 
