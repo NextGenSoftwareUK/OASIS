@@ -1,0 +1,2 @@
+# Preserve archived document bytes, including their original line endings.
+*.md -text
