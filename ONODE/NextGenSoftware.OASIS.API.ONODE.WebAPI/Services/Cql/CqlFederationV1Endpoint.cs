@@ -28,6 +28,7 @@ public static partial class CqlV1Endpoint
         {
             var active = Stopwatch.StartNew();
             http.RequestAborted.ThrowIfCancellationRequested();
+            request = CqlRequestCapture.Capture(request);
             if (request == null || request.Providers == null || request.ProviderPriority == null
                 || request.Providers.Length > 3 || request.ProviderPriority.Length > 3
                 || request.Take is < 1 or > 100 || request.Skip is < 0 or > 1000
