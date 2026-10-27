@@ -11,6 +11,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL;
 
 public static class OASISDataTypes
 {
+    /// <summary>
+    /// Runtime-only members are not part of the transport contract: the global holon data, and the metadata
+    /// encryption policy whose key resolver is an empty interface. Schema discovery, object fields and the
+    /// method/field interceptor must all use this one rule so none of them can re-introduce such a member.
+    /// </summary>
+    internal static bool IsExposedProperty(PropertyInfo property) =>
+        property.PropertyType != typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData)
+        && property.PropertyType != typeof(NextGenSoftware.OASIS.API.Core.Security.HolonMetadataEncryptionPolicy);
+
     // These contracts describe returned model data. They are not polymorphic
     // GraphQL interfaces and must not require concrete ORM implementations.
     public static IRequestExecutorBuilder AddOasisDataTypes(this IRequestExecutorBuilder builder)
@@ -28,7 +37,7 @@ public static class OASISDataTypes
             if (model.IsInterface && !model.ContainsGenericParameters && model != typeof(IHolon) && model != typeof(IAvatar))
                 builder.AddType(typeof(OASISDataObjectType<>).MakeGenericType(model));
             foreach (var property in model.GetInterfaces().Append(model).SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance)))
-                if (property.PropertyType != typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData)) pending.Push(property.PropertyType);
+                if (IsExposedProperty(property)) pending.Push(property.PropertyType);
         }
         return builder;
     }
@@ -44,9 +53,7 @@ public sealed class OASISDataObjectType<T> : ObjectType<T>
                      .SelectMany(t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance))
                      .GroupBy(p => p.Name).Select(g => g.First()))
         {
-            if (property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData)) continue;
-            // Runtime-only security context (JsonIgnore); its key resolver is an empty interface and must never be a GraphQL field.
-            if (property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Security.HolonMetadataEncryptionPolicy)) continue;
+            if (!OASISDataTypes.IsExposedProperty(property)) continue;
             var field = descriptor.Field(property);
             if (property.PropertyType == typeof(Dictionary<string, object>)) field.Type<AnyType>();
         }
