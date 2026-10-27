@@ -1,7 +1,7 @@
 # Cosmos DB CQL implementation gates
 
-Source audit: 27 October 2026. CQL enrollment remains unimplemented/unverified.
-This is the next cloud-demo work item, not evidence of a passing cloud demo.
+Source audit: 27 October 2026. Canonical row enrollment is implemented; wider demo acceptance remains incomplete.
+The native row gate uses an emulator; hosted-cloud acceptance remains unverified.
 
 ## Existing ownership and stored schema
 
@@ -98,3 +98,11 @@ Provider/test builds pass.21 focused compiler/transport/canonical/leaf tests pas
 Owned fixed reusable database oasis-cql-demo/holonItems was initialized independently of prior provider fixtures. Four original journaled IDs were saved through canonical repositories, then point-read identity/name checked and deleted with observed native ETags; independent native COUNT confirmed0. The durable rows.pending.json was removed only after successful cleanup. Database/container remain reusable empty. Original oasis-cosmos-crud was not accessed. Emulator stopped and independently inspected exited; no pending CQL journal remains.
 
 Enrollment stays internal: Version composite ordering/index policy, wider operand-domain/corruption cases, metadata precision/protection, projection/count, provider lifecycle/manager integration, save-state concurrency and hosted proof remain unverified. Next: complete native canonical profile cases and provider boundary, then progress common demo features without claiming full parity.
+
+## Standard provider boundary milestone
+
+AzureCosmosDBOASIS now implements ICosmicQueryStorageProvider for the canonical row profile. It translates/re-admits before obtaining a client, requires explicit activation, serializes with activation/disposal using the existing lifecycle gate, and returns structured OASISResult errors. Query calls never activate/create storage. The repository executes the same compiled command without another translation path.
+
+24 focused tests pass (three new provider-boundary tests); evidence TestResults/CosmosCqlCurrent/cosmos-cql-provider-boundary.trx SHA256 25CE816569BA90A696B6C50FC2C25915D37B14423CC8FD3FE8079F67440F02A8. The native five-case gate now runs through the public provider boundary, verifies completion counts, and passes: TestResults/CosmosCqlCurrent/cosmos-cql-public-native.trx SHA256 F9F1FF31D8D47C177ADDF0A11993AE79C7F8CC46882B3E7E4D02A4F2BDBA0D18. Exact four-ID cleanup/count0 and absent pending journal verified; emulator inspected exited. Provider activation initialized reusable empty avatarItems/avatarDetailItems in the same owned oasis-cql-demo database.
+
+Canonical rows are enrolled; prior internal-only statements above describe earlier checkpoints. Metadata, graph/projection/count and full demo acceptance remain open. Id ordering is native-proven; compound Version/Id index configuration and broader operator/domain tests remain unverified. No hosted-cloud or full manager/usage-owner acceptance is claimed.

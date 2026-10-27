@@ -54,9 +54,9 @@ public class CqlNativeRowTests
         var containers = new List<string>();
         using (var iterator = database.GetContainerQueryIterator<ContainerProperties>())
             while (iterator.HasMoreResults) containers.AddRange((await iterator.ReadNextAsync()).Select(c => c.Id));
-        Assert.IsTrue(containers.All(c => c == "holonItems"), "Unexpected retained containers; preserve state.");
+        Assert.IsTrue(containers.All(c => c is "holonItems" or "avatarItems" or "avatarDetailItems"), "Unexpected retained containers; preserve state.");
         var container = database.GetContainer("holonItems");
-        if (containers.Count == 0) container = (await database.CreateContainerAsync(new ContainerProperties("holonItems", "/id"))).Container;
+        if (!containers.Contains("holonItems")) container = (await database.CreateContainerAsync(new ContainerProperties("holonItems", "/id"))).Container;
         async Task AssertCount(long expected)
         {
             using var iterator = container.GetItemQueryIterator<long>("SELECT VALUE COUNT(1) FROM c");
@@ -70,39 +70,62 @@ public class CqlNativeRowTests
         foreach (var seed in seeds) await repository.AddAsync(seed);
         await AssertCount(4);
 
-        async Task<IReadOnlyList<IHolon>> Read(CosmicQuery<Holon> query, int maximum = 10)
+        var provider = new AzureCosmosDBOASIS(new Uri("https://127.0.0.1:8081"), key, databaseName,
+            new() { "holonItems", "avatarItems", "avatarDetailItems" });
+        try
         {
-            var plan = CosmicQueryPlanner.Plan(query, ProviderType.AzureCosmosDBOASIS,
-                new[] { new CosmicQueryTarget(ProviderType.AzureCosmosDBOASIS, CosmosCqlRowCommand.Capabilities) });
-            Assert.IsFalse(plan.IsError, plan.Message);
-            return await repository.ExecuteCqlRowsAsync(plan.Result, maximum, default);
-        }
-        var access = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
-        var visible = CosmicQuery<Holon>.Create().WithReadAccess(access).Where(h => h.IsActive && h.Version >= 2).OrderBy(h => h.Id);
-        Assert.IsFalse(visible.IsError, visible.Message);
-        var expected = seeds.Take(2).OrderBy(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray();
-        CollectionAssert.AreEqual(expected, (await Read(visible.Result)).Select(h => h.Id).ToArray());
-        var window = visible.Skip(1).Take(1);
-        Assert.IsFalse(window.IsError, window.Message);
-        Assert.AreEqual(expected[1], (await Read(window.Result)).Single().Id);
-        Assert.AreEqual(0, (await Read(CosmicQuery<Holon>.Create().Where(h => h.Name == "absent-owned-cql").Result)).Count);
-        Assert.AreEqual(4, (await Read(CosmicQuery<Holon>.Create().Where(h => h.Description == null).Result)).Count);
-        await Assert.ThrowsExceptionAsync<InvalidDataException>(() => Read(visible.Result, 1));
+            var activation = await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError, activation.Message);
+            Assert.IsTrue(activation.Result);
 
-        // Delete only these original identities, with independently observed ETags.
-        foreach (var seed in seeds)
-        {
-            var partition = new PartitionKey(seed.Id.ToString("D"));
-            using var point = await container.ReadItemStreamAsync(seed.Id.ToString("D"), partition);
-            Assert.AreEqual(HttpStatusCode.OK, point.StatusCode);
-            using var reader = new StreamReader(point.Content);
-            using var body = JsonDocument.Parse(await reader.ReadToEndAsync());
-            Assert.AreEqual(seed.Id, body.RootElement.GetProperty("Id").GetGuid());
-            Assert.AreEqual(seed.Name, body.RootElement.GetProperty("Name").GetString());
-            using var deleted = await container.DeleteItemStreamAsync(seed.Id.ToString("D"), partition, new ItemRequestOptions { IfMatchEtag = point.Headers.ETag });
-            Assert.AreEqual(HttpStatusCode.NoContent, deleted.StatusCode);
+            async Task<IReadOnlyList<IHolon>> Read(CosmicQuery<Holon> query, int maximum = 10)
+            {
+                var plan = CosmicQueryPlanner.Plan(query, ProviderType.AzureCosmosDBOASIS,
+                    new[] { new CosmicQueryTarget(ProviderType.AzureCosmosDBOASIS, CosmosCqlRowCommand.Capabilities) });
+                Assert.IsFalse(plan.IsError, plan.Message);
+                var result = await provider.ExecuteCosmicQueryAsync(plan.Result, maximum);
+                Assert.IsFalse(result.IsError, result.Message + "; " + result.Exception);
+                Assert.IsTrue(result.IsLoaded);
+                Assert.AreEqual(result.Result.Count, result.LoadedCount);
+                return result.Result;
+            }
+            var access = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
+            var visible = CosmicQuery<Holon>.Create().WithReadAccess(access).Where(h => h.IsActive && h.Version >= 2).OrderBy(h => h.Id);
+            Assert.IsFalse(visible.IsError, visible.Message);
+            var expected = seeds.Take(2).OrderBy(h => h.Id.ToString("D"), StringComparer.Ordinal).Select(h => h.Id).ToArray();
+            CollectionAssert.AreEqual(expected, (await Read(visible.Result)).Select(h => h.Id).ToArray());
+            var window = visible.Skip(1).Take(1);
+            Assert.IsFalse(window.IsError, window.Message);
+            Assert.AreEqual(expected[1], (await Read(window.Result)).Single().Id);
+            Assert.AreEqual(0, (await Read(CosmicQuery<Holon>.Create().Where(h => h.Name == "absent-owned-cql").Result)).Count);
+            Assert.AreEqual(4, (await Read(CosmicQuery<Holon>.Create().Where(h => h.Description == null).Result)).Count);
+            var overflowPlan = CosmicQueryPlanner.Plan(visible.Result, ProviderType.AzureCosmosDBOASIS,
+                new[] { new CosmicQueryTarget(ProviderType.AzureCosmosDBOASIS, AzureCosmosDBOASIS.CqlCapabilities) });
+            Assert.IsFalse(overflowPlan.IsError, overflowPlan.Message);
+            var overflow = await provider.ExecuteCosmicQueryAsync(overflowPlan.Result, 1);
+            Assert.IsTrue(overflow.IsError);
+            Assert.IsNull(overflow.Result);
+
+            // Delete only these original identities, with independently observed ETags.
+            foreach (var seed in seeds)
+            {
+                var partition = new PartitionKey(seed.Id.ToString("D"));
+                using var point = await container.ReadItemStreamAsync(seed.Id.ToString("D"), partition);
+                Assert.AreEqual(HttpStatusCode.OK, point.StatusCode);
+                using var reader = new StreamReader(point.Content);
+                using var body = JsonDocument.Parse(await reader.ReadToEndAsync());
+                Assert.AreEqual(seed.Id, body.RootElement.GetProperty("Id").GetGuid());
+                Assert.AreEqual(seed.Name, body.RootElement.GetProperty("Name").GetString());
+                using var deleted = await container.DeleteItemStreamAsync(seed.Id.ToString("D"), partition, new ItemRequestOptions { IfMatchEtag = point.Headers.ETag });
+                Assert.AreEqual(HttpStatusCode.NoContent, deleted.StatusCode);
+            }
+            await AssertCount(0);
+            File.Delete(journal);
         }
-        await AssertCount(0);
-        File.Delete(journal);
+        finally
+        {
+            var deactivation = await provider.DeActivateProviderAsync();
+            Assert.IsFalse(deactivation.IsError, deactivation.Message);
+        }
     }
 }
