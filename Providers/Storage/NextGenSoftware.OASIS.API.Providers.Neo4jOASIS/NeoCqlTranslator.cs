@@ -11,12 +11,13 @@ internal sealed partial class NeoCqlTranslator
 {
     internal readonly Dictionary<string, object> Parameters;
     internal bool HasRelationship { get; private set; }
+    private readonly int _relationshipDepth;
     private readonly string _node;
     private readonly string _projection;
     private readonly CosmicQueryReadAccess _access;
     internal NeoCqlTranslator(CosmicQueryReadAccess access=null):this("h","p",new Dictionary<string,object>(StringComparer.Ordinal),access){}
-    internal NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access)
-    {_node=node;_projection=projection;Parameters=parameters;_access=access;}
+    internal NeoCqlTranslator(string node,string projection,Dictionary<string,object> parameters,CosmicQueryReadAccess access,int relationshipDepth=0)
+    {_node=node;_projection=projection;Parameters=parameters;_access=access;_relationshipDepth=relationshipDepth;}
     internal string Bind(object value)
     {
         if (Parameters.Count >= 900) throw new NotSupportedException("Neo4j CQL exceeds its 900-parameter budget.");
@@ -130,9 +131,9 @@ internal sealed partial class NeoCqlTranslator
             case CosmicQueryAnyChild child:
             {
                 HasRelationship = true;
-                var suffix=Parameters.Count.ToString(CultureInfo.InvariantCulture);
+                var suffix=_relationshipDepth.ToString(CultureInfo.InvariantCulture)+"_"+Parameters.Count.ToString(CultureInfo.InvariantCulture);
                 var node="rh"+suffix;var projection="rp"+suffix;
-                var inner=new NeoCqlTranslator(node,projection,Parameters,_access);
+                var inner=new NeoCqlTranslator(node,projection,Parameters,_access,_relationshipDepth+1);
                 var visibility="true";
                 if(_access!=null)
                 {

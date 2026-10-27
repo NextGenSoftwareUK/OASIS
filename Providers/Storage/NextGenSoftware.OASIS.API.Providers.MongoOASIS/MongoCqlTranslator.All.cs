@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -13,26 +14,9 @@ internal sealed partial class MongoCqlTranslator
         var source = CompileSource(query.Source, out var traverses);
         var page = SelectedWindow(query.Source, query.Source.Limit);
         var hasChildren = CosmicScalarCapabilities.HasAllChildren(query.AllPredicate.Predicates);
-        if (hasChildren)
-            page.Add(new("$replaceRoot", new BsonDocument("newRoot", new BsonDocument("row", "$$ROOT"))));
-        var childIndex = 0;
-        BsonValue Test(CosmicQueryPredicate node)
-        {
-            if (node is CosmicQueryAnyChild child)
-            {
-                var alias = "child" + childIndex++;
-                page.Add(ChildExistenceLookup(child, query.Source.ReadAccess, alias));
-                return Op("$gt", new BsonDocument("$size", "$" + alias), Literal(0));
-            }
-            if (node is CosmicQueryLogical logical)
-                return Op(logical.IsAnd ? "$and" : "$or", Test(logical.Left), Test(logical.Right));
-            if (node is CosmicQueryNot not) return Op("$not", Test(not.Operand));
-            var value = Translate(node, 0);
-            return hasChildren ? AllRowExpression(value) : value;
-        }
-        var predicate = query.AllPredicate.Predicates.Select(Test).ToArray();
+        var predicate = AppendAllPredicate(page, query.AllPredicate.Predicates, query.Source.ReadAccess);
         page.Add(new("$project", new BsonDocument("bad",
-            Choose(Op("$and", predicate), Literal(new BsonInt64(0)), Literal(new BsonInt64(1))))));
+            Choose(predicate, Literal(new BsonInt64(0)), Literal(new BsonInt64(1))))));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         source.Add(new("$group", new BsonDocument
         {
@@ -53,6 +37,31 @@ internal sealed partial class MongoCqlTranslator
         return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
             query.Source.Limit == 0, traverses);
     }
+    private BsonValue AppendAllPredicate(List<BsonDocument> pipeline, IEnumerable<CosmicQueryPredicate> predicates,
+        CosmicQueryReadAccess access)
+    {
+        var captured = predicates.ToArray();
+        var hasChildren = CosmicScalarCapabilities.HasAllChildren(captured);
+        if (hasChildren)
+            pipeline.Add(new("$replaceRoot", new BsonDocument("newRoot", new BsonDocument("row", "$$ROOT"))));
+        var childIndex = 0;
+        BsonValue Test(CosmicQueryPredicate node)
+        {
+            if (node is CosmicQueryAnyChild child)
+            {
+                var alias = "child" + childIndex++;
+                pipeline.Add(ChildExistenceLookup(child, access, alias));
+                return Op("$gt", new BsonDocument("$size", "$" + alias), Literal(0));
+            }
+            if (node is CosmicQueryLogical logical)
+                return Op(logical.IsAnd ? "$and" : "$or", Test(logical.Left), Test(logical.Right));
+            if (node is CosmicQueryNot not) return Op("$not", Test(not.Operand));
+            var value = Translate(node, 0);
+            return hasChildren ? AllRowExpression(value) : value;
+        }
+        return Op("$and", captured.Select(Test).ToArray());
+    }
+
     // Rebind native scalar field references to the collision-free row envelope.
     // Literal values and native lexical variables must remain byte-for-byte values.
     private static BsonValue AllRowExpression(BsonValue expression)

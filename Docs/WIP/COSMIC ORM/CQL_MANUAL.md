@@ -2753,3 +2753,19 @@ netstandard2.1 build; spaced demo console build passes. Q23b is green on this
 scope. Full Q23 stays red for nested-child and descendant traversal inside All.
 The complete 519-SDK-query walkthrough still needs a reconciled clean rerun;
 its earlier failed fixture and durable receipts remain preserved.
+
+## Nested-child All acceptance — 27 October 2026
+
+`query.All(parent => parent.Children.Any(child => child.Children.Any(...)))`
+now executes natively on SQLite, MongoDB and Neo4j. Each child level observes
+canonical parent/membership identity and the source actor's visibility policy.
+The source window still precedes the terminal. Captured literals are immutable;
+correlations to outer lambda parameters remain explicitly unsupported.
+
+Examples 174–181 include a host-only positive query with no access filter and
+an actor-filtered negative over the same hidden intermediate parent. The host
+example is intentional trusted SDK use; remote access enforcement is unchanged.
+All 46 examples pass per store (138 checks), with 3,817 Core tests and both
+framework builds passing. [Native proof](Verification/all-nested-native.trx.gz).
+Full Q23 remains red for bounded descendant traversal inside All. The complete
+543-SDK walkthrough still needs verified fixture reconciliation and a clean rerun.
