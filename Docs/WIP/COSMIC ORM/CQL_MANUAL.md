@@ -2803,3 +2803,19 @@ Core: 3,824 pass, zero skipped; both framework and demo console builds pass.
 [Native proof](Verification/all-descendant-native.trx.gz). Q23/Q23d remain red:
 actual native cycle propagation and nested child/descendant composition still
 need implementation/proof. The complete 603-SDK walkthrough also remains pending.
+
+## Native cycle acceptance — 27 October 2026
+
+All descendant cycle errors are now proved on MongoDB, SQLite and Neo4j with
+24 native checks. Ordinary scalar count first verifies the synthetic record is
+admitted. The direct, negated, false-AND, true-OR, mixed-root-child and protected
+source-window cases then return `CQL_DATA_INVALID`; a terminal over an empty
+source window returns true. One separately journalled record per store is
+corrupted consistently for this proof, then exact cleanup is verified. The
+original retained walkthrough records/journal remain unchanged.
+
+The companion 198 All checks also pass. No production code changed in this
+acceptance batch. Full Q23 remains red for nested child/descendant composition;
+the complete walkthrough rerun remains pending.
+[Cycle outcome](Verification/all-cycle-result.json),
+[native TRX](Verification/all-cycle-native.trx.gz).
