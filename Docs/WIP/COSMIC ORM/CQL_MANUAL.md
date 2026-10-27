@@ -286,7 +286,7 @@ scalar and cardinality permissions. Exact native words and participating counts
 are validated under the selected snapshot owner before normalization. Int64 double
 means additionally require checked-prefix evidence after every selected window.
 Complete source/stage participation and terminal work/proof budgets still apply.
-SQLite and MongoDB also support staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. Neo4j wider selected domains and all selected Min/Max remain unfinished (Q01b/c); missing contracts return explicit errors.
+SQLite, MongoDB and Neo4j also support staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. Selected Min/Max remains unfinished (Q01c); missing contracts return explicit errors.
 
 ```csharp
 // SQLite: reduce the selected page using the exact native decimal kernel.
