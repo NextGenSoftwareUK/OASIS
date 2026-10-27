@@ -1,0 +1,57 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "SOLANAOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "f8338a2f-373d-4fb3-88cf-fc0ecb1f052b",
+      "RootId": "511cd5da-063b-4d89-b130-051a71a6d514",
+      "ChildId": "b9b6faf2-7615-40b4-bc8b-e489b55309d2",
+      "BatchIds": [
+        "ae406a40-45c3-41b7-89b5-73805d6924af",
+        "3e8ea787-4e7b-4436-b91e-43d7dade9986"
+      ],
+      "ImportId": "9e119639-bbe2-46d6-b281-3ac10eb7ecb1",
+      "Passed": [
+        "activate",
+        "avatar-save"
+      ],
+      "CurrentCase": "avatar-id",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "SOLANAOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "22a5adc7-5cf0-4798-8ddb-4c3f1a91f4c3",
+      "RootId": "0a114387-350a-4296-b517-3c17bc379dfa",
+      "ChildId": "83504278-d962-41f6-82ed-20e4d7c4ca65",
+      "BatchIds": [
+        "46ce207f-6f8e-4fa6-81f0-7ab0375d0b74",
+        "28909a4c-a7ff-4715-b104-06de2fadfaf9"
+      ],
+      "ImportId": "2b9ae670-d5bc-4a0e-8c12-81ff7f4aad27",
+      "Passed": [
+        "activate",
+        "avatar-save"
+      ],
+      "CurrentCase": "avatar-id",
+      "FailureType": "System.InvalidOperationException",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}
