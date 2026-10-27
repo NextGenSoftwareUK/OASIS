@@ -27,7 +27,21 @@ public partial class Neo4jOASIS
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS
             || plan.Query.ResultStages.Count == 0)
             throw new ArgumentException("Composition requires a matching single-provider plan and admitted remaining limits.");
-        var query = plan.Query;
+        return CompileCqlSelected(plan.Query, limits);
+    }
+
+    internal static NeoCqlCompositionCommand CompileCqlProjectedAll<T, TResult>(
+        CosmicProjectedAllPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits) where T : IHolon
+    {
+        if (plan == null || limits == null || limits.Admit(plan.Options).IsError
+            || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS)
+            throw new ArgumentException("Projected All requires one matching plan and remaining work.");
+        return CompileCqlSelected(plan.Query.Projection, limits, plan.Query.Predicate);
+    }
+
+    private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null) where T : IHolon
+    {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Graph-source composition requires separate enrollment.");
         var parameters = new Dictionary<string, object>(StringComparer.Ordinal);
         var source = CompileCqlDetachedSource(query.Source, parameters, Array.Empty<CosmicQueryPath>(),
@@ -104,6 +118,17 @@ public partial class Neo4jOASIS
                 .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ")
                 .Append("UNION ALL WITH ").Append(import).Append(" UNWIND range(0,size(").Append(list).Append(")-1) AS pos RETURN ").Append(index)
                 .Append(" AS phase,pos AS position,").Append(list).Append("[pos] AS sourcePosition,null AS proof,size(").Append(list).Append(") AS nativeCount,work AS stageWork ");
+        }
+        if (terminal != null)
+        {
+            var final = "s" + query.ResultStages.Count;
+            // Reduction consumes captured scalar cells, never a second MATCH.
+            // A negative count is an explicit exhausted-work marker, not true.
+            text.Append("UNION ALL WITH ").Append(import).Append(" RETURN ").Append(query.ResultStages.Count)
+                .Append(" AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,CASE WHEN work+size(")
+                .Append(final).Append(")<=").Append(maximumWork).Append(" AND proofBytes<=").Append(maximumProof)
+                .Append(" THEN size([position IN ").Append(final).Append(" WHERE NOT coalesce((")
+                .Append(filters.Translate(terminal)).Append("),false)]) ELSE -1 END AS nativeCount,work AS stageWork ");
         }
         text.Append("} RETURN phase,position,sourcePosition,proof,nativeCount,stageWork ORDER BY phase ASC,position ASC");
         if (text.Length > 1024 * 1024) throw new NeoCqlLimitException("Native composition exceeds its statement-size budget.");
