@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 
 [TestClass]
-public sealed class NeoCqlEntityCompositionTests
+public sealed partial class NeoCqlEntityCompositionTests
 {
     private static CosmicEntityCompositionPlan<Holon> Plan(CosmicEntityCompositionQuery<Holon> query,
         CosmicEntityCompositionOptions? options=null)
