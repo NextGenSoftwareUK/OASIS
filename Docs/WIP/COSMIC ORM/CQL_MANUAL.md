@@ -608,3 +608,11 @@ and one configured query-attempt receipt per successful row/scalar/projection
 request. Anonymous and forged-actor requests reject before provider lookup. The
 receipt store and validated identity are controlled fixtures; this is not proof
 of production authentication, reservation settlement or billing durability.
+
+# ActivityPub/Mastodon native status points (27 October 2026)
+
+An exact native status-key row profile now works through the shared manager and
+LINQ, with public/unlisted visibility and mandatory access checks. See the
+[native profile guide and C# example](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+This profile is not yet enrolled in production WEB4 endpoints or the interactive
+demo host. Broader metadata/scalar/projection/storage semantics remain open.
