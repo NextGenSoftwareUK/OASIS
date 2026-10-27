@@ -24,7 +24,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
-            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true);
+            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true, supportsPostWindowCardinality: true);
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
@@ -75,7 +75,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 + "WHEN total-$countOffset > $countTake THEN $countTake ELSE total-$countOffset END AS value,"
                 + "true AS valid,false AS traversalCycle,false AS traversalLimit } RETURN value,valid,traversalCycle,traversalLimit";
 
-            if (plan.Query.Operation == CosmicScalarOperation.All) query = CompileCqlAll(compiled, plan.Query);
+            if (plan.Query.CardinalityPredicate != null) query = CompileCqlCardinalityPredicate(compiled, plan.Query);
+            else if (plan.Query.Operation == CosmicScalarOperation.All) query = CompileCqlAll(compiled, plan.Query);
             else if (numeric) query = CompileCqlNumeric(compiled, plan.Query);
             else if (selected) query = CompileCqlExtremum(compiled, plan.Query);
             // ReserveProjection includes 32 bytes of envelope overhead; the

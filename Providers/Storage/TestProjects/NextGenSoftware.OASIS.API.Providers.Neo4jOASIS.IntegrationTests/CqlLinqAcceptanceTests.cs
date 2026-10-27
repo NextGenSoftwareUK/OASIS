@@ -69,8 +69,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(root.Take(0).Any()); Passed("native Any empty window");
         Assert.AreEqual(0, root.Where(row => row.Name == "absent").Count()); Passed("native Count empty source");
         Assert.AreEqual(1, root.Count(row => row.Name == name)); Passed("native Count predicate");
-        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED", Assert.ThrowsException<CosmicLinqException>(
-            () => root.Take(1).Count(row => row.Name == name)).Code); Passed("post-window predicate remains explicit unsupported");
+        Assert.AreEqual(1, root.Take(1).Count(row => row.Name == name)); Passed("native post-window entity Count predicate");
         Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
         Passed("native All child scope");
 
@@ -232,6 +231,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
         await VerifySelectedElements(adapter, root, multi, checks);
         await VerifySelectedCardinality(adapter, root, multi, checks);
+        await VerifyEntityCardinality(adapter, rootId, root, multi, checks);
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }

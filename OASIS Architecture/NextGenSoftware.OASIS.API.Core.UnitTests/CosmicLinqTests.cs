@@ -175,7 +175,7 @@ public sealed class CosmicLinqTests
         var adapter = new Adapter(); var root = Root(adapter);
         Assert.Equal(2, root.Count(row => row.Name == "coffee"));
         Assert.Single(adapter.Seen!.Predicates);
-        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",
             Assert.Throws<CosmicLinqException>(() => root.Take(1).Count(row => row.Name == "coffee")).Code);
         Assert.Equal(1, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
     }

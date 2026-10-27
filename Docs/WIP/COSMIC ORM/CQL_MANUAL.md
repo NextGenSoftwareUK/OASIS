@@ -78,10 +78,31 @@ native scalar plans and V2 HolonManager; they do not enumerate entity rows.
 For example, `query.Skip(10).Take(5).Count()` counts that source window, while
 `query.Take(5).All(row => row.IsActive)` tests the predicate after that window.
 
-Count/LongCount/Any predicate overloads work on unwindowed sources. A predicate
-on one of these terminals after Skip/Take currently returns the explicit
-`CQL_COMPOSITION_UNSUPPORTED` exception. It is not moved before the window.
-This remains Q01 work; All already has an independent post-window predicate.
+Entity Count/LongCount/Any predicate overloads now work after Skip/Take on
+MongoDB, SQLite and Neo4j. The independently enrolled
+`SupportsPostWindowCardinality` contract keeps the terminal predicate separate
+from the immutable source page. Matching rows are reduced natively through the
+same protected scalar predicate pipeline used by All. Child/descendant grammar
+and traversal budgets retain their explicit permissions.
+
+```csharp
+// Count matching entities in the first page, preserving the page boundary.
+var page = query
+    .OrderBy(row => row.Name)
+    .Skip(10)
+    .Take(5);
+
+var activeCount = page.Count(row => row.IsActive);
+var hasActive = page.Any(row => row.IsActive);
+var matchingParents = page.LongCount(row => row.Children.Any(child => child.Name == "coffee"));
+```
+
+Terminal descendant scopes are visited only for rows in the selected source
+page. Protected source errors are still checked before that page, including an
+empty page. Protected terminal traversal errors cannot be hidden by a business
+true-OR/false-AND expression. Fluent CQL exposes Count(predicate),
+LongCount(predicate) and Any(predicate) on both source queries and OASISResult
+source builders; captured fluent parameters stay frozen as usual.
 Standard scalar/flat-record `Select` now supports selected `Where`, ordering and
 paging, followed by synchronous or async enumeration or native selected `All`.
 For example, after checking `CosmicLinq.Create(...)`:
@@ -228,4 +249,4 @@ Direct async callers use CosmicProjectedCardinalityPlanner.Plan with the exact
 Count/int, LongCount/long or Any/bool result domain, then
 HolonManager.ExecuteProjectedCardinalityQueryAsync. Results retain per-provider
 provenance. The standard IQueryable bridge remains bound to one named provider.
-Entity predicate overloads after source windows remain pending Q01 work.
+Entity element predicate overloads after source windows remain pending Q01 work.

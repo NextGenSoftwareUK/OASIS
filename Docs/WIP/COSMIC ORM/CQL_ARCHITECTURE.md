@@ -31,9 +31,11 @@ initial increment flattens exactly one explicitly named physical sequence;
 remaining terminal/repeated-selection dispatch remains Q01 work, with explicit unsupported errors.
 Standard cardinality and All terminals dispatch through CosmicScalarPlanner and
 the existing V2 scalar owner, independently admitting scalar capabilities. All's
-predicate remains separate from its source window. Predicated cardinality after
-a window remains explicitly unsupported until its native post-window filter
-contract is implemented; the bridge never rewrites it ahead of the window.
+predicate remains separate from its source window. Entity cardinality after a
+window now carries its own CardinalityPredicate descriptor and independent
+SupportsPostWindowCardinality admission. The shared scalar predicate lowering
+counts matches for cardinality and counterexamples for All, retaining each
+operation's own meaning and the original source window.
 Queryable Select transitions to a typed selected-sequence provider. The shared
 query envelope owns standard/async enumeration for entity and selected results.
 The selected provider rebinds source intent and selected stages per execution,
@@ -118,3 +120,15 @@ Neo4j preserves the acknowledged source/final-stage native header count. Missing
 or contradictory counts fail before result publication. No DTO constructor runs
 for Count/LongCount/Any. Standard selected predicates append after captured
 windows, with closure binding repeated per execution.
+
+Entity cardinality predicate capture uses the bounded scalar terminal grammar,
+including child/descendant markers and expansion admission. The terminal
+admission descriptor inherits source scope/read access and has no source window.
+Planning and execution independently admit its read paths and explicit traversal
+permissions. Existing capability constructors keep post-window cardinality false.
+SQLite applies matching predicates to its ordered source subquery, with protected
+CASE reductions and a serializable owner where relationship scopes require it.
+MongoDB and Neo4j share their scalar terminal traversal/error lowering, changing
+only the match contribution for cardinality. An empty terminal page visits no
+terminal scopes; source-scope failures still precede paging. IQueryable binds
+parameters per execution, while fluent cardinality capture freezes them.

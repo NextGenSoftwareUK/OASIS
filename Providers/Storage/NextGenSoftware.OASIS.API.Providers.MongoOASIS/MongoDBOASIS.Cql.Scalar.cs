@@ -24,7 +24,7 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
-            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true);
+            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true, supportsPostWindowCardinality: true);
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
@@ -61,7 +61,8 @@ public partial class MongoDBOASIS : ICosmicQueryScalarStorageProvider
                     plan.Query.Selector.ValueType, cancellationToken).ConfigureAwait(false);
                 return CosmicSelectedScalarResults.FromValue(plan.Query, selected.Value, selected.HasValue);
             }
-            var command = plan.Query.Operation == CosmicScalarOperation.All
+            var command = plan.Query.CardinalityPredicate != null ? translator.CompileCardinalityPredicate(plan.Query)
+                : plan.Query.Operation == CosmicScalarOperation.All
                 ? translator.CompileAll(plan.Query) : translator.CompileCount(plan.Query.Source);
             var count = await repository.ExecuteNativeCqlCountAsync(command, cancellationToken).ConfigureAwait(false);
             return CosmicScalarResults.FromCount(plan.Query, count);
