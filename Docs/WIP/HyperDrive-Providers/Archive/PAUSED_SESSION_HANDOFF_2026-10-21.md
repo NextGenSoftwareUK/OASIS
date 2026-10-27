@@ -1,3 +1,5 @@
+> Superseded by [CURRENT_STATUS.md](../CURRENT_STATUS.md) and the [current release gates](../HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md).
+
 # HyperDrive providers — paused handoff, 2026-10-21
 
 Historical checkpoint: user explicitly resumed Oracle-first work on23October2026, with AWS after Oracle and cloud access to be supplied later. See ORACLE_CLIENT_PRIORITY.md, section Resume —2026-10-23, for current results/gates. The pause and pending-source descriptions below describe21October only; Redis/NEAR checkpoint6721da39a was subsequently pushed and verified. Reuse the same environment; do not recreate the old goal checkout.
