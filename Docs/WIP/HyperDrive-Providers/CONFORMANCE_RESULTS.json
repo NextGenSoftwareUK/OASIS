@@ -213,6 +213,16 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-mongodboasis-current.json",
       "sha256": "4b46fadab4539c7034b6afc2bc18ead18b335f1bea70c0078a631326adde1fab",
       "blockers": []
+    },
+    {
+      "provider": "AzureCosmosDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-azurecosmosdboasis-current.json",
+      "sha256": "0f07255be037cc31324085046d4363ef5b25c9da6ed24c70099d100d70844c45",
+      "blockers": []
     }
   ],
   "providerBlockers": {

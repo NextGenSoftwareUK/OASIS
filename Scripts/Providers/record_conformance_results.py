@@ -7,6 +7,9 @@ DOC=ROOT/'Docs/WIP/HyperDrive-Providers'
 def validate_report(r,name,mode,suite,capability=False):
     if r['SuiteVersion']!=suite or r['Provider']!=name or r['Mode'] not in {'native','controlled'}:raise ValueError('Report identity/suite/mode mismatch')
     if not capability and r['Synchronous']!=(mode=='sync'):raise ValueError('Report sync mode mismatch')
+    contract=r.get('FailureContract','')
+    if not isinstance(contract,str) or len(contract)>160 or any(ord(ch)<32 or ch=='|' for ch in contract):raise ValueError('Invalid contract diagnostic')
+    if r['Succeeded'] and contract:raise ValueError('Successful report cannot retain a failed contract')
     passed=r['Passed'];maximum=5 if capability else 26
     if len(passed)>maximum or len(set(passed))!=len(passed):raise ValueError('Invalid or duplicate passed checks')
     if suite=='core-storage-v2' and r['Succeeded']:
@@ -34,7 +37,10 @@ def register(names):
             r=json.loads(p.read_text(encoding='utf-8-sig'))
             validate_report(r,name,mode,suite,capability)
             runs.append(r)
-            if not r['Succeeded']:blockers.append(mode+': '+r['CurrentCase']+': '+r['FailureType'])
+            if not r['Succeeded']:
+                blocker=mode+': '+r['CurrentCase']+': '+r['FailureType']
+                if r.get('FailureContract'):blocker+=' ['+r['FailureContract']+']'
+                blockers.append(blocker)
         if not runs:raise ValueError('No executed reports for '+name)
         if len({r['Mode'] for r in runs})!=1:raise ValueError('Do not combine native and controlled provider results')
         stem='localfile' if name=='LocalFileOASIS' else name.lower()
