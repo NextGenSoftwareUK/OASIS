@@ -55,5 +55,5 @@ does not establish global failover or 100% uptime.
 
 - SQLite projection checkpoint is committed; unfinished parity-only depth remains deferred.
 - Cosmos canonical and string/Boolean metadata rows are enrolled/native-proven; native Count/LongCount/Any and projection also pass; conditional Save/durable deltas are explicitly unsupported with pre-activation rejection tests; next implement numeric semantics and remaining lifecycle/HTTP/hosted acceptance; shared manager/LINQ row demo and canonical Version/Id index profile now pass.
-- Active next: Solana original-record read-only recovery and explicit query admission. Continue IPFS, SOLID and ActivityPub in order; retain cloud numeric/lifecycle/hosted gaps on the full roadmap.
+- Active next: implement the [explicit chain query contract](CQL_CHAIN_QUERY_CONTRACT.md), starting with immutable source/index identity, checkpoint and receipt validation. Solana exact missing-reference inspection is complete; original recovery still needs unavailable history/backup and remains red. Continue IPFS, SOLID and ActivityPub in order; retain cloud numeric/lifecycle/hosted gaps on the full roadmap.
 - Keep the full parity checklist strict and update CURRENT_STATUS each milestone. Unfinished Q01f depth remains deferred, not complete.
