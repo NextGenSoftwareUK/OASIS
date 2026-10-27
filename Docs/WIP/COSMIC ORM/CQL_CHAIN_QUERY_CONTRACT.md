@@ -255,3 +255,47 @@ Original unavailable records remain separate/red; no parity cell is promoted.
 | Evidence relative to worktree | SHA256 |
 |---|---|
 | TestResults/ProtocolCqlCurrent/solana-range-regression.trx (779pass/0skip,14new) | CC9F881354731DA890D9A3A0ADEA600A80C72487B284425CFADE5E3C80434D69 |
+
+## Shared observer-to-publisher bridge milestone
+
+Core1756287 introduces ICosmicChainQuerySourceObserver and
+ICosmicChainQueryIndexPublisher plus CosmicChainQueryIngestion.PublishAsync.
+These are provider-independent ingestion contracts, not query adapters or access
+grants. SolanaRepository explicitly implements the observer using its canonical
+range/exact-record reads and a new fresh finalized-head read. SQLite explicitly
+implements the publisher by delegating to its sole atomic publication owner.
+There is no production dependency between the two providers.
+
+The shared coordinator captures a bounded complete range, validates payload hashes,
+independently re-reads each original source commit, refreshes finalized head after
+those reads, and admits checkpoint/freshness/receipts before dispatching exactly
+one publication. It checks cancellation before that dispatch. Cancellation after
+dispatch cannot erase a successful acknowledgement; null/exception/cancellation
+from a dispatched publisher is explicitly publication-uncertain and must be
+reconciled, never retried automatically. Failed/missing/altered/stale source evidence
+causes zero publisher invocations. Empty ranges still need fresh source evidence.
+
+Source errors retain their OASISResult evidence. Core builds net10.0 and
+netstandard2.1. SQLite interface boundary rejects missing/null entry batches as
+real errors before DB creation. Payload/receipt/checkpoint encryption and atomic
+compare-and-publish remain with the existing SQLite owner.
+
+54 Core checks pass (16 new coordinator cases plus existing chain contracts),
+17 Solana range/wired checks pass (14 observer cases and3 integrated cases), and
+13 SQLite-store checks pass. The integrated test runs actual Solana memo decoding,
+shared coordinator and actual SQLite persistence with controlled RPC responses;
+restart preserves two revisions including tombstone. Pruned/missing sources leave
+no index DB; all assert zero submissions. These are controlled-source tests, not
+native Solana acceptance. Test-only SQLite project reference adds no production
+provider coupling or new environment/download.
+
+Next: native declared-range/bootstrap evidence and indexed SQL projection/query
+execution with actor access/source receipts, then CQL/WEB4 row/scalar/projection
+integration. Original Solana records remain unavailable/unrecovered; full demo,
+indexed execution and parity cells remain red.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/ProtocolCqlCurrent/chain-ingestion-core.trx | 6EED350AC3D635CC74135A2B48AAB4D80ACD19874AB5165F93A4E29E41B36143 |
+| TestResults/ProtocolCqlCurrent/chain-ingestion-wired.trx | 2D1E2127DB2E06B21727BA22C2D34EEC1493C291F35926AB7619D76777C1FBD4 |
+| TestResults/ProtocolCqlCurrent/chain-index-store.trx | 74D71CDDDFDA9381D8F3E658C7749651F7CCDC025B668A7FFB775C53747A778B |
