@@ -492,3 +492,32 @@ predicates, with independent bounded scopes, actor visibility, source windows
 and nested error propagation. All92All examples/store pass (276checks), plus
 114scope/cycle checks. Projected-source All is still missing; full Q23 stays red.
 The full681SDKwalkthrough rerun remains pending.
+# Cloud row walkthrough (Cosmos DB, limited demo profile)
+
+[`CloudRowsWalkthrough.cs`](CloudRowsWalkthrough.cs) shows the common native row
+subset through `HolonManager` and standard LINQ, with explicit provider scope,
+owner/public visibility, nested metadata, a bounded page, DTO projection and
+Count/LongCount/Any. It has no provider-specific query engine or storage setup.
+
+The trusted host supplies an explicitly activated provider, a V2 manager, an
+authenticated actor and synthetic fixtures tagged with metadata key `fixture`.
+Matching records need `IsActive`, `Name`, `Version` and `location.city` metadata.
+
+```csharp
+// The host owns activation, credentials and synthetic fixture cleanup.
+// cosmos implements the shared ICosmicQueryStorageProvider contract.
+var report = await CloudRowsWalkthrough.RunAsync(
+    manager,
+    cosmos,
+    authenticatedActorId,
+    "cosmic-cloud-rows-demo",
+    Console.Out,
+    cancellationToken);
+```
+
+This component is exercised verbatim by the Cosmos native integration gate. It is
+not a new command-line switch for the existing SQLite console/Swagger host.
+The existing three-database walkthroughs demonstrate a wider profile; Cosmos
+numeric metadata, compound index coverage, save-state/concurrency/delta integration,
+HTTP demo and hosted Azure acceptance remain open. Local emulator proof must be
+labeled as such. Each query is an independent read, not one shared snapshot.

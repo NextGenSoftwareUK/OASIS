@@ -6,6 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests;
@@ -66,6 +68,7 @@ public class CqlNativeRowTests
             {
                 ["location"] = new Dictionary<string, object> { ["city"] = i == 0 ? "London" : "Paris" },
                 ["flag"] = i == 0,
+                ["fixture"] = "cosmic-cloud-rows-demo",
                 ["nullable"] = i == 0 ? null! : true
             };
             if (i < 3) seeds[i].MetaData["category"] = i == 0 ? "coffee" : i == 1 ? "tea" : null!;
@@ -232,6 +235,31 @@ public class CqlNativeRowTests
             Assert.AreEqual(3, (await Project(CosmicQuery<UnconstructibleCountRow>.Create().Where(h => h.IsActive)
                 .Select(h => new { h.Name }).Result)).Count);
             Assert.IsTrue((await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(visible.Select(h => h.Name).Result), maximumPayloadBytes: 1)).IsError);
+
+            // Exercise the same provider-neutral demo source used by developers,
+            // through the existing V2 manager and standard IQueryable binding.
+            var dna = new OASISDNA
+            {
+                OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                {
+                    HyperDriveMode = HyperDriveModes.V2,
+                    StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false }
+                }
+            };
+            var registry = new ProviderManager(null, dna)
+            {
+                IsAutoFailOverEnabled = false,
+                IsAutoReplicationEnabled = false,
+                IsAutoLoadBalanceEnabled = false
+            };
+            var manager = new HolonManager(provider, dna, registry);
+            using var demoOutput = new StringWriter();
+            var demo = await CosmicCqlDemo.CloudRowsWalkthrough.RunAsync(manager, provider, actor,
+                "cosmic-cloud-rows-demo", demoOutput);
+            Assert.AreEqual(2, demo.Count);
+            Assert.AreEqual(2L, demo.LongCount);
+            Assert.IsTrue(demo.Any);
+            CollectionAssert.AreEqual(expected, demo.Page.Select(row => row.Id).ToArray());
 
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)
