@@ -10,6 +10,7 @@ $started=$false
 $attachedRuntime=$null
 $prior=$env:OASIS_OWNED_NEO4J_URI
 $priorWork=$env:OASIS_OWNED_NEO4J_WORK
+$priorResults=$env:OASIS_OWNED_NEO4J_RESULTS
 $freeBefore=(Get-PSDrive C).Free
 try {
     $state=(& wsl -d Ubuntu -u root -- podman inspect oasis-neo4j --format '{{.State.Status}} {{.Image}}') -join ''
@@ -69,6 +70,7 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw 'Owned Neo4j did not become ready; no test submitted.'}
     $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
+    $env:OASIS_OWNED_NEO4J_RESULTS=$work
     $env:OASIS_OWNED_NEO4J_WORK=if($CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile){Join-Path $taskRoot 'LocalState/COSMIC/Neo4jCurrent'}else{$work}
     $testStarted=[DateTime]::UtcNow
     $reviewedAdmissionFilter = $null
@@ -133,6 +135,7 @@ $expectedCount=if($CosmicCqlProjectedAllAcceptanceReconcile){1}elseif($CosmicCql
     } finally {
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_URI',$prior)
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_WORK',$priorWork)
+        [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_RESULTS',$priorResults)
         $lease.Dispose()
     }
 }
