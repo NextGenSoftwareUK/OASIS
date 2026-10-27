@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 graphRecords, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
                 source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             var result=new OASISResult<IEnumerable<IHolon>>(records
-                .Where(row => row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
+                .Where(row => !row.IsDeleted && row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
                 .Select(project).ToList());MarkIpfsLoaded(result,result.Result.Count());return result;
         }
 
