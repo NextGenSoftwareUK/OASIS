@@ -69,7 +69,7 @@ var plan = CosmicQueryPlanner.Plan(query, source.SourceProvider, new[] {
 });
 
 // Check every OASISResult before accessing Result in application code.
-var page = await index.QueryRowsAsync(plan.Result, observer);
+var page = await CosmicIndexedQueryExecutor.ExecuteAsync(plan.Result, index, observer);
 ```
 
 ## Verification and next work
@@ -116,3 +116,33 @@ do not route indexed plans through native execution or bypass prepared billing.
 
 - `TestResults/ProtocolCqlCurrent/index-contract-core.trx` SHA256 `C63174EE2E9E7E10DCC84D291AB041A0DCE553B2EF970D10543062C1B88085B7`.
 - `TestResults/ProtocolCqlCurrent/index-contract-sqlite.trx` SHA256 `EE40EABB849A4FF571BB01D1CC16C648C44365742FFCEDE86DE1837A663A6249`.
+
+## Shared SDK execution checkpoint
+
+CosmicIndexedQueryExecutor now executes through the shared reader contract. It
+preflights actual indexed source/capabilities and mandatory server actor policy,
+requires complete non-warning acknowledgement, enforces total/query-window bounds,
+revalidates checkpoint freshness and row/receipt/source position identities, rejects
+tombstones/hidden rows/duplicates, then publishes detached canonical Holons with
+selection observation. Empty pages retain and validate head/checkpoint evidence.
+No managed business filtering or second source transport path is introduced.
+
+The trusted reader continues to own complete SQL selection and independent source
+decoding; the shared owner does not pretend a returned receipt is a second independent
+observation. This is an explicit SDK operation. Native adapters remain closed.
+Inherited or expired prepared admission cannot be bypassed: active prepared contexts
+return CQL_INDEXED_BILLING_UNSUPPORTED before reader I/O. Pricing/recording both SQL
+execution and source-proof transport is still required before WEB4 enrollment.
+
+14 new shared execution cases cover detached success/empty completion, receipt
+mismatch, visibility/deletion, incomplete/warning pages, duplicates/result bounds,
+stale head, missing actor policy/wrong source/cancellation and prepared billing
+rejection with zero reader/outbox calls. Total76Core checks and30actualSQLite
+checks pass, zero skips;15SQLite scenarios now use the shared execution owner.
+Both Core targets/SQLite build. Test fake initially omitted mandatory visibility
+capabilities; corrected its advertised profile, with planner admission asserted.
+Typed manager/LINQ mapping, dual-resource billing, scalars/projections andWEB4 remain
+open. No production chain/CQL acceptance claim is added.
+
+- `TestResults/ProtocolCqlCurrent/index-executor-core.trx` SHA256 `F8F29D8890A88191278FD84BEDA39BBAB5B472941579DBDA4217AD5961BB5DBE`.
+- `TestResults/ProtocolCqlCurrent/index-executor-sqlite.trx` SHA256 `0F78B95DE8F2779D9D8A2AFFACEAA567552C0B0DAFFF49599389AA3610D5EEB4`.
