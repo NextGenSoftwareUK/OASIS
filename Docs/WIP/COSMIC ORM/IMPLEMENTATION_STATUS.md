@@ -8,7 +8,7 @@
 - Active red row Q01f: shared stage contract is committed; IQueryable bridge is committed in Core b9bccf0.
 - SQLite native stages are implemented with 42 passing CQL provider tests, including native V2 typed/graph/visibility and protected traversal acceptance; broader cross-database acceptance remains pending. MongoDB native stages are implemented with 212 passing compiler/admission tests; 18 live native entity-stage cases pass. Neo4j native stages now pass 144 compiler tests and 19 live stage cases; staged terminal/projection integration remains pending.
 - Latest native checkpoint: 1,556 checks, including 18 entity-stage cases/store plus Neo snapshot rejection.
-- Current shared bridge regression: 2,550 passes. Full Core suite still has an unverified WEB4 host prerequisite.
+- Current shared entity-count foundation regression: 2,555 passes; both Core targets build. Provider reductions/enrollment and standard terminal bridge pending. Full Core suite still has an unverified WEB4 host prerequisite.
 - Green features/federation cursors stay frozen unless a reproducible bug appears.
 - HyperDrive V2 only; legacy gaps receive documentation.
 

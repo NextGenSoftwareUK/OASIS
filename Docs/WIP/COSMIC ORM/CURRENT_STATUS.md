@@ -48,9 +48,14 @@ Neo entity stages: single native statement, bounded candidate references, sticky
 144 CQL/compiler tests pass; native gate includes 19 new Neo cases. ProviderSnapshot remains explicitly unsupported.
 Unit evidence: `TestResults/CoreCurrent/neo-entity-stage-current.trx`, SHA256 `AD0C5715452DEACB8563D73C272E2ACA2AEEFB8BA30E6396C8DB1883EA712D0A`.
 
+Shared entity-count contract/executor committed in Core `7b2a2d422f8ff03a4bf064edbbbc97108c12ba7f`; both targets build, 2,555 CQL regressions pass.
+Five new tests cover native ownership, capability re-admission, acknowledgement/window bounds, cancellation/V2/identity and adapter snapshots.
+Evidence `TestResults/CoreCurrent/entity-count-regression.trx`, SHA256 `703C6E13ECDE6521D82BCC1F6D350F5487871BB134E4457A0E5FD5CC936A1C34`.
+No provider count enrollment or standard staged terminal bridge yet; the 1,556 native checkpoint predates this Core increment.
+
 ## Exact next step
 
-Integrate entity-stage scalar/element terminals and projections without flattening the source or bypassing stage ownership.
+Implement native entity count reductions (SQLite, MongoDB, Neo4j), then bind staged Count/LongCount/Any/All. Follow with element terminals and projections, preserving stage ownership.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.
