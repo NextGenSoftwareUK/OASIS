@@ -240,3 +240,41 @@ existing owner; indexed intent never becomes an ersatz native adapter.
 
 - `TestResults/ProtocolCqlCurrent/index-linq-core.trx` SHA256 `651F0228D8555207BECEFAEE4625AFB81C072CA6188E8F0F7D432798FCAF974B`.
 - `TestResults/ProtocolCqlCurrent/index-linq-sqlite.trx` SHA256 `2798D672E523CC8AFF1B2D09454729D946BF1AB5833F2D346132A4671C4C6AC9`.
+
+## Physical read attempt boundary checkpoint
+
+CosmicIndexedReadAttempts now carries one exact source/index binding and one
+server-created attempt sink in an async lifetime scope. Durable sinks must begin
+before invoking I/O. The boundary checks lifetime/provider/index identity and
+cancellation both before dispatch and inside the callback after asynchronous
+admission. Nested/replaced/expired scopes cannot execute. Transport exceptions
+propagate; the boundary does not invent a completion or retry uncertain reads.
+
+The actual SQLite snapshot/decryption owner is wrapped once, before any source
+proof transport. Each Solana genesis/slot/block/retention/history RPC in the chain
+observer has its own boundary. The repository's sole transaction-reader delegate
+is instrumented below the canonical root/chunk decoder, so those reads are not
+collapsed into one aggregate observer attempt. No scope means unchanged SDK
+execution; this telemetry mechanism is not authorization or prepared enrollment.
+Existing non-indexed provider behavior is preserved; no legacy defect is fixed.
+
+Six new Core cases verify separate SQL/root/chunk-shaped attempts, wrong provider/
+index rejection, cancellation during asynchronous begin, expired/nested scope and
+unknown transport failure without fabricated completion. Core chain cohort94pass.
+14Solana range controls now compare exact RPC fixture invocation count against
+attempt count before separate proof rereads; full782Solana unit cases pass. These
+are controlled transports, not a native ledger acceptance claim. SQLite31pass;
+real repeated LINQ reads verify exactly one SQL attempt each. Both Core targets,
+SQLite and Solana provider builds pass.
+
+Explicit friend access is limited to the two provider test assemblies so fixture
+tests can install the otherwise internal attempt sink. Production sink creation
+remains Core-owned. Next: durable begin/receipt pricing and inherited actor/lifetime
+admission in PreparedStorageExecution, with bounded actual physical-read tariffs.
+Prepared indexed execution still rejects before I/O; no WEB4 billing claim yet.
+Uncancellable already-dispatched SDK reads may finish after observation cancellation;
+retain unknown outcomes rather than asserting no execution or resubmitting.
+
+- `TestResults/ProtocolCqlCurrent/index-attempt-core.trx` SHA256 `9541398A6A261D8E9D4DC59CADF92876EBCDC25A027E02996373AB82D386CE4A`.
+- `TestResults/ProtocolCqlCurrent/index-attempt-sqlite.trx` SHA256 `6A79B254F8237F56B9A198DE210364C3DF5A30C7F58A09163371D11ACC1FBCDB`.
+- `TestResults/ProtocolCqlCurrent/index-attempt-solana.trx` SHA256 `301D18B6E31FA15937F3891BDD8D7D53DA3F4C866470AB443F0961698930EFBC`.

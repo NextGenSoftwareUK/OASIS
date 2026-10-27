@@ -24,9 +24,12 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
             throw new InvalidOperationException("The explicit source must bind this Solana writer/network holon catalogue and SQLite execution owner.");
     }
 
+    private static Task<T> ReadChainRpcAsync<T>(CosmicIndexedReadOperation operation,Func<Task<T>> invoke,CancellationToken token)
+        =>CosmicIndexedReadAttempts.ExecuteSourceRpcAsync(ProviderType.SolanaOASIS,operation,invoke,token);
+
     private async Task<CosmicChainQueryPosition> ReadFinalizedPositionAsync(ulong slot,CancellationToken token)
     {
-        var block=await rpcClient.GetBlockAsync(slot,Commitment.Finalized,TransactionDetailsFilterType.None,false).WaitAsync(token);
+        var block=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceBlock,()=>rpcClient.GetBlockAsync(slot,Commitment.Finalized,TransactionDetailsFilterType.None,false).WaitAsync(token),token);
         if(block==null||!block.WasSuccessful||block.HttpStatusCode!=HttpStatusCode.OK||block.Result==null
             ||string.IsNullOrWhiteSpace(block.Result.Blockhash)||Encoders.Base58.DecodeData(block.Result.Blockhash).Length!=32)
             throw new InvalidOperationException("The finalized block identity is unavailable or invalid.");
@@ -39,7 +42,7 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
     {
         try{
             RequireChainIndexSource(source);cancellationToken.ThrowIfCancellationRequested();
-            var genesis=await rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken);
+            var genesis=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceGenesis,()=>rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken),cancellationToken);
             if(genesis==null||!genesis.WasSuccessful||genesis.HttpStatusCode!=HttpStatusCode.OK||genesis.Result!=source.NetworkIdentity)
                 throw new InvalidOperationException("Solana source network differs or is unavailable.");
             var transaction=await transactionReader(signature).WaitAsync(cancellationToken);
@@ -72,16 +75,16 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
     {
         try{
             RequireChainIndexSource(source);cancellationToken.ThrowIfCancellationRequested();
-            var genesis=await rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken);
+            var genesis=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceGenesis,()=>rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken),cancellationToken);
             if(genesis==null||!genesis.WasSuccessful||genesis.HttpStatusCode!=HttpStatusCode.OK||genesis.Result!=source.NetworkIdentity)
                 throw new InvalidOperationException("Solana source network differs or is unavailable.");
             async Task Retention(){
-                var first=await rpcClient.GetFirstAvailableBlockAsync().WaitAsync(cancellationToken);
+                var first=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceRetention,()=>rpcClient.GetFirstAvailableBlockAsync().WaitAsync(cancellationToken),cancellationToken);
                 if(first==null||!first.WasSuccessful||first.HttpStatusCode!=HttpStatusCode.OK||first.Result>(ulong)source.CoverageStartSlot)
                     throw new InvalidOperationException("Node retention cannot prove the configured source range; no complete checkpoint returned.");
             }
             await Retention();
-            var headReply=await rpcClient.GetSlotAsync(Commitment.Finalized).WaitAsync(cancellationToken);
+            var headReply=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceSlot,()=>rpcClient.GetSlotAsync(Commitment.Finalized).WaitAsync(cancellationToken),cancellationToken);
             if(headReply==null||!headReply.WasSuccessful||headReply.HttpStatusCode!=HttpStatusCode.OK||headReply.Result<(ulong)source.CoverageStartSlot)
                 throw new InvalidOperationException("Finalized head does not cover the configured range.");
             var head=await ReadFinalizedPositionAsync(headReply.Result,cancellationToken);
@@ -90,7 +93,7 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
             var records=new List<SolanaChainObservedHolon>();var signatures=new HashSet<string>(StringComparer.Ordinal);
             string before=null;var priorSlot=ulong.MaxValue;long payloadBytes=0;var complete=false;
             for(var page=0;page<HistoryPagesLimit&&!complete;page++){
-                var reply=await rpcClient.GetSignaturesForAddressAsync(oasisAccount.PublicKey.Key,HistoryPageSize,before,null,Commitment.Finalized).WaitAsync(cancellationToken);
+                var reply=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceHistory,()=>rpcClient.GetSignaturesForAddressAsync(oasisAccount.PublicKey.Key,HistoryPageSize,before,null,Commitment.Finalized).WaitAsync(cancellationToken),cancellationToken);
                 if(reply==null||!reply.WasSuccessful||reply.HttpStatusCode!=HttpStatusCode.OK||reply.Result==null||reply.Result.Count>(int)HistoryPageSize)
                     throw new InvalidOperationException("Finalized writer history is unavailable or exceeds its requested bound.");
                 if(reply.Result.Count==0){complete=true;break;}
@@ -147,10 +150,10 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
     {
         try{
             RequireChainIndexSource(source);cancellationToken.ThrowIfCancellationRequested();
-            var genesis=await rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken);
+            var genesis=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceGenesis,()=>rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken),cancellationToken);
             if(genesis==null||!genesis.WasSuccessful||genesis.HttpStatusCode!=HttpStatusCode.OK||genesis.Result!=source.NetworkIdentity)
                 throw new InvalidOperationException("Source network differs or is unavailable.");
-            var head=await rpcClient.GetSlotAsync(Commitment.Finalized).WaitAsync(cancellationToken);
+            var head=await ReadChainRpcAsync(CosmicIndexedReadOperation.SourceSlot,()=>rpcClient.GetSlotAsync(Commitment.Finalized).WaitAsync(cancellationToken),cancellationToken);
             if(head==null||!head.WasSuccessful||head.HttpStatusCode!=HttpStatusCode.OK||head.Result<(ulong)source.CoverageStartSlot)
                 throw new InvalidOperationException("Finalized head does not cover the selected range.");
             var position=await ReadFinalizedPositionAsync(head.Result,cancellationToken);

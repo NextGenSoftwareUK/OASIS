@@ -114,9 +114,10 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                 return Error<CosmicChainIndexRows>("CQL_ACCESS_INVALID","A server-bound matching actor read policy is required.");
             var sql=HolonRepository.CompileChainIndexRows(plan.Query); // Full translation precedes storage/source I/O.
             cancellationToken.ThrowIfCancellationRequested();
-            var raw=new List<CosmicChainQueryObservedRecord>();CosmicChainQueryCheckpoint checkpoint;
+            var raw=new List<CosmicChainQueryObservedRecord>();CosmicChainQueryCheckpoint checkpoint=null;
+            var snapshot=await CosmicIndexedReadAttempts.ExecuteIndexSnapshotAsync(source,()=>{
             using(var connection=Open())using(var transaction=connection.BeginTransaction(deferred:true)){
-                var state=ReadState(connection,transaction);if(state==null)return Error<CosmicChainIndexRows>("CQL_SOURCE_EVIDENCE_MISSING","Index has no complete checkpoint.");
+                var state=ReadState(connection,transaction);if(state==null)return Task.FromResult(Error<bool>("CQL_SOURCE_EVIDENCE_MISSING","Index has no complete checkpoint."));
                 ValidateQueryProjection(connection,transaction,state);checkpoint=state.Checkpoint;
                 using var command=connection.CreateCommand();command.Transaction=transaction;
                 command.CommandText="SELECT h.Receipt,h.Payload FROM CosmicChainIndexRows AS Holon JOIN CosmicChainIndexHistory h ON h.Id=Holon.Id AND h.Version=Holon.Version WHERE Holon.IsDeleted=0 AND ("+sql.Predicate+") ORDER BY "+sql.Ordering+" LIMIT $rowLimit OFFSET $rowOffset";
@@ -124,11 +125,14 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                 command.Parameters.AddWithValue("$rowOffset",plan.Query.Offset);
                 using var cancellation=cancellationToken.Register(command.Cancel);using var reader=command.ExecuteReader();
                 while(reader.Read()){
-                    cancellationToken.ThrowIfCancellationRequested();if(raw.Count==maximumResults)return Error<CosmicChainIndexRows>("CQL_QUERY_LIMIT","No partial indexed page is returned beyond its budget.");
+                    cancellationToken.ThrowIfCancellationRequested();if(raw.Count==maximumResults)return Task.FromResult(Error<bool>("CQL_QUERY_LIMIT","No partial indexed page is returned beyond its budget."));
                     var receiptJson=reader.GetString(0);var receipt=JsonSerializer.Deserialize<CosmicChainQueryRecordReceipt>(receiptJson);
                     raw.Add(new(receipt,codec.Decrypt(context+"/record/"+receiptJson,reader.GetString(1))));
                 }
             }
+                return Task.FromResult(new OASISResult<bool>(true));
+            },cancellationToken);
+            if(snapshot.IsError)return Error<CosmicChainIndexRows>(snapshot.ErrorCode,snapshot.Message,snapshot.Exception);
             // The captured SQL page/checkpoint is immutable while source proofs are refreshed.
             var independentlyDecoded=new List<CosmicChainQueryObservedRecord>();
             foreach(var row in raw){
