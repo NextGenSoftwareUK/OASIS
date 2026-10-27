@@ -24,13 +24,17 @@ public class CqlNativeRowTests
         Assert.AreEqual("1", Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_NATIVE"));
         var work = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_STATE") ?? throw new InvalidOperationException("Durable fixture directory required.");
         var journal = Path.Combine(work, "rows.pending.json");
-        var reviewed = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_COUNT") == "1";
+        var reviewedCount = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_COUNT") == "1";
+        var reviewedProjection = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_PROJECTION") == "1";
+        Assert.IsFalse(reviewedCount && reviewedProjection, "Choose one exact original fixture.");
+        var reviewed = reviewedCount || reviewedProjection;
         Guid[]? reviewedIds = null;
         var actor = Guid.NewGuid();
         if (reviewed)
         {
             var bytes = await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual("ACEC97647EBBF2041FD0241FEF38A41A28FE3BCB63315081DEDCF80704327470", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
+            Assert.AreEqual(reviewedProjection ? "6BA5D0DDC1C2D5D90A4D9F2BBCDCCA6682E817381B18865E718C7DCBD4B01492"
+                : "ACEC97647EBBF2041FD0241FEF38A41A28FE3BCB63315081DEDCF80704327470", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
             using var original = JsonDocument.Parse(bytes);
             Assert.AreEqual("oasis-cql-demo", original.RootElement.GetProperty("databaseName").GetString());
             actor = original.RootElement.GetProperty("actor").GetGuid();
@@ -184,6 +188,50 @@ public class CqlNativeRowTests
             Assert.AreEqual(0, await Scalar(CosmicQuery<Holon>.Create().Take(0).Count().Result));
             Assert.AreEqual(1, await Scalar(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "precise") == precise).Count().Result));
             Assert.AreEqual(3L, await Scalar(CosmicQuery<UnconstructibleCountRow>.Create().Where(h => h.IsActive).LongCount().Result));
+
+            CosmicProjectionPlan<T, TResult> ProjectionPlan<T, TResult>(CosmicProjectionQuery<T, TResult> query) where T : IHolon
+            {
+                var plan = CosmicProjectionPlanner.Plan(query, ProviderType.AzureCosmosDBOASIS,
+                    new[] { new CosmicProjectionTarget(ProviderType.AzureCosmosDBOASIS, AzureCosmosDBOASIS.CqlCapabilities, AzureCosmosDBOASIS.CqlProjectionCapabilities) });
+                Assert.IsFalse(plan.IsError, plan.Message);
+                return plan.Result;
+            }
+            async Task<System.Collections.ObjectModel.ReadOnlyCollection<TResult>> Project<T, TResult>(CosmicProjectionQuery<T, TResult> query) where T : IHolon
+            {
+                var result = await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(query));
+                Assert.IsFalse(result.IsError, result.Message + "; " + result.Exception);
+                var materialized = CosmicProjectionResults.Materialize(query, result.Result);
+                Assert.IsFalse(materialized.IsError, materialized.Message);
+                return materialized.Result;
+            }
+
+            var canonical = await Project(visible.Select(h => new { h.Id, h.Name, h.Version }).Result);
+            CollectionAssert.AreEqual(expected, canonical.Select(row => row.Id).ToArray());
+            Assert.AreEqual(seeds.Single(h => h.Id == canonical[0].Id).Version, canonical[0].Version);
+            Assert.AreEqual(seeds.Single(h => h.Id == expected[1]).Name, (await Project(window.Select(h => h.Name).Result)).Single());
+            var metadataProjection = await Project(visible.Select(h => new
+            {
+                City = CosmicQueryMetadata.Value<string>(h, "location", "city"),
+                Flag = CosmicQueryMetadata.Value<bool>(h, "flag"),
+                Nullable = CosmicQueryMetadata.Value<bool?>(h, "nullable")
+            }).Result);
+            Assert.AreEqual(2, metadataProjection.Count);
+            Assert.IsNull(metadataProjection.Single(row => row.Flag).Nullable);
+            Assert.AreEqual("London", metadataProjection.Single(row => row.Flag).City);
+            var firstId = seeds[0].Id;
+            var secondId = seeds[1].Id;
+            var lastId = seeds[3].Id;
+            Assert.IsNull((await Project(CosmicQuery<Holon>.Create().Where(h => h.Id == lastId)
+                .Select(h => CosmicQueryMetadata.Value<string>(h, "missing")).Result)).Single());
+            var framed = CosmicQuery<Holon>.Create().Where(h => h.Id == firstId)
+                .Select(h => CosmicQueryMetadata.Value<string>(h, "precise")).Result;
+            Assert.IsTrue((await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(framed))).IsError);
+            var wrongType = CosmicQuery<Holon>.Create().Where(h => h.Id == secondId)
+                .Select(h => CosmicQueryMetadata.Value<string>(h, "flag")).Result;
+            Assert.IsTrue((await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(wrongType))).IsError);
+            Assert.AreEqual(3, (await Project(CosmicQuery<UnconstructibleCountRow>.Create().Where(h => h.IsActive)
+                .Select(h => new { h.Name }).Result)).Count);
+            Assert.IsTrue((await provider.ExecuteCosmicProjectionAsync(ProjectionPlan(visible.Select(h => h.Name).Result), maximumPayloadBytes: 1)).IsError);
 
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)

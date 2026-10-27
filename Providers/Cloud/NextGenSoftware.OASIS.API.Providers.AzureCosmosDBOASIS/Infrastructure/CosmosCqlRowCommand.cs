@@ -36,6 +36,10 @@ internal static class CosmosCqlRowCommand
     }
 
     internal static QueryDefinition Compile<T>(CosmicQueryPlan<T> plan, int maximumResults) where T : IHolon
+        => Compile(plan, maximumResults, _ => "*");
+
+    internal static QueryDefinition Compile<T>(CosmicQueryPlan<T> plan, int maximumResults,
+        Func<CosmosCqlPredicateSql, string> selection) where T : IHolon
     {
         ArgumentNullException.ThrowIfNull(plan);
         if (maximumResults < 1 || maximumResults > 10000)
@@ -57,7 +61,7 @@ internal static class CosmosCqlRowCommand
         // One extra row exposes overflow instead of silently truncating a source
         // whose caller did not request a small enough window.
         var take = Math.Min(query.Limit ?? maximumResults + 1, maximumResults + 1);
-        var sql = "SELECT * FROM c WHERE " + predicate + " ORDER BY " + string.Join(", ", ordering) +
+        var sql = "SELECT " + selection(translator) + " FROM c WHERE " + predicate + " ORDER BY " + string.Join(", ", ordering) +
             " OFFSET @cqlOffset LIMIT @cqlLimit";
         return translator.BuildCommand(sql).WithParameter("@cqlOffset", query.Offset).WithParameter("@cqlLimit", take);
     }
