@@ -82,3 +82,9 @@ CosmosCqlRowCommand now re-admits one exact Cosmos target against an internal ca
 Provider build passed; fourteen focused tests passed, zero failed/skipped, including visibility/window parameter placement, overflow sentinel, foreign target rejection and re-admission of a permissive incoming plan. Evidence TestResults/CosmosCqlCurrent/cosmos-cql-row-command.trx; SHA256 F07A78C8834DAAF695F82345241C840A4C74FFF727005FDAB926718916763917. These tests inspect commands and simulated responses, not native semantic execution.
 
 Read-only podman inspection confirmed retained oasis-cosmos is exited with image b4edfeff93d70f2438ca55dbb14cdb8c6f111208d69c525baf62b7269ce44b56. No service was started. This worktree lacks TestResults/CosmosDBCurrent; do not infer original pending fixtures were reconciled from that absence. Inspect retained database state and existing recovery inventories before allocating native CQL fixtures.
+
+## Canonical read-owner checkpoint
+
+CosmosDbRepository now connects bounded SDK results to its existing DeserializeEntity owner for current records. It rejects duplicate/mismatched identities and decoded row overflow, respects cancellation (including an empty result), and publishes only a complete validated list. Storage-only injected clients explicitly reject bounded querying rather than substituting ReadAll.
+
+Provider build passes; nineteen focused tests pass, zero failed/skipped (five canonical read tests plus the prior fourteen). Evidence TestResults/CosmosCqlCurrent/cosmos-cql-canonical-read.trx; SHA256 091F04FAE40DE0CB11F052EE49CE3C0A52CAC03CCCA76A620CDB0D720391F3BA. These are decoder/compiler/transport tests; native SQL and hosted acceptance remain unverified. Next: connect the admitted row command to provider execution with visibility defense and leaf-shape enforcement, then run journaled native cases against inspected retained state.

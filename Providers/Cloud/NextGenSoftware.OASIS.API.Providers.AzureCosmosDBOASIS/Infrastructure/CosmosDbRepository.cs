@@ -5,6 +5,7 @@ using System.Net;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -92,6 +93,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         }
 
         public Task<T> AddAsync(T entity) => WriteSnapshotAsync(entity,true);
+
+        internal async Task<IReadOnlyList<T>> ReadBoundedCurrentQueryAsync(QueryDefinition command,
+            int maximumRows, CancellationToken cancellationToken)
+        {
+            // This query contract requires the native SDK owner. An injected
+            // storage-only client cannot substitute a full-collection read.
+            if (_cosmosDbClientFactory.GetClient(CollectionName) is not CosmosDbClient native)
+                throw new NotSupportedException("Cosmos bounded queries require the native SDK query owner.");
+            var documents = await native.ReadBoundedQueryAsync(command, maximumRows, 128,
+                4 * 1024 * 1024, cancellationToken).ConfigureAwait(false);
+            return DecodeCurrentQueryRows(documents, maximumRows, cancellationToken);
+        }
+
+        internal IReadOnlyList<T> DecodeCurrentQueryRows(IReadOnlyList<string> documents,
+            int maximumRows, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(documents);
+            if (maximumRows < 1 || maximumRows > 10000)
+                throw new ArgumentOutOfRangeException(nameof(maximumRows));
+            if (documents.Count > maximumRows)
+                throw new InvalidDataException("Cosmos CQL decoded row budget exceeded.");
+            var identities = new HashSet<Guid>();
+            var rows = new List<T>(documents.Count);
+            foreach (var document in documents)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                // Current selection and embedded-history validation are owned by
+                // the same decoder as point reads and ordinary collection reads.
+                rows.Add(DeserializeEntity(document, identities: identities));
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            return rows.AsReadOnly();
+        }
 
         public Task<T> UpsertAsync(T entity) => WriteSnapshotAsync(entity,false);
 
