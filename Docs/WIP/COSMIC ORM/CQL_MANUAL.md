@@ -2819,3 +2819,46 @@ acceptance batch. Full Q23 remains red for nested child/descendant composition;
 the complete walkthrough rerun remains pending.
 [Cycle outcome](Verification/all-cycle-result.json),
 [native TRX](Verification/all-cycle-native.trx.gz).
+
+## Descendant matching inside child Any — verification pending
+
+```csharp
+var bounds = CosmicQueryTraversalOptions.Create(2, 100).Result;
+
+var intent = query.All(parent =>
+    parent.Children.Any(child =>
+        CosmicQueryRelations.AnyDescendant(
+            child,
+            descendant => descendant.Name == "target",
+            bounds)));
+```
+
+This shape requires `SupportsAllChildDescendants` in addition to the ordinary
+child and descendant scalar capabilities. Each visible direct child owns its
+bounded descendant scope. The parent Any result and protected traversal errors
+are reduced separately, so an earlier matching child cannot hide a later error.
+Visibility and canonical membership remain enforced at every relationship hop.
+The source window still applies before any terminal child scope.
+
+Core: 3,826 tests pass, zero skipped; both framework builds pass. Twelve new
+native examples per store are pending. A relationship inside a descendant's own
+predicate remains unsupported; full Q23/Q23d remain red. Native protected errors
+across multiple children also need dedicated acceptance; no broad completion
+claim is made by the syntax or unit-test count.
+
+Child-to-descendant native acceptance completed:234All examples (78/store),
+24cycle checks and27protected-child checks all pass (three native tests,285checks).
+The dedicated child dataset proves that an earlier matching child, an inner
+false branch, outer true OR/false AND and negation cannot hide a later child's
+node-budget error. An actor-hidden failing child is excluded correctly.
+
+SQLite initially failed this invariant. The fix observes the protected child
+scope as a whole before evaluating its enclosing business Boolean. The same
+failed fixture passed nine read-only checks before exact-ID cleanup; no write
+was replayed or database reset. All final synthetic datasets were removed and
+the original retained walkthrough fixture stayed unchanged. Core:3,826 tests,
+both framework builds and demo console pass. [Native proof](Verification/all-child-descendant-native.trx.gz).
+
+Q23/Q23d remain red: relationships inside a descendant predicate and cycle errors
+inside mixed scopes still need implementation/proof. The full639SDKwalkthrough
+rerun remains pending. Only the demonstrated orientation is claimed complete.

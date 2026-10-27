@@ -55,16 +55,8 @@ public partial class HolonRepository
                 {
                     // Each protected traversal is evaluated before the business
                     // Boolean, including under false AND / true OR branches.
-                    var pending = new System.Collections.Generic.Stack<CosmicQueryPredicate>(plan.Query.AllPredicate.Predicates);
-                    var reduction = "CASE WHEN COALESCE((" + test + "),0)<>0 THEN 0 ELSE 1 END";
-                    while (pending.Count != 0)
-                    {
-                        var node = pending.Pop();
-                        if (node is CosmicQueryAnyDescendant)
-                            reduction = "CASE WHEN (" + translator.Translate(node) + ") IN (0,1) THEN (" + reduction + ") ELSE 0 END";
-                        else if (node is CosmicQueryLogical logical) { pending.Push(logical.Left); pending.Push(logical.Right); }
-                        else if (node is CosmicQueryNot not) pending.Push(not.Operand);
-                    }
+                    var reduction = translator.ProtectTraversalScope(plan.Query.AllPredicate.Predicates,
+                        "CASE WHEN COALESCE((" + test + "),0)<>0 THEN 0 ELSE 1 END");
                     sql = "SELECT coalesce(sum(" + reduction + "),0) AS Value FROM (SELECT * FROM Holon WHERE " + predicate
                         + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset) AS Holon";
                 }

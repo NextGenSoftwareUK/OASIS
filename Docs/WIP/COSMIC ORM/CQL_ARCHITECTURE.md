@@ -2080,3 +2080,25 @@ selected roots does not inspect the cycle. Each synthetic record is separately
 journalled and removed only after successful proof; original walkthrough data
 remains unchanged. No production change was needed in this acceptance batch.
 Q23/Q23d remain red for mixed nested traversal. [Proof](Verification/all-cycle-result.json).
+
+Descendant-inside-child implementation: `SupportsAllChildDescendants` admits the
+physical nested error owner independently. MongoDB's child outcome aggregate
+uses the shared membership/visibility scope and retains matched/error values
+across every visible child. Neo4j's protected-child CALL owns nested traversal
+states and reduces match/cycle/limit flags without a first-match shortcut.
+SQLite's child reduction completes protected scopes before reducing Any, using
+the same child membership/access predicates and protected-guard owner as the
+terminal root. No client enumeration or fallback is introduced. Source and
+selected-result grammars remain unchanged. Core proof:3,826 tests/both targets.
+Native composition proof is pending; descendants containing relationships and
+native multi-child error acceptance remain full Q23 gaps.
+
+Final child-to-descendant checkpoint:285native checks pass (234All,24cycle,
+27protected-child), with3,826Coretests/bothTFMs/console. SQLite's reproduced
+outer-Boolean bypass was fixed in ProtectTraversalScope: a child scope containing
+protected traversal must itself be observed before the enclosing Boolean.
+The pinned failed fixture was proved read-only before exact cleanup; final
+fixtures also cleaned exactly. Native match/error reductions preserve visibility
+and selected-root scope. [Proof](Verification/all-child-descendant-native.trx.gz).
+Q23/Q23d remain red for relationships inside descendant predicates and mixed-scope
+cycle proof; no completed full walkthrough is claimed.
