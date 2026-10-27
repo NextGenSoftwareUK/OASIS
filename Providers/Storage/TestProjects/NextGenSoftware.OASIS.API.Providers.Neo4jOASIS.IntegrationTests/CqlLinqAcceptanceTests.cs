@@ -58,9 +58,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var cancelled = await query.ToCosmicListAsync(cancellation.Token);
         Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode); Assert.IsNull(cancelled.Result);
         Passed("explicit async cancellation");
-        var unsupported = Assert.ThrowsException<CosmicLinqException>(() => query.Select(row => row.Name).Count());
-        Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED", unsupported.Code);
-        Passed("pending selected numeric terminal fails explicitly");
+        Assert.AreEqual(1, query.Select(row => row.Name).Count());
+        Passed("native Count after selected source window");
         Assert.AreEqual(1, root.Count()); Passed("native Count");
         Assert.AreEqual(1L, root.LongCount()); Passed("native LongCount");
         Assert.IsTrue(root.Any()); Passed("native Any");
@@ -232,6 +231,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Passed("plain selected nullable Int32 Average");
 
         await VerifySelectedElements(adapter, root, multi, checks);
+        await VerifySelectedCardinality(adapter, root, multi, checks);
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }

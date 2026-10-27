@@ -149,7 +149,7 @@ public partial class HolonRepository
             foreach (var id in current)
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                if (command.Reduction != null) outputBytes = checked(outputBytes + 16);
+                if (command.Reduction != null || command.Cardinality != null) outputBytes = checked(outputBytes + 16);
                 var values = byId[id].Values.ToArray();
                 foreach (var value in values) ReserveJoinCell(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
@@ -179,15 +179,34 @@ public partial class HolonRepository
                 counterexamples = count;
             }
             deadline.Token.ThrowIfCancellationRequested();
-            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work), counterexamples);
+            long? nativeSelectedCount = null;
+            if (command.Cardinality != null)
+            {
+                if (checked(work + current.Count) > limits.MaximumStageRows
+                    || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                    throw new MongoCqlLimitException();
+                using var countCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Cardinality,
+                    Options(), deadline.Token).ConfigureAwait(false);
+                while (await countCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    foreach (var document in countCursor.Current)
+                    {
+                        deadline.Token.ThrowIfCancellationRequested();
+                        if (nativeSelectedCount.HasValue || document.ElementCount != 1)
+                            throw new InvalidDataException("Native cardinality requires one exact acknowledgement.");
+                        nativeSelectedCount = CompositionCount(document, "selectedCount", allowZero: true);
+                    }
+                if (!nativeSelectedCount.HasValue || nativeSelectedCount.Value != output.Count)
+                    throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
+            }
+            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work, nativeSelectedCount), counterexamples);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { throw new MongoCqlGraphTimeoutException(); }
     }
 
-    private static long CompositionCount(BsonDocument data, string name)
+    private static long CompositionCount(BsonDocument data, string name, bool allowZero = false)
     {
-        if (!data.TryGetValue(name, out var value) || !(value.IsInt32 || value.IsInt64) || value.ToInt64() < 1)
+        if (!data.TryGetValue(name, out var value) || !(value.IsInt32 || value.IsInt64) || value.ToInt64() < (allowZero ? 0 : 1))
             throw new InvalidDataException("Composition proof requires positive exact counts and ranks.");
         return value.ToInt64();
     }
