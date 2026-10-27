@@ -9,12 +9,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider
 {
+    private static class SelectedIntegerContract
+    {
+        private static readonly System.Type[] Domains = { typeof(int), typeof(int?), typeof(long), typeof(long?) };
+        internal static readonly CosmicScalarCapabilities Value = new(System.Array.Empty<CosmicScalarOperation>(), new[]
+        {
+            new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities, Domains),
+            new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities, Domains,
+                supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
+        });
+    }
     private static class CompositionContract
     {
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
             CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
-            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true);
+            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true, numericReductions: SelectedIntegerContract.Value);
     }
     public static CosmicProjectionCompositionCapabilities CqlCompositionCapabilities => CompositionContract.Value;
     public CosmicProjectionCompositionCapabilities CompositionCapabilities => CqlCompositionCapabilities;

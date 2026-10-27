@@ -62,6 +62,8 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
+                using var checkedAverage = plan?.NumericReduction?.UsesInt64DoubleAverage == true
+                    ? new SqliteCqlCheckedInt64Average(connection, budget.Check) : null;
                 using var traversal = compiled.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 if (_dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
@@ -71,7 +73,7 @@ public partial class HolonRepository
                 using var owner = transaction == null ? null : _dbContext.Database.UseTransaction(transaction);
                 try
                 {
-                    void Check() { budget.Check(); traversal?.Check(); }
+                    void Check() { budget.Check(); traversal?.Check(); checkedAverage?.Check(); }
                     SqliteCommand Command(string sql)
                     {
                         var command = connection.CreateCommand();
@@ -159,7 +161,7 @@ public partial class HolonRepository
                     }
                     if (!header || work != (stageIds.Length == 0 ? 0 : sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count)))
                         throw new InvalidDataException("Composition proof work/header is incomplete.");
-                    if (stageIds.Length == 0 && (all != null || plan?.RequestsCardinality == true))
+                    if (stageIds.Length == 0 && (all != null || plan?.IsScalarTerminal == true))
                     {
                             foreach (var row in input.Values)
                             {
@@ -195,9 +197,36 @@ public partial class HolonRepository
                             throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
                         nativeSelectedCount = acknowledged;
                     }
+                    CosmicProjectedNumericPacket nativeNumeric = null;
+                    if (plan?.NumericReduction != null)
+                    {
+                        var numeric = plan.NumericReduction;
+                        var packetBytes = 25;
+                        if (checked(work + output.Count) > limits.MaximumStageRows
+                            || checked(proofBytes + outputBytes + packetBytes) > limits.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("Selected numeric reduction exceeds its remaining work/proof budget.");
+                        using var numericCommand = Command(compiled.Numeric);
+                        await using var reader = await numericCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)
+                            || reader.FieldCount != (numeric.UsesInt64DoubleAverage ? 4 : 3))
+                            throw new InvalidDataException("Selected numeric reduction requires one exact native packet.");
+                        Check();
+                        bool? prefixOverflow = null;
+                        if (numeric.UsesInt64DoubleAverage)
+                        {
+                            var flag = reader.GetInt64(3);
+                            if (flag is not (0 or 1)) throw new InvalidDataException("Checked numeric reduction requires its exact prefix acknowledgement.");
+                            prefixOverflow = flag == 1;
+                        }
+                        nativeNumeric = new CosmicProjectedNumericPacket(reader.GetInt64(0),
+                            new[] { reader.GetInt64(1), reader.GetInt64(2) }, prefixOverflow);
+                        if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                            throw new InvalidDataException("Selected numeric reduction returned multiple packets.");
+                        Check();
+                    }
                     Check();
                     var packet = new CosmicProjectionCompositionPacket(input.Values.ToArray(),
-                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work, nativeSelectedCount);
+                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work, nativeSelectedCount, nativeNumeric);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicProjectionCompositionPacket>(packet) { IsLoaded = true };
                 }

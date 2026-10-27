@@ -20,6 +20,12 @@ public sealed partial class CosmicLinqProjectionElementTests
     private sealed class Native : ICosmicQueryProjectionCompositionStorageProvider
     {
         public int Calls;
+        public bool NumericEnabled;
+        public object?[]? NumericValues;
+        public bool MissingNumeric;
+        public long? NumericCountOverride;
+        public long[]? NumericPartsOverride;
+        public bool? NumericPrefixOverride;
         public bool ReverseEnabled = true;
         public bool Corrupt;
         public bool CardinalityEnabled = true;
@@ -30,11 +36,16 @@ public sealed partial class CosmicLinqProjectionElementTests
         public ProviderType QueryProviderType => ProviderType.SQLLiteDBOASIS;
         public CosmicQueryCapabilities QueryCapabilities => new(CosmicQueryFeatures.None, Array.Empty<CosmicQueryFieldCapability>());
         public CosmicProjectionCapabilities ProjectionCapabilities => new(
-            new[] { new CosmicProjectionFieldCapability("Name", typeof(string)) }, Array.Empty<Type>());
+            new[] { new CosmicProjectionFieldCapability("Name", typeof(string)), new CosmicProjectionFieldCapability("Version", typeof(int)) }, new[] { typeof(int?) });
         public CosmicProjectionCompositionCapabilities CompositionCapabilities => new(
             CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Ordering
                 | (ReverseEnabled ? CosmicSelectedStageFeatures.Reverse : CosmicSelectedStageFeatures.None),
-            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(string) }, 32, false, CardinalityEnabled);
+            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(string) }, 32, false, CardinalityEnabled,
+            NumericEnabled ? new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
+            {
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, ProjectionCapabilities, new[] { typeof(int), typeof(int?) }),
+                new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, ProjectionCapabilities, new[] { typeof(int), typeof(int?) }, true)
+            }) : null);
 
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
@@ -47,7 +58,8 @@ public sealed partial class CosmicLinqProjectionElementTests
             Calls++;
             if (Failure != null) return Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>
                 { IsError = true, ErrorCount = 1, ErrorCode = Failure, Message = "Native test fault" });
-            var input = Values.Select((value, index) => new CosmicProjectionInputRow(
+            var data = NumericValues ?? Values.Cast<object?>().ToArray();
+            var input = data.Select((value, index) => new CosmicProjectionInputRow(
                 Guid.Parse($"10000000-0000-0000-0000-{index + 1:D12}"), true, Guid.Empty,
                 new object[] { value! }, Array.Empty<object>())).ToArray();
             var current = input.ToArray();
@@ -68,9 +80,12 @@ public sealed partial class CosmicLinqProjectionElementTests
             }
             var rows = current.Select(row => new CosmicProjectionCompositionRow(row.Id,
                 Corrupt ? "forged value" : row.Values[0])).ToArray();
+            var numeric = plan.NumericReduction != null && !MissingNumeric ? new CosmicProjectedNumericPacket(
+                NumericCountOverride ?? current.LongCount(row => row.Values[0] != null),
+                NumericPartsOverride ?? new[] { 0L, current.Sum(row => row.Values[0] == null ? 0L : Convert.ToInt64(row.Values[0])) }, NumericPrefixOverride) : null;
             return Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>(
                 new CosmicProjectionCompositionPacket(input, proofs, rows, input.Length, work,
-                    plan.RequestsCardinality && !MissingCardinality ? CountOverride ?? current.LongLength : null)) { IsLoaded = true });
+                    plan.RequestsCardinality && !MissingCardinality ? CountOverride ?? current.LongLength : null, numeric)) { IsLoaded = true });
         }
     }
 
