@@ -1,7 +1,7 @@
 #Requires -Version 7.0
-param([switch]$ConformanceOnly,[switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
+param([switch]$ConformanceOnly,[switch]$InspectConformance,[switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
-if($ConformanceOnly -and ($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion -or $InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault)){
+if(($ConformanceOnly -and $InspectConformance) -or (($ConformanceOnly -or $InspectConformance) -and ($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion -or $InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault))){
     throw 'Select shared conformance alone; do not combine fresh fixtures with inspection/reconciliation.'
 }
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -16,6 +16,8 @@ if($ConformanceOnly){
     foreach($mode in @('async','sync')){
         $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/IPFSOASIS/'+$mode+'/report.json')
         if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next')) -or
+           (Test-Path -LiteralPath (Join-Path $work ('conformance-'+$mode+'.pending.json'))) -or
+           (Test-Path -LiteralPath (Join-Path $work ('conformance-'+$mode+'.pending.json.next'))) -or
            (Test-Path -LiteralPath (Join-Path $work ('conformance-'+$mode+'-dna.json')))){
             $lease.Dispose();throw 'Preserve the prior shared-suite report/fixture before rerunning IPFS.'
         }
@@ -63,7 +65,7 @@ try {
     if($LASTEXITCODE){throw 'Local file provider build failed.'}
     & dotnet build $providerProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Provider build failed.'}
-    & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent -or $InspectConformance.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Consumer build failed.'}
     $owned=Start-Process -FilePath $binary -ArgumentList @('daemon','--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $results 'daemon-current.log') -RedirectStandardError (Join-Path $results 'daemon-current.err')
     $ready=$false; $lastObservation='No RPC response'; $deadline=[DateTime]::UtcNow.AddSeconds(20)
@@ -74,8 +76,8 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    $filter=if($ConformanceOnly){'Category=IPFSCoreStorageConformance'}elseif($InspectDeleteFault){'Category=IPFSDeleteFaultInspection'}elseif($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
-    $reportName=if($ConformanceOnly){'ipfs-core-current.trx'}elseif($InspectDeleteFault){'ipfs-delete-fault-inspection-current.trx'}elseif($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
+    $filter=if($InspectConformance){'Category=IPFSCoreStorageInspect'}elseif($ConformanceOnly){'Category=IPFSCoreStorageConformance'}elseif($InspectDeleteFault){'Category=IPFSDeleteFaultInspection'}elseif($InspectNamedRoles){'Category=IPFSNamedRoleInspection'}elseif($InspectCredential){'Category=IPFSCredentialInspection'}elseif($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
+    $reportName=if($InspectConformance){'ipfs-core-inspect.trx'}elseif($ConformanceOnly){'ipfs-core-current.trx'}elseif($InspectDeleteFault){'ipfs-delete-fault-inspection-current.trx'}elseif($InspectNamedRoles){'ipfs-named-role-inspection-current.trx'}elseif($InspectCredential){'ipfs-credential-inspection-current.trx'}elseif($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $results -v:q
     $testExit=$LASTEXITCODE
     if($ConformanceOnly){
@@ -85,7 +87,7 @@ try {
         if($LASTEXITCODE){throw 'IPFS matrix update failed.'}
     }
     if($testExit){throw 'Native IPFS storage verification failed; preserve exact fixture evidence.'}
-    if(!$ConformanceOnly -and !$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault){
+    if(!$ConformanceOnly -and !$InspectConformance -and !$InspectCredential -and !$InspectNamedRoles -and !$InspectDeleteFault){
         $collected=@(& $binary repo gc --quiet)
         if($LASTEXITCODE){throw 'Owned repository garbage collection failed; inspect retained content.'}
         Write-Output "Owned offline repository garbage-collected $($collected.Count) unpinned blocks."
@@ -94,7 +96,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ConformanceOnly){2}elseif($InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
+    $expected=if($ConformanceOnly){2}elseif($InspectConformance -or $InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault -or $ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{16}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
