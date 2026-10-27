@@ -4,7 +4,7 @@ Read [CURRENT_STATUS](CURRENT_STATUS.md) for the active phase, verified cohorts,
 
 - Full COSMIC ORM/CQL programme: **incomplete**, goal active.
 - Investor demo: 12 scoped rows green on SQLite/MongoDB/Neo4j.
-- Q23 All parent, Q49a source composition and Q23e projected-All are verified on all three. Shipping C# demo:24 examples pass through V2 HolonManager. Next red row: Q01 IQueryable/IQueryProvider.
+- Q23 All parent, Q49a source composition and Q23e projected-All are verified on all three. Shipping C# demo:24 examples pass through V2 HolonManager. Active red row: Q01 IQueryable/IQueryProvider; entity-row increment has8 unit/1,814 CQL-regression/21 native checks passing, both Core targets build. Projections and scalar/element terminals remain pending.
 - Core source capture/admission: verified by 3,851 tests and both Core targets.
 - Projected All: native implementations exist on all three; focused gates are recorded in CURRENT_STATUS.
 - Source composition: Mongo185 compiler/53 native checks pass; SQLite35 compiler/26 native tests pass; Neo4j163 compiler tests pass; all three enrolled in passing native acceptance.
@@ -14,3 +14,5 @@ Read [CURRENT_STATUS](CURRENT_STATUS.md) for the active phase, verified cohorts,
 
 Historical ORM, replication, billing, history, child graph, encryption and transport checkpoints are evidence of their original scope, not a blanket completeness claim.
 [Full implementation history](Archive/IMPLEMENTATION_STATUS_history_2026-10-27.md) preserves prior detail, including original bytes with legacy encoding.
+
+Full Core run:3,853 passed/6 failed for missing new-worktree WEB4 host artifact; no skips. This prerequisite remains unverified, not a full-suite success.
