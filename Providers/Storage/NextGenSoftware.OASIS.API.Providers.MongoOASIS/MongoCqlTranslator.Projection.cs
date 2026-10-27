@@ -34,7 +34,7 @@ internal sealed partial class MongoCqlTranslator
         // Reuse the source-owned invalid branch, outside ordering/paging/columns.
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
-        var membership = query.Source.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
+        var membership = query.Source.Predicates.Any(HasRelationships);
         return new MongoCqlProjectionCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null, traverses, fetch == 0);
     }
 
