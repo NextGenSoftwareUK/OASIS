@@ -44,7 +44,8 @@ RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# One worker, no compiler server, and errors-only output: the warning flood otherwise fills the build log and hides the real error.
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false -m:1 -nr:false -p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 
 RUN test -f /app/publish/DNA/STAR_DNA.json
 

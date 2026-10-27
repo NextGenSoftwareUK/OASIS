@@ -130,6 +130,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                         overrideConnectionString == null
                                             ? OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
                                             : overrideConnectionString, OASISDNA.OASIS.StorageProviders.MongoDBOASIS.DBName, OASISDNA);
+                                mongoOASIS.NativeImportDatabaseName = OASISDNA.OASIS.StorageProviders.MongoDBOASIS.NativeImportDBName;
                                 mongoOASIS.OnStorageProviderError += MongoOASIS_StorageProviderError;
                                 result.Result = mongoOASIS;
                             }

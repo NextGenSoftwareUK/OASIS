@@ -186,6 +186,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
     {
         public string DBName { get; set; }
+        /// <summary>Database on the same deployment holding other applications' data for native import; must differ from DBName.</summary>
+        public string NativeImportDBName { get; set; }
     }
 
     public class EOSIOASISProviderSettings : ProviderSettingsBase
