@@ -7,6 +7,18 @@ from pathlib import Path
 import update_provider_matrix as m
 
 class ProviderMatrixTests(unittest.TestCase):
+    def test_holonet_and_eoscore_require_active_sdk_calls(self):
+        holo='using NextGenSoftware.Holochain.HoloNET.Client.Interfaces; await client.CallZomeFunctionAsync(zome, function, payload);'
+        eos='using EOSNewYork.EOSCore.Response.API; await provider.ChainAPI.GetTableRowsAsync(args);'
+        self.assertIn('HoloNET client',m.detect_cs_sdk(holo))
+        self.assertIn('EOSCore chain API',m.detect_cs_sdk(eos))
+        for text in ['// '+holo,'/* '+eos+' */','using EOSNewYork.EOSCore.Response.API;', 'client.CallZomeFunctionAsync(args);']:
+            self.assertNotIn('HoloNET client',m.detect_cs_sdk(text))
+            self.assertNotIn('EOSCore chain API',m.detect_cs_sdk(text))
+        for name,group,expected in [('HoloOASIS.Edge','Network','HoloNET client'),('SEEDSOASIS','Other','EOSCore chain API')]:
+            project=m.ROOT/'Providers'/group/('NextGenSoftware.OASIS.API.Providers.'+name)/('NextGenSoftware.OASIS.API.Providers.'+name+'.csproj')
+            self.assertIn(expected,m.sdk_evidence(project))
+
     def test_requested_document_sql_and_object_roles(self):
         for family,names in {
             'Document':['FirebaseOASIS','AppwriteOASIS','FaunaOASIS','ConvexOASIS','PocketBaseOASIS'],
@@ -82,6 +94,10 @@ class ProviderMatrixTests(unittest.TestCase):
         self.assertIn('capability-v1',text)
 
     def test_negative_sdk_review_requires_unchanged_complete_source(self):
+        for name,group in [('PolygonIDOASIS','Identity'),('zkPassOASIS','Identity'),('HoloOASIS.Desktop','Network'),('Neo4jOASIS2','Storage')]:
+            project=m.ROOT/'Providers'/group/('NextGenSoftware.OASIS.API.Providers.'+name)/('NextGenSoftware.OASIS.API.Providers.'+name+'.csproj')
+            self.assertIsNotNone(m.reviewed_sdk_gap(name,project))
+            self.assertEqual([],m.sdk_evidence(project))
         project=m.ROOT/'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj'
         self.assertIsNotNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
         with patch.object(m,'source_files',return_value=iter([])):

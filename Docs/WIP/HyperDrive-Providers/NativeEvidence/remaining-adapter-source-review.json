@@ -1,0 +1,186 @@
+{
+  "date": "2026-10-27",
+  "mode": "source-review-only; no live tests or SDK certification",
+  "providers": [
+    {
+      "provider": "PolygonIDOASIS",
+      "path": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/PolygonIDOASIS.cs",
+      "sha256": "45bb51bb186029e594c5bb0476bf916684c794d20eb649712c0d376b51306742",
+      "interpretation": "Unused HttpClient; activation flips local flag, storage returns synthetic records; no service requests."
+    },
+    {
+      "provider": "zkPassOASIS",
+      "path": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/zkPassOASIS.cs",
+      "sha256": "6a97cb4f6e48ac5874551a3d575e95c8fcab5f3455d37e853363695541a5ddd2",
+      "interpretation": "Unused HttpClient; activation flips local flag, storage returns synthetic records; no service requests."
+    },
+    {
+      "provider": "HoloOASIS.Desktop",
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs",
+      "sha256": "790d2680750dea52b241df436fc2dc10373ca5054aa5baf8e160fcb168ce7a6d",
+      "interpretation": "Entire local provider source commented out; unused project reference is not an adapter."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AchievementModel.cs",
+      "sha256": "d22f9b469906f498f76b32aff44d612128485ea8866db208a3b1d2d7b5256b29",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarAttributesModel.cs",
+      "sha256": "ac67577aa5f2eab0d8ee8893dd198763bf372ac92598723490cbfe2bfcf2f6e0",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarAuraModel.cs",
+      "sha256": "09e21c249d03e1ece1bb0c15e055cc0236182f5d26cbafcb43f4d3522eb34b77",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarChakraModel.cs",
+      "sha256": "9978924f6b9955a407f0bc9a099696fd829ab313bb6c4beb372ce3d0602ef42a",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarGiftModel.cs",
+      "sha256": "30cbc5821f4b717ec0c3d64754b26d2d5a57e881005a92be5d779da573f53b68",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarHumanDesignModel.cs",
+      "sha256": "0e6f5209922d4291d13311ffd4137c784d7fd9d78829da7b13aa4b9f2296e4d4",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarModel.cs",
+      "sha256": "426611ce431f6c163cc58ca21237a6a8184b509ef5363ebc955bede84c811c84",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarSkillsModel.cs",
+      "sha256": "7106f2fb36fdcc1076d1858e528dd1fe3230e88a9a124183bbe03565a5f96497",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarStatsModel.cs",
+      "sha256": "f5e238bc305bf4c2b8c523c67a1939c73a24e35f30e782f9e165935fd1545692",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/AvatarSuperPowersModel.cs",
+      "sha256": "370181339a9839f2952ea93dfd2b050b7aff69a146fdc8887c8c6d0856d88414",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/CrystalModel.cs",
+      "sha256": "c0048bd42a5fdcb516950cee82297013b9dfc93699e26ea99f8e6c8fa92ea9c0",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/GeneKeyModel.cs",
+      "sha256": "d55a28f0964ca88873f62559bfdb42d52db4986a368ef2a75e5d2ee13c4b9d12",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/HeartRateEntryModel.cs",
+      "sha256": "10e8c9a3a36d8552e27759f75fcfd5eef373efc8ef6f1adcc6d5757d520fb31d",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/InventoryItemModel.cs",
+      "sha256": "98beafea0786b10deaa5fee599e4af98bc2590f960387db3165f019a04506e88",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/KarmaAkashicRecordModel.cs",
+      "sha256": "82dd8ba493a6f3805a51b3051243210bea306a775c9a92822df549a0011a63d0",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/ProviderKeyAbstract.cs",
+      "sha256": "c6ddb77574177af77197f81c4dd024d9133ecc09d2161526375c2b1646ee44f2",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/ProviderPrivateKeyModel.cs",
+      "sha256": "db567395610f54412fedc011431f8ffed784ac89815216aaf5c7f37e3e71f27e",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/ProviderPublicKeyModel.cs",
+      "sha256": "9eb07331054f1e0b87a4f8f70482f6f7aa006c4756da85224831fca5e6e59ed0",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/ProviderWalletAddressModel.cs",
+      "sha256": "9df8f32561cf1e1aae345cfdd5ba00d02ba0b78cd349186e8e325add257c5d82",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/RefreshTokenModel.cs",
+      "sha256": "eb25e513be1ddf79b84937092645bd0a7b1e1c0ab6df13acc202760ffc468cbe",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/DataBaseModels/SpellModel.cs",
+      "sha256": "3ce23c084e7bcae20c9bdb7cd280b5efba5f1b2915a9d5cba1b933926c7fba81",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Entities/Avatar.cs",
+      "sha256": "8b8c4cf019665eff6f650b5775371c0b7df07fff75c4e8cca594781d10d35b8c",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Entities/Holon.cs",
+      "sha256": "871e1870dee3899d368adba493777046852d1bd0505f4aa342754611bc647756",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Entities/SearchData.cs",
+      "sha256": "fe9ef705ff98230146592acb74bf74b1b1e8eafb0a6257b7a8a79ade30d38dd4",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Interfaces/IAvatarRepository.cs",
+      "sha256": "f6e750fbf6ac0563e9aaea10b2103dabad6a6d6349e33cf79aa8c5efa2cad1d1",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Neo4jOASIS2.cs",
+      "sha256": "49cdbdc1c24b3f5aa20f75a5c6b43b83b919948e04b153e8806089bca26d5171",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    },
+    {
+      "provider": "Neo4jOASIS2",
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/Repositories/AvatarRepository.cs",
+      "sha256": "0175f9f88c62725dbe7585454b2a113ffda26368cbbf4d07e6cb28ed521209cf",
+      "interpretation": "Local provider and repository implementation commented out; remaining entities/models do not execute database calls."
+    }
+  ]
+}
