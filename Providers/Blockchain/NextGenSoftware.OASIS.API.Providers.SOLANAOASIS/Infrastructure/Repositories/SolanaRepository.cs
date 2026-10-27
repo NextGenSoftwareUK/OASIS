@@ -11,7 +11,12 @@ public partial class SolanaRepository : ISolanaRepository
     internal SolanaRepository(Account owner, IRpcClient client, Func<byte[]> keyResolver, Func<string,Task<TransactionMetaSlotInfo>> readTransaction)
     {
         oasisAccount=owner;rpcClient=client;storageKeyResolver=keyResolver;
-        transactionReader=readTransaction ?? throw new ArgumentNullException(nameof(readTransaction));
+        if(readTransaction==null)throw new ArgumentNullException(nameof(readTransaction));
+        // Includes root and chunk reads performed by the canonical decoder.
+        transactionReader=signature=>NextGenSoftware.OASIS.API.Core.Queries.CosmicIndexedReadAttempts.ExecuteSourceRpcAsync(
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS,
+            NextGenSoftware.OASIS.API.Core.Queries.CosmicIndexedReadOperation.SourceTransaction,
+            ()=>readTransaction(signature));
     }
     public SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : this(oasisAccount, rpcClient, null) { }
     private const string MemoIdentity = "oasis/solana/private-memo/v1";
