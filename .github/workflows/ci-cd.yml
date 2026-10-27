@@ -115,7 +115,7 @@ jobs:
             wait: 6379
           - name: KeyDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
-            image: eqalpha/keydb:latest
+            image: eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
             ports: 6379:6379
             wait: 6379
           - name: Dragonfly
@@ -330,6 +330,27 @@ jobs:
       - name: Export test environment
         if: matrix.backend.test_env != ''
         run: echo "${{ matrix.backend.test_env }}" >> "$GITHUB_ENV"
+
+      - name: Configure synthetic Redis-family storage key
+        if: ${{ contains(fromJSON('["Redis","KeyDB","Dragonfly","ValKey","Garnet"]'), matrix.backend.name) }}
+        env:
+          STORAGE_TEST_BACKEND: ${{ matrix.backend.name }}
+        run: |
+          python3 - <<'PY'
+          import base64, os, secrets
+          variables = {
+              "Redis": "OASIS_REDIS_STORAGE_ENCRYPTION_KEY",
+              "KeyDB": "OASIS_KEYDB_STORAGE_ENCRYPTION_KEY",
+              "Dragonfly": "OASIS_DRAGONFLY_STORAGE_ENCRYPTION_KEY",
+              "ValKey": "OASIS_VALKEY_STORAGE_ENCRYPTION_KEY",
+              "Garnet": "OASIS_GARNET_STORAGE_ENCRYPTION_KEY",
+          }
+          variable = variables[os.environ["STORAGE_TEST_BACKEND"]]
+          key = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+          print(f"::add-mask::{key}")
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
+              output.write(f"{variable}={key}\n")
+          PY
 
       - name: Run the integration tests
         working-directory: OASIS
