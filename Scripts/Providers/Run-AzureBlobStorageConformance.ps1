@@ -1,13 +1,32 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param([switch]$RerunVerified)
 $ErrorActionPreference='Stop'
 $PSNativeCommandUseErrorActionPreference=$false
 $azureTaskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $azureTaskRoot 'Scripts/TestHosts/ReusableAzuriteHost.ps1')
 $azureRuntime=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/azurite-3.37.0/node_modules/azurite/dist/src/blob/main.js'
 $azurePackage=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/azurite-3.37.0/node_modules/azurite/package.json'
 if(!(Test-Path -LiteralPath $azureRuntime) -or (Get-Content -LiteralPath $azurePackage -Raw|ConvertFrom-Json).version -ne '3.37.0'){throw 'Retained pinned Azurite missing; do not download or substitute a runtime.'}
 $azureResults=Join-Path $azureTaskRoot 'TestResults/ProviderConformanceCurrent'
+if($RerunVerified){
+    $azureRegistry=Get-Content (Join-Path $azureTaskRoot 'Docs/WIP/HyperDrive-Providers/CONFORMANCE_RESULTS.json') -Raw|ConvertFrom-Json
+    $azureEntry=@($azureRegistry.results|Where-Object provider -eq 'AzureStorageOASIS')
+    if($azureEntry.Count -ne 1 -or $azureEntry[0].passed -ne 52 -or $azureEntry[0].mode -ne 'native' -or $azureEntry[0].suite -ne 'core-storage-v2'){throw 'Only a verified current native pair may be retired for rerun.'}
+    $azureAggregatePath=Join-Path $azureTaskRoot $azureEntry[0].report
+    if((Get-FileHash -LiteralPath $azureAggregatePath).Hash -ne $azureEntry[0].sha256){throw 'Registered Azure aggregate changed.'}
+    $azureAggregate=Get-Content $azureAggregatePath -Raw|ConvertFrom-Json
+    $azureMoves=@()
+    foreach($azureMode in @('async','sync')){
+        $azurePath=Join-Path $azureResults ('AzureStorageOASIS/'+$azureMode+'/report.json')
+        $azurePriorReport=Get-Content $azurePath -Raw|ConvertFrom-Json
+        $azureExpected=@($azureAggregate.runs|Where-Object {$_.Synchronous -eq ($azureMode -eq 'sync')})
+        $azureArchive=Join-Path (Split-Path $azurePath) 'report-verified-previous.json'
+        if($azureExpected.Count -ne 1 -or ($azurePriorReport|ConvertTo-Json -Depth 40 -Compress) -ne ($azureExpected[0]|ConvertTo-Json -Depth 40 -Compress) -or !$azurePriorReport.Succeeded -or !$azurePriorReport.FixtureCleanupComplete -or $azurePriorReport.Passed.Count -ne 26 -or (Test-Path ($azurePath+'.next')) -or (Test-Path $azureArchive)){throw 'Azure previous fixtures/reports require review; no retirement.'}
+        $azureMoves+=@{Source=$azurePath;Destination=$azureArchive;Hash=(Get-FileHash $azurePath).Hash}
+    }
+    foreach($azureMove in $azureMoves){Move-Item -LiteralPath $azureMove.Source -Destination $azureMove.Destination;if((Get-FileHash $azureMove.Destination).Hash -ne $azureMove.Hash){throw 'Retired Azure report changed.'}}
+}
 foreach($azureMode in @('async','sync')){
     $azureReport=Join-Path $azureResults ('AzureStorageOASIS/'+$azureMode+'/report.json')
     if((Test-Path -LiteralPath $azureReport) -or (Test-Path -LiteralPath ($azureReport+'.next'))){throw 'Preserve previous Azure Blob reports and native fixture evidence before rerun.'}
@@ -45,13 +64,10 @@ if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyCont
         [xml]$azureControls=Get-Content (Join-Path $azureResults 'azure-blob-controls-current.trx') -Raw
         $azureCounts=$azureControls.TestRun.ResultSummary.Counters
         if([int]$azureCounts.total -le 0 -or [int]$azureCounts.passed -ne [int]$azureCounts.total -or [int]$azureCounts.notExecuted -ne 0){throw 'Every selected Azure Blob control must execute and pass.'}
-        $azureProcess=Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @($azureRuntime,'--blobHost','127.0.0.1','--blobPort','10000','--location',$azureData,'--disableTelemetry','--silent') -WorkingDirectory $azureWork -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $azureWork 'azurite.out.log') -RedirectStandardError (Join-Path $azureWork 'azurite.err.log')
+        $azureProcess=Start-ReusableAzuriteHost -Workspace $azureWork
         $azureReady=$false
         for($azureAttempt=0;$azureAttempt -lt 60;$azureAttempt++){
-            if($azureProcess.HasExited){throw 'Owned Azurite exited before readiness.'}
-            $azureListener=Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue
-            if($azureListener){
-                if(@($azureListener|Where-Object OwningProcess -ne $azureProcess.Id).Count){throw 'Azurite listener is not the owned process.'}
+            if(Assert-ReusableAzuriteListener -HostHandle $azureProcess){
                 $azureReady=$true;break
             }
             Start-Sleep -Milliseconds 250
@@ -70,10 +86,7 @@ if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyCont
         if([int]$azureCounts.total -ne 2 -or [int]$azureCounts.passed -ne 2 -or [int]$azureCounts.notExecuted -ne 0){throw 'Both native Azure Blob schedules must pass without skips.'}
     }finally{
         $env:OASIS_AZURE_STORAGE_CONFORMANCE=$azurePrior
-        if($null -ne $azureProcess -and !$azureProcess.HasExited){
-            Stop-Process -Id $azureProcess.Id -Force
-            if(!$azureProcess.WaitForExit(10000)){throw 'Owned Azurite did not exit; do not restart or remove the store.'}
-        }
+        if($null -ne $azureProcess){Stop-ReusableAzuriteHost -HostHandle $azureProcess}
         $azureLease.Dispose()
     }
 }

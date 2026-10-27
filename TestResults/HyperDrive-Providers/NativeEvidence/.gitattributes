@@ -1,0 +1,2 @@
+# Hash-bound compact conformance summaries retain their exact captured bytes.
+conformance-*-current.json -text
