@@ -401,6 +401,23 @@ bool allVersioned = featured.All(holon => holon.Version >= 1);
 bool emptyAll = featured.Take(0).All(holon => false);
 ```
 
-These terminals preserve source/stage row, payload and work bounds. `Any`/`All` do not bypass protected traversal outcomes through an early managed short-circuit. Separate terminal calls do not promise the same snapshot across calls. Staged element terminals, projections and remaining numeric reductions are still pending.
+These terminals preserve source/stage row, payload and work bounds. `Any`/`All` do not bypass protected traversal outcomes through an early managed short-circuit. Separate terminal calls do not promise the same snapshot across calls. Staged tail/from-end elements, explicit default overloads, projections and remaining numeric reductions are still pending.
 
-The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. This increment has shared tests only: standard staged element binding and live provider acceptance remain pending, and Last/reversal explicitly reject until independently implemented.
+The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. Standard staged First/FirstOrDefault/Single/SingleOrDefault and forward Int32 ElementAt/ElementAtOrDefault now pass20 live cases/database. Terminal predicates remain after earlier windows. Last/from-end indexing and explicit default-value overloads still explicitly reject pending implementation.
+
+### Forward element terminals after entity stages
+
+Using the `featured` sequence above:
+
+```csharp
+// Returns null if no staged row matches. The predicate stays after the page.
+Holon revised = featured.FirstOrDefault(holon => holon.Version >= 2);
+
+// This later page makes cardinality unambiguous before typed hydration.
+Holon only = featured.Take(1).SingleOrDefault();
+
+// Indexes address the staged sequence, not the original provider source.
+Holon second = featured.ElementAtOrDefault(1);
+```
+
+`Single` and `SingleOrDefault` return `CQL_SEQUENCE_MULTIPLE` for multiple matches before application constructors/setters run. Missing required elements produce sequence/index errors; optional forms return null. Negative `Queryable.ElementAt(int)` uses the framework's `ArgumentOutOfRangeException`; direct admitted-plan APIs report their CQL index validation. Protected traversal failures from preceding stages still propagate before a later element window can hide them. Explicit default-value overloads and tail/from-end operations remain pending.
