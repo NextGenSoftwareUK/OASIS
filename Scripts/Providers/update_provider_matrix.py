@@ -127,6 +127,16 @@ def sdk_evidence(project,visited=None):
    if namespace in current_source or (relative_base and same_provider_root):found+=sdk_evidence(path,visited)
  return sorted(set(found))
 
+def reviewed_sdk_gap(name,project):
+ """Negative evidence is limited to the exact, unchanged source set that was reviewed."""
+ audit=json.loads((DEST/'NativeEvidence/map-facade-source-review.json').read_text(encoding='utf-8-sig'))
+ reviewed=[row for row in audit['providers'] if row['provider']==name]
+ if not reviewed:return None
+ paths={(ROOT/row['path']).resolve() for row in reviewed}
+ if paths!={p.resolve() for p in source_files(project.parent)}:return None
+ if any(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest()!=row['sha256'] for row in reviewed):return None
+ return 'Source-reviewed facade has no native SDK/API adapter; capability implementation required'
+
 def build():
  registry=json.loads((DEST/'CONFORMANCE_RESULTS.json').read_text(encoding='utf-8-sig'))
  evidence={r['provider']:r for r in registry['results']};rows=[]
@@ -151,19 +161,21 @@ def build():
    if role!='Non-storage' and e['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
     status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
   else:status='Not run (capability-v1)' if role=='Non-storage' else 'Not run';blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
-  if not sdk:blockers.append('Real SDK/API not yet source-reviewed')
-  sdk_text='Yes - '+', '.join(sdk) if sdk else 'No - unverified'
+  gap=reviewed_sdk_gap(name,project) if not sdk else None
+  if gap:blockers.append(gap)
+  elif not sdk:blockers.append('Real SDK/API not yet source-reviewed')
+  sdk_text='Yes - '+', '.join(sdk) if sdk else ('No - reviewed missing adapter' if gap else 'No - unverified')
   rows.append(f"| [{name}](../../../{rel.as_posix()}) | {role} | {sdk_text} | {status} | {'; '.join(blockers) or 'None recorded within suite scope'} |")
  header=f'''# Provider breadth-first status matrix
 
 Generated from **{len(rows)} shipping provider projects** by `python Scripts/Providers/update_provider_matrix.py`.
-Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers.
+Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers; **{sum("| No - reviewed missing adapter |" in row for row in rows)}** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **{registry.get('currentCoreSuite','core-storage-v1')}**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
 One row per provider project; tests/harness/demo and provider-template projects excluded. Alternate implementations remain separate rows. Non-storage providers require capability review rather than disappearing.
 
-**SDK Yes means detected client construction/use, service HTTP calls, or a declared Node SDK imported by bridge source; it is not live acceptance or full implementation. No means unverified, not necessarily absent.** Referenced provider namespaces actually used by source are followed; unused project references do not earn SDK credit; package presence alone does not earn Yes. Non-storage products use capability-v1 identity/activation/read-only service checks, not storage CRUD. Persistent search/vector databases remain storage; chain indexers/maps/AI/wallet/auth services are Non-storage. Existing provider-specific test totals are NOT shared conformance passes.
+**SDK Yes means detected client construction/use, service HTTP calls, or a declared Node SDK imported by bridge source; it is not live acceptance, an installed runtime, or full implementation. No distinguishes unverified evidence from reviewed missing adapters.** Negative reviews apply only while every reviewed source hash and the complete source-file set still match; changed or added sources revert to unverified. Referenced provider namespaces actually used by source are followed; unused project references do not earn SDK credit; package presence alone does not earn Yes. Non-storage products use capability-v1 identity/activation/read-only service checks, not storage CRUD. Persistent search/vector databases remain storage; chain indexers/maps/AI/wallet/auth services are Non-storage. Existing provider-specific test totals are NOT shared conformance passes.
 
 `CONFORMANCE_RESULTS.json` holds hash-bound reports with suite/version and controlled/native mode. Until every applicable provider passes, global HyperDrive failover/load-balancing/replication is deferred; depth work follows afterward. No100% certification from this inventory. Initial v1 harness control: both sync/async model runs passed all52 contract checks; LocalFile native runs stopped at avatar-save acknowledgement (2/52), retained below. SQL90 unit passes include family-identity controls and are not shared native conformance.
 
