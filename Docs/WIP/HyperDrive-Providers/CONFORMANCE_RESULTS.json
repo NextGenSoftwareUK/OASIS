@@ -1,6 +1,5 @@
 {
   "schemaVersion": 1,
-  "suite": "core-storage-v1",
   "results": [
     {
       "provider": "LocalFileOASIS",
@@ -26,5 +25,9 @@
     "TimescaleDBOASIS": [
       "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
     ]
-  }
+  },
+  "suites": [
+    "core-storage-v1",
+    "capability-v1"
+  ]
 }
