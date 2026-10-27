@@ -6,7 +6,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public class CosmicProjectedAllTests
+public partial class CosmicProjectedAllTests
 {
     private const CosmicSelectedStageFeatures Stages = CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging;
     private const CosmicQueryFeatures Logic = CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant;
