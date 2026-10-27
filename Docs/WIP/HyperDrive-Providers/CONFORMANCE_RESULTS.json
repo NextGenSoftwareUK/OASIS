@@ -13,6 +13,45 @@
         "avatar-save: System.InvalidOperationException",
         "avatar-save: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "EthereumOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ethereumoasis-current.json",
+      "sha256": "95d79b93f8d3448f3f9bf25ba9deeded885c14343a53f074cb4111ae3c7cba5e",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "ArbitrumOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-arbitrumoasis-current.json",
+      "sha256": "97e2a0c50249af2cb0ac662221e077b8389a6e38af2393fdb3dd50c3ddb2807f",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "PolygonOASIS",
+      "suite": "core-storage-v1",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-polygonoasis-current.json",
+      "sha256": "655738bb849506547ff7a78de349d0ce814b3216b84558eef4d9c854a32599da",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
@@ -24,6 +63,15 @@
     ],
     "TimescaleDBOASIS": [
       "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+    ],
+    "EthereumOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "ArbitrumOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
+    ],
+    "PolygonOASIS": [
+      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
     ]
   },
   "suites": [
