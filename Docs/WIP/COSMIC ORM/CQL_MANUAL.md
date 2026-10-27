@@ -68,8 +68,17 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable Select, selected composition and scalar/element terminals remain
+Queryable Select, selected composition and numeric/element terminals remain
 unimplemented and fail explicitly; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
 and [native row tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs).
+Standard `Count()`, `LongCount()`, `Any()` and `All(predicate)` now execute through
+native scalar plans and V2 HolonManager; they do not enumerate entity rows.
+For example, `query.Skip(10).Take(5).Count()` counts that source window, while
+`query.Take(5).All(row => row.IsActive)` tests the predicate after that window.
+
+Count/LongCount/Any predicate overloads work on unwindowed sources. A predicate
+on one of these terminals after Skip/Take currently returns the explicit
+`CQL_COMPOSITION_UNSUPPORTED` exception. It is not moved before the window.
+This remains Q01 work; All already has an independent post-window predicate.
