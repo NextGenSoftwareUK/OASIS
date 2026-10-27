@@ -31,7 +31,9 @@ When two or more agents work at the same time, each gets its own git worktree an
 ## 3. Keep agents on track cheaply
 
 1. **Written plan.** Keep a short checklist in `Docs/WIP/` (e.g. provider family → test → commit). Agents drift and redo work when the goal is vague.
-2. **Short sessions.** A long session re-reads its whole history on every turn, so cost keeps climbing. Start a fresh session after each milestone, with a short handoff doc in `Docs/WIP/`. This is often the single biggest saving.
+2. **Keep context lean.** A long session re-reads its whole history on every turn, so cost keeps climbing.
+   - *Interactive work:* start a fresh session after each milestone, with a short handoff doc in `Docs/WIP/`.
+   - *Goal-driven overnight runs* (e.g. Codex goals running for days): restarting is impractical, and the tool compacts context automatically. Instead, have the agent keep a living status/handoff file in `Docs/WIP/` (done, next, open problems) updated at each milestone, so compaction loses nothing important. Keep the goal text short and stable, avoid pasting large logs into the conversation (write them to files and summarise), and let it drop finished detail.
 3. **Cross-check.** Have one agent briefly review the other's commit before it merges to `Development`; catching a wrong turn early is far cheaper than fixing it later.
 4. **Commit only your own files** in any shared checkout — never `git add -A` or `git commit -a`.
 
