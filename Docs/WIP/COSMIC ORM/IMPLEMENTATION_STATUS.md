@@ -1,3 +1,5 @@
+26 October lineage root fix: capture validated execution owner and freeze original operation GUID before callbacks/awaits. Three genuine initial regressions and three resumed controls pass; fullCore3,750PASS0skip/shippingbuildPASS. Evidence Verification/cursor-lineage-*. Native526/608 remains separately scoped; full roadmap active.
+
 26 October request ownership root fix: two genuine disclosure/wire-cap mutation regressions fixed through shared bounded detached row/federation capture. Core3,744PASS0skip/shippingbuildPASS/fresh native526settlements608attempts; source unchanged/seven pairs; cleanup verified. Evidence Verification/request-ownership-*. Full roadmap active.
 
 26 October latest: actual abrupt cursor-host process termination/fresh-process continuation with unchanged DPAPI-protected persisted key passes on all3stores. Full native526settlements608attempts, unchanged sources/seven pairs, owned teardown verified. Evidence Verification/federation-cursor-process*. Core3,739 separate. Multi-host key topologies/broader failure windows/distributed features/full ORM roadmap remain open.
