@@ -56,7 +56,7 @@ public class CosmicChainQueryIngestionTests
             if(mode=="receipt")value=record with{Receipt=new(source,position,"another-commit",record.Receipt.Record)};
             return Task.FromResult(new OASISResult<CosmicChainQueryObservedRecord>(value));
         }
-        public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveHeadAsync(CosmicChainQuerySource selected,CancellationToken token){
+        public Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveHeadAsync(CosmicChainQuerySource selected,IReadOnlyList<long> requiredSlots,CancellationToken token){
             HeadCalls++;if(mode=="head-error")return Task.FromResult(new OASISResult<CosmicChainQueryFinalizedHead>{IsError=true,ErrorCode="head-unavailable"});
             return Task.FromResult(new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow-(mode=="stale"?TimeSpan.FromHours(1):TimeSpan.Zero))));
         }

@@ -82,7 +82,7 @@ public class SolanaChainIndexObservationTests
                 case "GetGenesisHashAsync":json=JsonConvert.SerializeObject(Mode=="network"?Hash(1):Genesis);break;
                 case "GetFirstAvailableBlockAsync":RetentionCalls++;json=Mode=="pruned"||Mode=="pruned-later"&&RetentionCalls>1?"2":"1";break;
                 case "GetSlotAsync":Assert.AreEqual(Commitment.Finalized,args![0]);json="10";break;
-                case "GetBlockAsync":Assert.AreEqual(Commitment.Finalized,args![1]);json=JsonConvert.SerializeObject(new{blockhash=Hash(Convert.ToInt32(args[0]))});break;
+                case "GetBlockAsync":Assert.AreEqual(Commitment.Finalized,args![1]);json=Mode=="anchor-missing"&&Convert.ToInt32(args[0])==9?"null":JsonConvert.SerializeObject(new{blockhash=Hash(Convert.ToInt32(args[0]))});break;
                 case "GetSignaturesForAddressAsync":
                     Assert.AreEqual(Writer,args![0]);Assert.AreEqual(Commitment.Finalized,args[4]);Pages++;
                     json=Mode=="empty"||Pages>1?"[]":JsonConvert.SerializeObject(

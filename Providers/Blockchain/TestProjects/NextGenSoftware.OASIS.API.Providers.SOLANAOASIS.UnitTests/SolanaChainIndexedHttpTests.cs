@@ -36,7 +36,7 @@ public partial class SolanaChainIndexedBillingTests
         var tariffs = new CosmicIndexedReadTariffPolicy(source, 100,
             CosmicIndexedReadTariffPolicy.Required.Select(op => new CosmicIndexedReadTariff(op, 0.001m, "http-index-v1")));
         var bindings = new HttpBindings(actor, new CqlIndexedV1Binding(index, repository, tariffs,
-            requirement.MinimumPosition, 0, TimeSpan.FromMinutes(1), CosmicQueryReadAccess.OwnerOrPublic(actor).Result, manager));
+            mode.StartsWith("http-minimum-", StringComparison.Ordinal) ? new CosmicChainQueryPosition(9, mode == "http-minimum-conflict" ? "wrong-finalized-block" : SolanaChainIndexObservationTests.RangeRpc.Hash(9)) : requirement.MinimumPosition, 0, TimeSpan.FromMinutes(1), CosmicQueryReadAccess.OwnerOrPublic(actor).Result, manager));
         var outbox = DispatchProxy.Create<IUsageOutboxStore, HttpLedger>();
         var ledger = (HttpLedger)(object)outbox;
         ledger.Actor = actor;
@@ -72,7 +72,7 @@ public partial class SolanaChainIndexedBillingTests
         app.UseMiddleware<PreparedStorageAdmissionMiddleware>();
         app.MapControllers();
         rpc.Calls = 0;
-        rpc.Mode = mode == "http-missing" ? "missing" : mode == "http-network" ? "network" : "";
+        rpc.Mode = mode == "http-missing" ? "missing" : mode == "http-network" ? "network" : mode == "http-minimum-missing" ? "anchor-missing" : "";
         await app.StartAsync();
         try
         {
@@ -84,10 +84,11 @@ public partial class SolanaChainIndexedBillingTests
             var body = "{\"alias\":\"solana-demo\",\"query\":{\"filters\":[{\"field\":\"Name\",\"operator\":\"Equal\",\"value\":\"" + name + "\"}],\"orderBy\":\"Name\",\"take\":1}}";
             using var response = await client.PostAsync("/api/data/query-cql/indexed", new StringContent(body, Encoding.UTF8, "application/json"));
             var text = await response.Content.ReadAsStringAsync();
-            if (mode is "http-missing" or "http-network")
+            if (mode is "http-missing" or "http-network" or "http-minimum-conflict" or "http-minimum-missing")
             {
                 Assert.AreEqual(HttpStatusCode.ServiceUnavailable, response.StatusCode, text);
                 Assert.IsFalse(text.Contains("\"rows\""), text);
+                if(mode=="http-minimum-conflict")StringAssert.Contains(text,"CQL_SOURCE_FINALITY_CONFLICT");
                 Assert.AreEqual("settled", response.Headers.GetValues("X-OASIS-Usage-Settlement").Single());
                 var failed = ledger.Operations.Values.Single();
                 Assert.AreEqual("failed", failed.ObservedOutcome);
@@ -118,13 +119,14 @@ public partial class SolanaChainIndexedBillingTests
 
             var operation = ledger.Operations.Values.Single();
             Assert.AreEqual("settled", operation.State);
-            Assert.AreEqual(empty ? 4 : 7, operation.ProviderAttempts.Count);
+            var expectedReads = (empty ? 4 : 7) + (mode.StartsWith("http-minimum-", StringComparison.Ordinal) ? 1 : 0);
+            Assert.AreEqual(expectedReads, operation.ProviderAttempts.Count);
             Assert.AreEqual(operation.ProviderAttempts.Count, operation.Receipts.Count);
             Assert.AreEqual(1, operation.Receipts.Count(r => r.Provider == ProviderType.SQLLiteDBOASIS.ToString()));
             Assert.AreEqual(rpc.Calls, operation.Receipts.Count(r => r.Provider == ProviderType.SolanaOASIS.ToString()));
             var settlement = authorityState.Settlements.Single();
-            Assert.AreEqual(empty ? 4L : 7L, settlement.Units);
-            Assert.AreEqual(empty ? 0.004m : 0.007m, settlement.ActualCostUsd);
+            Assert.AreEqual((long)expectedReads, settlement.Units);
+            Assert.AreEqual(expectedReads * 0.001m, settlement.ActualCostUsd);
             Assert.AreEqual(100L, authorityState.Authorizations.Single().RequestedUnits);
             Assert.AreEqual(0.1m, authorityState.Authorizations.Single().EstimatedCostUsd);
             Assert.AreEqual(0, rpc.Writes);

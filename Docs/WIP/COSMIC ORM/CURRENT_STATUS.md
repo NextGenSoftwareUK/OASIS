@@ -14,7 +14,7 @@ Updated 27 October 2026. Read this first after compaction; update each milestone
 
 - Indexed SDK: authenticated durable SQLite history/projection/checkpoint, canonical Solana observer/ingestion, typed manager/clean tracking, LINQ rows and explicit service-tariff physical-read capture implemented.
 - WEB4 indexed controller now consumes a frozen server alias/query/grant, exact usage handle/tariffs and sufficient cost/unit/attempt reservation. Changed intent and duplicate consumption reject before dispatch; public source/index/checkpoint/receipts retained. Slots are exact strings.
-- Full Core suite: 4,140 passed / 0 failed / 0 skipped. Solana unit suite: 793 passed. Actual SQLite indexed/store checks: 31 passed. Includes 12 controlled loopback HTTP requests, single-use/policy cases, receipt precision and reservation failures.
+- Full Core suite: 4,146 passed / 0 failed / 0 skipped. Solana unit suite: 799 passed. Actual SQLite indexed/store checks: 31 passed. Includes 12 controlled loopback HTTP requests, single-use/policy cases, receipt precision and reservation failures.
 - Shipping WEB4 and five shared-controller consumers build. Missing outputs/assets regenerated cache-only for 61 in-worktree projects; 8 external sibling projects read-only. Full Core's prior missing-host prerequisite failures are resolved.
 - [HTTP milestone/limits](CQL_INDEXED_HTTP.md), [billing contract](CQL_INDEXED_BILLING.md), [indexed SQL contract](CQL_INDEXED_SQL_ROWS.md).
 - Stock pipeline adds 12 tests: rows/empty/replay, malformed or unsupported intent, route ceiling, uncertain receipt, registration composition, shared aggregate budgets and preparation failure. Production JWT/durable authority remains open.
@@ -22,8 +22,8 @@ Updated 27 October 2026. Read this first after compaction; update each milestone
 ## Exact next work
 
 1. Stock usage/storage middleware integration now verified: raw HTTP reservation identity and frozen semantic query identity remain independently checked. AddCqlIndexedReadAdmission composes existing singleton storage admission. Shared handle budgets cannot reset across repeated prepared executions.
-2. Actual SQLite/canonical Solana decoder now pass through shipping HTTP plus stock middleware (rows, empty, missing source, wrong network; 793 Solana tests). Next: declared-range native chain acceptance. HTTP identity/outbox/RPC transport remain controlled; production JWT/durable settlement is not certified.
-3. Audit/reproduce minimum-position block identity when its slot is below checkpoint/head; do not overstate finality/ancestry assurance. Current label is trusted-source-observation, not inclusion proof.
+2. Actual SQLite/canonical Solana decoder now pass through shipping HTTP plus stock middleware (rows, empty, missing source, wrong network; 799 Solana tests). Next: declared-range native chain acceptance. HTTP identity/outbox/RPC transport remain controlled; production JWT/durable settlement is not certified.
+3. Older finalized minimum/checkpoint/previous identity bug reproduced and fixed. Shared admission requires independent bounded anchor observations; actual SQL/decoder HTTP and ingestion prove accept/reject, including empty pages. Still trusted-source-observation, not inclusion/ancestry proof.
 4. Complete indexed scalar/projection/metadata policy and common demo gaps. Running the same query across all eight providers remains open.
 5. Resume remaining red parity rows after demo acceptance, including Q01f Mongo/Neo projection/standard Select and numeric terminals.
 

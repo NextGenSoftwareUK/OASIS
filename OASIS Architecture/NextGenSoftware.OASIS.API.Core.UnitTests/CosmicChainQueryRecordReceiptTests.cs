@@ -16,7 +16,7 @@ public class CosmicChainQueryRecordReceiptTests
     private static CosmicChainQueryReadRequirement Requirement(long start=0) => new(Source(start:start),new(90,"block-90"),10,TimeSpan.FromSeconds(10));
     private static CosmicChainQueryCheckpoint Checkpoint(long start=0) => new(Source(start:start),new(100,"block-100"),start);
     private static CosmicChainQueryFinalizedHead Head(DateTimeOffset? observedAt=null) => new(
-        ProviderType.SolanaOASIS,"genesis-A",new(110,"block-110"),observedAt ?? Now);
+        ProviderType.SolanaOASIS,"genesis-A",new(110,"block-110"),observedAt ?? Now,new[]{new CosmicChainQueryPosition(90,"block-90"),new CosmicChainQueryPosition(100,"block-100"),new CosmicChainQueryPosition(95,"block-95")});
     private static CosmicChainQueryRecordReceipt Receipt(long slot=95,string? block=null,
         CosmicChainQueryRecordIdentity? record=null,CosmicChainQuerySource? source=null) => new(
         source ?? Source(),new(slot,block ?? "block-"+slot),"original-commit-reference",record ?? Record());
