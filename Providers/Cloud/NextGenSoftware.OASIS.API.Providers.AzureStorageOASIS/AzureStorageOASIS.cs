@@ -150,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 if(source is Holon caller)caller.ChildRoleManifestJson=committed.ChildRoleManifestJson;
                 source.ProviderUniqueStorageKey??=new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
-                result.Result=source;result.IsSaved=true;result.Message=$"AzureStorageOASIS: Saved holon blob '{key}'.";
+                result.Result=source;result.IsSaved=true;result.SavedCount=1;result.Message=$"AzureStorageOASIS: Saved holon blob '{key}'.";
             }catch(Exception cause){HandleBlobSaveError(ref result,cause);}
             return result;
         }
@@ -183,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                         saved.Add(written.Result);
                     }
                 }
-                result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;
+                result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;result.SavedCount=saved.Count;
                 if(failures.Count>0) {
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
                     result.Exception=saved.Count>0 ? new AzureBlobPartialMutationException(saved.Select(row=>row.Id),cause):cause;
@@ -191,7 +191,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             }
             catch(Exception cause) {
                 result.Exception=saved.Count>0 ? new AzureBlobPartialMutationException(saved.Select(row=>row.Id),cause):cause;
-                result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
+                result.IsSaved=false;result.SavedCount=saved.Count;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
             return result;
         }
@@ -229,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 }
                 var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,
                     source=>Deserialise<Holon>(Serialise(source))!);
-                result.Result = project(holon);result.IsLoaded=true;
+                result.Result = project(holon);result.IsLoaded=true;result.LoadedCount=1;
             }
             catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure holon blob not found.";
@@ -270,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 }
                 var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(childRecords,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
                     source=>Deserialise<Holon>(Serialise(source))!);
-                result.Result = holons.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();result.IsLoaded=true;
+                result.Result = holons.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -299,6 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
             if(loaded.IsError) return loaded;
             loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
+            loaded.LoadedCount=loaded.Result.Count();
             return loaded;
         }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -352,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 if(avatar.IsDeleted&&!includeDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar is deleted.";return result;}
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
-                result.Result = avatar;result.IsLoaded=true;
+                result.Result = avatar;result.IsLoaded=true;result.LoadedCount=1;
             }
             catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar blob not found.";
@@ -391,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                     if(r.Result==null) throw new InvalidDataException("Azure avatar read returned no record.");
                     if(includeDeleted||!r.Result.IsDeleted) avatars.Add(r.Result);
                 }
-                result.Result = avatars;result.IsLoaded=true;
+                result.Result = avatars;result.IsLoaded=true;result.LoadedCount=avatars.Count;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -418,7 +419,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 PublishBlobVersion(source, committed);
                 source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
-                result.Result = source;result.IsSaved=true; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
+                result.Result = source;result.IsSaved=true;result.SavedCount=1; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
             }
             catch (Exception ex) { HandleBlobSaveError(ref result, ex); }
             return result;

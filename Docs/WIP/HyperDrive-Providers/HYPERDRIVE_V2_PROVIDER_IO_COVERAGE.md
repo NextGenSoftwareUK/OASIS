@@ -10,7 +10,7 @@ Updated 2026-10-27. [CURRENT_STATUS.md](CURRENT_STATUS.md) is the recovery entry
 | Native52/52 | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS and LocalFile; local engines/emulators, not hosted certification |
 | Controlled52/52 | KeyDB, ValKey, Dragonfly, Garnet; native product runtime/conditional/scan acceptance remains open |
 | `capability-v1` | Identity, honest capabilities, activation, read-only service response and deactivation; ActivityPub published5/5 public-read baseline (`00235929a`) |
-| Partial/blocked | Solana4/52; Azure Blob2/52 (counts); SOLID/IPFS/Cosmos/EVM/S3 configuration or runtime gates; most other rows not run |
+| Partial/blocked | Solana4/52; Azure Blob25/52 (checkpoint/fixture review;109controls pass); SOLID/IPFS/Cosmos/EVM/S3 configuration or runtime gates; most other rows not run |
 
 Deletion checks preserve the shipping contract: valid tombstones or independent absence are allowed as declared, with acknowledged counts and no live/corrupt raw collection result. Optional fixture maintenance does not replace the API under test. Interface absence is not physical backup/ledger erasure.
 
