@@ -47,7 +47,7 @@ def build(dev_dna: dict) -> dict:
     for name, value in list(storage.items()):
         if isinstance(value, dict) and name not in SANDBOX_PROVIDERS:
             storage[name] = None
-    storage["MongoDBOASIS"] = {"DBName": "OASISAPI_SANDBOX", "ConnectionString": "${{MongoDB.MONGO_URL}}"}
+    storage["MongoDBOASIS"] = {"DBName": "OASISAPI_SANDBOX", "NativeImportDBName": "SANDBOX_NATIVE_APPS", "ConnectionString": "${{MongoDB.MONGO_URL}}"}
     storage["SQLLiteDBOASIS"] = {"ConnectionString": "Data Source=/tmp/oasis-sandbox.db"}
     storage["Neo4jOASIS"] = {"Username": "neo4j", "Password": "${{Neo4j.SANDBOX_NEO4J_PASSWORD}}",
                              "ConnectionString": "bolt://${{Neo4j.RAILWAY_PRIVATE_DOMAIN}}:7687"}
