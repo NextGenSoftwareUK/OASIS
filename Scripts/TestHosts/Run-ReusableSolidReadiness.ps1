@@ -1,7 +1,8 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
+param([switch]$ReconcileCore,[switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
+if($CoreStorage -and $ReconcileCore){throw 'Select baseline or exact reconciliation separately.'}
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskSolidWork=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'}
 $taskSolidResults=Join-Path $taskSolidRoot 'TestResults/SolidCurrent'
@@ -9,14 +10,15 @@ New-Item -ItemType Directory -Path $taskSolidResults -Force|Out-Null
 if(!(Test-Path -LiteralPath $taskSolidWork -PathType Container)){throw 'Retained SOLID work directory required.'}
 $taskSolidLease=[IO.File]::Open((Join-Path $taskSolidWork 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $taskSolidStarted=$false;$taskSolidPrior=$env:OASIS_SOLID_COLD_READONLY_WORK
-$taskSolidReport=Join-Path $taskSolidResults $(if($CoreStorage){'solid-core-lifecycle.json'}else{'solid-readiness-current.json'})
-$taskSolidTrxName=if($CoreStorage){'solid-core-current.trx'}else{'solid-ready-read-current.trx'}
+$taskSolidReport=Join-Path $taskSolidResults $(if($ReconcileCore){'solid-core-cleanup-lifecycle.json'}elseif($CoreStorage){'solid-core-lifecycle.json'}else{'solid-readiness-current.json'})
+$taskSolidTrxName=if($ReconcileCore){'solid-core-cleanup.trx'}elseif($CoreStorage){'solid-core-current.trx'}else{'solid-ready-read-current.trx'}
 $taskSolidTrx=Join-Path $taskSolidResults $taskSolidTrxName
 $taskSolidSamples=[Collections.Generic.List[object]]::new()
-$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=$(if($CoreStorage){'current-source shared storage baseline in explicitly selected owned Pod'}else{'frozen-output readiness and one authenticated read; not current-source acceptance'});freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
+$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=$(if($ReconcileCore){'exact original owned fixture readback and conditional cleanup; deleted children never replayed'}elseif($CoreStorage){'current-source shared storage baseline in explicitly selected owned Pod'}else{'frozen-output readiness and one authenticated read; not current-source acceptance'});freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
 try{
     if((Test-Path $taskSolidReport) -or (Test-Path $taskSolidTrx)){throw 'Preserve original readiness evidence before another run.'}
-    if(Get-ChildItem -LiteralPath $taskSolidWork -Filter '*pending*.json'){throw 'Original pending SOLID fixtures require reconciliation.'}
+    $taskSolidPending=@(Get-ChildItem -LiteralPath $taskSolidWork -Filter '*pending*.json')
+    if($taskSolidPending -and (!$ReconcileCore -or @($taskSolidPending|Where-Object Name -notin @('core-async.pending.json','core-sync.pending.json')).Count)){throw 'Original pending SOLID fixtures require reconciliation.'}
     foreach($taskSolidName in @('private-local-client.dpapi','private-local-pod.dpapi')){
         if(!(Test-Path -LiteralPath (Join-Path $taskSolidWork $taskSolidName) -PathType Leaf)){throw 'Retained identity missing; never reprovision here.'}
     }
@@ -36,11 +38,13 @@ try{
         throw 'Retained SOLID identity or lifecycle differs; inspect without replacement.'
     }
     $taskSolidProject=Join-Path $taskSolidRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
-    if($CoreStorage){
+    if($CoreStorage -or $ReconcileCore){
+        if($CoreStorage){
         foreach($taskSolidMode in @('async','sync')){
             if(Test-Path -LiteralPath (Join-Path $taskSolidRoot "TestResults/ProviderConformanceCurrent/SOLIDOASIS/$taskSolidMode/report.json")){
                 throw 'Preserve prior SOLID baseline evidence before a new dispatch.'
             }
+        }
         }
         $taskSolidProvider=Join-Path $taskSolidRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj'
         foreach($taskSolidBuild in @($taskSolidProvider,$taskSolidProject)){
@@ -61,7 +65,7 @@ try{
     $taskSolidEvidence.socketReadyMs=$taskSolidTimer.ElapsedMilliseconds
     foreach($taskSolidSample in $taskSolidObserved.Samples){$taskSolidSamples.Add($taskSolidSample)}
     $env:OASIS_SOLID_COLD_READONLY_WORK=$taskSolidWork
-    $taskSolidFilter=if($CoreStorage){'Category=SolidCoreStorageConformance'}else{'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead'}
+    $taskSolidFilter=if($ReconcileCore){'Category=SolidCoreFixtureCleanup'}elseif($CoreStorage){'Category=SolidCoreStorageConformance'}else{'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead'}
     & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter $taskSolidFilter --logger "trx;LogFileName=$taskSolidTrxName" --results-directory $taskSolidResults -v:q
     $taskSolidEvidence.testExit=$LASTEXITCODE
     if($LASTEXITCODE -ne 0){throw 'Discovery/authenticated-read diagnostic failed; preserve original evidence.'}
