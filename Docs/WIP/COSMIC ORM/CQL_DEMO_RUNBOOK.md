@@ -1,3 +1,41 @@
+## Scoped investor demo set verified — 26 October 2026
+
+All 12 **DEMO** rows in the [parity checklist](CQL_PARITY_CHECKLIST.md) now have
+native proof on SQLite, MongoDB and Neo4j. The delta demo covers committed
+redacted summaries (X08a). Its full-history parent X08 remains red with historical
+value authorization/decryption, old-key policy, retention and tooling unfinished.
+This is demo acceptance, not full CQL/EF/NHibernate parity completion.
+
+[Copy the spaced, commented save examples](../../../Examples/CosmicCqlDemo/V1SaveQueries.cs):
+generated IDs, acknowledged/loaded no-op saves, dirty detection, local previews,
+committed additions/removals/modifications, deletion and old-summary recovery.
+The native observer verifies that the caller stays unchanged after the actual
+provider commit until acknowledgement validation. No-op saves reach neither
+mutation nor preparation storage. Fixture identities are journalled before any
+protected preparation write and removed by the owning native fixture on success.
+
+Final gate: **270 SDK query cases + 138 HTTP cases + 30 save-demo checks**,
+three generated-ID post-commit observations, **526 settlements / 608 attempts**,
+unchanged sources and seven matching producer/consumer pairs. Shipping WEB4 and
+standalone console builds pass. Existing Core3,767 is the separate preceding
+gate; no production Core/provider or cursor implementation changed in this batch.
+
+[Native result](Verification/save-demo-native-result.json),
+[native test](Verification/save-demo-native.trx.gz),
+[source identities](Verification/save-demo-native-source.json.gz),
+[binary identities](Verification/save-demo-native-binaries.json).
+
+Run from the repository root in PowerShell:
+
+```powershell
+# Uses the existing reusable three-provider test environment.
+./Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1
+```
+
+The retained environment must already be configured. The runner owns the build
+lease and refuses retained failed fixtures; preserve/reconcile failures before
+another run. It starts no new installation or alternate provider environment.
+
 ## Investor-demo query operators verified — 26 October 2026
 
 Examples 59–90 close demo rows Q05/Q06/Q07/Q08/Q12b on SQLite, MongoDB and Neo4j:

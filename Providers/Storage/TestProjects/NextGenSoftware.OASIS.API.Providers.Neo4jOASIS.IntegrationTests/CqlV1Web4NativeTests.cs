@@ -14,6 +14,7 @@ using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Security;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using MongoProvider = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -71,6 +72,7 @@ public sealed partial class CqlV1Web4NativeTests
         var transportActor = Guid.NewGuid();
         var transportIds = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
         var recoveryIds = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToArray();
+        var saveDemoIds = new List<Guid>();
         var scalarWrites = new List<string>();
         var sharingOperations = new List<string>();
         var sharingProvidersVerified = 0;
@@ -86,7 +88,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 if (request != null) journal.Add(request);
                 await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
-                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).Append(federationEncryptedId).ToArray(), scalarIds,
+                { stage, sqlite, storageDb, usageDb, alice, bob, outsider, ids=ids.Concat(childIds).Append(federationEncryptedId).Concat(saveDemoIds).ToArray(), scalarIds,
                     restActor, restIds, transportActor, transportIds, recoveryIds, scalarWrites, sharingOperations, tag, requests = journal }));
             }
             finally { journalGate.Release(); }
@@ -103,6 +105,9 @@ public sealed partial class CqlV1Web4NativeTests
         var complete = false;
         var walkthroughRequests = 0;
         var localSdkQueries = 0;
+        var saveDemoChecks = 0;
+        var saveDemoProvidersVerified = 0;
+        var generatedIdCommitObservations = 0;
         var sdkFederationExamples = 0;
         var demoFederationRequests = 0;
         try
@@ -1062,6 +1067,41 @@ public sealed partial class CqlV1Web4NativeTests
                             foreach (var provider in providers.Values)
                                 localSdkQueries += await V1NativeQueries.RunAsync(new Sources(providers).CreateManager(provider),
                                     (NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider)provider, alice, tag, transcript);
+                            foreach (var pair in providers)
+                            {
+                                var coffee = new V1SaveQueries.Coffee
+                                {
+                                    Name = "ORM demo coffee", Stock = 10, IsActive = true,
+                                    MetaData = new() { ["fixture"] = "save-demo:" + tag,
+                                        ["removed"] = "private removed value", ["changed"] = "private original value" }
+                                };
+                                var operations = new V1SaveQueries.Operations(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+                                foreach (var id in new[] { operations.Create, operations.NoOp, operations.Update, operations.Delete })
+                                    sharingOperations.Add(id.ToString("D"));
+                                await Journal("before-save-demo", new { provider = pair.Key.ToString(), operations });
+                                var boundary = System.Reflection.DispatchProxy.Create<IRecoveryMutationBoundary, SaveDemoBoundary>();
+                                var probe = (SaveDemoBoundary)(object)boundary;
+                                probe.Target = pair.Value;
+                                probe.Source = coffee;
+                                probe.BeforeResource = async (operation, recordIds) =>
+                                {
+                                    foreach (var id in recordIds)
+                                        if (!saveDemoIds.Contains(id)) saveDemoIds.Add(id);
+                                    await Journal("before-save-demo-resource", new { provider = pair.Key.ToString(), operation });
+                                };
+                                var manager = new Sources(providers).CreateManager(boundary);
+                                manager.PreparationEncryptionPolicy = new HolonMetadataEncryptionPolicy(
+                                    "save-demo", "fixture-key-v1", new RecoveryPreparationKeys());
+                                saveDemoChecks += await V1SaveQueries.RunAsync(manager, (ICosmicQueryStorageProvider)pair.Value,
+                                    alice, coffee, operations, transcript);
+                                Assert.AreEqual(3, probe.SuccessfulMutations, "Only create/update/delete may commit.");
+                                Assert.IsFalse(probe.MutationIntents.Contains(operations.NoOp), "No-op must never reach native mutation.");
+                                Assert.IsFalse(probe.PreparationIntents.Contains(operations.NoOp), "No-op must not create a preparation receipt.");
+                                Assert.AreEqual(3, probe.PreparationIntents.Distinct().Count(), "Only create/update/delete may claim preparation; loaded no-op must also stay read-only.");
+                                Assert.AreEqual(1, probe.GeneratedCommitObservations, "Observe generated identity ownership after a real native commit.");
+                                generatedIdCommitObservations += probe.GeneratedCommitObservations;
+                                saveDemoProvidersVerified++;
+                            }
                             walkthroughRequests = await V1Walkthrough.RunAsync(client, demo.Tokens["Alice"], tag, transcript);
                             sdkFederationExamples = await V1FederationWalkthrough.RunSdkAsync(
                                 new Sources(providers).CreateManager(providers.Values.First()),
@@ -1111,7 +1151,8 @@ public sealed partial class CqlV1Web4NativeTests
                     status = "passed", providers = providers.Keys.Select(provider => provider.ToString()),
                     nativeFederationQueries, nativeFederationProvidersVerified = providers.Count,
                     sdkFederationExamples, demoFederationRequests,
-                    walkthroughRequests, localSdkQueries, sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
+                    walkthroughRequests, localSdkQueries, saveDemoChecks, saveDemoProvidersVerified, generatedIdCommitObservations,
+                    sharingProvidersVerified, ownedWritesProvidersVerified, ownedBatchProvidersVerified, hostedWriteBoundariesVerified,
                     recoveryProvidersVerified, processRestartProvidersVerified = recoveryProvidersVerified,
                     hostedReadPolicyRequests, hostedReadPolicyProvidersVerified = providers.Count,
                     hostedFederationRequests = hostedFederation.Requests,
@@ -1150,7 +1191,7 @@ public sealed partial class CqlV1Web4NativeTests
             if (complete)
             {
                 // These exact IDs/databases were absent at preflight and journalled before creation.
-                var ownedIds = ids.Concat(childIds).Append(federationEncryptedId).Concat(scalarIds).Concat(restIds).Concat(transportIds).Concat(recoveryIds).Select(id => id.ToString("D")).ToArray();
+                var ownedIds = ids.Concat(childIds).Append(federationEncryptedId).Concat(saveDemoIds).Concat(scalarIds).Concat(restIds).Concat(transportIds).Concat(recoveryIds).Select(id => id.ToString("D")).ToArray();
                 await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids DETACH DELETE v", new { ids = ownedIds })).ConsumeAsync();
                 await (await inspection.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.OperationId IN $operations DETACH DELETE r",
