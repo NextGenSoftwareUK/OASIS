@@ -93,7 +93,7 @@ if($DynamoResourceCapture -or $DynamoResourceCaptureInspect -or $DynamoResourceC
     if(Test-Path -LiteralPath (Join-Path $joinWork $joinReportName)){throw 'Preserve the original joined SDK report before another run.'}
     if($DynamoResourceCapture -and @(Get-ChildItem -LiteralPath $joinWork -Filter 'dynamo-resource-host-*.json' -File -ErrorAction SilentlyContinue | Where-Object {$_.Name -like '*.pending.json' -or $_.Name -like '*.pending.json.verified-cleanup.json'}).Count){throw 'Original joined SDK fixture requires reconciliation; never replay pending admissions.'}
 }
-$data=Join-Path $work 'mongo-data'
+$data=if($CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile){Join-Path $taskRoot 'LocalState/COSMIC/mongo-data'}else{Join-Path $work 'mongo-data'}
 $runtime='C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe'
 if(!(Test-Path -LiteralPath $runtime -PathType Leaf)){throw 'Existing installed Mongo runtime is required; no download attempted.'}
 if((& $runtime --version | Select-Object -First 1) -ne 'db version v8.3.11'){throw 'Retained runtime version differs; inspect before reuse.'}
@@ -128,7 +128,9 @@ try{
     }
     if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned port already in use; no process will be stopped.'}
     if($MongoV2 -and (Get-NetTCPConnection -State Listen -LocalPort 27030 -ErrorAction SilentlyContinue)){throw 'Reserved Mongo credential-outage port is occupied; refusing verification.'}
-    if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
+    $expectedData=if($CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile){Join-Path $taskRoot 'LocalState/COSMIC/mongo-data'}else{Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data'}
+    if([IO.Path]::GetFullPath($data) -ne [IO.Path]::GetFullPath($expectedData)){throw 'Unexpected owned data path.'}
+    if(($CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile) -and !(Test-Path -LiteralPath $data -PathType Container)){throw 'Preserved COSMIC database state is required; no replacement will be created.'}
     New-Item -ItemType Directory -Force -Path $data | Out-Null
     Limit-OwnedMongoLog -WorkDirectory $work
     $mongoArguments=@('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend')

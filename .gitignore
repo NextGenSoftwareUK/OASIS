@@ -1481,3 +1481,6 @@ OASIS Omniverse/OGames/OQuake/**/ogengine.dll
 OASIS Omniverse/OGames/OQuake/**/ogengine.lib
 OASIS Omniverse/OGames/OQuake/build/ogengine.h
 /STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
+
+# Persistent local COSMIC fixtures; cleanup may remove TestResults, not this state.
+/LocalState/

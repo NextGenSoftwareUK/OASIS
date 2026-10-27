@@ -69,7 +69,7 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw 'Owned Neo4j did not become ready; no test submitted.'}
     $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
-    $env:OASIS_OWNED_NEO4J_WORK=$work
+    $env:OASIS_OWNED_NEO4J_WORK=if($CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile){Join-Path $taskRoot 'LocalState/COSMIC/Neo4jCurrent'}else{$work}
     $testStarted=[DateTime]::UtcNow
     $reviewedAdmissionFilter = $null
     if ($CqlV1Web4Reconcile) {
