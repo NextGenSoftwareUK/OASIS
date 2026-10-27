@@ -122,7 +122,38 @@ Native errors and multiple matches never return that supplied value. Single chec
 cardinality before invoking application entity constructors. Empty/multiple/index
 errors preserve their CQL codes through CosmicLinqException. Entity terminal
 predicates after a source window remain explicitly unsupported; they are not moved
-before the window. Element terminals on selected sequences are still Q01 work.
+before the window.
+
+Selected scalar and flat-record sequences now support First/FirstOrDefault,
+Single/SingleOrDefault, Last/LastOrDefault and ElementAt/ElementAtOrDefault
+(Int32 and Index). Predicates remain after all preceding selected stages.
+The shared V2 composition owner validates native stage proofs and Single's
+cardinality before calling a DTO constructor. A present null is distinguished
+from an empty sequence, including with a caller-supplied OrDefault value.
+Tail operations require explicit source or selected ordering and independently
+enrolled native reversal; ordering and windows remain in their original positions.
+
+```csharp
+// Project only the values the application needs, then page that selected sequence.
+var summaries = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
+    .Take(10);
+
+// Each terminal runs through native composition and the V2 manager owner.
+var firstSummary = summaries.FirstOrDefault();
+var lastSummary = summaries.LastOrDefault();
+var secondFromEnd = summaries.ElementAtOrDefault(^2);
+
+// This predicate runs after Take(10), retaining the selected window's meaning.
+var firstRevisionTwo = summaries.FirstOrDefault(value => value.Version == 2);
+```
+
+Direct async users can plan with `CosmicProjectionElementPlanner.Plan` and call
+`HolonManager.ExecuteProjectionElementQueryAsync`. Its result exposes HasValue
+separately from Value. Empty/multiple/index errors use CQL_SEQUENCE_EMPTY,
+CQL_SEQUENCE_MULTIPLE and CQL_INDEX_OUT_OF_RANGE. Input, payload, stage-work and
+proof budgets remain enforced even when the terminal returns zero or one value.
 Standard selector Min/Max/Sum and decimal/Single/Double Average now dispatch through
 native scalar capabilities. An unstaged scalar selection can use the corresponding
 parameterless aggregate, for example `query.Select(row => row.Version).Sum()`.

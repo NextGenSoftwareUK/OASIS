@@ -71,6 +71,8 @@ public partial class HolonRepository
                 keys.Add(previousRank + " ASC");
                 ranking = "row_number() OVER (ORDER BY " + string.Join(",", keys) + ")";
             }
+            else if (stage is CosmicSelectedReverseStage)
+                ranking = "row_number() OVER (ORDER BY " + previousRank + " DESC)";
             else if (stage is CosmicSelectedWindowStage window)
                 tail = " ORDER BY " + previousRank + " LIMIT " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Take ? (long)window.Count : -1L)
                     + " OFFSET " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Skip ? (long)window.Count : 0L);

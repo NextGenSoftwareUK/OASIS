@@ -88,3 +88,15 @@ The exact eight-field integer packet includes Boolean prefixOverflow in every
 normal/error union branch. Empty windows and genuinely empty sources retain the
 same required/nullable shared-owner semantics. Unit packet tests and83 native
 checks/store prove both overflow directions, reversal, paging and empty results.
+
+Selected element terminals lower through CosmicProjectionElementPlanner into
+existing native composition plus bounded Skip/Take and an independently enrolled
+Reverse stage for tails. SQLite reranks descending prior ordinals; MongoDB assigns
+new window ranks in descending prior-rank order; Neo4j orders the previous stage
+positions descending before collecting the next stage. Detached stage proofs are
+validated by the existing composition owner. Its shared ExecuteOwnedAsync checks
+empty/multiple cardinality before constructing any DTO. V2 HolonManager gates the
+new public async entry; the element result carries HasValue separately from Value.
+The IQueryable bridge binds source/selected predicates per execution and handles
+caller-supplied defaults only after acknowledged empty proof. Budgets include
+full bounded source participation and each terminal-lowering stage.

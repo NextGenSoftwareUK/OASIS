@@ -92,6 +92,8 @@ public partial class Neo4jOASIS
                 });
                 text.Append("WITH input,position,rank ORDER BY ").Append(string.Join(",", exact.Concat(new[] { "rank ASC" }))).Append(' ');
             }
+            else if (stage is CosmicSelectedReverseStage)
+                text.Append("WITH position,rank ORDER BY rank DESC ");
             else if (stage is CosmicSelectedWindowStage window)
             {
                 text.Append("WITH position,rank ORDER BY rank ASC ")
