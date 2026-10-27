@@ -125,17 +125,7 @@ internal sealed class CosmosCqlPredicateSql
             throw new NotSupportedException("Cosmos metadata comparison domain is not admitted.");
         var (field, exists) = MetadataPath(path.Segments);
         var nullable = type == typeof(string) || Nullable.GetUnderlyingType(path.ValueType) != null;
-        var guard = (type == typeof(string) ? "IS_STRING(" : "IS_BOOL(") + field + ")";
-        if (type == typeof(string))
-        {
-            // Exact numeric literals are native strings on the wire. Exclude
-            // their framed structural paths from the canonical string domain.
-            var steps = new[] { "MetaData" }.Concat(path.Segments).ToArray();
-            var matches = new List<string> { "ARRAY_LENGTH(cqlNumber[\"path\"]) = " + steps.Length };
-            for (var i = 0; i < steps.Length; i++)
-                matches.Add("cqlNumber[\"path\"][" + i + "] = " + Bind(steps[i]));
-            guard = "(" + guard + " AND NOT EXISTS(SELECT VALUE cqlNumber FROM cqlNumber IN c[\"_oasis_exact_numbers\"][\"values\"] WHERE " + string.Join(" AND ", matches) + "))";
-        }
+        var guard = MetadataDomainGuard(path, field);
         var unequal = comparison.Operator == CosmicQueryComparisonOperator.NotEqual;
         if (comparison.Literal.Kind == CosmicQueryScalarKind.Null)
         {
@@ -147,5 +137,42 @@ internal sealed class CosmosCqlPredicateSql
         var valueTest = "IIF(" + guard + ", " + field + (unequal ? " != " : " = ") + Bind(comparison.Literal.Value) + ", false)";
         if (unequal && nullable) valueTest = "(" + valueTest + " OR IS_NULL(" + field + "))";
         return "(" + exists + " AND " + valueTest + ")";
+    }
+
+    private string MetadataDomainGuard(CosmicQueryPath path, string field)
+    {
+        var type = Nullable.GetUnderlyingType(path.ValueType) ?? path.ValueType;
+        var guard = (type == typeof(string) ? "IS_STRING(" : "IS_BOOL(") + field + ")";
+        if (type == typeof(string))
+        {
+            // Exact numeric literals are native strings on the wire. Exclude
+            // their framed structural paths from the canonical string domain.
+            var steps = new[] { "MetaData" }.Concat(path.Segments).ToArray();
+            var matches = new List<string> { "ARRAY_LENGTH(cqlNumber[\"path\"]) = " + steps.Length };
+            for (var i = 0; i < steps.Length; i++)
+                matches.Add("cqlNumber[\"path\"][" + i + "] = " + Bind(steps[i]));
+            guard = "(" + guard + " AND NOT EXISTS(SELECT VALUE cqlNumber FROM cqlNumber IN c[\"_oasis_exact_numbers\"][\"values\"] WHERE " + string.Join(" AND ", matches) + "))";
+        }
+        return guard;
+    }
+
+    internal string ProjectionCell(CosmicQueryPath path)
+    {
+        string field, exists, guard;
+        if (path.IsMetadata)
+        {
+            (field, exists) = MetadataPath(path.Segments);
+            guard = MetadataDomainGuard(path, field);
+        }
+        else
+        {
+            // Projection admission owns the exact canonical whitelist/type.
+            field = "c[" + JsonConvert.SerializeObject(path.Segments.Single()) + "]";
+            exists = "IS_DEFINED(" + field + ")";
+            guard = path.ValueType == typeof(bool) ? "IS_BOOL(" + field + ")"
+                : path.ValueType == typeof(int) ? "IS_NUMBER(" + field + ")" : "IS_STRING(" + field + ")";
+        }
+        var state = "IIF(NOT " + exists + ", 0, IIF(IS_NULL(" + field + "), 1, IIF(" + guard + ", 2, 3)))";
+        return "{\"state\": " + state + ", \"value\": " + field + "}";
     }
 }

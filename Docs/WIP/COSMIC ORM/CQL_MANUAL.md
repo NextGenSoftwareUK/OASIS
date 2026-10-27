@@ -510,7 +510,7 @@ and Int32 Version comparisons. Nested metadata supports string, Boolean/nullable
 Boolean equality/inequality, explicit nulls, existence and null tests. Missing paths
 and wrong types do not satisfy a metadata comparison; explicit nullable nulls obey
 inequality semantics. Exact-number wire strings remain outside the string domain.
-Numeric metadata, graph expansion, projection and mixed numeric semantics
+Numeric metadata, graph expansion and mixed numeric semantics
 are rejected during admission. Compound ordering
 requires an explicitly configured Cosmos composite index; no index is created by
 CQL. Id ordering is native-proven; broader index/operator acceptance remains open.
@@ -526,6 +526,22 @@ whose constructor cannot run. Counts above Cosmos's exact binary64 integer domai
 are rejected; Count additionally checks Int32 overflow. Post-window terminal
 predicates, All and selected numeric aggregates remain unsupported.
 
-Native emulator evidence: 34 focused tests plus a twenty-three-case public-provider gate.
+Projection uses the independent `ICosmicQueryProjectionStorageProvider` contract.
+`query.Select(holon => new { holon.Id, holon.Name, holon.Version })` captures a
+selection without constructing an entity or DTO. Plan with `CosmicProjectionPlanner`
+and a `CosmicProjectionTarget` carrying `CqlCapabilities` and
+`CqlProjectionCapabilities`, then execute through `CosmicProjectionExecutor` to
+validate every provider buffer before constructing any DTO. Direct provider calls
+return `CosmicProjectionRow` cells; `CosmicProjectionResults.Materialize` validates
+and constructs a single provider's result. Check every `OASISResult` before using
+its `Result`.
+
+Canonical and nested string/Boolean metadata selection is admitted. Missing/null
+nullable values become null; wrong native domains, encoded numbers selected as
+strings and missing non-nullable values reject the result. Source identity and
+visibility proofs remain required even when Id is not selected. Selected-result
+composition and entity-stage projection are not yet enrolled for Cosmos.
+
+Native emulator evidence: 39 focused tests plus a thirty-one-case public-provider gate.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
