@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests;
@@ -11,6 +12,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests;
 [TestClass]
 public class AzureGraphPlanTests
 {
+    private sealed class ReadProbe(IHolon[] rows):AzureStorageOASIS("UseDevelopmentStorage=true")
+    {
+        public int Reads;
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type=HolonType.All,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
+        {Reads++;return Task.FromResult(new OASISResult<IEnumerable<IHolon>>{Result=rows,IsLoaded=true,LoadedCount=rows.Length});}
+    }
+
+    [DataTestMethod,DataRow(false),DataRow(true)]
+    public async Task ParentQueryCountsOnlySelectedChildren(bool synchronous)
+    {
+        var parent=Guid.NewGuid();var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=parent};
+        var provider=new ReadProbe(new IHolon[]{child,new Holon{Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid()}});
+        var result=synchronous?provider.LoadHolonsForParent(parent,loadChildren:false):await provider.LoadHolonsForParentAsync(parent,loadChildren:false);
+        Assert.IsFalse(result.IsError);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+        CollectionAssert.AreEqual(new[]{child.Id},System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(result.Result,row=>row.Id)));
+        Assert.AreEqual(1,provider.Reads);
+    }
+
     private sealed class WriteProbe : AzureStorageOASIS
     {
         public int Writes;

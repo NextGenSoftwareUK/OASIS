@@ -13,3 +13,5 @@ The four large histories and old README are byte-identical to their checkpoint o
 | README.md | [README_HISTORY.md](README_HISTORY.md) | 16281 | 57 | `7dfe9275e9a8112f2cf7b2edb2881f5f0ea167f1b4427daf058d8bd54ce6d201` | 0 |
 | PAUSED_SESSION_HANDOFF_2026-10-21.md | [PAUSED_SESSION_HANDOFF_2026-10-21.md](PAUSED_SESSION_HANDOFF_2026-10-21.md) | 13457 | 67 | `f8529392536afb1328d550aee4449deb9dfae3e5fe416908194aba8280c8bcc4` | 135 |
 | HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md | [HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md](HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md) | 29216 | 492 | `b86478afa967db95fc5c3710f3761718cd9fbc335af63ea4deeb4731afc1ed32` | 135 |
+
+Incremental compact-ledger rollover: `WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-27.md`; five original entry lines retained verbatim, combined body SHA256 `b177cc2a8ad84bbad20793baeb97dcf4fae2300ef0a544a4da41c230d296c21c`. The original seven pre-trim histories above remain unchanged.

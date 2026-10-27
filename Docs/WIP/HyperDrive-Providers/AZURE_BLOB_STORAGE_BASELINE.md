@@ -1,6 +1,10 @@
 # Azure Blob shared storage baseline
 
-Updated 2026-10-27. **Partial: native2/52**,95 controlled tests passed, no skips. This is not a provider completion claim.
+Current 2026-10-27: **native25/52 partial;109controlled pass**. See the acknowledgement repair checkpoint below for current gates. This is not a provider completion claim.
+
+## Initial checkpoint (superseded by the repair checkpoint below)
+
+Initial 2026-10-27. **Partial: native2/52**,95 controlled tests passed, no skips.
 
 ## Binding and observed gap
 
@@ -30,3 +34,19 @@ Source verification matched13 Azure provider and15 test-consumer documents, Core
 Fixed workspace `TestResults/AzureCurrent/{conformance-data,environment.lock,azurite.out.log,azurite.err.log,conformance-owned.pid}` retains runtime state and ownership metadata. The PID is historical, not permission to stop a future reused PID. Revalidate process identity every time. Original Azure routing-file guard remains in the runner. Shared old routing outcomes are not reconstructed or claimed resolved.
 
 Compressed reports were decompressed/verified before deleting owned raw TRX files. Retain the persistent store and reports until exact-fixture reconciliation is reviewed; do not rerun the suite over them.
+
+## Acknowledgement repair checkpoint (27 October)
+
+Six successful-write count controls genuinely failed before repair; the six failed-write controls passed. Save/read, filtered collection/export and partial graph counts are now assigned at their successful boundaries. Two parent-query count regressions also failed before their fix. Final **109 controlled cases pass**, no skips.
+
+The original two avatar fixtures were fully preserved, identity-checked from the authoritative downloaded bytes, then removed with their original ETags; exact reconciliation case passed. The same retained hidden runtime startup was rechecked and opened its owned loopback listener in1.4426s; this narrows the earlier startup concern without claiming its original timing cause or a complete automatic runner pass.
+
+Native rerun advanced to **25/52**: async12 checks with an interrupted atomic checkpoint (`report.json.next` exists, original report last intent holon-update); sync13 checks stopped at parent-query collection count. The parent fix was compiled and verified by controls afterward; it has not yet received a new native pass. Both native schedules remain failed. Preserve the current graph fixtures and both async checkpoint files before any further run; do not erase `.next` or assume the interrupted operation was absent. The owned emulator was stopped with its12KB original store plus current added fixtures retained (re-measure before cleanup).
+
+New local proof receipts under the same NativeEvidence path:
+
+- `azure-blob-count-fix-identities.json`: SHA256 `0ebe4033bf0fb304e3781d1ab889e9bdc70875a252635218bce106b941e3d79f`; includes initial fixture reconciliation, red/control/native results and unchanged report/store inventories.
+- `azure-blob-count-final-controls-identities.json`: SHA256 `6a327a388b12febfef64286eabd186a12ae8a10823e2386219dc20b958b7506a`; final109controls and two parent red regressions. Its binary cohort is separate from the earlier partial native run.
+- `azure-blob-initial-fixture-reconciliation.json` plus two saved avatar payloads: original ETag/hash receipts; no arbitrary namespace sweep or user record removal.
+
+Exact next action: diagnose/preserve the interrupted report publication, then reconcile only the fixed IDs in the two retained current reports and their downloaded ETag-bound native snapshots. All applicable baseline and hosted acceptance gates remain open.
