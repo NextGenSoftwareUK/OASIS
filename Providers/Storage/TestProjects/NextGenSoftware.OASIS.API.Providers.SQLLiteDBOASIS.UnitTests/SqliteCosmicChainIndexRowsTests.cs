@@ -70,7 +70,7 @@ public class SqliteCosmicChainIndexRowsTests
         query=query.OrderBy(row=>row.Name).ThenBy(row=>row.Id).Result;
         query=mode=="page"?query.Skip(1).Take(1).Result:query.Take(2).Result;
         using var cancellation=new CancellationTokenSource();if(mode=="cancelled")cancellation.Cancel();
-        var result=await reader.QueryRowsAsync(Plan(query),observer,cancellationToken:cancellation.Token);
+        var result=await CosmicIndexedQueryExecutor.ExecuteAsync(Plan(query),reader,observer,cancellationToken:cancellation.Token);
         if(mode is "rows" or "empty" or "injection" or "catalogue" or "page"){
             Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(mode is "empty" or "injection"?0:mode is "catalogue" or "page"?1:2,result.Result.Rows.Count);
             Assert.AreEqual(source.IndexId,result.Result.Checkpoint.Source.IndexId);Assert.AreEqual(ProviderType.SQLLiteDBOASIS,result.Result.Checkpoint.Source.ExecutionProvider);
