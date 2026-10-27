@@ -50,7 +50,7 @@ Queryable value aggregates bind typed paths and exact result domains before
 planning against independent scalar-selection capabilities. Plain scalar Select
 can lower into the same native selector aggregate; selected stages are never
 moved across the reduction. Int32 Average now has an independently admitted double-output contract; Int64
-requires additional checked-prefix overflow evidence. The existing decimal-output
+uses independent checked-prefix enrollment, currently MongoDB only. The existing decimal-output
 CQL contract is preserved rather than approximated with a client conversion.
 The Int32 double-output mode shares integer-packet validation with decimal means
 and grouped slots, and adds no provider row buffer. The scalar descriptor records
@@ -58,3 +58,12 @@ the exact result mode; scalar selection admission checks the independent flag
 again at execution. The selected-scalar validator also verifies the new result's
 finite Double type and Int32 input bounds. Existing capability constructors leave
 the flag false, so no other provider is silently enrolled.
+MongoDB Int64 double Average orders the selected source window by its canonical
+ordering keys plus identity tie-breaker, then computes exact Decimal128 running
+sums. The bounded input/count domain fits Decimal128 precision. Its six-field
+packet includes a strict Boolean `prefixOverflow`; missing, numeric or additional
+fields are invalid. The shared numeric owner checks exact limbs/count, rejects
+contradictory no-overflow sums, and returns overflow for any visited prefix.
+Only an acknowledged checked Int64 total is converted once to double before
+division. SQLite/Neo4j do not advertise this mode yet. No client row accumulator
+or decimal-mean conversion grants this capability.
