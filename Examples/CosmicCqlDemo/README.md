@@ -437,3 +437,10 @@ paging, visibility, negation, Boolean combinations, multiple child predicates
 and a descendant-filtered source. All 38 cases in `V1AllQueries.cs` pass on each
 store (114 checks). Nested-child and descendant traversal inside the terminal
 remain unsupported. The complete extended walkthrough rerun remains pending.
+
+Nested-child All examples 174–181 demonstrate two/three navigation levels,
+per-level visibility, child scalar/Boolean predicates and literal handling.
+All 46 All examples pass on each store (138 checks). The trusted host-only
+positive example explicitly omits access filtering; the secured version
+excludes its hidden intermediate parent. Descendant All remains unsupported;
+the full extended walkthrough rerun remains pending.
