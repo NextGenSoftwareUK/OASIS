@@ -1,13 +1,18 @@
-param([switch]$ReconcileComputedNameFixture,[switch]$ConformanceOnly,[switch]$ConformanceReadAcknowledgements)
+param([switch]$ReconcileComputedNameFixture,[switch]$ConformanceOnly,[switch]$ConformanceReadAcknowledgements,[switch]$ArchiveOriginalV1Reports,[switch]$ConformanceParentReadAcknowledgements)
 $ErrorActionPreference='Stop'
-if(@($ConformanceOnly,$ReconcileComputedNameFixture,$ConformanceReadAcknowledgements).Where({$_.IsPresent}).Count -gt 1){throw 'Choose one SQL verification scope.'}
-$conformanceBuild=$ConformanceOnly -or $ConformanceReadAcknowledgements
+if(@($ConformanceOnly,$ReconcileComputedNameFixture,$ConformanceReadAcknowledgements,$ConformanceParentReadAcknowledgements).Where({$_.IsPresent}).Count -gt 1){throw 'Choose one SQL verification scope.'}
+$conformanceBuild=$ConformanceOnly -or $ConformanceReadAcknowledgements -or $ConformanceParentReadAcknowledgements
+if($ArchiveOriginalV1Reports -and !$ConformanceOnly){throw 'Original report archival is only valid for the current canonical suite.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $root 'TestResults/PostgreSqlCurrent'
 if($ConformanceOnly){
+    if($ArchiveOriginalV1Reports){
+        & python -B (Join-Path $root 'Scripts/Providers/retire_postgres_v1_reports.py') --check-only
+        if($LASTEXITCODE){throw 'Original SQL v1 reports changed; no archival or new writes.'}
+    }
     foreach($mode in @('async','sync')){
         $prior=Join-Path $root ('TestResults/ProviderConformanceCurrent/PostgreSQLOASIS/'+$mode+'/report.json')
-        if((Test-Path -LiteralPath $prior) -or (Test-Path -LiteralPath ($prior+'.next'))){throw 'Review preserved SQL conformance evidence before another run.'}
+        if(!$ArchiveOriginalV1Reports -and ((Test-Path -LiteralPath $prior) -or (Test-Path -LiteralPath ($prior+'.next')))){throw 'Review preserved SQL conformance evidence before another run.'}
     }
     New-Item -ItemType Directory -Path $work -Force | Out-Null
 }
@@ -19,7 +24,7 @@ try{
     $pending=@(Get-ChildItem -LiteralPath $work -Filter '*.pending.json')
     if($ReconcileComputedNameFixture){if($pending.Count -ne 4){throw 'Exactly four original computed-name assertion journals required.'}}
     elseif($pending.Count){throw 'Reconcile original PostgreSQL journals before new writes.'}
-    $reportName=if($ConformanceReadAcknowledgements){'postgres-conformance-detail-read.trx'}elseif($ConformanceOnly){'postgres-core-conformance.trx'}elseif($ReconcileComputedNameFixture){'postgres-computed-name-reconciliation.trx'}else{'postgres-native-current.trx'}
+    $reportName=if($ConformanceParentReadAcknowledgements){'postgres-conformance-parent-read.trx'}elseif($ConformanceReadAcknowledgements){'postgres-conformance-detail-read.trx'}elseif($ConformanceOnly){'postgres-core-conformance.trx'}elseif($ReconcileComputedNameFixture){'postgres-computed-name-reconciliation.trx'}else{'postgres-native-current.trx'}
     $report=Join-Path $work $reportName
     if(Test-Path -LiteralPath $report){throw 'Preserve the prior compact native report before another run.'}
     $identity=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.Image}}' oasis-postgres).Trim()
@@ -28,7 +33,9 @@ try{
     if($LASTEXITCODE -ne 0 -or @($ports.'5432/tcp').Count -ne 1 -or $ports.'5432/tcp'[0].HostIp -ne '127.0.0.1' -or $ports.'5432/tcp'[0].HostPort -ne '15432'){throw 'Expected loopback PostgreSQL port required.'}
     $mounts=@(& wsl -d Ubuntu -u root -- podman inspect --format '{{json .Mounts}}' oasis-postgres | ConvertFrom-Json)
     if($LASTEXITCODE -ne 0 -or @($mounts | Where-Object { $_.Type -eq 'volume' -and $_.Name -eq 'oasis-postgres-data' -and $_.Destination -eq '/var/lib/postgresql/data' }).Count -ne 1){throw 'Retained PostgreSQL data volume required.'}
-    foreach($project in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests.csproj')){
+    $projects=@('Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.csproj','Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests.csproj')
+    if($conformanceBuild){$projects=@('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj')+$projects}
+    foreach($project in $projects){
         if($conformanceBuild){
             & dotnet restore (Join-Path $root $project) --source (Join-Path $env:USERPROFILE '.nuget/packages') --source 'C:/Program Files/dotnet/library-packs' /p:RestoreRecursive=false /p:NuGetAudit=false /p:IncludeCoreStorageConformance=true /m:2 /nr:false -v:q
             if($LASTEXITCODE){throw 'Cached SQL metadata restore failed; no automatic download or duplicate environment.'}
@@ -37,10 +44,14 @@ try{
         if($LASTEXITCODE -ne 0){throw 'Cached PostgreSQL producer/consumer build failed.'}
     }
     & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/bin/Debug/net10.0'
-    $consumer=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/bin/Debug/net10.0'
-    . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $consumer -VerifySourceDocuments
+    $pgConsumerOutput=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/bin/Debug/net10.0'
+    . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $pgConsumerOutput -VerifySourceDocuments
     foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS','NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests')) {
-        Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumer ($assembly+'.dll')) $root))
+        Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $pgConsumerOutput ($assembly+'.dll')) $root))
+    }
+    if($ArchiveOriginalV1Reports){
+        & python -B (Join-Path $root 'Scripts/Providers/retire_postgres_v1_reports.py')
+        if($LASTEXITCODE){throw 'Original SQL report archival incomplete; inspect original evidence before native dispatch.'}
     }
     $state=(& wsl -d Ubuntu -u root -- podman inspect --format '{{.State.Status}}' oasis-postgres).Trim()
     if($state -eq 'exited'){
@@ -61,7 +72,7 @@ try{
     $env:POSTGRESQLOASIS_CONNECTIONSTRING="Host=127.0.0.1;Port=15432;Database=oasis_provider_test;Username=oasis_test;Password=$secret;Timeout=10;Command Timeout=15;Pooling=false"
     $env:OASIS_POSTGRES_TEST_WORK=$work
     $started=[DateTime]::UtcNow
-    $filter=if($ConformanceReadAcknowledgements){'FullyQualifiedName~PreservedDetailReadAcknowledgement'}elseif($ConformanceOnly){'FullyQualifiedName~CoreStorageSuiteAgainstRetainedPostgreSql'}elseif($ReconcileComputedNameFixture){'FullyQualifiedName~ReconcileKnownComputedNameAssertionFixtures'}else{'FullyQualifiedName~PostgreSqlNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
+    $filter=if($ConformanceParentReadAcknowledgements){'FullyQualifiedName~PreservedParentReadAcknowledgement'}elseif($ConformanceReadAcknowledgements){'FullyQualifiedName~PreservedDetailReadAcknowledgement'}elseif($ConformanceOnly){'FullyQualifiedName~CoreStorageSuiteAgainstRetainedPostgreSql'}elseif($ReconcileComputedNameFixture){'FullyQualifiedName~ReconcileKnownComputedNameAssertionFixtures'}else{'FullyQualifiedName~PostgreSqlNativeAcceptanceTests&FullyQualifiedName!~Reconcile'}
     & dotnet test (Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests.csproj') --no-build --no-restore /p:IncludeCoreStorageConformance=$($conformanceBuild.ToString().ToLowerInvariant()) /m:2 /nr:false --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     $testExit=$LASTEXITCODE
     if($ConformanceOnly){

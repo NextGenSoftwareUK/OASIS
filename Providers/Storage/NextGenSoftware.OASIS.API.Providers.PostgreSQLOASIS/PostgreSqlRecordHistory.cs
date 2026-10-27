@@ -62,7 +62,7 @@ public partial class PostgreSQLOASIS
             found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,current)));
             if(wantsHolons)found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,current)));
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-            result.Result=found;result.IsLoaded=true;
+            result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }catch(Exception cause){OASISErrorHandling.HandleError(ref result,"PostgreSQL versioned search failed.",cause);}
         return result;
     }
@@ -90,7 +90,7 @@ public partial class PostgreSQLOASIS
             var project=HolonGraphProjection.Create(pool,children,recursive,depth,initial,fromProvider,
                 row=>StoredRecordJson.DeserializeStored<Holon>(StoredRecordJson.Serialize(row)),rootsAreChildren:rootsAreChildren);
             result.Result=roots.Where(row=>(type==HolonType.All||row.HolonType==type)&&(filter==null||filter(row))).Select(project).ToArray();
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }catch(Exception cause){OASISErrorHandling.HandleError(ref result,"PostgreSQL versioned holon query failed.",cause);}
         return result;
     }
