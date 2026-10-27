@@ -1,6 +1,6 @@
 # Active projected-All / source relationship acceptance contract
 
-Status: Q23e and Q49a are verified on all three stores; parent Q23 integration/demo audit remains pending. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
+Status: Q23e and Q49a are verified on all three stores; parent Q23 integration/demo audit now passes24 shipping C# examples through V2 HolonManager. [CURRENT_STATUS](CURRENT_STATUS.md) owns current results and next actions.
 
 ## Invariants
 

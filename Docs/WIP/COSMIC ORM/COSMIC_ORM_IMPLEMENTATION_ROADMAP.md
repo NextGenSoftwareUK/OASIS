@@ -4,7 +4,7 @@ Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective rem
 
 | Order | Work | Acceptance owner |
 |---|---|---|
-| 1 | Finish current three-store CQL source/projected-All gap | Q49a/Q23e in the parity checklist; complete native gate |
+| 1 | Continue standard IQueryable/IQueryProvider integration | Q01 red; Q23/Q23e/Q49a and24 new C# demo examples now verified |
 | 2 | Continue remaining CQL red rows by scoped priority | Exact per-database tests; no green-feature/cursor hardening |
 | 3 | Reconcile remaining ORM correctness, child graph/parameter, history and replication requirements | Roadmap requirements preserved in historical plan; current source + proving tests |
 | 4 | Complete migration/placement/delta/history and operational acceptance still missing | Independent full-scope audit; do not infer success from focused tests |
