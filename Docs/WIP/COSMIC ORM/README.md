@@ -12,3 +12,5 @@ Recovery: read CURRENT_STATUS, the two short roadmaps, IMPLEMENTATION_STATUS and
 Update CURRENT_STATUS at every milestone. Do not append a chronological work log to the active roadmaps.
 New logs/test output belong in the worktree's TestResults, never Docs. Reports record counts, hashes and evidence paths; no new raw evidence commits.
 Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC and is not disposable test output.
+
+- [SOLID CQL record-point profile and verification](CQL_SOLID_NATIVE_PROFILE.md).

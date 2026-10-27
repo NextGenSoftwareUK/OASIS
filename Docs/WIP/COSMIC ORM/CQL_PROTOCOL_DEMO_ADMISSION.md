@@ -7,7 +7,7 @@ must not cause silent replacement or stop independent implementation.
 | Provider | Current source/environment evidence | CQL implication |
 |---|---|---|
 | IPFS | Fresh authorized reusable offline environment. Native storage52/52, controlled191pass and native CQL/HolonManager/LINQ/C# walkthrough1pass. | Current-CID row profile proven; WEB4 HTTP and rich indexed/general demo remain open. See [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md). |
-| SOLID | Retained pinned container reused with isolated fresh demoPod/client/key. Native discovery/DPoP read and storage52/52 pass after missing deletecount rootfix;362controlledpass. | Original fixture cleanup independently verified without replay. Native storage fixtures cleaned, container stopped. Next explicit CQL point/index profile; full common demo remains open. |
+| SOLID | Retained pinned container reused with isolated fresh demoPod/client/key. Native discovery/DPoP read and storage52/52 pass after missing deletecount rootfix;362controlledpass. | Original fixture cleanup independently verified without replay. Native storage fixtures cleaned, container stopped. SOLID record-point implementation passes384controls/22newcases. Native CQL/demo gate, WEB4 and rich index remain open. See [profile](CQL_SOLID_NATIVE_PROFILE.md). |
 | ActivityPub | Published matrix records native capability-v1 Social/Network5/5 and291 controlled regressions. Source uses the Mastodon HTTP API to project accounts/statuses. | Public read-only capability offers an independent implementation path. It does not establish generic ActivityPub storage, arbitrary LINQ or native CQL enrollment. |
 
 Only exact configuration-path existence and the SOLID container's image/state
