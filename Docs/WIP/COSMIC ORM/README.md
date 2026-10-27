@@ -1,5 +1,7 @@
 # COSMIC ORM work
 
+Current parity work queue: [EF / NHibernate feature checklist](CQL_PARITY_CHECKLIST.md). Each database cell requires linked proof. Work only on ❌ cells; ✅ cells remain frozen unless a bug is found.
+
 Latest host addition: [authenticated operation recovery](HOSTED_OPERATION_RECOVERY.md), including per-record write enrollment, two-read pricing, signed three-provider acceptance and remaining fault/restart gates.
 
 Latest query addition: [authority-bound record access](CQL_AUTHORITATIVE_ACCESS.md), with immutable trusted catalogues and native paging/graph/join/composition verification on all three providers. Application grant discovery and scalable tenant scopes remain open.
