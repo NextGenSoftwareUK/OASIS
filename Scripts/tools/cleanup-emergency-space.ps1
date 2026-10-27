@@ -752,6 +752,18 @@ Write-Host ""
 
 $after = Get-DriveStats
 
+# Preserved folders must stay small; warn when one outgrows its limit.
+$preservedLimitBytes = [long]$cleanupTargets.PreservedSizeLimitMB * 1MB
+foreach ($protected in $cleanupPreserve) {
+    if (!(Test-Path -LiteralPath $protected)) { continue }
+    $size = (Get-ChildItem -LiteralPath $protected -Recurse -Force -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+    if ($size -gt $preservedLimitBytes) {
+        $message = "Preserved folder $protected is $([math]::Round($size / 1MB)) MB, over the $($cleanupTargets.PreservedSizeLimitMB) MB limit; compact or recreate it."
+        Write-Warning $message
+        if (!$DryRun) { Write-CleanupLedger "WARNING $message" }
+    }
+}
+
 Log "Cleanup finished: $cleanupFailureCount preserved/failed targets; $cleanupRemovedBytes logical bytes verified removed."
 Write-Host ""
 
