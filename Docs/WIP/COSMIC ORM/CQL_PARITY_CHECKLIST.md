@@ -25,20 +25,20 @@ older chronological roadmap is supporting history, not the source of green statu
   preserve its parent/history and never make a broad row green from a narrow case.
 - Existing native evidence: [three-store result][G], [source hashes][GS],
   [seven producer/consumer pairs][GB], [test result][GT]. It covers 526 settled
-  operations / 608 attempts; this total is not a parity percentage. The latest lineage
-  correction has separate [unit evidence][LC] and is not a fresh native gate.
+  operations / 608 attempts, 174 SDK cases and 138 HTTP cases; this total is not a parity percentage. The latest lineage
+  correction has separate [unit evidence][LC] and is included in this fresh native gate.
 
 ## Mapping and schema
 
 | ID | EF / NHibernate feature and required semantics | SQLite | MongoDB | Neo4j | Proving evidence or exact remaining gap |
 |---|---|---|---|---|---|
-| M01 | Persist unrestricted POCO classes without IHolon/base-class dependency | ❌ | ❌ | ❌ | No proven unrestricted model adapter. |
+| M01 | Persist unrestricted POCO classes without IHolon/base-class dependency | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No proven unrestricted model adapter. |
 | M02 | Attribute-driven entity/property mapping equivalent to ORM annotations | ❌ | ❌ | ❌ | Partial OASIS attributes are not a complete mapping contract. |
 | M03 | Fluent model configuration / mapping-by-code | ❌ | ❌ | ❌ | No proven public model builder. |
 | M04 | NHibernate XML mappings | ❌ | ❌ | ❌ | No compatible importer/mapper proof. |
 | M05 | Model conventions and configurable naming strategies | ❌ | ❌ | ❌ | No complete convention/override suite. |
 | M06 | Assigned single GUID primary keys | [✅][R] | [✅][R] | [✅][R] | Three-provider REST create/read/update fixtures retain assigned IDs. |
-| M07 | Generated GUID keys with caller publication only after successful commit | ❌ | ❌ | ❌ | Existing ID generation needs a row-specific three-store proof link. |
+| M07 | Generated GUID keys with caller publication only after successful commit | ❌ | ❌ | ❌ | **DEMO** — Existing ID generation needs a row-specific three-store proof link. |
 | M08 | Integer identity / sequence / HiLo generators | ❌ | ❌ | ❌ | Declare portable semantics and native restrictions; no certification. |
 | M09 | Composite primary keys | ❌ | ❌ | ❌ | Composite join keys are not composite entity identity. |
 | M10 | Alternate/natural keys and uniqueness enforcement | ❌ | ❌ | ❌ | Metadata lookup is not atomic uniqueness. |
@@ -57,11 +57,11 @@ older chronological roadmap is supporting history, not the source of green statu
 | M23 | Keyless entities / read-only views / subselect mappings | ❌ | ❌ | ❌ | Scalar DTO projections are separate. |
 | M24 | Database defaults, computed and generated properties | ❌ | ❌ | ❌ | Needs model configuration and returned-value ownership. |
 | M25 | Indexes, unique indexes and constraint management | ❌ | ❌ | ❌ | Internal provider indexes do not prove user model management. |
-| M26 | Schema migrations: diff, ordered up/down and data preservation | ❌ | ❌ | ❌ | Provider upgrades are not a public model migration framework. |
-| M27 | Migration scripts/bundles and deployment history | ❌ | ❌ | ❌ | No parity toolchain proof. |
-| M28 | Reverse engineering / database-first scaffolding | ❌ | ❌ | ❌ | No cross-store scaffolder proof. |
+| M26 | Schema migrations: diff, ordered up/down and data preservation | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — Provider upgrades are not a public model migration framework. |
+| M27 | Migration scripts/bundles and deployment history | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No parity toolchain proof. |
+| M28 | Reverse engineering / database-first scaffolding | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — No cross-store scaffolder proof. |
 | M29 | Model-managed seed data and versioned initialization | ❌ | ❌ | ❌ | Test fixture seeding does not implement this. |
-| M30 | EF6 visual designer / EDMX import-export compatibility | ❌ | ❌ | ❌ | Separate literal tooling requirement. |
+| M30 | EF6 visual designer / EDMX import-export compatibility | ❌ | ❌ | ❌ | **DEFER UNTIL DEMO GREEN** — Separate literal tooling requirement. |
 
 ## Session, tracking and persistence
 
@@ -70,7 +70,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | S01 | Identity map: one instance per key within a session | ❌ | ❌ | ❌ | Detached query copies intentionally do not prove identity resolution. |
 | S02 | Context/session unit of work spanning multiple pending entities | ❌ | ❌ | ❌ | Per-holon Save and explicit batches are not SaveChanges/Flush parity. |
 | S03 | Added/Unchanged/Modified/Deleted/Detached state transitions | ❌ | ❌ | ❌ | Map all transitions and provider evidence before promoting. |
-| S04 | Snapshot dirty detection and no-op saves | ❌ | ❌ | ❌ | Implemented pieces exist; reconcile exact tests/provider coverage. |
+| S04 | Snapshot dirty detection and no-op saves | ❌ | ❌ | ❌ | **DEMO** — Implemented pieces exist; reconcile exact tests/provider coverage. |
 | S05 | Property-level original/current values and explicit modified flags | ❌ | ❌ | ❌ | Needs complete public entry API/evidence. |
 | S06 | Notification/proxy change tracking | ❌ | ❌ | ❌ | No full notification/proxy proof. |
 | S07 | Attach/update/merge disconnected graphs | ❌ | ❌ | ❌ | Conditional save is not general session merge semantics. |
@@ -119,24 +119,24 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q02 | C# query-comprehension syntax with standard LINQ operators | ❌ | ❌ | ❌ | No complete standard query-provider proof. |
 | Q03 | Typed expression Where with declared metadata equality | [✅][F] | [✅][F] | [✅][F] | Native SDK federation tests and typed federation demo; declared subset. |
 | Q04 | Conjunction/disjunction and nested metadata predicates | [✅][D2] | [✅][D2] | [✅][D2] | V1 example2 on all three stores. |
-| Q05 | Null and missing metadata tests | ❌ | ❌ | ❌ | Cases exist; reconcile exact per-store tests and nullable semantics. |
-| Q06 | Field-to-field comparisons | ❌ | ❌ | ❌ | Dedicated tests exist; attach named native proof before promoting. |
-| Q07 | Contains membership over bounded constant sets | ❌ | ❌ | ❌ | SDK support exists; attach complete provider proof. |
-| Q08 | String Contains/StartsWith/EndsWith translation | ❌ | ❌ | ❌ | Need exact comparison/collation matrix per operator/store. |
+| Q05 | Null and missing metadata tests | ❌ | ❌ | ❌ | **DEMO** — Cases exist; reconcile exact per-store tests and nullable semantics. |
+| Q06 | Field-to-field comparisons | ❌ | ❌ | ❌ | **DEMO** — Dedicated tests exist; attach named native proof before promoting. |
+| Q07 | Contains membership over bounded constant sets | ❌ | ❌ | ❌ | **DEMO** — SDK support exists; attach complete provider proof. |
+| Q08 | String Contains/StartsWith/EndsWith translation | ❌ | ❌ | ❌ | **DEMO** — Need exact comparison/collation matrix per operator/store. |
 | Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | General method translation unverified. |
 | Q10 | Native selected scalar columns / flat records | [✅][D10] | [✅][D10] | [✅][D10] | V1 example10; this is not arbitrary DTO construction. |
 | Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | Common shape support needs precise provider proof. |
 | Q12 | OrderBy/OrderByDescending with declared scalar domains | [✅][F] | [✅][F] | [✅][F] | Native federation order/tie cases and SDK demo. |
-| Q12b | ThenBy/ThenByDescending for multi-key entity ordering | ❌ | ❌ | ❌ | Existing intent support needs explicit native source-query proof. |
+| Q12b | ThenBy/ThenByDescending for multi-key entity ordering | ❌ | ❌ | ❌ | **DEMO** — Existing intent support needs explicit native source-query proof. |
 | Q13 | Skip/Take source paging | [✅][D1] | [✅][D1] | [✅][D1] | V1 example1; visibility enforced before page. |
-| Q14 | First terminal, including empty-input behaviour | ❌ | ❌ | ❌ | Take(1) is not an implemented First terminal contract. |
-| Q15 | FirstOrDefault terminal | ❌ | ❌ | ❌ | No dedicated terminal proof. |
-| Q16 | Single terminal: reject empty and multiple matches | ❌ | ❌ | ❌ | Calling Enumerable.Single after loading is not provider terminal parity. |
-| Q17 | SingleOrDefault terminal | ❌ | ❌ | ❌ | No dedicated terminal proof. |
+| Q14 | First terminal, including empty-input behaviour | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
+| Q15 | FirstOrDefault terminal | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
+| Q16 | Single terminal: reject empty and multiple matches | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
+| Q17 | SingleOrDefault terminal | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
 | Q18 | Last/LastOrDefault terminals with explicit order | ❌ | ❌ | ❌ | No dedicated terminal proof. |
 | Q19 | ElementAt/ElementAtOrDefault terminals | ❌ | ❌ | ❌ | No dedicated terminal proof. |
-| Q20 | Count terminal over complete admitted input | [✅][D7] | [✅][D7] | [✅][D7] | V1 example7. |
-| Q21 | LongCount terminal and overflow semantics | ❌ | ❌ | ❌ | Count's wire Int64 alone does not prove standard LongCount API semantics. |
+| Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
+| Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
 | Q22 | Any terminal | [✅][D9] | [✅][D9] | [✅][D9] | V1 example9. |
 | Q23 | All terminal | ❌ | ❌ | ❌ | No complete empty/null/predicate/provider proof. |
 | Q24 | Min terminal over declared scalar selections | [✅][D11] | [✅][D11] | [✅][D11] | V1 example11; domain-specific expansion tracked below. |
@@ -221,22 +221,40 @@ These remain explicit roadmap items; they do not inflate EF/NHibernate parity.
 | X05 | Cross-provider causal agreement / authoritative conflict resolution | ❌ | ❌ | ❌ | Provider priority is not causal proof. |
 | X06 | Repeatable distributed snapshots | ❌ | ❌ | ❌ | Moving reads are not a consistent cut. |
 | X07 | Multi-host/container/KMS key-ring deployment acceptance | ❌ | ❌ | ❌ | Local same-user DPAPI proof is narrower. |
-| X08 | Per-save committed delta/history API | ❌ | ❌ | ❌ | Existing implementation/evidence must be reconciled per provider. |
+| X08 | Per-save committed delta/history API | ❌ | ❌ | ❌ | **DEMO** — Existing implementation/evidence must be reconciled per provider. |
 | X09 | Web2/web3 migration with resumable verified equivalence | ❌ | ❌ | ❌ | Full migration acceptance remains open. |
 | X10 | HyperDrive V2 replica convergence/placement under failures | ❌ | ❌ | ❌ | Broader provider programme; not certified by CQL tests. |
 
-## Work ordering
+## Investor demo priority and work ordering
 
-1. Reconcile ❌ rows whose implementation already has proving native evidence;
-   update evidence only, without hardening any ✅ feature.
-2. Implement missing standard query terminals Q14-Q23, then remaining query
-   operators/translation rows, using shared owners and all-three-store tests.
-3. Implement the missing session/mapping/relationship/transaction features; track
-   provider restrictions honestly rather than substituting a narrower feature.
-4. Resume X04 distributed joins after the core parity queue is scheduled. The
-   preserved deferred intent groundwork stays ❌ and is not counted as delivered.
-5. Retain all ❌ rows until their stated semantics are proved. No 100% claim
-   follows from a passing aggregate test count or the current set of green rows.
+**DEMO** tags define the first acceptance set for the same investor walkthrough
+on **SQLite, MongoDB and Neo4j**. They were assigned only to ❌ rows; retain the
+tag after promotion so the finished demo set stays auditable. Every tagged row
+must be green on all three stores before work resumes on untagged backlog.
+No broad row is narrowed merely to make the demo green.
+
+| Priority | Tagged ❌ rows | Demo purpose |
+|---|---|---|
+| 1 — verified | Q14, Q15, Q16, Q17 | First/FirstOrDefault/Single/SingleOrDefault; native cardinality, empty/error semantics and source windows |
+| 2 — reconcile existing proof, then fill gaps | Q05, Q06, Q07, Q08, Q12b | Null/missing metadata, field comparisons, membership, strings and multi-key ordering |
+| 3 — ORM save story | M07, S04, X08 | Generated identity ownership, dirty/no-op saves and committed per-save deltas |
+
+The existing green query/CRUD/concurrency/child-graph features supply the rest of
+the demo. Use their existing evidence and examples; do not harden them further.
+Federation cursors remain frozen unless a reproducible bug is found. Running
+existing green regression checks to validate a necessary ❌ change is allowed;
+adding unrelated cursor or green-feature work is not.
+
+Unrestricted POCO mapping (M01), migrations (M26/M27), scaffolding/tooling
+(M28/M30), unit-of-work/identity-map programmes and every other untagged row are
+**deferred until the demo set is green**. They remain full parity requirements,
+not deleted scope. Distributed joins (X04) stay deferred with their preserved
+[untested source](Deferred/CosmicDistributedJoinQuery.cs.txt).
+
+For each tagged ❌ row: reconcile any existing proving test first, implement only
+its actual missing semantics, add the necessary tests/demo, record the native
+outcome, and then promote only the proved database cells. A total test count is
+never a parity or demo completion claim.
 
 ## Evidence links
 
@@ -251,6 +269,7 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [D5]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L129
 [D6]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L156
 [D7]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L190
+[D8]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L207
 [D9]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L217
 [D10]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L227
 [D11]: ../../../Examples/CosmicCqlDemo/V1Walkthrough.cs#L246
@@ -272,10 +291,12 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [F]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Federation.cs
 [C]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedCursors.cs
 [P]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.CursorProcess.cs
-[G]: Verification/request-ownership-native-result.json
-[GS]: Verification/request-ownership-native-source.json.gz
-[GB]: Verification/request-ownership-native-binaries.json
-[GT]: Verification/request-ownership-native.trx.gz
+[G]: Verification/element-terminals-native-result.json
+[GS]: Verification/element-terminals-native-source.json.gz
+[GB]: Verification/element-terminals-native-binaries.json
+[GT]: Verification/element-terminals-native.trx.gz
+[NC]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.cs#L866
+[SC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicScalarQueryTests.cs#L119
 [LC]: Verification/cursor-lineage-core.trx.gz
 
 ## External feature baselines
@@ -286,3 +307,21 @@ families, not a claim that either ORM supplies every feature on every backend.
 - [EF Core overview](https://learn.microsoft.com/en-us/ef/core/), [model configuration](https://learn.microsoft.com/en-us/ef/core/modeling/), [querying](https://learn.microsoft.com/en-us/ef/core/querying/), [saving](https://learn.microsoft.com/en-us/ef/core/saving/), [tracking](https://learn.microsoft.com/en-us/ef/core/change-tracking/), [migrations](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/).
 - [EF6 overview and feature families](https://learn.microsoft.com/en-us/ef/ef6/).
 - [NHibernate5.7 reference](https://nhibernate.info/doc/nhibernate-reference/), [mapping](https://nhibernate.info/doc/nhibernate-reference/mapping.html), [LINQ](https://nhibernate.info/doc/nhibernate-reference/querylinq.html), [transactions](https://nhibernate.info/doc/nhibernate-reference/transactions.html), [fetching/caching/performance](https://nhibernate.info/doc/nhibernate-reference/performance.html).
+
+## Evidence reconciliation log
+
+- 26 October 2026: Q21 promoted on all three stores from existing native LongCount
+  demonstrations and the retained exact-domain tests. The 137-row native case
+  proves no implicit 25-row cap; three retained unit cases prove explicit Count
+  overflow and exact LongCount through Int64.MaxValue. No code or green-feature
+  hardening was needed. Q20 now links its Count example rather than LongCount.
+
+- 26 October 2026: DEMO Q14–Q17 promoted on SQLite/MongoDB/Neo4j after native
+  examples 47–58 pass (36 new terminal cases; total 174 SDK cases). Shared Core
+  tests: 3,767 passed, zero skips; Core net10.0/netstandard2.1 and shipping WEB4
+  build pass. Native source snapshots unchanged; seven binary pairs match.
+  Eight DEMO rows / 24 database cells remain red. No cursor code was changed.
+
+[E]: ../../../Examples/CosmicCqlDemo/V1ElementQueries.cs
+[EU]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicElementQueryTests.cs
+[EG]: Verification/element-terminals-core.trx.gz

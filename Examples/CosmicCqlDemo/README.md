@@ -371,3 +371,14 @@ Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero 
 Earlier native cursor checkpoint: twenty signed shipping-controller requests, eighteen settlements/thirty-two attempts, duplicate-claim rejection, pinned scope, host restart and key rotation/revocation pass. Full cohort523operations599attempts, unchanged sources/sevenbinarypairs. The presenter UI examples above remain separate; use the CQL manual's opt-in cursor enrollment/request sequence. Actual same-user Windows cursor process persistence is now verified separately; other key deployments and broader distributed features remain open.
 
 Actual cursor process acceptance: abrupt first-host termination, a different fresh host, unchanged DPAPI-protected persisted key, three native pages/nine attempts, and duplicate rejection pass. Full cohort526/608; test keys/config/fixtures removed after verified teardown. See the CQL manual for deployment boundaries.
+
+## C# element-terminal examples
+
+[V1ElementQueries.cs](V1ElementQueries.cs) contains spaced, commented examples
+47–58 for First/FirstOrDefault/Single/SingleOrDefault. The same code runs on
+MongoDB, SQLite and Neo4j through HolonManager. Native queries request at most
+one or two rows, preserve source windows, and distinguish empty/default results
+from provider failures or ambiguous Single results. See the
+[manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md#native-element-terminals-c-sdk).
+These SDK examples bring the walkthrough to 58 cases per store; the separate
+HTTP walkthrough has 46 cases per store and no new element-terminal route.

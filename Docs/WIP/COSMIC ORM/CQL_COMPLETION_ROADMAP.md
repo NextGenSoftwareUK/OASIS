@@ -1,3 +1,12 @@
+## Current work order — investor demo first (26 October 2026)
+
+The [parity checklist](CQL_PARITY_CHECKLIST.md#investor-demo-priority-and-work-ordering)
+is authoritative. Work only on its **DEMO**-tagged ❌ cells until that set is green
+on SQLite, MongoDB and Neo4j. Untagged POCO/model/migrations/tooling work remains
+in the full backlog but is deferred. Existing ✅ features and federation cursors
+are frozen unless a reproducible bug is found. Historical sections below are
+not permission to resume hardening completed features.
+
 ## Latest cursor lineage ownership correction — 26 October 2026
 
 The shared admission owner now returns its validated execution handle. Federation
