@@ -15,6 +15,8 @@ public static class CoreStorageConformance
 {
     public const string Suite = "core-storage-v2";
     public const int ChecksPerMode = 26;
+    // A private identity prevents provider exception text/data from becoming report diagnostics.
+    private static readonly object ContractDiagnosticKey = new();
     public sealed class Report
     {
         public string SuiteVersion { get; set; } = Suite;
@@ -29,6 +31,7 @@ public static class CoreStorageConformance
         public List<string> Passed { get; set; } = new();
         public string CurrentCase { get; set; } = "initial";
         public string FailureType { get; set; } = "";
+        public string FailureContract { get; set; } = "";
         public Dictionary<Guid,string> DeletionKinds { get; set; } = new();
         public List<Guid> HardCleanedFixtures { get; set; } = new();
         public string ExpectedDefaultDeletion { get; set; }
@@ -127,12 +130,21 @@ public static class CoreStorageConformance
         catch(Exception error)
         {
             // No fabricated success, retries, raw-prefix sweeps or error-message/credential dumping.
-            r.FailureType=error.GetType().FullName??error.GetType().Name;await checkpoint(r);
+            r.FailureType=error.GetType().FullName??error.GetType().Name;
+            if(error.GetType()==typeof(InvalidOperationException))
+                r.FailureContract=error.Data[ContractDiagnosticKey] as string ?? "";
+            await checkpoint(r);
         }
         return r;
     }
     private static void Absent<T>(OASISResult<T> x) where T:class=>Require(x.Result==null&&!x.IsLoaded&&x.LoadedCount==0&&(!x.IsError||x.ErrorCode==OASISResultErrorCodes.RecordNotFound),"independent absence; transport failure is not proof");
-    private static void Require(bool value,string contract) {if(!value)throw new InvalidOperationException("Storage conformance failed: "+contract);}
+    private static void Require(bool value,string contract)
+    {
+        if(value)return;
+        var error=new InvalidOperationException("Storage conformance failed: "+contract);
+        error.Data[ContractDiagnosticKey]=contract;
+        throw error;
+    }
     private static void Saved<T>(OASISResult<T> x,int count)=>Require(x!=null&&!x.IsError&&x.IsSaved&&x.SavedCount==count,"save acknowledgement/count");
     private static T Loaded<T>(OASISResult<T> x) where T:class {Require(x!=null&&!x.IsError&&x.IsLoaded&&x.LoadedCount==1&&x.Result!=null,"single read acknowledgement/count");return x.Result;}
     private static List<IHolon> Collection(OASISResult<IEnumerable<IHolon>> x) {Require(x!=null&&!x.IsError&&x.IsLoaded&&x.Result!=null,"collection acknowledgement");var rows=x.Result.ToList();Require(x.LoadedCount==rows.Count,"collection count");return rows;}

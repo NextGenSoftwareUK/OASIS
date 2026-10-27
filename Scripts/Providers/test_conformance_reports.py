@@ -14,6 +14,15 @@ class ConformanceReportTests(unittest.TestCase):
         r=self.report();validate_report(r,'RedisOASIS','async','core-storage-v2')
         r['DeletionKinds']={id:'absent' for id in r['DeletionKinds']};r['HardCleanedFixtures']=[]
         validate_report(r,'RedisOASIS','async','core-storage-v2')
+
+    def test_contract_diagnostics_are_optional_bounded_and_never_on_success(self):
+        r=self.report();r['FailureContract']='single read acknowledgement/count'
+        with self.assertRaises(ValueError):validate_report(r,'RedisOASIS','async','core-storage-v2')
+        r['Succeeded']=False
+        validate_report(r,'RedisOASIS','async','core-storage-v2')
+        for value in [None,{},'x'*161,'line\nbreak','table|injection']:
+            r['FailureContract']=value
+            with self.subTest(value=value),self.assertRaises(ValueError):validate_report(r,'RedisOASIS','async','core-storage-v2')
     def test_old_suite_or_missing_cleanup_or_fake_totals_rejected(self):
         variants=[('SuiteVersion','core-storage-v1'),('FixtureCleanupComplete',False),('HardCleanedFixtures',[]),('Passed',['same']*26),('CurrentCase','fixture-hard-cleanup-child'),('DeletionKinds',{}),('ExpectedDefaultDeletion','absent'),('CleanupScope','physical-ledger-erase')]
         for field,value in variants:
