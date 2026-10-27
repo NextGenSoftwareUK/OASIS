@@ -12,6 +12,8 @@
 
 The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the first universal API that connects everything to everything, eliminating silos and walled gardens.
 
+> **New to WEB4?** Start with **[WEB4: One World of Data](./Docs/WEB4_One_World_Of_Data.md)**: what WEB4 is, the "best of all worlds" design and the use cases it unlocks.
+
 ## 📋 Table of Contents
 
 - [Quick Start](#-quick-start)
@@ -1081,6 +1083,7 @@ Sophisticated tokenomics with:
 - **[Development Environment Setup](./Docs/Devs/DEVELOPMENT_ENVIRONMENT_SETUP.md)** - Complete development setup guide
 
 ### 📖 **Core Documentation**
+- **[WEB4: One World of Data](./Docs/WEB4_One_World_Of_Data.md)** - What WEB4 is and the use cases it unlocks (for investors, clients and partners)
 - **[Investor Evaluation Guide](./Docs/INVESTOR_EVALUATION_GUIDE.md)** - Comprehensive investment analysis and market opportunities
 
 ### 🏗️ **OASIS Managers & Systems**
