@@ -453,3 +453,65 @@ Holon last = featured.LastOrDefault(holon => holon.Version >= 2, empty);
 The supplied reference is returned only after a successful native empty result. Present rows use normal typed hydration/tracking. Single ambiguity, protected traversal errors, incomplete acknowledgements and storage failures propagate; none return the supplied default instead.
 
 Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. Mongo/Neo enrollment, standard Select and selected-stage/numeric integration remain pending. Broader provider demo now takes priority.
+# Azure Cosmos DB canonical rows (27 October 2026)
+
+Cosmos now implements the standard `ICosmicQueryStorageProvider` row contract.
+This is a limited canonical-field profile; it is not yet the complete cloud demo.
+Activate the configured provider explicitly before querying. A query never creates
+storage or activates a provider implicitly. Bind visibility from authenticated
+server context before paging, as for the existing database adapters.
+
+```csharp
+// cosmos is an explicitly activated AzureCosmosDBOASIS instance.
+// actorId comes from the authenticated server context.
+var access = CosmicQueryReadAccess.OwnerOrPublic(actorId);
+if (access.IsError)
+    throw new InvalidOperationException(access.Message);
+
+var scope = CosmicQueryScope.Named(ProviderType.AzureCosmosDBOASIS);
+if (scope.IsError)
+    throw new InvalidOperationException(scope.Message);
+
+// Native visibility and predicates run before the native source window.
+var query = CosmicQuery<Holon>.Create(scope.Result)
+    .WithReadAccess(access.Result)
+    .Where(holon => holon.IsActive && holon.Version >= 2)
+    .OrderBy(holon => holon.Id)
+    .Take(10);
+
+if (query.IsError)
+    throw new InvalidOperationException(query.Message);
+
+var plan = CosmicQueryPlanner.Plan(
+    query.Result,
+    ProviderType.AzureCosmosDBOASIS,
+    new[]
+    {
+        new CosmicQueryTarget(
+            ProviderType.AzureCosmosDBOASIS,
+            AzureCosmosDBOASIS.CqlCapabilities)
+    });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.Message);
+
+var result = await cosmos.ExecuteCosmicQueryAsync(plan.Result, maximumResults: 10);
+if (result.IsError)
+    throw new InvalidOperationException(result.Message, result.Exception);
+
+// Complete, canonical leaf records; embedded children are not graph expansion.
+foreach (var holon in result.Result)
+    Console.WriteLine($"{holon.Id}: {holon.Name}, version {holon.Version}");
+```
+
+Current profile supports Boolean composition; canonical Name/Description string
+equality/inequality/null, IsActive/IsPublic equality, GUID identity/audit equality,
+and Int32 Version comparisons. Metadata predicates, graph expansion, projection,
+count and mixed numeric semantics are rejected during admission. Compound ordering
+requires an explicitly configured Cosmos composite index; no index is created by
+CQL. Id ordering is native-proven; broader index/operator acceptance remains open.
+
+Native emulator evidence: 24 focused tests plus a five-case public-provider gate.
+Hosted Azure, manager/usage integration and the remaining common demo features
+remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
+

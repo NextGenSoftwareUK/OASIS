@@ -14,9 +14,15 @@ public partial class HolonRepository
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
     {
         var command = CosmosCqlRowCommand.Compile(plan, maximumResults);
+        return await ExecuteCqlCommandRowsAsync(command, plan.Query.ReadAccess, maximumResults, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal async Task<IReadOnlyList<IHolon>> ExecuteCqlCommandRowsAsync(Microsoft.Azure.Cosmos.QueryDefinition command,
+        CosmicQueryReadAccess access, int maximumResults, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         var rows = await ReadBoundedCurrentQueryAsync(command, maximumResults, cancellationToken).ConfigureAwait(false);
-        return ValidateCqlLeafRows(rows, plan.Query.ReadAccess, cancellationToken);
+        return ValidateCqlLeafRows(rows, access, cancellationToken);
     }
 
     internal static IReadOnlyList<IHolon> ValidateCqlLeafRows(IReadOnlyList<IHolon> rows,

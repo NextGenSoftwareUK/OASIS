@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 /// <summary>Pure re-admission and bounded native row command construction.</summary>
 internal static class CosmosCqlRowCommand
 {
-    // Internal until the native acceptance gate passes. No advertised enrollment.
+    // Shared physical admission profile for the public native row executor.
     internal static CosmicQueryCapabilities Capabilities
     {
         get
