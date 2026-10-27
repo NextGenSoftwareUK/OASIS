@@ -556,7 +556,7 @@ strings and missing non-nullable values reject the result. Source identity and
 visibility proofs remain required even when Id is not selected. Selected-result
 composition and entity-stage projection are not yet enrolled for Cosmos.
 
-Native emulator evidence: 41 focused tests, 38 native cases and five shared
+Native emulator evidence: 46 focused provider tests, 47 native cases and five shared
 HolonManager/LINQ demo operations.
 Hosted Azure, prepared usage admission and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
@@ -593,12 +593,18 @@ For example, send this body to `POST /api/data/query-cql`:
 ```
 
 Specify `OrderBy: "Id"` or the declared Version profile: the shared wire default
-`Name` ordering is not admitted by Cosmos yet. Endpoint admission/compiler tests
-pass, but a complete HTTP request against native/hosted Cosmos remains unverified.
+`Name` ordering is not admitted by Cosmos yet. Native HTTP row, scalar and projection requests now pass through the real
+controller/endpoints under controlled test identity and receipt storage. Core
+query-tariff admission includes explicitly permitted Cosmos profiles;405 affected
+WEB4/tariff tests pass. Hosted Azure, production JWT and durable billing remain
+unverified.
 Canonical membership is now admitted for GUID, string, Boolean and Int32 fields.
 This enables `CosmicQueryReadAccess.AuthoritativeRecords` for Cosmos: the complete
 server-authorized catalogue replaces owner/public visibility, including an empty
 catalogue that admits no records. Native row, count and projection tests prove a
 private catalogue member is visible while public/owned outsiders remain excluded.
-Metadata membership remains a separate unsupported capability. A complete HTTP
-request with prepared usage admission against Cosmos is still an open demo gate.
+Metadata membership remains a separate unsupported capability. The native HTTP gate also verifies catalogue enforcement under prepared admission
+and one configured query-attempt receipt per successful row/scalar/projection
+request. Anonymous and forged-actor requests reject before provider lookup. The
+receipt store and validated identity are controlled fixtures; this is not proof
+of production authentication, reservation settlement or billing durability.

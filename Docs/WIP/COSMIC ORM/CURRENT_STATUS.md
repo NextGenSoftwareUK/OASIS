@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active priority: eight-provider demo before full parity.
-- Cosmos query profile:46 provider tests, native47 cases/5 manager-demo ops; WEB4 enrollment passes372 affected tests. Canonical membership now proves authoritative catalogue visibility across rows/count/projection. Conditional saves/deltas stay unsupported. [Admission report](CQL_COSMOS_NATIVE_ADMISSION.md). Next: native HTTP and numeric demo scope.
+- Cosmos:46 provider tests,47 native cases/5 manager-demo ops plus native HTTP rows/scalar/projection pass under controlled identity/receipts.405 affected tariff/WEB4 tests pass. Core7dfd1bc pushed/verified, parent pin updated. [Admission report](CQL_COSMOS_NATIVE_ADMISSION.md). Next: numeric demo scope; hosted Azure/production auth/billing and conditional lifecycle remain open.
 - Order: existing Mongo/SQLite/Neo demo, Cosmos candidate, Solana, IPFS, SOLID, ActivityPub. See [demo roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). Defer unfinished parity-only depth; Q01f stays red.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
