@@ -13,7 +13,8 @@ namespace NextGenSoftware.OASIS.Providers.TestSupport;
 /// No chain contracts, fee ledgers, routing or crash-recovery depth belongs in this suite.</summary>
 public static class CoreStorageConformance
 {
-    public const string Suite = "core-storage-v1";
+    public const string Suite = "core-storage-v2";
+    public const int ChecksPerMode = 26;
     public sealed class Report
     {
         public string SuiteVersion { get; set; } = Suite;
@@ -28,15 +29,21 @@ public static class CoreStorageConformance
         public List<string> Passed { get; set; } = new();
         public string CurrentCase { get; set; } = "initial";
         public string FailureType { get; set; } = "";
+        public Dictionary<Guid,string> DeletionKinds { get; set; } = new();
+        public List<Guid> HardCleanedFixtures { get; set; } = new();
+        public string ExpectedDefaultDeletion { get; set; }
+        public string CleanupScope { get; set; } = "point-and-raw-collection-interface-absence";
+        public bool FixtureCleanupComplete { get; set; }
         public bool Succeeded { get; set; }
     }
 
     public static async Task<Report> RunAsync(IOASISStorageProvider p, string provider, string mode, bool sync,
-        Func<Report,Task> checkpoint)
+        Func<Report,Task> checkpoint, Func<Guid,bool,Task<OASISResult<bool>>> cleanupSoftDeletedFixture = null, string expectedDefaultDeletion = null)
     {
         ArgumentNullException.ThrowIfNull(p);ArgumentNullException.ThrowIfNull(checkpoint);
         if (mode is not ("controlled" or "native")) throw new ArgumentException("Execution mode must be explicit.",nameof(mode));
-        var r=new Report { Provider=provider,Mode=mode,Synchronous=sync };
+        if(expectedDefaultDeletion!=null&&expectedDefaultDeletion is not ("soft" or "absent"))throw new ArgumentException("Unknown default deletion contract.",nameof(expectedDefaultDeletion));
+        var r=new Report { Provider=provider,Mode=mode,Synchronous=sync,ExpectedDefaultDeletion=expectedDefaultDeletion };
         var marker="conformance-"+r.OwnerId.ToString("N");
         var avatar=new Avatar { Id=r.OwnerId,Username=marker,Email=marker+"@example.invalid",FirstName=marker,IsActive=true };
         var detail=new AvatarDetail { Id=r.OwnerId,Username=avatar.Username,Email=avatar.Email,Karma=17,XP=31 };
@@ -80,12 +87,42 @@ public static class CoreStorageConformance
                 Require(rows.Count==expected.Count&&rows.All(h=>h.CreatedByAvatarId==r.OwnerId)&&expected.SetEquals(rows.Select(h=>h.Id)),"owned export"); });
             // Healthy success path cleans only these exact owned identities. On failure preserve fixtures and stop.
             foreach(var id in new[]{r.ChildId,r.RootId,r.ImportId}.Concat(r.BatchIds))
-                await Step("holon-delete-"+id.ToString("N"),async()=> { var x=sync?p.DeleteHolon(id):await p.DeleteHolonAsync(id);Require(!x.IsError&&x.IsDeleted,"delete acknowledgement");
-                    var absent=sync?p.LoadHolon(id,loadChildren:false):await p.LoadHolonAsync(id,loadChildren:false);Require(absent.Result==null&&!absent.IsLoaded,"deleted holon absence"); });
+                await Step("holon-delete-"+id.ToString("N"),async()=> {
+                    var x=sync?p.DeleteHolon(id):await p.DeleteHolonAsync(id);
+                    Require(!x.IsError&&x.IsDeleted&&x.DeletedCount==1,"delete acknowledgement/count");
+                    var observed=sync?p.LoadHolon(id,loadChildren:false):await p.LoadHolonAsync(id,loadChildren:false);
+                    var expectedName=id==r.RootId?marker+"-updated":id==r.ChildId?marker+"-child":id==r.ImportId?marker+"-import":marker+"-batch";
+                    if(observed.Result==null){Absent(observed);r.DeletionKinds[id]="absent";}
+                    else{
+                        var tombstone=Loaded(observed);
+                        Require(tombstone.Id==id&&tombstone.CreatedByAvatarId==r.OwnerId&&tombstone.Name==expectedName&&tombstone.IsDeleted&&tombstone.DeletedDate!=DateTime.MinValue,"owned deletion tombstone");
+                        r.DeletionKinds[id]="soft";
+                    }
+                    // Raw storage collections may retain tombstones; none may expose this ID as live.
+                    var rows=Collection(sync?p.LoadAllHolons(loadChildren:false):await p.LoadAllHolonsAsync(loadChildren:false));
+                    var tombstones=rows.Where(h=>h.Id==id).ToList();
+                    Require(tombstones.Count<=1&&tombstones.All(h=>h.IsDeleted&&h.DeletedDate!=DateTime.MinValue&&h.CreatedByAvatarId==r.OwnerId&&h.Name==expectedName),"no live or corrupted deleted record in raw collection");
+                    var needsCleanup=observed.Result!=null||tombstones.Count!=0;
+                    r.DeletionKinds[id]=needsCleanup?"soft":"absent";
+                    Require(expectedDefaultDeletion==null||r.DeletionKinds[id]==expectedDefaultDeletion,"declared shipping default deletion contract");
+                    if(id==r.ChildId){var children=Collection(sync?p.LoadHolonsForParent(r.RootId,loadChildren:false):await p.LoadHolonsForParentAsync(r.RootId,loadChildren:false));Require(children.All(h=>h.Id!=id),"deleted child excluded from parent membership");}
+                    if(needsCleanup){
+                        // Fixture maintenance AFTER testing the shipping default; never substitutes a hard delete for the API under test.
+                        r.CurrentCase="fixture-hard-cleanup-"+id.ToString("N");await checkpoint(r);
+                        Require(cleanupSoftDeletedFixture!=null,"explicit exact-fixture hard cleanup required");
+                        var cleaned=await cleanupSoftDeletedFixture(id,sync);
+                        Require(!cleaned.IsError&&cleaned.Result&&cleaned.IsDeleted,"fixture cleanup acknowledgement");
+                        var absent=sync?p.LoadHolon(id,loadChildren:false):await p.LoadHolonAsync(id,loadChildren:false);
+                        Absent(absent);
+                        var remaining=Collection(sync?p.LoadAllHolons(loadChildren:false):await p.LoadAllHolonsAsync(loadChildren:false));
+                        Require(remaining.All(h=>h.Id!=id),"independent fixture raw-collection absence");
+                        r.HardCleanedFixtures.Add(id);
+                    }
+                });
             await Step("avatar-delete",async()=> { var x=sync?p.DeleteAvatar(r.OwnerId,softDelete:false):await p.DeleteAvatarAsync(r.OwnerId,softDelete:false);Require(!x.IsError&&x.Result&&x.IsDeleted,"avatar delete"); });
-            await Step("avatar-detail-absence",async()=> {var a=sync?p.LoadAvatar(r.OwnerId):await p.LoadAvatarAsync(r.OwnerId);var d=sync?p.LoadAvatarDetail(r.OwnerId):await p.LoadAvatarDetailAsync(r.OwnerId);Require(a.Result==null&&!a.IsLoaded&&d.Result==null&&!d.IsLoaded,"avatar/detail cleanup"); });
+            await Step("avatar-detail-absence",async()=> {var a=sync?p.LoadAvatar(r.OwnerId):await p.LoadAvatarAsync(r.OwnerId);var d=sync?p.LoadAvatarDetail(r.OwnerId):await p.LoadAvatarDetailAsync(r.OwnerId);Absent(a);Absent(d); });
             await Step("deactivate",async()=> {var x=sync?p.DeActivateProvider():await p.DeActivateProviderAsync();Require(!x.IsError&&x.Result,"deactivation"); });
-            r.CurrentCase="complete";r.Succeeded=true;await checkpoint(r);
+            r.FixtureCleanupComplete=true;r.CurrentCase="complete";r.Succeeded=true;await checkpoint(r);
         }
         catch(Exception error)
         {
@@ -94,6 +131,7 @@ public static class CoreStorageConformance
         }
         return r;
     }
+    private static void Absent<T>(OASISResult<T> x) where T:class=>Require(x.Result==null&&!x.IsLoaded&&x.LoadedCount==0&&(!x.IsError||x.ErrorCode==OASISResultErrorCodes.RecordNotFound),"independent absence; transport failure is not proof");
     private static void Require(bool value,string contract) {if(!value)throw new InvalidOperationException("Storage conformance failed: "+contract);}
     private static void Saved<T>(OASISResult<T> x,int count)=>Require(x!=null&&!x.IsError&&x.IsSaved&&x.SavedCount==count,"save acknowledgement/count");
     private static T Loaded<T>(OASISResult<T> x) where T:class {Require(x!=null&&!x.IsError&&x.IsLoaded&&x.LoadedCount==1&&x.Result!=null,"single read acknowledgement/count");return x.Result;}

@@ -146,6 +146,8 @@ def build():
    report=ROOT/e['report']
    if not report.is_file() or hashlib.sha256(report.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('Missing/changed evidence: '+name)
    status=f"{e['passed']}/{e['total']} ({e['mode']}; {e['suite']})";blockers+=e.get('blockers',[])
+   if role!='Non-storage' and e['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
+    status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
   else:status='Not run (capability-v1)' if role=='Non-storage' else 'Not run';blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
   if not sdk:blockers.append('Real SDK/API not yet source-reviewed')
   sdk_text='Yes - '+', '.join(sdk) if sdk else 'No - unverified'
@@ -155,20 +157,22 @@ def build():
 Generated from **{len(rows)} shipping provider projects** by `python Scripts/Providers/update_provider_matrix.py`.
 Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers.
 
+Current required storage suite: **{registry.get('currentCoreSuite','core-storage-v1')}**. Earlier-suite totals remain historical and do not establish a current-suite pass.
+
 One row per provider project; tests/harness/demo and provider-template projects excluded. Alternate implementations remain separate rows. Non-storage providers require capability review rather than disappearing.
 
 **SDK Yes means detected client construction/use, service HTTP calls, or a declared Node SDK imported by bridge source; it is not live acceptance or full implementation. No means unverified, not necessarily absent.** Referenced provider namespaces actually used by source are followed; unused project references do not earn SDK credit; package presence alone does not earn Yes. Non-storage products use capability-v1 identity/activation/read-only service checks, not storage CRUD. Persistent search/vector databases remain storage; chain indexers/maps/AI/wallet/auth services are Non-storage. Existing provider-specific test totals are NOT shared conformance passes.
 
-`CONFORMANCE_RESULTS.json` holds hash-bound reports with suite/version and controlled/native mode. Until every applicable provider passes, global HyperDrive failover/load-balancing/replication is deferred; depth work follows afterward. No100% certification from this inventory. Initial harness control: both sync/async model runs passed all52 contract checks; LocalFile native runs stopped at avatar-save acknowledgement (2/52), retained below. SQL90 unit passes include family-identity controls and are not shared native conformance.
+`CONFORMANCE_RESULTS.json` holds hash-bound reports with suite/version and controlled/native mode. Until every applicable provider passes, global HyperDrive failover/load-balancing/replication is deferred; depth work follows afterward. No100% certification from this inventory. Initial v1 harness control: both sync/async model runs passed all52 contract checks; LocalFile native runs stopped at avatar-save acknowledgement (2/52), retained below. SQL90 unit passes include family-identity controls and are not shared native conformance.
 
 Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/object (AWS S3 priority), IPFS, non-EVM, remaining families. Time-box approximately one working day per family, record blockers then move on. No Polkadot/NEAR/SQLite depth work in this pass.
 
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; Oracle native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL v1 native12/52 historical, detail read-count fixed/targeted2PASS; Oracle v2 native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Existing DynamoDB owner for AWS alias + shared record policy | AWS/Dynamo factories bound; 27factory controlsPASS, native runtime missing0/52 | Started 26 Oct; ~1 day |
-| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis native36/52: default-soft contract mismatch, 37controlsPASS; AWS S3 native config missing0/52 | Started 26 Oct; ~1 day |
+| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis v2 native52/52PASS with soft default preserved; AWS S3 native config missing0/52 historical | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
 | Non-EVM | Shared record policy + native SDK transports | Baseline storage only; stop contract/fee/recovery depth | Not started; ~1 day |
 | Graph/federated/filesystem/other | Existing native owners | Classify storage applicability and register factories | Not started; ~1 day |
