@@ -351,4 +351,14 @@ var values = await revisions.ToCosmicListAsync();
 
 Retained native columns remain validated even if the last Select drops them. A selection does not bypass source authorization, data-domain errors or the existing work/payload limits. A closure in an earlier Where is rebound on each standard IQueryable execution; fluent CQL capture remains immutable.
 
-Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but SQLite/MongoDB/Neo4j native enrollment remains pending. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. Expanded-graph source support for this terminal shape is also pending. Existing pre-window predicate behavior remains unchanged.
+Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but SQLite native enrollment now passes45 cases; MongoDB/Neo4j remain pending. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. SQLite expanded-graph source support is verified. Existing pre-window predicate behavior remains unchanged.
+
+```csharp
+// SQLite Q01e: evaluate the predicate within the original page.
+var page = query.OrderBy(row => row.Name).Skip(5).Take(10);
+var firstAvailable = page.FirstOrDefault(row => row.Version > 1);
+var lastAvailable = page.LastOrDefault(row => row.Version > 1);
+var onlyMatch = page.Single(row => row.Name == "Coffee");
+```
+
+These SQLite terminals preserve admitted child-graph depth, snapshot and resource options. Empty terminal results do not expand graphs. Source scopes validate before paging; protected terminal scopes validate within the source page before First/Single/Last can truncate it. MongoDB/Neo4j enrollment remains pending.
