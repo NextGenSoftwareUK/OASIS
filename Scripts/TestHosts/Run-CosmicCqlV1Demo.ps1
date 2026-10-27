@@ -120,11 +120,15 @@ try {
             $report.cursorKeyRotations -ne 1 -or $report.cursorKeyRevocations -ne 1) {
             throw 'Signed native cursor paging/claim/restart/key-lifecycle proof is incomplete.'
         }
+        if ($report.cursorProcessProvidersVerified -ne 3 -or $report.cursorProcessPages -ne 3 -or
+            $report.cursorProcessAttempts -ne 9 -or $report.cursorProcessDuplicateRejections -ne 1) {
+            throw 'Actual cursor process-restart/persisted-key/native settlement proof is incomplete.'
+        }
         # Interactive presenters may run additional queries before Finish.
         # Bounded verification retains exact totals; both require all recovery cases.
         if ($report.settledRecoveryOperations -ne 12 -or
-            (!$Serve -and ($report.settledOperations -ne 523 -or $report.providerAttempts -ne 599)) -or
-            ($Serve -and ($report.settledOperations -lt 523 -or $report.providerAttempts -lt 599))) {
+            (!$Serve -and ($report.settledOperations -ne 526 -or $report.providerAttempts -ne 608)) -or
+            ($Serve -and ($report.settledOperations -lt 526 -or $report.providerAttempts -lt 608))) {
             throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
         }
 

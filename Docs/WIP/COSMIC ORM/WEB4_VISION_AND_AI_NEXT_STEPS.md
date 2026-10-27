@@ -25,8 +25,8 @@ sources mean the same thing or allow access to a closed platform.
 | COSMIC ORM/CQL on MongoDB, SQLite, Neo4j | Substantial implemented/tested vertical slice: typed mapping, query capabilities, exact value semantics, child/graph access, conditional writes and scoped recovery. Full roadmap not complete. |
 | Cross-provider CQL | Native federation, global ordering/windows, copy provenance, per-target grants and metered attempts verified. Deterministic priority is not causal freshness. |
 | HTTP continuation | Controlled Core3,739pass; latest actual shipping/native gate20cursor requests,18settlements,32attempts,2duplicate rejections; host restarts2, key rotation1/revocation1. Fixed scope/expiry, fresh policy and cumulative accounting exercised. |
-| Joined native regression | 523settled operations/599physical attempts; source snapshots unchanged, seven producer/consumer pairs match; fixtures/services cleaned. Separate existing actual writer-process recovery covers all3stores. |
-| Cursor operations | Actual OS-process cursor restart with a persisted/shared key-ring deployment remains open. Memory-only key repository acceptance is not persistence evidence. |
+| Joined native regression | 526settled operations/608physical attempts; source snapshots unchanged, seven producer/consumer pairs match; fixtures/services cleaned. Separate existing actual writer-process recovery covers all3stores. |
+| Cursor operations | Actual abrupt Windows host termination/fresh-process continuation now passes with unchanged DPAPI-protected persisted keys and shared durable outbox. Multi-host/container/KMS deployment acceptance remains open. |
 | HyperDrive V2/provider breadth | Significant scoped provider implementations and controlled/native gates exist. Current provider reports explicitly leave full interfaces, hosted credentials/fees and joined failover/load-balancing/replication acceptance open. Not all-provider production certification. |
 | Remaining broader scope | Scalable authorization/tenant discovery, causal agreement, repeatable distributed snapshots, distributed joins, failure-window/retention reconciliation and remaining ORM history/replication/migration/placement gates. |
 
@@ -40,8 +40,7 @@ Latest cursor proof: Verification/federation-cursor-native{.trx.gz,-source.json.
 
 ## Recommended sequence
 
-1. Finish bounded production acceptance for the first three stores: cursor process
-   restart/persistent keys, failure windows, authorization deployment, operational
+1. Finish bounded production acceptance for the first three stores: production key deployment, failure windows, authorization deployment, operational
    reconciliation, and measured scale. Keep the full remaining roadmap explicit.
 2. Define semantic contracts: stable entity identities, schema versions, units,
    currencies, timestamps, authority, provenance, finality and lossless mappings.

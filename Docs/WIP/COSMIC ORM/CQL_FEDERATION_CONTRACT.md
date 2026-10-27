@@ -1,3 +1,26 @@
+## Latest: actual cursor process restart verified — 26 October 2026
+
+A settled three-provider page survives abrupt termination of its hosting process.
+A distinct fresh host resumes the exact protected cursor using the unchanged
+Windows DPAPI-protected persisted key. Three pages/nine provider attempts settle
+through one parent reservation authority and the production HTTP authorization
+client; a duplicate redemption is rejected without another execution start.
+Readiness JSON is published atomically. This is actual process evidence, separate
+from the earlier in-process host restart/key-rotation matrix.
+
+Full native cohort:526settled operations/608physical attempts, unchanged sources,
+seven matching producer/consumer pairs. Original twenty cursor requests and
+existing writer-process recovery remain green. The owning fixture removed its
+small test key/config directory after both process trees stopped; no private key
+or controlled credential was archived. Native databases/services were cleaned.
+
+Evidence: Verification/federation-cursor-process{.trx.gz,-second.trx.gz,
+-source.json.gz,-binaries.json,-result.json,-pids.json}; earlier initial proof is
+retained separately. Scope is same-user Windows DPAPI persistence. Multi-host,
+container/KMS key deployments, broader failure windows, causal agreement,
+repeatable distributed snapshots, distributed joins and the full remaining ORM
+roadmap are still open. Core3,739 is the separate preceding regression gate.
+
 # CQL federation implementation contract
 
 25 October 2026. This specifies remaining implementation and acceptance work.

@@ -26,6 +26,11 @@ public sealed partial class CqlV1Web4NativeTests
     [TestMethod]
     public async Task SignedHttpQueriesUseNativeVisibilityPagingAndDurableReceiptsOnAllThreeProviders()
     {
+        if (Environment.GetEnvironmentVariable("OASIS_COSMIC_CURSOR_PROCESS") is { } cursorPhase)
+        {
+            await RunCursorProcessHost(cursorPhase);
+            return;
+        }
         if (Environment.GetEnvironmentVariable("OASIS_COSMIC_RESTART_PHASE") is { } restartPhase)
         {
             await RunRecoveryProcessPhase(restartPhase);
@@ -175,6 +180,8 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.AreEqual(23, hostedFederation.Attempts);
             var hostedCursors = await VerifyShippingFederationCursors(providers, outbox, authority, secret,
                 outsider, ids, federationEncryptedId, tag, Journal);
+            var cursorProcessProvidersVerified = await VerifyCursorProcessRestart(outbox, authority, secret,
+                outsider, ids, federationEncryptedId, tag, sqlite, Journal);
             var demo = mode == null ? null : new V1DemoSession
             {
                 FixtureTag = tag, Ids = ids,
@@ -1117,6 +1124,8 @@ public sealed partial class CqlV1Web4NativeTests
                     cursorDuplicateRejections = hostedCursors.Duplicates,
                     cursorProvidersVerified = providers.Count,
                     cursorHostRestarts = 2, cursorKeyRotations = 1, cursorKeyRevocations = 1,
+                    cursorProcessProvidersVerified, cursorProcessPages = 3,
+                    cursorProcessAttempts = 9, cursorProcessDuplicateRejections = 1,
                     shippingRestRequests, shippingRestProvidersVerified = providers.Count,
                     shippingTransportRequests, shippingTransportProvidersVerified = providers.Count,
                     settledRestOperations = operations.Count(operation => operation.UserId == restActor.ToString("D") && operation.Endpoint != "POST " + CosmicOperationRecoveryRoutes.Recover),
