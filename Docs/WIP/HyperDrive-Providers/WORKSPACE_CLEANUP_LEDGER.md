@@ -32,3 +32,4 @@ Updated 2026-10-27. Owner: HyperDrive provider task. Use [CURRENT_STATUS.md](CUR
 No broad filesystem or cache cleanup was performed here. Current free-space measurements are machine-wide observations, not proof of exclusive reclaim; inspect current disk state before substantial work.
 
 Complete history: [Archive/WORKSPACE_CLEANUP_LEDGER.md](Archive/WORKSPACE_CLEANUP_LEDGER.md). Do not read it by default. Historical provenance/ownership is not retrospectively asserted complete.
+- 2026-10-27 report-writer migration: reused Python312; six report controls passed. Temporary `%TEMP%/oasis-report-control-*` directories held synthetic JSON only (size unmeasured), created/removed by TemporaryDirectory within the test; no services, SDK restores or native data touched. Future aggregates/archival outputs reuse `C:/Source/OASIS/TestResults/HyperDrive-Providers/NativeEvidence`; retained evidence is hash-bound by the registry. No download or environment created.

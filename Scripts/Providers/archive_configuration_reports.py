@@ -1,14 +1,15 @@
 """Archive reviewed setup failures without touching their native data."""
 import argparse,hashlib,json,re
 from pathlib import Path
+from record_conformance_results import registered_report
 ROOT=Path(__file__).resolve().parents[2]
-DOC=ROOT/'Docs/WIP/HyperDrive-Providers/NativeEvidence'
+DOC=ROOT/'TestResults/HyperDrive-Providers/NativeEvidence'
 
 def archive(names,check_only=False,stage='configuration'):
     plans=[]
     for name in names:
         if name not in {'AWSOASIS','DynamoDBOASIS','AWSS3OASIS'}:raise ValueError('Unreviewed provider')
-        evidence=DOC/('conformance-'+name.lower()+'-current.json');raw=evidence.read_bytes();runs=json.loads(raw)['runs']
+        raw=registered_report(name);runs=json.loads(raw)['runs']
         if len(runs)!=2:raise ValueError('Original pair required')
         targets=[]
         for mode in ('async','sync'):
@@ -25,6 +26,7 @@ def archive(names,check_only=False,stage='configuration'):
     if check_only:
         print('Unchanged setup reports verified; no mutation');return
     for initial,raw,targets in plans:
+        initial.parent.mkdir(parents=True,exist_ok=True)
         with initial.open('xb') as out:out.write(raw)
         for path,destination,digest in targets:
             path.rename(destination)
