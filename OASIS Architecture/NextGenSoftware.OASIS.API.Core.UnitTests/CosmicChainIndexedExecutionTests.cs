@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public class CosmicChainIndexedExecutionTests
+public partial class CosmicChainIndexedExecutionTests
 {
     private readonly Guid actor = Guid.NewGuid();
     private readonly CosmicChainQueryPosition position = new(1, "block");
@@ -20,9 +20,11 @@ public class CosmicChainIndexedExecutionTests
         new CosmicQueryFieldCapability("IsPublic", typeof(bool), CosmicQueryComparisonOperator.Equal),
         new CosmicQueryFieldCapability("CreatedByAvatarId", typeof(Guid), CosmicQueryComparisonOperator.Equal) });
 
-    private CosmicQueryPlan<Holon> Plan(bool access = true)
+    private CosmicQueryPlan<Holon> Plan(bool access = true) => Plan<Holon>(access);
+
+    private CosmicQueryPlan<T> Plan<T>(bool access = true) where T : IHolon
     {
-        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(source.SourceProvider).Result)
+        var query = CosmicQuery<T>.Create(CosmicQueryScope.Named(source.SourceProvider).Result)
             .WithIndexedSource(new(source, position, 0, TimeSpan.FromMinutes(1))).Result;
         if (access) query = query.WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result).Result;
         var planned = CosmicQueryPlanner.Plan(query, source.SourceProvider,
