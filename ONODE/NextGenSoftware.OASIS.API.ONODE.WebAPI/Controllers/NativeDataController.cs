@@ -38,9 +38,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                         () => OASISBootLoader.OASISBootLoader.OASISDNA,
                         () => ProviderManager.Instance.CurrentStorageProvider,
                         (provider, dna) => new HolonManager(null, dna, ProviderManager.Instance), out HolonManager admitted))
-                        _holonManager = admitted;
-                    else
-                        throw new InvalidOperationException("No admitted storage provider is available for native data import.");
+                        return _holonManager = admitted;
+
+                    // Same acquisition as DataController: outside admitted V2 execution, use the activated default provider.
+                    OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+                    if (result.IsError || result.Result == null)
+                        throw new InvalidOperationException($"No storage provider is available for native data import: {result.Message}");
+                    _holonManager = new HolonManager(result.Result);
                 }
                 return _holonManager;
             }
