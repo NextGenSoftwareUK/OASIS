@@ -1,6 +1,6 @@
 # COSMIC ORM work
 
-Latest demo milestone: [native query operators verified](CQL_DEMO_RUNBOOK.md). The investor-demo queue now has three red rows remaining on all three stores: generated-ID ownership, dirty/no-op saves and deltas. Larger mapping/migration/tooling work is deferred.
+Latest milestone: [all 12 scoped investor-demo rows verified](CQL_DEMO_RUNBOOK.md) on SQLite, MongoDB and Neo4j. Delta summaries are the demo child X08a; full-history parent X08 and broader EF/NHibernate parity remain red. The checklist continues to control remaining work.
 
 Current parity work queue: [EF / NHibernate feature checklist](CQL_PARITY_CHECKLIST.md). Each database cell requires linked proof. Work only on ❌ cells; ✅ cells remain frozen unless a bug is found.
 

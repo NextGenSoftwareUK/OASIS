@@ -25,7 +25,7 @@ older chronological roadmap is supporting history, not the source of green statu
   preserve its parent/history and never make a broad row green from a narrow case.
 - Existing native evidence: [three-store result][G], [source hashes][GS],
   [seven producer/consumer pairs][GB], [test result][GT]. It covers 526 settled
-  operations / 608 attempts, 270 SDK cases and 138 HTTP cases; this total is not a parity percentage. The latest lineage
+  operations / 608 attempts, 270 SDK cases, 138 HTTP cases and 30 save-demo checks; this total is not a parity percentage. The latest lineage
   correction has separate [unit evidence][LC] and is included in this fresh native gate.
 
 ## Mapping and schema
@@ -38,7 +38,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | M04 | NHibernate XML mappings | ❌ | ❌ | ❌ | No compatible importer/mapper proof. |
 | M05 | Model conventions and configurable naming strategies | ❌ | ❌ | ❌ | No complete convention/override suite. |
 | M06 | Assigned single GUID primary keys | [✅][R] | [✅][R] | [✅][R] | Three-provider REST create/read/update fixtures retain assigned IDs. |
-| M07 | Generated GUID keys with caller publication only after successful commit | ❌ | ❌ | ❌ | **DEMO** — Existing ID generation needs a row-specific three-store proof link. |
+| M07 | Generated GUID keys with caller publication only after successful commit | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 1 and 7][SV], [real native commit observer][SB]: generated caller ID still empty after native commit; validated success publishes it; rejected changed intent keeps empty ID. [All-three gate][G]. |
 | M08 | Integer identity / sequence / HiLo generators | ❌ | ❌ | ❌ | Declare portable semantics and native restrictions; no certification. |
 | M09 | Composite primary keys | ❌ | ❌ | ❌ | Composite join keys are not composite entity identity. |
 | M10 | Alternate/natural keys and uniqueness enforcement | ❌ | ❌ | ❌ | Metadata lookup is not atomic uniqueness. |
@@ -70,7 +70,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | S01 | Identity map: one instance per key within a session | ❌ | ❌ | ❌ | Detached query copies intentionally do not prove identity resolution. |
 | S02 | Context/session unit of work spanning multiple pending entities | ❌ | ❌ | ❌ | Per-holon Save and explicit batches are not SaveChanges/Flush parity. |
 | S03 | Added/Unchanged/Modified/Deleted/Detached state transitions | ❌ | ❌ | ❌ | Map all transitions and provider evidence before promoting. |
-| S04 | Snapshot dirty detection and no-op saves | ❌ | ❌ | ❌ | **DEMO** — Implemented pieces exist; reconcile exact tests/provider coverage. |
+| S04 | Snapshot dirty detection and no-op saves | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 2–6][SV]: acknowledged and freshly loaded no-ops preserve revision and create no delta, mutation or preparation receipt; local typed/metadata edits become dirty, acknowledged update becomes clean. [Native observer][SB], [all-three gate][G]. |
 | S05 | Property-level original/current values and explicit modified flags | ❌ | ❌ | ❌ | Needs complete public entry API/evidence. |
 | S06 | Notification/proxy change tracking | ❌ | ❌ | ❌ | No full notification/proxy proof. |
 | S07 | Attach/update/merge disconnected graphs | ❌ | ❌ | ❌ | Conditional save is not general session merge semantics. |
@@ -221,7 +221,8 @@ These remain explicit roadmap items; they do not inflate EF/NHibernate parity.
 | X05 | Cross-provider causal agreement / authoritative conflict resolution | ❌ | ❌ | ❌ | Provider priority is not causal proof. |
 | X06 | Repeatable distributed snapshots | ❌ | ❌ | ❌ | Moving reads are not a consistent cut. |
 | X07 | Multi-host/container/KMS key-ring deployment acceptance | ❌ | ❌ | ❌ | Local same-user DPAPI proof is narrower. |
-| X08 | Per-save committed delta/history API | ❌ | ❌ | ❌ | **DEMO** — Existing implementation/evidence must be reconciled per provider. |
+| X08 | Per-save committed delta/history API (full parent scope) | ❌ | ❌ | ❌ | Parent retained red. X08a is the separately scoped demo summary child; [historical stored-value authorization/decryption, old-key access, retention and tooling remain missing](COMMITTED_DELTAS.md#values-encryption-and-membership). Full parent completion is not inferred from its child. |
+| X08a | Operation-bound committed change summaries: added/removed/modified paths, create/update/hard-delete classification, original-summary recovery | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 3–10][SV]: local preview, operation-bound committed path/classification summaries, original summary after update/delete, and foreign-actor rejection. [All-three gate][G]. Full parent X08 remains red. |
 | X09 | Web2/web3 migration with resumable verified equivalence | ❌ | ❌ | ❌ | Full migration acceptance remains open. |
 | X10 | HyperDrive V2 replica convergence/placement under failures | ❌ | ❌ | ❌ | Broader provider programme; not certified by CQL tests. |
 
@@ -237,7 +238,7 @@ No broad row is narrowed merely to make the demo green.
 |---|---|---|
 | 1 — verified | Q14, Q15, Q16, Q17 | First/FirstOrDefault/Single/SingleOrDefault; native cardinality, empty/error semantics and source windows |
 | 2 — verified | Q05, Q06, Q07, Q08, Q12b | Null/missing metadata, field comparisons, membership, strings and multi-key ordering |
-| 3 — next: ORM save story | M07, S04, X08 | Generated identity ownership, dirty/no-op saves and committed per-save deltas |
+| 3 — verified: ORM save story | M07, S04, X08a | Generated identity ownership, dirty/no-op saves and committed per-save deltas |
 
 The existing green query/CRUD/concurrency/child-graph features supply the rest of
 the demo. Use their existing evidence and examples; do not harden them further.
@@ -291,10 +292,10 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [F]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Federation.cs
 [C]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedCursors.cs
 [P]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.CursorProcess.cs
-[G]: Verification/demo-operators-native-result.json
-[GS]: Verification/demo-operators-native-source.json.gz
-[GB]: Verification/demo-operators-native-binaries.json
-[GT]: Verification/demo-operators-native.trx.gz
+[G]: Verification/save-demo-native-result.json
+[GS]: Verification/save-demo-native-source.json.gz
+[GB]: Verification/save-demo-native-binaries.json
+[GT]: Verification/save-demo-native.trx.gz
 [NC]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.cs#L866
 [SC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicScalarQueryTests.cs#L119
 [LC]: Verification/cursor-lineage-core.trx.gz
@@ -339,3 +340,19 @@ families, not a claim that either ORM supplies every feature on every backend.
   Three DEMO rows / nine database cells remain red: M07, S04, X08.
 
 [O]: ../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs
+
+- Demo inventory refinement before save acceptance promotion: X08 combined the
+  implemented per-save summary feature and the much larger historical-value API.
+  Its full parent remains red with every gap intact. New child X08a isolates the
+  investor-demo summary contract and starts red. No full-history scope was removed
+  or promoted; untagged historical-value work follows the demo acceptance set.
+
+- 26 October 2026: M07/S04/X08a demo acceptance passes on all three stores:
+  30 save checks, three generated-ID observations after real native commit,
+  no no-op mutation/preparation intents, original summaries retained after
+  update/delete. All 12 scoped demo rows are green. X08 full-history parent
+  remains red; the full parity/backlog requirements are not complete.
+  No production Core/provider/cursor changes were needed for this proof batch.
+
+[SV]: ../../../Examples/CosmicCqlDemo/V1SaveQueries.cs
+[SB]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.SaveDemo.cs
