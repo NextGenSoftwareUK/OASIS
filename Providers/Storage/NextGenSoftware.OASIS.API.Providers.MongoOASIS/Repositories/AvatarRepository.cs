@@ -103,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
             }
             catch (Exception ex)
             {
@@ -124,6 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
             }
             catch (Exception ex)
             {
@@ -264,6 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception ex)
@@ -283,6 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception ex)
@@ -302,6 +306,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                 result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception e)
@@ -321,6 +326,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                 result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
                 result.IsLoaded = result.Result != null;
+                result.LoadedCount = result.IsLoaded ? 1 : 0;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception e)
