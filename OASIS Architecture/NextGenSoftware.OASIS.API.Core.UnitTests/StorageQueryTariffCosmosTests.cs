@@ -21,7 +21,7 @@ public class StorageQueryTariffCosmosTests
             new[] { ProviderType.SQLLiteDBOASIS }));
 
     [Fact]
-    public void FifthTariffIsRejectedRatherThanTruncated()
+    public void DuplicateTariffsAreRejectedRatherThanTruncated()
     {
         var tariffs = Enumerable.Range(0, 5).Select(_ => new StorageQueryTariff(ProviderType.AzureCosmosDBOASIS, 0.002m, "cloud-test-v1"));
         Assert.Throws<ArgumentException>(() => StorageQueryTariff.Capture(tariffs, new[] { ProviderType.AzureCosmosDBOASIS }));

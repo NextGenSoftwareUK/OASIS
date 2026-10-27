@@ -614,5 +614,5 @@ of production authentication, reservation settlement or billing durability.
 An exact native status-key row profile now works through the shared manager and
 LINQ, with public/unlisted visibility and mandatory access checks. See the
 [native profile guide and C# example](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
-This profile is not yet enrolled in production WEB4 endpoints or the interactive
-demo host. Broader metadata/scalar/projection/storage semantics remain open.
+The WEB4 row-route code is enrolled with explicit server catalogue/tariff admission;
+production JWT/durable billing/host deployment and interactive-demo acceptance remain open. Broader metadata/scalar/projection/storage semantics remain open.

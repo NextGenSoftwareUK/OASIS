@@ -13,7 +13,7 @@ must not cause silent replacement or stop independent implementation.
 Only exact configuration-path existence and the SOLID container's image/state
 were inspected. No credential contents, keys, private Pod resources, daemon
 starts, native reruns, downloads or replacement environments were involved.
-An optional retained-configuration location question is pending with the user.
+User confirms no known retained configuration. Preserve the existing data; native IPFS/SOLID acceptance remains blocked.
 
 ## SOLID query boundary
 
@@ -58,7 +58,8 @@ Logical source and execution profile must remain explicit throughout WEB4.
 
 The exact native status-key profile is implemented and native-proven:311 provider
 controls,1,964 CQL regressions and one native manager/LINQ/sample gate pass.
-See [profile guide](CQL_ACTIVITYPUB_NATIVE_PROFILE.md). Next WEB4 read-profile and
+See [profile guide](CQL_ACTIVITYPUB_NATIVE_PROFILE.md). WEB4 point row-route code
+now passes718 affected controls and a native HTTP gate. Next
 interactive-demo enrollment; broader queries remain red.
 Do not rerun its already-green social baseline without a reproduced bug.
 Resume IPFS/SOLID native acceptance when the original environment is located.

@@ -14,6 +14,7 @@ public sealed class CqlV1Request
     public CqlV1Filter[] AnyOf { get; set; } = Array.Empty<CqlV1Filter>();
     public CqlV1ChildExists[] AnyChildren { get; set; } = Array.Empty<CqlV1ChildExists>();
     public CqlV1DescendantExists[] AnyDescendants { get; set; } = Array.Empty<CqlV1DescendantExists>();
+    // None is explicit and restricted to the unsorted ActivityPub point profile.
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
     public int Skip { get; set; }

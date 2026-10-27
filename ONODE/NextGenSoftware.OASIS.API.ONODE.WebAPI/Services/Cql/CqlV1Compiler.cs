@@ -75,9 +75,10 @@ public static partial class CqlV1Compiler
         return value.ToString("R", CultureInfo.InvariantCulture) == text;
     }
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
-    // The cloud demo enrolls only native rows/scalars/projection. Existing
+    // Additional read profiles retain their own exact adapter capabilities. Existing
     // federation/composition routes retain their independently verified scope.
-    public static bool SupportedReadProfile(ProviderType type) => Supported(type) || type == ProviderType.AzureCosmosDBOASIS;
+    public static bool SupportedReadProfile(ProviderType type) => Supported(type)
+        || type is ProviderType.AzureCosmosDBOASIS or ProviderType.ActivityPubOASIS;
 
     public static ProviderType? RequestedProvider(string name, bool includeCloudReadProfile = false)
     {
@@ -85,7 +86,7 @@ public static partial class CqlV1Compiler
         if (name.Length > 40 || !Enum.TryParse<ProviderType>(name, false, out var type) ||
             type.ToString() != name || !(includeCloudReadProfile ? SupportedReadProfile(type) : Supported(type)))
             throw new ArgumentException(includeCloudReadProfile
-                ? "Select MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS or AzureCosmosDBOASIS, or omit Provider for the current default."
+                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB or ActivityPub read profile, or omit Provider for the current default."
                 : "Select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS, or omit Provider for the current default.");
         return type;
     }
@@ -210,6 +211,15 @@ public static partial class CqlV1Compiler
             query=related.Result;
         }
 
+        if (orderBy == "None")
+        {
+            if (provider != ProviderType.ActivityPubOASIS || !includeCloudReadProfile || descending)
+                throw new ArgumentException("OrderBy None is reserved for the unsorted ActivityPub point-read profile, without Descending.");
+            var pointPage = query.Skip(skip);
+            if (take.HasValue) pointPage = pointPage.Take(take.Value);
+            if (pointPage.IsError) throw new ArgumentException(pointPage.Message);
+            return pointPage.Result;
+        }
         var ordered = orderBy switch
         {
             "Name" => descending ? query.OrderByDescending(h => h.Name) : query.OrderBy(h => h.Name),
