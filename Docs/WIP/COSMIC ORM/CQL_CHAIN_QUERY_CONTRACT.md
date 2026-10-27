@@ -207,3 +207,51 @@ remains separate/red. No parity/demo cell is promoted from this storage primitiv
 | Evidence relative to worktree | SHA256 |
 |---|---|
 | TestResults/ProtocolCqlCurrent/chain-index-store.trx (11pass/0skip) | 7ED43F3368469080D7AAB004D427EB9AC3C4CC857E22EC82FFD59D6BC1EFD824 |
+
+## Canonical Solana range observer milestone
+
+`SolanaRepository.ChainIndexObservation.cs` adds a read-only observer for the
+explicit writer/network/holon catalogue. It reuses the existing canonical memo
+transaction/chunk/authentication decoder and GetHolon projection. It is separate
+from current-record collection selection and retains every observed holon revision,
+including tombstones. No source transaction is submitted or index published here.
+
+Source catalogue hash binds the configured writer, network/genesis and this holon
+profile. Before scanning, observe genesis, first available block, finalized slot
+and native blockhash; reject network/catalogue mismatch or retention newer than
+coverage start. Scan finalized writer signatures through that fixed head, with
+strict descending slots, distinct signatures, exact transaction slot/writer and
+canonical record kinds. Stop only at an older boundary or successful empty page,
+then recheck retention. Failed transactions and non-storage activity are explicitly
+excluded. Missing/malformed owned records fail the whole observation.
+
+Bounds:100pages of100signatures;1000holon records/16MiB canonical bytes. Existing
+chunk decoder retains its own bounds. Repeated revisions/versionIDs and version
+advancement against slot order reject. Version0 or missing committed versionID
+cannot be silently invented for old data. Empty ranges still carry a captured
+head/block and complete configured checkpoint; a successful empty page alone is
+not a coverage proof.
+
+`ObserveFinalizedHolonAsync` independently re-reads one original source signature,
+validates network/finalized block/slot and produces its canonical receipt/JSON.
+Stored index receipts must not be substituted for that independent read. Receipts
+are trusted-RPC observations, not cryptographic inclusion proofs. Cancellation
+stops awaited work/publication; current Solnet history/header APIs lack a transport
+cancellation argument, so an already dispatched read can finish in the background.
+No retry or replacement endpoint is introduced.
+
+14 controlled cases pass: valid revisions+tombstone+independent reread, empty,
+initial/mid-scan pruning, wrong network, missing transaction, wrong slot,
+out-of-order/duplicate signatures, duplicate logical version, version0/missing
+versionID, pre-cancel and wrong catalogue. All assert zero submissions. Full
+Solana unit suite779pass/0skip. No validator/service/key/ledger was started or
+changed, and no native acceptance is claimed.
+
+Next connect the canonical observer/independent receipt to atomic SQLite publisher,
+prove native complete-range/bootstrap on a declared source, then implement indexed
+SQL projections/actor-visible row/scalar/projection execution and WEB4 receipts.
+Original unavailable records remain separate/red; no parity cell is promoted.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/ProtocolCqlCurrent/solana-range-regression.trx (779pass/0skip,14new) | CC9F881354731DA890D9A3A0ADEA600A80C72487B284425CFADE5E3C80434D69 |
