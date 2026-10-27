@@ -19,8 +19,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
 public partial class HolonRepository
 {
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults, CancellationToken cancellationToken) where T : IHolon
+        => ExecuteCqlRowsAsync(plan, maximumResults, cancellationToken);
+
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken) where T : IHolon
+        => ExecuteCqlRowsAsync(plan?.Source, maximumResults, cancellationToken, plan);
+
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRowsAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults, CancellationToken cancellationToken, CosmicEntityCompositionPlan<T> composition = null) where T : IHolon
     {
         try
         {
@@ -30,6 +38,13 @@ public partial class HolonRepository
                 return CqlError("CQL_QUERY_LIMIT", "SQLite CQL result limit must be between one and 10,000.");
             var admission=SqliteCqlContract.Capabilities.AdmitPlan(plan);
             if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
+            if (composition != null)
+            {
+                var stages = new CosmicEntityCompositionCapabilities(
+                    CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
+                    SqliteCqlContract.Capabilities).Admit(composition.Query);
+                if (stages.IsError) return CqlError(stages.ErrorCode, stages.Message);
+            }
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
             var predicate = translator.TranslateSource(plan.Query.Predicates);
@@ -73,9 +88,17 @@ public partial class HolonRepository
                     terminalValidation = "SELECT COALESCE(sum(" + observed + "),0) AS Value FROM (" + page + ") AS Holon";
                 }
             }
-            var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true;
+            var entitySql = composition == null ? null : CompileEntityCompositionSql(composition);
+            if (entitySql != null)
+            {
+                translator = entitySql.SourceTranslator;
+                predicate = entitySql.SourcePredicate;
+                sql = entitySql.Rows + " LIMIT " + translator.Bind(maximumResults + 1);
+            }
+            var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true
+                || entitySql?.HasRelationship == true;
             cancellationToken.ThrowIfCancellationRequested();
-            if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
+            if(composition == null && fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
             // native hook/limit. Nested EF enumeration uses the same logical scope.
             using var exclusive=_dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -86,12 +109,12 @@ public partial class HolonRepository
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
                 using var traversal=hasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
-                if ((plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
+                if ((composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
-                using var graphTransaction = (plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
+                using var graphTransaction = (composition != null || plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
                     ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
                 using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
@@ -99,6 +122,36 @@ public partial class HolonRepository
                 {
                     budget.Check();
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
+                    if (entitySql != null)
+                    {
+                        // Source bounds apply before filtering, including a later Take(0).
+                        // Native rows are measured here, never filtered in managed code.
+                        var sourceRows = 0;
+                        long sourceBytes = 0;
+                        var sourceQuery = _dbContext.Holons.FromSqlRaw(entitySql.Source,
+                            translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
+                        await foreach (var row in sourceQuery.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+                        {
+                            budget.Check(); traversal?.Check();
+                            sourceBytes = checked(sourceBytes + CqlRecordSize(row));
+                            if (++sourceRows > composition.Options.MaximumInputRows
+                                || sourceBytes > composition.Options.MaximumInputPayloadBytes)
+                                throw new SqliteCqlResourceException("Entity composition exceeds its native source row/payload budget.");
+                        }
+                        long work = 0;
+                        for (var index = 0; index < entitySql.StageCounts.Count; index++)
+                        {
+                            var count = await _dbContext.Database.SqlQueryRaw<long>(entitySql.StageCounts[index],
+                                translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+                            work = checked(work + count);
+                            if (count < 0 || work > composition.Options.MaximumStageRows)
+                                throw new SqliteCqlResourceException("Entity composition exceeds its cumulative native stage-work budget.");
+                            if (entitySql.ProtectedScopes[index] != null)
+                                await _dbContext.Database.SqlQueryRaw<long>(entitySql.ProtectedScopes[index],
+                                    translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+                            budget.Check(); traversal?.Check();
+                        }
+                    }
                     if (terminalValidation != null)
                     {
                         await _dbContext.Database.SqlQueryRaw<long>(terminalValidation, translator.Parameters.Cast<object>().ToArray())
