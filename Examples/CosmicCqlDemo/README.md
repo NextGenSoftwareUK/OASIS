@@ -1,4 +1,30 @@
 # COSMIC CQL demo
+## IPFS native CID point — verified 27 October 2026
+
+[IpfsPointWalkthrough.cs](IpfsPointWalkthrough.cs) is a spaced, commented C#
+walkthrough using explicit IPFS scope, a current record CID, read access and
+HolonManager/LINQ. The activated provider is supplied by the host. It performs
+no writes; use the CID acknowledged by your SaveHolonAsync operation.
+
+The actual sample is linked into `IPFSCqlNativeTests` and verified against the
+reusable offline Kubo node. The test compares it with a separate canonical point
+read, then cleans only its two owned fixture catalogue entries. This is a callable
+sample, not a console or Swagger switch. General filtering/indexing, WEB4 HTTP
+admission and the full common demo remain open.
+
+Run the native gate only when no prior CQL fixture exists; preserve any pending
+journal rather than replaying a failed write:
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-ipfs-cql -Operation {
+    & Scripts/TestHosts/Run-ReusableIpfsTests.ps1 -CqlPoint
+}
+```
+
+Persistent fixture state is under `LocalState/COSMIC/IPFSCurrent`; raw results
+are under worktree `TestResults/IPFSCurrent`. See the
+[IPFS admission report](../../Docs/WIP/COSMIC%20ORM/CQL_IPFS_DEMO_ADMISSION.md).
+
 ## Mastodon native status point — verified 27 October 2026
 
 [MastodonPointWalkthrough.cs](MastodonPointWalkthrough.cs) is a spaced, commented

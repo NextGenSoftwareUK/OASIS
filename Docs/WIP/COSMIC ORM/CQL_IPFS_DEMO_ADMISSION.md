@@ -226,3 +226,25 @@ WEB4 admission and broader indexed operators remain red.
 | Evidence | SHA256 |
 |---|---|
 | TestResults/IPFSCurrent/cql-controlled.trx (191 pass) | 298087E0DDC55E8BF6B6DE45182D9D7040299CCAA6367F51223B39FBA0BA95C1 |
+
+## Native CID / manager / C# walkthrough milestone
+
+The actual `Examples/CosmicCqlDemo/IpfsPointWalkthrough.cs` is compiled into the
+native test. Kubo0.43.1 offline run passes1/1, zero skips. Two synthetic owned
+holons are saved once; separate canonical CID read and shared HolonManager/LINQ
+sample agree on ID, name and sourceCID; returned children are empty as declared.
+The public row is read by a distinct actor under OwnerOrPublic read policy.
+
+All two catalogue entries and their payload owners are verified before exact
+fixture maintenance. Empty catalogue and point absence verified; durable
+`LocalState/COSMIC/IPFSCurrent/cql-point-complete.json` records completion.
+Original immutable blobs remain. Runner terminal, daemon stopped, no GC.
+
+The current-CID native row profile and callable C# sample are proven. WEB4 HTTP
+and interactive host enrollment, indexed rich queries and full common demo
+acceptance remain open. This is not full IPFS/CQL parity.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/IPFSCurrent/ipfs-cql-native.trx | 45C77791DFA846EBA0852C1FA6E4DD298FF9FE7783EC92DE80EF5E5A882D159A |
+| LocalState/COSMIC/IPFSCurrent/cql-point-complete.json | 5AF34CB600CC775619D1D3805B358E6F6AD414B98EF6DD5C36AD22C8D2B9C078 |
