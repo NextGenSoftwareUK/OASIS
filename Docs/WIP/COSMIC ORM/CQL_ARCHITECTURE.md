@@ -2102,3 +2102,12 @@ fixtures also cleaned exactly. Native match/error reductions preserve visibility
 and selected-root scope. [Proof](Verification/all-child-descendant-native.trx.gz).
 Q23/Q23d remain red for relationships inside descendant predicates and mixed-scope
 cycle proof; no completed full walkthrough is claimed.
+
+Mixed-cycle acceptance completed:sharedcycle fixture retains self-cycle mode
+and adds a consistently stored two-node cycle. Thirty checks prove protected
+child-to-descendant error propagation under inner/outer Boolean branches and
+source-window boundaries; empty/actor-hidden scopes remain successful controls.
+The full four-test native gate passes315checks. Exact synthetic cleanup and
+unchanged original fixture are verified. No production change was needed.
+Q23/Q23d remain red for relationships inside descendant predicates.
+[Proof](Verification/all-mixed-cycle-result.json).

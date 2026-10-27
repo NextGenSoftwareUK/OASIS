@@ -2862,3 +2862,21 @@ both framework builds and demo console pass. [Native proof](Verification/all-chi
 Q23/Q23d remain red: relationships inside a descendant predicate and cycle errors
 inside mixed scopes still need implementation/proof. The full639SDKwalkthrough
 rerun remains pending. Only the demonstrated orientation is claimed complete.
+
+## Mixed-scope cycle acceptance — 27 October 2026
+
+Child-to-descendant cycle errors are now proved on MongoDB, SQLite and Neo4j.
+A separately journalled two-node cycle produces `CQL_DATA_INVALID` through
+Children.Any, including inner false-AND/true-OR, outer false-AND/true-OR,
+negation and a protected source scope before Take(0). Ordinary count, an empty
+terminal and actor-hidden child controls distinguish genuine traversal errors
+from invalid scalar/membership projections or overly broad validation.
+
+Thirty new checks pass (ten/store), alongside the existing acceptance:
+315checks/four native tests total. Both synthetic cycle IDs were removed from
+each store after success; the original retained fixture stayed unchanged.
+No production/Core code changed in this test batch. Q23/Q23d stay red for the
+opposite direction: a descendant predicate containing a child or descendant
+relationship. The full639SDKwalkthrough rerun remains pending.
+[Outcome](Verification/all-mixed-cycle-result.json),
+[TRX](Verification/all-mixed-cycle-native.trx.gz).
