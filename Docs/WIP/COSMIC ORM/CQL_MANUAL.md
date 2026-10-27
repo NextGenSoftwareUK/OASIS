@@ -2534,3 +2534,41 @@ Selected-value/projection and grouped terminal overloads remain separate work.
 
 See [spaced and commented examples 47–58](../../../Examples/CosmicCqlDemo/V1ElementQueries.cs)
 and the [parity checklist](CQL_PARITY_CHECKLIST.md) for current acceptance evidence.
+
+## Demo query-operator acceptance (examples 59–90)
+
+The [operator walkthrough](../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs)
+uses the same authorized entity source for each database. The corresponding
+checklist rows now have [all-three native acceptance evidence](Verification/demo-operators-native-result.json).
+
+| Feature | Example semantics |
+|---|---|
+| Metadata presence/null | Exists is true for a present null; IsNull requires a present null; `!Exists` selects missing paths |
+| Path comparisons | Both operands stay native: metadata-to-metadata, canonical Guid to metadata Guid, canonical fields |
+| Membership | Closed bounded arrays; empty arrays match nothing, duplicate constants do not duplicate rows, Int64 stays exact |
+| String matching | Explicit StringComparison.Ordinal; case-sensitive and normalization-sensitive, empty patterns and literal metacharacters |
+| Secondary ordering | Equal primary stock values force ThenBy/ThenByDescending to determine the order |
+
+```csharp
+// A missing metadata key differs from a present key with a null value.
+var missing = visible.Where(h => !CosmicQueryMetadata.Exists(h, "optional"));
+var presentNull = visible.Where(h => CosmicQueryMetadata.IsNull(h, "optional"));
+
+// Membership is translated from a closed, bounded set.
+var names = new[] { "B-owned", "D-owned" };
+var members = visible.Where(h => names.Contains(h.Name));
+
+// Both comparison operands are native metadata paths.
+var available = visible.Where(h =>
+    CosmicQueryMetadata.Value<long>(h, "stock") <
+    CosmicQueryMetadata.Value<long>(h, "precision"));
+
+// Specify the portable ordinal string contract explicitly.
+var literal = visible.Where(h =>
+    CosmicQueryMetadata.Value<string>(h, "operatorText")
+        .Contains("%_", StringComparison.Ordinal));
+```
+
+These examples do not claim culture-aware/ignore-case overloads, arbitrary CLR
+methods, unbounded client collections or implicit in-memory query evaluation.
+The planner must admit the actual expression against the selected adapter.

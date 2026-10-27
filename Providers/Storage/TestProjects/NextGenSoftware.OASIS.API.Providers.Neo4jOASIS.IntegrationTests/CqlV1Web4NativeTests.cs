@@ -123,6 +123,7 @@ public sealed partial class CqlV1Web4NativeTests
                         {
                             ["fixture"] = tag, ["stock"] = 7L, ["guid"] = ids[i],
                             ["enabled"] = i >= 2, ["nullable"] = null!,
+                            ["operatorText"] = V1OperatorQueries.OperatorText,
                             ["precision"] = 9007199254740993L,
                             // Adjacent UTC ticks exercise exact date filters and
                             // detached date output on every native provider.

@@ -911,6 +911,10 @@ public static class V1NativeQueries
         // distinguish empty/default results from failed or ambiguous queries.
         completedQueries += await V1ElementQueries.RunAsync(manager, adapter, visible, output);
 
+        // 59–90. Remaining demo query-operator acceptance on the same native
+        // source: null/missing, field comparison, membership, strings and ties.
+        completedQueries += await V1OperatorQueries.RunAsync(manager, adapter, visible, output);
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,
