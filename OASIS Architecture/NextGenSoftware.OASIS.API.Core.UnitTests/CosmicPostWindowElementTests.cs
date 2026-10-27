@@ -13,13 +13,15 @@ public sealed class CosmicPostWindowElementTests
     private sealed class Native : ICosmicQueryStorageProvider
     {
         public bool Enabled = true;
+        public bool GraphEnabled;
         public int Calls;
         public CosmicQueryPlan<Holon>? Seen;
         public string? Failure;
         public ProviderType QueryProviderType => ProviderType.SQLLiteDBOASIS;
         public CosmicQueryCapabilities QueryCapabilities => new(
             CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging
-                | (Enabled ? CosmicQueryFeatures.PostWindowElementPredicate : CosmicQueryFeatures.None),
+                | (Enabled ? CosmicQueryFeatures.PostWindowElementPredicate : CosmicQueryFeatures.None)
+                | (GraphEnabled ? CosmicQueryFeatures.GraphExpansion : CosmicQueryFeatures.None),
             new[] { new CosmicQueryFieldCapability("Name", typeof(string), Enum.GetValues<CosmicQueryComparisonOperator>(),
                 Array.Empty<CosmicQueryStringOperator>(), supportsOrdering: true) });
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
@@ -105,4 +107,19 @@ public sealed class CosmicPostWindowElementTests
         Assert.Equal("CQL_V2_REQUIRED", Assert.Throws<CosmicLinqException>(() => legacy.Take(2).First(row => row.Name == "b")).Code);
         Assert.Equal(0, native.Calls);
     }
+    [Fact]
+    public void PostWindowElementPreservesAdmittedGraphOptionsForTheNativeOwner()
+    {
+        var native = new Native { GraphEnabled = true };
+        var options = CosmicQueryGraphOptions.Create(maxChildDepth: 2, maximumNodes: 10).Result;
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(native.QueryProviderType).Result)
+            .WithChildren(options).Result.Take(2).Result;
+        var planned = CosmicElementPlanner.Plan(source.Single(row => row.Name == "b").Result, native.QueryProviderType,
+            new[] { new CosmicQueryTarget(native.QueryProviderType, native.QueryCapabilities) });
+        Assert.False(planned.IsError, planned.Message);
+        Assert.Same(options, planned.Result.Rows.Query.GraphOptions);
+        Assert.Equal(2, planned.Result.Rows.PostWindowLimit);
+        Assert.Equal(0, native.Calls);
+    }
+
 }

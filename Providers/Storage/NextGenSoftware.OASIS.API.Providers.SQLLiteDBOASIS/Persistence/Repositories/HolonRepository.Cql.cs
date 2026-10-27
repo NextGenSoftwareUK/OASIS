@@ -50,6 +50,30 @@ public partial class HolonRepository
                     + " LIMIT $sourceLimit OFFSET $offset) AS Holon ORDER BY "
                     + translator.TranslateOrdering(plan.Query.Orderings, reverse: true) + " LIMIT $limit OFFSET $tailOffset";
             }
+            CqlSqlTranslator terminalTranslator = null;
+            string terminalValidation = null;
+            if (plan.PostWindowPredicate != null)
+            {
+                terminalTranslator = new CqlSqlTranslator("Holon", translator.Parameters, plan.Query.ReadAccess);
+                var test = string.Join(" AND ", plan.PostWindowPredicate.Predicates.Select(terminalTranslator.Translate));
+                var sourceLimit = translator.Bind(plan.Query.Limit ?? -1);
+                var page = "SELECT * FROM Holon WHERE " + predicate + " ORDER BY " + ordering
+                    + " LIMIT " + sourceLimit + " OFFSET $offset";
+                var terminalLimit = translator.Bind(plan.PostWindowLimit.Value);
+                var finalOrdering = plan.TailIndex.HasValue
+                    ? translator.TranslateOrdering(plan.Query.Orderings, reverse: true) : ordering;
+                sql = "SELECT * FROM (" + page + ") AS Holon WHERE COALESCE((" + test + "),0)<>0 ORDER BY "
+                    + finalOrdering + " LIMIT " + terminalLimit;
+                // Observe every protected terminal scope within the source page,
+                // before First/Single/Last can hide a later cycle/limit error.
+                if (terminalTranslator.HasRelationship)
+                {
+                    var observed = terminalTranslator.ProtectTraversalScope(plan.PostWindowPredicate.Predicates,
+                        "CASE WHEN COALESCE((" + test + "),0)<>0 THEN 1 ELSE 0 END");
+                    terminalValidation = "SELECT COALESCE(sum(" + observed + "),0) AS Value FROM (" + page + ") AS Holon";
+                }
+            }
+            var hasRelationship = translator.HasRelationship || terminalTranslator?.HasRelationship == true;
             cancellationToken.ThrowIfCancellationRequested();
             if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
@@ -61,13 +85,13 @@ public partial class HolonRepository
             try
             {
                 using var budget=new SqliteCqlReadBudget(connection,cancellationToken);
-                using var traversal=translator.HasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
-                if ((plan.Query.GraphOptions != null || translator.HasRelationship) && _dbContext.Database.CurrentTransaction != null &&
+                using var traversal=hasRelationship?new SqliteCqlTraversalGuard(connection,budget.Check):null;
+                if ((plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction != null &&
                     _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return CqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite graphs/traversals require a serializable native read owner.");
                 // A deferred read transaction supports read-only connections and
                 // holds the same SQLite snapshot for the root page and all children.
-                using var graphTransaction = (plan.Query.GraphOptions != null || translator.HasRelationship) && _dbContext.Database.CurrentTransaction == null
+                using var graphTransaction = (plan.Query.GraphOptions != null || hasRelationship) && _dbContext.Database.CurrentTransaction == null
                     ? connection.BeginTransaction(IsolationLevel.Serializable, deferred: true) : null;
                 using var graphOwner = graphTransaction == null ? null : _dbContext.Database.UseTransaction(graphTransaction);
                 var rows=new List<IHolon>();long bytes=0;
@@ -75,6 +99,12 @@ public partial class HolonRepository
                 {
                     budget.Check();
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
+                    if (terminalValidation != null)
+                    {
+                        await _dbContext.Database.SqlQueryRaw<long>(terminalValidation, translator.Parameters.Cast<object>().ToArray())
+                            .SingleAsync(cancellationToken).ConfigureAwait(false);
+                        budget.Check(); traversal.Check();
+                    }
                     var query=_dbContext.Holons.FromSqlRaw(sql,
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))

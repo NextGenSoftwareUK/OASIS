@@ -130,8 +130,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.SingleOrDefault(supplied)).Code);
         Passed("SingleOrDefault default cannot mask multiple");
         Assert.AreEqual(rootId,root.First(row=>row.Name==name).Id); Passed("First predicate before window");
-        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
-            ()=>root.Take(1).First(row=>row.Name==name)).Code); Passed("First predicate after window requires independent enrollment");
+        if (adapter.QueryCapabilities.Features.HasFlag(CosmicQueryFeatures.PostWindowElementPredicate))
+            Assert.AreEqual(rootId, root.Take(1).First(row => row.Name == name).Id);
+        else Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Take(1).First(row=>row.Name==name)).Code);
+        Passed("First predicate after window requires independent enrollment");
         Assert.AreSame(supplied,root.Where(row=>row.Name=="absent").FirstOrDefault(supplied)); Passed("FirstOrDefault supplied default");
         Assert.IsNull(root.ElementAtOrDefault(-1)); Passed("negative ElementAtOrDefault");
 
@@ -247,6 +250,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await VerifyStagedWide(adapter, rootId, actor, root, multi, checks);
         VerifySelectedExtrema(adapter, root, multi, checks);
         await VerifyRepeatedSelect(adapter, root, multi, checks);
+        VerifyPostWindowElements(adapter, rootId, actor, root, multi, checks);
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
