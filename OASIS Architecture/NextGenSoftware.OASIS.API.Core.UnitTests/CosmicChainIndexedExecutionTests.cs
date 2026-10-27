@@ -121,6 +121,7 @@ public partial class CosmicChainIndexedExecutionTests
         public CosmicChainQuerySource Source { get; set; } = source;
         public CosmicQueryCapabilities IndexedRowCapabilities => Capabilities;
         public int Calls;
+        internal OASISResult<CosmicChainIndexRows> Result => result;
         public Task<OASISResult<CosmicChainIndexRows>> QueryRowsAsync<T>(CosmicQueryPlan<T> plan,
             ICosmicChainQuerySourceObserver observer, int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
         { Calls++; return Task.FromResult(result); }

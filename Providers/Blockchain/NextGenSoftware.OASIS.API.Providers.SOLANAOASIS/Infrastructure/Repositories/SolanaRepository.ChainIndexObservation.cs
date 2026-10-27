@@ -182,6 +182,7 @@ public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interface
         =>ObserveFinalizedHeadAsync(source,token);
 
     private static OASISResult<T> ChainObservationError<T>(Exception error)
-        =>new(){IsError=true,ErrorCount=1,ErrorCode=error is OperationCanceledException?"CQL_SOURCE_OBSERVATION_CANCELLED":"CQL_SOURCE_OBSERVATION_FAILED",
+        =>new(){IsError=true,ErrorCount=1,ErrorCode=error is CosmicIndexedReadException indexed?indexed.Code:
+            error is NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProtocolException admission?admission.Code:error is OperationCanceledException?"CQL_SOURCE_OBSERVATION_CANCELLED":"CQL_SOURCE_OBSERVATION_FAILED",
             Message="Canonical source observation failed; no partial records/checkpoint returned.",Exception=error};
 }

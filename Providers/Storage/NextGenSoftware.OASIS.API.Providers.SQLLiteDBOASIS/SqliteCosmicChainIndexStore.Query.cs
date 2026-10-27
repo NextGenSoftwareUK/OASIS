@@ -154,6 +154,8 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
             foreach(var row in rows)row.Children=Array.Empty<IHolon>();
             return new OASISResult<CosmicChainIndexRows>(new(checkpoint,head.Result,Array.AsReadOnly(rows),Array.AsReadOnly(raw.Select(row=>row.Receipt).ToArray()))){IsLoaded=true,LoadedCount=rows.Length};
         }catch(OperationCanceledException error){return Error<CosmicChainIndexRows>("CQL_QUERY_CANCELLED","Indexed read cancelled; no partial rows returned.",error);}
+        catch(CosmicIndexedReadException error){return Error<CosmicChainIndexRows>(error.Code,error.Message,error);}
+        catch(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProtocolException error){return Error<CosmicChainIndexRows>(error.Code,error.Message,error);}
         catch(Exception error){return Error<CosmicChainIndexRows>("CQL_INDEX_READ_FAILED","Indexed SQL read/evidence validation failed; no partial rows returned.",error);}
     }
 }

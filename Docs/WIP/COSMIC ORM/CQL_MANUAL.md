@@ -671,8 +671,9 @@ ToCosmicListAsync and sequence enumeration are also available when only rows are
 needed; retain the page result when provenance/checkpoint/receipts are required.
 Each terminal is a separate execution. Unsupported Select/scalar/element/reverse/
 post-window filter shapes reject before reader I/O; there is no client reduction.
-Prepared billing contexts remain rejected before I/O until SQL and source-proof
-transport receive explicit dual-resource attempt/receipt accounting. This SDK
-profile does not enroll WEB4 or certify original native chain coverage.
+Prepared contexts require an exact server-created physical-read tariff policy;
+missing policies reject before I/O. See [indexed accounting](CQL_INDEXED_BILLING.md)
+for composition, per-RPC receipts and failure semantics. This SDK profile does not
+enroll WEB4 or certify original native chain coverage.
 
 Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).

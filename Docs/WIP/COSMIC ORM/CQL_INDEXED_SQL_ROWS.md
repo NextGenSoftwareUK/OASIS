@@ -278,3 +278,11 @@ retain unknown outcomes rather than asserting no execution or resubmitting.
 - `TestResults/ProtocolCqlCurrent/index-attempt-core.trx` SHA256 `9541398A6A261D8E9D4DC59CADF92876EBCDC25A027E02996373AB82D386CE4A`.
 - `TestResults/ProtocolCqlCurrent/index-attempt-sqlite.trx` SHA256 `6A79B254F8237F56B9A198DE210364C3DF5A30C7F58A09163371D11ACC1FBCDB`.
 - `TestResults/ProtocolCqlCurrent/index-attempt-solana.trx` SHA256 `301D18B6E31FA15937F3891BDD8D7D53DA3F4C866470AB443F0961698930EFBC`.
+
+## Prepared accounting now implemented
+
+[Indexed physical-read accounting](CQL_INDEXED_BILLING.md) supersedes prior
+checkpoint statements that all prepared contexts reject. Exact server policies
+now enable durable SQL/RPC service-tariff capture with inherited actor/lifetime
+checks. Missing policies still reject before I/O. WEB4/reservation/native
+acceptance and other indexed shapes remain open; no demo/parity promotion.
