@@ -11,7 +11,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static void VerifySelectedExtrema(ICosmicQueryStorageProvider adapter, IQueryable<Holon> root,
         IQueryable<Holon> multi, List<object> checks)
     {
-        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS) return;
+        if (adapter.QueryProviderType != ProviderType.SQLLiteDBOASIS && adapter.QueryProviderType != ProviderType.MongoDBOASIS) return;
         var before = checks.Count;
         Domain<byte>("extByte", byte.MaxValue);
         Domain<byte?>("extByte", byte.MaxValue);
