@@ -1,4 +1,19 @@
 # COSMIC CQL demo
+## Mastodon native status point — verified 27 October 2026
+
+[MastodonPointWalkthrough.cs](MastodonPointWalkthrough.cs) is a spaced, commented
+C# example using explicit provider scope, native status-key equality, mandatory
+read access and HolonManager/LINQ. It shows instance/object provenance without
+printing untrusted content HTML. Supply an activated adapter and existing native
+status ID; the example creates no post/account or local database.
+
+The actual source is linked into `PublicMastodonCqlTests` and passes against
+mastodon.social with five allowlisted public GETs. This is a callable walkthrough,
+not a new console/Swagger switch. Full native profile, exact limits, test command
+and remaining WEB4/interactive-demo gaps are in
+[the profile guide](../../Docs/WIP/COSMIC%20ORM/CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+No arbitrary metadata search, scalar/projection, Save or universal ActivityPub
+server support is claimed.
 
 ## Source composition and projected All — C# walkthrough (24 examples verified 27 October 2026)
 

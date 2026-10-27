@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MastodonPointWalkthrough.cs" Link="Demo/MastodonPointWalkthrough.cs" />
     <Compile Remove="ActivityPubCapabilityConformanceTests.cs" />
     <Compile Include="ActivityPubCapabilityConformanceTests.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/NonStorageConformance.cs" Link="TestSupport/NonStorageConformance.cs" Condition="'$(IncludeCapabilityConformance)' == 'true'" />
