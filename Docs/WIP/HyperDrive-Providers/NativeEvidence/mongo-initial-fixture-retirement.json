@@ -1,0 +1,20 @@
+{
+  "originalReport": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-mongodboasis-initial-v2.json",
+  "originalSha256": "78c39216d79d37455e541082aa0c5fec2361860fbe3c0a8b8bb5f87058f40859",
+  "cleanupJournal": "TestResults/ProviderConformanceCurrent/MongoDBOASIS/original-avatars-cleanup.complete.json",
+  "cleanupSha256": "ed5424600fbcb44624e81d6e86f2145355e52ea2677ecfcd4356cb41876ba648",
+  "modes": [
+    {
+      "mode": "async",
+      "id": "45e670f5-a47a-4e4d-8a42-a28eaafed98c",
+      "path": "TestResults/ProviderConformanceCurrent/MongoDBOASIS/async/initial-avatar-ack-failed.json",
+      "sha256": "a56b146c8bc26dc2509fd0eb03bc301976d7460b4c0015b78c939c1410c9c388"
+    },
+    {
+      "mode": "sync",
+      "id": "487a1cf7-54f7-4b38-863f-bd1036515001",
+      "path": "TestResults/ProviderConformanceCurrent/MongoDBOASIS/sync/initial-avatar-ack-failed.json",
+      "sha256": "16e4e1576beb8fab69a42eb365c9dae00e60a045bf7816880e3a7593de506c76"
+    }
+  ]
+}

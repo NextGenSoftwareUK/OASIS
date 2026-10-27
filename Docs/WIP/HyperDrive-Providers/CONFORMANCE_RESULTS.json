@@ -208,14 +208,11 @@
       "provider": "MongoDBOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 4,
+      "passed": 52,
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-mongodboasis-current.json",
-      "sha256": "78c39216d79d37455e541082aa0c5fec2361860fbe3c0a8b8bb5f87058f40859",
-      "blockers": [
-        "async: avatar-id: System.InvalidOperationException",
-        "sync: avatar-id: System.InvalidOperationException"
-      ]
+      "sha256": "4b46fadab4539c7034b6afc2bc18ead18b335f1bea70c0078a631326adde1fab",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -288,9 +285,6 @@
     ],
     "CosmosBlockChainOASIS": [
       "Canonical v2 shipping factory builds; both modes blocked before native dispatch (0/52). Retained wasmd container/contract state is preserved, but the source SDK dependency junction points at deleted old-worktree node_modules. Pinned CosmJS0.39.0 requires one canonical repair/restore; automatic approval review rejected the combined repair/npm command before execution (no detailed reason). No SDK download, link deletion, node start, key retrieval, deployment or write performed. Old HyperDriveCosmos evidence directory absent; unknown historical outcomes remain unverified, never reset or replayed."
-    ],
-    "MongoDBOASIS": [
-      "Initial canonical native v2 gate4/52: activation/avatar-save passed both modes, then avatar-id failed because successful repository selectors omitted LoadedCount. Six avatar/detail selector acknowledgements fixed; two read-only schedules passed against both original avatars via ID/username/email with payload/count1 and missing-count0 (no new saves/deletes). Full52-check rerun remains pending reviewed exact-fixture cleanup; original two avatars and initial hash-bound failure report preserved. CQL database untouched."
     ]
   },
   "suites": [
