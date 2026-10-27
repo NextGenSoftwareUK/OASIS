@@ -1,0 +1,139 @@
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Core.UnitTests;
+
+public sealed class CosmicLinqTests
+{
+    private sealed class Adapter : ICosmicQueryStorageProvider
+    {
+        public int Calls;
+        public CosmicQuery<Holon>? Seen;
+        public string? Fault;
+        public bool BrokenCapabilities;
+        public ProviderType Identity = ProviderType.SQLLiteDBOASIS;
+        public ProviderType QueryProviderType => Identity;
+        public CosmicQueryFeatures Features = CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging;
+        public CosmicQueryCapabilities QueryCapabilities => BrokenCapabilities ? throw new InvalidOperationException("Owned capability fault") : new(Features,
+            new[] { new CosmicQueryFieldCapability("Name", typeof(string),
+                new[] { CosmicQueryComparisonOperator.Equal }, Array.Empty<CosmicQueryStringOperator>(), supportsOrdering: true) });
+        public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+            int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        {
+            Calls++;
+            Seen = (CosmicQuery<Holon>)(object)plan.Query;
+            return Task.FromResult(Fault == null
+                ? new OASISResult<IReadOnlyList<IHolon>>(plan.Query.Limit == 0 ? Array.Empty<IHolon>() : new IHolon[] { new Holon { Id = Guid.NewGuid(), Name = "coffee" } })
+                : new OASISResult<IReadOnlyList<IHolon>> { IsError = true, ErrorCount = 1, ErrorCode = Fault, Message = "Owned native fault." });
+        }
+    }
+
+    private static HolonManager Manager(string mode = HyperDriveModes.V2)
+    {
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = mode } };
+        return new HolonManager(null, dna, new ProviderManager(null, dna));
+    }
+
+    private static IQueryable<Holon> Root(Adapter adapter, HolonManager? manager = null)
+    {
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result);
+        var result = CosmicLinq.Create(manager ?? Manager(), adapter, source);
+        Assert.False(result.IsError, result.Message);
+        return result.Result;
+    }
+
+    [Fact]
+    public async Task StandardQueryableOperatorsBindPerExecutionAndDeferNativeIo()
+    {
+        var adapter = new Adapter(); var root = Root(adapter); var name = "coffee";
+        var query = root.Where(row => row.Name == name).OrderBy(row => row.Name).ThenByDescending(row => row.Name).Skip(2).Take(3);
+        name = "changed";
+        Assert.Equal(0, adapter.Calls);
+        Assert.IsAssignableFrom<IOrderedQueryable<Holon>>(query);
+        var result = await query.ToCosmicListAsync();
+        Assert.False(result.IsError, result.Message + result.Exception);
+        Assert.True(result.IsLoaded); Assert.Single(result.Result); Assert.Equal(1, adapter.Calls);
+        Assert.Equal(2, adapter.Seen!.Offset); Assert.Equal(3, adapter.Seen.Limit);
+        Assert.Equal(2, adapter.Seen.Orderings.Count);
+        Assert.Equal("changed", Assert.IsType<CosmicQueryComparison>(Assert.Single(adapter.Seen.Predicates)).Literal.Value);
+        var original = await root.ToCosmicListAsync();
+        Assert.False(original.IsError, original.Message);
+        Assert.Empty(adapter.Seen!.Predicates); Assert.Equal(0, adapter.Seen.Offset);
+    }
+
+    [Fact]
+    public void StandardEnumerationUsesNativeRowsAndExposesRealErrors()
+    {
+        var adapter = new Adapter(); var query = Root(adapter).Where(row => row.Name == "coffee");
+        Assert.Equal("coffee", Assert.Single(query.ToList()).Name); Assert.Equal(1, adapter.Calls);
+        adapter.Fault = "OWNED_NATIVE_ERROR";
+        Assert.Equal("OWNED_NATIVE_ERROR", Assert.Throws<CosmicLinqException>(() => query.ToList()).Code);
+    }
+
+    [Fact]
+    public async Task AsyncCancellationCapabilityDriftAndIdentityDriftStopBeforeIo()
+    {
+        var adapter = new Adapter(); var query = Root(adapter).OrderBy(row => row.Name);
+        using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
+        Assert.Equal("CQL_QUERY_CANCELLED", (await query.ToCosmicListAsync(cancellation.Token)).ErrorCode);
+        adapter.Features = CosmicQueryFeatures.None;
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", (await query.ToCosmicListAsync()).ErrorCode);
+        adapter.Identity = ProviderType.MongoDBOASIS;
+        Assert.Equal("CQL_EXECUTION_INVALID", (await query.ToCosmicListAsync()).ErrorCode);
+        Assert.Equal(0, adapter.Calls);
+    }
+
+    [Fact]
+    public void UnsupportedOperatorsNeverDispatchOrInvokeClientCode()
+    {
+        var adapter = new Adapter(); var query = Root(adapter);
+        Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => index > 0));
+        Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name));
+        Assert.Throws<CosmicLinqException>(() => query.OrderBy(row => row.Name, StringComparer.OrdinalIgnoreCase));
+        Assert.Throws<CosmicLinqException>(() => query.Count());
+        Assert.Equal(0, adapter.Calls);
+    }
+
+    [Fact]
+    public async Task ForeignLocalSourcesAndLegacyModeCannotBecomeClientFallbacks()
+    {
+        Assert.Equal("CQL_QUERY_PROVIDER_INVALID", (await Array.Empty<Holon>().AsQueryable().ToCosmicListAsync()).ErrorCode);
+        var adapter = new Adapter();
+        Assert.Equal("CQL_V2_REQUIRED", (await Root(adapter, Manager(HyperDriveModes.Legacy)).ToCosmicListAsync()).ErrorCode);
+        Assert.Equal(0, adapter.Calls);
+        Assert.Equal("CQL_SCOPE_INVALID", CosmicLinq.Create(Manager(), adapter, CosmicQuery<Holon>.Create()).ErrorCode);
+    }
+
+    [Fact]
+    public void PostWindowFilteringPreservesTheExistingExplicitCompositionError()
+    {
+        var adapter = new Adapter();
+        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",
+            Assert.Throws<CosmicLinqException>(() => Root(adapter).Take(1).Where(row => row.Name == "coffee")).Code);
+        Assert.Equal(0, adapter.Calls);
+    }
+    [Fact]
+    public async Task NegativeStandardPagingHasLinqSemanticsWithoutChangingCqlBuilders()
+    {
+        var adapter = new Adapter();
+        var result = await Root(adapter).Skip(-2).Take(-3).ToCosmicListAsync();
+        Assert.False(result.IsError, result.Message);
+        Assert.Empty(result.Result); Assert.Equal(0, adapter.Seen!.Offset); Assert.Equal(0, adapter.Seen.Limit);
+    }
+
+    [Fact]
+    public async Task BrokenProviderContractsRemainExplicitAsyncErrors()
+    {
+        var adapter = new Adapter(); var query = Root(adapter);
+        adapter.BrokenCapabilities = true;
+        var result = await query.ToCosmicListAsync();
+        Assert.Equal("CQL_EXECUTION_FAILED", result.ErrorCode);
+        Assert.Contains("Owned capability fault", result.Exception.Message);
+        Assert.Null(result.Result); Assert.False(result.IsLoaded); Assert.Equal(0, adapter.Calls);
+    }
+}

@@ -48,3 +48,28 @@ the selected aliases after Select. All reduces the final selected sequence after
 its filters and windows. CQL performs these operations natively; developers do not
 need to fetch records and call Enumerable.All. The result preserves a separate
 Boolean per physical provider; no distributed snapshot or consensus is implied.
+## Standard IQueryable bridge — Q01 in progress
+
+`CosmicLinq.Create(manager, adapter, source, maximumResults)` returns an
+`OASISResult<IQueryable<T>>`. Supply one explicitly named matching provider in the
+source scope and check the factory result before composing a query. `T` currently
+requires `IHolon` and a public parameterless constructor.
+
+The initial increment supports standard `Queryable.Where`, `OrderBy`/`ThenBy`
+families, `Skip` and `Take`, followed by synchronous enumeration or
+`await query.ToCosmicListAsync(cancellationToken)`. The async form preserves an
+`OASISResult<IReadOnlyList<T>>`; standard enumeration throws `CosmicLinqException`
+with the real CQL `Code` on failure. Output bounds are explicit and overflow is an
+error, never silent truncation. Negative standard Skip/Take counts follow LINQ
+semantics without changing the stricter fluent CQL builders.
+
+Captured variables bind for each execution, then the resulting CQL intent is
+frozen for admission and native dispatch. Changing a variable before a subsequent
+execution changes that execution's parameters. The existing fluent CosmicQuery
+API continues to freeze values during construction.
+
+Queryable Select, selected composition and scalar/element terminals remain
+unimplemented and fail explicitly; indexed Where and custom comparers are also
+unsupported. No client Enumerable fallback runs. Federated sequences retain their
+separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
+and [native row tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs).
