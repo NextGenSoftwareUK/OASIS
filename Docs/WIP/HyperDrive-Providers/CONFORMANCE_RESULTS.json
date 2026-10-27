@@ -114,6 +114,18 @@
         "async: configuration: System.InvalidOperationException",
         "sync: configuration: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "RedisOASIS",
+      "suite": "core-storage-v1",
+      "mode": "native",
+      "passed": 36,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-redisoasis-current.json",
+      "sha256": "ce5ae1d999e5b3712fa5f7dca83fc28b01763e5ff4c2aba5f393d4a361c85a52",
+      "blockers": [
+        "Native core-storage-v1 assumes physical absence after Guid delete; Redis documented soft-delete default/history contract deliberately retains tombstone; contract reconciliation pending, no production override change shipped"
+      ]
     }
   ],
   "providerBlockers": {

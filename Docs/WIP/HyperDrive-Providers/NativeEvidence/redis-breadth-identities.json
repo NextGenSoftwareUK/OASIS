@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-26",
+  "scope": "Shipping Redis native36/52; soft-delete contract preserved; rejected incompatible52/52 variant not conformance credit",
+  "priorBaseline": {
+    "passed": 36,
+    "total": 52,
+    "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-redisoasis-initial36.json",
+    "fix": "No production delete change retained; explicit soft default and history contract preserved"
+  },
+  "exactFixtureReconciliation": {
+    "passed": 2,
+    "skipped": 0,
+    "durationMs": 444,
+    "state": "original exact owned holons/avatar/detail verified then deleted with independent absence assertions"
+  },
+  "reports": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-core-harddelete-experiment52.trx.gz",
+      "rawBytes": 4191,
+      "gzipBytes": 1265,
+      "rawSha256": "eaa38557167f0895ed42451cedd3eb12ea9a74f7fe23d0a72d15c273d7cdd320",
+      "gzipSha256": "95821c85637b579618468932c25627093ef2f6bb7515b43ddff0295b92f8c459"
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-core-reconciliation.trx.gz",
+      "rawBytes": 4191,
+      "gzipBytes": 1269,
+      "rawSha256": "5a7f6c8e682fea1e2deb87bfe0280985da27df50848aebc078e6eb11f2f1d4b3",
+      "gzipSha256": "cdc7f6563badb54ce36d7731ca90bde90fec646da511c167ec08920589199ab4"
+    }
+  ],
+  "outputs": {
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/bin": {
+      "bytes": 7414866,
+      "files": 32
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/obj": {
+      "bytes": 887555,
+      "files": 19
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin": {
+      "bytes": 47435377,
+      "files": 201
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/obj": {
+      "bytes": 1136872,
+      "files": 21
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin": {
+      "bytes": 47349100,
+      "files": 201
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/obj": {
+      "bytes": 1037645,
+      "files": 21
+    }
+  },
+  "restoredPackages": {
+    "C:\\Users\\david\\.nuget\\packages\\stackexchange.redis\\2.8.16": {
+      "version": "2.8.16",
+      "bytes": 11062343,
+      "files": 15,
+      "sha512": "ZaDKIeFw7FtPTptrZvn8Bm9FLmpauA2DkiDmR3v+s5KPppdkOvRwJnONHP0PGR+pD5CO9Hu5Ij8cnIiEaDhrlQ=="
+    },
+    "C:\\Users\\david\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8": {
+      "version": "2.2.8",
+      "bytes": 2277061,
+      "files": 17,
+      "sha512": "OMpD1FmaUwuqnEO0z2mn0TqezlOeTBaqQZ7zvidIG663+g8XBu0hDroCKanS57Zj0aPFdFQGHIjd1tUkRBJ0sw=="
+    }
+  },
+  "runtime": {
+    "container": "oasis-redis-retained",
+    "image": "5d79a9ce29f8b3fe50fd5c07ee1bf654b5cec557b895835825bf6825d525e4f2",
+    "version": "8.2.2",
+    "volume": "oasis-redis-data",
+    "endpoint": "127.0.0.1:18679",
+    "stateAfter": "exited",
+    "secrets": "Existing DPAPI files reused; no generation/replacement/secret publication"
+  },
+  "coreWorkingTreeCaveat": "Rebuilt paused peer working Core tail-plan API for source/PDB identity; this Redis baseline does not certify or publish uncommitted Core work",
+  "coreHead": "702d02ad68d72e41c150335875fd95db1190ccd6",
+  "coreDirtyPaths": [
+    " M Queries/CosmicElementQuery.cs",
+    " M Queries/CosmicJoinQuery.cs",
+    " M Queries/CosmicQueryExecutor.cs",
+    " M Queries/CosmicQueryPlanning.cs"
+  ],
+  "historicalEvidence": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-redisoasis-initial36.json",
+      "bytes": 2329,
+      "sha256": "ce5ae1d999e5b3712fa5f7dca83fc28b01763e5ff4c2aba5f393d4a361c85a52"
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-core-initial36.trx.gz",
+      "bytes": 1469,
+      "sha256": "2a74030f12135eff1391a816649e109d2c7bda36c9db47b49fd785b7b2914ae8",
+      "rawSha256": "407eb00653653e84bd94e4c39c8a420c96b43c9955425b5f8cd64706253dcebb",
+      "rawBytes": 5354
+    }
+  ],
+  "resolvedFixtureProofs": [
+    {
+      "path": "TestResults/RedisCurrent/conformance-reconcile-async.pending.resolved.json",
+      "bytes": 317,
+      "sha256": "4e413277f713b9ef45a06757b5a3114df7fd865d27d9c48e44f5e426d6c67980",
+      "semantics": "Intent renamed only after all cleanup/absence assertions passed; content records original pre-cleanup identities"
+    },
+    {
+      "path": "TestResults/RedisCurrent/conformance-reconcile-sync.pending.resolved.json",
+      "bytes": 317,
+      "sha256": "840aeddc4571fa7118658b524861159a71eb45698288c8148701bedcb30d55d4",
+      "semantics": "Intent renamed only after all cleanup/absence assertions passed; content records original pre-cleanup identities"
+    }
+  ],
+  "hardDeleteExperimentBaseline": {
+    "passed": 52,
+    "total": 52,
+    "cases": 2,
+    "skipped": 0,
+    "durationMs": 753
+  },
+  "shippingBaseline": {
+    "passed": 36,
+    "total": 52,
+    "reason": "v1 suite assumes physical absence, but documented default soft-delete/history behavior intentionally retains tombstone"
+  },
+  "rejectedExperiment": "52/52 used an incompatible hard-default change, reverted BEFORE publication; never shipping conformance evidence",
+  "experimentalAssemblies": [
+    {
+      "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "901cc2db08e41a9a41486438c775a44f70ba4f06f16bf2a12495daa17c03f3c5",
+      "pdbSha256": "28522cdc7beee68df14737d6de8d843e66016f9f67f2f3377fbbc764f46a2cd7",
+      "bytes": 3515392,
+      "sourceDocuments": 788
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "fcbe9142f7724a6ab56815df688f4f545095e11db07893cab92959da9470ed40",
+      "pdbSha256": "361e639b1f10e846df3e3897ef2ca5ba4248d3b680a483e69f6e2a91b29100ff",
+      "bytes": 379904,
+      "sourceDocuments": 56
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.dll",
+      "sha256": "305c037b50f02c83ddc74afec76f23d1de2a150a58347800341e2aeb0edfe947",
+      "pdbSha256": "20ed106693797240abd28d79755f19238220201fd72b2d26d44c76ba439df442",
+      "bytes": 40960,
+      "sourceDocuments": 5
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests.dll",
+      "sha256": "1f593ece99c34f632ae6ce76e348d318ad908de64704a30d7c71e5df964ba082",
+      "pdbSha256": "22c6542e311edcc7cfc43587becae782dac95d55b26e6d01a632662b4a2f620f",
+      "bytes": 107008,
+      "sourceDocuments": 9
+    }
+  ],
+  "initial36BinaryCaveat": "Initial36 native producer hash was not separately captured; dispatch source/PDB check passed (Redis5/integration9). The recorded earlier binary hashes belong to the rejected hard-default experiment; do not attribute them to shipping36.",
+  "restoredShippingAssemblies": [
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.dll",
+      "sha256": "389c36aa4cf4b642f8e4e2916dd7928e67db27d3f8f42d7beb1973e4838ddfb0",
+      "pdbSha256": "bbc7374c12f219261d85fbe6f3c95609847cfc36f3cb4580cd73f250b05e2626",
+      "bytes": 40960,
+      "sourceDocuments": 5
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.UnitTests.dll",
+      "sha256": "11864d0e6b39bdab6943d05afa5b6a7273752e3cd22cf6964e1df5a502c7ed12",
+      "pdbSha256": "526db992c8c8317ed78e4de6eb303a74153c78a9b2d920de30664ef854f9c206",
+      "bytes": 33280,
+      "sourceDocuments": 8
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests.dll",
+      "sha256": "d1fcd78f76ad722aa4e26667f76fc8ea453e2e7c095df4961c747e6682176f2e",
+      "pdbSha256": "09728db95cd61c82de87c579cdb3d3d7bef38328c394c0e4ce2dc66fec02a9dd",
+      "bytes": 107008,
+      "sourceDocuments": 9
+    }
+  ],
+  "restoredContractControls": {
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 614,
+    "newContractCases": 2,
+    "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-contract-controls.trx.gz",
+    "rawBytes": 56507,
+    "gzipBytes": 6122,
+    "rawSha256": "38c73310a03d865ce2d570b20fca03e019f1be96840d78c3acf5cff2e09e1f79",
+    "gzipSha256": "97a82ac9580cfb916a232a3f0668cc5051c9158d1465f3b96b21889a430cc703"
+  }
+}
