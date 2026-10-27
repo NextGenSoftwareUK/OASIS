@@ -270,9 +270,73 @@ public static class V1AllQueries
                 trustedParent.All(row => row.Children.Any(child => child.Children.Any(grandchild =>
                     grandchild.Children.Any(greatGrandchild => greatGrandchild.Name == "public behind private")))),
                 false);
+            // Descendant markers require explicit immutable traversal bounds.
+            // Errors are observable even when another Boolean branch decides
+            // the match; terminal traversal applies only to the source page.
+            var visibleBounds = Value(CosmicQueryTraversalOptions.Create(2, 2));
+            var shallowBounds = Value(CosmicQueryTraversalOptions.Create(1, 4));
+            var trustedBounds = Value(CosmicQueryTraversalOptions.Create(2, 4));
+            var tightBounds = Value(CosmicQueryTraversalOptions.Create(2, 1));
+            var threeNodes = Value(CosmicQueryTraversalOptions.Create(2, 3));
+
+            await Show("Descendant / visible owned child",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
+            await Show("Descendant / hidden intermediate blocks grandchild",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public behind private", visibleBounds)), false);
+            await Show("Descendant / depth1 excludes grandchild",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public behind private", shallowBounds)), false);
+            await Show("Descendant / depth2 includes grandchild",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public behind private", trustedBounds)), true);
+            await Show("Descendant / root never matches itself",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "C-public", trustedBounds)), false);
+            await Show("Descendant / empty terminal is true",
+                ordered.Take(0).All(row => CosmicQueryRelations.AnyDescendant(row, child => false, tightBounds)), true);
+            await Show("Descendant / page keeps B before traversing",
+                ordered.Take(1).All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public child", tightBounds)), false);
+            await Show("Descendant / negated missing match",
+                publicParent.All(row => !CosmicQueryRelations.AnyDescendant(row, child => child.Name == "no such child", visibleBounds)), true);
+            await Show("Descendant / scalar OR traversal",
+                ordered.Take(2).All(row => row.Name == "B-owned" || CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
+            await Show("Descendant / scalar AND traversal",
+                publicParent.All(row => row.Name == "C-public" && CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
+            await Show("Descendant / two independent predicates",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)
+                    && CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public child", visibleBounds)), true);
+            await Show("Descendant / source and terminal traversal scopes",
+                descendants.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
+
+            await ShowError("Descendant / an early match cannot hide node overflow",
+                publicParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public child", tightBounds)), "CQL_QUERY_LIMIT");
+            await ShowError("Descendant / false AND cannot hide node overflow",
+                publicParent.All(row => row.Name == "not C" && CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public child", tightBounds)), "CQL_QUERY_LIMIT");
+            await ShowError("Descendant / true OR cannot hide node overflow",
+                publicParent.All(row => row.Name == "C-public" || CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public child", tightBounds)), "CQL_QUERY_LIMIT");
+            await ShowError("Descendant / exact cumulative node budget",
+                trustedParent.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "public behind private", threeNodes)), "CQL_QUERY_LIMIT");
+
+            var invalidSource = Value(visible.WhereAnyDescendant(child => child.Name == "no such child", tightBounds).Take(0));
+            await ShowError("Descendant / source error survives an empty source window",
+                invalidSource.All(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), "CQL_QUERY_LIMIT");
+            await Show("Descendant / empty filtered source",
+                absentParents.All(row => CosmicQueryRelations.AnyDescendant(row, child => false, visibleBounds)), true);
+            await Show("Descendant / false OR true traversal",
+                publicParent.All(row => row.Name == "not C" || CosmicQueryRelations.AnyDescendant(row, child => child.Name == "owned child", visibleBounds)), true);
+            await Show("Descendant / true AND false traversal",
+                publicParent.All(row => row.Name == "C-public" && CosmicQueryRelations.AnyDescendant(row, child => child.Name == "no such child", visibleBounds)), false);
         }
 
         return completed;
+
+        async Task ShowError(string title, OASISResult<CosmicScalarQuery<Holon, bool>> query, string expectedCode)
+        {
+            var plan = Value(CosmicScalarPlanner.Plan(Value(query), adapter.QueryProviderType,
+                new[] { new CosmicScalarTarget(adapter.QueryProviderType, adapter.QueryCapabilities, scalar.ScalarCapabilities) }));
+            var result = await manager.ExecuteScalarQueryAsync(plan, new[] { adapter });
+            if (!result.IsError || result.ErrorCode != expectedCode)
+                throw new InvalidOperationException(title + ": expected " + expectedCode + ", got " + result.ErrorCode + ": " + result.Message);
+            completed++;
+            await output.WriteLineAsync($"\n{135 + completed}. {title}\n\n  {result.ErrorCode}\n");
+        }
 
         async Task Show(string title, OASISResult<CosmicScalarQuery<Holon, bool>> query, bool expected)
         {

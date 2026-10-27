@@ -2769,3 +2769,37 @@ All 46 examples pass per store (138 checks), with 3,817 Core tests and both
 framework builds passing. [Native proof](Verification/all-nested-native.trx.gz).
 Full Q23 remains red for bounded descendant traversal inside All. The complete
 543-SDK walkthrough still needs verified fixture reconciliation and a clean rerun.
+
+## Bounded descendant marker inside All — native verification pending
+
+```csharp
+var bounds = CosmicQueryTraversalOptions.Create(
+    maximumDepth: 2,
+    maximumNodes: 100).Result;
+
+var resultIntent = query
+    .OrderBy(parent => parent.Name)
+    .Take(10)
+    .All(parent => CosmicQueryRelations.AnyDescendant(
+        parent,
+        descendant => descendant.Name == "target",
+        bounds));
+```
+
+The marker captures immutable bounds and a native predicate; invoking it as
+ordinary CLR code throws without invoking the callback. Scalar admission needs
+`SupportsAllDescendants` separately from child support. Descendants are evaluated
+after the source window. Visibility applies at every hop and the root does not
+match as its own descendant. Protected traversal errors remain errors even when
+another Boolean branch determines the match.
+
+Core tests: 3,824 pass, zero skipped; both framework builds pass. Native cases
+are pending. Cycle propagation and mixed child/descendant composition remain
+unproved/incomplete requirements in full Q23. No completion is claimed here.
+
+Descendant native checkpoint: all 66 All examples pass per store (198 total),
+including 20 new depth/visibility/window/Boolean/node-budget cases on each.
+Core: 3,824 pass, zero skipped; both framework and demo console builds pass.
+[Native proof](Verification/all-descendant-native.trx.gz). Q23/Q23d remain red:
+actual native cycle propagation and nested child/descendant composition still
+need implementation/proof. The complete 603-SDK walkthrough also remains pending.

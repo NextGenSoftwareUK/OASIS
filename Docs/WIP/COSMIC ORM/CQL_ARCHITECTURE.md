@@ -2034,3 +2034,41 @@ The no-access-policy positive native case locks lexical alias separation even
 when no bind is allocated between child levels. Q23c is green on this scoped
 evidence. Full Q23 stays red for descendant predicates; complete walkthrough
 rerun remains pending. [Native proof](Verification/all-nested-native.trx.gz).
+
+## Descendant All acceptance plan — 27 October 2026
+
+Full Q23 remains red. The next implementation must provide an explicit bounded
+`AnyDescendant` expression marker: the immutable traversal options are captured
+without invoking callbacks. Ordinary row/selected grammars must not acquire a
+new unsupported shape. A separate post-window scalar capability is required.
+
+Source traversal validation retains its current scope before paging. Terminal
+traversal runs only for selected roots, but must complete its own visible
+membership scope even when the Boolean predicate is already true/false. Native
+cycle/node-budget failures remain errors; they cannot become a counterexample
+or an empty successful result.
+
+MongoDB will share the existing bounded traversal stage owner with filtering
+optional only for terminal evaluation: selected roots retain matched/error
+values through a correlated lookup and final reduction. Neo4j will compile
+terminal traversal state separately from source traversal state and invoke it
+after the source window, before the aggregate. SQLite will evaluate protected
+terminal traversal guards before the business Boolean expression in its native
+aggregate so short-circuiting cannot hide a traversal error.
+
+Acceptance includes depth1/depth2 differences, actor-hidden intermediate nodes,
+source-window isolation, true/false Boolean combinations, empty input, node
+budget errors after an earlier match and under a false/true Boolean branch,
+cycle propagation, and retained source-traversal errors. Combinations of child
+and descendant traversal must remain explicit incomplete work until supported
+and proved; no parent row is promoted merely because one subset passes.
+
+Bounded descendant implementation/proof checkpoint: MongoDB shares the bounded
+traversal stage owner, retaining matched/error outcomes in post-window correlated
+lookups; Neo4j owns terminal traversal state separately after paging; SQLite's
+native reduction forces protected traversal observations before the business
+Boolean. Native node errors survive early matches, false AND, true OR and
+source Take(0). All 66 All examples/store pass (198 total), with 3,824 Core tests.
+Actual cycle proof and mixed nested relationship/descendant predicates remain
+missing; Q23/Q23d stay red. No completed full-walkthrough claim is made.
+[Native proof](Verification/all-descendant-native.trx.gz).
