@@ -560,3 +560,11 @@ Native emulator evidence: 41 focused tests, 38 native cases and five shared
 HolonManager/LINQ demo operations.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
+
+Cosmos save lifecycle remains a separate gap. Existing native ETag replacement
+does not enroll `IConditionalHolonStorageProvider` or
+`IConditionalHolonDeltaStorageProvider`. An explicit `CosmicWriteOptions` request
+currently returns `COSMIC_CONDITIONAL_WRITE_UNSUPPORTED` before activation,
+leaving caller identity/version unchanged. Do not replace that request with an
+ordinary Save and describe it as atomic COSMIC concurrency or a durable delta.
+Both synchronous and asynchronous rejection paths are covered by focused tests.
