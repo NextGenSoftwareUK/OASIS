@@ -41,6 +41,8 @@ def family(name,text,path):
 # Match actual client use, including injected clients and target-typed constructors.
 # Namespace/type guard avoids confusing an unrelated JsonRpcClientFactory with Solnet.
 CS_SDK_RULES=[
+ ('HoloNET client',r'NextGenSoftware\.Holochain\.HoloNET\.Client',r'\.CallZomeFunctionAsync\('),
+ ('EOSCore chain API',r'EOSNewYork\.EOSCore',r'\.ChainAPI\.(?:GetTableRowsAsync|GetTableRows|PushTransaction)\('),
  ('DuckDB.NET','\\bDuckDB\\.NET\\.Data\\b','new\\s+DuckDBConnection\\b'),
  ('MySqlConnector','\\bMySqlConnector\\b','new\\s+MySqlConnection\\b'),
  ('Snowflake.Data','\\bSnowflake\\.Data\\.Client\\b','new\\s+SnowflakeDbConnection\\b'),
@@ -129,13 +131,14 @@ def sdk_evidence(project,visited=None):
 
 def reviewed_sdk_gap(name,project):
  """Negative evidence is limited to the exact, unchanged source set that was reviewed."""
- audit=json.loads((DEST/'NativeEvidence/map-facade-source-review.json').read_text(encoding='utf-8-sig'))
- reviewed=[row for row in audit['providers'] if row['provider']==name]
+ audits=[json.loads((DEST/'NativeEvidence'/file).read_text(encoding='utf-8-sig'))
+         for file in ('map-facade-source-review.json','remaining-adapter-source-review.json')]
+ reviewed=[row for audit in audits for row in audit['providers'] if row['provider']==name]
  if not reviewed:return None
  paths={(ROOT/row['path']).resolve() for row in reviewed}
  if paths!={p.resolve() for p in source_files(project.parent)}:return None
  if any(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest()!=row['sha256'] for row in reviewed):return None
- return 'Source-reviewed facade has no native SDK/API adapter; capability implementation required'
+ return 'Source-reviewed project has no active native SDK/API adapter; implementation required'
 
 def build():
  registry=json.loads((DEST/'CONFORMANCE_RESULTS.json').read_text(encoding='utf-8-sig'))
