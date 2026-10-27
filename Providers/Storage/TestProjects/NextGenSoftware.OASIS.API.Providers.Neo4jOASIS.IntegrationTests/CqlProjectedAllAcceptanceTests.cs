@@ -57,6 +57,8 @@ public sealed class CqlProjectedAllAcceptanceTests
     private static async Task VerifyFixture(bool reviewed)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
+        var reports=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_RESULTS");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(reports),"The runner must supply this worktree's disposable results directory.");
         var originalPath=Path.Combine(work,"cql-v1-web4-fixture.json");
         var original=await File.ReadAllBytesAsync(originalPath);
         Assert.AreEqual("892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5",Convert.ToHexString(SHA256.HashData(original)));
@@ -254,7 +256,7 @@ public sealed class CqlProjectedAllAcceptanceTests
                     await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=textIds})).ConsumeAsync();
                     Assert.AreEqual(0L,await records.CountDocumentsAsync(mongoIds));Assert.AreEqual(0L,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(0L,await NeoCount());
                     CollectionAssert.AreEqual(original,await File.ReadAllBytesAsync(originalPath));
-                    await File.WriteAllTextAsync(Path.Combine(work,"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
+                    await File.WriteAllTextAsync(Path.Combine(reports!,"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
                     File.Delete(journal);
                 }
             }
