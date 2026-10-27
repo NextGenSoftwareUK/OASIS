@@ -65,6 +65,16 @@
         "async: detail-id: System.InvalidOperationException",
         "sync: detail-id: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "OracleDBOASIS",
+      "suite": "core-storage-v1",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
+      "sha256": "838e84fba937ade8c5717e308dd0227afd7d3cfe6030281f00d731260806c04d",
+      "blockers": []
     }
   ],
   "providerBlockers": {

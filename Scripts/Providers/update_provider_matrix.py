@@ -149,7 +149,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; Oracle native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Native document transports + shared record policy | Extract common policy without conflating native dialects | Not started; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | One suite for all backend factories | Suite implementation started; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
