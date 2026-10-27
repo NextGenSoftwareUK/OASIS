@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public class HolonRepository : CosmosDbRepository<IHolon>, IHolonRepository
+    public partial class HolonRepository : CosmosDbRepository<IHolon>, IHolonRepository
     {
         public HolonRepository(ICosmosDbClientFactory factory) : base(factory) { }
 

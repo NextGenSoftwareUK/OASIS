@@ -3,6 +3,8 @@ using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests;
 
@@ -59,5 +61,23 @@ public class CqlCanonicalReadTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         Assert.ThrowsException<OperationCanceledException>(() => repository.DecodeCurrentQueryRows(Array.Empty<string>(), 10, cancellation.Token));
+    }
+
+    [TestMethod]
+    public void VisibilityViolationRejectsRatherThanFilteringNativeRows()
+    {
+        var access = CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result;
+        var row = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), IsPublic = false };
+        Assert.ThrowsException<InvalidDataException>(() => HolonRepository.ValidateCqlLeafRows(new IHolon[] { row }, access, default));
+    }
+
+    [TestMethod]
+    public void LeafReadDoesNotExposeEmbeddedChildGraph()
+    {
+        var row = new Holon { Id = Guid.NewGuid(), IsPublic = true };
+        row.Children.Add(new Holon { Id = Guid.NewGuid() });
+        var rows = HolonRepository.ValidateCqlLeafRows(new IHolon[] { row }, null!, default);
+        Assert.AreEqual(1, rows.Count);
+        Assert.AreEqual(0, rows[0].Children.Count);
     }
 }
