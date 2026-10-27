@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Remove="GoogleCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
