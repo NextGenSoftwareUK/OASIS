@@ -6,8 +6,8 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: bind standard staged Count/LongCount/Any/All to the native count owner.
-- Then implement staged element terminals and projections; verify full scope before promoting Q01f.
+- Exact next step: implement staged entity element terminals through the existing stage/hydration owners.
+- Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
 
@@ -20,21 +20,22 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
 | Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,583 checks: SQLite527/Mongo527/Neo529, one test, no skips |
+| Latest native gate | 1,631 checks: SQLite543/Mongo543/Neo545, one test, no skips |
 | Focused provider CQL tests | SQLite44, Mongo215, Neo147 pass; provider builds pass |
-| Shared count foundation | 2,555 CQL regressions pass; both Core targets build; Core7b2a2d4 pushed/verified |
+| Shared count foundation | 2,559 CQL regressions pass; both Core targets build; Corec091e61 pushed/verified |
 
-Q01f stays red: native count enrollment exists on all three; standard staged terminal binding,
-entity element terminals and projections are still pending. No client reduction substitutes for native execution.
+Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
+entity element terminals, projections and remaining numeric terminals are still pending. No client reduction substitutes for native execution.
 Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
 Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
 
 Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `C8DF2D1E7DAF89839D9327FD7D43B9EF35F14234578D3A7B4FEDA49C3518A2A7`.
+SHA256 `688480271D5E3F125AF131EEA9DFBD55CF77E75A349694D6C9EE7EE13ECCFD9A`.
 Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `FFF150F01452F7A7A2D1DAE017192A447AC6EA9596646511570669DA2038ACCB`.
-Neo count unit TRX: `TestResults/CoreCurrent/neo-entity-count-current.trx`.
-SHA256 `C8E917B3161F9CAD57161070CCFBFB9152EEEECA241722D1CDF852D9048F446C`.
+SHA256 `2A38A09274A3F4F48F076E270926541EE2006F5D6B6D8DC5A99127A4B01D80B1`.
+Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
+SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
+Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
 [Earlier checkpoint evidence](Archive/CURRENT_STATUS_pre_terminal_binding_2026-10-27.md) preserves other hashes/cohorts.
 Full Core suite is not green: earlier3,853 passes/six failures from missing built WEB4 host prerequisite remain unverified.
 

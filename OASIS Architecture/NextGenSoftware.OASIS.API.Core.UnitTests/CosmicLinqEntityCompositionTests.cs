@@ -73,7 +73,7 @@ public sealed partial class CosmicEntityCompositionTests
     {
         var native = Data("a", "b");
         var query = Root(native).Take(2).Where(row => row.Name == "a");
-        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => query.Count()).Code);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => query.Count()).Code);
         Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => query.First()).Code);
         Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name)).Code);
         Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => true));

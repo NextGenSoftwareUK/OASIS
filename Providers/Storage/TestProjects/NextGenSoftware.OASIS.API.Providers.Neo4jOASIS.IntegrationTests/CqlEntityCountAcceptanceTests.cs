@@ -54,5 +54,29 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             .Compose().Result.Where(row=>row.Name=="protected source root").Result;
         var native=await Count(typed); Assert.IsFalse(native.IsError,native.Message+native.Exception);
         Assert.AreEqual(1L,native.Result.Providers.Single().Value); Passed("native count without DTO constructors or graph expansion");
+
+        var root=CosmicLinq.Create(NativeManager(adapter),adapter,source).Result.Where(row=>row.Name=="protected source root");
+        Assert.AreEqual(1,root.Count());Passed("standard staged Count");
+        Assert.AreEqual(1L,root.LongCount());Passed("standard staged LongCount");
+        Assert.IsTrue(root.Any());Passed("standard staged Any");
+        Assert.AreEqual(0,root.Where(row=>row.Name=="missing").Count());Passed("standard staged false Count");
+        Assert.IsFalse(root.Where(row=>row.Name=="missing").Any());Passed("standard staged false Any");
+        Assert.IsTrue(root.All(row=>row.Name=="protected source root"));Passed("standard staged All true");
+        Assert.IsFalse(root.All(row=>row.Name=="missing"));Passed("standard staged All false");
+        Assert.IsFalse(root.Take(0).Any());Passed("standard staged empty Any");
+        Assert.IsTrue(root.Take(0).All(row=>false));Passed("standard staged vacuous All");
+        Assert.AreEqual(1,root.Take(1).Count(row=>row.Name=="protected source root"));Passed("standard staged Count predicate after page");
+        Assert.AreEqual(1L,root.Take(1).LongCount(row=>row.Name=="protected source root"));Passed("standard staged LongCount predicate after page");
+        Assert.IsTrue(root.Take(1).Any(row=>row.Name=="protected source root"));Passed("standard staged Any predicate after page");
+        var name="missing";var deferred=root.Where(row=>row.Name==name);
+        Assert.AreEqual(0,deferred.Count());name="protected source root";Assert.AreEqual(1,deferred.Count());Passed("standard staged count closure rebinding");
+        Assert.AreEqual("CQL_QUERY_LIMIT",Assert.ThrowsException<CosmicLinqException>(()=>root.All(row=>
+            row.Name=="protected source root" || CosmicQueryRelations.AnyDescendant(row,child=>true,tight))).Code);
+        Passed("standard staged All retains protected true OR");
+        Assert.AreEqual("CQL_QUERY_LIMIT",Assert.ThrowsException<CosmicLinqException>(()=>root.Where(row=>
+            row.Name=="missing" && CosmicQueryRelations.AnyDescendant(row,child=>true,tight)).Take(0).Count()).Code);
+        Passed("standard staged Count retains protected false AND before empty");
+        var noConstructor=CosmicLinq.Create(NativeManager(adapter),adapter,typed.Source).Result.Where(row=>row.Name=="protected source root");
+        Assert.AreEqual(1,noConstructor.Count());Passed("standard staged Count without DTO construction or graph expansion");
     }
 }
