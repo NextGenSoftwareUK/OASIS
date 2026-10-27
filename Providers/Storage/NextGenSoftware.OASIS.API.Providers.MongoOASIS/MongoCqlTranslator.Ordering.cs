@@ -45,10 +45,22 @@ internal sealed partial class MongoCqlTranslator
         if(traverses)FinishDescendantEnvelope(source,pipeline);else source.AddRange(pipeline);
         pipeline=source;
         ValidatePipeline(pipeline);
-        return new MongoCqlCommand(pipeline.ToArray(),fetch,query.Predicates.Any(predicate=>predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant),traverses);
+        return new MongoCqlCommand(pipeline.ToArray(),fetch,query.Predicates.Any(HasRelationships),traverses);
     }
     private List<BsonDocument> CompileSource<T>(CosmicQuery<T> query,out bool traverses) where T:IHolon
     {
+        if (query.Predicates.Any(NeedsComposedSource))
+        {
+            // Relationship-containing Boolean expressions cannot enter the scalar
+            // translator or be filtered before their complete protected scopes.
+            var composed = new List<BsonDocument> { new("$match", CompileRootPredicatesCore(query, true)) };
+            var errors = new List<BsonValue>();
+            var matched = AppendAllPredicate(composed, query.Predicates.Where(HasRelationships), query.ReadAccess, errors);
+            composed.Add(new("$set", new BsonDocument { { "allMatched", matched }, { "error", AllErrorCode(errors) } }));
+            composed.Add(new("$match", new BsonDocument("$expr", Op("$or", Op("$ne", "$error", Literal(0)), "$allMatched"))));
+            traverses = true; // The existing envelope owner protects errors outside paging.
+            return composed;
+        }
         var pipeline=new List<BsonDocument>{new("$match",CompileRootPredicates(query))};
         AddChildExistence(pipeline,query);
         traverses=AddDescendantExistence(pipeline,query);

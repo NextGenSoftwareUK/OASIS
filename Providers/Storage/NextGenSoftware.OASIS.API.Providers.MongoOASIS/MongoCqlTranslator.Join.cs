@@ -124,7 +124,7 @@ internal sealed partial class MongoCqlTranslator
             page.Add(new("$project", proof)); page.Add(CountWindow()); page.Add(new("$sort", sourceSort));
             if (traverses) FinishDescendantEnvelope(pipeline, page); else pipeline.AddRange(page);
             ValidatePipeline(pipeline);
-            var membership = source.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
+            var membership = source.Predicates.Any(HasRelationships);
             return new MongoCqlProjectionCommand(pipeline.ToArray(), membership, true, traverses, fetch == 0);
         }
 
