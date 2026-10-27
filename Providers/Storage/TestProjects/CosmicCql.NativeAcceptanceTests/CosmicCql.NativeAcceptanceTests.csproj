@@ -31,5 +31,6 @@
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityCountAcceptanceTests.cs" Link="CqlEntityCountAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityElementAcceptanceTests.cs" Link="CqlEntityElementAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityReverseAcceptanceTests.cs" Link="CqlEntityReverseAcceptanceTests.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityProjectionAcceptanceTests.cs" Link="CqlEntityProjectionAcceptanceTests.cs" />
   </ItemGroup>
 </Project>

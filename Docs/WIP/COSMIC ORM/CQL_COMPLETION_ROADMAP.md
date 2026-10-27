@@ -1,5 +1,7 @@
 # CQL completion roadmap
 
+User priority27October: [eight-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md) takes precedence over unfinished parity-only depth. Original scope remains active.
+
 [Current status](CURRENT_STATUS.md) owns the exact next action; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
 
 1. Q01f shared IQueryable bridge is committed and tested; keep native database cells red.

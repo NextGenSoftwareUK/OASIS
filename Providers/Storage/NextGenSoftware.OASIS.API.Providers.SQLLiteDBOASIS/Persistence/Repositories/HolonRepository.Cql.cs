@@ -68,9 +68,7 @@ public partial class HolonRepository
             if(admission.IsError)return Error(admission.ErrorCode,admission.Message);
             if (composition != null)
             {
-                var stages = new CosmicEntityCompositionCapabilities(
-                    CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
-                    SqliteCqlContract.Capabilities).Admit(composition.Query);
+                var stages = SQLLiteDBOASIS.CqlEntityCompositionCapabilities.Admit(composition.Query);
                 if (stages.IsError) return Error(stages.ErrorCode, stages.Message);
             }
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
@@ -151,35 +149,7 @@ public partial class HolonRepository
                     budget.Check();
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                     if (entitySql != null)
-                    {
-                        // Source bounds apply before filtering, including a later Take(0).
-                        // Native rows are measured here, never filtered in managed code.
-                        var sourceRows = 0;
-                        long sourceBytes = 0;
-                        var sourceQuery = _dbContext.Holons.FromSqlRaw(entitySql.Source,
-                            translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
-                        await foreach (var row in sourceQuery.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
-                        {
-                            budget.Check(); traversal?.Check();
-                            sourceBytes = checked(sourceBytes + CqlRecordSize(row));
-                            if (++sourceRows > composition.Options.MaximumInputRows
-                                || sourceBytes > composition.Options.MaximumInputPayloadBytes)
-                                throw new SqliteCqlResourceException("Entity composition exceeds its native source row/payload budget.");
-                        }
-                        long work = 0;
-                        for (var index = 0; index < entitySql.StageCounts.Count; index++)
-                        {
-                            var count = await _dbContext.Database.SqlQueryRaw<long>(entitySql.StageCounts[index],
-                                translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
-                            work = checked(work + count);
-                            if (count < 0 || work > composition.Options.MaximumStageRows)
-                                throw new SqliteCqlResourceException("Entity composition exceeds its cumulative native stage-work budget.");
-                            if (entitySql.ProtectedScopes[index] != null)
-                                await _dbContext.Database.SqlQueryRaw<long>(entitySql.ProtectedScopes[index],
-                                    translator.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
-                            budget.Check(); traversal?.Check();
-                        }
-                    }
+                        await ValidateEntityCompositionAsync(entitySql,composition.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (terminalValidation != null)
                     {
                         await _dbContext.Database.SqlQueryRaw<long>(terminalValidation, translator.Parameters.Cast<object>().ToArray())

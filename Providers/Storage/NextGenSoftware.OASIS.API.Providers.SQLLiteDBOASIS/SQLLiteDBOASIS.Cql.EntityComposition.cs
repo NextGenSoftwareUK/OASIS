@@ -16,7 +16,8 @@ public partial class SQLLiteDBOASIS : ICosmicQueryEntityCountStorageProvider
         CancellationToken cancellationToken=default) where T:IHolon
         => ((HolonRepository)_holonRepository).ExecuteCosmicEntityCountAsync(plan,cancellationToken);
 
-    public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
+    public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => CqlEntityCompositionCapabilities;
+    internal static CosmicEntityCompositionCapabilities CqlEntityCompositionCapabilities => new(
         CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | CosmicEntityStageFeatures.Reverse,
         SqliteCqlContract.Capabilities);
 

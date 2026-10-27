@@ -1,5 +1,7 @@
 # COSMIC ORM implementation roadmap
 
+User priority27October: [eight-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md) takes precedence over unfinished parity-only depth. Original scope remains active.
+
 Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective remains active; no completion claim.
 
 | Order | Work | Acceptance owner |

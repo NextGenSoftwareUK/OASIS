@@ -5,9 +5,9 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 ## Phase and next action
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
-- Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: implement SQLite native entity-stage projection using the shared projection contract, then Mongo/Neo, standard Select and numeric/aggregate integration.
-- Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
+- Full COSMIC programme remains incomplete. Active priority: eight-provider demo before full parity.
+- Exact next step: audit Azure Cosmos DB schema/native querying and reusable configuration; implement the bounded demo subset.
+- Order: existing Mongo/SQLite/Neo demo, Cosmos candidate, Solana, IPFS, SOLID, ActivityPub. See [demo roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). Defer unfinished parity-only depth; Q01f stays red.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
 
@@ -20,8 +20,8 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
 | Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,781 checks: SQLite593/Mongo593/Neo595, one test, no skips |
-| Focused provider CQL tests | SQLite45, Mongo216, Neo148 pass; provider builds pass |
+| Latest native gate | 1,791 checks: SQLite603/Mongo593/Neo595, one test, no skips |
+| Focused provider CQL tests | SQLite47, Mongo216, Neo148 pass; provider builds pass |
 | Shared count foundation | 2,578 CQL regressions pass; both Core targets build; Core7da53a7 pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
@@ -30,9 +30,9 @@ Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
 Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
 
 Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `74AC50740F7E4022AD6B95569DD533ADED8AA5D99761973EF5674D04510D373D`.
+SHA256 `79E394F129D1BA5A675BD7D03E5B08EE066405DA18D98EF6EEA120691FCD8D6A`.
 Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `3BB018BD89101D73AF8C692FFA4153397AD89A1A7C1D211AD147ABFDF236239D`.
+SHA256 `1FC2A66C94E24E39DF5DA538855B30245E9F186CE738E89875B5AD7A9CCF731E`.
 Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
 SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
 Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
@@ -54,7 +54,9 @@ Evidence `TestResults/CoreCurrent/entity-default-binding-regression.trx`, SHA256
 Shared entity-projection query/plan/contract/executor/V2 manager now preserve the immutable entity source and use existing native-cell validation/DTO construction ownership.
 Four new tests verify stage/capability capture, DTO validation order, impossible-window counts and cancellation/completion gates.
 Evidence `TestResults/CoreCurrent/entity-projection-regression.trx`, SHA256 `BB77C95E32C10A801B22650E17C332D46BB66F749F73139847A6F3520325EEEF`.
-No provider enrollment or standard staged Select yet. The1,781 native checkpoint predates this Core increment.
+SQLite entity projection enrolled:47 CQL tests and10 live projection cases pass; row/count/projection share source/stage proof checks.
+Evidence TestResults/CoreCurrent/sqlite-entity-projection-current.trx SHA256 8F7FB89EE07B43310682CA47B49D98D99CE128BE738BC068BA9DF52CDDAD04C4.
+Mongo/Neo entity projection and standard Select remain pending, deferred unless needed by the broader demo.
 
 ## Fixture and resource safety
 
