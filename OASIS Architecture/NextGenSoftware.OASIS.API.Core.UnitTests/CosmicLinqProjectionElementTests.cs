@@ -21,6 +21,7 @@ public sealed partial class CosmicLinqProjectionElementTests
     {
         public int Calls;
         public bool NumericEnabled;
+        public bool ExtremaEnabled;
         public object?[]? NumericValues;
         public bool MissingNumeric;
         public long? NumericCountOverride;
@@ -38,14 +39,21 @@ public sealed partial class CosmicLinqProjectionElementTests
         public CosmicProjectionCapabilities ProjectionCapabilities => new(
             new[] { new CosmicProjectionFieldCapability("Name", typeof(string)), new CosmicProjectionFieldCapability("Version", typeof(int)) }, new[] { typeof(int?) });
         public CosmicProjectionCompositionCapabilities CompositionCapabilities => new(
-            CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Ordering
+            CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Ordering | (ExtremaEnabled ? CosmicSelectedStageFeatures.Filter : CosmicSelectedStageFeatures.None)
                 | (ReverseEnabled ? CosmicSelectedStageFeatures.Reverse : CosmicSelectedStageFeatures.None),
-            CosmicQueryFeatures.None, Array.Empty<CosmicQueryMetadataCapability>(), new[] { typeof(string) }, 32, false, CardinalityEnabled,
+            ExtremaEnabled ? CosmicQueryFeatures.NullLiteral : CosmicQueryFeatures.None,
+            ExtremaEnabled ? new[] { new CosmicQueryMetadataCapability(typeof(string), new[] { CosmicQueryComparisonOperator.NotEqual }),
+                new CosmicQueryMetadataCapability(typeof(int?), new[] { CosmicQueryComparisonOperator.NotEqual }) } : Array.Empty<CosmicQueryMetadataCapability>(),
+            new[] { typeof(string), typeof(int), typeof(int?) }, 32, false, CardinalityEnabled,
             NumericEnabled ? new CosmicScalarCapabilities(Array.Empty<CosmicScalarOperation>(), new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, ProjectionCapabilities, new[] { typeof(int), typeof(int?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, ProjectionCapabilities, new[] { typeof(int), typeof(int?) }, true)
-            }) : null);
+            }) : null, ExtremaEnabled ? new[] { typeof(string), typeof(int), typeof(int?) } : Array.Empty<Type>());
+
+        private static int Compare(object? left, object? right)
+            => left is string a && right is string b ? StringComparer.Ordinal.Compare(a, b)
+                : Comparer<object>.Default.Compare(left!, right!);
 
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
@@ -71,7 +79,10 @@ public sealed partial class CosmicLinqProjectionElementTests
                 current = stage switch
                 {
                     CosmicSelectedReverseStage => current.Reverse().ToArray(),
-                    CosmicSelectedOrderStage => current.OrderBy(row => (string?)row.Values[0], StringComparer.Ordinal).ToArray(),
+                    CosmicSelectedFilterStage => current.Where(row => row.Values[0] != null).ToArray(),
+                    CosmicSelectedOrderStage order => (order.Orderings[0].Descending
+                        ? current.OrderByDescending(row => row.Values[0], Comparer<object>.Create(Compare))
+                        : current.OrderBy(row => row.Values[0], Comparer<object>.Create(Compare))).ToArray(),
                     CosmicSelectedWindowStage window => (window.Kind == CosmicSelectedWindowKind.Skip
                         ? current.Skip(window.Count) : current.Take(window.Count)).ToArray(),
                     _ => throw new InvalidOperationException("Unexpected test stage")
