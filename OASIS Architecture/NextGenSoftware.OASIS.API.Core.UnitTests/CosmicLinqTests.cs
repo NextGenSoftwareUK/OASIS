@@ -129,11 +129,12 @@ public sealed class CosmicLinqTests
     }
 
     [Fact]
-    public void PostWindowFilteringPreservesTheExistingExplicitCompositionError()
+    public void PostWindowFilteringRequiresNativeStageEnrollmentWithoutFlatFallback()
     {
         var adapter = new Adapter();
-        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",
-            Assert.Throws<CosmicLinqException>(() => Root(adapter).Take(1).Where(row => row.Name == "coffee")).Code);
+        var query = Root(adapter).Take(1).Where(row => row.Name == "coffee");
+        Assert.Equal(0, adapter.Calls);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => query.ToList()).Code);
         Assert.Equal(0, adapter.Calls);
     }
     [Fact]

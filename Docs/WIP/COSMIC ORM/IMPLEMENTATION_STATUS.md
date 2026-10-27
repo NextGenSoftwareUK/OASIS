@@ -5,10 +5,10 @@
 - Full COSMIC ORM/CQL programme remains incomplete.
 - The 12 investor-demo rows are green on SQLite, MongoDB and Neo4j.
 - Q23/Q23e/Q49a and Q01a–e are verified within their checklist scopes.
-- Active red row Q01f: shared stage contract is committed; IQueryable bridge is locally tested.
+- Active red row Q01f: shared stage contract is committed; IQueryable bridge is committed in Core b9bccf0.
 - Native stage enrollment and staged terminal/projection integration remain pending on all three databases.
 - Latest native checkpoint: 1,501 checks; it predates the shared entity-stage increment.
-- Current local bridge regression: 2,550 passes. Full Core suite still has an unverified WEB4 host prerequisite.
+- Current shared bridge regression: 2,550 passes. Full Core suite still has an unverified WEB4 host prerequisite.
 - Green features/federation cursors stay frozen unless a reproducible bug appears.
 - HyperDrive V2 only; legacy gaps receive documentation.
 

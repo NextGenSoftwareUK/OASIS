@@ -2,7 +2,7 @@
 
 [Current status](CURRENT_STATUS.md) owns the exact next action; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
 
-1. Publish the independently tested Q01f IQueryable bridge increment.
+1. Q01f shared IQueryable bridge is committed and tested; keep native database cells red.
 2. Implement native entity stages on SQLite, then MongoDB and Neo4j, preserving source windows and protected errors.
 3. Complete staged terminal/projection integration and proving native tests before promoting Q01f cells.
 4. Continue remaining red rows in checklist priority order. Leave green rows/cursors frozen unless a bug is reproduced.

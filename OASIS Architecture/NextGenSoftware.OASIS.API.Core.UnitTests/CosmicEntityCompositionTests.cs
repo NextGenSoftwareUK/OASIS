@@ -8,10 +8,12 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public sealed class CosmicEntityCompositionTests
+public sealed partial class CosmicEntityCompositionTests
 {
     private sealed class Native : ICosmicQueryEntityCompositionStorageProvider
     {
+        public IHolon[]? Data;
+        public ProviderType Identity = ProviderType.SQLLiteDBOASIS;
         public int RowCalls;
         public int StageCalls;
         public bool Enabled = true;
@@ -19,7 +21,7 @@ public sealed class CosmicEntityCompositionTests
         public string? Failure;
         public CosmicEntityCompositionPlan<Holon>? Seen;
         public Holon Value = new() { Id = Guid.NewGuid(), Name = "native" };
-        public ProviderType QueryProviderType => ProviderType.SQLLiteDBOASIS;
+        public ProviderType QueryProviderType => Identity;
         public CosmicQueryCapabilities QueryCapabilities => Profile();
         public static CosmicQueryCapabilities Profile() => new(CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging,
             new[] { new CosmicQueryFieldCapability("Name", typeof(string), new[] { CosmicQueryComparisonOperator.Equal },
@@ -32,7 +34,29 @@ public sealed class CosmicEntityCompositionTests
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicEntityCompositionAsync<T>(CosmicEntityCompositionPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
         {
-            StageCalls++; Seen = (CosmicEntityCompositionPlan<Holon>)(object)plan;
+            StageCalls++; if (typeof(T) == typeof(Holon)) Seen = (CosmicEntityCompositionPlan<Holon>)(object)plan;
+            if (Data != null && Failure == null)
+            {
+                IEnumerable<IHolon> rows = Data;
+                foreach (var predicate in plan.Query.Source.Predicates)
+                    rows = rows.Where(row => CosmicSelectedPredicateEvaluation.Evaluate(predicate, _ => row.Name, cancellationToken));
+                foreach (var ordering in plan.Query.Source.Orderings.Reverse())
+                    rows = ordering.Descending ? rows.OrderByDescending(row => row.Name, StringComparer.Ordinal) : rows.OrderBy(row => row.Name, StringComparer.Ordinal);
+                rows = rows.Skip(plan.Query.Source.Offset);
+                if (plan.Query.Source.Limit.HasValue) rows = rows.Take(plan.Query.Source.Limit.Value);
+                foreach (var stage in plan.Query.Stages)
+                {
+                    if (stage is CosmicEntityFilterStage<T> filter)
+                        rows = rows.Where(row => filter.Predicate.Predicates.All(predicate =>
+                            CosmicSelectedPredicateEvaluation.Evaluate(predicate, _ => row.Name, cancellationToken)));
+                    else if (stage is CosmicEntityOrderStage order)
+                        foreach (var key in order.Orderings.Reverse())
+                            rows = key.Descending ? rows.OrderByDescending(row => row.Name, StringComparer.Ordinal) : rows.OrderBy(row => row.Name, StringComparer.Ordinal);
+                    else if (stage is CosmicEntityWindowStage page)
+                        rows = page.Kind == CosmicSelectedWindowKind.Skip ? rows.Skip(page.Count) : rows.Take(page.Count);
+                }
+                return Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(rows.ToArray()) { IsLoaded = !Incomplete });
+            }
             return Task.FromResult(Failure == null ? new OASISResult<IReadOnlyList<IHolon>>(new IHolon[] { Value }) { IsLoaded = !Incomplete }
                 : new OASISResult<IReadOnlyList<IHolon>> { IsError = true, ErrorCount = 1, ErrorCode = Failure, Message = "Native stage fault" });
         }
