@@ -28,16 +28,28 @@ public partial class HolonRepository
                 return CqlError("CQL_PLAN_INVALID", "SQLite execution requires an exclusively SQLite plan.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return CqlError("CQL_QUERY_LIMIT", "SQLite CQL result limit must be between one and 10,000.");
-            var admission=SqliteCqlContract.Capabilities.Admit(plan.Query);
+            var admission=SqliteCqlContract.Capabilities.AdmitPlan(plan);
             if(admission.IsError)return CqlError(admission.ErrorCode,admission.Message);
             // Translate completely before EF can open the connection. Never evaluate a predicate on fetched rows.
             var translator = new CqlSqlTranslator(plan.Query.ReadAccess);
             var predicate = plan.Query.Predicates.Count == 0 ? "1" : string.Join(" AND ", plan.Query.Predicates.Select(translator.Translate));
             var ordering=translator.TranslateOrdering(plan.Query.Orderings);
-            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
+            var fetch=plan.TailIndex.HasValue ? (plan.Query.Limit == 0 ? 0 : 1)
+                : plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1;
             if(plan.Query.GraphOptions!=null)fetch=Math.Min(fetch,plan.Query.GraphOptions.MaximumNodes+1);
             translator.Parameters.Add(new SqliteParameter("$limit", fetch));
             translator.Parameters.Add(new SqliteParameter("$offset",plan.Query.Offset));
+            var sql = "SELECT * FROM Holon WHERE " + predicate + " ORDER BY " + ordering + " LIMIT $limit OFFSET $offset";
+            if (plan.TailIndex.HasValue)
+            {
+                translator.Parameters.Add(new SqliteParameter("$sourceLimit", plan.Query.Limit ?? -1));
+                translator.Parameters.Add(new SqliteParameter("$tailOffset", plan.TailIndex.Value - 1));
+                // The complete source window is inside the subquery. Reverse
+                // its full ordering, including identity ties, only afterwards.
+                sql = "SELECT * FROM (SELECT * FROM Holon WHERE " + predicate + " ORDER BY " + ordering
+                    + " LIMIT $sourceLimit OFFSET $offset) AS Holon ORDER BY "
+                    + translator.TranslateOrdering(plan.Query.Orderings, reverse: true) + " LIMIT $limit OFFSET $tailOffset";
+            }
             cancellationToken.ThrowIfCancellationRequested();
             if(fetch==0 && !translator.HasRelationship)return new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()){IsLoaded=true};
             // Own the EF concurrency scope before changing any connection-local
@@ -63,7 +75,7 @@ public partial class HolonRepository
                 {
                     budget.Check();
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
-                    var query=_dbContext.Holons.FromSqlRaw("SELECT * FROM Holon WHERE "+predicate+" ORDER BY "+ordering+" LIMIT $limit OFFSET $offset",
+                    var query=_dbContext.Holons.FromSqlRaw(sql,
                         translator.Parameters.Cast<object>().ToArray()).AsNoTracking();
                     await foreach(var row in query.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
                     {

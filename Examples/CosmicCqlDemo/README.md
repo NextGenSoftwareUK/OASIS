@@ -413,3 +413,10 @@ complete that larger history API.
 negative defaults and range errors through HolonManager on all three stores.
 The SDK walkthrough now has 105 cases/store (315), plus 138 HTTP cases and
 30 save checks. System.Index/from-end overloads remain separate red work.
+
+## Last and from-end examples
+
+[V1TailQueries.cs](V1TailQueries.cs) contains examples 106–135 for Last and
+System.Index after a source window. The same native code path covers graphs,
+null/tie ranks and exact scalar ordering. Total SDK walkthrough:135cases/store
+(405), plus138HTTPcases and30savechecks. All remains unimplemented.

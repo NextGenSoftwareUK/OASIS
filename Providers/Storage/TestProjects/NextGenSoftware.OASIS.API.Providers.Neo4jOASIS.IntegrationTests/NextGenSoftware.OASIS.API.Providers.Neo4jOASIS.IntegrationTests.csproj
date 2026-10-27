@@ -46,6 +46,7 @@
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1OperatorQueries.cs" Link="Demo\V1OperatorQueries.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SaveQueries.cs" Link="Demo\V1SaveQueries.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1IndexedQueries.cs" Link="Demo\V1IndexedQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1TailQueries.cs" Link="Demo\V1TailQueries.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1FederationWalkthrough.cs" Link="Demo\V1FederationWalkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SwaggerExample.cs" Link="Demo\V1SwaggerExample.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1DemoPresentation.cs" Link="Demo\V1DemoPresentation.cs" />

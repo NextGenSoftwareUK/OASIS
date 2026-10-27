@@ -1926,7 +1926,37 @@ scope; execution checks cancellation and captures the inherited actor/lifetime
 owner before returning its default or range error without a physical read.
 Unknown-length sequences still read natively, and provider errors remain errors.
 
-Parent Q19 includes the remaining System.Index/from-end forms. Last/All and
-from-end indexing need native composition around an already windowed source;
-a separate count followed by an offset read would allow concurrent writes to
-change the sequence between statements. Those rows remain unimplemented/red.
+System.Index/from-end and Last now use the native tail plan below. All still
+needs native predicate evaluation after a source window. A separate count
+followed by an offset read would allow concurrent writes to change the sequence
+between statements; that shortcut is not used.
+
+## Native tail selection (Q18/Q19 verified)
+
+The admitted row plan carries an optional one-based TailIndex. This is a physical
+selection stage after the immutable query source, not a rewritten source Take.
+TailPaging is a separate capability; the element planner and live row/provider
+admission check it, and single-target binding preserves the descriptor.
+
+```mermaid
+flowchart LR
+    subgraph Native[One native read operation]
+      P[Source visibility and predicates] --> O[Complete source ordering]
+      O --> W[Source Skip / Take]
+      W --> R[Reverse full ordering including identity ties]
+      R --> T[Skip tail index minus 1 / Take 1]
+    end
+    T --> H[Existing detached typed hydration and tracking]
+```
+
+SQLite nests the source SELECT before reversing its ordering. MongoDB adds the
+reverse sort/skip/limit to the same aggregate after the existing SelectedWindow.
+Neo4j adds a second WITH stage after its source window. Each path retains its
+existing native read budget, traversal validation and graph snapshot owner.
+No separate count request or full-source client enumeration is introduced.
+
+Last requires explicit source ordering. System.Index from-end forms use the
+native sequence ordering, with existing stable identity ties. ^0 and indexes
+past an explicit source bound have their declared pure error/default semantics.
+Provider errors do not become defaults. Core3,797 tests and all-three-provider native examples 106–135 pass; All is
+separate unfinished work. See the checklist for retained source/binary/test proof.
