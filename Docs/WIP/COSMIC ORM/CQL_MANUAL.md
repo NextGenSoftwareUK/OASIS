@@ -286,7 +286,18 @@ scalar and cardinality permissions. Exact native words and participating counts
 are validated under the selected snapshot owner before normalization. Int64 double
 means additionally require checked-prefix evidence after every selected window.
 Complete source/stage participation and terminal work/proof budgets still apply.
-Other exact numeric domains and selected Min/Max remain unfinished (Q01b/c). Their missing contracts return explicit errors.
+SQLite also supports staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. MongoDB/Neo4j wider selected domains and all selected Min/Max remain unfinished (Q01b/c); missing contracts return explicit errors.
+
+```csharp
+// SQLite: reduce the selected page using the exact native decimal kernel.
+var prices = query
+    .Select(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
+    .OrderBy(price => price)
+    .Take(10);
+
+var total = prices.Sum();
+var mean = prices.Average();
+```
 
 MongoDB runs selected integer reductions in the existing snapshot session. Its
 shared exact numeric kernel receives the selected column and final stage rank;

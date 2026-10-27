@@ -23,5 +23,6 @@
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqSelectedCardinalityAcceptanceTests.cs" Link="CqlLinqSelectedCardinalityAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqEntityCardinalityAcceptanceTests.cs" Link="CqlLinqEntityCardinalityAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqStagedNumericAcceptanceTests.cs" Link="CqlLinqStagedNumericAcceptanceTests.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqStagedWideAcceptanceTests.cs" Link="CqlLinqStagedWideAcceptanceTests.cs" />
   </ItemGroup>
 </Project>

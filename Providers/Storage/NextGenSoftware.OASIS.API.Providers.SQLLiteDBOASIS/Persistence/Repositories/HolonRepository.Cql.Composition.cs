@@ -62,6 +62,8 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
+                using var floating = plan?.NumericReduction != null && FloatingNumeric(plan.NumericReduction.InputType)
+                    ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
                 using var checkedAverage = plan?.NumericReduction?.UsesInt64DoubleAverage == true
                     ? new SqliteCqlCheckedInt64Average(connection, budget.Check) : null;
                 using var traversal = compiled.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
@@ -73,7 +75,7 @@ public partial class HolonRepository
                 using var owner = transaction == null ? null : _dbContext.Database.UseTransaction(transaction);
                 try
                 {
-                    void Check() { budget.Check(); traversal?.Check(); checkedAverage?.Check(); }
+                    void Check() { budget.Check(); traversal?.Check(); checkedAverage?.Check(); floating?.Check(); }
                     SqliteCommand Command(string sql)
                     {
                         var command = connection.CreateCommand();
@@ -201,14 +203,18 @@ public partial class HolonRepository
                     if (plan?.NumericReduction != null)
                     {
                         var numeric = plan.NumericReduction;
-                        var packetBytes = 25;
+                        var width = CqlSqlTranslator.SelectedNumericPartCount(numeric.InputType);
+                        var floatingInput = FloatingNumeric(numeric.InputType);
+                        var inputType = Nullable.GetUnderlyingType(numeric.InputType) ?? numeric.InputType;
+                        var decimalInput = inputType == typeof(decimal);
+                        var packetBytes = 9 + 8 * width;
                         if (checked(work + output.Count) > limits.MaximumStageRows
                             || checked(proofBytes + outputBytes + packetBytes) > limits.MaximumProofPayloadBytes)
                             throw new SqliteCqlResourceException("Selected numeric reduction exceeds its remaining work/proof budget.");
                         using var numericCommand = Command(compiled.Numeric);
                         await using var reader = await numericCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)
-                            || reader.FieldCount != (numeric.UsesInt64DoubleAverage ? 4 : 3))
+                            || reader.FieldCount != (floatingInput ? 2 : decimalInput ? 1 + width : numeric.UsesInt64DoubleAverage ? 4 : 3))
                             throw new InvalidDataException("Selected numeric reduction requires one exact native packet.");
                         Check();
                         bool? prefixOverflow = null;
@@ -218,8 +224,18 @@ public partial class HolonRepository
                             if (flag is not (0 or 1)) throw new InvalidDataException("Checked numeric reduction requires its exact prefix acknowledgement.");
                             prefixOverflow = flag == 1;
                         }
-                        nativeNumeric = new CosmicProjectedNumericPacket(reader.GetInt64(0),
-                            new[] { reader.GetInt64(1), reader.GetInt64(2) }, prefixOverflow);
+                        var participating = reader.GetInt64(0);
+                        long[] words;
+                        if (floatingInput)
+                        {
+                            var decoded = SqliteCqlFloatingAggregates.ReadPacket((byte[])reader.GetValue(1), inputType == typeof(float));
+                            if (decoded.IsError) throw new SqliteCqlNumericException(decoded.ErrorCode, decoded.Message);
+                            if (decoded.Result.Count != participating)
+                                throw new InvalidDataException("Selected floating participation disagrees with its native packet.");
+                            words = decoded.Result.Parts;
+                        }
+                        else words = Enumerable.Range(1, width).Select(reader.GetInt64).ToArray();
+                        nativeNumeric = new CosmicProjectedNumericPacket(participating, words, prefixOverflow);
                         if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                             throw new InvalidDataException("Selected numeric reduction returned multiple packets.");
                         Check();
@@ -239,6 +255,7 @@ public partial class HolonRepository
         catch (SqliteCqlDeadlineException cause) { return CompositionError("CQL_QUERY_TIMEOUT", cause.Message, cause); }
         catch (SqliteCqlResourceException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (CqlTranslationLimitException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (SqliteCqlNumericException cause) { return CompositionError(cause.Code, cause.Message, cause); }
         catch (NotSupportedException cause) { return CompositionError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return CompositionError("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (Exception cause) { return CompositionError("CQL_QUERY_FAILED", "SQLite native composition did not complete.", cause); }
