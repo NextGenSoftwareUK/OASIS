@@ -10,7 +10,8 @@ internal static class SqliteCqlUInt64
     private static string Raw(string alias) => "(" + alias + ".json -> " + alias + ".fullkey)";
 
     internal static string Column(string alias)
-        => "substr('00000000000000000000'||" + Raw(alias) + ",-20) COLLATE BINARY";
+        => "(CASE WHEN " + alias + ".type='null' THEN NULL ELSE substr('00000000000000000000'||"
+            + Raw(alias) + ",-20) END) COLLATE BINARY";
 
     internal static string Guard(string alias)
     {

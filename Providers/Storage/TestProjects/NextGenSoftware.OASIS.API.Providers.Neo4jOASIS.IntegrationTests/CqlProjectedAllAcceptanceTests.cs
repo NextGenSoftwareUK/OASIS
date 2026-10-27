@@ -79,7 +79,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         if(reviewed)
         {
             var preserved=await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual(linq ? "9C0981C27024F085C0ECFDF08E95B265DCBD219AC940084F82043484E9B9CDE5"
+            Assert.AreEqual(linq ? "1A61414E89469A3094262532A4CE370D6EF55E7EFE10963879378D049D383156"
                 : "FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",
                 Convert.ToHexString(SHA256.HashData(preserved)),"Only the exact inspected fixture may continue.");
             using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
@@ -144,7 +144,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 root.MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,
                     ["double"]=1d+2.220446049250313e-16d,["float"]=1f+1.1920929e-7f,["guid"]=actor,
                     ["utc"]=new DateTime(2026,10,27,0,0,0,DateTimeKind.Utc).AddTicks(7),["text"]="Café 😀",["bool"]=true,
-                    ["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7,["checked"]=long.MaxValue,["checkedNegative"]=long.MinValue,["checkedOrder"]=0,["intMax"]=int.MaxValue,
+                    ["extProvider"]=ProviderType.SQLLiteDBOASIS,["extByte"]=(byte)255,["extSByte"]=(sbyte)-128,["extShort"]=(short)-32768,["extUShort"]=(ushort)65535,["extUInt"]=uint.MaxValue,["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7,["checked"]=long.MaxValue,["checkedNegative"]=long.MinValue,["checkedOrder"]=0,["intMax"]=int.MaxValue,
                     ["wideDecimal"]=decimal.MaxValue,["wideDouble"]=double.MaxValue,["wideFloat"]=float.MaxValue,
                     ["decimalMax"]=decimal.MaxValue,["doubleMax"]=double.MaxValue,["floatMax"]=float.MaxValue,["wideU64"]=ulong.MaxValue};
                 root.Children.Add(new Holon{Id=ids[1],ParentHolonId=rootId,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1,
@@ -166,7 +166,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                Assert.AreEqual(633,checks.Count);complete=true;return;
+                Assert.AreEqual(851,checks.Count);complete=true;return;
             }
             if(demo)
             {
