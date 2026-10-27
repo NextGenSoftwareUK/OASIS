@@ -199,3 +199,5 @@ index designs and the remaining common-demo/production acceptance gates.
 | TestResults/SolidCurrent/solid-cql-web4-lifecycle.json | A9C6CD6BFC17F30DA6380A0802E84A374173C1F52163FC116EE9D7C51A85DD29 |
 
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
+
+Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
