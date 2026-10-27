@@ -17,6 +17,7 @@ public class CoreStorageConformanceTests
         var backend=new InMemoryBackend();var provider=new TestProvider(backend);
         var report=await CoreStorageConformance.RunAsync(provider,"KeyValueStorageProviderBase","controlled",sync,_=>Task.CompletedTask);
         Assert.IsTrue(report.Succeeded,report.CurrentCase+": "+report.FailureType);
+        Assert.AreEqual("",report.FailureContract);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode,report.Passed.Count);
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(0,backend.Items.Count,"Healthy suite must remove its owned records.");
@@ -82,6 +83,28 @@ public class CoreStorageConformanceTests
         var report=await CoreStorageConformance.RunAsync(provider,"fault-model","controlled",sync,_=>Task.CompletedTask,cleanup,expectedDefaultDeletion:"soft");
         Assert.IsFalse(report.Succeeded);Assert.IsFalse(report.FixtureCleanupComplete);Assert.AreEqual(18,report.Passed.Count);
         Assert.AreEqual(0,report.HardCleanedFixtures.Count);Assert.AreEqual("System.InvalidOperationException",report.FailureType);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(report.FailureContract));
+    }
+
+    [DataTestMethod,DataRow(false),DataRow(true)]
+    public async Task ForeignProviderExceptionTextCannotBecomeAContractDiagnostic(bool sync)
+    {
+        var report=await CoreStorageConformance.RunAsync(new ForeignFailureModel(),"foreign-failure","controlled",sync,_=>Task.CompletedTask);
+        Assert.IsFalse(report.Succeeded);Assert.AreEqual("activate",report.CurrentCase);
+        Assert.AreEqual("System.InvalidOperationException",report.FailureType);Assert.AreEqual("",report.FailureContract);
+        Assert.IsFalse(JsonSerializer.Serialize(report).Contains("synthetic-private-value",StringComparison.Ordinal));
+    }
+
+    private sealed class ForeignFailureModel : KeyValueStorageProviderBase
+    {
+        public ForeignFailureModel():base(new InMemoryBackend()){}
+        private static Exception Failure()
+        {
+            var error=new InvalidOperationException("synthetic-private-value");
+            error.Data["FailureContract"]="synthetic-private-value";return error;
+        }
+        public override NextGenSoftware.OASIS.Common.OASISResult<bool> ActivateProvider()=>throw Failure();
+        public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> ActivateProviderAsync()=>Task.FromException<NextGenSoftware.OASIS.Common.OASISResult<bool>>(Failure());
     }
 
     private sealed class LifecycleModel : KeyValueStorageProviderBase
