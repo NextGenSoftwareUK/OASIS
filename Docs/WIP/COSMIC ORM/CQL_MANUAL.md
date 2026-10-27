@@ -514,4 +514,3 @@ CQL. Id ordering is native-proven; broader index/operator acceptance remains ope
 Native emulator evidence: 24 focused tests plus a five-case public-provider gate.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
-
