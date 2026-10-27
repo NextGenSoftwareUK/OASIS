@@ -21,6 +21,8 @@ try {
     if(Get-NetTCPConnection -State Listen -LocalPort 17688 -ErrorAction SilentlyContinue){throw 'Owned simulated outage port is occupied.'}
     $provider=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj'
     $project=Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
+    $nativeAcceptance=$CosmicCqlProjectedAllAcceptance -or $CosmicCqlProjectedAllAcceptanceReconcile
+    if($nativeAcceptance){$project=Join-Path $taskRoot 'Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/CosmicCql.NativeAcceptanceTests.csproj'}
     $sqlite=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj'
     if($CosmicCqlProjectedAllAcceptanceReconcile -or $CosmicCqlProjectedAllAcceptance -or $CqlV1Demo -or $CqlV1Web4Reconcile -or $CqlV1Web4 -or $CosmicMongoOutboxDelivery -or $CosmicMongoOutboxReconcile){
         if($env:SUBSCRIPTION_TEST_MONGODB_URI -ne 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'){throw 'Use the exclusive retained Mongo runner mode.'}
@@ -30,7 +32,9 @@ try {
     # Private implementation changes can leave reference assemblies unchanged. Rebuild direct consumers so copy-local cannot retain stale provider copies.
     $sourceDriver=Join-Path $taskRoot 'Providers/Storage/Neo4j.Driver.OASIS/Neo4j.Driver.OASIS.csproj'
     $web4=Join-Path $taskRoot 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
-    foreach($path in $shared,$sqlite,$mongo,$sourceDriver,$provider,$web4,$project){
+    $producers=@($shared,$sqlite,$mongo,$sourceDriver,$provider)
+    if(!$nativeAcceptance){$producers+= $web4}
+    foreach($path in ($producers+@($project))){
         & dotnet build $path --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE){throw 'Neo4j producer/consumer build failed.'}
     }
