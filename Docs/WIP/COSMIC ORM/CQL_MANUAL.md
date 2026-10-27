@@ -2900,3 +2900,44 @@ Q23d is green. The full Q23 parent remains red: selected/projected sequences hav
 no All terminal yet (Q23e). Current All accepts entity CosmicQuery sources only;
 projected-source All must preserve selected-result windows and native execution.
 The full681SDKwalkthrough also still needs verified reconciliation and a clean run.
+
+### Projected All: SQLite preview
+
+This terminal is currently native on SQLite. MongoDB/Neo4j support and full three-store Q23e acceptance remain pending. Use HyperDrive V2 and an activated provider; set the work options explicitly when the default complete-input limit (1,000 rows) is insufficient. Exceeding a work limit is an error, not a successful result over a prefix.
+
+```csharp
+// Select columns first, then compose their result sequence.
+var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
+var query = CosmicQuery<Holon>.Create(scope)
+    .Select(holon => new { holon.Name, holon.Version })
+    .Where(row => row.Version > 0)
+    .OrderBy(row => row.Name)
+    .Skip(1)
+    .Take(20)
+    .All(row => row.Version >= 1);
+
+// Check query.IsError before using query.Result.
+// The terminal runs after the selected sequence's Skip/Take.
+var native = (ICosmicQueryProjectedAllStorageProvider)sqliteProvider;
+var target = new CosmicProjectionCompositionTarget(
+    native.QueryProviderType,
+    native.QueryCapabilities,
+    native.ProjectionCapabilities,
+    native.CompositionCapabilities);
+
+var plan = CosmicProjectedAllPlanner.Plan(
+    query.Result,
+    native.QueryProviderType,
+    new[] { target });
+
+// Check plan.IsError before execution. manager must use HyperDrive V2.
+var result = await manager.ExecuteProjectedAllQueryAsync(
+    plan.Result,
+    new ICosmicQueryStorageProvider[] { sqliteProvider });
+
+// Check result.IsError and result.IsLoaded before reading values.
+// Empty selected input is true only after complete source/error validation.
+bool allMatch = result.Result.Providers.Single().Value;
+```
+
+The Boolean is native; detached proof is checked without constructing selected DTOs. Results remain separate per physical provider. See the [working acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) for current evidence and remaining gaps.
