@@ -923,6 +923,10 @@ public static class V1NativeQueries
         // window inside one native operation, including graph/scalar ordering.
         completedQueries += await V1TailQueries.RunAsync(manager, adapter, visible, output);
 
+        // 136–157. Universal scalar predicates run after the original native
+        // source window. Empty sequences satisfy All; failures remain errors.
+        completedQueries += await V1AllQueries.RunAsync(manager, adapter, visible, output);
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,

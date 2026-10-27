@@ -2685,3 +2685,49 @@ statement/aggregate/Cypher query. No separate count/read sequence or complete
 client-side scan is used. Graph expansion retains the existing native read owner.
 A global multi-provider tail needs an explicit federation contract and is rejected.
 All is still unimplemented. See [examples 106–135](../../../Examples/CosmicCqlDemo/V1TailQueries.cs).
+
+## All scalar-predicate verification — 27 October 2026
+
+The investor-demo acceptance set remains green (12 rows across SQLite, MongoDB
+and Neo4j). Green feature implementation and federation cursors remain frozen.
+The next red feature is Q23, universal quantification. Q23a records its scalar
+predicate subset separately; the full Q23 parent remains red until traversal
+inside the terminal predicate is implemented and proved.
+
+```csharp
+// Apply the source window first, then ask whether every selected row qualifies.
+var allInStock = menu
+    .OrderBy(item => item.Name)
+    .Skip(1)
+    .Take(2)
+    .All(item => CosmicQueryMetadata.Value<long>(item, "stock") > 0);
+```
+
+The immutable terminal captures its predicate independently of source filters.
+Each native provider counts counterexamples after the source window in one
+storage operation. Zero counterexamples means true, including empty input.
+Provider errors remain errors. The manager performs capability admission for
+both the source and the terminal predicate; it does not enumerate the source
+on the client. Existing child/descendant filters may define the source before
+All, but traversal inside All's predicate is explicitly unsupported in this
+checkpoint. Use the standard scalar planner and manager executor shown in
+[the executable examples](../../../Examples/CosmicCqlDemo/V1AllQueries.cs).
+
+Core verification: 3,807 tests pass with zero skips. Native three-provider
+verification is pending; Q23a must remain red until its execution evidence is
+retained. No full EF/NHibernate parity claim follows from this subset.
+
+Native gate update: the first run reproduced an empty-input aggregate-row bug
+in the new Neo4j All translator. Its correction separates the aggregate-only
+projection from validity flags, preserving the empty aggregate result. The
+failed fixture and durable receipts are retained. A read-only native proof
+against that exact fixture is running; this is not yet a green feature claim.
+
+Final scalar All checkpoint: the read-only retained-fixture test passes all 66
+cases (22 on each store), including the reproduced Neo4j empty-input bug.
+Q23a is green on this scoped evidence; Q23 remains red. Core: 3,807 pass,
+zero skipped; console build passes. The complete walkthrough did not finish
+and must not be described as a successful 471-query gate. Its failed fixture,
+original writes and receipts remain preserved for verified reconciliation.
+See Verification/all-predicate-retained-native.trx.gz and the proving test
+CqlAllRetainedFixtureTests.cs. No green feature or cursor work was added.
