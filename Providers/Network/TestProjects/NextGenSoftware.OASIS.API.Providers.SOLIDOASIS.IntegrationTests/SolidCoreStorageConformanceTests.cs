@@ -18,10 +18,19 @@ public class SolidCoreStorageConformanceTests
         Assert.NotNull(root);
         var work=Path.Combine(root!.FullName,"TestResults","ProviderConformanceCurrent","SOLIDOASIS",sync?"sync":"async");
         Directory.CreateDirectory(work);var path=Path.Combine(work,"report.json");
+        var original=Environment.GetEnvironmentVariable("OASIS_SOLID_COLD_READONLY_WORK")
+            ??throw new InvalidOperationException("Select the persistent owned SOLID environment explicitly.");
+        var journal=Path.Combine(original,"core-"+(sync?"sync":"async")+".pending.json");
+        Assert.False(File.Exists(journal)||File.Exists(journal+".next"),"Preserve original pending fixture; never replay writes.");
         Assert.False(File.Exists(path)||File.Exists(path+".next"),"Preserve original conformance evidence before another native run.");
         using var lease=new FileStream(Path.Combine(work,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
+            await using(var intent=new FileStream(journal+".next",FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+                await JsonSerializer.SerializeAsync(intent,new { report.OwnerId,report.RootId,report.ChildId,report.ImportId,report.BatchIds,
+                    report.CurrentCase,report.Passed,report.Succeeded,report.FixtureCleanupComplete });intent.Flush(true);
+            }
+            File.Move(journal+".next",journal,true);
             await using(var file=new FileStream(path+".next",FileMode.CreateNew,FileAccess.Write,FileShare.None)){
                 await JsonSerializer.SerializeAsync(file,report);file.Flush(true);
             }
@@ -33,7 +42,10 @@ public class SolidCoreStorageConformanceTests
         try{
             Provider provider;
             try{
-                var original=Path.Combine(root.FullName,"TestResults","SolidCurrent");
+                using var manifest=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(original,"environment.json")));
+                var podName=manifest.RootElement.GetProperty("demoPodName").GetString()!;
+                Assert.Matches("^[a-z][a-z0-9-]{0,39}$",podName);
+                var podRoot=new Uri(new Uri("http://localhost:13000/"),podName+"/");
                 var keyPath=Path.Combine(original,"storage-key.dpapi");
                 var clientPath=Path.Combine(original,"private-local-client.dpapi");
                 var podPath=Path.Combine(original,"private-local-pod.dpapi");
@@ -44,12 +56,12 @@ public class SolidCoreStorageConformanceTests
                 pod=ProtectedData.Unprotect(await File.ReadAllBytesAsync(podPath),null,DataProtectionScope.CurrentUser);
                 using var client=JsonDocument.Parse(credentials);
                 using var originalPod=JsonDocument.Parse(pod);
-                if(!new Uri("http://localhost:13000/oasis-auth-local/").IsBaseOf(new Uri(originalPod.RootElement.GetProperty("webId").GetString()!)))
+                if(!podRoot.IsBaseOf(new Uri(originalPod.RootElement.GetProperty("webId").GetString()!)))
                     throw new InvalidOperationException("Retained identity does not match the fixed private test Pod.");
                 Environment.SetEnvironmentVariable(keyVariable,Convert.ToBase64String(key));
                 Environment.SetEnvironmentVariable(secretVariable,client.RootElement.GetProperty("secret").GetString());
                 provider=SolidProviderFactory.Create(new SolidOASISProviderSettings{
-                    PodRoot="http://localhost:13000/oasis-auth-local/",AuthenticationMode="DpopClientCredentials",
+                    PodRoot=podRoot.AbsoluteUri,AuthenticationMode="DpopClientCredentials",
                     TokenEndpoint="http://localhost:13000/.oidc/token",ClientId=client.RootElement.GetProperty("id").GetString(),
                     ClientSecretEnvironmentVariable=secretVariable,StorageKeyEnvironmentVariable=keyVariable});
             }catch(Exception cause){
@@ -60,6 +72,8 @@ public class SolidCoreStorageConformanceTests
             using(provider){
                 var result=await CoreStorageConformance.RunAsync(provider,"SOLIDOASIS","native",sync,Checkpoint,expectedDefaultDeletion:"absent");
                 Assert.True(result.Succeeded,result.CurrentCase+": "+result.FailureType);
+                Assert.True(result.FixtureCleanupComplete);
+                File.Delete(journal);
             }
         }finally{
             Environment.SetEnvironmentVariable(keyVariable,priorKey);Environment.SetEnvironmentVariable(secretVariable,priorSecret);

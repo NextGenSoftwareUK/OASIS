@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$RequireCleanShutdown,[string]$EnvironmentPath)
+param([switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskSolidWork=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'}
@@ -9,10 +9,11 @@ New-Item -ItemType Directory -Path $taskSolidResults -Force|Out-Null
 if(!(Test-Path -LiteralPath $taskSolidWork -PathType Container)){throw 'Retained SOLID work directory required.'}
 $taskSolidLease=[IO.File]::Open((Join-Path $taskSolidWork 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $taskSolidStarted=$false;$taskSolidPrior=$env:OASIS_SOLID_COLD_READONLY_WORK
-$taskSolidReport=Join-Path $taskSolidResults 'solid-readiness-current.json'
-$taskSolidTrx=Join-Path $taskSolidResults 'solid-ready-read-current.trx'
+$taskSolidReport=Join-Path $taskSolidResults $(if($CoreStorage){'solid-core-lifecycle.json'}else{'solid-readiness-current.json'})
+$taskSolidTrxName=if($CoreStorage){'solid-core-current.trx'}else{'solid-ready-read-current.trx'}
+$taskSolidTrx=Join-Path $taskSolidResults $taskSolidTrxName
 $taskSolidSamples=[Collections.Generic.List[object]]::new()
-$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope='frozen-output readiness and one authenticated read; not current-source acceptance';freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
+$taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=$(if($CoreStorage){'current-source shared storage baseline in explicitly selected owned Pod'}else{'frozen-output readiness and one authenticated read; not current-source acceptance'});freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
 try{
     if((Test-Path $taskSolidReport) -or (Test-Path $taskSolidTrx)){throw 'Preserve original readiness evidence before another run.'}
     if(Get-ChildItem -LiteralPath $taskSolidWork -Filter '*pending*.json'){throw 'Original pending SOLID fixtures require reconciliation.'}
@@ -35,6 +36,18 @@ try{
         throw 'Retained SOLID identity or lifecycle differs; inspect without replacement.'
     }
     $taskSolidProject=Join-Path $taskSolidRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'
+    if($CoreStorage){
+        foreach($taskSolidMode in @('async','sync')){
+            if(Test-Path -LiteralPath (Join-Path $taskSolidRoot "TestResults/ProviderConformanceCurrent/SOLIDOASIS/$taskSolidMode/report.json")){
+                throw 'Preserve prior SOLID baseline evidence before a new dispatch.'
+            }
+        }
+        $taskSolidProvider=Join-Path $taskSolidRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj'
+        foreach($taskSolidBuild in @($taskSolidProvider,$taskSolidProject)){
+            & dotnet build $taskSolidBuild --no-restore /p:IncludeCoreStorageConformance=true /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if($LASTEXITCODE){throw 'SOLID current-source build failed.'}
+        }
+    }
     $taskSolidDll=Join-Path (Split-Path $taskSolidProject) 'bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.dll'
     $taskSolidEvidence.frozenTestSha256=(Get-FileHash -LiteralPath $taskSolidDll).Hash
     $taskSolidTimer=[Diagnostics.Stopwatch]::StartNew()
@@ -48,12 +61,14 @@ try{
     $taskSolidEvidence.socketReadyMs=$taskSolidTimer.ElapsedMilliseconds
     foreach($taskSolidSample in $taskSolidObserved.Samples){$taskSolidSamples.Add($taskSolidSample)}
     $env:OASIS_SOLID_COLD_READONLY_WORK=$taskSolidWork
-    & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead' --logger 'trx;LogFileName=solid-ready-read-current.trx' --results-directory $taskSolidResults -v:q
+    $taskSolidFilter=if($CoreStorage){'Category=SolidCoreStorageConformance'}else{'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead'}
+    & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter $taskSolidFilter --logger "trx;LogFileName=$taskSolidTrxName" --results-directory $taskSolidResults -v:q
     $taskSolidEvidence.testExit=$LASTEXITCODE
     if($LASTEXITCODE -ne 0){throw 'Discovery/authenticated-read diagnostic failed; preserve original evidence.'}
     [xml]$taskSolidResult=Get-Content $taskSolidTrx -Raw
     $taskSolidCounts=$taskSolidResult.TestRun.ResultSummary.Counters
-    if([int]$taskSolidCounts.total -ne 1 -or [int]$taskSolidCounts.passed -ne 1 -or [int]$taskSolidCounts.notExecuted -ne 0){throw 'Exactly one successful diagnostic required.'}
+    $taskSolidExpected=if($CoreStorage){2}else{1}
+    if([int]$taskSolidCounts.total -ne $taskSolidExpected -or [int]$taskSolidCounts.passed -ne $taskSolidExpected -or [int]$taskSolidCounts.notExecuted -ne 0){throw 'All selected native cases must pass with no skips.'}
 }finally{
     $env:OASIS_SOLID_COLD_READONLY_WORK=$taskSolidPrior
     try{

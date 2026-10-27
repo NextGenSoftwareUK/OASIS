@@ -210,19 +210,6 @@
       "blockers": []
     },
     {
-      "provider": "SOLIDOASIS",
-      "suite": "core-storage-v2",
-      "mode": "blocked-before-native",
-      "passed": 0,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
-      "sha256": "024c788283ad82003b8e389ac39ac594fa6b870af0382578cfb35273f3c1b574",
-      "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "ActivityPubOASIS",
       "suite": "capability-v1",
       "mode": "native",
@@ -261,6 +248,19 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
       "sha256": "d65463641ba8999e30f774dc2c633c6bd6d2a7944a0a5fcf8df175e9f09fbd78",
       "blockers": []
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 36,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
+      "sha256": "7009801d612765f97c22082eb17a4d25354d203d894b8d90fdfaf1ef3133f2e3",
+      "blockers": [
+        "async: holon-delete-9f8753731005464dac069a1c456e6dba: System.InvalidOperationException [delete acknowledgement/count]",
+        "sync: holon-delete-0330264a3c314b06984fbe6ae585172f: System.InvalidOperationException [delete acknowledgement/count]"
+      ]
     }
   ],
   "providerBlockers": {
@@ -336,6 +336,9 @@
     ],
     "GoogleCloudOASIS": [
       "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
+    ],
+    "SOLIDOASIS": [
+      "Fresh isolated demo Pod/client/key using retained pinned CSS environment. Native core36/52 reaches first holon-delete acknowledgement count in both modes. Missing DeletedCount fixed;362 controlled tests pass including4 before-failing delete controls. Preserve persistent original fixture journals; independently reconcile deletion outcomes before fresh native52 verification. CQL remains unenrolled."
     ]
   },
   "suites": [
