@@ -183,6 +183,7 @@ Error responses include detailed information:
 
 - **Developer Documentation**: [DEVELOPER_DOCUMENTATION_INDEX.md](../DEVELOPER_DOCUMENTATION_INDEX.md)
 - **Implementation Status**: [CURRENT_IMPLEMENTATION_STATUS.md](<../../WIP/Release and Status/CURRENT_IMPLEMENTATION_STATUS.md>)
+- **WEB4 overview and use cases**: [WEB4_One_World_Of_Data.md](../../WEB4_One_World_Of_Data.md)
 - **Investor Guide**: [INVESTOR_EVALUATION_GUIDE.md](../../INVESTOR_EVALUATION_GUIDE.md)
 - **Main README**: [README.md](../../../README.md)
 
