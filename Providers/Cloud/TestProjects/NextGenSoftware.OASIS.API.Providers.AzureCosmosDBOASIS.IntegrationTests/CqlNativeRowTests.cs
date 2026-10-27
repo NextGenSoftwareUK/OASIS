@@ -28,14 +28,16 @@ public class CqlNativeRowTests
         var journal = Path.Combine(work, "rows.pending.json");
         var reviewedCount = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_COUNT") == "1";
         var reviewedProjection = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_PROJECTION") == "1";
-        Assert.IsFalse(reviewedCount && reviewedProjection, "Choose one exact original fixture.");
-        var reviewed = reviewedCount || reviewedProjection;
+        var reviewedHttp = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_REVIEWED_HTTP") == "1";
+        Assert.IsTrue(new[] { reviewedCount, reviewedProjection, reviewedHttp }.Count(value => value) <= 1, "Choose one exact original fixture.");
+        var reviewed = reviewedCount || reviewedProjection || reviewedHttp;
         Guid[]? reviewedIds = null;
         var actor = Guid.NewGuid();
         if (reviewed)
         {
             var bytes = await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual(reviewedProjection ? "6BA5D0DDC1C2D5D90A4D9F2BBCDCCA6682E817381B18865E718C7DCBD4B01492"
+            Assert.AreEqual(reviewedHttp ? "345A4B79E566898B284D8FE3B774E4D8EDC0E042BDA159C4A782734824CA278A"
+                : reviewedProjection ? "6BA5D0DDC1C2D5D90A4D9F2BBCDCCA6682E817381B18865E718C7DCBD4B01492"
                 : "ACEC97647EBBF2041FD0241FEF38A41A28FE3BCB63315081DEDCF80704327470", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)));
             using var original = JsonDocument.Parse(bytes);
             Assert.AreEqual("oasis-cql-demo", original.RootElement.GetProperty("databaseName").GetString());
@@ -319,6 +321,8 @@ public class CqlNativeRowTests
             Assert.AreEqual(2L, demo.LongCount);
             Assert.IsTrue(demo.Any);
             CollectionAssert.AreEqual(expected, demo.Page.Select(row => row.Id).ToArray());
+
+            await CqlNativeHttpAcceptance.VerifyAsync(provider, manager, actor, seeds[2].Id, seeds[2].Name);
 
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)
