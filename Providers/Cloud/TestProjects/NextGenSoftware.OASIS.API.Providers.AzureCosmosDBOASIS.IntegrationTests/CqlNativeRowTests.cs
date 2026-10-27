@@ -270,6 +270,31 @@ public class CqlNativeRowTests
             CollectionAssert.AreEqual(ascending.Take(2).ToArray(), (await Project(CosmicQuery<Holon>.Create()
                 .OrderBy(h => h.Version).Take(2).Select(h => h.Id).Result)).ToArray());
 
+            // A trusted complete catalogue replaces owner/public visibility.
+            // This grants its private member and excludes public/owned outsiders.
+            var catalogue = CosmicQueryReadAccess.AuthoritativeRecords(actor, ProviderType.AzureCosmosDBOASIS,
+                new[] { seeds[2].Id });
+            Assert.IsFalse(catalogue.IsError, catalogue.Message);
+            var catalogued = CosmicQuery<Holon>.Create().WithReadAccess(catalogue.Result).Where(h => h.IsActive);
+            Assert.IsFalse(catalogued.IsError, catalogued.Message);
+            Assert.AreEqual(seeds[2].Id, (await Read(catalogued.Result)).Single().Id);
+            Assert.AreEqual(1, await Scalar(catalogued.Count().Result));
+            Assert.AreEqual(seeds[2].Id, (await Project(catalogued.Select(h => h.Id).Result)).Single());
+            var emptyCatalogue = CosmicQueryReadAccess.AuthoritativeRecords(actor, ProviderType.AzureCosmosDBOASIS, Array.Empty<Guid>());
+            Assert.IsFalse(emptyCatalogue.IsError, emptyCatalogue.Message);
+            var denied = CosmicQuery<Holon>.Create().WithReadAccess(emptyCatalogue.Result);
+            Assert.IsFalse(denied.IsError, denied.Message);
+            Assert.AreEqual(0, (await Read(denied.Result)).Count);
+            Assert.IsFalse(await Scalar(denied.Any().Result));
+            var selectedNames = new[] { seeds[0].Name, seeds[1].Name };
+            Assert.AreEqual(2, (await Read(CosmicQuery<Holon>.Create().Where(h => selectedNames.Contains(h.Name)).Result)).Count);
+            var inactive = new[] { false };
+            Assert.AreEqual(seeds[3].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => inactive.Contains(h.IsActive)).Result)).Single().Id);
+            var versions = new[] { 2 };
+            Assert.AreEqual(2, (await Read(CosmicQuery<Holon>.Create().Where(h => versions.Contains(h.Version)).Result)).Count);
+            var descriptions = new string?[] { null };
+            Assert.AreEqual(4, (await Read(CosmicQuery<Holon>.Create().Where(h => descriptions.Contains(h.Description)).Result)).Count);
+
             // Exercise the same provider-neutral demo source used by developers,
             // through the existing V2 manager and standard IQueryable binding.
             var dna = new OASISDNA

@@ -31,6 +31,7 @@ internal sealed class CosmosCqlPredicateSql
             CosmicQueryNot not => "(NOT " + Translate(not.Operand) + ")",
             CosmicQueryComparison comparison => Compare(comparison),
             CosmicQueryMetadataTest test => MetadataTest(test),
+            CosmicQueryMembership membership => Membership(membership),
             _ => throw new NotSupportedException("Cosmos CQL predicate has not been admitted.")
         };
     }
@@ -39,21 +40,8 @@ internal sealed class CosmosCqlPredicateSql
     {
         var path = comparison.Path;
         if (path.IsMetadata) return MetadataCompare(comparison);
-        if (path.Segments.Count != 1)
-            throw new NotSupportedException("Cosmos CQL metadata/path semantics require separate admission.");
-
         var name = path.Segments[0];
-        var expected = name switch
-        {
-            "Name" or "Description" => typeof(string),
-            "IsActive" or "IsPublic" => typeof(bool),
-            "Version" => typeof(int),
-            "Id" or "ParentHolonId" or "VersionId" or "PreviousVersionId" or
-                "CreatedByAvatarId" or "ModifiedByAvatarId" => typeof(Guid),
-            _ => throw new NotSupportedException("Cosmos CQL canonical field has not been admitted: " + name)
-        };
-        if (path.ValueType != expected)
-            throw new NotSupportedException("Cosmos CQL canonical field type differs from its stored contract.");
+        var expected = CanonicalType(path);
 
         var operation = comparison.Operator;
         var equality = operation is CosmicQueryComparisonOperator.Equal or CosmicQueryComparisonOperator.NotEqual;
@@ -73,7 +61,7 @@ internal sealed class CosmosCqlPredicateSql
         var parameter = "@cql" + _parameters.Count;
         _parameters.Add((parameter, expected == typeof(Guid)
             ? ((Guid)comparison.Literal.Value).ToString("D") : comparison.Literal.Value));
-        var symbol = operation switch
+        var symbol = comparison.Operator switch
         {
             CosmicQueryComparisonOperator.Equal or CosmicQueryComparisonOperator.NotEqual => "=",
             CosmicQueryComparisonOperator.GreaterThan => ">",
@@ -87,6 +75,48 @@ internal sealed class CosmosCqlPredicateSql
         var guard = expected == typeof(string) || expected == typeof(Guid) ? "IS_STRING" : expected == typeof(bool) ? "IS_BOOL" : "IS_NUMBER";
         var normalized = "IIF(" + guard + "(" + field + "), " + field + " " + symbol + " " + parameter + ", false)";
         return operation == CosmicQueryComparisonOperator.NotEqual ? "(NOT " + normalized + ")" : normalized;
+    }
+
+    private static Type CanonicalType(CosmicQueryPath path)
+    {
+        if (path.IsMetadata || path.Segments.Count != 1)
+            throw new NotSupportedException("Cosmos canonical predicates require one admitted field.");
+        var name = path.Segments[0];
+        var expected = name switch
+        {
+            "Name" or "Description" => typeof(string),
+            "IsActive" or "IsPublic" => typeof(bool),
+            "Version" => typeof(int),
+            "Id" or "ParentHolonId" or "VersionId" or "PreviousVersionId" or
+                "CreatedByAvatarId" or "ModifiedByAvatarId" => typeof(Guid),
+            _ => throw new NotSupportedException("Cosmos CQL canonical field has not been admitted: " + name)
+        };
+        if (path.ValueType != expected)
+            throw new NotSupportedException("Cosmos CQL canonical field type differs from its stored contract.");
+        return expected;
+    }
+
+    private string Membership(CosmicQueryMembership membership)
+    {
+        var type = CanonicalType(membership.Path);
+        var values = new List<object>();
+        var hasNull = false;
+        foreach (var literal in membership.Values)
+        {
+            if (literal.Kind == CosmicQueryScalarKind.Null)
+            {
+                if (type != typeof(string)) throw new NotSupportedException("Canonical null membership requires a string field.");
+                hasNull = true;
+                continue;
+            }
+            if (literal.Kind != membership.Path.ScalarKind)
+                throw new NotSupportedException("Cosmos membership requires exact canonical scalar domains.");
+            values.Add(type == typeof(Guid) ? ((Guid)literal.Value).ToString("D") : literal.Value);
+        }
+        var field = "c[\"" + membership.Path.Segments[0] + "\"]";
+        var guard = type == typeof(bool) ? "IS_BOOL" : type == typeof(int) ? "IS_NUMBER" : "IS_STRING";
+        var sql = "IIF(" + guard + "(" + field + "), ARRAY_CONTAINS(" + Bind(values.ToArray()) + ", " + field + "), false)";
+        return hasNull ? "(" + sql + " OR NOT IS_DEFINED(" + field + ") OR IS_NULL(" + field + "))" : sql;
     }
 
     private string Bind(object value)

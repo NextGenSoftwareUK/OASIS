@@ -29,7 +29,7 @@ internal static class CosmosCqlRowCommand
             return new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or |
                 CosmicQueryFeatures.Not | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant |
                 CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.Metadata |
-                CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull, fields.ToArray(),
+                CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership, fields.ToArray(),
                 new[] { typeof(string), typeof(bool), typeof(bool?) }
                     .Select(type => new CosmicQueryMetadataCapability(type, equality)).ToArray());
         }
