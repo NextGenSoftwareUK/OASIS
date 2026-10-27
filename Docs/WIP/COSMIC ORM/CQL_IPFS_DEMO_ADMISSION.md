@@ -2,22 +2,21 @@
 
 27 October 2026. Source audit/preflight only; CQL remains unenrolled.
 
-Current: native baseline18/52, graph acknowledgement count defect fixed with178
-controlled passes. Original avatar cleanup is complete; the newer graph-save
-cohort is preserved pending exact read-back/reconciliation. No save replay.
+Current: fresh reusable offline IPFS environment created under explicit user
+instruction; original configuration absence is historical, not a current blocker.
+178 controlled tests pass after save/delete acknowledgement and live parent
+membership fixes. Native baseline52/52 passes; CQL is unenrolled.
 
-## Current evidence
+## Environment and evidence
 
-- Published provider matrix: canonical storage compiled, native suite0/52,
-  configuration-blocked because the original repository/key are unavailable.
-- Existing runtime `C:/Users/david/.cache/oasis-runtimes/kubo-0.43.1/ipfs.exe`
-  exists. No download, daemon start, initialization or key replacement attempted.
-- Neither `TestResults/IPFSCurrent` nor `LocalState/COSMIC/IPFSCurrent` in the
-  cosmic worktree contains `repo/config` or `storage-key.dpapi`.
-  This bounded check does not establish absence from every disk/backup.
-- `Run-ReusableIpfsTests.ps1 -EnvironmentPath <existing-path>` can select the
-  retained environment. It requires the original config/key before startup and
-  validates cached Kubo SHA256. It must not target another checkout's outputs.
+- Cached Kubo0.43.1 runtime reused; repository and DPAPI-protected key live in
+  `LocalState/COSMIC/IPFSCurrent`. No new runtime download.
+- Offline daemon uses loopback18547–18549; runner stops it in finally.
+- Raw logs/TRX/reports live in worktree `TestResults/`; fixture ownership journals,
+  original DNA and exact cleanup closures survive there being cleaned, under
+  persistent `LocalState/COSMIC/IPFSCurrent`.
+- Historical failed cohorts were independently verified before exact catalogue
+  maintenance. Immutable blocks and archived DNA remain; no original save replay.
 
 ## Source/query boundary
 
@@ -38,7 +37,7 @@ server-side IPFS metadata querying from the existing dictionary lookup.
 
 | Gate | Required evidence |
 |---|---|
-| Retained environment | Existing repository/configuration and original protected key location, plus owned fixture/journal review; no silent replacement |
+| Environment | Fresh explicitly authorized repository/configuration/key with owned fixture/journal review; no historical-recovery claim |
 | Canonical storage | Native source records load with independent CID/blob identity and encrypted catalogue consistency; preserve historical failures |
 | Snapshot identity | Immutable catalogue CID anchors the complete indexed source; independently verify it is the configured current catalogue |
 | Query execution | Explicit native direct-CID or named persistent-index mode, exact operator capabilities and honest execution-provider identity |
@@ -156,3 +155,31 @@ preserved pending independent reconciliation; do not replay the suite or delete.
 
 Next: independently reconcile exact latest tombstone fixtures, then full native baseline.
 Services are stopped; CQL and full native certification remain red.
+
+## Live membership and lifecycle corrections
+
+Native deletion acknowledgement now passes, exposing deleted child membership in
+parent queries. Four controlled tests reproduce the bug; the live parent selector
+now excludes tombstones while point/raw collection reads retain them.178 controls
+pass. Exact7-record catalogues per mode were independently verified and removed;
+`parent-ack-cleanup.json` is closed. No original deletion was replayed.
+
+Avatar deletion had the same missing result acknowledgement; four controlled
+SDK tests reproduce it. Its publication owner now sets IsDeleted/DeletedCount
+only after the catalogue pointer commits.178 controls pass. Full native rerun
+uses fresh fixture identities in the same reusable environment.
+
+## Verified native baseline milestone
+
+Both sync/async reports are complete,26passed each, Succeeded and
+FixtureCleanupComplete true.52/52 native storage checks, zero skips.
+Pending dispatch journals removed after verified fixture cleanup; daemon stopped.
+No new environments/downloads or GC. CQL remains red.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/IPFSCurrent/ipfs-core-current.trx | 2A13A35A8E2CB202CEB6B6EDDAD7B6526B51190386900955846575F45FF1BADD |
+| TestResults/IPFSCurrent/parent-contract-before.trx | C04A1F094C778FD0D25FE66DE934A297C3A21C00BF3DE8AC3C6B1CDBA9099FEA |
+| TestResults/IPFSCurrent/avatar-delete-before.trx | 70DAC7ABFF9D03229F573F2D5C175695C47A71C90154581DB558831DBCABCC0D |
+| TestResults/IPFSCurrent/avatar-delete-fixed.trx | F50742686A31823C096FB98E834506576652C1D4205F4853E98EF5C5C3A7CEA4 |
+| TestResults/IPFSCurrent/ipfs-parent-cleanup.trx | 190F4708508A0CF6826455BAE467512CE621AAE733F13B84D05C325CEE625E7C |
