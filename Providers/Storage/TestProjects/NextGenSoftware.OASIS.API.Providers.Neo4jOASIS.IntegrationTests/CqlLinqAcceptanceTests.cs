@@ -151,7 +151,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0,root.Take(0).Sum(row=>row.Version));Passed("empty source Sum");
         Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(
             ()=>root.Take(0).Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal"))).Code);Passed("required Average empty error");
-        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS)
+        if (adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS
+            || adapter.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS)
         {
             Assert.AreEqual((double)9007199254740993L,
                 root.Average(row => CosmicQueryMetadata.Value<long>(row, "i64")));
