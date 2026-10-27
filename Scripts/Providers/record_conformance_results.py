@@ -4,6 +4,21 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 DOC=ROOT/'Docs/WIP/HyperDrive-Providers'
 
+def validate_report(r,name,mode,suite,capability=False):
+    if r['SuiteVersion']!=suite or r['Provider']!=name or r['Mode'] not in {'native','controlled'}:raise ValueError('Report identity/suite/mode mismatch')
+    if not capability and r['Synchronous']!=(mode=='sync'):raise ValueError('Report sync mode mismatch')
+    passed=r['Passed'];maximum=5 if capability else 26
+    if len(passed)>maximum or len(set(passed))!=len(passed):raise ValueError('Invalid or duplicate passed checks')
+    if suite=='core-storage-v2' and r['Succeeded']:
+        ids={r['RootId'],r['ChildId'],r['ImportId'],*r['BatchIds']};kinds=r.get('DeletionKinds',{})
+        if len(passed)!=26 or r['CurrentCase']!='complete' or not r.get('FixtureCleanupComplete'):raise ValueError('Incomplete successful storage report')
+        if r.get('CleanupScope')!='point-and-raw-collection-interface-absence':raise ValueError('Explicit interface cleanup scope required')
+        if len(ids)!=5 or set(kinds)!=ids or any(kind not in {'absent','soft'} for kind in kinds.values()):raise ValueError('Deletion lifecycle evidence required')
+        expected=r.get('ExpectedDefaultDeletion')
+        if expected is not None and (expected not in {'soft','absent'} or any(kind!=expected for kind in kinds.values())):raise ValueError('Declared shipping deletion contract mismatch')
+        cleaned=r.get('HardCleanedFixtures',[])
+        if len(cleaned)!=len(set(cleaned)) or set(cleaned)!={id for id,kind in kinds.items() if kind=='soft'}:raise ValueError('Exact soft-fixture cleanup evidence required')
+
 def register(names):
     roles={}
     for line in (DOC/'PROVIDER_MATRIX.md').read_text(encoding='utf-8').splitlines():
@@ -11,14 +26,13 @@ def register(names):
     registry=DOC/'CONFORMANCE_RESULTS.json';data=json.loads(registry.read_text(encoding='utf-8-sig'))
     for name in names:
         if name not in roles or not re.fullmatch(r'[A-Za-z0-9_.-]+',name):raise ValueError('Unknown provider identity')
-        capability=roles[name]=='Non-storage';suite='capability-v1' if capability else 'core-storage-v1'
+        capability=roles[name]=='Non-storage';suite='capability-v1' if capability else data.get('currentCoreSuite','core-storage-v1')
         modes=['async'] if capability else ['async','sync'];runs=[];blockers=[]
         for mode in modes:
             p=ROOT/'TestResults/ProviderConformanceCurrent'/name/mode/'report.json'
             if not p.exists():blockers.append(mode+': no executed report');continue
             r=json.loads(p.read_text(encoding='utf-8-sig'))
-            if r['SuiteVersion']!=suite or r['Provider']!=name or r['Mode'] not in {'native','controlled'}:raise ValueError('Report identity/suite/mode mismatch')
-            if not capability and r['Synchronous']!=(mode=='sync'):raise ValueError('Report sync mode mismatch')
+            validate_report(r,name,mode,suite,capability)
             runs.append(r)
             if not r['Succeeded']:blockers.append(mode+': '+r['CurrentCase']+': '+r['FailureType'])
         if not runs:raise ValueError('No executed reports for '+name)

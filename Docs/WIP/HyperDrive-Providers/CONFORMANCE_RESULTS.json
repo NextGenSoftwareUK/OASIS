@@ -67,16 +67,6 @@
       ]
     },
     {
-      "provider": "OracleDBOASIS",
-      "suite": "core-storage-v1",
-      "mode": "native",
-      "passed": 52,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
-      "sha256": "838e84fba937ade8c5717e308dd0227afd7d3cfe6030281f00d731260806c04d",
-      "blockers": []
-    },
-    {
       "provider": "AWSOASIS",
       "suite": "core-storage-v1",
       "mode": "blocked-before-native",
@@ -117,15 +107,23 @@
     },
     {
       "provider": "RedisOASIS",
-      "suite": "core-storage-v1",
+      "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 36,
+      "passed": 52,
       "total": 52,
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-redisoasis-current.json",
-      "sha256": "ce5ae1d999e5b3712fa5f7dca83fc28b01763e5ff4c2aba5f393d4a361c85a52",
-      "blockers": [
-        "Native core-storage-v1 assumes physical absence after Guid delete; Redis documented soft-delete default/history contract deliberately retains tombstone; contract reconciliation pending, no production override change shipped"
-      ]
+      "sha256": "8d0ba64d3580855e1b1795bb04517114631460d6734ae5e57b68a2e528b4e3da",
+      "blockers": []
+    },
+    {
+      "provider": "OracleDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-oracledboasis-current.json",
+      "sha256": "82ccdc458e33f210cf6b2c36b10dec89b125342fba12fc6822624a8f13c47c84",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -170,10 +168,13 @@
     ],
     "AWSS3OASIS": [
       "Canonical shipping S3 factory bound; existing isolated test-bucket/region/persisted-key-variable and explicit request-cost opt-in absent; no cloud requests dispatched; 27 factory controls are not native conformance"
-    ]
+    ],
+    "RedisOASIS": []
   },
   "suites": [
     "core-storage-v1",
+    "core-storage-v2",
     "capability-v1"
-  ]
+  ],
+  "currentCoreSuite": "core-storage-v2"
 }

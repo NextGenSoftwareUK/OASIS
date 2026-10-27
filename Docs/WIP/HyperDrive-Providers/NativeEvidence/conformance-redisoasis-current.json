@@ -1,19 +1,19 @@
 {
-  "suite": "core-storage-v1",
+  "suite": "core-storage-v2",
   "runs": [
     {
-      "SuiteVersion": "core-storage-v1",
+      "SuiteVersion": "core-storage-v2",
       "Provider": "RedisOASIS",
       "Mode": "native",
       "Synchronous": false,
-      "OwnerId": "2c9ef409-0379-4692-bce5-1e92e67faa05",
-      "RootId": "f1f4afc7-e5c6-43f2-bf3b-60efa7d418e5",
-      "ChildId": "a385e9ac-9844-436b-8592-7791f877c6cf",
+      "OwnerId": "39865578-3f43-4cee-86f5-72fbdeed2755",
+      "RootId": "62f5417a-18b7-443d-84ce-124724abebb3",
+      "ChildId": "2ad1507d-5993-4c82-b290-df45e1ce0c39",
       "BatchIds": [
-        "0b7b9637-54cd-46f7-9e3d-70988b5ce68e",
-        "398337e0-bd5c-4834-b382-901edaa1021d"
+        "3975f2af-ee84-496f-ae4e-2a3cc7ce1623",
+        "c9b018b3-2999-4ce1-b25c-18debb60e169"
       ],
-      "ImportId": "98f9b550-efc5-4622-b0d6-43c56ae8a676",
+      "ImportId": "de0d148a-24ad-4aaf-80bd-899b8eaccb3f",
       "Passed": [
         "activate",
         "avatar-save",
@@ -32,25 +32,50 @@
         "metadata-query",
         "batch-save-null-metadata",
         "import",
-        "owner-export"
+        "owner-export",
+        "holon-delete-2ad1507d59934c82b290df45e1ce0c39",
+        "holon-delete-62f5417a18b7443d84ce124724abebb3",
+        "holon-delete-de0d148a24ad4aaf80bd899b8eaccb3f",
+        "holon-delete-3975f2afee84496fae4e2a3cc7ce1623",
+        "holon-delete-c9b018b329994ce1b25c18debb60e169",
+        "avatar-delete",
+        "avatar-detail-absence",
+        "deactivate"
       ],
-      "CurrentCase": "holon-delete-a385e9ac9844436b85927791f877c6cf",
-      "FailureType": "System.InvalidOperationException",
-      "Succeeded": false
+      "CurrentCase": "complete",
+      "FailureType": "",
+      "DeletionKinds": {
+        "2ad1507d-5993-4c82-b290-df45e1ce0c39": "soft",
+        "62f5417a-18b7-443d-84ce-124724abebb3": "soft",
+        "de0d148a-24ad-4aaf-80bd-899b8eaccb3f": "soft",
+        "3975f2af-ee84-496f-ae4e-2a3cc7ce1623": "soft",
+        "c9b018b3-2999-4ce1-b25c-18debb60e169": "soft"
+      },
+      "HardCleanedFixtures": [
+        "2ad1507d-5993-4c82-b290-df45e1ce0c39",
+        "62f5417a-18b7-443d-84ce-124724abebb3",
+        "de0d148a-24ad-4aaf-80bd-899b8eaccb3f",
+        "3975f2af-ee84-496f-ae4e-2a3cc7ce1623",
+        "c9b018b3-2999-4ce1-b25c-18debb60e169"
+      ],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
+      "Succeeded": true
     },
     {
-      "SuiteVersion": "core-storage-v1",
+      "SuiteVersion": "core-storage-v2",
       "Provider": "RedisOASIS",
       "Mode": "native",
       "Synchronous": true,
-      "OwnerId": "cd9fd4e9-788d-4987-b2fa-ea84dff3cc9a",
-      "RootId": "a4376697-4662-419e-8783-821136dd34f0",
-      "ChildId": "e7f19904-1ed6-4167-8cb3-1c4c04f97ef0",
+      "OwnerId": "cde171e9-0891-4c0a-985d-f9b48197f38e",
+      "RootId": "d884f99b-07e5-43d1-9866-7bd391d87266",
+      "ChildId": "772747e5-9b65-4af3-b443-a510caeac3fe",
       "BatchIds": [
-        "75982301-1119-4dc7-96c6-9633c31e0398",
-        "12f7448e-08fb-4b27-9349-91d3d556fcda"
+        "0ac679b9-ca97-412c-952f-f88a7ff17594",
+        "b9e99f13-60e5-4ff6-b7d3-01b49896ba32"
       ],
-      "ImportId": "5cb6793d-5e40-4272-a60d-e26d79867384",
+      "ImportId": "9b3df4f3-cb9f-46c2-b8c5-0c4b8c503fc0",
       "Passed": [
         "activate",
         "avatar-save",
@@ -69,11 +94,36 @@
         "metadata-query",
         "batch-save-null-metadata",
         "import",
-        "owner-export"
+        "owner-export",
+        "holon-delete-772747e59b654af3b443a510caeac3fe",
+        "holon-delete-d884f99b07e543d198667bd391d87266",
+        "holon-delete-9b3df4f3cb9f46c2b8c50c4b8c503fc0",
+        "holon-delete-0ac679b9ca97412c952ff88a7ff17594",
+        "holon-delete-b9e99f1360e54ff6b7d301b49896ba32",
+        "avatar-delete",
+        "avatar-detail-absence",
+        "deactivate"
       ],
-      "CurrentCase": "holon-delete-e7f199041ed641678cb31c4c04f97ef0",
-      "FailureType": "System.InvalidOperationException",
-      "Succeeded": false
+      "CurrentCase": "complete",
+      "FailureType": "",
+      "DeletionKinds": {
+        "772747e5-9b65-4af3-b443-a510caeac3fe": "soft",
+        "d884f99b-07e5-43d1-9866-7bd391d87266": "soft",
+        "9b3df4f3-cb9f-46c2-b8c5-0c4b8c503fc0": "soft",
+        "0ac679b9-ca97-412c-952f-f88a7ff17594": "soft",
+        "b9e99f13-60e5-4ff6-b7d3-01b49896ba32": "soft"
+      },
+      "HardCleanedFixtures": [
+        "772747e5-9b65-4af3-b443-a510caeac3fe",
+        "d884f99b-07e5-43d1-9866-7bd391d87266",
+        "9b3df4f3-cb9f-46c2-b8c5-0c4b8c503fc0",
+        "0ac679b9-ca97-412c-952f-f88a7ff17594",
+        "b9e99f13-60e5-4ff6-b7d3-01b49896ba32"
+      ],
+      "ExpectedDefaultDeletion": "soft",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
+      "Succeeded": true
     }
   ]
 }
