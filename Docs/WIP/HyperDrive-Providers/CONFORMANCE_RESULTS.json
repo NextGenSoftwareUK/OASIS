@@ -177,6 +177,19 @@
         "async: configuration: System.InvalidOperationException",
         "sync: configuration: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "SOLANAOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 4,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solanaoasis-current.json",
+      "sha256": "015d2309179702b49090a99e2de2140396c51883f47c5a02c865b4d71ebd6783",
+      "blockers": [
+        "async: avatar-id: System.InvalidOperationException",
+        "sync: avatar-id: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
@@ -243,6 +256,9 @@
     ],
     "FilecoinOASIS": [
       "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
+    ],
+    "SOLANAOASIS": [
+      "Current canonical v2 native gate reached activation and avatar-save in both modes, then failed avatar-id (4/52). Original two synthetic avatar IDs remain in the hash-bound report; no replay or cleanup. ID reads use authenticated full-history collection selection; source already sets LoadedCount=1, so this is not yet proven to be a simple acknowledgement defect. Exact native read failure still requires read-only diagnosis; do not claim a root cause from source alone."
     ]
   },
   "suites": [
