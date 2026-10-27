@@ -451,3 +451,5 @@ Holon last = featured.LastOrDefault(holon => holon.Version >= 2, empty);
 ```
 
 The supplied reference is returned only after a successful native empty result. Present rows use normal typed hydration/tracking. Single ambiguity, protected traversal errors, incomplete acknowledgements and storage failures propagate; none return the supplied default instead.
+
+Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. No shipping provider enrollment or standard staged Select binding is available yet; those remain pending, along with subsequent selected-stage/numeric integration.
