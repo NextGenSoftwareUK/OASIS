@@ -14,7 +14,7 @@ public partial class CosmicChainIndexedExecutionTests
     private readonly CosmicChainQueryPosition position = new(1, "block");
     private readonly CosmicChainQuerySource source = new(ProviderType.SolanaOASIS, "network",
         ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), 2, new string('A', 64), 0);
-    private static CosmicQueryCapabilities Capabilities => new(CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Or | CosmicQueryFeatures.And, new[] {
+    private static CosmicQueryCapabilities Capabilities => new(CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.Or | CosmicQueryFeatures.And, new[] {
         new CosmicQueryFieldCapability("Id", typeof(Guid), new[] { CosmicQueryComparisonOperator.Equal },
             Array.Empty<CosmicQueryStringOperator>(), true),
         new CosmicQueryFieldCapability("IsPublic", typeof(bool), CosmicQueryComparisonOperator.Equal),
