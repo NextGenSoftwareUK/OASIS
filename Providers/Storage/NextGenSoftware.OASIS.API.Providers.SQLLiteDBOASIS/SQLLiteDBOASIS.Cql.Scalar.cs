@@ -13,7 +13,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryScalarStorageProvider
     private static class ScalarContract
     {
         internal static readonly CosmicScalarCapabilities Value = new(
-            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All },
             new[] { new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Max, CqlProjectionCapabilities),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,

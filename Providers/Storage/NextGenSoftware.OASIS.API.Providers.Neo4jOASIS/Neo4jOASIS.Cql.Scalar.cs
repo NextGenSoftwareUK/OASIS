@@ -15,7 +15,7 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
     private static class ScalarContract
     {
         internal static readonly CosmicScalarCapabilities Capabilities = new(
-            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any },
+            new[] { CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All },
             new[]
             {
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Min, CqlProjectionCapabilities),
@@ -73,7 +73,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 + "WHEN total-$countOffset > $countTake THEN $countTake ELSE total-$countOffset END AS value,"
                 + "true AS valid,false AS traversalCycle,false AS traversalLimit } RETURN value,valid,traversalCycle,traversalLimit";
 
-            if (numeric) query = CompileCqlNumeric(compiled, plan.Query);
+            if (plan.Query.Operation == CosmicScalarOperation.All) query = CompileCqlAll(compiled, plan.Query);
+            else if (numeric) query = CompileCqlNumeric(compiled, plan.Query);
             else if (selected) query = CompileCqlExtremum(compiled, plan.Query);
             // ReserveProjection includes 32 bytes of envelope overhead; the
             // selected scalar itself retains the common exact 32 MiB bound.

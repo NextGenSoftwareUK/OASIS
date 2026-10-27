@@ -31,6 +31,7 @@ public partial class HolonRepository
             cancellationToken.ThrowIfCancellationRequested();
             var selected = plan.Query.Selector != null;
             var numeric = plan.Query.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
+            var all = plan.Query.Operation == CosmicScalarOperation.All;
             // Empty output cannot suppress protected relationship validation.
             // Plain empty queries still avoid opening an unnecessary connection.
             if (source.Limit == 0 && !translator.HasRelationship) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
@@ -43,6 +44,14 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$countTake", source.Limit.HasValue ? (long)source.Limit.Value : long.MaxValue));
             var sql = "SELECT CASE WHEN total <= $countOffset THEN 0 ELSE min(total - $countOffset, $countTake) END AS Value "
                 + "FROM (SELECT count(*) AS total FROM Holon WHERE " + predicate + ")";
+            if (all)
+            {
+                var ordering = translator.TranslateOrdering(source.Orderings);
+                var test = string.Join(" AND ", plan.Query.AllPredicate.Predicates.Select(translator.Translate));
+                sql = "SELECT count(*) AS Value FROM (SELECT * FROM Holon WHERE " + predicate
+                    + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset) AS Holon"
+                    + " WHERE COALESCE((" + test + "),0)=0";
+            }
             if (selected) sql = numeric
                 ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings))
                 : translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation, predicate, translator.TranslateOrdering(source.Orderings));
@@ -56,7 +65,7 @@ public partial class HolonRepository
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var floating = numeric && FloatingNumeric(plan.Query.Selector.ValueType) ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
-                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || selected && translator.HasRelationship;
+                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || (selected || all) && translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return ScalarCqlError<TResult>("CQL_CONSISTENCY_UNSUPPORTED", "SQLite scalar graph/traversal intent requires a serializable read owner.");
@@ -115,6 +124,8 @@ public partial class HolonRepository
                     }
                     else
                     {
+                        if (all)
+                            await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                         var count = await _dbContext.Database.SqlQueryRaw<long>(sql, translator.Parameters.Cast<object>().ToArray())
                             .SingleAsync(cancellationToken).ConfigureAwait(false);
                         result = CosmicScalarResults.FromCount(plan.Query, count);

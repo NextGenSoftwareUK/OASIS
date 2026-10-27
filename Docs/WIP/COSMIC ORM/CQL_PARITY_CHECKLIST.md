@@ -139,7 +139,8 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q20 | Count terminal over complete admitted input | [✅][D8] | [✅][D8] | [✅][D8] | V1 example 8; explicit source window precedes terminal. |
 | Q21 | LongCount terminal and exact Int64 result / Count overflow semantics | [✅][D7] | [✅][D7] | [✅][D7] | Native example 7 and [137-row no implicit page test][NC]; [shared domain/overflow tests][SC] passed in [unit gate][LC], including Int64.MaxValue. |
 | Q22 | Any terminal | [✅][D9] | [✅][D9] | [✅][D9] | V1 example9. |
-| Q23 | All terminal | ❌ | ❌ | ❌ | No complete empty/null/predicate/provider proof. |
+| Q23 | All terminal | ❌ | ❌ | ❌ | Full parent retained red: child/descendant traversal inside the terminal predicate is not implemented. Q23a isolates scalar predicates without removing this requirement. |
+| Q23a | All with scalar/metadata predicates after the composed source window | [✅][AU] | [✅][AU] | [✅][AU] | [Native examples 136–157][AD]: 22 cases/store, empty/null/missing, windows, access and graph-filtered sources; [retained-fixture native proof][AG] passes all three. Full Q23 parent remains red. This is not a completed full-walkthrough claim. |
 | Q24 | Min terminal over declared scalar selections | [✅][D11] | [✅][D11] | [✅][D11] | V1 example11; domain-specific expansion tracked below. |
 | Q25 | Max terminal over declared scalar selections | [✅][D12] | [✅][D12] | [✅][D12] | V1 example12. |
 | Q26 | Exact integer Sum | [✅][D13] | [✅][D13] | [✅][D13] | V1 example13. |
@@ -390,3 +391,9 @@ families, not a claim that either ORM supplies every feature on every backend.
 [TL]: ../../../Examples/CosmicCqlDemo/V1TailQueries.cs
 [TT]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicTailElementTests.cs
 [TG]: Verification/tail-elements-core.trx.gz
+
+[AU]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicAllQueryTests.cs
+[AD]: ../../../Examples/CosmicCqlDemo/V1AllQueries.cs
+[AG]: Verification/all-predicate-retained-native.trx.gz
+
+- 27 October 2026: Q23a scalar All promoted after 3,807 Core tests and 66 read-only native cases on the exact retained fixture. New Neo4j empty-input aggregate bug reproduced and fixed. Full walkthrough did not complete; its failed fixture/receipts remain preserved. Full Q23 traversal-inside-predicate remains red. Demo greens and federation cursor implementations unchanged.

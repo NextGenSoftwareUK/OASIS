@@ -1960,3 +1960,18 @@ native sequence ordering, with existing stable identity ties. ^0 and indexes
 past an explicit source bound have their declared pure error/default semantics.
 Provider errors do not become defaults. Core3,797 tests and all-three-provider native examples 106–135 pass; All is
 separate unfinished work. See the checklist for retained source/binary/test proof.
+
+## Scalar All: native counterexamples after the source window
+
+`CosmicScalarQuery.AllPredicate` is a separately compiled immutable predicate;
+it is not appended to the source filter. The scalar planner admits the source
+and predicate against actual provider capabilities. A single native operation
+counts nonmatching rows after source ordering, Skip and Take. `FromCount`
+returns true iff the counterexample count is zero; negative counts and native
+errors remain errors. SQLite uses a windowed subquery, MongoDB a post-window
+aggregate projection and Neo4j a post-window aggregate-only WITH before result
+flags. Separating Neo4j's aggregate from grouping flags preserves an empty row.
+Existing source graph filters retain their current validation/read owners.
+Traversal inside the terminal predicate is explicitly rejected and full Q23
+remains red. Scoped proof: 3,807 Core tests; 22 native cases on each database
+against the unchanged retained fixture. The full walkthrough remains incomplete.
