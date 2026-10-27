@@ -12,7 +12,7 @@ Provider-family implementations and shared baseline verification precede global 
 |---|---|
 | SOLID storage | Original `storage-key.dpapi`, `private-local-client.dpapi`, `private-local-pod.dpapi` missing from `C:/Source/OASIS/TestResults/SolidCurrent/`; restore trusted originals under the same Windows user or locate their existing protected location. No replacement over retained encrypted records. 0/52, no HTTP/server start |
 | Oracle cloud | Local Oracle 52/52 is not Autonomous Database or OCI Object Storage acceptance. Need protected OCI profile/key, region/namespace/test bucket and database connection/wallet |
-| Azure Blob | Native2/52: missing save counts;95controls pass. Preserve original two fixtures/store and diagnose hidden-process startup timing before automatic runner acceptance; see AZURE_BLOB_STORAGE_BASELINE.md |
+| Azure Blob | Native25/52 partial:109controls pass after count fixes; async checkpoint publication interrupted and sync parent count failed before final fix. Preserve graph fixtures/.next and review before rerun. Hidden startup rechecked1.44s; full automatic runner still pending; see AZURE_BLOB_STORAGE_BASELINE.md |
 | AWS S3 / hosted AWS | Need explicit test bucket/region, protected credentials and persisted storage key; billable-request policy/configuration remains separate. Local DynamoDB 52/52 is not hosted acceptance |
 | EVM family | Compatible existing contract, loopback RPC/chain ID, signer and persisted storage key absent in last inspection; inspect existing runtime/cache before any last-resort setup. Old uncertain outcomes remain unverified |
 | IPFS | Original Kubo repo/config and protected storage key unavailable; do not initialize over unknown identity |

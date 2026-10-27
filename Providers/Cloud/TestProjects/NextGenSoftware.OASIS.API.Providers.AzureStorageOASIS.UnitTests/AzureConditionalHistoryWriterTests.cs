@@ -148,6 +148,24 @@ public class AzureConditionalHistoryWriterTests
     [DataRow(0,true,false)][DataRow(1,true,false)][DataRow(2,true,false)]
     [DataRow(0,false,true)][DataRow(1,false,true)][DataRow(2,false,true)]
     [DataRow(0,true,true)][DataRow(1,true,true)][DataRow(2,true,true)]
+    public async Task RecordSaveCountsOnlyAcknowledgedWrites(int kind,bool synchronous,bool fail)
+    {
+        IHolonBase source=kind==0?new Holon():kind==1?new Avatar():new AvatarDetail();source.Id=Guid.NewGuid();
+        var blob=new ObservedBlob{RecordName=source.Id.ToString(),WriteFailure=fail?new IOException("controlled lost acknowledgement"):null};
+        var provider=PublicProvider(blob);
+        (bool Error,bool Saved,int Count) actual;
+        if(kind==0){var x=synchronous?provider.SaveHolon((IHolon)source,saveChildren:false):await provider.SaveHolonAsync((IHolon)source,saveChildren:false);actual=(x.IsError,x.IsSaved,x.SavedCount);}
+        else if(kind==1){var x=synchronous?provider.SaveAvatar((IAvatar)source):await provider.SaveAvatarAsync((IAvatar)source);actual=(x.IsError,x.IsSaved,x.SavedCount);}
+        else {var x=synchronous?provider.SaveAvatarDetail((IAvatarDetail)source):await provider.SaveAvatarDetailAsync((IAvatarDetail)source);actual=(x.IsError,x.IsSaved,x.SavedCount);}
+        Assert.AreEqual(fail,actual.Error);Assert.AreEqual(!fail,actual.Saved);Assert.AreEqual(fail?0:1,actual.Count);
+        Assert.AreEqual(1,blob.Writes);
+    }
+
+    [DataTestMethod]
+    [DataRow(0,false,false)][DataRow(1,false,false)][DataRow(2,false,false)]
+    [DataRow(0,true,false)][DataRow(1,true,false)][DataRow(2,true,false)]
+    [DataRow(0,false,true)][DataRow(1,false,true)][DataRow(2,false,true)]
+    [DataRow(0,true,true)][DataRow(1,true,true)][DataRow(2,true,true)]
     public async Task PublicSaveNeverOverwritesNewerCallerState(int kind,bool synchronous,bool afterWrite)
     {
         IHolonBase source=kind==0?new Holon():kind==1?new Avatar():new AvatarDetail();source.Version=1;source.VersionId=Guid.NewGuid();var beforeVersionId=source.VersionId;

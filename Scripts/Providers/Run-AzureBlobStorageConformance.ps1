@@ -58,7 +58,7 @@ if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyCont
         }
         if(!$azureReady){throw 'Owned Azurite readiness timeout; preserve store.'}
         $env:OASIS_AZURE_STORAGE_CONFORMANCE='1'
-        & dotnet test $azureProject --no-build --no-restore --filter 'FullyQualifiedName~AzureStorageConformanceTests' --logger 'trx;LogFileName=azure-blob-native-current.trx' --results-directory $azureResults -v:q
+        & dotnet test $azureProject --no-build --no-restore --filter 'FullyQualifiedName~ShippingBlobFactoryRunsSharedStorageSuite' --logger 'trx;LogFileName=azure-blob-native-current.trx' --results-directory $azureResults -v:q
         $azureNativeExit=$LASTEXITCODE
         & python -B (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers AzureStorageOASIS
         if($LASTEXITCODE){throw 'Azure Blob report registration failed; preserve original reports.'}
