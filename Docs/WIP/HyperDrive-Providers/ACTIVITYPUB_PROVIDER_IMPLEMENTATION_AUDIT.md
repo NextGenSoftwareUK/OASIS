@@ -1,5 +1,15 @@
 # ActivityPub provider implementation audit
 
+## 27 October — native social capability baseline and read acknowledgement fix
+
+The shipping adapter now declares **Social/Network**, with no Storage capability, and the matrix classifies it as Non-storage. Source review confirms that it projects Mastodon accounts/statuses and already rejects arbitrary private OASIS avatar/holon saves. Its inherited storage interface remains a compatibility surface; these explicit rejections are not a general record-storage implementation. SOLID remains a separate storage provider.
+
+The shared `capability-v1` suite passed **5/5 native checks** against `mastodon.social`: identity, declared capabilities, instance activation, a public account read compared with an independent native response, and deactivation. A real HTTP transport guard permits only fixed-origin public GETs, disables redirects, rejects authorization headers and other methods, and counts the two probe requests. The activation adds one instance GET. No token, signup, post, delete, private field publication or remote actor resolution occurred. The public contracts are [account lookup](https://docs.joinmastodon.org/methods/accounts/#lookup) and [instance discovery](https://docs.joinmastodon.org/methods/instance/#v2).
+
+The initial native run reached 3/5 and exposed missing `IsLoaded` acknowledgement in the common single-account/detail reader. Six sync/async controlled cases failed against the original producer after adding assertions. Setting `IsLoaded=true` alongside the existing `LoadedCount=1` repaired both avatar and detail projections. Final **291 controlled tests passed**, zero skips; the native capability case passed in 825 ms. Initial, red-regression and final binary cohorts/reports are preserved separately under `C:/Source/OASIS/TestResults/HyperDrive-Providers/NativeEvidence/` (original identity receipts retain their former paths; resolve those basenames here). No raw proofs are added to docs.
+
+This is the social provider's read-only baseline, not full ActivityPub federation, authenticated search, posting, ownership or every inherited interface certification. Those gates remain open. The role change adjusts the matrix to 56 non-storage and 173 storage/specialized projects; it is not an additional 52-check storage pass.
+
 ## 26 October — real account/detail batches; obsolete whole collections removed
 
 Fixed the remaining LoadAllAvatars/LoadAllAvatarDetails misuse of GET/api/v1/accounts without IDs and generic OASIS deserialization. Ten baseline controls genuinely failed (including false successful empty details); the unsupported complete account/geographic collections now reject with NotSupportedException before activation or HTTP. No public directory/timeline is substituted as complete storage, and unsupported capabilities remain explicitly incomplete.
@@ -267,3 +277,19 @@ No account/token/post/deletion/new runtime/download. Read-only queries use the e
 The GUID overload now returns an explicit NotSupportedException before activation/HTTP. Projection GUIDs are deterministic hashes, not native status/account identifiers; no reversible mapping exists. This is an honest identity boundary, NOT implementation of GUID reverse resolution or a declaration of full interface completion. Callers with the native provider storage key have the working native-key route. Do not add guessed native IDs or transient fake reverse indexes.
 
 14new controlled cases cover sync/async parent lookup, child/depth/initial-depth/provider/recursion options, type filtering, pre-I/O invalid-option rejection, GUID rejection and original503 preservation. Whole103/103pass285ms/zero skipped. Live public6/6pass5s now additionally verifies sync/async direct parent lists against independently read native nonempty thread IDs, projected parent linkage and no attached children when disabled. Unit SHA256 D2807AC45703C62887E6BD3699AFB87AA268FC6718897BF84961DE17388BA546; public4FE2B45D91260EF0843308287292A1C643AEB09B0553094F561CFC776D948DF9. No new downloads/runtime/accounts/tokens/writes. Native context limit/privacy/race restrictions documented above still apply; no complete snapshot/huge-private-thread/full-provider/V2 claim.
+
+### Published baseline evidence locations (27 October)
+
+Local retained proofs, moved without byte changes; regenerate new runs using `Scripts/Providers/Run-ActivityPubCapabilityConformance.ps1` only after reviewing the guarded existing checkpoints.
+
+| File under `TestResults/HyperDrive-Providers/NativeEvidence/` | Bytes | SHA-256 |
+|---|---:|---|
+| `activitypub-current-identities.json` | 4072 | `0cca9696b55b058f761a4b95201b91fc4f1314bc61b5ef50567303355d6e489d` |
+| `activitypub-final-activitypub-capability-native-current.trx.gz` | 1303 | `58aaa3c4370689cb66341dcbe95ec68279e31f1eac91fca6babf6caf89878923` |
+| `activitypub-final-activitypub-capability-unit-current.trx.gz` | 65608 | `807cf11b30a608514dc045051d9aeb53b3393d9ac04b685e76bd5178516c61e4` |
+| `activitypub-initial-activitypub-capability-native-current.trx.gz` | 1559 | `3ae3b446933bb36c72d9a439eace0ac393317e89391ad9506033520445cc670f` |
+| `activitypub-initial-activitypub-capability-unit-current.trx.gz` | 65542 | `cfa977b038f56b010189c3225a207aa0d6498c13248379fc7595983fcc79dc02` |
+| `activitypub-initial-identities.json` | 2388 | `5592d8d18182ef5eea9a361e44a8d3e4428e4b7eee387cb466da21104209553b` |
+| `activitypub-read-ack-red-identities.json` | 1303 | `b92dc9eb7108d8919e7e4dc0796533dd2f502d7ccd065b3f162c9f7cec4981fa` |
+| `activitypub-read-ack-red.trx.gz` | 2364 | `497883fc9d9e9d24859498eb2f0f9553b497f6e42ef63a40ddd80802870e4b06` |
+| `conformance-activitypuboasis-current.json` | 615 | `cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c` |

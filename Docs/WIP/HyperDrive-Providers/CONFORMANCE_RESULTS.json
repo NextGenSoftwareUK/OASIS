@@ -2,19 +2,6 @@
   "schemaVersion": 1,
   "results": [
     {
-      "provider": "LocalFileOASIS",
-      "suite": "core-storage-v1",
-      "mode": "native",
-      "passed": 2,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
-      "sha256": "bfc2e037d8ebd126fff7de9cc798a698f2fdb94be183dbcca31d1cdf694496d5",
-      "blockers": [
-        "avatar-save: System.InvalidOperationException",
-        "avatar-save: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "EthereumOASIS",
       "suite": "core-storage-v1",
       "mode": "blocked-before-native",
@@ -234,6 +221,52 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
       "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
       "blockers": []
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "suite": "core-storage-v2",
+      "mode": "blocked-before-native",
+      "passed": 0,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
+      "sha256": "024c788283ad82003b8e389ac39ac594fa6b870af0382578cfb35273f3c1b574",
+      "blockers": [
+        "async: configuration: System.InvalidOperationException",
+        "sync: configuration: System.InvalidOperationException"
+      ]
+    },
+    {
+      "provider": "ActivityPubOASIS",
+      "suite": "capability-v1",
+      "mode": "native",
+      "passed": 5,
+      "total": 5,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-activitypuboasis-current.json",
+      "sha256": "cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c",
+      "blockers": []
+    },
+    {
+      "provider": "LocalFileOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-localfile-current.json",
+      "sha256": "8337aff5b9bdf797b8ba6dd7483806a0f70adcf3e0505c9cf45cd446624bf2f8",
+      "blockers": []
+    },
+    {
+      "provider": "AzureStorageOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 25,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
+      "sha256": "58c4a1a2d9aedb295e8f2a4649e40b1f2fea56dd2549284dac67e0caa0fb6f19",
+      "blockers": [
+        "async: holon-update: ",
+        "sync: parent-query: System.InvalidOperationException [collection count]"
+      ]
     }
   ],
   "providerBlockers": {
@@ -309,6 +342,9 @@
     ],
     "GoogleCloudOASIS": [
       "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
+    ],
+    "AzureStorageOASIS": [
+      "Native25/52 is partial: async report publication interrupted with report.json.next retained; sync parent-query count failed. Count fixes now109controlledPASS; exact graph-fixture/checkpoint review and native rerun still required."
     ]
   },
   "suites": [

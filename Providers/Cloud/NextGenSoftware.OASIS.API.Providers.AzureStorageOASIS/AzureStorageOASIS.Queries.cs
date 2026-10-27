@@ -25,7 +25,7 @@ public partial class AzureStorageOASIS
             var loaded=await load();if(loaded.IsError) return loaded;
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,IEnumerable<T>>(loaded);
             result.Result=query.Select(loaded.Result,row=>row.IsActive && !row.IsDeleted && (type==HolonType.All || row.HolonType==type));
-            result.IsLoaded=true;
+            result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -40,6 +40,7 @@ public partial class AzureStorageOASIS
             if(loaded.IsError) return loaded;
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
             result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).ToList();
+            result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -84,7 +85,7 @@ public partial class AzureStorageOASIS
             found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
             if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,search,holons)));
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
-            result.Result=found;result.IsLoaded=true;
+            result.Result=found;result.IsLoaded=true;result.LoadedCount=found.NumberOfResults;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
@@ -102,7 +103,7 @@ public partial class AzureStorageOASIS
             if(loaded.IsError) return loaded;
             result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
             var rows=loaded.Result.ToList();
-            result.Result=rows.Where(row=>StoredRecordSearch.Matches(row,false,search,rows)).ToList();result.IsLoaded=true;
+            result.Result=rows.Where(row=>StoredRecordSearch.Matches(row,false,search,rows)).ToList();result.IsLoaded=true;result.LoadedCount=result.Result.Count();
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
