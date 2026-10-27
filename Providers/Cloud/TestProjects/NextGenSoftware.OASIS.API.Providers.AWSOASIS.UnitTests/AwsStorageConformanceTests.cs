@@ -54,7 +54,8 @@ public class AwsStorageConformanceTests
             {
                 var endpoint=Read("DYNAMODB_SERVICE_URL");
                 if(endpoint!="http://127.0.0.1:18000")throw new InvalidOperationException("Retained loopback DynamoDB Local required; no public fallback.");
-                const string testKey="local-test-key",testSecret="local-test-secret";
+                // DynamoDB Local requires an alphanumeric access key; these are local-only fixtures.
+                const string testKey="localtestkey",testSecret="localtestsecret";
                 provider=name=="AWSOASIS"
                     ?CloudProviderFactory.CreateAws(new AWSOASISProviderSettings{Region="us-east-1",AccessKey=testKey,SecretKey=testSecret,ServiceUrl=endpoint},null!)
                     :new NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS(testKey,testSecret,"us-east-1",endpoint);

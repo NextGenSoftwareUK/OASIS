@@ -1,11 +1,11 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$DynamoOnly,[switch]$ArchiveConfigurationReports,[switch]$InitializeSyntheticStore)
+param([switch]$DynamoOnly,[switch]$ArchiveConfigurationReports,[switch]$InitializeSyntheticStore,[ValidateSet('configuration','activation')][string]$ArchiveReportStage='configuration')
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $awsSelectedNames=if($DynamoOnly){@('AWSOASIS','DynamoDBOASIS')}else{@('AWSOASIS','DynamoDBOASIS','AWSS3OASIS')}
 if($ArchiveConfigurationReports){
-    & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames --check-only
+    & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames --stage $ArchiveReportStage --check-only
     if($LASTEXITCODE){throw 'Original AWS configuration evidence changed.'}
 }
 foreach($name in $awsSelectedNames){
@@ -43,7 +43,7 @@ foreach($name in @($awsNativeReport,'aws-factory-current.trx')){if(Test-Path -Li
     $awsFactoryCounts=$awsFactoryTrx.TestRun.ResultSummary.Counters
     if([int]$awsFactoryCounts.total -ne 27 -or [int]$awsFactoryCounts.passed -ne 27 -or [int]$awsFactoryCounts.notExecuted -ne 0){throw 'Exactly 27 executed shipping factory controls required before native dispatch.'}
     if($ArchiveConfigurationReports){
-        & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames
+        & python -B (Join-Path $root 'Scripts/Providers/archive_configuration_reports.py') --providers @awsSelectedNames --stage $ArchiveReportStage
         if($LASTEXITCODE){throw 'Original configuration report archival incomplete.'}
     }
     $runtime='C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime'
