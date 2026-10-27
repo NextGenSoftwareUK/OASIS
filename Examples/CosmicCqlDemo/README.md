@@ -15,11 +15,10 @@ bearer token at dispatch. Its federation admission allows three provider attempt
 leaf query admission remains one. Finish using the demo page for verified cleanup.
 
 Both new global examples execute in the native gate alongside the existing
-138SDK/138HTTP walkthrough. Full cohort505operations/567attempts passes, plus
+138SDK/138HTTP walkthrough. Latest full cohort526operations/608attempts passes, plus
 13actual-shipping-controller federation requests with exact durable tariffs,
 per-target private grants, revocation, limits and real encrypted metadata handling.
-Sources and seven binary pairs match. Cursors/causal agreement/distributed joins
-remain separate unfinished roadmap work. See the COSMIC ORM HTTP contract.
+Sources and seven binary pairs match. Protected cursors now pass native, host/key-lifecycle and actual Windows process-restart gates. Causal agreement/distributed joins remain open. See the COSMIC ORM HTTP contract.
 
 ## Floating Swagger examples — verified 25 October 2026
 
@@ -369,4 +368,6 @@ nullable data. Replace both Swagger fixture tags with the current session tag.
 The updated runner requires **93 SDK queries /93 HTTP requests** (31/provider).
 Fresh live verification passes93SDK/93HTTP,288settled/283physicalattempts, zero skips. Generated Swagger join route/schema checks pass. Standalone demo builds with zero errors. Production browser JavaScript syntax and six provider/kind presets pass offline.
 
-Latest native cursor acceptance: twenty signed shipping-controller requests, eighteen settlements/thirty-two attempts, duplicate-claim rejection, pinned scope, host restart and key rotation/revocation pass. Full cohort523operations599attempts, unchanged sources/sevenbinarypairs. The presenter UI examples above remain separate; use the CQL manual's opt-in cursor enrollment/request sequence. Actual OS-process cursor persistence and broader distributed features remain open.
+Earlier native cursor checkpoint: twenty signed shipping-controller requests, eighteen settlements/thirty-two attempts, duplicate-claim rejection, pinned scope, host restart and key rotation/revocation pass. Full cohort523operations599attempts, unchanged sources/sevenbinarypairs. The presenter UI examples above remain separate; use the CQL manual's opt-in cursor enrollment/request sequence. Actual same-user Windows cursor process persistence is now verified separately; other key deployments and broader distributed features remain open.
+
+Actual cursor process acceptance: abrupt first-host termination, a different fresh host, unchanged DPAPI-protected persisted key, three native pages/nine attempts, and duplicate rejection pass. Full cohort526/608; test keys/config/fixtures removed after verified teardown. See the CQL manual for deployment boundaries.
