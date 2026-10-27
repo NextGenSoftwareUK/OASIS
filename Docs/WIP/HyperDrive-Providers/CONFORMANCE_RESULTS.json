@@ -247,6 +247,16 @@
         "async: configuration: System.InvalidOperationException",
         "sync: configuration: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "ActivityPubOASIS",
+      "suite": "capability-v1",
+      "mode": "native",
+      "passed": 5,
+      "total": 5,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-activitypuboasis-current.json",
+      "sha256": "cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c",
+      "blockers": []
     }
   ],
   "providerBlockers": {

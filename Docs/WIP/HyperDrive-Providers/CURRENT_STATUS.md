@@ -20,7 +20,7 @@ Updated 2026-10-27. Read this first; the four current summaries plus this file a
 |---|---|
 | Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS |
 | Controlled 52/52 only | KeyDB, ValKey, Dragonfly, Garnet; actual product-native runs pending |
-| Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication still pending in this checkout |
+| Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication verified; full social operation gates remain open |
 | Partial native | Solana 4/52: unavailable referenced history chunk; preserve original outcomes |
 | Earlier-suite partial | LocalFile 2/52 (v1 avatar-save acknowledgement); no current-suite pass |
 | Blocked before native | SOLID, IPFS, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
@@ -30,8 +30,8 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Next: publish the verified ActivityPub batch after reviewing its exact source/evidence diff.
-2. Publish the already verified, still-uncommitted ActivityPub Social/Network declaration and shared account/detail `IsLoaded` fix with its evidence. Keep unrelated Core/CQL/user changes out.
+1. Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Report migration published as `d70625e86`; existing linked reports remain in place.
+2. ActivityPub Social/Network declaration and account/detail `IsLoaded` fix verified for publication: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
 3. SOLID: recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
 5. Continue Oracle cloud/AWS S3 acceptance when access is configured, then remaining families. No completion claim until every applicable gate has evidence.
@@ -42,7 +42,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 - Moved DynamoDB JAR hash: `67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620`.
 - DynamoDB rerun: AWS/Dynamo 52/52 each + 27 factory controls; all five tables empty. SQLite database 43,008 bytes; evidence folder about 50.9 MB; container stopped.
 - SOLID binding builds; 0/52 due missing original protected inputs. Container not started; no key/identity/ACL mutation.
-- ActivityPub source/proofs, latest Dynamo report updates and ledger entries were pending before this tidy-up. The docs checkpoint must not silently publish code, tests, raw evidence or a Core gitlink.
+- ActivityPub scoped source/tests and evidence summary reviewed; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
 - Other dirty work includes a Core submodule and unrelated WIP moves/reports; inspect `git status` before staging.
 - This docs checkpoint preserves history and moves only unlinked evidence; no code/test changes or test execution.
 

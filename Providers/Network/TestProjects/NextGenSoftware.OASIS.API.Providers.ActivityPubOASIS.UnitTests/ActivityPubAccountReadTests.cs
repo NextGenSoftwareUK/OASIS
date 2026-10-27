@@ -23,7 +23,7 @@ public class ActivityPubAccountReadTests
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var result=native?(sync?provider.LoadAvatarByProviderKey("12345678901234567890"):await provider.LoadAvatarByProviderKeyAsync("12345678901234567890")):
             (sync?provider.LoadAvatarByUsername("alice@remote.invalid"):await provider.LoadAvatarByUsernameAsync("alice@remote.invalid"));
-        Assert.False(result.IsError,result.Exception?.ToString());var avatar=result.Result;
+        Assert.False(result.IsError,result.Exception?.ToString());Assert.True(result.IsLoaded);Assert.Equal(1,result.LoadedCount);var avatar=result.Result;
         Assert.NotEqual(Guid.Empty,avatar.Id);Assert.Equal("alice@remote.invalid",avatar.Username);
         Assert.Equal("12345678901234567890",avatar.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
         Assert.Equal("alice@remote.invalid",avatar.ProviderUsername[ProviderType.ActivityPubOASIS]);
@@ -56,7 +56,7 @@ public class ActivityPubAccountReadTests
     {
         var transport=new Transport();using var provider=new ActivityPubOASIS("https://mastodon.invalid","",transport);
         var detail=sync?provider.LoadAvatarDetailByUsername("alice@remote.invalid"):await provider.LoadAvatarDetailByUsernameAsync("alice@remote.invalid");
-        Assert.False(detail.IsError,detail.Exception?.ToString());Assert.Equal("alice@remote.invalid",detail.Result.Username);
+        Assert.False(detail.IsError,detail.Exception?.ToString());Assert.True(detail.IsLoaded);Assert.Equal(1,detail.LoadedCount);Assert.Equal("alice@remote.invalid",detail.Result.Username);
         Assert.True(string.IsNullOrEmpty(detail.Result.Email));
         Assert.Equal("12345678901234567890",detail.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
         var avatar=await provider.LoadAvatarByUsernameAsync("alice@remote.invalid");Assert.False(avatar.IsError);
