@@ -56,3 +56,20 @@ Exact next step: locate the existing read-only diagnostic and retained runtime
 configuration through the provider inventory, validate ownership/availability,
 then inspect the original reference without application writes. No Solana service,
 key, account, ledger or transaction was started/changed by this source audit.
+
+## Missing-chunk diagnostic milestone (27 October 2026)
+
+The memo decoder now raises a typed failure with the finalized root signature,
+missing chunk signature, zero-based chunk index/count and write ID. These are
+transaction references, never keys or payload. Exact and collection reads still
+fail closed; tests prove that neither read resubmits writes. The existing native
+read-only diagnostic serializes this context when available.
+
+Provider, unit and integration projects build using cached dependencies.
+765 unit tests pass, zero failures/skips (including 32 focused wire/frame tests).
+Evidence: `TestResults/SolanaCurrent/solana-diagnostic-unit.trx`.
+SHA256: `387F7FB53E782C060A3DF64ECE9CD991B80047E77BFA09211AC66C74CD3BEE59`.
+No native chain probe was run: original conformance prerequisites are absent from
+this worktree. This does not repair the missing historical record or enroll CQL.
+Next: identify the original missing reference through a bounded read-only probe
+using retained resources, preserving all journals and source transactions.
