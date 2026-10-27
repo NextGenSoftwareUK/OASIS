@@ -94,3 +94,5 @@ red. Scalar/projection/graph indexed execution and full ORM parity remain open.
 - `TestResults/ProtocolCqlCurrent/index-billing-sqlite.trx` SHA256 `9EAF197E675FD9C5D9413A7CE204DB38F860B4F9B41BD94E0DD64A9463BF8A9F`.
 - `TestResults/ProtocolCqlCurrent/index-billing-solana.trx` SHA256 `31A2D92FAD2771C392DE564151332C7C7FC831390BD904D1B799E48521A3C4CF`.
 - `TestResults/ProtocolCqlCurrent/index-billing-wired.trx` SHA256 `B54C1B75B02A32BD1687203A1BCF37C4484D9D7A611368B4246FE43DE8984195`.
+
+[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
