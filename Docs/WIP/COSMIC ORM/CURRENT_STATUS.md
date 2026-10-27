@@ -8,13 +8,13 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 - Full COSMIC roadmap remains active. Current focus: CQL parity on SQLite/MongoDB/Neo4j.
 - Work only on red checklist rows. Green features and federation cursors are frozen unless a bug is reproduced.
 - The 12 investor-demo rows are green; full EF/NHibernate parity is not complete.
-- Q23/Q23e/Q49a are green. Active red row: Q01 standard IQueryable/IQueryProvider integration; first native entity-row increment is verified, full row remains red.
+- Q23/Q23e/Q49a are green. Active red row: Q01 standard IQueryable/IQueryProvider integration; native entity rows and initial cardinality/All terminals are verified, full row remains red.
 
 ## Verified checkpoints (separate cohorts)
 
 | Scope | Result | Evidence location |
 |---|---|---|
-| Q01 initial IQueryable rows | 8 focused tests +1,814 CQL regression tests passed; both Core targets build;21 native checks passed (7/store) | `TestResults/CoreCurrent/linq-{current,cql-regression}.trx`; `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx` |
+| Q01 initial IQueryable rows | 11 focused tests +1,817 CQL regression tests passed; both Core targets build;54 native checks passed (18/store) | `TestResults/CoreCurrent/linq-scalars-{current,regression}.trx`; `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx` |
 | Shipping source/projected-All C# demo | 24 examples passed,8/store through V2 HolonManager; one test, no skips | `TestResults/Neo4jCurrent/neo4j-source-demo-current.trx` and `cql-source-demo-result.json` |
 | Native source-composition matrix | 216 checks passed,72/store; one test, zero skips, across row/count/projection consumers | `TestResults/Neo4jCurrent/neo4j-source-matrix-current.trx` and `cql-source-composition-result.json` |
 | Combined native projected-All acceptance | 168 checks passed:50/store plus18 rotated shared-budget cases; one test, no skips | `TestResults/Neo4jCurrent/neo4j-native-current.trx` and `cql-projected-all-acceptance-result.json` |
@@ -45,12 +45,12 @@ Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationship
 - Use the small `Providers/Storage/TestProjects/CosmicCql.NativeAcceptanceTests/` project for native-only acceptance. It links the same authoritative gate without requiring the unrelated WEB4 host graph.
 - Parent Q23 audit complete: independent Q23a–e/Q49a evidence plus24 shipping C# examples through the V2 manager; freeze these green rows unless a bug is reproduced. Full681-case legacy SDK/HTTP walkthrough is not newly verified by these focused gates.
 - Exact next step: implement Q01 Queryable.Select/selected composition and scalar/element terminals through existing native planners/manager owners, preserving standard per-execution parameter binding and window semantics; add focused/native tests. Keep Q01 red until full scoped proof.
-- Current Q01 supports named single-provider entity Where/ordering/Skip/Take, synchronous enumeration and async ToCosmicListAsync. Select/scalar terminals fail explicitly. Standard variables bind per execution; fluent CosmicQuery capture remains unchanged.
-- Core full regression:3,853 passed/6 failed because this worktree lacks the built WEB4 host artifact (AdmittedKeyManagerControllerTests). No skips; do not claim a full green suite. Build/verify that prerequisite later in this worktree, never copy old checkout outputs.
-- Core increment pushed/remote-verified: `addb0cec33c28b694c0ad69eac82e284ace14932`; parent gitlink and Docker manifest advance together.
+- Current Q01 supports named single-provider entity Where/ordering/Skip/Take, synchronous/async rows and native Count/LongCount/Any/All. Select, numeric/element terminals and post-window cardinality predicates remain explicit unsupported. Standard variables bind per execution; fluent CosmicQuery capture remains unchanged.
+- Previous full Core regression:3,853 passed/6 failed because this worktree lacks the built WEB4 host artifact (AdmittedKeyManagerControllerTests). No skips; do not claim a full green suite. Build/verify that prerequisite later in this worktree, never copy old checkout outputs.
+- Core increment pushed/remote-verified: `3f9fb537789bbd876a5d8e6c00ffea409935d7a7`; parent gitlink and Docker manifest advance together.
 - Source matrix TRX SHA256: `6574CE43391BAAF77C4C3AF2979DBF175D4561236D13E8DDD2FB2FB9822B4A47`; summary SHA256: `0D04CA0D491B252A556253A77DB7E29FF4854C3E86AD1513146B6FC78ECDB40E`.
 - Demo TRX SHA256: `1329E5180985368F4B8BCFD00C5F2D3E4DE74AD23DC2CCB341B01752C8A982B5`; summary SHA256: `2B86ED1E976B4DA87C412A86BA0486D162100C6CF07893F6B456350F33EE0E20`.
-- Q01 CQL regression SHA256: `48BDFF925D5824981C970446272FACDDC120DDDB2C2CAA50C4CED9B2A6CFDA50`; native TRX SHA256: `8109EA21374E7FE12D40CDFF9C4B0B0889AC4BBF23CAD707E760AC7A65AE91E4`; summary SHA256: `EAE939CC76CBB6C14D2A3DF2EA45B797F45872106B38C3BB045EEC50249F1554`.
+- Q01 CQL regression SHA256: `780DCE5032F0C91AA466E3CA6BB4B7DBAD9D22B306DF3013E43CBF054AE233E0`; native TRX SHA256: `7BF031C46C26F14D3B478EC35A0410C9E8D0AFD132A6D8559F7A73E0A26427BA`; summary SHA256: `38E89F7500F1C2E5EAE9BF332A08B6DCDC96178D6B577FA41FC3E77C9C0BF5F8`.
 - Documentation consolidation:10 active root reports,126 archived reports,334 byte-preserved historical artifacts; recovery set stays below300 lines.
 ## Key commands (PowerShell, cwd above)
 

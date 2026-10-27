@@ -58,9 +58,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var cancelled = await query.ToCosmicListAsync(cancellation.Token);
         Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode); Assert.IsNull(cancelled.Result);
         Passed("explicit async cancellation");
-        var unsupported = Assert.ThrowsException<CosmicLinqException>(() => query.Count());
+        var unsupported = Assert.ThrowsException<CosmicLinqException>(() => query.Sum(row => row.Version));
         Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED", unsupported.Code);
-        Passed("pending terminal fails explicitly");
+        Passed("pending selected numeric terminal fails explicitly");
+        Assert.AreEqual(1, root.Count()); Passed("native Count");
+        Assert.AreEqual(1L, root.LongCount()); Passed("native LongCount");
+        Assert.IsTrue(root.Any()); Passed("native Any");
+        Assert.IsTrue(root.All(row => row.Name == name)); Passed("native All true");
+        Assert.IsFalse(root.All(row => row.Name == "absent")); Passed("native All false");
+        Assert.IsTrue(root.Take(0).All(row => false)); Passed("native All empty window");
+        Assert.IsFalse(root.Take(0).Any()); Passed("native Any empty window");
+        Assert.AreEqual(0, root.Where(row => row.Name == "absent").Count()); Passed("native Count empty source");
+        Assert.AreEqual(1, root.Count(row => row.Name == name)); Passed("native Count predicate");
+        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED", Assert.ThrowsException<CosmicLinqException>(
+            () => root.Take(1).Count(row => row.Name == name)).Code); Passed("post-window predicate remains explicit unsupported");
+        Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
+        Passed("native All child scope");
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }

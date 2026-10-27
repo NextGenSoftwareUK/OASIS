@@ -28,4 +28,9 @@ parameters per execution, captures an immutable CosmicQuery, then re-admits live
 capabilities and invokes the existing V2 typed query owner. It neither compiles
 application predicates to delegates nor fetches rows for client filtering. The
 initial increment flattens exactly one explicitly named physical sequence;
-projection/terminal dispatch remains Q01 work, with explicit unsupported errors.
+projection/remaining terminal dispatch remains Q01 work, with explicit unsupported errors.
+Standard cardinality and All terminals dispatch through CosmicScalarPlanner and
+the existing V2 scalar owner, independently admitting scalar capabilities. All's
+predicate remains separate from its source window. Predicated cardinality after
+a window remains explicitly unsupported until its native post-window filter
+contract is implemented; the bridge never rewrites it ahead of the window.
