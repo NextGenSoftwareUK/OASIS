@@ -13,6 +13,21 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS
 {
+    private static async Task<OASISResult<T>> SavePrivateResultAsync<T>(Func<Task<T>> publish) where T:class,IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            // The publication owner returns only after blob, private catalogue
+            // and durable DNA pointer acknowledgement. Never acknowledge earlier.
+            var saved=await publish();
+            if(saved==null)throw new InvalidDataException("IPFS record publication returned no entity.");
+            result.Result=saved;result.IsSaved=true;result.SavedCount=1;
+        }
+        catch(Exception cause){OASISErrorHandling.HandleError(ref result,"IPFS private record save failed.",cause);}
+        return result;
+    }
+
     private static void MarkIpfsLoaded<T>(OASISResult<T> result,int returnedRoots=1)
     {
         result.IsLoaded=true;

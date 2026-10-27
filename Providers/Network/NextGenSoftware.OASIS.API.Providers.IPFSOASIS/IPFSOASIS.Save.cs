@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return new OASISResult<IAvatarDetail>(await SaveAvatarDetailToFile(avatarDetail));
+            return await SavePrivateResultAsync(()=>SaveAvatarDetailToFile(avatarDetail));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
