@@ -149,7 +149,7 @@ public partial class HolonRepository
             foreach (var id in current)
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                if (command.Reduction != null || command.Cardinality != null) outputBytes = checked(outputBytes + 16);
+                if (command.Reduction != null || command.Cardinality != null || command.Numeric != null) outputBytes = checked(outputBytes + 16);
                 var values = byId[id].Values.ToArray();
                 foreach (var value in values) ReserveJoinCell(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
@@ -198,7 +198,24 @@ public partial class HolonRepository
                 if (!nativeSelectedCount.HasValue || nativeSelectedCount.Value != output.Count)
                     throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
             }
-            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work, nativeSelectedCount), counterexamples);
+            CosmicProjectedNumericPacket nativeNumeric = null;
+            if (command.Numeric != null)
+            {
+                if (command.NumericIntent == null || checked(work + current.Count) > limits.MaximumStageRows
+                    || checked(proofBytes + outputBytes + 25) > limits.MaximumProofPayloadBytes)
+                    throw new MongoCqlLimitException();
+                using var numericCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Numeric,
+                    Options(), deadline.Token).ConfigureAwait(false);
+                while (await numericCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    foreach (var document in numericCursor.Current)
+                    {
+                        deadline.Token.ThrowIfCancellationRequested();
+                        if (nativeNumeric != null) throw new InvalidDataException("Selected numeric reduction returned multiple acknowledgements.");
+                        nativeNumeric = ReadNativeCqlSelectedNumeric(document, command.NumericIntent);
+                    }
+                if (nativeNumeric == null) throw new InvalidDataException("Selected numeric reduction acknowledgement is missing.");
+            }
+            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work, nativeSelectedCount, nativeNumeric), counterexamples);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { throw new MongoCqlGraphTimeoutException(); }

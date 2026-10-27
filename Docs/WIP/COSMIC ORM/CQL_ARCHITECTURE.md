@@ -148,5 +148,15 @@ native reduction runs over the final materialized stage CTE in the same
 serializable owner. Two integer sum words retain exact totals; Int64 double means
 reuse the checked aggregate hook ordered by the final stage rank. The hook checks
 budgets and is removed on disposal. Selected ordering/offset occurs before prefix
-accumulation. MongoDB/Neo4j kernels and wider SQLite domains are not enrolled yet;
+accumulation. Neo4j kernels and wider SQLite/Mongo domains are not enrolled yet;
 selected Min/Max needs its own extrema contract. Q01 remains red.
+
+MongoDB Q01a now independently enrolls signed Int32/Int64 Sum/Average and nullable
+forms. Source and selected reductions share AppendNumericKernel, preserving the
+published exact-word arithmetic and checked-prefix logic. The selected path
+projects its admitted column and final rank, then executes that kernel in a
+facet under the existing selected snapshot session/deadline. Empty input receives
+an explicit native zero packet. The repository reuses strict numeric decoders,
+checks terminal work/proof bounds, requires one packet and returns it through the
+shared selected owner. Scalar/record selectors and all27 native integer cases
+are verified on SQLite and MongoDB; Neo4j remains unenrolled.

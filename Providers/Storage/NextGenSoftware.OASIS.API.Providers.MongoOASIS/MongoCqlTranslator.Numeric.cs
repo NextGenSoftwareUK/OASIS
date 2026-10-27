@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -33,9 +34,18 @@ internal sealed partial class MongoCqlTranslator
             cells.Add("checkedIdentity", "$HolonId"); prefixOrder.Add("checkedIdentity", 1);
         }
         page.Add(new("$project", cells));
+        AppendNumericKernel(page, query.Selector.ValueType, query.UsesInt64DoubleAverage, prefixOrder);
+        if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
+        ValidatePipeline(source);
+        var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
+        return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
+            query.Source.Limit == 0, traverses);
+    }
+    private void AppendNumericKernel(List<BsonDocument> page, Type declared, bool checkedPrefix, BsonDocument prefixOrder)
+    {
         var zero = Literal(new BsonDecimal128(Decimal128.Zero));
         var limb = Literal(new BsonDecimal128(new Decimal128(CosmicNumericScalarResults.LimbBase)));
-        var inputType = Nullable.GetUnderlyingType(query.Selector.ValueType) ?? query.Selector.ValueType;
+        var inputType = Nullable.GetUnderlyingType(declared) ?? declared;
         var floatingInput = inputType == typeof(float) || inputType == typeof(double);
         var decimalInput = inputType == typeof(decimal);
         // Floating values have already been admitted/normalized by ProjectionCell.
@@ -53,14 +63,14 @@ internal sealed partial class MongoCqlTranslator
             page.Add(new("$set", new BsonDocument("high", new BsonDocument("$trunc",
                 new BsonArray { Op("$divide", "$number", limb), Literal(0) }))));
         }
-        if (query.UsesInt64DoubleAverage)
+        if (checkedPrefix)
             page.Add(new("$setWindowFields", new BsonDocument
             {
                 { "sortBy", prefixOrder },
                 { "output", new BsonDocument("checkedPrefix", new BsonDocument
                     { { "$sum", "$number" }, { "window", new BsonDocument("documents",new BsonArray { "unbounded", "current" }) } }) }
             }));
-        var required = Nullable.GetUnderlyingType(query.Selector.ValueType) == null;
+        var required = Nullable.GetUnderlyingType(declared) == null;
         var invalid = required ? Op("$ne", "$cell.s", Literal(2)) : Op("$eq", "$cell.s", Literal(3));
         var reduction = new BsonDocument
         {
@@ -88,7 +98,7 @@ internal sealed partial class MongoCqlTranslator
             reduction.Add("low", new BsonDocument("$sum", Op("$subtract", "$number", Op("$multiply", "$high", limb))));
             output.Add("high", 1); output.Add("low", 1);
         }
-        if (query.UsesInt64DoubleAverage)
+        if (checkedPrefix)
         {
             var overflow = Op("$or", Op("$lt", "$checkedPrefix", Literal(new BsonDecimal128(new Decimal128(long.MinValue)))),
                 Op("$gt", "$checkedPrefix", Literal(new BsonDecimal128(new Decimal128(long.MaxValue)))));
@@ -97,10 +107,6 @@ internal sealed partial class MongoCqlTranslator
         }
         page.Add(new("$group", reduction));
         page.Add(new("$project", output));
-        if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
-        ValidatePipeline(source);
-        var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
-        return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
-            query.Source.Limit == 0, traverses);
     }
+
 }
