@@ -82,3 +82,5 @@ The full COSMIC/CQL roadmap remains incomplete.
 | LocalState/COSMIC/SolidCurrent/cql-point-complete.json | FC145182C60C525DD0085F0629540DE40F1CF6F5D54002D77F64F727787A0AE4 |
 
 WEB4 explicit row-profile/compiler/readtariff enrollment now passes721 affected controls. Native HTTP/receipt acceptance and interactive host remain open. [Request contract/evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
+
+Native real-controller Kestrel/WEB4 row-and-receipt gate now passes1/1, with sixrequests, exactonequeryreceipt and real backend source. Identity/outbox controlled, productionJWT/durablesettlement/interactivehosting stillopen. Exactfixtures cleaned, listeners/services stopped. [Evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).

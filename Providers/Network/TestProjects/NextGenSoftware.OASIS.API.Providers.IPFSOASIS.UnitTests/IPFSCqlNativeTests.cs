@@ -11,15 +11,21 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public class IPFSCqlNativeTests
 {
     [Fact,Trait("Category","IPFSCqlNative")]
-    public async Task ActualKuboPointThroughManagerLinqAndDemoMatchesCanonicalRead()
+    public Task ActualKuboPointThroughManagerLinqAndDemoMatchesCanonicalRead()=>RunAsync(false);
+
+    [Fact,Trait("Category","IPFSCqlWeb4Native")]
+    public Task ActualKuboPointThroughWeb4RowsAndMeasuredReceipt()=>RunAsync(true);
+
+    private async Task RunAsync(bool web4)
     {
         const string endpoint="http://127.0.0.1:18547";
         Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
         var state=Path.GetDirectoryName(Environment.GetEnvironmentVariable("IPFS_PATH"))!;
         Assert.True(File.Exists(Path.Combine(state,"repo","config")));
-        var dnaPath=Path.Combine(state,"cql-point-dna.json");
-        var pending=Path.Combine(state,"cql-point.pending.json");
-        var closed=Path.Combine(state,"cql-point-complete.json");
+        var prefix=web4?"cql-web4":"cql-point";
+        var dnaPath=Path.Combine(state,prefix+"-dna.json");
+        var pending=Path.Combine(state,prefix+".pending.json");
+        var closed=Path.Combine(state,prefix+"-complete.json");
         Assert.False(File.Exists(dnaPath)||File.Exists(pending)||File.Exists(pending+".next")||File.Exists(closed),"Preserve prior native CQL fixture; never replay an unknown write.");
         var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
             HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings {
@@ -50,6 +56,12 @@ public class IPFSCqlNativeTests
             var row=Assert.Single(rows);Assert.Equal(independent.Result.Id,row.Id);Assert.Equal(independent.Result.Name,row.Name);
             Assert.Equal(cid,row.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);Assert.Empty(row.Children);
             Assert.Contains("Returned holons: 1",output.ToString());phase="demo-verified";await Checkpoint();
+
+            if(web4){
+                await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.RunAsync(
+                    provider,manager,owner,"IPFSRecordCid",cid,"IPFSRecordCid",cid,root.Id);
+                phase="web4-verified";await Checkpoint();
+            }
 
             // Exact owned fixture maintenance, after native query/read proof. Never erase historical blocks.
             var catalogue=await provider.LoadLookupToJson();Assert.Equal(2,catalogue.Count);
