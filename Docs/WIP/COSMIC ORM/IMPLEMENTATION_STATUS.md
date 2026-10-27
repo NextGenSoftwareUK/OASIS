@@ -7,8 +7,8 @@
 - Q23/Q23e/Q49a and Q01a–e are verified within their checklist scopes.
 - Active red row Q01f: shared stage contract is committed; IQueryable bridge is committed in Core b9bccf0.
 - SQLite native stages are implemented with 42 passing CQL provider tests, including native V2 typed/graph/visibility and protected traversal acceptance; broader cross-database acceptance remains pending. MongoDB native stages are implemented with 212 passing compiler/admission tests; 18 live native entity-stage cases pass. Neo4j native stages now pass 144 compiler tests and 19 live stage cases; staged terminal/projection integration remains pending.
-- Latest native checkpoint: 1,709 checks:18 entity-stage,9 count,16 cardinality,20 forward element and6 reversal cases/store, plus Neo snapshot rejection.
-- Current shared entity-count foundation regression: 2,568 passes; both Core targets build. SQLite native count enrolled (44 CQL provider tests pass); Mongo count passes215 compiler tests and9 live cases; Neo count passes147 compiler tests and9 live cases; standard staged Count/LongCount/Any/All now live-verified on all3. Element/projection/remaining numeric integration pending. Full Core suite still has an unverified WEB4 host prerequisite.
+- Latest native checkpoint: 1,745 checks:18 entity-stage,9 count,16 cardinality,20 forward element,6 native reversal and12 standard reversal/tail cases/store, plus Neo snapshot rejection.
+- Current shared entity-count foundation regression: 2,571 passes; both Core targets build. SQLite native count enrolled (44 CQL provider tests pass); Mongo count passes215 compiler tests and9 live cases; Neo count passes147 compiler tests and9 live cases; standard staged Count/LongCount/Any/All now live-verified on all3. Element/projection/remaining numeric integration pending. Full Core suite still has an unverified WEB4 host prerequisite.
 - Green features/federation cursors stay frozen unless a reproducible bug appears.
 - HyperDrive V2 only; legacy gaps receive documentation.
 
@@ -19,4 +19,4 @@ Historical checkpoints do not establish blanket ORM completeness.
 
 Shared forward-element foundation implemented/tested:4 new tests, both Core targets build; cardinality precedes shared typed hydration. Standard forward elements now pass20 native cases/store and3 binding tests. Tail/from-end/explicit defaults and staged projection/numeric integration remain pending.
 
-Native entity Reverse independently enrolled on all3,6 live cases/store;45 SQLite/216 Mongo/148 Neo compiler tests pass. Standard Reverse/tail binding remains pending.
+Native entity Reverse independently enrolled on all3,6 live cases/store;45 SQLite/216 Mongo/148 Neo compiler tests pass. Standard Reverse/Last/from-end binding now passes12 new native cases/store and3 shared tests; explicit defaults and staged projection/numeric integration remain pending.

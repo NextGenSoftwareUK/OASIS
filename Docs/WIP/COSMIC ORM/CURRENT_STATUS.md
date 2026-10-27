@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active red row: Q01f entity composition.
-- Exact next step: bind standard entity Reverse/Last/from-end indexes using the independently admitted native reversal stage.
+- Exact next step: implement explicit element default-value overloads, then staged projection/numeric integration.
 - Then finish staged projections/remaining numeric terminals; verify full scope before promoting Q01f.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
@@ -20,19 +20,19 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 | Q01a–e | Scoped numeric/extrema/reselection/post-window element rows green on all three |
 | Q01f entity rows | 18 native cases/database plus Neo snapshot rejection; stage order, visibility, graphs, protected errors and bounds verified |
 | Q01f native entity count | Nine cases/database; stage cardinality, protected errors, budgets, no DTO construction/final graph expansion |
-| Latest native gate | 1,709 checks: SQLite569/Mongo569/Neo571, one test, no skips |
+| Latest native gate | 1,745 checks: SQLite581/Mongo581/Neo583, one test, no skips |
 | Focused provider CQL tests | SQLite45, Mongo216, Neo148 pass; provider builds pass |
-| Shared count foundation | 2,568 CQL regressions pass; both Core targets build; Coredf21e91 pushed/verified |
+| Shared count foundation | 2,571 CQL regressions pass; both Core targets build; Core644a6ab pushed/verified |
 
 Q01f stays red: native count and standard staged Count/LongCount/Any/All pass on all three;
-forward elements now pass20 native cases/store; tail/reversal, explicit defaults, projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
+forward elements now pass20 native cases/store; standard Reverse/Last/from-end now pass12 additional cases/store; explicit defaults, projections and remaining numeric terminals remain pending. No client reduction substitutes for native execution.
 Neo uses ProviderDefault graph consistency; ProviderSnapshot explicitly rejects.
 Count and rows share provider read owners and source/stage proofs. Native count ignores final graph expansion.
 
 Native TRX: `TestResults/Neo4jCurrent/neo4j-linq-rows-current.trx`.
-SHA256 `75569B1192EF5B3BD9E0B98AAACF0C3AF52EEB1CFE37D326455E56DA9C5B3695`.
+SHA256 `E1DAB79652115F62748FC8C5A4D5C56E78BD69F873F0201863508CB884F265C0`.
 Summary: `TestResults/Neo4jCurrent/cql-linq-rows-result.json`.
-SHA256 `6334B49009B46980BF218B21B48D29BE95A6E7AE70BB518668B63C5BD4E8FB8A`.
+SHA256 `F7160495CC25C34BB01DC2A7877E704822D2416BC94294ADB610DA9E1ADD36CD`.
 Cardinality binding TRX: `TestResults/CoreCurrent/entity-cardinality-binding-regression.trx`.
 SHA256 `F8EC790EC9471A964DAC0A168C85C9886E9A8CB012D64ADA39A97B7A31450718`.
 Four new shared tests and16 live standard-terminal cases/database verify predicates after windows, All counterexamples, closure rebinding and no entity construction.
@@ -42,11 +42,11 @@ Full Core suite is not green: earlier3,853 passes/six failures from missing buil
 Forward elements: First/Single/int-index/default/predicate forms verified through native stage and typed hydration owners.
 Three new binding tests;20 native cases/store prove ambiguity before DTO construction, defaults/indexes, protected errors and tracking.
 Evidence `TestResults/CoreCurrent/entity-element-binding-regression.trx`, SHA256 `BE822F71BD8233CC3BA4A73EBFDE5DEC69AA563A09AD7CAC766A8D6710583F86`.
-Last/from-end indexing, explicit default-value overloads and staged projection/numeric integration remain pending.
+Last/default/predicate and forward/from-end Index forms now bind native reversal; Last requires explicit sequence ordering. Explicit default values and staged projection/numeric integration remain pending.
 
 Native Reverse stage now passes6 cases/store: source/intermediate windows, double reversal, identity ties, protected errors and count.
-Independent permission verified;2 new Core tests and1 new compiler/native test per store pass. Standard/tail binding pending.
-Core evidence `TestResults/CoreCurrent/entity-reverse-core.trx`, SHA256 `1A3C40D7B7C8CFF45BBBAC80769D5AF7B0A1259F0ED8DEEBD4A82300F2F46FAB`.
+Independent permission verified. Standard/tail binding:3 new tests plus12 new native cases/store pass.
+Binding evidence `TestResults/CoreCurrent/entity-tail-binding-regression.trx`, SHA256 `922BCB725C78366588DF1D9A061DC76A48D848CA21693AD884382BAE5009344E`.
 
 ## Fixture and resource safety
 
