@@ -10,9 +10,18 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed class CosmicLinqTests
 {
-    private sealed class Adapter : ICosmicQueryStorageProvider
+    private sealed class Adapter : ICosmicQueryStorageProvider, ICosmicQueryScalarStorageProvider
     {
         public int Calls;
+        public int ScalarCalls;
+        public long NativeCount = 2;
+        public CosmicScalarCapabilities ScalarCapabilities => new(CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All);
+        public Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan, CancellationToken cancellationToken = default) where T : IHolon
+        {
+            ScalarCalls++; Seen = (CosmicQuery<Holon>)(object)plan.Query.Source;
+            return Task.FromResult(Fault == null ? CosmicScalarResults.FromCount(plan.Query, NativeCount)
+                : new OASISResult<TResult> { IsError = true, ErrorCount = 1, ErrorCode = Fault, Message = "Owned scalar fault." });
+        }
         public CosmicQuery<Holon>? Seen;
         public string? Fault;
         public bool BrokenCapabilities;
@@ -95,7 +104,7 @@ public sealed class CosmicLinqTests
         Assert.Throws<CosmicLinqException>(() => query.Where((row, index) => index > 0));
         Assert.Throws<CosmicLinqException>(() => query.Select(row => row.Name));
         Assert.Throws<CosmicLinqException>(() => query.OrderBy(row => row.Name, StringComparer.OrdinalIgnoreCase));
-        Assert.Throws<CosmicLinqException>(() => query.Count());
+        Assert.Throws<CosmicLinqException>(() => query.Sum(row => row.Version));
         Assert.Equal(0, adapter.Calls);
     }
 
@@ -135,5 +144,37 @@ public sealed class CosmicLinqTests
         Assert.Equal("CQL_EXECUTION_FAILED", result.ErrorCode);
         Assert.Contains("Owned capability fault", result.Exception.Message);
         Assert.Null(result.Result); Assert.False(result.IsLoaded); Assert.Equal(0, adapter.Calls);
+    }
+    [Fact]
+    public void StandardCardinalityAndAllUseNativeScalarExecutionWithoutRows()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal(2, root.Skip(1).Take(3).Count());
+        Assert.Equal(1, adapter.Seen!.Offset); Assert.Equal(3, adapter.Seen.Limit);
+        Assert.Equal(2L, root.LongCount()); Assert.True(root.Any());
+        Assert.False(root.Take(1).All(row => row.Name == "coffee"));
+        Assert.Equal(1, adapter.Seen!.Limit);
+        adapter.NativeCount = 0;
+        Assert.True(root.All(row => row.Name == "coffee"));
+        Assert.Equal(5, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
+    }
+
+    [Fact]
+    public void TerminalPredicatesNeverMoveAheadOfAnExistingWindow()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal(2, root.Count(row => row.Name == "coffee"));
+        Assert.Single(adapter.Seen!.Predicates);
+        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",
+            Assert.Throws<CosmicLinqException>(() => root.Take(1).Count(row => row.Name == "coffee")).Code);
+        Assert.Equal(1, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
+    }
+
+    [Fact]
+    public void ScalarProviderFailuresPreserveTheirErrorAndNeverFetchRows()
+    {
+        var adapter = new Adapter { Fault = "OWNED_SCALAR_ERROR" };
+        Assert.Equal("OWNED_SCALAR_ERROR", Assert.Throws<CosmicLinqException>(() => Root(adapter).Count()).Code);
+        Assert.Equal(1, adapter.ScalarCalls); Assert.Equal(0, adapter.Calls);
     }
 }
