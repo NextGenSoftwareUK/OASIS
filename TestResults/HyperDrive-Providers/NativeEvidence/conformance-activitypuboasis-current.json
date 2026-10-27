@@ -1,0 +1,27 @@
+{
+  "suite": "capability-v1",
+  "runs": [
+    {
+      "SuiteVersion": "capability-v1",
+      "Provider": "ActivityPubOASIS",
+      "Mode": "native",
+      "Passed": [
+        "identity",
+        "capabilities",
+        "activate",
+        "read-only-service-probe",
+        "deactivate"
+      ],
+      "CurrentCase": "complete",
+      "FailureType": "",
+      "Observation": {
+        "ServiceHost": "mastodon.social",
+        "Operation": "PublicAccountLookup",
+        "RoundTrips": 2,
+        "ReadOnly": true,
+        "Acknowledged": true
+      },
+      "Succeeded": true
+    }
+  ]
+}

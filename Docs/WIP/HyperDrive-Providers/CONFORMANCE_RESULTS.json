@@ -259,14 +259,11 @@
       "provider": "AzureStorageOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 25,
+      "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
-      "sha256": "58c4a1a2d9aedb295e8f2a4649e40b1f2fea56dd2549284dac67e0caa0fb6f19",
-      "blockers": [
-        "async: holon-update: ",
-        "sync: parent-query: System.InvalidOperationException [collection count]"
-      ]
+      "sha256": "aa3290ad148e8f761c6b182051428e7ade15256f4b995ae163a5ec28f925a870",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -342,9 +339,6 @@
     ],
     "GoogleCloudOASIS": [
       "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
-    ],
-    "AzureStorageOASIS": [
-      "Native25/52 is partial: async report publication interrupted with report.json.next retained; sync parent-query count failed. Count fixes now109controlledPASS; exact graph-fixture/checkpoint review and native rerun still required."
     ]
   },
   "suites": [
