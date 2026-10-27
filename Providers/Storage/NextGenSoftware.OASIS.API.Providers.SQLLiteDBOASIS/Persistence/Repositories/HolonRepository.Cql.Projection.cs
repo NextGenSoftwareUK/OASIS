@@ -23,10 +23,19 @@ public partial class HolonRepository
 {
     private static readonly Encoding ProjectionUtf8 = new UTF8Encoding(false, true);
 
-    public async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
         CosmicProjectionPlan<T, TResult> plan, int maximumResults = 100,
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
+        => ExecuteProjectionReadAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken);
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
+        CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken) where T:IHolon
+        => ExecuteProjectionReadAsync(plan?.Selection,maximumResults,maximumPayloadBytes,cancellationToken,plan?.Source);
+
+    private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
+        CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
+        CosmicEntityCompositionPlan<T> composition=null) where T:IHolon
     {
         try
         {
@@ -37,16 +46,22 @@ public partial class HolonRepository
             if (maximumResults < 0 || maximumResults > CosmicProjectionResults.MaximumResultLimit
                 || maximumPayloadBytes < 0 || maximumPayloadBytes > CosmicProjectionResults.MaximumPayloadLimit)
                 return ProjectionCqlError("CQL_QUERY_LIMIT", "Projection output bounds are invalid.");
+            if (composition != null)
+            {
+                var stages=SQLLiteDBOASIS.CqlEntityCompositionCapabilities.Admit(composition.Query);
+                if (stages.IsError) return ProjectionCqlError(stages.ErrorCode,stages.Message,stages.Exception);
+            }
             var source = plan.Query.Source;
-            var translator = new CqlSqlTranslator(source.ReadAccess);
-            var predicate = translator.TranslateSource(source.Predicates);
-            var ordering = translator.TranslateOrdering(source.Orderings);
+            var entitySql=composition == null ? null : CompileEntityCompositionSql(composition);
+            var translator = entitySql?.SourceTranslator ?? new CqlSqlTranslator(source.ReadAccess);
+            var predicate = entitySql?.SourcePredicate ?? translator.TranslateSource(source.Predicates);
+            var ordering = entitySql == null ? translator.TranslateOrdering(source.Orderings) : "Holon." + entitySql.Position;
             var columns = translator.TranslateProjection(plan.Query.Columns);
-            var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
+            var fetch = composition != null ? maximumResults+1 : source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
             translator.Parameters.Add(new SqliteParameter("$projectionLimit", fetch));
             translator.Parameters.Add(new SqliteParameter("$projectionOffset", source.Offset));
             cancellationToken.ThrowIfCancellationRequested();
-            if (fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (composition == null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -55,8 +70,8 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
-                using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
-                var needsSnapshot = source.GraphOptions != null || translator.HasRelationship;
+                using var traversal = translator.HasRelationship || entitySql?.HasRelationship == true ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
+                var needsSnapshot = composition != null || source.GraphOptions != null || translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return ProjectionCqlError("CQL_CONSISTENCY_UNSUPPORTED", "SQLite projection scope requires a serializable read owner.");
@@ -69,10 +84,15 @@ public partial class HolonRepository
                     // Mandatory scope validation must finish before the source
                     // window can hide another root's malformed traversal.
                     await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
+                    if (entitySql != null)
+                        await ValidateEntityCompositionAsync(entitySql,composition.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
                     using var command = connection.CreateCommand();
                     command.Transaction = _dbContext.Database.CurrentTransaction?.GetDbTransaction() as SqliteTransaction;
                     command.CommandText = "/* COSMIC projection */ SELECT " + columns + " FROM Holon WHERE " + predicate
                         + " ORDER BY " + ordering + " LIMIT $projectionLimit OFFSET $projectionOffset";
+                    if (entitySql != null)
+                        command.CommandText="/* COSMIC entity-stage projection */ SELECT " + columns + " FROM (" + entitySql.Rows
+                            + ") AS Holon ORDER BY " + ordering + " LIMIT $projectionLimit";
                     foreach (var parameter in translator.Parameters)
                         command.Parameters.Add(new SqliteParameter(parameter.ParameterName, parameter.SqliteType) { Value = parameter.Value });
                     var rows = new List<CosmicProjectionRow>();

@@ -1,7 +1,8 @@
 # COSMIC ORM / CQL
 
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
-2. [CQL parity checklist](CQL_PARITY_CHECKLIST.md): one feature row, independent proof per database; red rows only.
+2. [Eight-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md): active priority before full parity.
+3. [CQL parity checklist](CQL_PARITY_CHECKLIST.md): one feature row, independent proof per database; red rows only.
 3. [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and [COSMIC ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
 4. [Implementation status](IMPLEMENTATION_STATUS.md) and [active projected-All/source contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md).
 5. [CQL manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

@@ -24,3 +24,5 @@ Native entity Reverse independently enrolled on all3,6 live cases/store;45 SQLit
 Explicit default-value overloads verified on all3:3 shared tests and12 live cases/store. Caller identity/tracking preserved only after acknowledged empty selection; errors/ambiguity propagate. Staged projection/numeric integration remains pending.
 
 Shared entity-projection foundation implemented with4 new tests and both Core targets built; source stages remain separate from selection, actual native enrollment is mandatory, all cells/count bounds validate before DTO constructors. Native providers/standard Select/selected-stage/numeric integration pending. Latest1,781 native cohort predates this Core increment.
+
+Priority27October: broader demo before full parity. Cosmos recommended first cloud, Solana first chain, then IPFS, SOLID, ActivityPub; see CQL_DEMO_EXPANSION_ROADMAP.md. SQLite entity projection passes47 CQL tests/10 native cases (combined1,791); unfinished parity depth deferred unless demo needs it.

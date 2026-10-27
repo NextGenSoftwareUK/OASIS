@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 
@@ -16,17 +19,50 @@ public partial class HolonRepository
         internal readonly List<SqliteParameter> Parameters;
         internal readonly string Rows;
         internal readonly string Source;
+        internal readonly string Position;
         internal readonly IReadOnlyList<string> StageCounts;
         internal readonly IReadOnlyList<string> ProtectedScopes;
         internal readonly CqlSqlTranslator SourceTranslator;
         internal readonly string SourcePredicate;
         internal readonly bool HasRelationship;
         internal EntityCompositionSql(List<SqliteParameter> parameters, string rows, string source,
-            List<string> counts, List<string> scopes, CqlSqlTranslator translator, string predicate, bool relationships)
+            List<string> counts, List<string> scopes, CqlSqlTranslator translator, string predicate, bool relationships,string position)
         {
             Parameters = parameters; Rows = rows; Source = source; StageCounts = counts;
             ProtectedScopes = scopes; SourceTranslator = translator; SourcePredicate = predicate;
-            HasRelationship = relationships;
+            HasRelationship = relationships; Position=position;
+        }
+    }
+
+    private async Task ValidateEntityCompositionAsync(EntityCompositionSql entitySql,CosmicEntityCompositionOptions options,
+        SqliteCqlReadBudget budget,SqliteCqlTraversalGuard traversal,CancellationToken cancellationToken)
+    {
+        // Source bounds apply before filtering, including a later Take(0).
+        // Native rows are measured here, never filtered in managed code.
+        var sourceRows = 0;
+        long sourceBytes = 0;
+        var sourceQuery = _dbContext.Holons.FromSqlRaw(entitySql.Source,
+            entitySql.Parameters.Cast<object>().ToArray()).AsNoTracking();
+        await foreach (var row in sourceQuery.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            budget.Check(); traversal?.Check();
+            sourceBytes = checked(sourceBytes + CqlRecordSize(row));
+            if (++sourceRows > options.MaximumInputRows
+                || sourceBytes > options.MaximumInputPayloadBytes)
+                throw new SqliteCqlResourceException("Entity composition exceeds its native source row/payload budget.");
+        }
+        long work = 0;
+        for (var index = 0; index < entitySql.StageCounts.Count; index++)
+        {
+            var count = await _dbContext.Database.SqlQueryRaw<long>(entitySql.StageCounts[index],
+                entitySql.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+            work = checked(work + count);
+            if (count < 0 || work > options.MaximumStageRows)
+                throw new SqliteCqlResourceException("Entity composition exceeds its cumulative native stage-work budget.");
+            if (entitySql.ProtectedScopes[index] != null)
+                await _dbContext.Database.SqlQueryRaw<long>(entitySql.ProtectedScopes[index],
+                    entitySql.Parameters.Cast<object>().ToArray()).SingleAsync(cancellationToken).ConfigureAwait(false);
+            budget.Check(); traversal?.Check();
         }
     }
 
@@ -97,6 +133,6 @@ public partial class HolonRepository
         }
         return new EntityCompositionSql(translator.Parameters,
             Prefix() + "SELECT * FROM " + relation + " ORDER BY " + position,
-            sourceSql, counts, scopes, translator, predicate, hasRelationship);
+            sourceSql, counts, scopes, translator, predicate, hasRelationship,position);
     }
 }
