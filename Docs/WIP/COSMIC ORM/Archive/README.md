@@ -130,3 +130,5 @@ Archived commands may show historical Docs output paths: do not run them verbati
 - [VERIFICATION](VERIFICATION.md)
 - [WEB4_VISION_AND_AI_NEXT_STEPS](WEB4_VISION_AND_AI_NEXT_STEPS.md)
 - [WRITE_PREPARATION](WRITE_PREPARATION.md)
+
+- [Selected numeric/shared extrema checkpoints,27 October](CQL_SELECTED_NUMERIC_CHECKPOINTS_2026-10-27.md).
