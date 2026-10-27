@@ -38,7 +38,7 @@ public partial class HolonRepository
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var parameters = new List<SqliteParameter>();
         var translator = new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
-        var predicate = query.Source.Predicates.Count == 0 ? "1" : string.Join(" AND ", query.Source.Predicates.Select(translator.Translate));
+        var predicate = translator.TranslateSource(query.Source.Predicates);
         var sourceOrder = translator.TranslateOrdering(query.Source.Orderings);
         var cells = new List<string>
         {

@@ -39,7 +39,7 @@ public partial class HolonRepository
                 return ProjectionCqlError("CQL_QUERY_LIMIT", "Projection output bounds are invalid.");
             var source = plan.Query.Source;
             var translator = new CqlSqlTranslator(source.ReadAccess);
-            var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
+            var predicate = translator.TranslateSource(source.Predicates);
             var ordering = translator.TranslateOrdering(source.Orderings);
             var columns = translator.TranslateProjection(plan.Query.Columns);
             var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
