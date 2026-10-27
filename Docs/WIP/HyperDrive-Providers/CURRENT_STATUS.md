@@ -18,10 +18,10 @@ Updated 2026-10-27. Read this first; the four current summaries plus this file a
 
 | State | Providers / scope |
 |---|---|
-| Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile |
+| Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile, Azure Blob |
 | Controlled 52/52 only | KeyDB, ValKey, Dragonfly, Garnet; actual product-native runs pending |
 | Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication verified; full social operation gates remain open |
-| Partial native | Solana4/52: unavailable referenced history chunk; Azure Blob25/52: count fixes109controlledPASS; interrupted checkpoint and graph fixtures retained |
+| Partial native | Solana4/52: unavailable referenced history chunk; original outcomes retained |
 | Blocked before native | SOLID, IPFS, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
 | Remaining families | Most matrix rows still lack a native shared-suite run |
 
@@ -29,7 +29,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Exact next step: review Azure Blob async report.json.next publication failure, preserve/reconcile the exact graph fixtures, then rerun native. Count fixes pass109controls, native remains25/52. See [Azure baseline](AZURE_BLOB_STORAGE_BASELINE.md). Report writers now target `TestResults/HyperDrive-Providers/NativeEvidence`; setup/PostgreSQL archivers read hash-verified registry paths. Six report controls pass, including legacy/current paths and tamper rejection. Existing linked evidence remains. Report migration published as `d70625e86`; existing linked reports remain in place.
+1. Next: bind SQLite to the shared baseline with its cached host/in-process engine (baseline only; no SQLite depth). Azure Blob52/52 +111controls and graceful persisted cleanup are verified. New reports use TestResults; linked legacy evidence stays in place.
 2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
 3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
@@ -41,10 +41,11 @@ These are captured local-engine/emulator or public-read results, not full provid
 - Moved DynamoDB JAR hash: `67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620`.
 - DynamoDB rerun: AWS/Dynamo 52/52 each + 27 factory controls; all five tables empty. SQLite database 43,008 bytes; evidence folder about 50.9 MB; container stopped.
 - LocalFile current-suite52/52 and20controls passed; counts/delete acknowledgement fixed; old failures preserved, current fixture payloads0. Details: [LocalFile baseline](LOCALFILE_STORAGE_BASELINE.md).
+- Azure Blob automatic runner52/52 +111controls passed; six containers empty, stopped metadata0blobs/blocks after official graceful IPC shutdown. Original failed payloads/checkpoints preserved.
 - SOLID binding builds; 0/52 due missing original protected inputs. Container not started; no key/identity/ACL mutation.
 - ActivityPub scoped source/tests and evidence summary published as `00235929a`; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
 - Other dirty work includes a Core submodule and unrelated WIP moves/reports; inspect `git status` before staging.
-- This docs checkpoint preserves history and moves only unlinked evidence; no code/test changes or test execution.
+- Documentation tidy checkpoint591182879 preserved history and moved only unlinked evidence; subsequent scoped code/test milestones are recorded above.
 
 ## Key commands
 

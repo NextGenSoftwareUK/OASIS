@@ -15,3 +15,5 @@ The four large histories and old README are byte-identical to their checkpoint o
 | HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md | [HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md](HYPERDRIVE_LEGACY_V2_GAP_AUDIT_AND_HANDOFF.md) | 29216 | 492 | `b86478afa967db95fc5c3710f3761718cd9fbc335af63ea4deeb4731afc1ed32` | 135 |
 
 Incremental compact-ledger rollover: `WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-27.md`; five original entry lines retained verbatim, combined body SHA256 `b177cc2a8ad84bbad20793baeb97dcf4fae2300ef0a544a4da41c230d296c21c`. The original seven pre-trim histories above remain unchanged.
+Additional two LocalFile entry lines appended verbatim to the same incremental archive; combined chunk SHA256 `3f29f86ec8fd3205c00b727af35fc35c2447792affd9129b815ba2ed38bf94b6`. Original archived history bytes remain unchanged.
+Additional four earlier Azure entry lines appended verbatim; combined chunk SHA256 `4a19121504c7bed3236bbaababae36e203a43fd84517ffd72372a6ffe2a04204`.
