@@ -31,7 +31,7 @@ public partial class PolkadotOASIS
             if (!string.IsNullOrEmpty(memo)) throw new ArgumentException("Asset transfer memo support is not enabled.");
             return PrepareAssetMutationAsync("transfer", assetId, sender, recipient, amount,
                 publicKey, privateKey, mnemonic, owner.Token);
-        }, true);
+        }, NativeMutationKind.Asset);
 
     private Task<OASISResult<ITransactionResponse>> MintOwnedAssetAsync(IMintWeb3TokenRequest request)
         => ExecuteOwnedMutationAsync(async owner => {
@@ -63,7 +63,7 @@ public partial class PolkadotOASIS
             // The SDK checks address/key agreement; the admitted owner independently binds the canonical signer before ACK.
             return await PrepareAssetMutationAsync("mint", assetId, wallet.WalletAddress, recipient, amount,
                 wallet.PublicKey, wallet.PrivateKey, null, owner.Token).ConfigureAwait(false);
-        }, true);
+        }, NativeMutationKind.Asset);
 
     private Task<OASISResult<ITransactionResponse>> BurnOwnedAssetAsync(IBurnWeb3TokenRequest request)
         => ExecuteOwnedMutationAsync(owner => {
@@ -79,7 +79,7 @@ public partial class PolkadotOASIS
             ValidateAssetFields(assetId, holder, amount);
             return PrepareAssetMutationAsync("burn", assetId, holder, holder, amount,
                 holder, privateKey, mnemonic, owner.Token);
-        }, true);
+        }, NativeMutationKind.Asset);
 
     // Reuse existing default-wallet selection, access controls and detached credential decryption.
     // Never pick the first key or fall back to a configured service wallet.

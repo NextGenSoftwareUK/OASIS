@@ -324,7 +324,7 @@ ON CONFLICT (id) DO UPDATE SET
                 var scalar = await cmd.ExecuteScalarAsync();
                 if (scalar == null) { OASISErrorHandling.HandleError(ref result, $"PostgreSQLOASIS: No avatar detail found for ID '{id}'.");result.ErrorCode=OASISResultErrorCodes.RecordNotFound;return result; }
                 result.Result = await ReadVisibleAvatarRecordAsync<AvatarDetail>(id,scalar.ToString()!,version);
-                if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested avatar-detail version was not found.";return result;}result.IsLoaded=true;
+                if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested avatar-detail version was not found.";return result;}result.IsLoaded=true;result.LoadedCount=1;
                 result.IsError = false;
                 result.Message = $"PostgreSQLOASIS: AvatarDetail loaded for ID '{id}'.";
             }

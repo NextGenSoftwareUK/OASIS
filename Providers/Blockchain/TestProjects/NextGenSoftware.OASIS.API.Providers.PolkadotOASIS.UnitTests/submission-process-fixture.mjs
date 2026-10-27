@@ -12,7 +12,25 @@ async function waitForOwnedCancellation(signal) {
   socket.write(signal);
   await new Promise(() => {});
 }
-if (request.operation === 'prepareRecordMutation') {
+if (request.operation === 'nftOutcome' && request.custodyReceipt === true) {
+  emit({ transactionHash: request.transactionHash, finalized: true, dispatchSucceeded: true,
+    nftEffectMatchesRequest: true, custodyReceiptVerified: true, contractAddress: request.contractAddress,
+    contractCodeHash: request.contractCodeHash, custody: request.custody, to: request.custody,
+    tokenId: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'source-mismatch' ? { U8: '1' } : request.tokenId });
+} else if (request.operation === 'prepareNftMutation') {
+  const mode = process.env.OASIS_POLKADOT_TEST_OUTCOME;
+  emit({ transactionHash: originalHash, chainId: chain, sender: request.sender,
+    action: request.action, contractAddress: request.contractAddress, contractCodeHash: request.contractCodeHash,
+    tokenId: mode === 'prepared-token-mismatch' ? { U8: '1' } : request.tokenId,
+    ...(request.to !== undefined ? { to: request.to } : {}),
+    ...(request.expectedFrom !== undefined ? { expectedFrom: request.expectedFrom } : {}),
+    ...(request.attributes !== undefined ? { attributes: mode === 'prepared-metadata-mismatch' ? [] : request.attributes } : {}),
+    signedTransactionBase64: 'AQID', signature: 'fixture-signature',
+    signDocBase64: Buffer.from(JSON.stringify({ signingPayload: { blockNumber: '0x01' } })).toString('base64') });
+} else if (request.operation === 'verifyNftPreparation') {
+  emit({ verified: true, transactionHash: originalHash, chainId: chain,
+    sender: request.preparation.sender, contractCodeHash: request.preparation.contractCodeHash });
+} else if (request.operation === 'prepareRecordMutation') {
   process.stdout.write(JSON.stringify({ ok: false, error: 'controlled pre-sign conflict', contractError: 'Conflict' }));
   process.exitCode = 1;
 } else if (request.operation === 'transactionStatus') {
@@ -62,7 +80,7 @@ if (request.operation === 'prepareRecordMutation') {
       finalized: true, fromBlock: '1', toBlock: mode === 'wrong-range' ? '2' : '1', finalizedSnapshotBlock: '2',
       rows: mode === 'two-events' ? [row, { ...row, eventIndex: 3 }] : [row] });
   }
-} else if (request.operation === 'originalOutcome' || request.operation === 'assetOutcome') {
+} else if (request.operation === 'originalOutcome' || request.operation === 'assetOutcome' || request.operation === 'nftOutcome') {
   if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wait-for-cancellation') {
     await waitForOwnedCancellation('1'); // Actual finality read entry, not a timing guess.
   } else if (process.env.OASIS_POLKADOT_TEST_OUTCOME === 'read-error') {
@@ -76,6 +94,14 @@ if (request.operation === 'prepareRecordMutation') {
       observedUnits: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-units' ? '1250000' : '1250001',
       requestedUnits: '1250001', assetId: request.preparation.assetId, recipient: request.preparation.recipient,
       action: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-action' ? 'other' : request.preparation.action
+    } : {}),
+    ...(request.operation === 'nftOutcome' ? {
+      nftEffectMatchesRequest: process.env.OASIS_POLKADOT_TEST_OUTCOME !== 'effect-mismatch',
+      action: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-action' ? 'other' : request.preparation.action,
+      tokenId: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-token' ? { U8: '1' } : request.preparation.tokenId,
+      contractAddress: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-contract' ? chain : request.preparation.contractAddress,
+      from: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-from' ? chain : request.preparation.expectedFrom ?? null,
+      to: process.env.OASIS_POLKADOT_TEST_OUTCOME === 'wrong-to' ? chain : request.preparation.to ?? null
     } : {}),
     dispatchError: 'controlled dispatch failure', actualFeeUnits: '12'
   } });

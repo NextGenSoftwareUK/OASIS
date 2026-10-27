@@ -85,11 +85,14 @@ public partial class HolonRepository
     }
 
     private static OASISResult<HolonWritePreparation> ReadPreparation(HolonWritePreparation candidate, BsonDocument body)
+        => ReadPreparation(candidate.OperationId, candidate.ActorId, body);
+
+    private static OASISResult<HolonWritePreparation> ReadPreparation(Guid operationId, Guid actorId, BsonDocument body)
     {
-        if (body.GetValue("ActorId", BsonNull.Value) != candidate.ActorId.ToString("D"))
+        if (body.GetValue("ActorId", BsonNull.Value) != actorId.ToString("D"))
             return PreparationError("COSMIC_PREPARATION_ACTOR_MISMATCH", "The operation is owned by another actor.");
         if (body.ElementCount != 5 || body.GetValue("Format", BsonNull.Value).BsonType != BsonType.Int32 || body["Format"].AsInt32 != 1
-            || body.GetValue("_id", BsonNull.Value) != candidate.OperationId.ToString("D")
+            || body.GetValue("_id", BsonNull.Value) != operationId.ToString("D")
             || body.GetValue("Records", BsonNull.Value) is not BsonArray rows || rows.Count < 1 || rows.Count > HolonWritePreparation.MaximumRecords
             || body.GetValue("CreatedAtUtc", BsonNull.Value).BsonType != BsonType.DateTime)
             throw new InvalidDataException("Stored preparation schema is invalid.");
@@ -102,7 +105,7 @@ public partial class HolonRepository
                 throw new InvalidDataException("Stored preparation record is invalid.");
             records.Add(new ProtectedHolonPreparation(id, envelope.AsString));
         }
-        return new OASISResult<HolonWritePreparation>(new HolonWritePreparation(candidate.OperationId, candidate.ActorId, candidate.Authority, records));
+        return new OASISResult<HolonWritePreparation>(new HolonWritePreparation(operationId, actorId, ProviderType.MongoDBOASIS, records));
     }
     private static OASISResult<HolonWritePreparation> PreparationError(string code, string message, Exception error = null)
         => new OASISResult<HolonWritePreparation> { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = error };

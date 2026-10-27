@@ -66,6 +66,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
          if (isV2Write && (configResult.IsError || configResult.Response?.Result?.IsError == true))
          {
+             if (!string.IsNullOrEmpty(configResult.Response?.Result?.ErrorCode))
+             {
+                 Response.StatusCode = (int)configResult.Response.StatusCode;
+                 return configResult.Response;
+             }
              var invalidConfig = HolonWriteEndpoint.ConfigurationError<IHolon>(configResult.Response?.Result?.Message);
              Response.StatusCode = (int)HolonWriteEndpoint.Status(invalidConfig);
              return HttpResponseHelper.FormatResponse(invalidConfig, HolonWriteEndpoint.Status(invalidConfig), request.ShowDetailedSettings);
@@ -78,11 +83,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
          {
          if (isV2Write)
          {
-             var written = await HolonWriteEndpoint.SaveAsync(HolonManager, request, callerId, callerIsWizard,
-                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+             var context = HolonManager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(), configResult.RequestProviderType);
+             if (context.IsError)
+             {
+                 var error = RequestContextError<IHolon>(context);
+                 Response.StatusCode = (int)HolonWriteEndpoint.Status(error);
+                 return HttpResponseHelper.FormatResponse(error, HolonWriteEndpoint.Status(error), request.ShowDetailedSettings);
+             }
+             var written = await HolonWriteEndpoint.SaveAsync(context.Result.Manager, request, callerId, callerIsWizard,
+                 Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                 HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
              var status = HolonWriteEndpoint.Status(written);
              Response.StatusCode = (int)status;
-             return HttpResponseHelper.FormatResponse(written, status, request.ShowDetailedSettings);
+             return HttpResponseHelper.FormatResponse(written, status, request.ShowDetailedSettings).BindRoutingPolicy(context.Result.Policy);
          }
 
          // For updates (non-empty ID), verify the caller owns the existing holon or is a Wizard

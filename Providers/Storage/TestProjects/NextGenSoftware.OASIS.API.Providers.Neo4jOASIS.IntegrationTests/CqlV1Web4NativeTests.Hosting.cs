@@ -122,12 +122,7 @@ public sealed partial class CqlV1Web4NativeTests
         builder.Services.AddSingleton<IUsageReservationAuthority>(authority);
         builder.Services.AddSingleton(new Web4UsageLedgerOptions
         {
-            Service = "WEB4", EndpointPolicy = http => IsQueryRoute(http) ? new UsageEndpointPolicy
-            {
-                MeterCategory = "cql.query", ReservedUnits = 1, EstimatedCostUsd = 0.002m,
-                PricingCatalogueVersion = "owned-fixture-v1", RequiresProviderMeasurement = true,
-                MaximumProviderAttempts = 1, MaximumNativeFeeCostUsd = 0
-            } : null
+            Service = "WEB4", EndpointPolicy = DemoQueryPolicy
         });
         builder.Services.AddSingleton<Web4UsageExecution>();
         builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(new PricedStorageAdmissionFactory(
@@ -154,7 +149,7 @@ public sealed partial class CqlV1Web4NativeTests
                       return (async () => {
                         const target = new URL(request.url, window.location.origin);
                         if (target.origin === window.location.origin &&
-                            ['/api/data/query-cql', '/api/data/query-cql/scalar', '/api/data/query-cql/projection', '/api/data/query-cql/grouped', '/api/data/query-cql/join'].includes(target.pathname) && !request.headers.Authorization) {
+                            __CQL_ROUTES__.includes(target.pathname) && !request.headers.Authorization) {
                             const response = await fetch('/demo/session');
                             if (!response.ok) throw new Error('Demo session is not ready.');
                             const session = await response.json();
@@ -163,7 +158,7 @@ public sealed partial class CqlV1Web4NativeTests
                         return request;
                       })();
                     }
-                    """.ReplaceLineEndings(" "));
+                    """.Replace("__CQL_ROUTES__", System.Text.Json.JsonSerializer.Serialize(NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryHttpRoutes.Paths), StringComparison.Ordinal).ReplaceLineEndings(" "));
             });
             V1DemoPresentation.Map(app, demo);
         }
@@ -204,6 +199,18 @@ public sealed partial class CqlV1Web4NativeTests
 
     private static bool IsQueryRoute(HttpContext http)
         => NextGenSoftware.OASIS.API.Core.Queries.CosmicQueryHttpRoutes.Contains(http.Request.Path.Value);
+
+    private static UsageEndpointPolicy? DemoQueryPolicy(HttpContext http)
+    {
+        if (!IsQueryRoute(http)) return null;
+        var attempts = http.Request.Path.Value?.TrimEnd('/').Equals("/api/data/query-cql/federation", StringComparison.OrdinalIgnoreCase) == true ? 3 : 1;
+        return new UsageEndpointPolicy
+        {
+            MeterCategory = "cql.query", ReservedUnits = 1, EstimatedCostUsd = 0.002m * attempts,
+            PricingCatalogueVersion = "owned-fixture-v1", RequiresProviderMeasurement = true,
+            MaximumProviderAttempts = attempts, MaximumNativeFeeCostUsd = 0
+        };
+    }
 
     private static string Token(Guid actor, SymmetricSecurityKey key, string issuer = "owned-cql-v1-fixture",
         bool expired = false, Guid? claimId = null, int lifetimeMinutes = 5) =>

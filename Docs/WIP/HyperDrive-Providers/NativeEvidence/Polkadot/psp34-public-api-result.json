@@ -1,0 +1,165 @@
+{
+  "nativeGateSession": 22504,
+  "terminalExitCode": 0,
+  "reports": [
+    {
+      "path": "psp34-public-api-controlled-current.trx.gz",
+      "rawBytes": 507246,
+      "gzipBytes": 71819,
+      "rawSha256": "4ab40b971ce454c128662d91c31517addc379ae5a54787850ff681d0de1bafad",
+      "counters": {
+        "total": "329",
+        "executed": "329",
+        "passed": "329",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "psp34-onode-nft-controlled-current.trx.gz",
+      "rawBytes": 198567,
+      "gzipBytes": 24948,
+      "rawSha256": "ce5b38c44413c1909b9736e756b97ef7db1b4640ee0ad310deabad97b20c9f22",
+      "counters": {
+        "total": "119",
+        "executed": "119",
+        "passed": "119",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "psp34-public-mutation-native-current.trx.gz",
+      "rawBytes": 2901,
+      "gzipBytes": 1204,
+      "rawSha256": "5d405b119b3b78e50ca5020dd0db9b2f30768f7ef11026e325afc1da7091735a",
+      "counters": {
+        "total": "1",
+        "executed": "1",
+        "passed": "1",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "psp34-public-mutation-recovery-current.trx.gz",
+      "rawBytes": 2901,
+      "gzipBytes": 1204,
+      "rawSha256": "1f7cf92ad56a03fd77116481f8ca769f1b118dd2aec6ee0deccc90db3686c59c",
+      "counters": {
+        "total": "1",
+        "executed": "1",
+        "passed": "1",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "psp34-public-api-post-native-current.trx.gz",
+      "rawBytes": 507246,
+      "gzipBytes": 71898,
+      "rawSha256": "063fa6d9d554063453358b9eae9af18f3b7af5e5eb8d783e6fb817af75380d84",
+      "counters": {
+        "total": "329",
+        "executed": "329",
+        "passed": "329",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "logs": [
+    {
+      "path": "psp34-public-api-sdk-current.log.gz",
+      "rawBytes": 14074,
+      "gzipBytes": 2864,
+      "rawSha256": "9a607795f364fabd541b64d49bc347f7533ecf1d5cde78e751cc801bbea5c424"
+    },
+    {
+      "path": "psp34-onode-build-current.log.gz",
+      "rawBytes": 25028,
+      "gzipBytes": 1463,
+      "rawSha256": "2b3fb27fa161f883b601b1c04975b1a29ca33215d447073f852e84f5a1a185cf"
+    }
+  ],
+  "nativeOriginalCount": 5,
+  "nativeFeeBaseUnits": "17430258451",
+  "sourceSha256": {
+    "PolkadotOASIS.NftMutation.cs": "91c77d71901f9eb8188ddf593e7dc15586964378e5ddcf7022f54433f514470d",
+    "PolkadotOASIS.OwnedTransfer.cs": "f09970d2b03d7fe8c9ffbe1a18336bf1c2859fdfa89e8045698c024722b7ed50",
+    "PolkadotOASIS.PreparationPersistence.cs": "04f174f5542602598d3208df0187234c16fcd6c16aef87d49fd78f5daea6a338",
+    "PolkadotOASIS.TransferPreparation.cs": "3e6c03f8f874a28c78f666057cc62c169ef5beeab10aa225707ec96d038be2e6",
+    "PolkadotOASIS.FinalizedReceipt.cs": "741f67802e6f411713f0c572659cc73576fe8b073b073370379cbb6967002234",
+    "PolkadotOASIS.AssetMutation.cs": "47c4de54894b223034c388da99b998661c6320345f272997404f542419ac8130",
+    "PolkadotOASIS.SaveNFT.cs": "d8e649d0b489f256b167d84d8d15c26a6558cc0c35173fa0e918dfa712b6d771",
+    "SdkBridge/psp34-contract-mutation.mjs": "8e8f25c8fec170b486013c5556a6c9f4c362c6f635b1dea5c4ea6c6ad85779f8",
+    "SdkBridge/psp34-contract-outcome.mjs": "72ceeee64c144e9c764b303359813f64a4f4f3b13b4cb834db7714e81d47f156",
+    "SdkBridge/oasis-psp34-mutation-codec.mjs": "12307ac8f40bbdc8dfd266e7bdfd91b246dca1368f94ff227dc76ba5ed6b21d3",
+    "SdkBridge/bridge.mjs": "f9ad25d0580ddbf7080b2660ecb90079d5f7d4d7df2bd92aca98828a6bd6ba6b"
+  },
+  "sdkControlledPassed": 63,
+  "pendingFenceCases": 93,
+  "walletLookup": "synthetic fixed local fixture",
+  "admission": "file-backed synthetic owner; not hosted Mongo/JWT/quota",
+  "hostedBillingVerified": false,
+  "httpOwnerIntegrationVerified": false,
+  "finalState": "psp34-public-state-current.json",
+  "nativeProducerIdentities": "psp34-public-mutation-producer-identities.json",
+  "nativeOptInConsumerObserved": "psp34-public-mutation-native-consumer-identities.json",
+  "nativeOptInDllReplacedByOrdinaryHostAfterTests": true
+}

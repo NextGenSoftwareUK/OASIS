@@ -1,5 +1,6 @@
-param([switch]$AllVersionExports,[switch]$CollectionIdentities,[switch]$ReadCounts,[switch]$IndependentExportVersions,[switch]$ReconcileScalarFixture,[switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
+param([switch]$ConformanceOnly,[switch]$AllVersionExports,[switch]$CollectionIdentities,[switch]$ReadCounts,[switch]$IndependentExportVersions,[switch]$ReconcileScalarFixture,[switch]$InspectScalarFixture,[switch]$InspectRetainedFixture,[switch]$ReconcileRetainedRoutingFixture,[switch]$ReconcileCredentialFixture,[switch]$ReconcileRoleFixture)
 $ErrorActionPreference='Stop'
+if($ConformanceOnly -and $PSBoundParameters.Count -ne 1){throw 'Choose canonical Cosmos DB conformance alone.'}
 $diagnosticModes=@($ReconcileScalarFixture,$InspectScalarFixture,$InspectRetainedFixture,$ReconcileRetainedRoutingFixture,$ReconcileCredentialFixture,$ReconcileRoleFixture) | Where-Object {$_}
 if(@($diagnosticModes).Count -gt 1){throw 'Select only one explicit Cosmos DB diagnostic mode.'}
 if($AllVersionExports -and ($CollectionIdentities -or $ReadCounts -or $IndependentExportVersions -or @($diagnosticModes).Count)){throw 'All-version export regression requires its own native evidence scope.'}
@@ -8,6 +9,12 @@ if($IndependentExportVersions -and @($diagnosticModes).Count){throw 'Independent
 if($ReadCounts -and ($IndependentExportVersions -or @($diagnosticModes).Count)){throw 'Read-count regression cannot be combined with another native mode.'}
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $work=Join-Path $root 'TestResults/CosmosDBCurrent'
+if($ConformanceOnly){
+    foreach($mode in @('async','sync')){
+        $report=Join-Path $root ('TestResults/ProviderConformanceCurrent/AzureCosmosDBOASIS/'+$mode+'/report.json')
+        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){throw 'Preserve original canonical Cosmos fixture/report before another run.'}
+    }
+}
 $previousWork=$env:OASIS_COSMOSDB_WORK
 New-Item -ItemType Directory -Force $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
@@ -29,7 +36,7 @@ try {
         }
     }
     if(!$ReconcileScalarFixture -and !$InspectScalarFixture -and !$InspectRetainedFixture -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Reconcile original Cosmos fixture journals before another run; do not replay or reset.'}
-    $reportName=if($ReconcileScalarFixture){'cosmos-scalar-reconciliation-current.trx'}elseif($InspectScalarFixture){'cosmos-scalar-inspection-current.trx'}elseif($ReconcileRoleFixture){'cosmos-role-reconciliation-current.trx'}elseif($ReconcileCredentialFixture){'cosmos-credential-reconciliation-current.trx'}elseif($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
+    $reportName=if($ConformanceOnly){'cosmos-core-current.trx'}elseif($ReconcileScalarFixture){'cosmos-scalar-reconciliation-current.trx'}elseif($InspectScalarFixture){'cosmos-scalar-inspection-current.trx'}elseif($ReconcileRoleFixture){'cosmos-role-reconciliation-current.trx'}elseif($ReconcileCredentialFixture){'cosmos-credential-reconciliation-current.trx'}elseif($InspectRetainedFixture){'cosmos-retained-inspection-current.trx'}elseif($ReconcileRetainedRoutingFixture){'cosmos-routing-reconciliation-current.trx'}else{'cosmos-native-current.trx'}
     if($IndependentExportVersions){$reportName='cosmos-export-native-current.trx'}
     if($ReadCounts){$reportName='cosmos-read-count-native-current.trx'}
     if($CollectionIdentities){$reportName='cosmos-collection-id-native-current.trx'}
@@ -49,11 +56,14 @@ try {
     }
     $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests.csproj'
     foreach($producer in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj',$project)) {
-        & dotnet build $producer --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        & dotnet build $producer --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
     $consumer=Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/bin/Debug/net10.0'
-    & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $consumer -VerifySourceDocuments
+    . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $consumer -VerifySourceDocuments
+    foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS','NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests')){
+        Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumer ($assembly+'.dll')) $root))
+    }
     & wsl.exe -d Ubuntu -u root -- podman start oasis-cosmos
     if($LASTEXITCODE) {throw 'Retained Cosmos DB container did not start.'}
     $started=$true;$ready=$false
@@ -69,14 +79,21 @@ try {
     $env:OASIS_COSMOSDB_NATIVE='1'
     $env:OASIS_COSMOSDB_WORK=$work
     $testsStarted=[DateTime]::UtcNow
-    $filter=if($ReconcileScalarFixture){'TestCategory=ScalarReconciliation'}elseif($InspectScalarFixture){'TestCategory=ScalarInspection'}elseif($ReconcileRoleFixture){'TestCategory=RoleReconciliation'}elseif($InspectRetainedFixture){'TestCategory=Inspection'}elseif($ReconcileRetainedRoutingFixture){'TestCategory=Reconciliation'}else{'TestCategory!=Inspection&TestCategory!=Reconciliation&TestCategory!=RoleReconciliation&TestCategory!=ScalarInspection&TestCategory!=ScalarReconciliation'}
+    $filter=if($ConformanceOnly){'TestCategory=CosmosCoreStorageConformance'}elseif($ReconcileScalarFixture){'TestCategory=ScalarReconciliation'}elseif($InspectScalarFixture){'TestCategory=ScalarInspection'}elseif($ReconcileRoleFixture){'TestCategory=RoleReconciliation'}elseif($InspectRetainedFixture){'TestCategory=Inspection'}elseif($ReconcileRetainedRoutingFixture){'TestCategory=Reconciliation'}else{'TestCategory!=Inspection&TestCategory!=Reconciliation&TestCategory!=RoleReconciliation&TestCategory!=ScalarInspection&TestCategory!=ScalarReconciliation'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
-    if($LASTEXITCODE) {throw 'Cosmos DB native test failed.'}
+    $testExit=$LASTEXITCODE
+    if($ConformanceOnly){
+        & python -B (Join-Path $root 'Scripts/Providers/record_conformance_results.py') --providers AzureCosmosDBOASIS
+        if($LASTEXITCODE){throw 'Cosmos DB canonical report registration failed.'}
+        & python -B (Join-Path $root 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Cosmos DB matrix update failed.'}
+    }
+    if($testExit) {throw 'Cosmos DB native test failed; preserve exact fixtures, no automatic replay.'}
     $reportFile=Get-Item -LiteralPath (Join-Path $work $reportName) -ErrorAction Stop
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    $expected=if($ReconcileScalarFixture -or $InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{72}
+    $expected=if($ConformanceOnly){2}elseif($ReconcileScalarFixture -or $InspectScalarFixture -or $InspectRetainedFixture -or $ReconcileRetainedRoutingFixture -or $ReconcileRoleFixture){1}else{72}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0) {throw 'Exact expected native Cosmos DB case count with no skips required.'}
 }
 finally {

@@ -1,0 +1,20 @@
+{
+  "corePassed": 3372,
+  "skipped": 0,
+  "web4Passed": 250,
+  "capturedUtc": "2026-10-26T13:21:49.2670398Z",
+  "identities": [
+    {
+      "path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "72E0CFD11793259D8B336C57C446BB9F80E0584C9A1DD5026EC0C6B5EEE17E6F"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "72E0CFD11793259D8B336C57C446BB9F80E0584C9A1DD5026EC0C6B5EEE17E6F"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\ONODE\\NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.ONODE.WebAPI.dll",
+      "sha256": "F17AC003C5C56AED45B2F732C3B500F8000E14550841FA83F97C8096372363EF"
+    }
+  ]
+}

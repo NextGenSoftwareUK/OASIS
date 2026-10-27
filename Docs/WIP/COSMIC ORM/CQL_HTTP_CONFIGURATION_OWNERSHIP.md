@@ -1,7 +1,23 @@
 # HTTP configuration ownership — working audit
 
-26 October 2026. Six genuine HTTP regressions reproduce the issue; the production
-fix remains pending. The completed
+## Request protection policy preservation — 26 October 2026
+
+The request-context factory now retains configured metadata and preparation
+protection policies. Dropping them silently disabled inherited protection on
+scoped writes. Two genuine regressions exposed that loss; the corrected factory
+and barrier-controlled concurrent override case pass within full Core3,497/3,497,
+zero skips/failures, with both targets built. Policies belong to request-owned
+managers; later parent updates or another request's assignments do not replace
+their captured configuration. [Contract and evidence](WRITE_PREPARATION.md#request-owned-protection-configuration).
+
+Hosted authentication, actor-specific protection policy enrollment and recovery
+endpoint admission remain separate requirements. Retaining a configured policy
+does not supply one for an unconfigured host.
+
+## Earlier routing ownership audit
+
+26 October 2026. The request-owned implementation is active and its focused
+controls pass. Final portable/full-unit/native certification is in progress. The completed
 canonical REST/native/usage milestone is recorded in
 [storage accounting](CQL_STORAGE_WRITE_ACCOUNTING.md).
 
@@ -23,13 +39,14 @@ cleanup cannot erase a subsequent `SetGlobally=true` update. Conditional storage
 returns a controlled conflict, so no database or provider environment is needed.
 
 Source: `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CosmicDataControllerConcurrencyTests.cs`.
-The existing test class is partial. Evidence:
-`TestResults/CoreCurrent/configuration-concurrency-red.trx` and
-`TestResults/CosmicCqlDemo/configuration-concurrency-red.log`: **6 failed /0 passed
-/0 skipped**. These active regressions intentionally remain red on the task
-branch until the implementation is fixed; do not merge this unfinished follow-up
-into Development. The earlier verified milestone `cc67cce73` remains separately
-identified.
+The existing test class is partial. Original baseline: **6 failed /0 passed
+/0 skipped**, captured in completed process output and committed source at
+`f8d055dfc`. External cleanup later removed the original raw TRX/log along with
+other TestResults outputs. Do not describe those original files as retained.
+The six schedules now pass, including response settings remaining tied to their
+own request. Before the final preferred-binding correction, full Core3,365 and
+normal WEB4231 also passed; the new complete-policy correction needs final gates.
+The earlier verified milestone `cc67cce73` remains separately identified.
 
 Cleanup had removed transitive provider outputs. The initial CS0006/NETSDK1005
 build failures and cached-only restore failures were prerequisites, not functional
@@ -81,15 +98,59 @@ read the singleton during JSON serialization, after controller cleanup, so simpl
 changing execution would still report another request's settings. Preserve the
 existing response surface while binding V2 responses to their immutable policy.
 
-An excluded draft, `Drafts/ProviderRoutingPolicy.cs.pending`, defines
-bounded immutable override/snapshot data only. It is not active or certified.
-Next: implement capture/global publication and scoped registry/manager creation,
-add Core isolation/default/list/fairness/no-activation controls, bind the shipping
-single/batch routes and their responses, then run the six HTTP regressions plus
-full unit/native gates. A changed test expectation or ignored routing option is
-not a fix.
+The draft is now implemented in Core `Configuration/ProviderRoutingPolicy.cs`,
+`ProviderManager.RequestPolicy.cs` and `HolonManager-RequestContext.cs`.
+The shipping single/batch write paths resolve/capture routing without temporary
+global mutation, then execute with a request-owned manager. Existing constructor
+signatures remain available; the new configured-affinity path does not add
+permanent provider event subscriptions. Response metadata binds the same snapshot.
+
+Review exposed a second genuine regression: converting the policy to overrides
+dropped its preferred provider, allowing a later global default to replace the
+captured write authority. The original failure and compressed TRX are retained
+under `Verification/preferred-binding-red.*`. The correction preserves captured
+preferred identity, including an explicitly missing default, while an explicit
+operation or original manager affinity still wins. Twenty-six focused Core
+controls pass, including actual scoped reads and no-provider-execution checks.
+
+The portable build also caught Core's existing compatibility `Enum` shadowing
+`System.Enum`; qualification is fixed at the new policy owner, without changing
+the legacy shim. Final portable/full-unit/native gates are still required before
+merging this follow-up into Development. A changed test expectation or ignored
+routing option is not a fix.
 
 Keep legacy code unchanged; document its equivalent global mutation/restoration
 gap. Remaining verification must cover ordered lists, provider selection,
 invalid/default options, actual request-policy application, and simultaneous
 cross-provider requests as well as the six initial flag cases.
+
+This migration covers the canonical V2 graph-save actions and their delegating
+aliases. Non-migrated V2 controllers still using temporary singleton configuration
+can affect global defaults; their migration and cross-route tests remain open.
+The snapshot covers the three feature flags, ordered provider lists and preferred
+provider, not a deep immutable copy of every DNA/strategy/security setting.
+Pinned conditional writes never gain permission to fail over to another authority.
+
+### Latest verification (2026-10-26)
+
+Final Core netstandard2.1/net10.0 builds pass. Full Core suite: 3,368 passed, zero failures/skips. Shipping WEB4 build passes; normal WEB4 suite: 231 passed, zero failures/skips (external Stripe sandbox/operator Mongo soak excluded). Compressed original reports are retained in Verification/configuration-final-core.trx.gz and configuration-final-web4.trx.gz. The isolated HTTP fixture now explicitly declares its owned SQLite provider affinity; a missing captured global default must not implicitly provide authority. Native three-provider verification remains pending; this is not full roadmap completion.
+
+## Verified request-routing checkpoint — 26 October 2026
+
+Canonical V2 WEB4 single/batch graph writes now use immutable request-owned
+routing contexts. Global publication is atomic; request completion cannot restore
+an older global policy. Captured preferred identity includes a missing default.
+Performance and load-balancer history remain shared; construction performs no
+provider activation or extra persistent event subscriptions.
+
+Core netstandard2.1/net10.0 and shipping WEB4 builds pass. Full suites: 3,368 Core
+and 231 WEB4 tests, no failures/skips. Fresh three-provider native acceptance:
+138 SDK /138 HTTP walkthrough queries,36 shipping REST requests,378 settled
+operations/403 attempts. Source freeze held and all seven binary pairs matched.
+Required compressed reports and safe source/binary summaries are retained in
+`Verification/configuration-*`. Core implementation is published as `2cb7f88`.
+
+This closes this routing checkpoint, not the roadmap. Non-migrated routes,
+cross-route concurrency, deep DNA/security/strategy ownership, gRPC/GraphQL
+identity, recipient/tenant queries, federation and remaining ORM work stay open.
+See [request policy ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).

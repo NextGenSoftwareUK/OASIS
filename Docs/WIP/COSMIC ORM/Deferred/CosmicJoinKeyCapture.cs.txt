@@ -1,0 +1,30 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.API.Core.Queries
+{
+    /// <summary>One owner for exact typed key capture, independent of join execution locality.</summary>
+    internal static class CosmicJoinKeyCapture
+    {
+        internal static OASISResult<ReadOnlyCollection<CosmicJoinKeyComponent>> Capture(
+            IReadOnlyList<CosmicProjectionColumn> left, IReadOnlyList<CosmicProjectionColumn> right)
+        {
+            if (left == null || right == null || left.Count < 1 || left.Count > 8 || left.Count != right.Count)
+                return CosmicScalarErrors.Invalid<ReadOnlyCollection<CosmicJoinKeyComponent>>(
+                    "CQL_JOIN_UNSUPPORTED", "Join keys require one to eight matching scalar components.");
+            var keys = new List<CosmicJoinKeyComponent>();
+            foreach (var column in left)
+            {
+                var other = right.SingleOrDefault(candidate => candidate.Alias == column.Alias);
+                if (other == null || other.Path.ValueType != column.Path.ValueType
+                    || !CosmicQueryKeyDomains.Supports(column.Path.ValueType))
+                    return CosmicScalarErrors.Invalid<ReadOnlyCollection<CosmicJoinKeyComponent>>(
+                        "CQL_JOIN_UNSUPPORTED", "Join key aliases and exact scalar domains must match without conversion.");
+                keys.Add(new CosmicJoinKeyComponent(column.Alias, column.Path, other.Path));
+            }
+            return new OASISResult<ReadOnlyCollection<CosmicJoinKeyComponent>>(keys.AsReadOnly());
+        }
+    }
+}

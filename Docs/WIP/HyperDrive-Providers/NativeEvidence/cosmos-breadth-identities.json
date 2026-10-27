@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-26",
+  "scope": "Shipping Cosmos factory compiled; two configuration failures, missing pinned SDK; zero native dispatch",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "33244D4FC15529CB10879FB5E53E3C2B5D9DA572FA4EE1448026E9D9A19A11A0",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "31857B02F43AEB766589CA1A2DCD7E323D4051BCEBE759905E8210C82FE0DC8F",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS",
+      "sha256": "25D4300032E6C2E9C12C7C086CA5408CAF88385F2AA7EF4FDFE9F5AD630243B6",
+      "pdbSha256": "AA73932695F2D45233344FB64C996B84CBDC3AC92FE4C80BD8465C075C0495AF",
+      "sources": 17
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests",
+      "sha256": "5701180B63A82485FEDF48667A1BEDCA306D180AC71457B9FC0A01EB32FDD485",
+      "pdbSha256": "B5ABDCA852710AD5D9FCEF1FF3310C18596DCAD07AF5DF9C581090B344474FDC",
+      "sources": 11
+    }
+  ],
+  "coreSource": "Peer frozen uncommitted child-descendant API; exact consumer hash/PDB source proven, no Core commit or gitlink staged by this checkpoint",
+  "sdkRepair": "Automatic approval review rejected dangling-link repair/npm restore batch before execution; no detailed reason supplied, no retry via alternate wrapper",
+  "container": "oasis-wasmd remained exited; no key retrieval, start, write or reset",
+  "freeBytes": 127683891200,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7348284,
+      "objBytes": 1411601
+    },
+    {
+      "path": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS",
+      "binBytes": 7661276,
+      "objBytes": 1106001
+    },
+    {
+      "path": "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests",
+      "binBytes": 46698445,
+      "objBytes": 1254043
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/cosmos-core-configuration-current.trx.gz",
+    "rawBytes": 5818,
+    "rawSha256": "3a8627003e1515b8496bf117e1093ca6fccc41717ec3102cdd2e3c4622ff5ee4",
+    "gzipBytes": 1472,
+    "gzipSha256": "f0f58b2da0cfae3993affae51f002c56473d8b026775b1e48f4addd38737e22f",
+    "outcome": "2 configuration failures, zero native checks or skips",
+    "rawRemovedAfterVerifiedCompression": true
+  }
+}

@@ -332,6 +332,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             OASISConfigResult<IEnumerable<Holon>> configResult = ConfigureOASISEngine<IEnumerable<Holon>>(request);
             if (isV2Write && (configResult.IsError || configResult.Response?.Result?.IsError == true))
             {
+                if (!string.IsNullOrEmpty(configResult.Response?.Result?.ErrorCode))
+                {
+                    Response.StatusCode = (int)configResult.Response.StatusCode;
+                    return configResult.Response;
+                }
                 var invalidConfig = HolonWriteEndpoint.ConfigurationError<IEnumerable<Holon>>(configResult.Response?.Result?.Message);
                 Response.StatusCode = (int)HolonWriteEndpoint.Status(invalidConfig);
                 return HttpResponseHelper.FormatResponse(invalidConfig, HolonWriteEndpoint.Status(invalidConfig), request.ShowDetailedSettings);
@@ -344,14 +349,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 try
                 {
-                    var written = await HolonWriteEndpoint.SaveBatchAsync(HolonManager, request, callerId, callerIsWizard,
-                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString());
+                    var context = HolonManager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(), configResult.RequestProviderType);
+                    if (context.IsError)
+                    {
+                        var error = RequestContextError<IEnumerable<Holon>>(context);
+                        Response.StatusCode = (int)HolonWriteEndpoint.Status(error);
+                        return HttpResponseHelper.FormatResponse(error, HolonWriteEndpoint.Status(error), request.ShowDetailedSettings);
+                    }
+                    var written = await HolonWriteEndpoint.SaveBatchAsync(context.Result.Manager, request, callerId, callerIsWizard,
+                        Request.Headers[HolonWriteEndpoint.OperationHeader].ToString(),
+                        HttpContext.RequestServices.GetService(typeof(Services.Cosmic.ICosmicOperationRecoveryPolicy)) as Services.Cosmic.ICosmicOperationRecoveryPolicy);
                     response.Result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(written, response.Result);
                     if (written.Result != null)
                         response.Result.Result = Mapper.Convert<IHolon, Holon>(written.Result)?.ToList();
                     var status = HolonWriteEndpoint.Status(written);
                     Response.StatusCode = (int)status;
-                    return HttpResponseHelper.FormatResponse(response, status, request.ShowDetailedSettings);
+                    return HttpResponseHelper.FormatResponse(response, status, request.ShowDetailedSettings).BindRoutingPolicy(context.Result.Policy);
                 }
                 finally
                 {

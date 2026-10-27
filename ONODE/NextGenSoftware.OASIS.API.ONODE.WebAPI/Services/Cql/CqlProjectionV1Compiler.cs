@@ -13,12 +13,16 @@ public static partial class CqlV1Compiler
 {
     public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
         CqlProjectionV1Request request, Guid actor, ProviderType? provider)
+        =>CompileProjection(request,actor,provider,null);
+
+    public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileProjection(
+        CqlProjectionV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         var selected = source.SelectColumns(columns);
         if (selected.IsError) throw new ArgumentException(selected.Message);

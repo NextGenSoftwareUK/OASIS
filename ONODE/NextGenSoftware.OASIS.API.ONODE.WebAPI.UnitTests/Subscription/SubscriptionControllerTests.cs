@@ -14,6 +14,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
 {
+    [Collection("COSMIC hosted global state")]
     public class SubscriptionControllerTests
     {
         private readonly Mock<ISubscriptionService> _svc;
@@ -157,16 +158,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
 
-            // No STRIPE_SECRET_KEY in env or config — should return 500
-            var result = await _ctrl.CreateCheckoutSession(new SubscriptionController.CreateCheckoutSessionRequest
+            // Pin the missing-key fixture. Empty IConfiguration alone otherwise
+            // permits the production DNA resolver to load the operator's file.
+            var previousDna = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA;
+            try
             {
-                PlanId = "bronze",
-                SuccessUrl = "/success"
-            }) as ObjectResult;
+                NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA = new NextGenSoftware.OASIS.API.DNA.OASISDNA
+                {
+                    OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                    {
+                        SubscriptionConfig = new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig
+                        { Stripe = new NextGenSoftware.OASIS.API.DNA.StripeSettings() }
+                    }
+                };
+                var result = await _ctrl.CreateCheckoutSession(new SubscriptionController.CreateCheckoutSessionRequest
+                {
+                    PlanId = "bronze",
+                    SuccessUrl = "/success"
+                }) as ObjectResult;
 
-            result.Should().NotBeNull();
-            result!.StatusCode.Should().Be(500);
-            System.Text.Json.JsonSerializer.Serialize(result.Value).Should().Contain("STRIPE_SECRET_KEY");
+                result.Should().NotBeNull();
+                result!.StatusCode.Should().Be(500);
+                System.Text.Json.JsonSerializer.Serialize(result.Value).Should().Contain("STRIPE_SECRET_KEY");
+            }
+            finally { NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA = previousDna; }
         }
 
         // ── GET /api/subscription/subscriptions/me ───────────────────────────

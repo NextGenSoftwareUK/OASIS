@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$Stop)
+param([switch]$Stop,[switch]$InitializeSyntheticStore)
 $ErrorActionPreference='Stop'
 # Caller holds the existing AWS environment lease. Same JAR/data, no downloads or copies.
 $name='oasis-dynamo-retained'
@@ -8,7 +8,7 @@ $image='6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd'
 $runtime='/mnt/c/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime'
 $data='/mnt/c/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/retained-history-data'
 $arguments=@('-Xms32m','-Xmx256m','-Djava.library.path=/dynamo/DynamoDBLocal_lib','-jar','/dynamo/DynamoDBLocal.jar','-dbPath','/dynamo-data','-sharedDb','-disableTelemetry','-port','8000')
-if(!$Stop -and (Get-FileHash -LiteralPath 'C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime/DynamoDBLocal.jar').Hash -ne '72640F61583045B630971AF8D9F34AC311CF3FD0A7F077EA96EC0D04BCBE1E10'){throw 'Pinned retained JAR differs; no replacement/download.'}
+if(!$Stop -and (Get-FileHash -LiteralPath 'C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/runtime/DynamoDBLocal.jar').Hash -ne '67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620'){throw 'Pinned retained JAR differs; no replacement/download.'}
 if(!$Stop -and (Get-NetTCPConnection -State Listen -LocalPort 18000,18001 -ErrorAction SilentlyContinue)){throw 'Retained Dynamo ports occupied; no duplicate service.'}
 & wsl -d Ubuntu -u root -- podman container exists $name
 $exists=$LASTEXITCODE -eq 0
@@ -47,6 +47,12 @@ if($Stop){
     return
 }
 if($container.State.Running){throw 'Retained Dynamo already running; do not adopt another run.'}
+$dataWindows='C:/Source/OASIS-hyperdrive-v2-gaps/TestResults/AWSProviderEvidence/retained-history-data'
+if(!(Test-Path -LiteralPath $dataWindows)){
+    if(!$InitializeSyntheticStore){throw 'Historical Dynamo store is absent; explicitly initialize a new synthetic store, never imply historical recovery.'}
+    New-Item -ItemType Directory -Path $dataWindows | Out-Null
+    @{createdUtc=[DateTime]::UtcNow.ToString('o');purpose='New synthetic conformance store; historical data directory was absent';historicalDataRestored=$false;owner='HyperDrive provider breadth';runtimeJarSha256='67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620'} | ConvertTo-Json | Set-Content (Join-Path $dataWindows 'synthetic-store-provenance.json')
+}elseif($InitializeSyntheticStore){throw 'Existing data directory must be reused, not reinitialized.'}
 $started=$false
 try{
     & wsl -d Ubuntu -u root -- podman start $name|Out-Null

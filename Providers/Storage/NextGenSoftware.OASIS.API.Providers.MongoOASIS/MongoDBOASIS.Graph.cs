@@ -101,10 +101,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }).ConfigureAwait(false);
                 if (saved.IsError)
                 {
-                    result.IsError = true; result.ErrorCount = Math.Max(1, saved.ErrorCount);
-                    result.Message = saved.Message;
-                    result.Exception = saved.Exception;
-                    result.ErrorCode = saved.ErrorCode;
+                    result = Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(saved);
+                    result.ErrorCount = Math.Max(1, result.ErrorCount);
                     return result;
                 }
                 // A failed preparation/rollback/unknown commit must leave caller identity state unchanged.

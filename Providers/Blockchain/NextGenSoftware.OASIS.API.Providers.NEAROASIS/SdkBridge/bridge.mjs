@@ -5,6 +5,8 @@ import { collectEntries } from "./entries-page.mjs";
 import { submitCheckedRecord } from "./checked-write.mjs";
 import { decodeCallArguments } from "./call-arguments.mjs";
 import { submitNativeAction } from "./native-mutation.mjs";
+import {pathToFileURL} from 'node:url';
+import {prepareNearAction,verifyNearPreparation,recoverNearPreparation,exactNearSubmission,submitNearPreparation,nearActionIntent} from './native-preparation.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -24,8 +26,40 @@ function accountFor(input, provider) {
 }
 
 async function execute(input) {
+  if(input.operation==='submitNativePreparation'&&(!process.env.OASIS_NATIVE_PREPARATION_PIPE||!process.env.OASIS_NATIVE_PREPARATION_MODULE))
+    throw new Error('Existing owned native preparation pipe/module required before submission.');
   const provider = providerFor(input);
+  let original;
+  const hasPipe=Boolean(process.env.OASIS_NATIVE_PREPARATION_PIPE),hasModule=Boolean(process.env.OASIS_NATIVE_PREPARATION_MODULE);
+  if(hasPipe!==hasModule)throw new Error('Incomplete owned native preparation context.');
+  const submitOriginal=hasPipe?async(account,receiver,action)=>{
+    const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+    const preparation=await prepareNearAction(account,{chainId:input.networkId,sender:account.accountId,...nearActionIntent(receiver,action)});
+    original=await submitNearPreparation(provider,preparation,input.networkId,preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE),
+      exactNearSubmission(input.rpcEndpoint,preparation.signedTransactionBase64));
+    return original.outcome;
+  }:undefined;
+  const ownedReply=reply=>original?{...reply,persisted:original.persisted,submitted:original.submitted,outcome:original.outcome}:reply;
   switch (input.operation) {
+    case 'prepareNativeAction':
+      if(input.request?.chainId!==input.networkId||input.request?.sender!==input.accountId)throw new Error('Native request differs from configured signer/network.');
+      return await prepareNearAction(accountFor(input,provider),input.request);
+    case 'verifyNativePreparation':
+      return await verifyNearPreparation(provider,input.preparation,input.networkId);
+    case 'recoverNativePreparation': {
+      const original=await recoverNearPreparation(input.preparation,input.networkId);
+      await verifyNearPreparation(provider,original,input.networkId);
+      return original;
+    }
+    case 'preparedNativeOutcome': {
+      const identity=await verifyNearPreparation(provider,input.preparation,input.networkId);
+      return {outcome:await provider.viewTransactionStatus({txHash:identity.transactionHash,accountId:identity.sender,waitUntil:'NONE'})};
+    }
+    case 'submitNativePreparation': {
+      const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+      return await submitNearPreparation(provider,input.preparation,input.networkId,preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE),
+        exactNearSubmission(input.rpcEndpoint,input.preparation.signedTransactionBase64));
+    }
     case "probe": {
       const status = await provider.viewNodeStatus();
       const networkId = await provider.getNetworkId();
@@ -79,8 +113,8 @@ async function execute(input) {
     case "transfer": {
       const account = accountFor(input, provider);
       if (!input.receiverId) throw new Error("receiverId is required");
-      const outcome = await submitNativeAction(account,input.receiverId,actions.transfer(BigInt(input.amountYocto)));
-      return { transactionHash: outcome.transaction_outcome.id, outcome };
+      const outcome = await submitNativeAction(account,input.receiverId,actions.transfer(BigInt(input.amountYocto)),submitOriginal);
+      return ownedReply({ transactionHash: outcome.transaction_outcome.id, outcome });
     }
     case "transactionStatus": {
       if (!input.transactionHash) throw new Error("transactionHash is required");
@@ -103,34 +137,12 @@ async function execute(input) {
       const args=decodeCallArguments(input.argsBase64);
       const account = accountFor(input, provider);
       const outcome = await submitNativeAction(account,input.targetContractId ?? input.contractId,
-        actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")));
-      return { transactionHash: outcome.transaction_outcome.id, outcome };
-    }
-    case "put": {
-      const account = accountFor(input, provider);
-      const outcome = await account.callFunctionRaw({
-        contractId: input.contractId,
-        methodName: "put",
-        args: { key: input.key, value: input.value },
-        gas: teraToGas("100"),
-        waitUntil: "FINAL",
-      });
-      return { transactionHash: outcome.transaction_outcome.id };
+        actions.functionCall(input.methodName,args,BigInt(input.gas ?? teraToGas("100")),BigInt(input.depositYocto ?? "0")),submitOriginal);
+      return ownedReply({ transactionHash: outcome.transaction_outcome.id, outcome });
     }
     case "putRecordChecked":
-      return await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
-        args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n));
-    case "delete": {
-      const account = accountFor(input, provider);
-      const outcome = await account.callFunctionRaw({
-        contractId: input.contractId,
-        methodName: "delete_record",
-        args: { key: input.key },
-        gas: teraToGas("100"),
-        waitUntil: "FINAL",
-      });
-      return { transactionHash: outcome.transaction_outcome.id };
-    }
+      return ownedReply(await submitCheckedRecord(provider,()=>accountFor(input,provider),input,
+        args=>actions.functionCall('put_record_checked',args,teraToGas('100'),0n),submitOriginal));
     default:
       throw new Error(`Unsupported NEAR SDK operation: ${input.operation}`);
   }

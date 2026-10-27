@@ -56,10 +56,12 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            request = CqlRequestCapture.Capture(request);
             var requested = CqlV1Compiler.RequestedProvider(request?.Provider);
-            // Validate the complete request before provider lookup or manager acquisition.
-            var query = CqlV1Compiler.Compile(request, actor, requested);
-            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected))
+            // Bind the captured server policy before any source window is compiled.
+            var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
+            var query = CqlV1Compiler.Compile(request, actor, policy?.Selected??requested,policy?.Access);
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted v1 query.");
 
             query = query.WithScope(CosmicQueryScope.Named(selected).Result);
@@ -89,6 +91,7 @@ public static partial class CqlV1Endpoint
             }) { IsLoaded = true };
             return JsonResponse(response);
         }
+        catch(ReadPolicyRejected cause) { return Failure(cause.Status,cause.Code,"The trusted read-access policy did not authorize this request."); }
         catch (ArgumentException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         { return Failure(400, "CQL_REQUEST_INVALID", "Invalid bounded CQL v1 query description."); }
         catch (InvalidOperationException) when (!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
@@ -101,7 +104,12 @@ public static partial class CqlV1Endpoint
     }
 
     private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission)
+        => CaptureAdmission(http, out actor, out admission, out _);
+
+    private static IActionResult CaptureAdmission(HttpContext http, out Guid actor, out PreparedStorageExecution admission,
+        out UsageExecutionHandle admittedExecution)
     {
+        admittedExecution = null;
         actor = (http.Items["Avatar"] as IAvatar)?.Id ?? Guid.Empty;
         admission = null;
         if (actor == Guid.Empty || http.User.Identity?.IsAuthenticated != true)
@@ -111,12 +119,19 @@ public static partial class CqlV1Endpoint
             !http.Items.TryGetValue(Web4UsageMeasurement.ExecutionKey, out var handle) ||
             handle is not UsageExecutionHandle execution || !admission.IsBoundTo(execution))
             return Failure(503, "CQL_ADMISSION_REQUIRED", "Configure the CQL route's authenticated storage admission and query tariffs.");
+        admittedExecution = execution;
         return null;
     }
 
     private static bool TryResolveEligible(ICqlV1Providers providers, ProviderType? requested, PreparedStorageExecution admission,
-        out IOASISStorageProvider storage, out ICosmicQueryStorageProvider adapter, out ProviderType selected)
+        out IOASISStorageProvider storage, out ICosmicQueryStorageProvider adapter, out ProviderType selected,
+        ReadPolicyObservation observation=null)
     {
+        if(observation!=null)
+        {
+            storage=observation.Storage;adapter=observation.Adapter;selected=observation.Selected;
+            return true;
+        }
         storage = providers.Resolve(requested);
         adapter = storage as ICosmicQueryStorageProvider;
         selected = storage?.ProviderType?.Value ?? ProviderType.None;
@@ -226,7 +241,7 @@ internal static class CqlV1Projection
             // A graph root's inaccessible ancestor is not part of the selected view.
             var parent=graph==null?source.ParentHolonId:frame.Parent;
             var row=new Row(source,includeMetadata,parent,output?.AsReadOnly());
-            if(!row.IsPublic && row.CreatedByAvatarId!=access.ActorId)throw new Rejected("CQL_VISIBILITY_VIOLATION");
+            if(!access.CanRead(row.Id,row.IsPublic,row.CreatedByAvatarId))throw new Rejected("CQL_VISIBILITY_VIOLATION");
             frame.Output.Add(row);
             if(graph==null)continue;
             var children=source.Children;

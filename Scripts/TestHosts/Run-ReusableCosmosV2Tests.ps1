@@ -1,11 +1,23 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify',
+param([ValidateSet('Conformance','Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect','EscrowEstimate','EscrowDeploy','EscrowLock')][string]$Mode = 'Verify',
     [string]$EvidenceRoot)
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$fixtureRoot = if($EvidenceRoot){[IO.Path]::GetFullPath($EvidenceRoot)}else{Join-Path $taskRoot 'TestResults/HyperDriveCosmos'}
+if($Mode -eq 'Conformance' -and $EvidenceRoot){throw 'Canonical storage uses the fixed reusable conformance evidence directory.'}
+$fixtureRoot = if($Mode -eq 'Conformance'){Join-Path $taskRoot 'TestResults/ProviderConformanceCurrent'}elseif($EvidenceRoot){[IO.Path]::GetFullPath($EvidenceRoot)}else{Join-Path $taskRoot 'TestResults/HyperDriveCosmos'}
 if(!(Test-Path -LiteralPath $fixtureRoot -PathType Container)){
     throw 'Existing Cosmos evidence directory required; supply -EvidenceRoot for the retained directory. No replacement will be created.'
 }
+if($Mode -eq 'Conformance'){
+    foreach($selected in @('async','sync')){
+        $report=Join-Path $fixtureRoot ('CosmosBlockChainOASIS/'+$selected+'/report.json')
+        if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){throw 'Preserve original canonical Cosmos report before another submission.'}
+    }
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'cosmos-core-current.trx')){throw 'Preserve original Cosmos conformance TRX.'}
+}
+$linuxScriptRoot=(& wsl -d Ubuntu -- wslpath -u ($PSScriptRoot.Replace('\','/')))
+if($LASTEXITCODE -or [string]::IsNullOrWhiteSpace($linuxScriptRoot)){throw 'Existing Windows runner directory could not be resolved in WSL.'}
+$linuxScriptRoot=$linuxScriptRoot.Trim()
+if(!$linuxScriptRoot.StartsWith('/mnt/')){throw 'Unexpected WSL runner directory.'}
 $integrationModes=@('IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
@@ -23,11 +35,11 @@ if($Mode -in @('IndependentPrepared','IndependentRouting','VersionedRouting','Re
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'reviewed-nft-pending.json')){throw 'Original reviewed NFT operations require reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'escrow-deployment-pending.jsonl')){throw 'Original escrow deployment requires reconciliation; never reupload.'}
 }
-if($Mode -in @('IndependentPrepared','IndependentReconcile') -or $Mode -in $integrationModes){
+if($Mode -in @('Conformance','IndependentPrepared','IndependentReconcile') -or $Mode -in $integrationModes){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-cleanup-pending.json')){throw 'An original cleanup is pending; inspect without replay.'}
     $nativeProject=Join-Path $taskRoot $(if($Mode -in $integrationModes){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'})
     foreach($project in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj',$nativeProject)){
-        & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($Mode -eq 'Conformance') /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Independent Cosmos current source build failed.'}
     }
     $outputBridge=if($Mode -in $integrationModes){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}
@@ -85,8 +97,25 @@ try {
     $env:OASIS_COSMOS_TEST_CHAIN = 'oasis-cosmos-local'
     $env:OASIS_COSMOS_TEST_KEY = $signingKey
     $env:OASIS_COSMOS_TEST_CONTRACT = $contracts[0]
-    $env:OASIS_COSMOS_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh'
+    $env:OASIS_COSMOS_TEST_STOP_SCRIPT = $linuxScriptRoot+'/stop-owned-cosmos-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
+    if($Mode -eq 'Conformance'){
+        $consumer=Join-Path (Split-Path $nativeProject) 'bin/Debug/net10.0'
+        . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput $consumer -VerifySourceDocuments
+        foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS','NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests')){
+            Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumer ($assembly+'.dll')) $taskRoot))
+        }
+        & dotnet test $nativeProject --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'TestCategory=CosmosCoreStorageConformance' --logger 'trx;LogFileName=cosmos-core-current.trx' --results-directory $fixtureRoot -v:q
+        $testExit=$LASTEXITCODE
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/record_conformance_results.py') --providers CosmosBlockChainOASIS
+        if($LASTEXITCODE){throw 'Cosmos canonical report registration failed.'}
+        & python -B (Join-Path $taskRoot 'Scripts/Providers/update_provider_matrix.py')
+        if($LASTEXITCODE){throw 'Cosmos matrix update failed.'}
+        if($testExit){throw 'Canonical Cosmos storage failed; preserve original fixture and signed outcomes, no replay.'}
+        [xml]$trx=Get-Content (Join-Path $fixtureRoot 'cosmos-core-current.trx')
+        if($trx.TestRun.ResultSummary.Counters.total -ne 2 -or $trx.TestRun.ResultSummary.Counters.passed -ne 2 -or $trx.TestRun.ResultSummary.Counters.notExecuted -ne 0){throw 'Expected both actual native storage modes, no skips.'}
+    }
+    if($Mode -ne 'Conformance'){
     if ($Mode -eq 'InspectPending') {
         $env:OASIS_COSMOS_INSPECTION_ID=[Guid]::NewGuid().ToString('D')
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
@@ -194,6 +223,7 @@ try {
     $counts=$evidence.TestRun.ResultSummary.Counters
     if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'The selected native Cosmos routing test must actually execute and pass.'}
     }
+    }
 }
 catch { $failures.Add($_.Exception) }
 finally {
@@ -201,13 +231,13 @@ finally {
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name],'Process') }
     if ($started) {
         try {
-            & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh
+            & wsl -d Ubuntu -u root -- bash ($linuxScriptRoot+'/stop-owned-cosmos-test-node.sh')
             if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos node stop failed; inspect before any restart.' }
         } catch { $failures.Add($_.Exception) }
     }
     if ($containerStarted) {
         try {
-            & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-container.sh
+            & wsl -d Ubuntu -u root -- bash ($linuxScriptRoot+'/stop-owned-cosmos-test-container.sh')
             if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos container stop failed; inspect before resuming.' }
         } catch { $failures.Add($_.Exception) }
     }

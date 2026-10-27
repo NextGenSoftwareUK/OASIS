@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Remove="Neo4jCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
+  </ItemGroup>
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -16,6 +20,11 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlCompositionV1Request.cs" Link="Web4/CqlCompositionV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlFederationV1Request.cs" Link="Web4/CqlFederationV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationV1Endpoint.cs" Link="Web4/CqlFederationV1Endpoint.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorCodec.cs" Link="Web4/CqlFederationCursorCodec.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorHost.cs" Link="Web4/CqlFederationCursorHost.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlRequestCapture.cs" Link="Web4/CqlRequestCapture.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs" Link="Web4/CqlSelectedV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs" Link="Web4/CqlCompositionV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Endpoint.cs" Link="Web4/CqlCompositionV1Endpoint.cs" />
@@ -32,9 +41,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Web4/HolonAccess.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadAccessPolicy.cs" Link="Web4/CqlReadAccessPolicy.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadPolicyDeployment.cs" Link="Web4/CqlReadPolicyDeployment.cs" />
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1ElementQueries.cs" Link="Demo\V1ElementQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1OperatorQueries.cs" Link="Demo\V1OperatorQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SaveQueries.cs" Link="Demo\V1SaveQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1IndexedQueries.cs" Link="Demo\V1IndexedQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1TailQueries.cs" Link="Demo\V1TailQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1AllQueries.cs" Link="Demo\V1AllQueries.cs" />
+    <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1FederationWalkthrough.cs" Link="Demo\V1FederationWalkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1SwaggerExample.cs" Link="Demo\V1SwaggerExample.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1DemoPresentation.cs" Link="Demo\V1DemoPresentation.cs" />
     <Compile Include="..\..\..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\Models\Data\CqlV1Request.cs" Link="Web4\CqlV1Request.cs" />
@@ -61,9 +79,13 @@
   <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CqlEmptyWindowAcceptance.cs" Link="Fixtures/CqlEmptyWindowAcceptance.cs" /></ItemGroup>
   <ItemGroup>
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs" Link="Web4/HolonWriteEndpoint.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs" Link="Web4/HostedCosmicProtection.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic/ICosmicOperationRecoveryPolicy.cs" Link="Web4/ICosmicOperationRecoveryPolicy.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/HolonWriteIntentRequest.cs" Link="Web4/HolonWriteIntentRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonRequest.cs" Link="Web4/SaveHolonRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/SaveHolonsRequest.cs" Link="Web4/SaveHolonsRequest.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/DeleteHolonRequest.cs" Link="Web4/DeleteHolonRequest.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseLoadHolonRequest.cs" Link="Web4/BaseLoadHolonRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Web4/BaseHolonRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Web4/OASISRequest.cs" />
   </ItemGroup>

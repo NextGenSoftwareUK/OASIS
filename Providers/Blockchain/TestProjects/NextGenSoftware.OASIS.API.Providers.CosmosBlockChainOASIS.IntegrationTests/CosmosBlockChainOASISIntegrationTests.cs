@@ -11,7 +11,7 @@ public class CosmosBlockChainOASISIntegrationTests
 {
     private CosmosBlockChainOASIS _provider = null!;
     // Retained public local-only fixture key, independent of signing credentials.
-    private static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
+    internal static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
         System.Text.Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1"));
 
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)

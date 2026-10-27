@@ -31,7 +31,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
                 return CqlFailure("CQL_PLAN_INVALID", "Neo4j execution requires an exclusively Neo4j plan.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return CqlFailure("CQL_QUERY_LIMIT", "Neo4j CQL result limit must be between one and 10,000.");
-            var admission = CqlCapabilities.Admit(plan.Query);
+            var admission = CqlCapabilities.AdmitPlan(plan);
             if (admission.IsError) return CqlFailure(admission.ErrorCode, admission.Message);
             var compiled=CompileCqlSource(plan.Query);
             var translator=compiled.Translator;
@@ -40,7 +40,8 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var traversalLimit=compiled.TraversalLimit;
             var keys=translator.TranslateOrdering(plan.Query.Orderings);
             var rootBudget=plan.Query.GraphOptions==null?maximumResults:Math.Min(maximumResults,plan.Query.GraphOptions.MaximumNodes);
-            var fetch=plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,rootBudget+1):rootBudget+1;
+            var fetch=plan.TailIndex.HasValue ? (plan.Query.Limit == 0 ? 0 : 1)
+                : plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,rootBudget+1):rootBudget+1;
             translator.Parameters.Add("limit", fetch);
             translator.Parameters.Add("offset",plan.Query.Offset);
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,6 +57,21 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var nullKeys=string.Concat(aliases.Select(alias=>",null AS "+alias));
             var pageOrder=string.Join(",",directions.Concat(new[]{"p.f_Id ASC"}));
             var finalOrder=string.Join(",",new[]{"valid ASC"}.Concat(directions).Concat(new[]{"toLower(id) ASC"}));
+            var selectedWindow = "WITH h,p"+project+" ORDER BY "+pageOrder+" SKIP $offset LIMIT $limit ";
+            if (plan.TailIndex.HasValue)
+            {
+                translator.Parameters.Add("tailOffset", plan.TailIndex.Value - 1);
+                var sourceLimit = "";
+                if (plan.Query.Limit.HasValue)
+                {
+                    translator.Parameters.Add("sourceLimit", plan.Query.Limit.Value);
+                    sourceLimit = " LIMIT $sourceLimit";
+                }
+                var reverse = keys.Select((key,index)=>aliases[index]+(key.Descending?" ASC":" DESC"));
+                selectedWindow = "WITH h,p"+project+" ORDER BY "+pageOrder+" SKIP $offset"+sourceLimit
+                    +" WITH h,p"+returnKeys+" ORDER BY "+string.Join(",",reverse.Concat(new[]{"p.f_Id DESC"}))
+                    +" SKIP $tailOffset LIMIT $limit ";
+            }
             var eligibleSource=compiled.EligibleSource;
             var traversalError=translator.TraversalClauses.Count==0?"":
                 " UNION ALL "+eligibleSource+"WHERE "+cycle+" OR "+traversalLimit+
@@ -64,7 +80,7 @@ public partial class Neo4jOASIS : ICosmicQueryStorageProvider
             var query="CALL { "+source+"WHERE NOT valid RETURN h.Id AS id,h.ProviderRevisionId AS revision,false AS valid,null AS snapshot,"+
                 "false AS traversalCycle,false AS traversalLimit"+nullKeys+" LIMIT 1"+traversalError+" UNION ALL "+
                 eligibleSource+"WHERE ("+descendantPredicate+") AND NOT("+cycle+" OR "+traversalLimit+") "+
-                "WITH h,p"+project+" ORDER BY "+pageOrder+" SKIP $offset LIMIT $limit "+
+                selectedWindow+
                 "RETURN h.Id AS id,h.ProviderRevisionId AS revision,true AS valid, "
                 + "CASE WHEN size(h.SnapshotJson)<=2097152 THEN h.SnapshotJson ELSE null END AS snapshot,"
                 + "false AS traversalCycle,false AS traversalLimit"+returnKeys+" } RETURN id,revision,valid,snapshot,traversalCycle,traversalLimit ORDER BY "+finalOrder;

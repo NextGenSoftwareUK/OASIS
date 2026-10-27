@@ -907,6 +907,26 @@ public static class V1NativeQueries
         await output.WriteLineAsync("46. Single groups / filter, order and page rounded results\n");
         await output.WriteLineAsync($"  Total: {floatArithmeticRow.Total}; Mean: {floatArithmeticRow.Mean}\n");
 
+        // 47–58. Native element terminals preserve the composed source and
+        // distinguish empty/default results from failed or ambiguous queries.
+        completedQueries += await V1ElementQueries.RunAsync(manager, adapter, visible, output);
+
+        // 59–90. Remaining demo query-operator acceptance on the same native
+        // source: null/missing, field comparison, membership, strings and ties.
+        completedQueries += await V1OperatorQueries.RunAsync(manager, adapter, visible, output);
+
+        // 91–105. Zero-based element indexing composes with the native source
+        // window; known-empty/default cases require no provider read.
+        completedQueries += await V1IndexedQueries.RunAsync(manager, adapter, visible, output);
+
+        // 106–135. Last and System.Index select after the original source
+        // window inside one native operation, including graph/scalar ordering.
+        completedQueries += await V1TailQueries.RunAsync(manager, adapter, visible, output);
+
+        // 136–157. Universal scalar predicates run after the original native
+        // source window. Empty sequences satisfy All; failures remain errors.
+        completedQueries += await V1AllQueries.RunAsync(manager, adapter, visible, output, fixtureTag);
+
         return completedQueries;
 
         async Task ShowCompositionAsync(string title,

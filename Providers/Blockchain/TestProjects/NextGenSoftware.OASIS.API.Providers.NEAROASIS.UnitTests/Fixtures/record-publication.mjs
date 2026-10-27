@@ -6,6 +6,7 @@ let result;
 if(input.operation==='probe')result={};
 else if(input.operation==='get')result=null;
 else if(input.operation==='putRecordChecked'){
+  input.args=JSON.parse(Buffer.from(input.argsBase64,'base64').toString('utf8'));
   const root=process.env.OASIS_NEAR_PUBLICATION_FIXTURE;
   if(!root)throw new Error('Owned fixture directory required');
   if(input.args.expected_value!==null||Object.hasOwn(input.args,'archive_key'))throw new Error('Expected exactly one create-only conditional invocation');

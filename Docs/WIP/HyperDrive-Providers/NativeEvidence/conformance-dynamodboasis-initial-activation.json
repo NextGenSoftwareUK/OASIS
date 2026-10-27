@@ -1,0 +1,53 @@
+{
+  "suite": "core-storage-v2",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "DynamoDBOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "b5f58fa3-0c05-41f5-a491-578ad261b4e2",
+      "RootId": "bcf589c5-9fb1-4f25-b854-465a7b39670d",
+      "ChildId": "68dec9df-2d29-4601-a014-24acb8d1a42e",
+      "BatchIds": [
+        "7e83ad59-de85-4d7e-849c-97fdb7681a07",
+        "303f0cfa-cd09-453f-acac-130a0fa0dabe"
+      ],
+      "ImportId": "fd25b822-9d4b-4684-9e54-48073ef53e4c",
+      "Passed": [],
+      "CurrentCase": "activate",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "activation",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "absent",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v2",
+      "Provider": "DynamoDBOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "7e4d842c-a1b5-414c-a255-5c64be2f7e78",
+      "RootId": "306da33f-6657-4ccf-85df-eb1b30beda1f",
+      "ChildId": "13c4c835-9531-4347-8d40-ca2d9375025f",
+      "BatchIds": [
+        "24b6d858-2225-4079-9bc2-7813117277db",
+        "058d3d80-1bf0-4141-8495-ca280f81e0be"
+      ],
+      "ImportId": "7df05f34-6303-4456-96f4-c337d8eef4a0",
+      "Passed": [],
+      "CurrentCase": "activate",
+      "FailureType": "System.InvalidOperationException",
+      "FailureContract": "activation",
+      "DeletionKinds": {},
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": "absent",
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": false,
+      "Succeeded": false
+    }
+  ]
+}

@@ -15,6 +15,10 @@ public static partial class CqlV1Compiler
 {
     public static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGrouped(
         CqlGroupedV1Request request, Guid actor, ProviderType? provider)
+        =>CompileGrouped(request,actor,provider,null);
+
+    public static CosmicGroupedSelection<Holon, CosmicProjectionRecord, CosmicProjectionRecord> CompileGrouped(
+        CqlGroupedV1Request request, Guid actor, ProviderType? provider,CosmicQueryReadAccess access)
     {
         if (request == null || request.Keys == null || request.Keys.Length is < 1 or > 8
             || request.ResultFilters == null || request.ResultFilters.Length > 32
@@ -22,7 +26,7 @@ public static partial class CqlV1Compiler
             || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
             throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
         var options = CosmicGroupingOptions.Create(request.MaximumGroups, 1024 * 1024).Result;
         var groupingResult = source.GroupByColumns(request.Keys.Select(ProjectionColumn).ToArray(), options);
         if (groupingResult.IsError) throw new ArgumentException(groupingResult.Message);

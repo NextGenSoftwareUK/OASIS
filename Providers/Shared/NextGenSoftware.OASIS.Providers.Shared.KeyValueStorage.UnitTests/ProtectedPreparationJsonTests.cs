@@ -12,6 +12,21 @@ public class ProtectedPreparationJsonTests
     private static HolonWritePreparation Candidate()=>new(Guid.NewGuid(),Guid.NewGuid(),ProviderType.OracleDBOASIS,
         new[]{new ProtectedHolonPreparation(Guid.NewGuid(),"oasis-preparation1:opaque-🌳-\"-\\")});
     [TestMethod]
+    public void StoredOnlyReadNeedsBindingButNoSyntheticCandidate()
+    {
+        var original=Candidate();
+        var copy=ProtectedPreparationJson.Read(original.OperationId,original.ActorId,original.Authority,ProtectedPreparationJson.Write(original));
+        Assert.AreEqual(original.OperationId,copy.OperationId);Assert.AreEqual(original.ActorId,copy.ActorId);
+        Assert.AreEqual(original.Records[0].Envelope,copy.Records[0].Envelope);
+    }
+    [DataTestMethod][DataRow(true)][DataRow(false)]
+    public void StoredOnlyReadRejectsEmptyBinding(bool operation)
+    {
+        var original=Candidate();
+        Assert.ThrowsException<ArgumentException>(()=>ProtectedPreparationJson.Read(operation?Guid.Empty:original.OperationId,
+            operation?original.ActorId:Guid.Empty,original.Authority,ProtectedPreparationJson.Write(original)));
+    }
+    [TestMethod]
     public void PreservesOpaqueUnicodeAndOwnershipWithoutAuthenticationOrEncryption() {
         var owner=Candidate();var copy=ProtectedPreparationJson.Read(owner,ProtectedPreparationJson.Write(owner));
         Assert.AreEqual(owner.OperationId,copy.OperationId);Assert.AreEqual(owner.ActorId,copy.ActorId);

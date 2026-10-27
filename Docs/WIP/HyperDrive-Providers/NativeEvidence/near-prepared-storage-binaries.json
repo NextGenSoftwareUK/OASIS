@@ -1,0 +1,28 @@
+{
+  "Core": "5afd3922571637ada9c9a09988b43558d116d93fd9b6f079281dcd3cef897e98",
+  "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1",
+  "sourceDocumentsVerified": {
+    "Core": 781,
+    "Shared": 56
+  },
+  "consumers": {
+    "Providers\\Blockchain\\NextGenSoftware.OASIS.API.Providers.NEAROASIS\\bin\\Debug\\net10.0": {
+      "Core": "5afd3922571637ada9c9a09988b43558d116d93fd9b6f079281dcd3cef897e98",
+      "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+    },
+    "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests\\bin\\Debug\\net10.0": {
+      "Core": "5afd3922571637ada9c9a09988b43558d116d93fd9b6f079281dcd3cef897e98",
+      "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+    },
+    "Providers\\Blockchain\\TestProjects\\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\\bin\\Debug\\net10.0": {
+      "Core": "5afd3922571637ada9c9a09988b43558d116d93fd9b6f079281dcd3cef897e98",
+      "Shared": "77adea5235a568a8182934512b583930db7029ef015c4161633560d09d6a86e1"
+    }
+  },
+  "sdkCopies": {
+    "bridge.mjs": "56fea610e5631c6ca7646e0377d5bc4da20f506de398086a746b44b66b0a352d",
+    "checked-write.mjs": "8213bfa85c9da32808b577f35235a556ac8b92dd6523241a013b8ca9c9c0f648",
+    "native-preparation.mjs": "dbcaef9b3e1f79a744f53991a4402e6b8e10de496dd4e9b5af5fc4d206b5d58e",
+    "native-mutation.mjs": "bd81402e73267d8a2c5877bfc92cf3551d95f1eeb76f9d0657a7aa86377c8a80"
+  }
+}

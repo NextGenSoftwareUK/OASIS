@@ -22,6 +22,8 @@ public partial class HolonRepository
         Action<IReadOnlyDictionary<Guid,BsonDocument>> finalizeResponse=null)
     {
         var result=new OASISResult<bool>();
+        if(conditional!=null) result.MetaData = new Dictionary<string,string>
+            { ["COSMIC.OperationId"] = conditional.Plan.OperationId.ToString("D") };
         var validatingPayload=false;
         try
         {

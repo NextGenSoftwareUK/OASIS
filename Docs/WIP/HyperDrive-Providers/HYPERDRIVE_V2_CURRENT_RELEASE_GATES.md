@@ -1,5 +1,117 @@
 # HyperDrive V2 current release gates
 
+## NEAR worker credential routing — 26 October
+
+Controlled baselines reproduced10request-field failures and17ambient-credential failures. Final470unitPASS0skip31s after central request key allowlist and child-only removal of known NEAR signing/storage environment keys. Explicit selected signing/derivation inputs and parent record crypto retained. Same environment/no native mutation/download. Independent-payer/hosted/native-loss/full-provider gates remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT native replay guards — 26 October
+
+453unitPASS +1nativePASS52s.23durably retained originals recovered keylessly (20success/3exact expected failures). Public stale-source/released-replay rejects before signing; native stale-ID release, locked burn and burn/remint old-ID reuse rejected. Synthetic NFT/remint burned,4owned ciphertext history rows removed after exact checks; replay tombstones retained. Same runtime stopped, no installs/downloads. Same-account custom-contract scope; independent owners, transport loss, hosted fees/authority and full provider/V2 remain open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR native NFT code upgrade — 26 October
+
+Durable original9oWz1mLD... FINAL/Success; deployed86e566d1...andprotocol1 independently read back. All2527state entries/digest unchanged; no init/reset. Owned node stopped/settings restored; signed proof/fees/artifact promotion recorded. Public23-original stale-ID/replay/locked-burn/remint cohort still requires compilation/execution. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT official SDK Wasm gate — 26 October
+
+Installed SDK2typecheck/validation/real Wasm buildPASS; candidate536635B/SHA86e566d1..., oldexports retained/exact2new. Active3390da66... unchanged. Source/mirror/export hashes and compact logs retained;750731B verified compiler intermediates removed, no downloads/new environments/native mutation. Durable upgrade and new native replay cohort remain required. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT deposit-ID C# gate — 26 October
+
+453unitPASS0skip30s. Provider requires native custody protocol1, binds generated/current lock ID into calldata, validates exact original deposit/read-back and constrains bridge release to the source receipt ID. Existing owners/resolvers/validators reused; both model fixtures empty after cleanup. Active contract3390da66... does not yet expose this ABI: no live claim until actual SDK build/durable upgrade/native acceptance. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT unique-deposit source gate — 26 October
+
+49source controlsPASS: current native NFT lock ID, owner/token binding, released tombstones across burn/remint, stale-cycle rejection and locked-burn protection. Existing validators/records/owners reused. Active contract unchanged; new ABI requires C# mapping, actual SDK compilation, durable upgrade and native acceptance. No live replay-protection claim. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT source-lock receipt gate — 26 October
+
+445unitPASS0skip27s. A supplied NFT deposit source must be finalized successfully and bind its exact hash/configured signer/contract/single lock action/token/locked=true arguments before any unlock. Existing SDK reader/action validator reused;12new controlled cases. No native bridge completion claim; lock-cycle replay still needs a native unique deposit invariant. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR NFT avatar wallet routing — 26 October
+
+Public NFT lock/unlock now honor existing actor IDs through the shared NEAR signing-wallet resolver. Seven new controls and full433unitPASS cover exact avatar signing, foreign/warning wallet rejection and caller mutation during activation. Source/PDB/dependencies captured; same environment/no native mutation. Source-lock receipt binding for NFT bridge deposits remains open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR public token custody native gate — 26 October
+
+426unitPASS and1nativePASS20s. Public exact lock/release, burn/supply conservation, release-while-frozen, native frozen-lock rejection and pre-sign replay rejection verified. Eight durably retained originals read back keylessly (7success,1expected failure), final supply/balance0, released tombstone preserved. Same retained node stopped; compact evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). Independent holders, hosted fee/auth and remaining full provider/V2 gates remain open; no Dev promotion.
+
+## NEAR native custody code upgrade — 26 October
+
+Pinned candidate3390da66... deployed by one durably retained signed original, native FINAL/Success. All2523state entries have identical before/after digest; token escrow protocol1 reads back. Owned node stopped and temporary local diagnostic limit restored. Compact signed-original/receipt proof retained; no reset/install/download. Public custody and remaining provider/hosted/V2 acceptance still open. [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR token custody adapter controlled gate — 26 October
+
+Existing escrow capability, WalletManager resolution and exact public lock/release routing implemented. Provider build and 426 unit cases passed; final fixture identity checks passed the targeted 33 cases again. Exact preflight/read-back and original-ID preservation are covered by controlled process fixtures. This is not live custody: active native code has not been upgraded. Durable deployment/state preservation and native token acceptance remain next; no Dev promotion. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md).
+
+## NEAR exact token custody: source/SDK gate only — 26 October
+
+35contract controlsPASS; retained official SDK2 typecheck/validation/actual Wasm buildPASS. Candidate534212bytes/hash3390da66..., alloldexports retained/4newcustody exports; active638719code untouched. Implements exact deposit/owner/replay/supply semantics and reserved custody records; does not certify C# LockToken routing or live custody. Requires actual adapter/capability wiring, durable local code-upgrade/data preservation and native acceptance next. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); no Dev promotion.
+
+## NEAR public NFT/wallet native lifecycle — 26 October
+
+393unitPASS; actual public mint/lock/unlock/NFT bridge/self-transfer/burn and native send/deposit/withdraw/history passed1native case38s with18physical originals. Each persisted before send, all18read-only recovered, NFT burned/4owned ciphertext records verified then removed. Frozen mint intent now covers activation awaits. Evidence/fees/limits in [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md); retained environment reused and node stopped. Same-account/custom-contract proof only: independent owners, native fungible tokens/avatar schedules, hosted fee/auth and real-loss/full V2 remain open.
+
+## NEAR public encrypted storage and native follow-up repair — 26 October
+
+389unit/31SDK checks PASS; actual public save/history/CAS-conflict/tombstone writes produced5known originals, then exact-ciphertext/keyless reconciliation passed and submitted only3remaining fixture deletes. All8verified, fixturesabsent; first5never replayed. Preserve provenance: initial0-ACK byte-mismatch run and later test-only rawJSON history assertion failed; both reports retained. Main assertion fix compiled, not fresh-replayed. Fixed exact checked calldata transport plus lost wallet/NFT follow-up IDs and incorrect NFT lock read-back handling. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md) for originals/fees/limits. Full hosted/native-loss/NFT/V2/provider gates remain OPEN; no Dev merge.
+
+## NEAR ordinary-interface original persistence — 26 October
+
+Existing prepared-storage interface now covers ordinary native transfer/call/checked-write plumbing using existing shared async owner.380unit/22SDK/1native PASS; native3originals fsynced before send and recovered keylessly, including rejected call. Native checked-record/public NFT-token/forced-loss/hosted Mongo fee and full V2 gates remain OPEN. See [NEAR audit](NEAR_SIGNER_AND_RECEIPT_AUDIT.md). No completion or Dev promotion claimed.
+
+## 26 October: NEAR prepared native owner and keyless recovery
+
+New explicit ExecutePreparedNativeActionAsync reuses EXISTING UsageExecutionHandle/PreparedSubmissionServer, verifies the admitted immutable action, persists original common signed fields before one exact SDK submission, and validates bound FINAL outcome. Missing admission/wrong signer/unverified sponsored maxima reject before SDK. Known native rejection preserves its original ID; post-submit uncertainty requires reconciliation. SDK20PASS; providerbuild/full370controlledPASS0skip18s includes physical-pipe and failed-ACK/lost-response controls.
+
+Actual native75165PASS1/1,7s:3originals (self-transfer, get function call, deliberately rejected missing method) fsynced before broadcast and reconstructed from common persisted fields; all native outcomes read using invalid signing material. Core781/Shared56 source/PDB/copies match; three fixed SDK copies match source and shared pipe client. Same retained node/SDK/validator, no downloads/restores/new environment; node stopped/ports absent. Actual receipt tokens_burnt1274803669988800000000yocto=0.0012748036699888localtestNEAR; storage/outlay/pricing and settlement separate.
+
+This is synthetic admission/file-backed durability, NOT hosted Mongo/billing. Existing CallAsync/TransferAsync/checked-write interfaces are not yet redirected to this explicit owner API; actual response-loss/process-restart gates and host routing/fullV2 remain OPEN. Canonical completed evidence/replay guard prevents native rerun; no default-interface durable certificate. [Details](NEAR_SIGNER_AND_RECEIPT_AUDIT.md), [resources](ENVIRONMENT_INVENTORY.md).
+
+## 26 October: NEAR ordinary encrypted put/delete acknowledgements
+
+Two direct storage paths accepted hash-only responses and used separate SDK callFunctionRaw signing.24new controlled cases reproduced22real failures/2valid controls. Both now delegate the existing CallAsync→InvokeMutationAsync owner (exact signer/receiver/action/method/args/deposit/gas and FINAL execution) and shared official SDK submitNativeAction with retries0; obsolete raw put/delete branches removed. Final357/357controlledPASS0skip18s.
+
+Native42936PASS1/1,3s on retained near-sandbox2.6.2/SDK7.3.1/contract/validator/DPAPI key: actual encrypted put and delete, exact decrypted readback, ciphertext lacks plaintext, independent original statuses FINAL/Success and final key absent. Native receipts expose total tokens_burnt2452593695665800000000yocto (0.0024525936956658localtestNEAR); storage deposits/refunds and complete outlay remain separate. Runtime stopped/ports absent; originals retained under task NativeEvidence; replay guard tested before WSL startup. Original unit/integration projects restored cache-only after cleanup removed outputs, no downloads/new environment.
+
+Core781/Shared56 source identities verified; native test recompiled after adding only published-evidence replay guard, not rerun. Historical full19/current Windows transaction reports were absent after cleanup and are not reconstructed or relabelled. Durable pre-broadcast signing/outbox recovery, unknown-outcome fault gates, public record lifecycle/full interfaces, hosted auth/fee pricing and fullV2 remain OPEN. [Audit and exact originals](NEAR_SIGNER_AND_RECEIPT_AUDIT.md), [resource ledger](ENVIRONMENT_INVENTORY.md).
+
+## 26 October: public NFT bridge local custody gate
+
+Native47562PASS1/1,68s: four real originals mint→public WithdrawNFTAsync→source-proven DepositNFTAsync→burn on the retained collection/node. Separate52769READ-ONLY recoveryPASS1/1,24s; independent four native IDs absent/collection supply0; ordinary373/373PASS0skip20s. Same fsynced admitted-owner fixture, one acknowledgement each, exact original sender/token/from/to and native effects. Core781/Shared56 source identities verified. Fences886/mode exclusions105PASS; owned node stopped/ports absent, no restore/download/new environment.
+
+Actual FRAME fees0.012873042047localtestUNIT, storage separate. This closes the earlier missing native withdrawal-wrapper gate. These are local custody legs with synthetic file admission/wallet lookup; remote-chain provenance, wrapped mint, cross-leg replay protection, hosted authorization/billing and whole-provider/fullV2 support remain OPEN. [Original evidence/limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md).
+
+## 26 October: public PSP22 escrow uninterrupted post-fix acceptance
+
+Public C# token Lock/Unlock now have a fresh successful response cycle on the SAME retained native token, reviewed escrow and runtime: gate42605PASS1/1,45s; separate read-only recovery23233PASS1/1,15s; ordinary373/373PASS0skip21s. Existing first-cohort originals/failure evidence remain unchanged. Exact typed decimal conversion, one durable owner acknowledgement per operation, native finalized effects, common signed-field recovery and final full balance/zero allowance/released deposit are proven. Source-verified Core781/Shared56 identities match. Pending fences804 and mode exclusions105PASS. Runtime stopped/ports absent; no downloads, restores or duplicate environment.
+
+Actual approval+lock+release FRAME fees0.011625452190localtestUNIT; separate storage deposits are not included and no public sponsorship/fiat charge is certified. This closes the earlier uninterrupted public C# response gate after fixing missing submit classification. Hosted wallet/admission/billing, native pallet Assets custody, cross-runtime/full relevant interfaces and full V2 matrices remain OPEN. [Original hashes, fees and limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [reused resources and teardown](ENVIRONMENT_INVENTORY.md). This is not whole-provider100% certification or a dev deployment.
+
+## 26 October: native escrow v0.2 constructor/deployment accepted
+
+Retained-node simulation and one original instantiateWithCode finalized at0x57c45516efaf35ef1737dfcaea6ea8c67f44dcf4e3687f3eb49bdcfced2b21a7; exact original/call/payer/code/Instantiated event/collection verified. Separate explicit reconciliation reused the same original without signing or replay. Initial native beneficiary-query/owner/supply snapshot confirms new ABI and empty state. SDK37/37 and pending fences175PASS. No new runtime/environment/wallet/download/funding; old0.1instance preserved, owned node stopped/ports absent.
+
+Actual local FRAME fee0.005516846082testUNIT; storage limit1.05427UNIT and observed debit1.059786846082UNIT are separate quantities, not a retail-fee or general outlay certificate. **Still open:** native lock/unlock across ownership cycles, wrong/stale beneficiaries, hosted GUID/wallet/owner authorization and full provider/V2 certification. [Original/evidence/fee details](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resources](ENVIRONMENT_INVENTORY.md). Earlier “not deployed” checkpoints below are historical.
+
+## 26 October: native beneficiary escrow v0.2 source and artifact gates
+
+Current C# lock/unlock share stored NFT/chain validation and authorized avatar-wallet selection; gate54473passed358/358controlled cases0skip19s after provider/consumer builds. Rust14/14 and SDK28/28 pass. Offline Wasm16840passed with50,316Bartifact, exact exports/imports, SHA78d6d3d39dafe6338257a35205cd099246b658ab102f2547066133d70b32a67f/codeHash0x39cacf5a31331133ee218034e8c7bc379f250a3c86a8c1a1e775c3a3773c82f1. All builds reused cached runtimes/one target; obsolete intermediate files were verified/removed, final0.1artifact preserved.
+
+**Not yet deployed or natively accepted:** v0.2constructor simulation/deployment, rightful/foreign/stale beneficiary native cases and hosted GUID/wallet authorization. Earlier four-operation service-pool native proof is historical v0.1evidence, not certification of the new contract methods. Old fixture is recovery-only. No provider/global100% claim or dev deployment follows from these source/artifact gates. [Evidence and boundary](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resource ledger](ENVIRONMENT_INVENTORY.md).
+
+## 26 October: Polkadot native custody lock/release acceptance
+
+Gate27455terminal0: one native case finalized4originals (mint, stored-record lock, source-proven release, burn)68s; separate same-original read-only recovery1/1PASS24s, restored ordinary provider347/347PASS0skip19s; pending fences131PASS. Existing node/ledger/collection/wallets reused, no download/install/funding. Actual FRAME fees0.012881604343localtestUNIT exclude separate storage effects; no fiat/sponsorship cap claim. Independent final state proves3IDs absent/supply0. Owned node stopped/ports absent; raw reports compacted after hash roundtrip.
+
+Native vsfinal provider DLLs are separate cohorts after Git-only root revision changed during rebuild; Core/Shared unchanged and final producer/consumer pairs matched. The likely generated informational-version cause is documented without asserting byte equivalence. Synthetic stored-record/wallet lookups and file admission do not establish hosted authorization/Mongo or UnlockNFT replay/beneficiary safety. Cross-chain wrapping and other relevant interfaces remain open. [Exact evidence, hashes and limits](POLKADOT_PROVIDER_NATIVE_TESTS.md), [resource lifecycle](ENVIRONMENT_INVENTORY.md).
+
+## 26 October: public Polkadot NFT lifecycle and address interoperability
+
+Published8f2dbf1b9 implements ordinary mint/send/burn using the shared admitted-operation owner and real SDK. Local native gate22504 executed five original transactions, proved exact finalized effects, recovered the same originals read-only and independently proved both minted IDs absent/supply0. Provider329/329, SDK63/63, ONODE119/119 and fences93 passed. Actual FRAME fees0.017430258451localtestUNIT; separate storage effects mean this is not complete outlay or a sponsorship cap. Paired ONODE dependency714ce73 and manifest validator passed. Detailed reports/cohort hashes are in [native evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md).
+
+Publishedb599aedc8 adds real SDK SS58-to-AccountId32 normalization before NFT preparation and compares collection aliases by canonical identity. Gate13262 passed331/331 provider tests, including2C#-to-real-SDK controls, plus3SDK checksum/prefix/bounds tests. No new native transaction, environment or download. Hosted auth/Mongo admission, custody interfaces, full fee pricing/caps and complete provider/V2 matrices remain open; these gates do not certify the entire provider. Shared inventory retains resource lifecycle details.
+
 ## 26 October: native C# encrypted conditional-cell and recovery gate
 
 C# adapter now proves real SDK/physical PreparedSubmissionServer/fsync-owner execution through the EXISTING shared PersistedPrivateKeyValueBackend: encrypted create/revision-replace/revision-delete, HMAC-key/ciphertext visibility checks, reopened read with separate stable synthetic key, pre-ACK conflict and exact synthetic cleanup. Native1/1PASS73s, same-original read-only recovery1/1PASS16s with freshACK0; regular consumer restored,249/249PASS0skip14s. New read-only recovery method binds the configured backend and preserves bounded absence as unresolved. No extra runtime/instance/download; node stopped, slot returned.

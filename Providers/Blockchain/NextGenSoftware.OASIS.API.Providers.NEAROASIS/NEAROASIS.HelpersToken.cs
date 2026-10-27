@@ -1,5 +1,9 @@
 using System;
 using System.Numerics;
+using System.Text.Json;
+using System.Linq;
+using System.IO;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -22,70 +26,124 @@ public partial class NEAROASIS
         LockNFTAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request) =>
-        SetNftLockAsync(request?.NFTTokenAddress, true);
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, true,request?.LockedByAvatarId??Guid.Empty);
 
     public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request) =>
         UnlockNFTAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request) =>
-        SetNftLockAsync(request?.NFTTokenAddress, false);
+        SetAvatarNftLockAsync(request?.NFTTokenAddress, false,request?.UnlockedByAvatarId??Guid.Empty);
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetAvatarNftLockAsync(string tokenId,bool locked,Guid actor)
+    {
+        if(actor==Guid.Empty)return await SetNftLockAsync(tokenId,locked);
+        var result=new OASISResult<IWeb3NFTTransactionResponse>();
+        try {
+            if(string.IsNullOrWhiteSpace(tokenId))throw new ArgumentException("NFT token id is required.");
+            var signer=await ResolveLockSignerAsync(actor,null,null);
+            return await SetNftLockAsync(tokenId,locked,signer.Account,signer.Key);
+        }catch(Exception failure){OASISErrorHandling.HandleError(ref result,failure.Message,failure);return result;}
+    }
 
     private async Task<OASISResult<IWeb3NFTTransactionResponse>> SetNftLockAsync(string tokenId, bool locked,
-        string signerAccountId = null, string signerPrivateKey = null)
+        string signerAccountId = null, string signerPrivateKey = null,string requiredLockId=null)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        string acknowledged=null;
         try
         {
             if (string.IsNullOrWhiteSpace(tokenId)) throw new ArgumentException("NFT token id is required.");
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var tx = await _sdk.CallAsync("nft_set_locked", new { token_id = tokenId, locked },
+            if(_chainId!=_networkId)throw new InvalidOperationException("Consistent NEAR network required for NFT custody.");
+            var protocol=await _sdk.ViewAsync("nft_escrow_protocol",new{});
+            if(protocol.ValueKind!=JsonValueKind.Number||!protocol.TryGetInt32(out var version)||version!=1)
+                throw new InvalidOperationException("Native NFT deposit protocol1 required before signing.");
+            var owner=signerAccountId??_accountId;
+            var current=await _sdk.ViewAsync("nft_token",new{token_id=tokenId});
+            if(current.ValueKind!=JsonValueKind.Object||current.GetProperty("token_id").GetString()!=tokenId||current.GetProperty("owner_id").GetString()!=owner||current.GetProperty("locked").GetBoolean()==locked)
+                throw new InvalidDataException("NFT must be owned by the signer and in the opposite custody state.");
+            var id=locked?Guid.NewGuid().ToString("N"):NearSdkService.RequireNftLockId(current.GetProperty("lock_id").GetString());
+            if(requiredLockId!=null&&NearSdkService.RequireNftLockId(requiredLockId)!=id)
+                throw new InvalidDataException("Source receipt belongs to another NFT lock cycle.");
+            var previous=await _sdk.ViewAsync("nft_lock_get",new{lock_id=id});
+            if(locked){if(previous.ValueKind!=JsonValueKind.Null)throw new InvalidDataException("NFT deposit ID already used.");}
+            else VerifyNftDeposit(previous,id,tokenId,owner,false);
+            var tx = await _sdk.CallAsync("nft_set_locked", new { token_id = tokenId, locked,lock_id=id },
                 signerAccountId: signerAccountId, signerPrivateKey: signerPrivateKey);
+            acknowledged=tx;
+            VerifyNftDeposit(await _sdk.ViewAsync("nft_lock_get",new{lock_id=id}),id,tokenId,owner,!locked);
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
             if (loaded.IsError) throw loaded.Exception ?? new InvalidOperationException(loaded.Message);
-            loaded.Result.MetaData ??= new();
-            loaded.Result.MetaData["near:locked"] = locked.ToString();
+            if(loaded.Result?.MetaData==null||!loaded.Result.MetaData.TryGetValue("near:locked",out var observed)
+                ||!string.Equals(observed?.ToString(),locked.ToString(),StringComparison.Ordinal))
+                throw new System.IO.InvalidDataException("Native NFT lock state after acknowledgement differs from the requested state.");
+            if(loaded.Result.SendToAddressAfterMinting!=owner||!loaded.Result.MetaData.TryGetValue("near:lock-id",out var observedId)||observedId?.ToString()!=id)
+                throw new InvalidDataException("Native NFT current deposit differs after acknowledgement.");
             result.Result = new Web3NFTTransactionResponse { TransactionResult = tx, Web3NFT = loaded.Result };
             result.Message = $"NFT {(locked ? "locked" : "unlocked")} by the deployed NEAR contract.";
         }
-        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error changing NEAR NFT lock: {ex.Message}", ex); }
+        catch (Exception ex) {
+            if(!string.IsNullOrWhiteSpace(acknowledged))ex=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,acknowledged,ex);
+            OASISErrorHandling.HandleError(ref result, $"Error changing NEAR NFT lock: {ex.Message}", ex);
+        }
         return result;
+    }
+
+    private static void VerifyNftDeposit(JsonElement value,string id,string token,string owner,bool released)
+    {
+        if(value.ValueKind!=JsonValueKind.Object||value.EnumerateObject().Count()!=5||value.GetProperty("protocol").GetInt32()!=1
+            ||value.GetProperty("lock_id").GetString()!=NearSdkService.RequireNftLockId(id)||value.GetProperty("token_id").GetString()!=token
+            ||value.GetProperty("owner_id").GetString()!=owner||value.GetProperty("released").GetBoolean()!=released)
+            throw new InvalidDataException("Native NFT deposit differs from exact ID/token/owner/state.");
     }
 
     public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress,
         string tokenId, string senderAccountAddress, string senderPrivateKey)
     {
         var locked = await SetNftLockAsync(tokenId, true, senderAccountAddress, senderPrivateKey);
-        return ToBridgeResult(locked.Result?.TransactionResult, locked.IsError, locked.Message);
+        return ToBridgeResult(locked.Result?.TransactionResult, locked.IsError, locked.Message,locked.Exception);
     }
 
     public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress,
         string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
     {
+        string sourceLockId=null;
         if (!string.IsNullOrWhiteSpace(sourceTransactionHash))
         {
-            var sourceStatus = await GetTransactionStatusAsync(sourceTransactionHash);
-            if (sourceStatus.IsError || sourceStatus.Result != BridgeTransactionStatus.Completed)
-                return ToBridgeResult(null, true, sourceStatus.IsError
-                    ? sourceStatus.Message
-                    : $"Source NEAR transaction {sourceTransactionHash} is not final.");
+            try {
+                var active=new OASISResult<BridgeTransactionResponse>();
+                if(!await EnsureSdkActiveAsync(active))return ToBridgeResult(null,true,active.Message,active.Exception);
+                sourceLockId=await _sdk.VerifyNftLockSourceAsync(sourceTransactionHash,tokenId);
+            }catch(Exception failure){return ToBridgeResult(null,true,failure.Message,failure);}
         }
-        var unlocked = await SetNftLockAsync(tokenId, false);
-        if (unlocked.IsError) return ToBridgeResult(null, true, unlocked.Message);
+        var unlocked = await SetNftLockAsync(tokenId, false,requiredLockId:sourceLockId);
+        if (unlocked.IsError) return ToBridgeResult(null, true, unlocked.Message,unlocked.Exception);
         var sent = await SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest
         {
             TokenId = tokenId,
             ToWalletAddress = receiverAccountAddress
         });
-        return ToBridgeResult(sent.Result?.TransactionResult, sent.IsError, sent.Message);
+        if(sent.IsError){
+            var failure=new NativeTransactionFollowupException(Core.Enums.ProviderType.NEAROASIS,unlocked.Result.TransactionResult,
+                sent.Exception??new InvalidOperationException(sent.Message));
+            return ToBridgeResult(unlocked.Result.TransactionResult,true,sent.Message,failure);
+        }
+        return ToBridgeResult(sent.Result?.TransactionResult, false, sent.Message);
     }
 
-    private static OASISResult<BridgeTransactionResponse> ToBridgeResult(string transactionId, bool error, string message) =>
-        new(new BridgeTransactionResponse(transactionId ?? string.Empty, null, !error, error ? message : null,
-            error ? BridgeTransactionStatus.NotFound : BridgeTransactionStatus.Completed))
-        {
-            IsError = error,
-            Message = message
+    private static OASISResult<BridgeTransactionResponse> ToBridgeResult(string transactionId,bool error,string message,Exception failure=null)
+    {
+        transactionId??=failure switch{
+            NativeTransactionFollowupException followup=>followup.OriginalTransactionId,
+            NearMutationUncertainException uncertain=>uncertain.OriginalTransactionId,
+            NearMutationRejectedException rejected=>rejected.OriginalTransactionId,
+            _=>null
         };
+        var status=!error?BridgeTransactionStatus.Completed:failure is NearMutationRejectedException?BridgeTransactionStatus.Failed:BridgeTransactionStatus.Pending;
+        return new(new BridgeTransactionResponse(transactionId??string.Empty,null,!error,error?message:null,status)){
+            IsError=error,Message=message,Exception=failure
+        };
+    }
 
     public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) =>
         SendTokenAsync(request).GetAwaiter().GetResult();

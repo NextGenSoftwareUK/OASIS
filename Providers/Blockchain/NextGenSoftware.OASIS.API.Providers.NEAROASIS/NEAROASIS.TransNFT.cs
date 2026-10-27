@@ -106,6 +106,7 @@ public partial class NEAROASIS
             nft.SendToAddressAfterMinting = value.GetProperty("owner_id").GetString();
             nft.MetaData ??= new();
             nft.MetaData["near:locked"] = value.GetProperty("locked").GetBoolean().ToString();
+            if(value.TryGetProperty("lock_id",out var lockId))nft.MetaData["near:lock-id"]=NearSdkService.RequireNftLockId(lockId.GetString());
             result.Result = nft;
             result.Message = "NFT loaded from the deployed NEAR contract.";
         }
