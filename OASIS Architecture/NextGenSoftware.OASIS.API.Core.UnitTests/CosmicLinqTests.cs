@@ -15,6 +15,7 @@ public sealed class CosmicLinqTests
         public int Calls;
         public int ScalarCalls;
         public long NativeCount = 2;
+        public bool DuplicateRows;
         public CosmicScalarCapabilities ScalarCapabilities => new(CosmicScalarOperation.Count, CosmicScalarOperation.LongCount, CosmicScalarOperation.Any, CosmicScalarOperation.All);
         public Task<OASISResult<TResult>> ExecuteCosmicScalarAsync<T, TResult>(CosmicScalarPlan<T, TResult> plan, CancellationToken cancellationToken = default) where T : IHolon
         {
@@ -27,7 +28,7 @@ public sealed class CosmicLinqTests
         public bool BrokenCapabilities;
         public ProviderType Identity = ProviderType.SQLLiteDBOASIS;
         public ProviderType QueryProviderType => Identity;
-        public CosmicQueryFeatures Features = CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging;
+        public CosmicQueryFeatures Features = CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging;
         public CosmicQueryCapabilities QueryCapabilities => BrokenCapabilities ? throw new InvalidOperationException("Owned capability fault") : new(Features,
             new[] { new CosmicQueryFieldCapability("Name", typeof(string),
                 new[] { CosmicQueryComparisonOperator.Equal }, Array.Empty<CosmicQueryStringOperator>(), supportsOrdering: true) });
@@ -35,9 +36,9 @@ public sealed class CosmicLinqTests
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
         {
             Calls++;
-            Seen = (CosmicQuery<Holon>)(object)plan.Query;
+            Seen = (object)plan.Query as CosmicQuery<Holon>;
             return Task.FromResult(Fault == null
-                ? new OASISResult<IReadOnlyList<IHolon>>(plan.Query.Limit == 0 ? Array.Empty<IHolon>() : new IHolon[] { new Holon { Id = Guid.NewGuid(), Name = "coffee" } })
+                ? new OASISResult<IReadOnlyList<IHolon>>(plan.Query.Limit == 0 ? Array.Empty<IHolon>() : Enumerable.Range(0, DuplicateRows ? 2 : 1).Select(_ => (IHolon)new Holon { Id = Guid.NewGuid(), Name = "coffee" }).ToArray())
                 : new OASISResult<IReadOnlyList<IHolon>> { IsError = true, ErrorCount = 1, ErrorCode = Fault, Message = "Owned native fault." });
         }
     }
@@ -208,5 +209,64 @@ public sealed class CosmicLinqTests
         using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
         Assert.Equal("CQL_QUERY_CANCELLED", (await selected.ToCosmicListAsync(cancellation.Token)).ErrorCode);
         Assert.Equal(0, adapter.Calls); Assert.Equal(0, adapter.ScalarCalls);
+    }
+    [Fact]
+    public void EntityElementTerminalsReuseNativeCardinalityAndTypedHydration()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal("coffee", root.First().Name);
+        Assert.Equal("coffee", root.Single().Name);
+        Assert.Equal("coffee", root.OrderBy(row => row.Name).Last().Name);
+        Assert.Equal("coffee", root.ElementAt(0).Name);
+        Assert.Equal("coffee", root.OrderBy(row => row.Name).ElementAt(^1).Name);
+        Assert.Equal(5, adapter.Calls); Assert.Equal(0, adapter.ScalarCalls);
+    }
+
+    [Fact]
+    public void StandardDefaultArgumentsRequireSuccessfulEmptyProof()
+    {
+        var adapter = new Adapter(); var empty = Root(adapter).Take(0);
+        var supplied = new Holon { Name = "caller default" };
+        Assert.Null(empty.FirstOrDefault());
+        Assert.Same(supplied, empty.FirstOrDefault(supplied));
+        Assert.Same(supplied, empty.SingleOrDefault(supplied));
+        Assert.Null(empty.ElementAtOrDefault(-1));
+        Assert.Equal(0, adapter.ScalarCalls);
+    }
+
+    [Fact]
+    public void DefaultArgumentsNeverMaskNativeFailuresOrAmbiguousCardinality()
+    {
+        var adapter = new Adapter { Fault = "OWNED_ELEMENT_ERROR" };
+        var root = Root(adapter); var supplied = new Holon();
+        Assert.Equal("OWNED_ELEMENT_ERROR", Assert.Throws<CosmicLinqException>(() => root.FirstOrDefault(supplied)).Code);
+        adapter.Fault = null; adapter.DuplicateRows = true;
+        Assert.Equal("CQL_SEQUENCE_MULTIPLE", Assert.Throws<CosmicLinqException>(() => root.SingleOrDefault(supplied)).Code);
+    }
+
+    public sealed class ConstructedHolon : Holon
+    {
+        public static int Constructions;
+        public ConstructedHolon() { Constructions++; }
+    }
+
+    [Fact]
+    public void AmbiguousSingleNeverInvokesAnApplicationConstructor()
+    {
+        ConstructedHolon.Constructions = 0;
+        var adapter = new Adapter { DuplicateRows = true };
+        var source = CosmicQuery<ConstructedHolon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result);
+        var query = CosmicLinq.Create(Manager(), adapter, source).Result;
+        Assert.Equal("CQL_SEQUENCE_MULTIPLE", Assert.Throws<CosmicLinqException>(() => query.Single()).Code);
+        Assert.Equal(0, ConstructedHolon.Constructions);
+    }
+
+    [Fact]
+    public void ElementPredicatesDoNotMoveAheadOfAWindowAndLastNeedsOrdering()
+    {
+        var adapter = new Adapter(); var root = Root(adapter);
+        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED", Assert.Throws<CosmicLinqException>(() => root.Take(1).First(row => row.Name == "coffee")).Code);
+        Assert.Equal("CQL_ORDER_REQUIRED", Assert.Throws<CosmicLinqException>(() => root.Last()).Code);
+        Assert.Equal(0, adapter.Calls);
     }
 }

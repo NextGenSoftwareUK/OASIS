@@ -104,6 +104,39 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var selectedCancelled = await composed.ToCosmicListAsync(cancellation.Token);
         Assert.AreEqual("CQL_QUERY_CANCELLED", selectedCancelled.ErrorCode); Passed("selected cancellation");
 
+        var ordered = root.OrderBy(row => row.Name);
+        var elementCases = new (string Label, Func<Holon> Read)[]
+        {
+            ("First", () => root.First()), ("FirstOrDefault", () => root.FirstOrDefault()!),
+            ("Single", () => root.Single()), ("SingleOrDefault", () => root.SingleOrDefault()!),
+            ("Last", () => ordered.Last()), ("LastOrDefault", () => ordered.LastOrDefault()!),
+            ("ElementAt Int32", () => root.ElementAt(0)), ("ElementAt Index", () => ordered.ElementAt(^1))
+        };
+        foreach(var item in elementCases)
+        {
+            var row = item.Read(); Assert.AreEqual(rootId,row.Id); Assert.IsFalse(HolonChangeTracking.HasChanges(row));
+            Passed("native standard " + item.Label);
+        }
+        Assert.IsNull(root.ElementAtOrDefault(100)); Passed("element out of range default");
+        Assert.IsNull(root.Take(0).FirstOrDefault()); Passed("FirstOrDefault empty source");
+        var supplied = new Holon { Name="caller default" };
+        Assert.AreSame(supplied,ordered.Take(0).LastOrDefault(supplied)); Passed("LastOrDefault supplied default");
+        Assert.AreEqual("CQL_SEQUENCE_EMPTY",Assert.ThrowsException<CosmicLinqException>(
+            () => root.Where(row=>row.Name=="absent").First()).Code); Passed("First empty error");
+        var actor = read.Result.Single().CreatedByAvatarId;
+        var multiSource = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
+            .Where(row=>row.CreatedByAvatarId==actor).Result;
+        var multi = CosmicLinq.Create(NativeManager(adapter),adapter,multiSource).Result;
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.Single()).Code);
+        Passed("Single multiple error");
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.SingleOrDefault(supplied)).Code);
+        Passed("SingleOrDefault default cannot mask multiple");
+        Assert.AreEqual(rootId,root.First(row=>row.Name==name).Id); Passed("First predicate before window");
+        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Take(1).First(row=>row.Name==name)).Code); Passed("First predicate after window explicit unsupported");
+        Assert.AreSame(supplied,root.Where(row=>row.Name=="absent").FirstOrDefault(supplied)); Passed("FirstOrDefault supplied default");
+        Assert.IsNull(root.ElementAtOrDefault(-1)); Passed("negative ElementAtOrDefault");
+
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
 }

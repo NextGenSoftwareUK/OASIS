@@ -41,3 +41,8 @@ then uses the existing projection or selected-composition owner; selected All
 uses the independent projected-All owner. Constructors and setters run only in
 the established validated projection materializer, never during capture and
 never as an alternative to missing native execution.
+Entity element terminals delegate to the existing element planner/executor and
+V2 typed hydration owner. First/Single cardinality, tail windows, Index bounds,
+tracking and error semantics stay in that owner. The bridge handles a caller's
+OrDefault argument only after an acknowledged empty result; it cannot replace a
+native failure or ambiguous cardinality with a default object.
