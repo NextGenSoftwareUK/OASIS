@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests;
 
 [TestClass]
-public sealed class CqlEntityCompositionOwnerTests
+public sealed partial class CqlEntityCompositionOwnerTests
 {
     private static CosmicEntityCompositionPlan<Holon> Plan(CosmicEntityCompositionQuery<Holon> query,
         CosmicEntityCompositionOptions? options = null)
