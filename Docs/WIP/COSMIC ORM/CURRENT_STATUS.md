@@ -18,9 +18,11 @@ Updated: 27 October 2026. Read this first after compaction; update it at every m
 | SQLite projected All | 47 native + 9 compiler passed | Historical Evidence/Verification/projected-all-sqlite*.trx.gz |
 | MongoDB projected All | 49 native passed | Historical Evidence/Verification/projected-all-mongo.trx.gz |
 | Neo4j projected All | 18 native passed; retained graph fingerprints matched | Historical Evidence/Verification/projected-all-neo4j.trx.gz |
+| Neo4j source compiler | 163 CQL/compiler tests passed, zero skips; includes two new Boolean-source regressions | `TestResults/CoreCurrent/neo-source-regression.trx` |
 | Isolated Mongo compiler worktree | 185 compiler tests passed, zero skips | `TestResults/CoreCurrent/isolated-mongo-source-unit.trx` (regenerable) |
 
-Latest compiler evidence SHA256: `6e0e742808535f38509095987b8704fe86d7b6676d54c9612b119d0bd80597ca`.
+Neo4j compiler evidence SHA256: `1B9160325E95DCA84BEA9E9BBD4DD7B0FCCDC1EF8AF3CAB912E56D03721F4B34`.
+Mongo compiler evidence SHA256: `6e0e742808535f38509095987b8704fe86d7b6676d54c9612b119d0bd80597ca`.
 The isolated Mongo fix and four new compiler tests are checkpointed separately from the documentation tidy-up. Focused native proof now passes: one test, 53 checks; all six records and both journals unchanged, zero creates replayed.
 Native TRX SHA256: `F2823DBE989A4950244CF6EA74930A408E3EF6FF4AE935EF978E685CB944ED3F`.
 Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationships-current.trx`; the fixture summary is alongside it. Documentation-only commits must not stage code or tests.
@@ -30,7 +32,7 @@ Native evidence: `TestResults/SubscriptionUsageCurrent/mongo-source-relationship
 - The combined 168-check native gate is incomplete. The reviewed run verified six fixture IDs/store and matching actor/version controls, without creates.
 - Reproduced defect: Mongo scalar root translation rejects relationships nested below Boolean logic.
 - Mongo fix reuses its existing protected relationship evaluator and full-AST membership detection; 185 compiler tests and 53 focused native checks pass; full three-provider acceptance remains pending.
-- Mongo source capability enrollment has focused native proof; SQLite/Neo4j remain unenrolled for Q49a.
+- Mongo source capability enrollment has focused native proof; SQLite/Neo4j remain unenrolled for Q49a; Neo4j full-AST source separation is compiler-verified, native proof pending.
 - No cycle mutation, create replay, reset or fixture cleanup has occurred.
 - Persistent fixture data/journals: ignored `LocalState/COSMIC/`; **never clear it with TestResults**.
 - Pending journal SHA256: `FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F`.
@@ -40,7 +42,7 @@ Documentation consolidation is complete: 10 active root reports, 126 archived re
 
 ## Exact next step
 
-1. Continue Q49a with SQLite/Neo4j source lowering; Mongo checkpoint has focused native proof.
+1. Continue Q49a: fix SQLite protected source validation, then prove/enroll SQLite and Neo4j natively.
 2. Read `MongoCqlTranslator.Ordering.cs`, `MongoCqlTranslator.cs` and the active [acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md).
 3. Bootstrap only missing local consumer dependencies from the global NuGet cache; reuse existing runtimes and frozen sibling-library inputs, never build in the old checkout.
 4. Implement/enroll SQLite/Neo4j source composition and prove their protected traversal behavior.

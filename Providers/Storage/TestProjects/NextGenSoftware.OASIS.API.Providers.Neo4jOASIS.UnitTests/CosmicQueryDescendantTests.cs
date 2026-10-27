@@ -16,10 +16,10 @@ public class CosmicQueryDescendantTests
         var condition = translator.Translate(query.Result.Predicates.Single());
         StringAssert.Contains(condition, ".matched");
         var native = translator.TraversalClauses.Single();
-        StringAssert.Contains(native, "{1,3}(descendant:Holon)");
+        StringAssert.Contains(native, "{1,3}(candidate0:Holon)");
         StringAssert.Contains(native, "WHERE EXISTS { MATCH (hopParent");
         StringAssert.Contains(native, ") MATCH (hopChild");
-        StringAssert.Contains(native, "WITH DISTINCT descendant");
+        StringAssert.Contains(native, "WITH DISTINCT candidate0,last(projections0) AS candidateProjection0");
         StringAssert.Contains(native, "LIMIT $");
         StringAssert.Contains(native, ".f_ParentHolonId=");
         Assert.IsTrue(translator.Parameters.Values.Contains(26));

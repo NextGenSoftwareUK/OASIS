@@ -17,6 +17,12 @@ public partial class Neo4jOASIS
         internal string TraversalLimit = null!;
     }
 
+    // Any relationship below a Boolean node may introduce traversal state.
+    // Evaluate its complete scope before applying the compound business filter.
+    private static bool HasSourceRelationship(CosmicQueryPredicate predicate)
+        => CosmicScalarCapabilities.HasAllChildren(new[] { predicate })
+            || CosmicScalarCapabilities.HasAllDescendants(new[] { predicate });
+
     // Row and scalar shapes share the same native ownership/access/membership
     // source. Result shaping must not copy or weaken those predicates.
     private static NeoCqlSource CompileCqlSource<T>(CosmicQuery<T> query, Dictionary<string,object> sharedParameters=null) where T : IHolon
@@ -24,10 +30,10 @@ public partial class Neo4jOASIS
         var translator = sharedParameters==null ? new NeoCqlTranslator(query.ReadAccess)
             : new NeoCqlTranslator("h","p",sharedParameters,query.ReadAccess);
         var predicates = query.Predicates.Select(node => (Node: node, Sql: translator.Translate(node))).ToArray();
-        var parentPredicate = predicates.Any(item => item.Node is not CosmicQueryAnyDescendant)
-            ? string.Join(" AND ", predicates.Where(item => item.Node is not CosmicQueryAnyDescendant).Select(item => item.Sql)) : "true";
-        var descendantPredicate = predicates.Any(item => item.Node is CosmicQueryAnyDescendant)
-            ? string.Join(" AND ", predicates.Where(item => item.Node is CosmicQueryAnyDescendant).Select(item => item.Sql)) : "true";
+        var parentPredicate = predicates.Any(item => !HasSourceRelationship(item.Node))
+            ? string.Join(" AND ", predicates.Where(item => !HasSourceRelationship(item.Node)).Select(item => item.Sql)) : "true";
+        var descendantPredicate = predicates.Any(item => HasSourceRelationship(item.Node))
+            ? string.Join(" AND ", predicates.Where(item => HasSourceRelationship(item.Node)).Select(item => item.Sql)) : "true";
         var source = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
             + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
             + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
