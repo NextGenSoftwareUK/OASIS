@@ -5,6 +5,9 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicChainQueryCheckpointTests
 {
+    private static readonly DateTimeOffset Now = new(2026,10,27,12,0,0,TimeSpan.Zero);
+    private static NextGenSoftware.OASIS.Common.OASISResult<CosmicChainQueryCheckpoint> Admit(CosmicChainQueryReadRequirement requirement, CosmicChainQueryCheckpoint checkpoint, CosmicChainQueryFinalizedHead head, CosmicChainQueryCheckpoint? previous=null)
+        => CosmicChainQueryCheckpointAdmission.Admit(requirement,checkpoint,head,Now,previous);
     private static readonly Guid IndexId = Guid.Parse("19ae935d-cea7-466c-8318-6923d8b843c1");
     private static CosmicChainQuerySource Source(string network="genesis-A", ProviderType source=ProviderType.SolanaOASIS,
         ProviderType executor=ProviderType.SQLLiteDBOASIS, Guid? index=null, int schema=1, string? catalogue=null, long start=0)
@@ -13,15 +16,15 @@ public class CosmicChainQueryCheckpointTests
     private static CosmicChainQueryCheckpoint Checkpoint(long slot=100, CosmicChainQuerySource? source=null,
         long start=0, string? block=null) => new(source ?? Source(),Position(slot,block),start);
     private static CosmicChainQueryFinalizedHead Head(long slot=110, string network="genesis-A",
-        ProviderType source=ProviderType.SolanaOASIS, string? block=null) => new(source,network,Position(slot,block));
+        ProviderType source=ProviderType.SolanaOASIS, string? block=null) => new(source,network,Position(slot,block),Now);
     private static CosmicChainQueryReadRequirement Requirement(long minimum=90, long lag=10,
-        CosmicChainQuerySource? source=null, string? block=null) => new(source ?? Source(),Position(minimum,block),lag);
+        CosmicChainQuerySource? source=null, string? block=null) => new(source ?? Source(),Position(minimum,block),lag,TimeSpan.FromSeconds(10));
 
     [Fact]
     public void CompleteExplicitlyBoundCheckpointPassesAtExactLagBoundary()
     {
         var checkpoint=Checkpoint();
-        var result=CosmicChainQueryCheckpointAdmission.Admit(Requirement(),checkpoint,Head(),Checkpoint(95));
+        var result=Admit(Requirement(),checkpoint,Head(),Checkpoint(95));
         Assert.False(result.IsError,result.Message);
         Assert.Same(checkpoint,result.Result);
         Assert.Equal(ProviderType.SolanaOASIS,result.Result.Source.SourceProvider);
@@ -43,7 +46,7 @@ public class CosmicChainQueryCheckpointTests
             "catalogue"=>Source(catalogue:new string('B',64)),
             _=>Source(start:1)
         };
-        var result=CosmicChainQueryCheckpointAdmission.Admit(Requirement(),Checkpoint(source:substituted),Head());
+        var result=Admit(Requirement(),Checkpoint(source:substituted),Head());
         Assert.Equal("CQL_SOURCE_BINDING_MISMATCH",result.ErrorCode);
         Assert.Null(result.Result);
     }
@@ -54,16 +57,16 @@ public class CosmicChainQueryCheckpointTests
     {
         var head=wrongNetwork ? Head(network:"genesis-B") : Head(source:ProviderType.MongoDBOASIS);
         Assert.Equal("CQL_SOURCE_BINDING_MISMATCH",
-            CosmicChainQueryCheckpointAdmission.Admit(Requirement(),Checkpoint(),head).ErrorCode);
+            Admit(Requirement(),Checkpoint(),head).ErrorCode);
     }
 
     [Fact]
     public void EmptyOrMissingHistoryCannotBecomeCompleteCoverageByAdvancingTheWatermark()
     {
         Assert.Equal("CQL_SOURCE_COVERAGE_INCOMPLETE",
-            CosmicChainQueryCheckpointAdmission.Admit(Requirement(),Checkpoint(start:1),Head()).ErrorCode);
+            Admit(Requirement(),Checkpoint(start:1),Head()).ErrorCode);
         var source=Source(start:50);
-        var admitted=CosmicChainQueryCheckpointAdmission.Admit(Requirement(source:source),
+        var admitted=Admit(Requirement(source:source),
             Checkpoint(source:source,start:50),Head());
         Assert.False(admitted.IsError,admitted.Message);
         Assert.Equal(50,admitted.Result.CompleteFromSlot);
@@ -75,45 +78,45 @@ public class CosmicChainQueryCheckpointTests
     [InlineData(111,110,90,"CQL_SOURCE_CHECKPOINT_INVALID")]
     [InlineData(100,110,111,"CQL_SOURCE_CHECKPOINT_INVALID")]
     public void MinimumAndIndependentHeadBothConstrainFreshness(long checkpoint,long head,long minimum,string code)
-        => Assert.Equal(code,CosmicChainQueryCheckpointAdmission.Admit(Requirement(minimum),Checkpoint(checkpoint),Head(head)).ErrorCode);
+        => Assert.Equal(code,Admit(Requirement(minimum),Checkpoint(checkpoint),Head(head)).ErrorCode);
 
     [Fact]
     public void SameSlotFinalityConflictsAreNotTreatedAsFreshnessOrAbsence()
     {
-        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",Admit(
             Requirement(minimum:100),Checkpoint(),Head(100,block:"conflicting-block")).ErrorCode);
-        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",Admit(
             Requirement(minimum:100,block:"conflicting-block"),Checkpoint(),Head()).ErrorCode);
-        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_FINALITY_CONFLICT",Admit(
             Requirement(),Checkpoint(),Head(),Checkpoint(block:"conflicting-block")).ErrorCode);
     }
 
     [Fact]
     public void PreviousAcknowledgementCannotRegressOrChangeSourceOrLoseCoverage()
     {
-        Assert.Equal("CQL_SOURCE_CHECKPOINT_REGRESSED",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_CHECKPOINT_REGRESSED",Admit(
             Requirement(),Checkpoint(),Head(),Checkpoint(101)).ErrorCode);
-        Assert.Equal("CQL_SOURCE_BINDING_MISMATCH",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_BINDING_MISMATCH",Admit(
             Requirement(),Checkpoint(),Head(),Checkpoint(source:Source(network:"genesis-B"))).ErrorCode);
-        Assert.Equal("CQL_SOURCE_COVERAGE_INCOMPLETE",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_COVERAGE_INCOMPLETE",Admit(
             Requirement(),Checkpoint(),Head(),Checkpoint(start:1)).ErrorCode);
     }
 
     [Fact]
     public void LongSlotArithmeticCannotOverflowIntoAFalseFreshResult()
     {
-        Assert.Equal("CQL_SOURCE_NOT_FRESH",CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.Equal("CQL_SOURCE_NOT_FRESH",Admit(
             Requirement(minimum:0,lag:long.MaxValue-1),Checkpoint(0),Head(long.MaxValue)).ErrorCode);
-        Assert.False(CosmicChainQueryCheckpointAdmission.Admit(
+        Assert.False(Admit(
             Requirement(minimum:0,lag:long.MaxValue),Checkpoint(0),Head(long.MaxValue)).IsError);
     }
 
     [Fact]
     public void MissingEvidenceNeverAcknowledgesAnEmptySuccessfulRead()
     {
-        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",CosmicChainQueryCheckpointAdmission.Admit(null!,Checkpoint(),Head()).ErrorCode);
-        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",CosmicChainQueryCheckpointAdmission.Admit(Requirement(),null!,Head()).ErrorCode);
-        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",CosmicChainQueryCheckpointAdmission.Admit(Requirement(),Checkpoint(),null!).ErrorCode);
+        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(null!,Checkpoint(),Head()).ErrorCode);
+        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(Requirement(),null!,Head()).ErrorCode);
+        Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(Requirement(),Checkpoint(),null!).ErrorCode);
     }
 
     [Fact]

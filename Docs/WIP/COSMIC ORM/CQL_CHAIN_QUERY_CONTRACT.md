@@ -112,3 +112,29 @@ record receipts, composition/WEB4 propagation, execution integration, persistent
 ingestion and native acceptance remain unimplemented. No Solana demo/parity
 cell changes. Next: bind record receipts and observation lifetime at the shared
 validation owner before connecting source selection to query planning.
+
+## Record receipt and observation lifetime milestone
+
+Core `ca32960` adds a mandatory head observation timestamp, positive explicit
+maximum observation age and caller-supplied validation clock. Future observations
+and expired observations reject, including when an earlier admitted checkpoint
+is reused later. Equal instants with different UTC offsets behave identically.
+
+Immutable record identity/receipt descriptors bind logical ID, positive version,
+VersionId, deletion state, canonical SHA256, source commit reference and position.
+`CosmicChainQueryRecordAdmission` revalidates the complete checkpoint/lifetime,
+then compares the indexed receipt with the canonical source owner's separately
+obtained receipt. Matching payloads cannot hide another commit or position.
+Source references outside coverage or conflicting finalized anchors reject.
+
+Final cohort:38 tests pass, no skips; both Core targets and consumer build.
+Evidence `TestResults/CoreCurrent/chain-record-final.trx`, SHA256
+`7D81272363F31CDC536EE94151D549F6D4D2343E49A620CCEF9CF2DCC84FDDEA`.
+Tests: `CosmicChainQueryCheckpointTests` and `CosmicChainQueryRecordReceiptTests`.
+
+This remains shared validation, not an enrolled adapter/query execution path.
+The trusted source owner still must authenticate/decrypt/decode the original
+record, compute its canonical hash, observe the actual network/head and verify
+ancestry. Passing the same unverified index claim twice does not supply that
+independent evidence. Snapshot-wide row/scalar/projection publication, query
+binding, durable ingestion and native acceptance are the next integration gates.
