@@ -4,7 +4,7 @@ Updated 2026-10-27. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-
 
 ## Current phase
 
-Provider-family implementations and shared baseline verification precede global routing and depth work. Nine storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
+Provider-family implementations and shared baseline verification precede global routing and depth work. Ten storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
 
 ## Open gates and next action
 
@@ -31,6 +31,7 @@ Provider-family implementations and shared baseline verification precede global 
 ## Recent checkpoints
 
 - Dynamo path relocation (`f446b70a2`): AWS/Dynamo 52/52 each, factory27, all five raw tables empty; stopped DB compacted to 43,008 bytes.
+- LocalFile native52/52 and20controls pass; both current directories empty, original failed fixtures preserved; details in LOCALFILE_STORAGE_BASELINE.md.
 - SOLID canonical build passed, both schedules blocked before native by missing protected files; no identity/key/ACL change.
 - ActivityPub `00235929a`: capability5/5 and controlled291; source/PDB and final proof hashes reverified. Generic record storage unsupported; authenticated/social mutation gates open.
 
