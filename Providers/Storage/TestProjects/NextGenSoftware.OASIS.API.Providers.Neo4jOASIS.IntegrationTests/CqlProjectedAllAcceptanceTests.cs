@@ -63,6 +63,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     [TestMethod]
     public Task NativeStandardQueryableEntityRows()=>VerifyFixture(reviewed:false,linq:true);
 
+    [TestMethod]
+    public Task ReviewedStandardQueryableFixtureContinuesWithoutReplayingCreates()=>VerifyFixture(reviewed:true,linq:true);
+
     private static async Task VerifyFixture(bool reviewed, bool sourceMatrix=false, bool demo=false, bool linq=false)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
@@ -76,7 +79,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         if(reviewed)
         {
             var preserved=await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual("FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",Convert.ToHexString(SHA256.HashData(preserved)),"Only the inspected initial fixture may continue.");
+            Assert.AreEqual(linq ? "9C0981C27024F085C0ECFDF08E95B265DCBD219AC940084F82043484E9B9CDE5"
+                : "FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",
+                Convert.ToHexString(SHA256.HashData(preserved)),"Only the exact inspected fixture may continue.");
             using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
             Assert.AreEqual("created-Neo4jOASIS",prior.GetProperty("stage").GetString());
             ids=prior.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
@@ -155,7 +160,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             if(linq)
             {
                 foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
-                Assert.AreEqual(321,checks.Count);complete=true;return;
+                Assert.AreEqual(381,checks.Count);complete=true;return;
             }
             if(demo)
             {

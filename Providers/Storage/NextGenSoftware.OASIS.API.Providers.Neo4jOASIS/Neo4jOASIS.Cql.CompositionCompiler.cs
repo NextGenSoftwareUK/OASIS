@@ -25,7 +25,7 @@ public partial class Neo4jOASIS
     {
         if (plan == null || limits == null || limits.Admit(plan.Options).IsError
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS
-            || plan.Query.ResultStages.Count == 0)
+            || plan.Query.ResultStages.Count == 0 && !plan.RequestsCardinality)
             throw new ArgumentException("Composition requires a matching single-provider plan and admitted remaining limits.");
         return CompileCqlSelected(plan.Query, limits);
     }

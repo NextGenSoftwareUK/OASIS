@@ -13,8 +13,9 @@ internal sealed class MongoCqlCompositionCommand
     internal MongoCqlProjectionCommand Source { get; }
     internal BsonDocument[][] Stages { get; }
     internal BsonDocument[] Reduction { get; }
-    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null)
-    { Source = source; Stages = stages; Reduction = reduction; }
+    internal BsonDocument[] Cardinality { get; }
+    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null, BsonDocument[] cardinality = null)
+    { Source = source; Stages = stages; Reduction = reduction; Cardinality = cardinality; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -25,9 +26,9 @@ internal sealed partial class MongoCqlTranslator
         CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits) where T : IHolon
     {
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.MongoDBOASIS
-            || limits.Admit(plan.Options).IsError || plan.Query.ResultStages.Count == 0)
+            || limits.Admit(plan.Options).IsError || plan.Query.ResultStages.Count == 0 && !plan.RequestsCardinality)
             throw new ArgumentException("Mongo composition needs one matching plan and admitted remaining work.");
-        return CompileSelected(plan.Query, limits);
+        return CompileSelected(plan.Query, limits, cardinality: plan.RequestsCardinality);
     }
 
     internal MongoCqlCompositionCommand CompileProjectedAll<T, TResult>(
@@ -40,7 +41,7 @@ internal sealed partial class MongoCqlTranslator
     }
 
     private MongoCqlCompositionCommand CompileSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null) where T : IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, bool cardinality = false) where T : IHolon
     {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var source = CompileSource(query.Source, out var traverses);
@@ -143,7 +144,19 @@ internal sealed partial class MongoCqlTranslator
             }));
             ValidatePipeline(pipeline); reduction = pipeline.ToArray();
         }
-        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction);
+        BsonDocument[] countPipeline = null;
+        if (cardinality)
+        {
+            var count = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
+            count.Add(new("$facet", new BsonDocument("counts", new BsonArray { new BsonDocument("$count", "value") })));
+            count.Add(new("$project", new BsonDocument
+            {
+                { "_id", 0 }, { "selectedCount", new BsonDocument("$ifNull", new BsonArray
+                    { new BsonDocument("$arrayElemAt", new BsonArray { "$counts.value", 0 }), 0L }) }
+            }));
+            ValidatePipeline(count); countPipeline = count.ToArray();
+        }
+        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction, countPipeline);
 
         BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
         {

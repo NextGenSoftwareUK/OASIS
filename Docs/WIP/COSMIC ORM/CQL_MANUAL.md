@@ -68,7 +68,7 @@ frozen for admission and native dispatch. Changing a variable before a subsequen
 execution changes that execution's parameters. The existing fluent CosmicQuery
 API continues to freeze values during construction.
 
-Queryable selected-element terminals, selected cardinality and repeated Select remain
+Queryable repeated Select and staged numeric reductions remain
 unimplemented and fail explicitly; indexed Where and custom comparers are also
 unsupported. No client Enumerable fallback runs. Federated sequences retain their
 separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
@@ -196,3 +196,36 @@ No selected rows are fetched for a client accumulator. Existing fluent `Average(
 keeps its decimal result. Aggregates after selected result stages remain
 explicitly unsupported pending a native selected-reduction contract.
 Q01 remains red.
+## Selected Count, LongCount and Any
+
+Standard selected scalar and flat-record sequences now support Count, LongCount
+and Any, including predicate overloads. Predicates execute after all preceding
+source and selected windows. Selected null values count as rows. These scalar
+terminals construct zero DTOs and preserve native error/cancellation codes.
+
+```csharp
+// Count a selected page; this predicate runs after Take(10).
+var selectedPage = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
+    .Take(10);
+
+var pageCount = selectedPage.Count();
+var revisionTwoCount = selectedPage.LongCount(value => value.Version == 2);
+var hasRevisionTwo = selectedPage.Any(value => value.Version == 2);
+```
+
+The native provider independently advertises SupportsCardinality. SQLite returns
+count(*) inside its serializable read snapshot; MongoDB returns a count facet
+under its existing snapshot session; Neo4j returns its native source/final-stage
+count header. The shared owner validates the acknowledgement against complete
+source/stage evidence and enforces input, payload, proof and terminal-work bounds.
+The default selected-input limit is1,000 rows; configurable composition options
+allow up to10,000. Exceeding an admitted bound returns an error. Any validates
+complete bounded participation before returning its Boolean result.
+
+Direct async callers use CosmicProjectedCardinalityPlanner.Plan with the exact
+Count/int, LongCount/long or Any/bool result domain, then
+HolonManager.ExecuteProjectedCardinalityQueryAsync. Results retain per-provider
+provenance. The standard IQueryable bridge remains bound to one named provider.
+Entity predicate overloads after source windows remain pending Q01 work.
