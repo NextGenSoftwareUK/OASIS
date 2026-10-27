@@ -1,0 +1,27 @@
+diff --git a/Queries/CosmicJoinQuery.cs b/Queries/CosmicJoinQuery.cs
+index 2c01dca..dcdb45f 100644
+--- a/Queries/CosmicJoinQuery.cs
++++ b/Queries/CosmicJoinQuery.cs
+@@ -142,19 +142,10 @@ namespace NextGenSoftware.OASIS.API.Core.Queries
+             if(first.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionQuery<TLeft,TKey>,CosmicJoinQuery<TLeft,TRight,TKey>>(first);
+             var second=captureRight();
+             if(second.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionQuery<TRight,TKey>,CosmicJoinQuery<TLeft,TRight,TKey>>(second);
+-            if(first.Result.Columns.Count>CosmicJoinQuery<TLeft,TRight,TKey>.MaximumKeyComponents
+-                || first.Result.Columns.Count!=second.Result.Columns.Count)
+-                return CosmicScalarErrors.Invalid<CosmicJoinQuery<TLeft,TRight,TKey>>("CQL_JOIN_UNSUPPORTED","Join keys require one to eight matching scalar components.");
+-            var keys=new List<CosmicJoinKeyComponent>();
+-            foreach(var column in first.Result.Columns)
+-            {
+-                var other=second.Result.Columns.SingleOrDefault(candidate=>candidate.Alias==column.Alias);
+-                if(other==null || other.Path.ValueType!=column.Path.ValueType || !CosmicQueryKeyDomains.Supports(column.Path.ValueType))
+-                    return CosmicScalarErrors.Invalid<CosmicJoinQuery<TLeft,TRight,TKey>>("CQL_JOIN_UNSUPPORTED","Join key aliases and exact scalar domains must match without conversion.");
+-                keys.Add(new CosmicJoinKeyComponent(column.Alias,column.Path,other.Path));
+-            }
++            var keys=CosmicJoinKeyCapture.Capture(first.Result.Columns,second.Result.Columns);
++            if(keys.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<ReadOnlyCollection<CosmicJoinKeyComponent>,CosmicJoinQuery<TLeft,TRight,TKey>>(keys);
+             return new OASISResult<CosmicJoinQuery<TLeft,TRight,TKey>>(new CosmicJoinQuery<TLeft,TRight,TKey>(left,right,kind,
+-                keys.ToArray(),options ?? CosmicJoinOptions.Create().Result));
++                keys.Result.ToArray(),options ?? CosmicJoinOptions.Create().Result));
+         }
+     }
+ }
