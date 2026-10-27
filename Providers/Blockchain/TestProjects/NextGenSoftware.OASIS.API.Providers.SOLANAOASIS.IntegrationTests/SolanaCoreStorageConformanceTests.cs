@@ -9,6 +9,54 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class SolanaCoreStorageConformanceTests
 {
+    [TestMethod, TestCategory("SolanaCoreStorageInspect")]
+    public async Task InspectOriginalIdFailuresWithoutMutation()
+    {
+        var nativeWork = Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!;
+        var root = Directory.GetParent(Directory.GetParent(nativeWork)!.FullName)!.FullName;
+        var evidencePath = Path.Combine(root, "Docs", "WIP", "HyperDrive-Providers", "NativeEvidence", "conformance-solanaoasis-current.json");
+        using var registry = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "Docs", "WIP", "HyperDrive-Providers", "CONFORMANCE_RESULTS.json")));
+        var registered = registry.RootElement.GetProperty("results").EnumerateArray().Single(row => row.GetProperty("provider").GetString() == "SOLANAOASIS");
+        Assert.AreEqual(registered.GetProperty("sha256").GetString()!.ToUpperInvariant(), Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(evidencePath))));
+        using var evidence = JsonDocument.Parse(await File.ReadAllTextAsync(evidencePath));
+        var output = Path.Combine(nativeWork, "solana-core-read-diagnostic.json");
+        Assert.IsFalse(File.Exists(output), "Preserve the previous diagnostic.");
+        Assert.AreEqual("http://127.0.0.1:18899", Environment.GetEnvironmentVariable("SOLANA_RPC_URL"));
+        var provider = new SolanaOASIS("http://127.0.0.1:18899", Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!, Environment.GetEnvironmentVariable("SOLANA_PUBLIC_KEY")!);
+        var rows = new List<object>();
+        try
+        {
+            var activation = await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError);
+            Assert.IsTrue(activation.Result);
+            foreach (var run in evidence.RootElement.GetProperty("runs").EnumerateArray())
+            {
+                Assert.AreEqual("avatar-id", run.GetProperty("CurrentCase").GetString());
+                var id = run.GetProperty("OwnerId").GetGuid();
+                var mode = run.GetProperty("Synchronous").GetBoolean() ? "sync" : "async";
+                using var original = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "TestResults", "ProviderConformanceCurrent", "SOLANAOASIS", mode, "report.json")));
+                Assert.AreEqual(id, original.RootElement.GetProperty("OwnerId").GetGuid());
+                var result = await provider.LoadAvatarAsync(id);
+                // Only known static contract messages are classified; never dump provider/RPC messages or payloads.
+                var known = new[] { "Solana finalized history transaction is unavailable; no partial collection returned.",
+                    "Solana finalized history query failed; no partial collection returned.",
+                    "Solana storage history contains conflicting or non-monotonic versions.",
+                    "Solana storage history contains an untyped or unknown record.",
+                    "No stored Solana record matches the requested identity." };
+                rows.Add(new { Id = id, Mode = mode, result.IsError, result.IsLoaded, result.LoadedCount,
+                    ReturnedId = result.Result?.Id, result.ErrorCode, ExceptionType = result.Exception?.GetType().FullName,
+                    StaticCategory = known.FirstOrDefault(value => result.Exception?.Message == value) ?? "unclassified",
+                    FailureMethods = result.Exception == null ? Array.Empty<string>() : (new System.Diagnostics.StackTrace(result.Exception, true).GetFrames() ?? Array.Empty<System.Diagnostics.StackFrame>())
+                        .Where(frame => frame.GetMethod()?.DeclaringType?.FullName?.StartsWith("NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", StringComparison.Ordinal) == true)
+                        .Take(6).Select(frame => frame.GetMethod()!.DeclaringType!.FullName + "." + frame.GetMethod()!.Name + ":" + frame.GetFileLineNumber()).ToArray() });
+            }
+            Assert.AreEqual(2, rows.Count);
+            await using var file = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            await JsonSerializer.SerializeAsync(file, rows); file.Flush(true);
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
     [DataTestMethod, DataRow(false), DataRow(true), TestCategory("SolanaCoreStorageConformance")]
     public async Task SharedStorageInterfaceAgainstRetainedValidator(bool sync)
     {

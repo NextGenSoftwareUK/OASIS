@@ -258,7 +258,7 @@
       "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
     ],
     "SOLANAOASIS": [
-      "Current canonical v2 native gate reached activation and avatar-save in both modes, then failed avatar-id (4/52). Original two synthetic avatar IDs remain in the hash-bound report; no replay or cleanup. ID reads use authenticated full-history collection selection; source already sets LoadedCount=1, so this is not yet proven to be a simple acknowledgement defect. Exact native read failure still requires read-only diagnosis; do not claim a root cause from source alone."
+      "Current canonical v2 native gate remains4/52: activation/avatar-save pass both modes, avatar-id fails. Hash-bound read-only probe of both original IDs proves collection decoding fails at DecodeStoredMemoAsync line68 because a referenced finalized memo chunk is unavailable. No cause/timing of chunk unavailability or affected commit identity proved; do not label this an acknowledgement bug or silently skip broken history. Two original synthetic avatars/ledger/report preserved; no replay/reset/cleanup/new application writes. Durable retrieval/history completeness remains an implementation/acceptance blocker, not a conformance pass."
     ]
   },
   "suites": [
