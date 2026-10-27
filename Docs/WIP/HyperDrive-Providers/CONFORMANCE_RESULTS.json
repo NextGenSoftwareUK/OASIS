@@ -253,14 +253,11 @@
       "provider": "SOLIDOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 36,
+      "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
-      "sha256": "7009801d612765f97c22082eb17a4d25354d203d894b8d90fdfaf1ef3133f2e3",
-      "blockers": [
-        "async: holon-delete-9f8753731005464dac069a1c456e6dba: System.InvalidOperationException [delete acknowledgement/count]",
-        "sync: holon-delete-0330264a3c314b06984fbe6ae585172f: System.InvalidOperationException [delete acknowledgement/count]"
-      ]
+      "sha256": "f29b8cdfa9aac1f4aaeb33def6558c84e6d954f35d812e9de368d8ff5a3d4c91",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -338,7 +335,7 @@
       "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
     ],
     "SOLIDOASIS": [
-      "Fresh isolated demo Pod/client/key using retained pinned CSS environment. Native core36/52 reaches first holon-delete acknowledgement count in both modes. Missing DeletedCount fixed;362 controlled tests pass including4 before-failing delete controls. Preserve persistent original fixture journals; independently reconcile deletion outcomes before fresh native52 verification. CQL remains unenrolled."
+      "Native core-storage-v2 baseline52/52 verified in fresh isolated demo Pod on retained pinned CSS environment, sync/async26 each and exact fixture cleanup complete.362 controlled tests pass. Original delete outcomes independently reconciled without replay. CQL point/index profile and full common demo remain open; storage conformance is not CQL enrollment."
     ]
   },
   "suites": [
