@@ -299,3 +299,5 @@ indexed execution and parity cells remain red.
 | TestResults/ProtocolCqlCurrent/chain-ingestion-core.trx | 6EED350AC3D635CC74135A2B48AAB4D80ACD19874AB5165F93A4E29E41B36143 |
 | TestResults/ProtocolCqlCurrent/chain-ingestion-wired.trx | 2D1E2127DB2E06B21727BA22C2D34EEC1493C291F35926AB7619D76777C1FBD4 |
 | TestResults/ProtocolCqlCurrent/chain-index-store.trx | 74D71CDDDFDA9381D8F3E658C7749651F7CCDC025B668A7FFB775C53747A778B |
+
+Native original-range probe now verifies fail-closed behavior: retained FirstAvailableBlock1402 cannot cover start0; observer returns no records/checkpoint and performs no submissions/publication.1native diagnosticpass is notCQL/bootstrap acceptance. [Exact evidence](CQL_SOLANA_DEMO_ADMISSION.md#native-declared-range-rejection-verified). Next indexedSQL/query execution and controlled-source gates while originalfull-history coverage remainsred.

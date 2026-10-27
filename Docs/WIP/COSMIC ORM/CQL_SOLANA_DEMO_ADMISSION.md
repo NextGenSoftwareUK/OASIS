@@ -124,3 +124,36 @@ A durable SQLite ingestion-store primitive now passes11realDB tests without anyS
 Canonical read-only configured-range observer now passes14controlledcases/full779Solanaunits. It bindswriter/network, head/block and retention, retainsrevisions/tombstones, independentlyrereadsreceipt and rejectspartial/pruned/corruptcoverage withzerosubmissions. No nativevalidatorprobe, originalrecordrecovery or CQLexecutionenrollment is claimed. [Observer contract/limits](CQL_CHAIN_QUERY_CONTRACT.md#canonical-solana-range-observer-milestone). Next publisherbridge/nativecoverage andindexedSQLexecution.
 
 Observer→atomicpublisher bridge is implementedthroughsharedCorecontracts:54Core/17wiredrange/13storechecks pass. ActualcanonicalSolana decoder→Coreindependentreceipt/freshhead coordinator→actualSQLitepersist/restart is controlledRPC-proven, zerosubmissions. Nativecoverage/sourceRecovery/CQLindexedexecution remainred. [Bridge contract/evidence](CQL_CHAIN_QUERY_CONTRACT.md#shared-observer-to-publisher-bridge-milestone).
+
+## Native declared-range rejection verified
+
+The actual canonical range observer was executed read-only against the retained
+validator/genesis F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj.
+FirstAvailableBlock1402 does not cover declared start0. The observer correctly
+returns an error with no range, records or checkpoint. Probe executes four
+allowlisted source RPC reads, zero submissions, no index publication or recovery.
+One native diagnostic test passes; **native full-range/index/CQL acceptance stays
+red**. A successful rejection is not a complete index/bootstrap demonstration.
+
+The existing runner's identity/replay/runtime ownership checks were reused; keys
+were read only into memory and cleared, existing uncertain journals preserved.
+Validator is stopped; no reset, funding, new ledger/runtime or application write.
+The original missing records remain unrecovered (user has no known backup).
+
+Command (preserve existing diagnostic before another run):
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solana-index-readonly -Operation {
+    & Scripts/TestHosts/Run-ReusableSolanaTests.ps1 -ChainIndexReadOnly
+}
+```
+
+Next implement indexed SQL/query execution with its controlled-source proving
+tests. Native full-history bootstrap cannot be certified from this retained node.
+An explicitly different declared range/catalogue, if later authorized/configured,
+must not be presented as original-record recovery or complete historical coverage.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/SolanaCurrent/solana-chain-index-readonly.json | A4F68F3ADAA21DFA421B83C7CCDB7297075168455793F30A874B4A1503A2D2BA |
+| TestResults/SolanaCurrent/solana-chain-index-readonly.trx | 9ADC4711A6152B53B4B09611F6684A849F392272B86384CC41DF2E875292F381 |

@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
+param([switch]$ChainIndexReadOnly,[switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
 $ErrorActionPreference='Stop'
+if($ChainIndexReadOnly -and $PSBoundParameters.Count -ne 1){throw 'Select read-only chain-index observation alone.'}
 if($HistorySignatures -and (!$InspectRecent -or $InspectAvatarFailure)){throw 'Exact history reads require keyless InspectRecent alone.'}
 if($ConformanceReadOnly -and ($ConformanceOnly -or $Diagnostics -or $InspectRecent -or $InspectAvatarFailure -or $CloseReviewedAvatarRejection -or $AvatarOnly -or $StorageTokenOnly -or $FeeReceiptOnly -or $AvatarTransferOnly)){
     throw 'Select original-fixture read-only conformance diagnosis alone.'
@@ -17,7 +18,7 @@ if(!$InspectRecent -and $ObservationSeconds -ne 2){throw 'ObservationSeconds is 
 if($InspectRecent -and $AvatarOnly){throw 'Select keyless inspection or avatar acceptance, not both.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
-$nativeReport=if($ConformanceReadOnly){'solana-core-read-current.trx'}elseif($ConformanceOnly){'solana-core-storage-current.trx'}elseif($AvatarTransferOnly){'solana-avatar-transfer-native.trx'}elseif($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
+$nativeReport=if($ChainIndexReadOnly){'solana-chain-index-readonly.trx'}elseif($ConformanceReadOnly){'solana-core-read-current.trx'}elseif($ConformanceOnly){'solana-core-storage-current.trx'}elseif($AvatarTransferOnly){'solana-avatar-transfer-native.trx'}elseif($AvatarOnly){'solana-avatar-native-current.trx'}elseif($StorageTokenOnly){'solana-storage-token-current.trx'}elseif($FeeReceiptOnly){'solana-native-fee-current.trx'}else{'solana-validator-current.trx'}
 if($ConformanceOnly){
     foreach($mode in @('async','sync')){
         $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/SOLANAOASIS/'+$mode+'/report.json')
@@ -36,7 +37,7 @@ $names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
-    if(!$InspectRecent -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Inspect original Solana submissions; do not replay or reset.'}
+    if(!$ChainIndexReadOnly -and !$InspectRecent -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Inspect original Solana submissions; do not replay or reset.'}
     if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work $nativeReport))){throw 'Preserve and hash-verify the existing native report before another run.'}
     $freeBefore=(Get-PSDrive C).Free
     $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
@@ -78,7 +79,7 @@ try {
     $slotBody='{"jsonrpc":"2.0","id":1,"method":"getSlot","params":[{"commitment":"finalized"}]}'
     $initialRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
     if($null -eq $initialRoot.result -or $initialRoot.error){throw 'Finalized slot lookup failed; refusing writes.'}
-    if(!$InspectRecent -or $InspectAvatarFailure){
+    if((!$InspectRecent -and !$ChainIndexReadOnly) -or $InspectAvatarFailure){
         $rootAdvanced=$false
         for($observation=0;$observation -lt 20;$observation++){
             Start-Sleep -Milliseconds 500
@@ -199,7 +200,8 @@ try {
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
-    if($ConformanceReadOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageInspect')}
+    if($ChainIndexReadOnly){$testArguments+=@('--filter','TestCategory=SolanaChainIndexReadOnly')}
+    elseif($ConformanceReadOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageInspect')}
     elseif($ConformanceOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageConformance')}
     elseif($AvatarTransferOnly){$testArguments+=@('--filter','TestCategory=AvatarTransferNative')}
     elseif($AvatarOnly){$testArguments+=@('--filter','TestCategory=AvatarNative')}
@@ -220,7 +222,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ConformanceReadOnly){1}elseif($ConformanceOnly){2}elseif($AvatarTransferOnly){2}elseif($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
+    $expected=if($ChainIndexReadOnly){1}elseif($ConformanceReadOnly){1}elseif($ConformanceOnly){2}elseif($AvatarTransferOnly){2}elseif($AvatarOnly){2}elseif($StorageTokenOnly){3}elseif($FeeReceiptOnly){1}else{5}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing native schedules for the selected scope, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
