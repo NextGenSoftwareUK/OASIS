@@ -83,6 +83,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
             await SaveLookupToFile(proposed);
             _idLookup=proposed;
             result.Result=true; result.IsSaved=true;
+            result.IsDeleted=true; result.DeletedCount=1;
             if(tombstone!=null) AvatarTombstoneEvidence.Attach(result,tombstone);
         }
         catch(Exception cause)

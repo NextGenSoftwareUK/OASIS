@@ -204,7 +204,7 @@ public class IpfsCoreStorageConformanceTests
                     var entry = Assert.Single(catalogue.Where(pair => pair.Value.RecordKind == "holon" && pair.Value.Id == id));
                     catalogue.Remove(entry.Key);
                     await provider.SaveLookupToFile(catalogue);
-                    return new NextGenSoftware.OASIS.Common.OASISResult<bool>(true) {IsSaved=true,SavedCount=1};
+                    return new NextGenSoftware.OASIS.Common.OASISResult<bool>(true) {IsSaved=true,SavedCount=1,IsDeleted=true,DeletedCount=1};
                 }, expectedDefaultDeletion:"soft");
             Assert.True(result.Succeeded, result.CurrentCase + ": " + result.FailureType);
             Assert.True(result.FixtureCleanupComplete);

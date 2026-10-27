@@ -53,6 +53,23 @@ public class IPFSGraphAcknowledgementTests
             Assert.True(deleted.Result.IsDeleted);
             Assert.NotEqual(default, deleted.Result.DeletedDate);
             Assert.False(deleted.Result.IsActive);
+
+            // Tombstones remain point-readable, but are no longer live parent members.
+            var children = sync ? provider.LoadHolonsForParent(root.Id, loadChildren:false)
+                : await provider.LoadHolonsForParentAsync(root.Id, loadChildren:false);
+            Assert.False(children.IsError);
+            Assert.DoesNotContain(children.Result, item => item.Id == child.Id);
+
+            // Avatar logical removal must also acknowledge its durable catalogue change.
+            var avatar = new Avatar { Id=Guid.NewGuid(), Username="delete-owner", Email="delete@example.invalid" };
+            var savedAvatar = await provider.SaveAvatarAsync(avatar);
+            Assert.False(savedAvatar.IsError);
+            var removed = sync ? provider.DeleteAvatar(avatar.Id,softDelete:false)
+                : await provider.DeleteAvatarAsync(avatar.Id,softDelete:false);
+            Assert.False(removed.IsError);
+            Assert.True(removed.Result);
+            Assert.True(removed.IsDeleted);
+            Assert.Equal(1,removed.DeletedCount);
         }
         finally{
             api.SetValue(null,original);CryptographicOperations.ZeroMemory(key);OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;
@@ -66,7 +83,9 @@ public class IPFSGraphAcknowledgementTests
         private readonly Dictionary<string,string> stored=new();
         private static readonly string[] Cids={"Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdk","QmPcSpfsigLFxjKLHvhKtBqiwtjmtHViHh9G4Hi8vdriSP",
             "QmRqPMYJEEsSvcDNTGsuBHp5s5EZsrVDJbs26BYGkRti9D","QmXuu1N91m5dR2oh3FzLZWpPYgNgPQuCxp7EMHGtpAJD9D",
-            "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdj", "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdi"};
+            "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdj", "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdi",
+            "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdh", "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdg",
+            "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdf"};
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsolutePath.EndsWith("/cat")){

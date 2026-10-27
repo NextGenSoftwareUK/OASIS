@@ -256,14 +256,11 @@
       "provider": "IPFSOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 36,
+      "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
-      "sha256": "241b5aad91a1beea83feb65172ea9b513dc9ca73d8b855fb0ca68e83b27c8106",
-      "blockers": [
-        "async: holon-delete-53ed61270a9c4679a477e89c6d985f07: System.InvalidOperationException [delete acknowledgement/count]",
-        "sync: holon-delete-c009c9113960465f9da386cb30a19c9b: System.InvalidOperationException [delete acknowledgement/count]"
-      ]
+      "sha256": "d65463641ba8999e30f774dc2c633c6bd6d2a7944a0a5fcf8df175e9f09fbd78",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -323,7 +320,7 @@
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
     "IPFSOASIS": [
-      "Fresh owned Kubo environment ready. Original avatar-save outcomes independently reconciled and exact-cleaned without replay; archived proof retained. New native V2 cohort18/52 reaches graph-save, exposing selected-node acknowledgement count omission and facade result loss. Graph count/result-copy fixed;178 controlled tests pass, including4 genuine before-failing graph SDK controls. New fixture IDs/DNA/journals preserved pending exact read-back/reconciliation and fresh52-check verification. Full storage/CQL certification and unimplemented shipping-path review remain open."
+      "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
     ],
     "PinataOASIS": [
       "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
