@@ -70,10 +70,11 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null)
+    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null)
     {
         var rows=new List<IHolon>();
         var inputRows=0; long inputBytes=0;
+        var countSeen=false;
         while(await cursor.FetchAsync().ConfigureAwait(false))
         {
             budget.Check();
@@ -82,6 +83,13 @@ public partial class Neo4jOASIS
             if(row.Keys.Contains("traversalLimit") && row["traversalLimit"].As<bool>())throw new NeoCqlLimitException("Neo4j descendant traversal exceeds its visited-node budget.");
             if(!row["valid"].As<bool>())throw new InvalidDataException("Neo4j CQL relationship/projection ownership or schema is invalid.");
             var inputProof = entityOptions != null && row["entityInput"].As<bool>();
+            if (observeEntityCount != null && !inputProof)
+            {
+                if (countSeen || !row.Keys.Contains("entityCount") || row["entityCount"] is not long count
+                    || count<0 || count>entityOptions.MaximumInputRows)
+                    throw new InvalidDataException("Entity count requires one exact bounded native integer acknowledgement.");
+                countSeen=true; observeEntityCount(count); continue;
+            }
             if(!inputProof && rows.Count>=maximumRows)throw new NeoCqlLimitException("Neo4j CQL exceeds its declared node/result limit.");
             var snapshot=row["snapshot"].As<string>();
             if (inputProof)
@@ -105,6 +113,8 @@ public partial class Neo4jOASIS
             if (!inputProof) rows.Add(holon);
         }
         budget.Check();
+        if (observeEntityCount != null && !countSeen)
+            throw new InvalidDataException("Entity count acknowledgement is missing.");
         return rows.AsReadOnly();
     }
 

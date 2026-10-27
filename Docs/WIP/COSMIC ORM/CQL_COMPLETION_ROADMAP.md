@@ -4,7 +4,7 @@
 
 1. Q01f shared IQueryable bridge is committed and tested; keep native database cells red.
 2. All3 native entity stages pass 18 cases/store plus Neo snapshot rejection (1,556-check gate). Preserve source windows/protected errors and keep cells red pending terminal/projection integration.
-3. Implement Neo native entity count using the shared owner (Mongo/SQLite native count now passes9 live cases/store;215 Mongo compiler/44 SQLite provider CQL tests), then standard Count/LongCount/Any/All binding. Complete staged element/projection integration and proving native tests before promoting Q01f cells.
+3. Native entity count now passes9 cases/store on all3 (1,583 native checks); bind standard Count/LongCount/Any/All to the shared owner. Complete staged element/projection integration and proving native tests before promoting Q01f cells.
 4. Continue remaining red rows in checklist priority order. Leave green rows/cursors frozen unless a bug is reproduced.
 5. Finish deferred large parity items, including POCO mapping and migrations tooling, at their assigned priority.
 6. Audit every declared requirement before claiming full EF/NHibernate or COSMIC completion.
