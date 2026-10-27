@@ -73,3 +73,48 @@ No native chain probe was run: original conformance prerequisites are absent fro
 this worktree. This does not repair the missing historical record or enroll CQL.
 Next: identify the original missing reference through a bounded read-only probe
 using retained resources, preserving all journals and source transactions.
+
+## Original-record and exact-history probes (27 October 2026)
+
+The diagnostic now consumes the registered, SHA-verified committed conformance
+report directly. It no longer requires disposable raw reports from a different
+checkout. It validates exactly two original runs with distinct sync/async modes.
+The conditional `IncludeCoreStorageConformance=true` build and source/PDB guard
+pass (70 provider/11 consumer sources); one native diagnostic passes, no skips.
+This is diagnostic execution, **not passing storage conformance**.
+
+Both original owner-ID reads fail on the same record: root
+`5EyE1Sr5NqGkVuRzfLjAnknpx6RgZr2DUeTEbnpneiFviTVGucXXjwf6kbNRBSDS5VMFhV87eRw2vqU3Zg9vcvqr`,
+write ID `71687f37-b7b5-411c-b19b-30de9df38c2a`, missing chunk index0/count5,
+reference `5jdHMTckQ4WeE5RSr4hHrkMKNxVpQNpfFJbubHaEswPp4kvgNVmuyhNRDSQEMhLhYPSsqu5ojq2FkhcbRdfFZVis`.
+Because ID lookup scans shared history, this does not prove either requested owner
+is the record behind that commit.
+
+A subsequent, separate validator session queried both signatures directly with
+finalized/max-version1 options and history-enabled status reads. Both transactions
+and statuses were absent. FirstAvailableBlock1402, MinimumLedgerSlot1401;
+replay snapshot3014/root3062. Earlier keyless session observed finality3048->3052
+but zero writer signatures. `solana-keygen pubkey` independently confirmed the
+retained fixture public address matches the keyless probe. These observations
+establish current node unavailability, not when/how loss occurred, original
+non-submission, permanent chain loss, or successful recovery. The differing
+session observations remain material; do not infer a pruning cause from them.
+
+`Get-SolanaHistoryAvailability.ps1` provides a bounded read-only probe (max8
+signatures); it outputs public availability/slots only, with no payload/key
+material, retries, signing or submission. Five synthetic controls pass, covering
+presence, successful absence, RPC error, wrong identity and malformed status.
+Use via `Run-ReusableSolanaTests.ps1 -InspectRecent -HistorySignatures <array>`.
+
+Evidence remains under this worktree's `TestResults/SolanaCurrent/`:
+
+| Evidence | SHA256 |
+|---|---|
+| solana-core-read-diagnostic.json | 94FBFD6EC40B51AEB4490E536350CF52E78270216859BF422A526D38A50590B3 |
+| solana-core-read-current.trx | 758DBEB9FADAA200E8BA8BC645A702E73A5F4FD529AB0B124598CE35A8484CF6 |
+| exact-history-read.log | 785B6F09753069CB768EF272DB1A68840DC7061C8DDDDA6525CD4DABB3BA88AC |
+
+All owned validators stopped; retained source ledger/keys/journals preserved.
+No application writes, funding, new environment or downloads. An older backup
+location has been requested. Recovery stays red; continue the explicit chain
+query execution/source-proof design while backup availability is resolved.
