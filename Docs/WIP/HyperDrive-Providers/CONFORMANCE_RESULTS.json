@@ -52,11 +52,24 @@
         "async: configuration: System.InvalidOperationException",
         "sync: configuration: System.InvalidOperationException"
       ]
+    },
+    {
+      "provider": "PostgreSQLOASIS",
+      "suite": "core-storage-v1",
+      "mode": "native",
+      "passed": 12,
+      "total": 52,
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-postgresqloasis-current.json",
+      "sha256": "53976a4b3d24ce48592c7192b1c21b7b9e7cbe174c6e3a245a3f202fc9fb0594",
+      "blockers": [
+        "async: detail-id: System.InvalidOperationException",
+        "sync: detail-id: System.InvalidOperationException"
+      ]
     }
   ],
   "providerBlockers": {
     "PostgreSQLOASIS": [
-      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+      "Canonical native suite12/52 stopped at detail-id acknowledgement; missing LoadedCount fixed and original-fixture read regression2PASS, full-suite rerun pending reviewed fixture cleanup; no routing/recovery depth"
     ],
     "CockroachDBOASIS": [
       "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
