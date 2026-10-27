@@ -53,6 +53,9 @@ public class SqliteCosmicChainIndexRowsTests
         using var store=new SqliteCosmicChainIndexStore(database,source,key,canonicalRowProjection:true);
         var a=Entry("A",actor,false);var b=Entry("B",Guid.NewGuid(),true);var hidden=Entry("0-hidden",Guid.NewGuid(),false);var tombstone=Entry("0-deleted",actor,true,true);
         Publish(store,a,b,hidden,tombstone);
+        ICosmicChainQueryIndexReader reader=store;
+        Assert.AreSame(source,reader.Source);
+        Assert.AreSame(SqliteCosmicChainIndexStore.CanonicalRowCapabilities,reader.IndexedRowCapabilities);
         var observer=new Observer(source,position,new[]{a,b,hidden,tombstone},mode);
         if(mode=="boolean-tamper")Sql("PRAGMA ignore_check_constraints=ON;UPDATE CosmicChainIndexRows SET IsPublic=2 WHERE Name='0-hidden'");
         if(mode=="real-version-tamper")Sql("UPDATE CosmicChainIndexHistory SET Version=1.5 WHERE Id='"+hidden.Receipt.Record.Id+"'");
@@ -67,7 +70,7 @@ public class SqliteCosmicChainIndexRowsTests
         query=query.OrderBy(row=>row.Name).ThenBy(row=>row.Id).Result;
         query=mode=="page"?query.Skip(1).Take(1).Result:query.Take(2).Result;
         using var cancellation=new CancellationTokenSource();if(mode=="cancelled")cancellation.Cancel();
-        var result=await store.QueryRowsAsync(Plan(query),observer,cancellationToken:cancellation.Token);
+        var result=await reader.QueryRowsAsync(Plan(query),observer,cancellationToken:cancellation.Token);
         if(mode is "rows" or "empty" or "injection" or "catalogue" or "page"){
             Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(mode is "empty" or "injection"?0:mode is "catalogue" or "page"?1:2,result.Result.Rows.Count);
             Assert.AreEqual(source.IndexId,result.Result.Checkpoint.Source.IndexId);Assert.AreEqual(ProviderType.SQLLiteDBOASIS,result.Result.Checkpoint.Source.ExecutionProvider);
