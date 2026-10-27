@@ -2572,3 +2572,34 @@ var literal = visible.Where(h =>
 These examples do not claim culture-aware/ignore-case overloads, arbitrary CLR
 methods, unbounded client collections or implicit in-memory query evaluation.
 The planner must admit the actual expression against the selected adapter.
+
+## Save ownership, tracking and delta summaries
+
+[V1SaveQueries.cs](../../../Examples/CosmicCqlDemo/V1SaveQueries.cs) demonstrates
+this lifecycle on the same native provider as CQL:
+
+1. Begin with `Id = Guid.Empty`; conditional Save privately plans an identity.
+2. Publish the generated ID and clean baseline only after acknowledgement.
+3. A clean Save returns `IsSaved = false`, keeps its version/revision and has no
+   committed-delta metadata. Both acknowledged and freshly loaded objects obey it.
+4. Edit typed properties and metadata; `HasChanges` becomes true. Local
+   `PreviewValueChanges` describes pending edits and is not commit evidence.
+5. Save returns a new accepted revision and an operation-bound committed summary.
+6. A fresh typed CQL read sees the saved properties with its own clean baseline.
+7. Rejecting a changed create intent leaves the rejected caller's ID empty.
+8. A hard delete has a separate `HardDeleted` classification; removing a metadata
+   key is a value-level `Removed` change, not deletion of the entity.
+9. Recover an old redacted summary using the original operation ID, actor,
+   authority and trusted protection/type-admission callbacks, even after deletion.
+
+Committed summaries use `COSMIC.CommittedDelta` result metadata and include paths,
+change classification and revision binding. They omit previous/current value JSON.
+Local previews contain caller-owned values; do not confuse them with authoritative
+historical values or forward them as committed audit evidence.
+
+**Remaining X08 gap:** an authorized historical stored-value/decryption API,
+old-key access rules, retention controls and audit tooling remain unfinished.
+Returning or recovering a redacted summary does not complete that row. See
+[committed delta format and remaining scope](COMMITTED_DELTAS.md).
+
+Save-demo acceptance: [30 checks across all three stores](Verification/save-demo-native-result.json), with generated-ID and no-op preparation/mutation observations. X08a summary demo is verified; parent X08 remains incomplete.

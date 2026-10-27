@@ -392,3 +392,16 @@ secondary ordering with actual tied primary values. The same 32 assertions run
 on all three native databases. Total: 90 SDK cases/store (270), with the separate
 HTTP walkthrough retaining 46/store (138). No provider-specific demo engine or
 client-side source scan is used.
+
+## Save lifecycle examples
+
+[V1SaveQueries.cs](V1SaveQueries.cs) demonstrates ten save steps on each native
+store: generated ID ownership, no-op saves, dirty detection, pending previews,
+committed path summaries, typed reload, rejected intents, hard deletion and
+historical summary lookup. The host supplies the trusted protection policy and
+explicit write-operation identities. The gate executes 30 save checks alongside
+270 SDK query cases and 138 HTTP cases.
+
+The scoped investor demo set is green. Full historical-value/decryption access
+and broader EF/NHibernate parity remain tracked gaps; redacted summaries do not
+complete that larger history API.
