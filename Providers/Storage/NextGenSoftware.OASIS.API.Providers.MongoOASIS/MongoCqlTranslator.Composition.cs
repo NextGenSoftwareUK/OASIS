@@ -12,8 +12,9 @@ internal sealed class MongoCqlCompositionCommand
 {
     internal MongoCqlProjectionCommand Source { get; }
     internal BsonDocument[][] Stages { get; }
-    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages)
-    { Source = source; Stages = stages; }
+    internal BsonDocument[] Reduction { get; }
+    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null)
+    { Source = source; Stages = stages; Reduction = reduction; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -26,7 +27,21 @@ internal sealed partial class MongoCqlTranslator
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.MongoDBOASIS
             || limits.Admit(plan.Options).IsError || plan.Query.ResultStages.Count == 0)
             throw new ArgumentException("Mongo composition needs one matching plan and admitted remaining work.");
-        var query = plan.Query;
+        return CompileSelected(plan.Query, limits);
+    }
+
+    internal MongoCqlCompositionCommand CompileProjectedAll<T, TResult>(
+        CosmicProjectedAllPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits) where T : IHolon
+    {
+        if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.MongoDBOASIS
+            || limits.Admit(plan.Options).IsError)
+            throw new ArgumentException("Mongo projected All needs one matching plan and admitted remaining work.");
+        return CompileSelected(plan.Query.Projection, limits, plan.Query.Predicate);
+    }
+
+    private MongoCqlCompositionCommand CompileSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null) where T : IHolon
+    {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
         var source = CompileSource(query.Source, out var traverses);
         var fetch = query.Source.Limit.HasValue ? Math.Min(query.Source.Limit.Value, limits.MaximumInputRows + 1) : limits.MaximumInputRows + 1;
@@ -72,13 +87,7 @@ internal sealed partial class MongoCqlTranslator
         foreach (var stage in query.ResultStages)
         {
             if (stage is CosmicSelectedFilterStage filter)
-                current.Add(new("$match", new BsonDocument("$expr", SelectedFilterPredicate(filter.Predicate, path =>
-                {
-                    var index = !path.IsMetadata && path.Segments.Count == 1
-                        ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.Path.ValueType == path.ValueType) : -1;
-                    if (index < 0) throw new NotSupportedException("Composition filter must bind an exact selected scalar.");
-                    return Op("$ifNull", "$k" + index + ".value", Literal(BsonNull.Value));
-                }))));
+                current.Add(new("$match", new BsonDocument("$expr", Selected(filter.Predicate))));
             else if (stage is CosmicSelectedOrderStage sorted)
             {
                 // Stable least-significant-first ordering avoids duplicate BSON
@@ -113,7 +122,26 @@ internal sealed partial class MongoCqlTranslator
             output.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 }, { "rank", 1 }, { "stageCount", 1 } }));
             ValidatePipeline(output); stages.Add(output.ToArray());
         }
-        return new MongoCqlCompositionCommand(command, stages.ToArray());
+        BsonDocument[] reduction = null;
+        if (terminal != null)
+        {
+            var pipeline = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
+            pipeline.Add(new("$group", new BsonDocument
+            {
+                { "_id", BsonNull.Value }, { "selectedCount", new BsonDocument("$sum", 1) },
+                { "counterexamples", new BsonDocument("$sum", new BsonDocument("$cond", new BsonArray { Selected(terminal), 0, 1 })) }
+            }));
+            ValidatePipeline(pipeline); reduction = pipeline.ToArray();
+        }
+        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction);
+
+        BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
+        {
+            var index = !path.IsMetadata && path.Segments.Count == 1
+                ? query.Columns.ToList().FindIndex(column => column.Alias == path.Segments[0] && column.Path.ValueType == path.ValueType) : -1;
+            if (index < 0) throw new NotSupportedException("Selected predicate must bind an exact selected scalar.");
+            return Op("$ifNull", "$k" + index + ".value", Literal(BsonNull.Value));
+        });
     }
     // $documentNumber accepts only one sort field. A cumulative documents
     // window counts exact positions while retaining native compound tie keys.
