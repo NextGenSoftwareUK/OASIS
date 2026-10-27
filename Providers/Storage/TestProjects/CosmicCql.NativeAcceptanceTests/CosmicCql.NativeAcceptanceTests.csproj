@@ -28,5 +28,6 @@
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqRepeatedSelectAcceptanceTests.cs" Link="CqlLinqRepeatedSelectAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqPostWindowElementAcceptanceTests.cs" Link="CqlLinqPostWindowElementAcceptanceTests.cs" />
     <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqEntityStageAcceptanceTests.cs" Link="CqlLinqEntityStageAcceptanceTests.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntityCountAcceptanceTests.cs" Link="CqlEntityCountAcceptanceTests.cs" />
   </ItemGroup>
 </Project>
