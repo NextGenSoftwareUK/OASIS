@@ -6,6 +6,8 @@
     Preserve = @(
         'artifacts/railway-secure-backup'
         'artifacts/desktop-protected-sessions'
+        # Hash-pinned reusable DynamoDB runtime and retained history; not regenerable.
+        'TestResults/AWSProviderEvidence'
     )
     # Whole-directory test outputs, emptied on every run.
     TestOutputs = @(
