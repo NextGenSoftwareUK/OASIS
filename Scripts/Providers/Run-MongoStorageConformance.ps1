@@ -1,19 +1,20 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$InspectOriginal)
+param([switch]$InspectOriginal,[switch]$CleanupOriginal)
 $ErrorActionPreference='Stop'
+if($InspectOriginal -and $CleanupOriginal){throw 'Select read-only inspection or reviewed exact cleanup separately.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $nativeWork=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 $data=Join-Path $nativeWork 'mongo-data'
 $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
 if(!(Test-Path -LiteralPath (Join-Path $data 'WiredTiger'))){throw 'Retained initialized Mongo data required; no new database-server environment or replica initialization.'}
 if(!(Test-Path -LiteralPath $runtime) -or (& $runtime --version | Select-Object -First 1) -ne 'db version v8.3.11'){throw 'Retained pinned Mongo8.3.11 runtime required; no download.'}
-if(!$InspectOriginal){foreach($mode in @('async','sync')){
+if(!$InspectOriginal -and !$CleanupOriginal){foreach($mode in @('async','sync')){
     $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/MongoDBOASIS/'+$mode+'/report.json')
     if((Test-Path -LiteralPath $report) -or (Test-Path -LiteralPath ($report+'.next'))){throw 'Review original conformance fixture/report before another run.'}
 }}
 $results=Join-Path $taskRoot 'TestResults/ProviderConformanceCurrent'
-$reportName=if($InspectOriginal){'mongo-core-read-count-current.trx'}else{'mongo-core-current.trx'}
+$reportName=if($CleanupOriginal){'mongo-core-original-cleanup-current.trx'}elseif($InspectOriginal){'mongo-core-read-count-current.trx'}else{'mongo-core-current.trx'}
 if(Test-Path -LiteralPath (Join-Path $results $reportName)){throw 'Preserve the original Mongo conformance TRX.'}
 & (Join-Path $taskRoot 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1') -Owner 'Mongo canonical native storage breadth' -Operation {
     # Shared lifecycle lock is the one already used by retained Mongo/CQL tests.
@@ -51,10 +52,10 @@ if(Test-Path -LiteralPath (Join-Path $results $reportName)){throw 'Preserve the 
         }while([DateTime]::UtcNow -lt $deadline)
         if(!$listeners.Count){throw 'Retained Mongo did not open its owned port.'}
         $env:OASIS_MONGO_CONFORMANCE_URI='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
-        $filter=if($InspectOriginal){'TestCategory=MongoConformanceReadOnly'}else{'TestCategory=MongoCoreStorageConformance'}
+        $filter=if($CleanupOriginal){'TestCategory=MongoConformanceOriginalCleanup'}elseif($InspectOriginal){'TestCategory=MongoConformanceReadOnly'}else{'TestCategory=MongoCoreStorageConformance'}
         & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $results -v:q
         $testExit=$LASTEXITCODE
-        if(!$InspectOriginal){
+        if(!$InspectOriginal -and !$CleanupOriginal){
         & python -B (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers MongoDBOASIS
         if($LASTEXITCODE){throw 'Mongo native report registration failed.'}
         & python -B (Join-Path $PSScriptRoot 'update_provider_matrix.py')
@@ -62,7 +63,8 @@ if(Test-Path -LiteralPath (Join-Path $results $reportName)){throw 'Preserve the 
         }
         if($testExit){throw 'Canonical Mongo storage failed; preserve exact fixtures, no automatic rerun or cleanup.'}
         [xml]$trx=Get-Content (Join-Path $results $reportName)
-        if($trx.TestRun.ResultSummary.Counters.total -ne 2 -or $trx.TestRun.ResultSummary.Counters.passed -ne 2 -or $trx.TestRun.ResultSummary.Counters.notExecuted -ne 0){throw 'Expected both actual native storage modes, no skips.'}
+        $expected=if($CleanupOriginal){1}else{2}
+        if($trx.TestRun.ResultSummary.Counters.total -ne $expected -or $trx.TestRun.ResultSummary.Counters.passed -ne $expected -or $trx.TestRun.ResultSummary.Counters.notExecuted -ne 0){throw 'Expected every selected native schedule, no skips.'}
     }
     finally{
         $env:OASIS_MONGO_CONFORMANCE_URI=$prior
