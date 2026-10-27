@@ -1,0 +1,41 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "AWSOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "c3f8e405-bf5e-4961-a54a-6ead30dea418",
+      "RootId": "9e77c667-e30f-4488-90ec-09d6381a220c",
+      "ChildId": "0efeb07f-72d4-4c96-8c4b-b0e0dc9ee55a",
+      "BatchIds": [
+        "03f657cb-6f39-4b7c-91bb-4ef32d1988a1",
+        "a346ba1d-d2fd-488e-aa3e-9a9ac912941a"
+      ],
+      "ImportId": "7ed07dbb-3edd-4924-8849-0da9a38dbb28",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "AWSOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "ff8805e8-288d-4071-9b49-62de5bd087b6",
+      "RootId": "f9e7b201-a65c-461c-a06a-6e0ffd72e9c5",
+      "ChildId": "1ef7e9e6-88cf-46a6-b5a3-31cc2485dcbb",
+      "BatchIds": [
+        "59a8fcc6-c1e9-4e50-8144-6e6d69729c3d",
+        "4c253827-a110-4959-8cae-e360b5bed2c1"
+      ],
+      "ImportId": "7559ed87-7e07-4248-b542-4779c6d86b06",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

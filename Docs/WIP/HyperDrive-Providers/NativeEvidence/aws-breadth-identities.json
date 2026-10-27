@@ -1,0 +1,165 @@
+{
+  "date": "2026-10-26",
+  "scope": "AWS core-storage-v1 bindings; configuration blocked before native SDK storage dispatch",
+  "factoryControls": {
+    "passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 497
+  },
+  "configurationCases": {
+    "passed": 0,
+    "failed": 6,
+    "skipped": 0,
+    "durationMs": 62
+  },
+  "nativeProviders": {
+    "AWSOASIS": "0/52 blocked-before-native; retained runtime missing",
+    "DynamoDBOASIS": "0/52 blocked-before-native; retained runtime missing",
+    "AWSS3OASIS": "0/52 blocked-before-native; test-bucket/cost configuration absent"
+  },
+  "reports": [
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/aws-family-current.trx.gz",
+      "rawBytes": 13636,
+      "gzipBytes": 1958,
+      "rawSha256": "3e5354e55024d0e253d998c1a2c4e095a84eaae26d5d05d564bb0337a4db1927",
+      "gzipSha256": "7a17c4f086982485a0343cecc505e9af1ccfdbcce83132f7731bfb8cd8f84217"
+    },
+    {
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/aws-factory-current.trx.gz",
+      "rawBytes": 41567,
+      "gzipBytes": 4532,
+      "rawSha256": "b8fe391132da79087b6d7aefb7989d599a2bc78ba5d681df83013d9dfa8c24a5",
+      "gzipSha256": "83ebdf3295556e346b766397eea78ea83badd42cdbe7d4ef9f7f277c4d1e0b35"
+    }
+  ],
+  "assemblies": [
+    {
+      "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "6142a3ddd4c525baedb723cb66ddf5d6f41e8379cba210b4484bb2ad584a7ed4",
+      "pdbSha256": "028ac2b3d622f156bda606ac901271faa28379fb1ef601192ff0f59d429a3138",
+      "bytes": 3512832,
+      "sourceDocuments": 788
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "fcbe9142f7724a6ab56815df688f4f545095e11db07893cab92959da9470ed40",
+      "pdbSha256": "361e639b1f10e846df3e3897ef2ca5ba4248d3b680a483e69f6e2a91b29100ff",
+      "bytes": 379904,
+      "sourceDocuments": 56
+    },
+    {
+      "path": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.dll",
+      "sha256": "728915bbf00dafb1f9308cbe42ed071b037c9adb5b3ffa2fcf510ec0b78b670a",
+      "pdbSha256": "7205506a671e16392df4a12b0c934882e1a062d1f9afc463a0f3a228b3b5efbb",
+      "bytes": 185856,
+      "sourceDocuments": 16
+    },
+    {
+      "path": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.AWSOASIS.dll",
+      "sha256": "0dcfd463571841c5b7dde3514911a18db167914f0b46f732dad06a1aff568b96",
+      "pdbSha256": "d22474bd183539a21436d614fad1d04363f59f63e411d9f9b4ff0dd8984c4e09",
+      "bytes": 6656,
+      "sourceDocuments": 3
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.S3.dll",
+      "sha256": "dafdc227f51993efd369f70e36c383162b3fb8ba487676a1c6067e5bdc03e62c",
+      "pdbSha256": "3eeb8032008dd590ce2914dbc839c87758f28f3bb932429ddfd9e11fcd262435",
+      "bytes": 24576,
+      "sourceDocuments": 4
+    },
+    {
+      "path": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.dll",
+      "sha256": "ea98c351b11526a0abb18e2db94496c0df5c188a749c40f2710578c9b234f0e0",
+      "pdbSha256": "2e4cbbe8dbf9bfcac89069a696f5b26c0910b7094a07ef7d7c452a6009ad1672",
+      "bytes": 7168,
+      "sourceDocuments": 4
+    },
+    {
+      "path": "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.dll",
+      "sha256": "199d503addb3d3bf40d1c4f67a690a735276d98bf7eb4797493d29e5be7106ce",
+      "pdbSha256": "ae16ed2a559cb289810475b8043545cd458d880b46c37c7376d40ab37393eee5",
+      "bytes": 125952,
+      "sourceDocuments": 16
+    }
+  ],
+  "outputs": {
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/bin": {
+      "bytes": 7588069,
+      "files": 32
+    },
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/obj": {
+      "bytes": 1126578,
+      "files": 19
+    },
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/bin": {
+      "bytes": 7620863,
+      "files": 34
+    },
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/obj": {
+      "bytes": 867388,
+      "files": 19
+    },
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/bin": {
+      "bytes": 7391482,
+      "files": 32
+    },
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/obj": {
+      "bytes": 853492,
+      "files": 20
+    },
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/bin": {
+      "bytes": 7425044,
+      "files": 34
+    },
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/obj": {
+      "bytes": 853224,
+      "files": 20
+    },
+    "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/bin": {
+      "bytes": 51150184,
+      "files": 211
+    },
+    "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/obj": {
+      "bytes": 1252753,
+      "files": 21
+    }
+  },
+  "downloads": 0,
+  "servicesStarted": 0,
+  "nativeRecordOperations": 0,
+  "resolvedAwsSdkLibraries": {
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/obj/project.assets.json": [
+      "AWSSDK.Core/3.7.400.15",
+      "AWSSDK.DynamoDBv2/3.7.400.15",
+      "AWSSDK.SSO/3.7.400.15",
+      "AWSSDK.SSOOIDC/3.7.400.15",
+      "AWSSDK.SecurityToken/3.7.400.15"
+    ],
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/obj/project.assets.json": [
+      "AWSSDK.Core/3.7.400.15",
+      "AWSSDK.DynamoDBv2/3.7.400.15",
+      "AWSSDK.SSO/3.7.400.15",
+      "AWSSDK.SSOOIDC/3.7.400.15",
+      "AWSSDK.SecurityToken/3.7.400.15"
+    ],
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3/obj/project.assets.json": [
+      "AWSSDK.Core/3.7.500.38",
+      "AWSSDK.S3/3.7.502"
+    ],
+    "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS/obj/project.assets.json": [
+      "AWSSDK.Core/3.7.500.38",
+      "AWSSDK.S3/3.7.502"
+    ],
+    "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/obj/project.assets.json": [
+      "AWSSDK.Core/3.7.500.38",
+      "AWSSDK.DynamoDBv2/3.7.400.15",
+      "AWSSDK.S3/3.7.502",
+      "AWSSDK.SSO/3.7.400.15",
+      "AWSSDK.SSOOIDC/3.7.400.15",
+      "AWSSDK.SecurityToken/3.7.400.15"
+    ]
+  }
+}
