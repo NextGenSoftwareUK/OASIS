@@ -8,8 +8,14 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryEntityCompositionStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryEntityCountStorageProvider
 {
+    public bool SupportsEntityCount => true;
+
+    public Task<OASISResult<long>> ExecuteCosmicEntityCountAsync<T>(CosmicEntityCompositionPlan<T> plan,
+        CancellationToken cancellationToken=default) where T:IHolon
+        => ((HolonRepository)_holonRepository).ExecuteCosmicEntityCountAsync(plan,cancellationToken);
+
     public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(
         CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging,
         SqliteCqlContract.Capabilities);

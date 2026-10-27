@@ -51,11 +51,14 @@ Unit evidence: `TestResults/CoreCurrent/neo-entity-stage-current.trx`, SHA256 `A
 Shared entity-count contract/executor committed in Core `7b2a2d422f8ff03a4bf064edbbbc97108c12ba7f`; both targets build, 2,555 CQL regressions pass.
 Five new tests cover native ownership, capability re-admission, acknowledgement/window bounds, cancellation/V2/identity and adapter snapshots.
 Evidence `TestResults/CoreCurrent/entity-count-regression.trx`, SHA256 `703C6E13ECDE6521D82BCC1F6D350F5487871BB134E4457A0E5FD5CC936A1C34`.
-No provider count enrollment or standard staged terminal bridge yet; the 1,556 native checkpoint predates this Core increment.
+SQLite native count is enrolled; Mongo/Neo reduction and standard terminal bridge pending. The 1,556 native checkpoint predates the Core count increment.
+
+SQLite native count: 44 CQL provider tests pass, including native windows/budgets/protected cycles and V2 count without DTO constructors or graph expansion.
+Evidence `TestResults/CoreCurrent/sqlite-entity-count-current.trx`, SHA256 `190F7213AD5E4D621463A155994F578BDF68B6DEC796C8374CBE812B659622B1`.
 
 ## Exact next step
 
-Implement native entity count reductions (SQLite, MongoDB, Neo4j), then bind staged Count/LongCount/Any/All. Follow with element terminals and projections, preserving stage ownership.
+Implement MongoDB/Neo4j native entity count reductions, then bind staged Count/LongCount/Any/All. Follow with element terminals and projections, preserving stage ownership.
 Preserve typed hydration, protected scopes and stage order.
 Keep Q01f red until native proof covers its complete scope, including staged terminal/projection integration.
 Use the [parity checklist](CQL_PARITY_CHECKLIST.md) for subsequent red rows.
