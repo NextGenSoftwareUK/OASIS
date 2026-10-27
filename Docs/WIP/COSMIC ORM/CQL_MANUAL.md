@@ -631,3 +631,48 @@ Native WEB4 HTTP acceptance for IPFS/SOLID point rows now passes against actualK
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
 
 Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
+
+## Indexed LINQ SDK rows
+
+Use an explicitly authorized schema2 source, registered index reader and trusted
+source observer. The same CQL expression binder handles standard Where, ordering,
+Skip and Take; execution stays native SQL with independent selected source proofs.
+
+```csharp
+// source includes a named logical provider, indexed read requirement and server actor policy.
+var created = CosmicLinq.CreateIndexed(manager, index, observer, source);
+if (created.IsError)
+    throw new InvalidOperationException(created.Message);
+
+var name = "A";
+var query = created.Result
+    .Where(row => row.Name == name)
+    .OrderBy(row => row.Name)
+    .Take(5);
+
+// Nothing has executed yet. Closure values bind separately for each read.
+var result = await query.ToCosmicIndexedPageAsync();
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+
+var page = result.Result;
+Console.WriteLine(page.Checkpoint.Source.SourceProvider);
+Console.WriteLine(page.Checkpoint.Source.ExecutionProvider);
+foreach (var row in page.Rows)
+{
+    // Typed metadata is hydrated and change tracking starts clean.
+    Console.WriteLine(row.Name);
+}
+
+// page.Receipts aligns with page.Rows; page.Head records the fresh source head.
+```
+
+ToCosmicListAsync and sequence enumeration are also available when only rows are
+needed; retain the page result when provenance/checkpoint/receipts are required.
+Each terminal is a separate execution. Unsupported Select/scalar/element/reverse/
+post-window filter shapes reject before reader I/O; there is no client reduction.
+Prepared billing contexts remain rejected before I/O until SQL and source-proof
+transport receive explicit dual-resource attempt/receipt accounting. This SDK
+profile does not enroll WEB4 or certify original native chain coverage.
+
+Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).

@@ -186,3 +186,57 @@ not claim Solana conditional-save support or repair original missing history.
 
 - `TestResults/ProtocolCqlCurrent/index-typed-core.trx` SHA256 `900BEBB74EB0F17FB64EB34AEC477E7D36ECAD7E0403CE5DA97CD90B9A8A1F8F`.
 - `TestResults/ProtocolCqlCurrent/index-typed-sqlite.trx` SHA256 `763CFD628106EC3E2A54053074853688F16B6EA9DD219D6937729C77929AC50A`.
+
+## Indexed LINQ SDK rows
+
+Use an explicitly authorized schema2 source, registered index reader and trusted
+source observer. The same CQL expression binder handles standard Where, ordering,
+Skip and Take; execution stays native SQL with independent selected source proofs.
+
+```csharp
+// source includes a named logical provider, indexed read requirement and server actor policy.
+var created = CosmicLinq.CreateIndexed(manager, index, observer, source);
+if (created.IsError)
+    throw new InvalidOperationException(created.Message);
+
+var name = "A";
+var query = created.Result
+    .Where(row => row.Name == name)
+    .OrderBy(row => row.Name)
+    .Take(5);
+
+// Nothing has executed yet. Closure values bind separately for each read.
+var result = await query.ToCosmicIndexedPageAsync();
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+
+var page = result.Result;
+Console.WriteLine(page.Checkpoint.Source.SourceProvider);
+Console.WriteLine(page.Checkpoint.Source.ExecutionProvider);
+foreach (var row in page.Rows)
+{
+    // Typed metadata is hydrated and change tracking starts clean.
+    Console.WriteLine(row.Name);
+}
+
+// page.Receipts aligns with page.Rows; page.Head records the fresh source head.
+```
+
+ToCosmicListAsync and sequence enumeration are also available when only rows are
+needed; retain the page result when provenance/checkpoint/receipts are required.
+Each terminal is a separate execution. Unsupported Select/scalar/element/reverse/
+post-window filter shapes reject before reader I/O; there is no client reduction.
+Prepared billing contexts remain rejected before I/O until SQL and source-proof
+transport receive explicit dual-resource attempt/receipt accounting. This SDK
+profile does not enroll WEB4 or certify original native chain coverage.
+
+Seven new Core cases prove deferred typed/empty pages, row-only reads, explicit
+projection/stage/scalar rejection, pre-cancel and foreign local-query rejection.
+One actual SQLite case proves reusing a LINQ chain with a changed captured Name
+executes fresh SQL selection/proofs, keeps source receipts and clean-to-dirty
+tracking. Combined chain/native-LINQ/typed regressions179pass, SQLite31pass,
+zero skips. Both Core targets and SQLite build. Native LINQ remains on its
+existing owner; indexed intent never becomes an ersatz native adapter.
+
+- `TestResults/ProtocolCqlCurrent/index-linq-core.trx` SHA256 `651F0228D8555207BECEFAEE4625AFB81C072CA6188E8F0F7D432798FCAF974B`.
+- `TestResults/ProtocolCqlCurrent/index-linq-sqlite.trx` SHA256 `2798D672E523CC8AFF1B2D09454729D946BF1AB5833F2D346132A4671C4C6AC9`.

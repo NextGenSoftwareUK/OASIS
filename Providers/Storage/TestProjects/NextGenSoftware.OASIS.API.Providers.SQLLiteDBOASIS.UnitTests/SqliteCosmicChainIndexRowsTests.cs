@@ -88,6 +88,34 @@ public class SqliteCosmicChainIndexRowsTests
         }
     }
 
+    [TestMethod]
+    public async Task IndexedLinqRebindsClosuresAndExecutesNativeSqlWithTypedReceipts()
+    {
+        using var store=new SqliteCosmicChainIndexStore(database,source,key,canonicalRowProjection:true);
+        var a=Entry("A",actor,false);var b=Entry("B",actor,false);Publish(store,a,b);
+        var observer=new Observer(source,position,new[]{a,b},"rows");
+        var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2}};
+        var manager=new HolonManager(null,dna,new ProviderManager(null,dna));
+        var created=CosmicLinq.CreateIndexed(manager,store,observer,Query());
+        Assert.IsFalse(created.IsError,created.Message);
+        var name="A";
+        var query=created.Result.Where(row=>row.Name==name).OrderBy(row=>row.Name).Take(1);
+        Assert.AreEqual(0,observer.RecordCalls);
+        var first=await query.ToCosmicIndexedPageAsync();
+        Assert.IsFalse(first.IsError,first.Exception?.ToString());
+        Assert.AreEqual("A",first.Result.Rows.Single().Name);
+        name="B";
+        var second=await query.ToCosmicIndexedPageAsync();
+        Assert.IsFalse(second.IsError,second.Exception?.ToString());
+        var row=second.Result.Rows.Single();Assert.AreEqual("B",row.Name);
+        Assert.AreEqual(b.Receipt.Record.Id,second.Result.Receipts.Single().Record.Id);
+        Assert.AreEqual(2,observer.RecordCalls);Assert.AreEqual(2,observer.HeadCalls);
+        Assert.IsFalse(HolonChangeTracking.HasChanges(row));
+        row.Name="edited";Assert.IsTrue(HolonChangeTracking.HasChanges(row));
+        Assert.AreEqual(source.SourceProvider,second.Result.Checkpoint.Source.SourceProvider);
+        Assert.AreEqual(source.ExecutionProvider,second.Result.Checkpoint.Source.ExecutionProvider);
+    }
+
     [TestMethod]public async Task HistoryOnlyAndUnsupportedMetadataNeverBecomeImplicitIndexedQueries(){
         source=new(source.SourceProvider,source.NetworkIdentity,source.ExecutionProvider,source.IndexId,1,source.CatalogueHash,0);
         using var store=new SqliteCosmicChainIndexStore(database,source,key);
