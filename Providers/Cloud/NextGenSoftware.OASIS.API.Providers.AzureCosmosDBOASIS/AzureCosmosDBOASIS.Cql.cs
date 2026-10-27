@@ -15,7 +15,7 @@ public partial class AzureCosmosDBOASIS : ICosmicQueryStorageProvider
     ProviderType ICosmicQueryStorageProvider.QueryProviderType => Core.Enums.ProviderType.AzureCosmosDBOASIS;
     CosmicQueryCapabilities ICosmicQueryStorageProvider.QueryCapabilities => CqlCapabilities;
 
-    /// <summary>Canonical native row profile; no metadata, graph, projection or count enrollment.</summary>
+    /// <summary>Native canonical/string/Boolean metadata rows; no graph, projection or count enrollment.</summary>
     public static CosmicQueryCapabilities CqlCapabilities => CosmosCqlRowCommand.Capabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,

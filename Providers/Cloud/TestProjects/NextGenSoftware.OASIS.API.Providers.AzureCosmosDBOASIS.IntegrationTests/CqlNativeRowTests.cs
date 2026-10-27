@@ -38,6 +38,19 @@ public class CqlNativeRowTests
             Id = Guid.NewGuid(), Name = "cql-coffee-" + i, Version = i + 2,
             CreatedByAvatarId = i == 0 ? actor : other, IsPublic = i is 1 or 3, IsActive = i != 3
         }).ToArray();
+        const string precise = "9007199254740993.125";
+        for (var i = 0; i < seeds.Length; i++)
+        {
+            seeds[i].MetaData = new()
+            {
+                ["location"] = new Dictionary<string, object> { ["city"] = i == 0 ? "London" : "Paris" },
+                ["flag"] = i == 0,
+                ["nullable"] = i == 0 ? null! : true
+            };
+            if (i < 3) seeds[i].MetaData["category"] = i == 0 ? "coffee" : i == 1 ? "tea" : null!;
+        }
+        seeds[0].MetaData["precise"] = decimal.Parse(precise, System.Globalization.CultureInfo.InvariantCulture);
+        seeds[1].MetaData["precise"] = precise;
         Directory.CreateDirectory(work);
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
         {
@@ -105,6 +118,18 @@ public class CqlNativeRowTests
             var overflow = await provider.ExecuteCosmicQueryAsync(overflowPlan.Result, 1);
             Assert.IsTrue(overflow.IsError);
             Assert.IsNull(overflow.Result);
+
+            // Canonical metadata domains must agree with the exact-number codec,
+            // and distinguish absent paths, explicit nulls and wrong types.
+            Assert.AreEqual(seeds[0].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "category") == "coffee").Result)).Single().Id);
+            Assert.AreEqual(seeds[0].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "location", "city") == "London").Result)).Single().Id);
+            Assert.AreEqual(seeds[1].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "precise") == precise).Result)).Single().Id);
+            Assert.AreEqual(3, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Exists(h, "category")).Result)).Count);
+            Assert.AreEqual(seeds[2].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.IsNull(h, "category")).Result)).Single().Id);
+            Assert.AreEqual(seeds[0].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<bool?>(h, "nullable") == null).Result)).Single().Id);
+            Assert.AreEqual(2, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "category") != "coffee").Result)).Count);
+            Assert.AreEqual(0, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<string>(h, "flag") == "True").Result)).Count);
+            Assert.AreEqual(seeds[0].Id, (await Read(CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Value<bool>(h, "flag") == true).Result)).Single().Id);
 
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)

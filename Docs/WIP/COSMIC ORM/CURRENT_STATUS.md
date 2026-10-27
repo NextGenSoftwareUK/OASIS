@@ -6,7 +6,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 
 - Worktree `C:/Source/OASIS-cosmic`; parent and Core branch `work/cosmic-cql`.
 - Full COSMIC programme remains incomplete. Active priority: eight-provider demo before full parity.
-- Cosmos standard row provider enrolled:24 focused tests plus native five-case gate pass; owned rows cleaned, emulator stopped. [Admission gates](CQL_COSMOS_NATIVE_ADMISSION.md) track metadata, ordering/index profile, manager integration and hosted proof. Next: native canonical profile completion and metadata demo queries.
+- Cosmos canonical/nested string/Boolean metadata rows enrolled:27 focused tests plus native fourteen-case gate pass; rows cleaned, emulator stopped. [Admission gates](CQL_COSMOS_NATIVE_ADMISSION.md) track numeric metadata, ordering/index profile, projection/count, manager and hosted proof. Next: common demo projection/count and native profile coverage.
 - Order: existing Mongo/SQLite/Neo demo, Cosmos candidate, Solana, IPFS, SOLID, ActivityPub. See [demo roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). Defer unfinished parity-only depth; Q01f stays red.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.

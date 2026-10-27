@@ -506,11 +506,15 @@ foreach (var holon in result.Result)
 
 Current profile supports Boolean composition; canonical Name/Description string
 equality/inequality/null, IsActive/IsPublic equality, GUID identity/audit equality,
-and Int32 Version comparisons. Metadata predicates, graph expansion, projection,
-count and mixed numeric semantics are rejected during admission. Compound ordering
+and Int32 Version comparisons. Nested metadata supports string, Boolean/nullable
+Boolean equality/inequality, explicit nulls, existence and null tests. Missing paths
+and wrong types do not satisfy a metadata comparison; explicit nullable nulls obey
+inequality semantics. Exact-number wire strings remain outside the string domain.
+Numeric metadata, graph expansion, projection, count and mixed numeric semantics
+are rejected during admission. Compound ordering
 requires an explicitly configured Cosmos composite index; no index is created by
 CQL. Id ordering is native-proven; broader index/operator acceptance remains open.
 
-Native emulator evidence: 24 focused tests plus a five-case public-provider gate.
+Native emulator evidence: 27 focused tests plus a fourteen-case public-provider gate.
 Hosted Azure, manager/usage integration and the remaining common demo features
 remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
