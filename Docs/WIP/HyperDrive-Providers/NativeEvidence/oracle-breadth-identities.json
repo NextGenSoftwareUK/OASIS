@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-26",
+  "scope": "Oracle retained local database core-storage-v1; no cloud or broader interface certification",
+  "result": {
+    "passed": 52,
+    "total": 52,
+    "cases": 2,
+    "skipped": 0
+  },
+  "runtime": {
+    "container": "oasis-oracle-free",
+    "image": "358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9",
+    "volume": "oasis-oracle-data",
+    "stateAfter": "exited",
+    "nativeFixtureCleanup": "canonical suite completed exact-owner cleanup in both modes"
+  },
+  "reports": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/oracle-core-conformance.trx.gz",
+    "rawBytes": 4229,
+    "gzipBytes": 1271,
+    "rawSha256": "1396e4a72ca72f58005c8d79fc658cadc4311b616823b34c7cd3c677739a04f0",
+    "gzipSha256": "1620dc6f106ad18b60a3adcb135364577f70b069d72cf6c198731f1493f100dd"
+  },
+  "sourceDocuments": {
+    "Core": 788,
+    "Shared": 56,
+    "OracleDBOASIS": 15,
+    "OracleDBOASIS.IntegrationTests": 57
+  },
+  "assemblies": [
+    {
+      "path": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+      "sha256": "e03618de87d14624c6e0a3376083a32b978012b77946605f15fbbeb24fc8acce",
+      "bytes": 3510784,
+      "pdbSha256": "4b95ac1a4bd5df150af82bad6dea262ce4f608708276175471a720c5ef91101d"
+    },
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+      "sha256": "5d7249162080fb716f35ec3ac07e7713de3f7403fd95a08c98c303f9cdd9a84e",
+      "bytes": 379904,
+      "pdbSha256": "b8abe758ae2c1f3608b7e2ba3d7febc33a52ae4ce90961cf0b7b24329211454b"
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.dll",
+      "sha256": "2ee27bbd0a90131b8e81e9834d9a05a505ce1c669deb533852e4b2c0145e0093",
+      "bytes": 199680,
+      "pdbSha256": "e20aa9c574ef8227d67ea3c8f4fd41b9486ef00e7ba2380547c79a7b698b65ba"
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.dll",
+      "sha256": "6dc2811ce78f3292c2f462624a34c40e43b10badfeae9088170316e85fbc3fa5",
+      "bytes": 1232896,
+      "pdbSha256": "f05d9d3fe8511a362f45d98f60594e47535ef42b69480951af18a46e379a04b7"
+    }
+  ],
+  "outputs": {
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/bin": {
+      "bytes": 7599474,
+      "files": 32
+    },
+    "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/obj": {
+      "bytes": 1131371,
+      "files": 19
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin": {
+      "bytes": 53905911,
+      "files": 206
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/obj": {
+      "bytes": 2638364,
+      "files": 21
+    }
+  },
+  "downloads": 0,
+  "freeDiskAfter": 128008708096
+}

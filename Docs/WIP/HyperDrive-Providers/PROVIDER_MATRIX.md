@@ -14,7 +14,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | Cockroach/Timescale thin facades; PostgreSQL native12/52, detail read-count fixed/targeted2PASS; Oracle native52/52PASS; other product-native runs pending | Foundation started 26 Oct; ~1 day |
 | Document | Native document transports + shared record policy | Extract common policy without conflating native dialects | Not started; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | One suite for all backend factories | Suite implementation started; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + shared record policy | Review pointer/content transport before extraction | Not started; ~1 day |
@@ -227,7 +227,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | [NetlifyBlobsOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj) | Key-value/object | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
 | [NileOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NileOASIS/NextGenSoftware.OASIS.API.Providers.NileOASIS.csproj) | SQL | Yes - Npgsql | Not run | Shared-suite adapter/run pending |
 | [OpenSearchOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj) | Search/vector storage | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
-| [OracleDBOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj) | SQL | Yes - Oracle managed SDK | Not run | Shared-suite adapter/run pending |
+| [OracleDBOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj) | SQL | Yes - Oracle managed SDK | 52/52 (native; core-storage-v1) | None recorded within suite scope |
 | [PgVectorOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.csproj) | SQL | Yes - Npgsql | Not run | Shared-suite adapter/run pending |
 | [PineconeOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PineconeOASIS/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.csproj) | Search/vector storage | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
 | [PinotOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj) | Analytical SQL | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
