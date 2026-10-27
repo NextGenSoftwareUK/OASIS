@@ -26,7 +26,7 @@ public sealed record CosmicChainIndexSnapshot(CosmicChainQueryCheckpoint Checkpo
 /// Source-owner decoding/completeness and actor-authorized query execution remain separate gates.
 /// Encrypted immutable history and checkpoint commit in one immediate SQLite transaction.
 /// </summary>
-public sealed class SqliteCosmicChainIndexStore : IDisposable
+public sealed class SqliteCosmicChainIndexStore : IDisposable,NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexPublisher
 {
     private sealed record Envelope(CosmicChainQueryCheckpoint Checkpoint,string BatchHash,int HistoryCount);
     private readonly string connectionString;
@@ -185,6 +185,12 @@ CommitReference TEXT NOT NULL UNIQUE,Receipt TEXT NOT NULL,Payload TEXT NOT NULL
             return new OASISResult<CosmicChainIndexSnapshot>(new(state?.Checkpoint,history.AsReadOnly())){IsLoaded=true,LoadedCount=history.Count};
         }catch(Exception error){return Error<CosmicChainIndexSnapshot>("CQL_INDEX_READ_FAILED","Index snapshot validation failed; no partial history returned.",error);}
     }
+
+    OASISResult<bool> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexPublisher.Publish(
+        CosmicChainQueryReadRequirement requirement,CosmicChainQueryCheckpoint checkpoint,CosmicChainQueryFinalizedHead head,
+        DateTimeOffset validationTime,CosmicChainQueryPosition expectedPrevious,IReadOnlyList<CosmicChainQueryIndexEntry> entries)
+        =>Publish(requirement,checkpoint,head,validationTime,expectedPrevious,
+            entries?.Take(1001).Select(entry=>entry==null?null:new CosmicChainIndexEntry(entry.Receipt,entry.IndependentlyDecodedReceipt,entry.CanonicalJson)).ToArray());
 
     private static OASISResult<T> Error<T>(string code,string message,Exception error=null)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=error};

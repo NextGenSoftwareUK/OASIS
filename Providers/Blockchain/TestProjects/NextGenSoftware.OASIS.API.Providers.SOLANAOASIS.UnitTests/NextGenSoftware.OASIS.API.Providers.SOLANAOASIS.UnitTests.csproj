@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
   </ItemGroup>
 

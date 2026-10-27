@@ -11,7 +11,7 @@ public sealed record SolanaChainObservedHolon(CosmicChainQueryRecordReceipt Rece
 public sealed record SolanaChainObservedRange(CosmicChainQueryCheckpoint Checkpoint,
     CosmicChainQueryFinalizedHead Head,IReadOnlyList<SolanaChainObservedHolon> Records);
 
-public partial class SolanaRepository
+public partial class SolanaRepository : NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver
 {
     /// <summary>Exact configured writer/network/holon catalogue, not an authorization grant.</summary>
     public static string ChainHolonCatalogueHash(string writer,string genesis)
@@ -142,6 +142,41 @@ public partial class SolanaRepository
             return new OASISResult<SolanaChainObservedRange>(new(checkpoint,new(source.SourceProvider,source.NetworkIdentity,head,observedAt),records.AsReadOnly())){IsLoaded=true,LoadedCount=records.Count};
         }catch(Exception error){return ChainObservationError<SolanaChainObservedRange>(error);}
     }
+
+    public async Task<OASISResult<CosmicChainQueryFinalizedHead>> ObserveFinalizedHeadAsync(CosmicChainQuerySource source,CancellationToken cancellationToken=default)
+    {
+        try{
+            RequireChainIndexSource(source);cancellationToken.ThrowIfCancellationRequested();
+            var genesis=await rpcClient.GetGenesisHashAsync().WaitAsync(cancellationToken);
+            if(genesis==null||!genesis.WasSuccessful||genesis.HttpStatusCode!=HttpStatusCode.OK||genesis.Result!=source.NetworkIdentity)
+                throw new InvalidOperationException("Source network differs or is unavailable.");
+            var head=await rpcClient.GetSlotAsync(Commitment.Finalized).WaitAsync(cancellationToken);
+            if(head==null||!head.WasSuccessful||head.HttpStatusCode!=HttpStatusCode.OK||head.Result<(ulong)source.CoverageStartSlot)
+                throw new InvalidOperationException("Finalized head does not cover the selected range.");
+            var position=await ReadFinalizedPositionAsync(head.Result,cancellationToken);
+            return new OASISResult<CosmicChainQueryFinalizedHead>(new(source.SourceProvider,source.NetworkIdentity,position,DateTimeOffset.UtcNow)){IsLoaded=true,LoadedCount=1};
+        }catch(Exception error){return ChainObservationError<CosmicChainQueryFinalizedHead>(error);}
+    }
+
+    async Task<OASISResult<CosmicChainQueryObservedRange>> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver.ObserveRangeAsync(CosmicChainQuerySource source,CancellationToken token)
+    {
+        var observed=await ObserveFinalizedHolonRangeAsync(source,token);
+        var result=NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<SolanaChainObservedRange,CosmicChainQueryObservedRange>(observed);
+        if(!observed.IsError&&observed.Result!=null)result.Result=new(observed.Result.Checkpoint,observed.Result.Head,
+            observed.Result.Records.Select(row=>new CosmicChainQueryObservedRecord(row.Receipt,row.CanonicalJson)));
+        return result;
+    }
+
+    async Task<OASISResult<CosmicChainQueryObservedRecord>> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver.ObserveRecordAsync(CosmicChainQuerySource source,string signature,CancellationToken token)
+    {
+        var observed=await ObserveFinalizedHolonAsync(source,signature,token);
+        var result=NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<SolanaChainObservedHolon,CosmicChainQueryObservedRecord>(observed);
+        if(!observed.IsError&&observed.Result!=null)result.Result=new(observed.Result.Receipt,observed.Result.CanonicalJson);
+        return result;
+    }
+
+    Task<OASISResult<CosmicChainQueryFinalizedHead>> NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver.ObserveHeadAsync(CosmicChainQuerySource source,CancellationToken token)
+        =>ObserveFinalizedHeadAsync(source,token);
 
     private static OASISResult<T> ChainObservationError<T>(Exception error)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=error is OperationCanceledException?"CQL_SOURCE_OBSERVATION_CANCELLED":"CQL_SOURCE_OBSERVATION_FAILED",
