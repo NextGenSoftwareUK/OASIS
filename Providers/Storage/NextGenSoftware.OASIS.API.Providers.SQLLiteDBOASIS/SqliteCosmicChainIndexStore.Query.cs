@@ -141,7 +141,7 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                 if(row.CanonicalJson!=independent.Result.CanonicalJson)return Error<CosmicChainIndexRows>("CQL_SOURCE_RECORD_MISMATCH","Indexed payload differs from the canonical source.");
                 independentlyDecoded.Add(independent.Result);
             }
-            cancellationToken.ThrowIfCancellationRequested();var head=await observer.ObserveHeadAsync(source,cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();var head=await observer.ObserveHeadAsync(source,CosmicChainQueryCheckpointAdmission.RequiredSlots(plan.Query.IndexedSource,checkpoint),cancellationToken);
             if(head?.IsError!=false||head.Result==null)return Error<CosmicChainIndexRows>(head?.ErrorCode??"CQL_SOURCE_EVIDENCE_MISSING","Independent finalized head is unavailable.",head?.Exception);
             var requirement=plan.Query.IndexedSource;var now=DateTimeOffset.UtcNow;
             var freshness=CosmicChainQueryCheckpointAdmission.Admit(requirement,checkpoint,head.Result,now);if(freshness.IsError)return Error<CosmicChainIndexRows>(freshness.ErrorCode,freshness.Message);

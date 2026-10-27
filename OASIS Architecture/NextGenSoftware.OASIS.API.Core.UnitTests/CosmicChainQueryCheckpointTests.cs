@@ -16,7 +16,7 @@ public class CosmicChainQueryCheckpointTests
     private static CosmicChainQueryCheckpoint Checkpoint(long slot=100, CosmicChainQuerySource? source=null,
         long start=0, string? block=null) => new(source ?? Source(),Position(slot,block),start);
     private static CosmicChainQueryFinalizedHead Head(long slot=110, string network="genesis-A",
-        ProviderType source=ProviderType.SolanaOASIS, string? block=null) => new(source,network,Position(slot,block),Now);
+        ProviderType source=ProviderType.SolanaOASIS, string? block=null) => new(source,network,Position(slot,block),Now, new[]{slot==long.MaxValue?0L:90L,95L,100L}.Where(s=>s<=slot && s!=slot).Select(s=>Position(s)));
     private static CosmicChainQueryReadRequirement Requirement(long minimum=90, long lag=10,
         CosmicChainQuerySource? source=null, string? block=null) => new(source ?? Source(),Position(minimum,block),lag,TimeSpan.FromSeconds(10));
 
@@ -117,6 +117,40 @@ public class CosmicChainQueryCheckpointTests
         Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(null!,Checkpoint(),Head()).ErrorCode);
         Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(Requirement(),null!,Head()).ErrorCode);
         Assert.Equal("CQL_SOURCE_EVIDENCE_MISSING",Admit(Requirement(),Checkpoint(),null!).ErrorCode);
+    }
+
+    [Theory]
+    [InlineData("missing", "CQL_SOURCE_EVIDENCE_MISSING")]
+    [InlineData("minimum", "CQL_SOURCE_FINALITY_CONFLICT")]
+    [InlineData("checkpoint", "CQL_SOURCE_FINALITY_CONFLICT")]
+    [InlineData("previous", "CQL_SOURCE_FINALITY_CONFLICT")]
+    [InlineData("valid", null)]
+    public void OlderFinalizedPositionsRequireIndependentIdentityEvidence(string mode, string? error)
+    {
+        var anchors = new[] { Position(90, mode == "minimum" ? "other" : null),
+            Position(100, mode == "checkpoint" ? "other" : null), Position(95, mode == "previous" ? "other" : null) };
+        var head = new CosmicChainQueryFinalizedHead(ProviderType.SolanaOASIS, "genesis-A", Position(110), Now,
+            mode == "missing" ? anchors.Where(p => p.Slot != 90) : anchors);
+        var result = Admit(Requirement(), Checkpoint(), head, Checkpoint(95));
+        Assert.Equal(error, result.ErrorCode);
+        Assert.Equal(error != null, result.IsError);
+        if(error != null) Assert.Null(result.Result);
+    }
+
+    [Fact]
+    public void FinalizedEvidenceIsBoundedCapturedAndRequestsOnlyDistinctSlots()
+    {
+        var anchors = new List<CosmicChainQueryPosition> { Position(90), Position(100) };
+        var head = new CosmicChainQueryFinalizedHead(ProviderType.SolanaOASIS, "genesis-A", Position(110), Now, anchors);
+        anchors.Clear();
+        Assert.Equal(2, head.FinalizedPositions.Count);
+        Assert.Equal(new long[] {90, 100}, CosmicChainQueryCheckpointAdmission.RequiredSlots(Requirement(), Checkpoint(), Position(90)));
+        Assert.Throws<ArgumentException>(() => new CosmicChainQueryFinalizedHead(ProviderType.SolanaOASIS, "genesis-A", Position(110), Now,
+            new[] { Position(1), Position(2), Position(3), Position(4) }));
+        Assert.Throws<ArgumentException>(() => new CosmicChainQueryFinalizedHead(ProviderType.SolanaOASIS, "genesis-A", Position(110), Now,
+            new[] { Position(90), Position(90) }));
+        Assert.Throws<ArgumentException>(() => new CosmicChainQueryFinalizedHead(ProviderType.SolanaOASIS, "genesis-A", Position(110), Now,
+            new[] { Position(111) }));
     }
 
     [Fact]

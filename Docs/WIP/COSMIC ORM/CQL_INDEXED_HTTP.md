@@ -161,3 +161,12 @@ called by `SolanaChainIndexedBillingTests` http-* cases. Evidence:
 shipping WEB4 project directly, rather than a second controller implementation.
 The fixed fixture DB is removed and key bytes zeroed by its existing finally;
 loopback listeners stop in finally. No persistent environment was allocated.
+
+
+The older minimum-position identity bug is now reproduced and fixed in shared
+checkpoint admission; see [finalized anchor contract](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).
+Correct older anchors pass for rows and empty pages; conflicting or unavailable
+anchors reject with no partial page. Additional finalized block RPCs retain their
+own billed attempts/receipts. Ingestion also rejects a conflicting minimum before
+SQLite publication. Reproduction evidence is preserved separately as
+TestResults/ProtocolCqlCurrent/index-anchor-repro.trx.

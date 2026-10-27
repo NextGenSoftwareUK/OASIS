@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SolanaChainIndexIngestionTests
 {
-    [DataTestMethod,DataRow("valid"),DataRow("pruned"),DataRow("missing")]
+    [DataTestMethod,DataRow("valid"),DataRow("pruned"),DataRow("missing"),DataRow("minimum-valid"),DataRow("minimum-conflict")]
     public async Task ActualCanonicalObserverAndSharedCoordinatorPublishOnlyCompleteIndependentEvidence(string mode)
     {
         var root=new DirectoryInfo(AppContext.BaseDirectory);while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
@@ -32,14 +32,14 @@ public class SolanaChainIndexIngestionTests
             proxy.Memos["new"]=Memo(new SolanaHolonDto{Id=id,Version=2,VersionId=Guid.NewGuid(),IsDeleted=true,DeletedDate=DateTime.UtcNow});
             var source=new CosmicChainQuerySource(ProviderType.SolanaOASIS,SolanaChainIndexObservationTests.RangeRpc.Genesis,ProviderType.SQLLiteDBOASIS,Guid.NewGuid(),1,
                 SolanaRepository.ChainHolonCatalogueHash(proxy.Writer,SolanaChainIndexObservationTests.RangeRpc.Genesis),1);
-            var requirement=new CosmicChainQueryReadRequirement(source,new(10,SolanaChainIndexObservationTests.RangeRpc.Hash(10)),0,TimeSpan.FromMinutes(1));
+            var requirement=new CosmicChainQueryReadRequirement(source,new(mode.StartsWith("minimum-",StringComparison.Ordinal)?9:10,mode=="minimum-conflict"?"wrong-finalized-block":SolanaChainIndexObservationTests.RangeRpc.Hash(mode=="minimum-valid"?9:10)),0,TimeSpan.FromMinutes(1));
             using(var store=new SqliteCosmicChainIndexStore(database,source,key)){
                 var result=await CosmicChainQueryIngestion.PublishAsync(repository,store,requirement,null);
-                if(mode=="valid"){
+                if(mode is "valid" or "minimum-valid"){
                     Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.IsTrue(result.IsSaved);Assert.AreEqual(2,result.SavedCount);
-                }else{Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsFalse(File.Exists(database));}
+                }else{Assert.IsTrue(result.IsError);if(mode=="minimum-conflict")Assert.AreEqual("CQL_SOURCE_FINALITY_CONFLICT",result.ErrorCode);Assert.IsFalse(result.IsSaved);Assert.IsFalse(File.Exists(database));}
             }
-            if(mode=="valid"){
+            if(mode is "valid" or "minimum-valid"){
                 using var restarted=new SqliteCosmicChainIndexStore(database,source,key);var snapshot=restarted.ReadSnapshot();Assert.IsFalse(snapshot.IsError,snapshot.Exception?.ToString());
                 Assert.AreEqual(10L,snapshot.Result.Checkpoint.Position.Slot);Assert.AreEqual(2,snapshot.Result.History.Count);Assert.IsTrue(snapshot.Result.History[1].Receipt.Record.IsDeleted);
                 Assert.AreEqual("old",snapshot.Result.History[0].Receipt.CommitReference);Assert.AreEqual("new",snapshot.Result.History[1].Receipt.CommitReference);

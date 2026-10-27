@@ -16,8 +16,11 @@ Unsupported shapes fail explicitly; client materialization or silent fallback ca
 [Earlier checkpoints](Archive/CQL_COMPLETION_ROADMAP_checkpoint_2026-10-27.md) and
 [original roadmap](Archive/CQL_COMPLETION_ROADMAP_history_2026-10-27.md) preserve history.
 
-Indexed SDK rows, typed manager/LINQ and [prepared physical-read accounting](CQL_INDEXED_BILLING.md) now pass controlled/native-SQL gates. WEB4 server binding/reservation/HTTP acceptance and native declared-source-range acceptance remain next; original source recovery stays red.
-
-[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
-
-[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.
+Indexed SDK rows, typed manager/LINQ, frozen WEB4 preparation and stock usage/storage
+middleware integration are verified with controlled identity/ledger/RPC boundaries.
+Actual SQLite and canonical Solana decoding run through shipping HTTP. Older
+minimum/checkpoint/previous block identity validation is corrected after an HTTP
+reproduction; [contract](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).
+Next: live declared-range chain acceptance, production admission/durable settlement,
+remaining indexed scalar/projection/metadata policies and the eight-provider demo.
+Original source recovery and full parity remain red. See CURRENT_STATUS for gates.

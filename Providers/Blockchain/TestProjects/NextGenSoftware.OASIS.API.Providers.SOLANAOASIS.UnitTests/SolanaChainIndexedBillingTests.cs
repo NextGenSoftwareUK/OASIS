@@ -21,10 +21,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public partial class SolanaChainIndexedBillingTests
 {
-    [DataTestMethod,DataRow("rows"),DataRow("empty"),DataRow("budget"),DataRow("begin"),DataRow("receipt"),DataRow("source-begin"),DataRow("source-receipt"),DataRow("http-rows"),DataRow("http-empty"),DataRow("http-missing"),DataRow("http-network")]
+    [DataTestMethod,DataRow("rows"),DataRow("empty"),DataRow("budget"),DataRow("begin"),DataRow("receipt"),DataRow("source-begin"),DataRow("source-receipt"),DataRow("http-rows"),DataRow("http-empty"),DataRow("http-missing"),DataRow("http-network"),DataRow("http-minimum-conflict"),DataRow("http-minimum-valid"),DataRow("http-minimum-empty"),DataRow("http-minimum-missing")]
     public async Task RealSqlAndCanonicalSolanaReadsRetainSeparatePreparedAttemptReceipts(string mode)
     {
-        var empty=mode is "empty" or "http-empty";
+        var empty=mode is "empty" or "http-empty" or "http-minimum-empty";
         var root=new DirectoryInfo(AppContext.BaseDirectory);while(root!=null&&!Directory.Exists(Path.Combine(root.FullName,"Scripts","TestHosts")))root=root.Parent;
         Assert.IsNotNull(root);var folder=Path.Combine(root.FullName,"TestResults","CosmicChainIngestion");Directory.CreateDirectory(folder);
         var database=Path.Combine(folder,"index.db");foreach(var path in new[]{database,database+"-wal",database+"-shm"})Assert.IsFalse(File.Exists(path),"Preserve unknown fixture.");

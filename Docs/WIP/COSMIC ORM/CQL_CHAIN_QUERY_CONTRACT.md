@@ -303,3 +303,30 @@ indexed execution and parity cells remain red.
 Native original-range probe now verifies fail-closed behavior: retained FirstAvailableBlock1402 cannot cover start0; observer returns no records/checkpoint and performs no submissions/publication.1native diagnosticpass is notCQL/bootstrap acceptance. [Exact evidence](CQL_SOLANA_DEMO_ADMISSION.md#native-declared-range-rejection-verified). Next indexedSQL/query execution and controlled-source gates while originalfull-history coverage remainsred.
 
 Indexed canonical SQL row execution primitive now passes30realSQLite/56Corechecks. Explicit schema2 plaintextcanonicalprojection/encryptedfullpayload; atomiccheckpoint/projection integrity, nativeSQLactor/tombstone/filter/order/page and independentrecord/head evidence. Two beforefailures caughttombstonesoccupyingwindows, fixedatSQLselection. Genericmanager/LINQ/tracking/scalar/projection/metadata/WEB4 integration remainred. [Contract, policy, evidence andnext](CQL_INDEXED_SQL_ROWS.md).
+
+
+## Finalized anchor identity correction (27 October)
+
+Reproduced bug: a minimum slot below the index/head with a wrong block identity
+returned HTTP 200 with rows. Numeric freshness and same-slot comparisons were
+insufficient. Shared checkpoint admission now requires independent finalized
+block identities for the checkpoint, requested minimum and previous accepted
+position, even when those slots are below the current head or the page is empty.
+Missing evidence returns CQL_SOURCE_EVIDENCE_MISSING; a different observed block
+returns CQL_SOURCE_FINALITY_CONFLICT. No rows/publication survive either result.
+
+ICosmicChainQuerySourceObserver.ObserveHeadAsync now takes IReadOnlyList<long>
+requiredSlots. Shared RequiredSlots captures at most three distinct slots from
+minimum/checkpoint/previous. The source receives slots, not expected block hashes.
+Solana binds the actual genesis, reads its finalized head and separately reads
+older anchors through finalized GetBlock. A same-head anchor reuses that exact
+head observation. Each additional RPC uses the existing SourceBlock tariff and
+attempt owner; conservative reservation limits remain enforced.
+
+CosmicChainQueryFinalizedHead retains a captured, bounded FinalizedPositions
+collection (at most three, unique slots, no future anchors). Its original
+four-argument constructor remains valid for head-only evidence; it cannot prove
+older positions. Custom observers must obtain and return those observations.
+SQLite queries and the shared ingestion coordinator request anchors; the SDK
+executor and atomic publisher enforce the same shared admission contract.
+This is trusted source observation, not a cryptographic ancestry/inclusion proof.
