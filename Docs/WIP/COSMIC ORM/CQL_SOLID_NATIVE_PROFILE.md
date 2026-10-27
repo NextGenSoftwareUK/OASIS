@@ -1,7 +1,7 @@
 # SOLID CQL native record-point profile
 
-27 October 2026. Implementation and controlled tests verified; native CQL gate
-and WEB4 HTTP/demo enrollment remain open. Native storage baseline52/52 is
+27 October 2026. Implementation, controlled tests and native CQL/C# walkthrough verified;
+WEB4 HTTP/interactive demo enrollment remains open. Native storage baseline52/52 is
 separately verified and does not certify CQL.
 
 ## Current contract
@@ -56,3 +56,27 @@ index design for richer queries. No universal SPARQL availability claim.
 | Evidence relative to worktree | SHA256 |
 |---|---|
 | TestResults/SolidCurrent/cql-controlled.trx (384pass) | 9D725362096851A0F3B79EF607DC8557A7DAE83E4BB955F61F60A044156EDB3A |
+
+## Native private Pod / manager / C# sample milestone
+
+Actual `Examples/CosmicCqlDemo/SolidPointWalkthrough.cs` is compiled into the native
+test. Retained CSS image58bee7c3 and isolated demoPod pass1native gate, zero skips.
+Production DPoP factory/auth + encrypted canonical source read agree with shared
+HolonManager/LINQ/sample on recordID/name; sourceURI lies under the selected Pod,
+sourceETag exists, and returned children are empty. The record is private: native
+anonymous GET is denied401/403, and another application actor receives no rows.
+
+Before-dispatch ownership journal precedes the sole synthetic record save. Exact
+conditional cleanup reports count1 and independent GET404; persistent
+`LocalState/COSMIC/SolidCurrent/cql-point-complete.json` records completion.
+Container stopped normally; no new environment, credential, download or service.
+
+Next: explicit WEB4 row-route/tariff and API demo enrollment for IPFS and SOLID,
+then richer explicit indexes/query profiles and remaining common-demo acceptance.
+The full COSMIC/CQL roadmap remains incomplete.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/SolidCurrent/solid-cql-native.trx | F3DAB0F8C9F5DA5D960B65EFDDE6585C3AF8E8513749BBD4F5A144BB4ACA8A37 |
+| TestResults/SolidCurrent/solid-cql-lifecycle.json | 06A7FF8D26199AFF8A964A652B406D11EF019BA6020F8E4252621769F1E48D89 |
+| LocalState/COSMIC/SolidCurrent/cql-point-complete.json | FC145182C60C525DD0085F0629540DE40F1CF6F5D54002D77F64F727787A0AE4 |

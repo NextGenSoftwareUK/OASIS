@@ -1,4 +1,28 @@
 # COSMIC CQL demo
+## SOLID private Pod record point — verified 27 October 2026
+
+[SolidPointWalkthrough.cs](SolidPointWalkthrough.cs) is a spaced, commented C#
+example using explicit SOLID scope, canonical record key, caller read policy and
+HolonManager/LINQ. Supply the activated encrypted Pod adapter and record GUID as
+lowercase D-format text. This callable walkthrough performs no writes.
+
+The actual sample is linked into `SolidCqlNativeTests` and verified against the
+reusable private Pod using production DPoP credentials. A separate canonical read
+matches the returned identity/name; anonymous HTTP is denied and a different
+application actor receives no private row. The native test creates one synthetic
+record, records ownership before dispatch, and conditionally deletes it after
+verification. WEB4 HTTP/interactive enrollment and richer queries remain open.
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solid-cql -Operation {
+    & Scripts/TestHosts/Run-ReusableSolidReadiness.ps1 -CqlPoint -RequireCleanShutdown
+}
+```
+
+Preserve existing pending/completed fixture evidence before rerunning. Persistent
+state lives in `LocalState/COSMIC/SolidCurrent`; raw results go to worktree
+`TestResults/SolidCurrent`. See [the profile](../../Docs/WIP/COSMIC%20ORM/CQL_SOLID_NATIVE_PROFILE.md).
+
 ## IPFS native CID point — verified 27 October 2026
 
 [IpfsPointWalkthrough.cs](IpfsPointWalkthrough.cs) is a spaced, commented C#
