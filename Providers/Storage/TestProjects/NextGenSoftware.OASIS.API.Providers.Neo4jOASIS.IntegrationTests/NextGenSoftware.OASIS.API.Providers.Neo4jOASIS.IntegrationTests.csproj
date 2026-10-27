@@ -25,6 +25,7 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorCodec.cs" Link="Web4/CqlFederationCursorCodec.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorHost.cs" Link="Web4/CqlFederationCursorHost.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlIndexedV1Request.cs" Link="Web4/CqlIndexedV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1UsagePreparation.cs" Link="Web4/CqlIndexedV1UsagePreparation.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Preparation.cs" Link="Web4/CqlIndexedV1Preparation.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1RequestContext.cs" Link="Web4/CqlIndexedV1RequestContext.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Endpoint.cs" Link="Web4/CqlIndexedV1Endpoint.cs" />
