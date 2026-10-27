@@ -595,6 +595,10 @@ For example, send this body to `POST /api/data/query-cql`:
 Specify `OrderBy: "Id"` or the declared Version profile: the shared wire default
 `Name` ordering is not admitted by Cosmos yet. Endpoint admission/compiler tests
 pass, but a complete HTTP request against native/hosted Cosmos remains unverified.
-An authoritative-record catalogue currently requires canonical membership support
-not yet enrolled by Cosmos; that policy must reject rather than downgrade to
-owner/public access. This remains an explicit cloud-demo gap.
+Canonical membership is now admitted for GUID, string, Boolean and Int32 fields.
+This enables `CosmicQueryReadAccess.AuthoritativeRecords` for Cosmos: the complete
+server-authorized catalogue replaces owner/public visibility, including an empty
+catalogue that admits no records. Native row, count and projection tests prove a
+private catalogue member is visible while public/owned outsiders remain excluded.
+Metadata membership remains a separate unsupported capability. A complete HTTP
+request with prepared usage admission against Cosmos is still an open demo gate.

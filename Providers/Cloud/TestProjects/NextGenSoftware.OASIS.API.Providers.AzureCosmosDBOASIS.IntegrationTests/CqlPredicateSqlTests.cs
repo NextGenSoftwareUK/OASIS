@@ -80,4 +80,42 @@ public class CqlPredicateSqlTests
         var sql = new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single());
         StringAssert.Contains(sql, Newtonsoft.Json.JsonConvert.SerializeObject(segment));
     }
+
+    [TestMethod]
+    public void AuthoritativeCatalogueBindsCanonicalGuidArray()
+    {
+        var id = Guid.NewGuid();
+        var access = CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(),
+            NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AzureCosmosDBOASIS, new[] { id });
+        Assert.IsFalse(access.IsError, access.Message);
+        var query = CosmicQuery<Holon>.Create().WithReadAccess(access.Result);
+        Assert.IsFalse(query.IsError, query.Message);
+        var translator = new CosmosCqlPredicateSql();
+        var sql = translator.Translate(query.Result.Predicates.Single());
+        StringAssert.Contains(sql, "ARRAY_CONTAINS");
+        var command = translator.BuildCommand("SELECT * FROM c WHERE " + sql);
+        CollectionAssert.AreEqual(new object[] { id.ToString("D") },
+            (object[])command.GetQueryParameters().Single().Value);
+    }
+
+    [TestMethod]
+    public void CanonicalStringMembershipPreservesNullAndAbsentSemantics()
+    {
+        var names = new string?[] { "coffee", null };
+        var query = CosmicQuery<Holon>.Create().Where(h => names.Contains(h.Description));
+        Assert.IsFalse(query.IsError, query.Message);
+        var sql = new CosmosCqlPredicateSql().Translate(query.Result.Predicates.Single());
+        StringAssert.Contains(sql, "ARRAY_CONTAINS");
+        StringAssert.Contains(sql, "NOT IS_DEFINED");
+        StringAssert.Contains(sql, "IS_NULL");
+    }
+
+    [TestMethod]
+    public void MetadataMembershipRemainsAnIndependentUnsupportedCapability()
+    {
+        var names = new[] { "coffee", "tea" };
+        var query = CosmicQuery<Holon>.Create().Where(h => names.Contains(CosmicQueryMetadata.Value<string>(h, "category")));
+        Assert.IsFalse(query.IsError, query.Message);
+        Assert.IsTrue(AzureCosmosDBOASIS.CqlCapabilities.Admit(query.Result).IsError);
+    }
 }
