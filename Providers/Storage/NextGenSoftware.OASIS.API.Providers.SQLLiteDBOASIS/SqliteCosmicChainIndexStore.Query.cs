@@ -17,11 +17,13 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public sealed record CosmicChainIndexRows(CosmicChainQueryCheckpoint Checkpoint,CosmicChainQueryFinalizedHead Head,
-    IReadOnlyList<IHolon> Rows,IReadOnlyList<CosmicChainQueryRecordReceipt> Receipts);
-
-public sealed partial class SqliteCosmicChainIndexStore
+public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndexReader
 {
+    public CosmicChainQuerySource Source => source;
+    public CosmicQueryCapabilities IndexedRowCapabilities => canonicalRowProjection
+        ? CanonicalRowCapabilities : new CosmicQueryCapabilities(CosmicQueryFeatures.None,
+            Array.Empty<CosmicQueryFieldCapability>());
+
     private sealed record Projection(string Id,int Version,string VersionId,bool IsDeleted,string CreatedByAvatarId,bool IsPublic,string Name,string Receipt);
     private static readonly CosmicQueryComparisonOperator[] Equality={CosmicQueryComparisonOperator.Equal,CosmicQueryComparisonOperator.NotEqual};
     private static CosmicQueryFieldCapability Field(string name,Type type,CosmicQueryComparisonOperator[] comparisons,bool order=false)
