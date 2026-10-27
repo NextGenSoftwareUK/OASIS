@@ -27,7 +27,7 @@ public partial class HolonRepository
             if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, TResult>(admission);
             var source = plan.Query.Source;
             var translator = new CqlSqlTranslator(source.ReadAccess);
-            var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
+            var predicate = translator.TranslateSource(source.Predicates);
             cancellationToken.ThrowIfCancellationRequested();
             var selected = plan.Query.Selector != null;
             var numeric = plan.Query.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
