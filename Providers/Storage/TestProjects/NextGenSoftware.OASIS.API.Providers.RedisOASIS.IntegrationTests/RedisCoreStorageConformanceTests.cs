@@ -35,7 +35,8 @@ public class RedisCoreStorageConformanceTests
         }
         using var provider=new Provider(options.ToString(includePassword:true),
             ()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(Provider.StorageKeyEnvironmentVariable),"oasis/conformance/redis/");
-        var result=await CoreStorageConformance.RunAsync(provider,"RedisOASIS","native",sync,Checkpoint);
+        var result=await CoreStorageConformance.RunAsync(provider,"RedisOASIS","native",sync,Checkpoint,
+            (id,synchronous)=>synchronous?Task.FromResult(provider.DeleteHolonSoft(id,false)):provider.DeleteHolonSoftAsync(id,false),expectedDefaultDeletion:"soft");
         Assert.IsTrue(result.Succeeded,result.CurrentCase+": "+result.FailureType);
     }
     [DataTestMethod] [DataRow(false)] [DataRow(true)]

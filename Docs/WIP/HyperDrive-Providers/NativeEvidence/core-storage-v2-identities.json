@@ -1,0 +1,223 @@
+{
+  "date": "2026-10-26",
+  "suite": "core-storage-v2",
+  "scope": "Common storage deletion contract; production behavior unchanged; logical point/raw interface absence, not ledger erasure",
+  "controlled": {
+    "cases": 18,
+    "passed": 18,
+    "skipped": 0,
+    "positiveModes": 4,
+    "negativeModes": 14,
+    "durationMs": 554
+  },
+  "native": {
+    "RedisOASIS": {
+      "passed": 52,
+      "total": 52,
+      "cases": 2,
+      "durationMs": 810,
+      "expectedDefault": "soft",
+      "reportSha256": "8d0ba64d3580855e1b1795bb04517114631460d6734ae5e57b68a2e528b4e3da",
+      "observedKinds": [
+        "soft"
+      ]
+    },
+    "OracleDBOASIS": {
+      "passed": 52,
+      "total": 52,
+      "cases": 2,
+      "reportSha256": "82ccdc458e33f210cf6b2c36b10dec89b125342fba12fc6822624a8f13c47c84",
+      "observedKinds": [
+        "absent"
+      ]
+    }
+  },
+  "defaultDiscovery": "NativeLocalFile compiled out unless IncludeNativeStorageConformance=true; ordinary unit list checked",
+  "reports": [
+    {
+      "cohort": "controlled",
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/core-storage-v2-controls.trx.gz",
+      "rawBytes": 28662,
+      "gzipBytes": 3177,
+      "rawSha256": "fbe5de037badaa7345d8dfb3ef8f500f92fbb90c1f62010c15df58918f6a986b",
+      "gzipSha256": "f60250c74109740265fe490e4010a0da6bf5d076aff27beb1e75473c9a2961d5"
+    },
+    {
+      "cohort": "RedisOASIS",
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/redis-core-v2-native.trx.gz",
+      "rawBytes": 4191,
+      "gzipBytes": 1262,
+      "rawSha256": "03f6e91e9a5f244d597ae3d6eb750c91c5b8dc17d83f4c6640bfb0adc77f46d3",
+      "gzipSha256": "a215f3b44dc435d4fc34c32dab7541f79d7336d36f8fca3ac68ef3138a5f0975"
+    },
+    {
+      "cohort": "OracleDBOASIS",
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/oracle-core-v2-native.trx.gz",
+      "rawBytes": 4229,
+      "gzipBytes": 1270,
+      "rawSha256": "fcd4fcbc39780d0ae27d502330dcb18931140637ef1216413ac675e336a8cccb",
+      "gzipSha256": "950969cce7117cd7be8bcd59dc8775ea63ba8bfbe144d5d8b398f04518acfe94"
+    },
+    {
+      "cohort": "earlier controls; superseded",
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/core-storage-v2-prepolicy16.trx.gz",
+      "gzipBytes": 2968,
+      "rawBytes": 25600,
+      "gzipSha256": "0898db0173224ea3e52452cc3e144362c7963df0c0fe1d1426ba6949d4239091",
+      "rawSha256": "988dc055f12aa53369c367e17a70e5d2e5e15b8395c405f44d7c6703060a01d6"
+    },
+    {
+      "cohort": "earlier controls; superseded",
+      "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/core-storage-v2-pre-ci-guard18.trx.gz",
+      "gzipBytes": 3186,
+      "rawBytes": 28662,
+      "gzipSha256": "072c0a4c5df604633dff78445aa6cc775b97922a5ea20a26a822ccc57ae243f9",
+      "rawSha256": "33ea094cec7968e8e5061fe4b9887ac33f997cb8051427d920cc48d5d3333663"
+    }
+  ],
+  "cohorts": {
+    "controlled": {
+      "consumerSourceDocuments": 85,
+      "dependencySourceDocuments": {
+        "Core": 788,
+        "Shared": 56
+      },
+      "pairs": [
+        {
+          "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests.dll",
+          "sha256": "32ae40a005528ad60942781c4c1496673abe23c48ff951e344334d4175a201f1",
+          "pdbSha256": "5c048871a4f88016210bb477b680b93c8eaabe595a834ec71c2b2a24cf44af6e",
+          "bytes": 852480
+        },
+        {
+          "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+          "sha256": "901cc2db08e41a9a41486438c775a44f70ba4f06f16bf2a12495daa17c03f3c5",
+          "pdbSha256": "28522cdc7beee68df14737d6de8d843e66016f9f67f2f3377fbbc764f46a2cd7",
+          "bytes": 3515392
+        },
+        {
+          "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+          "sha256": "3ee421cbae5f2f508eb81eade1ac04cb3ef9ce57b0563cc2ee2ae2482b605e94",
+          "pdbSha256": "d8952d6a818ae56f39b4253447a21b1f9bc704d449c004afb003377489b86335",
+          "bytes": 379904
+        }
+      ]
+    },
+    "RedisOASIS": {
+      "consumerSourceDocuments": 9,
+      "dependencySourceDocuments": {
+        "Core": 788,
+        "Shared": 56
+      },
+      "pairs": [
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests.dll",
+          "sha256": "f2db314fa941665ebe47bf9fe51aecf1edeebec58b3a63a6e9a9773d1ca7ab8b",
+          "pdbSha256": "7d725c855f7f02325acaac98abba135dcf65b7eba935a75deab9fa69fdbda464",
+          "bytes": 113664
+        },
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+          "sha256": "901cc2db08e41a9a41486438c775a44f70ba4f06f16bf2a12495daa17c03f3c5",
+          "pdbSha256": "28522cdc7beee68df14737d6de8d843e66016f9f67f2f3377fbbc764f46a2cd7",
+          "bytes": 3515392
+        },
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+          "sha256": "3ee421cbae5f2f508eb81eade1ac04cb3ef9ce57b0563cc2ee2ae2482b605e94",
+          "pdbSha256": "d8952d6a818ae56f39b4253447a21b1f9bc704d449c004afb003377489b86335",
+          "bytes": 379904
+        }
+      ]
+    },
+    "OracleDBOASIS": {
+      "consumerSourceDocuments": 57,
+      "dependencySourceDocuments": {
+        "Core": 788,
+        "Shared": 56
+      },
+      "pairs": [
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.dll",
+          "sha256": "d7b5aa6e7a92fd772e5598d15c4bbcfa702f5ef89c62bdeb1f6ab26c1428a9a5",
+          "pdbSha256": "97253176d01fb537dfef2a77588b6491d2ba135657a98a6666efefadba4f3413",
+          "bytes": 1239552
+        },
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll",
+          "sha256": "901cc2db08e41a9a41486438c775a44f70ba4f06f16bf2a12495daa17c03f3c5",
+          "pdbSha256": "28522cdc7beee68df14737d6de8d843e66016f9f67f2f3377fbbc764f46a2cd7",
+          "bytes": 3515392
+        },
+        {
+          "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll",
+          "sha256": "d4bf98fce083d2fbf000b20a13d5d929b1262174f17e7eecb0f157864b12cbaa",
+          "pdbSha256": "2c6ba21323865ebddbddb0202490343b7bfce3afb09e36a02013919eb2acf80d",
+          "bytes": 379904
+        }
+      ]
+    }
+  },
+  "outputs": {
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/bin": {
+      "bytes": 47186066,
+      "files": 198
+    },
+    "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/obj": {
+      "bytes": 2379515,
+      "files": 20
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/bin": {
+      "bytes": 47443065,
+      "files": 201
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RedisOASIS.IntegrationTests/obj": {
+      "bytes": 1147632,
+      "files": 21
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/bin": {
+      "bytes": 53919667,
+      "files": 206
+    },
+    "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/obj": {
+      "bytes": 2648120,
+      "files": 21
+    }
+  },
+  "downloads": 0,
+  "newEnvironments": 0,
+  "coreHead": "c1f85e4a9ef67f367306b093cb9571691739a2f9",
+  "runtimeResources": [
+    {
+      "name": "oasis-redis-retained",
+      "version": "8.2.2",
+      "image": "5d79a9ce29f8b3fe50fd5c07ee1bf654b5cec557b895835825bf6825d525e4f2",
+      "volume": "oasis-redis-data",
+      "wslPath": "/var/lib/containers/storage/volumes/oasis-redis-data/_data",
+      "port": "127.0.0.1:18679",
+      "status": "active/reusable; stopped after terminal verification",
+      "size": "not remeasured; reuse existing inventory",
+      "retention": "same volume and existing DPAPI storage key/auth; never reset; resume through retained helper"
+    },
+    {
+      "name": "oasis-oracle-free",
+      "version": "Database Free; exact image pinned",
+      "image": "358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9",
+      "volume": "oasis-oracle-data",
+      "wslPath": "/var/lib/containers/storage/volumes/oasis-oracle-data/_data",
+      "port": "127.0.0.1:11521",
+      "status": "active/reusable; stopped after terminal verification",
+      "size": "not remeasured; reuse existing inventory",
+      "retention": "same volume/protected Podman secret; no reset; resume through retained runner"
+    }
+  ],
+  "resolvedNativeSdkLibraries": {
+    "RedisOASIS": [
+      "Pipelines.Sockets.Unofficial/2.2.8",
+      "StackExchange.Redis/2.8.16"
+    ],
+    "OracleDBOASIS": [
+      "Oracle.ManagedDataAccess.Core/23.6.0"
+    ]
+  }
+}

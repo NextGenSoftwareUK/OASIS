@@ -1,19 +1,19 @@
 {
-  "suite": "core-storage-v1",
+  "suite": "core-storage-v2",
   "runs": [
     {
-      "SuiteVersion": "core-storage-v1",
+      "SuiteVersion": "core-storage-v2",
       "Provider": "OracleDBOASIS",
       "Mode": "native",
       "Synchronous": false,
-      "OwnerId": "723bd832-9e0f-4609-a79e-eda14cc9a9d1",
-      "RootId": "94da142a-2fdf-4880-b0d5-f79e06d7ef72",
-      "ChildId": "4c005d92-724e-4f23-9f6d-2b3f869b5b26",
+      "OwnerId": "1e2e7024-ff85-4811-a764-8481df38a1b0",
+      "RootId": "944e4b46-2a46-44b6-a205-e772f09fedf6",
+      "ChildId": "637ad331-a22f-4475-96cf-5bd831cdbc1c",
       "BatchIds": [
-        "0b85bc94-5d3e-48fb-b64a-479e11bbd360",
-        "b5753c07-f1ed-42f9-a374-027135459bb8"
+        "f035eb2a-2387-4c94-ae65-4967f7810438",
+        "5514e3bf-8a1f-4d51-9dff-a85322d318a9"
       ],
-      "ImportId": "36d05661-8629-4971-ac19-3513df8ca811",
+      "ImportId": "0fc19dd2-4103-4a57-8fb4-09bad205fe60",
       "Passed": [
         "activate",
         "avatar-save",
@@ -33,32 +33,43 @@
         "batch-save-null-metadata",
         "import",
         "owner-export",
-        "holon-delete-4c005d92724e4f239f6d2b3f869b5b26",
-        "holon-delete-94da142a2fdf4880b0d5f79e06d7ef72",
-        "holon-delete-36d0566186294971ac193513df8ca811",
-        "holon-delete-0b85bc945d3e48fbb64a479e11bbd360",
-        "holon-delete-b5753c07f1ed42f9a374027135459bb8",
+        "holon-delete-637ad331a22f447596cf5bd831cdbc1c",
+        "holon-delete-944e4b462a4644b6a205e772f09fedf6",
+        "holon-delete-0fc19dd241034a578fb409bad205fe60",
+        "holon-delete-f035eb2a23874c94ae654967f7810438",
+        "holon-delete-5514e3bf8a1f4d519dffa85322d318a9",
         "avatar-delete",
         "avatar-detail-absence",
         "deactivate"
       ],
       "CurrentCase": "complete",
       "FailureType": "",
+      "DeletionKinds": {
+        "637ad331-a22f-4475-96cf-5bd831cdbc1c": "absent",
+        "944e4b46-2a46-44b6-a205-e772f09fedf6": "absent",
+        "0fc19dd2-4103-4a57-8fb4-09bad205fe60": "absent",
+        "f035eb2a-2387-4c94-ae65-4967f7810438": "absent",
+        "5514e3bf-8a1f-4d51-9dff-a85322d318a9": "absent"
+      },
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
       "Succeeded": true
     },
     {
-      "SuiteVersion": "core-storage-v1",
+      "SuiteVersion": "core-storage-v2",
       "Provider": "OracleDBOASIS",
       "Mode": "native",
       "Synchronous": true,
-      "OwnerId": "4553a50c-81f0-4a07-8c7f-1293fb6441da",
-      "RootId": "49c850fc-458f-4b46-b3c0-df29a7d439fd",
-      "ChildId": "52b53b27-a49f-49a7-bc70-c8ce69fe7f63",
+      "OwnerId": "fafacd14-1104-4e35-b299-60a87b1d30c7",
+      "RootId": "4101b7f4-4ba7-41ee-9cd6-56e8a6eaa8a0",
+      "ChildId": "401f0df5-eaf7-49f0-b8b4-64b69bfa6599",
       "BatchIds": [
-        "eed48e62-8e3b-4989-9f32-320e923850fc",
-        "5066a94e-d542-46a8-9dfc-93708b8f9df3"
+        "d1e231fe-1ce5-4f7a-a757-2d9985026a4b",
+        "a7a192bd-3990-456f-83bb-dd6f0c030f1e"
       ],
-      "ImportId": "01ef268e-fa43-4137-a2d2-2d049aaa962e",
+      "ImportId": "911dee13-9920-4cb7-97fd-28fa3b33e307",
       "Passed": [
         "activate",
         "avatar-save",
@@ -78,17 +89,28 @@
         "batch-save-null-metadata",
         "import",
         "owner-export",
-        "holon-delete-52b53b27a49f49a7bc70c8ce69fe7f63",
-        "holon-delete-49c850fc458f4b46b3c0df29a7d439fd",
-        "holon-delete-01ef268efa434137a2d22d049aaa962e",
-        "holon-delete-eed48e628e3b49899f32320e923850fc",
-        "holon-delete-5066a94ed54246a89dfc93708b8f9df3",
+        "holon-delete-401f0df5eaf749f0b8b464b69bfa6599",
+        "holon-delete-4101b7f44ba741ee9cd656e8a6eaa8a0",
+        "holon-delete-911dee1399204cb797fd28fa3b33e307",
+        "holon-delete-d1e231fe1ce54f7aa7572d9985026a4b",
+        "holon-delete-a7a192bd3990456f83bbdd6f0c030f1e",
         "avatar-delete",
         "avatar-detail-absence",
         "deactivate"
       ],
       "CurrentCase": "complete",
       "FailureType": "",
+      "DeletionKinds": {
+        "401f0df5-eaf7-49f0-b8b4-64b69bfa6599": "absent",
+        "4101b7f4-4ba7-41ee-9cd6-56e8a6eaa8a0": "absent",
+        "911dee13-9920-4cb7-97fd-28fa3b33e307": "absent",
+        "d1e231fe-1ce5-4f7a-a757-2d9985026a4b": "absent",
+        "a7a192bd-3990-456f-83bb-dd6f0c030f1e": "absent"
+      },
+      "HardCleanedFixtures": [],
+      "ExpectedDefaultDeletion": null,
+      "CleanupScope": "point-and-raw-collection-interface-absence",
+      "FixtureCleanupComplete": true,
       "Succeeded": true
     }
   ]
