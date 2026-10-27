@@ -46,3 +46,9 @@ V2 typed hydration owner. First/Single cardinality, tail windows, Index bounds,
 tracking and error semantics stay in that owner. The bridge handles a caller's
 OrDefault argument only after an acknowledged empty result; it cannot replace a
 native failure or ambiguous cardinality with a default object.
+Queryable value aggregates bind typed paths and exact result domains before
+planning against independent scalar-selection capabilities. Plain scalar Select
+can lower into the same native selector aggregate; selected stages are never
+moved across the reduction. A standard integer Average result needs an explicitly
+implemented double-output contract; the existing decimal-output CQL contract is
+preserved rather than approximated with a client conversion.

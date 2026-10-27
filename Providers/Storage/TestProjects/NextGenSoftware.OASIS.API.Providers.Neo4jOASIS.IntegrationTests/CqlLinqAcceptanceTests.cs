@@ -58,7 +58,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var cancelled = await query.ToCosmicListAsync(cancellation.Token);
         Assert.AreEqual("CQL_QUERY_CANCELLED", cancelled.ErrorCode); Assert.IsNull(cancelled.Result);
         Passed("explicit async cancellation");
-        var unsupported = Assert.ThrowsException<CosmicLinqException>(() => query.Sum(row => row.Version));
+        var unsupported = Assert.ThrowsException<CosmicLinqException>(() => query.Select(row => row.Name).Count());
         Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED", unsupported.Code);
         Passed("pending selected numeric terminal fails explicitly");
         Assert.AreEqual(1, root.Count()); Passed("native Count");
@@ -136,6 +136,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             ()=>root.Take(1).First(row=>row.Name==name)).Code); Passed("First predicate after window explicit unsupported");
         Assert.AreSame(supplied,root.Where(row=>row.Name=="absent").FirstOrDefault(supplied)); Passed("FirstOrDefault supplied default");
         Assert.IsNull(root.ElementAtOrDefault(-1)); Passed("negative ElementAtOrDefault");
+
+        var version = read.Result.Single().Version;
+        Assert.AreEqual(version,root.Sum(row=>row.Version));Passed("native selector Sum");
+        Assert.AreEqual(version,root.Min(row=>row.Version));Passed("native selector Min");
+        Assert.AreEqual("protected source root",root.Max(row=>row.Name));Passed("native selector Max");
+        Assert.AreEqual(9007199254740993L,root.Sum(row=>CosmicQueryMetadata.Value<long>(row,"i64")));Passed("exact Int64 Sum");
+        const decimal exactDecimal=1.0000000000000000000000000001m;
+        Assert.AreEqual(exactDecimal,root.Sum(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")));Passed("exact decimal Sum");
+        Assert.AreEqual(exactDecimal,root.Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")));Passed("native decimal Average");
+        Assert.AreEqual(1d+2.220446049250313e-16d,root.Average(row=>CosmicQueryMetadata.Value<double>(row,"double")));Passed("native Double Average");
+        Assert.AreEqual(1f+1.1920929e-7f,root.Average(row=>CosmicQueryMetadata.Value<float>(row,"float")));Passed("native Single Average");
+        Assert.AreEqual((int?)0,root.Sum(row=>CosmicQueryMetadata.Value<int?>(row,"nullable")));Passed("all-null nullable Sum");
+        Assert.AreEqual(0,root.Take(0).Sum(row=>row.Version));Passed("empty source Sum");
+        Assert.AreEqual("CQL_EMPTY_SEQUENCE",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Take(0).Average(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal"))).Code);Passed("required Average empty error");
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Average(row=>row.Version)).Code);Passed("integer Average result domain remains explicit gap");
+        Assert.AreEqual(version,root.Select(row=>row.Version).Sum());Passed("plain selected Sum");
+        Assert.AreEqual("protected source root",root.Select(row=>row.Name).Min());Passed("plain selected Min");
+        Assert.AreEqual(exactDecimal,root.Select(row=>CosmicQueryMetadata.Value<decimal>(row,"decimal")).Average());Passed("plain selected Average");
+        Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED",Assert.ThrowsException<CosmicLinqException>(
+            ()=>root.Select(row=>row.Version).Where(value=>value>0).Sum()).Code);Passed("staged numeric reduction remains explicit gap");
 
         void Passed(string label) => checks.Add(new { provider = adapter.QueryProviderType.ToString(), label });
     }
