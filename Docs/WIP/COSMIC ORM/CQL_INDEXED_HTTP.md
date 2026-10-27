@@ -95,10 +95,44 @@ endpoint, keys, prices or fabricated checkpoint/head fields are accepted.
   inherited/reused outputs; do not attribute all bytes to this milestone.
 
 Current HTTP transport/identity/outbox fixtures are controlled. Actual native
-source coverage, original Solana recovery, real-backend HTTP, stock host wiring,
+source coverage, original Solana recovery, real-backend HTTP, production host deployment,
 indexed scalar/projection/metadata/graph capabilities and full parity remain red.
 
 - `TestResults/ProtocolCqlCurrent/index-http-full-core.trx` SHA256 `07C2BF888BC1EA14C63EE286E7EF246547F49F62FDD08AE1C024DBA65243332D`.
 - `TestResults/ProtocolCqlCurrent/index-http-solana.trx` SHA256 `D9ED888F31D43617E526592ED4678180F2FF0AE2C1079E98EB2EB9EB0C4A6216`.
 - `TestResults/ProtocolCqlCurrent/index-http-sqlite.trx` SHA256 `F7948272B3A8C8C96FC63A11ED72DF41162BA2EDA54219A81F278E2E68B7A4FF`.
 - `TestResults/ProtocolCqlCurrent/index-http-build-resource-inventory.json` SHA256 `66C1E2019C67473B29DF31788FD3FCB2CDEA097FBDEA3207FF432D8BDA6BF90C`.
+
+
+## Stock middleware milestone (27 October)
+
+The existing Web4UsageLedgerMiddleware now supports optional trusted
+IUsageRequestPreparation after authenticated bounded buffering/raw hashing and
+before reservation. Indexed admission captures the server alias once, validates
+intent before provider I/O, and reserves its physical-read unit/dollar ceiling.
+Raw HTTP reservation identity and semantic query identity are both checked.
+No second ledger pipeline or client-controlled tariff is introduced.
+
+Register the server-owned ICqlIndexedV1Bindings and existing singleton native
+IPreparedStorageAdmissionFactory first, then call
+`services.AddCqlIndexedReadAdmission()`. Existing explicit route configuration
+must enroll POST `/api/data/query-cql/indexed` with provider measurement enabled,
+zero fixed/native fees and an adequate MaximumProviderAttempts ceiling. Keep the
+existing usage middleware before PreparedStorageAdmissionMiddleware and MVC.
+Unrelated routes retain their captured native factory; duplicate preparation
+owners reject during registration. Registration does not enable routes by itself.
+
+A single UsageExecutionHandle now owns the aggregate indexed attempt/cost budget,
+including newly created prepared wrappers. Repeated reads cannot reset the
+reservation. Unknown attempt-start outcomes conservatively retain the claim.
+
+Full Core: 4,140 passed, zero failed/skipped. New 12-case stock suite includes
+real Kestrel/controller/middleware rows, empty result, replay, invalid request,
+unsupported graph, route ceiling, receipt uncertainty, native-factory composition,
+aggregate unit/cost ceilings and fail-closed preparation hooks. Authority/outbox,
+identity and source transports remain controlled; this does not certify production
+JWT, durable settlement or real-backend HTTP acceptance.
+
+Evidence: `TestResults/ProtocolCqlCurrent/index-stock-full-core.trx`; shipping
+WEB4 build: `index-stock-web4-build.log`; shared-controller builds:
+`index-stock-*-build.log`. Raw evidence stays outside Docs.
