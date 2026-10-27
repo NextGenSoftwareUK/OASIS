@@ -38,7 +38,17 @@ public class SolanaTombstoneWireTests
             };
             if(corruption=="missing")proxy.MissingReference=tail;
             if(corruption=="writer")proxy.UnexpectedWriterReference=tail;
-            if(corruption is "missing" or "writer"){
+            if(corruption == "missing"){
+                var exact=await Assert.ThrowsExceptionAsync<SolanaMemoChunkUnavailableException>(()=>repository.GetAsync<SolanaAvatarDetailDto>(root));
+                var collection=await Assert.ThrowsExceptionAsync<SolanaMemoChunkUnavailableException>(()=>repository.GetAllAsync<SolanaAvatarDetailDto>());
+                foreach(var failure in new[]{exact,collection}){
+                    Assert.AreEqual(root,failure.RootSignature);
+                    Assert.AreEqual(tail,failure.MissingSignature);
+                    Assert.AreEqual(proxy.Packets.Count-1,failure.ChunkCount);
+                    Assert.AreEqual(failure.ChunkCount-1,failure.ChunkIndex);
+                    Assert.AreNotEqual(Guid.Empty,failure.WriteId);
+                }
+            }else if(corruption == "writer"){
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>repository.GetAsync<SolanaAvatarDetailDto>(root));
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>repository.GetAllAsync<SolanaAvatarDetailDto>());
             }else{

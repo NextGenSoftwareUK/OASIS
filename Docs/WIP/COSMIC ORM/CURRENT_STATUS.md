@@ -8,6 +8,7 @@ Updated: 27 October 2026. Start here after compaction; update every milestone.
 - Full COSMIC programme remains incomplete. Active priority: eight-provider demo before full parity.
 - Cosmos:46 provider tests,47 native cases/5 manager-demo ops plus native HTTP rows/scalar/projection pass under controlled identity/receipts.405 affected tariff/WEB4 tests pass. Core08dec1c merge pushed/verified, parent pin updated. [Admission report](CQL_COSMOS_NATIVE_ADMISSION.md). Next: [Solana retained-record/query admission](CQL_SOLANA_DEMO_ADMISSION.md); cloud numeric, hosted/prod auth-billing and conditional lifecycle remain open.
 - Order: existing Mongo/SQLite/Neo demo, Cosmos candidate, Solana, IPFS, SOLID, ActivityPub. See [demo roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). Defer unfinished parity-only depth; Q01f stays red.
+- Solana diagnostic milestone:765 unit tests pass; provider/unit/integration builds pass. Typed missing-chunk references preserve fail-closed reads/no resubmission. Native recovery and CQL admission remain red; next is bounded retained-reference inspection.
 - Work only on red checklist cells. Green features/cursors stay frozen unless a bug is reproduced.
 - Implement HyperDrive V2 only; document legacy gaps. Large POCO mapping/migrations remain deferred.
 
