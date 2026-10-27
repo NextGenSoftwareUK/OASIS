@@ -403,7 +403,7 @@ bool emptyAll = featured.Take(0).All(holon => false);
 
 These terminals preserve source/stage row, payload and work bounds. `Any`/`All` do not bypass protected traversal outcomes through an early managed short-circuit. Separate terminal calls do not promise the same snapshot across calls. Staged tail/from-end elements, explicit default overloads, projections and remaining numeric reductions are still pending.
 
-The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. Standard staged First/FirstOrDefault/Single/SingleOrDefault and forward Int32 ElementAt/ElementAtOrDefault now pass20 live cases/database. Terminal predicates remain after earlier windows. Last/from-end indexing and explicit default-value overloads still explicitly reject pending implementation.
+The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. Standard staged First/FirstOrDefault/Single/SingleOrDefault and forward Int32 ElementAt/ElementAtOrDefault now pass20 live cases/database. Terminal predicates remain after earlier windows. Last/from-end indexing now use native entity reversal; explicit default-value overloads still reject pending implementation.
 
 ### Forward element terminals after entity stages
 
@@ -420,6 +420,21 @@ Holon only = featured.Take(1).SingleOrDefault();
 Holon second = featured.ElementAtOrDefault(1);
 ```
 
-`Single` and `SingleOrDefault` return `CQL_SEQUENCE_MULTIPLE` for multiple matches before application constructors/setters run. Missing required elements produce sequence/index errors; optional forms return null. Negative `Queryable.ElementAt(int)` uses the framework's `ArgumentOutOfRangeException`; direct admitted-plan APIs report their CQL index validation. Protected traversal failures from preceding stages still propagate before a later element window can hide them. Explicit default-value overloads and tail/from-end operations remain pending.
+`Single` and `SingleOrDefault` return `CQL_SEQUENCE_MULTIPLE` for multiple matches before application constructors/setters run. Missing required elements produce sequence/index errors; optional forms return null. Negative `Queryable.ElementAt(int)` uses the framework's `ArgumentOutOfRangeException`; direct admitted-plan APIs report their CQL index validation. Protected traversal failures from preceding stages still propagate before a later element window can hide them. Explicit default-value overloads remain pending.
 
-Native entity reversal is independently enrolled through `CosmicEntityStageFeatures.Reverse`. An explicit `CosmicEntityCompositionQuery<T>.Reverse()` stage reverses the current relation after all preceding filters/windows, including logical identity ties. Repeated reversal restores the sequence, and new OrderBy starts a fresh ordering. SQLite renumbers its native ordinal, Mongo reverses effective native keys and identity direction, and Neo reverses bounded native candidate references. Six live cases/provider pass; standard Queryable.Reverse, Last and from-end binding remain pending.
+Native entity reversal is independently enrolled through `CosmicEntityStageFeatures.Reverse`. An explicit `CosmicEntityCompositionQuery<T>.Reverse()` stage reverses the current relation after all preceding filters/windows, including logical identity ties. Repeated reversal restores the sequence, and new OrderBy starts a fresh ordering. SQLite renumbers its native ordinal, Mongo reverses effective native keys and identity direction, and Neo reverses bounded native candidate references. Six live cases/provider pass; standard Queryable.Reverse, Last/default/predicate and from-end Index binding now pass12 additional live cases/provider. Last requires explicit source or stage ordering.
+
+### Reversal and tail selection
+
+```csharp
+// Reverse applies to the current staged sequence, including every earlier page.
+var reversePage = featured.Reverse().Take(3);
+
+Holon tail = featured.LastOrDefault();
+Holon revisedTail = featured.LastOrDefault(holon => holon.Version >= 2);
+
+// ^1 is the final staged element; ^2 is the one before it.
+Holon penultimate = featured.ElementAtOrDefault(^2);
+```
+
+Tail predicates remain after prior stages, and protected traversal errors are validated before the terminal window. Reversal includes logical identity ties; a later OrderBy starts a new ordering. Last requires explicit sequence ordering. `Queryable.ElementAt(^0)` follows the framework's ArgumentOutOfRangeException; its optional form returns null. Explicit default-value overloads and staged projection/numeric integration remain pending.

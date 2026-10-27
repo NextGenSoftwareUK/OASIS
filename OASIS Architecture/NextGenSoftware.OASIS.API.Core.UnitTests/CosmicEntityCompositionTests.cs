@@ -17,6 +17,7 @@ public sealed partial class CosmicEntityCompositionTests
         public int RowCalls;
         public int StageCalls;
         public bool Enabled = true;
+        public bool ReverseEnabled;
         public bool Incomplete;
         public string? Failure;
         public CosmicEntityCompositionPlan<Holon>? Seen;
@@ -27,7 +28,7 @@ public sealed partial class CosmicEntityCompositionTests
             new[] { new CosmicQueryFieldCapability("Name", typeof(string), new[] { CosmicQueryComparisonOperator.Equal },
                 Array.Empty<CosmicQueryStringOperator>(), supportsOrdering: true) });
         public CosmicEntityCompositionCapabilities EntityCompositionCapabilities => new(Enabled
-            ? CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging : CosmicEntityStageFeatures.None, Profile());
+            ? CosmicEntityStageFeatures.Filter | CosmicEntityStageFeatures.Ordering | CosmicEntityStageFeatures.Paging | (ReverseEnabled ? CosmicEntityStageFeatures.Reverse : CosmicEntityStageFeatures.None) : CosmicEntityStageFeatures.None, Profile());
         public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
             int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
         { RowCalls++; throw new InvalidOperationException("Entity composition cannot substitute a flat row read."); }
@@ -52,6 +53,7 @@ public sealed partial class CosmicEntityCompositionTests
                     else if (stage is CosmicEntityOrderStage order)
                         foreach (var key in order.Orderings.Reverse())
                             rows = key.Descending ? rows.OrderByDescending(row => row.Name, StringComparer.Ordinal) : rows.OrderBy(row => row.Name, StringComparer.Ordinal);
+                    else if (stage is CosmicEntityReverseStage) rows=rows.Reverse();
                     else if (stage is CosmicEntityWindowStage page)
                         rows = page.Kind == CosmicSelectedWindowKind.Skip ? rows.Skip(page.Count) : rows.Take(page.Count);
                 }
