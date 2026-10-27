@@ -38,10 +38,10 @@ public static partial class CqlV1Endpoint
             var selecting = operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             if (selecting != (request.Selection != null))
                 throw new ArgumentException("Min/Max/Sum/Average require one selection; count/existence operations do not accept it.");
-            var requested = CqlV1Compiler.RequestedProvider(request.Provider);
-            var policy=CaptureReadPolicy(http,actor,requested,providers,admission);
+            var requested = CqlV1Compiler.RequestedProvider(request.Provider, includeCloudReadProfile: true);
+            var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             var source = CqlV1Compiler.CompileScalarSource(request, actor, policy?.Selected??requested,policy?.Access);
-            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy))
+            if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy,includeCloudReadProfile:true))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted scalar query.");
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
