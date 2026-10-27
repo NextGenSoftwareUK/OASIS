@@ -122,3 +122,51 @@ unenrolled, not blocked on configuration.
 | TestResults/SolidCurrent/solid-core-cleanup.trx | 47A42DA11C7D7D1B8C51CD5E3B4115C7B03134F93E8A802142EB0D6FA2FAFA85 |
 | TestResults/SolidCurrent/solid-core-lifecycle.json | 198D6BCE0E345B149BFC24E71B21273E310BCE638AFD38946D0AAD5848042780 |
 | LocalState/COSMIC/SolidCurrent/core-cleanup-complete.json | 21BFB013F7DFFDCE874A374FC3F3A3E2EF9829F495E794925566D800DD5EF7DE |
+
+## WEB4 IPFS / SOLID row admission implementation
+
+Compiler SupportedReadProfile now admits explicit IPFSOASIS and SOLIDOASIS on
+POST `api/data/query-cql`. Their exact native point capabilities remain the
+execution authority. Explicit OrderBy None is required; Descending rejects.
+Default Name ordering is not silently stripped. Federation/composition providers
+and CRUD tariff enrollment retain the original three-database scope.
+
+Server query tariffs independently allow seven unsigned read providers, with
+unique entries, bounded catalogue versions, nonnegative costs and explicit
+server permission. Signed chains remain rejected. Prices and actor identities
+are not accepted from query JSON. Missing/inactive host registrations do not
+trigger activation, failover or another source.
+
+Three new controls genuinely fail before enrollment;721 affected WEB4/tariff
+regressions pass after the fix. Core7beacc2 pushed/verified; parent gitlink and
+Docker manifest advance together. Native HTTP/receipt acceptance and interactive
+host wiring for these two profiles remain open; no deployment is claimed.
+
+Example request shape (requires activated configured provider, authoritative
+server read policy and configured tariff):
+
+```json
+{
+  "provider": "SOLIDOASIS",
+  "orderBy": "None",
+  "take": 1,
+  "includeMetadata": true,
+  "filters": [
+    {
+      "metadataPath": ["SolidRecordId"],
+      "scalar": "String",
+      "operator": "Equal",
+      "value": "a1234567-b123-4123-8123-123456789abc"
+    }
+  ]
+}
+```
+
+For IPFS use provider IPFSOASIS, metadataPath IPFSRecordCid and the acknowledged
+current record CID. Omit caller ActorId/cost fields; unknown wire fields reject.
+Scalar/projection/graph/arbitrary filters remain unsupported for both adapters.
+
+| Evidence relative to worktree | SHA256 |
+|---|---|
+| TestResults/ProtocolCqlCurrent/web4-before.trx | 0AC4E701C70CC8C698ADC45FC9E94CE331DDE042C87A71734939773DD86675AB |
+| TestResults/ProtocolCqlCurrent/web4-fixed.trx | 3B931C119A8534C053C703D7B890685A78DAB61F9C5FE8D44B5BFDB8AE278A74 |

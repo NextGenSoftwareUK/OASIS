@@ -78,7 +78,7 @@ public static partial class CqlV1Compiler
     // Additional read profiles retain their own exact adapter capabilities. Existing
     // federation/composition routes retain their independently verified scope.
     public static bool SupportedReadProfile(ProviderType type) => Supported(type)
-        || type is ProviderType.AzureCosmosDBOASIS or ProviderType.ActivityPubOASIS;
+        || type is ProviderType.AzureCosmosDBOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS;
 
     public static ProviderType? RequestedProvider(string name, bool includeCloudReadProfile = false)
     {
@@ -86,7 +86,7 @@ public static partial class CqlV1Compiler
         if (name.Length > 40 || !Enum.TryParse<ProviderType>(name, false, out var type) ||
             type.ToString() != name || !(includeCloudReadProfile ? SupportedReadProfile(type) : Supported(type)))
             throw new ArgumentException(includeCloudReadProfile
-                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB or ActivityPub read profile, or omit Provider for the current default."
+                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB, ActivityPub, IPFS or SOLID read profile, or omit Provider for the current default."
                 : "Select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS, or omit Provider for the current default.");
         return type;
     }
@@ -213,8 +213,8 @@ public static partial class CqlV1Compiler
 
         if (orderBy == "None")
         {
-            if (provider != ProviderType.ActivityPubOASIS || !includeCloudReadProfile || descending)
-                throw new ArgumentException("OrderBy None is reserved for the unsorted ActivityPub point-read profile, without Descending.");
+            if (provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS) || !includeCloudReadProfile || descending)
+                throw new ArgumentException("OrderBy None is reserved for the unsorted ActivityPub, IPFS or SOLID point-read profiles, without Descending.");
             var pointPage = query.Skip(skip);
             if (take.HasValue) pointPage = pointPage.Take(take.Value);
             if (pointPage.IsError) throw new ArgumentException(pointPage.Message);
