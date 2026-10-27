@@ -1,7 +1,7 @@
 @{
     ActiveWorktrees = @('C:/Source/OASIS', 'C:/Source/Our-World')
     # Build and test outputs are always regenerable, so nothing here preserves bin/obj
-    # or TestResults. Only non-regenerable secret backups are kept.
+    # or TestResults. Only non-regenerable secret backups and the pinned DynamoDB evidence are kept.
     # Paths below are relative to the main repository unless explicitly absolute.
     Preserve = @(
         'artifacts/railway-secure-backup'
@@ -9,6 +9,8 @@
         # Hash-pinned reusable DynamoDB runtime and retained history; not regenerable.
         'TestResults/AWSProviderEvidence'
     )
+    # Warn when any preserved folder grows beyond this size.
+    PreservedSizeLimitMB = 200
     # Whole-directory test outputs, emptied on every run.
     TestOutputs = @(
         'TestResults'
