@@ -44,8 +44,8 @@ RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
-# Bounded workers and no compiler server keep the build inside the builder's memory (same convention as the repo's local builds).
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false -m:2 -nr:false -p:UseSharedCompilation=false
+# One worker and no compiler server keep the build inside the builder's memory; the larger settings failed intermittently with no error output.
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false -m:1 -nr:false -p:UseSharedCompilation=false
 
 RUN test -f /app/publish/DNA/STAR_DNA.json
 
