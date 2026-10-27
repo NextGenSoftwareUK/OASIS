@@ -45,6 +45,8 @@ public sealed class OASISDataObjectType<T> : ObjectType<T>
                      .GroupBy(p => p.Name).Select(g => g.First()))
         {
             if (property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData)) continue;
+            // Runtime-only security context (JsonIgnore); its key resolver is an empty interface and must never be a GraphQL field.
+            if (property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Security.HolonMetadataEncryptionPolicy)) continue;
             var field = descriptor.Field(property);
             if (property.PropertyType == typeof(Dictionary<string, object>)) field.Type<AnyType>();
         }
