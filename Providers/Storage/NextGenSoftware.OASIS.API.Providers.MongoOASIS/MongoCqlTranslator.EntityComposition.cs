@@ -56,6 +56,8 @@ internal sealed partial class MongoCqlTranslator
         }
         var stages = new List<MongoCqlCommand>();
         var membership = source.RequiresMembership;
+        IReadOnlyList<CosmicQueryOrdering> effectiveOrder=sourceQuery.Orderings;
+        var reversed=false;
         foreach (var stage in plan.Query.Stages)
         {
             var envelope = false;
@@ -76,21 +78,23 @@ internal sealed partial class MongoCqlTranslator
                 envelope = true;
                 membership |= relationships;
             }
-            else if (stage is CosmicEntityOrderStage ordered)
+            else if (stage is CosmicEntityOrderStage || stage is CosmicEntityReverseStage)
             {
+                if (stage is CosmicEntityOrderStage ordered) { effectiveOrder=ordered.Orderings; reversed=false; }
+                else reversed=!reversed;
                 var keys = new BsonDocument(); var sort = new BsonDocument();
-                for (var index = 0; index < ordered.Orderings.Count; index++)
+                for (var index = 0; index < effectiveOrder.Count; index++)
                 {
-                    var item = ordered.Orderings[index]; var key = "entitySort" + index;
+                    var item = effectiveOrder[index]; var key = "entitySort" + index;
                     keys.Add(key, OrderingKey(item.Path, key));
-                    sort.Add(key + ".rank", item.Descending ? -1 : 1);
-                    sort.Add(key + ".value", item.Descending ? -1 : 1);
+                    sort.Add(key + ".rank", (item.Descending ^ reversed) ? -1 : 1);
+                    sort.Add(key + ".value", (item.Descending ^ reversed) ? -1 : 1);
                 }
                 // Wrap native records so user fields cannot shadow sort state.
                 var wrapper = new BsonDocument { { "_id", 0 }, { "row", "$$ROOT" } };
                 foreach (var key in keys) wrapper.Add(key);
                 current.Add(new("$project", wrapper));
-                sort.Add("row.HolonId", 1);
+                sort.Add("row.HolonId", reversed ? -1 : 1);
                 current.Add(new("$sort", sort));
                 current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$row")));
             }

@@ -77,6 +77,13 @@ public partial class HolonRepository
                 select = "SELECT Holon.*,row_number() OVER (ORDER BY " + stageOrdering + ") AS "
                     + position + " FROM " + relation + " AS Holon";
             }
+            else if (stage is CosmicEntityReverseStage)
+            {
+                var priorPosition=position;
+                position="__cosmicEntityPosition" + definitions.Count;
+                select="SELECT Holon.*,row_number() OVER (ORDER BY " + priorPosition + " DESC) AS "
+                    + position + " FROM " + relation + " AS Holon";
+            }
             else if (stage is CosmicEntityWindowStage window)
             {
                 select = "SELECT * FROM " + relation + " ORDER BY " + position + " LIMIT "
