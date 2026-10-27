@@ -1,14 +1,16 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$RequireCleanShutdown)
+param([switch]$RequireCleanShutdown,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$taskSolidWork=Join-Path $taskSolidRoot 'TestResults/SolidCurrent'
+$taskSolidWork=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'}
+$taskSolidResults=Join-Path $taskSolidRoot 'TestResults/SolidCurrent'
+New-Item -ItemType Directory -Path $taskSolidResults -Force|Out-Null
 if(!(Test-Path -LiteralPath $taskSolidWork -PathType Container)){throw 'Retained SOLID work directory required.'}
 $taskSolidLease=[IO.File]::Open((Join-Path $taskSolidWork 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $taskSolidStarted=$false;$taskSolidPrior=$env:OASIS_SOLID_COLD_READONLY_WORK
-$taskSolidReport=Join-Path $taskSolidWork 'solid-readiness-current.json'
-$taskSolidTrx=Join-Path $taskSolidWork 'solid-ready-read-current.trx'
+$taskSolidReport=Join-Path $taskSolidResults 'solid-readiness-current.json'
+$taskSolidTrx=Join-Path $taskSolidResults 'solid-ready-read-current.trx'
 $taskSolidSamples=[Collections.Generic.List[object]]::new()
 $taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope='frozen-output readiness and one authenticated read; not current-source acceptance';freeBefore=(Get-PSDrive C).Free;socketReadyMs=$null;testExit=$null;stopExit=$null;finalState=$null;samples=$taskSolidSamples}
 try{
@@ -46,7 +48,7 @@ try{
     $taskSolidEvidence.socketReadyMs=$taskSolidTimer.ElapsedMilliseconds
     foreach($taskSolidSample in $taskSolidObserved.Samples){$taskSolidSamples.Add($taskSolidSample)}
     $env:OASIS_SOLID_COLD_READONLY_WORK=$taskSolidWork
-    & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead' --logger 'trx;LogFileName=solid-ready-read-current.trx' --results-directory $taskSolidWork -v:q
+    & dotnet test $taskSolidProject --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~SolidColdStartReadOnlyTests.RetainedIssuerDiscoveryThenAuthenticatedAclRead' --logger 'trx;LogFileName=solid-ready-read-current.trx' --results-directory $taskSolidResults -v:q
     $taskSolidEvidence.testExit=$LASTEXITCODE
     if($LASTEXITCODE -ne 0){throw 'Discovery/authenticated-read diagnostic failed; preserve original evidence.'}
     [xml]$taskSolidResult=Get-Content $taskSolidTrx -Raw
