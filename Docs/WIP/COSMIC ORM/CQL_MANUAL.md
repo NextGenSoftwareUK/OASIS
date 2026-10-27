@@ -678,9 +678,9 @@ enroll WEB4 or certify original native chain coverage.
 
 Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).
 
-[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. HTTP route/usage binding and acceptance remain next; this does not certify native coverage or production deployment.
+[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. Stock HTTP route/usage binding is verified; native acceptance remains next; this does not certify native coverage or production deployment.
 
-[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,140/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration passes; real-backend/native HTTP and full parity remain open. Register server bindings and existing native factory first, then call `services.AddCqlIndexedReadAdmission()`; see the checkpoint for explicit route policy and middleware ordering.
 
 ## Indexed HTTP rows
 
