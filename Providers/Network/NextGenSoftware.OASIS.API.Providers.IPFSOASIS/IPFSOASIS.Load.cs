@@ -441,7 +441,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 holon.DeletedDate=DateTime.UtcNow;
                 holon.DeletedByAvatarId=AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty;
                 holon.IsActive=false;
-                result.Result=await SaveHolonToFile(holon); result.IsSaved=true;
+                // Publish acknowledgement only after the tombstone and catalogue pointer are durable.
+                result.Result=await SaveHolonToFile(holon);
+                result.IsSaved=true;
+                result.SavedCount=1;
+                result.IsDeleted=true;
+                result.DeletedCount=1;
             }
             catch(Exception cause)
             {

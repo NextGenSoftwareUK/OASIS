@@ -139,8 +139,10 @@ public class IpfsCoreStorageConformanceTests
         Assert.False(File.Exists(journalPath) || File.Exists(journalPath + ".next"), "Preserve the original fixture intent before another dispatch.");
         Assert.False(File.Exists(reportPath) || File.Exists(reportPath + ".next"), "Preserve prior fixture/report before rerunning.");
         using var lease = new FileStream(Path.Combine(work, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        CoreStorageConformance.Report? activeFixture = null;
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
+            activeFixture = report;
             // Irreproducible fixture ownership survives cleanup of raw TestResults.
             await using (var journal = new FileStream(journalPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
@@ -188,7 +190,22 @@ public class IpfsCoreStorageConformanceTests
         var priorPath = OASISDNAManager.OASISDNAPath;
         try
         {
-            var result = await CoreStorageConformance.RunAsync(provider, "IPFSOASIS", "native", sync, Checkpoint);
+            var result = await CoreStorageConformance.RunAsync(provider, "IPFSOASIS", "native", sync, Checkpoint,
+                cleanupSoftDeletedFixture: async (id, synchronous) =>
+                {
+                    // Test maintenance only, AFTER the shared suite verifies shipping soft deletion.
+                    Assert.NotNull(activeFixture);
+                    var allowed = new[] { activeFixture!.RootId, activeFixture.ChildId, activeFixture.ImportId }.Concat(activeFixture.BatchIds);
+                    Assert.Contains(id, allowed);
+                    var observed = await provider.LoadHolonAsync(id, loadChildren:false);
+                    Assert.False(observed.IsError);Assert.True(observed.Result.IsDeleted);
+                    Assert.Equal(activeFixture.OwnerId, observed.Result.CreatedByAvatarId);
+                    var catalogue = await provider.LoadLookupToJson();
+                    var entry = Assert.Single(catalogue.Where(pair => pair.Value.RecordKind == "holon" && pair.Value.Id == id));
+                    catalogue.Remove(entry.Key);
+                    await provider.SaveLookupToFile(catalogue);
+                    return new NextGenSoftware.OASIS.Common.OASISResult<bool>(true) {IsSaved=true,SavedCount=1};
+                }, expectedDefaultDeletion:"soft");
             Assert.True(result.Succeeded, result.CurrentCase + ": " + result.FailureType);
             Assert.True(result.FixtureCleanupComplete);
             File.Delete(journalPath);

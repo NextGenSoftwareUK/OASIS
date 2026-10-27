@@ -44,6 +44,15 @@ public class IPFSGraphAcknowledgementTests
                 Assert.Same(root,result.Result);Assert.Equal(2,result.SavedCount);
             }
             Assert.Equal(4,transport.Adds);Assert.Equal(root.Id,child.ParentHolonId);
+
+            // Acknowledging deletion must describe the committed tombstone, on both facades.
+            var deleted = sync ? provider.DeleteHolon(child.Id) : await provider.DeleteHolonAsync(child.Id);
+            Assert.False(deleted.IsError, deleted.Exception?.ToString());
+            Assert.True(deleted.IsDeleted);
+            Assert.Equal(1, deleted.DeletedCount);
+            Assert.True(deleted.Result.IsDeleted);
+            Assert.NotEqual(default, deleted.Result.DeletedDate);
+            Assert.False(deleted.Result.IsActive);
         }
         finally{
             api.SetValue(null,original);CryptographicOperations.ZeroMemory(key);OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;
@@ -56,7 +65,8 @@ public class IPFSGraphAcknowledgementTests
         public int Adds;
         private readonly Dictionary<string,string> stored=new();
         private static readonly string[] Cids={"Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdk","QmPcSpfsigLFxjKLHvhKtBqiwtjmtHViHh9G4Hi8vdriSP",
-            "QmRqPMYJEEsSvcDNTGsuBHp5s5EZsrVDJbs26BYGkRti9D","QmXuu1N91m5dR2oh3FzLZWpPYgNgPQuCxp7EMHGtpAJD9D"};
+            "QmRqPMYJEEsSvcDNTGsuBHp5s5EZsrVDJbs26BYGkRti9D","QmXuu1N91m5dR2oh3FzLZWpPYgNgPQuCxp7EMHGtpAJD9D",
+            "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdj", "Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdi"};
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             if(request.RequestUri!.AbsolutePath.EndsWith("/cat")){
