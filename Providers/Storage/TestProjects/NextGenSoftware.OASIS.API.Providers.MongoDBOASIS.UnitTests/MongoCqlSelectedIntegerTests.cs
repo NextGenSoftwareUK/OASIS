@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -86,4 +87,43 @@ public sealed class MongoCqlSelectedIntegerTests
         Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED", CosmicProjectionCompositionPlanner.Admit(plan.Composition,
             ProviderType.MongoDBOASIS, MongoDBOASIS.CqlCapabilities, MongoDBOASIS.CqlProjectionCapabilities, legacy).ErrorCode);
     }
+    [DataTestMethod]
+    [DataRow(typeof(decimal), 7)]
+    [DataRow(typeof(float), 10)]
+    [DataRow(typeof(double), 70)]
+    [DataRow(typeof(ulong), 2)]
+    [DataRow(typeof(decimal?), 7)]
+    [DataRow(typeof(float?), 10)]
+    [DataRow(typeof(double?), 70)]
+    [DataRow(typeof(ulong?), 2)]
+    public void WiderSelectedEmptyPacketsHaveExactDomainWidths(Type domain, int width)
+    {
+        var method = GetType().GetMethod(nameof(VerifyWidePacket), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        method.MakeGenericMethod(domain).Invoke(null, new object[] { width });
+    }
+
+    private static void VerifyWidePacket<T>(int width)
+    {
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS).Result)
+            .Select(row => CosmicQueryMetadata.Value<T>(row, "value")).Take(0).Result;
+        var plan = CosmicProjectedNumericPlanner.Plan<Holon, T, T>(query, 0, CosmicScalarOperation.Sum,
+            ProviderType.MongoDBOASIS, new[] { new CosmicProjectionCompositionTarget(ProviderType.MongoDBOASIS,
+                MongoDBOASIS.CqlCapabilities, MongoDBOASIS.CqlProjectionCapabilities, MongoDBOASIS.CqlCompositionCapabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
+        var command = new MongoCqlTranslator().CompileComposition(plan.Result.Composition,
+            new CosmicProjectionCompositionExecutionLimits(100, 100000, 1000, 100000, 10000, CosmicProjectionResults.MaximumPayloadLimit));
+        var body = Empty(command);
+        var packet = HolonRepository.ReadNativeCqlSelectedNumeric(new BsonDocument("packet", body), command.NumericIntent);
+        Assert.AreEqual(0L, packet.ParticipatingCount);
+        Assert.AreEqual(width, packet.Parts.Count);
+        Assert.IsTrue(packet.Parts.All(word => word == 0));
+        Assert.IsFalse(CosmicProjectedNumericResults.FromPacket(plan.Result.Scalar, packet).IsError);
+        if (body.Contains("parts"))
+        {
+            body["parts"].AsBsonArray.RemoveAt(0);
+            Assert.ThrowsException<InvalidDataException>(() => HolonRepository.ReadNativeCqlSelectedNumeric(
+                new BsonDocument("packet", body), command.NumericIntent));
+        }
+    }
+
 }
