@@ -1,3 +1,25 @@
+## Investor-demo query operators verified — 26 October 2026
+
+Examples 59–90 close demo rows Q05/Q06/Q07/Q08/Q12b on SQLite, MongoDB and Neo4j:
+metadata null/missing, native field comparisons, bounded membership, ordinal
+string matching and actual tied secondary ordering. See the
+[commented C# operator examples](../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs).
+
+The SDK walkthrough now has 90 cases/store (270 total); HTTP retains 46/store
+(138 total). The native test passes with 526 settlements / 608 physical attempts,
+unchanged source snapshots and seven matching binary pairs. Shipping WEB4 and
+standalone console builds pass. Core's preceding 3,767-test gate is separate;
+this batch changes no Core/provider implementation or cursor code.
+
+[Native result](Verification/demo-operators-native-result.json),
+[test outcome](Verification/demo-operators-native.trx.gz),
+[source identities](Verification/demo-operators-native-source.json.gz),
+[binary identities](Verification/demo-operators-native-binaries.json).
+
+Three DEMO rows remain red: generated-ID ownership (M07), dirty/no-op saves
+(S04), and committed deltas (X08). The remaining full parity backlog stays
+tracked and deferred until this demo set is green. No broader parity claim.
+
 ## Investor-demo element terminals verified — 26 October 2026
 
 The same C# examples 47–58 now exercise `First`, `FirstOrDefault`, `Single` and

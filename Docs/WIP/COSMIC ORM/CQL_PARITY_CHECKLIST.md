@@ -25,7 +25,7 @@ older chronological roadmap is supporting history, not the source of green statu
   preserve its parent/history and never make a broad row green from a narrow case.
 - Existing native evidence: [three-store result][G], [source hashes][GS],
   [seven producer/consumer pairs][GB], [test result][GT]. It covers 526 settled
-  operations / 608 attempts, 174 SDK cases and 138 HTTP cases; this total is not a parity percentage. The latest lineage
+  operations / 608 attempts, 270 SDK cases and 138 HTTP cases; this total is not a parity percentage. The latest lineage
   correction has separate [unit evidence][LC] and is included in this fresh native gate.
 
 ## Mapping and schema
@@ -119,15 +119,15 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q02 | C# query-comprehension syntax with standard LINQ operators | ❌ | ❌ | ❌ | No complete standard query-provider proof. |
 | Q03 | Typed expression Where with declared metadata equality | [✅][F] | [✅][F] | [✅][F] | Native SDK federation tests and typed federation demo; declared subset. |
 | Q04 | Conjunction/disjunction and nested metadata predicates | [✅][D2] | [✅][D2] | [✅][D2] | V1 example2 on all three stores. |
-| Q05 | Null and missing metadata tests | ❌ | ❌ | ❌ | **DEMO** — Cases exist; reconcile exact per-store tests and nullable semantics. |
-| Q06 | Field-to-field comparisons | ❌ | ❌ | ❌ | **DEMO** — Dedicated tests exist; attach named native proof before promoting. |
-| Q07 | Contains membership over bounded constant sets | ❌ | ❌ | ❌ | **DEMO** — SDK support exists; attach complete provider proof. |
-| Q08 | String Contains/StartsWith/EndsWith translation | ❌ | ❌ | ❌ | **DEMO** — Need exact comparison/collation matrix per operator/store. |
+| Q05 | Null and missing metadata tests | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Present-null Exists/IsNull, selectable missing path, missing-not-null and non-null guards; examples 59–63. [All-three native gate][G]. |
+| Q06 | Field-to-field comparisons | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Native true/false Int64 path comparisons, canonical-to-metadata Guid and canonical field equality; examples 64–67. Declared path domains only. [All-three native gate][G]. |
+| Q07 | Contains membership over bounded constant sets | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Bounded name/Int64 sets, empty sets, duplicate constants and exact >2^53 values; examples 68–71. [All-three native gate][G]. |
+| Q08 | String Contains/StartsWith/EndsWith translation | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Ordinal Contains/StartsWith/EndsWith: literal metacharacters, empty patterns, case/normalization sensitivity and Unicode fixture; examples 72–88. No culture/ignore-case overload claim. [All-three native gate][G]. |
 | Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | General method translation unverified. |
 | Q10 | Native selected scalar columns / flat records | [✅][D10] | [✅][D10] | [✅][D10] | V1 example10; this is not arbitrary DTO construction. |
 | Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | Common shape support needs precise provider proof. |
 | Q12 | OrderBy/OrderByDescending with declared scalar domains | [✅][F] | [✅][F] | [✅][F] | Native federation order/tie cases and SDK demo. |
-| Q12b | ThenBy/ThenByDescending for multi-key entity ordering | ❌ | ❌ | ❌ | **DEMO** — Existing intent support needs explicit native source-query proof. |
+| Q12b | ThenBy/ThenByDescending for multi-key entity ordering | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Both secondary directions determine order when every primary stock key ties; examples 89–90. [All-three native gate][G]. |
 | Q13 | Skip/Take source paging | [✅][D1] | [✅][D1] | [✅][D1] | V1 example1; visibility enforced before page. |
 | Q14 | First terminal, including empty-input behaviour | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
 | Q15 | FirstOrDefault terminal | [✅][E] | [✅][E] | [✅][E] | **DEMO** — Examples 47–58 on all three stores ([native gate][G]); [cardinality/window/typed/error tests][EU] pass in [3,767-test gate][EG]. C# entity-query terminals; HTTP/selected-value variants are separate. |
@@ -236,8 +236,8 @@ No broad row is narrowed merely to make the demo green.
 | Priority | Tagged ❌ rows | Demo purpose |
 |---|---|---|
 | 1 — verified | Q14, Q15, Q16, Q17 | First/FirstOrDefault/Single/SingleOrDefault; native cardinality, empty/error semantics and source windows |
-| 2 — reconcile existing proof, then fill gaps | Q05, Q06, Q07, Q08, Q12b | Null/missing metadata, field comparisons, membership, strings and multi-key ordering |
-| 3 — ORM save story | M07, S04, X08 | Generated identity ownership, dirty/no-op saves and committed per-save deltas |
+| 2 — verified | Q05, Q06, Q07, Q08, Q12b | Null/missing metadata, field comparisons, membership, strings and multi-key ordering |
+| 3 — next: ORM save story | M07, S04, X08 | Generated identity ownership, dirty/no-op saves and committed per-save deltas |
 
 The existing green query/CRUD/concurrency/child-graph features supply the rest of
 the demo. Use their existing evidence and examples; do not harden them further.
@@ -291,10 +291,10 @@ and raw-test outcome [GT]. A source file existing on its own is insufficient.
 [F]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.Federation.cs
 [C]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.HostedCursors.cs
 [P]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.CursorProcess.cs
-[G]: Verification/element-terminals-native-result.json
-[GS]: Verification/element-terminals-native-source.json.gz
-[GB]: Verification/element-terminals-native-binaries.json
-[GT]: Verification/element-terminals-native.trx.gz
+[G]: Verification/demo-operators-native-result.json
+[GS]: Verification/demo-operators-native-source.json.gz
+[GB]: Verification/demo-operators-native-binaries.json
+[GT]: Verification/demo-operators-native.trx.gz
 [NC]: ../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlV1Web4NativeTests.cs#L866
 [SC]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicScalarQueryTests.cs#L119
 [LC]: Verification/cursor-lineage-core.trx.gz
@@ -317,7 +317,7 @@ families, not a claim that either ORM supplies every feature on every backend.
   hardening was needed. Q20 now links its Count example rather than LongCount.
 
 - 26 October 2026: DEMO Q14–Q17 promoted on SQLite/MongoDB/Neo4j after native
-  examples 47–58 pass (36 new terminal cases; total 174 SDK cases). Shared Core
+  examples 47–58 pass (36 new terminal cases; total 270 SDK cases). Shared Core
   tests: 3,767 passed, zero skips; Core net10.0/netstandard2.1 and shipping WEB4
   build pass. Native source snapshots unchanged; seven binary pairs match.
   Eight DEMO rows / 24 database cells remain red. No cursor code was changed.
@@ -325,3 +325,17 @@ families, not a claim that either ORM supplies every feature on every backend.
 [E]: ../../../Examples/CosmicCqlDemo/V1ElementQueries.cs
 [EU]: ../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicElementQueryTests.cs
 [EG]: Verification/element-terminals-core.trx.gz
+
+- Demo operator acceptance in progress: new `V1OperatorQueries` examples 59–90
+  exercise presence/null/missing, true/false native field comparisons, bounded
+  membership (including empty/duplicate/exact Int64 values), ordinal string
+  patterns and tied secondary ordering. Q05/Q06/Q07/Q08/Q12b remain red pending
+  the three-database result. No green feature or cursor implementation changed.
+
+- 26 October 2026: DEMO Q05/Q06/Q07/Q08/Q12b promoted after examples 59–90
+  pass unchanged on all three stores. Native aggregate 270 SDK / 138 HTTP cases,
+  526 settlements / 608 physical attempts; seven matching binary pairs. No
+  production query-engine, provider implementation or cursor change was needed.
+  Three DEMO rows / nine database cells remain red: M07, S04, X08.
+
+[O]: ../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs

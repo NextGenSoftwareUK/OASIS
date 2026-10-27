@@ -1,6 +1,6 @@
 # COSMIC ORM work
 
-Latest demo milestone: [four native element terminals verified](CQL_DEMO_RUNBOOK.md). The investor-demo queue now has eight red rows remaining on all three stores; larger mapping/migration/tooling work is deferred.
+Latest demo milestone: [native query operators verified](CQL_DEMO_RUNBOOK.md). The investor-demo queue now has three red rows remaining on all three stores: generated-ID ownership, dirty/no-op saves and deltas. Larger mapping/migration/tooling work is deferred.
 
 Current parity work queue: [EF / NHibernate feature checklist](CQL_PARITY_CHECKLIST.md). Each database cell requires linked proof. Work only on ❌ cells; ✅ cells remain frozen unless a bug is found.
 

@@ -380,5 +380,15 @@ MongoDB, SQLite and Neo4j through HolonManager. Native queries request at most
 one or two rows, preserve source windows, and distinguish empty/default results
 from provider failures or ambiguous Single results. See the
 [manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md#native-element-terminals-c-sdk).
-These SDK examples bring the walkthrough to 58 cases per store; the separate
-HTTP walkthrough has 46 cases per store and no new element-terminal route.
+These element-terminal examples occupy cases 47–58; operator examples 59–90
+follow them. The separate HTTP walkthrough has 46 cases per store and no new
+element-terminal route.
+
+## C# operator examples
+
+[V1OperatorQueries.cs](V1OperatorQueries.cs) contains examples 59–90 for metadata
+null/missing, field comparisons, closed-set membership, ordinal strings and
+secondary ordering with actual tied primary values. The same 32 assertions run
+on all three native databases. Total: 90 SDK cases/store (270), with the separate
+HTTP walkthrough retaining 46/store (138). No provider-specific demo engine or
+client-side source scan is used.
