@@ -1,6 +1,6 @@
 # Mixed native/indexed federation admission â€” Mongo + Solana
 
-28 October 2026. **Open demo requirement**, not implemented or acceptance-green.
+28 October 2026. **Open native demo requirement**. Shared planning and mixed SDK execution now implemented/controlled-tested; live Mongo+Solana and HTTP/browser acceptance remain unverified.
 Existing native federation and single-source indexed queries stay frozen except for
 shared changes necessary to implement this missing composition. No cursor work.
 
@@ -15,7 +15,7 @@ shared changes necessary to implement this missing composition. No cursor work.
 These are correct current rejections, not evidence of mixed federation support.
 The retained Solana browser gate is separately green within its declared scope.
 
-## Root cause / required owners
+## Original gap audit (superseded by implementation checkpoint below)
 
 - CosmicQuery.WithIndexedSource requires exactly one named logical source and freezes
   the requirement. This invariant must remain:Mongo cannot inherit a chain grant.
@@ -31,7 +31,7 @@ The retained Solana browser gate is separately green within its declared scope.
 Do not wrap the index as a native Solana adapter or insert evidence into user metadata.
 Do not turn off source matching or apply one global index grant to both providers.
 
-## Exact implementation sequence
+## Acceptance sequence (steps1–3 now implemented and controlled-tested)
 
 1. Capture explicit immutable target-specific indexed read requirements in shared
    federation planning. Match every registered source/index/schema/catalogue/range;
@@ -76,3 +76,27 @@ milestone does not certify mixed execution or a Mongo+Solana demo. Exact next st
 explicit indexed reader/observer registration, all-target validation, existing indexed
 executor dispatch, evidence retention and cumulative budget accounting (steps2–3).
 No native adapter shim, metadata evidence injection, cursor changes or resumed LINQ depth.
+
+## Implemented dispatch/evidence checkpoint
+
+Explicit `CosmicFederationIndexedReader(reader, observer)` registration supplies the
+indexed leaf separately from native adapters. All source/index/capability/access and
+prepared billing bindings validate before the first read. Dispatch uses the existing
+CosmicIndexedQueryExecutor, retaining its receipt/freshness/visibility/completeness
+checks. Either leaf failure rejects the entire federation; no partial publication.
+Native adapters do not receive indexed grants or impersonate the chain index.
+
+Each indexed copy retains IndexedEvidence(Read.Checkpoint,Read.Head,Receipt).
+Result.IndexedReads retains checkpoint/head even with no indexed rows. HolonManager
+preserves both through typed hydration and clean tracking. Evidence stays outside user
+metadata and is included in cumulative input/output byte/work accounting. The same
+operation's row/attempt/deadline bounds span both native/indexed leaves. Existing
+prepared indexed tariff/actor/reservation checks now have a pure preflight shared with
+leaf dispatch; no admission bypass or replacement receipt owner.
+
+Both Core targets build;4298full Core tests pass.16new execution cases cover mixed
+raw/manager success, empty evidence, missing/changed/duplicate/access/cancel preflight,
+stale/identity/visibility/duplicate/incomplete failures after native success, prepared
+billing rejection before dispatch, and evidence-only input/output budget exhaustion.
+No native Mongo+Solana runtime acceptance yet. Exact next:step5 using retained source,
+index and acknowledgement without reseeding, then explicit teaching HTTP/browser.
