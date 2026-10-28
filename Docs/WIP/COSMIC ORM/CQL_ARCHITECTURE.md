@@ -342,3 +342,12 @@ Single-node native tests verify independent clients,reopening,distinct URI alias
 bindings and unchanged graph/schema counts. This does not certify clustered identity,
 home-database reconfiguration or remote attestation. Consumption in durable automatic
 routing/policy binding remains open;current automatic target IDs are unchanged.
+
+### Replication receiver binding (28 October 2026)
+
+Explicit catalogs may use a native `CosmicStorageIdentity` and
+`IBoundCommittedHolonReplicaStorageProvider` destination. This hashes a distinct
+bound-route contract and passes the captured identity into the receiver transaction.
+SQLite checks its native file/identity row under BEGIN IMMEDIATE before receipt
+replay or graph writes. This is separate from CQL read assurance and policy admission.
+[Implementation, tests and open automatic-route scope](REPLICA_STORAGE_BINDING.md).

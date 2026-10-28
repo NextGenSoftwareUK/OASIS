@@ -32,7 +32,8 @@ public partial class HolonRepository
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,
+        CosmicStorageIdentity expectedStorage=null)
     {
         var embedded=request?.Write.ReplicationEnrollment;
         if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)))
@@ -109,6 +110,21 @@ public partial class HolonRepository
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
             // IMMEDIATE acquires the native writer reservation BEFORE reading revisions.
             native = connection.BeginTransaction(deferred: false);
+            // Binding admission precedes even exact-receipt replay. The same
+            // IMMEDIATE transaction pins the native store until commit/rollback.
+            if (expectedStorage != null)
+            {
+                CosmicStorageIdentity actual;
+                try { actual = SqliteStorageIdentity.Read(connection, native); }
+                catch (Exception cause) when (cause is System.IO.InvalidDataException || cause is SqliteException)
+                {
+                    return ConditionalError("COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                        "The receiver identity is missing or invalid; no identity was initialized and no replica applied.", cause);
+                }
+                if (actual.BindingFingerprint != expectedStorage.BindingFingerprint)
+                    return ConditionalError("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+                        "The native receiver does not match the enrolled storage identity.");
+            }
             enlisted = _dbContext.Database.UseTransaction(native);
             token.ThrowIfCancellationRequested();
             using (var receipt = connection.CreateCommand())

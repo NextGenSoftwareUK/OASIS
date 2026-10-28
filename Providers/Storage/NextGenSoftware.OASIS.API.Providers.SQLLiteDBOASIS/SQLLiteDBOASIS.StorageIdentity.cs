@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -35,12 +33,6 @@ public partial class SQLLiteDBOASIS : ICosmicStorageIdentityProvider
             var nativePath = (string)await location.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(nativePath))
                 return new() { IsError = true, ErrorCode = "COSMIC_STORAGE_IDENTITY_UNSUPPORTED", Message = "The native connection has no durable main database file." };
-            // Preserve native path spelling: aliases may conservatively differ;
-            // do not merge distinct files in a case-sensitive directory.
-            var endpoint = Path.GetFullPath(nativePath);
-            using var hash = SHA256.Create();
-            var fingerprint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes("sqlite-file-v1:" + endpoint))).Replace("-", "");
-
             // An immediate native transaction serializes first initialization by
             // independent clients. Existing identity rows are never replaced.
             using var transaction = connection.BeginTransaction(deferred: false);
@@ -57,19 +49,10 @@ public partial class SQLLiteDBOASIS : ICosmicStorageIdentityProvider
                 await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 command.Parameters.Clear();
             }
-            // A present but empty/corrupt metadata table is not first initialization.
-            // Never manufacture a replacement identity for a damaged existing one.
-            command.CommandText = "SELECT Id,Identity FROM CosmicReplicationStoreIdentity";
-            Guid identity;
-            using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false) || reader.GetInt64(0) != 1 ||
-                    !Guid.TryParseExact(reader.GetString(1), "D", out identity) || identity == Guid.Empty ||
-                    reader.GetString(1) != identity.ToString("D") || await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                    throw new InvalidDataException("The durable SQLite storage identity is corrupt; it was not replaced.");
-            }
+            cancellationToken.ThrowIfCancellationRequested();
+            var identity = SqliteStorageIdentity.Read(connection, transaction);
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new(new CosmicStorageIdentity(Core.Enums.ProviderType.SQLLiteDBOASIS, fingerprint, identity));
+            return new(identity);
         }
         catch (Exception exception) when (exception is SqliteException || exception is InvalidDataException || exception is IOException || exception is InvalidOperationException || exception is ArgumentException || exception is FormatException || exception is InvalidCastException)
         {

@@ -65,6 +65,14 @@ public sealed class HolonReplicationDestination
     internal ICommittedHolonReplicaStorageProvider Provider {get;}
     internal IHolonReplicationAuthorizationPolicy Policy {get;}
     internal string PolicyBinding {get;}
+    internal CosmicStorageIdentity StorageIdentity {get;}
+    /// <summary>Binds the catalog route to a native identity checked inside receiver commit.</summary>
+    public HolonReplicationDestination(string name, CosmicStorageIdentity storageIdentity,
+        IBoundCommittedHolonReplicaStorageProvider provider, IHolonReplicationAuthorizationPolicy policy)
+        : this(name, storageIdentity?.BindingFingerprint ?? throw new ArgumentNullException(nameof(storageIdentity)),
+            storageIdentity.Authority, provider, policy)
+    { StorageIdentity = storageIdentity; }
+
     public HolonReplicationDestination(string name,string endpointIdentity,ProviderType authority,
         ICommittedHolonReplicaStorageProvider provider,IHolonReplicationAuthorizationPolicy policy)
     {
@@ -115,11 +123,11 @@ public sealed class HolonReplicationCatalog
         private readonly CommittedHolonReplicaTarget _target;
         internal AuthorizedTarget(HolonReplicationCatalog catalog,HolonReplicationDestination destination)
         {
-            ReplicationTargetId="cosmic:"+catalog.Version.ToString("N")+":"+Digest("catalog-route-v1",catalog.CatalogId,catalog.SourceId,
+            ReplicationTargetId="cosmic:"+catalog.Version.ToString("N")+":"+Digest(destination.StorageIdentity == null ? "catalog-route-v1" : "catalog-bound-route-v1",catalog.CatalogId,catalog.SourceId,
                 catalog.StoreIdentity,catalog.SourceAuthority.ToString(),destination.Name,destination.EndpointIdentity,
                 destination.Authority.ToString(),destination.PolicyBinding);
             _target=new CommittedHolonReplicaTarget(ReplicationTargetId,destination.Provider,destination.Authority,catalog.SourceId,catalog.SourceAuthority,
-                destination.Policy,catalog.CatalogId,catalog.Version,destination.PolicyBinding);
+                destination.Policy,catalog.CatalogId,catalog.Version,destination.PolicyBinding,destination.StorageIdentity);
         }
         public Task<OASISResult<bool>> ApplyReplicatedMutationAsync(HostedSyncFanOutItem item,CancellationToken cancellationToken)
             => _target.ApplyReplicatedMutationAsync(item,cancellationToken);
