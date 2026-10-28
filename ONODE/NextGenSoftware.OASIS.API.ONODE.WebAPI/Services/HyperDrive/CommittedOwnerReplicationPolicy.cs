@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
     /// encryption grants. Hosts with those constraints supply a stricter policy.</summary>
     public sealed class CommittedOwnerReplicationPolicy : IHolonReplicationAuthorizationPolicy
     {
-        public string BindingIdentity => "hyperdrive-committed-owner-v1";
+        public string BindingIdentity => NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRoutes.DefaultPolicyBinding;
 
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicationAuthorizationContext context, CancellationToken cancellationToken)
         {

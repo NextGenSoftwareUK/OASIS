@@ -17,12 +17,21 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         private static IOASISStorageProvider Provider(ProviderType type, bool atomicSource, bool replicaTarget)
         {
             var storage = new Mock<IOASISStorageProvider>();
+            storage.SetupAllProperties();
             storage.SetupGet(value => value.ProviderType).Returns(new EnumValue<ProviderType>(type));
             storage.SetupGet(value => value.ProviderCategory).Returns(new EnumValue<ProviderCategory>(ProviderCategory.Storage));
-            if (atomicSource) storage.As<IAtomicHolonReplicationStorageProvider>();
-            if (replicaTarget) storage.As<ICommittedHolonReplicaStorageProvider>();
+            if (atomicSource) storage.As<IBoundAtomicHolonReplicationStorageProvider>();
+            if (replicaTarget) storage.As<IBoundCommittedHolonReplicaStorageProvider>();
+            if (atomicSource || replicaTarget)
+                storage.As<ICosmicStorageIdentityProvider>().Setup(value => value.CaptureStorageIdentityAsync(It.IsAny<System.Threading.CancellationToken>()))
+                    .ReturnsAsync(new NextGenSoftware.OASIS.Common.OASISResult<CosmicStorageIdentity>(Identity(type)));
+            storage.Object.IsProviderActivated = true;
             return storage.Object;
         }
+
+        private static CosmicStorageIdentity Identity(ProviderType type) => new(type, new string('A',64), "controlled-store-" + type);
+        private static string Target(ProviderType source, ProviderType target) =>
+            new HolonReplicationRouteBinding(Identity(source),Identity(target),HolonReplicationRoutes.DefaultPolicyBinding).TargetId;
 
         private static ProviderManager Node(bool replication, params ProviderType[] replicationList)
         {
@@ -38,14 +47,14 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         }
 
         [Fact]
-        public void EnrolsEveryOtherCapableReplicationProvider()
+        public void EnrolsEverySelectedBoundReplicationProvider()
         {
-            var manager = Node(true, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS, ProviderType.IPFSOASIS);
+            var manager = Node(true, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS, ProviderType.Neo4jOASIS);
 
             var enrollment = HolonReplicationRoutes.Plan(manager, ProviderType.Neo4jOASIS);
 
-            Assert.Equal(HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS), enrollment.SourceId);
-            Assert.Equal(new[] { HolonReplicationRoutes.TargetId(ProviderType.MongoDBOASIS), HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS) },
+            Assert.Equal(new HolonReplicationRouteBinding(Identity(ProviderType.Neo4jOASIS),Identity(ProviderType.MongoDBOASIS),HolonReplicationRoutes.DefaultPolicyBinding).SourceId, enrollment.SourceId);
+            Assert.Equal(new[] { Target(ProviderType.Neo4jOASIS,ProviderType.MongoDBOASIS), Target(ProviderType.Neo4jOASIS,ProviderType.SQLLiteDBOASIS) },
                 enrollment.TargetIds);
         }
 
@@ -54,7 +63,14 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         {
             Assert.Null(HolonReplicationRoutes.Plan(Node(false, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS), ProviderType.MongoDBOASIS));
             Assert.Null(HolonReplicationRoutes.Plan(Node(true, ProviderType.MongoDBOASIS), ProviderType.MongoDBOASIS));
-            Assert.Null(HolonReplicationRoutes.Plan(Node(true, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS), ProviderType.IPFSOASIS));
+            Assert.Throws<InvalidOperationException>(() => HolonReplicationRoutes.Plan(Node(true, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS), ProviderType.IPFSOASIS));
+        }
+
+        [Fact]
+        public void SelectedUnboundTargetRejectsEnrollmentInsteadOfSilentlyDroppingAnObligation()
+        {
+            var manager = Node(true, ProviderType.MongoDBOASIS, ProviderType.IPFSOASIS);
+            Assert.Throws<InvalidOperationException>(() => HolonReplicationRoutes.Plan(manager, ProviderType.MongoDBOASIS));
         }
 
         [Fact]
@@ -67,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
                     replicationProviders: new[] { ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS });
                 return HolonReplicationRoutes.Plan(manager, ProviderType.MongoDBOASIS);
             });
-            Assert.Equal(new[] { HolonReplicationRoutes.TargetId(ProviderType.Neo4jOASIS) }, enrollment.TargetIds);
+            Assert.Equal(new[] { Target(ProviderType.MongoDBOASIS,ProviderType.Neo4jOASIS) }, enrollment.TargetIds);
         }
     }
 }

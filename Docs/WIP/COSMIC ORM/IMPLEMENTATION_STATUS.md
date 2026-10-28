@@ -3,14 +3,21 @@
 Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next steps;
 [checklist](CQL_PARITY_CHECKLIST.md) owns per-database acceptance. Full programme incomplete.
 
-## Latest verified milestone
+## Automatic route binding — current verification
+
+[Automatic bound routing](AUTOMATIC_BOUND_REPLICATION.md) now passes4400Core/1289Shared,
+SQLite4/Mongo8 routed-primary cases, shipping Neo→SQLite restart1 and admission5
+(including legacy-route/policy-change reconciliation). Native abrupt-process recovery1 and corrected Neo runner8 also pass.
+Corec128178 pushed;source-outbox ownership/cold-start/operator gates remain open.
+
+## Prior verified milestone
 
 [Atomic primary-source binding](PRIMARY_SOURCE_BINDING.md):all3local stores enforce
 optional source expectation before native commit/replay and original-outcome recovery.
 SQLite5/Mongo5/Neo4native,4386Core/1285Shared pass. Real SQLite copy/Mongo UUID replacement
 retain old receipts but cannot falsely verify/replay them. Plain atomic capability is
 insufficient for bound intent;Mongo queue/recovery use the activated native owner.
-Default automatic routes still do not supply these expectations.
+Automatic routes now supply these expectations; final native gates are in progress.
 
 ## Prior inventory milestone
 
@@ -18,7 +25,7 @@ Default automatic routes still do not supply these expectations.
 unfinished native targets independently of current configuration. SQLite3/Mongo2/Neo2
 native cases and4384Core pass. SQLite also proves blocked/leased/deferred visibility,
 completed-head skip,case-sensitive targets,read-only state and no partial corrupt page.
-Worker consumption and automatic route/policy snapshots remain next;atomic source binding is verified by the newer milestone.
+Worker inventory consumption and automatic binding are implemented under verification;operator repair remains open.
 
 ## Prior receiver milestone
 
@@ -37,7 +44,7 @@ BEGIN IMMEDIATE before receipt replay or mutation. A competing native identity w
 is blocked until commit; replaced/missing/corrupt identity rejects without repair/write.
 Neo now adds3new/6identity-binding native cases plus6existing replica regressions;db.info checked in the write transaction before receipt replay, lifecycle gate pins the driver. Mongo acceptance is recorded in the newer milestone above.
 Shared bound catalogs hash the native identity and binding contract separately from
-unbound descriptors; receivers cannot silently downgrade. Automatic routes remain unbound.
+unbound descriptors; receivers cannot silently downgrade. Automatic routes now use native-bound enrollment under verification.
 
 ## Preserved verified scope
 

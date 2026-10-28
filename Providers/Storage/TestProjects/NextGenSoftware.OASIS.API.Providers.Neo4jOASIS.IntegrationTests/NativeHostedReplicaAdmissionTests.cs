@@ -7,6 +7,8 @@ public partial class NativeHostedReplicaRestartTests
     [DataTestMethod]
     [DataRow("denied")]
     [DataRow("expired")]
+    [DataRow("legacy-route")]
+    [DataRow("policy-changed")]
     public Task ShippingWorkerRejectsUnadmittedOrExpiredActorBeforeNativeReplicaWrite(string admission)
         => VerifyShippingWorkerRestart(false, admission);
 }

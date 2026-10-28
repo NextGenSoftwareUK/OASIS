@@ -69,17 +69,21 @@ public partial class NativeHostedReplicaRestartTests
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
         { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false } } };
         dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        IHolonReplicationAuthorizationPolicy policy = admission == null || admission == "legacy-route" ? null
+            : new HolonReplicationActorGrant(new[] { admission == "denied" ? Guid.NewGuid() : actor },
+                DateTime.UtcNow.AddMinutes(admission == "expired" ? -1 : 5));
         ProviderManager Registry()
         {
             var registry = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
             registry.RegisterProvider(source);
             registry.RegisterProvider(target);
+            if (policy != null && admission != "policy-changed") HolonReplicationRoutes.UseAuthorizationBinding(registry, () => policy.BindingIdentity);
             return registry;
         }
         var registry = Registry();
         var input = new Holon { Name = "coffee bought while worker stopped" };
-        var targetId = HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS);
+        string targetId = null;
         async Task<string> FrozenPayload() => (await (await inspect.RunAsync(
             "MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o.PayloadJson AS payload",
             new { op = operation.ToString("D") })).SingleAsync())["payload"].As<string>();
@@ -88,6 +92,11 @@ public partial class NativeHostedReplicaRestartTests
         {
             Assert.IsFalse((await source.ActivateProviderAsync()).IsError);
             Assert.IsFalse((await target.ActivateProviderAsync()).IsError);
+            var sourceBinding = await HolonReplicationRouteBinding.CapturePinnedAsync(source);
+            var targetBinding = await HolonReplicationRouteBinding.CapturePinnedAsync(target);
+            targetId = new HolonReplicationRouteBinding(sourceBinding, targetBinding,
+                (admission == "policy-changed" ? null : policy?.BindingIdentity) ?? HolonReplicationRoutes.DefaultPolicyBinding).TargetId;
+            if (admission == "legacy-route") targetId = HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS);
             var outbox = source.GetHolonReplicationOutbox().Result;
             var existing = await outbox.PeekNextAsync(targetId);
             Assert.IsFalse(existing.IsError, existing.Message);
@@ -100,7 +109,9 @@ public partial class NativeHostedReplicaRestartTests
                 OASISRequestContext.AvatarRoutingOverrides = new ProviderRoutingOverrides(
                     autoReplicationEnabled: true, replicationProviders: new[] { ProviderType.SQLLiteDBOASIS });
                 var saved = await new HolonManager(null, dna, registry).SaveOwnedHolonAsync(input, actor,
-                    new CosmicWriteOptions(operation), saveChildren: false, providerType: ProviderType.Neo4jOASIS);
+                    new CosmicWriteOptions(operation, expectedRevisions: null, replicationEnrollment: admission == "legacy-route"
+                        ? new HolonReplicationEnrollment(HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS), new[] { targetId }) : null),
+                    saveChildren: false, providerType: ProviderType.Neo4jOASIS);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
                 Assert.IsTrue(saved.IsSaved);
             });
@@ -117,9 +128,6 @@ public partial class NativeHostedReplicaRestartTests
             async Task RunOneRealPass()
             {
                 var logger = new PassLogger();
-                IHolonReplicationAuthorizationPolicy policy = admission == null ? null
-                    : new HolonReplicationActorGrant(new[] { admission == "denied" ? Guid.NewGuid() : actor },
-                        DateTime.UtcNow.AddMinutes(admission == "expired" ? -1 : 5));
                 using var worker = policy == null
                     ? new Worker(logger, () => registry, () => dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
                     : new Worker(logger, () => registry, () => dna.OASIS.HyperDriveMode == HyperDriveModes.V2, policy);
@@ -159,7 +167,12 @@ public partial class NativeHostedReplicaRestartTests
             if (admission != null)
             {
                 Assert.AreEqual(HolonDeliveryState.ReconciliationRequired, delivered.Result.State);
-                Assert.AreEqual("COSMIC_REPLICA_AUTHORIZATION_DENIED", delivered.Result.ErrorCode);
+                Assert.AreEqual(admission switch
+                {
+                    "legacy-route" => "COSMIC_REPLICATION_ROUTE_UNBOUND",
+                    "policy-changed" => "COSMIC_REPLICATION_ROUTE_CHANGED",
+                    _ => "COSMIC_REPLICA_AUTHORIZATION_DENIED"
+                }, delivered.Result.ErrorCode);
                 Assert.AreEqual(1, delivered.Result.AttemptCount);
                 Assert.IsNull((await target.LoadHolonAsync(input.Id, loadChildren: false)).Result);
                 var primary = await source.LoadHolonAsync(input.Id, loadChildren: false);
