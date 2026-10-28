@@ -10,6 +10,8 @@ Updated28October2026. Read first after compaction. Full programme remains incomp
 - HyperDriveV2 only; legacy gaps documented. No paid cloud provisioning/upgrade.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [launcher](CQL_DEMO_LAUNCHER.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md).
 
+Development sync28October: parent5d4bf309b/Core8aff8e3 include latest upstream parent0f0d3d2de/Core50a3c35 (routing/replication/import plus newer save revision changes). Core both frameworks and unit-test consumer build pass;9focused owned-save/binding cases pass. Automatic bound routing remains **uncommitted and incomplete**: previous full run4378passed/10failed; adapt declaration-only route fixtures and fix unchanged-batch condition-validation regression before native worker acceptance. Evidence:TestResults/OwnedRoutingCurrent/development-sync-*. No deployment/completeness claim.
+
 ## External prerequisite and exact next step
 
 1. Hosted Azure Cosmos is the remaining external prerequisite in the current breadth queue. User has no existing free subscription. The no-subscription sandbox was rechecked and still shows Under Construction.
