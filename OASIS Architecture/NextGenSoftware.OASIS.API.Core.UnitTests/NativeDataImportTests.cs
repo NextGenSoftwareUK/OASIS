@@ -14,25 +14,29 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
 {
     public class NativeDataImportTests
     {
+        private static readonly Guid Owner = Guid.Parse("6f9619ff-8b86-d011-b42d-00c04fc964ff");
+
         private static NativeRecord Record(string key, params (string Name, object Value)[] fields)
             => new NativeRecord("people", key, fields.ToDictionary(field => field.Name, field => field.Value));
 
         [Fact]
         public void StableIdDependsOnlyOnProviderSourceAndKey()
         {
-            var id = NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "people", "1");
+            var id = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1");
 
-            Assert.Equal(id, NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "people", "1"));
-            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(ProviderType.SQLLiteDBOASIS, "people", "1"));
-            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "orders", "1"));
-            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "people", "2"));
+            Assert.Equal(id, NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1"));
+            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.SQLLiteDBOASIS, "people", "1"));
+            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "orders", "1"));
+            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "2"));
+            Assert.NotEqual(id, NativeRecordHolonMapper.StableHolonId(Guid.NewGuid(), ProviderType.MongoDBOASIS, "people", "1"));
+            Assert.Throws<ArgumentException>(() => NativeRecordHolonMapper.StableHolonId(Guid.Empty, ProviderType.MongoDBOASIS, "people", "1"));
             Assert.Equal('8', id.ToString()[14]);
         }
 
         [Fact]
         public void ConventionMapsNameDescriptionFieldsAndLineage()
         {
-            var created = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS,
+            var created = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS,
                 Record("k1", ("Title", "Ada"), ("summary", "Engineer"), ("age", 36L)), null);
 
             Assert.False(created.IsError, created.Message);
@@ -43,13 +47,13 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Equal("MongoDBOASIS", holon.MetaData[NativeRecordHolonMapper.ProviderMetaDataKey]);
             Assert.Equal("people", holon.MetaData[NativeRecordHolonMapper.SourceMetaDataKey]);
             Assert.Equal("k1", holon.MetaData[NativeRecordHolonMapper.KeyMetaDataKey]);
-            Assert.Equal(NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "people", "k1"), holon.Id);
+            Assert.Equal(NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "k1"), holon.Id);
         }
 
         [Fact]
         public void RecordWithoutNamingFieldsIsNamedBySourceAndKey()
         {
-            var holon = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS, Record("k9", ("count", 3)), null).Result;
+            var holon = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS, Record("k9", ("count", 3)), null).Result;
             Assert.Equal("people k9", holon.Name);
             Assert.Null(holon.Description);
         }
@@ -63,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             mapping.FieldRenames["dob"] = "birthDate";
             mapping.ExcludedFields.Add("passwordHash");
 
-            var holon = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS,
+            var holon = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS,
                 Record("k2", ("name", "ignored"), ("handle", "ada"), ("dob", "1815-12-10"), ("passwordHash", "x")), mapping).Result;
 
             Assert.Equal(HolonType.Avatar, holon.HolonType);
@@ -76,20 +80,20 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         [Fact]
         public void UnsupportedValuesAndReservedKeysAreRefused()
         {
-            var nested = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS, Record("k3", ("tags", new[] { "a" })), null);
+            var nested = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS, Record("k3", ("tags", new[] { "a" })), null);
             Assert.True(nested.IsError);
             Assert.Contains("tags", nested.Message);
 
-            var reserved = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS, Record("k4", ("oasis.native.key", "spoof")), null);
+            var reserved = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS, Record("k4", ("oasis.native.key", "spoof")), null);
             Assert.True(reserved.IsError);
         }
 
         [Fact]
         public void ApplyReplacesStaleFieldsOnAPreviouslyImportedHolon()
         {
-            var holon = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS, Record("k5", ("name", "Old"), ("removed", 1)), null).Result;
+            var holon = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS, Record("k5", ("name", "Old"), ("removed", 1)), null).Result;
 
-            var applied = NativeRecordHolonMapper.Apply(ProviderType.MongoDBOASIS, Record("k5", ("name", "New")), null, holon);
+            var applied = NativeRecordHolonMapper.Apply(Owner, ProviderType.MongoDBOASIS, Record("k5", ("name", "New")), null, holon);
 
             Assert.False(applied.IsError, applied.Message);
             Assert.Equal("New", holon.Name);
@@ -99,8 +103,8 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         [Fact]
         public void ApplyRefusesAHolonThatIsNotTheRecordsTarget()
         {
-            var other = NativeRecordHolonMapper.CreateHolon(ProviderType.MongoDBOASIS, Record("a"), null).Result;
-            Assert.True(NativeRecordHolonMapper.Apply(ProviderType.MongoDBOASIS, Record("b"), null, other).IsError);
+            var other = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS, Record("a"), null).Result;
+            Assert.True(NativeRecordHolonMapper.Apply(Owner, ProviderType.MongoDBOASIS, Record("b"), null, other).IsError);
         }
 
         private sealed class FakeProvider : INativeDataImportProvider
@@ -156,14 +160,14 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             var store = new Store();
             var manager = store.Manager();
 
-            var first = await manager.ImportSourceAsync(provider, "people", Guid.NewGuid(), pageSize: 2);
+            var first = await manager.ImportSourceAsync(provider, "people", Owner, pageSize: 2);
             Assert.False(first.IsError, first.Message);
             Assert.Equal(3, first.Result.RecordsRead);
             Assert.Equal(3, first.Result.HolonsCreated);
             Assert.False(first.Result.Truncated);
             Assert.Equal(new[] { ((string)null, 2), ("1", 2) }, provider.Reads);
 
-            var second = await manager.ImportSourceAsync(provider, "people", Guid.NewGuid(), pageSize: 2);
+            var second = await manager.ImportSourceAsync(provider, "people", Owner, pageSize: 2);
             Assert.Equal(0, second.Result.HolonsCreated);
             Assert.Equal(3, second.Result.HolonsUpdated);
             Assert.Equal(3, store.Holons.Count);
@@ -172,9 +176,9 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         [Fact]
         public async Task RecordFailuresAreReportedWithoutStoppingTheImport()
         {
-            var store = new Store { FailSaveFor = NativeRecordHolonMapper.StableHolonId(ProviderType.MongoDBOASIS, "people", "2") };
+            var store = new Store { FailSaveFor = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "2") };
 
-            var result = await store.Manager().ImportSourceAsync(TwoPages(), "people", Guid.NewGuid(), pageSize: 2);
+            var result = await store.Manager().ImportSourceAsync(TwoPages(), "people", Owner, pageSize: 2);
 
             Assert.False(result.IsError);
             Assert.True(result.IsWarning);
@@ -188,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         {
             var provider = new FakeProvider { Failure = new OASISResult<NativeRecordPage> { IsError = true, ErrorCode = "DOWN", Message = "offline" } };
 
-            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Guid.NewGuid());
+            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Owner);
 
             Assert.True(result.IsError);
             Assert.Equal("DOWN", result.ErrorCode);
@@ -198,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         public async Task RecordLimitTruncatesAndSaysSo()
         {
             var provider = TwoPages();
-            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Guid.NewGuid(), pageSize: 2, maximumRecords: 2);
+            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Owner, pageSize: 2, maximumRecords: 2);
 
             Assert.Equal(2, result.Result.RecordsRead);
             Assert.True(result.Result.Truncated);
@@ -209,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         public async Task ProviderReturningAnotherSourcesRecordsIsRefused()
         {
             var provider = new FakeProvider { Pages = { new NativeRecordPage(new[] { new NativeRecord("orders", "1", new Dictionary<string, object>()) }, null) } };
-            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Guid.NewGuid());
+            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Owner);
             Assert.Equal("NATIVE_IMPORT_SOURCE_MISMATCH", result.ErrorCode);
         }
 
@@ -217,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         public async Task EmptyPageWithContinuationTokenIsRefused()
         {
             var provider = new FakeProvider { Pages = { new NativeRecordPage(Array.Empty<NativeRecord>(), "0") } };
-            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Guid.NewGuid());
+            var result = await new Store().Manager().ImportSourceAsync(provider, "people", Owner);
             Assert.Equal("NATIVE_IMPORT_EMPTY_PAGE", result.ErrorCode);
         }
 
@@ -228,7 +232,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             var mapping = NativeDataMapping.ForSource("people");
             mapping.HolonType = HolonType.Avatar;
 
-            var result = await store.Manager().ImportAllAsync(TwoPages(), Guid.NewGuid(),
+            var result = await store.Manager().ImportAllAsync(TwoPages(), Owner,
                 new Dictionary<string, NativeDataMapping> { ["people"] = mapping }, pageSize: 2);
 
             Assert.False(result.IsError, result.Message);

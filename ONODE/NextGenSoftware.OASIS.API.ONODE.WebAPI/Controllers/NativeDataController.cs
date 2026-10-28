@@ -117,11 +117,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var previews = page.Result.Records.Select(record =>
             {
-                var mapped = NativeRecordHolonMapper.CreateHolon(providerType, record, mapping);
+                var mapped = NativeRecordHolonMapper.CreateHolon(AvatarId, providerType, record, mapping);
                 return new NativeRecordPreview
                 {
                     Native = record,
-                    HolonId = NativeRecordHolonMapper.StableHolonId(providerType, record.SourceName, record.NativeKey),
+                    HolonId = NativeRecordHolonMapper.StableHolonId(AvatarId, providerType, record.SourceName, record.NativeKey),
                     HolonName = mapped.Result?.Name,
                     HolonDescription = mapped.Result?.Description,
                     HolonType = mapped.Result?.HolonType ?? HolonType.Holon,
