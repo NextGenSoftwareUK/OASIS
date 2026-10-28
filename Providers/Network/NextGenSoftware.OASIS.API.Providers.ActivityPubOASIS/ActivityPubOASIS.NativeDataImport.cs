@@ -35,14 +35,43 @@ public partial class ActivityPubOASIS : INativeDataImportProvider
     };
 
     public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.ActivityPubOASIS;
-public string DescribeNativeConnection(NativeConnection connection)    {        NativeConnectionGuard.RefuseUnsupported(connection, "ActivityPub");        return null;    }
+    public string DescribeNativeConnection(NativeConnection connection)
+    {
+        if (connection == null) return null;
+        return "activitypub://" + ParseNativeConnection(connection).Instance.Host.ToLowerInvariant();
+    }
+
+    private static readonly string[] ConnectionSettings = { "instanceUrl", "accessToken" };
+
+    /// <summary>The handler used to reach a caller's server. Replaced in tests; by default it checks every address before connecting.</summary>
+    internal static Func<System.Net.Http.HttpMessageHandler> NativeConnectionHandlerFactory { get; set; } = NativeConnectionGuard.CreateGuardedHttpHandler;
+
+    private static (Uri Instance, string Token) ParseNativeConnection(NativeConnection connection)
+    {
+        connection.RequireOnly(ConnectionSettings);
+        if (!Uri.TryCreate(connection.Require("instanceUrl"), UriKind.Absolute, out var instance) || instance.Scheme != Uri.UriSchemeHttps)
+            throw new NativeConnectionRefusedException("instanceUrl must be the https address of your Mastodon-compatible server, for example https://mastodon.social.");
+        return (instance, connection.Require("accessToken"));
+    }
+
+    /// <summary>A short-lived reader for the caller's own server. Its handler checks every address before connecting.</summary>
+    private static ActivityPubOASIS OpenNativeInstance(NativeConnection connection)
+    {
+        var (instance, token) = ParseNativeConnection(connection);
+        try { return new ActivityPubOASIS(instance.GetLeftPart(UriPartial.Authority), token, NativeConnectionHandlerFactory()); }
+        catch (ArgumentException cause) { throw new NativeConnectionRefusedException(cause.Message); }
+    }
 
     public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
         try
         {
-            NativeConnectionGuard.RefuseUnsupported(connection, "ActivityPub");
+            if (connection != null)
+            {
+                using var instance = OpenNativeInstance(connection);
+                return await instance.ListNativeDataSourcesAsync(null, cancellationToken);
+            }
             var account = await VerifyNativeAccountAsync(cancellationToken);
             var sources = new List<NativeDataSource>
             {
@@ -55,7 +84,7 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         }
         catch (Exception cause) when (cause is InvalidOperationException or HttpRequestException or InvalidDataException or JsonException)
         {
-            OASISErrorHandling.HandleError(ref result, $"Listing native ActivityPub sources failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Listing native ActivityPub sources failed: {NativeConnectionGuard.Explain(cause)}", cause);
             result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_LIST_FAILED";
         }
         return result;
@@ -67,7 +96,11 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         var result = new OASISResult<NativeRecordPage>();
         try
         {
-            NativeConnectionGuard.RefuseUnsupported(connection, "ActivityPub");
+            if (connection != null)
+            {
+                using var instance = OpenNativeInstance(connection);
+                return await instance.ReadNativeRecordsAsync(sourceName, continuationToken, pageSize, null, cancellationToken);
+            }
             if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
             if (!NativeSources.TryGetValue(sourceName ?? "", out var source))
                 throw new ArgumentException($"'{sourceName}' is not a native ActivityPub source (statuses, followers or following).");
@@ -93,7 +126,7 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         }
         catch (Exception cause) when (cause is InvalidOperationException or HttpRequestException or InvalidDataException or ArgumentException or JsonException or KeyNotFoundException)
         {
-            OASISErrorHandling.HandleError(ref result, $"Reading native ActivityPub '{sourceName}' failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Reading native ActivityPub '{sourceName}' failed: {NativeConnectionGuard.Explain(cause)}", cause);
             result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_READ_FAILED";
         }
         return result;
