@@ -55,6 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntity
@@ -92,6 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntity
@@ -129,6 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntity
@@ -165,6 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = GetAvatarDetailFromEntity(obj)
@@ -203,6 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntity
@@ -240,6 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntity
@@ -272,6 +278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IAvatarDetail>>
                 {
                     IsLoaded = true,
+                    LoadedCount = avatarDetailEntities.Count(),
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntities
@@ -302,6 +309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IAvatarDetail>>
                 {
                     IsLoaded = true,
+                    LoadedCount = avatarDetailEntities.Count(),
                     IsError = false,
                     Message = "Avatar Detail Loaded successfully",
                     Result = avatarDetailEntities
@@ -395,6 +403,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IAvatarDetail>
                     {
                         IsSaved = true,
+                    SavedCount = 1,
                         IsError = false,
                         Result = GetAvatarDetailFromEntity(existing),
                         Message = existing.Username + " Record updated successfully"
@@ -409,6 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = true,
+                    SavedCount = 1,
                     IsError = false,
                     Result = GetAvatarDetailFromEntity(newModel),
                     Message = newModel.Username + " Record saved successfully"
@@ -503,6 +513,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IAvatarDetail>
                     {
                         IsSaved = true,
+                    SavedCount = 1,
                         IsError = false,
                         Result = GetAvatarDetailFromEntity(existing),
                         Message = existing.Username + " Record updated successfully"
@@ -517,6 +528,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = true,
+                    SavedCount = 1,
                     IsError = false,
                     Result = GetAvatarDetailFromEntity(newModel),
                     Message = newModel.Username + " Record saved successfully"

@@ -1,13 +1,13 @@
 # Current provider I/O verification scope
 
-Updated 2026-10-27. [CURRENT_STATUS.md](CURRENT_STATUS.md) is the recovery entry point; [PROVIDER_MATRIX.md](PROVIDER_MATRIX.md) is the per-provider inventory.
+Updated 2026-10-28. [CURRENT_STATUS.md](CURRENT_STATUS.md) is the recovery entry point; [PROVIDER_MATRIX.md](PROVIDER_MATRIX.md) is the per-provider inventory.
 
 ## What the evidence proves
 
 | Gate | Recorded scope |
 |---|---|
 | `core-storage-v2` | 26 sync + 26 async checks covering identity, avatar/detail save/read, graph/metadata/parent queries, batch/import/export, acknowledged deletion and owned-fixture interface absence |
-| Native52/52 | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile and Azure Blob; local engines/emulators, not hosted certification |
+| Native52/52 | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile, Azure Blob and SQLite; local engines/emulators, not hosted certification |
 | Controlled52/52 | KeyDB, ValKey, Dragonfly, Garnet; native product runtime/conditional/scan acceptance remains open |
 | `capability-v1` | Identity, honest capabilities, activation, read-only service response and deactivation; ActivityPub published5/5 public-read baseline (`00235929a`) |
 | Partial/blocked | Solana4/52; SOLID/IPFS/Cosmos/EVM/S3 configuration or runtime gates; most other rows not run |

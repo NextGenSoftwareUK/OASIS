@@ -17,3 +17,5 @@ The four large histories and old README are byte-identical to their checkpoint o
 Incremental compact-ledger rollover: `WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-27.md`; five original entry lines retained verbatim, combined body SHA256 `b177cc2a8ad84bbad20793baeb97dcf4fae2300ef0a544a4da41c230d296c21c`. The original seven pre-trim histories above remain unchanged.
 Additional two LocalFile entry lines appended verbatim to the same incremental archive; combined chunk SHA256 `3f29f86ec8fd3205c00b727af35fc35c2447792affd9129b815ba2ed38bf94b6`. Original archived history bytes remain unchanged.
 Additional four earlier Azure entry lines appended verbatim; combined chunk SHA256 `4a19121504c7bed3236bbaababae36e203a43fd84517ffd72372a6ffe2a04204`.
+Two Azure continuation/completion entries rolled28October verbatim; combined chunk SHA256 `8751110a2491660a5bc1fe428fee3b22d8afe0a1963ea32a7605ca16ccf9db8e`.
+Four earlier compact environment paragraphs rolled verbatim to `ENVIRONMENT_INVENTORY_CHECKPOINTS_2026-10-28.md`; combined body SHA256 `1791d68a90b00469ea6c0cdf53b312ceb93184f76b323f1614638e6e720d36b2`.
