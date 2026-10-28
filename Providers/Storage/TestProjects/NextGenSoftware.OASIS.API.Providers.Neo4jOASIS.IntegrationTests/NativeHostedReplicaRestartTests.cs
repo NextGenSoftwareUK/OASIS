@@ -38,7 +38,7 @@ public partial class NativeHostedReplicaRestartTests
     public Task ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart()
         => VerifyShippingWorkerRestart(false);
 
-    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null)
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -110,7 +110,9 @@ public partial class NativeHostedReplicaRestartTests
                     autoReplicationEnabled: true, replicationProviders: new[] { ProviderType.SQLLiteDBOASIS });
                 var saved = await new HolonManager(null, dna, registry).SaveOwnedHolonAsync(input, actor,
                     new CosmicWriteOptions(operation, expectedRevisions: null, replicationEnrollment: admission == "legacy-route"
-                        ? new HolonReplicationEnrollment(HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS), new[] { targetId }) : null),
+                        ? new HolonReplicationEnrollment(HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS), new[] { targetId })
+                        : olderBoundTransport ? new HolonReplicationEnrollment(new HolonReplicationRouteBinding(sourceBinding,targetBinding,
+                            HolonReplicationRoutes.DefaultPolicyBinding).SourceId,new[]{targetId},sourceBinding) : null),
                     saveChildren: false, providerType: ProviderType.Neo4jOASIS);
                 Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
                 Assert.IsTrue(saved.IsSaved);
@@ -121,6 +123,12 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(operation, pending.Result.OperationId);
             Assert.AreEqual(HolonDeliveryState.Pending, pending.Result.State);
             Assert.AreEqual(0, pending.Result.AttemptCount);
+            if(admission == "legacy-route" || olderBoundTransport) Assert.IsNull(pending.Result.NativeRoute);
+            else
+            {
+                Assert.IsNotNull(pending.Result.NativeRoute);
+                Assert.AreEqual(targetBinding.BindingFingerprint,pending.Result.NativeRoute.TargetStorage.BindingFingerprint);
+            }
             var originalPayload = await FrozenPayload();
             var before = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsNull(before.Result);

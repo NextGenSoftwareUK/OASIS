@@ -3,6 +3,15 @@
 Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next steps;
 [checklist](CQL_PARITY_CHECKLIST.md) owns per-database acceptance. Full programme incomplete.
 
+## Latest snapshot-first worker milestone
+
+[Durable route recovery](DURABLE_ROUTE_DESCRIPTORS.md):all3native readiness/inventory
+implementations publish verified descriptors;worker uses their stored meaning.
+4411Core,4Mongo/SQLite worker cases (2cold receiver-only metadata-probe outages),
+6Neo worker cases and snapshot-first crash1pass. No destination probe is used for
+new-format pending recovery. New-write cold/offline restoration and explicit V2
+lineage migration/repair remain red. Core612d4f0 pushed.
+
 ## Latest durable route persistence milestone
 
 [Durable route descriptors](DURABLE_ROUTE_DESCRIPTORS.md):complete frozen native source/

@@ -11,6 +11,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using System.Text.Json;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
+using NextGenSoftware.OASIS.Common;
 using Worker = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HolonReplicationDeliveryHostedService;
 using Mongo = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using Sqlite = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -19,10 +22,34 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class NativeHostedReplicaRestartTests
 {
+    public class DestinationProbeUnavailable : DispatchProxy, IBoundCommittedHolonReplicaStorageProvider, ICosmicStorageIdentityProvider
+    {
+        public IOASISStorageProvider Native;
+        public int ProbeCalls;
+        protected override object Invoke(MethodInfo method,object[] args)
+        {
+            try { return method.Invoke(Native,args); }
+            catch(TargetInvocationException error) when(error.InnerException != null)
+            { ExceptionDispatchInfo.Capture(error.InnerException).Throw();throw; }
+        }
+        public Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken token=default)
+        { ProbeCalls++;throw new InvalidOperationException("Controlled destination identity probe is unavailable."); }
+        public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
+            =>throw new InvalidOperationException("Descriptor recovery must use the bound receiver.");
+        public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
+            =>throw new InvalidOperationException("Descriptor recovery must use the bound receiver.");
+        public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,CosmicStorageIdentity expected)
+            =>((IBoundCommittedHolonReplicaStorageProvider)Native).ApplyBoundCommittedHolonReplica(request,expected);
+        public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,CosmicStorageIdentity expected,CancellationToken token=default)
+            =>((IBoundCommittedHolonReplicaStorageProvider)Native).ApplyBoundCommittedHolonReplicaAsync(request,expected,token);
+    }
+
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart(bool mongoSource)
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart(bool mongoSource,bool unavailableProbe)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string databaseName = "cosmic_bound_source_worker_fixture";
@@ -46,7 +73,7 @@ public partial class NativeHostedReplicaRestartTests
         var input = new Holon { Id=Guid.NewGuid(), Name="coffee bought before worker startup" };
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, input.Id, mongoSource, databaseName, file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, input.Id, mongoSource, unavailableProbe, databaseName, file });
             intent.Flush(true);
         }
 
@@ -57,6 +84,9 @@ public partial class NativeHostedReplicaRestartTests
         Mongo mongo = null;
         IOASISStorageProvider source = null, target = null;
         ProviderManager registry = null;
+        var coldRecovery = false;
+        DestinationProbeUnavailable probe = null;
+        IOASISStorageProvider registeredTarget = null;
         CosmicStorageIdentity originalSource = null, originalTarget = null;
         async Task OpenProviders()
         {
@@ -69,7 +99,18 @@ public partial class NativeHostedReplicaRestartTests
             registry = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled=false, IsAutoReplicationEnabled=false, IsAutoLoadBalanceEnabled=false };
             registry.RegisterProvider(source);
-            registry.RegisterProvider(target);
+            registeredTarget = target;
+            probe = null;
+            if(coldRecovery)
+            {
+                // Receiver-only registration: its independent source role is
+                // outside this test. The actual native receiver remains active.
+                registeredTarget=DispatchProxy.Create<IOASISStorageProvider,DestinationProbeUnavailable>();
+                probe=(DestinationProbeUnavailable)registeredTarget;
+                probe.Native=target;
+                Assert.IsFalse(HolonReplicationRouteBinding.IsPinned(registeredTarget));
+            }
+            registry.RegisterProvider(registeredTarget);
         }
         async Task CloseProviders()
         {
@@ -115,15 +156,23 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(operation,pending.Result.OperationId);
             Assert.AreEqual(HolonDeliveryState.Pending,pending.Result.State);
             Assert.AreEqual(0,pending.Result.AttemptCount);
+            Assert.IsNotNull(pending.Result.NativeRoute);
+            Assert.AreEqual(originalTarget.BindingFingerprint,pending.Result.NativeRoute.TargetStorage.BindingFingerprint);
+            var inventory=await capture.Result.ReadRouteHeadsAsync();
+            Assert.IsFalse(inventory.IsError,inventory.Message);
+            Assert.AreEqual(binding.TargetId,inventory.Result.Heads.Single().NativeRoute.TargetId);
             Assert.IsNull((await target.LoadHolonAsync(input.Id,loadChildren:false)).Result);
 
             // Restart providers before delivery as well as afterwards. Both
             // source directions must recapture the same native store identities.
+            coldRecovery=unavailableProbe;
             await CloseProviders();
             await OpenProviders();
             Assert.AreEqual(originalSource.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(source)).BindingFingerprint);
-            Assert.AreEqual(originalTarget.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(target)).BindingFingerprint);
+            if(!unavailableProbe)
+                Assert.AreEqual(originalTarget.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(target)).BindingFingerprint);
             await RunPass();
+            if(probe != null) Assert.AreEqual(0,probe.ProbeCalls,"Stored destination meaning must not require a fresh identity probe.");
             var outbox = ((IBoundHolonReplicationOutboxSource)source).GetBoundHolonReplicationOutbox(originalSource).Result;
             var delivered = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(delivered.IsError,delivered.Message);
@@ -139,6 +188,7 @@ public partial class NativeHostedReplicaRestartTests
             await CloseProviders();
             await OpenProviders();
             await RunPass();
+            if(probe != null) Assert.AreEqual(0,probe.ProbeCalls);
             var retained = await ((IBoundHolonReplicationOutboxSource)source).GetBoundHolonReplicationOutbox(originalSource)
                 .Result.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(retained.IsError,retained.Message);
