@@ -142,7 +142,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 SolanaOASIS solanaOasis = new(
                                     OASISDNA.OASIS.StorageProviders.SolanaOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.SolanaOASIS.PrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PublicKey);
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PublicKey)
+                                {
+                                    NativeImportPrograms = OASISDNA.OASIS.StorageProviders.SolanaOASIS.NativeImportPrograms
+                                };
                                 solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                                 result.Result = solanaOasis;
                             }
@@ -319,7 +322,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
                                     ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames))
                                 {
-                                    IsVersionControlEnabled = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.IsVersionControlEnabled
+                                    IsVersionControlEnabled = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.IsVersionControlEnabled,
+                                    NativeImportDatabaseName = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportDatabaseName,
+                                    NativeImportContainers = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportContainers
                                 };
 
                                 azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;

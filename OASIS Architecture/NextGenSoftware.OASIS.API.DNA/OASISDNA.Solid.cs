@@ -4,6 +4,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public bool IsVersionControlEnabled { get; set; }
         public string PodRoot { get; set; }
+        /// <summary>Comma-separated Pod containers, relative to the Pod root, that native data import may read (never under oasis/).</summary>
+        public string NativeImportContainers { get; set; }
         // Explicit selection; never infer anonymous access from missing credentials.
         public string AuthenticationMode { get; set; } = "DpopClientCredentials";
         public string TokenEndpoint { get; set; }

@@ -127,7 +127,64 @@ when configured, the SQLite native file gets `suppliers` and Neo4j gets `ShopLoy
 sandbox page's Import tab seeds it, previews native records beside their holons, imports, and re-imports to show that
 holons are updated rather than duplicated.
 
+## Azure Cosmos DB (`AzureCosmosDBOASIS.NativeDataImport.cs`)
+
+- Reads the database named by DNA `AzureCosmosDBOASIS.NativeImportDatabaseName` and only the containers listed in
+  `NativeImportContainers` (comma-separated). When that database is the OASIS database, OASIS's own containers are refused.
+- Each container is a source; each document a record keyed by its string `id`, paged with `ORDER BY c.id`. Top-level
+  scalars keep their types, nested objects and arrays become JSON text, and Cosmos system properties (`_rid`, `_etag`, ...)
+  are dropped. A document without a string `id` has no stable key and fails the read.
+
+## SOLID (`SOLIDOASIS.NativeDataImport.cs`)
+
+- Reads the containers listed in DNA `SOLIDOASIS.NativeImportContainers`, as paths relative to the Pod root
+  (`public/people/`). Anything under `oasis/` or containing `..` is refused.
+- Each container is a source; each resource directly inside it a record keyed by its path from the Pod root, paged in path
+  order. Turtle resources contribute their literal and link properties (typed integers, decimals and booleans); any other
+  resource contributes `contentType` and `size`. Resources over 1 MiB fail the read.
+
+## ActivityPub (`ActivityPubOASIS.NativeDataImport.cs`)
+
+- Reads the **signed-in account's own** data from its Mastodon-compatible instance, so an access token is required.
+  Sources: `statuses`, `followers`, `following`. Records are keyed by the instance's decimal id and paged with the
+  instance's own `max_id` cursor; a `next` link to any other host is refused.
+- Statuses carry content, visibility, timestamps and counts; accounts carry username, display name, note and counts.
+
+## IPFS (`IPFSOASIS.NativeDataImport.cs`)
+
+- IPFS holds files, not rows, so each directory listed in DNA `IPFSOASIS.NativeImportPaths` (`/ipfs/<cid>` or
+  `/ipns/<name>`) is a source and each entry a record keyed by name with `name`, `cid` and `size`. The content stays on
+  IPFS, reachable through `cid`. OASIS's own lookup index is refused, as is a directory that lists a name twice.
+
+## Solana (`SolanaOasis.NativeDataImport.cs`)
+
+- Each program address in DNA `SolanaOASIS.NativeImportPrograms` is a source; each account the program owns a record keyed by
+  its address, with `lamports`, `owner`, `executable`, `rentEpoch`, `dataLength` and the raw `data` as base64.
+- `getProgramAccounts` cannot be paged, so one fetch is held for 60 seconds and every page comes from that snapshot. A
+  program with more than 10,000 accounts is refused rather than partly imported.
+
+## STAR CLI
+
+`nativeimport` runs the same manager, identity and saved mappings as the API, as the beamed-in avatar (`avatar beamin`
+first). Add `--json` for machine output.
+
+```
+nativeimport providers
+nativeimport sources mongodb
+nativeimport preview mongodb customers --count 3
+nativeimport save-mapping mongodb customers --name-field fullName --rename dob=birthDate --exclude passwordHash --type Holon
+nativeimport import mongodb customers --max 500
+nativeimport import-all sqllite
+nativeimport mappings mongodb
+nativeimport delete-mapping mongodb customers
+```
+
+Provider names accept the full type (`MongoDBOASIS`) or the short form (`mongodb`, `sqllite`, `neo4j`). `preview` saves
+nothing. `import` and `preview` use the saved mapping for the source when there is one, and the naming convention
+otherwise; `import-all` applies every saved mapping. Implementation: `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/NativeImportCli.cs`
+(parsing and execution, unit-tested) and `Program.NativeImportCommands.cs` (wiring).
+
 ## Not yet built
 
-- STAR CLI commands for listing sources and importing.
-- Readers for Azure, Solana, IPFS, SOLID and ActivityPub.
+- Live verification of the Azure, SOLID, ActivityPub, IPFS and Solana readers against real services. They are covered by
+  unit tests against scripted services; the MongoDB, SQLite and Neo4j readers are also verified live on dev WEB4.

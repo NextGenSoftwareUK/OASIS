@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             dbClientFactory=null;avatarRepository=null;avatarDetailRepository=null;holonRepository=null;
             IsProviderActivated=false;
             var result=new OASISResult<bool>();
-            try {factory?.Dispose();result.Result=true;}
+            try {factory?.Dispose();ReleaseNativeImportClient();result.Result=true;}
             catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
             return result;
         }
