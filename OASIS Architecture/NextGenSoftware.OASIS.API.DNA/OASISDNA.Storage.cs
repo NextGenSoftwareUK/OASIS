@@ -150,6 +150,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string WalletMnemonicWords { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
+        /// <summary>Comma-separated program addresses whose accounts native data import may read.</summary>
+        public string NativeImportPrograms { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase
@@ -251,6 +253,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class IPFSOASISSettings : ProviderSettingsBase
     {
         public string LookUpIPFSAddress { get; set; }
+        /// <summary>Comma-separated /ipfs/&lt;cid&gt; or /ipns/&lt;name&gt; directories native data import may read.</summary>
+        public string NativeImportPaths { get; set; }
     }
 
     public class Neo4jOASISSettings : ProviderSettingsBase
@@ -274,6 +278,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AuthKey { get; set; }
         public string DBName { get; set; }
         public string CollectionNames { get; set; }
+        /// <summary>Database other applications own, which native data import may read (Cosmos only).</summary>
+        public string NativeImportDatabaseName { get; set; }
+        /// <summary>Comma-separated containers in <see cref="NativeImportDatabaseName"/> native import may read (Cosmos only).</summary>
+        public string NativeImportContainers { get; set; }
     }
 
     // Enhanced HyperDrive Configuration Classes
