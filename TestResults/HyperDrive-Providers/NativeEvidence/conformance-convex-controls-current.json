@@ -1,0 +1,47 @@
+{
+  "suite": "supplemental native/storage controls; not additional core52 checks",
+  "nativeConflictRejections": 5,
+  "nativePaginationRecords": 105,
+  "finalNativeRows": 0,
+  "anonymousFunctionCall": {
+    "http": 200,
+    "status": "error",
+    "adminProtocol": "oasis-private-records-v1",
+    "provenance": "Paired Invoke-WebRequest bootstrap calls observed before adapter verification; recorded retrospectively, no raw credential/request body retained"
+  },
+  "metadataPublicationFailure": {
+    "location": "Windows atomic checkpoint rename",
+    "passedBeforeFailure": 13,
+    "ownedRecordsReconciled": 7,
+    "cause": "AccessDenied; normal attributes/ACL observed, no persistent locking source identified; no retry/fallback added",
+    "originalsPreserved": [
+      "async/report-publication-denied.json",
+      "async/report-publication-denied.next.json"
+    ],
+    "cleanFreshCoreRun": 52,
+    "disposableMetadataProbePassed": 500
+  },
+  "evidence": {
+    "conditional-complete.json": {
+      "path": "TestResults/ProviderConformanceCurrent/ConvexOASIS/conditional-complete.json",
+      "sha256": "4b171bebc6654d6b8285786b23a62aa20aaee0c9ca3705b0a654a4d132bf612b"
+    },
+    "pagination-complete.json": {
+      "path": "TestResults/ProviderConformanceCurrent/ConvexOASIS/pagination-complete.json",
+      "sha256": "ee4217b6cbadb8ae81103e98befdef2674f70bbc822c3f841b6db2e85a68bcfa"
+    },
+    "publication-failure-cleanup.json": {
+      "path": "TestResults/ProviderConformanceCurrent/ConvexOASIS/publication-failure-cleanup.json",
+      "sha256": "e319c99c92e687b7021648201f71750120f79215ac17f0db8ea21216a3f6a5bb"
+    },
+    "publication-failure-inspection.json": {
+      "path": "TestResults/ProviderConformanceCurrent/ConvexOASIS/publication-failure-inspection.json",
+      "sha256": "ab54da07cca0843e05f85da6f5fd1bc200c42856bd64fc970fd06d961e7dfe9d"
+    },
+    "publication-probe-result.json": {
+      "path": "TestResults/ProviderConformanceCurrent/ConvexOASIS/publication-probe-result.json",
+      "sha256": "4b0c180b3a2571467489296d52fe2eaa9db9f18f08d71faf860a6017d4b68f4a"
+    }
+  },
+  "sourceScope": "Actual retained native backend and local source-matched DLL cohort; hosted/immutable release/full-interface gates separate"
+}
