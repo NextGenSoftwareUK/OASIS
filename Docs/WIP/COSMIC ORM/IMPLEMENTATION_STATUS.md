@@ -119,3 +119,24 @@ Evidence TestResults/Neo4jCurrent/neo4j-routed-owned-outbox-current.trx SHA256
 Runner Run-ReusableNeo4jTests.ps1 -CosmicRoutedOwnedOutbox (one build lease).
 Next:routed owned-save worker restart/delivery through real authorized targets.
 X10/full programme remain red; hosted Azure pending and LINQ depth paused.
+
+
+Post-commit wake acknowledgement root fix (Cored980bdfcedf7ab98b78895f0c5f4805f651a013b):
+A throwing EnrolledWriteCommitted subscriber previously converted a completed native
+transaction into HYPERDRIVE_PROVIDER_EXCEPTION and skipped later subscribers. Sync/
+async regression reproduced2/2failures. Notification now invokes each captured observer
+independently, retaining exceptions as explicit warnings on the original acknowledgement;
+receipt metadata/message/native warnings remain intact. The durable outbox remains
+the delivery owner; notification is a polling-latency hint. No write retry introduced.
+Four focused cases verify both routing modes and owned single/batch caller publication;
+4325full Core pass/no skips; both Core target frameworks build. No public signature
+change. Prior native routing evidence predates this internal-only fix; not rerun here.
+Evidence TestResults/OwnedRoutingCurrent/wake-before.trx SHA256
+585FE297C98358DE229C6B8547F6A775FB7572368CB5C47FDA5D08A2E1037CAB;
+wake-owned-after.trx SHA256C1F4AEAA8050D8D0B66AC7023919908AABDD6D2ECFCE173BC42903D1EA87D8E4;
+wake-full-core.trx SHA25603D5E49BAD788D88BFA85DEE97EDD98EF200FA5E9B1D1EA5DE9FAD091F1E7651.
+Worker restart/delivery gate remains next. Automatic WEB4 worker directly constructs
+CommittedHolonReplicaTarget; it does not use the configured catalog's explicit expiring
+authorization policy or endpoint/policy route binding. Source/actor validation at owned
+save is separate from delivery-time grant/revocation/placement admission; that gap
+remains open and is not certified by declared-target transaction tests.

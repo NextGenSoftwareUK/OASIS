@@ -1311,3 +1311,14 @@ per-avatar copies and exact fixture cleanup. The native source is read-only to t
 importer; the application's controlled edit is followed by an explicit refresh.
 This is a proven cross-provider import, not live querying over raw schemas or a
 claim of automatic replication, encrypted import, reverse migration or chain writes.
+
+
+### Replication wake warnings after a committed save
+
+For an enrolled V2 save, the native transaction owns the data, receipt and delivery
+obligations. A worker notification only wakes the polling worker sooner. If a wake
+subscriber fails, the save keeps its committed acknowledgement and publishes the
+caller state; `IsWarning`, `WarningCount`, `InnerMessages` and `Exception` retain the
+notification diagnostic. Preserve receipt metadata and inspect the outcome flags.
+Do not replay a committed save because its wake notification warned. Delivery completion
+is a separate outcome; a committed primary save does not certify replica convergence.
