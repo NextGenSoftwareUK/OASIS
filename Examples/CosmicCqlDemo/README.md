@@ -989,3 +989,22 @@ Mongo fixture is journaled/cleaned; existing cloud records stay unchanged. Contr
 label tests and local native regression pass. Actual hosted SDK/HTTP/browser/Mongo
 acceptance remains unverified until free-account/auth/configuration prerequisites
 are satisfied; no emulator result is reported as hosted proof.
+
+
+### Native application data -> COSMIC save -> CQL
+
+```powershell
+& Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -ArchiveCompletedDemo
+```
+
+Console demo, no database service needed. The same sample is covered by the native
+integration test. It shows3created records,3unchanged on re-import,1changed-row update,
+and3separate private holons for another avatar. A fresh query verifies the first
+avatar still sees only its own3. Stable IDs and source provenance are visible;
+unchanged imports preserve revisions. Source/target databases are owned fixtures,
+exactly cleaned after provider shutdown. Failed journals are never replayed.
+
+Read `NativeImportCqlWalkthrough.cs` for the generic import/manager/CQL calls and
+`NativeImportCqlDemo.cs` for the spaced, commented fixture walkthrough. The executable
+also accepts `--native-import`. This gate uses SQLite source and target; cross-provider
+migration, encryption and replication remain separate acceptance, not implied support.

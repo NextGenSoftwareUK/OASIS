@@ -42,10 +42,10 @@ Oracle, mixed Solana and local Cosmos screenshots inspected/readable. Protocol s
 
 ## Git/publication and resources
 
-- Latest incoming Developmentf8e872a4f/Core319bd96 integrated into task branch; merged Coree6bc667127e2177a41e0a30a191faa1b9c3834f7 pushed/remote verified. Fixed incoming SettingsManager Enum qualification for netstandard2.1.4308Core tests/1shipping GraphQL schema test pass; SQLite/Neo/BootLoader/WEB4 builds pass.
+- Latest incoming Developmentf8e872a4f/Core319bd96 integrated into task branch; merged Coree6bc667127e2177a41e0a30a191faa1b9c3834f7 integrated; later native-import ownership fix Core7d05bdb138df39db7b6010272188464c63184558 pushed/remote verified. Fixed incoming SettingsManager Enum qualification for netstandard2.1.4308Core tests/1shipping GraphQL schema test pass; SQLite/Neo/BootLoader/WEB4 builds pass.
 - Last Development deployment batch:parent858edd8280294d748e0e4999e39c0a141c5b6042/Corebd86a37fa1df02d50e5d2d0e5ad4bd76cce1d26d. Later verified work stays on task branch until a scoped daily integration batch.
-- Newly pulled SQLite native-import reader verified3/3real-file tests:discovery/paging, stable native keys/scalars, invalid-source rejection; exact fixture teardown. No import-to-CQL workflow or cross-provider migration proof inferred.
-- Current parent manifest/gitlink point to merged Coree6bc667; native import mapping IDs include avatar identity and saved per-avatar mappings. Native reader runtime proofs from the incoming programme are separate from this compatibility check.
+- Native SQLite import/save/CQL demo now passes:3created/3unchanged/1updated, stable per-avatar private IDs and both-direction visibility/source preservation/exact cleanup. Root mapper fix preserves save-owned metadata;4311Core tests/1native integration and real console command pass. Run Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -ArchiveCompletedDemo. Cross-provider/encryption/replication migration gates remain open.
+- Current parent manifest/gitlink point to Core7d05bdb; native import mapping IDs include avatar identity and saved per-avatar mappings. Native reader runtime proofs from the incoming programme are separate from this compatibility check.
 - Native evidence is milestone-specific; latest refresh ran Core/GraphQL/build compatibility, not every native provider. Existing demo proofs retain their earlier revision scope.
 - [Resource/cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact paths/hashes/lifecycle. Reuse SDK10.0.401, caches and retained services. No new installations for demo milestones.
 - Docs/Devs/NATIVE_DATA_IMPORT.md is present. Referenced HYPERDRIVE_PER_AVATAR_SETTINGS.md is absent from fetched Development; use actual source/tests until that guide is published.

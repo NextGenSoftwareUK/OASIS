@@ -107,6 +107,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.True(NativeRecordHolonMapper.Apply(Owner, ProviderType.MongoDBOASIS, Record("b"), null, other).IsError);
         }
 
+        [Theory]
+        [InlineData("CreatedByAvatarId")]
+        [InlineData("Active")]
+        [InlineData("__oasis_enc__")]
+        public void ApplyPreservesSaveOwnedMetadataAndRejectsCollisionsWithoutMutation(string key)
+        {
+            var holon = NativeRecordHolonMapper.CreateHolon(Owner, ProviderType.MongoDBOASIS,
+                Record("owned", ("name", "Original"), ("old", 1L)), null).Result;
+            holon.MetaData[key] = "framework-value";
+            var healthy = NativeRecordHolonMapper.Apply(Owner, ProviderType.MongoDBOASIS,
+                Record("owned", ("name", "Updated")), null, holon);
+            Assert.False(healthy.IsError);
+            Assert.Equal("framework-value", holon.MetaData[key]);
+            Assert.False(holon.MetaData.ContainsKey("old"));
+            var before = holon.MetaData.ToDictionary(entry => entry.Key, entry => entry.Value);
+            var mapping = NativeDataMapping.ForSource("people");
+            mapping.FieldRenames["foreign"] = key;
+            var rejected = NativeRecordHolonMapper.Apply(Owner, ProviderType.MongoDBOASIS,
+                Record("owned", ("name", "Must not publish"), ("foreign", "spoof")), mapping, holon);
+            Assert.True(rejected.IsError);
+            Assert.Equal("Updated", holon.Name);
+            Assert.Equal(before.OrderBy(entry => entry.Key), holon.MetaData.OrderBy(entry => entry.Key));
+        }
+
         private sealed class FakeProvider : INativeDataImportProvider
         {
             public readonly List<NativeRecordPage> Pages = new List<NativeRecordPage>();
