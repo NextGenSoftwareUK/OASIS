@@ -36,3 +36,17 @@ source provenance, policy rejection and exact cleanup on mergedCorea2e9b6c.
 [Proof](CQL_MONGO_COSMOS_VERIFICATION.md). This removes the local federation
 implementation gap; it does not satisfy any hosted endpoint/account/zero-cost gate.
 No Azure resource/subscription/account was created and no billing terms accepted.
+
+
+## Revalidated signup prerequisite
+
+Official sandbox rechecked28October:still Under Construction. Its free-account link
+opens [Azure account comparison](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account).
+The free option advertises spending protection and requires moving to pay-as-you-go
+to continue after30days/credit; footnote discloses a temporary$1 verification hold.
+Followed only **Try Azure for free** to Microsoft's blank sign-in page and marked
+that tab for user handoff. No identifiers/passwords/card data supplied, terms
+accepted, subscription/account/resource created or paid option selected.
+User asked whether they will complete signup or leave hosted Azure pending.
+OAuth state/nonce URLs and credentials must never be copied into repository docs.
+The next acceptance gates above remain unverified.

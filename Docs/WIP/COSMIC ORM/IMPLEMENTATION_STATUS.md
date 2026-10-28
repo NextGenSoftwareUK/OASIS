@@ -1,21 +1,20 @@
 # COSMIC ORM implementation status
 
-[Current status](CURRENT_STATUS.md) is the recovery entry point; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
+[CURRENT_STATUS](CURRENT_STATUS.md) is the recovery entry point;
+[checklist](CQL_PARITY_CHECKLIST.md) owns feature acceptance and red work.
 
-- Full ORM/CQL programme remains incomplete. Work only on red cells; green scopes/cursors stay frozen absent a reproducible bug.
-- Original twelve investor-demo rows are green on SQLite/MongoDB/Neo4j. Q01a-e/Q23/Q23e/Q49a remain green within their declared scopes.
-- Active Q01f remains red on all3. Entity stages, entity cardinality/elements/reversal/default overloads and final entity-stage Select are native-verified on all3.
-- New combined entity-selected owner retains both sequences and independently re-admits actual capabilities. SQLite, MongoDB and Neo4j enroll native selected Where/order/ThenBy/Skip/Take/Reverse after entity stages; standard deferred sync/async LINQ and per-read closures are verified.
-- Verification:2173 CQL shared tests and221 full SQLite provider tests pass; both Core target frameworks build. Native fixtures are process-owned in-memory SQLite, not retained user databases.
-- Mongo verification:220 CQL/compiler/admission tests and23 live projection cases (14 earlier +9 combined), exact fixture cleanup and service teardown pass.
-- Neo verification:151 CQL controls and23 native cases; companion SQLite runs the same23 cases. Canonical input proof and selected proof are streamed by one statement/read owner; fixture cleanup and container teardown pass.
-- Reselection now works in shared explicit SDK and standard LINQ on all3:2178 CQL/4262 full Core and26 native cases/database pass. Intermediate DTO constructors never execute; dropped invalid input columns remain validated.
-- Entity-selected Count/LongCount/Any/predicate overloads now pass2182 CQL/4266 full Core and34 native cases/database; independent cardinality enrollment, native result/count proof and no DTO construction verified.
-- User28October paused All/element/numeric parity; deferred source is preserved separately. Active next:hosted Azure free-only, filtered multi-record IPFS/SOLID/ActivityPub, Solana browser verification and one Mongo-paired federation preset per provider. Remaining depth integrations stay unsupported.
-- Eight-provider demo expansion remains ahead of large parity-only rows (POCO without IHolon/migrations tooling). Cosmos native/local browser verified; IPFS/SOLID/ActivityPub have point profiles, not general-query parity.
-- Solana schema3 selected-metadata SDK/HTTP and exact values verified; original ledger recovery remains blocked by missing historical root/chunk with no known backup. Do not reset/replay it.
-- Production hosted auth/durable settlement/scaling and broad cross-provider snapshots remain open; HyperDrive implementation work is V2 only, legacy gaps documented.
-- Source work only in C:/Source/OASIS-cosmic on work/cosmic-cql. Task commits pushed; Development integration stays batched once/twice daily.
-- Resources/evidence paths/hashes and safe lifecycle steps: [single ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Raw output stays in worktree TestResults.
+- Full ORM/CQL programme remains incomplete. Green scopes/cursors frozen absent bugs.
+- Original12investor-demo rows green on SQLite/MongoDB/Neo4j. Q01a-e/Q23/Q23e/Q49a green within declared scope; Q01f/full parity red.
+- Entity/reselection/Count/LongCount/Any stages are native-proven34cases/database. All/element/numeric depth after entity selection is paused on the separate deferred branch.
+- Active breadth gates now verify Oracle, bounded IPFS/SOLID/ActivityPub multi-record membership, local Cosmos and retained Solana, including each one's Mongo-paired SDK/HTTP/browser preset.
+- Six paired presets are exposed through the [central launcher](CQL_DEMO_LAUNCHER.md). Scoped native results/provenance do not prove arbitrary querying, hosted deployment or full ORM lifecycle on every backend.
+- Hosted Azure remains red:official no-subscription sandbox still Under Construction; no user free subscription/sign-in. Free signup is prepared for user handoff; no account/resource created. [Admission](CQL_HOSTED_AZURE_FREE_ADMISSION.md).
+- Oracle/Cosmos post-Development-merge native gates pass; other provider evidence remains tied to earlier milestone revisions. Shared mergedCore4308tests and both Core/WEB4 builds pass.
+- Per-save deltas/concurrency/no-op/tracking have their existing three-store demo proof. Full change-state/session/graph/cancellation/history/replication/migration/placement acceptance remains the roadmap's independent requirement.
+- HyperDriveV2 only. Original Solana root/chunk recovery red/no known backup; never reset ledger to conceal it. Production hosted auth/durable settlement/scaling and cross-provider snapshots remain open.
+- Large POCO, migrations tooling, identity-map/unit-of-work and untagged parity programmes remain deferred until demo set is green. Do not use an Azure external prerequisite to silently resume them.
+- Work only C:/Source/OASIS-cosmic/work/cosmic-cql. Task work pushed; Development deployment batches once/twice daily.
+- Exact evidence/resource paths and safe cleanup: [single ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Raw output stays TestResults; preserve identities/pending journals under LocalState.
 
-[Previous checkpoint](Archive/IMPLEMENTATION_STATUS_before_entity_selected_sqlite_2026-10-28.md) preserves history without establishing broader completeness.
+[Original scope/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md)
+preserves requirements; none is removed by this status consolidation.
