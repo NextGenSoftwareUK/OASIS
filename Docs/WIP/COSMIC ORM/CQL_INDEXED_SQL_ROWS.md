@@ -416,3 +416,7 @@ these standard LINQ terminals are synchronous primitive-returning operations.
 HTTP cardinality enrollment remains next. Larger-index scaling/metadata and full
 parity remain open. Evidence: TestResults/ProtocolCqlCurrent/index-count-linq-*.trx
 and TestResults/SolanaCurrent/solana-indexed-native.trx/json.
+
+## Metadata policy foundation
+
+The shared explicit queryable-root policy and predicate/ordering admission are implemented, but no persistent metadata index is enrolled. Existing schema2 remains canonical-only. See [schema3 plan and verified policy scope](CQL_INDEXED_METADATA.md).
