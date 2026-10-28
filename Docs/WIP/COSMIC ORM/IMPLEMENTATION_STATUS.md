@@ -65,5 +65,22 @@ Evidence TestResults/OwnedRoutingCurrent/owned-routing.trx SHA256
 CF04DCD40A85A88E4BB586C66D12487258887D25928E87DF53D8255B6DB84AEC;
 core-full.trx SHA256F44DDA0B685A535F6AC019276687293DFCD8D163465D5F2AA6F9C823E6D25764.
 Controlled providers reject the attempted mutation; this proves submission/ownership,
-not a native commit or delivery. X10 remains red. Next:extend native SQLite primary/
-outbox acceptance to effective routing; preserve existing explicit-enrollment proof.
+not a native commit or delivery. X10 remains red. The native SQLite follow-on below
+now proves the primary transaction, keeping target delivery separately open.
+
+
+Native SQLite routed-owned-save follow-on:4/4single/batch healthy/fault cases pass.
+Avatar enables replication over disabled node defaults; request chooses Mongo/Neo.
+The real SQLite transaction stores the correct operation/actor/source, two immutable
+target obligations and matching committed revisions. A forced second-target insert
+failure rolls back graph/receipt/all obligations and leaves caller IDs/revisions pending.
+No-op adds no receipt/obligation; independently reopened connection verifies counts.
+Targets are declaration-only proxies; no Mongo/Neo native delivery claim. Existing
+explicit atomic tests plus new routing cases:21/21pass, zero skips. No production
+change was needed. Fixture DB/sidecars/pending journal absent after completed runs.
+Tests:Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/RoutedOwnedHolonOutboxTests.cs.
+Evidence TestResults/OwnedRoutingCurrent/sqlite-owned-routing.trx SHA256
+115CBD0EA77498E5588CC172E204D84D253DBB8E065B62A8375CB70876F834A1;
+sqlite-atomic-regression.trx SHA25691B823D0F7AFBE7E4C6836990DD270604612B4F140C479C74D795FC1A140DCA4.
+Next unblocked gate:native Mongo/Neo routed enrollment, then delivery/restart/failure
+acceptance. Preserve full X10 red and hosted Azure pending.
