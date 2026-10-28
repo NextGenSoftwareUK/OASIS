@@ -1215,3 +1215,46 @@ cells after the first match. Empty selections yield0/0L/false. Work remains
 bounded by admitted entity-source, selected-input, stage and proof budgets;
 this is not an unbounded-table cardinality guarantee. No DTO materialization or
 managed row counting substitutes for native reduction.
+
+## Explicit mixed native/indexed federation (SDK implementation; native demo pending)
+
+Pass native adapters separately from registered indexed readers/independent observers.
+Bind the indexed source grant only to its logical source target during planning:
+
+```csharp
+var indexGrants = new[]
+{
+    new CosmicFederationIndexRequirement(sourceRequirement)
+};
+
+var plan = CosmicFederationPlanner.Plan(
+    sourceQuery,
+    options,
+    ProviderType.MongoDBOASIS,
+    authorizedTargets,
+    readPolicies,
+    indexGrants);
+
+// Check plan.IsError before dispatch. Native Mongo remains a native target.
+var indexedReaders = new[]
+{
+    new CosmicFederationIndexedReader(indexReader, independentSourceObserver)
+};
+
+var result = await manager.ExecuteMixedFederationQueryAsync(
+    plan.Result,
+    new[] { mongoAdapter },
+    indexedReaders,
+    cancellationToken);
+```
+
+The server supplies authorized targets/read grants; browser input cannot choose an
+arbitrary index. Each indexed target must match its complete source/index binding.
+All bindings validate before reads. Existing indexed receipt/freshness/access checks
+remain authoritative; failures reject the whole result. IndexedEvidence on each copy
+retains source checkpoint/head/receipt; IndexedReads retains empty-read assurance.
+Evidence survives typed mapping outside user metadata and consumes operation budgets.
+
+Controlled SDK tests pass; actual Mongo+Solana runtime and HTTP/browser demos remain
+pending. This does not grant indexed execution to ordinary native adapters or certify
+hosted-chain semantics/distributed repeatable snapshots. LINQ depth remains paused.
