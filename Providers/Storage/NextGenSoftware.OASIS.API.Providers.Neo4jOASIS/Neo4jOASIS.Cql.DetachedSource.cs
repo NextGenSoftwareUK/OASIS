@@ -12,7 +12,7 @@ public partial class Neo4jOASIS
     // One detached source owner for joins and selected-result composition.
     private static string CompileCqlDetachedSource<T>(CosmicQuery<T> source,
         Dictionary<string, object> parameters, IReadOnlyList<CosmicQueryPath> keyPaths,
-        IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes) where T : IHolon
+        IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes, CosmicEntityCompositionPlan<T> entity=null) where T : IHolon
         {
             var compiled=CompileCqlSource(source,parameters);var translator=compiled.Translator;
             var cells=new List<(string State,string Value)>();var invalid=new List<string>();
@@ -39,6 +39,27 @@ public partial class Neo4jOASIS
                 +"WHERE "+compiled.Cycle+" OR "+compiled.TraversalLimit
                 +" RETURN {id:h.Id,visible:false,creator:null,valid:false,domainValid:false,cycle:"+compiled.Cycle
                 +",traversalLimit:"+compiled.TraversalLimit+",payloadLimit:false,bytes:0,keys:[],values:[],ordering:[]} AS input"+emptySort+" LIMIT 1";
+            if(entity!=null)
+            {
+                var relation=CompileCqlEntityComposition(compiled,entity,10000,relationOnly:true);
+                var validDomain=invalid.Count==0 ? "true" : "NOT("+string.Join(" OR ",invalid)+")";
+                var map="{id:p.f_Id,visible:p.f_IsPublic,creator:p.f_CreatedByAvatarId,valid:true,domainValid:"+validDomain
+                    +",cycle:false,traversalLimit:false,payloadLimit:joinBytes>"+byteLimit+",bytes:joinBytes,keys:["+string.Join(",",keys)
+                    +"],values:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",values)+"] END,"
+                    +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END}";
+                return "CALL { "+relation+" } WITH collect({valid:entityValid,cycle:entityCycle,limited:entityLimit,source:entitySource,selected:selected}) AS scopes "
+                    +"WITH scopes,head([scope IN scopes WHERE scope.valid | scope]) AS outcome "
+                    +"CALL { WITH scopes UNWIND scopes AS scope UNWIND CASE WHEN NOT scope.valid OR scope.cycle OR scope.limited "
+                    +"THEN [{h:null,p:null,valid:scope.valid,cycle:scope.cycle,limited:scope.limited}] "
+                    +"ELSE [item IN scope.source | {h:item.h,p:item.p,valid:true,cycle:false,limited:false}] END AS entry "
+                    +"RETURN collect({id:entry.h.Id,revision:entry.h.ProviderRevisionId,valid:entry.valid,"
+                    +"snapshot:CASE WHEN size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END,"
+                    +"traversalCycle:entry.cycle,traversalLimit:entry.limited}) AS entityProofs } "
+                    +"CALL { WITH outcome UNWIND CASE WHEN outcome IS NULL OR outcome.cycle OR outcome.limited THEN [] "
+                    +"ELSE range(0,size(outcome.selected)-1) END AS position WITH outcome.selected[position] AS item,position "
+                    +"WITH item.h AS h,item.p AS p,position WITH h,p,position"+nativeCells+" WITH h,p,position"+returnedCells
+                    +","+bytes+" AS joinBytes WITH "+map+" AS input,position ORDER BY position RETURN collect(input) AS input } RETURN input,entityProofs";
+            }
             return "CALL { "+compiled.Source+"WHERE NOT valid RETURN "+empty+" AS input"+emptySort+" LIMIT 1"
                 +traversalError+" UNION ALL "+compiled.EligibleSource
                 +"WHERE ("+compiled.DescendantPredicate+") AND NOT("+compiled.Cycle+" OR "+compiled.TraversalLimit+") "

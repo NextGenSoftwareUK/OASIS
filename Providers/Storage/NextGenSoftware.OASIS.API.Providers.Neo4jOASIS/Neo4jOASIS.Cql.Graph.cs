@@ -108,8 +108,12 @@ public partial class Neo4jOASIS
     private sealed class NeoCqlEntityInputProof(CosmicEntityCompositionOptions options)
     {
         private int rows;private long bytes;
-        internal void Observe(IRecord record)
+        internal void Observe(IRecord record)=>Observe(record.Values);
+        internal void Observe(IReadOnlyDictionary<string,object> record)
         {
+            if(record["traversalLimit"] is true)throw new NeoCqlLimitException("Entity source exceeded its protected traversal/work bound.");
+            if(record["traversalCycle"] is true || record["valid"] is not true)
+                throw new InvalidDataException("Entity source ownership/traversal proof is invalid.");
             var snapshot=record["snapshot"].As<string>();
             if(snapshot==null)throw new NeoCqlLimitException("Entity source record exceeds its native payload bound.");
             bytes=checked(bytes+Encoding.UTF8.GetByteCount(snapshot));
@@ -119,7 +123,8 @@ public partial class Neo4jOASIS
         }
     }
 
-    private static IHolon ReadCqlCanonicalSnapshot(IRecord row,string snapshot)
+    private static IHolon ReadCqlCanonicalSnapshot(IRecord row,string snapshot)=>ReadCqlCanonicalSnapshot(row.Values,snapshot);
+    private static IHolon ReadCqlCanonicalSnapshot(IReadOnlyDictionary<string,object> row,string snapshot)
     {
         var holon=StoredRecordJson.DeserializeStoredHolon(snapshot);
         if(!Guid.TryParse(row["id"].As<string>(),out var id) || holon.Id!=id)
