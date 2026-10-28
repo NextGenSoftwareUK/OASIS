@@ -17,3 +17,11 @@ Continue PostgreSQL-wire wrappers through this base where their native semantics
 ## DuckDB
 
 [Native baseline](DUCKDB_STORAGE_BASELINE.md):52/52 plus6native controls on pinned real DuckDB.NET1.1.3. Thin SQL transport reuses KeyValueStorageProviderBase; default soft deletion preserved, native revision predicates verified, legacy files refused without changes. MotherDuck/cloud, version/concurrency stress, full interfaces and global routing remain separate gates. FlyIO/Nile were inspected and already share PostgreSQL storage, so no cosmetic rewrites were made.
+
+## MotherDuck
+
+28October2026: replaced duplicated storage with the shipping DuckDB SQL/record adapter, retaining MotherDuck identity and constructor. The token is URI-escaped inside the md: Data Source rather than a separate ADO parameter; local-file configuration and conflicting token sources are rejected. No process-wide credential mutation. See [official connection syntax](https://duckdb.net/docs/connection-string.html).
+
+Cached producer/consumer builds passed (2warnings each); 10/10 metadata/configuration tests passed without opening any connection. Unit runtime copies are disabled because this host does not execute native operations; real native acceptance belongs in the shared integration host. An obsolete test for a nonexistent GetProviderVersion method was removed.
+
+No new package/runtime/download. Producer bin/obj:7,906,072/858,177B; unit bin/obj:40,448,538/1,021,661B, no native runtimes directory. Hosted canonical52, authentication, pinned SDK1.1.3 extension compatibility and selected-catalog handling remain open. The shared legacy-table guard currently scopes main schema without a catalog predicate; attached MotherDuck catalogs require acceptance/review before certification. Local DuckDB52 does not certify MotherDuck cloud.
