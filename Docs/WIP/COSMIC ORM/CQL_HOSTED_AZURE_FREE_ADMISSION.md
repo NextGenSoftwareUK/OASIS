@@ -10,7 +10,7 @@ Status:not provisioned/not verified. No Azure account/resource/paid subscription
 - The legacy official trycosmosdb.azure.com link fails DNS here; owned IAB tab3 is a failed/error page, not provisioning evidence.
 - Current cosmos.azure.com/try/ opens in owned IAB tab4 and displays “Under Construction”:“We are working on improvements for the Try Azure Cosmos DB service.” Only Sign In and an Azure Free Account link are offered.
 - Lifetime free tier includes1000RU/s/25GB but can bill beyond limits, requires opt-in at account creation and is not serverless. Do not treat this as an unconditional zero-cost subscription.
-- Azure free-account documentation describes spending protection until upgrade. Existing free-subscription availability/authentication is pending user input; no paid upgrade is authorized.
+- Azure free-account documentation describes spending protection until upgrade. User confirmed no existing free subscription. Free-account setup/authentication remains an external prerequisite; no paid upgrade is authorized.
 
 ## Acceptance still required
 
