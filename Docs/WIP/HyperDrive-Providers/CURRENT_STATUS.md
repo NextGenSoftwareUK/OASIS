@@ -15,7 +15,7 @@ Updated28October2026. Read this first, then query relevant matrix rows; do not l
 
 | State | Scope |
 |---|---|
-| Native core-storage-v2 52/52 | OracleDB, PostgreSQL, Redis, Mongo, Neo4j, CosmosDB emulator, Firestore emulator, AWS alias, DynamoDB, LocalFile, Azure Blob, SQLite |
+| Native core-storage-v2 52/52 | OracleDB, PostgreSQL, Redis, Mongo, Neo4j, CosmosDB emulator, Firestore emulator, AWS alias, DynamoDB, LocalFile, Azure Blob, SQLite, DuckDB |
 | Native compatible52/52 | Shipping AWSS3OASIS on existing CI MinIO; independent empty-bucket checks passed; hosted AWS/IAM open |
 | Recovered native52/52 summaries | SOLID/IPFS reports recovered from isolated checkout with exact registry hashes/contracts; original failed reports preserved, lifecycle/full-interface gates open |
 | Controlled52/52 only | KeyDB, ValKey, Dragonfly, Garnet; product-native shared-suite runs pending |
@@ -27,7 +27,7 @@ Updated28October2026. Read this first, then query relevant matrix rows; do not l
 
 ## Exact next actions and gates
 
-1. Neon thin PostgreSQL-family adapter now passes10controls; hosted/native gate remains open. Continue remaining SQL/document family baselines. Fauna default host does not resolve here; self-hosted source exists, no runtime installed. Convex companion oasis/avatars and oasis/holons modules are missing; implement/provision and verify them before native acceptance. Shared record-policy base consolidation and full interfaces remain open for these REST document providers.
+1. DuckDB thin shared-record adapter passes52/52 native plus6controls, zero current rows, default soft deletion preserved; see DUCKDB_STORAGE_BASELINE.md. Continue remaining SQL/document family baselines; FlyIO/Nile already reuse PostgreSQL. Neon10controls only, hosted native open. Fauna default host does not resolve; self-hosted source exists. Convex companion modules and REST family shared-record consolidation remain implementation gates.
 2. Firebase canonical binding builds;23controls pass,2native cases skip without configuration. One RTDB4.11.2 JAR cached (34,495,935 B); execution policy rejected loopback19000 launch. No retry/bypass, owner file or listener; native run remains open.
 3. S3 CI40731869610/job122970030713 passed52/52 and both post-suite bucket-empty checks. See S3_COMPATIBLE_STORAGE_BASELINE.md. PR501 remains draft; broader CI/deployment gates must pass independently.
 4. Oracle cloud credentials/bucket/ADB access absent at last check. EVM signer/ABI/runtime and Cosmos bridge inputs remain gates; reuse existing resources before any installation. Keep original stores/keys/outcomes intact.
