@@ -22,6 +22,6 @@ Actual SQLite and canonical Solana decoding run through shipping HTTP. Older
 minimum/checkpoint/previous block identity validation is corrected after an HTTP
 reproduction; [contract](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).
 Live declared-range chain SDK acceptance and shared C# walkthrough pass. Next:
-live-source HTTP, production admission/durable settlement,
+production admission/durable settlement (live-source HTTP five-request gate now passes),
 remaining indexed scalar/projection/metadata policies and the eight-provider demo.
 Original source recovery and full parity remain red. See CURRENT_STATUS for gates.

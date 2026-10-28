@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/IndexedHttpLedger.cs" Link="Shared/IndexedHttpLedger.cs" />
     <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="SolanaCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
   </ItemGroup>
@@ -22,6 +23,8 @@
 
   <ItemGroup>
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs" Link="Demo/ChainIndexedWalkthrough.cs" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
   </ItemGroup>
