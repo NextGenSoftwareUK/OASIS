@@ -13,4 +13,9 @@ public partial class HolonRepository
         var translator=new CqlSqlTranslator(query.ReadAccess);
         return (translator.TranslateSource(query.Predicates),translator.TranslateOrdering(query.Orderings),translator.Parameters);
     }
+    internal static string CompileChainIndexProjection(IReadOnlyList<CosmicProjectionColumn> columns,List<SqliteParameter> parameters)
+        =>new CqlSqlTranslator("Holon",parameters,null){IndexedProjectionColumns=true}.TranslateProjection(columns);
+
+    internal static object DecodeChainIndexProjection(object value,System.Type declared)=>DecodeProjectionCell(value,declared);
+
 }

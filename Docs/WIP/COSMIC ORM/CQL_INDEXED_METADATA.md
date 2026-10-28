@@ -137,7 +137,8 @@ its source acknowledgement matches; incomplete/unknown outcomes are preserved.
 
 ## Remaining acceptance
 
-Selected metadata columns, other aggregates/selected stages, production JWT and
+Selected metadata SDK/SQLite execution is now verified below; its live/HTTP/demo gate,
+other aggregates/selected stages, production JWT and
 durable external settlement, hosted-chain acceptance, incremental source transport
 and history/index scaling remain open. Do not promote broad EF/NHibernate parity
 from this explicit declared-range profile. Evidence hashes/paths are recorded in
@@ -145,3 +146,45 @@ the resource ledger; raw reports stay in TestResults.
 
 Raw evidence belongs in TestResults. Preserve retained source keys/seed/index;
 new owned fixture state must be recorded in the existing resource ledger.
+
+## Selected metadata: shared SDK and SQLite verified
+
+Projection capabilities now have an independent immutable root restriction.
+Predicate support never grants selected-column support. Indexed metadata selection
+requires an explicit root profile during planning and actual-reader re-admission;
+wildcard roots cannot authorize it. Canonical fields retain their own domains.
+
+SQLite schema3 explicitly enrolls string/Boolean/Int32/Int64 and nullable variants
+for selected metadata. One native projection translator/decoder handles indexed
+canonical and metadata cells; a declared index column map binds VersionId/IsDeleted
+without borrowing the entity-table schema. Source filters and selected columns
+share parameter allocation. Missing/null/wrong-type state is validated natively.
+Schema2 remains canonical-only.
+
+Before any DTO constructor runs, the shared indexed owner compares each selected
+cell against its independently validated source witness, using exact typed metadata
+traversal. Only the selected root is serialized; encrypted/private sibling roots
+are not traversed or decrypted. A forged value rejects with CQL_SOURCE_RECORD_MISMATCH.
+
+Eight new Core cases prove root isolation/narrowing, planning-time wildcard
+rejection, actual-profile re-admission and proof before DTO construction. Twelve
+new actual SQLite cases cover primitive/nullable selection, null/missing/wrong type,
+private-root denial, mixed canonical/metadata column order and exact Int64 above2^53.
+Full results/hashes are in CURRENT_STATUS and the resource ledger. Live selected
+metadata HTTP/demo acceptance is the next gate; existing42request evidence covers
+metadata filters plus canonical selected columns, not selected metadata cells.
+
+```csharp
+// The host has already published an explicit schema3 Status-root profile.
+var selected = query
+    .Where(holon => holon.Name == "COSMIC native chain coffee")
+    .Select(holon => new
+    {
+        holon.Id,
+        Category = CosmicQueryMetadata.Value<string>(holon, "Status", "category"),
+        Amount = CosmicQueryMetadata.Value<long>(holon, "Status", "amount")
+    });
+
+// Retain checkpoint/head/source receipts rather than hiding provenance.
+var page = await selected.ToCosmicIndexedProjectionPageAsync();
+```

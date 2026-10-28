@@ -9,6 +9,8 @@ public partial class HolonRepository
 {
     private sealed partial class CqlSqlTranslator
     {
+        internal bool IndexedProjectionColumns { get; set; }
+
         internal (string State, string Value) ProjectionOperand(CosmicQueryPath path, string prefix, bool comparable = false)
         {
             if (path.IsMetadata)
@@ -25,7 +27,16 @@ public partial class HolonRepository
                 return (state, value);
             }
             string native = null;
-            FieldOperand(path, prefix, (column, _) => { native = column; return "1"; });
+            if(IndexedProjectionColumns)
+            {
+                // The index has its own explicit physical schema (including
+                // VersionId/IsDeleted); do not borrow the entity-table field map.
+                if(path.Segments.Count!=1||!SqliteCosmicChainIndexStore.CanonicalProjectionCapabilities.CanonicalFields.Any(
+                    field=>field.Name==path.Segments[0]&&field.ValueType==path.ValueType))
+                    throw new NotSupportedException("Indexed canonical projection column is not enrolled.");
+                native=CanonicalColumn(path.Segments[0]);
+            }
+            else FieldOperand(path, prefix, (column, _) => { native = column; return "1"; });
             if (native == null) throw new NotSupportedException("Canonical projection field is unsupported.");
             // Map SQL storage into the same type/value guard used for metadata.
             // Every participating canonical value is checked before an extremum.
