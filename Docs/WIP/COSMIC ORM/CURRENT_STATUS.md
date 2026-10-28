@@ -8,6 +8,7 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 - Full ORM/CQL roadmap remains active/incomplete. User28October:pause entity-selected All/element/numeric parity; prioritize demo breadth. Hosted Azure must be free only; never provision paid resources or billable fallbacks.
 - Work only on red checklist cells. Freeze green features/cursors absent a reproducible bug.
 - HyperDriveV2 only; document legacy gaps. Large POCO/migrations tooling stays deferred.
+- [Demo launcher](CQL_DEMO_LAUNCHER.md):central hub now enrolls6Mongo-paired presets with explicit -Federated;28discovery plans pass, Oracle hub SDK/HTTP1/1passes on mergedCore/exact cleanup.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
 
 ## Latest verified milestone
@@ -62,7 +63,7 @@ git status --short
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' status --short
 & Scripts/TestHosts/Inspect-CqlDatabaseRetainedStorage.ps1 -MongoEntityProjection
 & Scripts/TestHosts/Inspect-CqlDatabaseRetainedGraph.ps1 -EntityProjection
-& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Databases -ShowPlan
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Oracle -Federated -ShowPlan
 ```
 
 One provider-build lease; /m:2 /nr:false /p:UseSharedCompilation=false.
