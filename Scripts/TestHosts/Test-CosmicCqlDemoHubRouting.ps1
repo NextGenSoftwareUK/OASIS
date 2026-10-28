@@ -34,11 +34,13 @@ foreach($provider in @('SQLite','Databases','CosmosDB')){
     try{& $hub -Provider $provider -ArchiveCompletedDemo -ShowPlan}catch{$denied=$true}
     if(!$denied){throw 'Database fixture lifecycle must not accept protocol archive options.'}
 }
+foreach($protocol in @('ActivityPub','IPFS','SOLID')){
 foreach($bounded in @($false,$true)){
-    $multi=& $hub -Provider ActivityPub -MultiRecord -VerifyOnly:$bounded -ShowPlan
-    if($multi.Scope -notmatch 'Three existing public Mastodon statuses' -or $multi.Url -ne 'http://127.0.0.1:5088/'){
+    $multi=& $hub -Provider $protocol -MultiRecord -VerifyOnly:$bounded -ShowPlan
+    if($multi.Scope -notmatch 'Three ' -or $multi.Url -ne 'http://127.0.0.1:5088/'){
         throw 'Multi-record discovery scope mismatch.'
     }
+}
 }
 $unsupported=$false
 try{& $hub -Provider SQLite -MultiRecord -ShowPlan}catch{$unsupported=$true}

@@ -103,6 +103,12 @@ public class SolidCqlNativeTests
                         Assert.True(podRoot.IsBaseOf(new Uri((string)row.MetaData["SolidRecordResource"])));
                         Assert.True(row.MetaData.ContainsKey("SolidSourceETag"));Assert.Empty(row.Children);
                     }
+                    var nativeDna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,
+                        StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false}}};
+                    var nativeRegistry=new ProviderManager(null,nativeDna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+                    await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyKeySetTeachingHostAsync(
+                        provider,new HolonManager(provider,nativeDna,nativeRegistry),owner,
+                        records.ToDictionary(row=>row.Id.ToString("D"),row=>row.Id));
                     phase="native-keyset-verified";await Checkpoint();
                 }
                 else
