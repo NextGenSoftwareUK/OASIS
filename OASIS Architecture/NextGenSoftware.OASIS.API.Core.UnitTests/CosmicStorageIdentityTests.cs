@@ -6,6 +6,43 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicStorageIdentityTests
 {
     [Fact]
+    public void GuidInputRetainsItsOriginalV1FingerprintBytes()
+    {
+        var identity = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64),
+            Guid.Parse("01234567-89ab-4cde-8f01-23456789abcd"));
+        Assert.Equal("01234567-89ab-4cde-8f01-23456789abcd", identity.StoreId);
+        Assert.Equal("E93775C8D9C425236F3829DDBC9F91210DA3A1513CF4B6E4946DDD11D8E09E5F", identity.BindingFingerprint);
+    }
+
+    [Fact]
+    public void InvalidUnicodeCannotCollapseDifferentNativeIdentityTokens()
+        => Assert.Throws<System.Text.EncoderFallbackException>(() =>
+            new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A', 64), "\uD800"));
+
+    [Fact]
+    public void OpaqueNativeIdentityIsPreservedInFullAndCaseIsNotGuessed()
+    {
+        var native = "native:database:" + new string('Q', 64);
+        var identity = new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A', 64), native);
+        Assert.Equal(native, identity.StoreId);
+        Assert.NotEqual(identity.BindingFingerprint,
+            new CosmicStorageIdentity(identity.Authority, identity.EndpointFingerprint, native.ToLowerInvariant()).BindingFingerprint);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" leading")]
+    [InlineData("trailing ")]
+    [InlineData("line\nbreak")]
+    public void InvalidOpaqueNativeIdentityIsRejected(string identity)
+        => Assert.Throws<ArgumentException>(() => new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A', 64), identity));
+
+    [Fact]
+    public void OversizedNativeIdentityIsRejected()
+        => Assert.Throws<ArgumentException>(() => new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A', 64), new string('X', 1025)));
+
+    [Fact]
     public void BindingDistinguishesAuthorityEndpointAndStoreWithoutExposingAddress()
     {
         var store = Guid.NewGuid();

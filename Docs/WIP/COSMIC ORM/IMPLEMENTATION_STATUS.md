@@ -70,7 +70,7 @@ endpoint/policy binding. No automatic permission retry or new source save was ad
 ## Native storage identity prerequisite
 
 Core93de565 adds optional `ICosmicStorageIdentityProvider` and credential-free
-`CosmicStorageIdentity` (authority,endpoint SHA256,durable store GUID,binding SHA256).
+`CosmicStorageIdentity` (authority,endpoint SHA256,native store token,binding SHA256).
 SQLite implements explicit capture against an activated existing file,using native
 `pragma_database_list` for the address. An immediate transaction atomically creates
 metadata table+identity once. Independent clients/reopening agree;subsequent capture
@@ -100,9 +100,28 @@ collection or authenticated tenant. Native capture requires listCollections UUID
 - Reproduce with retained Mongo8.3.11/oasisRecoveryRs27029 and process environment OASIS_MONGO_REPLICA_SET_CONNECTION (same URI as existing reusable runner);filter MongoStorageIdentityTests. Frozen orchestration:TestResults/OwnedRoutingCurrent/run-mongo-storage-identity.ps1.
 - Exact test DBs/journal absent,ghost DB never created,owned service stopped;Core unchanged in this milestone.
 
-This capability is not wired into automatic routes yet. Neo capture,persisted
-policy binding,receiver-side verification and old unbound queue/operator migration
-remain open. A fingerprint DTO alone does not prevent automatic misrouting.
+Neo capture now uses read-only `CALL db.info` metadata from the active storage
+driver under its lifecycle gate. Native probe returned an opaque64-character ID;
+Cored344dd9 preserves bounded native strings in StoreId rather than forcing UUIDs.
+GUID-input construction and v1 fingerprint bytes remain unchanged (golden control).
+Strict UTF8 rejects malformed native strings rather than collapsing their bytes.
+The driver creation URI is captured where the driver is created;mutable Host/user/
+password do not redefine it. Injected drivers without proven endpoint capture are
+explicitly unsupported. No metadata node/schema/data write is introduced by capture.
+Independent clients,reopening,URI aliases and native graph/schema counts are verified.
+This is a single-node proof,not cluster/home-database or remote attestation acceptance.
+
+- 3Neo native cases/16Core controls/4341full Core pass;SQLite7/Mongo10compatibility cases pass;zero skips. Both Core targets and affected producers/consumers build/hash-check.
+- TestResults/Neo4jCurrent/neo4j-storage-identity-current.trx SHA25629C73FAC4399CC8B785903FB0701EE0E7F6CC35B350F8F3AF748ABA7C078B719.
+- TestResults/OwnedRoutingCurrent/opaque-identity-core.trx SHA256C82BE11893D274848A6B1584510AB6F745C51C2915A2BE4736A9F3726F0A2462.
+- opaque-identity-full-core.trx SHA2569513F3871A5F29EC31376933ABD761AB2D1E5B2737A4CED78E419EDC2DBA2FB1.
+- opaque-sqlite-compatibility.trx SHA256E8B50F1536440E389C020B9E86018C0D2023E2A3277803431337775DEA052097.
+- Mongo current compatibility TRX mongo-storage-identity-regression.trx SHA25621053E881037F6E54A1D7B4B8BC1DE3BC249E52895711A9CB67B11F236DE8A0B (supersedes earlier raw hash at same path).
+- Run `Run-ReusableNeo4jTests.ps1 -CosmicStorageIdentity` under one build lease.
+
+This capability is not wired into automatic routes yet. Persisted endpoint/policy
+binding,receiver-side verification and old unbound queue/operator migration remain
+open;metadata capture alone does not prevent automatic route substitution. A fingerprint DTO alone does not prevent automatic misrouting.
 
 ## Remaining acceptance
 

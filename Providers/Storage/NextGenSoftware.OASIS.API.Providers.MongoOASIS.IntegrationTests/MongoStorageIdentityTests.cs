@@ -39,7 +39,7 @@ public class MongoStorageIdentityTests
             Assert.All(captures, result => Assert.False(result.IsError, result.Message + result.Exception));
             Assert.Equal(captures[0].Result.StoreId, captures[1].Result.StoreId);
             Assert.Equal(captures[0].Result.BindingFingerprint, captures[1].Result.BindingFingerprint);
-            Assert.NotEqual(Guid.Empty, captures[0].Result.StoreId);
+            Assert.NotEqual(Guid.Empty, Guid.Parse(captures[0].Result.StoreId));
             Assert.Equal(64, captures[0].Result.EndpointFingerprint.Length);
             Assert.Equal(before, await Snapshot(First));
 
