@@ -293,6 +293,17 @@ and retain their original versioned target hashes and captured policy binding. I
 freezes the envelope before awaiting policy and reparses original bytes for the
 receiver, so policy cannot rewrite the admitted mutation. The source-only constructor
 is a low-level trusted adapter;source enrollment alone is not caller authorization.
-Automatic WEB4 delivery has not yet adopted the policy constructor. Its physical
-endpoint binding and delivery-time admission remain open;the sandbox request-only
-fault gate is separate. Current tests/counts are in IMPLEMENTATION_STATUS.
+Automatic WEB4 delivery now adopts the policy constructor. Startup registers
+`CommittedOwnerReplicationPolicy` through TryAdd:nonempty committed actor and every
+selected record owned by that actor. Hosts may register a full stricter
+`IHolonReplicationAuthorizationPolicy` before the default registration (or supply it
+with the host-owned service constructor). Existing `HolonReplicationActorGrant` can
+constrain actors/expiry;native denial/expiry cases prove no replica write and retained
+reconciliation-required obligations. A custom policy replaces the default admission
+and must enforce all required host constraints.
+
+Configured catalog JSON/hashed routes remain separate;their grants are not silently
+borrowed by automatic canonical provider-type targets. Automatic physical endpoint/
+store and durable policy-version binding,tenant/encryption/residency/placement grants
+remain open. The default context GUID is protocol context,not endpoint attestation.
+The sandbox request-only fault gate is unchanged and separate. Current tests/counts are in IMPLEMENTATION_STATUS.

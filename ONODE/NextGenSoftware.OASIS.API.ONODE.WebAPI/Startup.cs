@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Threading.RateLimiting;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
@@ -418,6 +419,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddHostedService<Services.HyperDrive.HyperDriveFanOutHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveDomainChangeCaptureHostedService>();
             services.AddHostedService<Services.HyperDrive.HyperDriveSyncCompactionHostedService>();
+            services.TryAddSingleton<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonReplicationAuthorizationPolicy,
+                Services.HyperDrive.CommittedOwnerReplicationPolicy>();
             services.AddHostedService<Services.HyperDrive.HolonReplicationDeliveryHostedService>();
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());

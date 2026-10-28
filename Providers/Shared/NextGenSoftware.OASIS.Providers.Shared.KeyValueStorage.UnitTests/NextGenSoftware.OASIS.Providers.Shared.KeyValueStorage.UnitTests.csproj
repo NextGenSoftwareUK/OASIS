@@ -9,6 +9,7 @@
     <DefineConstants>$(DefineConstants);OASIS_NATIVE_STORAGE_CONFORMANCE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/CommittedOwnerReplicationPolicy.cs" Link="Production/CommittedOwnerReplicationPolicy.cs" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />

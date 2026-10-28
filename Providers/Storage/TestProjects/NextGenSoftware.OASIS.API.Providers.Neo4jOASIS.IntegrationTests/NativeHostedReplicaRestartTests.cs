@@ -38,7 +38,7 @@ public partial class NativeHostedReplicaRestartTests
     public Task ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart()
         => VerifyShippingWorkerRestart(false);
 
-    private async Task VerifyShippingWorkerRestart(bool crash)
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -117,7 +117,12 @@ public partial class NativeHostedReplicaRestartTests
             async Task RunOneRealPass()
             {
                 var logger = new PassLogger();
-                using var worker = new Worker(logger, () => registry, () => dna.OASIS.HyperDriveMode == HyperDriveModes.V2);
+                IHolonReplicationAuthorizationPolicy policy = admission == null ? null
+                    : new HolonReplicationActorGrant(new[] { admission == "denied" ? Guid.NewGuid() : actor },
+                        DateTime.UtcNow.AddMinutes(admission == "expired" ? -1 : 5));
+                using var worker = policy == null
+                    ? new Worker(logger, () => registry, () => dna.OASIS.HyperDriveMode == HyperDriveModes.V2)
+                    : new Worker(logger, () => registry, () => dna.OASIS.HyperDriveMode == HyperDriveModes.V2, policy);
                 using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
                 await worker.StartAsync(deadline.Token);
                 try { await logger.Completed.Task.WaitAsync(deadline.Token); }
@@ -151,6 +156,24 @@ public partial class NativeHostedReplicaRestartTests
             await RunOneRealPass();
             var delivered = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(delivered.IsError, delivered.Message);
+            if (admission != null)
+            {
+                Assert.AreEqual(HolonDeliveryState.ReconciliationRequired, delivered.Result.State);
+                Assert.AreEqual("COSMIC_REPLICA_AUTHORIZATION_DENIED", delivered.Result.ErrorCode);
+                Assert.AreEqual(1, delivered.Result.AttemptCount);
+                Assert.IsNull((await target.LoadHolonAsync(input.Id, loadChildren: false)).Result);
+                var primary = await source.LoadHolonAsync(input.Id, loadChildren: false);
+                Assert.IsFalse(primary.IsError, primary.Message);
+                Assert.AreEqual(input.VersionId, primary.Result.VersionId);
+                Assert.AreEqual(originalPayload, await FrozenPayload());
+                await RunOneRealPass();
+                var blocked = await outbox.InspectAsync(pending.Result.Sequence);
+                Assert.AreEqual(HolonDeliveryState.ReconciliationRequired, blocked.Result.State);
+                Assert.AreEqual(1, blocked.Result.AttemptCount);
+                Assert.IsNull((await target.LoadHolonAsync(input.Id, loadChildren: false)).Result);
+                complete = true;
+                return; // Test-owned fixture cleanup, never automatic permission retry.
+            }
             Assert.AreEqual(HolonDeliveryState.Completed, delivered.Result.State);
             Assert.AreEqual(crash ? 2 : 1, delivered.Result.AttemptCount);
             var copy = await target.LoadHolonAsync(input.Id, loadChildren: false);
