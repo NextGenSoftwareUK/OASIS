@@ -49,8 +49,8 @@ Evidence (raw files remain only under worktree TestResults):
 - TestResults/Neo4jCurrent/neo4j-cosmic-primary-outbox-current.trx: SHA256 9B65D4F58BEEE342309EB50F5A943D09A3FF54A35B82366A9216D31B27E688B5.
 - TestResults/OwnedRoutingCurrent/route-inventory-core.trx: SHA256 4502E74BF6FF9632E2F2D0BF92CF974FFFE567AF756BD82F539FBC523F26CBE8.
 
-Next:bind each primary enrollment to the expected native source identity inside its
-own transaction,then publish immutable native source/target/policy routes and make the
+Primary-source binding is now [verified separately](PRIMARY_SOURCE_BINDING.md).
+Next:publish immutable native source/target/policy routes and make the
 worker consume inventory. Explicit reconciliation of old/unbound/changed-policy routes
 remains required. The current worker still uses canonical type-only IDs;this discovery
 capability alone neither changes routing nor resolves orphaned obligations automatically.

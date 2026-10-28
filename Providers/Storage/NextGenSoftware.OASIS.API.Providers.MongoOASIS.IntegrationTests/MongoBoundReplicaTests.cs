@@ -136,4 +136,45 @@ public partial class MongoStorageIdentityTests
             Assert.DoesNotContain(Second, await databases.ToListAsync());
         });
     }
+    [Fact]
+    public async Task MongoPrimarySourceRecoveryRejectsActualCollectionReplacementWithOriginalReceipt()
+    {
+        await RunOwned(async (client,source,_)=>{
+            var capture=await source.CaptureStorageIdentityAsync();Assert.False(capture.IsError);
+            var row=new Holon{Id=Guid.NewGuid(),Name="bound-primary-source"};
+            var enrollment=new HolonReplicationEnrollment("bound-primary-source",new[]{"target"},capture.Result);
+            var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),Guid.NewGuid(),ProviderType.MongoDBOASIS,
+                new[]{new HolonWriteCondition(row.Id,null)},enrollment),ConditionalHolonOperation.Save,new[]{row},saveChildren:false);
+            var root=new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+            while(root!=null && !System.IO.File.Exists(System.IO.Path.Combine(root.FullName,"Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1")))root=root.Parent;
+            Assert.NotNull(root);
+            var journal=System.IO.Path.Combine(root.FullName,"LocalState/COSMIC/OwnedRoutingCurrent/source-binding-physical.pending.json");
+            Assert.False(System.IO.File.Exists(journal));
+            await System.IO.File.WriteAllTextAsync(journal,System.Text.Json.JsonSerializer.Serialize(new{request.Write.OperationId,row.Id,identity=capture.Result}));
+            var committed=await source.ExecuteReplicatingHolonWriteAsync(request,enrollment);
+            Assert.False(committed.IsError,committed.Message+committed.Exception);
+            source.Database=null; // Public descriptor is not the activated repository owner.
+            var capturedOutbox=source.GetHolonReplicationOutbox();Assert.False(capturedOutbox.IsError,capturedOutbox.Message+capturedOutbox.Exception);
+            var head=await capturedOutbox.Result.PeekNextAsync("target");Assert.False(head.IsError,head.Message+head.Exception);
+            Assert.Equal(request.Write.OperationId,head.Result.OperationId);
+            var original=await source.ReadConditionalHolonWriteOutcomeAsync(request);Assert.False(original.IsError,original.Message+original.Exception);
+            Assert.Equal(ConditionalHolonReceiptState.Committed,original.Result.ReceiptState);
+            var db=client.GetDatabase(First);
+            await db.DropCollectionAsync("Holon");
+            var missing=await source.ExecuteReplicatingHolonWriteAsync(request,enrollment);
+            Assert.Equal("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",missing.ErrorCode);
+            using(var names=await db.ListCollectionNamesAsync())Assert.DoesNotContain("Holon",await names.ToListAsync());
+            await db.CreateCollectionAsync("Holon");
+            var replacement=await source.CaptureStorageIdentityAsync();Assert.False(replacement.IsError);
+            Assert.NotEqual(capture.Result.StoreId,replacement.Result.StoreId);
+            Assert.Equal("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",(await source.ExecuteReplicatingHolonWriteAsync(request,enrollment)).ErrorCode);
+            var rejected=await source.ReadConditionalHolonWriteOutcomeAsync(request);
+            Assert.True(rejected.IsError);Assert.False(rejected.IsLoaded);Assert.Null(rejected.Result);
+            Assert.Equal(0L,await db.GetCollection<BsonDocument>("Holon").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            Assert.Equal(1L,await db.GetCollection<BsonDocument>("CosmicWriteReceipt").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            Assert.Equal(1L,await db.GetCollection<BsonDocument>("CosmicHolonOutbox").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            System.IO.File.Delete(journal);
+        });
+    }
+
 }

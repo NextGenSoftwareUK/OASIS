@@ -51,6 +51,8 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
     private async Task ValidateReplicaStorageBindingAsync(IAsyncTransaction transaction, NeoAtomicHolonWrite write)
     {
         if (write.ExpectedStorage == null) return;
+        if(_storageDriverEndpoint==null)
+            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_INVALID","The native driver has no captured endpoint binding.");
         CosmicStorageIdentity actual;
         try
         {
@@ -60,12 +62,12 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
         }
         catch (Exception cause) when (cause is Neo4jException || cause is InvalidDataException || cause is ArgumentException)
         {
-            throw new NeoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_INVALID",
                 "Native receiver identity could not be verified in the replica transaction.", cause);
         }
         write.Cancellation.ThrowIfCancellationRequested();
         if (actual.BindingFingerprint != write.ExpectedStorage.BindingFingerprint)
-            throw new NeoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_MISMATCH",
                 "The native receiver does not match the enrolled storage identity.");
     }
 

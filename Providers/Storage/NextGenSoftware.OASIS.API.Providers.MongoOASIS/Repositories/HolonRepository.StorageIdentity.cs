@@ -14,6 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 
 public partial class HolonRepository
 {
+    internal MongoHolonReplicationOutbox CaptureReplicationOutbox()=>new(_dbContext);
+
     internal async Task<CosmicStorageIdentity> CaptureStorageIdentityAsync(CancellationToken cancellationToken)
     {
         // Capture the same native handle that owns repository operations. Public
@@ -34,6 +36,21 @@ public partial class HolonRepository
         return StorageIdentity(database, identity);
     }
 
+    internal async Task<BsonDocument> ReadBoundConditionalReceiptAsync(Guid operation,CosmicStorageIdentity expected,
+        CancellationToken token)
+    {
+        var database=_dbContext.MongoDB ?? throw new InvalidOperationException("The repository native database is closed.");
+        using var session=await database.Client.StartSessionAsync(cancellationToken:token).ConfigureAwait(false);
+        session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Majority,writeConcern:WriteConcern.WMajority));
+        try
+        {
+            await ValidateReplicaStorageBindingAsync(database,session,expected,token,"COSMIC_SOURCE_STORAGE_BINDING").ConfigureAwait(false);
+            return await database.GetCollection<BsonDocument>("CosmicWriteReceipt").WithReadPreference(ReadPreference.Primary)
+                .Find(session,new BsonDocument("_id",operation.ToString("D"))).SingleOrDefaultAsync(token).ConfigureAwait(false);
+        }
+        finally {if(session.IsInTransaction)await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false);}
+    }
+
     private static CosmicStorageIdentity StorageIdentity(IMongoDatabase database, Guid identity)
     {
         var settings = database.Client.Settings;
@@ -49,13 +66,13 @@ public partial class HolonRepository
     }
 
     private static async Task ValidateReplicaStorageBindingAsync(IMongoDatabase database, IClientSessionHandle session,
-        CosmicStorageIdentity expected, CancellationToken token)
+        CosmicStorageIdentity expected, CancellationToken token,string codePrefix="COSMIC_REPLICA_STORAGE_BINDING")
     {
         if (expected == null) return;
         if (!Guid.TryParseExact(expected.StoreId, "D", out var uuid) || uuid == Guid.Empty || uuid.ToString("D") != expected.StoreId)
-            throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID", "A canonical native Mongo collection UUID is required.");
+            throw new MongoReplicaStorageBindingException(codePrefix+"_INVALID", "A canonical native Mongo collection UUID is required.");
         if (StorageIdentity(database, uuid).BindingFingerprint != expected.BindingFingerprint)
-            throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH", "The native Mongo endpoint does not match the enrolled receiver.");
+            throw new MongoReplicaStorageBindingException(codePrefix+"_MISMATCH", "The native Mongo endpoint does not match the enrolled receiver.");
         try
         {
             // Mongo's native UUID assertion and namespace acquisition share the
@@ -72,13 +89,13 @@ public partial class HolonRepository
             if (!response.TryGetValue("cursor", out var cursor) || !cursor.IsBsonDocument ||
                 cursor["id"] != 0 || !cursor.AsBsonDocument.TryGetValue("firstBatch", out var batch) ||
                 !batch.IsBsonArray || batch.AsBsonArray.Count != 0)
-                throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID", "Native UUID admission returned an unexpected cursor.");
+                throw new MongoReplicaStorageBindingException(codePrefix+"_INVALID", "Native UUID admission returned an unexpected cursor.");
         }
         catch (MongoCommandException cause)
         {
             var mismatch = cause.CodeName == "CollectionUUIDMismatch" || cause.Code == 361 || cause.Code == 26;
-            throw new MongoReplicaStorageBindingException(mismatch ? "COSMIC_REPLICA_STORAGE_BINDING_MISMATCH"
-                : "COSMIC_REPLICA_STORAGE_BINDING_INVALID", "Native collection UUID admission was refused; no unbound apply was attempted.", cause);
+            throw new MongoReplicaStorageBindingException(mismatch ? codePrefix+"_MISMATCH"
+                : codePrefix+"_INVALID", "Native collection UUID admission was refused; no unbound apply was attempted.", cause);
         }
     }
 }
