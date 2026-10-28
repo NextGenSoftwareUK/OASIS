@@ -356,3 +356,8 @@ all helper namespaces to the same database/client. This server field is unstable
 local8.3.11 proof does not certify every server/StableAPI deployment. Refusal fails
 closed. Automatic type-only enrollment/delivery remains unbound. This is separate from CQL read assurance and policy admission.
 [Implementation, tests and open automatic-route scope](REPLICA_STORAGE_BINDING.md).
+
+Native outboxes also provide bounded read-only inventory of oldest unfinished route
+heads,independent of current configured targets. This keeps old route IDs discoverable
+for subsequent operator handling;the worker has not yet adopted native binding/inventory.
+[Contract,verification and remaining acceptance](REPLICA_ROUTE_INVENTORY.md).

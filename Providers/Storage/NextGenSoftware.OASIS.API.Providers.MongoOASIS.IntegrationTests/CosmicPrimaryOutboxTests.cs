@@ -50,6 +50,7 @@ public sealed partial class CosmicConditionalWriteTests
             var create=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),actor,ProviderType.MongoDBOASIS,
                 new[]{new HolonWriteCondition(input.Id,null),new HolonWriteCondition(child.Id,null)}),ConditionalHolonOperation.Save,new[]{input});
             var saved=await Write(first,create);Assert.False(saved.IsError,saved.Message+saved.Exception);var current=Assert.Single(saved.Result);
+            await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(first.GetHolonReplicationOutbox().Result,enrollment.TargetIds,create.Write.OperationId);
             Assert.Equal(0,input.Version);Assert.Equal(0,child.Version);
             var frozen=await obligations.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("TargetId",1)).ToListAsync();Assert.Equal(2,frozen.Count);
             Assert.Equal("target-a",frozen[0]["TargetId"].AsString);Assert.Equal("target-b",frozen[1]["TargetId"].AsString);

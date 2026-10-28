@@ -5,6 +5,14 @@ Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Latest verified milestone
 
+[Durable route inventory](REPLICA_ROUTE_INVENTORY.md) now discovers bounded pages of
+unfinished native targets independently of current configuration. SQLite3/Mongo2/Neo2
+native cases and4384Core pass. SQLite also proves blocked/leased/deferred visibility,
+completed-head skip,case-sensitive targets,read-only state and no partial corrupt page.
+Worker consumption and atomic primary source binding are next;automatic routing stays unbound.
+
+## Prior receiver milestone
+
 Mongo transaction-bound UUID admission now passes15native cases, including actual
 collection recreation, bounded concurrent DDL rejection and mutable-context pinning.
 All3local receiver capabilities exist. Shared acknowledgement reuses the original

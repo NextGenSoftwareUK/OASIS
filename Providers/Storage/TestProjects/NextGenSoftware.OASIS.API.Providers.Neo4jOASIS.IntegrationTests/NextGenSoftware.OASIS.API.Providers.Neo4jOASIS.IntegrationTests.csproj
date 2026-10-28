@@ -95,4 +95,5 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Web4/BaseHolonRequest.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Web4/OASISRequest.cs" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../../../../Scripts/TestHosts/Fixtures/CosmicOutboxInventoryProbe.cs" Link="Fixtures/CosmicOutboxInventoryProbe.cs" /></ItemGroup>
 </Project>
