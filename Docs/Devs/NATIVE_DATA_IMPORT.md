@@ -232,6 +232,8 @@ nativeimport delete-mapping mongodb customers
 `--connection` reads a JSON file of string settings (see "Bring your own connection"), for example
 `{ "uri": "mongodb+srv://reader:...@cluster.example.net", "database": "shop" }`. It is a file, not a command-line value, so
 credentials stay out of shell history and process listings. Without it the server's configured demo store is read.
+The CLI runs on your own machine, so it may connect to local and private databases (`localhost`, a LAN host): the public-address
+guard is switched off inside the CLI process. The guard only applies to a hosted WEB4, where "localhost" would mean the server itself.
 Provider names accept the full type (`MongoDBOASIS`) or the short form (`mongodb`, `sqllite`, `neo4j`). `preview` saves
 nothing. `import` and `preview` use the saved mapping for the source when there is one, and the naming convention
 otherwise; `import-all` applies every saved mapping. Implementation: `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/NativeImportCli.cs`
