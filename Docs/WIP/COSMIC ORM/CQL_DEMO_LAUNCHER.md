@@ -1,5 +1,7 @@
 # CQL demo launcher
 
+[Presenter sequence and expected results](CQL_DEMO_RUNTHROUGH.md).
+
 Run from C:/Source/OASIS-cosmic. One interactive demo at a time; each runner owns
 its build lease and verified fixture teardown. Do not nest a lease around the hub.
 All examples below launch native-backed teaching presets with synthetic fixtures.

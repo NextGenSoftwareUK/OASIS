@@ -10,11 +10,14 @@ interactive provider host at a time from `C:/Source/OASIS-cosmic`.
 |---|---|
 | SQLite | Coffee queries, save/change tracking, per-save deltas and stale-client conflict handling; console/Swagger. |
 | MongoDB, SQLite, Neo4j | Grouped CQL v1 walkthrough: native query/metadata/projection/aggregate and lifecycle examples. Latest entity-selected stages, repeated Select and subsequent Count/LongCount/Any are verified C# SDK/acceptance examples; not every new feature has a browser button. |
+| Oracle | Local Oracle plus Mongo: five records and a four-record subset through C#, HTTP and browser. No hosted OCI claim. |
 | Azure Cosmos DB | Retained local emulator, not hosted Azure: interactive native rows, projection and LongCount; SDK/HTTP cardinality and controlled-identity receipts. |
 | Solana | Local-validator declared-range data read through the explicit SQLite index: rows, projection and cardinality. SolanaMetadata adds selected encryption-exempt metadata, exact Int64 and nullable values. This is not recovery of the missing original ledger data. |
-| IPFS | One owned synthetic native CID record, through shared manager/LINQ/HTTP point-query page. General searches remain unsupported. |
-| SOLID | One owned private Pod record, authenticated native point reads through manager/LINQ/HTTP. General queries remain unsupported. |
-| ActivityPub | One existing public Mastodon status via GET-only native point reads. No posting or federation demonstration. |
+| IPFS | Multi-record native CID membership: three records, a two-record subset, and a Mongo-paired five-record/four-record-subset preset. General content searches remain unsupported. |
+| SOLID | Authenticated native resource membership: three records, a two-record subset, and the Mongo-paired five/four preset. General Pod content searches remain unsupported. |
+| ActivityPub | GET-only public status membership: three records, a two-record subset, and the Mongo-paired five/four preset. CQL federation here combines reads with Mongo; it does not demonstrate ActivityPub posting or server federation. |
+
+Start with the [presenter run-through](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_RUNTHROUGH.md) for the recommended sequence and Mongo-paired commands.
 
 Use the shared launcher (its ShowPlan mode does not start services):
 
