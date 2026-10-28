@@ -668,5 +668,4 @@ schema3 metadata queries through the shared manager/LINQ owner: nested string an
 exact Int64 predicates, ordering, row evidence, LongCount/Any and a zero window.
 Actual SQLite tests verify encrypted row hydration with an authorized runtime
 policy and rejection when it is missing. A trusted host must opt into the metadata
-profile before invoking it. The live Solana metadata fixture and HTTP/demo route
-acceptance are still pending; the existing Solana launcher uses schema2.
+profile before invoking it. The separate live SolanaMetadata fixture and HTTP/demo route now pass. Run the hub with `-Provider SolanaMetadata -ArchiveCompletedDemo` (add `-VerifyOnly` for bounded acceptance). The original Solana choice remains schema2; both use the same retained runtime. Production authentication/durable billing remain open.

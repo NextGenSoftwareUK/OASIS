@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Security;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,12 +35,16 @@ public partial class SolanaIndexedQueryNative
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts"))) root = root.Parent;
         Assert.IsNotNull(root);
-        var state = Path.Combine(root.FullName, "LocalState", "COSMIC", "SolanaCqlCurrent");
+        var metadataMode = Environment.GetEnvironmentVariable("OASIS_SOLANA_INDEXED_METADATA") == "1";
+        var state = Path.Combine(root.FullName, "LocalState", "COSMIC", metadataMode ? "SolanaMetadataCurrent" : "SolanaCqlCurrent");
         Directory.CreateDirectory(state);
         var httpMode = Environment.GetEnvironmentVariable("OASIS_SOLANA_INDEXED_HTTP") == "1";
         var pending = Path.Combine(state, "seed.pending.json");
         var complete = Path.Combine(state, "seed.acknowledged.json");
-        if (httpMode) Assert.IsTrue(File.Exists(complete), "Run the explicit SDK seed gate first; HTTP never creates a seed.");
+        if (httpMode && !metadataMode) Assert.IsTrue(File.Exists(complete), "Run the explicit SDK seed gate first; HTTP never creates a seed.");
+        if (metadataMode && !File.Exists(complete))
+            foreach (var artifact in new[] { "index.db", "index.db-wal", "index.db-shm", "seed.uncertain.json" })
+                Assert.IsFalse(File.Exists(Path.Combine(state, artifact)), "Retained metadata state requires acknowledgement reconciliation before any submission.");
         Assert.IsFalse(File.Exists(pending), "Reconcile the original seed outcome; do not submit another seed.");
         Assert.IsFalse(File.Exists(complete + ".next"), "Preserve an interrupted acknowledgement.");
         var secret = Encoders.Base58.DecodeData(Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!);
@@ -81,7 +86,13 @@ public partial class SolanaIndexedQueryNative
                     var signature = await repository.CreateAsync(new SolanaHolonDto {
                         Id = seed.Id, Version = 1, VersionId = seed.VersionId, CreatedByAvatarId = seed.Actor,
                         Name = "COSMIC native chain coffee", Description = "Explicit declared-range CQL demo",
-                        HolonType = HolonType.Holon, IsActive = true });
+                        HolonType = HolonType.Holon, IsActive = true,
+                        // This explicit new fixture is encrypted by the source frame owner.
+                        // Only Status is opted into the separate plaintext query projection.
+                        MetaData = metadataMode ? new Dictionary<string,object> {
+                            ["Status"] = new Dictionary<string,object> { ["category"] = "coffee", ["amount"] = 9007199254740993L },
+                            ["privateNote"] = "synthetic-private-note-not-indexed"
+                        } : null });
                     seed = seed with { Signature = signature, Phase = "acknowledged" };
                     await WriteNewAsync(complete + ".next", seed);
                     File.Move(complete + ".next", complete);
@@ -99,13 +110,16 @@ public partial class SolanaIndexedQueryNative
             }
 
             var source = new CosmicChainQuerySource(ProviderType.SolanaOASIS, seed.Genesis,
-                ProviderType.SQLLiteDBOASIS, seed.IndexId, 2,
+                ProviderType.SQLLiteDBOASIS, seed.IndexId, metadataMode ? 3 : 2,
                 SolanaRepository.ChainHolonCatalogueHash(seed.Writer, seed.Genesis), seed.CoverageStart);
             var requirement = new CosmicChainQueryReadRequirement(source, new(seed.CoverageStart, seed.StartBlock),
                 500, TimeSpan.FromMinutes(1));
             var database = Path.Combine(state, "index.db");
             CosmicChainQueryPosition? previous = null;
-            using (var index = new SqliteCosmicChainIndexStore(database, source, key, canonicalRowProjection: true))
+            SqliteCosmicChainIndexStore OpenIndex() => metadataMode
+                ? new(database, source, key, new HolonQueryableMetadataPolicy(new[] { "Status" }))
+                : new(database, source, key, canonicalRowProjection: true);
+            using (var index = OpenIndex())
             {
                 if (File.Exists(database))
                 {
@@ -120,7 +134,7 @@ public partial class SolanaIndexedQueryNative
             }
 
             // Reopen the actual durable index before query acceptance.
-            using var reopened = new SqliteCosmicChainIndexStore(database, source, key, canonicalRowProjection: true);
+            using var reopened = OpenIndex();
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
             var manager = new HolonManager(null, dna, new ProviderManager(null, dna));
             var demo = await CosmicCqlDemo.ChainIndexedWalkthrough.RunAsync(manager, reopened, repository,
@@ -151,13 +165,22 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(1L, cardinality.LongCount);
             Assert.IsTrue(cardinality.Any);
 
+            object? metadata = null;
+            if (metadataMode)
+            {
+                var result = await CosmicCqlDemo.ChainIndexedMetadataWalkthrough.RunAsync(manager, reopened, repository,
+                    requirement, CosmicQueryReadAccess.OwnerOrPublic(seed.Actor).Result, Console.Out);
+                Assert.AreEqual(1, result.Rows.Rows.Count);Assert.AreEqual(1L, result.Count);
+                Assert.IsTrue(result.Any);Assert.AreEqual(0L, result.EmptyWindow);
+                metadata = new { rows = result.Rows.Rows.Count, count = result.Count, any = result.Any, emptyWindow = result.EmptyWindow };
+            }
             object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed, rows.Checkpoint.Position) : null;
-            var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
+            var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, metadataMode ? "solana-indexed-metadata-native.json" : httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
                 scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",
                 sourceProvider = source.SourceProvider.ToString(), executionProvider = source.ExecutionProvider.ToString(),
                 seed.Writer, seed.Genesis, seed.Id, seed.IndexId, seed.CoverageStart, seed.Signature,
-                http, projectionRows = projected.Rows.Count, cardinalityCount = cardinality.Count, cardinalityLongCount = cardinality.LongCount,
+                http, metadata, schemaVersion = source.SchemaVersion, projectionRows = projected.Rows.Count, cardinalityCount = cardinality.Count, cardinalityLongCount = cardinality.LongCount,
                 cardinalityAny = cardinality.Any, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
                 checkpoint = rows.Checkpoint.Position.Slot, finalizedHead = rows.Head.Position.Slot,
                 rows = rows.Rows.Count, emptyRows = demo.Empty.Rows.Count,

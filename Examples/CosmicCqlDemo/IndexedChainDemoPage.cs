@@ -44,6 +44,8 @@ public static class IndexedChainDemoPage
     <button data-query="LongCount">LongCount</button>
     <button data-query="Any">Any</button>
     <button data-query="empty">Count empty window</button>
+    <button data-query="metadata-rows" class="metadata" hidden>Filter nested metadata</button>
+    <button data-query="metadata-count" class="metadata" hidden>Count metadata matches</button>
   </div>
   <p id="status" role="status">Ready. Select a query to inspect its request and full provenance.</p>
 
@@ -87,14 +89,18 @@ var any = coffees.Any();</code></pre>
 
     async function run(kind) {
       buttons.forEach(button => button.disabled = true);
-      const scalar = !['rows', 'projection'].includes(kind);
+      const scalar = !['rows', 'projection', 'metadata-rows'].includes(kind);
       const route = scalar ? '/api/data/query-cql/indexed/scalar' : '/api/data/query-cql/indexed';
       const query = {
         filters: [{ field: 'Name', scalar: 'String', operator: 'Equal', value: 'COSMIC native chain coffee' }],
         orderBy: 'Name'
       };
 
-      if (scalar) query.operation = kind === 'empty' ? 'Count' : kind;
+      if (kind.startsWith('metadata-')) query.filters = [
+        { metadataPath: ['Status', 'category'], scalar: 'String', operator: 'Equal', value: 'coffee' },
+        { metadataPath: ['Status', 'amount'], scalar: 'Integer', operator: 'GreaterThan', value: 9007199254740992 }
+      ];
+      if (scalar) query.operation = kind === 'empty' ? 'Count' : kind === 'metadata-count' ? 'LongCount' : kind;
       else query.take = 10;
       if (kind === 'empty') query.take = 0;
 
@@ -125,6 +131,27 @@ var any = coffees.Any();</code></pre>
         buttons.forEach(button => button.disabled = false);
       }
     }
+
+    // Wait for bounded automatic acceptance before enabling browser queries.
+    // A transport error stops discovery; only the explicit verifying state is polled.
+    async function discoverProfile() {
+      buttons.forEach(button => button.disabled = true);
+      status.textContent = 'Waiting for native acceptance…';
+      for (let attempt = 0; attempt < 60; attempt++) {
+        const response = await fetch('/health');
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const health = await response.json();
+        if (health.status === 'ready') {
+          if (health.schemaVersion === 3) document.querySelectorAll('.metadata').forEach(button => button.hidden = false);
+          buttons.forEach(button => button.disabled = false);
+          status.textContent = 'Ready. Source schema ' + health.schemaVersion + '; choose a query.';
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      throw new Error('Native acceptance did not finish within 60 seconds. Inspect the runner log.');
+    }
+    discoverProfile().catch(error => { status.textContent = 'Profile discovery failed: ' + error.message; });
 
     buttons.forEach(button => button.addEventListener('click', () => run(button.dataset.query)));
     document.getElementById('shutdown').addEventListener('click', async () => {

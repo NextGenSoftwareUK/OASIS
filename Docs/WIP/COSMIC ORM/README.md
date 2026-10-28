@@ -17,7 +17,7 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 
 - [Interactive IPFS/SOLID point demo launch and limits](CQL_INTERACTIVE_POINT_DEMO.md).
 
-- [Indexed metadata policy and schema3 implementation plan](CQL_INDEXED_METADATA.md): verified shared policy and SQLite schema3 rows/cardinality; live/HTTP enrollment remains open.
+- [Indexed metadata policy and schema3 implementation plan](CQL_INDEXED_METADATA.md): verified shared policy and SQLite schema3 rows/cardinality; declared-range live/HTTP/interactive acceptance now passes; production limits remain explicit.
 
 - [Indexed SQL canonical rows: explicit schema, privacy, evidence and remaining integration](CQL_INDEXED_SQL_ROWS.md).
 

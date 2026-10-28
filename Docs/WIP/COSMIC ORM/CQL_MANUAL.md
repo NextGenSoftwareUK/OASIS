@@ -962,5 +962,4 @@ LongCount/Any. Rows retain source evidence; cardinality uses snapshot assurance.
 Private metadata stays out of the plaintext index. Encrypted row hydration still
 requires manager.MetadataEncryptionPolicy with an authorized key resolver; index
 enrollment grants no decryption authority. SDK/actual SQLite acceptance is verified,
-including rejection without that runtime context. Metadata live-chain/HTTP demo
-enrollment remains pending; see [verified scope and next gates](CQL_INDEXED_METADATA.md).
+including rejection without that runtime context. Declared-range live Solana/SQLite metadata SDK/HTTP and interactive acceptance now pass. Run the demo hub with `-Provider SolanaMetadata -ArchiveCompletedDemo`; add `-VerifyOnly` for bounded acceptance. Production identity/durable billing remain open; see [verified scope and next gates](CQL_INDEXED_METADATA.md).

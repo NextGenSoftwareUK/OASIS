@@ -1,7 +1,8 @@
 # Indexed metadata: explicit queryable-root profile
 
 27 October2026. Shared policy/source admission and native SQLite schema3 metadata rows/cardinality
-are verified. Live-chain metadata dataset and HTTP/demo acceptance remain incomplete.
+are verified. Declared-range live Solana/SQLite metadata SDK/HTTP/demo acceptance now passes;
+production identity/durable settlement and broader parity remain open.
 
 ## Invariant
 
@@ -87,17 +88,60 @@ The schema stays in BindingHash, so schema2 reservation identity cannot authoriz
 schema3. Full Core4235passes. These controlled preparation tests are not metadata
 HTTP/native-transport acceptance.
 
-## Exact next acceptance
+## Live schema3 SDK, WEB4 and teaching demo: verified
 
-1. Enroll a separately acknowledged metadata-bearing synthetic chain dataset and
-   schema3 index binding; preserve existing seed, schema2 index and original failure.
-   Reuse the retained validator/runtime. Journal before any one-time local fixture
-   submission; never resubmit an unknown outcome or call a new fixture recovery.
-2. Verify shipping WEB4 stock pipeline with actual SQL and source observations,
-   row/scalar metadata filters, private-root rejection before reservation, actor
-   visibility, precise billing and source/index/checkpoint output.
-3. Add the verified profile to the teaching demo. Selected metadata columns and
-   other aggregates require independent capability/evidence work.
+The retained Agave4.3.0 validator was reused. A separately journaled synthetic
+metadata fixture was acknowledged once under LocalState/COSMIC/SolanaMetadataCurrent.
+It has a new source range3325 and index86d676b6-c2c5-4c8f-98b2-a88e0fb8bb11.
+The source record a03306d4-649f-4871-8f27-8e13869b59a1 contains Status.category and
+exact Status.amount9007199254740993 plus a privateNote excluded from the query
+projection. The canonical Solana owner encrypts its source frame. This gate is not
+original-history recovery or a live field-level metadata-key-resolution certificate;
+the separately verified SDK test covers that authenticated envelope/runtime context.
+
+The native test passes1/1 with42HTTP requests:19accepted,19replays rejected and
+4unsupported before execution. Six metadata cases cover rows, LongCount, Any,
+zero/empty source windows and canonical projection over metadata filters. Three
+forbidden roots (privateNote, wrong case and __oasis_enc__) reject before reservation
+or physical reads. Accepted metadata reads settle their exact measured service
+receipts. Source/index/schema/checkpoint/head provenance is retained; privateNote
+is absent from public HTTP responses. Identity/outbox/authority remain controlled.
+
+First run submitted exactly one new seed, acknowledged durably before indexing.
+The first report is hash-archived. A second bounded run and an interactive run reuse
+that acknowledgement with submittedNewSeedfalse/sourceWrites0. The old schema2
+seed/index and original missing-history evidence remain untouched. No pending
+metadata seed journal remains. Index32768bytes and acknowledgement511bytes are retained.
+
+```powershell
+# Run from C:/Source/OASIS-cosmic. Preview starts no service.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ShowPlan
+
+# Bounded acceptance; preserve completed matching report before reuse.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -VerifyOnly -ArchiveCompletedDemo
+
+# Serve on http://127.0.0.1:5089/ until POST/demo/shutdown.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ArchiveCompletedDemo
+```
+
+The page enables controls after health readiness and shows metadata controls only
+for schema3. The additional interactive exact-integer filter/LongCount returned1;
+page/profile/HTTP/shutdown lifecycle passed. JavaScript syntax checked with reused
+Node24.19.0; browser rendering/click automation remains unverified. Validator18899
+and page5089listeners are absent after teardown. Continuous ingestion uses the same
+shared acknowledged-checkpoint session.
+
+Completed report archiving requires matching retained seed identity/signature/index/
+network and completed native evidence. A first-seed report is archivable only when
+its source acknowledgement matches; incomplete/unknown outcomes are preserved.
+
+## Remaining acceptance
+
+Selected metadata columns, other aggregates/selected stages, production JWT and
+durable external settlement, hosted-chain acceptance, incremental source transport
+and history/index scaling remain open. Do not promote broad EF/NHibernate parity
+from this explicit declared-range profile. Evidence hashes/paths are recorded in
+the resource ledger; raw reports stay in TestResults.
 
 Raw evidence belongs in TestResults. Preserve retained source keys/seed/index;
 new owned fixture state must be recorded in the existing resource ledger.

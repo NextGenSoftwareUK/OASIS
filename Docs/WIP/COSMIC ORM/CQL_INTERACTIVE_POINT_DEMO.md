@@ -22,7 +22,7 @@ It is separate from the production WEB4 controller's authentication/billing path
 
 Run one command/provider at a time. Protocol pages use5088; SQLite Swagger uses5087.
 Add `-VerifyOnly` for bounded native verification instead of keeping a host open.
-Five-provider ShowPlan routing and script parsing pass; native protocol host gates
+Six-choice ShowPlan routing and script parsing pass; native protocol host gates
 are the stronger execution evidence. MongoDB/Neo4j/Cosmos are not silently
 routed by this launcher; their existing runners/remaining integration are separate.
 
@@ -170,3 +170,14 @@ The ingestion worker is outside query reservations; production scheduling, worke
 cost accounting and incremental range transport remain open. Evidence:
 TestResults/ProtocolCqlCurrent/index-ingestion-session-live-lifecycle.json and
 TestResults/SolanaCurrent/solana-indexed-http-native.trx/json.
+
+## SolanaMetadata launcher variant
+
+Use `-Provider SolanaMetadata -ArchiveCompletedDemo` (or add `-VerifyOnly`). It
+selects the separately acknowledged schema3 fixture/index and shows nested-metadata
+row/LongCount controls on5089. Schema2 Solana remains an explicit separate choice.
+The42automatic HTTP requests plus an additional interactive metadata filter pass;
+shutdown leaves both listeners stopped. One seed was submitted only on first use;
+subsequent bounded/interactive runs reuse its acknowledgement. The page waits for
+native acceptance before enabling query buttons. Full [commands, evidence and
+limits](CQL_INDEXED_METADATA.md) include original-history and production boundaries.
