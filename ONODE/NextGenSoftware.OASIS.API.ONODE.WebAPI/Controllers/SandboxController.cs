@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -15,7 +16,8 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     /// <summary>
-    /// WEB4 sandbox controls. Exists only on the sandbox deployment (OASIS_SANDBOX=true); answers 404 everywhere else.
+    /// WEB4 sandbox controls, on nodes that enable them (OASIS_SANDBOX=true); answers 404 everywhere else. Every
+    /// control is scoped to the calling avatar, so the sandbox can run on a shared node without affecting other users.
     /// </summary>
     [Route("api/sandbox")]
     [ApiController]
@@ -23,6 +25,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         /// <summary>How long a provider stays offline before it restores itself, so a demo can never leave it down.</summary>
         public static readonly TimeSpan MaxOfflineDuration = TimeSpan.FromMinutes(2);
+
+        /// <summary>The databases sandbox demo avatars use for failover, replication and load balancing.</summary>
+        public const string SandboxProviders = "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS";
 
         /// <summary>
         /// Creates a fresh, verified demo avatar for this visitor and signs it in. Sandbox avatars live only in the
@@ -45,6 +50,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"Could not create a sandbox avatar: {registerResult.Message}" });
 
             IAvatar avatar = registerResult.Result;
+            // Demo avatars route only across the sandbox's three databases (their own HyperDrive settings), so a
+            // visitor's saves and failovers never touch the chains or other providers in the node's DNA lists.
+            OASISResult<Dictionary<string, object>> routing = AvatarHyperDriveSettings.Normalize(new Dictionary<string, object>
+            {
+                [AvatarHyperDriveSettings.AutoFailoverEnabled] = true,
+                [AvatarHyperDriveSettings.AutoReplicationEnabled] = true,
+                [AvatarHyperDriveSettings.AutoLoadBalancingEnabled] = true,
+                [AvatarHyperDriveSettings.AutoFailoverProviders] = SandboxProviders,
+                [AvatarHyperDriveSettings.AutoReplicationProviders] = SandboxProviders,
+                [AvatarHyperDriveSettings.LoadBalancingProviders] = SandboxProviders
+            }, provider => ProviderManager.Instance.GetStorageProvider(provider) != null);
+            if (routing.IsError)
+                return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"This node cannot host the sandbox: {routing.Message}" });
+            avatar.MetaData ??= new Dictionary<string, object>();
+            avatar.MetaData[AvatarHyperDriveSettings.PreferencesKey] = new Dictionary<string, object> { [AvatarHyperDriveSettings.Category] = routing.Result };
             avatar.Verified = DateTime.UtcNow;
             avatar.VerificationToken = null;
             avatar.IsActive = true;
@@ -61,7 +81,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return Ok(authResult);
         }
 
-        /// <summary>Lists providers currently taken offline and when each comes back.</summary>
+        /// <summary>Lists providers this avatar has taken offline and when each comes back.</summary>
+        [Authorize]
         [HttpGet("faults")]
         public ActionResult<OASISResult<Dictionary<string, DateTime>>> GetFaults()
         {
@@ -70,12 +91,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             return Ok(new OASISResult<Dictionary<string, DateTime>>
             {
-                Result = ProviderFaultGate.GetFaulted().ToDictionary(x => x.Key.ToString(), x => x.Value),
+                Result = ProviderFaultGate.GetFaulted(AvatarId).ToDictionary(x => x.Key.ToString(), x => x.Value),
                 Message = "Sandbox provider faults retrieved."
             });
         }
 
-        /// <summary>Counts of requests each offline provider has refused since the sandbox started.</summary>
+        /// <summary>Counts of this avatar's requests each offline provider has refused.</summary>
+        [Authorize]
         [HttpGet("refusals")]
         public ActionResult<OASISResult<Dictionary<string, long>>> GetRefusals()
         {
@@ -84,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             return Ok(new OASISResult<Dictionary<string, long>>
             {
-                Result = ProviderFaultGate.GetRefusals().ToDictionary(x => x.Key.ToString(), x => x.Value),
+                Result = ProviderFaultGate.GetRefusals(AvatarId).ToDictionary(x => x.Key.ToString(), x => x.Value),
                 Message = "Sandbox provider refusals retrieved."
             });
         }
@@ -101,12 +123,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<DateTime> { IsError = true, Message = $"{providerType} is not registered on the sandbox." });
 
             TimeSpan duration = TimeSpan.FromSeconds(Math.Clamp(seconds, 5, (int)MaxOfflineDuration.TotalSeconds));
-            ProviderFaultGate.Fault(providerType, duration);
+            ProviderFaultGate.Fault(AvatarId, providerType, duration);
 
             return Ok(new OASISResult<DateTime>
             {
                 Result = DateTime.UtcNow.Add(duration),
-                Message = $"{providerType} is offline for {duration.TotalSeconds:0} seconds."
+                Message = $"{providerType} is offline for your requests for {duration.TotalSeconds:0} seconds. Nobody else is affected."
             });
         }
 
@@ -118,7 +140,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!ProviderFaultGate.IsEnabled)
                 return NotFound();
 
-            ProviderFaultGate.Restore(providerType);
+            ProviderFaultGate.Restore(AvatarId, providerType);
             return Ok(new OASISResult<bool> { Result = true, Message = $"{providerType} is back online." });
         }
         /// <summary>
