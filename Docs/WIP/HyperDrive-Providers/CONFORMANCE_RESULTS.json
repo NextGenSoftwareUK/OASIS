@@ -348,6 +348,9 @@
     ],
     "FirebaseOASIS": [
       "Firebase Realtime Database REST adapter:23 controlled tests pass after read/protocol error preservation and JSON-safe query encoding;15 regression cases reproduced red before fix. Native shared-suite binding and Realtime Database runtime/access pending. Existing Firestore emulator is a different product; no native acceptance claim."
+    ],
+    "AppwriteOASIS": [
+      "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
     ]
   },
   "suites": [
