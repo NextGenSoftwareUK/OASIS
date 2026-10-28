@@ -39,21 +39,9 @@ public partial class SolanaIndexedQueryNative
         {
             var activation=await mongo.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);active=true;
             foreach(var record in records){var saved=await mongo.SaveHolonAsync(record,saveChildren:false);Assert.IsFalse(saved.IsError,saved.Message);}
-            var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS,ProviderType.SolanaOASIS).Result)
-                .Where(row=>row.Name==coffee).Result;
-            var options=CosmicFederationOptions.Create(take:4,maximumInputRows:4,maximumRowsPerProvider:2,
-                maximumProviderAttempts:2,maximumDurationMilliseconds:30000).Result;
-            var policies=new[]{new CosmicFederationReadPolicy(ProviderType.MongoDBOASIS,
-                CosmicQueryReadAccess.AuthoritativeRecords(seed.Actor,ProviderType.MongoDBOASIS,new[]{seed.Id}).Result),
-                new CosmicFederationReadPolicy(ProviderType.SolanaOASIS,
-                CosmicQueryReadAccess.AuthoritativeRecords(seed.Actor,ProviderType.SolanaOASIS,new[]{seed.Id}).Result)};
-            var plan=CosmicFederationPlanner.Plan(query,options,ProviderType.MongoDBOASIS,
-                new[]{new CosmicQueryTarget(ProviderType.MongoDBOASIS,((ICosmicQueryStorageProvider)mongo).QueryCapabilities),
-                    new CosmicQueryTarget(ProviderType.SolanaOASIS,index.IndexedRowCapabilities,index.Source)},policies,
-                new[]{new CosmicFederationIndexRequirement(requirement)});
-            Assert.IsFalse(plan.IsError,plan.Message);
-            var result=await manager.ExecuteMixedFederationQueryAsync(plan.Result,new ICosmicQueryStorageProvider[]{mongo},
-                new[]{new CosmicFederationIndexedReader(index,observer)});
+            // Run the same readable C# sample that the teaching host will call.
+            var result = await CosmicCqlDemo.MixedFederationWalkthrough.RunAsync(
+                manager, mongo, index, observer, requirement, seed.Actor, seed.Id, coffee);
             Assert.IsFalse(result.IsError,result.Message+result.Exception);Assert.AreEqual(2,result.Result.ObservedInputRows);
             Assert.AreEqual(2,result.Result.Rows.Count);
             var chain=result.Result.Rows.Single(row=>row.Selected.Provider==ProviderType.SolanaOASIS).Selected;
@@ -68,6 +56,9 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(1,result.Result.IndexedReads.Count);
             Assert.IsTrue(chain.IndexedEvidence.Read.Head.Position.Slot>=chain.IndexedEvidence.Read.Checkpoint.Position.Slot);
             Assert.IsFalse(result.Result.Rows.Any(row=>row.Selected.Row.Id==records[1].Id));
+
+            await VerifyMixedHttpAsync(manager, mongo, index, observer, requirement, seed,
+                chain.IndexedEvidence.Read.Checkpoint.Position);
 
             // Exact synthetic Mongo ownership only; no chain deletion or transaction.
             foreach(var record in records){var read=await mongo.LoadHolonAsync(record.Id,loadChildren:false);
