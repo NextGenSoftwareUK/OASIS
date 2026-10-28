@@ -29,7 +29,7 @@ public partial class CosmicChainIndexedExecutionTests
             }
             return new(new(new(source,position,0),new(source.SourceProvider,source.NetworkIdentity,position,
                 DateTimeOffset.UtcNow-(mode=="stale"?TimeSpan.FromHours(1):TimeSpan.Zero)),mode=="operation"?CosmicScalarOperation.Any:plan.Query.Operation,
-                mode=="operation"?1:mode=="overflow"?(long)int.MaxValue+1:2,mode=="overflow"?(long)int.MaxValue+1:3,new string('A',64))){IsLoaded=mode!="incomplete",IsWarning=mode=="warning"};
+                mode=="operation"||plan.Query.Operation==CosmicScalarOperation.Any?1:mode=="overflow"?(long)int.MaxValue+1:2,mode=="overflow"?(long)int.MaxValue+1:3,new string('A',64))){IsLoaded=mode!="incomplete",IsWarning=mode=="warning"};
         }
     }
 

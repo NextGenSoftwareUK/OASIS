@@ -1,7 +1,8 @@
 # Indexed WEB4 HTTP execution milestone
 
-27 October 2026. Controller/context execution verified; stock middleware deployment
-integration, real-backend HTTP/native acceptance and full ORM parity remain open.
+27 October 2026. Stock middleware and native row/projection HTTP acceptance verified.
+Indexed cardinality HTTP passes controlled and live-source transport gates;
+production identity/durable settlement acceptance remain open.
 
 ## Behavior
 
@@ -31,7 +32,7 @@ The same Core owner computes the maximum tariff cost and checks measured cost,
 reserved units and physical-attempt budget in SDK prepared execution too.
 Standalone unprepared SDK calls retain their existing contract.
 
-## Host sequence (not yet automatic stock deployment wiring)
+## Host sequence (explicit host enrollment required)
 
 1. Authenticate the actor; capture bounded indexed DTO and resolve its server alias.
 2. Prepare once; use MaximumServiceCostUsd, MaximumUnits and the tariff read budget
@@ -43,12 +44,11 @@ Standalone unprepared SDK calls retain their existing contract.
 5. Existing usage middleware must durably observe/settle the actual receipts;
    uncertainty remains pending for reconciliation, not a query retry.
 
-The generic usage middleware currently has its own raw HTTP fingerprint; indexed
-preparation currently uses a semantic route-domain fingerprint. Next integrate
-these as distinct bound identities in the stock preparation/admission hooks,
-without bypassing the ledger or adding a parallel billing pipeline. The route
-fails closed when the host has not installed its explicit binding. This milestone
-is not production JWT/Mongo-outbox/authority/settlement acceptance.
+The stock preparation/admission hooks bind the raw HTTP reservation fingerprint
+and semantic route-domain fingerprint as distinct identities. Register the alias
+registry and AddCqlIndexedReadAdmission, and explicitly enroll each measured route.
+No host route, signer or credential is installed automatically. Production
+JWT/Mongo-outbox/authority/settlement acceptance remains open.
 
 ## Request example
 
@@ -265,3 +265,46 @@ Evidence: TestResults/ProtocolCqlCurrent/index-http-projection-core-full.trx;
 TestResults/SolanaCurrent/solana-indexed-http-native.trx/json.
 
 Projection milestone hashes: Core TRX 7C3A2FBEB945E19597D30D7A550AF00F875E326607063F051AA47FD14372C34C; Solana799 TRX 05842494F8ADFDBD56401437B73B82FC47EFE967E6FC6B141E4348DC5A069214; native9request TRX 7F00801B6AA4412CB0CA08DD485BE133295276D8B8A1115B605A4E1F1EAAE010; native JSON A82683E2CF9A2D8E704CDD7F78D9C6C8ED708CA2C9F5A5AFC01C5B2D0DA15432. Paths above; teardown/resources in the single cleanup ledger.
+
+## Indexed cardinality HTTP
+
+POST `/api/data/query-cql/indexed/scalar` uses the same alias registry, frozen
+actor grant, freshness baseline and stock reservation/storage pipeline as rows.
+Enroll this exact route in the host's measured read policy before using it.
+
+```json
+{
+  "alias": "solana-demo",
+  "query": {
+    "operation": "LongCount",
+    "orderBy": "Id"
+  }
+}
+```
+
+Use `Count`, `LongCount` or `Any`. Omit `take` to include the entire eligible
+source; `take: 0` means an empty source window. Explicit windows accept 0–100,
+subject to the alias result ceiling; skip accepts 0–1000. Filters and actor access
+are applied in native indexed SQL. This route does not fetch a row page to count.
+Selections, provider overrides and graph hydration reject before reservation;
+other unsupported predicates reject against the actual indexed capabilities.
+
+The response includes `mode: "indexed-scalar"`, operation, valueType, value,
+logical/physical providers, checkpoint and independently observed finalized head.
+LongCount values use exact decimal strings; Count and Any use JSON integer and
+Boolean values. Assurance is `authenticated-index-snapshot`: it authenticates the
+index snapshot and freshness, without asserting current per-record RPC readability.
+It returns neither fabricated record receipts nor global manifest counts/hashes.
+
+Verification: 9 controlled loopback cases through the shipping controller and
+stock usage/storage middleware cover successful Count/LongCount/Any, forbidden
+selection/graph/provider, missing scalar capability, changed post-reservation
+intent and uncertain receipt acknowledgement. Successful fixtures capture four
+physical reads (SQL, genesis, slot, block), reserve 100 units and settle four.
+Three further tests prove operation/window capture before resolver callbacks.
+The live Solana/SQLite HTTP gate also passes:27requests,13accepted,13replays
+rejected and1unsupported before execution. Nine scalar cases cover all three
+operations across whole-source, filtered-empty and zero-length windows. Each
+settles six physical reads (including independent older anchors). No new seed or
+source writes; retained index reopens and validator stops after the gate.
+Production JWT/durable settlement remains pending.

@@ -14,3 +14,13 @@ public sealed class CqlIndexedV1Request
     public long? MaximumLagSlots { get; set; }
     public int? MaximumHeadAgeSeconds { get; set; }
 }
+
+/// <summary>Native indexed cardinality. Omitted Take covers the complete eligible source.</summary>
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlIndexedScalarV1Request
+{
+    public string Alias { get; set; }
+    public CqlScalarV1Request Query { get; set; } = new();
+    public long? MaximumLagSlots { get; set; }
+    public int? MaximumHeadAgeSeconds { get; set; }
+}

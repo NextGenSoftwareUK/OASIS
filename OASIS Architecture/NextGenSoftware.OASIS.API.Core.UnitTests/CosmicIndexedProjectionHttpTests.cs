@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -71,4 +75,105 @@ public partial class CosmicChainIndexedExecutionTests
         Assert.False(prepared.Result.Matches(request));
         Assert.Equal(1, registry.Calls);
     }
+    [Theory]
+    [InlineData(null)] [InlineData(0)] [InlineData(2)]
+    public void IndexedScalarPreparationFreezesOperationAndWindowBeforeAliasResolution(int? take)
+    {
+        var reader=new CardinalityReader(source,position,"valid");
+        var binding=new CqlIndexedV1Binding(reader,Moq.Mock.Of<ICosmicChainQuerySourceObserver>(),Tariffs(),position,10,
+            TimeSpan.FromMinutes(1),CosmicQueryReadAccess.OwnerOrPublic(actor).Result,Manager());
+        var request=new CqlIndexedScalarV1Request{Alias="solana-demo",Query=new(){Operation="LongCount",Take=take,OrderBy="Id"}};
+        var registry=new BindingRegistry(binding,()=>{request.Query.Operation="Count";request.Query.Take=25;});
+        var prepared=CqlIndexedV1Preparation.Prepare(actor,request,registry);
+        Assert.False(prepared.IsError,prepared.Message);
+        Assert.NotNull(prepared.Result.LongCountPlan);Assert.Null(prepared.Result.CountPlan);
+        Assert.Equal(take,prepared.Result.LongCountPlan.Query.Source.Limit);
+        Assert.False(prepared.Result.Matches(request));
+        request.Query.Operation="LongCount";request.Query.Take=take;
+        Assert.True(prepared.Result.Matches(request));
+        Assert.False(prepared.Result.Matches(WebRequest()));
+        Assert.Equal(1,registry.Calls);Assert.Equal(0,reader.Calls);
+    }
+
+    [Theory]
+    [InlineData("Count")] [InlineData("LongCount")] [InlineData("Any")]
+    [InlineData("selector")] [InlineData("graph")] [InlineData("provider")]
+    [InlineData("row-only")] [InlineData("uncertain")] [InlineData("mutation")]
+    public async Task IndexedScalarStockHttpCapturesNativeCardinalityAndRejectsUnadmittedIntent(string mode)
+    {
+        var reader=new CardinalityReader(source,position,mode=="LongCount"?"overflow":"valid");
+        ICosmicChainQueryIndexReader actual=mode=="row-only"?Fixture("rows").Reader:reader;
+        var binding=new CqlIndexedV1Binding(actual,Moq.Mock.Of<ICosmicChainQuerySourceObserver>(),Tariffs(),position,10,
+            TimeSpan.FromMinutes(1),CosmicQueryReadAccess.OwnerOrPublic(actor).Result,Manager());
+        var registry=new BindingRegistry(binding);
+        var ledger=new StockLedger(actor,()=>Assert.Equal(0,reader.Physical)){FailReceipt=mode=="uncertain"};
+        var native=new Moq.Mock<ICqlV1Providers>(Moq.MockBehavior.Strict);
+        var options=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerOptions{
+            Service="WEB4",EndpointPolicy=_=>new(){MeterCategory="queries",PricingCatalogueVersion="scalar-fixture",
+                RequiresProviderMeasurement=true,ReservedUnits=1,MaximumProviderAttempts=512}};
+        var builder=Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder();
+        builder.Logging.ClearProviders();builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddSingleton<ICqlIndexedV1Bindings>(registry);builder.Services.AddCqlIndexedReadAdmission();
+        builder.Services.AddSingleton(native.Object);builder.Services.AddSingleton(options);
+        builder.Services.AddSingleton(new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageExecution(ledger.Authority.Object,ledger.Store.Object,options));
+        builder.Services.AddSingleton<CqlV1ResourceFilter>();
+        builder.Services.AddControllers().AddApplicationPart(typeof(NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.CqlV1Controller).Assembly);
+        await using var app=builder.Build();app.UseRouting();
+        app.Use(async(http,next)=>{
+            http.User=new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[]{
+                new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier,actor.ToString("D"))},"fixture"));
+            http.Items["Avatar"]=new Avatar{Id=actor};await next();
+        });
+        app.UseMiddleware<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerMiddleware>();
+        app.UseMiddleware<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageAdmissionMiddleware>();
+        if(mode=="mutation")app.Use(async(http,next)=>{
+            // Reservation already captured LongCount. MVC must not dispatch a substituted Count.
+            var bytes=System.Text.Encoding.UTF8.GetBytes("{\"alias\":\"solana-demo\",\"query\":{\"operation\":\"Count\",\"orderBy\":\"Id\"}}");
+            http.Request.Body=new MemoryStream(bytes);http.Request.ContentLength=bytes.Length;await next();
+        });
+        app.MapControllers();await app.StartAsync();
+        try
+        {
+            var addresses=app.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.Server.IServer>().Features
+                .Get<Microsoft.AspNetCore.Hosting.Server.Features.IServerAddressesFeature>()!;
+            using var client=new HttpClient{BaseAddress=new Uri(Assert.Single(addresses.Addresses))};
+            client.DefaultRequestHeaders.Authorization=new("Bearer","fixture");
+            client.DefaultRequestHeaders.Add("Idempotency-Key","scalar-fixture");
+            var query=mode is "Count" or "Any"?mode:"LongCount";
+            var extra=mode=="selector"?",\"selection\":{\"field\":\"Version\"}":mode=="graph"?",\"graph\":{}":mode=="provider"?",\"provider\":\"SolanaOASIS\"":"";
+            var body="{\"alias\":\"solana-demo\",\"query\":{\"operation\":\""+query+"\",\"orderBy\":\"Id\""+extra+"}}";
+            using var response=await client.PostAsync("/api/data/query-cql/indexed/scalar",new StringContent(body,System.Text.Encoding.UTF8,"application/json"));
+            var text=await response.Content.ReadAsStringAsync();
+            if(mode is "selector" or "graph" or "provider" or "row-only")
+            {
+                Assert.True(response.StatusCode==System.Net.HttpStatusCode.BadRequest,text);
+                Assert.Empty(ledger.Authorizations);Assert.Equal(0,reader.Calls);return;
+            }
+            if(mode=="mutation")
+            {
+                Assert.True(response.StatusCode==System.Net.HttpStatusCode.Conflict,text);
+                Assert.Contains("CQL_INDEX_INTENT_MISMATCH",text);Assert.Equal(0,reader.Calls);return;
+            }
+            if(mode=="uncertain")
+            {
+                Assert.True(response.StatusCode==System.Net.HttpStatusCode.ServiceUnavailable,text);
+                Assert.Equal("indeterminate",Assert.Single(ledger.Operations.Values).State);
+                Assert.Empty(ledger.Settlements);Assert.Equal(1,reader.Physical);return;
+            }
+            Assert.True(response.StatusCode==System.Net.HttpStatusCode.OK,text);
+            using var json=System.Text.Json.JsonDocument.Parse(text);var result=json.RootElement.GetProperty("result");
+            Assert.Equal("authenticated-index-snapshot",result.GetProperty("assurance").GetString());
+            Assert.Equal(query,result.GetProperty("operation").GetString());
+            if(mode=="LongCount")Assert.Equal("2147483648",result.GetProperty("value").GetString());
+            else if(mode=="Any")Assert.True(result.GetProperty("value").GetBoolean());
+            else Assert.Equal(2,result.GetProperty("value").GetInt32());
+            Assert.False(result.TryGetProperty("receipts",out _));Assert.False(result.TryGetProperty("rows",out _));
+            Assert.DoesNotContain("historyHash",text,StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(4,reader.Physical);Assert.Equal(4,Assert.Single(ledger.Settlements).Units);
+            Assert.Equal(100,Assert.Single(ledger.Authorizations).RequestedUnits);
+            native.VerifyNoOtherCalls();
+        }
+        finally{await app.StopAsync();}
+    }
+
 }

@@ -56,6 +56,10 @@ public sealed class CqlIndexedV1Preparation
     public CqlIndexedV1Binding Binding { get; }
     public CosmicQueryPlan<Holon> Plan { get; }
     public CosmicProjectionPlan<Holon,CosmicProjectionRecord> ProjectionPlan { get; }
+    public CosmicScalarPlan<Holon,int> CountPlan { get; private set; }
+    public CosmicScalarPlan<Holon,long> LongCountPlan { get; private set; }
+    public CosmicScalarPlan<Holon,bool> AnyPlan { get; private set; }
+    public bool IsScalar => CountPlan != null || LongCountPlan != null || AnyPlan != null;
     public bool IncludeMetadata { get; }
     public int MaximumResults { get; }
     public decimal MaximumServiceCostUsd { get; }
@@ -87,18 +91,9 @@ public sealed class CqlIndexedV1Preparation
                 ||query.Provider!=null||query.Graph!=null||query.Take is <1 or >100)
                 throw new ArgumentException("An explicit bounded alias and alias-owned leaf query are required.");
             var fingerprint=Fingerprint(new CqlIndexedV1Request{Alias=alias,Query=query,Columns=columns,MaximumLagSlots=lag,MaximumHeadAgeSeconds=age});
-            var resolved=bindings.Resolve(actor,alias);
-            if(resolved?.IsError==true)return Error("CQL_INDEX_FORBIDDEN","Server alias policy did not authorize this query.",resolved.Exception);
-            if(resolved==null||resolved.IsWarning||resolved.Result==null)
-                return Error("CQL_INDEX_BINDING_INVALID","Alias resolution did not return a complete server binding.");
+            var resolved=Resolve(actor,alias,lag,age,query.Take,bindings,out var requirement);
+            if(resolved.IsError)return Error(resolved.ErrorCode,resolved.Message,resolved.Exception);
             var binding=resolved.Result;var source=binding.Tariffs.Source;
-            if(binding.Access.ActorId!=actor||binding.Access.Authority.HasValue&&binding.Access.Authority.Value!=source.SourceProvider)
-                return Error("CQL_INDEX_BINDING_INVALID","The captured indexed grant does not match actor/source.");
-            if(query.Take>binding.MaximumResults||lag.HasValue&&(lag<0||lag>binding.Baseline.MaximumLagSlots)
-                ||age.HasValue&&(age<1||TimeSpan.FromSeconds(age.Value)>binding.Baseline.MaximumHeadAge))
-                throw new ArgumentException("Caller freshness/result intent cannot weaken the server baseline.");
-            var requirement=new CosmicChainQueryReadRequirement(source,binding.Baseline.MinimumPosition,
-                lag??binding.Baseline.MaximumLagSlots,age.HasValue?TimeSpan.FromSeconds(age.Value):binding.Baseline.MaximumHeadAge);
             var intent=CqlV1Compiler.CompileIndexedSource(query,actor,requirement,binding.Access);
             var plan=CosmicQueryPlanner.Plan(intent,source.SourceProvider,new[]{
                 new CosmicQueryTarget(source.SourceProvider,binding.Reader.IndexedRowCapabilities,binding.Reader.Source)});
@@ -116,6 +111,85 @@ public sealed class CqlIndexedV1Preparation
         }
         catch(ArgumentException cause){return Error("CQL_REQUEST_INVALID","Invalid bounded indexed query description.",cause);}
         catch(Exception cause){return Error("CQL_INDEX_BINDING_FAILED","Server indexed preparation failed; no alternative was selected.",cause);}
+    }
+
+    public static OASISResult<CqlIndexedV1Preparation> Prepare(Guid actor, CqlIndexedScalarV1Request request,
+        ICqlIndexedV1Bindings bindings)
+    {
+        try
+        {
+            if(actor==Guid.Empty||request==null||bindings==null)throw new ArgumentException("Actor, request and bindings are required.");
+            var alias=request.Alias;var lag=request.MaximumLagSlots;var age=request.MaximumHeadAgeSeconds;
+            var query=CqlRequestCapture.Capture(request.Query);
+            if(string.IsNullOrEmpty(alias)||alias.Length>64||alias.Any(c=>!(c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '-' or '_' or '.'))
+                ||query.Provider!=null||query.Graph!=null||query.Selection!=null||query.Take is <0 or >100
+                ||query.Operation is not ("Count" or "LongCount" or "Any"))
+                throw new ArgumentException("Use an alias-owned Count, LongCount or Any source with an optional bounded window.");
+            var fingerprint=Fingerprint(new CqlIndexedScalarV1Request{Alias=alias,Query=query,MaximumLagSlots=lag,MaximumHeadAgeSeconds=age});
+            var resolved=Resolve(actor,alias,lag,age,query.Take,bindings,out var requirement);
+            if(resolved.IsError)return Error(resolved.ErrorCode,resolved.Message,resolved.Exception);
+            var binding=resolved.Result;var source=binding.Tariffs.Source;
+            if(binding.Reader is not ICosmicChainQueryIndexScalarReader reader)
+                return Error("CQL_CAPABILITY_UNSUPPORTED","The indexed alias has no native cardinality contract.");
+            var intent=CqlV1Compiler.CompileIndexedScalarSource(query,actor,requirement,binding.Access);
+            var targets=new[]{new CosmicScalarTarget(source.SourceProvider,reader.IndexedRowCapabilities,reader.IndexedScalarCapabilities,reader.Source)};
+            var prepared=new CqlIndexedV1Preparation(alias,actor,binding,null,false,0,fingerprint,null);
+            switch(query.Operation)
+            {
+                case "Count":
+                    var count=CosmicScalarPlanner.Plan(intent.Count().Result,source.SourceProvider,targets);
+                    if(count.IsError)return Error(count.ErrorCode,count.Message,count.Exception);
+                    prepared.CountPlan=count.Result;break;
+                case "LongCount":
+                    var longCount=CosmicScalarPlanner.Plan(intent.LongCount().Result,source.SourceProvider,targets);
+                    if(longCount.IsError)return Error(longCount.ErrorCode,longCount.Message,longCount.Exception);
+                    prepared.LongCountPlan=longCount.Result;break;
+                default:
+                    var any=CosmicScalarPlanner.Plan(intent.Any().Result,source.SourceProvider,targets);
+                    if(any.IsError)return Error(any.ErrorCode,any.Message,any.Exception);
+                    prepared.AnyPlan=any.Result;break;
+            }
+            return new(prepared);
+        }
+        catch(ArgumentException cause){return Error("CQL_REQUEST_INVALID","Invalid bounded indexed scalar intent.",cause);}
+        catch(Exception cause){return Error("CQL_INDEX_BINDING_FAILED","Server indexed scalar preparation failed.",cause);}
+    }
+
+    private static OASISResult<CqlIndexedV1Binding> Resolve(Guid actor,string alias,long? lag,int? age,int? take,
+        ICqlIndexedV1Bindings bindings,out CosmicChainQueryReadRequirement requirement)
+    {
+        requirement=null;
+        var resolved=bindings.Resolve(actor,alias);
+        if(resolved?.IsError==true)return BindingError("CQL_INDEX_FORBIDDEN","Server alias policy did not authorize this query.",resolved.Exception);
+        if(resolved==null||resolved.IsWarning||resolved.Result==null)
+            return BindingError("CQL_INDEX_BINDING_INVALID","Alias resolution did not return a complete server binding.");
+        var binding=resolved.Result;var source=binding.Tariffs.Source;
+        if(binding.Access.ActorId!=actor||binding.Access.Authority.HasValue&&binding.Access.Authority.Value!=source.SourceProvider)
+            return BindingError("CQL_INDEX_BINDING_INVALID","The captured indexed grant does not match actor/source.");
+        if(take.HasValue&&take.Value>binding.MaximumResults||lag.HasValue&&(lag<0||lag>binding.Baseline.MaximumLagSlots)
+            ||age.HasValue&&(age<1||TimeSpan.FromSeconds(age.Value)>binding.Baseline.MaximumHeadAge))
+            throw new ArgumentException("Caller freshness/result intent cannot weaken the server baseline.");
+        requirement=new CosmicChainQueryReadRequirement(source,binding.Baseline.MinimumPosition,
+            lag??binding.Baseline.MaximumLagSlots,age.HasValue?TimeSpan.FromSeconds(age.Value):binding.Baseline.MaximumHeadAge);
+        return new(binding);
+    }
+
+    private static OASISResult<CqlIndexedV1Binding> BindingError(string code,string message,Exception cause=null)
+        =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
+
+    internal bool Matches(CqlIndexedScalarV1Request request)
+    {
+        if(request==null||!IsScalar)return false;
+        return string.Equals(RequestFingerprint,Fingerprint(new CqlIndexedScalarV1Request{Alias=request.Alias,
+            Query=CqlRequestCapture.Capture(request.Query),MaximumLagSlots=request.MaximumLagSlots,
+            MaximumHeadAgeSeconds=request.MaximumHeadAgeSeconds}),StringComparison.Ordinal);
+    }
+
+    private static string Fingerprint(CqlIndexedScalarV1Request request)
+    {
+        var wire=JsonSerializer.SerializeToUtf8Bytes(new{Contract="WEB4.CQL.indexed.scalar.v1",Request=request});
+        if(wire.Length>32768)throw new ArgumentException("Indexed scalar intent exceeds the bounded wire contract.");
+        return Convert.ToHexString(SHA256.HashData(wire)).ToLowerInvariant();
     }
 
     internal bool Matches(CqlIndexedV1Request request)
