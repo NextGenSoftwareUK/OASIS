@@ -967,3 +967,17 @@ Add `-ShowPlan` to inspect scope/URL without starting anything, or `-VerifyOnly`
 for bounded acceptance. Cosmos is explicitly the retained local emulator; hosted
 Azure remains open. Oracle preserves completed passing evidence by hash and refuses
 failed/pending outcomes. See [full launcher table](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_LAUNCHER.md).
+
+
+### Prepared hosted Cosmos read acceptance
+
+`Scripts/TestHosts/Run-HostedCosmosCqlRead.ps1 -ConfigurationPath <existing-json-path>`
+is a separate opt-in hosted read gate, not the emulator launcher. It requires a
+user-owned free account with confirmed spending protection, canonical HTTPS endpoint,
+pre-existing database/containers and3..8owned synthetic record IDs. Auth key stays
+in protected process environment; configuration contains no credentials.
+
+It exercises shared CQL rows/subset/projection/LongCount without creating data or
+infrastructure. Configuration/parser tests and builds pass; no hosted run has been
+performed. Account setup, independent free-condition checks and hosted HTTP/browser/
+Mongo/write acceptance remain open. See [configuration and limits](../../Docs/WIP/COSMIC%20ORM/CQL_HOSTED_AZURE_FREE_ADMISSION.md#prepared-hosted-read-entry-point-not-yet-live-verified).
