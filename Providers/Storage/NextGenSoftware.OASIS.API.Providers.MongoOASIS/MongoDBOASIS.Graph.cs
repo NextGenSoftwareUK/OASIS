@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         private async Task<OASISResult<IEnumerable<IHolon>>> SaveGraphsAtomicAsync(IEnumerable<IHolon> source,
             bool saveChildren, bool recursive, int maxChildDepth, int initialDepth,
             IAtomicHolonWritePlan conditionalPlan = null, Guid actorId = default, CancellationToken cancellationToken = default,
-            (List<IHolon> Roots, List<PlannedHolonWrite> Nodes)? capturedGraph = null)
+            (List<IHolon> Roots, List<PlannedHolonWrite> Nodes)? capturedGraph = null, CosmicStorageIdentity expectedStorage = null)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var prepared = false;
@@ -71,6 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         ?()=>CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(edit.OperationId,edit.ReplicationEnrollment.SourceId,
                             edit.Authority,actorId,edit.Operation,responses,edit.SaveChildren,edit.Recursive,edit.MaxChildDepth)):null);
 
+                if (conditional != null) conditional.ExpectedStorage = expectedStorage;
                 var saved = await _holonRepository.ImportAtomicAsync(entries, PreserveCreationAuditFields, preparedEntries =>
                 {
                     var acknowledgements = preparedEntries.ToDictionary(entry => entry.HolonId,

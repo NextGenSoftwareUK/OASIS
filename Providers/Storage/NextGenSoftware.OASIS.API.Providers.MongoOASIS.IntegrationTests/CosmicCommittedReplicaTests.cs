@@ -170,7 +170,8 @@ public sealed partial class CosmicConditionalWriteTests
         });
         var monitored = new MongoClient(settings); var fault = new Provider(uri + "&appName=" + app, databaseName);
         Assert.False((await fault.ActivateProviderAsync()).IsError);
-        fault.Database.MongoClient = monitored; fault.Database.MongoDB = monitored.GetDatabase(databaseName);
+        fault.Database.MongoClient = monitored;
+        fault.Database.MongoDB = monitored.GetDatabase(databaseName); // Session and database must share the same native client owner. fault.Database.MongoDB = monitored.GetDatabase(databaseName);
         var admin = new MongoClient(uri).GetDatabase("admin");
         try
         {

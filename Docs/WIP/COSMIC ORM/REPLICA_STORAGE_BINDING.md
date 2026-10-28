@@ -41,7 +41,7 @@ five/nine-argument constructors and unbound route digest bytes are retained.
 - 1,280 full Shared tests pass, including 2 new capability/authority/no-downgrade/route-digest controls.
 - 4,377 full Core tests pass. Both Core target frameworks, Shared, SQLite and consumers build.
 - Fixture has coherent source protocol lineage but is not an authoritative-source proof.
-  No native Mongo/Neo receiver binding, automatic enrollment binding, durable policy-version
+  At this SQLite checkpoint,no native Mongo/Neo receiver binding, automatic enrollment binding, durable policy-version
   enforcement, old-route reconciliation, source binding or tenant/residency acceptance is claimed.
 
 First new native run used the wrong table name Holons (actual Holon). That authoring
@@ -60,7 +60,7 @@ Raw evidence: C:/Source/OASIS-cosmic/TestResults/BoundReplicaCurrent; no raw out
 Successful fixtures disposed providers/contexts and removed their exact database/journal;
 only the reusable environment.lock remains in SQLiteCurrent. No services/downloads/restores.
 Remaining automatic routing still uses type-only IDs and must not be declared bound.
-Next:implement native transaction-bound admission for Mongo, then consume native
+At that checkpoint,next was native Mongo admission, then consume native
 identities in automatic enrollment and persisted route discovery/operator reconciliation.
 
 ## Neo4j receiver milestone
@@ -101,4 +101,75 @@ retain earlier revision scope; do not assume the latest TRX has historical bytes
 Each new fixture journals before apply, deletes only its exact root/head/receipt after
 success, verifies absence, deactivates providers and removes its completed journal.
 Both owned WSL/container processes exited; retained container stopped, Bolt port free.
-No downloads,installations,restores or replacement environments. Next native owner:Mongo.
+No downloads,installations,restores or replacement environments. Mongo was next at that checkpoint.
+
+## MongoDB receiver and single-capture acknowledgement milestone
+
+Mongo implements the same bound receiver capability. It compares native database/client
+endpoint identity, then sends a native find with expected collectionUUID as the first
+operation in the SAME snapshot transaction, before receipt replay, fences or graph writes.
+The empty single-batch read retains native namespace ownership until transaction exit.
+Missing/recreated Holon collections reject without implicit creation or unbound retry.
+All graph/fence/head/receipt/outbox helpers now share the captured IMongoDatabase and
+its client. A mutable MongoDbContext cannot redirect auxiliary writes during an await.
+This fixes the transaction-owner root cause rather than adding a preflight connection.
+
+Mongo prohibits listCollections inside transactions ([official restrictions](https://www.mongodb.com/docs/manual/core/transactions-operations/)).
+The server defines collectionUUID as an expected UUID with unstable API status
+([official source IDL](https://github.com/mongodb/mongo/blob/master/src/mongo/db/query/find_command.idl)).
+It is verified here on retained Mongo8.3.11; unsupported/strict-API/server refusal fails
+closed as COSMIC_REPLICA_STORAGE_BINDING_INVALID, never weaker admission. UUID/endpoint
+mismatch returns COSMIC_REPLICA_STORAGE_BINDING_MISMATCH. No cross-version, Atlas,
+sharded-cluster or universal vendor compatibility claim is made by this local proof.
+
+Three new native cases prove sync/async matching apply/replay, expected store/endpoint/
+authority mismatch, ACTUAL owned Holon drop/recreation while retaining old head/receipt,
+and no missing-collection repair. The concurrency case pauses the real driver after
+UUID admission, proves a second connection's drop hits its bounded server timeout,
+then mutates the public context to another database before release. Graph, operation
+fence, head and receipt commit only to the captured database; the other DB stays absent.
+The UUID command carries startTransaction/autocommit/lsid/txnNumber as asserted evidence.
+
+The expanded regression exposed a pre-existing post-commit acknowledgement bug:
+ordinary save re-enumerated a ReadOnceChildHolon getter after committing its captured
+graph, then reported membership mismatch. Core now accepts the original immutable
+HolonChildCollectionState bound by owner reference; Shared plans retain and publish
+that capture. Existing two-argument Core API is retained. Foreign captures are rejected,
+partial/scoped selections still cannot become complete, and later scalar/membership
+edits remain dirty. No save retry, second graph selection or weakened scope guard.
+
+Latest verification:
+- Mongo15native cases:3new bound,4identity,6primary routed/atomic,2existing replica.
+- Core4379/Shared1283full suites;2additional scoped-guard variants and2Shared controls.
+- SQLite23affected native and Neo6existing replica regressions pass after the shared fix.
+- All have0failures/0skips. Both Core targets,Shared,SQLite,Mongo,Neo,WEB4/consumers build.
+- Native source-protocol fixture proof remains distinct from automatic routing/policy
+  binding. All3local native receiver capabilities exist; automatic type-only routes,
+  source binding, queued route discovery/migration and durable policy meaning remain open.
+
+Failure/reconciliation record:initial run11/15passed; DDL rejection was the correct
+MongoExecutionTimeoutException rather than the test's expected base type, and native
+replica regression exposed the getter bug. Second run13/15passed after that fix; the
+existing fault test required enableTestCommands=1 in its OWNED test process. Its monitored
+client now supplies both session and native database, matching the captured-owner contract.
+No production server flags changed. Before any rerun, explicit opt-in recovery tests
+validated the exact owned receipts/heads/rows and preserved raw evidence, then deleted
+only recorded fixture DBs and verified absence. Failed TRX/logs remain hash-named in
+TestResults/OwnedRoutingCurrent/Archive; reconciliation is never an automatic reset.
+
+Raw latest evidence: C:/Source/OASIS-cosmic/TestResults/OwnedRoutingCurrent.
+- mongo-bound-replica.trx: SHA256 475BB29B1E648FD75DE0EF044ACB6ED91986B5FBD382CEFAD736E5B31EDA8F90.
+- captured-membership-core.trx: SHA256 A7EA9EFC528E3F80B8D68A837CCB76F2F70876514E0C36D6CEF2D720EBC22FE3.
+- captured-membership-shared.trx: SHA256 438877641E9835285E7A85152EA0ACC5DF5CF04B5DD91653D5D28DFC6E4F7DDE.
+- captured-membership-sqlite.trx: SHA256 9F63F69BF3EE201BD1838D62EE4F7894993995D3C4DFE9AA3EE7D6FCEDFCE845.
+- mongo-bound-reconciliation.trx: SHA256 B3EFB4DF7240CA259E030E4F11A34B2BC74227662ECA37211D977CCB6904C806.
+- mongo-prefault-reconciliation.trx: SHA256 49EF44AB972BFB058FC22AF519EDFD2E1375C5ED68F3DD4D8B44E920886CF753.
+- bound-fixture-reconciliation.json: SHA256 AA75203A8293C29D2899D9BF64F89919A1029B39B0D14851E70882F607745185.
+- pre-fault-fixture-reconciliation.json: SHA256 C6DDCAF3F9AE6FF76B5C851F525A527F9464715F85DBC35A33CA22BD46C4F508.
+- TestResults/Neo4jCurrent/neo4j-cosmic-replica-current.trx: latest6case SHA256 31D277DC331F6FD735A8EE63CBBDA427733151232E0ADD7E6E495AC7E4D70965.
+
+Prior fixed-path hashes above retain their checkpoint scope; this final Neo TRX replaced
+the earlier settled file. No raw evidence was committed to Docs. Both native services
+are stopped; journals/owned fixture databases are absent. Reusable runtimes retained.
+Next:consume native bindings in automatic durable enrollment/delivery, including route
+inventory and explicit operator reconciliation of old/unbound or changed policy routes.

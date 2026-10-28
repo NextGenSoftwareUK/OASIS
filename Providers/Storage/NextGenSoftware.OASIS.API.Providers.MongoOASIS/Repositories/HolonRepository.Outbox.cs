@@ -19,18 +19,18 @@ public partial class HolonRepository
     internal void EnsurePrimaryOutboxIndexes()=>_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateMany(PrimaryOutboxIndexes());
     internal Task EnsurePrimaryOutboxIndexesAsync()=>_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateManyAsync(PrimaryOutboxIndexes());
 
-    private async Task WritePrimaryHolonObligationsAsync(IClientSessionHandle session,ConditionalHolonPlan plan,Guid actor,
+    private async Task WritePrimaryHolonObligationsAsync(IMongoDatabase database,IClientSessionHandle session,ConditionalHolonPlan plan,Guid actor,
         string payload,DateTime now,CancellationToken cancellationToken)
     {
         // The counter shares the graph transaction: rolled-back source writes cannot consume or expose an obligation sequence.
-        var counters=_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutboxSequence");
+        var counters=database.GetCollection<BsonDocument>("CosmicHolonOutboxSequence");
         var targetCount=plan.ReplicationEnrollment.TargetIds.Count;
         var counter=await counters.FindOneAndUpdateAsync(session,new BsonDocument("_id","primary-holon-outbox-v1"),
             new BsonDocument("$inc",new BsonDocument("Value",(long)targetCount)),new FindOneAndUpdateOptions<BsonDocument>{IsUpsert=true,ReturnDocument=ReturnDocument.After},cancellationToken).ConfigureAwait(false);
         if(counter==null || !counter.TryGetValue("Value",out var value) || !value.IsInt64 || value.AsInt64<targetCount)
             throw new InvalidDataException("The primary outbox sequence is invalid.");
         var sequence=value.AsInt64-targetCount;
-        var collection=_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutbox");
+        var collection=database.GetCollection<BsonDocument>("CosmicHolonOutbox");
         var newest=await collection.Find(session,FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("Sequence",-1)).Limit(1).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         if(newest!=null && (!newest.TryGetValue("Sequence",out var highest) || !highest.IsInt64 || highest.AsInt64>sequence))
             throw new InvalidDataException("The primary outbox sequence regressed behind retained obligations.");

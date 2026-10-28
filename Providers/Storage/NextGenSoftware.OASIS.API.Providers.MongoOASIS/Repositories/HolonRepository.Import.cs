@@ -34,15 +34,19 @@ public partial class HolonRepository
             var entries=holons.ToList();
             if(entries.Any(row=>row==null || row.HolonId==Guid.Empty) || entries.GroupBy(row=>row.HolonId).Any(group=>group.Count()>1))
                 throw new ArgumentException("Import requires distinct nonempty holon identities.");
-            var typed=_dbContext.Holon;
-            var raw=_dbContext.MongoDB.GetCollection<BsonDocument>("Holon",typed.Settings);
-            using var session=await _dbContext.MongoClient.StartSessionAsync(cancellationToken:cancellation).ConfigureAwait(false);
+            // One immutable native owner for every namespace in this transaction.
+            // Public context setters cannot redirect heads/fences/outbox mid-await.
+            var database = _dbContext.MongoDB;
+            var typed=database.GetCollection<Holon>(MongoDbContext.HolonCollectionName);
+            var raw=database.GetCollection<BsonDocument>(MongoDbContext.HolonCollectionName,typed.Settings);
+            using var session=await database.Client.StartSessionAsync(cancellationToken:cancellation).ConfigureAwait(false);
             session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
             var commitAttempted=false;var mutationsStarted=false;
             string sessionId=null;long transactionNumber=0;
             try
             {
-                var receipts = _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicWriteReceipt");
+                await ValidateReplicaStorageBindingAsync(database, session, conditional?.ExpectedStorage, cancellation).ConfigureAwait(false);
+                var receipts = database.GetCollection<BsonDocument>("CosmicWriteReceipt");
                 if (conditional != null)
                 {
                     var receipt = await receipts.Find(session, new BsonDocument("_id", conditional.Plan.OperationId.ToString("D")))
@@ -66,7 +70,7 @@ public partial class HolonRepository
                     }
                     // Positive receipt replay stays read-only. For an absent receipt, a
                     // committed fence write makes a stale snapshot conflict before mutation.
-                    await TouchOperationFenceAsync(session, conditional.Plan.OperationId, cancellation).ConfigureAwait(false);
+                    await TouchOperationFenceAsync(database,session, conditional.Plan.OperationId, cancellation).ConfigureAwait(false);
                 }
                 var staged=new List<(BsonDocument Body,bool New)>();
                 var bodies=new Dictionary<Guid,BsonDocument>();
@@ -96,7 +100,7 @@ public partial class HolonRepository
                         if(observedEntities.TryGetValue(proposal.HolonId,out var previous))
                             HolonSaveLifecycle.RequireCompatibleSave(previous.DeletedDate,previous.DeletedByAvatarId,proposal.IsActive,proposal.DeletedDate,proposal.DeletedByAvatarId);
                 if(replica!=null)
-                    await PrepareCommittedReplicaEntitiesAsync(session, entries, observations, replica, cancellation).ConfigureAwait(false);
+                    await PrepareCommittedReplicaEntitiesAsync(database,session, entries, observations, replica, cancellation).ConfigureAwait(false);
                 var now=DateTime.UtcNow;
                 for(var index=0;index<entries.Count;index++)
                 {
@@ -179,9 +183,9 @@ public partial class HolonRepository
                     }
                 }
                 if(replica!=null)
-                    await WriteCommittedReplicaHeadsAsync(session,bodies,replica,cancellation).ConfigureAwait(false);
+                    await WriteCommittedReplicaHeadsAsync(database,session,bodies,replica,cancellation).ConfigureAwait(false);
                 if(replicationPayload!=null)
-                    await WritePrimaryHolonObligationsAsync(session,edit,conditional.ActorId,replicationPayload,now,cancellation).ConfigureAwait(false);
+                    await WritePrimaryHolonObligationsAsync(database,session,edit,conditional.ActorId,replicationPayload,now,cancellation).ConfigureAwait(false);
                 if(conditional!=null)
                     await receipts.InsertOneAsync(session,new BsonDocument { {"_id",conditional.Plan.OperationId.ToString("D")},
                         {"Fingerprint",conditional.Plan.Fingerprint},{"ResultJson",receiptJson},{"CommittedAtUtc",now} },cancellationToken:cancellation).ConfigureAwait(false);
@@ -200,6 +204,7 @@ public partial class HolonRepository
                 if(cause is CosmicConcurrencyException) result.ErrorCode=CosmicConcurrencyException.Code;
                 else if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 else if(cause is MongoConditionalIntentException) result.ErrorCode="COSMIC_OPERATION_ID_REUSED";
+                else if(cause is MongoReplicaStorageBindingException binding) result.ErrorCode=binding.Code;
                 else if(cause is MongoReplicaConflictException) result.ErrorCode="COSMIC_REPLICA_LINEAGE_CONFLICT";
                 else if(cause is MongoReplicaHeadException) result.ErrorCode="COSMIC_REPLICA_HEAD_INVALID";
                 else if(cause is MongoConditionalReceiptException) result.ErrorCode="COSMIC_RECEIPT_INVALID";

@@ -13,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class HolonVisibilityGraphTests
 {
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public void AcknowledgementCannotUpgradeScopedSelectionEvenAfterManifestForgery(bool persisted)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public void AcknowledgementCannotUpgradeScopedSelectionEvenAfterManifestForgery(bool persisted,bool captured)
     {
         var actor=Guid.NewGuid();var root=new Holon{Id=Guid.NewGuid(),CreatedByAvatarId=actor};
         root.Children=new[]{new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,CreatedByAvatarId=Guid.NewGuid()}};
@@ -23,7 +23,8 @@ public sealed class HolonVisibilityGraphTests
         result.IsError.Should().BeFalse();var copy=(Holon)result.Result.Single();
         var forged=HolonChildCollectionState.Capture(copy).CreateManifest(copy.Id,child=>child.Id);
         copy.ChildRoleManifestJson=HolonChildRoleManifestJson.Serialize(forged);copy.AcceptChanges();
-        Action acknowledge=()=>HolonChangeTracking.RecordAcknowledgedChildSelection(copy,forged);
+        Action acknowledge=()=> { if(captured)HolonChangeTracking.RecordAcknowledgedChildSelection(copy,forged,HolonChildCollectionState.Capture(copy));
+            else HolonChangeTracking.RecordAcknowledgedChildSelection(copy,forged); };
         acknowledge.Should().Throw<InvalidOperationException>();
         Action save=()=>HolonChangeTracking.ValidateChildSelectionForSave(copy);
         save.Should().Throw<InvalidOperationException>();

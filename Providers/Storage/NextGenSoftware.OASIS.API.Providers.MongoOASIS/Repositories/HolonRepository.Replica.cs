@@ -25,10 +25,10 @@ internal sealed class MongoReplicaHeadException(string message, Exception cause 
 
 public partial class HolonRepository
 {
-    private async Task PrepareCommittedReplicaEntitiesAsync(IClientSessionHandle session, List<NativeHolon> entries,
+    private async Task PrepareCommittedReplicaEntitiesAsync(IMongoDatabase database, IClientSessionHandle session, List<NativeHolon> entries,
         IReadOnlyDictionary<Guid, BsonDocument> observations, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
-        var heads = _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicReplicaHead");
+        var heads = database.GetCollection<BsonDocument>("CosmicReplicaHead");
         var previous = new Dictionary<Guid, IHolon>(); var conflicts = new List<Guid>();
         foreach (var row in entries.OrderBy(row => row.HolonId))
         {
@@ -86,10 +86,10 @@ public partial class HolonRepository
         }
     }
 
-    private async Task WriteCommittedReplicaHeadsAsync(IClientSessionHandle session,
+    private async Task WriteCommittedReplicaHeadsAsync(IMongoDatabase database, IClientSessionHandle session,
         IReadOnlyDictionary<Guid, BsonDocument> bodies, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
-        var heads = _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicReplicaHead");
+        var heads = database.GetCollection<BsonDocument>("CosmicReplicaHead");
         foreach (var pair in bodies.OrderBy(pair => pair.Key))
         {
             var record = DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NativeHolon>(pair.Value), false);

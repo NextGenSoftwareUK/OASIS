@@ -17,7 +17,8 @@ public static class HolonChildRolePersistence
         ArgumentNullException.ThrowIfNull(write);
         if(write.SelectsChildren)
             HolonChangeTracking.RecordAcknowledgedChildSelection(write.Source,
-                write.RelationshipManifest ?? throw new InvalidDataException("Acknowledged selection omitted its captured role manifest."));
+                write.RelationshipManifest ?? throw new InvalidDataException("Acknowledged selection omitted its captured role manifest."),
+                write.CapturedChildSelection ?? throw new InvalidDataException("Acknowledged selection omitted its captured membership."));
     }
 
     public static string Resolve(PlannedHolonWrite write, HolonChildRoleWriteKind kind,

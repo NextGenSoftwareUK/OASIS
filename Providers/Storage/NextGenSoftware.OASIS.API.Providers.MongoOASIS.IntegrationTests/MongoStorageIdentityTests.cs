@@ -12,7 +12,7 @@ using Provider = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
-public class MongoStorageIdentityTests
+public partial class MongoStorageIdentityTests
 {
     private const string Uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
     private const string First = "cosmic_storage_identity_fixture_a";
