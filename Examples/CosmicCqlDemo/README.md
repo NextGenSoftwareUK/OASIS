@@ -827,3 +827,21 @@ runner preserves existing reports and refuses rerunning over uncertain journals;
 `-Reconcile` reads the exact retained fixture without replaying saves. Review/archive
 completed evidence before subsequent fresh runs. This is SDK/native acceptance;
 a federated browser button and other provider pairings are still pending.
+
+### Native Mongo pairing with IPFS and SOLID
+
+```powershell
+& Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider IPFS -ArchiveCompletedDemo
+
+& Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider SOLID -ArchiveCompletedDemo
+```
+
+Both bounded presets now pass actual native SDK federation: Mongo2 + protocol3,
+with an unrelated Mongo document excluded. They also verify the protocol teaching
+HTTP queries, native source identities and exact owned fixture cleanup. One shared
+fixture implementation enforces journal/owner/collection checks across the protocols.
+
+Reuse retained provider environments; omit `-ArchiveCompletedDemo` on a first run.
+A pending/unknown fixture is preserved, never replayed. Interactive federated buttons
+and cloud/chain pairings are still being implemented. These commands verify real
+Mongo+IPFS/SOLID participation; they do not claim distributed repeatable snapshots.

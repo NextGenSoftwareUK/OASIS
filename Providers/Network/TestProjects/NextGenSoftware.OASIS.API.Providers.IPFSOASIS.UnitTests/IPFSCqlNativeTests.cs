@@ -91,6 +91,9 @@ public class IPFSCqlNativeTests
                 var nativeDna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,
                     StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false}}};
                 var nativeRegistry=new ProviderManager(null,nativeDna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+                if(Environment.GetEnvironmentVariable("OASIS_PROTOCOL_MONGO_ROOT") is string mongoRoot)
+                    await NextGenSoftware.OASIS.Providers.TestSupport.NativeProtocolMongoAcceptance.RunAsync(
+                        mongoRoot,provider,selected,owner,nativeDna,nativeRegistry);
                 await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyKeySetTeachingHostAsync(
                     provider,new HolonManager(provider,nativeDna,nativeRegistry),owner,
                     selected.Select((key,index)=>new{key,id=ownedIds[index]}).ToDictionary(pair=>pair.key,pair=>pair.id));

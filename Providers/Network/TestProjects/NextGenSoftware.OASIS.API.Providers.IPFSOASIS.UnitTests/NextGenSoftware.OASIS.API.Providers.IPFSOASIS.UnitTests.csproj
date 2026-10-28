@@ -50,6 +50,11 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/NativeProtocolMongoAcceptance.cs" Link="TestSupport/NativeProtocolMongoAcceptance.cs" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
+  </ItemGroup>
 </Project>
 
 

@@ -106,7 +106,10 @@ public class SolidCqlNativeTests
                     var nativeDna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,
                         StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false}}};
                     var nativeRegistry=new ProviderManager(null,nativeDna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
-                    await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyKeySetTeachingHostAsync(
+                    if(Environment.GetEnvironmentVariable("OASIS_PROTOCOL_MONGO_ROOT") is string mongoRoot)
+                    await NextGenSoftware.OASIS.Providers.TestSupport.NativeProtocolMongoAcceptance.RunAsync(
+                        mongoRoot,provider,keys,owner,nativeDna,nativeRegistry);
+                await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyKeySetTeachingHostAsync(
                         provider,new HolonManager(provider,nativeDna,nativeRegistry),owner,
                         records.ToDictionary(row=>row.Id.ToString("D"),row=>row.Id));
                     phase="native-keyset-verified";await Checkpoint();
