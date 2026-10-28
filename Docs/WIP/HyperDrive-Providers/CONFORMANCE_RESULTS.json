@@ -272,14 +272,11 @@
       "provider": "DuckDBOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
-      "passed": 2,
+      "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
-      "sha256": "f6db9356707d817dc6a1290ecf9a77036a914cb3100b85b45b25ef83f7bb05cc",
-      "blockers": [
-        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
-        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
-      ]
+      "sha256": "7297d27d62a7a4b50ae268a68fe8da03c6ff37ee30bbcf276880d49c853464d1",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -376,6 +373,9 @@
     ],
     "FaunaOASIS": [
       "Default db.fauna.com DNS host-not-found observed28October; no configured FAUNA env names or cached task runtime. Official self-hosted source exists; releases API0. Native access/runtime, shared-suite run and full interfaces remain open; no clone/install or hosted query attempted."
+    ],
+    "DuckDBOASIS": [
+      "Native core-storage-v2 52/52 plus6 native control cases; native per-key CAS, independent zero-row checks, original soft-delete default and legacy-file refusal verified. Old failures preserved; no automatic legacy three-table migration. All-interface, version/concurrency stress, MotherDuck/cloud and HyperDrive routing remain separate gates."
     ]
   },
   "suites": [

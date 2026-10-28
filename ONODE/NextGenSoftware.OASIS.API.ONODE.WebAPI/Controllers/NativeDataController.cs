@@ -24,6 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class NativeDataController : OASISControllerBase
     {
         public const int SandboxMaximumRecords = 500;
+        public const int UserConnectionMaximumRecords = 5000;
         public const int MaximumPreviewRecords = 20;
 
         HolonManager _holonManager;
@@ -50,9 +51,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>Where to read from. Omit <c>connection</c> to read the server's configured demo store (Wizard or sandbox only).</summary>
+        public sealed class NativeSourcesRequest
+        {
+            public NativeConnection Connection { get; set; }
+        }
+
+        public sealed class NativePreviewRequest
+        {
+            public NativeDataMapping Mapping { get; set; }
+            public NativeConnection Connection { get; set; }
+        }
+
         public sealed class NativeImportRequest
         {
             public NativeDataMapping Mapping { get; set; }
+            public NativeConnection Connection { get; set; }
             public int PageSize { get; set; } = 200;
             public int MaximumRecords { get; set; } = 10000;
         }
@@ -60,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public sealed class NativeImportAllRequest
         {
             public Dictionary<string, NativeDataMapping> Mappings { get; set; }
+            public NativeConnection Connection { get; set; }
             public int PageSize { get; set; } = 200;
             public int MaximumRecordsPerSource { get; set; } = 10000;
         }
@@ -79,49 +94,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("providers")]
         public ActionResult<OASISResult<IEnumerable<ProviderType>>> GetProviders()
         {
-            if (!MayImport()) return Forbidden<IEnumerable<ProviderType>>();
+            if (Avatar == null) return Forbidden<IEnumerable<ProviderType>>(null);
             var types = ProviderManager.Instance.GetAllRegisteredProviders().OfType<INativeDataImportProvider>()
                 .Select(provider => provider.NativeDataProviderType).Distinct().ToList();
             return Ok(new OASISResult<IEnumerable<ProviderType>>(types) { Message = $"{types.Count} providers support native import." });
         }
 
-        /// <summary>The collections, tables or account sets a provider can import.</summary>
+        /// <summary>The collections, tables or labels in the server's configured demo store (Wizard or sandbox only).</summary>
         [HttpGet("{providerType}/sources")]
-        public async Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> GetSources(ProviderType providerType,
-            CancellationToken cancellationToken)
+        public Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> GetSources(ProviderType providerType,
+            CancellationToken cancellationToken) => SourcesAsync(providerType, null, cancellationToken);
+
+        /// <summary>The collections, tables or labels in the caller's own database. Send { connection }; nothing is saved.</summary>
+        [HttpPost("{providerType}/sources")]
+        public Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> PostSources(ProviderType providerType,
+            [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativeSourcesRequest request,
+            CancellationToken cancellationToken) => SourcesAsync(providerType, request?.Connection, cancellationToken);
+
+        private async Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> SourcesAsync(ProviderType providerType,
+            NativeConnection connection, CancellationToken cancellationToken)
         {
-            if (!MayImport()) return Forbidden<IReadOnlyList<NativeDataSource>>();
+            if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeDataSource>>(connection);
             var provider = Resolve<IReadOnlyList<NativeDataSource>>(providerType, out var refusal);
             if (provider == null) return refusal;
-            return Respond(await new NativeDataImportManager(HolonManager).ListSourcesAsync(provider, cancellationToken));
+            return Respond(await new NativeDataImportManager(HolonManager).ListSourcesAsync(provider, connection, cancellationToken));
         }
 
         /// <summary>The first records of a source next to the holons they would become. Nothing is saved.</summary>
         [HttpPost("{providerType}/sources/{sourceName}/preview")]
         public async Task<ActionResult<OASISResult<IReadOnlyList<NativeRecordPreview>>>> Preview(ProviderType providerType, string sourceName,
-            [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativeDataMapping mapping,
+            [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativePreviewRequest request,
             [FromQuery] int count = 5, CancellationToken cancellationToken = default)
         {
-            if (!MayImport()) return Forbidden<IReadOnlyList<NativeRecordPreview>>();
+            var connection = request?.Connection;
+            if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeRecordPreview>>(connection);
             var provider = Resolve<IReadOnlyList<NativeRecordPreview>>(providerType, out var refusal);
             if (provider == null) return refusal;
             if (count < 1 || count > MaximumPreviewRecords)
                 return BadRequest(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, Message = $"count must be between 1 and {MaximumPreviewRecords}." });
 
-            var saved = await SavedMappingAsync(providerType, sourceName, mapping);
+            string identity;
+            try { identity = provider.DescribeNativeConnection(connection); }
+            catch (NativeConnectionRefusedException cause)
+            { return BadRequest(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, ErrorCode = "NATIVE_IMPORT_CONNECTION_REFUSED", Message = cause.Message }); }
+
+            var saved = await SavedMappingAsync(providerType, sourceName, request?.Mapping);
             if (saved.IsError) return Respond(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, ErrorCode = saved.ErrorCode, Message = saved.Message });
-            mapping = saved.Result;
-            var page = await provider.ReadNativeRecordsAsync(sourceName, null, count, cancellationToken);
+            var mapping = saved.Result;
+            var page = await provider.ReadNativeRecordsAsync(sourceName, null, count, connection, cancellationToken);
             if (page.IsError)
                 return Respond(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, ErrorCode = page.ErrorCode, Message = page.Message });
 
             var previews = page.Result.Records.Select(record =>
             {
-                var mapped = NativeRecordHolonMapper.CreateHolon(AvatarId, providerType, record, mapping);
+                var mapped = NativeRecordHolonMapper.CreateHolon(AvatarId, providerType, record, mapping, identity);
                 return new NativeRecordPreview
                 {
                     Native = record,
-                    HolonId = NativeRecordHolonMapper.StableHolonId(AvatarId, providerType, record.SourceName, record.NativeKey),
+                    HolonId = NativeRecordHolonMapper.StableHolonId(AvatarId, providerType, record.SourceName, record.NativeKey, identity),
                     HolonName = mapped.Result?.Name,
                     HolonDescription = mapped.Result?.Description,
                     HolonType = mapped.Result?.HolonType ?? HolonType.Holon,
@@ -137,38 +167,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<ActionResult<OASISResult<NativeDataImportReport>>> Import(ProviderType providerType, string sourceName,
             [FromBody] NativeImportRequest request, CancellationToken cancellationToken)
         {
-            if (!MayImport()) return Forbidden<NativeDataImportReport>();
+            request ??= new NativeImportRequest();
+            if (!MayImport(request.Connection)) return Forbidden<NativeDataImportReport>(request.Connection);
             var provider = Resolve<NativeDataImportReport>(providerType, out var refusal);
             if (provider == null) return refusal;
-            request ??= new NativeImportRequest();
             var mapping = await SavedMappingAsync(providerType, sourceName, request.Mapping);
             if (mapping.IsError) return Respond(new OASISResult<NativeDataImportReport> { IsError = true, ErrorCode = mapping.ErrorCode, Message = mapping.Message });
             return Respond(await new NativeDataImportManager(HolonManager).ImportSourceAsync(provider, sourceName, AvatarId,
-                mapping.Result, request.PageSize, Limit(request.MaximumRecords), cancellationToken));
+                mapping.Result, request.PageSize, Limit(request.MaximumRecords), request.Connection, cancellationToken));
         }
 
-        /// <summary>Imports every source the provider lists, with the given mappings and the naming convention for the rest.</summary>
+        /// <summary>Imports every source the connection lists, with the given mappings and the naming convention for the rest.</summary>
         [HttpPost("{providerType}/import-all")]
         public async Task<ActionResult<OASISResult<IReadOnlyList<NativeDataImportReport>>>> ImportAll(ProviderType providerType,
             [FromBody] NativeImportAllRequest request, CancellationToken cancellationToken)
         {
-            if (!MayImport()) return Forbidden<IReadOnlyList<NativeDataImportReport>>();
+            request ??= new NativeImportAllRequest();
+            if (!MayImport(request.Connection)) return Forbidden<IReadOnlyList<NativeDataImportReport>>(request.Connection);
             var provider = Resolve<IReadOnlyList<NativeDataImportReport>>(providerType, out var refusal);
             if (provider == null) return refusal;
-            request ??= new NativeImportAllRequest();
             var saved = await Program.SettingsManager.GetNativeImportMappingsAsync(AvatarId, providerType);
             if (saved.IsError) return Respond(new OASISResult<IReadOnlyList<NativeDataImportReport>> { IsError = true, ErrorCode = saved.ErrorCode, Message = saved.Message });
             var mappings = new Dictionary<string, NativeDataMapping>(saved.Result, StringComparer.Ordinal);
             foreach (var entry in request.Mappings ?? new Dictionary<string, NativeDataMapping>()) mappings[entry.Key] = entry.Value;
             return Respond(await new NativeDataImportManager(HolonManager).ImportAllAsync(provider, AvatarId, mappings,
-                request.PageSize, Limit(request.MaximumRecordsPerSource), cancellationToken));
+                request.PageSize, Limit(request.MaximumRecordsPerSource), request.Connection, cancellationToken));
         }
 
         /// <summary>This avatar's saved mappings for a provider. Imports and previews use them when no mapping is sent.</summary>
         [HttpGet("{providerType}/mappings")]
         public async Task<ActionResult<OASISResult<Dictionary<string, NativeDataMapping>>>> GetMappings(ProviderType providerType)
         {
-            if (!MayImport()) return Forbidden<Dictionary<string, NativeDataMapping>>();
+            if (Avatar == null) return Forbidden<Dictionary<string, NativeDataMapping>>(null);
             return Respond(await Program.SettingsManager.GetNativeImportMappingsAsync(AvatarId, providerType));
         }
 
@@ -176,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("{providerType}/sources/{sourceName}/mapping")]
         public async Task<ActionResult<OASISResult<bool>>> SaveMapping(ProviderType providerType, string sourceName, [FromBody] NativeDataMapping mapping)
         {
-            if (!MayImport()) return Forbidden<bool>();
+            if (Avatar == null) return Forbidden<bool>(null);
             if (mapping == null) return BadRequest(new OASISResult<bool> { IsError = true, Message = "A mapping is required." });
             if (mapping.SourceName != null && mapping.SourceName != sourceName)
                 return BadRequest(new OASISResult<bool> { IsError = true, ErrorCode = "NATIVE_IMPORT_MAPPING_MISMATCH", Message = $"The mapping is for '{mapping.SourceName}', not '{sourceName}'." });
@@ -187,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpDelete("{providerType}/sources/{sourceName}/mapping")]
         public async Task<ActionResult<OASISResult<bool>>> DeleteMapping(ProviderType providerType, string sourceName)
         {
-            if (!MayImport()) return Forbidden<bool>();
+            if (Avatar == null) return Forbidden<bool>(null);
             return Respond(await Program.SettingsManager.DeleteNativeImportMappingAsync(AvatarId, providerType, sourceName));
         }
 
@@ -201,9 +231,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return new OASISResult<NativeDataMapping>(mapping);
         }
 
-        private bool MayImport() => ProviderFaultGate.IsEnabled || Avatar?.AvatarType.Value == AvatarType.Wizard;
+        /// <summary>
+        /// With a connection the caller reads their own database, so any signed-in avatar may import it. Without one the
+        /// server's configured demo store is read, which needs a Wizard avatar (or the sandbox).
+        /// </summary>
+        private bool MayImport(NativeConnection connection) =>
+            Avatar != null && (connection != null || ProviderFaultGate.IsEnabled || Avatar.AvatarType.Value == AvatarType.Wizard);
 
-        private static int Limit(int requested) => ProviderFaultGate.IsEnabled ? Math.Min(requested, SandboxMaximumRecords) : requested;
+        /// <summary>Sandbox imports are small; other signed-in avatars importing their own database are bounded; Wizards are not capped.</summary>
+        private int Limit(int requested) =>
+            ProviderFaultGate.IsEnabled ? Math.Min(requested, SandboxMaximumRecords)
+            : Avatar?.AvatarType.Value == AvatarType.Wizard ? requested
+            : Math.Min(requested, UserConnectionMaximumRecords);
+
 
         private INativeDataImportProvider Resolve<T>(ProviderType providerType, out ActionResult refusal)
         {
@@ -224,7 +264,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private ActionResult Respond<T>(OASISResult<T> result) => result.IsError ? BadRequest(result) : Ok(result);
 
-        private ActionResult Forbidden<T>() => StatusCode(403, new OASISResult<T>
-        { IsError = true, ErrorCode = "NATIVE_IMPORT_FORBIDDEN", Message = "Native data import reads the provider's own databases and needs a Wizard avatar." });
+        private ActionResult Forbidden<T>(NativeConnection connection) => StatusCode(403, new OASISResult<T>
+        {
+            IsError = true, ErrorCode = "NATIVE_IMPORT_FORBIDDEN",
+            Message = connection == null
+                ? "Reading the server's configured stores needs a Wizard avatar. Send a connection to import your own database."
+                : "Sign in to import your own database."
+        });
     }
 }
