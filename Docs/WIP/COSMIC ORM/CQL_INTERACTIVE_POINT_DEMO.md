@@ -181,3 +181,10 @@ shutdown leaves both listeners stopped. One seed was submitted only on first use
 subsequent bounded/interactive runs reuse its acknowledgement. The page waits for
 native acceptance before enabling query buttons. Full [commands, evidence and
 limits](CQL_INDEXED_METADATA.md) include original-history and production boundaries.
+
+Selected metadata is now included in the SolanaMetadata page. Select metadata
+columns calls the shipping indexed endpoint with explicit typed columns; the
+additional interactive request returned exactInt64 "9007199254740993" and a null
+missing cell without privateNote. The expanded50automatic HTTP requests and
+native LINQ RunSelectionAsync pass. Page/profile/query/shutdown checked through
+HTTP; browser click/rendering remains unverified. Services stopped after acceptance.

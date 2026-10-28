@@ -972,4 +972,4 @@ values. Projection roots are independently enrolled; private or wildcard roots
 reject during planning/re-admission. Native selected values must match validated
 source witnesses before any DTO construction. See the [C# example and acceptance
 scope](CQL_INDEXED_METADATA.md#selected-metadata-shared-sdk-and-sqlite-verified).
-SDK/actual SQLite are verified; the selected-metadata live HTTP/demo gate is pending.
+SDK/actual SQLite and declared-range live Solana selected-metadata HTTP/demo gates are verified. In the SolanaMetadata page, choose Select metadata columns. Exact Int64 values use decimal strings and missing nullable cells use null; production identity/durable settlement remain open.
