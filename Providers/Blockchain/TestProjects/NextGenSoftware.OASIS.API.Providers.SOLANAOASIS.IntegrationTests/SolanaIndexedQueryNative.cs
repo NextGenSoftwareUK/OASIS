@@ -151,7 +151,7 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(1L, cardinality.LongCount);
             Assert.IsTrue(cardinality.Any);
 
-            object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed) : null;
+            object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed, rows.Checkpoint.Position) : null;
             var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
                 scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",

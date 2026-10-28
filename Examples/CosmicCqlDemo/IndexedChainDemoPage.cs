@@ -31,8 +31,8 @@ public static class IndexedChainDemoPage
     Rows and projections validate their source records; cardinality authenticates the index snapshot
     and checks its checkpoint against an independently observed finalized head.
     This is not a hosted-chain, production-authentication or full EF-parity claim.<br>
-    This teaching session uses a startup index snapshot with a 500-slot maximum lag.
-    Freshness errors remain explicit; ongoing ingestion is a remaining roadmap item.</p>
+    An explicit five-second ingestion schedule advances the index through complete declared-range observations.
+    Queries retain a 500-slot freshness ceiling. An ingestion failure stops the session; no ambiguous commit is retried.</p>
 
   <h2>1. Choose a query</h2>
   <p>Each button calls the actual WEB4 controller through its stock reservation and measured-storage pipeline.

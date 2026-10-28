@@ -42,11 +42,15 @@ Next: indexed aggregate/metadata capabilities and common-demo gaps; production
 authentication/durable billing and full parity remain open.
 
 Indexed Count/LongCount/Any now spans SDK, standard LINQ and the dedicated
-`/indexed/scalar` HTTP route. Final Core4198pass; existing SQLite76/Solana799
+`/indexed/scalar` HTTP route. Final Core4211pass; existing SQLite76/Solana799
 checks remain verified. The live HTTP gate passes27requests:13accepted,
 13replays rejected,1unsupported;9scalar cases cover whole/filtered-empty/zero
 windows, six billed physical reads each, no source writes/new seed. Native
 selected/row evidence remains intact. Production identity/durable settlement,
 metadata/other aggregates/selected stages, scaling and full parity remain open.
-Next: prioritize remaining red demo capabilities from the checklist.
+Shared continuous ingestion session now serializes compare-and-publish, advances
+only positively acknowledged cursors and latches failures. Core13newcases pass;
+live host advances3308→3320 with LongCount1, no source writes, clean teardown.
+Next: explicit metadata index profile preserving encryption/reserved-key policy;
+incremental transport and production worker scheduling/accounting remain open.
 See CURRENT_STATUS and CQL_INDEXED_HTTP.md for evidence scope.
