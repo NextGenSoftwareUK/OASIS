@@ -49,6 +49,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             context.Items["Avatar"] = avatar.Result;
             OASISRequestContext.CurrentAvatarId = id;
             OASISRequestContext.CurrentAvatar = avatar.Result;
+            // The avatar's saved HyperDrive settings override the DNA defaults for its own requests only.
+            var routing = NextGenSoftware.OASIS.API.Core.Configuration.AvatarHyperDriveSettings.FromAvatar(avatar.Result);
+            if (routing.IsError)
+            { await Reject(context, 409, routing.ErrorCode, routing.Message); return; }
+            OASISRequestContext.AvatarRoutingOverrides = routing.Result;
             await _next(context);
         }
 

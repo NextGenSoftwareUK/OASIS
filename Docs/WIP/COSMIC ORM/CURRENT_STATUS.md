@@ -49,7 +49,7 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 ## Publication and resources
 
 - Last Development batch:parent858edd8280294d748e0e4999e39c0a141c5b6042/Corebd86a37fa1df02d50e5d2d0e5ad4bd76cce1d26d; remote verified.
-- Reselection/cardinality are later task-branch milestones. Batch further verified Development updates at the agreed daily cadence.
+- Daily Development merge completed on task branch:parent829c35f9a/Core11e5ec6 integrated; merged Corea2e9b6cc50d8d88af1fb398d96b89fd3b23372e4 pushed/remote verified. Both Core targets and WEB4 build;4308full Core tests pass. Manifest/gitlink updated together. No Development deployment from this compatibility milestone; native demos retain their pre-merge live evidence until next affected acceptance.
 - Reuse SDK10.0.401/NuGet/Agave4.3.0, retained service runtimes and LocalState/COSMIC identities/journals. No new installations this milestone.
 - Preserve SolanaCqlCurrent coverage3073, SolanaMetadataCurrent coverage3325, keys/acknowledgements/WSL ledger and reconciliation archive ReconciledFixture892A8AF7.
 - All disposable output goes to worktree TestResults, never Docs. Persistent failure/unknown journals stay in LocalState and must be reconciled before reuse.
