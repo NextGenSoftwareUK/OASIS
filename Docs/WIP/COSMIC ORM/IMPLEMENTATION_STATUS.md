@@ -43,3 +43,8 @@ Indexed HTTP projection is implemented via optional frozen columns on the existi
 indexed route. FullCore4165 and nine-request live Solana/SQLite HTTP gate pass.
 Next: indexed aggregate/metadata capabilities and common-demo gaps; production
 authentication/durable billing and full parity remain open.
+
+Daily27October integration: incoming Development RecordNotFound fix and2legacy
+regressions preserved without new legacy edits. Merged Core4eb3dab published to
+Development/task branch; parent pin/gitlink advance together. FullCore4167,
+SQLite49,Solana799pass; WEB4/demo/five controller consumers build.
