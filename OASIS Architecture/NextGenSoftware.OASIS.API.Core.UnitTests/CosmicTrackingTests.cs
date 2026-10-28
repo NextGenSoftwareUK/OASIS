@@ -1067,7 +1067,13 @@ public partial class CosmicTrackingTests
         if (boundReplication)
         {
             p.As<IBoundAtomicHolonReplicationStorageProvider>();
-            p.As<IBoundHolonReplicationOutboxSource>();
+            var outbox = new Mock<IHolonReplicationRouteInventoryOutbox>();
+            outbox.As<IHolonReplicationDestinationCatalogue>()
+                .Setup(value => value.ReadDestinationBindingAsync(It.IsAny<ProviderType>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new OASISResult<HolonReplicationDestinationBinding>());
+            p.As<IBoundHolonReplicationOutboxSource>()
+                .Setup(value => value.GetBoundHolonReplicationOutbox(It.IsAny<CosmicStorageIdentity>()))
+                .Returns(new OASISResult<IHolonReplicationRouteInventoryOutbox>(outbox.Object));
             p.As<ICosmicStorageIdentityProvider>().Setup(value=>value.CaptureStorageIdentityAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new OASISResult<CosmicStorageIdentity>(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS)));
         }
