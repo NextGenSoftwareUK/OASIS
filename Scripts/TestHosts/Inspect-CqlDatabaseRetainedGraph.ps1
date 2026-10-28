@@ -64,8 +64,8 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
             $expectedCases=if($EntityProjection){2}else{1}
             if([int]$counts.total -ne $expectedCases -or [int]$counts.passed -ne $expectedCases -or [int]$counts.notExecuted -ne 0){throw 'Expected exact complete native task case count.'}
             if($EntityProjection){
-                $proof=Get-Content $report -Raw|ConvertFrom-Json;if($proof.checks -ne 34 -or !$proof.exactCleanupVerified){throw 'Entity projection native proof incomplete.'}
-                $sqliteProof=Get-Content $sqliteReport -Raw|ConvertFrom-Json;if($sqliteProof.checks -ne 34 -or !$sqliteProof.inMemoryFixture){throw 'SQLite entity projection native proof incomplete.'}
+                $proof=Get-Content $report -Raw|ConvertFrom-Json;if($proof.checks -ne 43 -or !$proof.exactCleanupVerified){throw 'Entity projection native proof incomplete.'}
+                $sqliteProof=Get-Content $sqliteReport -Raw|ConvertFrom-Json;if($sqliteProof.checks -ne 43 -or !$sqliteProof.inMemoryFixture){throw 'SQLite entity projection native proof incomplete.'}
             }
             Write-Output ('Native graph task PASS; SHA256='+(Get-FileHash $report).Hash)
             return

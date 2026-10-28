@@ -7,8 +7,21 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
 {
+    public bool SupportsEntityProjectedAll=>true;
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+    {
+        if(!IsProviderActivated || _holonRepository is not HolonRepository repository)
+            return Task.FromResult(new OASISResult<CosmicProjectedAllPacket>{IsError=true,ErrorCode="CQL_PROVIDER_NOT_READY",Message="Activate SQLite before entity-selected All."});
+        var admitted=CosmicProjectedAllPlanner.AdmitEntityExecution(plan,this,limits);
+        return admitted.IsError
+            ? Task.FromResult(new OASISResult<CosmicProjectedAllPacket>{IsError=true,ErrorCode=admitted.ErrorCode,Message=admitted.Message,Exception=admitted.Exception})
+            : repository.ExecuteCosmicEntityProjectedAllAsync(plan,limits,cancellationToken);
+    }
+
     public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition => true;
     public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(

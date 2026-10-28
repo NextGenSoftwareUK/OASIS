@@ -31,12 +31,19 @@ public partial class HolonRepository
 
     private sealed class AllReduction { internal long? Counterexamples; }
 
-    public async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T, TResult>(
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,false);
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,true);
+
+    private async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteProjectedAllReadAsync<T, TResult>(
         CosmicProjectedAllPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
-        CancellationToken cancellationToken = default) where T : IHolon
+        CancellationToken cancellationToken,bool entity) where T : IHolon
     {
         var reduction = new AllReduction();
-        var result = await ExecuteSelectedSnapshotAsync<T, TResult>(null, limits, cancellationToken, plan, reduction).ConfigureAwait(false);
+        var result = await ExecuteSelectedSnapshotAsync<T, TResult>(null, limits, cancellationToken, plan, reduction,entity).ConfigureAwait(false);
         if (result.IsError)
             return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<CosmicProjectionCompositionPacket, CosmicProjectedAllPacket>(result);
         if (!result.IsLoaded || !reduction.Counterexamples.HasValue)
@@ -51,14 +58,16 @@ public partial class HolonRepository
     {
         try
         {
-            var admitted = entity ? AdmitEntitySelected(plan,limits) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
+            var admitted = entity ? (all==null ? AdmitEntitySelected(plan,limits)
+                : CosmicProjectedAllPlanner.AdmitEntityExecution(all,ProviderType.SQLLiteDBOASIS,SqliteCqlContract.Capabilities,
+                    SQLLiteDBOASIS.CqlProjectionCapabilities,SQLLiteDBOASIS.CqlCompositionCapabilities,SQLLiteDBOASIS.CqlEntityCompositionCapabilities,true,limits)) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
                 SqliteCqlContract.Capabilities, SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all, ProviderType.SQLLiteDBOASIS, SqliteCqlContract.Capabilities,
                     SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits);
             if (admitted.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, CosmicProjectionCompositionPacket>(admitted);
             var query = all == null ? plan.Query : all.Query.Projection;
             var compiled = all == null ? CompileCompositionSql(plan, limits)
-                : CompileSelectedSql(query, all.Options, limits, all.Query.Predicate);
+                : CompileSelectedSql(query, all.Options, limits, all.Query.Predicate,entity:all.EntitySource);
             cancellationToken.ThrowIfCancellationRequested();
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
@@ -91,7 +100,7 @@ public partial class HolonRepository
                         return command;
                     }
                     if(compiled.Entity!=null)
-                        await ValidateEntityCompositionAsync(compiled.Entity,plan.EntitySource.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
+                        await ValidateEntityCompositionAsync(compiled.Entity,(plan?.EntitySource??all?.EntitySource).Options,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (compiled.HasRelationship)
                     {
                         using var validation = Command("SELECT count(*) FROM Holon WHERE " + compiled.Predicate);

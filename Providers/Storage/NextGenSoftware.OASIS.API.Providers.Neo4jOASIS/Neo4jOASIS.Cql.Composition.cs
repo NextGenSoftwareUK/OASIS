@@ -10,8 +10,13 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
 {
+    public bool SupportsEntityProjectedAll=>true;
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,true);
+
     public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition=>true;
     public async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
@@ -54,11 +59,13 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
             : new OASISResult<CosmicProjectionCompositionPacket>(result.Result.Proof) { IsLoaded = true };
     }
 
-    public async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T,TResult>(
-        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
-        CancellationToken cancellationToken=default) where T:IHolon
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,false);
+    private async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteProjectedAllReadAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken,bool entity) where T:IHolon
     {
-        var result = await ExecuteSelectedSnapshotAsync<T,TResult>(null, plan, limits, cancellationToken).ConfigureAwait(false);
+        var result = await ExecuteSelectedSnapshotAsync<T,TResult>(null, plan, limits, cancellationToken,entity).ConfigureAwait(false);
         if (result.IsError)
             return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<NeoSelectedResult, CosmicProjectedAllPacket>(result);
         if (!result.Result.Counterexamples.HasValue)
@@ -81,7 +88,8 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
         NeoCqlReadBudget readBudget=null;
         try
         {
-            var admitted=entity ? CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan,Core.Enums.ProviderType.Neo4jOASIS,
+            var admitted=entity ? (all==null ? CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits)
+                : CosmicProjectedAllPlanner.AdmitEntityExecution(all,this,limits)) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan,Core.Enums.ProviderType.Neo4jOASIS,
                 CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all,Core.Enums.ProviderType.Neo4jOASIS,
                     CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits);
@@ -96,7 +104,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
             budget.Check();
             var cursor=await transaction.RunAsync(command.Text,command.Parameters).ConfigureAwait(false);
             var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null, cardinality:plan?.RequestsCardinality == true, numeric:plan?.NumericReduction);
-            var entityProof=entity ? new NeoCqlEntityInputProof(plan.EntitySource.Options) : null;
+            var entityProof=entity ? new NeoCqlEntityInputProof((plan?.EntitySource??all?.EntitySource).Options) : null;
             long observedEntity=0;long? expectedEntity=null;var selectedStarted=false;
             while(true)
             {

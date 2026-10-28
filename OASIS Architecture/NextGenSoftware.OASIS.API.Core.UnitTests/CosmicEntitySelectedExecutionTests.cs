@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed partial class CosmicEntityProjectionTests
 {
-    private sealed class EntitySelectedNative:Native,ICosmicQueryEntityProjectionCardinalityStorageProvider
+    private class EntitySelectedNative:Native,ICosmicQueryEntityProjectionCardinalityStorageProvider
     {
         public bool Combined=true,CardinalityEnabled=true,CardinalityProfile=true;
         public bool SupportsEntityProjectionCardinality=>CardinalityEnabled;
@@ -16,7 +16,7 @@ public sealed partial class CosmicEntityProjectionTests
         public CosmicProjectionCompositionPlan<Holon,ProjectionDto>? CombinedSeen;
         public CosmicProjectionCompositionPacket Packet=null!;
         public bool SupportsEntityProjectionComposition=>Combined;
-        public CosmicProjectionCompositionCapabilities CompositionCapabilities=>new(
+        public virtual CosmicProjectionCompositionCapabilities CompositionCapabilities=>new(
             CosmicSelectedStageFeatures.Paging,CosmicQueryFeatures.None,
             Array.Empty<CosmicQueryMetadataCapability>(),Array.Empty<Type>(),32,false,CardinalityProfile);
         public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicProjectionCompositionAsync<T,TResult>(
