@@ -84,3 +84,22 @@ Evidence TestResults/OwnedRoutingCurrent/sqlite-owned-routing.trx SHA256
 sqlite-atomic-regression.trx SHA25691B823D0F7AFBE7E4C6836990DD270604612B4F140C479C74D795FC1A140DCA4.
 Next unblocked gate:native Mongo/Neo routed enrollment, then delivery/restart/failure
 acceptance. Preserve full X10 red and hosted Azure pending.
+
+
+Mongo routed-owned-save acceptance:4/4new single/batch healthy/second-target-validator
+fault cases pass; combined with existing sync/async native primary suite6/6pass,zero
+skips. Effective avatar/request settings override disabled node replication defaults.
+Native obligations bind operation/actor/source and all committed root revisions.
+Failure preserves pending caller IDs/revisions and rolls back graph/receipt/obligations.
+No-op adds none; fresh provider loads see committed revisions. Exact dedicated DB
+removed, persistent intent absent, owned27029service stopped. No production fix needed.
+Targets advertise contracts only:receiver delivery, process-crash/restart and full X10
+remain unverified. Next:native Neo4j routed primary acceptance.
+Tests:Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/CosmicRoutedOwnedOutboxTests.cs.
+Evidence TestResults/OwnedRoutingCurrent/mongo-owned-routing.trx SHA256
+90C44733B4350A4B6A18E9114669B326B8435C248C11AE3CA5F57EEB12712147;
+mongo-owned-atomic-regression.trx SHA25687F7165D0C50AF195A00CC68A69CB94323E691158113571F1F41309142F2E843.
+Reproduce with retained Mongo8.3.11/oasisRecoveryRs on27029 and process environment
+OASIS_MONGO_REPLICA_SET_CONNECTION=mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000;
+filter MongoRoutedOwnedSaveCommitsEffectiveTargetsOrRollsBackAllState. One build lease
+and bounded workers; reusable orchestration retained at TestResults/OwnedRoutingCurrent/run-mongo-owned.ps1.
