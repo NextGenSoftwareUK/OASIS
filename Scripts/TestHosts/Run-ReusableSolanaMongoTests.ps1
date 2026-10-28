@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$ArchiveCompletedDemo)
+param([switch]$ArchiveCompletedDemo,[switch]$Serve)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/DemoBreadthCurrent'
@@ -11,9 +11,9 @@ if(!(Test-Path (Join-Path $data 'WiredTiger')) -or !(Test-Path (Join-Path $sourc
 if(Test-Path (Join-Path $source 'seed.pending.json')){throw 'Preserve pending original chain submission.'}
 if(Test-Path (Join-Path $root 'LocalState/COSMIC/MongoSolanaCurrent/fixture.pending.json')){throw 'Preserve/reconcile exact original Mongo fixture; never replay creates.'}
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-native-mongo-solana -Operation {
-    $owned=$null;$prior=$env:OASIS_SOLANA_MONGO_FEDERATION_ROOT
+    $owned=$null;$prior=$env:OASIS_SOLANA_MONGO_FEDERATION_ROOT;$priorServe=$env:OASIS_SOLANA_MIXED_SERVE
     try{
-        if(Get-NetTCPConnection -State Listen -LocalPort 27029,18899,5089 -ErrorAction SilentlyContinue){throw 'Owned Mongo/Solana demo port occupied.'}
+        if(Get-NetTCPConnection -State Listen -LocalPort 27029,18899,5089,5091 -ErrorAction SilentlyContinue){throw 'Owned Mongo/Solana demo port occupied.'}
         if(((& $runtime --version) -join ' ') -notmatch 'v8\.3\.11\b'){throw 'Retained Mongo8.3.11 runtime required.'}
         foreach($project in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
@@ -32,9 +32,11 @@ if(Test-Path (Join-Path $root 'LocalState/COSMIC/MongoSolanaCurrent/fixture.pend
         }
         if(!$ready){throw 'Mongo listener readiness deadline exceeded.'}
         $env:OASIS_SOLANA_MONGO_FEDERATION_ROOT=$root
+        $env:OASIS_SOLANA_MIXED_SERVE=if($Serve){'1'}else{$null}
         & (Join-Path $PSScriptRoot 'Run-ReusableSolanaTests.ps1') -IndexedMetadataDemo -ArchiveCompletedDemo:$ArchiveCompletedDemo
     }finally{
         $env:OASIS_SOLANA_MONGO_FEDERATION_ROOT=$prior
+        $env:OASIS_SOLANA_MIXED_SERVE=$priorServe
         if($owned){if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(30000)){throw 'Owned Mongo did not stop.'}};$owned.Dispose()}
     }
 }

@@ -890,7 +890,7 @@ one synthetic logical ID: Mongo1 and retained Solana1 via its explicit SQLite in
 The chain copy retains source receipt/checkpoint/head; the unrelated Mongo control is
 excluded. Original chain ledger/ack/index remain intact, no transaction or reseed.
 Exact owned Mongo cleanup and both services' shutdown are verified. This is SDK/native
-proof; the mixed browser/HTTP preset is still being implemented. See Docs/WIP/COSMIC
+proof; the mixed browser/HTTP preset now also passes against the retained validator. See Docs/WIP/COSMIC
 ORM/CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md for scope and evidence.
 
 ### Oracle demo work in progress
@@ -918,3 +918,19 @@ click **Query all records**, **Query two-record subset**, then **Stop demo and c
 Expected counts are5 and4 with provider labels. Actual clicks, screenshot spacing
 and exact cleanup are verified. This is a loopback teaching host; production WEB4
 authentication/billing is a separate endpoint.
+
+
+### Mongo + Solana browser preset
+
+```powershell
+& Scripts/TestHosts/Run-ReusableSolanaMongoTests.ps1 -ArchiveCompletedDemo -Serve
+```
+
+Open http://127.0.0.1:5091/ . **Query matching copies** returns Mongo1/Solana1;
+**Query empty selection** returns0 with index-read assurance. Inspect the original
+chain receipt/version, source/execution providers and checkpoint/head. An explicit
+5second ingestion schedule keeps the declared index moving; no chain transaction
+is submitted. Stop with **Stop demo and clean Mongo fixture** for verified teardown.
+The page and `MixedFederationWalkthrough.cs` have clear spacing/comments and share
+the native SDK execution. Actual clicks and screenshot readability are verified.
+This loopback teaching endpoint is separate from production WEB4 auth/billing.

@@ -109,3 +109,10 @@ version identity and source/index/checkpoint/head preserved. Per-provider author
 access bound before windows. Exact synthetic Mongo cleanup and both service shutdowns
 verified. submittedNewSeed=false/sourceWrites0. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md).
 Actual mixed HTTP/browser preset remains open; no hosted-chain/production auth claim.
+
+
+Mixed HTTP/browser is now verified for Mongo+retained Solana on loopback5091:
+2matching physical copies and0empty, retained chain receipt/version and indexed read
+assurance for empty output, independent bounded ingestion and exact Mongo cleanup.
+See [live proof and launcher](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md#mixed-httpbrowser-milestone).
+Production mixed WEB4 authentication/billing and hosted chain acceptance remain open.

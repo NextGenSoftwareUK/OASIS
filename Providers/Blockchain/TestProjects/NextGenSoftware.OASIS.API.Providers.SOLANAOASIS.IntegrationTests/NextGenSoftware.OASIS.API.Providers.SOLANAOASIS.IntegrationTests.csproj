@@ -25,6 +25,8 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs" Link="Demo/ChainIndexedMetadataWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IndexedChainDemoPage.cs" Link="Demo/IndexedChainDemoPage.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs" Link="Demo/ChainIndexedWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MixedFederationWalkthrough.cs" Link="Demo/MixedFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MixedFederationApiHost.cs" Link="Demo/MixedFederationApiHost.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />

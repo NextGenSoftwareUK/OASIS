@@ -1275,3 +1275,14 @@ composition and bounded paging. It does not admit arbitrary Name/metadata querie
 projection/aggregation or shared snapshots. The loopback host accepts only fixed
 presets; actor/access catalogues remain server-owned. See
 [Oracle admission and evidence](CQL_ORACLE_DEMO_ADMISSION.md).
+
+
+## Native Mongo + indexed Solana
+
+[MixedFederationWalkthrough](../../../Examples/CosmicCqlDemo/MixedFederationWalkthrough.cs)
+shows explicit native adapters, indexed readers, source requirements and separate
+read catalogues passed to HolonManager. Use
+`Scripts/TestHosts/Run-ReusableSolanaMongoTests.ps1 -ArchiveCompletedDemo -Serve`
+and http://127.0.0.1:5091/ for matching/empty presets. Read-level assurance survives
+zero matching rows; only the chain copy carries its original receipt/version.
+Stop with the page cleanup button. [Verification and limits](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md#mixed-httpbrowser-milestone).
