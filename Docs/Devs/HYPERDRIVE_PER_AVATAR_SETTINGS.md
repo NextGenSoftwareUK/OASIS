@@ -55,13 +55,19 @@ Nodes with `OASIS_SANDBOX=true` expose `api/sandbox` (dev WEB4 does; production 
 
 The public page is `web4.oasisomniverse.one/web4-sandbox.html`, pointed at `dev.api.web4.oasisomniverse.one`.
 
-## Known V2 gap: API saves do not replicate (verified on dev WEB4, 2026-10-28)
+## V2 replication of owned writes
 
-V2 saves through the data API are owned conditional writes. They replicate only when the write carries a
-`ReplicationEnrollment` (`CosmicWriteOptions.ReplicationEnrollment` → `ConditionalHolonWrite`), which makes the authority
-provider record the replication atomically (`IAtomicHolonReplicationStorageProvider.ExecuteReplicatingHolonWrite`), and
-delivery to the targets then needs the hosted outbox pipeline (`OASISHyperDriveConfig.EnableHostedSync`). Today the API
-never sets the enrollment and dev runs with hosted sync off, so each save lands only on the provider load balancing picks.
-Failover itself works (a faulted provider is refused and the next one is tried), but the next provider has no copy.
-The sandbox page shows this as MISSING copies rather than hiding it. Fix belongs to the HyperDrive V2 provider work:
-enrol replication from the effective routing policy (authority + replication list) and run outbox delivery.
+V2 data-API saves are owned conditional writes. `HolonManager` enrols each one for replication from the request's
+effective routing (`HolonReplicationRoutes.Plan`): source = the authority provider, targets = every other provider in the
+effective replication list that implements `ICommittedHolonReplicaStorageProvider`, provided the authority implements
+`IAtomicHolonReplicationStorageProvider`. The authority records the obligations in its native outbox in the same
+transaction as the write. An explicit `CosmicWriteOptions.ReplicationEnrollment` still wins.
+
+`HolonReplicationDeliveryHostedService` (WEB4) delivers them: after every enrolled commit (`EnrolledWriteCommitted`) and
+every 15 seconds for retries, it claims pending obligations per source/target pair and applies them with
+`HolonOutboxDispatcher` + `CommittedHolonReplicaTarget` (leases, retries and reconciliation are the outbox's). Source and
+target ids are `hyperdrive-source:<Provider>` / `hyperdrive-target:<Provider>`.
+
+Verified on dev WEB4 (2026-10-28): one save appeared on MongoDB, SQLite and Neo4j within about two seconds; with MongoDB
+taken offline for the visitor, a load starting at MongoDB was refused and served from a replica.
+Tests: `HolonReplicationRoutesTests`; provider pipeline coverage in `MongoSqliteRealProviderRoutingTests.CommittedReplicas`.
