@@ -55,7 +55,7 @@ public partial class HolonRepository
         };
 
         static string Predicate<T>(CqlSqlTranslator translator, CosmicQuery<T> query) where T : IHolon
-            => query.Predicates.Count == 0 ? "1" : string.Join(" AND ", query.Predicates.Select(translator.Translate));
+            => translator.TranslateSource(query.Predicates);
 
         string Source<T>(CqlSqlTranslator translator, CosmicQuery<T> query, bool isLeft, int maximumRows, string predicate)
             where T : IHolon

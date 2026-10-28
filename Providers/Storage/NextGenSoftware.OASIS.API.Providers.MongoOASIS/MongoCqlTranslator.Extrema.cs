@@ -44,7 +44,7 @@ internal sealed partial class MongoCqlTranslator
         // Mandatory traversal failures live outside the source window and reduction.
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
-        var membership = query.Source.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
+        var membership = query.Source.Predicates.Any(HasRelationships);
         return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
             query.Source.Limit == 0, traverses);
     }

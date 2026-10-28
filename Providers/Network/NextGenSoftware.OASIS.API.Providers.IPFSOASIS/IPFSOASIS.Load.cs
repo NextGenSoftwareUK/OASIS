@@ -391,7 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 graphRecords, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
                 source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             var result=new OASISResult<IEnumerable<IHolon>>(records
-                .Where(row => row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
+                .Where(row => !row.IsDeleted && row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
                 .Select(project).ToList());MarkIpfsLoaded(result,result.Result.Count());return result;
         }
 
@@ -441,7 +441,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 holon.DeletedDate=DateTime.UtcNow;
                 holon.DeletedByAvatarId=AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty;
                 holon.IsActive=false;
-                result.Result=await SaveHolonToFile(holon); result.IsSaved=true;
+                // Publish acknowledgement only after the tombstone and catalogue pointer are durable.
+                result.Result=await SaveHolonToFile(holon);
+                result.IsSaved=true;
+                result.SavedCount=1;
+                result.IsDeleted=true;
+                result.DeletedCount=1;
             }
             catch(Exception cause)
             {

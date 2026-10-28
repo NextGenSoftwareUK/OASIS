@@ -23,8 +23,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities,
                     new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }),
                 new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities,
-                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) })
-            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true);
+                    new[] { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) }, supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
+            }, supportsAllChildren: true, supportsAllDescendants: true, supportsAllChildDescendants: true, supportsAllDescendantPredicates: true, supportsPostWindowCardinality: true);
     }
     public static CosmicScalarCapabilities CqlScalarCapabilities => ScalarContract.Capabilities;
     public CosmicScalarCapabilities ScalarCapabilities => CqlScalarCapabilities;
@@ -49,6 +49,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             // An empty result window cannot suppress protected relationship
             // validation. Only an unprotected empty query can avoid native I/O.
             var plainEmpty = source.Limit == 0 && !compiled.Translator.HasRelationship;
+            if (plainEmpty && plan.Query.UsesInt64DoubleAverage)
+                return CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query, 0, 0, 0, false);
             if (plainEmpty && numeric && floatingWidth != 0)
                 return CosmicFloatingAggregateResults.FromParts(plan.Query, new long[floatingWidth], 0);
             if (plainEmpty && numeric) return decimalInput
@@ -73,7 +75,8 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 + "WHEN total-$countOffset > $countTake THEN $countTake ELSE total-$countOffset END AS value,"
                 + "true AS valid,false AS traversalCycle,false AS traversalLimit } RETURN value,valid,traversalCycle,traversalLimit";
 
-            if (plan.Query.Operation == CosmicScalarOperation.All) query = CompileCqlAll(compiled, plan.Query);
+            if (plan.Query.CardinalityPredicate != null) query = CompileCqlCardinalityPredicate(compiled, plan.Query);
+            else if (plan.Query.Operation == CosmicScalarOperation.All) query = CompileCqlAll(compiled, plan.Query);
             else if (numeric) query = CompileCqlNumeric(compiled, plan.Query);
             else if (selected) query = CompileCqlExtremum(compiled, plan.Query);
             // ReserveProjection includes 32 bytes of envelope overhead; the
@@ -102,7 +105,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
                 if (observed) throw new InvalidDataException("Neo4j scalar returned multiple native values.");
                 if (numeric)
                 {
-                    numericValue = DecodeCqlNumeric(row.Values, decimalInput, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null, floatingWidth);
+                    numericValue = plan.Query.UsesInt64DoubleAverage
+                        ? DecodeCqlCheckedNumeric(row.Values, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null)
+                        : DecodeCqlNumeric(row.Values, decimalInput, Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) == null, floatingWidth);
                 }
                 else if (selected)
                 {
@@ -131,6 +136,9 @@ public partial class Neo4jOASIS : ICosmicQueryScalarStorageProvider
             if (!observed) throw new InvalidDataException("Neo4j scalar reduction did not return its empty/nonempty result.");
             await transaction.CommitAsync().ConfigureAwait(false);
             budget.Check();
+            if (plan.Query.UsesInt64DoubleAverage)
+                return CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query, numericValue.High, numericValue.Low,
+                    numericValue.Count, numericValue.PrefixOverflow ?? throw new InvalidDataException("Missing checked-prefix acknowledgement."));
             if (numeric && floatingWidth != 0)
                 return CosmicFloatingAggregateResults.FromParts(plan.Query, numericValue.FloatingParts, numericValue.Count);
             if (numeric) return decimalInput

@@ -1,6 +1,10 @@
+param([string]$EnvironmentPath,
+    [ValidatePattern('^[a-z][a-z0-9-]{0,39}$')][string]$PodName='oasis-auth-local',
+    [ValidatePattern('^[a-z0-9-]+@example\.invalid$')][string]$LoginEmail='oasis-retained-test@example.invalid')
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$work=Join-Path $taskRoot 'TestResults/SolidCurrent'
+$work=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskRoot 'LocalState/COSMIC/SolidCurrent'}
+New-Item -ItemType Directory -Force -Path $work|Out-Null
 Add-Type -AssemblyName System.Security
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 try {
@@ -60,14 +64,14 @@ try {
     try{$password=[Text.Encoding]::UTF8.GetString($bytes)}finally{[Array]::Clear($bytes,0,$bytes.Length)}
     $passwordUri=[Uri]$index.controls.password.create
     if($passwordUri.Authority -ne 'localhost:13000' -or !$passwordUri.AbsolutePath.StartsWith('/.account/account/')){throw 'Unexpected password control scope.'}
-    $null=Invoke-OwnedProvisioningStep 'private-login' $passwordUri @{email='oasis-retained-test@example.invalid';password=$password}
+    $null=Invoke-OwnedProvisioningStep 'private-login' $passwordUri @{email=$LoginEmail;password=$password}
     $password=$null
     foreach($kind in @('pod','clientCredentials')){
         $uri=[Uri]$index.controls.account.$kind
         if($uri.Scheme -ne 'http' -or $uri.Authority -ne 'localhost:13000' -or !$uri.AbsolutePath.StartsWith('/.account/account/')){throw 'Unexpected account control scope.'}
         $schema=Invoke-RestMethod $uri -Headers @{Accept='application/json';Authorization="CSS-Account-Token $($identity.authorization)"}
         if($kind -eq 'pod'){
-            $pod=Invoke-OwnedProvisioningStep 'private-local-pod' $uri @{name='oasis-auth-local'}
+            $pod=Invoke-OwnedProvisioningStep 'private-local-pod' $uri @{name=$PodName}
             if([string]::IsNullOrWhiteSpace($pod.webId)){throw 'Created Pod response missing WebID; inspect retained protected response.'}
         }else{
             $client=Invoke-OwnedProvisioningStep 'private-local-client' $uri @{name='oasis-retained-provider-tests';webId=$pod.webId}

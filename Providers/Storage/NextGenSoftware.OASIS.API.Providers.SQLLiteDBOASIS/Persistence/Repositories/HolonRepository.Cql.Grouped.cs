@@ -32,7 +32,7 @@ public partial class HolonRepository
                 || maximumPayloadBytes < 0 || maximumPayloadBytes > query.Grouping.Options.MaximumPayloadBytes)
                 return GroupedCqlError("CQL_EXECUTION_INVALID", "Grouped remaining output bounds are invalid.");
             var translator = new CqlSqlTranslator(source.ReadAccess);
-            var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
+            var predicate = translator.TranslateSource(source.Predicates);
             var ordering = translator.TranslateOrdering(source.Orderings);
             var sentinel = (long)CosmicNumericScalarResults.MaximumParticipatingValues + 1;
             translator.Parameters.Add(new SqliteParameter("$groupOffset", (long)source.Offset));

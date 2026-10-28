@@ -13,8 +13,11 @@ internal sealed class MongoCqlCompositionCommand
     internal MongoCqlProjectionCommand Source { get; }
     internal BsonDocument[][] Stages { get; }
     internal BsonDocument[] Reduction { get; }
-    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null)
-    { Source = source; Stages = stages; Reduction = reduction; }
+    internal BsonDocument[] Cardinality { get; }
+    internal BsonDocument[] Numeric { get; }
+    internal CosmicProjectedNumericIntent NumericIntent { get; }
+    internal MongoCqlCompositionCommand(MongoCqlProjectionCommand source, BsonDocument[][] stages, BsonDocument[] reduction = null, BsonDocument[] cardinality = null, BsonDocument[] numeric = null, CosmicProjectedNumericIntent numericIntent = null)
+    { Source = source; Stages = stages; Reduction = reduction; Cardinality = cardinality; Numeric = numeric; NumericIntent = numericIntent; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -25,9 +28,9 @@ internal sealed partial class MongoCqlTranslator
         CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits) where T : IHolon
     {
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.MongoDBOASIS
-            || limits.Admit(plan.Options).IsError || plan.Query.ResultStages.Count == 0)
+            || limits.Admit(plan.Options).IsError || plan.Query.ResultStages.Count == 0 && !plan.IsScalarTerminal)
             throw new ArgumentException("Mongo composition needs one matching plan and admitted remaining work.");
-        return CompileSelected(plan.Query, limits);
+        return CompileSelected(plan.Query, limits, cardinality: plan.RequestsCardinality, numeric: plan.NumericReduction, entity: plan.EntitySource);
     }
 
     internal MongoCqlCompositionCommand CompileProjectedAll<T, TResult>(
@@ -40,12 +43,18 @@ internal sealed partial class MongoCqlTranslator
     }
 
     private MongoCqlCompositionCommand CompileSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null) where T : IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, bool cardinality = false, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity = null) where T : IHolon
     {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
-        var source = CompileSource(query.Source, out var traverses);
-        var fetch = query.Source.Limit.HasValue ? Math.Min(query.Source.Limit.Value, limits.MaximumInputRows + 1) : limits.MaximumInputRows + 1;
-        var page = SelectedWindow(query.Source, fetch);
+        var entityCommand=entity==null ? null : CompileEntityComposition(entity,10000);
+        var traverses=false;
+        var source=entityCommand==null ? CompileSource(query.Source,out traverses)
+            : entityCommand.Pipeline.Take(entityCommand.Pipeline.Length-1).Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
+        var fetch=entityCommand==null && query.Source.Limit.HasValue
+            ? Math.Min(query.Source.Limit.Value,limits.MaximumInputRows+1) : limits.MaximumInputRows+1;
+        // Entity compilation already owns the original offset/limit and every later stage.
+        var page=entityCommand==null ? SelectedWindow(query.Source,fetch)
+            : new List<BsonDocument>{new("$limit",fetch)};
         var proof = new BsonDocument
         {
             { "_id", 0 }, { "id", "$HolonId" }, { "visible", Op("$ifNull", "$IsPublic", Literal(false)) },
@@ -64,7 +73,20 @@ internal sealed partial class MongoCqlTranslator
             proof.Add(name, OrderingKey(item.Path, "composedSourceSort" + index));
             sourceSort.Add(name + ".rank", direction); sourceSort.Add(name + ".value", direction);
         }
-        sourceSort.Add("id", 1); proof.Add("values", values); proof.Add("ordering", ordering);
+        if(entityCommand!=null)
+        {
+            sourceSort=new BsonDocument();
+            var effective=entityCommand.EntityComposition;
+            for(var index=0;index<effective.EffectiveOrder.Length;index++)
+            {
+                var item=effective.EffectiveOrder[index];var key="entityOrder"+index;
+                proof.Add(key,OrderingKey(item.Path,"combinedEntityOrder"+index));
+                var direction=(item.Descending ^ effective.Reversed) ? -1 : 1;
+                sourceSort.Add(key+".rank",direction);sourceSort.Add(key+".value",direction);
+            }
+        }
+        sourceSort.Add("id",entityCommand?.EntityComposition.Reversed==true ? -1 : 1);
+        proof.Add("values", values); proof.Add("ordering", ordering);
         page.Add(new("$project", proof));
         page.Add(new("$setWindowFields", new BsonDocument
         {
@@ -74,8 +96,9 @@ internal sealed partial class MongoCqlTranslator
         page.Add(new("$sort", (BsonDocument)sourceSort.DeepClone()));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
-        var membership = query.Source.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
-        var command = new MongoCqlProjectionCommand(source.ToArray(), membership, true, traverses, fetch == 0);
+        var membership = entityCommand?.RequiresMembership ?? query.Source.Predicates.Any(HasRelationships);
+        var command = new MongoCqlProjectionCommand(source.ToArray(), membership, true, traverses, fetch == 0,
+            entityCommand?.EntityComposition,entityCommand?.EntityComposition.EffectiveOrder.Length ?? 0);
         var current = source.Select(stage => (BsonDocument)stage.DeepClone()).ToList();
         if (traverses)
         {
@@ -103,6 +126,16 @@ internal sealed partial class MongoCqlTranslator
                     current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
                     current.Add(new("$unset", "nextRank"));
                 }
+            }
+            else if (stage is CosmicSelectedReverseStage)
+            {
+                current.Add(new("$setWindowFields", new BsonDocument
+                {
+                    { "sortBy", new BsonDocument("rank", -1) },
+                    { "output", new BsonDocument("nextRank", CompositionRank()) }
+                }));
+                current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
+                current.Add(new("$unset", "nextRank"));
             }
             else if (stage is CosmicSelectedWindowStage window)
             {
@@ -133,7 +166,20 @@ internal sealed partial class MongoCqlTranslator
             }));
             ValidatePipeline(pipeline); reduction = pipeline.ToArray();
         }
-        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction);
+        BsonDocument[] countPipeline = null;
+        if (cardinality)
+        {
+            var count = current.Select(step => (BsonDocument)step.DeepClone()).ToList();
+            count.Add(new("$facet", new BsonDocument("counts", new BsonArray { new BsonDocument("$count", "value") })));
+            count.Add(new("$project", new BsonDocument
+            {
+                { "_id", 0 }, { "selectedCount", new BsonDocument("$ifNull", new BsonArray
+                    { new BsonDocument("$arrayElemAt", new BsonArray { "$counts.value", 0 }), 0L }) }
+            }));
+            ValidatePipeline(count); countPipeline = count.ToArray();
+        }
+        return new MongoCqlCompositionCommand(command, stages.ToArray(), reduction, countPipeline,
+            numeric == null ? null : SelectedIntegerReduction(current, numeric), numeric);
 
         BsonValue Selected(CosmicQueryPredicate predicate) => SelectedFilterPredicate(predicate, path =>
         {

@@ -10,16 +10,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 internal sealed partial class MongoCqlTranslator
 {
     internal MongoCqlScalarCommand CompileAll<T, TResult>(CosmicScalarQuery<T, TResult> query) where T : IHolon
+        => CompileTerminalPredicate(query, false);
+
+    internal MongoCqlScalarCommand CompileCardinalityPredicate<T, TResult>(CosmicScalarQuery<T, TResult> query) where T : IHolon
+        => CompileTerminalPredicate(query, true);
+
+    private MongoCqlScalarCommand CompileTerminalPredicate<T, TResult>(CosmicScalarQuery<T, TResult> query, bool countMatches) where T : IHolon
     {
         var source = CompileSource(query.Source, out var traverses);
         var page = SelectedWindow(query.Source, query.Source.Limit);
-        var hasChildren = CosmicScalarCapabilities.HasAllChildren(query.AllPredicate.Predicates);
-        var hasDescendants = CosmicScalarCapabilities.HasAllDescendants(query.AllPredicate.Predicates);
+        var hasChildren = CosmicScalarCapabilities.HasAllChildren(query.TerminalPredicate.Predicates);
+        var hasDescendants = CosmicScalarCapabilities.HasAllDescendants(query.TerminalPredicate.Predicates);
         var errors = new List<BsonValue>();
-        var predicate = AppendAllPredicate(page, query.AllPredicate.Predicates, query.Source.ReadAccess, errors);
+        var predicate = AppendAllPredicate(page, query.TerminalPredicate.Predicates, query.Source.ReadAccess, errors);
         BsonValue terminalError = AllErrorCode(errors);
         page.Add(new("$project", new BsonDocument {
-            { "bad", Choose(predicate, Literal(new BsonInt64(0)), Literal(new BsonInt64(1))) },
+            { "bad", Choose(predicate, Literal(new BsonInt64(countMatches ? 1 : 0)), Literal(new BsonInt64(countMatches ? 0 : 1))) },
             { "error", terminalError }
         }));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
@@ -39,7 +45,7 @@ internal sealed partial class MongoCqlTranslator
                 Choose(Op("$gt", "$limited", Literal(0)), Literal(2), Literal(0))) }
         }));
         ValidatePipeline(source);
-        var membership = hasChildren || hasDescendants || query.Source.Predicates.Any(value => value is CosmicQueryAnyChild || value is CosmicQueryAnyDescendant);
+        var membership = hasChildren || hasDescendants || query.Source.Predicates.Any(HasRelationships);
         return new MongoCqlScalarCommand(source.ToArray(), membership, membership || query.Source.GraphOptions != null,
             query.Source.Limit == 0, traverses || hasDescendants);
     }

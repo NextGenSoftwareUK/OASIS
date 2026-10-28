@@ -13,6 +13,48 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public partial class CqlV1Web4Tests
 {
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void ScalarCaptureOwnsSelectionFiltersAndNullableWindow(int? take)
+    {
+        using var document = JsonDocument.Parse("7");
+        var request = new CqlScalarV1Request
+        {
+            Operation = "Sum", Take = take,
+            Selection = new() { MetadataPath = new[] { "price" }, ValueType = "Int64" },
+            Filters = new[] { new CqlV1Filter { Field = "Version", Value = document.RootElement } }
+        };
+        var captured = CqlRequestCapture.Capture(request);
+        request.Operation = "Any";
+        request.Take = 25;
+        request.Selection.MetadataPath![0] = "changed";
+        request.Filters[0].Field = "Name";
+        document.Dispose();
+
+        Assert.Equal("Sum", captured.Operation);
+        Assert.Equal(take, captured.Take);
+        Assert.Equal("price", captured.Selection!.MetadataPath![0]);
+        Assert.Equal("Version", captured.Filters[0].Field);
+        Assert.Equal(7, captured.Filters[0].Value.GetInt32());
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void IndexedScalarCompilerPreservesWholeSourceOrExplicitWindow(int? take)
+    {
+        var source = new CosmicChainQuerySource(ProviderType.SolanaOASIS, "genesis",
+            ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), 2, new string('A', 64), 0);
+        var requirement = new CosmicChainQueryReadRequirement(source, new(1, "block"), 10, TimeSpan.FromSeconds(10));
+        var query = CqlV1Compiler.CompileIndexedScalarSource(new() { Take = take }, Actor,
+            requirement, CosmicQueryReadAccess.OwnerOrPublic(Actor).Result);
+        Assert.Same(requirement, query.IndexedSource);
+        Assert.Equal(take, query.Limit);
+    }
+
     [Fact]
     public async Task RowRequestRetainsMetadataDisclosureAcrossProviderAwait()
     {

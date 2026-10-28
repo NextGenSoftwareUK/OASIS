@@ -1,2949 +1,1137 @@
-## Latest cursor lineage ownership correction — 26 October 2026
-
-The shared admission owner now returns its validated execution handle. Federation
-freezes the root operation GUID before application callbacks or provider awaits;
-response framing never reloads it from mutable HttpContext.Items. Existing resumed
-pages retain their protected root lineage. Three genuine initial-page regressions
-(removal, replacement and wrong-type context item) and three resumed controls now
-pass, including original receipt ownership.
-
-Full Core3,750pass0skip and shippingWEB4build pass. Evidence:
-Verification/cursor-lineage-{red,core}.trx.gz and cursor-lineage-identities.json.
-This focused owner-capture correction did not rerun the separately recorded
-526-settlement/608-attempt native gate. Broader roadmap acceptance remains open.
-
-## Latest request ownership correction — 26 October 2026
-
-Two genuine failing schedules reproduced a mutable-DTO ownership defect: changing
-IncludeMetadata or MaximumOutputBytes while a provider await was suspended could
-expand disclosure or bypass the admitted public wire ceiling. CqlRequestCapture
-now detaches row and federation requests before application callbacks or awaits,
-including provider/priority arrays, nested relationship/filter/path descriptors,
-graph shape and owned scalar JsonElements. The compiler remains the semantic
-admission owner; capture ceilings only bound allocation. No retry, alternate
-writer or provider fallback was introduced.
-
-Full Core3,744pass0skip and shippingWEB4build pass. Five new controls cover the two
-original regressions, ordinary-row disclosure, nested mutation/disposed JSON and
-Exists-without-Value compatibility. Fresh native526settlements608attempts passes
-all three providers, cursor/key/process restart, graph and transport checks;
-source snapshots unchanged and seven producer/consumer pairs match. Owned test
-fixtures, temporary protected keys and services were verified clean.
-
-Evidence: Verification/request-ownership-{red,core,native,process-second}.trx.gz,
--native-source.json.gz, -native-binaries.json, -native-result.json,
--process-pids.json and -unit-identities.json. The overall roadmap remains open.
-
-## Latest: actual cursor process restart verified — 26 October 2026
-
-A settled three-provider page survives abrupt termination of its hosting process.
-A distinct fresh host resumes the exact protected cursor using the unchanged
-Windows DPAPI-protected persisted key. Three pages/nine provider attempts settle
-through one parent reservation authority and the production HTTP authorization
-client; a duplicate redemption is rejected without another execution start.
-Readiness JSON is published atomically. This is actual process evidence, separate
-from the earlier in-process host restart/key-rotation matrix.
-
-Full native cohort:526settled operations/608physical attempts, unchanged sources,
-seven matching producer/consumer pairs. Original twenty cursor requests and
-existing writer-process recovery remain green. The owning fixture removed its
-small test key/config directory after both process trees stopped; no private key
-or controlled credential was archived. Native databases/services were cleaned.
-
-Evidence: Verification/federation-cursor-process{.trx.gz,-second.trx.gz,
--source.json.gz,-binaries.json,-result.json,-pids.json}; earlier initial proof is
-retained separately. Scope is same-user Windows DPAPI persistence. Multi-host,
-container/KMS key deployments, broader failure windows, causal agreement,
-repeatable distributed snapshots, distributed joins and the full remaining ORM
-roadmap are still open. Core3,739 is the separate preceding regression gate.
-
 # CQL developer manual
 
-## Request-owned routing for V2 storage writes
+Current support and limitations: [parity checklist](CQL_PARITY_CHECKLIST.md). Active work/commands: [CURRENT_STATUS](CURRENT_STATUS.md).
 
-The canonical WEB4 single/batch graph-save routes now capture routing settings
-for the request. `SetGlobally=false` does not temporarily change the singleton.
-`DEFAULT` inherits the captured runtime setting; an explicit ordered provider
-list belongs to that request. Detailed responses report the same captured policy.
-An explicit `SetGlobally=true` publishes validated routing settings atomically;
-an older request finishing cannot restore a previous global snapshot.
+Start with the maintained, spaced/commented [C# and HTTP demo](../../../Examples/CosmicCqlDemo/README.md).
+CQL captures immutable query intent, plans against explicit eligible provider capabilities, then executes through native adapters and the V2 HolonManager owner.
+Check every OASISResult error/acknowledgement before reading Result. Unsupported semantics and exhausted work limits are errors.
 
-Core callers can create the same isolated context over registered providers:
+## Reference map
 
-```csharp
-using NextGenSoftware.OASIS.API.Core.Configuration;
-
-// Capture once. This does not activate providers or grant data access.
-var request = manager.CreateRequestContext(
-    new ProviderRoutingOverrides(autoReplicationEnabled: false),
-    ProviderType.SQLLiteDBOASIS);
-
-if (request.IsError)
-    throw new InvalidOperationException(request.Message, request.Exception);
-
-// Use request.Result.Manager for the operation and request.Result.Policy
-// for its routing description. Keep normal actor/revision checks unchanged.
-var requestManager = request.Result.Manager;
-```
-
-The provider must already be registered. An explicit operation provider wins
-over configured manager affinity; otherwise affinity wins over the captured
-default. A captured missing default stays missing even if another request later
-publishes one. Conditional writes retain one authority and never acquire permission
-to retry a rejected write on another provider. `All` is invalid for these writes;
-CQL all-provider query scope remains a separate query feature.
-
-This migration currently covers canonical V2 graph saves and delegating aliases.
-Other routes and deep DNA/security/strategy snapshots remain tracked in
-[configuration ownership](CQL_HTTP_CONFIGURATION_OWNERSHIP.md).
-
-## Saving complete child graphs through WEB4
-
-For an existing graph, retain the provider revision for every selected record.
-Use those opaque provider tokens in `ExpectedRevisions`; logical `VersionId` is
-not a replacement for them. `SaveChildren=false` writes the root while retaining
-stored child membership. `MaxChildDepth=1` and `Recursive=false` select the first
-child level; zero depth with recursion selects the complete submitted graph.
-
-A complete HTTP graph must retain each node's `ChildRoleManifestJson` from its
-loaded representation. The shipping JSON contract preserves that field on
-`IHolon` children and creates ordinary `Holon` instances without accepting CLR
-type hints. Keep this stored observation intact. It does not grant ownership:
-the generic manager checks the authenticated actor against every selected stored
-record, then the native provider checks the caller's original revisions atomically.
-
-Known-partial selections cannot be promoted by calling `AcceptChanges`. Reload
-the required graph from its explicit write authority before a child-selecting
-save. Complete serialized conditional admission also does not grant ordinary
-SDK save authority. See [REST writes](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) and
-[storage accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for intent, deployment
-tariffs and current verification scope.
-
-## SQLite Single/Double arithmetic SDK availability
-
-SQLite now supports required/nullable Single and Double Sum/Average, including
-grouped result filters/order/pages. Results retain their declared floating type;
-integer/Decimal Average still returns Decimal. For an already scoped source:
-
-```csharp
-var total = source.Sum(holon =>
-    CosmicQueryMetadata.Value<double>(holon, "reading"));
-
-var mean = source.Average(holon =>
-    CosmicQueryMetadata.Value<float?>(holon, "singleReading"));
-```
-
-Use the actual SQLite capabilities and the existing generic planner/HolonManager
-execution shown below. Native reduction is exact until one final IEEE rounding;
-this deliberately differs from sequential accumulation. Finite overflow errors
-rather than returning infinity, and empty nullable averages return null.
-
-Acceptance passes **1,763 production integration /74 unit tests**, zero skips,
-including48 new query controls. MongoDB and Neo4j support is described below;
-The shared HTTP binder now accepts Single/Double arithmetic; controlled endpoint
-tests and signed live HTTP acceptance pass on all three stores (examples41–46). Existing floating metadata
-queries and the46-example three-provider demo retain their declared scope.
-[Semantics and rollout](CQL_FLOATING_AGGREGATE_CONTRACT.md).
-
-## MongoDB Single/Double arithmetic SDK availability
-
-MongoDB now supports required/nullable Single and Double scalar and grouped
-`Sum` and `Average`, including grouped result filters, ordering and paging. Use the same `source.Sum(...)` and `source.Average(...)` expressions
-shown above, with MongoDB's actual scalar capabilities and the generic
-HolonManager planner/execution entry point. Results retain `float`/`double`,
-including nullable forms; integer and Decimal averages still return Decimal.
-
-Native reduction retains exact binary digits and rounds once at final publication.
-For example, summing `double.MaxValue`, `double.MaxValue`, their two negatives,
-and `double.Epsilon` returns `double.Epsilon`. Summing two maximum values reports
-`CQL_SCALAR_OVERFLOW`, while averaging them returns `double.MaxValue`.
-
-Acceptance passes36scalar and34grouped focused controls,490full native CQL
-tests and571matched full units without failures/skips; six producer/consumer
-assembly copies match.
-Grouped selected filters/order/pages and off-page validation are included in
-that complete acceptance cohort. For an already scoped
-source, a grouped request can select and filter the rounded mean:
-
-```csharp
-var summary = source
-    .GroupBy(holon => CosmicQueryMetadata.Value<string>(holon, "sensor"))
-    .Select(group => new
-    {
-        Sensor = group.Key,
-
-        Total = group.Sum(holon =>
-            CosmicQueryMetadata.Value<double>(holon, "reading")),
-
-        Mean = group.Average(holon =>
-            CosmicQueryMetadata.Value<double?>(holon, "reading"))
-    })
-    .Where(row => row.Mean >= 20d)
-    .OrderByDescending(row => row.Mean)
-    .Take(10);
-```
-
-Plan and execute with actual Mongo grouped capabilities using the generic
-HolonManager entry point shown below. Every raw group is validated, including
-excluded groups; overflow cannot hide behind a filter or `Take(0)`.
-
-HTTP binding and signed live acceptance pass. The46-example SDK/HTTP
-walkthrough demonstrates floating scalar/grouped arithmetic in examples41–46. See the [contract and evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
-
-## Neo4j Single/Double arithmetic SDK availability
-
-Neo4j supports required/nullable Single and Double scalar and grouped `Sum` and
-`Average`, including native selected group filters, ordering and paging.
-Use the same metadata selectors and generic scalar planner/HolonManager execution
-shown above with Neo4j's actual capabilities. Results retain `float`/`double`;
-integer and Decimal averages retain Decimal. Native Int64 word sums feed Core's
-exact final rounding, including subnormals, cancellation and finite overflow.
-
-Use Neo4j's declared `ProviderDefault` graph consistency. An explicit
-`ProviderSnapshot` request remains unsupported and is rejected during admission.
-The grouped profile owns its numeric input whitelist independently of scalar
-enrollment. It now explicitly includes floating inputs. Floating HTTP binding and signed live acceptance pass (examples41–46).
-
-Acceptance passes36scalar and34grouped focused cases,490full native CQL tests
-and552matched full units, zero failures/skips. Eight producer/consumer copies
-match, including the pinned source driver; grouped admission remains independent. Use the grouped example above with
-Neo4j's actual capabilities and declared ProviderDefault consistency. Every raw
-group remains subject to validation even when filtered or paged out. See the [contract/evidence](CQL_FLOATING_AGGREGATE_CONTRACT.md).
-
-## MongoDB, SQLite and Neo4j Decimal arithmetic SDK availability
-
-MongoDB, SQLite and Neo4j support exact Decimal/nullable Sum and Average, including grouped
-result filters/order/pages. From an already scoped and authorized `source`:
-
-```csharp
-var total = source.Sum(holon =>
-    CosmicQueryMetadata.Value<decimal>(holon, "price"));
-
-var mean = source.Average(holon =>
-    CosmicQueryMetadata.Value<decimal?>(holon, "price"));
-```
-
-Plan and execute through HolonManager with the actual provider capabilities, as in
-the scalar examples below. The native reduction preserves 28 decimal places and
-rounds once at final publication; a mathematical Sum outside Decimal range fails.
-MongoDB acceptance passes 416 native/550 unit tests; Neo4j passes 416 native/529
-unit tests, all without failures or skips. Decimal HTTP compiler/wire tests and
-the shipping WEB4 build pass; live signed Decimal acceptance passes120SDK/120HTTP examples across all three stores.
-[Exact semantics and evidence](CQL_DECIMAL_AGGREGATE_CONTRACT.md).
-
-The scalar HTTP request body uses the same explicit type:
-
-```json
-{
-  "operation": "Sum",
-  "selection": {
-    "metadataPath": ["price"],
-    "valueType": "Decimal"
-  }
-}
-```
-
-Use `Average` for the mean and add `"nullable": true` to the selection when
-missing/null prices should be ignored. Decimal values in responses are tagged
-text, preserving precision for JavaScript clients. Grouped Sum/Average selections
-use the same declaration. Live signed Decimal examples38-40 pass on all three stores.
-
-
-
-## UInt64 numeric queries — native SDK and HTTP compiler
-
-MongoDB, SQLite and Neo4j now execute native `Sum` and `Average` over UInt64
-metadata, including nullable inputs and grouped filters/order/pages. Declare the
-input explicitly, for example `source.Sum(h =>
-CosmicQueryMetadata.Value<ulong>(h, "counter"))`. Sum retains UInt64 and rejects
-overflow; Average returns Decimal. Nullable Sum returns zero for an empty set,
-while nullable Average returns null. Use exact unsigned literals such as `0UL`
-when writing selected predicates.
-
-The existing authenticated scalar route accepts this description:
-
-```json
-{
-  "provider": "MongoDBOASIS",
-  "operation": "Average",
-  "selection": {
-    "metadataPath": ["counter"],
-    "valueType": "UInt64",
-    "nullable": false
-  }
-}
-```
-
-Use the same signing/admission headers as the existing scalar examples. A Sum
-response uses `valueType: "UInt64"` and an invariant string value; an Average
-response uses `valueType: "Decimal"`. Grouped columns use the same selection and
-operation description. The compiler/wire unit gate, shipping API build and live signed demo pass:
-120SDK/120HTTP examples across all three stores, including numeric examples35-40. See the
-[numeric contract](CQL_NUMERIC_AGGREGATES.md) for boundaries and evidence.
-
-
-25 October 2026. Start here for COSMIC Query Language. CQL composes supported C# expressions into an immutable query, checks provider capabilities and executes native database queries through generic HolonManager. WEB4 v1 exposes a bounded JSON transport over that same pipeline for MongoDB, SQLite and Neo4j.
-
-## Start with the developer demo
-
-Open [the demo guide](../../../Examples/CosmicCqlDemo/README.md), then read `V1NativeQueries.cs` for C# and `V1Walkthrough.cs` for matching HTTP requests. The examples include comments, expected values and explicit result checks. From the repository root:
-
-```powershell
-# Bounded SDK and signed HTTP walkthrough; reuses existing test services.
-& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1
-
-# Include the retained Neo4j/WEB4 native regression gate.
-& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -IncludeRegression
-
-# Interactive browser and Swagger; use Finish demo for verified teardown.
-& .\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
-```
-
-These commands require the already configured reusable provider environment. They do not install or download services. The current runner checks fresh actual results rather than treating an older report as success. SDK examples check `OASISResult` before planning/execution; the public endpoint binds the authenticated actor itself.
-
-Current verified walkthrough: **34 examples per provider, 102 SDK and 102 signed
-HTTP queries**, with 309 settled operations and 301 provider attempts. Examples
-22–29 cover UInt64, exact Decimal prices and Double/Single readings; 30–31 show
-flat joins; 32–34 show selected-result composition, source-window ordering and
-exact selected Int64 comparisons. Native types retain their declared operator
-domains. See the [Decimal contract](CQL_DECIMAL_METADATA_CONTRACT.md),
-[floating scalar contract](CQL_FLOATING_SCALAR_CONTRACT.md),
-[join contract](CQL_JOIN_CONTRACT.md) and
-[composition HTTP contract](CQL_COMPOSITION_HTTP_CONTRACT.md).
-
-Later dated sections preserve historical milestones. Their earlier test/demo
-counts describe those checkpoints, not the current walkthrough or full roadmap
-completion. The [completion roadmap](CQL_COMPLETION_ROADMAP.md) lists open work.
-
-## Current operator guide
-
-| Area | Supported composition for admitted domains |
+| Topic | Detailed preserved guide |
 |---|---|
-| Source rows | Typed fields/metadata, AND/OR/NOT, membership, ordinal strings, ordering and source windows |
-| Detached results | Selected columns/DTOs; Count, LongCount, Any, Min, Max, integer Sum and Decimal Average |
-| Groups | Multiple keys/aggregates; selected-output Where, OrderBy/ThenBy and result Skip/Take; exact normalized Average comparisons on MongoDB, SQLite and Neo4j |
-| Relationships | Child/descendant predicates and bounded child graph expansion, with each provider's documented consistency |
-| Joins | Bounded same-provider flat inner/left joins with declared key domains and cardinality limits |
-| Selected composition | Ordered selected Where, OrderBy/ThenBy and Skip/Take stages; native execution preserves stage order, including windows before filters |
-| HTTP | Bounded row, projection, scalar, grouped, join and composition JSON requests; selected predicates/order bind exact aliases |
+| C# query construction, provider scope, metadata, filters/order/windows | [Full manual](Archive/CQL_MANUAL_history_2026-10-27.md#cql-developer-manual) |
+| HTTP/API, SDK examples, typed hydration, projections, joins/grouping, scalar domains | [Full manual](Archive/CQL_MANUAL_history_2026-10-27.md) and maintained demo |
+| Child/descendant filtering and graph loading | [Graph reference](Archive/CQL_GRAPH_LOADING.md), [relationships](Archive/CQL_RELATIONSHIPS.md) |
+| Native provider details | [MongoDB](Archive/CQL_MONGO_NATIVE.md), [SQLite](Archive/CQL_SQLITE_NATIVE.md), [Neo4j](Archive/CQL_NEO4J_NATIVE.md) |
+| Projected All and source-composition caveats | [Active contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) |
+| Exact per-database feature support/proofs | [Parity checklist](CQL_PARITY_CHECKLIST.md) |
 
-Apply grouped predicates and ordering **before** result Skip/Take. Source windows select aggregate participants; result windows select reduced groups. Unsupported domain/operator combinations fail capability admission; the engine does not substitute an unbounded client scan. The HTTP grammar is narrower than the SDK expression grammar: see [the grouped contract](CQL_GROUPING_HTTP_CONTRACT.md).
+Detailed references retain historical checkpoints; use the checklist/current status for present support, not old dated completion claims.
+Investor-demo rows, projected All (Q23e) and source relationship composition (Q49a) are green on the three focus stores; this does not mean full EF/NHibernate parity.
+Source composition captures nested child/descendant predicates and AND/OR/NOT through the ordinary Where/WhereAnyChild/WhereAnyDescendant builders. Independent capability and expansion admission precede native execution. Protected scope errors survive Boolean short-circuiting and empty windows. See the216-check source matrix and168-check selected-All gate linked from the checklist; the runnable developer walkthrough is linked below.
 
-Expanded join certification, graph-source composition enrollment, federated global cursors, broader scalar domains and authoritative shared-recipient/tenant policy remain separate unfinished requirements. See [the completion roadmap](CQL_COMPLETION_ROADMAP.md) for acceptance criteria and scoped evidence; supported examples are not a claim that the full roadmap is complete.
+## Source composition and projected All in C#
 
-## Empty windows still validate protected relationships
+[SourceAndProjectedAllDemo.cs](../../../Examples/CosmicCqlDemo/SourceAndProjectedAllDemo.cs)
+contains eight complete examples with error handling and capability-aware planning.
+Its host supplies a V2 HolonManager, one activated native adapter and owned fixture
+IDs; see the [demo runner instructions](../../../Examples/CosmicCqlDemo/README.md).
 
-`Take(0)` produces no selected rows, but a relationship or descendant predicate
-still carries mandatory native validation. Exceeding its traversal budget or
-encountering a cycle returns an error before empty Count/Any/Min/Max/Sum/Average
-semantics are applied. Always check `OASISResult.IsError`; an empty output window
-is not a promise of zero database work. This applies to ordinary rows, graphs
-and projections as well as scalars. A valid empty query must return no sentinel
-row. [Contract and current verification](CQL_SCALAR_HTTP_CONTRACT.md#empty-windows-and-protected-scope).
-
-## Partial typed child roles
-
-Type-filtered loads now hydrate registered child-role collections with the selected typed members. Persisted role order and the full stored membership remain intact; omitted members are not passed to factories. Registered factories receive admitted/decrypted metadata before tracking. A partial view supports root-only edits (`saveChildren: false`); local AcceptChanges cannot grant permission to replace hidden or unloaded membership.
-The same protection applies to direct ordinary `SaveHolon` and `SaveHolons`
-provider calls, both synchronous and asynchronous, on MongoDB, SQLite and Neo4j.
-Keep `saveChildren: false` when editing a filtered or depth-limited view. To save
-child membership, first load the complete intended selection through the supported
-loading API. Copying `ChildRoleManifestJson` from another object does not grant
-observation authority; let loading and successful saves maintain that state.
-
-For trusted custom materializers, `HolonChildRoleHydration.ApplySelectedView(owner, fullStoredManifest, selectedIds, resolveSelected)` explicitly hydrates a partial view. Supply exact selected IDs; a missing selected record is an error, not an empty role. Keep the owner unpublished until success and discard it after any failure. This method does not authorize the selected data or read storage. The owner must retain its full `ChildRoleManifestJson` observation before `ApplySelectedView`; the API rejects a missing observation before factories or callbacks. `ApplyFullySelected` remains the complete-membership operation. Visibility-scoped graph composition now requires GraphReadAccess capability at planning and actual-adapter admission; Mongo, SQLite and Neo declare it. HTTP uses explicit bounded graph DTOs. Native child predicates and detached/typed policy checks are implemented; full stored relationship observations remain internal state and must not be serialized as public graph output.
-
-## Mandatory read access in trusted server code
-
-WEB4 v1 binds owner/public visibility from the authenticated avatar and matching usage admission. Clients cannot supply an actor in the DTO. Trusted SDK/service code can bind the same immutable restriction before filters/order/pages:
-
-```csharp
-var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedAvatarId);
-if (access.IsError)
-    throw new InvalidOperationException(access.Message);
-
-var query = CosmicQuery<Holon>.Create()
-    .WithReadAccess(access.Result)
-    .Where(holon => holon.IsActive)
-    .OrderBy(holon => holon.Name)
-    .Take(10);
-
-if (query.IsError)
-    throw new InvalidOperationException(query.Message);
-```
-
-The binding is retained by scope and window composition; a later actor cannot replace it. The mandatory predicate runs natively before paging. Core checks detached rows before typed constructors and rejects visibility violations as a whole result. Metadata labels such as sharedWith/tenantRole are not grants under this owner/public rule. Creating an SDK policy does not authenticate a caller or grant storage credentials.
-
-Access-bound graphs enforce the same owner/public policy at each native child hop on MongoDB, SQLite and Neo4j. Selected registered roles retain complete private membership observations; HTTP returns bounded public graph DTOs. Shared-recipient/tenant authorization remains separate unfinished work.
-
-## SQLite, MongoDB and Neo4j SDK child graphs
-
-SQLite, MongoDB and Neo4j support immutable `WithChildren(options)` query composition. SQLite/Mongo native graph readers are certified under snapshot semantics; Neo4j native81/unit31 and joint82 cases also pass under its documented read-committed semantics. These are provider-specific guarantees, not portable snapshot admission. Create options with `CosmicQueryGraphOptions.Create(recursive: true, maxChildDepth: 2, childType: HolonType.All, maximumNodes: 1000)` and check its OASISResult before passing Result to WithChildren. Check the resulting query/plan before executing through the usual generic HolonManager pipeline. Apply root Where/OrderBy/Skip/Take as usual: expansion occurs after the root page is selected.
-
-For example, with the selected root IDs already stored in a local `rootIds` array:
-
-```csharp
-// One bounded graph shape, retained through filtering, ordering and paging.
-var graph = CosmicQueryGraphOptions.Create(
-    recursive: true,
-    maxChildDepth: 2,
-    childType: HolonType.All,
-    maximumNodes: 1000,
-    maximumPayloadBytes: 8 * 1024 * 1024);
-
-if (graph.IsError)
-    throw new InvalidOperationException(graph.Message);
-
-// Select the root page first. Descendants do not consume the ten-root limit;
-// they do consume the shared graph node and byte budgets above.
-var query = CosmicQuery<Holon>.Create()
-    .Where(holon => rootIds.Contains(holon.Id))
-    .OrderBy(holon => holon.Name)
-    .Take(10)
-    .WithChildren(graph.Result);
-
-if (query.IsError)
-    throw new InvalidOperationException(query.Message);
-
-// Plan with the actual selected provider's capabilities, then execute through
-// HolonManager as shown below. A leaf adapter cannot be upgraded by the caller.
-```
-
-To require a snapshot rather than accept a provider's default isolation:
-
-```csharp
-// One snapshot per selected provider, covering its root page and descendants.
-var snapshot = CosmicQueryGraphOptions.Create(
-    CosmicQueryGraphConsistency.ProviderSnapshot,
-    maxChildDepth: 2,
-    maximumNodes: 1000);
-
-if (snapshot.IsError)
-    throw new InvalidOperationException(snapshot.Message);
-
-// Compose WithChildren(snapshot.Result), then plan/execute normally.
-// SQLite and MongoDB support this request. Neo4j rejects it before I/O
-// with CQL_CONSISTENCY_UNSUPPORTED; it cannot silently downgrade the read.
-```
-
-`Create()` retains `ProviderDefault`; use it when the selected provider's documented native isolation is acceptable. A per-provider snapshot does not synchronize different databases to one shared instant. Unsupported strong requests also reject during actual-adapter readmission, even if a caller claimed a stronger planning profile.
-
-Roots are depth zero. Depth one includes immediate children; zero means recursion within the explicit node/payload budgets. `recursive: false` reads immediate children only. `WithoutChildren()` restores leaf shape. Node and byte limits apply to the whole selected graph; exceeding them rejects the query rather than truncating it. Filtered/depth-boundary results retain omitted membership and cannot replace unobserved relationships on a child-selecting save. Use `saveChildren: false` for root-only edits.
-
-SQLite reads roots/children from one deferred Serializable snapshot. Existing caller transactions must also be Serializable and remain caller-owned. MongoDB uses one snapshot session across root/child commands; the tested environment is Mongo8.3.11 replica set with driver3.12.0. Neo4j uses one read-committed native transaction; committed child updates between commands may be visible, so this is not a repeatable snapshot. Neo4j now leases an exclusive reusable read transport: caller cancellation closes that transport and joins teardown before reuse. Eighteen cold/warm paused-Bolt controls cover caller cancellation and the shipping 30-second deadline for rows, projections, scalar and grouped reads. Six driver tests cover cancellation during DNS/cache waits and TLS negotiation, plus the shipping assembly identity. Full current native regression recertification is tracked separately. Bounded authenticated HTTP graph transport is implemented for all three providers; use the graph/access examples and capability checks described below. [Graph details and evidence](CQL_GRAPH_LOADING.md).
-
-## Run a demonstration
-
-From `C:/Source/OASIS` in PowerShell 7:
-
-```powershell
-# Annotated C# SDK and HTTP examples, running against all three native databases.
-.\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1
-
-# Guided browser demo and Swagger over the shipping v1 query controller.
-.\Scripts\TestHosts\Run-CosmicCqlV1Demo.ps1 -Serve
-```
-
-For Serve, wait for `TestResults/CosmicCqlDemo/v1-session.json`, then open `http://127.0.0.1:5088/demo`. Swagger is at `/swagger`. Use **Finish demo & clean up** when finished; the host awaits requests, verifies durable settlement and removes only its owned fixture. An interrupted/failed fixture is retained for inspection, not reset automatically. The launcher reuses the installed MongoDB, retained Neo4j container, SDK/cache and producer lease; it does not install a new environment. Another active native environment/build lease must finish first.
-
-For the existing typed coffee/save/delta walkthrough:
-
-```powershell
-.\Scripts\TestHosts\Run-CosmicCqlDemo.ps1
-.\Scripts\TestHosts\Run-CosmicCqlDemo.ps1 -NoBuild -Serve
-```
-
-That SQLite host uses `http://127.0.0.1:5087/swagger`. Close one leased demo before starting another. [Full presenter script](CQL_DEMO_RUNBOOK.md).
-
-## Which API should I use?
-
-| Interface | Intended use | Contract |
-|---|---|---|
-| C# `CosmicQuery<T>` + HolonManager | Trusted application/service code | Richer expression tree subset, explicit adapter/capability admission and provider scope |
-| WEB4 `POST /api/data/query-cql` | Authenticated application clients | One active Mongo/SQLite/Neo provider; bounded leaf queries; server-owned access and pricing |
-| SQLite coffee demo API | Isolated walkthrough | Demonstrates typed queries and saving; its wider scope controls are not WEB4 v1 transport features |
-
-CQL is LINQ-style, not a general `IQueryable` implementation or unrestricted SQL/Cypher evaluator. Query construction performs no I/O. `Where`, ordering and composition return `OASISResult<T>`; handle errors before using Result. Unsupported expressions fail explicitly rather than evaluating predicates against a downloaded dataset.
-
-## C# SDK: read the code in this order
-
-1. [V1NativeQueries.cs](../../../Examples/CosmicCqlDemo/V1NativeQueries.cs): identical LINQ-style query code executed on MongoDB, SQLite and Neo4j; comments explain access, metadata, native paging and Int64 precision.
-2. [V1Walkthrough.cs](../../../Examples/CosmicCqlDemo/V1Walkthrough.cs): spaced C# HTTP client examples, immutable operation intent, nested predicates and settlement headers.
-3. [CoffeeWalkthrough.cs](../../../Examples/CosmicCqlDemo/CoffeeWalkthrough.cs): annotated typed Coffee properties, membership/field comparisons, clean tracking, no-op Save, deltas and stale-client conflict rejection.
-
-The central sequence is:
-
-```csharp
-// Existing authorized manager/adapter instances are supplied by your host.
-// Check every OASISResult before consuming Result in application code.
-var scope = CosmicQueryScope.Named(adapter.QueryProviderType).Result;
-
-var query = CosmicQuery<Holon>.Create(scope)
-    .Where(holon => holon.IsPublic || holon.CreatedByAvatarId == actorId)
-    .Where(holon =>
-        CosmicQueryMetadata.Value<string>(holon, "location", "city") == "London")
-    .OrderBy(holon => holon.Name)
-    .ThenBy(holon => holon.Id)
-    .Take(10);
-
-var plan = CosmicQueryPlanner.Plan(
-    query.Result,
-    adapter.QueryProviderType,
-    new[]
-    {
-        new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities)
-    });
-
-var result = await manager.ExecuteQueryAsync(
-    plan.Result,
-    new[] { adapter },
-    maximumResults: 10,
-    cancellationToken: cancellationToken);
-```
-
-The full runnable source handles errors and verifies returned rows. A local SDK host owns authorization; the explicit owner/public predicate above is deliberate. WEB4 v1 always supplies its authoritative visibility predicate on the server. Supplying a scope or capability object does not authorize access or widen an admitted request.
-
-`CurrentDefault`, named scope and all-eligible scope exist in the local SDK. Results across multiple providers are grouped with provenance, not globally deduplicated, ordered or paged. All-eligible scope is **not** part of HTTP v1. [Scope/execution details](CQL_EXECUTION_PIPELINE.md).
-
-## WEB4 v1 request
-
-All three SDK/native adapters and WEB4 HTTP v1 now support access-bound child graphs; see [graph guarantees/evidence](CQL_GRAPH_LOADING.md) and [HTTP graph contract](CQL_V1_HTTP_CONTRACT.md). Relationship predicates such as child Any/Count remain separate roadmap work.
-
-```json
-{
-  "provider": "MongoDBOASIS",
-  "filters": [
-    {
-      "metadataPath": ["location", "city"],
-      "scalar": "String",
-      "operator": "Equal",
-      "value": "London"
-    },
-    {
-      "metadataPath": ["stock"],
-      "scalar": "Integer",
-      "operator": "GreaterThanOrEqual",
-      "value": 7
-    }
-  ],
-  "anyOf": [
-    { "field": "Name", "operator": "Equal", "value": "A-private" },
-    { "field": "Name", "operator": "Equal", "value": "D-owned" }
-  ],
-  "orderBy": "Name",
-  "skip": 0,
-  "take": 10
-}
-```
-
-This means **server visibility AND every Filters entry AND (any AnyOf entry)**. An empty AnyOf adds no extra restriction. Only one OR group is exposed by v1; the C# engine supports richer supported expression-tree composition.
-
-Use the exact provider names `MongoDBOASIS`, `SQLLiteDBOASIS` or `Neo4jOASIS`. Omit Provider for the already-active server default. The demo's default is SQLite; production uses its configured current provider. `All`, aliases, numeric enum strings and requests to activate/fail over to other providers reject.
-
-| Input | HTTP v1 support |
+| Example | What it demonstrates |
 |---|---|
-| Canonical filter fields | Id, Name, Description, Version, IsActive, ParentHolonId |
-| Metadata path | One to four literal segments, case/spelling matching persisted keys |
-| Metadata scalar | String, Integer (Int64), Boolean, Guid (D format) |
-| Comparison | Equal / NotEqual; GreaterThan / GreaterThanOrEqual / LessThan / LessThanOrEqual where the CLR scalar supports ordering |
-| String operation | Contains / StartsWith / EndsWith, explicit ordinal semantics |
-| Metadata tests | Exists / IsNull, with no Value |
-| Ordering | Name / Version / Id, Descending optional; Id tie-breaker |
-| Metadata output | IncludeMetadata optional, false by default |
+| 1 | WhereAnyChild with bounded AnyDescendant, then native entity rows |
+| 2 | NOT relationship predicate followed by native LongCount |
+| 3 | Owner/public visibility at every hop before a flat projection |
+| 4–5 | Select, selected Where/OrderBy/Skip/Take, then native All; true and false |
+| 6–7 | Empty selected/source windows produce true after successful source validation |
+| 8 | A true OR branch and empty page cannot conceal a protected CQL_QUERY_LIMIT error |
 
-Canonical property types come from the model, not the supplied Scalar. The user cannot supply CreatedByAvatarId, IsPublic, a runtime type, raw query or executable expression as an authority override. Unknown request members reject.
+Use an explicit provider scope. Bound descendant depth and visited nodes. Capture
+query intent, check each OASISResult, and plan against the actual adapter's query,
+projection and composition capabilities before passing the plan to HolonManager.
+A returned false Boolean is successful execution with a counterexample. An error
+has no successful Boolean or partial result to consume.
 
-## Metadata and precision
+Source predicates choose holons before selection. Selected predicates operate on
+the selected aliases after Select. All reduces the final selected sequence after
+its filters and windows. CQL performs these operations natively; developers do not
+need to fetch records and call Enumerable.All. The result preserves a separate
+Boolean per physical provider; no distributed snapshot or consensus is implied.
+## Standard IQueryable bridge — Q01 in progress
 
-- A numeric string `"7"` does not match Integer 7. Invalid GUID data does not satisfy typed GUID inequality.
-- Int64 literals such as `9007199254740993` remain exact. In C#, use a `long`/`L` literal. JavaScript Number cannot represent all Int64 values; retain exact JSON text or use a suitable exact-integer serializer. The demo intentionally sends/pretty-prints JSON without numeric coercion.
-- Guid literals use D-format text; GUID case normalizes. Metadata key spelling is not normalized.
-- Exists includes a present null member. IsNull requires a present null member. A missing path satisfies neither. Null-valued comparisons are outside HTTP v1; use the explicit metadata tests.
-- Queryable metadata must remain available to the native projection under the encryption/reserved-key policy. There is no fallback that decrypts/scans all provider data.
+`CosmicLinq.Create(manager, adapter, source, maximumResults)` returns an
+`OASISResult<IQueryable<T>>`. Supply one explicitly named matching provider in the
+source scope and check the factory result before composing a query. `T` currently
+requires `IHolon` and a public parameterless constructor.
 
-The local SDK has additional provider-declared scalar domains, annotated properties, membership and field comparisons. Do not assume every such feature is exposed by the narrower HTTP DTO. [Scalar contract](CQL_SCALAR_METADATA.md), [expression reference](CQL_EXPRESSION_CONTRACT.md).
+The initial increment supports standard `Queryable.Where`, `OrderBy`/`ThenBy`
+families, `Skip` and `Take`, followed by synchronous enumeration or
+`await query.ToCosmicListAsync(cancellationToken)`. The async form preserves an
+`OASISResult<IReadOnlyList<T>>`; standard enumeration throws `CosmicLinqException`
+with the real CQL `Code` on failure. Output bounds are explicit and overflow is an
+error, never silent truncation. Negative standard Skip/Take counts follow LINQ
+semantics without changing the stricter fluent CQL builders.
 
-## Access, budgets and operation ownership
+Captured variables bind for each execution, then the resulting CQL intent is
+frozen for admission and native dispatch. Changing a variable before a subsequent
+execution changes that execution's parameters. The existing fluent CosmicQuery
+API continues to freeze values during construction.
 
-WEB4 verifies the existing bearer identity, binds its avatar to the exact durable reservation, resolves an eligible concrete provider, then adds owner-or-globally-public visibility before native filtering/sorting/paging. A metadata sharing index or Wizard role cannot bypass it. Authoritative shared-recipient membership and tenant-specific isolation are not part of this v1 policy.
+Queryable repeated Select remains unimplemented. Staged reductions have the
+explicit provider/domain enrollment documented below; indexed Where and custom comparers are also
+unsupported. No client Enumerable fallback runs. Federated sequences retain their
+separate explicit copy/merge contracts. Q01 is **not complete**; see its red row
+and [native row tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlLinqAcceptanceTests.cs).
+Standard `Count()`, `LongCount()`, `Any()` and `All(predicate)` now execute through
+native scalar plans and V2 HolonManager; they do not enumerate entity rows.
+For example, `query.Skip(10).Take(5).Count()` counts that source window, while
+`query.Take(5).All(row => row.IsActive)` tests the predicate after that window.
 
-Limits: 32 KiB request; twelve total filters; Skip 0–1000; Take 1–100 (default 25); strings at most 512 UTF-16 code units; path segments at most 64; output at most one MiB; one provider attempt per admitted request. A five-second cancellation deadline is cooperative, not a guarantee of hard driver interruption at precisely five seconds. Provider-native work/result budgets remain active.
-
-Send an `Idempotency-Key` for each new logical request. Keep it and `X-OASIS-Operation-Id` if the outcome becomes uncertain. `X-OASIS-Usage-Settlement` indicates the durable response settlement state. Duplicate keys produce a conflict/terminal result without another execution; this is not response-body replay. A timeout does not establish no execution. Do not create a new key merely to conceal uncertainty; use the existing authorized reconciliation workflow.
-
-Ordinary query tariffs are explicit server-owned service prices, not vendor invoices or guessed gas fees. Empty results and completed provider-error envelopes follow that attempt tariff. Pre-dispatch rejection records no-execution evidence; interrupted/unknown completion retains reconciliation state. [Operator configuration and errors](CQL_V1_OPERATIONS.md), [full transport contract](CQL_V1_HTTP_CONTRACT.md).
-
-## Saving queried holons
-
-Local typed CQL hydration returns clean tracked entities in the admitted leaf or graph shape. A change can be saved through HolonManager's conditional-write path; stale-client conflicts reject without overwriting the winner. A no-op Save does not create a new version, and an acknowledged write can expose its committed delta. These are shown in the seven-step CoffeeWalkthrough; the v1 query endpoint itself reads data. [Demo runbook](CQL_DEMO_RUNBOOK.md).
-
-## Documentation map
-
-| Read | Purpose |
-|---|---|
-| [Architecture](CQL_ARCHITECTURE.md) | Ownership, layers, execution flow and boundaries |
-| [Getting started](CQL_GETTING_STARTED.md) | Concise SDK feature overview |
-| [Demo runbook](CQL_DEMO_RUNBOOK.md) | Commands, expected results and presenter script |
-| [HTTP contract](CQL_V1_HTTP_CONTRACT.md) | Exact DTO, validation, admission and pricing |
-| [Operations](CQL_V1_OPERATIONS.md) | C# HTTP call, setup, errors and reconciliation |
-| [Ordering/paging](CQL_ORDERING_PAGING.md) | Fluent composition and per-provider semantics |
-| [MongoDB](CQL_MONGO_NATIVE.md), [SQLite](CQL_SQLITE_NATIVE.md), [Neo4j](CQL_NEO4J_NATIVE.md) | Native implementation/evidence history |
-| [v1 acceptance](CQL_V1_MILESTONE_3.md) | Exact verified scope and retained reports |
-| [Demo verification](CQL_V1_DEMO_VERIFICATION.md) | Current walkthrough, browser/API checks and cleanup evidence |
-
-The bounded v1 implementation is verified. Joins/relationships, aggregates, global federation/pages, broader transport scalar families and application-specific shared/tenant policies remain separate roadmap work. Automatic migration/replication and HyperDrive placement are related ORM capabilities, not features invented by this query endpoint.
-
-
-## Access-bound graph example
-
-Bind a trusted host-selected actor with the immutable policy; a plain root Where expression does not propagate child authorization. The same query works against eligible Mongo, SQLite and Neo adapters. Plan against the actual adapter capabilities and check every OASISResult before execution.
-
-```csharp
-var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedActorId);
-var shape = CosmicQueryGraphOptions.Create(
-    recursive: true,
-    maxChildDepth: 2,
-    maximumNodes: 256);
-
-// Check access.IsError and shape.IsError before using their Result values.
-var query = CosmicQuery<Holon>.Create()
-    .WithReadAccess(access.Result)
-    .Where(holon => holon.Name == "C-public")
-    .WithChildren(shape.Result)
-    .Take(1);
-```
-
-The actor comes from trusted authentication/admission; SDK policy creation does not authenticate someone. The normal planner/manager pipeline checks native GraphReadAccess and rechecks detached/typed nodes before publication. Hidden intermediate children are not traversed. Selected/depth-limited views cannot replace unloaded children on Save; use saveChildren:false for root-only edits. SDK models retain private store observations for correct save ownership; public JSON should use the WEB4 graph DTOs instead of serializing raw holons.
-
-HTTP graph defaults/limits, safe fields, parent IDs and consistency are documented in the [HTTP contract](CQL_V1_HTTP_CONTRACT.md). Public depth is1–8; SDK depth0 retains bounded unbounded recursion. C#/HTTP/browser/Swagger demo files include the new graph example. Native certification is being refreshed; current exact evidence is in the graph loading log.
-
-
-### Saving an authorized partial graph
-
-Native tests now verify this on all three providers, both with a stored role manifest and with older parent-link records. AcceptChanges does not authorize child replacement. After editing a selected root, use the normal conditional SaveHolonAsync with saveChildren:false; the root version advances once and child versions/provider revisions remain unchanged. A child-selecting save from that partial view rejects before it can replace hidden membership. For intentional replacement, use a trusted complete-load/hydration path that proves full stored membership and independent write authority; repeating a filtered access query does not grant completeness. Public HTTP graph DTOs are read projections, not concurrency-bearing SDK save models.
-
-
-### Registered custom child roles
-
-A trusted owner type declares every role through CaptureChildCollections and GetChildRoleBindings and exposes its complete runtime selection through AllChildren. The same names must match its stored role manifest. Registered typed factories receive admitted/decrypted selected records; they map their child metadata into typed properties. Complete and selected views share the hydration owner, preserving role order and full store observation. A hidden role is an empty selected collection, not permission to delete its omitted records. See the source-linked native contract fixture Scripts/TestHosts/Fixtures/CqlCustomRoleGraph.cs for the owner, typed child and factory registration used by all three suites.
-
-
-## Direct-child existence (SQLite first)
-
-Use WhereAnyChild(child=>child.Name=="match") before root ordering/Skip/Take. The generic Core contract freezes the child expression; native membership/current parent and mandatory child access decide whether the parent matches before paging. MongoDB, SQLite and Neo4j declare ChildExists. Mongo activation upgrades older membership projections without changing logical revisions; native lookup and pre-page validation share a bounded snapshot. This does not load child graphs. HTTP expresses the same direct-child conditions through bounded anyChildren groups. See [relationship contract/examples](CQL_RELATIONSHIPS.md) for membership/reparenting semantics and remaining work.
-
-HTTP child existence uses up to four anyChildren groups; the twelve-filter budget is shared with roots. Server actor visibility applies before relationship matching and root paging. See [complete JSON example and limits](CQL_V1_HTTP_CONTRACT.md#direct-child-existence-over-http). The numbered SDK/HTTP demos now include example5 for independent visible siblings on every provider.
-
-WhereAnyDescendant has a generic bounded contract with explicit traversal limits. MongoDB, SQLite and Neo4j declare DescendantExists (depth 32/nodes 10000). Mongo retains snapshot semantics with flat native breadth traversal (certified Mongo8.3). Neo descendant execution requires Neo4j5.9+ (certified5.26.12) and retains read-committed semantics. Scope overflow returns CQL_QUERY_LIMIT without partial rows. Descendant intent does not load child graphs; HTTP exposes bounded anyDescendants groups, sharing four relationship groups and twelve filters with roots/direct children; see [JSON contract](CQL_V1_HTTP_CONTRACT.md#bounded-descendant-existence-over-http). [Contract](CQL_DESCENDANT_CONTRACT.md).
-
-
-## Scalar terminals — MongoDB, SQLite and Neo4j native execution
-
-Core now supports immutable typed terminal construction. These statements perform no storage I/O:
+Entity Count/LongCount/Any predicate overloads now work after Skip/Take on
+MongoDB, SQLite and Neo4j. The independently enrolled
+`SupportsPostWindowCardinality` contract keeps the terminal predicate separate
+from the immutable source page. Matching rows are reduced natively through the
+same protected scalar predicate pipeline used by All. Child/descendant grammar
+and traversal budgets retain their explicit permissions.
 
 ```csharp
-// Keep the source window, access policy and provider scope intact.
-var source = CosmicQuery<Holon>.Create()
-    .Where(holon => holon.Version == 1)
+// Count matching entities in the first page, preserving the page boundary.
+var page = query
+    .OrderBy(row => row.Name)
     .Skip(10)
-    .Take(20);
+    .Take(5);
 
-var count = source.Count();         // Int32 result domain.
-var longCount = source.LongCount(); // Int64 result domain.
-var any = source.Any();             // Boolean result domain.
+var activeCount = page.Count(row => row.IsActive);
+var hasActive = page.Any(row => row.IsActive);
+var matchingParents = page.LongCount(row => row.Children.Any(child => child.Name == "coffee"));
 ```
 
-Execution uses `CosmicScalarPlanner` and the generic V2 `HolonManager.ExecuteScalarQueryAsync` entry point. MongoDB, SQLite and Neo4j now advertise native Count/LongCount/Any. SQLite full1,269, Mongo unit229/native76 and Neo unit322/jointnative129 pass. WEB4 scalar requests are implemented and pass signed native checks on all three providers; later aggregate shapes remain pending. [Progress and native acceptance contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md).
-
-
-With an activated SQLite provider `sqlite` and its V2 `manager`, execute a scalar through the same generic Core contract:
+Terminal descendant scopes are visited only for rows in the selected source
+page. Protected source errors are still checked before that page, including an
+empty page. Protected terminal traversal errors cannot be hidden by a business
+true-OR/false-AND expression. Fluent CQL exposes Count(predicate),
+LongCount(predicate) and Any(predicate) on both source queries and OASISResult
+source builders; captured fluent parameters stay frozen as usual.
+Standard scalar/flat-record `Select` now supports selected `Where`, ordering and
+paging, followed by synchronous or async enumeration or native selected `All`.
+For example, after checking `CosmicLinq.Create(...)`:
 
 ```csharp
-ICosmicQueryScalarStorageProvider adapter = sqlite;
+var selected = created.Result
+    .Select(row => new { row.Name, row.Version })
+    .Where(value => value.Version > 0)
+    .OrderBy(value => value.Name)
+    .Take(5);
 
-// This is the authorized eligible target snapshot for this SDK operation.
-var targets = new[]
-{
-    new CosmicScalarTarget(
-        adapter.QueryProviderType,
-        adapter.QueryCapabilities,
-        adapter.ScalarCapabilities)
-};
+var rows = await selected.ToCosmicListAsync(cancellationToken);
+if (rows.IsError)
+    throw new InvalidOperationException(rows.ErrorCode + ": " + rows.Message);
 
-// Count the composed source window, without constructing tracked holons.
-var intent = CosmicQuery<Holon>.Create()
-    .Where(holon => holon.IsActive)
-    .LongCount();
-
-if (intent.IsError)
-    throw new InvalidOperationException(intent.Message);
-
-var planned = CosmicScalarPlanner.Plan(
-    intent.Result,
-    adapter.QueryProviderType,
-    targets);
-
-if (planned.IsError)
-    throw new InvalidOperationException(planned.Message);
-
-var result = await manager.ExecuteScalarQueryAsync(
-    planned.Result,
-    new ICosmicQueryStorageProvider[] { adapter });
-
-if (result.IsError)
-    throw new InvalidOperationException(result.Message, result.Exception);
-
-long count = result.Result.Providers.Single().Value;
+bool allMatch = selected.All(value => value.Name == expectedName);
 ```
 
-Count uses checked Int32 and reports `CQL_AGGREGATE_OVERFLOW`; LongCount preserves exact Int64. Empty input/window returns zero, and Any returns false. Source access and relationship predicates apply before participation. A graph output request does not expand children or limit scalar input, while its requested snapshot consistency remains enforced. Counts remain per provider; replicas are not summed into a logical global count. These SDK intents do not grant authentication or access by themselves.
-
-
-The same scalar example works with an activated MongoDB provider and its V2 manager: bind `adapter` to the MongoDB instance and use its own query/scalar capability declarations. MongoDB counts natively without entity buffers or row caps. It validates canonical relationship membership and executes the scalar pipeline in one snapshot when relationship/graph intent requires it; cancellation and native deadlines cover validation and counting together. A concurrent-reparent control proves the old snapshot count and changed fresh count. WEB4 scalar transport passes the joint 129-test native batch, including a signed count of 137. Later aggregate operations remain pending.
-
-
-The generic scalar example also works with Neo4j's activated provider and V2 manager. Neo4j counts in one read-committed native transaction and validates projection ownership and descendant errors outside the scalar window. It rejects a requested ProviderSnapshot guarantee before dispatch, including a borrowed caller profile. Its controls verify actual-fetch cancellation and post-fetch cumulative deadline expiry without publication, followed by successful reuse. Prompt interruption of an already blocked driver I/O await remains a separately open limitation; these controls do not prove a hard client I/O deadline. [Scalar HTTP contract](CQL_SCALAR_HTTP_CONTRACT.md).
-
-
-### WEB4 scalar requests
-
-Use `POST /api/data/query-cql/scalar` with the same bearer authentication and new logical-intent idempotency key as row queries. The server owns actor visibility, provider eligibility and durable usage accounting. Select `MongoDBOASIS`, `SQLLiteDBOASIS` or `Neo4jOASIS`, or omit the provider for the active default.
-
-```json
-{
-  "provider": "SQLLiteDBOASIS",
-  "operation": "LongCount",
-  "filters": [
-    {
-      "metadataPath": ["category"],
-      "scalar": "String",
-      "operator": "Equal",
-      "value": "coffee"
-    }
-  ]
-}
-```
-
-Omitted `take` counts the complete visible matching input. Explicit `skip`/`take` limit the source before counting. `Count` returns an Int32 JSON number; `Any` a JSON Boolean. `LongCount` always returns an invariant decimal string tagged `Int64`, preserving exact browser values above 2^53. The normal `OASISResult.result` contains `version`, `provider`, `operation`, `valueType` and `value`. Native input remains bounded by execution budgets rather than a row publication cap.
-
-See the [complete scalar contract](CQL_SCALAR_HTTP_CONTRACT.md) for limits and accounting, and [annotated demos](../../../Examples/CosmicCqlDemo/README.md) for copyable C# SDK, HTTP and interactive examples.
-
-
-## Native Select — SQLite SDK
-
-SQLite supports detached scalar, anonymous and flat DTO projections through the generic V2 manager. MongoDB now also implements the same projection contract (see below); Neo4j also implements the SDK projection contract as described below; the projection HTTP route is described below. Existing row/scalar APIs are unchanged. This SDK code runs within a trusted host: bind the actor from your authoritative application identity.
+Selected aliases bind to native columns, not hydrated holons. Each execution
+rebinds captured variables in source and selected predicates. The projection
+planner or composition planner admits the exact stages; selected All uses its
+independent native reduction owner. Unsupported selectors never compile to
+client delegates, and missing projection capability never fetches entity rows.
+Entity sequences now support standard First/FirstOrDefault, Single/SingleOrDefault,
+Last/LastOrDefault and ElementAt/ElementAtOrDefault (Int32 and Index). The bridge
+uses CosmicElementPlanner and V2 typed hydration; it never fetches a whole list to
+pick an element locally. Last and from-end indexing require the existing explicit
+ordering/tail capabilities.
 
 ```csharp
-ICosmicQueryProjectionStorageProvider adapter = sqlite;
-
-var access = CosmicQueryReadAccess.OwnerOrPublic(actor);
-if (access.IsError)
-    throw new InvalidOperationException(access.Message);
-
-var selected = CosmicQuery<Holon>.Create()
-    .WithReadAccess(access.Result)
-    .Where(holon => holon.IsActive)
-    .OrderBy(holon => holon.Name)
-    .Take(20)
-    .Select(holon => new
-    {
-        holon.Id,
-        holon.Name,
-        Stock = CosmicQueryMetadata.Value<long?>(holon, "stock")
-    });
-
-if (selected.IsError)
-    throw new InvalidOperationException(selected.Message);
-
-var plan = CosmicProjectionPlanner.Plan(
-    selected.Result,
-    adapter.QueryProviderType,
-    new[]
-    {
-        new CosmicProjectionTarget(
-            adapter.QueryProviderType,
-            adapter.QueryCapabilities,
-            adapter.ProjectionCapabilities)
-    });
-
-if (plan.IsError)
-    throw new InvalidOperationException(plan.Message);
-
-var result = await manager.ExecuteProjectionQueryAsync(
-    plan.Result,
-    new ICosmicQueryStorageProvider[] { adapter });
-
-if (result.IsError)
-    throw new InvalidOperationException(result.Message, result.Exception);
-
-var rows = result.Result.Providers.Single().Rows;
+var first = query.FirstOrDefault();
+var last = query.OrderBy(row => row.Name).LastOrDefault();
+var fromEnd = query.OrderBy(row => row.Name).ElementAt(^1);
 ```
 
-SQLite selects the columns natively; it does not load holons to run the selector. Core constructs detached results after every native buffer validates. Nullable/string missing or explicit null becomes null; a required missing value, wrong type or ambiguous duplicate path is an error. Int64 retains its exact value. Computed selectors, arbitrary methods, entity results and implicit numeric conversions are rejected. Bounds are rejection limits, not truncation: use explicit source Take for a page, and choose an adequate maximumResults/payload budget for execution. At most32 scalar columns are admitted, with the existing bounded native parameter/instruction/deadline limits.
+Supplied OrDefault values are returned only after successful empty-sequence proof.
+Native errors and multiple matches never return that supplied value. Single checks
+cardinality before invoking application entity constructors. Empty/multiple/index
+errors preserve their CQL codes through CosmicLinqException. Entity terminal
+predicates after a source window remain explicitly unsupported; they are not moved
+before the window.
 
-Requested source snapshot consistency is retained; graph output node caps do not reduce projected rows and no children are hydrated. Scope traversal retains its independent depth/node budgets. [Native projection evidence and implementation](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-projection-slice--23-october-2026).
-
-
-### MongoDB Select availability
-
-The same generic SDK projection code above is implemented for MongoDB: bind `ICosmicQueryProjectionStorageProvider adapter` to the activated MongoDB instance and use its own query/projection capabilities. Source eligibility, ordering and paging run in the native BSON pipeline; the driver receives scalar cells, never a fetched holon graph for client-side selection. Required relationship validation and column reads share one native snapshot. Graph output limits do not cap projected roots. UUID text/standard/legacy representations and exact UTC tick companions retain their stored semantics; ambiguous dictionary paths or precision companions error. Native row/byte/deadline limits fail without partial results.
-
-Initial unit236/native81 and expanded unit237/native91 gates pass with zero skips. The expanded native cases include snapshot reparenting, actual-aggregate cancellation/reuse, large projections, both UUID layouts and ambiguity rejection. Neo4j SDK projection is described below; authenticated projection HTTP uses the shared endpoint described below. See [MongoDB projection contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-projection-slice--23-october-2026).
-
-Projection results contain detached selected values. Use an entity-row query when you intend to edit a holon and call `SaveHolonAsync` with its tracked state and provider revision.
-
-### Neo4j Select availability
-
-Bind the same generic SDK example to the activated Neo4j provider and its own `QueryCapabilities`/`ProjectionCapabilities`. Root access, direct-child/descendant predicates and ordering/paging execute before selected columns. Only native scalar cells are returned; neither entity snapshots nor children are hydrated. Scalar, anonymous and flat DTO shapes all use Core's existing detached validation and prepared-attempt owner.
-
-Neo4j preserves its admitted GUID, Boolean, signed/narrow integer and defined-enum metadata domains; missing/null string or nullable leaves become null, while required or wrong-domain leaves error. UTC DateTime/nullable metadata is now natively supported with exact calendar-text normalization; see [the UTC contract](CQL_UTC_DATETIME_CONTRACT.md). Graph output caps do not cap projected roots; source traversal budgets still apply. This provider supplies read committed, and rejects a requested `ProviderSnapshot` guarantee even when a caller claims a more permissive profile.
-
-Output limits reject the operation rather than return a shortened list. A native row-size lower bound removes impossible string rows before transfer; one-row fetches bound driver buffering, and the existing read-budget owner then checks exact UTF-8 bytes. Cancellation/deadline checks surround native awaits and publication. Prompt interruption of an already blocked driver await remains an open limitation. Final unit328/joint native-WEB4 147 acceptance passes with zero skips, including18new native projection controls and two actual cursor-buffer inspections. [Native contract](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-projection-slice--23-october-2026).
-
-### Runtime column records
-
-A host that chooses its result columns at runtime can use `CosmicProjectionSelection<T>.Create` and `SelectColumns`. Each binding still requires a typed expression path; Core retains no executable selector delegate. The result is an immutable `CosmicProjectionRecord` with ordered `Aliases`, `Values` and an alias indexer. Native planning/readmission, exact raw-value validation and V2 execution are shared with typed Select.
+Selected scalar and flat-record sequences now support First/FirstOrDefault,
+Single/SingleOrDefault, Last/LastOrDefault and ElementAt/ElementAtOrDefault
+(Int32 and Index). Predicates remain after all preceding selected stages.
+The shared V2 composition owner validates native stage proofs and Single's
+cardinality before calling a DTO constructor. A present null is distinguished
+from an empty sequence, including with a caller-supplied OrDefault value.
+Tail operations require explicit source or selected ordering and independently
+enrolled native reversal; ordering and windows remain in their original positions.
 
 ```csharp
-// Choose bounded typed columns; aliases are labels, never native identifiers.
-var label = CosmicProjectionSelection<Holon>.Create("label", holon => holon.Name);
-var stock = CosmicProjectionSelection<Holon>.Create(
-    "stock",
-    holon => CosmicQueryMetadata.Value<long?>(holon, "stock"));
-
-if (label.IsError || stock.IsError)
-    throw new InvalidOperationException("A requested column is invalid.");
-
-var source = CosmicQuery<Holon>.Create().Take(10).Result;
-var selection = source.SelectColumns(new[] { label.Result, stock.Result });
-
-// Plan and execute selection.Result through the same projection API shown above.
-// Each resulting record exposes record["label"] and record["stock"].
-```
-
-Core2,018 unit cases and both framework targets pass for the runtime-record extension. Authenticated projection HTTP and native runtime-record execution now pass signed three-store acceptance. Expanded annotated30SDK/30HTTP demo verification and broad147 native regression pass unskipped, with195settled operations/190physical attempts. [HTTP contract in progress](CQL_PROJECTION_HTTP_CONTRACT.md).
-
-### HTTP selected columns
-
-Send `POST /api/data/query-cql/projection` with the existing bearer token and one new idempotency key per logical intent. Omit Provider for the admitted current default, or select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS. The host supplies actor access and eligibility. Take defaults to25 and is bounded0–100. Fields infer their types; metadata declares an exact read type and optional value-type nullability.
-
-```json
-{
-  "provider": "Neo4jOASIS",
-  "orderBy": "Name",
-  "take": 10,
-  "columns": [
-    { "alias": "label", "field": "Name" },
-    { "alias": "stock", "metadataPath": ["stock"], "valueType": "Int64", "nullable": true }
-  ]
-}
-```
-
-The `cql-projection-v1` result contains provider provenance, ordered column schema and matching row arrays. Int64 cells use decimal strings, so browsers retain values above2^53; GUIDs use D strings, UTC dates preserve seven tick digits, enums use defined names and null remains null. Selected values are detached. Native privacy/ordering/paging precede selection. Source limits and response limits reject excessive output without a partial result. Repeating a logical key produces a conflict without another dispatch.
-
-FullCore2,059 and signed three-store acceptance pass. Neo4j DateTime metadata is rejected before execution. Prompt interruption of an already blocked Neo4j4.2 driver await remains open. [Complete request/wire limits and evidence](CQL_PROJECTION_HTTP_CONTRACT.md).
-
-### Min/Max intent prerequisite — native execution pending
-
-Core now supports typed `source.Min(holon => ...)` and `source.Max(holon => ...)` intent through the existing scalar API. The selected path retains its exact CLR domain and the original source restrictions. Operation-specific read capabilities are required at planning and actual-adapter readmission; row/filter or count permissions cannot grant selection. All three current native adapters now support admitted Min/Max selections; the following provider sections record their verified domains.
-
-Required empty extrema report CQL_EMPTY_SEQUENCE. Nullable/string empty or all-null extrema return null; absent/null nullable leaves do not participate. Wrong stored types error. Exact negative Int64 results remain valid; native values are not converted through double. FullCore2,102 and both target builds pass for this contract. [Semantics,19reference vectors and remaining native gates](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#minmax-semantics-and-implementation-gate).
-
-### Native Min/Max — SQLite SDK
-
-SQLite now declares Min/Max through its own scalar capabilities. Use the same generic V2 manager/scalar planner; the trusted host supplies actor identity. The terminal selects one typed path and executes natively over the source window. Do not apply a row-publication limit to aggregate input accidentally.
-
-```csharp
-var adapter = (ICosmicQueryScalarStorageProvider)sqlite;
-var access = CosmicQueryReadAccess.OwnerOrPublic(authenticatedActor).Result;
-
-var source = CosmicQuery<Holon>.Create()
-    .WithReadAccess(access)
-    .Where(holon => holon.IsActive)
-    .Result;
-
-// Use long? when absent/null values should be ignored and an empty input
-// should return null. A required long reports CQL_EMPTY_SEQUENCE instead.
-var intent = source.Min(
-    holon => CosmicQueryMetadata.Value<long?>(holon, "stock"));
-
-var plan = CosmicScalarPlanner.Plan(
-    intent.Result,
-    adapter.QueryProviderType,
-    new[]
-    {
-        new CosmicScalarTarget(
-            adapter.QueryProviderType,
-            adapter.QueryCapabilities,
-            adapter.ScalarCapabilities)
-    });
-
-var result = await manager.ExecuteScalarQueryAsync(
-    plan.Result,
-    new ICosmicQueryStorageProvider[] { adapter });
-```
-
-Handle each OASISResult error before using Result in application code. Max uses the same API. Negative/exact Int64 extrema are valid; wrong types and malformed participating values error. Date comparisons retain UTC ticks. Initial and expanded native controls pass as detailed in the contract; full SQLite regression passes1,318tests with zero skips (2m9s), including all33new Min/Max cases. The same SDK API now works on MongoDB: its final native CQL matrix passes 124 tests and its full provider unit suite passes 237, with zero skips, including all 33 new Min/Max cases. Neo4j now supports the same SDK API for its admitted scalar domains; HTTP selected extrema are verified in the later HTTP checkpoint. [Native semantics/evidence](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#sqlite-native-minmax-slice).
-
-
-### MongoDB selected extrema
-
-The typed Min/Max example above also applies to the MongoDB adapter. Plan with that adapter's actual QueryCapabilities and ScalarCapabilities, then execute through HolonManager's existing scalar query API. Required empty sequences report `CQL_EMPTY_SEQUENCE`; nullable/string empty sequences return null. A wrong participating value reports `CQL_DATA_INVALID`, even when another row would win. Source ordering/paging, visibility and traversal validation keep their existing semantics. The manager does not load entities to calculate extrema. [Native implementation and acceptance](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#mongodb-native-minmax-slice).
-
-
-### Neo4j selected extrema
-
-Use the same typed Min/Max SDK example above with the Neo4j adapter's actual QueryCapabilities and ScalarCapabilities. Integers, Boolean, string, GUID and admitted enum paths use native reduction; no entities are loaded for aggregation. Nullable/string empty input returns null; required empty input reports CQL_EMPTY_SEQUENCE. Wrong participating values report CQL_DATA_INVALID even when they would not win. Source paging and protected traversal validation retain their established semantics.
-
-The expanded CQL matrix passes 111 tests and the full provider unit suite passes 328, with zero skips. UTC DateTime selectors remain unsupported; query admission rejects them. Neo4j's read-committed behavior and existing strict-I/O limitations remain unchanged. [Native semantics, coverage and limits](CQL_AGGREGATE_IMPLEMENTATION_CONTRACT.md#neo4j-native-minmax-slice). HTTP selected extrema, Sum/Average/GroupBy and later CQL phases remain pending.
-
-
-### Selected scalar HTTP request (verification checkpoint)
-
-Use `/api/data/query-cql/scalar` with Operation Min or Max and exactly one Selection. Canonical fields infer their type; metadata requires a bounded path and exact type. The host still supplies actor/eligibility. Example:
-
-```json
-{
-  "provider": "MongoDBOASIS",
-  "operation": "Min",
-  "selection": {
-    "metadataPath": ["stock"],
-    "valueType": "Int64",
-    "nullable": true
-  }
-}
-```
-
-Int64 results remain decimal strings; a nullable empty sequence returns null. Unit/HTTP controls pass2,117; exact fixture reconciliation and fresh175native/36SDK/36HTTP verification now pass. [Current evidence and remaining gate](CQL_SCALAR_HTTP_CONTRACT.md#selected-minmax-http-checkpoint--23-october-2026).
-
-
-The selected Min/Max HTTP/demo gate is verified on allthree providers:175native tests plus36SDK/36HTTP examples,0skips,216settled operations/211physical attempts. [Current verified evidence](CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026).
-
-
-## Integer Sum/Average Core checkpoint — 23 October 2026
-
-Immutable typed intents, operation-specific exact read admission and constant-size native accumulator normalization now pass both Core targets and all **2,141 tests, zero skips**, including24new cases. Integer Sum checks its final mathematical domain; Average returns Decimal without a binary64 intermediate. Empty/null, precision/rounding and explicit work-limit semantics are specified. The initial foundation checkpoint preceded provider enrollment. All three native providers, integer numeric HTTP and demos are now verified in the current checkpoint below; broader scalar domains and the rest of the roadmap remain open. [Contract, examples and evidence](CQL_NUMERIC_AGGREGATES.md).
-
-
-## SQLite numeric gate — 23 October 2026
-
-Native Sum/Average now share the existing scalar read owner and exact projection operand guard. Native two-limb reduction preserves exact mathematical sums and Decimal averages without a binary64 accumulation or input-row buffer. Final **1,345 SQLite tests pass, zero skips**, including 27 new numeric cases; producer/consumer identities agree and fixed fixture files are absent after teardown. MongoDB/Neo4j numeric execution and HTTP/demos remain open. [Semantics and exact evidence](CQL_NUMERIC_AGGREGATES.md#sqlite-native-sumaverage-verified--23-october-2026).
-
-
-## MongoDB numeric checkpoint — 23 October 2026
-
-Native Sum/Average now use exact signed limb aggregation through the existing scalar read/snapshot/cancellation owner. The final Mongo suite passes **144 native tests and 245 unit tests, zero skips**;20 native and 8 decoder controls are new. Core and SQLite numerical support remain verified from their earlier checkpoints. See [numeric contract and evidence](CQL_NUMERIC_AGGREGATES.md). Neo4j numeric support, numeric HTTP/Decimal wire and demos, GroupBy, composition/federation, strict blocked-I/O interruption and the remaining roadmap gates are still open. This checkpoint is not full CQL/ORM completion.
-
-
-## Neo4j numeric checkpoint — 23 October 2026
-
-Neo4j Sum/Average now use exact integer limb reductions through the existing scalar transaction/read-budget owner. The final suite passes **131 native tests and 331 provider unit tests, zero skips**, including 20 new native cases and three packet unit controls. SQLite, MongoDB and Neo4j numeric SDK execution are now verified. See [numeric contract and evidence](CQL_NUMERIC_AGGREGATES.md). Numeric HTTP/Decimal wire and demonstrations are next; grouping, composition/federation, strict blocked-I/O interruption, Neo UTC DateTime reads and the remaining CQL/ORM gates remain open. This is not full roadmap completion.
-
-
-## Numeric scalar HTTP checkpoint — 23 October 2026
-
-The existing scalar route now accepts Sum/Average with a required typed Int32/Int64 selection (nullable allowed). Average returns valueType Decimal and an invariant string; Sum retains the existing exact integer wire contract. The existing admission, manager, receipt and atomic response owner are reused. All 14 new endpoint controls pass in the full **2,155-test suite, zero skips**. [Contract/evidence](CQL_NUMERIC_AGGREGATES.md). Live three-provider HTTP acceptance and numeric demo examples remain pending; this does not complete the roadmap.
-
-```json
-{
-  "provider": "MongoDBOASIS",
-  "operation": "Average",
-  "selection": {
-    "metadataPath": ["stock"],
-    "valueType": "Int64",
-    "nullable": true
-  }
-}
-```
-
-Use the same request shape with SQLLiteDBOASIS or Neo4jOASIS when admitted. Int64 and Decimal response values are strings; parse them with an exact numeric library when arithmetic is required, rather than JavaScript Number.
-
-
-## Numeric SDK/HTTP demos verified — 23 October 2026
-
-The fresh joint acceptance run passes **195 native regression tests, zero skips**, plus **42 SDK queries and 42 signed HTTP examples** across MongoDB, SQLite and Neo4j. Examples13–14 demonstrate an exact signed Int64 Sum and an ordered two-row Average returning Decimal text `-9007199254740990.5`. Browser presets and Swagger match the spaced/commented C# examples. The actual run recorded **222 settled operations and 217 physical attempts**; no count was inferred from earlier reports. Full endpoint unit acceptance remains **2,155 tests, zero skips**.
-
-Evidence: TestResults/Neo4jCurrent/neo4j-cql-v1-web4-current.trx; TestResults/CosmicCqlDemo/numeric-demo-native.log, v1-demo-result.json, v1-walkthrough.txt and numeric-demo-artifacts.json. Core, Shared and all three provider producer/native-consumer hashes agree. The retained Neo container is exited, Mongo/Bolt/demo ports have no listeners, and the readiness marker and fixed SQLite fixture are absent after acknowledged cleanup. No runtime/environment/download/restore was added.
-
-Run `Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -IncludeRegression` for the same bounded acceptance or `-Serve` for the browser demo. Numeric transport and these integer-domain demos are now verified. Decimal/double/UInt64 selector expansion, GroupBy, composition/federation, strict blocked-I/O interruption, Neo UTC DateTime reads and all other unchecked roadmap gates remain open.
-
-
-## GroupBy key foundation — 23 October 2026
-
-Core now captures `source.GroupBy(h => h.Name)` and scalar/composite DTO keys through the existing projection compiler. One to eight key columns and separate immutable grouped-output bounds preserve the original source, trusted actor, relationships, ordering/window and consistency. No selected code or result constructor executes during capture. Both Core targets build and all **2,169 tests pass, zero skips**, including14 new controls. Private Core commit ec7d26c1ab9b3dffc268d4732348f59f17f0d000 is paired with the parent gitlink/manifest.
-
-[Grouping contract and remaining acceptance](CQL_GROUPING_CONTRACT.md). This is capture only: grouped result selection, capability planning/readmission, attempt ownership, native grouping, HTTP and examples remain to implement. No provider advertises grouping yet; the full roadmap remains active.
-
-
-## Grouped selection capture — 23 October 2026
-
-`GroupBy(...).Select(g => new { g.Key.Name, Rows = g.LongCount(), Mean = g.Average(h => h.Version) })` now captures bounded typed key/aggregate slots without executing user code. Count/LongCount, Min/Max and exact integer Sum/Average are supported in the expression surface; Average returns Decimal. Ordinary and grouped Select share one detached DTO-shape parser. Both Core targets build; full **2,182 tests pass, zero skips**, including13 new grouped-selection controls. [Contract and evidence](CQL_GROUPING_CONTRACT.md). Planning, detached grouped-result validation, physical-attempt ownership, native grouping, HTTP and demos are still required; no provider advertises grouping execution yet.
-
-
-## Grouped planning/readmission — 23 October 2026
-
-Independent grouping profiles now admit all key components, every selected aggregate and group/column/payload ceilings. Source planning preserves scope, actor, relationships, windows and consistency. Actual single-provider readmission rejects borrowed query/group profiles. Scalar and grouped operation/read-path checks share one owner. Both Core targets build; full **2,200 tests pass, zero skips**, including18 new planning controls. [Contract/evidence](CQL_GROUPING_CONTRACT.md). Grouped result validation/materialization, physical-attempt ownership, native GroupBy, HTTP and demos remain open; no provider advertises grouping execution.
-
-
-## Grouped result validation — 23 October 2026
-
-Immutable native rows now require positive input-count proof, complete typed key cells and selected cells. Whole-buffer validation checks unique ordered identity, key/count agreement, source windows, scalar domains, numeric work and payload bounds before any DTO construction. Ordinary projection and grouped results share scalar validation and constructor/member assignment owners; non-UTC dates and undefined enums now reject in projections too. Full **2,224 tests pass, zero skips**, including24 new controls; both Core targets build. [Contract/evidence](CQL_GROUPING_CONTRACT.md). Grouped physical-attempt execution, native adapters, HTTP and demos remain required; no provider advertises grouping execution.
-
-
-## Grouped V2 execution owner — 23 October 2026
-
-Generic HolonManager grouped execution now preflights all actual adapters and reuses the existing prepared physical-attempt/receipt owner. Global group/payload budgets are enforced across all buffers before any DTO construction. Per-provider rows remain separate; zero remaining bounds do not skip a later empty provider's execution. Both Core targets build; full **2,239 tests pass, zero skips**, including15 new controlled executor/hosted cases. [Contract/evidence](CQL_GROUPING_CONTRACT.md). Native GroupBy, HTTP and demos are still required; no provider advertises native grouping yet.
-
-
-## SQLite native GroupBy checkpoint - 23 October 2026
-
-SQLite now advertises the independent grouped adapter contract for Count/LongCount, Min/Max and exact Int32/Int64 Sum/Average. Reduction runs in SQL over the admitted source predicate and ordered source window; it does not hydrate holons or evaluate groups in memory. Every key and selected aggregate domain is checked, including unselected identity keys. Composite keys, NULL-first ordering, case-insensitive logical GUID equality and normalized UTC date equality follow the Core contract.
-
-The current native profile permits up to 1,000 output groups, 32 selected columns and 32 MiB of buffered proof/result data. Input participation has an explicit Int32.MaxValue work bound, independently of the output-group limit: the native sentinel detects excess and returns an error. Excess groups, payload, invalid domains and true final numeric overflow return no partial results. Exact grouped numeric normalization uses the shared Core signed-limb owner; nullable all-empty Sum is zero and Average is null.
-
-Read execution reuses SQLite's scope predicate, deadline/traversal guards and concurrency detector. Relationship scope checks run before source windows. An owned read snapshot is rolled back and its connection closed; a caller-owned serializable transaction/connection remains owned by the caller. Cancellation and subsequent reuse are covered. Inactive providers return CQL_PROVIDER_NOT_READY explicitly.
-
-Verification: **1,364 native SQLite tests passed, zero skipped**, including 19 new grouping controls. Evidence: TestResults/SQLiteCurrent/cql-grouped-full-current.trx; TestResults/CosmicCqlDemo/sqlite-group-full.log and sqlite-group-artifacts.json. Core SHA256 starts 6D193362, Shared 996EE8E6, SQLite 98D67EC2; producer and test-output copies match. The fixed fixture database, WAL and SHM are absent after teardown. This certifies this SQLite slice only: MongoDB/Neo4j native grouping, grouped HTTP/demos, post-group filters/order/pages and remaining roadmap gates are still open.
-
-### SQLite grouped selection example
-
-The following expression shape is supported by the native SQLite grouped adapter. Check each OASISResult before accessing Result; build a CosmicGroupedTarget from the actual adapter QueryCapabilities and GroupedCapabilities, then pass the admitted plan to HolonManager.ExecuteGroupedQueryAsync. Grouped results retain their provider and do not implicitly merge replicas.
-
-```csharp
-// Filter the input first. Add source OrderBy/Skip/Take here when needed.
-var groups = CosmicQuery<Holon>.Create()
-    .Where(h => h.Name.StartsWith("catalogue "))
-    .GroupBy(h => CosmicQueryMetadata.Value<string>(h, "category"))
-    .Select(g => new
-    {
-        Category = g.Key,
-        Items = g.LongCount(),
-
-        // Integer inputs use exact shared normalization; Average returns Decimal.
-        TotalStock = g.Sum(h => CosmicQueryMetadata.Value<long>(h, "stock")),
-        AverageStock = g.Average(h => CosmicQueryMetadata.Value<long>(h, "stock"))
-    });
-```
-
-Grouped HTTP requests and updated three-provider grouped demo screens are not available yet. This checkpoint does not add post-group Where/OrderBy/Skip/Take.
-
-
-MongoDB now supports the same grouped selection expression shape shown in the SQLite example through its own CosmicGroupedTarget and actual GroupedCapabilities. Initial live integration passes; expanded grouped boundary acceptance is pending. Use HolonManager.ExecuteGroupedQueryAsync with the admitted provider plan. Grouped HTTP and three-provider grouped demo screens remain pending.
-
-
-Neo4j now executes the same typed grouped selection shape illustrated above, using its actual CosmicGroupedTarget/GroupedCapabilities and HolonManager.ExecuteGroupedQueryAsync. Native grouping exists on MongoDB, SQLite and Neo4j; select only types admitted by the actual provider. Neo4j UTC date coverage remains pending, and grouped HTTP/demo screens and post-group filtering/order/pages remain pending.
-
-
-Grouped HTTP request compilation and the protected `/api/data/query-cql/grouped` route are implemented. See [grouped HTTP contract](CQL_GROUPING_HTTP_CONTRACT.md) for JSON, limits, wire domains and current evidence. Full2,271 controlled tests pass0skip; live grouped HTTP/demo acceptance and post-group composition remain open. Scalar and grouped selections share one typed visitor and alias/path validator.
-
-
-## Grouped CQL live demo - 24 October 2026
-
-The retained signed HTTP demo now passes on MongoDB, SQLite and Neo4j: **45 SDK queries,45 HTTP examples,225 settled operations and220 provider attempts**. Each provider runs15 spaced/commented examples; example15 groups an ordered two-row source window by stock and verifies LongCount, exact Int64 Sum and Decimal Average. Browser UI and Swagger include grouped presets. This is the single integrated live-demo acceptance test, not a rerun of every provider regression suite.
-
-The first grouped HTTP attempt exposed missing admission-path registration. The pinned failed fixture was reconciled against194 settled operations/189 attempts and all146 owned rows per store before scoped cleanup; no reset or blind replay occurred. Core's exact CQL registry now drives hosted admission/Swagger and production tariff checks. The corrected live run completed, receipts settled, owned fixture files were removed and runner services stopped.
-
-Evidence: TestResults/CosmicCqlDemo/v1-demo-result.json, v1-walkthrough.txt and grouped-demo-native-verified.log; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Executed producer copies match Core594AAEDB and Shared8E034BFB. Reconciliation evidence: grouped-fixture-reconcile.log, neo4j-cql-v1-web4-reconcile-current.trx and cql-v1-web4-reviewed-grouped-admission-reconciliation.json. The old42/42 numeric demo result remains historical. Post-group filters/order/pages, joins, federation and other unchecked roadmap gates remain open.
-
-
-HTTP grouped result ordering, 24 October 2026: added bounded resultOrder aliases/directions, bound with exact selected CLR expressions through the shared Core owner. Source windows remain independent; actual provider admission rejects unenrolled operations before dispatch. Full Core/linked-production suite passes 2,314/0 skips (http-group-order-full-current.trx). Controlled endpoints cover all three profiles and unsupported Average. Post-group filtering/paging and exact Average ordering remain open; live ordering evidence is recorded below. See CQL_GROUPING_HTTP_CONTRACT.md for JSON usage and evidence.
-
-
-## Ordered groups live demonstration — 24 October 2026
-
-Example16 now demonstrates native grouped ordering in both readable C# and HTTP walkthroughs: group visible rows by Name, select exact Int64 Sum, order Total descending then Name ascending. Three adjacent negative totals beyond2^53 verify actual values and ordering. Browser preset **GroupBy / ordered exact totals** and grouped Swagger resultOrder fields expose the same feature. Source order/windows remain separate.
-
-The retained runner completed **48 SDK queries and48 HTTP examples** across MongoDB, SQLite and Neo4j; **228 operations settled and223 provider attempts**. Actual session96782 terminal0, integrated native test1pass/0skip. This is live demo acceptance, not a rerun of every provider suite. Evidence: TestResults/CosmicCqlDemo/ordered-group-demo-native.log, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/copy checks verified Core19F1CA8B and SharedDF5015E4. Node24.19.0 syntax check passed for the browser script. Fixture manifest/SQLite/WAL/SHM verified absent after owned cleanup; Mongo27029 and Neo17687 listeners absent.
-
-HTTP result ordering live acceptance is complete for the enrolled operations. Exact Average ordering, post-group filters/pages and the broader unchecked CQL/ORM roadmap remain open.
-
-
-### Page grouped results independently of source rows
-
-In C#, compose `GroupBy(...).Select(...).OrderByDescending(row => row.Total).Skip(1).Take(5)`. The last two operators page reduced groups. Apply source Skip/Take before GroupBy when you intentionally want to change which input rows participate in aggregates.
-
-For POST `/api/data/query-cql/grouped`, add:
-
-```json
-"resultOrder": [ { "alias": "Total", "descending": true } ],
-"resultSkip": 1,
-"resultTake": 5
-```
-
-Aliases name selected output columns. Omit resultTake for the complete bounded result; zero publishes no groups but still validates the complete proof. maximumGroups and payload bounds include off-page groups. Unsupported provider paging fails at admission. HTTP compiler/controlled endpoint coverage passes in the2,334-case suite; live paging demo verification now passes51SDK/51HTTP across all three providers (see acceptance below). See CQL_GROUPING_HTTP_CONTRACT.md for current evidence.
-
-
-## HTTP grouped paging live acceptance — 24 October 2026
-
-`resultSkip`/`resultTake` now run through native paging on MongoDB, SQLite and Neo4j. Example17 shows the same query in spaced/commented C# and HTTP, with browser and Swagger fields: group by Name, sum exact Int64 values, order Total descending/Name ascending, then Skip1/Take1. The selected C-public total remains -9007199254740990; source windows remain independent. Complete bounded proof includes skipped groups.
-
-Verification: **2,334 Core/linked-production unit tests pass, zero skips**; the fresh integrated native demo passes **51 SDK queries and51 HTTP examples**, **231 settled operations and226 physical attempts** across all three providers (actual32210terminal0, native1PASS0skip). Evidence: TestResults/CosmicCurrent/http-group-page-current.trx; TestResults/CosmicCqlDemo/http-group-page-unit.log, group-page-demo-native.log, group-page-demo-artifacts.json, v1-demo-result.json and v1-walkthrough.txt; TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx. Producer/native copies match for Core and all three providers; runner verifies Core051A0664/SharedD5273C49. Browser script passes Node24.19.0 syntax check. This is the integrated demo acceptance test, not an all-suite provider rerun.
-
-The other session completed reviewed fixture cleanup and its Mongo historical-type regressions before granting the live window. No blind reset/replay occurred. Final owned fixture marker/SQLite/WAL/SHM are absent, Mongo27029 and Neo17687 listeners absent. Post-group filtering, exact Average ordering and broader unchecked roadmap gates remain open.
-
-### Filtering selected groups through HTTP
-
-Use `resultFilters` on the grouped route to test selected aliases after reduction and before result ordering/paging. For example, `{"alias":"Total","operator":"GreaterThan","value":"-9007199254740991"}` filters an Int64 Sum exactly. Source `filters` change aggregate inputs; resultFilters change which reduced groups are published. Int64/Decimal literals use invariant strings, Int32 uses JSON integers, and string operators are ordinal. Up to32 predicates are ANDed. Selected type/operator support is independently admitted by the actual provider; capture does not enable unsupported Average filtering.
-
-See [the full grouped HTTP contract](CQL_GROUPING_HTTP_CONTRACT.md#selected-result-filters) and [annotated demo example18](../../../Examples/CosmicCqlDemo/README.md#example-18-filter-grouped-totals-before-paging). SDK Where supports the broader shared expression grammar; the initial HTTP grammar intentionally exposes only the documented bounded comparisons. Unsupported composition after result paging returns an explicit error rather than reordering operations.
-
-### SQLite: filter and order normalized group means
-
-After selecting `Mean = group.Average(...)`, compose `.Where(row => row.Mean >= 1.5m).OrderBy(row => row.Mean)` before result Skip/Take. SQLite compares the same rounded Decimal returned in the result, including halfway ties; it does not compare an unrounded ratio. Nullable averages can use null checks, membership and other selected Average fields with the same underlying CLR domain. Mixed Decimal-versus-Int64 field comparison remains an explicit shared capture gap. SQLite, MongoDB and Neo4j support this capability after their native normalization gates. The existing HTTP `resultFilters` grammar can represent the Decimal threshold as `"1.5"`; native SDK and live HTTP Average support are verified by example19 on all three providers.
-
-MongoDB now supports the same grouped Average filter/order compositions documented for SQLite above, using exact normalized Decimal128 output from a bounded native digit kernel. The full191-case native CQL suite and427 provider units pass. Selected Average fields, Decimal literals and nullable membership compare normalized published values. Neo4j now also supports these operations after its172-case native gate. The57/57 signed demo demonstrates both Sum and Average result filters, with exact Decimal wire values on all three providers.
-
-## UTC metadata dates
-
-Use `CosmicQueryMetadata.Value<DateTime>` or `Value<DateTime?>` for UTC metadata paths on MongoDB, SQLite and Neo4j. Precompute UTC range bounds before composing expressions. DateTime literals must carry UTC kind; arbitrary date methods in expressions are rejected. Neo4j now normalizes zero-to-seven fractional digits to fixed calendar text, preserving100ns ticks and rejecting invalid calendars/offset text without epoch-millisecond conversion. Projection/Min/Max/group results decode with UTC kind. See [the full date contract and SDK example](CQL_UTC_DATETIME_CONTRACT.md). HTTP source and selected-result date predicates use the validated UTC transport described below. Fresh live verification is recorded in the UTC contract.
-
-
-### Filter and group exact UTC instants
-
-Compute UTC bounds before composing a query. The exclusive upper bound preserves
-adjacent 100ns instants without rounding.
-
-```csharp
-var start = new DateTime(2026, 10, 24, 0, 0, 0, DateTimeKind.Utc)
-    .AddTicks(2);
-
-var end = start.AddTicks(2);
-
-// Start with the existing actor-bound query used in the walkthrough.
-var dateRows = visible
-    .Where(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt") >= start
-        && CosmicQueryMetadata.Value<DateTime>(row, "observedAt") < end)
-    .Select(row => new
-    {
-        row.Name,
-        ObservedAt = CosmicQueryMetadata.Value<DateTime>(row, "observedAt")
-    });
-
-// Result predicates apply after grouping, before ordering and result paging.
-var dateGroups = visible
-    .GroupBy(row => CosmicQueryMetadata.Value<DateTime>(row, "observedAt"))
-    .Select(group => new
-    {
-        ObservedAt = group.Key,
-        Items = group.LongCount()
-    })
-    .Where(row => row.ObservedAt >= start && row.ObservedAt < end)
-    .OrderBy(row => row.ObservedAt)
-    .Take(2);
-```
-
-These expressions return `OASISResult` intents. Handle errors, plan against the
-actual adapter capabilities, and execute through HolonManager as demonstrated in
-[the runnable C# walkthrough](../../../Examples/CosmicCqlDemo/V1NativeQueries.cs).
-No expression executes until that explicit planning/execution step.
-
-HTTP source filters specify `scalar: "DateTime"`, `metadataPath`, an operator and
-an uppercase UTC Z string. Grouped `resultFilters` identify a selected date alias;
-its schema supplies the type. Zero to seven fractional digits are accepted.
-Offsets, missing timezone, invalid calendars and excess precision fail compilation.
-See [examples20–21](../../../Examples/CosmicCqlDemo/README.md#examples-2021-exact-utc-dates)
-and [the exact transport contract](CQL_UTC_DATETIME_CONTRACT.md).
-
-
-## UInt64 metadata on MongoDB, SQLite and Neo4j
-
-MongoDB, SQLite and Neo4j support `Value<ulong>` and `Value<ulong?>` for the full unsigned range.
-Use typed integer literals so intent and provider admission retain the domain:
-
-```csharp
-var highCounters = CosmicQuery<Holon>.Create()
-    .Where(row => CosmicQueryMetadata.Value<ulong>(row, "counter") > (ulong)long.MaxValue)
-    .OrderBy(row => CosmicQueryMetadata.Value<ulong>(row, "counter"))
-    .Select(row => new
-    {
-        row.Id,
-        Counter = CosmicQueryMetadata.Value<ulong>(row, "counter")
-    });
-```
-
-Handle the result, plan against the actual target adapter and execute through
-HolonManager as in the projection walkthrough. Metadata paths require explicit
-segments: use `Value<ulong>(row, "stats", "counter")` for a nested counter.
-Captured path arrays are not part of the expression grammar.
-
-UInt64 source values above Int64.MaxValue remain exact; the native query does not
-compare a rounded floating-point extraction. Nullable values, membership,
-field-to-field comparison, Min/Max and grouped keys use the same exact domain.
-Fractional/out-of-range mixed literals remain a provider admission restriction.
-UInt64 Sum/Average are not enrolled by metadata support. HTTP UInt64 compiler
-coverage passes; live transport/demo acceptance passes69SDK/69HTTP examples.
-See [the UInt64 contract](CQL_UINT64_CONTRACT.md) for verified scope and examples.
-
-
-### UInt64 HTTP shapes
-
-Source metadata filters use the additive `UInt64` scalar and an exact digit string:
-
-```json
-{
-  "metadataPath": ["counter"],
-  "scalar": "UInt64",
-  "operator": "GreaterThan",
-  "value": "9223372036854775807"
-}
-```
-
-Select a counter with `{"alias":"Counter","metadataPath":["counter"],"valueType":"UInt64"}`.
-Set `nullable:true` when missing/null values are allowed in selected output. Group
-keys use the same selection shape. A selected group predicate can use
-`{"alias":"Counter","operator":"Equal","value":"18446744073709551615"}`.
-Output columns carry UInt64 schema tags and invariant strings, preserving all bits
-through JavaScript clients. Numeric JSON input, signs, whitespace, fractions,
-exponents and values above UInt64.MaxValue fail compilation. Existing enum values
-retain their identities. Live three-provider examples22–23 now pass69SDK/69HTTP acceptance; [the capability matrix](CQL_SCALAR_CAPABILITY_MATRIX.md) distinguishes that
-passing gate from the compiler and native evidence.
-
-## Exact Decimal metadata — MongoDB, SQLite and Neo4j SDK
-
-MongoDB, SQLite and Neo4j support Decimal/nullable Decimal comparisons, membership,
-field comparisons, ordering, projections, Min/Max and grouped keys. SQLite passes
-1,459 native cases including 24 Decimal cases; MongoDB passes 228 native CQL and
-483 unit cases including 23/5 new cases. Neo4j passes 217 native CQL and 455 unit
-cases including 12/2 new cases. Decimal wire compiler controls pass in the full
-2,500-test linked unit suite; live75SDK/75HTTP three-provider acceptance passes;
-check the actual provider capability profile.
-
-```csharp
-// Use Decimal values when saving prices; a numeric string is a different domain.
-var query = CosmicQuery<Holon>.Create()
-    .Where(row => CosmicQueryMetadata.Value<decimal>(row, "price") >= 0.10m)
-    .OrderBy(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
-    .Take(10)
-    .Select(row => new
-    {
-        row.Id,
-        Price = CosmicQueryMetadata.Value<decimal>(row, "price")
-    });
-```
-
-Check the captured result, plan it against the target adapter's actual capabilities and
-execute through HolonManager as in the projection walkthrough. The provider's
-original numeric representation is normalized exactly; underflow, excess precision and floating-point
-rounding cannot change its Decimal identity. Equivalent scales share a group.
-Use `decimal?` for optional metadata. Decimal Sum/Average inputs remain outside
-this enrollment. [Domain, limits and evidence](CQL_DECIMAL_METADATA_CONTRACT.md).
-
-
-### Decimal HTTP shapes
-
-Use an exact invariant string for a metadata predicate:
-
-```json
-{
-  "metadataPath": ["price"],
-  "scalar": "Decimal",
-  "operator": "GreaterThanOrEqual",
-  "value": "1.0000000000000000000000000001"
-}
-```
-
-Select it with `{"alias":"Price","metadataPath":["price"],"valueType":"Decimal"}`.
-Add `nullable:true` for optional selected metadata. Group keys use the same
-selection; a selected group filter identifies its alias and keeps its value as
-a string. Decimal results carry the Decimal schema tag and invariant strings.
-
-Numeric JSON, exponents, whitespace, overflow and text that would require rounding
-are rejected. Equivalent stored numeric scales retain one mathematical identity.
-The additive Decimal enum preserves earlier scalar identities. Compiler controls
-are verified; examples24–25 now pass live three-provider75SDK/75HTTP acceptance.
-Browser presets and Swagger ExactDecimal show the same bounds. See the
-[Decimal evidence](CQL_DECIMAL_METADATA_CONTRACT.md#live-decimal-examples-2425--24-october-2026).
-
-
-## Finite Double metadata — SQLite SDK
-
-SQLite supports `double`/`double?` comparisons, membership, field comparisons,
-ordering, projection, Min/Max and grouped keys. It passes26 focused Double cases
-inside the full1,485-case native regression; fullCore2,507 also passes.
-
-```csharp
-// Double means a finite binary64 interpretation of the stored numeric value.
-var readings = CosmicQuery<Holon>.Create()
-    .Where(row => CosmicQueryMetadata.Value<double>(row, "reading") >= 0.1d)
-    .OrderBy(row => CosmicQueryMetadata.Value<double>(row, "reading"))
-    .Take(10)
-    .Select(row => CosmicQueryMetadata.Value<double>(row, "reading"));
-```
-
-Check the result, plan against the actual SQLite capabilities and execute through
-HolonManager as in the earlier projection examples. Binary64 rounding is part of
-this declared type; exact integer/decimal queries retain their corresponding
-Int64/UInt64/Decimal domains. Nonzero underflow cannot match zero; overflow and
-foreign JSON types reject required selection. The same SDK Double shape is now supported by MongoDB and Neo4j with each actual
-provider capability profile. Single remains pending; Double SDK/HTTP/live demos are verified.
-[Domain, budgets and evidence](CQL_FLOATING_SCALAR_CONTRACT.md).
-
-### Double HTTP values
-
-Use a canonical finite round-trip string in source filters:
-
-```json
-{
-  "metadataPath": ["reading"],
-  "scalar": "Double",
-  "operator": "GreaterThanOrEqual",
-  "value": "0.1"
-}
-```
-
-Select with `{"alias":"Reading","metadataPath":["reading"],"valueType":"Double"}`.
-Use `nullable:true` for an optional selected value. Group keys use the same
-selection; filters over a selected Double alias use the same string literal
-contract. Selected/Min/Max/grouped responses return Double values as strings.
-
-Encode finite C# values with `ToString("R", CultureInfo.InvariantCulture)`,
-normalizing signed zero to0. Canonical spelling is required: use5E-324 rather
-than5e-324, and0 rather than0.0. NaN, infinity, overflow, nonzero underflow and
-over-precise text that would round are rejected. JSON number tokens are rejected
-for this wire type. Double is binary64; use Decimal for exact decimal prices.
-The full linked suite passes2,552 tests, including the complete Double grouped-order request. Live acceptance passes81SDK/81signedHTTP examples on all three providers. See demo examples26–27 and Swagger FiniteDouble.
-
-### Single SDK metadata on SQLite
-
-Use float selectors and f literals for finite binary32 measurements:
-
-```csharp
-var readings = CosmicQuery<Holon>.Create()
-    .Where(row => CosmicQueryMetadata.Value<float>(row, "reading") >= 0.1f)
-    .OrderBy(row => CosmicQueryMetadata.Value<float>(row, "reading"))
-    .Take(10)
-    .Select(row => CosmicQueryMetadata.Value<float>(row, "reading"));
-```
-
-Handle the OASISResult, plan with the actual provider capabilities, and execute
-through HolonManager as in the projection examples. Nullable float?, grouped
-keys/filter/order and selected Min/Max are supported. Binary32 rounding happens
-directly from the stored numeric token; a binary64 intermediate cannot change a
-near-halfway result. Nonzero underflow and overflow reject the declared domain.
-
-This is SQLite SDK support. MongoDB/Neo4j Single and Single HTTP/demo enrollment
-remain pending. Single Sum/Average inputs are not granted. The full SQLite gate
-passes1,513 cases and the linked Core suite2,555, zero failures/skips.
-
-### Lossless numeric membership promotion
-
-For a provider with certified Single metadata support, a Double collection can
-be compared against an explicitly widened Single path:
-
-```csharp
-var exactMembers = new[] { (double)0.1f };
-
-var query = CosmicQuery<Holon>.Create()
-    .Where(h => exactMembers.Contains(
-        (double)CosmicQueryMetadata.Value<float>(h, "reading")));
-```
-
-The original Single storage domain is validated before widening. `0.1d` and
-`(double)0.1f` are different values; collection literals retain their precision.
-Integral-to-Int64 membership widening is also supported. Nullability changes and
-enum-domain conversions are rejected. SQLite has native regression coverage;
-this compiler support does not grant uncertified providers a Single capability.
-
-Single and nullable Single metadata queries are now certified through Mongo,
-SQLite and Neo4j SDKs. Use `Value<float>` / `Value<float?>` for the declared
-domain; normalization follows binary32 rounding before predicates and grouping.
-Finite nonzero underflow and overflow are invalid data, not null. Single HTTP transport/examples are verified on all three providers.
-
-### Single HTTP values
-
-The additive `Single` scalar and selected value type preserve the declared
-binary32 domain. Request literals and selected output use canonical strings:
-
-```json
-{
-  "metadataPath": ["singleReading"],
-  "scalar": "Single",
-  "operator": "GreaterThanOrEqual",
-  "value": "1.0000002"
-}
-```
-
-Select a metadata column with `"valueType": "Single"`; set `"nullable": true`
-for nullable Single. Grouped keys use the same selected-column declaration.
-Selected group aliases inherit that type for result filters and ordering.
-Use `"0"` for zero. Numbers must use their invariant finite Single round-trip
-spelling; excess precision and nonfinite or noncanonical values are rejected.
-Compiler/endpoint tests and fresh live Single demos pass across all three providers.
-
-Examples 28–29 in [V1NativeQueries.cs](../../../Examples/CosmicCqlDemo/V1NativeQueries.cs)
-and [V1Walkthrough.cs](../../../Examples/CosmicCqlDemo/V1Walkthrough.cs) show complete
-Single SDK/HTTP flows with planning, result validation and settlement. All 87 SDK
-and 87 HTTP examples pass. The browser Single presets and Swagger FiniteSingle
-examples use the same binary32 contract. Single Sum/Average are not enrolled.
-
-## Join intent — not yet executable
-
-The SDK can capture inner/left join intent. Native execution and HTTP join routes
-are not available yet; this example performs no storage operation:
-
-```csharp
-var owners = CosmicQuery<Holon>.Create();
-var members = CosmicQuery<Holon>.Create();
-
-// Preserve each source's filters and paging before matching the keys.
-var joinIntent = owners.Join(
-    members,
-    owner => owner.Id,
-    member => member.ParentHolonId,
-    CosmicJoinOptions.Create(
-        maximumLeftRows: 100,
-        maximumRightRows: 500,
-        maximumPairs: 1000,
-        maximumResults: 100).Result);
-```
-
-Use `LeftJoin` for left-join intent. Both sources must have the same provider
-scope and trusted access actor. These descriptions do not authorize a storage
-query. Follow [the join contract](CQL_JOIN_CONTRACT.md) for implementation status.
-
-### Describing a left-join result
-
-This captures a result description only; it does not execute a query:
-
-```csharp
-var ownerQuery = CosmicQuery<Holon>.Create();
-var memberQuery = CosmicQuery<Holon>.Create();
-
-var selection = ownerQuery
-    .LeftJoin(memberQuery, owner => owner.Id, member => member.ParentHolonId)
-    .Select((owner, member) => new
-    {
-        OwnerName = owner.Name,
-
-        // Presence differs from a present member whose fields contain null.
-        MemberPresent = member != null,
-        MemberName = member.Name,
-
-        // An unmatched member has no version; it must not become zero.
-        MemberVersion = (int?)member.Version
-    });
-```
-
-A left-join right-side value such as `member.Version` requires a nullable output.
-Only an identical-domain nullable lift is accepted; numeric conversion or computed
-output requires further capability support. Native execution remains pending.
-
-### Join planning status
-
-Core can now preflight a captured join selection against an already authorized eligible provider snapshot. Join permissions are independent of ordinary query/projection permissions; the actual native adapter must re-admit both source queries and the join contract. This stage performs no storage operation. Do not fabricate capability grants in application or HTTP input. Native matching, packet validation, execution/accounting and join HTTP routes remain pending. Multi-provider source windows retain the existing federation restriction.
-
-### Join result validation status
-
-The shared join packet validator now distinguishes matched nullable values from an unmatched right row. Its published wrapper provides Value and HasRight even when a selection does not include a presence column. It verifies native source/pair counts, identities, exact scalar cells, access and budgets before constructing DTOs. This is not a storage query API: native join adapters and the execution/accounting pipeline remain pending.
-
-## Generic join execution checkpoint — 25 October 2026
-
-The generic V2 `HolonManager.ExecuteJoinQueryAsync` entry point now uses
-`CosmicJoinExecutor` and the explicit `ICosmicQueryJoinStorageProvider` contract.
-Every actual target is checked for source/join capabilities, concrete identity
-and inherited provider permission before the first durable attempt. Both source
-actors must match inherited admission. Final dispatch rechecks actual capabilities.
-
-One durable physical attempt owns each provider's two-source native join. Seven
-query-wide remaining budgets cover left/right rows, pair work, output rows and
-left/right/output bytes; later providers receive the remaining allowance. Zero
-allowance requires an explicit native probe/error outcome rather than truncation.
-All provider packets validate before any selected DTO is constructed. Failures
-and cancellation return no partial publication; Core never evaluates a join by
-scanning entity results.
-
-Both Core frameworks build and the full Core suite passes **2,731/2,731**, zero
-skips. This adds 27 controls beyond the prior 2,704 checkpoint. The first candidate
-exposed six existing SDK admission regressions: requiring query tariffs during
-preflight incorrectly conflated provider permission with endpoint pricing.
-Preflight now reuses the existing centralized prepared provider permission owner;
-optional SDK tariffs remain compatible, while paid HTTP retains its tariff gate.
-A later-denied-provider regression also proves no earlier read/attempt begins.
-
-This checkpoint is controlled-adapter execution/accounting evidence. **No real
-provider implements or advertises native joins yet.** SQLite, MongoDB and Neo4j
-native matching/proof production, HTTP transport, executable join demos and
-remaining composition/federation/security certification are still open.
-
-## Native SQLite joins — implementation checkpoint, 25 October 2026
-
-SQLite's native join owner is verified for flat source queries (Core 2,734; normal SQLite integration 1,615; SQLite unit 46). It uses one
-serializable read transaction for both sources, their detached proofs and native
-pair matching. MongoDB and Neo4j join execution, joined HTTP requests and graph
-source joins are not enrolled by this checkpoint. Existing query APIs remain
-available on those providers.
-
-The following SDK pattern assumes an activated SQLite `provider` and a V2
-`manager`. It joins two independently filtered and bounded source windows. Here,
-`Description` identifies the sample row's role and `Name` is the matching key.
-
-```csharp
-var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
-
-var products = CosmicQuery<Holon>.Create(scope)
-    .Where(product => product.Description == "product")
-    .OrderBy(product => product.Name)
-    .Take(20);
-
-var stock = CosmicQuery<Holon>.Create(scope)
-    .Where(item => item.Description == "stock")
-    .Take(20);
-
-// A left join keeps products even when no matching stock row exists.
-// Null keys never match. Repeated keys produce multiple matching pairs.
-var selection = products.LeftJoin(
-        stock,
-        product => product.Name,
-        item => item.Name)
-    .Select((product, item) => new
-    {
-        ProductName = product.Name,
-        StockName = item.Name,
-        HasStock = item != null
-    });
-
-if (selection.IsError)
-    throw new InvalidOperationException(selection.Message);
-
-// Plan with the actual provider's separate source and join capabilities.
-var adapter = (ICosmicQueryJoinStorageProvider)provider;
-var plan = CosmicJoinPlanner.Plan(
-    selection.Result,
-    adapter.QueryProviderType,
-    new[]
-    {
-        new CosmicJoinTarget(
-            adapter.QueryProviderType,
-            adapter.QueryCapabilities,
-            adapter.JoinCapabilities)
-    });
-
-if (plan.IsError)
-    throw new InvalidOperationException(plan.Message);
-
-var result = await manager.ExecuteJoinQueryAsync(plan.Result, new[] { provider });
-
-if (result.IsError)
-    throw new InvalidOperationException(result.Message);
-
-foreach (var row in result.Result.Providers.Single().Rows)
-{
-    // Presence is independent of nullable fields on an existing stock row.
-    Console.WriteLine($"{row.Value.ProductName}: stock row exists = {row.HasRight}");
-}
-```
-
-Use `Join` for inner matching. Composite keys use matching anonymous key shapes,
-for example `new { row.Name, Region = CosmicQueryMetadata.Value<int>(row, "region") }`
-on each side. Both key components must match; a null component prevents a match.
-For a left join, lift selected right value types, for example `(int?)item.Version`,
-so an absent right row can be represented. A present right row's required metadata
-must still have the declared type: lifting the result does not make corrupt or
-missing required source data valid.
-
-Pass explicit `CosmicJoinOptions` to bound each input, pair work, output count and
-three payload budgets. Bounds reject overflow rather than truncate a successful
-join. Inherited admission checks both source actors and all provider permissions
-before any physical attempt. Applications requiring owner/public filtering must
-bind the same authorized `CosmicQueryReadAccess` to both source queries, just as
-for ordinary CQL reads. Metadata tenant labels alone do not grant access.
-
-## MongoDB SDK flat joins — 25 October 2026
-
-MongoDB supports the same `Join` / `LeftJoin` / detached `Select` pattern shown in
-[the SQLite join example](#native-sqlite-joins--implementation-checkpoint-25-october-2026).
-Use an activated MongoDB provider, `ProviderType.MongoDBOASIS` scope and its actual
-`ICosmicQueryJoinStorageProvider` source/join capabilities when constructing the
-plan. Execute through the same generic V2 `manager.ExecuteJoinQueryAsync` method.
-Both source windows and native matching share a MongoDB snapshot. Complete source
-proofs validate before matching, and all provider packets validate before selected
-DTO construction. Results expose `HasRight` independently of nullable selected cells.
-
-Key domains include the enrolled exact Int64/UInt64, Decimal, Single/Double, UTC
-DateTime, GUID, Boolean, string, Int32, nullable and enum types. Composite key
-components must all match; any null component prevents a match. Selected required
-metadata must exist with the declared type, including rows that never match.
-Missing/null metadata ordering preserves ordinary CQL's buckets before paging.
-All seven resource allowances reject overflow; none silently truncate successful
-results. Both bound sources require the same authorized actor/policy.
-
-Native evidence: full MongoDB328/328 and unit510/510, zero skips. Graph sources,
-joined HTTP transport and Neo4j joins are not enrolled by this SDK checkpoint.
-
-## Neo4j SDK flat joins — 25 October 2026
-
-Neo4j supports the same `Join` / `LeftJoin` / detached `Select` SDK pattern as
-MongoDB and SQLite. Use an activated shipping `Neo4jOASIS` provider and
-`ProviderType.Neo4jOASIS` scope; construct the plan from that adapter's actual
-source and join capabilities. Call the same generic V2
-`manager.ExecuteJoinQueryAsync(plan, adapters)` entry point.
-
-The [commented SQLite join example](#native-sqlite-joins--implementation-checkpoint-25-october-2026)
-shows the complete capture, capability-planning, error-checking and iteration
-steps. Change the provider scope/adapter to Neo4j; result presence remains
-`row.HasRight`, independently of nullable selected values. Composite keys and
-the enrolled exact scalar domains use the same Core syntax on all three stores.
-Both input windows run before matching, and overflow rejects rather than
-truncates a successful response.
-
-Neo4j captures both source value sets inside one native statement and matches
-those captured maps. Its guarantee is read committed; it does not promise a
-repeatable snapshot. Graph-source joins/shared-snapshot requests remain
-unsupported and reject during capability admission. MongoDB/SQLite flat joins
-use their native snapshot owners. Joined HTTP requests and browser presets are
-not yet available; current join examples use the C# SDK.
-
-Verification: Neo4j full native320/320, full unit492/492, zero skips, including
-actual cold/warm read interruption and shipping30-second deadlines.
-
-## Runtime-named SDK join columns — 25 October 2026
-
-Use named bindings when the selected key/output columns are chosen at runtime.
-They use the same native plans and execution owner as lambda-shaped joins.
-
-```csharp
-// These sources may already have filters, windows and trusted read access.
-var nameKey = CosmicProjectionSelection<Holon>.Create("name", h => h.Name).Result;
-
-var captured = left.LeftJoinColumns(right, new[] { nameKey }, new[] { nameKey });
-if (captured.IsError)
-    throw new InvalidOperationException(captured.Message);
-
-var join = captured.Result;
-var columns = new[]
-{
-    CosmicJoinBinding.Left(join, "product", (Holon h) => h.Name).Result,
-
-    // Lift the output to int? so an absent right row is representable.
-    // A present right row must still have a valid required Version.
-    CosmicJoinBinding.Right(join, "revision", (Holon h) => h.Version,
-        allowMissing: true).Result,
-
-    CosmicJoinBinding.Presence(join, "exists").Result
-};
-
-var selection = join.SelectColumns(columns);
-if (selection.IsError)
-    throw new InvalidOperationException(selection.Message);
-
-// Plan/execute with the actual adapter capabilities, as in the earlier examples.
-// Each published row is CosmicJoinResult<CosmicProjectionRecord>:
-// row.Value["product"], row.Value["revision"], row.HasRight.
-```
-
-Check each binding's OASISResult when accepting user-selected paths. Binding lists
-are bounded/frozen, aliases must be unique, and outputs belong to the exact captured
-join. Exact key types and component aliases must match on both sides. Arbitrary
-methods/conversions are not evaluated. Full Core2,771 passes; native HTTP join
-transport and browser examples are still pending.
-
-## Join HTTP endpoint implementation — 25 October 2026
-
-`POST /api/data/query-cql/join` is implemented in the authorized production
-controller. It reuses prepared admission, tariff/provider eligibility, actual
-adapter capability planning and the generic V2 join execution/receipt owner.
-The shared exact route registry now includes the join leaf. Results expose
-bounded column descriptors, exact scalar wire values and independent `hasRight`
-presence. Escaped JSON output is checked against the existing response byte cap.
-
-Full Core/linked WEB4 tests pass **2,785/2,785**, zero skips. The first test run
-found four mock packets missing the compiler's automatic ID ordering tie-break;
-fixtures were corrected without weakening production validation. Original red
-and final green TRX evidence are retained under `TestResults/CoreCurrent`.
-The linked native HTTP host now includes the join model/compiler/endpoint and
-builds with **zero errors**; existing warnings remain. Its browser authorization
-route list includes `/join`. Evidence:
-`TestResults/CosmicCqlDemo/join-http-host-build.log`.
-
-**Still required:** signed native HTTP join acceptance on MongoDB, SQLite and
-Neo4j, durable receipt/replay checks, annotated SDK/HTTP/browser/Swagger join
-examples and final regression certification. This endpoint implementation is
-not yet a claim of production transport certification or full CQL completion.
-
-## Bounded join HTTP request
-
-Send `POST /api/data/query-cql/join` with a signed bearer token and a new
-`Idempotency-Key` header. The host binds the actor to both source windows.
-The example below uses the native acceptance fixture; replace `YOUR_FIXTURE_TAG`
-with your own dataset marker. Choose `MongoDBOASIS`, `SQLLiteDBOASIS` or
-`Neo4jOASIS` explicitly.
-
-```json
-{
-  "provider": "MongoDBOASIS",
-  "kind": "Left",
-  "left": {
-    "filters": [
-      { "metadataPath": ["fixture"], "scalar": "String", "operator": "Equal", "value": "YOUR_FIXTURE_TAG" }
-    ]
-  },
-  "right": {
-    "filters": [
-      { "metadataPath": ["fixture"], "scalar": "String", "operator": "Equal", "value": "YOUR_FIXTURE_TAG" },
-      { "field": "Name", "operator": "Equal", "value": "C-public" }
-    ]
-  },
-  "keys": [
-    { "alias": "name", "left": { "field": "Name" }, "right": { "field": "Name" } }
-  ],
-  "columns": [
-    { "alias": "name", "source": "Left", "selection": { "field": "Name" } },
-    {
-      "alias": "precision",
-      "source": "Right",
-      "allowMissing": true,
-      "selection": { "metadataPath": ["precision"], "valueType": "Int64" }
-    },
-    { "alias": "present", "source": "RightPresence" }
-  ],
-  "maximumLeftRows": 100,
-  "maximumRightRows": 100,
-  "maximumPairs": 1000,
-  "maximumResults": 25
-}
-```
-
-`Left` retains an unmatched left row with `hasRight: false` and a null right
-value. `Inner` publishes matching pairs only. Each input has independent filters,
-order and window; limits reject overflow rather than truncate results.
-`allowMissing` permits an absent right row without making its stored value
-optional. `hasRight` distinguishes absent rows from nullable data in present rows.
-
-The response has `version: "cql-join-v1"`, column type descriptors and ordered
-`rows[].values` arrays. Exact Int64 values are strings such as
-`"9007199254740993"`; their declared type comes from the column descriptor.
-Repeating the same operation key returns409 without a second physical attempt.
-See [transport acceptance status](CQL_JOIN_HTTP_CONTRACT.md) before treating a
-pending verification slice as certified.
-
-## Annotated join demos verified — 25 October 2026
-
-Examples30/31 now demonstrate left/inner joins in the shared C# walkthrough,
-signed HTTP walkthrough, browser presets and generated Swagger. C# uses the
-generic Core/V2 planner/executor on every provider; HTTP binds actor policy to
-both independent sources. Comments explain absence, nullable right outputs,
-exact Int64 values and native matching. Browser presets retain editable,
-indented JSON and separate explanations.
-
-Fresh dedicated native demo passes **93 SDK /93 HTTP**, **288 settled operations
-/283 physical attempts**, joint test1/1 zero skips. Actual generated Swagger
-join route/schema checks pass. Production browser JavaScript and six provider/
-kind presets pass offline; that is request-generation evidence, not rendered
-browser interaction. Standalone demo build passes with zero errors.
-
-Run `Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1` for verification, or add `-Serve`
-and open `http://127.0.0.1:5088/demo` (Swagger at `/swagger`). Use **Finish demo**
-for verified settlement/cleanup. The console transcript is
-`TestResults/CosmicCqlDemo/v1-walkthrough.txt`; summary `v1-demo-result.json`;
-log `join-demo-native.log`. The earlier87/87 cohort remains historical.
-
-Owned fixtures are removed and test ports stopped. Broader composition,
-federation, expanded policy/scalar and final certification gates remain open.
-
-## Selected-result composition capture — 25 October 2026
-
-Core captures immutable `Where`, selected ordering/ThenBy and Skip/Take stages
-without rewriting the original source window, access or graph. Grouping and
-projection share one selected-column alias resolver. Runtime records keep exact
-alias domains, scalar selections bind their single selected value, and capture
-invokes no DTO or arbitrary application code. Stages/windows remain in order;
-ThenBy extends only the immediately preceding sort. Stage count is bounded32.
-
-Dual Core frameworks build; full Core/linked WEB4 passes **2,799/2,799**, zero
-skips (14 new controls). Tests cover window/filter order, source retention,
-frozen literals, exact runtime aliases, rejected code/conversions, stage/window
-limits, zero windows, error propagation and no borrowed native admission.
-
-**Native execution is still pending:** ordinary provider projection permissions
-and ordinary raw buffers reject composed stages. No provider silently ignores
-them or evaluates selected predicates in memory. Next is the native proof/work
-contract and SQLite/MongoDB/Neo4j owners, then signed HTTP/demos. This is capture
-progress, not completed composition. [Contract](CQL_COMPOSITION_CONTRACT.md).
-
-## Composition admission and complete proof — 25 October 2026
-
-Core adds separate `CosmicProjectionCompositionCapabilities` and target/plan/
-actual-readmission owners. Source permissions, projection columns, selected
-filter operators/domains, ordering domains and paging stages are independently
-required. Every selected provider preflights; actual provider identity and its
-current capabilities must match again before native execution. Capabilities and
-eligible-target snapshots are frozen. Ordinary projection permissions still
-cannot authorize composed execution.
-
-Complete composition packets carry all participating input cells/access/source
-ordering, native identity membership for every result stage, final native rows
-and explicit source/cumulative-stage counts. Core validates all input before a
-later filter/page can hide malformed or private data. It checks every stage's
-native membership/order, stable ties from the previous stage, exact final
-source payloads and count agreement before constructing any DTO. The verifier
-uses shared scalar predicate semantics; it rejects a wrong native result and
-never publishes reference-computed replacement rows. Joined payload validation
-shares exact cell identity, including signed zero and Decimal representation.
-
-Input rows/bytes, cumulative stage-row participation, stage proof bytes and
-published rows/bytes have independent limits. Cancellation is checked through
-cell validation, stage evaluation, stable ordering and publication. The generic
-multi-provider executor must retain all-buffer validation before construction.
-
-Both Core frameworks build; full Core/linked WEB4 passes **2,841/2,841**, zero
-skips:21 admission and21 proof controls beyond2,799. Tests cover independent
-stage/operator/type permission, actual downgrade/foreign identity, source/column
-permissions, snapshot isolation from caller mutation, full off-page validation,
-filter/window order, stable sort ties, changed identities/payload, private data,
-nullable/runtime outputs, signed zero/Decimal bits, independent budgets and
-cancellation without DTO construction.
-
-**Still open:** generic physical-attempt execution/remaining global budgets,
-native SQLite/MongoDB/Neo4j subqueries and proof decoding, HTTP composition and
-annotated demos. No native provider advertises this new execution shape yet.
-Existing ordinary queries and join demos remain supported.
-
-## Generic V2 composition execution and measured-query guard — 25 October 2026
-
-`HolonManager.ExecuteProjectionCompositionQueryAsync` now uses one generic
-executor and `ICosmicQueryProjectionCompositionStorageProvider` contract.
-Actual provider/column/stage permissions preflight across every target before
-first I/O and are rechecked immediately before native dispatch. All packets
-validate before any DTO construction; native failure/cancellation returns no
-partial result and never falls back to entity hydration or an in-memory query.
-
-Six remaining budgets are shared across providers: input rows, input bytes,
-cumulative stage-row participation, stage proof bytes, published rows and bytes.
-A later provider receives the remainder, including zero. Zero accepts only a
-complete empty proof or an explicit limit error; it never authorizes truncation.
-Named runtime records reuse this execution/validation owner. Existing ordinary
-projection execution cannot bypass the composition contract.
-
-Controlled inherited admission verifies one durable query attempt/receipt per
-provider, actual service pricing and actor binding. A new denial control found
-that an ordinary SDK query under **measurement-required** admission could begin
-without a query tariff. The shared prepared query owner now rejects that case
-before attempt/dispatch on row, scalar, projection, grouped, join and composition
-paths. Signed-native providers retain their own actual receipt contract.
-
-**Compatibility:** an explicit SDK admission whose server policy does not require
-measurement still permits optional query tariffs. No price/receipt is invented.
-Unprepared local trusted SDK calls and non-query storage admission retain their
-existing behavior. Earlier historical optional-SDK-pricing guarantees remain
-valid; measurement permission and provider permission remain distinct.
-
-The new provider contract is exercised with controlled adapters only. **Native
-SQLite/MongoDB/Neo4j composition subqueries/proof decoders, public HTTP composition
-and executable composition demos remain required.** Existing joined demos are
-separate from this new shape. See [composition contract](CQL_COMPOSITION_CONTRACT.md).
-
-## SQLite, MongoDB and Neo4j SDK: filter and page after Select
-
-The selected-result pipeline runs natively on SQLite, MongoDB and Neo4j. The20-row source window
-is applied before the selected stock filter. Every selected source row must have
-valid Int64 `stock` metadata, including rows removed by a later filter/page.
-
-```csharp
-var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
-var access = CosmicQueryReadAccess.OwnerOrPublic(actor).Result;
-
-var selected = CosmicQuery<Holon>.Create(scope)
-    .WithReadAccess(access)
-    .OrderBy(holon => holon.Name)
-    .Take(20)
-    .Select(holon => new
-    {
-        Label = holon.Name,
-        Stock = CosmicQueryMetadata.Value<long>(holon, "stock")
-    })
-    .Where(row => row.Stock > 0)
-    .OrderByDescending(row => row.Stock)
-    .ThenBy(row => row.Label)
-    .Skip(5)
+// Project only the values the application needs, then page that selected sequence.
+var summaries = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
     .Take(10);
 
-if (selected.IsError)
-    throw new InvalidOperationException(selected.Message);
+// Each terminal runs through native composition and the V2 manager owner.
+var firstSummary = summaries.FirstOrDefault();
+var lastSummary = summaries.LastOrDefault();
+var secondFromEnd = summaries.ElementAtOrDefault(^2);
 
-var native = (ICosmicQueryProjectionCompositionStorageProvider)sqliteProvider;
-var plan = CosmicProjectionCompositionPlanner.Plan(
-    selected.Result,
-    native.QueryProviderType,
-    new[]
-    {
-        new CosmicProjectionCompositionTarget(
-            native.QueryProviderType,
-            native.QueryCapabilities,
-            native.ProjectionCapabilities,
-            native.CompositionCapabilities)
-    });
-
-if (plan.IsError)
-    throw new InvalidOperationException(plan.Message);
-
-var result = await manager.ExecuteProjectionCompositionQueryAsync(
-    plan.Result,
-    new[] { native });
-
-if (result.IsError)
-    throw new InvalidOperationException(result.Message);
-
-foreach (var row in result.Result.Providers.Single().Rows)
-    Console.WriteLine($"{row.Label}: {row.Stock}");
+// This predicate runs after Take(10), retaining the selected window's meaning.
+var firstRevisionTwo = summaries.FirstOrDefault(value => value.Version == 2);
 ```
 
-Use HyperDrive V2. For MongoDB, change the named scope to
-`ProviderType.MongoDBOASIS` and cast the activated MongoDB provider instead of
-`sqliteProvider`; the planner and manager calls are identical. For Neo4j, use
-`ProviderType.Neo4jOASIS` and the activated Neo4j provider. Neo4j captures source
-values once in a native statement under read committed; SQLite/MongoDB use their
-verified snapshot owners. Public HTTP composition is not enrolled yet. Limits on source rows/bytes, cumulative stage work, proof bytes
-and output are independent rejection limits; they never silently truncate data.
-[Contract and verification status](CQL_COMPOSITION_CONTRACT.md).
+Direct async users can plan with `CosmicProjectionElementPlanner.Plan` and call
+`HolonManager.ExecuteProjectionElementQueryAsync`. Its result exposes HasValue
+separately from Value. Empty/multiple/index errors use CQL_SEQUENCE_EMPTY,
+CQL_SEQUENCE_MULTIPLE and CQL_INDEX_OUT_OF_RANGE. Input, payload, stage-work and
+proof budgets remain enforced even when the terminal returns zero or one value.
+Standard selector Min/Max/Sum and decimal/Single/Double Average now dispatch through
+native scalar capabilities. An unstaged scalar selection can use the corresponding
+parameterless aggregate, for example `query.Select(row => row.Version).Sum()`.
+This is a typed path transformation into the same native aggregate, with no DTO
+construction, row fetching or client sum. Exact Int64 values beyond2^53, decimal
+precision, floating means, nullable Sum and empty inputs are verified natively.
 
-Final SQLite composition acceptance passes **1,648/1,648 normal native integration
-tests**, **55/55 provider unit tests** and **2,877/2,877 Core/linked WEB4 tests**,
-zero skips. The native suite adds33 composition cases beyond1,615; unit SQL adds
-nine beyond46. Historical exact-fixture `Category=Reconciliation` helpers are
-excluded from normal acceptance, not skipped acceptance cases. Full native run
-is3m4s. Actual SQL-entry cancellation, read-only connections and constructor-
-throwing source entities pass alongside the initial30 cases.
+Int32 and nullable Int32 Average now support the standard double/double? result
+through independent `SupportsInt32DoubleAverage` capability enrollment on the
+three native providers. Existing fluent `Average(int-selector)` still returns
+its exact decimal result. `AverageAsDouble(int-selector)` exposes the explicit
+new fluent result contract; standard Queryable Average selects it automatically.
 
-Both Core frameworks build. Exact owned SQLite DB/sidecars and pending markers
-are absent after teardown. Evidence: `TestResults/CosmicCqlDemo/sqlite-composition-full.log`,
-`TestResults/SQLiteCurrent/composition-owner-full.trx`,
-`TestResults/SQLiteCurrent/composition-compiler-unit.trx` and
-`TestResults/CoreCurrent/composition-graph-admission.trx`.
-This certifies the native SQLite SDK slice; MongoDB/Neo4j composition and public
-HTTP/examples remain open. Earlier93/93 demo evidence remains a separate cohort.
+The shared numeric owner validates native high/low/count bounds, converts the
+bounded Int64 sum once to double, then divides by the count. No decimal result or
+input rows are converted on the client. This matches the pinned [.NET10 Int32
+Average reference](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Linq/src/System/Linq/Average.cs).
+Tests compare standard runtime results, nullable/empty behavior, boundary packets
+and a sum above binary64's exact integer range.
 
-## MongoDB SDK composition verification — 25 October2026
+MongoDB and SQLite now enroll `SupportsInt64DoubleAverage`: standard `Average(long)` and
+`Average(long?)`, including unstaged scalar Select, return double/double?. The
+fluent `AverageAsDouble(long-selector)` exposes the same explicit result mode.
+MongoDB computes ordered Decimal128 prefix sums **after** source paging and
+returns a mandatory Boolean overflow acknowledgement alongside exact sum limbs
+and count. Any visited prefix outside Int64 throws `CQL_SCALAR_OVERFLOW`, even
+when later cancellation makes the final sum fit. Nullable inputs do not
+participate; empty required means fail and empty nullable means return null.
+SQLite runs a connection-owned aggregate in explicit SQL aggregate order,
+using a checked Int64 total and an overflow latch. Source paging precedes this
+accumulator; exact native sum limbs/count are validated by the shared owner.
+The hook checks the read budget and is removed when its owner is disposed.
+Neo4j collects ordered participating scalar values inside its native query
+**after** source paging, then uses a guarded Cypher reduction. Sign-specific
+boundary checks precede every addition and an overflow flag remains latched.
+A mandatory Boolean acknowledgement accompanies its exact limb/count packet.
+This server-side collection uses memory proportional to the selected input count;
+the numeric work bound, transaction timeout and server memory limits still apply.
+No selected rows are fetched for a client accumulator. Existing fluent `Average(long)`
+keeps its decimal result. Aggregates after selected result stages require the independent native
+selected-reduction contract described below.
+Q01 remains red.
+## Selected Count, LongCount and Any
 
-MongoDB snapshot composition acceptance: **353/353 native CQL tests** (25 new
-composition controls) and **519/519 provider unit tests**, zero skips. The native
-run took4m39s. This verifies stage order, repeated-key stability, all six budgets,
-pre-cancellation/reuse,12 exact scalar filter/sort domains, required-value errors
-outside Take0 and concurrent mutation between source/stage reads. All source and
-stage commands share one snapshot/session/deadline; cumulative native document
-counts retain compound tie ordering. No entity hydration or fallback evaluation.
-
-Evidence: `TestResults/CosmicCqlDemo/mongo-composition-owner-final.log`,
-`TestResults/SubscriptionUsageCurrent/mongo-cql-native-current.trx`,
-`TestResults/CosmicCqlDemo/mongo-composition-owner-unit.log` and
-`TestResults/SubscriptionUsageCurrent/composition-owner-unit.trx`.
-Initial server-error evidence is retained separately. Further composition
-privacy/relationship and outstanding-I/O/deadline controls remain required;
-Neo4j composition and public HTTP/composition demos remain open.
-
-25 October MongoDB composition privacy/interruption certification passes **359/359 native**, zero skips (31 composition controls). Unit checkpoint remains519/519; production unchanged. See [final native evidence and remaining scope](CQL_COMPOSITION_CONTRACT.md). Neo4j composition and public composition transport/demos remain open.
-
-## Neo4j SDK composition acceptance — 25 October2026
-
-Neo4j SDK composition checkpoint final: **352/352 native CQL tests** and
-**519/519 provider unit tests**, zero skips. Native duration9m19s. The24 new
-provider/HolonManager cases verify stage order/windows, stable repeated-key
-sorting, all six budgets/reuse, pre-cancellation,12 exact selected-domain
-filter/sort round trips and required-value errors outside Take0. Existing join
-regression passes after the shared detached-source decoder extraction. Twenty
-new unit controls reject malformed/incomplete proofs and false membership.
-Evidence: `TestResults/CosmicCqlDemo/neo-composition-owner-native.log`,
-`TestResults/Neo4jCurrent/neo4j-cql-native-current.trx`,
-`TestResults/CosmicCqlDemo/neo-composition-owner-unit-final.log` and
-`TestResults/Neo4jCurrent/composition-owner-unit.trx`.
-
-All three providers now execute generic SDK composition through HolonManager.
-Neo4j uses one captured-source statement under read committed; it does not grant
-a repeatable snapshot. Further Neo4j composition privacy/relationship, empty-source
-zero-budget and outstanding-I/O interruption controls remain required. Public HTTP
-composition and annotated live composition demos are next after certification;
-full CQL/ORM roadmap completion remains unproven.
-
-25 October Neo4j focused composition certification passes **42/42 native**, zero skips, including privacy, zero-budget and cold/warm in-flight cancellation/deadline recovery on the same provider. Prior full352 native/519unit evidence is separate; full362 has not been rerun. See [contract and native evidence](CQL_COMPOSITION_CONTRACT.md). Public HTTP composition and annotated demos are next.
-
-## HTTP composition and annotated demos — 25 October2026
-
-`POST /api/data/query-cql/composition` now uses the generic Core/HolonManager
-composition planner/proof barrier on MongoDB, SQLite and Neo4j. The exact route
-registry requires authenticated actor-bound admission and query tariffs. Stage
-order is explicit; nested provider/graph overrides and ambiguous stage fields
-are rejected before dispatch. Grouped/composed filters and ordering share one
-selected-value binding owner, and projection/composition share exact wire output.
-
-Final gates pass **2,940/2,940 Core/linked WEB4 tests**, zero skips (63new), both
-Core frameworks, **102 SDK /102 signed HTTP demo examples**, and the dedicated
-joint native test1/1. The live fixture settles **309 operations /301 provider
-attempts**. New native controls verify owner/visitor visibility, stage order,
-exact Int64 output, repeated-key denial without replay, and malformed-stage MVC
-rejection with zero attempts/receipts. Twenty offline browser presets and replay/
-exact JSON checks pass; the standalone demo builds with zero errors. Source
-identity snapshots remained unchanged throughout the final native gate.
-
-Examples32–34 in `V1NativeQueries.cs` and `V1Walkthrough.cs` demonstrate source
-paging versus result paging, filter/window order and exact selected Int64 values.
-The browser and Swagger offer matching composition requests. See the
-[HTTP contract and examples](CQL_COMPOSITION_HTTP_CONTRACT.md).
-Evidence: `TestResults/CosmicCqlDemo/composition-http-core-final.log`,
-`TestResults/CoreCurrent/composition-http-current.trx`,
-`TestResults/CosmicCqlDemo/composition-http-native-final.log`,
-`TestResults/Neo4jCurrent/neo4j-cql-v1-demo-current.trx`,
-`TestResults/CosmicCqlDemo/v1-demo-result.json` and
-`TestResults/CosmicCqlDemo/composition-browser-presets.log`.
-
-This closes bounded flat selected-result composition across SDK/HTTP on the
-three providers. Graph-source composition is explicitly unadmitted. Broader
-CQL relationship/join/group/scalar certification, authoritative tenant/sharing
-policy, federation and the remaining ORM roadmap still require work.
-
-## Sharing writes and CQL visibility
-
-WEB4 helpers support conditional ShareAsync/RevokeAsync mutations; see the
-[sharing write contract and examples](CQL_SHARING_WRITE_CONTRACT.md). A successful
-share does not widen the current CQL owner/public profile. Native recipient/tenant
-policy support remains unenrolled. Handle conflicts and uncertain outcomes as
-errors; do not retry through an ordinary save.
-
-## Generic recipient representation validation
-
-Core `HolonReadGrants.Read` and `Encode` provide bounded whole-set recipient
-validation and canonical encoding independently of provider choice. WEB4 now
-uses that owner and rejects malformed grants before sharing mutations. Valid
-legacy text requires explicit admission; malformed JSON never changes grammars.
-See the [contract and migration limits](CQL_SHARING_WRITE_CONTRACT.md). This does
-not enroll recipient/tenant access in CQL or replace authenticated issuer checks.
-
-## Creator-owned graph saves from a trusted host
-
-Core SaveOwnedHolonAsync is an opt-in V2 SDK boundary for checking every selected
-record rather than only a graph root. It preserves caller revision conditions and
-uses the existing provider CAS operations. See the [SDK example, native evidence
-and transport/accounting limits](CQL_OWNED_GRAPH_WRITE_CONTRACT.md). Ordinary
-Save methods and public transports have not all migrated to this boundary.
-
-## Pinned read/change/save observations
-
-For trusted-host optimistic mutations, Core LoadHolonForWriteAsync exposes the
-selected Authority together with the tracked Record. Authorize the actor before
-editing, then pass that same Authority to the conditional Save. See the
-[example and limits](CQL_SHARING_WRITE_CONTRACT.md#same-authority-observation-and-caller-snapshot--26-october-2026-utc).
-An unavailable authority is an error; a replica cannot supply a different grant
-list for the operation. This is not a lock or a public CQL access capability.
-
-### Owned batch write boundary (26 October 2026)
-
-The generic SDK now exposes `HolonManager.SaveOwnedHolonsAsync` alongside
-`SaveOwnedHolonAsync`. Both use one selected-plan ownership/revision validator;
-bulk authorizes every selected node before one conditional transaction. The
-limit covers roots plus selected descendants, and no-op input is still
-authorized. See [owned graph write contract](CQL_OWNED_GRAPH_WRITE_CONTRACT.md)
-for the spaced C# example, failure semantics and verification. Hosted REST,
-gRPC and trusted-role policy migration remains open; this API alone does not
-enroll recipient/tenant queries or supply admission/pricing.
-
-### Conditional REST save requests
-
-HyperDrive V2's existing single/bulk save routes now accept stable operation IDs
-and expected provider revisions, with generic whole-graph authorization. Existing
-single-save aliases can use `X-COSMIC-Operation-Id`. See the spaced JSON example,
-revision semantics and verification limits in the
-[REST conditional write contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md).
-Hosted admission and full shipping HTTP certification are still open.
-
-
-The REST boundary now has nine actual shipping MVC HTTP controls and explicit
-configured-host alias guards. Intent validation precedes configuration; admitted
-activation follows the physical-attempt owner. Error-only bulk responses retain
-codes/status without payload mapping. See the
-[conditional REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for proof
-scope and remaining joined startup/native-store/billing gates.
-
-
-Save routing now rejects absent/blank/unsupported engine modes before
-configuration and gives invalid V2 engine options an actual400/error envelope.
-Known Legacy mode is unchanged. The controlled HTTP matrix now has23cases;
-see the [REST contract](CQL_REST_CONDITIONAL_WRITE_CONTRACT.md) for readiness,
-configuration errors and remaining native/billing certification.
-
-
-Ordinary read/single-save/batch-save attempts now support explicit server-owned
-service tariffs in the existing prepared ledger. Query tariffs do not price
-writes; configured save routes require bounded complete profiles. See
-[storage write accounting](CQL_STORAGE_WRITE_ACCOUNTING.md) for the JSON profile,
-price-versus-native-invoice distinction and remaining joined settlement proof.
-
-## GraphQL conditional creates (V2)
-
-The saveHolon mutation now accepts a stable operationId and explicit providerType, uses the request-authenticated actor, and delegates to the same owned conditional-write boundary as REST. It remains create-only. See the [transport contract and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#graphql-conditional-create-migration) for syntax and current enrollment limits. Configured admission hosts must enroll this transport before provider execution; unit/schema tests do not establish signed deployment acceptance.
-
-## gRPC conditional saves (V2)
-
-DataService.SaveHolon now accepts operation_id, expected_revisions and a required holon_json carrying the same recursive contract as REST. It uses the request actor and shared owned conditional-save boundary. Responses carry error_code, is_saved, committed_delta_json and result_metadata. See the [gRPC envelope and example](CQL_TRANSPORT_WRITE_AUTHORITY.md#grpc-conditional-write-envelope-v2) for field numbers, child selection, precision, compatibility and current signed/admission verification limits.
-
-### Signed transport verification scope
-
-The focused save resolver/service now has signed native acceptance on MongoDB,
-SQLite and Neo4j with configured admission, physical receipts and durable
-settlement. The passing gate includes 24 GraphQL/gRPC requests; GraphQL is still a
-conditional create API, while the gRPC recursive envelope also supports selected
-existing graphs. Retain original revision tokens and operation IDs. Full deployed
-GraphQL schema/startup, other gRPC methods and delete boundaries remain separate
-open work. See [retained transport evidence](CQL_TRANSPORT_WRITE_AUTHORITY.md#signed-save-gate--passed).
-
-## Generic creator-owned conditional deletion (V2)
-
-`HolonManager.DeleteOwnedHolonAsync` deletes one record after observing its stored
-creator on a pinned authority. The host supplies the authenticated actor, a stable
-operation ID and exactly that record's original provider revision. It delegates to
-the existing tracked conditional-delete engine; it does not refresh a stale
-caller condition, select children for deletion or retry on a replica.
+Standard selected scalar and flat-record sequences now support Count, LongCount
+and Any, including predicate overloads. Predicates execute after all preceding
+source and selected windows. Selected null values count as rows. These scalar
+terminals construct zero DTOs and preserve native error/cancellation codes.
 
 ```csharp
-// originalRevision came from the caller's earlier read on this provider.
-// actorId comes from host authentication, never a submitted creator field.
-var conditions = new Dictionary<Guid, Guid?>
-{
-    [recordId] = originalRevision
-};
+// Count a selected page; this predicate runs after Take(10).
+var selectedPage = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
+    .Take(10);
 
-var result = await manager.DeleteOwnedHolonAsync(
-    recordId,
-    actorId,
-    new CosmicWriteOptions(operationId, conditions),
-    softDelete: true,
-    providerType: ProviderType.SQLLiteDBOASIS);
+var pageCount = selectedPage.Count();
+var revisionTwoCount = selectedPage.LongCount(value => value.Version == 2);
+var hasRevisionTwo = selectedPage.Any(value => value.Version == 2);
 ```
 
-Missing/create-only revision conditions reject before I/O; an all-zero GUID is a
-real legacy revision token. A foreign stored creator rejects before any mutation.
-Use `IsDeleted` and the returned error code to distinguish acknowledgement from
-conflict/unknown failure. Retain the operation identity for reconciliation; do
-not generate a new identity merely because the caller lost a response.
+The native provider independently advertises SupportsCardinality. SQLite returns
+count(*) inside its serializable read snapshot; MongoDB returns a count facet
+under its existing snapshot session; Neo4j returns its native source/final-stage
+count header. The shared owner validates the acknowledgement against complete
+source/stage evidence and enforces input, payload, proof and terminal-work bounds.
+The default selected-input limit is1,000 rows; configurable composition options
+allow up to10,000. Exceeding an admitted bound returns an error. Any validates
+complete bounded participation before returning its Boolean result.
 
-This is a creator-only SDK facade. It does not authenticate users itself or grant
-an administrator override. Existing transport delete routes still need migration,
-and native three-provider enrollment for this new facade is not yet claimed.
+Direct async callers use CosmicProjectedCardinalityPlanner.Plan with the exact
+Count/int, LongCount/long or Any/bool result domain, then
+HolonManager.ExecuteProjectedCardinalityQueryAsync. Results retain per-provider
+provenance. The standard IQueryable bridge remains bound to one named provider.
+Entity element predicate overloads after source windows remain pending Q01 work.
 
-### Conditional deletion through logical-ID transports
+## Numeric reductions after selected stages — current enrollment
 
-For V2 REST, send `DELETE /api/data/delete-holon` with a body containing `id`,
-`operationId`, `expectedRevisions` and `softDelete`. URL aliases may instead carry
-`X-COSMIC-Operation-Id` and `X-COSMIC-Expected-Revision`; body/header values must
-agree. The server checks stored ownership, preserves the original revision and
-uses conditional deletion on one authority. Existing server Wizard policy still
-requires a conditional revision. A submitted role flag is ignored.
-
-GraphQL exposes `deleteHolon(id, softDelete, operationId, expectedRevision,
-providerType)`. gRPC `DeleteHolonGrpcRequest` adds `operation_id` and
-`expected_revision`; the response reports actual `is_deleted`, original error
-code/count and committed delta. All use the HTTP-authenticated actor.
-
-Shipping build and 264 WEB4 tests pass. Provider-key aliases and signed native
-acceptance for these delete adapters remain open. See
-[the transport matrix](CQL_TRANSPORT_WRITE_AUTHORITY.md).
-
-
-## Conditional deletion after a CQL read
-
-A query result is an observation, not permission to overwrite newer data. Capture its provider revision and use the same explicit provider for deletion. The host authenticates the actor; do not accept an actor ID from an untrusted request body.
+SQLite, MongoDB and Neo4j now support Sum/Average over selected Int32/Int64 values and their nullable
+forms, including exact column selectors from flat records. The selected filters,
+ordering and windows run before the native reduction. No DTO is constructed.
+Standard integer Average returns double/double?; direct CQL plans can retain the
+existing decimal/decimal? integer-mean result contract. Nullable Sum returns zero
+for an empty/all-null input; required Average reports an empty-sequence error.
 
 ```csharp
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
+// Enrolled on SQLite, MongoDB and Neo4j.
+var revisions = query
+    .Select(row => row.Version)
+    .Where(value => value > 0)
+    .OrderBy(value => value)
+    .Skip(1)
+    .Take(5);
 
-// Keep the provider used by the original query explicit.
-var provider = ProviderType.MongoDBOASIS;
-var originalRevision = CosmicConcurrency.GetProviderRevisionId(holon, provider)
-    ?? throw new InvalidOperationException("The query result has no provider revision.");
+var revisionSum = revisions.Sum();
+var revisionMean = revisions.Average();
 
-// One logical delete has one stable operation ID and the original condition.
-var operationId = Guid.NewGuid();
-var options = new CosmicWriteOptions(
-    operationId,
-    new Dictionary<Guid, Guid?>
-    {
-        [holon.Id] = originalRevision
-    });
+// A record selector binds a numeric column without constructing the records.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(value => value.Name)
+    .Take(5);
 
-// Stored ownership is checked before the atomic conditional soft delete.
-var deleted = await manager.DeleteOwnedHolonAsync(
-    holon.Id,
-    authenticatedActorId,
-    options,
-    softDelete: true,
-    providerType: provider);
-
-if (deleted.IsError)
-{
-    // Surface conflicts to the caller. Do not replace the original revision
-    // with a new read and silently retry the deletion.
-    throw new InvalidOperationException($"{deleted.ErrorCode}: {deleted.Message}");
-}
+var pageRevisionSum = page.Sum(value => value.Version);
 ```
 
-For a native key, pass both identities. The key must resolve to that logical holon on the selected authority:
+The shared planner admits NumericReductions separately from ordinary projection,
+scalar and cardinality permissions. Exact native words and participating counts
+are validated under the selected snapshot owner before normalization. Int64 double
+means additionally require checked-prefix evidence after every selected window.
+Complete source/stage participation and terminal work/proof budgets still apply.
+SQLite, MongoDB and Neo4j also support staged decimal, Single, Double and nullable Sum/Average. Direct CQL supports staged UInt64/nullable UInt64 Sum and decimal-result Average; standard Queryable does not define UInt64 Sum. Selected Min/Max (Q01c) is enrolled on SQLite, MongoDB and Neo4j.
 
 ```csharp
-var deletedByKey = await manager.DeleteOwnedHolonByProviderKeyAsync(
-    nativeKey,
-    holon.Id,
-    authenticatedActorId,
-    options,
-    softDelete: false,
-    providerType: provider);
+// SQLite: reduce the selected page using the exact native decimal kernel.
+var prices = query
+    .Select(row => CosmicQueryMetadata.Value<decimal>(row, "price"))
+    .OrderBy(price => price)
+    .Take(10);
+
+var total = prices.Sum();
+var mean = prices.Average();
 ```
 
-These are alternative examples of one delete, not two calls to execute in sequence. Hard deletion removes the record; use it only when that is the intended operation. A successful result has `IsDeleted == true`. Preserve error codes and committed-delta metadata when returning the result from a host.
+MongoDB runs selected integer reductions in the existing snapshot session. Its
+shared exact numeric kernel receives the selected column and final stage rank;
+checked means therefore follow every selected ordering/window. A native facet
+returns an explicit zero-word acknowledgement on empty input. The strict decoder
+requires its exact integer/checked-prefix schema before shared normalization.
 
-### Authenticated REST provider-key deletion
+Neo4j reduces the captured final selected positions within its existing single
+query. Exact integer words and sign-guarded prefix evidence are acknowledged in
+one terminal record, including an explicit empty packet. Complete selected proof
+and numeric participation are validated before the result is published. This
+retains the selected owner’s existing consistency contract; it adds no separate
+MATCH or stronger database snapshot promise.
 
-V2 preserves the route `/api/data/delete-holon-by-providerkey/{providerKey}`. Supply the URL-encoded native key, optional `providerType` query scope, authenticated bearer, stable idempotency key and three intent headers:
+Selected Min/Max (Q01c) has a shared V2 plan/executor foundation; all three databases now pass native acceptance. Calls fail explicitly until enrolled; source/unstaged extrema support is unchanged. The new owner preserves windows, ignores null participants and reads the winning field without constructing a selected record.
 
-| Header | Value |
-| --- | --- |
-| X-COSMIC-Holon-Id | Intended logical holon ID, canonical nonempty GUID |
-| X-COSMIC-Operation-Id | Stable logical delete operation ID, canonical nonempty GUID |
-| X-COSMIC-Expected-Revision | Original selected-provider revision, canonical GUID |
-
-For example, with your own IDs, original revision, native key and bearer:
-
-```http
-DELETE /api/data/delete-holon-by-providerkey/NATIVE_KEY?softDelete=false&providerType=MongoDBOASIS
-Authorization: Bearer YOUR_BEARER
-Idempotency-Key: YOUR_STABLE_HTTP_REQUEST_KEY
-X-COSMIC-Holon-Id: 11111111-1111-1111-1111-111111111111
-X-COSMIC-Operation-Id: 22222222-2222-2222-2222-222222222222
-X-COSMIC-Expected-Revision: 33333333-3333-3333-3333-333333333333
-```
-
-A missing/malformed logical identity rejects before storage. A key-to-ID mismatch returns400, a foreign stored creator returns403, and a stale revision returns409. Do not infer ownership from the key or choose another provider after a failed authority observation. An all-zero revision GUID is a real revision token; it does not mean create-only. Configured paid hosts must explicitly enroll the exact route and provide `LoadHolonByProviderKey` and `DeleteHolon` tariffs. Missing tariffs reject before provider execution.
-
-Verification scope: the SDK and six MVC route cases pass; signed native GraphQL/gRPC deletion passes on all three target stores. The 27-case signed REST deletion matrix also passes across all three providers, including missing intent, stale conditions and persisted soft/key hard deletion. See [delete acceptance and evidence](PROVIDER_KEY_DELETE_ACCEPTANCE.md) for the current gate rather than treating this usage example as additional runtime proof.
-
-
-## Read-only recovery of a conditional operation
-
-Advanced trusted SDK callers can inspect a retained original provider request through HolonManager. Preserve the exact ConditionalHolonWriteRequest sent to the authority, including original actor, operation, conditions and selected graph. A fresh query result or reconstructed current holon does not replace it.
+SQLite, MongoDB and Neo4j now enroll selected Min/Max (Q01c) for its exact selected ordering domains. For example, `prices.Take(10).Min()` reduces that page; `page.Max(value => value.Version)` reads the winning field without constructing records. Nullable/reference Min/Max ignore null/missing cells and return null when none participate; required value types report `CQL_EMPTY_SEQUENCE`. The218-case native proof covers33 domains and record/window behavior. All three pass the same218-case matrix. String ordering follows the declared CQL ordinal contract.
 
 ```csharp
-// The trusted caller retained this exact original provider intent.
-// The actor comes from authentication, not an untrusted request body.
-var recovery = await manager.ReadConditionalHolonWriteOutcomeAsync(
-    originalProviderRequest,
-    authenticatedActorId);
+// All three stores: the page is fixed before Min/Max.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(row => row.Name)
+    .Skip(1)
+    .Take(10);
 
-if (recovery.IsError)
-{
-    // Unavailable or invalid evidence remains unresolved. Do not retry the write.
-    throw new InvalidOperationException($"{recovery.ErrorCode}: {recovery.Message}");
-}
-
-if (recovery.Result.ReceiptState == ConditionalHolonReceiptState.Committed)
-{
-    // The original receipt is verified. This does not execute the mutation again
-    // or automatically publish a fresh tracked entity into the caller.
-    var deltaSummary = recovery.Result.CommittedDeltaSummaryJson;
-}
-else
-{
-    // Absent is an observation, not proof of rejection or permission to replay.
-    // Keep the original operation and evidence for further reconciliation.
-}
+// Native extrema read the winning field; no selected records are constructed.
+var minimumVersion = page.Min(row => row.Version);
+var maximumVersion = page.Max(row => row.Version);
 ```
 
-The original provider authority is required even if the current default changes. Unsupported providers fail before execution. MongoDB, file-backed SQLite and Neo4j have native receipt/reconnection coverage; private in-memory SQLite cannot provide durable recovery. A configured admission policy needs the exact ReadConditionalHolonWriteOutcome tariff; a general CQL query price does not grant this operation.
-
-There is no authenticated recovery HTTP endpoint yet, and ordinary high-level save/delete calls do not yet provide a durable hosted original-intent recovery workflow. Actual hard-delete commit acknowledgement-loss recovery now passes on the three native stores. OS-process restart and authenticated hosted recovery acceptance remain open. See [recovery evidence and remaining scope](PROVIDER_KEY_DELETE_ACCEPTANCE.md).
-
-## 26 October: authoritative access SDK and native policy verification
-
-Core now supports immutable actor/authority-bound catalogues of up to128authorizedIDs. These restrict even owned/public records outside the catalogue, reject provider substitution and same-actor policy replacement, and require matching join policies. Core and native detached decoders use one generic policy rule. DualCoretargets/full3514testsPASS; MongoDB/SQLite/Neo4j private-row paging, composition, join and child-policy controlsPASS within native465settlements/517attempts, unchanged sources/sevenmatchingbinarypairs. See [contract/evidence](CQL_AUTHORITATIVE_ACCESS.md). WEB4 still uses owner/public policy; hosted authoritative discovery/enrollment, scalable tenant grants and federation remain open.
-
-## 26 October: hosted authoritative read-policy enrollment verified
-
-All six WEB4 CQL families now bind the application's ICqlReadAccessPolicy once to the authenticated actor and captured eligible provider before source windows. Denial/invalid grants/null DI registrations fail without owner-public fallback or manager acquisition. Final Core3530PASS/WEB4313PASS+oneexistingStripeSkip; actualshippingcontroller30signedpolicyrequests pass on all3providers, complete native492settlements/541attempts including process-interruption recovery. Sourcesunchanged/sevennative+threeunitbinarypairs match; ownedfixtures/services cleaned. See [contract and evidence](CQL_HOSTED_READ_POLICY.md). Application-specific authoritative grant discovery, scalable authorization I/O/cancellation/billing, tenant deployment readiness, federation and broader ORM acceptance remain open.
-
-## 26 October: required authoritative policy deployment verified
-
-CQL_REQUIRE_AUTHORITATIVE_READ_POLICY=true now captures an immutable deployment requirement. Startup readiness is registered before storage initialization hosts, resolves scoped application policy without authorizing/selecting providers, and rejects missing/null composition. All6runtimequeryfamilies independently reject missing required policy before provider lookup. FullCore3546PASS/Web4316PASS+existingStripeSkip; required-mode actualshippingnativehostall3/30requests/full492settlements541attemptsPASS, sourcesunchanged7native+3unitbinarypairs. See [deployment contract and evidence](CQL_HOSTED_READ_POLICY.md). Grant discovery/scalableauthorizationI-O/cancellation/billing, federation and wider ORM/operator acceptance remain open.
-
-## Bounded federated SDK rows — 26 October 2026
-
-This SDK feature now passes fourteen real MongoDB/SQLite/Neo4j scenarios and 3,636 Core unit tests. Signed federation HTTP/billing is now verified in the thirteen-request native matrix. Ordinary multi-provider queries continue to
-return separate provider result sets. Explicit federation adds a global page.
-
-The application supplies an already authorized, bounded `adapters` snapshot and
-an authenticated `actorId`; choosing providers does not grant data access.
+Repeated Select (Q01d) is verified on SQLite, MongoDB and Neo4j with26 native cases per store. It supports scalar/flat-record rename, reorder, duplicate, drop and identity selection, preserving earlier windows and filters. Computations/conversions, nested shapes and indexed selectors remain explicit errors. Intermediate records are not constructed; retained native inputs remain subject to capability/data validation and payload/work budgets.
 
 ```csharp
-// Bind the actor before querying. Metadata labels cannot grant access.
+// Select again without constructing the intermediate anonymous records.
+var page = query
+    .Select(row => new { row.Name, row.Version })
+    .OrderBy(row => row.Name)
+    .Skip(1)
+    .Take(10);
+
+// Rename a field, then choose a scalar. The earlier page stays fixed.
+var revisions = page
+    .Select(row => new { Revision = row.Version })
+    .Select(row => row.Revision);
+
+var count = revisions.Count();
+var maximum = revisions.Max();
+var values = await revisions.ToCosmicListAsync();
+```
+
+Retained native columns remain validated even if the last Select drops them. A selection does not bypass source authorization, data-domain errors or the existing work/payload limits. A closure in an earlier Where is rebound on each standard IQueryable execution; fluent CQL capture remains immutable.
+
+Entity element predicates after Skip/Take (Q01e) now have a shared plan/owner, but all3 native enrollment passes45 cases/store plus Neo snapshot rejection. Such calls return `CQL_CAPABILITY_UNSUPPORTED` until implemented; the predicate is never moved before the source page. SQLite expanded-graph source support is verified. Existing pre-window predicate behavior remains unchanged.
+
+```csharp
+// SQLite/MongoDB/Neo4j Q01e: evaluate the predicate within the original page.
+var page = query.OrderBy(row => row.Name).Skip(5).Take(10);
+var firstAvailable = page.FirstOrDefault(row => row.Version > 1);
+var lastAvailable = page.LastOrDefault(row => row.Version > 1);
+var onlyMatch = page.Single(row => row.Name == "Coffee");
+```
+
+These terminals preserve admitted child-graph depth, snapshot and resource options. Empty terminal results do not expand graphs. Source scopes validate before paging; protected terminal scopes validate within the source page before First/Single/Last can truncate it. Neo4j supports admitted provider-default graphs and rejects ProviderSnapshot requests explicitly.
+
+Neo4j Q01e now passes the same element/graph/visibility cases under its admitted provider-default consistency. A requested `ProviderSnapshot` returns `CQL_CONSISTENCY_UNSUPPORTED`; no snapshot guarantee is inferred from sharing a transaction. Neo post-window element capture admits at most10,000 source-page roots; a larger offset-only page returns `CQL_QUERY_LIMIT` without publishing a truncated match. SQLite/MongoDB snapshot support is unchanged.
+
+General entity stages after paging (Q01f) remain unfinished on SQLite/MongoDB/Neo4j. A shared explicit `source.Compose()` contract now captures later Where/order/Skip/Take stages without changing the original source; it executes only through adapters implementing the independent entity-stage interface. The standard IQueryable bridge now preserves these stages and rebinds captured values per execution. SQLite now enrolls native entity filter/order/window stages, with one serializable read owner, source row/payload and cumulative stage-work limits. Focused native and V2 tests pass, including typed hydration/change tracking, deferred capture, graph visibility/depth under ProviderSnapshot, and protected traversal cycles/limits before later empty windows. Full cross-database matrix and staged terminal/projection integration remain pending. MongoDB now implements entity stages through the same native snapshot/deadline owner as row and graph queries: it validates bounded source and stage outcomes before later windows, without managed filtering/sorting. Compiler/admission tests and 18 live native cases pass on MongoDB (also on SQLite): source windows, closures/tracking, relationship error visibility, source/work budgets and graph depth/visibility/snapshot. Neo4j now implements these entity stages in one native statement, preserving bounded input references, stage ordering, protected traversal outcomes and cumulative work across later windows. Its existing row owner validates streamed input snapshots and final output budgets. Neo graph consistency is ProviderDefault; ProviderSnapshot requests return CQL_CONSISTENCY_UNSUPPORTED. All three have live entity-stage, element and final-projection acceptance. All3 now also support selected stages after entity selection; remaining terminal integration is pending.
+
+Entity-stage cardinality has a separate `ICosmicQueryEntityCountStorageProvider` contract and `HolonManager.ExecuteEntityCountQueryAsync` owner. SQLite now enrolls native entity count: the final SQL relation is reduced inside the same source/stage proof transaction, without application constructors or final graph expansion. MongoDB also enrolls native entity count through its scalar snapshot/deadline owner, validating source/stage proofs before the native reduction. Nine live count cases pass each on SQLite/MongoDB. Neo4j also enrolls native count: size(selected) is emitted independently of source payload proofs, with sticky traversal/work outcomes and one read owner. Nine native count cases pass per database. Standard staged Count/LongCount/Any/All now use this native count contract on all three providers. Terminal predicates append after prior stages; All counts native counterexamples. No entity materialization or final graph expansion substitutes for reduction. A native count must preserve every preceding stage/protected outcome, acknowledge completion, fit source/window bounds and avoid entity materialization or graph expansion as a substitute for reduction.
+
+### Standard cardinality after entity stages
+
+```csharp
+// Bind one explicit provider through a HyperDrive V2 HolonManager.
+var source = CosmicQuery<Holon>.Create(
+    CosmicQueryScope.Named(adapter.QueryProviderType).Result);
+
+var bound = CosmicLinq.Create(manager, adapter, source);
+if (bound.IsError)
+    throw new InvalidOperationException(bound.Message);
+
+// Take runs first: this filters the first twenty names, not the whole store.
+var featured = bound.Result
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Where(holon => holon.Name.StartsWith("coffee"))
+    .OrderByDescending(holon => holon.Version);
+
+// Each terminal performs its own independently admitted native count read.
+int count = featured.Count();
+long longCount = featured.LongCount();
+bool any = featured.Any();
+
+// Terminal predicates stay after the page and all preceding stages.
+int updated = featured.Count(holon => holon.Version >= 2);
+bool allVersioned = featured.All(holon => holon.Version >= 1);
+
+// All over an empty sequence is true; protected errors still propagate
+// when they belong to a preceding nonempty stage.
+bool emptyAll = featured.Take(0).All(holon => false);
+```
+
+These terminals preserve source/stage row, payload and work bounds. `Any`/`All` do not bypass protected traversal outcomes through an early managed short-circuit. Separate terminal calls do not promise the same snapshot across calls. Staged projections and remaining numeric reductions are still pending.
+
+The shared forward-element foundation is available through `CosmicEntityElementPlanner`, `CosmicEntityElementExecutor` and `HolonManager.ExecuteEntityElementQueryAsync`. First/Single/indexed/default operations append native stage windows; ambiguous Single is rejected before application constructors or setters. Typed output uses the existing element hydration/change-tracking owner. Standard staged First/FirstOrDefault/Single/SingleOrDefault and forward Int32 ElementAt/ElementAtOrDefault now pass20 live cases/database. Terminal predicates remain after earlier windows. Last/from-end indexing use native entity reversal; explicit First/Single/Last default-value overloads are now verified on all3.
+
+### Forward element terminals after entity stages
+
+Using the `featured` sequence above:
+
+```csharp
+// Returns null if no staged row matches. The predicate stays after the page.
+Holon revised = featured.FirstOrDefault(holon => holon.Version >= 2);
+
+// This later page makes cardinality unambiguous before typed hydration.
+Holon only = featured.Take(1).SingleOrDefault();
+
+// Indexes address the staged sequence, not the original provider source.
+Holon second = featured.ElementAtOrDefault(1);
+```
+
+`Single` and `SingleOrDefault` return `CQL_SEQUENCE_MULTIPLE` for multiple matches before application constructors/setters run. Missing required elements produce sequence/index errors; optional forms return null. Negative `Queryable.ElementAt(int)` uses the framework's `ArgumentOutOfRangeException`; direct admitted-plan APIs report their CQL index validation. Protected traversal failures from preceding stages still propagate before a later element window can hide them. Explicit default-value overloads are supported as shown below.
+
+Native entity reversal is independently enrolled through `CosmicEntityStageFeatures.Reverse`. An explicit `CosmicEntityCompositionQuery<T>.Reverse()` stage reverses the current relation after all preceding filters/windows, including logical identity ties. Repeated reversal restores the sequence, and new OrderBy starts a fresh ordering. SQLite renumbers its native ordinal, Mongo reverses effective native keys and identity direction, and Neo reverses bounded native candidate references. Six live cases/provider pass; standard Queryable.Reverse, Last/default/predicate and from-end Index binding now pass12 additional live cases/provider. Last requires explicit source or stage ordering.
+
+### Reversal and tail selection
+
+```csharp
+// Reverse applies to the current staged sequence, including every earlier page.
+var reversePage = featured.Reverse().Take(3);
+
+Holon tail = featured.LastOrDefault();
+Holon revisedTail = featured.LastOrDefault(holon => holon.Version >= 2);
+
+// ^1 is the final staged element; ^2 is the one before it.
+Holon penultimate = featured.ElementAtOrDefault(^2);
+```
+
+Tail predicates remain after prior stages, and protected traversal errors are validated before the terminal window. Reversal includes logical identity ties; a later OrderBy starts a new ordering. Last requires explicit sequence ordering. `Queryable.ElementAt(^0)` follows the framework's ArgumentOutOfRangeException; its optional form returns null. Staged projection/numeric integration remains pending.
+
+### Supplying an explicit default entity
+
+```csharp
+// This object remains caller-owned. CQL does not hydrate it or accept its changes.
+var empty = new Holon { Name = "No matching coffee" };
+
+Holon first = featured.FirstOrDefault(empty);
+Holon only = featured.SingleOrDefault(holon => holon.Version >= 2, empty);
+Holon last = featured.LastOrDefault(holon => holon.Version >= 2, empty);
+```
+
+The supplied reference is returned only after a successful native empty result. Present rows use normal typed hydration/tracking. Single ambiguity, protected traversal errors, incomplete acknowledgements and storage failures propagate; none return the supplied default instead.
+
+Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. All three providers now enroll native entity projection and final standard Select. Combined selected stages are also verified on all3; remaining terminal integration is pending. Broader provider demo now takes priority.
+# Azure Cosmos DB canonical rows (27 October 2026)
+
+Cosmos now implements the standard `ICosmicQueryStorageProvider` row contract.
+This is a limited canonical-field profile; it is not yet the complete cloud demo.
+Activate the configured provider explicitly before querying. A query never creates
+storage or activates a provider implicitly. Bind visibility from authenticated
+server context before paging, as for the existing database adapters.
+
+```csharp
+// cosmos is an explicitly activated AzureCosmosDBOASIS instance.
+// actorId comes from the authenticated server context.
 var access = CosmicQueryReadAccess.OwnerOrPublic(actorId);
 if (access.IsError)
     throw new InvalidOperationException(access.Message);
 
-// This source has no per-provider Skip/Take. Adding them would retain their
-// per-provider meaning, independently of the global page below.
-var source = CosmicQuery<Holon>
-    .Create(CosmicQueryScope.AllEligible)
+var scope = CosmicQueryScope.Named(ProviderType.AzureCosmosDBOASIS);
+if (scope.IsError)
+    throw new InvalidOperationException(scope.Message);
+
+// Native visibility and predicates run before the native source window.
+var query = CosmicQuery<Holon>.Create(scope.Result)
     .WithReadAccess(access.Result)
-    .OrderBy(holon => holon.Name);
+    .Where(holon => holon.IsActive && holon.Version >= 2)
+    .OrderBy(holon => holon.Id)
+    .Take(10);
 
-if (source.IsError)
-    throw new InvalidOperationException(source.Message);
+if (query.IsError)
+    throw new InvalidOperationException(query.Message);
 
-// Preserve each physical copy and its provider. For explicit replica selection,
-// choose ProviderPriority and pass every resolved provider exactly once.
-var options = CosmicFederationOptions.Create(
-    skip: 0,
-    take: 10,
-    maximumInputRows: 1_000,
-    maximumRowsPerProvider: 500,
-    maximumInputBytes: 4 * 1024 * 1024,
-    maximumOutputBytes: 1024 * 1024,
-    maximumDurationMilliseconds: 5_000);
-
-if (options.IsError)
-    throw new InvalidOperationException(options.Message);
-
-var targets = adapters
-    .Select(adapter => new CosmicQueryTarget(
-        adapter.QueryProviderType,
-        adapter.QueryCapabilities))
-    .ToArray();
-
-var plan = CosmicFederationPlanner.Plan(
-    source.Result,
-    options.Result,
-    currentDefaultProvider,
-    targets);
+var plan = CosmicQueryPlanner.Plan(
+    query.Result,
+    ProviderType.AzureCosmosDBOASIS,
+    new[]
+    {
+        new CosmicQueryTarget(
+            ProviderType.AzureCosmosDBOASIS,
+            AzureCosmosDBOASIS.CqlCapabilities)
+    });
 
 if (plan.IsError)
     throw new InvalidOperationException(plan.Message);
 
-// Use the existing request-owned V2 HolonManager for typed mapping/decryption.
-var page = await manager.ExecuteFederationQueryAsync(
-    plan.Result,
-    adapters,
-    cancellationToken);
+var result = await cosmos.ExecuteCosmicQueryAsync(plan.Result, maximumResults: 10);
+if (result.IsError)
+    throw new InvalidOperationException(result.Message, result.Exception);
 
-if (page.IsError)
-    throw new InvalidOperationException(page.Message);
-
-foreach (var item in page.Result.Rows)
-{
-    Console.WriteLine($"{item.Selected.Provider}: {item.Selected.Row.Name}");
-}
+// Complete, canonical leaf records; embedded children are not graph expansion.
+foreach (var holon in result.Result)
+    Console.WriteLine($"{holon.Id}: {holon.Name}, version {holon.Version}");
 ```
 
-Every source must finish within the declared bounds. A small global page does
-not permit truncated inputs or silent omission of a failed provider. No partial
-result is returned on failure. Priority selection precedes global paging and
-retains the observed accessible copies in `Copies`; it never means newest.
-`ResolvedRows` is the count before the global page. No repeatable snapshot or
-continuation cursor is promised. See CQL_FEDERATION_CONTRACT.md for remaining
-production acceptance, error behavior and identity semantics.
+Current profile supports Boolean composition; canonical Name/Description string
+equality/inequality/null, IsActive/IsPublic equality, GUID identity/audit equality,
+and Int32 Version comparisons. Nested metadata supports string, Boolean/nullable
+Boolean equality/inequality, explicit nulls, existence and null tests. Missing paths
+and wrong types do not satisfy a metadata comparison; explicit nullable nulls obey
+inequality semantics. Exact-number wire strings remain outside the string domain.
+Numeric metadata, graph expansion and mixed numeric semantics
+are rejected during admission. Compound ordering
+requires an explicitly configured Cosmos composite index; no index is created by
+CQL. `AzureCosmosDBOASIS.GetCqlCompositeIndexDefinitions()` returns detached SDK
+definitions for explicit deployment setup:
 
-Native SDK federation verification now covers exact decimal, UInt64, Single, Double, Int64, UTC ticks, GUID and nullable metadata ordering. Single/Double ordering uses the declared IEEE domain with exact ties-to-even normalization; it does not sort unrounded JSON numbers. See CQL_FEDERATION_CONTRACT.md for source/binary/test evidence and remaining federation HTTP, billing, cursor and distributed join gates.
+| Composite index | First path | Second path |
+|---|---|---|
+| A | `/Version` ascending | `/Id` ascending |
+| B | `/Version` descending | `/Id` ascending |
 
-For provider-specific trusted grants, pass a fifth planner argument containing
-one `CosmicFederationReadPolicy(provider, access)` for every resolved provider.
-Use the same authenticated actor in every policy and a matching authority for
-each AuthoritativeRecords catalogue. Start with an unbound source intent; an
-existing source access policy cannot be replaced. The planner applies target
-policies before each native source window. This overload now has Core unit coverage and signed three-provider authorization acceptance. Never construct the
-catalogues directly from caller-selected IDs or metadata search hits.
+Opposite-direction scans cover the other two Version/Id combinations. Merge these
+definitions into the existing container policy without discarding other paths or
+settings, use the observed container ETag, and verify index readiness before the
+demo. The helper performs no network or policy mutation. Duplicate ordering keys
+are redundant, and a canonical Id key completes a total order; trailing keys are
+removed before SQL construction. All four Version/Id combinations, ties and a
+compound-order projection now pass the native emulator gate.
 
-The manager federation method materializes each selected/observed copy as T using the ordinary metadata decryption/hydration pipeline and publishes clean tracking state. The low-level CosmicFederationExecutor handles stored canonical rows and does not perform that mapping. The output budget includes actual row payload after materialization, plus provenance. This manager extension has Core unit/encryption controls; its native/hosted acceptance now passes the signed matrix.
+Count, LongCount and Any use the independent `ICosmicQueryScalarStorageProvider`
+contract. Build a terminal with `query.Count()`, `query.LongCount()` or `query.Any()`,
+plan it with `CosmicScalarPlanner` and a `CosmicScalarTarget` carrying both
+`AzureCosmosDBOASIS.CqlCapabilities` and `AzureCosmosDBOASIS.CqlScalarCapabilities`,
+then call `cosmos.ExecuteCosmicScalarAsync(plan.Result)` after checking each result.
+The native source count is mapped to the immutable source window using exact
+integer arithmetic, without fetching rows. This also works for a typed source
+whose constructor cannot run. Counts above Cosmos's exact binary64 integer domain
+are rejected; Count additionally checks Int32 overflow. Post-window terminal
+predicates, All and selected numeric aggregates remain unsupported.
 
-Hosted row federation is implemented at POST /api/data/query-cql/federation with explicit CurrentDefault/Named/AllEligible scope, per-target policy capture, independent source/global windows, manager materialization and canonical/public byte limits. See [the HTTP contract and JSON example](CQL_FEDERATION_HTTP_CONTRACT.md). Core unit/per-target receipt controls and the shipping build pass; signed real-provider HTTP/billing and demo acceptance now pass.
+Projection uses the independent `ICosmicQueryProjectionStorageProvider` contract.
+`query.Select(holon => new { holon.Id, holon.Name, holon.Version })` captures a
+selection without constructing an entity or DTO. Plan with `CosmicProjectionPlanner`
+and a `CosmicProjectionTarget` carrying `CqlCapabilities` and
+`CqlProjectionCapabilities`, then execute through `CosmicProjectionExecutor` to
+validate every provider buffer before constructing any DTO. Direct provider calls
+return `CosmicProjectionRow` cells; `CosmicProjectionResults.Materialize` validates
+and constructs a single provider's result. Check every `OASISResult` before using
+its `Result`.
 
-Signed federation HTTP/native acceptance now passes on all3providers:13requests/12settled operations/23attempts, including private per-target grants and actual manager encryption handling. The new readable [SDK and HTTP global examples](../../../Examples/CosmicCqlDemo/V1FederationWalkthrough.cs) execute in the retained runner. Full cohort505operations/567attempts;14SDK federation scenarios plus one new SDK/HTTP demo each pass. Swagger supports federation with the shared route-catalog token interceptor. Earlier pending native/hosted statements above are superseded by this checkpoint; cursors, causal agreement and distributed joins remain open.
+Canonical and nested string/Boolean metadata selection is admitted. Missing/null
+nullable values become null; wrong native domains, encoded numbers selected as
+strings and missing non-nullable values reject the result. Source identity and
+visibility proofs remain required even when Id is not selected. Selected-result
+composition and entity-stage projection are not yet enrolled for Cosmos.
 
-Trusted hosts can call CosmicFederationIntentFingerprint.Create(plan) to bind the exact admitted plan for later protected continuation state. The SHA256 digest is unkeyed; never accept it as a client authorization token. It binds actual target grant predicates and all windows/budgets and rejects encodings over1MiB without returning a prefix digest. Engine/model redeployment changes the binding. Authenticated continuation is still unimplemented; HTTP Cursor remains rejected.
+Native emulator evidence: 46 focused provider tests, 47 native cases and five shared
+HolonManager/LINQ demo operations.
+Hosted Azure, prepared usage admission and the remaining common demo features
+remain unverified. See [Cosmos admission report](CQL_COSMOS_NATIVE_ADMISSION.md).
 
-The protected cursor codec is internal groundwork only: it uses host-supplied Data Protection and rejects tampered/expired/foreign state. It creates no key store and is not enrolled in HTTP. Do not send Cursor yet; complete redemption/replay/budget integration and native acceptance are still pending.
+Cosmos save lifecycle remains a separate gap. Existing native ETag replacement
+does not enroll `IConditionalHolonStorageProvider` or
+`IConditionalHolonDeltaStorageProvider`. An explicit `CosmicWriteOptions` request
+currently returns `COSMIC_CONDITIONAL_WRITE_UNSUPPORTED` before activation,
+leaving caller identity/version unchanged. Do not replace that request with an
+ordinary Save and describe it as atomic COSMIC concurrency or a durable delta.
+Both synchronous and asynchronous rejection paths are covered by focused tests.
 
-## Cumulative accounting for a new moving federation read
-
-Successful SDK federation results now include `RemainingBudget`, captured after
-source reads, reconciliation, global ordering/paging, typed materialization and
-canonical row output. Pass it explicitly to a subsequent read:
-
-```csharp
-// The plan keeps the original ceilings and complete provider scope.
-// Each call is a new moving read and needs its own provider admission.
-var first = await manager.ExecuteFederationQueryAsync(
-    plan,
-    adapters,
-    cancellationToken);
-
-if (first.IsError)
-    throw new InvalidOperationException(first.Message);
-
-// Advance the plan's global page separately when building the next page.
-// Keep the original budget ceilings; do not replace them with fresh limits.
-var next = await manager.ExecuteFederationQueryWithBudgetAsync(
-    nextPagePlan,
-    adapters,
-    first.Result.RemainingBudget,
-    cancellationToken);
-```
-
-`CosmicFederationExecutor.ExecuteWithBudgetAsync` supplies the corresponding raw
-executor operation. Scope and original budget ceilings must match the saved
-accounting. A depleted target, insufficient attempts for the complete set, or
-exhausted global bytes/work/output/time rejects before the first provider read.
-The ordinary executor bounds each target by its remaining row allowance. Errors
-publish neither partial rows nor a success continuation snapshot.
-
-`CosmicFederationRemainingBudget.Restore` validates a bounded server-side vector
-and returns `OASISResult<T>`; it does not authenticate client data or grant access.
-An HTTP host must protect state, bind actor/intent/deployment/expiry and the exact
-next key to durable admission, and refresh every target's authorization. These
-HTTP cursor requirements remain unimplemented, so the route still rejects cursor
-input. SDK accounting alone does not prevent a caller replaying an old snapshot.
-Moving reads may duplicate/skip rows after intervening writes; no repeatable
-snapshot is claimed. Active execution time accumulates; client think time still
-needs the independently protected absolute expiry.
-
-## Protected HTTP continuation (26 October implementation checkpoint)
-
-The federation endpoint now supports explicit `enableContinuation` and `cursor`.
-The implementation passes controlled endpoint/protocol tests; signed native
-continuation, restart and key-rotation acceptance are still pending. The earlier
-505-operation/567-attempt native gate predates this feature.
-
-The host must explicitly register `CqlFederationCursorHost` with an existing
-persistent/shared `IDataProtectionProvider` and a lowercase SHA256 deployment
-contract identity. The contract must identify the intended provider connections,
-deployments and authorization contract. Supply an identity, never credentials.
-The constructor also binds WEB4/Core artifacts; each intent binds actual adapter
-artifacts. No key ring or environment is created automatically. Ephemeral keys
-are suitable for isolated tests only. Unenrolled hosts reject opt-in requests with
-`CQL_CURSOR_UNAVAILABLE` before provider dispatch.
-
-```csharp
-// Reuse the deployment's existing shared Data Protection key owner.
-// Keep this contract identity stable across equivalent replicas; advance it
-// when provider connections or authorization semantics change.
-services.AddSingleton(new CqlFederationCursorHost(
-    existingSharedDataProtectionProvider,
-    deploymentContractSha256));
-```
-
-Start with a new canonical lowercase GUID `Idempotency-Key` and this shape:
+WEB4's existing row, scalar and projection routes now admit the Cosmos read
+profile, provided the host already has an active provider, authenticated actor,
+query tariff and required read policy. Other routes keep their original provider
+enrollment; this does not enroll Cosmos federation/cursors or composition.
+For example, send this body to `POST /api/data/query-cql`:
 
 ```json
 {
-  "enableContinuation": true,
-  "scope": "Named",
-  "providers": ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"],
-  "source": { "orderBy": "Name", "take": 100 },
-  "skip": 0,
-  "take": 3,
-  "maximumInputRows": 900,
-  "maximumRowsPerProvider": 300,
-  "maximumProviderAttempts": 12,
-  "maximumDurationMilliseconds": 5000
+  "Provider": "AzureCosmosDBOASIS",
+  "OrderBy": "Id",
+  "Skip": 0,
+  "Take": 10,
+  "Filters": [
+    {
+      "MetadataPath": ["location", "city"],
+      "Scalar": "String",
+      "Operator": "Equal",
+      "Value": "London"
+    }
+  ]
 }
 ```
 
-A successful page returns `hasMore` and either a `continuation` object containing
-`cursor`/`nextRequestKey`, or null. For the next request, keep all original intent
-fields unchanged, set `cursor` to the returned opaque token and use exactly the
-returned `nextRequestKey` as the header. Do not increment the original `skip`.
-The protected offset advances on the server. `hasMore` refers to the complete
-admitted source windows, not records beyond each source's Take.
+Specify `OrderBy: "Id"` or the declared Version profile: the shared wire default
+`Name` ordering is not admitted by Cosmos yet. Native HTTP row, scalar and projection requests now pass through the real
+controller/endpoints under controlled test identity and receipt storage. Core
+query-tariff admission includes explicitly permitted Cosmos profiles;405 affected
+WEB4/tariff tests pass. Hosted Azure, production JWT and durable billing remain
+unverified.
+Canonical membership is now admitted for GUID, string, Boolean and Int32 fields.
+This enables `CosmicQueryReadAccess.AuthoritativeRecords` for Cosmos: the complete
+server-authorized catalogue replaces owner/public visibility, including an empty
+catalogue that admits no records. Native row, count and projection tests prove a
+private catalogue member is visible while public/owned outsiders remain excluded.
+Metadata membership remains a separate unsupported capability. The native HTTP gate also verifies catalogue enforcement under prepared admission
+and one configured query-attempt receipt per successful row/scalar/projection
+request. Anonymous and forged-actor requests reject before provider lookup. The
+receipt store and validated identity are controlled fixtures; this is not proof
+of production authentication, reservation settlement or billing durability.
 
-Every page rereads the same pinned providers with fresh authoritative policies.
-Changed intent, policies, actor, deployment or key ownership reject before I/O.
-The exact next header must also match the durable admitted handle. Existing
-atomic outbox admission owns replay/concurrent-claim rejection; no second replay
-store is introduced. Unknown outcomes remain subject to existing reconciliation;
-a new page is never an automatic retry to resolve a previous uncertain read.
+# ActivityPub/Mastodon native status points (27 October 2026)
 
-Cumulative caps allow up to10,000 input/per-provider rows and64attempts for opt-in
-chains, while source Take remains1-100 and public Take1-100. Non-continuation caps
-remain unchanged. Each native capture is bounded by both its remaining provider
-allowance and the source Take. A depleted complete read set rejects before the
-endpoint marks dispatch, retaining affirmative no-provider-execution evidence.
+An exact native status-key row profile now works through the shared manager and
+LINQ, with public/unlisted visibility and mandatory access checks. See the
+[native profile guide and C# example](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+The WEB4 row-route code is enrolled with explicit server catalogue/tariff admission;
+production JWT/durable billing/host deployment and interactive-demo acceptance remain open. Broader metadata/scalar/projection/storage semantics remain open.
 
-Canonical row bytes and a conservative complete public envelope are both charged.
-The envelope reserves4096token characters, preventing circular token-size
-accounting or protection retries. Work counts include host preparation and public
-projection. Whole-request active time accumulates, excluding client think time;
-100ms is reserved for final protection/framing and verified before publication.
-Exceeding that reservation fails. Absolute expiry stays fixed at five minutes
-from page one and limits dispatch/publication independently of the active budget.
-Responses use the existing MVC/durable-settlement buffer, including opaque state.
+## IPFS and SOLID native point reads
 
-When a valid page has more rows but cannot admit another complete read set,
-`continuation` is null and `continuationUnavailable` is `BudgetExhausted`.
-This explicitly ends that bounded chain. There is no provider omission or hidden
-budget reset. Moving reads can duplicate/skip rows after writes; no distributed
-snapshot or causal freshness is claimed.
+Spaced C# examples: `Examples/CosmicCqlDemo/IpfsPointWalkthrough.cs` and
+`SolidPointWalkthrough.cs`. Both use HolonManager/LINQ and explicit read policies;
+native source gates pass. Exact CID/GUID point rows only; richer index queries
+remain open. WEB4 request/compiler/tariff code now admits their explicit row
+profiles with OrderBy None, with721 affected controls passing. Native HTTP and
+interactive deployment acceptance remain open. See [request examples and limits](CQL_PROTOCOL_DEMO_ADMISSION.md#web4-ipfs--solid-row-admission-implementation).
 
-26 October native cursor gate verified: actual shipping controller20requests/18settlements/32attempts, two duplicate rejections, three global pages, pinned default, changed-key/intent/policy/expiry/budget controls, two fresh host restarts and real Data Protection key rotation/revocation over bounded memory-only XML repository. Full native cohort523settlements599attempts; unchanged source snapshots/seven matching binary pairs; owned fixture/services cleaned. Evidence Verification/federation-cursor-native{.trx.gz,-source.json.gz,-binaries.json,-result.json}. This proves host restart, not OS-process cursor persistence; that acceptance and broader distributed/ORM gates remain open. CurrentCore3,739 is a separate earlier regression gate. See WEB4_VISION_AND_AI_NEXT_STEPS.md for strategy and evidence boundaries.
+Native WEB4 HTTP acceptance for IPFS/SOLID point rows now passes against actualKubo/privatePod, using controlled identity/outbox and productioncontroller/filter. Sixrequests/profile include401/400 guards and200rows withoneexplicitqueryreceipt. ProductionJWT/durablebilling/interactivehost deployment remainopen. [Proof and limits](CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
 
+IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
 
-## Native element terminals (C# SDK)
+Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
 
-`First`, `FirstOrDefault`, `Single` and `SingleOrDefault` create immutable
-terminal intents. Execute them through HolonManager in HyperDrive V2. The same
-Core implementation works with SQLite, MongoDB and Neo4j; adapters execute the
-admitted bounded native row query. This SDK addition does not add a WEB4 HTTP
-endpoint or an `IQueryable` implementation.
+## Indexed LINQ SDK rows
+
+Use an explicitly authorized schema2 source, registered index reader and trusted
+source observer. The same CQL expression binder handles standard Where, ordering,
+Skip and Take; execution stays native SQL with independent selected source proofs.
 
 ```csharp
-// Start with a trusted, authorized source query. In this example `visible`
-// already carries its read policy and explicit provider scope.
-var ordered = visible.OrderBy(item => item.Name).Result;
+// source includes a named logical provider, indexed read requirement and server actor policy.
+var created = CosmicLinq.CreateIndexed(manager, index, observer, source);
+if (created.IsError)
+    throw new InvalidOperationException(created.Message);
 
-// First preserves earlier filters, ordering and source Skip/Take.
-var intent = ordered.Skip(1).First().Result;
-var plan = CosmicElementPlanner.Plan(
-    intent,
-    adapter.QueryProviderType,
-    new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
+var name = "A";
+var query = created.Result
+    .Where(row => row.Name == name)
+    .OrderBy(row => row.Name)
+    .Take(5);
+
+// Nothing has executed yet. Closure values bind separately for each read.
+var result = await query.ToCosmicIndexedPageAsync();
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+
+var page = result.Result;
+Console.WriteLine(page.Checkpoint.Source.SourceProvider);
+Console.WriteLine(page.Checkpoint.Source.ExecutionProvider);
+foreach (var row in page.Rows)
+{
+    // Typed metadata is hydrated and change tracking starts clean.
+    Console.WriteLine(row.Name);
+}
+
+// page.Receipts aligns with page.Rows; page.Head records the fresh source head.
+```
+
+ToCosmicListAsync and sequence enumeration are also available when only rows are
+needed; retain the page result when provenance/checkpoint/receipts are required.
+Each terminal is a separate execution. Unsupported Select/scalar/element/reverse/
+post-window filter shapes reject before reader I/O; there is no client reduction.
+Prepared contexts require an exact server-created physical-read tariff policy;
+missing policies reject before I/O. See [indexed accounting](CQL_INDEXED_BILLING.md)
+for composition, per-RPC receipts and failure semantics. This SDK profile does not
+enroll WEB4 or certify original native chain coverage.
+
+Details and acceptance evidence: [indexed SQL rows](CQL_INDEXED_SQL_ROWS.md).
+
+[WEB4 indexed preparation](CQL_INDEXED_WEB4_PREPARATION.md) now captures server alias authorization, immutable query/freshness and conservative reservation bound once. Stock HTTP route/usage binding is verified; native acceptance remains next; this does not certify native coverage or production deployment.
+
+[Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,140/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration passes; real-backend/native HTTP and full parity remain open. Register server bindings and existing native factory first, then call `services.AddCqlIndexedReadAdmission()`; see the checkpoint for explicit route policy and middleware ordering.
+
+## Indexed HTTP rows
+
+Use POST `/api/data/query-cql/indexed` with a server-registered alias. The host must
+bind its captured preparation and measured reservation before dispatch; automatic
+stock usage-middleware integration is still pending. No client endpoint, price,
+provider override or fabricated checkpoint is accepted.
+
+```json
+{
+  "alias": "solana-coffee",
+  "query": {
+    "orderBy": "Name",
+    "take": 5
+  }
+}
+```
+
+The response keeps logical provider and physical execution provider separate,
+with public rows, source checkpoint, fresh head and per-row source receipts.
+Slot values are strings, including values beyond JavaScript's integer precision.
+The server reserves maximum service cost and read units; completed SQL/RPC
+attempts are measured individually. Units count read attempts, not result rows.
+See [HTTP contract, examples and acceptance limits](CQL_INDEXED_HTTP.md).
+
+
+The indexed HTTP acceptance suite also runs actual SQLite and canonical Solana
+decoding through shipping MVC and stock middleware: rows, empty results, missing
+source and wrong-network failures. RPC responses, identity and ledger remain
+controlled; see [HTTP evidence and remaining limits](CQL_INDEXED_HTTP.md).
+
+Indexed freshness includes block identity: older minimum/checkpoint/previous slots
+require independent finalized anchors, even for empty results. Missing or conflicting
+anchors reject the whole page. Custom source observers must implement the bounded
+requiredSlots head contract; [details](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).
+
+
+### Live chain C# walkthrough
+
+[ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+is a spaced, commented shared SDK example with explicit source/index binding,
+Where/OrderBy/Take, clean typed rows, empty results and retained source evidence.
+It is exercised verbatim by the real Solana/SQLite native gate. Pass an already
+published index, trusted source observer, V2 manager, freshness requirement and
+server actor policy; the walkthrough itself never submits source writes.
+
+```csharp
+var demo = await ChainIndexedWalkthrough.RunAsync(
+    manager,
+    sqliteIndex,
+    solanaObserver,
+    freshness,
+    serverReadAccess,
+    selectedHolonId,
+    Console.Out,
+    cancellationToken);
+```
+
+[Native runner, evidence and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
+
+
+### Native chain HTTP acceptance
+
+The reusable Solana runner's `-IndexedHttpDemo` mode exercises shipping HTTP with
+the acknowledged native seed and actual index. It runs nine bounded requests
+(entity/projected rows and empty results, four replays, unsupported graph) and shuts the host down afterward.
+It never creates a replacement seed. [Command and limits](CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
+
+The accepted wire shape is:
+
+```json
+{
+  "alias": "solana-native-demo",
+  "query": {
+    "filters": [
+      { "field": "Id", "scalar": "Guid", "operator": "Equal", "value": "<selected-holon-id>" }
+    ],
+    "orderBy": "Name",
+    "take": 1
+  }
+}
+```
+
+Use the synthetic Id from LocalState/COSMIC/SolanaCqlCurrent/seed.acknowledged.json.
+The server must own that alias and its actor/source/index/tariff grant; this is
+not a command that enrolls the alias in a running deployment. Production JWT and
+durable ledger acceptance remain separate. Retain X-OASIS-Operation-Id and source
+receipts; slots are returned as strings to preserve integer precision.
+
+
+### Indexed native projection SDK
+
+Use the shared projection builder/planner and V2 manager. The source query must
+already have its explicit indexed freshness and server actor grant. The selected
+target names the logical source provider, while the registered reader owns the
+physical SQLite execution. Always inspect OASISResult.IsError before using Result.
+
+```csharp
+var selected = sourceQuery.Select(holon => new
+{
+    holon.Id,
+    holon.Name,
+    holon.Version
+});
+
+var target = new CosmicProjectionTarget(
+    index.Source.SourceProvider,
+    index.IndexedRowCapabilities,
+    index.IndexedProjectionCapabilities,
+    index.Source);
+
+var plan = CosmicProjectionPlanner.Plan(
+    selected.Result,
+    index.Source.SourceProvider,
+    new[] { target });
+
+var result = await manager.ExecuteIndexedProjectionQueryAsync(
+    plan.Result,
+    index,
+    sourceObserver,
+    maximumResults: 100,
+    maximumPayloadBytes: 64 * 1024,
+    cancellationToken: cancellationToken);
+
+// On success, result.Result.Rows contains detached selected values.
+// Checkpoint, Head and Receipts retain the source evidence for those rows.
+```
+
+This is the explicit indexed projection SDK; standard IQueryable.Select now uses
+the same owner. HTTP now accepts optional columns on the existing indexed route. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
+IsPublic/IsDeleted columns are enrolled; metadata and aggregates remain unsupported.
+[Contract, tests and remaining gates](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
+
+
+### Indexed LINQ Select
+
+```csharp
+var page = await query
+    .Where(holon => holon.Id == selectedHolonId)
+    .OrderBy(holon => holon.Name)
+    .Take(10)
+    .Select(holon => new
+    {
+        holon.Id,
+        holon.Name,
+        holon.Version
+    })
+    .ToCosmicIndexedProjectionPageAsync(cancellationToken);
+
+if (page.IsError)
+    throw new InvalidOperationException(page.ErrorCode + ": " + page.Message);
+
+foreach (var item in page.Result.Rows)
+    Console.WriteLine($"{item.Name} (version {item.Version})");
+```
+
+Here query is the explicitly bound IQueryable returned by CosmicLinq.CreateIndexed.
+The reader must advertise selected-column support. Flat repeated Select is admitted;
+selected-result filters/windows/aggregates remain unsupported. Put the supported
+source operators before Select. Use ToCosmicListAsync or enumeration when consuming
+selected values; use the page terminal when retaining source evidence in a demo.
+RunProjectionAsync in [ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+shows a spaced/commented public DTO example and is tested against the live source.
+Anonymous shapes or public parameterless DTO/member assignments are supported;
+positional DTO/record constructors without explicit expression member bindings
+remain an M17 gap. [Contract and evidence](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
+
+
+### Indexed HTTP selected values
+
+Add a columns array to the existing /api/data/query-cql/indexed request. The server
+alias owns the actual source/index, actor grant, freshness and tariffs. Fields are
+capability checked before reservation; columns cannot request the entity metadata
+envelope. An omitted/null columns array retains ordinary entity-row behavior.
+
+```json
+{
+  "alias": "solana-native-demo",
+  "query": { "orderBy": "Name", "take": 10 },
+  "columns": [
+    { "alias": "name", "field": "Name" },
+    { "alias": "version", "field": "Version" }
+  ]
+}
+```
+
+On success, mode is indexed-projection. Columns describe the typed cells in each
+rows array; checkpoint, finalizedHead and receipts retain provenance/freshness.
+[Registration, complete contract and native evidence](CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
+
+
+### Indexed Count / LongCount / Any SDK
+
+Use a bound CosmicQuery source with explicit indexed freshness and server actor
+policy. These scalar builder methods on CosmicQuery also have standard synchronous
+Count/LongCount/Any terminals on the indexed IQueryable bridge. The separate reader capability is mandatory.
+
+```csharp
+var scalar = sourceQuery.Count(); // Or LongCount() / Any().
+if (scalar.IsError)
+    throw new InvalidOperationException(scalar.Message);
+
+var target = new CosmicScalarTarget(
+    index.Source.SourceProvider,
+    index.IndexedRowCapabilities,
+    index.IndexedScalarCapabilities,
+    index.Source);
+
+var plan = CosmicScalarPlanner.Plan(
+    scalar.Result,
+    index.Source.SourceProvider,
+    new[] { target });
 
 if (plan.IsError)
-    throw new InvalidOperationException(plan.Message);
+    throw new InvalidOperationException(plan.ErrorCode + ": " + plan.Message);
 
-var result = await manager.ExecuteElementQueryAsync(
+var result = await manager.ExecuteIndexedScalarQueryAsync(
     plan.Result,
-    new[] { adapter },
+    index,
+    sourceObserver,
     cancellationToken);
 
 if (result.IsError)
-    throw new InvalidOperationException(result.Message);
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
 
-var item = result.Result; // Typed, detached and tracked by the existing loader.
+Console.WriteLine(result.Result.Value);
+Console.WriteLine(result.Result.Checkpoint.Position.Slot);
 ```
 
-| Terminal | Native row ceiling | Empty sequence | Multiple matches |
-|---|---:|---|---|
-| `First()` | 1 | `CQL_SEQUENCE_EMPTY` | Return first selected element |
-| `FirstOrDefault()` | 1 | Success, `IsLoaded = true`, default result | Return first selected element |
-| `Single()` | 2 | `CQL_SEQUENCE_EMPTY` | `CQL_SEQUENCE_MULTIPLE` |
-| `SingleOrDefault()` | 2 | Success, `IsLoaded = true`, default result | `CQL_SEQUENCE_MULTIPLE` |
+SQL counts the actor-visible source window, not a materialized result page.
+The returned assurance is authenticated-index-snapshot with fresh finalized
+head/anchors. It does not assert per-record source availability or expose global
+index manifest statistics. Current SQLite index integrity scanning is bounded to
+10,000 history entries; larger-index scaling remains a separate gap. LINQ/HTTP,
+terminal predicates and additional aggregates are not enrolled by this milestone.
+[Contract and evidence](CQL_INDEXED_SQL_ROWS.md#indexed-native-cardinality-sdk-27-october).
 
-An explicit order makes `First` deterministic. `Single` checks the cardinality
-of the composed source: `source.Take(1).Single()` checks that one-row window,
-not uniqueness of the unwindowed source. Cardinality is established before
-application constructors/property setters run. Provider failures, incomplete
-results, cancellation and materialization failures remain errors; `OrDefault`
-never turns them into successful empty results.
 
-The planner requires native paging and one resolved provider. A multi-provider
-sequence needs an explicit global federation ordering/cardinality contract;
-these terminals do not silently pick a provider or merge independent pages.
-Selected-value/projection and grouped terminal overloads remain separate work.
-
-See [spaced and commented examples 47–58](../../../Examples/CosmicCqlDemo/V1ElementQueries.cs)
-and the [parity checklist](CQL_PARITY_CHECKLIST.md) for current acceptance evidence.
-
-## Demo query-operator acceptance (examples 59–90)
-
-The [operator walkthrough](../../../Examples/CosmicCqlDemo/V1OperatorQueries.cs)
-uses the same authorized entity source for each database. The corresponding
-checklist rows now have [all-three native acceptance evidence](Verification/demo-operators-native-result.json).
-
-| Feature | Example semantics |
-|---|---|
-| Metadata presence/null | Exists is true for a present null; IsNull requires a present null; `!Exists` selects missing paths |
-| Path comparisons | Both operands stay native: metadata-to-metadata, canonical Guid to metadata Guid, canonical fields |
-| Membership | Closed bounded arrays; empty arrays match nothing, duplicate constants do not duplicate rows, Int64 stays exact |
-| String matching | Explicit StringComparison.Ordinal; case-sensitive and normalization-sensitive, empty patterns and literal metacharacters |
-| Secondary ordering | Equal primary stock values force ThenBy/ThenByDescending to determine the order |
+### Ordinary indexed LINQ cardinality
 
 ```csharp
-// A missing metadata key differs from a present key with a null value.
-var missing = visible.Where(h => !CosmicQueryMetadata.Exists(h, "optional"));
-var presentNull = visible.Where(h => CosmicQueryMetadata.IsNull(h, "optional"));
+var visibleCoffee = query.Where(holon => holon.Name == "Coffee");
 
-// Membership is translated from a closed, bounded set.
-var names = new[] { "B-owned", "D-owned" };
-var members = visible.Where(h => names.Contains(h.Name));
+var count = visibleCoffee.Count();
+var longCount = visibleCoffee.LongCount();
+var any = visibleCoffee.Any();
 
-// Both comparison operands are native metadata paths.
-var available = visible.Where(h =>
-    CosmicQueryMetadata.Value<long>(h, "stock") <
-    CosmicQueryMetadata.Value<long>(h, "precision"));
-
-// Specify the portable ordinal string contract explicitly.
-var literal = visible.Where(h =>
-    CosmicQueryMetadata.Value<string>(h, "operatorText")
-        .Contains("%_", StringComparison.Ordinal));
-```
-
-These examples do not claim culture-aware/ignore-case overloads, arbitrary CLR
-methods, unbounded client collections or implicit in-memory query evaluation.
-The planner must admit the actual expression against the selected adapter.
-
-## Save ownership, tracking and delta summaries
-
-[V1SaveQueries.cs](../../../Examples/CosmicCqlDemo/V1SaveQueries.cs) demonstrates
-this lifecycle on the same native provider as CQL:
-
-1. Begin with `Id = Guid.Empty`; conditional Save privately plans an identity.
-2. Publish the generated ID and clean baseline only after acknowledgement.
-3. A clean Save returns `IsSaved = false`, keeps its version/revision and has no
-   committed-delta metadata. Both acknowledged and freshly loaded objects obey it.
-4. Edit typed properties and metadata; `HasChanges` becomes true. Local
-   `PreviewValueChanges` describes pending edits and is not commit evidence.
-5. Save returns a new accepted revision and an operation-bound committed summary.
-6. A fresh typed CQL read sees the saved properties with its own clean baseline.
-7. Rejecting a changed create intent leaves the rejected caller's ID empty.
-8. A hard delete has a separate `HardDeleted` classification; removing a metadata
-   key is a value-level `Removed` change, not deletion of the entity.
-9. Recover an old redacted summary using the original operation ID, actor,
-   authority and trusted protection/type-admission callbacks, even after deletion.
-
-Committed summaries use `COSMIC.CommittedDelta` result metadata and include paths,
-change classification and revision binding. They omit previous/current value JSON.
-Local previews contain caller-owned values; do not confuse them with authoritative
-historical values or forward them as committed audit evidence.
-
-**Remaining X08 gap:** an authorized historical stored-value/decryption API,
-old-key access rules, retention controls and audit tooling remain unfinished.
-Returning or recovering a redacted summary does not complete that row. See
-[committed delta format and remaining scope](COMMITTED_DELTAS.md).
-
-Save-demo acceptance: [30 checks across all three stores](Verification/save-demo-native-result.json), with generated-ID and no-op preparation/mutation observations. X08a summary demo is verified; parent X08 remains incomplete.
-
-## Integer-index entity terminals
-
-`ElementAt(int)` and `ElementAtOrDefault(int)` use zero-based indexes relative
-to the composed source. The shared Core element planner lowers a normal index
-to the original source's `Skip(index).Take(1)`; native adapters apply visibility,
-filters and ordering before that page. No complete-source client scan is used.
-
-```csharp
-// The source carries its trusted read policy and provider scope.
-var ordered = visible.OrderBy(row => row.Name).Result;
-
-// Skip(1)/Take(2) selects C-public,D-owned. Index 1 means D-owned.
-var intent = ordered.Skip(1).Take(2).ElementAt(1).Result;
-var plan = CosmicElementPlanner.Plan(
-    intent,
-    adapter.QueryProviderType,
-    new[] { new CosmicQueryTarget(adapter.QueryProviderType, adapter.QueryCapabilities) });
-
-if (plan.IsError)
-    throw new InvalidOperationException(plan.Message);
-
-var result = await manager.ExecuteElementQueryAsync(plan.Result, new[] { adapter });
-
-if (result.IsError)
-    throw new InvalidOperationException(result.Message);
-
-Console.WriteLine(result.Result.Name);
-```
-
-| Case | ElementAt | ElementAtOrDefault |
-|---|---|---|
-| Existing index | Typed, detached, tracked element | Same |
-| Negative index | `CQL_INDEX_OUT_OF_RANGE` at construction | Successful default, no provider read |
-| Index outside explicit source Take | `CQL_INDEX_OUT_OF_RANGE`, no provider read | Successful default, no provider read |
-| Index beyond actual native input | `CQL_INDEX_OUT_OF_RANGE` | Successful default after successful empty read |
-| Native execution failure | Explicit error | Explicit error |
-
-Successful defaults have `IsLoaded = true`. Cancellation and inherited
-admission actor/lifetime checks still apply to known-empty execution. Planning
-still validates source scope/capabilities; an unsupported or unauthorized source
-is not silently accepted. Unknown-length offset addition uses the existing CQL
-maximum offset (1,000,000); exceeding that bound returns `CQL_QUERY_LIMIT`.
-
-Use explicit ordering for reproducible indexes. System.Index/from-end and Last/LastOrDefault are now implemented through native
-post-window selection (see below). All remains separate red work. See [examples 91–105](../../../Examples/CosmicCqlDemo/V1IndexedQueries.cs)
-and checklist Q19/Q19a for native acceptance status.
-
-## Last and System.Index after a source window
-
-Last requires explicit ordering. Use the same element planner and HolonManager
-execution method as First/ElementAt; adapters must advertise TailPaging.
-
-```csharp
-var ordered = visible.OrderBy(row => row.Name).Result;
-
-// B-owned,C-public,D-owned: Last is D-owned.
-var last = ordered.Last();
-
-// Source Take happens first: Last of B-owned,C-public is C-public.
-var lastInWindow = ordered.Take(2).Last();
-
-// ^1 is the final element, ^2 the preceding one, ^0 is past the end.
-var previous = ordered.ElementAt(^2);
-var absentDefault = ordered.ElementAtOrDefault(^4);
-
-// System.Index also supports ordinary from-start positions.
-var second = ordered.ElementAt(new Index(1));
-```
-
-Last on a successful empty sequence returns CQL_SEQUENCE_EMPTY; LastOrDefault
-returns a successful default. ElementAt(^0) is a construction range error;
-ElementAtOrDefault(^0) returns a successful default without reading storage.
-From-end indexes outside an explicit source Take are also known empty. Other
-from-end operations select natively from the composed window. Existing bounds,
-cancellation, read policy, provider errors and typed loading rules still apply.
-
-Source ordering, Skip/Take and reverse-tail selection run in one native SQL
-statement/aggregate/Cypher query. No separate count/read sequence or complete
-client-side scan is used. Graph expansion retains the existing native read owner.
-A global multi-provider tail needs an explicit federation contract and is rejected.
-All is still unimplemented. See [examples 106–135](../../../Examples/CosmicCqlDemo/V1TailQueries.cs).
-
-## All scalar-predicate verification — 27 October 2026
-
-The investor-demo acceptance set remains green (12 rows across SQLite, MongoDB
-and Neo4j). Green feature implementation and federation cursors remain frozen.
-The next red feature is Q23, universal quantification. Q23a records its scalar
-predicate subset separately; the full Q23 parent remains red until traversal
-inside the terminal predicate is implemented and proved.
-
-```csharp
-// Apply the source window first, then ask whether every selected row qualifies.
-var allInStock = menu
-    .OrderBy(item => item.Name)
+// Source windows retain their normal LINQ position in SQL.
+var firstPageCount = visibleCoffee
+    .OrderBy(holon => holon.Name)
     .Skip(1)
-    .Take(2)
-    .All(item => CosmicQueryMetadata.Value<long>(item, "stock") > 0);
-```
-
-The immutable terminal captures its predicate independently of source filters.
-Each native provider counts counterexamples after the source window in one
-storage operation. Zero counterexamples means true, including empty input.
-Provider errors remain errors. The manager performs capability admission for
-both the source and the terminal predicate; it does not enumerate the source
-on the client. Existing child/descendant filters may define the source before
-All, but traversal inside All's predicate is explicitly unsupported in this
-checkpoint. Use the standard scalar planner and manager executor shown in
-[the executable examples](../../../Examples/CosmicCqlDemo/V1AllQueries.cs).
-
-Core verification: 3,807 tests pass with zero skips. Native three-provider
-verification is pending; Q23a must remain red until its execution evidence is
-retained. No full EF/NHibernate parity claim follows from this subset.
-
-Native gate update: the first run reproduced an empty-input aggregate-row bug
-in the new Neo4j All translator. Its correction separates the aggregate-only
-projection from validity flags, preserving the empty aggregate result. The
-failed fixture and durable receipts are retained. A read-only native proof
-against that exact fixture is running; this is not yet a green feature claim.
-
-Final scalar All checkpoint: the read-only retained-fixture test passes all 66
-cases (22 on each store), including the reproduced Neo4j empty-input bug.
-Q23a is green on this scoped evidence; Q23 remains red. Core: 3,807 pass,
-zero skipped; console build passes. The complete walkthrough did not finish
-and must not be described as a successful 471-query gate. Its failed fixture,
-original writes and receipts remain preserved for verified reconciliation.
-See Verification/all-predicate-retained-native.trx.gz and the proving test
-CqlAllRetainedFixtureTests.cs. No green feature or cursor work was added.
-
-## Direct-child predicates inside All — verification in progress
-
-The new C# shape is `query.All(parent => parent.Children.Any(child => ...))`.
-The source window is evaluated first. Child existence then observes currently
-parented canonical members under the same actor visibility policy. Loaded
-`Children` objects are not enumerated. Negation and Boolean combinations remain
-native scalar expressions. An independent scalar capability admits this shape;
-ordinary row-child support and scalar All alone do not grant it.
-
-Core verification currently passes 3,815 tests and both target frameworks.
-Native verification of 16 added cases per provider is pending. Nested children
-and descendants inside the terminal remain explicit gaps; full Q23 stays red.
-The previous 22 scalar cases remain in the same native regression as necessary
-coverage of the changed All owner, with no unrelated green/cursor work added.
-
-Direct-child All native proof passes: 38 cases per provider, 114 total, on the
-unchanged retained fixture. Core: 3,815 pass with zero skips; net10.0 and
-netstandard2.1 build; spaced demo console build passes. Q23b is green on this
-scope. Full Q23 stays red for nested-child and descendant traversal inside All.
-The complete 519-SDK-query walkthrough still needs a reconciled clean rerun;
-its earlier failed fixture and durable receipts remain preserved.
-
-## Nested-child All acceptance — 27 October 2026
-
-`query.All(parent => parent.Children.Any(child => child.Children.Any(...)))`
-now executes natively on SQLite, MongoDB and Neo4j. Each child level observes
-canonical parent/membership identity and the source actor's visibility policy.
-The source window still precedes the terminal. Captured literals are immutable;
-correlations to outer lambda parameters remain explicitly unsupported.
-
-Examples 174–181 include a host-only positive query with no access filter and
-an actor-filtered negative over the same hidden intermediate parent. The host
-example is intentional trusted SDK use; remote access enforcement is unchanged.
-All 46 examples pass per store (138 checks), with 3,817 Core tests and both
-framework builds passing. [Native proof](Verification/all-nested-native.trx.gz).
-Full Q23 remains red for bounded descendant traversal inside All. The complete
-543-SDK walkthrough still needs verified fixture reconciliation and a clean rerun.
-
-## Bounded descendant marker inside All — native verification pending
-
-```csharp
-var bounds = CosmicQueryTraversalOptions.Create(
-    maximumDepth: 2,
-    maximumNodes: 100).Result;
-
-var resultIntent = query
-    .OrderBy(parent => parent.Name)
     .Take(10)
-    .All(parent => CosmicQueryRelations.AnyDescendant(
-        parent,
-        descendant => descendant.Name == "target",
-        bounds));
+    .Count();
 ```
 
-The marker captures immutable bounds and a native predicate; invoking it as
-ordinary CLR code throws without invoking the callback. Scalar admission needs
-`SupportsAllDescendants` separately from child support. Descendants are evaluated
-after the source window. Visibility applies at every hop and the root does not
-match as its own descendant. Protected traversal errors remain errors even when
-another Boolean branch determines the match.
+query is the explicitly bound indexed IQueryable. Each terminal executes its own
+native SQL snapshot and source head/anchor checks. These return primitives and
+throw CosmicLinqException on failure; use the asynchronous scalar SDK when you
+need OASISResult, cancellation and checkpoint/head evidence. Predicates on an
+unwindowed Count/LongCount/Any are supported; predicates after Skip/Take, All and
+selected-result/numeric/element terminals remain unsupported before I/O.
+RunCardinalityAsync in [ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+is a spaced/commented live-tested example. HTTP cardinality remains pending.
 
-Core tests: 3,824 pass, zero skipped; both framework builds pass. Native cases
-are pending. Cycle propagation and mixed child/descendant composition remain
-unproved/incomplete requirements in full Q23. No completion is claimed here.
+### Indexed HTTP cardinality
 
-Descendant native checkpoint: all 66 All examples pass per store (198 total),
-including 20 new depth/visibility/window/Boolean/node-budget cases on each.
-Core: 3,824 pass, zero skipped; both framework and demo console builds pass.
-[Native proof](Verification/all-descendant-native.trx.gz). Q23/Q23d remain red:
-actual native cycle propagation and nested child/descendant composition still
-need implementation/proof. The complete 603-SDK walkthrough also remains pending.
+POST `/api/data/query-cql/indexed/scalar` with `{"alias":"solana-demo","query":{"operation":"LongCount","orderBy":"Id"}}`. The host must explicitly enroll the measured route and alias. Omitted Take counts the whole eligible source; zero creates an empty window. Count/LongCount/Any execute native indexed SQL under the actor grant. LongCount returns an exact decimal string. See [indexed HTTP contract](CQL_INDEXED_HTTP.md#indexed-cardinality-http) for freshness, reservation and assurance limits; live Solana/SQLite HTTP cardinality passes nine cases; production identity/durable settlement remains pending.
 
-## Native cycle acceptance — 27 October 2026
+### Indexed metadata in C#
 
-All descendant cycle errors are now proved on MongoDB, SQLite and Neo4j with
-24 native checks. Ordinary scalar count first verifies the synthetic record is
-admitted. The direct, negated, false-AND, true-OR, mixed-root-child and protected
-source-window cases then return `CQL_DATA_INVALID`; a terminal over an empty
-source window returns true. One separately journalled record per store is
-corrupted consistently for this proof, then exact cleanup is verified. The
-original retained walkthrough records/journal remain unchanged.
+Use [ChainIndexedMetadataWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs)
+for the spaced, commented example. The trusted host first constructs an explicit
+schema3 SqliteCosmicChainIndexStore with HolonQueryableMetadataPolicy selecting
+only encryption-exempt roots, then publishes the authenticated index. Source
+network/index/profile and actor access remain server-owned. The sample uses
+CosmicLinq.CreateIndexed, nested typed metadata markers and ordinary Where/order/
+LongCount/Any. Rows retain source evidence; cardinality uses snapshot assurance.
 
-The companion 198 All checks also pass. No production code changed in this
-acceptance batch. Full Q23 remains red for nested child/descendant composition;
-the complete walkthrough rerun remains pending.
-[Cycle outcome](Verification/all-cycle-result.json),
-[native TRX](Verification/all-cycle-native.trx.gz).
+Private metadata stays out of the plaintext index. Encrypted row hydration still
+requires manager.MetadataEncryptionPolicy with an authorized key resolver; index
+enrollment grants no decryption authority. SDK/actual SQLite acceptance is verified,
+including rejection without that runtime context. Declared-range live Solana/SQLite metadata SDK/HTTP and interactive acceptance now pass. Run the demo hub with `-Provider SolanaMetadata -ArchiveCompletedDemo`; add `-VerifyOnly` for bounded acceptance. Production identity/durable billing remain open; see [verified scope and next gates](CQL_INDEXED_METADATA.md).
 
-## Descendant matching inside child Any — verification pending
+### Selecting indexed metadata columns
 
-```csharp
-var bounds = CosmicQueryTraversalOptions.Create(2, 100).Result;
+The explicit schema3 profile can now select typed nested metadata alongside
+canonical fields with standard LINQ Select, including exact Int64 and nullable
+values. Projection roots are independently enrolled; private or wildcard roots
+reject during planning/re-admission. Native selected values must match validated
+source witnesses before any DTO construction. See the [C# example and acceptance
+scope](CQL_INDEXED_METADATA.md#selected-metadata-shared-sdk-and-sqlite-verified).
+SDK/actual SQLite and declared-range live Solana selected-metadata HTTP/demo gates are verified. In the SolanaMetadata page, choose Select metadata columns. Exact Int64 values use decimal strings and missing nullable cells use null; production identity/durable settlement remain open.
 
-var intent = query.All(parent =>
-    parent.Children.Any(child =>
-        CosmicQueryRelations.AnyDescendant(
-            child,
-            descendant => descendant.Name == "target",
-            bounds)));
-```
+### Azure Cosmos DB teaching host
+From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB (or add -VerifyOnly for bounded native acceptance). Open http://127.0.0.1:5088/ after readiness. The page shows C# and real WEB4 JSON for rows, projection and LongCount over the retained local emulator. It uses a controlled server-owned catalogue and receipts, not production JWT/billing. Stop via the page to complete exact fixture cleanup and emulator teardown. See [interactive guide](CQL_INTERACTIVE_POINT_DEMO.md) and [cloud evidence and limits](CQL_COSMOS_NATIVE_ADMISSION.md).
 
-This shape requires `SupportsAllChildDescendants` in addition to the ordinary
-child and descendant scalar capabilities. Each visible direct child owns its
-bounded descendant scope. The parent Any result and protected traversal errors
-are reduced separately, so an earlier matching child cannot hide a later error.
-Visibility and canonical membership remain enforced at every relationship hop.
-The source window still applies before any terminal child scope.
 
-Core: 3,826 tests pass, zero skipped; both framework builds pass. Twelve new
-native examples per store are pending. A relationship inside a descendant's own
-predicate remains unsupported; full Q23/Q23d remain red. Native protected errors
-across multiple children also need dedicated acceptance; no broad completion
-claim is made by the syntax or unit-test count.
+### Selection after entity windows and stages (Q01f, partial)
 
-Child-to-descendant native acceptance completed:234All examples (78/store),
-24cycle checks and27protected-child checks all pass (three native tests,285checks).
-The dedicated child dataset proves that an earlier matching child, an inner
-false branch, outer true OR/false AND and negation cannot hide a later child's
-node-budget error. An actor-hidden failing child is excluded correctly.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
 
-SQLite initially failed this invariant. The fix observes the protected child
-scope as a whole before evaluating its enclosing business Boolean. The same
-failed fixture passed nine read-only checks before exact-ID cleanup; no write
-was replayed or database reset. All final synthetic datasets were removed and
-the original retained walkthrough fixture stayed unchanged. Core:3,826 tests,
-both framework builds and demo console pass. [Native proof](Verification/all-child-descendant-native.trx.gz).
-
-Q23/Q23d remain red: relationships inside a descendant predicate and cycle errors
-inside mixed scopes still need implementation/proof. The full639SDKwalkthrough
-rerun remains pending. Only the demonstrated orientation is claimed complete.
-
-## Mixed-scope cycle acceptance — 27 October 2026
-
-Child-to-descendant cycle errors are now proved on MongoDB, SQLite and Neo4j.
-A separately journalled two-node cycle produces `CQL_DATA_INVALID` through
-Children.Any, including inner false-AND/true-OR, outer false-AND/true-OR,
-negation and a protected source scope before Take(0). Ordinary count, an empty
-terminal and actor-hidden child controls distinguish genuine traversal errors
-from invalid scalar/membership projections or overly broad validation.
-
-Thirty new checks pass (ten/store), alongside the existing acceptance:
-315checks/four native tests total. Both synthetic cycle IDs were removed from
-each store after success; the original retained fixture stayed unchanged.
-No production/Core code changed in this test batch. Q23/Q23d stay red for the
-opposite direction: a descendant predicate containing a child or descendant
-relationship. The full639SDKwalkthrough rerun remains pending.
-[Outcome](Verification/all-mixed-cycle-result.json),
-[TRX](Verification/all-mixed-cycle-native.trx.gz).
-
-## Descendant predicate relationships — native acceptance
-
-Both relationship orientations now run natively: Children.Any may contain a
-bounded AnyDescendant marker, and a descendant predicate may contain child or
-further descendant predicates. Captures stay immutable and each visited candidate
-retains its own visibility, membership, match and protected error scope.
-`SupportsAllDescendantPredicates` is required independently. Nested expansion is
-bounded to1,000 conservative native units before command allocation and during
-native scalar admission; a depth32 single traversal retains its existing bounds.
-
-All four native tests pass390checks:276All examples,24self-cycle,45protected-scope
-and45mixed-cycle checks. Core:3,831 pass, zero skipped; both framework builds and
-demo console pass. Synthetic fixtures cleaned exactly; original892A8unchanged.
-[Native evidence](Verification/all-descendant-predicate-native.trx.gz).
-
-Q23d is green. The full Q23 parent remains red: selected/projected sequences have
-no All terminal yet (Q23e). Current All accepts entity CosmicQuery sources only;
-projected-source All must preserve selected-result windows and native execution.
-The full681SDKwalkthrough also still needs verified reconciliation and a clean run.
-
-### Projected All: SQLite, MongoDB and Neo4j preview
-
-This terminal now has native implementations on SQLite, MongoDB and Neo4j. Full three-store Q23e protected-scope/cycle and cross-provider-work acceptance remains pending. Use HyperDrive V2 and an activated provider; set the work options explicitly when the default complete-input limit (1,000 rows) is insufficient. Exceeding a work limit is an error, not a successful result over a prefix.
+For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
 
 ```csharp
-// Select columns first, then compose their result sequence.
-var scope = CosmicQueryScope.Named(ProviderType.SQLLiteDBOASIS).Result;
-var query = CosmicQuery<Holon>.Create(scope)
-    .Select(holon => new { holon.Name, holon.Version })
-    .Where(row => row.Version > 0)
-    .OrderBy(row => row.Name)
-    .Skip(1)
+// Keep the first page intact before filtering and reversing it.
+// Execution is deferred until enumeration; the trusted host uses V2.
+var names = query
+    .OrderBy(holon => holon.Name)
     .Take(20)
-    .All(row => row.Version >= 1);
+    .Where(holon => holon.Version >= 1)
+    .Reverse()
+    .Take(5)
+    .Select(holon => holon.Name);
 
-// Check query.IsError before using query.Result.
-// The terminal runs after the selected sequence's Skip/Take.
-var native = (ICosmicQueryProjectedAllStorageProvider)sqliteProvider;
-var target = new CosmicProjectionCompositionTarget(
-    native.QueryProviderType,
-    native.QueryCapabilities,
-    native.ProjectionCapabilities,
-    native.CompositionCapabilities);
-
-var plan = CosmicProjectedAllPlanner.Plan(
-    query.Result,
-    native.QueryProviderType,
-    new[] { target });
-
-// Check plan.IsError before execution. manager must use HyperDrive V2.
-var result = await manager.ExecuteProjectedAllQueryAsync(
-    plan.Result,
-    new ICosmicQueryStorageProvider[] { sqliteProvider });
-
-// Check result.IsError and result.IsLoaded before reading values.
-// Empty selected input is true only after complete source/error validation.
-bool allMatch = result.Result.Providers.Single().Value;
+var values = names.ToArray();
 ```
 
-The Boolean is native; detached proof is checked without constructing selected DTOs. Results remain separate per physical provider. See the [working acceptance contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) for current evidence and remaining gaps.
+Do not append selected-stage operators to this entity projection yet. They return explicit unsupported errors rather than evaluating the page locally.
 
-For MongoDB, use ProviderType.MongoDBOASIS and an activated MongoDB adapter in the same planner/manager pattern above. Its source, selected stages and native terminal share one snapshot and deadline; a concurrent update cannot switch the terminal onto a newer source. See [49 native tests](Verification/projected-all-mongo.trx.gz). For Neo4j use ProviderType.Neo4jOASIS with its activated adapter in the same planner/manager pattern. Neo4j reduces captured scalar cells within one native statement; it does not advertise a repeatable snapshot.
+An earlier page must retain its meaning when a later filter/order/selection runs.
+For example, select the first twenty names, then filter/reorder that page, then
+select columns. The provider must not push the later filter before that page.
+Use an already activated adapter and the trusted host's manager/actor:
 
-Neo4j focused evidence: [18 native tests](Verification/projected-all-neo4j.trx.gz), including a late 150-row counterexample and exact retained-graph preservation. All three Q23e checklist cells remain red until the complete cross-store acceptance gate passes.
+```csharp
+var scope = Require(CosmicQueryScope.Named(provider.QueryProviderType));
+var access = Require(CosmicQueryReadAccess.OwnerOrPublic(actorId));
 
-Nested source relationships are tracked separately as Q49a. Core can capture their intent, but current native profiles do not yet advertise SourceRelationshipComposition; planning rejects these shapes explicitly. Existing leaf WhereAnyChild/WhereAnyDescendant and supported projected-All sources remain available. See the [working execution contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md) for the preserved acceptance fixture and remaining proof.
+var source = Require(CosmicQuery<Holon>.Create(scope)
+    .WithReadAccess(access)
+    .OrderBy(holon => holon.Name)
+    .Take(20));
+
+var entities = Require(source.Compose());
+entities = Require(entities.Where(holon => holon.Version >= 1));
+entities = Require(entities.OrderByDescending(holon => holon.Version));
+entities = Require(entities.Take(5));
+
+var selected = Require(entities.Select(holon => new
+{
+    holon.Name,
+    holon.Version
+}));
+
+var plan = Require(CosmicEntityProjectionPlanner.Plan(
+    selected,
+    provider.QueryProviderType,
+    new CosmicProjectionTarget(
+        provider.QueryProviderType,
+        provider.QueryCapabilities,
+        provider.ProjectionCapabilities),
+    provider.EntityCompositionCapabilities));
+
+var result = Require(await manager.ExecuteEntityProjectionQueryAsync(
+    plan,
+    new ICosmicQueryStorageProvider[] { provider },
+    5,
+    1024 * 1024));
+```
+
+`Require` is the sample boundary helper that throws on an OASISResult error;
+applications should handle that result explicitly. Source and stage row/work/byte
+limits are independent of final output limits. Neo4j streams canonical input proof and selected cells in one native Cypher query with explicit output positions. Its existing snapshot-consistency restrictions remain; a read transaction is not an upgrade to ProviderSnapshot. Canonical proof records are validated internally without constructing application source entities or result DTOs. Mongo runs source and every staged
+protected-scope proof in the same snapshot before publishing selected cells. The
+existing projection decoder validates exact domains and payload shape; the shared
+owner constructs application DTOs only after complete validation. Empty output
+cannot bypass a preceding protected error. There is no managed filtering or
+source-entity hydration substitute.
+
+Mongo proof:218focused CQL tests (including3new compiler/admission cases) and10
+native cases cover source/stage page order, reversal, Int64/UInt64/Decimal
+precision, visibility, protected scopes, source/work/output bounds and invalid
+cells before DTO construction. Raw evidence:
+TestResults/CoreCurrent/mongo-entity-projection-unit.trx SHA256
+D7B10A9E508D573EF7A06A0D887C71CE46F35ED737A4592E2956A32BE0378CBA;
+TestResults/Neo4jCurrent/mongo-entity-projection-native.trx SHA256
+A72ACC73C6876AFF92870E10DC5740738B2FB57F72741C1BF77FF7BACBB4135F;
+native JSON E497533119AEFADBEB32F6CAA00E1C29A761545AC54EC77618EA9CB1D3106940.
+Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedStorage.ps1 -MongoEntityProjection
+under its own single lease. It uses the existing replica environment, journals a
+small absent-at-preflight five-record database, preserves failed outcomes and
+verifies exact successful cleanup. It never changes preserved SQLite evidence.
+
+Neo4j proof:149focused CQL tests (including3new compiler/admission cases) and the same10native cases as Mongo/SQLite. Unit TRX TestResults/CoreCurrent/neo-entity-projection-unit.trx SHA256E554D51BBB5F82DF2B800C50B4C3724550E729DC81BA68B12FB1359AA3897DCD. Native TRX TestResults/Neo4jCurrent/neo-entity-projection-native.trx SHA256E3313399375F4C27BDBE0B0FF0E1F61CF10FCDA37421EB38CB7F825AEF6776A1; native JSON A6391BC347A7B59A2306C8A32A74099BE7FBAE75373D18C4093E91F3BA4E90DD. Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedGraph.ps1 -EntityProjection under its own single lease. It reuses the retained container, journals five owned nodes before creation, preserves failed outcomes and verifies exact-ID cleanup before stopping the container. No Mongo service, old SQLite fixture or historical journal is needed by this mode. The new path reuses native cell decoding, canonical source-proof validation and the original entity-stage compiler rather than materializing an entity page for managed Select.
+
+
+### Explicit capture of selected stages after entity projection
+
+SQLite, MongoDB and Neo4j now execute the combined entity/selected pipeline
+natively, with23 common native cases per database. This feature remains part of
+red Q01f because other integrations are unfinished.
+
+```csharp
+// `query` is an explicitly named-provider IQueryable from CosmicLinq.Create.
+// First keep a page of entities, then reverse that page.
+var page = query
+    .OrderBy(holon => holon.Name)
+    .Skip(10)
+    .Take(20)
+    .Reverse();
+
+// Select native cells, then filter/order/page those selected values.
+// The source offset is applied once, before the entity reversal.
+var selected = page
+    .Select(holon => new { holon.Name, holon.Version })
+    .Where(row => row.Version >= 1)
+    .OrderBy(row => row.Name)
+    .ThenByDescending(row => row.Version)
+    .Take(5);
+
+var result = await selected.ToCosmicListAsync();
+// Check result.IsError before using result.Result.
+```
+
+The explicit builder also supports these operations on
+`CosmicEntityProjectionQuery<T,TResult>`, each returning OASISResult. Plan that
+combined query with `CosmicProjectionCompositionPlanner.PlanEntity`, supplying
+one matching target and the adapter's actual entity/selected capabilities; execute
+with V2 `HolonManager.ExecuteProjectionCompositionQueryAsync`.
+
+`ICosmicQueryEntityProjectionCompositionStorageProvider` is independently enrolled.
+One native snapshot owner validates the full entity source/stages, then every
+selected input cell, then each selected stage. The shared owner validates complete
+selected participation/proofs before DTO construction. Input order here is the
+final native entity-stage order; the original source ordering is not reapplied.
+The flat composition entry point rejects combined plans. No application source
+entities are constructed, and no managed filtering/sorting substitutes for native SQL, Mongo aggregation or Cypher.
+
+Explicit captured literals are immutable; standard LINQ closures rebind at each
+read. Existing exact-column/domain rules,32 selected-stage and10000-window bounds
+apply alongside independent entity-source/work/payload and selected-proof bounds.
+Later Take(0) cannot hide invalid selected inputs or protected entity errors.
+
+Combined graph sources, reselection and element/cardinality/numeric terminals
+after this selection remain unsupported; ordinary entity-stage terminals and
+flat selected terminals retain their existing separate supported scopes.
+
+MongoDB carries the final effective entity ordering and identity direction into
+native selected ranks; it never sorts that input back into the original source
+order. Source/entity-stage proof, complete selected-input decoding and every
+selected stage share the same30second deadline/snapshot session. Nine combined
+native cases cover ordering and reversed ties, original offsets, exact Int64/
+UInt64/decimal, per-read closures, hidden invalid cells and protected scope/budget
+failures. The fixture is removed only after success; a pending journal must be
+preserved/reconciled before another run.
+
+Neo4j uses one statement: the existing entity compiler exports its final bounded
+relation, the detached-cell compiler captures selected values in entity position
+order, and the existing selected-stage compiler consumes those captured cells.
+Canonical source snapshots/revisions and sticky traversal/work failures are
+streamed before selected-input and stage proofs. The reader validates source
+proofs before accepting the selected packet; shared validation still precedes
+DTO constructors. Neo4j retains its ProviderDefault consistency restrictions;
+this read transaction does not establish ProviderSnapshot support.
