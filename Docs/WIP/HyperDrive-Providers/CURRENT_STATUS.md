@@ -3,7 +3,7 @@ Updated28October2026. Read this first, then query relevant matrix rows; do not l
 
 ## Phase and rules
 
-Active checkpoint: real hosted Upstash REST52/52 and28controls pass; shared encrypted storage/state comparison, native cleanup0, one scratch service expires31October. Next: publish scoped baseline then remaining key-value/object/document/SQL families (KEY_VALUE_FAMILY_BASELINE.md). No local Upstash install/download. Convex stopped/records0; prior S3/Convex pushed1ef629dc2, shared Redis rules4886bc118.
+Active checkpoint: real hosted Upstash REST52/52 and28controls pass; shared encrypted storage/state comparison, native cleanup0, one scratch service expires31October. Published90716cb0b. Next: Cloudflare Workers KV shared-record consolidation, then remaining families (KEY_VALUE_FAMILY_BASELINE.md). No local Upstash install/download. Convex stopped/records0; prior S3/Convex pushed1ef629dc2, shared Redis rules4886bc118.
 
 - Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.

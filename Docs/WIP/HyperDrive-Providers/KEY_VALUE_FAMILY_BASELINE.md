@@ -15,7 +15,7 @@ Updated 28 October 2026. Scope: share record policy and native protocol invarian
 
 ## Exact next step
 
-Publish the scoped Upstash baseline, then continue remaining key-value/object and document/SQL adapters. AzureStorage aliases must reuse the Azure Blob owner where semantically compatible. Keep product-native and full-interface gates explicit; no routing or depth expansion yet.
+Upstash baseline published as90716cb0b. Continue Cloudflare Workers KV shared-record consolidation, keeping its eventual-consistency/conditional-write limitations explicit. AzureStorageOASIS is already the native Azure Blob owner; preserve that baseline rather than rebuilding it. Keep product-native and full-interface gates explicit; no routing or depth expansion yet.
 
 After inspecting existing configuration (none found), allocated one official free72-hour Upstash scratch service28October, expiry31October2026. Reuse it until expiry; runner never provisions replacements or overwrites reports. No local runtime/SDK/download. Protected response/credentials/storage key under C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Upstash (CurrentUserDPAPI). Canonical synthetic records cleaned; hosted internal history/size not exposed by this baseline. Resource details and exact output sizes: TestResults/HyperDrive-Providers/UpstashCurrent/resources.json. Never publish the protected response, resource tokens or claim URL.
 
