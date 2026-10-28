@@ -19,8 +19,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
 {
     private readonly IDriver _driver;
+    private readonly CosmicStorageIdentity _expectedSource;
+    private readonly Uri _sourceEndpoint;
     private const string Now="(datetime.realtime().epochMillis * 10000 + 621355968000000000)";
-    public NeoHolonReplicationOutbox(IDriver driver)=>_driver=driver ?? throw new ArgumentNullException(nameof(driver));
+    public NeoHolonReplicationOutbox(IDriver driver) : this(driver, null, null) { }
+
+    public NeoHolonReplicationOutbox(IDriver driver, CosmicStorageIdentity expectedSource, Uri capturedDriverEndpoint)
+    {
+        _driver=driver ?? throw new ArgumentNullException(nameof(driver));
+        if (expectedSource != null && (expectedSource.Authority != ProviderType.Neo4jOASIS || capturedDriverEndpoint == null))
+            throw new ArgumentException("Bound outbox access requires a Neo identity and its captured native driver endpoint.", nameof(expectedSource));
+        _expectedSource=expectedSource;
+        _sourceEndpoint=capturedDriverEndpoint;
+    }
 
     public Task<OASISResult<HolonDeliveryClaim>> ClaimNextAsync(string targetId,string workerId,TimeSpan leaseDuration,CancellationToken cancellationToken=default)
         =>Execute(async tx=>{
@@ -136,6 +147,8 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
         try
         {
             validate();session=_driver.AsyncSession();tx=await session.BeginTransactionAsync().ConfigureAwait(false);
+            await Neo4jOASIS.ValidateNativeStorageBindingAsync(tx,_expectedSource,_sourceEndpoint,token,
+                "COSMIC_OUTBOX_SOURCE_STORAGE_BINDING").ConfigureAwait(false);
             var outcome=await action(tx).ConfigureAwait(false);result=outcome.Result;token.ThrowIfCancellationRequested();
             if(outcome.Changed){commit=true;await tx.CommitAsync().ConfigureAwait(false);known=true;}
             else{known=true;close=true;await tx.RollbackAsync().ConfigureAwait(false);}
@@ -201,5 +214,5 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
     }
     private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
         ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"
-            :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":cause is TransientException ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
+            :cause is Neo4jOASIS.NeoReplicaStorageBindingException binding ? binding.Code :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":cause is TransientException ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
 }

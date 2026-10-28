@@ -25,7 +25,7 @@ public sealed class Neo4jReplicaReconciliationException(Guid operationId,string 
 
 public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
 {
-    private sealed class NeoReplicaStorageBindingException(string code, string message, Exception cause = null)
+    internal sealed class NeoReplicaStorageBindingException(string code, string message, Exception cause = null)
         : InvalidOperationException(message, cause)
     { internal string Code { get; } = code; }
 
@@ -48,26 +48,31 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
         finally { _lifecycleGate.Release(); }
     }
 
-    private async Task ValidateReplicaStorageBindingAsync(IAsyncTransaction transaction, NeoAtomicHolonWrite write)
+    private Task ValidateReplicaStorageBindingAsync(IAsyncTransaction transaction, NeoAtomicHolonWrite write)
+        => ValidateNativeStorageBindingAsync(transaction, write.ExpectedStorage, _storageDriverEndpoint,
+            write.Cancellation, write.StorageBindingCodePrefix);
+
+    internal static async Task ValidateNativeStorageBindingAsync(IAsyncTransaction transaction,
+        CosmicStorageIdentity expected, Uri endpoint, CancellationToken cancellationToken, string codePrefix)
     {
-        if (write.ExpectedStorage == null) return;
-        if(_storageDriverEndpoint==null)
-            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_INVALID","The native driver has no captured endpoint binding.");
+        if (expected == null) return;
+        if(endpoint==null)
+            throw new NeoReplicaStorageBindingException(codePrefix+"_INVALID","The native driver has no captured endpoint binding.");
         CosmicStorageIdentity actual;
         try
         {
             var rows = await (await transaction.RunAsync("CALL db.info() YIELD id,name RETURN id,name")
                 .ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
-            actual = ReadStorageIdentity(rows, _storageDriverEndpoint);
+            actual = ReadStorageIdentity(rows, endpoint);
         }
         catch (Exception cause) when (cause is Neo4jException || cause is InvalidDataException || cause is ArgumentException)
         {
-            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_INVALID",
+            throw new NeoReplicaStorageBindingException(codePrefix+"_INVALID",
                 "Native receiver identity could not be verified in the replica transaction.", cause);
         }
-        write.Cancellation.ThrowIfCancellationRequested();
-        if (actual.BindingFingerprint != write.ExpectedStorage.BindingFingerprint)
-            throw new NeoReplicaStorageBindingException(write.StorageBindingCodePrefix+"_MISMATCH",
+        cancellationToken.ThrowIfCancellationRequested();
+        if (actual.BindingFingerprint != expected.BindingFingerprint)
+            throw new NeoReplicaStorageBindingException(codePrefix+"_MISMATCH",
                 "The native receiver does not match the enrolled storage identity.");
     }
 

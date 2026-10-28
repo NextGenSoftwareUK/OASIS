@@ -154,6 +154,7 @@ public sealed partial class CosmicConditionalWriteTests
             Assert.True(regressed.IsError);Assert.IsType<InvalidDataException>(regressed.Exception);Assert.Equal(beforeRegression,await Native(managedRoot.Id));
             Assert.Equal(commits*2,await obligations.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
             Assert.Equal(0L,(await counters.Find(FilterDefinition<BsonDocument>.Empty).SingleAsync())["Value"].AsInt64);
+            if(bindSource)await CosmicNativeAcceptance.CosmicOutboxSourceBindingProbe.VerifyAsync(first,enrollment.SourceStorageIdentity,"target-a",create.Write.OperationId);
             complete=true;
         }
         finally

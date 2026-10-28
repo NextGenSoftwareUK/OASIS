@@ -1,6 +1,6 @@
 # Native source-outbox ownership
 
-Updated28October2026. Implementation in progress;X10 stays red.
+Updated28October2026. Bound source factories/automatic integration verified within the scopes below;X10 stays red.
 
 ## Required invariant
 
@@ -14,10 +14,11 @@ Mismatch returns `COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH`;unverifiable na
 
 | Acceptance | SQLite | MongoDB | Neo4j |
 |---|---|---|---|
-| Transaction-bound native outbox implementation | ✅ | ✅ | ❌ |
+| Transaction-bound native outbox implementation | ✅ | ✅ | ✅ |
 | Actual native queue copy/replacement refuses original identity | ✅ native backup copy | ✅ native collection missing/replacement | ❌ |
-| Automatic worker supplies original expected source | ❌ | ❌ | ❌ |
-| Concurrent source replacement/claim race proof | ❌ | ✅ native UUID/DDL transaction | ❌ |
+| Provider factory exposes transaction-bound source outbox | ✅ native probe | ✅ native probe | ✅ native probe |
+| Shipping worker executes with bound source | ❌ runtime pair pending | ❌ runtime pair pending | ✅ Neo→SQLite |
+| Concurrent source replacement/claim race proof | ✅ native identity UPDATE refused after admission | ✅ native UUID/DDL transaction | ❌ physical lifecycle proof pending |
 
 ## Native proof
 
@@ -35,6 +36,33 @@ The native race case pauses the real driver after UUID admission and before the 
 
 Mongo gate:8passed (3new outbox cases plus4existing atomic-source cases and1physical original-receipt recovery case). Evidence:`TestResults/OwnedRoutingCurrent/source-binding-mongo.trx`;SHA-256:`6B59EE59A1891E4C2A738A9FB91B14BF1EE332FB63C2AC24025BF7882CCA4C43`. Existing fixture journals absent and owned Mongo process stopped after success. No new runtime/download/database environment.
 
+## Neo and automatic integration — verified scope
+
+Neo outbox transactions now reuse the same db.info/native endpoint validator as bound primary and receiver writes. Its bound factory captures driver and endpoint together under the provider lifecycle gate;mutable Host is not proof. A missing captured endpoint cannot create a bound factory.
+
+`IBoundHolonReplicationOutboxSource` is the explicit provider contract. All three providers expose it using their activated native owners. Automatic enrollment rejects a source missing this capability before submitting a write. The shipping worker captures the pinned source expectation and requires its bound factory before inventory discovery, claiming or handing payloads to a target. No unbound outbox downgrade is attempted.
+
+The shared `CosmicOutboxSourceBindingProbe` runs inside each existing bound-primary fixture. It uses the real provider factory, verifies the original obligation, claims it, then sends an alternate expected source through inspection/peek/inventory/claim/renew/finish/recovery finish. All must return mismatch with unchanged original state/attempt count. Only the actual source can renew and finish that lease. This verifies native metadata admission/factory wiring, not actual Neo database destruction/replacement.
+
+Final verification:4401Core,SQLite6,Mongo8,Neo4primary/factory and5shipping admission/restart cases pass. Bound source crash recovery1 passes after actual receiver commit/process exit/lease expiry. The final lifecycle-gate refinement was verified by fresh Neo producer/primary and worker admission runs;the crash run preceded that capture-only refinement.
+
+SQLite's new native race uses the production IHyperDriveClock boundary after identity admission and before each lease query/update. A second real connection attempts to replace the owned identity and receives native SQLITE_BUSY for claim,renew and finish. All three original-owner operations complete, and native identity remains unchanged. No provider test hook or speculative delay is added.
+
+All three provider factories are exercised by the shared primary probe. The shipping worker native runtime direction remains Neo→SQLite;Mongo/SQLite source directions are not certified by that test. No physical Neo database reset/replacement was performed.
+
 ## Exact next step
 
-Implement the same transaction-bound outbox expectation in Neo using its actual driver endpoint and native database identity. Add the provider factory contract that captures the activated native owner with the expected identity, then require it in the shipping automatic worker. SQLite race proof and automatic routing integration remain open;do not claim full source-outbox ownership completion. Durable cold-start offline identity snapshots and operator repair remain separate acceptance.
+Add shipping-worker source-direction cases for Mongo and SQLite using retained runtimes,without another environment. Retain separate native Neo physical replacement/race acceptance. Then persist immutable complete route descriptors with native atomic obligations so cold-start/offline target identity recovery does not rely on process-local pins;operator repair remains a separate gate. No full X10 completion or universal availability claim.
+
+## Latest evidence
+
+Core commit:`809a7c5d58c0f306946e0b1da880fe27b1d4aab8`. Raw outputs are regenerable in TestResults,not committed into Docs.
+
+| Worktree-relative evidence path | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/source-outbox-core.trx` | 4401 | `CE43C61938FF7D414CFA9A27D6661B69023F4AECA95E4F4D78F3229BF38866D7` |
+| `TestResults/OwnedRoutingCurrent/source-outbox-sqlite-factory.trx` | 6 | `429D0639073680DF3B3BF8054BFE8EE9281E076ECBEA8EDA44894358D42D0320` |
+| `TestResults/OwnedRoutingCurrent/source-binding-mongo.trx` | 8 | `9E5392197B68690574BF4740C1CBD443FF288CD00125D2FA7D1E026BC36A3C8A` |
+| `TestResults/Neo4jCurrent/neo4j-cosmic-primary-outbox-current.trx` | 4 | `1E015209ABEBE38305A49904756F1ABAC701D0DC6B6B3A1292336A37317B9D20` |
+| `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 5 | `B99618294F3B43E9B11BFF1279800FF8F839C3F06863B0B4B7F93D5582CC06EA` |
+| `TestResults/Neo4jCurrent/neo4j-hosted-crash-current.trx` | 1 | `7EFE1BB0D31020E1442436B0BA9F812312DF109BDA13C8B34BEEDDEF87769829` |
