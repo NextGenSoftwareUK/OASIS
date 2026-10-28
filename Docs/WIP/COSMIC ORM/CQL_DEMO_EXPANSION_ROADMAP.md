@@ -1,5 +1,15 @@
 # Eight-provider CQL demo expansion
 
+## Active user priority — 28 October2026
+
+1. Hosted Azure Cosmos test account, free only. Emulator proof does not satisfy this gate; no paid provisioning/upgrade/fallback.
+2. IPFS/SOLID/ActivityPub:at least a small filtered native collection over several records, with explicit bounded scope and authorization. Existing point demos are insufficient.
+3. Actual Solana browser rendering/click verification against retained source/index, without reseeding the original ledger.
+4. One ready federated query preset per provider, each paired with Mongo. Show native provenance and capability errors explicitly.
+
+Entity-selected All/element/numeric parity is paused and preserved on the deferred branch. Full original roadmap remains open.
+
+
 Updated 27 October 2026. User priority: broader demo before full EF/NHibernate parity.
 The original full roadmap remains active; defer depth the demo does not need.
 
