@@ -38,3 +38,13 @@ A read-only per-instance legacy-prefix check gates every transport entry point, 
 Controlled canonical26sync+26async checks pass through each actual facade with the same suite and deterministic SDK responses. Local51MinIO/family cases include six canonical runs,24failure-boundary cases and privacy/layout/lifetime/count checks;41AWS,60shared lifecycle and5ThreeFold cases pass. Shared avatar/detail deletion now reports DeletedCount=1 per selected root; eight shared count controls cover both modes/options. No full-interface/native claim follows.
 
 Native MinIO binding uses explicit opt-in, existing isolated empty bucket, preserved checkpoints, default soft deletion plus exact fixture-only hard cleanup, and independent empty checks. It replaces smoke tests that created records without cleanup. CI reuses its existing MinIO service/bucket for AWSS3 and shipping MinIO sequentially. Native result pending CI; controlled ThreeFold proof is not QSS certification.
+
+## Native consolidated-family verification
+
+CI40754776833/job123050672281 succeeded on source merge d7d1458ab9042997b5ceabc285a8bddd009d9d0a (verified parent includes task b5a7906de). Shipping MinIOOASIS52/52 and AWSS3OASIS-MinIO52/52 pass, with both native tests per adapter passing after their independent empty-bucket checks. All five producer DLLs match their respective consumers. Fresh checkout/build identity is recorded; portable-PDB source documents were not verified in CI.
+
+Service RepoDigest ghcr.io/coollabsio/minio@sha256:a4938f37f1be1841b8e7b627ad0207b265345fd0d063e42d7410c78af0e63e68; actual image IDsha256:3d5ffffec36e6efdda5ed906939f1b4d0976f03fc33d1ea31ddcc67833089691. Existing one CI container/bucket used sequentially, no local MinIO installed.
+
+Artifact12845074648 downloaded once (GitHub-reported ZIP digest48b98487bf3896e12b389ad7934fd233a00d75d5d8344b473c5cf3eeddd08be4,7,365B); validated metadata lives in TestResults/HyperDrive-Providers/S3CompatibleCurrent/current (13,276B). Both2/2TRX files compressed/decompressed-verified; raw removed. Old first native baseline remains in the original sibling paths. Identities copied to NativeEvidence/conformance-s3-family-identities-current.json, SHA2568d3d891cf2f9df8ae9349d4b58536f31f56b589c802efc8a7b93a5d95ff39f89. Exact report/compressed-TRX hashes are in current/receipt.json.
+
+Matrix now registers shipping MinIO native52 and the reverified AWSS3 compatible52 separately. Actual QSS/hosted AWS, full interfaces, IAM/concurrency/durability and HyperDrive routing remain gates; PR502 broader checks remain independent.
