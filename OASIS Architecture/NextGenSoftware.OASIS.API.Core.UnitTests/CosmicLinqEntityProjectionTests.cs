@@ -68,7 +68,6 @@ public sealed partial class CosmicEntityProjectionTests
         var native=new Native();var entity=LinqRoot(native).Take(3).Where(row=>row.Name=="coffee");
         var query=entity.Select(row=>new ProjectionDto{Name=row.Name,Revision=row.Version});
         Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Where(row=>row.Name=="coffee").ToArray()).Code);
-        Assert.Equal("CQL_EXPRESSION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Select(row=>row.Name)).Code);
         Assert.Equal("CQL_EXPRESSION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Count()).Code);
         Assert.Equal("CQL_EXPRESSION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Sum(row=>row.Revision)).Code);
         Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>entity.Select((row,index)=>row.Name)).Code);
