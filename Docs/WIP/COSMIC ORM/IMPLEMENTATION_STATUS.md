@@ -8,8 +8,9 @@ Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 [Bound source outboxes](SOURCE_OUTBOX_BINDING.md):all3native providers expose guarded
 factories;automatic planning requires the capability and the worker consumes it.
 4401Core,SQLite6/Mongo8/Neo4native cases and Neo→SQLite shipping admission5/crash1 pass.
-SQLite/Mongo native race windows verified;Neo physical replacement/race and shipping
-Mongo/SQLite source directions remain red. Durable cold-start route descriptors and
+SQLite/Mongo native race windows verified;shipping Mongo→SQLite/SQLite→Mongo now pass2native
+restart/idempotence cases. Neo physical replacement/race and other pair permutations
+remain red. Durable cold-start route descriptors and
 operator repair remain open. Core809a7c5 pushed.
 
 ## Automatic route binding — current verification
