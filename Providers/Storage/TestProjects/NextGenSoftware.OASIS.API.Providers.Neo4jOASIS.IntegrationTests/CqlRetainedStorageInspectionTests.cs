@@ -28,13 +28,39 @@ public sealed class CqlRetainedStorageInspectionTests
             .SelectMany(group => fixture.GetProperty(group).EnumerateArray().Select(value => value.GetGuid())).ToHashSet();
         var operations = fixture.GetProperty("sharingOperations").EnumerateArray().Select(value => value.GetGuid()).ToHashSet();
         var usageKeys = new Dictionary<string, string>();
+        var processUsageIds = new HashSet<string>();
+        string? processActor = null;
         foreach (var request in fixture.GetProperty("requests").EnumerateArray())
         {
-            if (!request.TryGetProperty("actor", out var actor) || !request.TryGetProperty("operation", out var operation)) continue;
+            if (request.TryGetProperty("root", out _) && request.TryGetProperty("actor", out var cursorActor))
+            {
+                Assert.IsNull(processActor, "Ambiguous process ownership entry.");
+                processActor = cursorActor.GetGuid().ToString("D");
+            }
+            if (request.TryGetProperty("operationIds", out var processOperations))
+            {
+                Assert.IsNotNull(processActor, "Process completion lacks its journaled actor.");
+                Assert.AreEqual(3, request.GetProperty("providers").GetInt32());
+                Assert.AreEqual(3, request.GetProperty("pages").GetInt32());
+                Assert.IsTrue(request.GetProperty("unchangedKey").GetBoolean());
+                Assert.IsTrue(request.GetProperty("persistedProtectedKey").GetBoolean());
+                Assert.AreEqual(3, processOperations.GetArrayLength());
+                foreach (var value in processOperations.EnumerateArray())
+                {
+                    var id = value.GetGuid().ToString("D");
+                    Assert.IsTrue(processUsageIds.Add(id));
+                    Assert.IsTrue(usageKeys.TryAdd(id, processActor));
+                }
+            }
+            if (!request.TryGetProperty("actor", out var actor)) continue;
+            var hasOperation = request.TryGetProperty("operation", out var operation);
+            var hasKey = request.TryGetProperty("key", out var key);
+            if (!hasOperation && !hasKey) continue;
+            Assert.IsFalse(hasOperation && hasKey, "Ambiguous journal request-key format.");
             var actorId = actor.GetGuid().ToString("D");
             // Independent check of WEB4's documented service/actor/key identity;
             // no request is resubmitted to discover its durable outcome.
-            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new[] { "WEB4", actorId, operation.GetString()! })));
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new[] { "WEB4", actorId, (hasOperation ? operation : key).GetString()! })));
             usageKeys[new Guid(hash.AsSpan(0, 16)).ToString("D")] = actorId;
         }
         var client = new MongoClient("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000");
@@ -69,7 +95,8 @@ public sealed class CqlRetainedStorageInspectionTests
         // indexes, settle, replay or classify an executing operation as absent.
         var usage = await client.GetDatabase("cosmic_cql_v1_web4_usage").GetCollection<BsonDocument>("subscription_usage_outbox_v1")
             .Find(FilterDefinition<BsonDocument>.Empty)
-            .Project(Builders<BsonDocument>.Projection.Include("State").Include("ObservedOutcome").Include("UserId").Include("Service"))
+            .Project(Builders<BsonDocument>.Projection.Include("State").Include("ObservedOutcome").Include("UserId").Include("Service")
+                .Include("Endpoint").Include("ProviderAttempts").Include("Receipts").Include("SettledAtUtc"))
             .Limit(1001).ToListAsync();
         Assert.IsTrue(usage.Count <= 1000, "Usage inventory exceeds inspection budget.");
         var usageRows = usage.Select(row => new
@@ -77,7 +104,14 @@ public sealed class CqlRetainedStorageInspectionTests
             id = row["_id"].AsString,
             state = row.GetValue("State", BsonNull.Value).ToString(),
             outcome = row.GetValue("ObservedOutcome", BsonNull.Value).ToString(),
-            actor = row.GetValue("UserId", BsonNull.Value).ToString()
+            actor = row.GetValue("UserId", BsonNull.Value).ToString(),
+            endpoint = row.GetValue("Endpoint", BsonNull.Value).ToString(),
+            attempts = row.GetValue("ProviderAttempts", new BsonArray()).AsBsonArray.Count,
+            receipts = row.GetValue("Receipts", new BsonArray()).AsBsonArray.Count,
+            receiptProviders = row.GetValue("Receipts", new BsonArray()).AsBsonArray.Select(value => value.AsBsonDocument["Provider"].AsString).ToArray(),
+            settledAtPresent = !row.GetValue("SettledAtUtc", BsonNull.Value).IsBsonNull,
+            bindingKind = processUsageIds.Contains(row["_id"].AsString) ? "completed-process-summary"
+                : usageKeys.ContainsKey(row["_id"].AsString) ? "service-actor-key" : "unbound"
         }).ToArray();
         var unboundUsageIds = new List<string>();
         foreach (var row in usage)
@@ -137,6 +171,8 @@ public sealed class CqlRetainedStorageInspectionTests
             localSqliteSha256 = expectedSqlite, originalSqlitePathInspected = false,
             sqliteOuterReceiptDigestVerified = true, usageJournalBindingsVerified = unboundUsageIds.Count == 0,
             unboundUsageIds,
+            processSummaryBoundUsageCount = usageRows.Count(row => processUsageIds.Contains(row.id)),
+            requestKeyBoundUsageCount = usageRows.Count(row => usageKeys.ContainsKey(row.id) && !processUsageIds.Contains(row.id)),
             journalUsageKeysWithoutObservedRow = usageKeys.Keys.Except(usageRows.Select(row => row.id)).OrderBy(id => id).ToArray(),
             originalIntentRecomputed = false, cleanupAuthorized = false
         }, new JsonSerializerOptions { WriteIndented = true });
