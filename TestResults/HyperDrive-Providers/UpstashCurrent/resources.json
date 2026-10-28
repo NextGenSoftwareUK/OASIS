@@ -1,0 +1,71 @@
+{
+  "FreeCBytes": 95580991488,
+  "Allocation": {
+    "ExpiresByUtc": "2026-10-31T21:15:49.3541451Z",
+    "HttpStatus": 200,
+    "ProtectedResponseBytes": 4118,
+    "RequestedUtc": "2026-10-28T21:15:49.3503746Z",
+    "Lifecycle": "active/reusable; same official scratch service; normalized protected credentials",
+    "Owner": "HyperDrive provider breadth",
+    "PublishedExpiry": "2026-10-31 (3 days from creation)."
+  },
+  "ObservedUtc": "2026-10-28T21:20:56.9018093Z",
+  "Resources": [
+    {
+      "Lifecycle": "active/reusable",
+      "Cleanup": "After retirement and handle checks remove exact output only; regenerate bounded cache-only build under lease",
+      "Provenance": "reused/generated cache-only",
+      "Version": ".NET10.0.401; cached dependencies",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.UpstashOASIS\\bin",
+      "Dependencies": "owned build/test handles terminal; no service port",
+      "Purpose": "Upstash native/controlled conformance",
+      "Bytes": 7917319,
+      "Owner": "HyperDrive provider breadth"
+    },
+    {
+      "Lifecycle": "active/reusable",
+      "Cleanup": "After retirement and handle checks remove exact output only; regenerate bounded cache-only build under lease",
+      "Provenance": "reused/generated cache-only",
+      "Version": ".NET10.0.401; cached dependencies",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.UpstashOASIS\\obj",
+      "Dependencies": "owned build/test handles terminal; no service port",
+      "Purpose": "Upstash native/controlled conformance",
+      "Bytes": 870209,
+      "Owner": "HyperDrive provider breadth"
+    },
+    {
+      "Lifecycle": "active/reusable",
+      "Cleanup": "After retirement and handle checks remove exact output only; regenerate bounded cache-only build under lease",
+      "Provenance": "reused/generated cache-only",
+      "Version": ".NET10.0.401; cached dependencies",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\TestProjects\\NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests\\bin",
+      "Dependencies": "owned build/test handles terminal; no service port",
+      "Purpose": "Upstash native/controlled conformance",
+      "Bytes": 46838489,
+      "Owner": "HyperDrive provider breadth"
+    },
+    {
+      "Lifecycle": "active/reusable",
+      "Cleanup": "After retirement and handle checks remove exact output only; regenerate bounded cache-only build under lease",
+      "Provenance": "reused/generated cache-only",
+      "Version": ".NET10.0.401; cached dependencies",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\TestProjects\\NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests\\obj",
+      "Dependencies": "owned build/test handles terminal; no service port",
+      "Purpose": "Upstash native/controlled conformance",
+      "Bytes": 1126696,
+      "Owner": "HyperDrive provider breadth"
+    },
+    {
+      "Lifecycle": "active/reusable; expires31October2026",
+      "Retention": "DPAPI credentials/response/key retained to reconcile any test result until expiry; no secret values in report",
+      "Provenance": "created once28October2026; no install/download",
+      "Version": "Hosted API, server build undisclosed",
+      "Path": "C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Upstash",
+      "Dependencies": "HTTPS443; no local process",
+      "Purpose": "Single official hosted Upstash scratch resource and protected retained storage key",
+      "Cleanup": "Native fixture namespace verified empty; scratch auto-expires72hours. After evidence reconciliation and expiry, remove only this protected task root, no regeneration without explicit resource review",
+      "Bytes": 5089,
+      "Owner": "HyperDrive provider breadth"
+    }
+  ]
+}

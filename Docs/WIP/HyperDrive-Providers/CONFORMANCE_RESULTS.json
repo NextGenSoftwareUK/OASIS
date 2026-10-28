@@ -305,6 +305,16 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-convexoasis-current.json",
       "sha256": "5f63f13823054beb4e7cbce4befaf7255f26d3047f4f981ff34e55a965f95721",
       "blockers": []
+    },
+    {
+      "provider": "UpstashOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-upstashoasis-current.json",
+      "sha256": "4b303018e706d63d3cf99e022bc56ba92aeda8085a3567e9a025450cc648bff4",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -413,6 +423,9 @@
     ],
     "ThreeFoldOASIS": [
       "Shared encrypted S3 record policy; canonical52/52 controlled and5metadata tests pass. Requires persisted OASIS_THREEFOLD_STORAGE_KEY or explicit resolver. QSS-native HEAD/conditional/pagination/IAM/durability and full interfaces remain open; controlled/MinIO evidence is not QSS certification."
+    ],
+    "UpstashOASIS": [
+      "Real hosted Upstash REST core-storage-v2 52/52; shared encrypted policy, native conditional scripts and causal sync-token session; namespace empty before/after both modes;28controlled cases. One protected scratch service expires31October2026. Cross-client linearizability, immutable release, full relevant interfaces and global routing remain open."
     ]
   },
   "suites": [
