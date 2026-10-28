@@ -13,6 +13,45 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 [TestClass]
 public sealed class CqlRetainedStorageInspectionTests
 {
+    private static Dictionary<string, int> ReviewedBoundaries() => new()
+    {
+        ["cosmic_cql_v1_web4_storage/Avatar"] = 0,
+        ["cosmic_cql_v1_web4_storage/AvatarDetail"] = 0,
+        ["cosmic_cql_v1_web4_storage/CosmicHolonOutbox"] = 0,
+        ["cosmic_cql_v1_web4_storage/CosmicOperationFence"] = 7,
+        ["cosmic_cql_v1_web4_storage/CosmicWriteReceipt"] = 7,
+        ["cosmic_cql_v1_web4_storage/Holon"] = 146,
+        ["cosmic_cql_v1_web4_usage/subscription_usage_outbox_v1"] = 267
+    };
+
+    private static void VerifyReviewedBoundaries(IReadOnlyDictionary<string, int> observed)
+    {
+        var expected = ReviewedBoundaries();
+        if (observed.Count != expected.Count || expected.Any(pair => !observed.TryGetValue(pair.Key, out var count) || count != pair.Value))
+            throw new InvalidDataException("Retained fixture collection boundaries changed; preserve all data.");
+    }
+
+    [DataTestMethod]
+    [DataRow("unexpected-collection")]
+    [DataRow("nonempty-avatar")]
+    [DataRow("additional-fence")]
+    [DataRow("additional-usage")]
+    [DataRow("missing-holon")]
+    public void RetainedCleanupBoundaryGuardRejectsForeignOrChangedScope(string change)
+    {
+        var observed = ReviewedBoundaries();
+        switch (change)
+        {
+            case "unexpected-collection": observed.Add("cosmic_cql_v1_web4_storage/Unowned", 1); break;
+            case "nonempty-avatar": observed["cosmic_cql_v1_web4_storage/Avatar"] = 1; break;
+            case "additional-fence": observed["cosmic_cql_v1_web4_storage/CosmicOperationFence"] = 8; break;
+            case "additional-usage": observed["cosmic_cql_v1_web4_usage/subscription_usage_outbox_v1"] = 268; break;
+            case "missing-holon": observed.Remove("cosmic_cql_v1_web4_storage/Holon"); break;
+            default: throw new ArgumentOutOfRangeException(nameof(change));
+        }
+        Assert.ThrowsException<InvalidDataException>(() => VerifyReviewedBoundaries(observed));
+    }
+
     [TestMethod]
     [TestCategory("Inspection")]
     public async Task RetainedMongoAndLocalSqliteInventoryPreservesDataAndReportsDurableOutcomes()
@@ -68,6 +107,36 @@ public sealed class CqlRetainedStorageInspectionTests
         var databaseNames = await databases.ToListAsync();
         Assert.IsTrue(databaseNames.Contains("cosmic_cql_v1_web4_storage"));
         Assert.IsTrue(databaseNames.Contains("cosmic_cql_v1_web4_usage"));
+        var collectionInventory = new List<object>();
+        var collectionBoundaries = new Dictionary<string, int>();
+        foreach (var databaseName in new[] { "cosmic_cql_v1_web4_storage", "cosmic_cql_v1_web4_usage" })
+        {
+            var database = client.GetDatabase(databaseName);
+            using var names = await database.ListCollectionNamesAsync();
+            var collections = await names.ToListAsync();
+            Assert.IsTrue(collections.Count <= 32, "Unexpected collection inventory size.");
+            foreach (var name in collections.OrderBy(value => value, StringComparer.Ordinal))
+            {
+                // Retain content fingerprints, never raw documents, signing
+                // preparations or credentials. Every collection is included.
+                var documents = await database.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty)
+                    .Sort(Builders<BsonDocument>.Sort.Ascending("_id")).Limit(1001).ToListAsync();
+                Assert.IsTrue(documents.Count <= 1000, "Collection inspection budget exceeded: " + name);
+                using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+                long byteCount = 0;
+                foreach (var value in documents)
+                {
+                    var bson = value.ToBson();
+                    byteCount += bson.Length;
+                    Assert.IsTrue(byteCount <= 16 * 1024 * 1024, "Collection byte budget exceeded: " + name);
+                    digest.AppendData(bson);
+                }
+                collectionInventory.Add(new { database = databaseName, collection = name, count = documents.Count,
+                    bytes = byteCount, sha256 = Convert.ToHexString(digest.GetHashAndReset()) });
+                collectionBoundaries.Add(databaseName + "/" + name, documents.Count);
+            }
+        }
+        VerifyReviewedBoundaries(collectionBoundaries);
         var storage = client.GetDatabase("cosmic_cql_v1_web4_storage");
         var native = await storage.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty)
             .Project(Builders<BsonDocument>.Projection.Include("HolonId").Include("Version").Exclude("_id")).Limit(201).ToListAsync();
@@ -78,6 +147,11 @@ public sealed class CqlRetainedStorageInspectionTests
         var receiptDocuments = await storage.GetCollection<BsonDocument>("CosmicWriteReceipt")
             .Find(FilterDefinition<BsonDocument>.Empty).Limit(501).ToListAsync();
         Assert.IsTrue(receiptDocuments.Count <= 500);
+        var fences = await storage.GetCollection<BsonDocument>("CosmicOperationFence")
+            .Find(FilterDefinition<BsonDocument>.Empty).Limit(501).ToListAsync();
+        CollectionAssert.AreEquivalent(receiptDocuments.Select(row => row["_id"].AsString).ToArray(),
+            fences.Select(row => row["_id"].AsString).ToArray(), "Operation fences are not exactly the owned committed receipts.");
+        Assert.IsTrue(fences.All(row => row["Generation"].ToInt64() > 0));
         var mongoReceipts = new List<object>();
         foreach (var receipt in receiptDocuments)
         {
@@ -167,9 +241,10 @@ public sealed class CqlRetainedStorageInspectionTests
         await using var stream = new FileStream(output, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         await JsonSerializer.SerializeAsync(stream, new
         {
-            observedUtc = DateTime.UtcNow, mongoRows, mongoReceipts, usageRows, sqliteRows, sqliteReceipts,
+            observedUtc = DateTime.UtcNow, collectionInventory, mongoRows, mongoReceipts, usageRows, sqliteRows, sqliteReceipts,
             localSqliteSha256 = expectedSqlite, originalSqlitePathInspected = false,
             sqliteOuterReceiptDigestVerified = true, usageJournalBindingsVerified = unboundUsageIds.Count == 0,
+            collectionBoundariesVerified = true, fenceReceiptBindingsVerified = true,
             unboundUsageIds,
             processSummaryBoundUsageCount = usageRows.Count(row => processUsageIds.Contains(row.id)),
             requestKeyBoundUsageCount = usageRows.Count(row => usageKeys.ContainsKey(row.id) && !processUsageIds.Contains(row.id)),
