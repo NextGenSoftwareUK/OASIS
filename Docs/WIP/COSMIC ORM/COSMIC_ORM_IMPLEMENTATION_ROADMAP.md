@@ -6,8 +6,8 @@ Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective rem
 
 | Order | Work | Acceptance owner |
 |---|---|---|
-| 1 | Continue standard IQueryable/IQueryProvider integration | Q01 red; Q23/Q23e/Q49a and24 new C# demo examples now verified |
-| 2 | Continue remaining CQL red rows by scoped priority | Exact per-database tests; no green-feature/cursor hardening |
+| 1 | Finish durable native route/policy binding and replication correctness | X10 red; [SQLite bound receiver milestone](REPLICA_STORAGE_BINDING.md), Mongo/Neo and automatic enrollment/operator gates next |
+| 2 | Hosted Azure breadth when user supplies a genuinely free authenticated account | User explicitly deferred; other scoped demo breadth verified; LINQ depth stays paused |
 | 3 | Reconcile remaining ORM correctness, child graph/parameter, history and replication requirements | Roadmap requirements preserved in historical plan; current source + proving tests |
 | 4 | Complete migration/placement/delta/history and operational acceptance still missing | Independent full-scope audit; do not infer success from focused tests |
 | 5 | Broader EF/NHibernate parity and final programme audit | Every declared requirement independently verified |
