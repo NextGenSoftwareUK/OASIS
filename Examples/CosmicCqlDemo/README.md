@@ -656,3 +656,7 @@ Count/LongCount/Any with clear spacing/comments and explicit snapshot assurance.
 It runs verbatim in the retained live Solana SDK gate. Use the async scalar SDK
 for cancellation/evidence; HTTP cardinality and post-window predicate terminals
 are not enrolled yet.
+
+### Solana source / SQLite indexed HTTP demo
+
+From the worktree root, run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -ArchiveCompletedDemo`, then open http://127.0.0.1:5089/ after health is ready. Use `-VerifyOnly` for bounded acceptance instead. The spaced teaching page shows row/projection/cardinality requests, real WEB4 results and source/index evidence. It uses the retained local validator and acknowledged seed, with no source writes. Controlled identity/billing and a startup index snapshot (500-slot freshness ceiling) are explicit demo limits. Stop using the page button or POST `/demo/shutdown`; retained keys/source/index remain reusable. See [launcher/lifecycle details](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md#solana-indexed-demo-port-5089).

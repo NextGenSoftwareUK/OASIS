@@ -1,7 +1,8 @@
 #Requires -Version 7.0
-param([switch]$IndexedHttpDemo,[switch]$IndexedQueryDemo,[switch]$ChainIndexReadOnly,[switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
+param([switch]$ServeIndexedDemo,[switch]$ArchiveCompletedDemo,[switch]$IndexedHttpDemo,[switch]$IndexedQueryDemo,[switch]$ChainIndexReadOnly,[switch]$ConformanceReadOnly,[switch]$ConformanceOnly,[switch]$Diagnostics,[switch]$InspectRecent,[switch]$InspectAvatarFailure,[switch]$CloseReviewedAvatarRejection,[switch]$AvatarOnly,[switch]$StorageTokenOnly,[switch]$FeeReceiptOnly,[switch]$AvatarTransferOnly,[ValidateRange(2,120)][int]$ObservationSeconds=2,[string[]]$HistorySignatures)
 $ErrorActionPreference='Stop'
-if($IndexedHttpDemo -and $PSBoundParameters.Count -ne 1){throw 'Select native indexed HTTP alone; it reuses the acknowledged seed.'}
+if(($ServeIndexedDemo -or $ArchiveCompletedDemo) -and !$IndexedHttpDemo){throw 'Interactive/archive options require IndexedHttpDemo.'}
+if($IndexedHttpDemo -and @($PSBoundParameters.Keys | Where-Object {$_ -notin @('IndexedHttpDemo','ServeIndexedDemo','ArchiveCompletedDemo')}).Count){throw 'Select native indexed HTTP without another test mode.'}
 if($IndexedQueryDemo -and $PSBoundParameters.Count -ne 1){throw 'Select the separately journaled indexed demo alone.'}
 if($ChainIndexReadOnly -and $PSBoundParameters.Count -ne 1){throw 'Select read-only chain-index observation alone.'}
 if($HistorySignatures -and (!$InspectRecent -or $InspectAvatarFailure)){throw 'Exact history reads require keyless InspectRecent alone.'}
@@ -35,11 +36,42 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $owned=$null
 $nativeId=$null
 $secret=$null
-$names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA_STORAGE_ENCRYPTION_KEY','OASIS_SOLANA_NATIVE_EVIDENCE','OASIS_SOLANA_INDEXED_HTTP')
+$names=@('SOLANA_RPC_URL','SOLANA_PRIVATE_KEY','SOLANA_PUBLIC_KEY','OASIS_SOLANA_STORAGE_ENCRYPTION_KEY','OASIS_SOLANA_NATIVE_EVIDENCE','OASIS_SOLANA_INDEXED_HTTP','OASIS_SOLANA_INDEXED_SERVE')
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
     if(!$ChainIndexReadOnly -and !$InspectRecent -and (Get-ChildItem -LiteralPath $work -Filter '*.pending.json')){throw 'Inspect original Solana submissions; do not replay or reset.'}
+    if($IndexedHttpDemo -and $ArchiveCompletedDemo){
+        # Archive completed reports only; source acknowledgement/index/keys remain untouched.
+        $state=Join-Path $taskRoot 'LocalState/COSMIC/SolanaCqlCurrent'
+        if(!(Test-Path -LiteralPath (Join-Path $state 'seed.acknowledged.json')) -or
+            (Test-Path -LiteralPath (Join-Path $state 'seed.pending.json')) -or
+            (Test-Path -LiteralPath (Join-Path $state 'seed.acknowledged.json.next'))){throw 'Reconcile retained source state before archiving.'}
+        $priorTrx=Join-Path $work $nativeReport
+        $priorJson=Join-Path $work 'solana-indexed-http-native.json'
+        if((Test-Path -LiteralPath $priorTrx) -or (Test-Path -LiteralPath $priorJson)){
+            if(!(Test-Path -LiteralPath $priorTrx) -or !(Test-Path -LiteralPath $priorJson)){throw 'Preserve incomplete native HTTP evidence.'}
+            [xml]$prior=Get-Content -LiteralPath $priorTrx -Raw
+            $counters=$prior.TestRun.ResultSummary.Counters
+            $summary=Get-Content -LiteralPath $priorJson -Raw | ConvertFrom-Json
+            if([int]$counters.total -ne 1 -or [int]$counters.passed -ne 1 -or [int]$counters.notExecuted -ne 0 -or
+                $summary.submittedNewSeed -ne $false -or $summary.http.sourceWrites -ne 0){throw 'Only a completed read-only native HTTP pass can be archived.'}
+            $archive=Join-Path $work 'Archive'
+            if((Get-Item -LiteralPath $work).LinkType -or ((Test-Path -LiteralPath $archive) -and (Get-Item -LiteralPath $archive).LinkType)){throw 'Evidence directories must not be links.'}
+            New-Item -ItemType Directory -Path $archive -Force | Out-Null
+            $moves=foreach($file in @($priorTrx,$priorJson)){
+                $hash=(Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash
+                $target=[IO.Path]::GetFullPath((Join-Path $archive ($hash+'-'+[IO.Path]::GetFileName($file))))
+                if([IO.Path]::GetDirectoryName($target) -ne [IO.Path]::GetFullPath($archive) -or (Test-Path -LiteralPath $target)){throw 'Archive must stay inside the exact evidence directory without overwrite.'}
+                [pscustomobject]@{Source=$file;Target=$target;Hash=$hash}
+            }
+            foreach($move in $moves){
+                Move-Item -LiteralPath $move.Source -Destination $move.Target
+                if((Get-FileHash -LiteralPath $move.Target -Algorithm SHA256).Hash -ne $move.Hash){throw 'Native evidence archive hash mismatch.'}
+                Write-Output ('Preserved evidence: '+$move.Target)
+            }
+        }
+    }
     if(!$InspectRecent -and (Test-Path -LiteralPath (Join-Path $work $nativeReport))){throw 'Preserve and hash-verify the existing native report before another run.'}
     $freeBefore=(Get-PSDrive C).Free
     $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
@@ -201,6 +233,7 @@ try {
     $env:OASIS_SOLANA_NATIVE_EVIDENCE=$work
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
     $env:OASIS_SOLANA_INDEXED_HTTP=if($IndexedHttpDemo){'1'}else{'0'}
+    $env:OASIS_SOLANA_INDEXED_SERVE=if($ServeIndexedDemo){'1'}else{'0'}
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
     if($IndexedHttpDemo -or $IndexedQueryDemo){$testArguments+=@('--filter','TestCategory=SolanaIndexedQueryNative')}
@@ -213,6 +246,7 @@ try {
     elseif($FeeReceiptOnly){$testArguments+=@('--filter','TestCategory=NativeFeeReadOnly')}
     else{$testArguments+=@('--filter','TestCategory!=NativeFeeReadOnly&TestCategory!=AvatarTransferNative&TestCategory!=SolanaIndexedQueryNative')}
     if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
+    if($ServeIndexedDemo){Write-Output 'After native acceptance, open http://127.0.0.1:5089/ ; POST /demo/shutdown for verified teardown.'}
     & dotnet @testArguments
     $testExit=$LASTEXITCODE
     if($ConformanceOnly){

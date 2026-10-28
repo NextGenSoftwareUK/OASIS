@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IndexedChainDemoPage.cs" Link="Demo/IndexedChainDemoPage.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs" Link="Demo/ChainIndexedWalkthrough.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />

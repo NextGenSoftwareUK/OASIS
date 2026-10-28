@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using CosmicCqlDemo;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
@@ -52,7 +54,8 @@ public partial class SolanaIndexedQueryNative
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions {
             Args = Array.Empty<string>(), ApplicationName = typeof(CqlV1Controller).Assembly.FullName });
         builder.Logging.ClearProviders();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        var serve = Environment.GetEnvironmentVariable("OASIS_SOLANA_INDEXED_SERVE") == "1";
+        builder.WebHost.UseUrls(serve ? "http://127.0.0.1:5089" : "http://127.0.0.1:0");
         builder.Services.AddSingleton<ICqlIndexedV1Bindings>(bindings);
         builder.Services.AddCqlIndexedReadAdmission();
         builder.Services.AddSingleton<ICqlV1Providers, NoNativeHttpProviders>();
@@ -63,15 +66,41 @@ public partial class SolanaIndexedQueryNative
 
         await using var app = builder.Build();
         app.UseRouting();
+        var ready = false;
+        var interactiveRequests = 0;
+        var shutdown = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         app.Use(async (http, next) => {
+            if (Volatile.Read(ref ready) && http.Request.Path.StartsWithSegments("/api/data/query-cql") &&
+                Interlocked.Increment(ref interactiveRequests) > 100)
+            {
+                http.Response.StatusCode = 429;
+                await http.Response.WriteAsJsonAsync(new { code = "DEMO_QUERY_BUDGET_EXHAUSTED" });
+                return;
+            }
             http.User = new ClaimsPrincipal(new ClaimsIdentity(new[] {
                 new Claim(ClaimTypes.NameIdentifier, seed.Actor.ToString("D")) }, "native-test-identity"));
             http.Items["Avatar"] = new Avatar { Id = seed.Actor };
             await next();
         });
-        app.UseMiddleware<Web4UsageLedgerMiddleware>();
-        app.UseMiddleware<PreparedStorageAdmissionMiddleware>();
+        // Enroll only the two explicit storage routes. The teaching page, health
+        // and shutdown endpoints do not reserve usage or enter storage admission.
+        app.UseWhen(http => HttpMethods.IsPost(http.Request.Method) &&
+            (http.Request.Path == "/api/data/query-cql/indexed" || http.Request.Path == "/api/data/query-cql/indexed/scalar"), branch => {
+            branch.UseMiddleware<Web4UsageLedgerMiddleware>();
+            branch.UseMiddleware<PreparedStorageAdmissionMiddleware>();
+        });
         app.MapControllers();
+        app.MapGet("/", () => Results.Content(IndexedChainDemoPage.Html, "text/html"));
+        app.MapGet("/health", () => Results.Ok(new {
+            status = Volatile.Read(ref ready) ? "ready" : "verifying", sourceProvider = source.SourceProvider.ToString(),
+            executionProvider = source.ExecutionProvider.ToString(), source.NetworkIdentity,
+            source.IndexId, coverageStart = seed.CoverageStart.ToString(),
+            identity = "controlled local demo", sourceWrites = 0, remainingInteractiveQueries = Math.Max(0, 100 - interactiveRequests)
+        }));
+        app.MapPost("/demo/shutdown", () => {
+            shutdown.TrySetResult();
+            return Results.Accepted(value: new { status = "shutdown requested" });
+        });
 
         await app.StartAsync();
         try
@@ -79,6 +108,10 @@ public partial class SolanaIndexedQueryNative
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(15) };
             client.DefaultRequestHeaders.Authorization = new("Bearer", "controlled-native-test");
+            var pageHtml = await client.GetStringAsync("/");
+            StringAssert.Contains(pageHtml, "CQL over Solana");
+            StringAssert.Contains(pageHtml, "/api/data/query-cql/indexed/scalar");
+            StringAssert.Contains(pageHtml, "CosmicLinq.CreateIndexed");
             var counts = new List<int>();
 
             foreach (var projected in new[] { false, true })
@@ -205,7 +238,22 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(beforeRejected, evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count));
             Assert.AreEqual(13, evidence.Operations.Count);
             Assert.AreEqual(13, authorityEvidence.Settlements.Count);
-            return new { requests = 27, accepted = 13, rejectedReplays = 13, unsupportedBeforeExecution = 1,
+            // Native acceptance finishes before optional interactive queries become available.
+            // Shutdown releases the index and runner-owned validator without deleting source state.
+            Volatile.Write(ref ready, true);
+            if (serve)
+            {
+                Console.WriteLine("CQL Solana demo ready: " + address);
+                await shutdown.Task;
+            }
+            else
+            {
+                using var stopped = await client.PostAsync("/demo/shutdown", null);
+                Assert.AreEqual(HttpStatusCode.Accepted, stopped.StatusCode);
+                await shutdown.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            return new { requests = 27, accepted = 13, rejectedReplays = 13,
+                interactiveRequests, interactive = serve, unsupportedBeforeExecution = 1,
                 physicalReadCounts = counts, scalarPhysicalReadCounts = scalarCounts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
                 authentication = "controlled validated identity", sourceWrites = 0 };
         }
