@@ -13,6 +13,8 @@
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlWalkthrough.cs" Link="Demo/NativeImportCqlWalkthrough.cs" />
+    <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlDemo.cs" Link="Demo/NativeImportCqlDemo.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteOwnership.cs" Link="Production/HolonWriteOwnership.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/CosmicHolonReplicationEndpoints.cs" Link="Production/CosmicHolonReplicationEndpoints.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/HederaQueryPreparationConfiguration.cs" Link="Production/HederaQueryPreparationConfiguration.cs" />
