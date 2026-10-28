@@ -42,15 +42,14 @@
     },
     {
       "provider": "AWSS3OASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
-      "sha256": "286e49489debc8fd63556dcd945ed41aedf5d618684c51f32fe732d36abf3ccb",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "4946725d183ecbfdb39b2b222bab809cef90ced1171c4622699be3cef73b1d1b",
       "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
+        "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
       ]
     },
     {
@@ -311,7 +310,7 @@
       "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
     ],
     "AWSS3OASIS": [
-      "Canonical shipping S3 factory bound; existing isolated test-bucket/region/persisted-key-variable and explicit request-cost opt-in absent; no cloud requests dispatched; 27 factory controls are not native conformance"
+      "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [

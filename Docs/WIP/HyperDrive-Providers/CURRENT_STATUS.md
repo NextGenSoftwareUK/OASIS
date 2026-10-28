@@ -20,18 +20,20 @@ Updated 2026-10-28. Read this first; the four current summaries plus this file a
 |---|---|
 | Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile, Azure Blob, SQLite |
 | Controlled 52/52 only | KeyDB, ValKey, Dragonfly, Garnet; actual product-native runs pending |
+| Native S3-compatible52/52 | Shipping AWSS3OASIS on CI MinIO; hosted AWS S3/IAM remains open |
 | Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication verified; full social operation gates remain open |
 | Partial native | Solana4/52: unavailable referenced history chunk; original outcomes retained |
-| Blocked before native | SOLID, IPFS, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
+| Recovered native reports52/52 | SOLID/IPFS compact summaries recovered from isolated checkout; registry hashes/contracts verified, full interfaces remain open |
+| Blocked before native | Firebase RTDB launch, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
 | Remaining families | Most matrix rows still lack a native shared-suite run |
 
 These are captured local-engine/emulator or public-read results, not full provider, hosted cloud, all-interface or global HyperDrive certification. The working matrix has 229 projects: 56 non-storage, 173 storage/specialized; zero SDK-source-unverified rows and nine reviewed missing adapters. Source detection is not implementation completeness.
 
 ## Exact next steps
 
-1. Next: Firebase RTDB canonical binding (23controlled cases pass); S3 CI wiring published with41controls passed. Development f8e872a4f merged as3f9ae8664, Core319bd96 includes7c45e2c; publish and inspect PR501 native CI. Per-avatar routing/owned-write outbox, fault gates and native-import contracts are now present; preserve them and follow the two public guides. Oracle cloud access remains absent.
+1. Next: Firebase RTDB binding builds (23controls pass,2native cases skipped). Pinned RTDB4.11.2 runtime cached once, but launch rejected by policy; no retry/bypass. S3 CI40731869610/job122970030713 passed52/52 and both bucket-empty checks. Development f8e872a4f merged as3f9ae8664; Core319bd96 includes7c45e2c. PR501 remains draft; broader gates open. Oracle cloud access remains absent.
 2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
-3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
+3. SOLID/IPFS: recovered both compact52/52 summaries with exact registry hashes from isolated checkout. Keep original protected keys/stores and unresolved outcomes; this evidence does not close all-interface/lifecycle/CQL gates.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
 5. Continue Oracle cloud/AWS S3 acceptance when access is configured, then remaining families. No completion claim until every applicable gate has evidence.
 
@@ -43,7 +45,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 - LocalFile current-suite52/52 and20controls passed; counts/delete acknowledgement fixed; old failures preserved, current fixture payloads0. Details: [LocalFile baseline](LOCALFILE_STORAGE_BASELINE.md).
 - Azure Blob automatic runner52/52 +111controls passed; six containers empty, stopped metadata0blobs/blocks after official graceful IPC shutdown. Original failed payloads/checkpoints preserved. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) was observed merged27October by other work; its final run still has five failed checks. See [CI acceptance](CI_ACCEPTANCE.md); do not infer CI green from merge state.
 - SQLite52/52 native +101maintained cases passed; initial/metadata failures preserved, current live tables independently0. Exact proof/cleanup: [SQLite baseline](SQLITE_STORAGE_BASELINE.md).
-- SOLID/IPFS: incoming Development registry now claims52/52 each, but both referenced TestResults aggregates are absent from that Git tree and this checkout. Do not promote these claims until evidence is recovered/verified; original blocked evidence stays preserved.
+- SOLID/IPFS incoming52/52 summaries now recovered into TestResults, exact registry hashes and canonical contracts verified. Original blocked reports remain preserved; no environments copied.
 - ActivityPub scoped source/tests and evidence summary published as `00235929a`; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
 - Other dirty work includes Core/ONODE replication changes and unrelated WIP moves/reports; inspect `git status` before staging.
 - Documentation tidy checkpoint591182879 preserved history and moved only unlinked evidence; subsequent scoped code/test milestones are recorded above.
