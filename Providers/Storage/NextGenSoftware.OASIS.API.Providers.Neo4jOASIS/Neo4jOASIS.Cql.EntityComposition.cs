@@ -44,8 +44,17 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
         return (CompileCqlEntityComposition(compiled, plan, maximumResults), compiled.Translator.Parameters);
     }
 
+    internal static (string Text, IReadOnlyDictionary<string, object> Parameters) CompileCqlEntityProjection<T,TResult>(
+        CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes) where T:IHolon
+    {
+        var compiled=CompileCqlSource(plan.Source.Query.Source);
+        return (CompileCqlEntityComposition(compiled,plan.Source,maximumResults,projection:plan.Selection.Query.Columns,
+            maximumProjectionBytes:maximumPayloadBytes),compiled.Translator.Parameters);
+    }
+
     private static string CompileCqlEntityComposition<T>(NeoCqlSource compiled, CosmicEntityCompositionPlan<T> plan,
-        int maximumResults, bool countOnly=false) where T:IHolon
+        int maximumResults, bool countOnly=false,IReadOnlyList<CosmicProjectionColumn> projection=null,
+        int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit) where T:IHolon
     {
         var translator = compiled.Translator;
         var parameters = translator.Parameters;
@@ -55,7 +64,9 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
         parameters.Add("entityWorkBound", plan.Options.MaximumStageRows);
         parameters.Add("entityOutputTake", maximumResults + 1);
         const string invalid = "null AS id,null AS revision,false AS valid,null AS snapshot,";
-        var fields = "id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput" + (countOnly ? ",entityCount" : "");
+        var selectedFields=projection==null ? "" : ",entityPosition,payloadLimit,cells";
+        var emptySelection=projection==null ? "" : ",-1 AS entityPosition,false AS payloadLimit,[] AS cells";
+        var fields = "id,revision,valid,snapshot,traversalCycle,traversalLimit,entityInput" + (countOnly ? ",entityCount" : "")+selectedFields;
         var nullCount = countOnly ? ",null AS entityCount" : "";
         var keys = translator.TranslateOrdering(plan.Query.Source.Orderings);
         var projected = string.Concat(keys.Select((key,index) => "," + key.Expression + " AS entitySort" + index));
@@ -110,17 +121,40 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             else throw new NotSupportedException("Unknown native entity stage.");
             index++;
         }
-        text.Append("UNWIND CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
+        var entries="CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
             + "ELSE [item IN entitySource | {h:item.h,p:item.p,input:true}] + "
-            + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}]") + " END AS entry ")
+            + (countOnly ? "[{h:null,p:null,input:false,count:size(selected)}]" : "[item IN selected[..$entityOutputTake] | {h:item.h,p:item.p,input:false}]") + " END";
+        if(projection==null)
+        {
+        text.Append("UNWIND "+entries+" AS entry ")
             .Append("RETURN entry.h.Id AS id,entry.h.ProviderRevisionId AS revision,NOT(entityCycle OR entityLimit) AS valid,"
                 + "CASE WHEN size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END AS snapshot,"
                 + "entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput" + (countOnly ? ",entry.count AS entityCount " : " "));
+        }
+        else
+        {
+            var columns=translator.TranslateProjection(projection);
+            parameters.Add("entityProjectionBytes",maximumProjectionBytes);
+            text.Append("WITH entityCycle,entityLimit,"+entries+" AS entries ")
+                .Append("UNWIND CASE WHEN size(entries)=0 THEN [] ELSE range(0,size(entries)-1) END AS entityPosition ")
+                .Append("WITH entries[entityPosition] AS entry,entityPosition,entityCycle,entityLimit ")
+                .Append("WITH entry,entityPosition,entityCycle,entityLimit,entry.h AS h,entry.p AS p ")
+                .Append("WITH entry,entityPosition,entityCycle,entityLimit"+string.Concat(columns.Select((column,i)=>
+                    ",CASE WHEN entry.input OR entityCycle OR entityLimit THEN 0 ELSE "+column.State+" END AS entityState"+i
+                    +",CASE WHEN entry.input OR entityCycle OR entityLimit THEN null ELSE "+column.Value+" END AS entityValue"+i))+" ");
+            var lower=ProjectionLowerBytes(projection,columns.Select((_,i)=>"entityValue"+i).ToArray());
+            var cells="["+string.Join(",",columns.Select((_,i)=>"{s:entityState"+i+",v:entityValue"+i+"}"))+"]";
+            text.Append("RETURN entry.h.Id AS id,entry.h.ProviderRevisionId AS revision,NOT(entityCycle OR entityLimit) AS valid,"
+                +"CASE WHEN entry.input AND size(entry.h.SnapshotJson)<=2097152 THEN entry.h.SnapshotJson ELSE null END AS snapshot,"
+                +"entityCycle AS traversalCycle,entityLimit AS traversalLimit,entry.input AS entityInput,entityPosition,"
+                +"NOT entry.input AND ("+lower+")>$entityProjectionBytes AS payloadLimit,"
+                +"CASE WHEN entry.input OR ("+lower+")>$entityProjectionBytes THEN [] ELSE "+cells+" END AS cells ");
+        }
         var sourceErrors = compiled.Translator.TraversalClauses.Count == 0 ? "" : " UNION ALL " + compiled.EligibleSource
             + "WHERE " + compiled.Cycle + " OR " + compiled.TraversalLimit + " RETURN " + invalid
-            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount + " LIMIT 1";
+            + compiled.Cycle + " AS traversalCycle," + compiled.TraversalLimit + " AS traversalLimit,false AS entityInput" + nullCount +emptySelection+ " LIMIT 1";
         return "CALL { " + compiled.Source + "WHERE NOT valid RETURN " + invalid
-            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput" + nullCount + " LIMIT 1" + sourceErrors
-            + " UNION ALL " + text + " } RETURN " + fields;
+            + "false AS traversalCycle,false AS traversalLimit,false AS entityInput" + nullCount+emptySelection + " LIMIT 1" + sourceErrors
+            + " UNION ALL " + text + " } RETURN " + fields+(projection==null ? "" : " ORDER BY entityPosition");
     }
 }
