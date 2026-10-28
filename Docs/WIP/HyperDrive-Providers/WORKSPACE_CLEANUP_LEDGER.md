@@ -25,19 +25,9 @@ Updated 2026-10-27. Owner: HyperDrive provider task. Use [CURRENT_STATUS.md](CUR
 
 ## Recent milestones
 
-
 No broad filesystem or cache cleanup was performed here. Current free-space measurements are machine-wide observations, not proof of exclusive reclaim; inspect current disk state before substantial work.
 
 Complete history: [Archive/WORKSPACE_CLEANUP_LEDGER.md](Archive/WORKSPACE_CLEANUP_LEDGER.md). Do not read it by default. Historical provenance/ownership is not retrospectively asserted complete.
-
-
-
-
-
-
-
-
-
 
 - 2026-10-28 SQLite baseline: reuse existing checkout, SQLite/EF SDK cache, Core/Shared/provider/test outputs; no service/download. Opt-in canonical suite uses fixed `TestResults/ProviderConformanceCurrent/SQLLiteDBOASIS/{async,sync}/storage.sqlite` plus report/lock; refuses any prior DB/WAL/SHM/checkpoint. Two small synthetic DBs planned (sizes unmeasured until run), retain failures and original identities, cleanup only verified owned fixtures after success. This is baseline work, not SQLite depth; unrelated CQL/replication files remain untouched.
 
@@ -46,3 +36,5 @@ Complete history: [Archive/WORKSPACE_CLEANUP_LEDGER.md](Archive/WORKSPACE_CLEANU
 - 28October S3-family binding: reusing AWS unit-test/provider outputs and cached AWSSDK.S3; no restore/download/container started. New opt-in MinIO binding uses fixed TestResults/ProviderConformanceCurrent/AWSS3OASIS-MinIO/{sync,async}/report.json + lock, existing dedicated empty bucket and protected key supplied externally. Build outputs reused (sizes pending); preserve failed reports/objects, never auto-delete unknown bucket contents. C free110,092,222,464 B before build. Native execution remains pending retained/CI service configuration.
 - S3 binding build outcome: cached consumer build passed after correcting namespace qualification; 14 warnings,0errors. Two opt-in cases skipped without configuration,0native passes. Reused consumer bin 51613876 B / obj 1272808 B (shared dependencies retained); no new store/service/download or raw test report. Next: existing CI MinIO wiring and actual native run. Outputs regenerate via bounded cached build under provider build lease.
 - S3 CI wiring28October: existing MinIO matrix job/container/image and public synthetic credentials reused; no new local runtime. Dedicated empty oasis-s3-conformance bucket is created inside that disposable CI service, one masked key retained for that job, official AWS SDK canonical suite runs both modes. Reports/TRX under TestResults uploaded for7days; service/job owns teardown. Native outcome pending; YAML parsed locally, one MinIO service confirmed. PR will remain draft: branch contains others' unrelated changes, no Development merge authorized by this verification.
+
+- S3 follow-up:41existing AWS controls pass. PR501 draft, no Actions run created because PR mergeable_state=dirty. Read-only merge-tree found registry-only conflict; actual merge aborted before changes because another contributor's dirty COSMIC ledger would be overwritten. Pending registry restored byte-for-byte; no merge state or source changes. Incoming SOLID/IPFS claimed aggregates absent from Development tree and local disk, not accepted as verified. Two disposable branch-sync registry snapshots removed after restored-byte verification: TestResults/HyperDrive-Providers/branch-sync-registry-working.json 17639 B SHA256 a322ab1c979c450fb87d9559420ba70b3a620efa22273fa9ea55ae45e230ba8f; TestResults/HyperDrive-Providers/branch-sync-registry-resolved.json 17655 B SHA256 2cc4416a2751e94671bbba633912cf0d67bec015370f6af1ccc850cc96396ecb. C free109,841,321,984 B, shared-machine observation. Temporary PR body file created/deleted, no credentials.
