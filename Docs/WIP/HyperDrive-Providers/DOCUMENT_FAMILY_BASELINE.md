@@ -33,6 +33,8 @@ Official [record pagination](https://pocketbase.io/docs/api-records/) and [authe
 
 ## Convex
 
+The earlier boundary checkpoint below is superseded by [the native shared-record baseline](CONVEX_STORAGE_BASELINE.md): actual bundled companion, native52/52,24controlled cases, revision/paging controls and empty native table. Hosted/full-interface/routing gates remain open.
+
 - Functions HTTP API returns a status/value envelope. The adapter previously treated successful envelopes as empty lists and accepted function-error envelopes as successful writes. Now require valid status, throw on function error, extract explicit success value and validate list/record shapes. Remote error/log payloads are not copied to caller diagnostics.
 - Deployment admin keys now use the Convex authorization scheme, matching the official JS client; requests explicitly select JSON format. Non-success HTTP status remains available as HttpRequestException. Existing constructor retained, injected HttpClient stays caller-owned.
 - Fifteen new regressions observed red before fixes; final20/20 unit cases pass (15new+5existing). Cached producer/consumer builds passed with2warnings each,0errors; no native deployment/service or download.

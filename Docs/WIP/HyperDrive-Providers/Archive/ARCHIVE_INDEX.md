@@ -24,4 +24,6 @@ Rolled 6 older milestone lines28October verbatim; chunk SHA256 `e3791fc3a2de963e
 
 Current-status pre-compression checkpoint28October preserved byte-for-byte in CURRENT_STATUS_CHECKPOINT_2026-10-28.md; SHA256 `17be1c155a91314eb7413b2261b231dd122f4e83200db74769041045e8a54244`. Not a default recovery document.
 
-- 28October S3 checkpoint: [cleanup milestone rollover](WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-28.md), SHA256`393d96463bb886a9f131ca783963d63a48a91f0acd2fcb0cf842e2c3cd2d22b6`; extracted chronological bytes SHA256`ea6cd02b3a2674c0cf7f0bed508794d88b7e6e99c17c4bf03a295083086b82f7`. Ten milestones retained in current ledger; no history rewritten.
+- 28October S3 checkpoint: [cleanup milestone rollover](WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-28.md), SHA256`4dbf29a1b57a473bdb4fa41b34ee9de09a0ba54f020737a3ee36fa28766d2357` (prior checkpoint SHA256`393d96463bb886a9f131ca783963d63a48a91f0acd2fcb0cf842e2c3cd2d22b6`); extracted chronological bytes SHA256`ea6cd02b3a2674c0cf7f0bed508794d88b7e6e99c17c4bf03a295083086b82f7`. Ten milestones retained in current ledger; no history rewritten.
+
+- Native S3/Convex rollover appended chronological bytes verbatim, SHA256`deb91cbf42f837caaf0490eac0e95c154ea5e1f3537a42a02085921cf1b43e2f`; archive prefix unchanged, ten current milestones retained.

@@ -41,18 +41,6 @@
       ]
     },
     {
-      "provider": "AWSS3OASIS",
-      "suite": "core-storage-v2",
-      "mode": "native",
-      "passed": 52,
-      "total": 52,
-      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
-      "sha256": "4946725d183ecbfdb39b2b222bab809cef90ced1171c4622699be3cef73b1d1b",
-      "blockers": [
-        "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
-      ]
-    },
-    {
       "provider": "RedisOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
@@ -289,13 +277,33 @@
       "blockers": []
     },
     {
+      "provider": "AWSS3OASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "a2bfc146d4a97a44b3a9ef3b188d508fcb45122d72f35e598f792899e13de459",
+      "blockers": []
+    },
+    {
       "provider": "MinIOOASIS",
       "suite": "core-storage-v2",
-      "mode": "controlled",
+      "mode": "native",
       "passed": 52,
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-miniooasis-current.json",
-      "sha256": "846e7a4253bea8e178f7c2490bd923652c69aa086e3edca2e801c33824f74047",
+      "sha256": "cb955b57ea49858bba677e660176fb29236756c4e9f4a24a540b3c1ed53d52ae",
+      "blockers": []
+    },
+    {
+      "provider": "ConvexOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-convexoasis-current.json",
+      "sha256": "5f63f13823054beb4e7cbce4befaf7255f26d3047f4f981ff34e55a965f95721",
       "blockers": []
     }
   ],
@@ -340,7 +348,7 @@
       "Relocated retained DynamoDB Local3.3.2: canonical52/52, factory27, five tables empty before/after; stopped compaction43,008B. Hosted AWS IAM/region acceptance, complete interfaces and global routing remain open."
     ],
     "AWSS3OASIS": [
-      "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
+      "Shared S3 facade reverified52/52 on native MinIO-compatible CI service after consolidation; native hosted AWS/IAM, full relevant interfaces and global routing remain open."
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [
@@ -386,7 +394,7 @@
       "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
     ],
     "ConvexOASIS": [
-      "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
+      "Native official retained engine core-storage-v2 52/52; real bundled internal companion and shared encrypted record policy, five revision-conflict controls,105-row native paging, independent empty-table checks and24controlled tests. Local source-matched cohort includes owner working Core; hosted IAM, immutable release, full relevant interfaces and global routing remain open."
     ],
     "NeonOASIS": [
       "Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open."
@@ -401,7 +409,7 @@
       "Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification."
     ],
     "MinIOOASIS": [
-      "Shared encrypted S3 family facade; canonical52/52 controlled, native MinIO binding ready. Legacy plaintext prefixes refused unchanged, persisted key required, default soft holon deletion retained. Native CI, full interfaces and global routing remain open."
+      "Shipping shared S3 facade native52/52 on CI MinIO, both independent empty-bucket checks and five producer/consumer identities verified. Persisted key required; legacy layouts refused; default soft holon deletion preserved. Full relevant interfaces, concurrency/IAM/durability and global routing remain open."
     ],
     "ThreeFoldOASIS": [
       "Shared encrypted S3 record policy; canonical52/52 controlled and5metadata tests pass. Requires persisted OASIS_THREEFOLD_STORAGE_KEY or explicit resolver. QSS-native HEAD/conditional/pagination/IAM/durability and full interfaces remain open; controlled/MinIO evidence is not QSS certification."

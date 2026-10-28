@@ -49,3 +49,9 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 
+
+## Private storage companion
+
+Current source bundles the [Companion](Companion/README.md), using internal indexed Convex queries/mutations and shared encrypted OASIS record policy. Deploy that exact companion before activating the adapter. Existing constructors require a separately persisted OASIS_CONVEX_STORAGE_KEY (canonical Base64 for32bytes), or supply an explicit resolver. Keep administrator credentials and storage keys outside source control and browser clients. Legacy plaintext tables cause explicit refusal; no automatic migration/reset occurs.
+
+Native local engine acceptance is distinct from hosted/IAM/full-interface certification. Use Scripts/Providers/Run-ConvexStorageConformance.ps1 with the retained environment; previous reports, keys and unresolved outcomes are preserved rather than silently replaced. See Companion/README.md for protocol, ownership and deployment details.

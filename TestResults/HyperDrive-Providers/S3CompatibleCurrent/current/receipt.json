@@ -1,0 +1,51 @@
+{
+  "run": 40754776833,
+  "job": 123050672281,
+  "head": "b5a7906de32afcbc6e8fb0d5d9d471463042fd87",
+  "source": "d7d1458ab9042997b5ceabc285a8bddd009d9d0a",
+  "artifactId": 12845074648,
+  "githubReportedArtifactDigest": "48b98487bf3896e12b389ad7934fd233a00d75d5d8344b473c5cf3eeddd08be4",
+  "files": [
+    {
+      "path": "HyperDrive-Providers/S3CompatibleCurrent/identities.json",
+      "sha256": "8d3d891cf2f9df8ae9349d4b58536f31f56b589c802efc8a7b93a5d95ff39f89",
+      "bytes": 2727
+    },
+    {
+      "path": "HyperDrive-Providers/S3CompatibleCurrent/minio-adapter-current.trx.gz",
+      "sha256": "9ba9c1ff326d232af0e90b1a9fba54aeba8d67bb52f586438ea3093cb6f7b8d4",
+      "rawBytes": 4157,
+      "bytes": 1235,
+      "testsPassed": 2,
+      "rawRemovedAfterVerifiedCompression": true
+    },
+    {
+      "path": "HyperDrive-Providers/S3CompatibleCurrent/s3-compatible-current.trx.gz",
+      "sha256": "8d664bcfa5eb188d2f9a0bbe0fda85969c5db5687f21c3d6c0f692b8742ec2dd",
+      "rawBytes": 4077,
+      "bytes": 1242,
+      "testsPassed": 2,
+      "rawRemovedAfterVerifiedCompression": true
+    },
+    {
+      "path": "ProviderConformanceCurrent/AWSS3OASIS-MinIO/async/report.json",
+      "sha256": "0056219f0b8e70804e302eb38eaae0b6c3e61395aa23a3f9f716bc09c6edacbd",
+      "bytes": 1450
+    },
+    {
+      "path": "ProviderConformanceCurrent/AWSS3OASIS-MinIO/sync/report.json",
+      "sha256": "fe73196f091a014d010d6fe2408179647910e05673e8eb0d2606543e34c58555",
+      "bytes": 1449
+    },
+    {
+      "path": "ProviderConformanceCurrent/MinIOOASIS/async/report.json",
+      "sha256": "bd230bbf06a9bdc142dcbbe0ed49c87bc3eade409ce99d19ac7024626d0d9dcc",
+      "bytes": 1626
+    },
+    {
+      "path": "ProviderConformanceCurrent/MinIOOASIS/sync/report.json",
+      "sha256": "823c87ba7a5a53a73e658edb585706353691210fd39ca6892477beeeae01bc88",
+      "bytes": 1625
+    }
+  ]
+}
