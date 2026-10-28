@@ -8,12 +8,12 @@
     <Company>NextGen World Ltd</Company>
     <Product>WEB4 OASIS API Upstash OASIS Provider</Product>
     <Title>WEB4 OASIS API Upstash OASIS Provider</Title>
-    <Description>Upstash OASIS Provider — serverless Redis-compatible key-value store for OASIS holons and avatars via Upstash REST API. No SDK required — uses System.Net.Http. https://oasisomniverse.one</Description>
+    <Description>Upstash OASIS Provider â€” serverless Redis-compatible key-value store for OASIS holons and avatars via Upstash REST API. No SDK required â€” uses System.Net.Http. https://oasisomniverse.one</Description>
     <Authors>David Ellams (NextGen World Ltd)</Authors>
     <PackageTags>OASIS API; Upstash; Redis; Serverless; Edge; WEB4; Provider</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
-    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <Copyright>Copyright Â© NextGen World Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Version>2.0.0</Version>
     <Nullable>enable</Nullable>
@@ -30,6 +30,10 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />

@@ -1,0 +1,31 @@
+{
+  "SourceScope": "Local source-matched working cohort; not an immutable release certification",
+  "ProviderDocuments": 4,
+  "ObservedUtc": "2026-10-28T21:18:11.2831258Z",
+  "Before": [
+    {
+      "Dependency": "Core",
+      "SHA256": "F59C9A8F230B7EF63832C884E2554E276BE37AD4E043A4A14B28FB8B5A29530A",
+      "SourceDocuments": 853
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "075ED8469A582CC9434EDAFDAC5AAE1883F4BB4052F8788BF0DF9BB76C006E76",
+      "SourceDocuments": 57
+    }
+  ],
+  "ConsumerDocuments": 6,
+  "After": [
+    {
+      "Dependency": "Core",
+      "SHA256": "F59C9A8F230B7EF63832C884E2554E276BE37AD4E043A4A14B28FB8B5A29530A",
+      "SourceDocuments": 853
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "075ED8469A582CC9434EDAFDAC5AAE1883F4BB4052F8788BF0DF9BB76C006E76",
+      "SourceDocuments": 57
+    }
+  ],
+  "ProviderSha256": "932A69332AB4DA417C05CF5001A89463D91E2A34F0FB05FB5C5D825199DDDB6A"
+}

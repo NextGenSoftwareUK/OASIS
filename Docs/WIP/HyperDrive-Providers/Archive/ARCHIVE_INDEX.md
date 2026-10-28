@@ -27,3 +27,5 @@ Current-status pre-compression checkpoint28October preserved byte-for-byte in CU
 - 28October S3 checkpoint: [cleanup milestone rollover](WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-28.md), SHA256`4dbf29a1b57a473bdb4fa41b34ee9de09a0ba54f020737a3ee36fa28766d2357` (prior checkpoint SHA256`393d96463bb886a9f131ca783963d63a48a91f0acd2fcb0cf842e2c3cd2d22b6`); extracted chronological bytes SHA256`ea6cd02b3a2674c0cf7f0bed508794d88b7e6e99c17c4bf03a295083086b82f7`. Ten milestones retained in current ledger; no history rewritten.
 
 - Native S3/Convex rollover appended chronological bytes verbatim, SHA256`deb91cbf42f837caaf0490eac0e95c154ea5e1f3537a42a02085921cf1b43e2f`; archive prefix unchanged, ten current milestones retained.
+
+- Upstash checkpoint rollover: six earlier milestones appended verbatim (chunk SHA256`7cb7ee64281ff8b99f41df01e63f411facbb453dd99d6e062ecf4de041b04224`); archive SHA256`e95fac519a3e8fe4dd8a941c559953c5b0ad003e0f258d4ee0430247c7311e20` (prior`4dbf29a1b57a473bdb4fa41b34ee9de09a0ba54f020737a3ee36fa28766d2357`). Original prefix unchanged; nine current milestones retained.
