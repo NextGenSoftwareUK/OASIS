@@ -222,3 +222,19 @@ No pending fixture remains; Mongo27029 and teaching5088 listeners absent. Eviden
 TestResults/DemoBreadthCurrent/native-mongo-mastodon{,-reconcile}.trx and summary JSON.
 Package graph updated using existing local NuGet cache only, no remote package source.
 Other provider pairings, federated browser controls and hosted Azure remain open.
+
+## Live Mongo + IPFS/SOLID SDK pairings
+
+The same journaled NativeProtocolMongoAcceptance implementation now verifies all
+three protocol pairings; no duplicated fixture cleanup or query engine. Native IPFS1/1
+and SOLID1/1 tests pass: Mongo2 + protocol3 rows, unmatched Mongo document excluded,
+exact source names/IDs/owners/provenance retained. Owner-bound read policy permits
+the private protocol fixture; Mongo supplies no substitute protocol rows.
+
+Per-provider fixed Mongo databases and pending journals are used, then removed only
+after independent owner/collection checks. Both native protocol fixtures also pass
+HTTP all-three/subset/admission checks before exact cleanup. Pending journals absent;
+all owned native listeners stopped, SOLID final exited143/no OOM. Existing ActivityPub
+consumer compiles against the extracted helper. No new runtime/dependency download;
+IPFS/SOLID graph restore uses local NuGet cache only. Federated browser controls,
+other provider pairings and richer non-key queries remain open.
