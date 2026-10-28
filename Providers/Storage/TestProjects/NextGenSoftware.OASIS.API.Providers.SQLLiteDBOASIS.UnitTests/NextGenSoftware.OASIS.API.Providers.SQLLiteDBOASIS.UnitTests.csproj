@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="SqliteStorageConformanceTests.cs" />
+    <Compile Include="SqliteStorageConformanceTests.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />

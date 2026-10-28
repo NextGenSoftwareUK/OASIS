@@ -1,10 +1,10 @@
 # Current HyperDrive/provider release gates
 
-Updated 2026-10-27. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-provider or global V2 completion is claimed.
+Updated 2026-10-28. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-provider or global V2 completion is claimed.
 
 ## Current phase
 
-Provider-family implementations and shared baseline verification precede global routing and depth work. Eleven storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
+Provider-family implementations and shared baseline verification precede global routing and depth work. Twelve storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
 
 ## Open gates and next action
 
@@ -18,6 +18,7 @@ Provider-family implementations and shared baseline verification precede global 
 | IPFS | Original Kubo repo/config and protected storage key unavailable; do not initialize over unknown identity |
 | Cosmos blockchain | Missing bridge SDK/dependency target; earlier install/repair batch was policy-rejected. Do not bypass that rejection with another wrapper |
 | Solana | Recorded 4/52: finalized history references an unavailable memo chunk; preserve both original fixtures, no skip/reset to get green |
+| SQLite remaining interfaces | Core baseline52/52 and101maintained tests pass; additional source-reported unimplemented methods remain review gates, not silently waived by baseline |
 | Other families | Shared suite bindings/native configuration still missing on most rows. Four Redis-compatible facades have controlled-only passes |
 | Raw evidence | Writers redirected by `d70625e86`; unpublished ActivityPub proofs moved to TestResults. Linked legacy evidence remains; existing working-tree line-ending hashes are not Git-blob hashes |
 | Integration | ActivityPub published separately as `00235929a`; batch verified scoped changes into Development, preserving user/Core/submodule work |
