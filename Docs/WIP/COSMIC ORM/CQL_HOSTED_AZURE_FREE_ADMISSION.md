@@ -70,3 +70,57 @@ TRX TestResults/CosmosCqlCurrent/hosted-resource-cql-regression.trx SHA256
 No native/hosted network requests were made for this change. Actual hosted schema,
 account/free conditions and hosted SDK/HTTP/browser/Mongo acceptance remain red.
 The mode controls infrastructure creation, not data permissions or Azure billing.
+
+
+## Prepared hosted read entry point (not yet live-verified)
+
+`Scripts/TestHosts/Run-HostedCosmosCqlRead.ps1 -ConfigurationPath <existing-json-path>`
+builds the existing provider/consumer under one lease and invokes only the opt-in
+hosted test. It never starts the emulator, provisions resources or substitutes
+another provider. Supply the auth key through protected process environment
+`OASIS_HOSTED_COSMOS_AUTH_KEY`; never command-line/config/repository/chat contents.
+
+Configuration is non-secret, strict PascalCase JSON (unknown fields reject):
+
+```json
+{
+  "Endpoint": "https://your-account.documents.azure.com/",
+  "DatabaseName": "your-existing-owned-database",
+  "Actor": "11111111-1111-4111-8111-111111111111",
+  "ReadableIds": [
+    "22222222-2222-4222-8222-222222222222",
+    "33333333-3333-4333-8333-333333333333",
+    "44444444-4444-4444-8444-444444444444"
+  ],
+  "FreeAccountSpendingProtectionConfirmed": false
+}
+```
+
+Replace every example identifier with actual owned synthetic fixtures; do not run
+unchanged. Only the operator may confirm free-account spending protection after
+checking it; this Boolean is an assertion, not independent Azure billing proof.
+The profile admits commercial Azure's canonical HTTPS documents.azure.com account
+endpoint only, no localhost/HTTP/alternate port/path/userinfo/query/fragment/lookalike
+host. It freezes3..8distinct nonempty readable IDs. Existing database and all3OASIS
+containers with single `/id` partition keys are required; no auto-creation fallback.
+Sovereign/custom/private endpoints require separate explicit admission.
+
+The prepared live test performs shared HolonManager/LINQ ID filtering,2record subset,
+Id/Name projection and exact LongCount. It creates no data or infrastructure and
+leaves caller-owned records unchanged. Existing resources/credentials remain owned
+by the operator. Evidence is TestResults/HostedCosmosCurrent/read-only-report.json
+and hosted-read-current.trx; prior/unknown evidence is never overwritten.
+
+14new admission/parser cases and66affected controlled CQL cases pass/no skips;
+endpoint/lookalike/credential-field rejection, catalogue bounds/freezing and missing
+confirmation are covered. Runner syntax/build pass. TRX
+TestResults/CosmosCqlCurrent/hosted-entry-controlled-pass.trx SHA256
+0564EC93CE5E1C6EDE8B90572B82B746B9C23122CCBA88431EAFE4ADEF04AB0F.
+Initial broad controlled filter accidentally selected the hosted test because its
+method name containedCql; its no-config guard failed before any client/network.
+Renamed the separate native method and corrected exact runner dispatch; no skip or
+mocked hosted pass. Original failed TRX retained as hosted-entry-controlled.trx.
+
+Live hosted SDK/HTTP/browser/Mongo pairing, account/free verification and owned
+hosted write/cleanup story remain red. This prepared read-only stage does not
+replace those gates or the broader objective.
