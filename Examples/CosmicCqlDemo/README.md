@@ -981,3 +981,11 @@ It exercises shared CQL rows/subset/projection/LongCount without creating data o
 infrastructure. Configuration/parser tests and builds pass; no hosted run has been
 performed. Account setup, independent free-condition checks and hosted HTTP/browser/
 Mongo/write acceptance remain open. See [configuration and limits](../../Docs/WIP/COSMIC%20ORM/CQL_HOSTED_AZURE_FREE_ADMISSION.md#prepared-hosted-read-entry-point-not-yet-live-verified).
+
+
+The prepared hosted runner also accepts `-Mongo` for native shared federation and
+HTTP acceptance, and `-Mongo -Serve` for the labelled hosted page on5092. The local
+Mongo fixture is journaled/cleaned; existing cloud records stay unchanged. Controlled
+label tests and local native regression pass. Actual hosted SDK/HTTP/browser/Mongo
+acceptance remains unverified until free-account/auth/configuration prerequisites
+are satisfied; no emulator result is reported as hosted proof.
