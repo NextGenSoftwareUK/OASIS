@@ -23,10 +23,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
         private static readonly TimeSpan Poll = TimeSpan.FromSeconds(15);
         private const int MaximumRoundsPerTarget = 20;
         private readonly ILogger<HolonReplicationDeliveryHostedService> _logger;
+        private readonly Func<ProviderManager> _providers;
+        private readonly Func<bool> _isReady;
         private readonly string _workerId = $"replication:{Environment.MachineName}:{Guid.NewGuid():N}";
         private readonly SemaphoreSlim _committed = new SemaphoreSlim(0, 1);
 
-        public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger) => _logger = logger;
+        public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger)
+            : this(logger, () => ProviderManager.Instance,
+                () => OASISBootLoader.OASISBootLoader.IsOASISBooted &&
+                    OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2) { }
+
+        /// <summary>Host-owned registry and readiness dependencies. Both construction
+        /// paths use the same delivery loop and native outbox transaction owners.</summary>
+        public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger,
+            Func<ProviderManager> providers, Func<bool> isReady)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _providers = providers ?? throw new ArgumentNullException(nameof(providers));
+            _isReady = isReady ?? throw new ArgumentNullException(nameof(isReady));
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -41,10 +56,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    if (OASISBootLoader.OASISBootLoader.IsOASISBooted &&
-                        OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
+                    if (_isReady())
                     {
-                        try { await DeliverAsync(stoppingToken); }
+                        try
+                        {
+                            await DeliverAsync(stoppingToken);
+                            _logger.LogDebug("HyperDrive replication delivery pass completed.");
+                        }
                         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                         catch (Exception exception) { _logger.LogError(exception, "HyperDrive replication delivery pass failed."); }
                     }
@@ -57,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
         private async Task DeliverAsync(CancellationToken cancellationToken)
         {
-            var manager = ProviderManager.Instance;
+            var manager = _providers();
             var storage = manager.GetAllRegisteredProviders().OfType<IOASISStorageProvider>().ToList();
             foreach (var source in storage.Where(provider => provider is IHolonReplicationOutboxSource))
             {
