@@ -29,7 +29,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Next: S3 binding/CI wiring published038668c44/dad52ce51;41controls pass, native pending. Draft PR501 cannot run PR CI while registry conflicts with Development; sync is blocked by another contributor's dirty COSMIC ledger. Preserve it; continue Firebase RTDB canonical binding next;23controlled tests now pass after read-error/protocol fixes. Oracle cloud access was rechecked absent. SQLite baseline52/52 +101controls is complete; no deeper SQLite work.
+1. Next: Firebase RTDB canonical binding (23controlled cases pass); S3 CI wiring published with41controls passed. Development f8e872a4f merged as3f9ae8664, Core319bd96 includes7c45e2c; publish and inspect PR501 native CI. Per-avatar routing/owned-write outbox, fault gates and native-import contracts are now present; preserve them and follow the two public guides. Oracle cloud access remains absent.
 2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
 3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
