@@ -419,4 +419,4 @@ and TestResults/SolanaCurrent/solana-indexed-native.trx/json.
 
 ## Metadata policy foundation
 
-The shared explicit queryable-root policy and predicate/ordering admission are implemented, but no persistent metadata index is enrolled. Existing schema2 remains canonical-only. See [schema3 plan and verified policy scope](CQL_INDEXED_METADATA.md).
+The shared explicit queryable-root policy and source admission are implemented. Explicit schema3 now authenticates selected queryable metadata roots and executes native rows/cardinality;22newcases/98indexed-store/205fullprovider tests pass. Existing schema2 remains canonical-only and is not migrated. SDK/WEB4/live-dataset acceptance and selected metadata columns remain open. See [schema3 contract and verified scope](CQL_INDEXED_METADATA.md).

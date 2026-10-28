@@ -21,7 +21,7 @@ public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndex
 {
     public CosmicChainQuerySource Source => source;
     public CosmicQueryCapabilities IndexedRowCapabilities => canonicalRowProjection
-        ? CanonicalRowCapabilities : new CosmicQueryCapabilities(CosmicQueryFeatures.None,
+        ? metadataPolicy==null?CanonicalRowCapabilities:MetadataRowCapabilities() : new CosmicQueryCapabilities(CosmicQueryFeatures.None,
             Array.Empty<CosmicQueryFieldCapability>());
 
     private sealed record Projection(string Id,int Version,string VersionId,bool IsDeleted,string CreatedByAvatarId,bool IsPublic,string Name,string Receipt);
@@ -40,7 +40,10 @@ public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndex
         using var command=connection.CreateCommand();command.CommandText="""
 CREATE TABLE IF NOT EXISTS CosmicChainIndexRows(Id TEXT PRIMARY KEY,Version INTEGER NOT NULL,VersionId TEXT NOT NULL,
 IsDeleted INTEGER NOT NULL CHECK(IsDeleted IN(0,1)),CreatedByAvatarId TEXT NOT NULL,IsPublic INTEGER NOT NULL CHECK(IsPublic IN(0,1)),Name TEXT,Receipt TEXT NOT NULL,Proof TEXT NOT NULL);
-""";command.ExecuteNonQuery();
+""";
+        if(metadataPolicy!=null)command.CommandText=command.CommandText.Replace("Proof TEXT NOT NULL);",
+            "Proof TEXT NOT NULL,MetaDataJson TEXT NOT NULL,MetaDataProof TEXT NOT NULL);");
+        command.ExecuteNonQuery();
     }
     private void WriteQueryProjection(SqliteConnection connection,SqliteTransaction transaction,CosmicChainIndexEntry entry,string receipt)
     {
@@ -51,10 +54,19 @@ IsDeleted INTEGER NOT NULL CHECK(IsDeleted IN(0,1)),CreatedByAvatarId TEXT NOT N
         if(Encoding.UTF8.GetByteCount(projectionJson)>4*1024*1024)throw new InvalidDataException("Authenticated query projection exceeds its codec budget.");
         using var command=connection.CreateCommand();command.Transaction=transaction;
         command.CommandText="""
-INSERT INTO CosmicChainIndexRows VALUES($id,$version,$versionId,$deleted,$owner,$public,$name,$receipt,$proof)
+INSERT INTO CosmicChainIndexRows(Id,Version,VersionId,IsDeleted,CreatedByAvatarId,IsPublic,Name,Receipt,Proof) VALUES($id,$version,$versionId,$deleted,$owner,$public,$name,$receipt,$proof)
 ON CONFLICT(Id) DO UPDATE SET Version=excluded.Version,VersionId=excluded.VersionId,IsDeleted=excluded.IsDeleted,
 CreatedByAvatarId=excluded.CreatedByAvatarId,IsPublic=excluded.IsPublic,Name=excluded.Name,Receipt=excluded.Receipt,Proof=excluded.Proof;
 """;
+        if(metadataPolicy!=null)
+        {
+            var metadata=QueryableMetadataJson(row);
+            command.CommandText=command.CommandText.Replace("Receipt,Proof) VALUES", "Receipt,Proof,MetaDataJson,MetaDataProof) VALUES")
+                .Replace("$receipt,$proof)", "$receipt,$proof,$metadata,$metadataProof)")
+                .Replace("Proof=excluded.Proof;", "Proof=excluded.Proof,MetaDataJson=excluded.MetaDataJson,MetaDataProof=excluded.MetaDataProof;");
+            command.Parameters.AddWithValue("$metadata",metadata);
+            command.Parameters.AddWithValue("$metadataProof",codec.Encrypt(MetadataContext(projection.Id,projection.VersionId),metadata));
+        }
         command.Parameters.AddWithValue("$id",projection.Id);command.Parameters.AddWithValue("$version",projection.Version);
         command.Parameters.AddWithValue("$versionId",projection.VersionId);command.Parameters.AddWithValue("$deleted",projection.IsDeleted);
         command.Parameters.AddWithValue("$owner",projection.CreatedByAvatarId);command.Parameters.AddWithValue("$public",projection.IsPublic);
@@ -88,6 +100,7 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
 (SELECT MAX(h.Version) FROM CosmicChainIndexHistory h WHERE h.Id=r.Id),
 (SELECT h.Receipt FROM CosmicChainIndexHistory h WHERE h.Id=r.Id AND h.Version=r.Version) FROM CosmicChainIndexRows r;
 """;
+        if(metadataPolicy!=null)command.CommandText=command.CommandText.Replace(" FROM CosmicChainIndexRows r;", ",r.MetaDataJson,r.MetaDataProof FROM CosmicChainIndexRows r;");
         using var reader=command.ExecuteReader();while(reader.Read()){
             if(new[]{1,3,5,9}.Any(index=>reader.GetFieldType(index)!=typeof(long))
                 ||new[]{0,2,4,7,8,10}.Any(index=>reader.GetFieldType(index)!=typeof(string))
@@ -98,6 +111,12 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
             if(reader.IsDBNull(9)||reader.IsDBNull(10)||projection.Version!=reader.GetInt32(9)||projection.Receipt!=reader.GetString(10)
                 ||codec.Decrypt(context+"/projection/"+projection.Id,reader.GetString(8))!=JsonSerializer.Serialize(projection))
                 throw new InvalidDataException("Current query projection differs from its authenticated source history.");
+            if(metadataPolicy!=null)
+            {
+                if(reader.GetFieldType(11)!=typeof(string)||reader.GetFieldType(12)!=typeof(string)
+                    ||codec.Decrypt(MetadataContext(projection.Id,projection.VersionId),reader.GetString(12))!=reader.GetString(11))
+                    throw new InvalidDataException("Queryable metadata differs from its authenticated revision/profile.");
+            }
         }
     }
 
@@ -114,14 +133,15 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
             ObjectDisposedException.ThrowIf(disposed,this);
             if(!canonicalRowProjection)return Error<CosmicChainIndexRows>("CQL_CAPABILITY_UNSUPPORTED","This store has no opted-in canonical query projection.");
             if(observer==null||maximumResults<1||maximumResults>10000)return Error<CosmicChainIndexRows>("CQL_QUERY_LIMIT","A source observer and bounded result limit are required.");
-            var admitted=CanonicalRowCapabilities.AdmitIndexedRows(plan,source);if(admitted.IsError)return Error<CosmicChainIndexRows>(admitted.ErrorCode,admitted.Message);
+            var admitted=IndexedRowCapabilities.AdmitIndexedRows(plan,source);if(admitted.IsError)return Error<CosmicChainIndexRows>(admitted.ErrorCode,admitted.Message);
             if(plan.Query.ReadAccess==null||plan.Query.ReadAccess.Authority.HasValue&&plan.Query.ReadAccess.Authority!=source.SourceProvider)
                 return Error<CosmicChainIndexRows>("CQL_ACCESS_INVALID","A server-bound matching actor read policy is required.");
             var sql=HolonRepository.CompileChainIndexRows(plan.Query); // Full translation precedes storage/source I/O.
             cancellationToken.ThrowIfCancellationRequested();
             var raw=new List<CosmicChainQueryObservedRecord>();CosmicChainQueryCheckpoint checkpoint=null;
             var snapshot=await CosmicIndexedReadAttempts.ExecuteIndexSnapshotAsync(source,()=>{
-            using(var connection=Open())using(var transaction=connection.BeginTransaction(deferred:true)){
+            using(var connection=Open())using(var budget=metadataPolicy==null?null:new SqliteCqlReadBudget(connection,cancellationToken))
+            using(var transaction=connection.BeginTransaction(deferred:true)){
                 var state=ReadState(connection,transaction);if(state==null)return Task.FromResult(Error<bool>("CQL_SOURCE_EVIDENCE_MISSING","Index has no complete checkpoint."));
                 ValidateQueryProjection(connection,transaction,state);checkpoint=state.Checkpoint;
                 using var command=connection.CreateCommand();command.Transaction=transaction;
@@ -136,6 +156,7 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                     if(columns!=null)selectedCells.Add(new CosmicProjectionRow(columns.Select((column,index)=>
                         ProjectionSqlValue(reader,index+2,column.Path)).ToArray()));
                 }
+                budget?.Check();
             }
                 return Task.FromResult(new OASISResult<bool>(true));
             },cancellationToken);

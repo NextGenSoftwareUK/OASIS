@@ -59,6 +59,6 @@ metadata/other aggregates/selected stages, scaling and full parity remain open.
 Shared continuous ingestion session now serializes compare-and-publish, advances
 only positively acknowledged cursors and latches failures. Core13newcases pass;
 live host advances3308→3320 with LongCount1, no source writes, clean teardown.
-Shared queryable metadata export policy and exact source-root admission now pass17focusedcases; persistent schema3 projection is next (CQL_INDEXED_METADATA.md);
+Shared queryable metadata export policy and exact source-root admission now pass17focusedcases; schema3 SQLite rows/cardinality now pass22newcases (98indexed/205fullprovider), next SDK/WEB4/live dataset acceptance (CQL_INDEXED_METADATA.md);
 incremental transport and production worker scheduling/accounting remain open.
 See CURRENT_STATUS and CQL_INDEXED_HTTP.md for evidence scope.
