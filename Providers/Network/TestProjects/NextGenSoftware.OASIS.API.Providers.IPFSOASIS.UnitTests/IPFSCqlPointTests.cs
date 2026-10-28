@@ -20,6 +20,7 @@ public class IPFSCqlPointTests
     [InlineData("cancelled")] [InlineData("inactive")] [InlineData("unsupported")]
     [InlineData("empty-window")] [InlineData("bad-root")] [InlineData("bad-record")]
     [InlineData("oversized")]
+    [InlineData("keyset")] [InlineData("keyset-window")] [InlineData("keyset-corrupt")] [InlineData("keyset-budget")]
     public async Task PointProfileAuthenticatesTheCurrentSourceAndEnforcesAccessBeforePublication(string scenario)
     {
         var checkout=new DirectoryInfo(AppContext.BaseDirectory);
@@ -29,7 +30,7 @@ public class IPFSCqlPointTests
         var path=Path.Combine(folder,"owned-dna.json");Assert.False(File.Exists(path));
         var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {StorageProviders=new StorageProviderSettings {
             IPFSOASIS=new IPFSOASISSettings {ConnectionString="http://127.0.0.1:1"}}}};
-        var provider=new IPFSOASIS(dna,path);
+        var provider=new IPFSOASIS(dna,path) { EnableCqlCidKeySets=scenario.StartsWith("keyset") };
         var key=RandomNumberGenerator.GetBytes(32);var flags=BindingFlags.Instance|BindingFlags.NonPublic;
         typeof(IPFSOASIS).GetField("_storageKeyResolver",flags)!.SetValue(provider,(Func<byte[]>)(()=> (byte[])key.Clone()));
         typeof(IPFSOASIS).GetField("_ipfsClient",flags)!.SetValue(provider,new IpfsClient("http://127.0.0.1:1"));
@@ -46,6 +47,42 @@ public class IPFSCqlPointTests
             if(scenario=="deleted")root.DeletedDate=DateTime.UtcNow;
             var saved=await provider.SaveHolonAsync(root);Assert.False(saved.IsError,saved.Message);
             var cid=root.ProviderUniqueStorageKey[ProviderType.IPFSOASIS];
+            if(scenario.StartsWith("keyset"))
+            {
+                var records=new List<Holon>{root};
+                // Three encrypted native records; the query selects two of them, not the
+                // entire catalogue. Read access excludes the first private record.
+                for(var index=0;index<2;index++)
+                {
+                    var other=new Holon{Id=Guid.NewGuid(),IsPublic=true};
+                    Assert.False((await provider.SaveHolonAsync(other,saveChildren:false)).IsError);
+                    records.Add(other);
+                }
+                var keys=records.Select(row=>row.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]).ToArray();
+                var selected=new[]{keys[0],keys[2]};
+                var batch=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.IPFSOASIS).Result)
+                    .Where(row=>selected.Contains(CosmicQueryMetadata.Value<string>(row,IPFSOASIS.CqlRecordCidKey))).Result;
+                if(scenario!="keyset-budget")batch=batch.WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result).Result;
+                if(scenario=="keyset-window")batch=batch.Skip(1).Result;
+                if(scenario=="keyset-corrupt"){
+                    transport.Corrupt=keys[2];batch=batch.Take(0).Result;
+                }
+                var batchPlan=CosmicQueryPlanner.Plan(batch,ProviderType.IPFSOASIS,
+                    new[]{new CosmicQueryTarget(ProviderType.IPFSOASIS,provider.QueryCapabilities)});
+                Assert.False(batchPlan.IsError,batchPlan.Message);
+                var reads=transport.Cats;var writes=transport.Adds;
+                var batchResult=await provider.ExecuteCosmicQueryAsync(batchPlan.Result,maximumResults:1);
+                Assert.Equal(3,transport.Cats-reads);Assert.Equal(writes,transport.Adds);
+                if(scenario is "keyset-corrupt" or "keyset-budget"){
+                    Assert.True(batchResult.IsError);Assert.Null(batchResult.Result);
+                    Assert.Equal(scenario=="keyset-budget"?"CQL_QUERY_LIMIT":"CQL_QUERY_FAILED",batchResult.ErrorCode);
+                }else{
+                    Assert.False(batchResult.IsError,batchResult.Exception?.ToString());
+                    if(scenario=="keyset-window")Assert.Empty(batchResult.Result);
+                    else Assert.Equal(records[2].Id,Assert.Single(batchResult.Result).Id);
+                }
+                return;
+            }
             var recordKey=scenario=="missing"?"Qmc1XJWAyg3FyUwbzG9SpL1sQiwxnyUHPyxbt5vYL5Rzdh":scenario=="invalid"?"not-a-cid":cid;
             var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.IPFSOASIS).Result)
                 .Where(h=>CosmicQueryMetadata.Value<string>(h,IPFSOASIS.CqlRecordCidKey)==recordKey).Result;
