@@ -19,7 +19,7 @@ Declared target frameworks: `net10.0`.
 Direct external package references:
 
 - `NextGenSoftware.OASIS.API.Core`
-- `AWSSDK.S3`
+- Shared S3 provider library (official `AWSSDK.S3` 3.7.502)
 
 Project references and conditional dependency versions are recorded in the source project. NuGet restore resolves packaged dependencies; do not mix arbitrary DLLs from different release graphs.
 
@@ -28,6 +28,16 @@ Project references and conditional dependency versions are recorded in the sourc
 Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
+
+## Encrypted storage configuration
+
+The endpoint/access-key constructor requires `OASIS_MINIO_STORAGE_KEY`: canonical Base64 for a separately persisted 32-byte encryption key. Keep it in protected host configuration, independent of S3 signing credentials; retain the same key across restarts. The provider never generates or replaces this key. Alternatively pass a `Func<byte[]>` key resolver to the explicit constructor; return a temporary copy because its buffer is zeroed after copying.
+
+Provision the bucket before activation. The adapter uses the shared S3 transport and record policy, encrypted values and opaque keyed indexes. Existing `oasis-avatars/`, `oasis-avatar-details/`, `oasis-holons/` or `oasis-indexes/` objects cause an explicit refusal before reads/writes in the new layout. Preserve them for a reviewed migration; no automatic reset, import or plaintext fallback occurs.
+
+`useSSL` must agree with the endpoint scheme. An injected `IAmazonS3` must use `MaxErrorRetry=0`; caller ownership is the default. Dispose the provider to zero its private key state, and dispose a caller-owned client separately. Activation validates an existing bucket; it does not create buckets. Default holon deletion remains soft; `DeleteHolonSoftAsync(id, false)` requests permanent deletion.
+
+Native service acceptance is distinct from controlled SDK-response tests. The opt-in integration binding uses the canonical core storage suite, an isolated pre-existing empty bucket, explicit test key and independent empty-bucket checks. It retains original failed reports and does not sweep arbitrary bucket contents.
 
 ## Errors and security
 
