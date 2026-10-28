@@ -92,6 +92,7 @@ public partial class SQLLiteDBOASISIntegrationTests
             :await provider.ExecuteReplicatingHolonWriteAsync(request,enrollment);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var committed=result.Result.Single();
+        await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(provider.GetHolonReplicationOutbox().Result,enrollment.TargetIds,request.Write.OperationId);
         using var connection=new SqliteConnection(TestConnectionString);connection.Open();
         using var query=connection.CreateCommand();query.CommandText="SELECT TargetId,PayloadJson,PayloadDigest FROM CosmicHolonOutbox ORDER BY Sequence";
         var payloads=new List<string>();

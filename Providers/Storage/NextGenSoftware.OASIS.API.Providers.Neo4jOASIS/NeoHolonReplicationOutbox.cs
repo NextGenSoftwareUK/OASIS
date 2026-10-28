@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,7 +16,7 @@ using INode=Neo4j.Driver.INode;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 /// <summary>Fenced delivery over an existing enrolled graph database. The caller retains driver ownership.</summary>
-public sealed class NeoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
+public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
 {
     private readonly IDriver _driver;
     private const string Now="(datetime.realtime().epochMillis * 10000 + 621355968000000000)";
@@ -101,6 +102,21 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
             return (new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,targetId,value.State,value.Attempts,
                 Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence)),false);
         },()=>Identity(targetId),cancellationToken);
+
+    public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
+        string afterTargetId=null,CancellationToken cancellationToken=default)
+        =>Execute(async tx=>{
+            var rows=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox) WHERE o.DeliveryState<>'Completed' "
+                +"AND ($after IS NULL OR o.TargetId > $after) WITH o.TargetId AS target,min(o.Sequence) AS first "
+                +"MATCH (o:CosmicHolonOutbox {Sequence:first}) RETURN o ORDER BY target LIMIT $limit",
+                new{after=afterTargetId,limit=pageSize+1}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
+            var heads=rows.Select(record=>{
+                var row=record["o"].As<INode>();var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+                return new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,Text(row,"TargetId"),value.State,value.Attempts,
+                    Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence);
+            }).ToArray();
+            return (new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize)),false);
+        },()=>HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId),cancellationToken);
 
     private static async Task<(INode Row,long Now)?> LockOwned(IAsyncTransaction tx,HolonDeliveryClaim claim)
     {
