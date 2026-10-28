@@ -237,7 +237,7 @@ These remain explicit roadmap items; they do not inflate EF/NHibernate parity.
 | X08 | Per-save committed delta/history API (full parent scope) | ❌ | ❌ | ❌ | Parent retained red. X08a is the separately scoped demo summary child; [historical stored-value authorization/decryption, old-key access, retention and tooling remain missing](Archive/COMMITTED_DELTAS.md#values-encryption-and-membership). Full parent completion is not inferred from its child. |
 | X08a | Operation-bound committed change summaries: added/removed/modified paths, create/update/hard-delete classification, original-summary recovery | [✅][SV] | [✅][SV] | [✅][SV] | **DEMO** — [Save steps 3–10][SV]: local preview, operation-bound committed path/classification summaries, original summary after update/delete, and foreign-actor rejection. [All-three gate][G]. Full parent X08 remains red. |
 | X09 | Web2/web3 migration with resumable verified equivalence | ❌ | ❌ | ❌ | Full migration acceptance remains open. |
-| X10 | HyperDrive V2 replica convergence/placement under failures | ❌ | ❌ | ❌ | Broader provider programme; not certified by CQL tests. |
+| X10 | HyperDrive V2 replica convergence/placement under failures | ❌ | ❌ | ❌ | Broader provider programme; not certified by CQL tests. [Owned-save routing submission tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicOwnedReplicationRoutingTests.cs) prove10controlled boundary cases only; native routing/commit/delivery acceptance remains open. |
 
 ## Investor demo priority and work ordering
 
