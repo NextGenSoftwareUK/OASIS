@@ -18,3 +18,12 @@
 
 [Original scope/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md)
 preserves requirements; none is removed by this status consolidation.
+
+
+Incoming native import refresh:SQLite reader3/3real-file cases pass on mergedCoree6bc667.
+This covers discovery/paging, stable keys/types and invalid-source rejection; all
+owned synthetic databases removed. Evidence TestResults/NativeImportCurrent/sqlite-native-reader.trx
+SHA2564B262EA2C14F4E2E9C04834444946008C6935F9DC18E59127253FD2FA9E568BF.
+Next migration-demo gap:real native data → shared import/save → CQL, including
+per-avatar identity/reimport behavior. This is separate from schema-migration tooling
+and does not resume paused LINQ depth or certify other providers' native readers.
