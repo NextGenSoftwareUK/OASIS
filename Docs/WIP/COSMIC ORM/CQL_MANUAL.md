@@ -365,7 +365,7 @@ These terminals preserve admitted child-graph depth, snapshot and resource optio
 
 Neo4j Q01e now passes the same element/graph/visibility cases under its admitted provider-default consistency. A requested `ProviderSnapshot` returns `CQL_CONSISTENCY_UNSUPPORTED`; no snapshot guarantee is inferred from sharing a transaction. Neo post-window element capture admits at most10,000 source-page roots; a larger offset-only page returns `CQL_QUERY_LIMIT` without publishing a truncated match. SQLite/MongoDB snapshot support is unchanged.
 
-General entity stages after paging (Q01f) remain unfinished on SQLite/MongoDB/Neo4j. A shared explicit `source.Compose()` contract now captures later Where/order/Skip/Take stages without changing the original source; it executes only through adapters implementing the independent entity-stage interface. The standard IQueryable bridge now preserves these stages and rebinds captured values per execution. SQLite now enrolls native entity filter/order/window stages, with one serializable read owner, source row/payload and cumulative stage-work limits. Focused native and V2 tests pass, including typed hydration/change tracking, deferred capture, graph visibility/depth under ProviderSnapshot, and protected traversal cycles/limits before later empty windows. Full cross-database matrix and staged terminal/projection integration remain pending. MongoDB now implements entity stages through the same native snapshot/deadline owner as row and graph queries: it validates bounded source and stage outcomes before later windows, without managed filtering/sorting. Compiler/admission tests and 18 live native cases pass on MongoDB (also on SQLite): source windows, closures/tracking, relationship error visibility, source/work budgets and graph depth/visibility/snapshot. Neo4j now implements these entity stages in one native statement, preserving bounded input references, stage ordering, protected traversal outcomes and cumulative work across later windows. Its existing row owner validates streamed input snapshots and final output budgets. Neo graph consistency is ProviderDefault; ProviderSnapshot requests return CQL_CONSISTENCY_UNSUPPORTED. All three have live entity-stage, element and final-projection acceptance. SQLite now also supports selected stages after entity selection; Mongo/Neo combined enrollment and remaining terminal integration are pending.
+General entity stages after paging (Q01f) remain unfinished on SQLite/MongoDB/Neo4j. A shared explicit `source.Compose()` contract now captures later Where/order/Skip/Take stages without changing the original source; it executes only through adapters implementing the independent entity-stage interface. The standard IQueryable bridge now preserves these stages and rebinds captured values per execution. SQLite now enrolls native entity filter/order/window stages, with one serializable read owner, source row/payload and cumulative stage-work limits. Focused native and V2 tests pass, including typed hydration/change tracking, deferred capture, graph visibility/depth under ProviderSnapshot, and protected traversal cycles/limits before later empty windows. Full cross-database matrix and staged terminal/projection integration remain pending. MongoDB now implements entity stages through the same native snapshot/deadline owner as row and graph queries: it validates bounded source and stage outcomes before later windows, without managed filtering/sorting. Compiler/admission tests and 18 live native cases pass on MongoDB (also on SQLite): source windows, closures/tracking, relationship error visibility, source/work budgets and graph depth/visibility/snapshot. Neo4j now implements these entity stages in one native statement, preserving bounded input references, stage ordering, protected traversal outcomes and cumulative work across later windows. Its existing row owner validates streamed input snapshots and final output budgets. Neo graph consistency is ProviderDefault; ProviderSnapshot requests return CQL_CONSISTENCY_UNSUPPORTED. All three have live entity-stage, element and final-projection acceptance. SQLite and MongoDB now also support selected stages after entity selection; Neo combined enrollment and remaining terminal integration are pending.
 
 Entity-stage cardinality has a separate `ICosmicQueryEntityCountStorageProvider` contract and `HolonManager.ExecuteEntityCountQueryAsync` owner. SQLite now enrolls native entity count: the final SQL relation is reduced inside the same source/stage proof transaction, without application constructors or final graph expansion. MongoDB also enrolls native entity count through its scalar snapshot/deadline owner, validating source/stage proofs before the native reduction. Nine live count cases pass each on SQLite/MongoDB. Neo4j also enrolls native count: size(selected) is emitted independently of source payload proofs, with sticky traversal/work outcomes and one read owner. Nine native count cases pass per database. Standard staged Count/LongCount/Any/All now use this native count contract on all three providers. Terminal predicates append after prior stages; All counts native counterexamples. No entity materialization or final graph expansion substitutes for reduction. A native count must preserve every preceding stage/protected outcome, acknowledge completion, fit source/window bounds and avoid entity materialization or graph expansion as a substitute for reduction.
 
@@ -452,7 +452,7 @@ Holon last = featured.LastOrDefault(holon => holon.Version >= 2, empty);
 
 The supplied reference is returned only after a successful native empty result. Present rows use normal typed hydration/tracking. Single ambiguity, protected traversal errors, incomplete acknowledgements and storage failures propagate; none return the supplied default instead.
 
-Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. All three providers now enroll native entity projection and final standard Select; selected-stage/numeric integration remains pending. Broader provider demo now takes priority.
+Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. All three providers now enroll native entity projection and final standard Select. SQLite/Mongo combined selected stages are also verified; Neo combined enrollment and remaining terminal integration are pending. Broader provider demo now takes priority.
 # Azure Cosmos DB canonical rows (27 October 2026)
 
 Cosmos now implements the standard `ICosmicQueryStorageProvider` row contract.
@@ -980,7 +980,7 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite now supports native Where/order/ThenBy/Skip/Take/Reverse after this selection. MongoDB/Neo4j combined enrollment is pending. Reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite and MongoDB now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Neo4j combined enrollment is pending. Reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
 
 For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
 
@@ -1069,12 +1069,12 @@ Neo4j proof:149focused CQL tests (including3new compiler/admission cases) and th
 
 ### Explicit capture of selected stages after entity projection
 
-SQLite now executes the combined entity/selected pipeline natively. MongoDB and
-Neo4j do not yet enroll this combined contract; they return explicit unsupported
+SQLite and MongoDB now execute the combined entity/selected pipeline natively.
+Neo4j does not yet enroll this combined contract; it returns explicit unsupported
 errors before I/O. This feature remains part of red Q01f.
 
 ```csharp
-// `query` is an explicitly SQLite-bound IQueryable from CosmicLinq.Create.
+// `query` is an explicitly SQLite- or MongoDB-bound IQueryable from CosmicLinq.Create.
 // First keep a page of entities, then reverse that page.
 var page = query
     .OrderBy(holon => holon.Name)
@@ -1107,7 +1107,7 @@ selected input cell, then each selected stage. The shared owner validates comple
 selected participation/proofs before DTO construction. Input order here is the
 final native entity-stage order; the original source ordering is not reapplied.
 The flat composition entry point rejects combined plans. No application source
-entities are constructed, and no managed filtering/sorting substitutes for SQL.
+entities are constructed, and no managed filtering/sorting substitutes for native SQL or Mongo aggregation.
 
 Explicit captured literals are immutable; standard LINQ closures rebind at each
 read. Existing exact-column/domain rules,32 selected-stage and10000-window bounds
@@ -1117,3 +1117,12 @@ Later Take(0) cannot hide invalid selected inputs or protected entity errors.
 Combined graph sources, reselection and element/cardinality/numeric terminals
 after this selection remain unsupported; ordinary entity-stage terminals and
 flat selected terminals retain their existing separate supported scopes.
+
+MongoDB carries the final effective entity ordering and identity direction into
+native selected ranks; it never sorts that input back into the original source
+order. Source/entity-stage proof, complete selected-input decoding and every
+selected stage share the same30second deadline/snapshot session. Nine combined
+native cases cover ordering and reversed ties, original offsets, exact Int64/
+UInt64/decimal, per-read closures, hidden invalid cells and protected scope/budget
+failures. The fixture is removed only after success; a pending journal must be
+preserved/reconciled before another run.
