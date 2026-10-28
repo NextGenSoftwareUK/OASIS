@@ -29,7 +29,7 @@ These are captured local-engine/emulator or public-read results, not full provid
 
 ## Exact next steps
 
-1. Next: inspect AWS/S3 shared-suite binding against the existing MinIO CI service; reuse that service instead of adding a local runtime. Oracle cloud access was rechecked absent. SQLite baseline52/52 +101controls is complete; no deeper SQLite work.
+1. Next: wire the opt-in AWS SDK / MinIO canonical-suite binding into the existing MinIO CI service; build passed, two native cases skipped without explicit configuration (not certified). Reuse that service instead of adding a local runtime. Oracle cloud access was rechecked absent. SQLite baseline52/52 +101controls is complete; no deeper SQLite work.
 2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
 3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
 4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
