@@ -10,9 +10,10 @@
 
 Current evidence28October:protocol native multi-record/HTTP and Mongo-paired browser
 presets pass for IPFS/SOLID/ActivityPub; Solana functional browser passes with no source
-writes/reseed. Screenshot/layout QA remains unavailable. Hosted Azure remains open
-(free-only authenticated setup missing). Mongo+Solana needs an explicit mixed
-native/indexed contract; [audit and next sequence](CQL_MIXED_FEDERATION_ADMISSION.md).
+writes/reseed. Oracle and mixed Mongo+Solana screenshots now inspected/readable;
+Mongo+Solana mixed SDK/HTTP/browser2matching/0empty gates pass with original receipts.
+Hosted Azure remains open (free-only authenticated setup missing). Mixed contract
+and explicit reader dispatch are implemented; [audit and next sequence](CQL_MIXED_FEDERATION_ADMISSION.md).
 Below is the27October provider selection baseline, not the current acceptance ledger;
 use CURRENT_STATUS.md and linked proving reports for current status.
 
