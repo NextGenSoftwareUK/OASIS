@@ -29,6 +29,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>The databases sandbox demo avatars use for failover, replication and load balancing.</summary>
         public const string SandboxProviders = "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS";
 
+        private static readonly SandboxSessionLimiter SessionLimiter = new SandboxSessionLimiter();
+
         /// <summary>
         /// Creates a fresh, verified demo avatar for this visitor and signs it in. Sandbox avatars live only in the
         /// sandbox's own databases, so visitors can try everything without an OASIS account.
@@ -38,6 +40,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (!ProviderFaultGate.IsEnabled)
                 return NotFound();
+
+            // The demo button is public, so cap how many avatars one address and the whole sandbox can create.
+            if (!SessionLimiter.TryAcquire(HttpContext.Connection.RemoteIpAddress?.ToString(), out var limit))
+                return StatusCode(429, new OASISResult<IAvatar> { IsError = true, Message = limit });
 
             string suffix = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant();
             string username = $"sandbox-{suffix}";
