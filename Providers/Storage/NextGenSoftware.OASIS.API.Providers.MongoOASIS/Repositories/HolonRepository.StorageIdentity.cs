@@ -20,7 +20,6 @@ public partial class HolonRepository
         // provider ConnectionString/DBName/Database may have changed independently.
         var database = _dbContext.MongoDB ?? throw new InvalidOperationException("The repository native database is closed.");
         var collection = database.GetCollection<Entities.Holon>(MongoDbContext.HolonCollectionName);
-        var settings = database.Client.Settings;
         using var cursor = await database.ListCollectionsAsync(new ListCollectionsOptions
         { Filter = new BsonDocument("name", collection.CollectionNamespace.CollectionName) }, cancellationToken).ConfigureAwait(false);
         var entries = await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
@@ -32,6 +31,12 @@ public partial class HolonRepository
         var identity = uuid.AsBsonBinaryData.ToGuid(GuidRepresentation.Standard);
         if (identity == Guid.Empty) throw new InvalidDataException("The native holon collection UUID is empty.");
 
+        return StorageIdentity(database, identity);
+    }
+
+    private static CosmicStorageIdentity StorageIdentity(IMongoDatabase database, Guid identity)
+    {
+        var settings = database.Client.Settings;
         // Only actual namespace, seed endpoints and connection topology enter the
         // digest. Credentials and mutable public descriptors are excluded.
         var fields = new[] { "mongo-storage-endpoint-v1", database.DatabaseNamespace.DatabaseName,
@@ -42,4 +47,42 @@ public partial class HolonRepository
         var endpoint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(canonical))).Replace("-", "");
         return new CosmicStorageIdentity(ProviderType.MongoDBOASIS, endpoint, identity);
     }
+
+    private static async Task ValidateReplicaStorageBindingAsync(IMongoDatabase database, IClientSessionHandle session,
+        CosmicStorageIdentity expected, CancellationToken token)
+    {
+        if (expected == null) return;
+        if (!Guid.TryParseExact(expected.StoreId, "D", out var uuid) || uuid == Guid.Empty || uuid.ToString("D") != expected.StoreId)
+            throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID", "A canonical native Mongo collection UUID is required.");
+        if (StorageIdentity(database, uuid).BindingFingerprint != expected.BindingFingerprint)
+            throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH", "The native Mongo endpoint does not match the enrolled receiver.");
+        try
+        {
+            // Mongo's native UUID assertion and namespace acquisition share the
+            // transaction. A separate listCollections preflight would race DDL.
+            // No documents or persistent cursor are requested by this admission.
+            var command = new BsonDocument {
+                { "find", MongoDbContext.HolonCollectionName },
+                { "collectionUUID", new BsonBinaryData(uuid, GuidRepresentation.Standard) },
+                { "filter", new BsonDocument("$expr", false) },
+                { "singleBatch", true }, { "limit", 1 }
+            };
+            var response = await database.RunCommandAsync<BsonDocument>(session, command,
+                ReadPreference.Primary, token).ConfigureAwait(false);
+            if (!response.TryGetValue("cursor", out var cursor) || !cursor.IsBsonDocument ||
+                cursor["id"] != 0 || !cursor.AsBsonDocument.TryGetValue("firstBatch", out var batch) ||
+                !batch.IsBsonArray || batch.AsBsonArray.Count != 0)
+                throw new MongoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID", "Native UUID admission returned an unexpected cursor.");
+        }
+        catch (MongoCommandException cause)
+        {
+            var mismatch = cause.CodeName == "CollectionUUIDMismatch" || cause.Code == 361 || cause.Code == 26;
+            throw new MongoReplicaStorageBindingException(mismatch ? "COSMIC_REPLICA_STORAGE_BINDING_MISMATCH"
+                : "COSMIC_REPLICA_STORAGE_BINDING_INVALID", "Native collection UUID admission was refused; no unbound apply was attempted.", cause);
+        }
+    }
 }
+
+internal sealed class MongoReplicaStorageBindingException(string code, string message, Exception cause = null)
+    : InvalidOperationException(message, cause)
+{ internal string Code { get; } = code; }

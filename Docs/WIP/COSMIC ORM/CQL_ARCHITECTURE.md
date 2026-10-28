@@ -350,5 +350,9 @@ Explicit catalogs may use a native `CosmicStorageIdentity` and
 bound-route contract and passes the captured identity into the receiver transaction.
 SQLite checks its native file/identity row under BEGIN IMMEDIATE before receipt
 replay or graph writes. Neo reads db.info on the write transaction before receipt
-replay, holding the driver lifecycle gate through completion. Mongo admission remains open. This is separate from CQL read assurance and policy admission.
+replay, holding the driver lifecycle gate through completion. Mongo asserts native
+collectionUUID with a first transactional empty find before receipt replay and pins
+all helper namespaces to the same database/client. This server field is unstable API;
+local8.3.11 proof does not certify every server/StableAPI deployment. Refusal fails
+closed. Automatic type-only enrollment/delivery remains unbound. This is separate from CQL read assurance and policy admission.
 [Implementation, tests and open automatic-route scope](REPLICA_STORAGE_BINDING.md).

@@ -13,6 +13,7 @@ public sealed record PlannedHolonWrite(IHolon Source,Holon Snapshot)
     public bool SelectsChildren { get; init; }
     public string CapturedIntentJson { get; init; }
     public IReadOnlyList<Guid> SelectedChildIds { get; init; } = Array.Empty<Guid>();
+    public HolonChildCollectionState CapturedChildSelection { get; init; }
     public HolonChildRoleManifest RelationshipManifest { get; init; }
 }
 
@@ -80,7 +81,7 @@ public static class HolonGraphWritePlan
                 if(manifest.ParentId!=node.Snapshot.Id || !new HashSet<Guid>(manifest.Roles.SelectMany(role=>role.ChildIds))
                     .SetEquals(node.SelectedChildIds))
                     throw new ArgumentException("Captured logical roles differ from the selected native graph.");
-                nodes[index]=node with { RelationshipManifest=manifest };
+                nodes[index]=node with { RelationshipManifest=manifest, CapturedChildSelection=membership };
             }
             OasisJson.Serialize(node.Snapshot);
         }
