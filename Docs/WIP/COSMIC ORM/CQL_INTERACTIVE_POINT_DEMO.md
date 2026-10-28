@@ -132,8 +132,12 @@ through stock admission/measurement with controlled demo identity and outbox.
 They do not certify production authentication or durable external settlement.
 
 The host reopens the retained index over the existing acknowledged synthetic
-source. It never seeds or submits transactions. Its startup snapshot has a500-slot
-lag ceiling; ongoing ingestion remains open and stale queries fail explicitly.
+source. It never seeds or submits transactions. A separate five-second ingestion
+schedule advances the authenticated index using bounded complete declared-range
+re-observation. This is not an incremental source cursor: the existing1000-record/
+16MiB batch limits remain. Query freshness retains its500-slot ceiling. The first
+ingestion failure stops the session, blocks queries and surfaces the original error;
+there is no retry/rebase after uncertainty or a concurrent publisher conflict.
 At most100interactive query requests are accepted before the host returns429.
 The teaching/health/shutdown routes do not reserve usage or enter storage admission.
 
@@ -155,3 +159,14 @@ TestResults/SolanaCurrent/solana-indexed-http-native.trx/json and
 TestResults/ProtocolCqlCurrent/solana-interactive-lifecycle.json.
 Browser rendering/button automation has not been verified; HTTP page/API/lifecycle
 are verified. The readable teaching page is Examples/CosmicCqlDemo/IndexedChainDemoPage.cs.
+
+Continuous-ingestion acceptance: the shared Core session serializes advancement,
+returns only acknowledged checkpoints and latches failures. The live host advanced
+3308→3320 while serving; LongCount remained1 and used the advanced checkpoint or
+newer. `/health` exposes advancement count, acknowledged slot and failure code.
+Stopping cancels scheduling, then awaits an in-flight bounded publication before
+index/validator disposal. Native bounded and continuous lifecycle modes both pass.
+The ingestion worker is outside query reservations; production scheduling, worker
+cost accounting and incremental range transport remain open. Evidence:
+TestResults/ProtocolCqlCurrent/index-ingestion-session-live-lifecycle.json and
+TestResults/SolanaCurrent/solana-indexed-http-native.trx/json.

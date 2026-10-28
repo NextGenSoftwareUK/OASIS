@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 public partial class SolanaIndexedQueryNative
 {
     private static async Task<object> VerifyNativeHttpAsync(HolonManager manager, SqliteCosmicChainIndexStore index,
-        SolanaRepository repository, CosmicChainQuerySource source, CosmicChainQueryReadRequirement requirement, Seed seed)
+        SolanaRepository repository, CosmicChainQuerySource source, CosmicChainQueryReadRequirement requirement, Seed seed, CosmicChainQueryPosition acknowledgedPosition)
     {
         // The live validator and durable index supply the data. This test owns a
         // controlled validated identity and ledger; it does not certify JWT/Mongo.
@@ -67,9 +67,42 @@ public partial class SolanaIndexedQueryNative
         await using var app = builder.Build();
         app.UseRouting();
         var ready = false;
+        var ingestionSession = new CosmicChainQueryIngestionSession(repository, index, requirement, acknowledgedPosition);
+        using var stopScheduling = new CancellationTokenSource();
+        Task<OASISResult<bool>>? ingestion = null;
+        var advancements = 0;
+
+        async Task<OASISResult<bool>> AdvanceIndexAsync()
+        {
+            // Each bounded observation uses the shared complete-range proof and
+            // atomic publisher. No query triggers this separate ingestion path.
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            var advanced = await ingestionSession.AdvanceAsync(timeout.Token);
+            if (advanced.IsError) return new() { IsError = true, ErrorCode = advanced.ErrorCode, Message = advanced.Message, Exception = advanced.Exception };
+            Interlocked.Increment(ref advancements);
+            return new(true);
+        }
+
+        async Task<OASISResult<bool>> IngestUntilStoppedAsync()
+        {
+            while (!stopScheduling.IsCancellationRequested)
+            {
+                var advanced = await AdvanceIndexAsync();
+                if (advanced.IsError) return advanced; // Stop, preserve state and surface the original failure.
+                try { await Task.Delay(TimeSpan.FromSeconds(5), stopScheduling.Token); }
+                catch (OperationCanceledException) when (stopScheduling.IsCancellationRequested) { break; }
+            }
+            return new(true);
+        }
         var interactiveRequests = 0;
         var shutdown = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         app.Use(async (http, next) => {
+            if (ingestionSession.FailureCode != null && http.Request.Path.StartsWithSegments("/api/data/query-cql"))
+            {
+                http.Response.StatusCode = 503;
+                await http.Response.WriteAsJsonAsync(new { code = ingestionSession.FailureCode, message = "Ingestion stopped; reconcile before resuming." });
+                return;
+            }
             if (Volatile.Read(ref ready) && http.Request.Path.StartsWithSegments("/api/data/query-cql") &&
                 Interlocked.Increment(ref interactiveRequests) > 100)
             {
@@ -95,7 +128,11 @@ public partial class SolanaIndexedQueryNative
             status = Volatile.Read(ref ready) ? "ready" : "verifying", sourceProvider = source.SourceProvider.ToString(),
             executionProvider = source.ExecutionProvider.ToString(), source.NetworkIdentity,
             source.IndexId, coverageStart = seed.CoverageStart.ToString(),
-            identity = "controlled local demo", sourceWrites = 0, remainingInteractiveQueries = Math.Max(0, 100 - interactiveRequests)
+            identity = "controlled local demo", sourceWrites = 0,
+            ingestion = new { advancements = Volatile.Read(ref advancements), failureCode = ingestionSession.FailureCode,
+                checkpointSlot = ingestionSession.AcknowledgedPosition.Slot.ToString(), intervalSeconds = 5,
+                profile = "bounded complete declared-range re-observation; no incremental cursor" },
+            remainingInteractiveQueries = Math.Max(0, 100 - interactiveRequests)
         }));
         app.MapPost("/demo/shutdown", () => {
             shutdown.TrySetResult();
@@ -240,24 +277,49 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(13, authorityEvidence.Settlements.Count);
             // Native acceptance finishes before optional interactive queries become available.
             // Shutdown releases the index and runner-owned validator without deleting source state.
+            var initialAdvance = await AdvanceIndexAsync();
+            Assert.IsFalse(initialAdvance.IsError, initialAdvance.ErrorCode + ": " + initialAdvance.Message);
             Volatile.Write(ref ready, true);
             if (serve)
             {
                 Console.WriteLine("CQL Solana demo ready: " + address);
-                await shutdown.Task;
+                ingestion = IngestUntilStoppedAsync();
+                var ended = await Task.WhenAny(shutdown.Task, ingestion);
+                if (ended == ingestion)
+                {
+                    var stoppedIngestion = await ingestion;
+                    Assert.IsFalse(stoppedIngestion.IsError, stoppedIngestion.ErrorCode + ": " + stoppedIngestion.Message);
+                }
             }
             else
             {
+                var secondAdvance = await AdvanceIndexAsync();
+                Assert.IsFalse(secondAdvance.IsError, secondAdvance.ErrorCode + ": " + secondAdvance.Message);
+                Assert.IsTrue(ingestionSession.AcknowledgedPosition.Slot >= acknowledgedPosition.Slot);
                 using var stopped = await client.PostAsync("/demo/shutdown", null);
                 Assert.AreEqual(HttpStatusCode.Accepted, stopped.StatusCode);
                 await shutdown.Task.WaitAsync(TimeSpan.FromSeconds(5));
             }
             return new { requests = 27, accepted = 13, rejectedReplays = 13,
-                interactiveRequests, interactive = serve, unsupportedBeforeExecution = 1,
+                interactiveRequests, interactive = serve, ingestionAdvancements = advancements,
+                ingestionCheckpoint = ingestionSession.AcknowledgedPosition.Slot.ToString(), unsupportedBeforeExecution = 1,
                 physicalReadCounts = counts, scalarPhysicalReadCounts = scalarCounts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
                 authentication = "controlled validated identity", sourceWrites = 0 };
         }
-        finally { await app.StopAsync(); }
+        finally
+        {
+            stopScheduling.Cancel();
+            try
+            {
+                // Finish any in-flight publication before disposing the index or validator.
+                if (ingestion != null)
+                {
+                    var finalIngestion = await ingestion;
+                    Assert.IsFalse(finalIngestion.IsError, finalIngestion.ErrorCode + ": " + finalIngestion.Message);
+                }
+            }
+            finally { await app.StopAsync(); }
+        }
     }
 
     private sealed class NativeHttpBindings(Guid actor, CqlIndexedV1Binding binding) : ICqlIndexedV1Bindings

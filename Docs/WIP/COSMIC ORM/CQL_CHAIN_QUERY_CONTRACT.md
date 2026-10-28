@@ -1,6 +1,7 @@
 # Chain query admission contract
 
-Status: implementation design; not an enrolled capability.
+Status: shared indexed contracts and bounded Solana/SQLite execution are implemented;
+remaining broader capabilities and production acceptance remain open.
 27 October 2026. Solana first; IPFS/protocol adapters may reuse the source model.
 
 ## Invariant
@@ -9,10 +10,12 @@ A query result identifies both the authoritative source and the system that
 executed the query. Selecting Solana never authorizes an undisclosed database
 copy, a full-history download followed by managed filtering, or partial results.
 
-Existing shared contracts select `ProviderType` and predicate capabilities.
-They do not yet represent an index identity, a source checkpoint or an explicit
-freshness requirement. `CosmicQueryProviderRows` reports provider and rows only.
-Those contracts therefore cannot honestly admit indexed chain queries today.
+The shared source/index contracts now carry the explicit source network, execution
+provider, immutable index/schema/catalogue binding and freshness requirement.
+Rows/projections preserve source receipts; cardinality authenticates an index
+snapshot and independently observed head. The current declared-range Solana/SQLite
+SDK/LINQ/WEB4 gates prove that bounded profile. They do not certify arbitrary
+metadata, full EF parity or production deployment. See [current status](CURRENT_STATUS.md).
 
 ## Two explicit modes
 
@@ -330,3 +333,27 @@ older positions. Custom observers must obtain and return those observations.
 SQLite queries and the shared ingestion coordinator request anchors; the SDK
 executor and atomic publisher enforce the same shared admission contract.
 This is trusted source observation, not a cryptographic ancestry/inclusion proof.
+
+## Continuous publication ownership
+
+CosmicChainQueryIngestion.PublishCheckpointAsync returns the exact observed
+checkpoint only after the sole atomic publisher returns a complete positive
+acknowledgement. A warning/false/null acknowledgement is uncertain; a thrown
+post-dispatch operation is uncertain. No cursor advances in those cases. Exact
+replay may acknowledge without a new save. The existing Boolean API delegates to
+this owner. Warning-bearing range/record/head observations fail before publication.
+
+CosmicChainQueryIngestionSession owns one serial expected-previous position. A
+concurrent caller gets CQL_INDEX_INGESTION_BUSY without another traversal. Successful
+publication advances that position; any advancement failure latches the original
+code and prevents another source read or publication through that session.
+Reconcile the durable index/source before explicitly constructing a new session.
+Cross-client conflicts remain the publisher's atomic responsibility; no automatic
+rebase, source substitution or retry is introduced.
+
+The demonstration host supplies a five-second schedule with45-second per-advance
+bounds, independent of requests. It uses complete declared-range re-observation,
+not an incremental history cursor;1000records/16MiB limits remain. Shutdown stops
+scheduling and awaits an in-flight publication before disposing its dependencies.
+Production worker lifecycle, ingestion cost accounting and incremental transport
+are separate remaining acceptance items.
