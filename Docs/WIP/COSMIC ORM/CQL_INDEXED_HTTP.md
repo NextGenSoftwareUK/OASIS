@@ -170,3 +170,43 @@ anchors reject with no partial page. Additional finalized block RPCs retain thei
 own billed attempts/receipts. Ingestion also rejects a conflicting minimum before
 SQLite publication. Reproduction evidence is preserved separately as
 TestResults/ProtocolCqlCurrent/index-anchor-repro.trx.
+
+
+## Live Solana source through shipping HTTP (27 October)
+
+One native schedule now passes five HTTP requests against shipping MVC, stock
+Web4UsageLedgerMiddleware/PreparedStorageAdmissionMiddleware, the actual reopened
+SQLite index and retained live Agave4.3.0 validator. Matching rows and empty pages
+return correct source/execution identities, declared coverage and source commit.
+Two identical-key replays return409 without additional read attempts. An unsupported
+graph shape returns400 before another reservation/provider execution.
+
+Rows/empty complete9/6 physical reads in this run, each with separate captured
+attempt/receipt. Exact units and service cost match receipts; the full100-read/$0.10
+ceiling is reserved before execution. The retained seed is reused and no source
+write occurs. Older finalized anchors account for their own actual source reads.
+Counts can vary with source checkpoint/head equality; the test asserts actual
+receipts and settlement, not a fabricated fixed read total.
+
+Identity and ledger/authority are controlled fixtures. RPC, canonical decoder,
+SQLite and controller/middleware execution are real. This does not certify
+production JWT, durable Mongo settlement, hosted deployment, original-record
+recovery or full indexed scalar/projection/metadata capability.
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solana-http -Operation {
+    & Scripts/TestHosts/Run-ReusableSolanaTests.ps1 -IndexedHttpDemo
+}
+```
+
+The explicit SDK seed gate must have completed first. This mode refuses to create
+another seed and reuses its persistent identity/index. Preserve prior native TRX
+and JSON before rerunning; preserve pending/uncertain state for reconciliation.
+The runner starts/stops the owned retained validator, and the test starts/stops
+its loopback MVC host. It does not expose a persistent interactive HTTP server.
+Evidence: TestResults/SolanaCurrent/solana-indexed-http-native.trx/json;
+TestResults/ProtocolCqlCurrent/index-live-http-solana.trx (full799 regression gate).
+The strict ledger fixture is shared with controlled-RPC tests, not a second
+billing implementation or a production persistence substitute.
+
+Native HTTP TRX SHA256: F0C49FC0E6EAFDADD4FF0E233B000409CEBDF7F416763D53DCCD3F9E2C1F3690; JSON: 6503A37C13A53F625D80F5B78FB843DDF3F841E540A721B72ECAED7E820D1EAA; Solana799 TRX: B221F764234D3D3BA13260653275D7B9F8A8B2C490DFCBAD3FB0E856B55E334D. Raw files remain under TestResults; see cleanup ledger for sizes and teardown.

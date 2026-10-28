@@ -637,3 +637,7 @@ freshness and actor policy. It does not submit writes or activate providers.
 [Command, C# usage and evidence](../../Docs/WIP/COSMIC%20ORM/CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
 Local declared-range proof does not establish original-history recovery,
 production billing/authentication or live-source HTTP acceptance.
+
+The companion `-IndexedHttpDemo` native runner now exercises the same source/index
+through shipping HTTP (five requests), then stops its owned host.
+[Command, wire example and limits](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).

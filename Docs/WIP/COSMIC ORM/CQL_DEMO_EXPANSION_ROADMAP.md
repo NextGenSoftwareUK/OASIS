@@ -68,4 +68,5 @@ Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point 
 Live Solana declared-range SDK/index/manager/LINQ and shared C# walkthrough now
 pass against the retained validator with new coverage3073; original recovery stays
 red. [Native command and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
-Next chain gate is live source over HTTP, followed by common-demo capability gaps.
+Live-source shipping HTTP now passes five requests against the same seed/index and
+validator. Next: production authentication/durable billing and common-demo capability gaps.
