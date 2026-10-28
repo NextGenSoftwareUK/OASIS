@@ -5,7 +5,7 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 ## Work and priority
 
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
-- Full ORM/CQL roadmap remains active/incomplete; eight-provider demo breadth precedes parity-only depth.
+- Full ORM/CQL roadmap remains active/incomplete. User28October:pause entity-selected All/element/numeric parity; prioritize demo breadth. Hosted Azure must be free only; never provision paid resources or billable fallbacks.
 - Work only on red checklist cells. Freeze green features/cursors absent a reproducible bug.
 - HyperDriveV2 only; document legacy gaps. Large POCO/migrations tooling stays deferred.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
@@ -22,9 +22,11 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 
 ## Exact next work
 
-1. Integrate All after entity-selected stages/reselection, retaining the complete entity plan, independently enrolled native counterexample reduction and proof-before-result ownership.
-2. Follow with element/numeric terminals and combined graph sources; Q01f stays red until the declared matrix is proved on all3.
-3. Keep broader indexed aggregates/stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity open; do not equate a demo milestone with completion.
+1. Hosted Azure Cosmos (not emulator): create/reuse a genuinely free test account only, validate live SDK/HTTP/browser queries and exact cleanup. No Azure CLI/account cache/connector or credential environment was found; official no-subscription sandbox currently displays Under Construction ([admission](CQL_HOSTED_AZURE_FREE_ADMISSION.md)); existing free-subscription sign-in is pending user input. Paid subscription/resource upgrades are unauthorized.
+2. IPFS, SOLID and ActivityPub:small filtered queries over several native records, not point reads. Admit an explicit bounded collection and filter domain; preserve provider ownership, access and protected failures. Do not substitute Mongo/SQLite query results for native participation.
+3. Verify the retained Solana browser view through actual rendering/clicks and clean shutdown, preserving existing source identities/ledger.
+4. Keep one ready federated-query preset pairing Mongo with each provider. Report participating providers and provenance explicitly; no generic cross-provider parity claim.
+5. LINQ depth is paused. Preserved parent/Core work/cosmic-cql-parity-deferred; see [handoff](DEFERRED_PARITY_HANDOFF.md). Do not resume All/element/numeric verification without user direction.
 
 ## Other verified scope and limits
 
