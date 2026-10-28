@@ -114,6 +114,20 @@ public static partial class CqlV1Compiler
             request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
     }
 
+    internal static CosmicQuery<Holon> CompileIndexedScalarSource(CqlScalarV1Request request, Guid actor,
+        CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Selection != null
+            || request.Operation is not ("Count" or "LongCount" or "Any"))
+            throw new ArgumentException("Indexed cardinality requires an alias-owned source and Count, LongCount or Any.");
+        var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
+            request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
+            request.Skip, request.Take, access, includeCloudReadProfile: true, indexedSource: true);
+        var indexed = source.WithIndexedSource(requirement);
+        if (indexed.IsError) throw new ArgumentException(indexed.Message);
+        return indexed.Result;
+    }
+
     internal static CosmicQuery<Holon> CompileIndexedSource(CqlV1Request request, Guid actor,
         CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
     {
