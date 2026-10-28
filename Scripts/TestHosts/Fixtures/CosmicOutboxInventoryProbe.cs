@@ -86,3 +86,51 @@ public static class CosmicPrimarySourceBindingProbe
             throw new InvalidOperationException("Receipt silently downgraded bound enrollment to an unbound operation.");
     }
 }
+
+/// <summary>Exercises bound factories and native lease admission in the existing owned primary fixture.</summary>
+public static class CosmicOutboxSourceBindingProbe
+{
+    public static async Task VerifyAsync(IBoundHolonReplicationOutboxSource provider,
+        CosmicStorageIdentity expected, string target, Guid operation)
+    {
+        var captured = provider.GetBoundHolonReplicationOutbox(expected);
+        if (captured.IsError || captured.Result == null)
+            throw new InvalidOperationException("Bound source factory failed: " + captured.Message, captured.Exception);
+        var good = captured.Result;
+        var pending = await good.PeekNextAsync(target);
+        if (pending.IsError || pending.Result?.OperationId != operation)
+            throw new InvalidOperationException("The bound factory must retain its original native obligation.", pending.Exception);
+        var claimed = await good.ClaimNextAsync(target,"native-source-binding-probe",TimeSpan.FromMinutes(5));
+        if (claimed.IsError || claimed.Result?.OperationId != operation)
+            throw new InvalidOperationException("The real native source must claim its original obligation.", claimed.Exception);
+        var claim = claimed.Result;
+        var before = await good.InspectAsync(claim.Sequence);
+        var replacement = new CosmicStorageIdentity(expected.Authority,expected.EndpointFingerprint,Guid.NewGuid());
+        var rejectedFactory = provider.GetBoundHolonReplicationOutbox(replacement);
+        if (rejectedFactory.IsError || rejectedFactory.Result == null)
+            throw new InvalidOperationException("A syntactically valid expectation is checked by native queue admission, not a preflight.");
+        var bad = rejectedFactory.Result;
+        void Rejected<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result)
+        {
+            if (!result.IsError || result.ErrorCode != "COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH"
+                || !EqualityComparer<T>.Default.Equals(result.Result,default))
+                throw new InvalidOperationException("Native source mismatch must refuse access before queue state changes: " + result.Message,result.Exception);
+        }
+        Rejected(await bad.InspectAsync(claim.Sequence));
+        Rejected(await bad.PeekNextAsync(target));
+        Rejected(await bad.ReadRouteHeadsAsync());
+        Rejected(await bad.ClaimNextAsync(target,"wrong-source",TimeSpan.FromMinutes(1)));
+        Rejected(await bad.RenewAsync(claim,TimeSpan.FromMinutes(1)));
+        Rejected(await bad.FinishAsync(claim,HolonDeliveryOutcome.Completed));
+        Rejected(await bad.FinishWithRecoveryAsync(claim,HolonDeliveryOutcome.ReconciliationRequired,
+            new HolonDeliveryRecoveryEvidence(true,new[]{"native-source-probe"}),"UNKNOWN"));
+        var after = await good.InspectAsync(claim.Sequence);
+        if (before.IsError || after.IsError || after.Result.State != before.Result.State
+            || after.Result.AttemptCount != before.Result.AttemptCount || after.Result.OperationId != operation)
+            throw new InvalidOperationException("Refused source expectations must retain the original native delivery state.");
+        var renewed = await good.RenewAsync(claim,TimeSpan.FromMinutes(1));
+        var finished = await good.FinishAsync(claim,HolonDeliveryOutcome.Completed);
+        if (renewed.IsError || !renewed.Result || finished.IsError || !finished.Result)
+            throw new InvalidOperationException("Only the real native owner may renew and complete the original lease.");
+    }
+}

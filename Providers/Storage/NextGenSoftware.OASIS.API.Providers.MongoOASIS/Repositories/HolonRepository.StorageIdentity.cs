@@ -15,6 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     internal MongoHolonReplicationOutbox CaptureReplicationOutbox()=>new(_dbContext);
+    internal MongoHolonReplicationOutbox CaptureReplicationOutbox(CosmicStorageIdentity expectedSource)=>new(_dbContext,expectedSource);
 
     internal async Task<CosmicStorageIdentity> CaptureStorageIdentityAsync(CancellationToken cancellationToken)
     {
