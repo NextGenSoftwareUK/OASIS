@@ -74,7 +74,11 @@ string DescribeNativeConnection(NativeConnection connection);   // host + databa
 | MongoDB | `uri` (`mongodb://` or `mongodb+srv://`), `database` (or put it in the uri). The `admin`, `local` and `config` databases are refused |
 | Neo4j | `uri` (`bolt`, `bolt+s`, `bolt+ssc`, `neo4j`, `neo4j+s`, `neo4j+ssc`, without credentials in it), `username`, `password`, optional `database`, optional `labels` (comma-separated; otherwise every label is listed) |
 | SQLite | `fileName` (a plain file name), `fileBase64` (the database file, up to 8 MB). It is written to a private temporary file, opened read-only with `query_only` and `trusted_schema=OFF`, and deleted straight after the call |
-| Azure Cosmos DB, SOLID, ActivityPub, IPFS, Solana | Not yet. They read the store configured on the server and **refuse** a connection (`NATIVE_IMPORT_UNAVAILABLE` naming the provider) rather than ignoring it |
+| Azure Cosmos DB | `endpoint` (`https://<account>.documents.azure.com:443/`), `key`, `database`, optional `containers` (comma-separated; otherwise every container is a source). Read in Gateway mode |
+| SOLID | `podUrl` (https, no credentials), optional `token` (bearer; leave out for public data), `containers` (Pod-relative paths such as `public/notes/`; anything under `oasis/` is refused) |
+| ActivityPub | `instanceUrl` (the https origin of a Mastodon-compatible server), `accessToken`. Reads that account's statuses, followers and following |
+| IPFS | `apiUrl` (the HTTP API of an IPFS node, for example `https://ipfs.example.com:5001/`), `paths` (`/ipfs/<cid>` or `/ipns/<name>` directories). Lists them with `POST /api/v0/ls` through that node |
+| Solana | `rpcUrl` (https), `programs` (comma-separated program addresses). One `getProgramAccounts` snapshot per node and program is held for 60 seconds so every page of an import is consistent; more than 10,000 accounts is refused |
 
 Unknown setting names are refused, so a typo is reported instead of silently ignored.
 
@@ -90,14 +94,18 @@ they always had.
 - Internal names (`*.internal`, `*.local`, `*.localhost`, single-label hosts) are refused without a lookup. For other names
   every resolved address must be public; one private answer refuses the host. A name that does not resolve in 5 seconds is refused.
 - DNA `OASIS.NativeImport.AllowPrivateAddresses` (default `false`) switches the guard off; the bootloader applies it at boot. Use it only on a development machine importing from local services, never on a hosted node.
-- Residual risk: the driver resolves the name again when it connects, so a hostile DNS server could answer differently the
-  second time (DNS rebinding). Run WEB4 in a network that cannot reach anything sensitive from the importer's host.
+- **DNS rebinding.** The HTTP-based readers (SOLID, ActivityPub, IPFS, Solana, and Cosmos in Gateway mode) use
+  `NativeConnectionGuard.CreateGuardedHttpHandler()`: every connection resolves the host once, checks every address, and
+  connects to exactly those addresses, so a hostile DNS server cannot answer differently afterwards. Redirects are never
+  followed. The MongoDB and Neo4j drivers open their own sockets, so for them the host is checked just before the driver
+  connects and the driver resolves it again: a rebinding window remains there. Run WEB4 in a network that cannot reach
+  anything sensitive from the importer's host.
 
 **Secrets.** A connection is used for the request and discarded. It is not stored, not logged, not echoed in responses, and
 secret values are replaced with `***` in driver error messages. Saved mappings never contain a connection. Ask users to
 create a read-only database user for OASIS.
 
-**Who may import.** A request with a connection may come from any signed-in avatar. Without one, the server's configured
+**Who may import.** A request with a connection is read by a stateless reader of that provider type (`OASISBootLoader.NativeImportReaders`), so it does not depend on the node having the provider configured or enabled. It may come from any signed-in avatar. Without one, the server's configured
 demo store is read, which needs a Wizard avatar (or the sandbox). Limits: the sandbox caps imports at 500 records per source;
 other non-Wizard avatars at 5,000; Wizards are not capped. Connections time out after 10 seconds and reads after 30.
 
@@ -172,7 +180,7 @@ MongoDB reads its native database from DNA `StorageProviders.MongoDBOASIS.Native
 `customers` (ObjectId keys), `products` (SKU keys, decimal prices, tag arrays) and `orders` (numeric keys, nested items);
 when configured, the SQLite native file gets `suppliers` and Neo4j gets `ShopLoyaltyMember` nodes. The
 sandbox page's Import tab seeds it, previews native records beside their holons, imports, and re-imports to show that
-holons are updated rather than duplicated. Choosing "Import my own database" swaps the demo shop for a form: a MongoDB or Neo4j connection, or an uploaded SQLite file. The same preview, mapping and import steps then run against the visitor's own data.
+holons are updated rather than duplicated. Choosing "Import my own database" swaps the demo shop for a form for any of the eight database types: a MongoDB, Neo4j, Cosmos, SOLID, ActivityPub, IPFS or Solana connection, or an uploaded SQLite file. The same preview, mapping and import steps then run against the visitor's own data.
 
 ## Azure Cosmos DB (`AzureCosmosDBOASIS.NativeDataImport.cs`)
 
@@ -241,6 +249,5 @@ otherwise; `import-all` applies every saved mapping. Implementation: `STAR ODK/N
 
 ## Not yet built
 
-- Caller-supplied connections for the Azure, SOLID, ActivityPub, IPFS and Solana readers (they refuse one today), and saved connections (a connection is re-entered for each request).
-- Live verification of the Azure, SOLID, ActivityPub, IPFS and Solana readers against real services. They are covered by
-  unit tests against scripted services; the MongoDB, SQLite and Neo4j readers are also verified live on dev WEB4.
+- Saved connections (a connection is re-entered for each request).
+- Live verification of caller-supplied connections. All eight readers are covered by unit tests against scripted services and real files (SQLite); the MongoDB, SQLite and Neo4j readers were verified live on dev WEB4 against the configured demo store, but not yet with a connection a user supplies.
