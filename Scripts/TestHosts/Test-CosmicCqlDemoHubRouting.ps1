@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,8081,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -45,10 +45,43 @@ foreach($bounded in @($false,$true)){
 $unsupported=$false
 try{& $hub -Provider SQLite -MultiRecord -ShowPlan}catch{$unsupported=$true}
 if(!$unsupported){throw 'Unenrolled collection launcher must be rejected.'}
+$pairedContracts=@(
+    @{Provider='Oracle';Runner='Run-ReusableOracleMongoTests.ps1';Port=5090},
+    @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
+    @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
+    @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
+    @{Provider='SOLID';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
+    @{Provider='ActivityPub';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088}
+)
+$paired=foreach($contract in $pairedContracts){
+    foreach($bounded in @($false,$true)){
+        $plan=& $hub -Provider $contract.Provider -Federated -VerifyOnly:$bounded -ShowPlan
+        if(!$plan.Federated -or $plan.Runner -ne (Join-Path $PSScriptRoot $contract.Runner) -or
+            $plan.Url -ne ('http://127.0.0.1:'+$contract.Port+'/') -or $plan.Scope -notmatch 'Mongo'){
+            throw ('Paired discovery contract mismatch: '+$contract.Provider)
+        }
+        $expectedMode=if($bounded){'bounded verification'}else{'interactive until explicit shutdown'}
+        if($plan.Mode -ne $expectedMode){throw 'Paired lifecycle mode changed.'}
+        $plan
+    }
+}
+$pairedRejections=0
+foreach($provider in @('SQLite','Databases','Solana')){
+    $denied=$false
+    try{& $hub -Provider $provider -Federated -ShowPlan}catch{$denied=$true}
+    if(!$denied){throw 'Unenrolled paired profile must reject before service start.'}
+    $pairedRejections++
+}
+$denied=$false
+try{& $hub -Provider Oracle -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Oracle requires explicit paired scope.'}
+$pairedRejections++
+$oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
+if(!$oracleArchive.Federated){throw 'Archive option must not lose explicit paired scope.'}
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
-@{profiles=$contracts.Count;plans=@($verified);archiveRejections=3;listenersUnchanged=$true} |
+@{profiles=$contracts.Count;plans=@($verified);pairedProfiles=$pairedContracts.Count;pairedPlans=@($paired);pairedRejections=$pairedRejections;archiveRejections=3;listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS: eight profiles, both lifecycle plans, three archive rejections; listeners unchanged.'
+Write-Output 'PASS:8single profiles/16plans,6paired profiles/12plans,4paired rejections,3archive rejections; listeners unchanged.'
