@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public StorageProviderSettings StorageProviders { get; set; }
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
+        public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
         
         // HyperDrive mode switch: "Legacy" or "OASISHyperDrive2"
@@ -56,6 +57,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int StatsCacheTtlSeconds { get; set; } = 45;
     }
 
+    /// <summary>
+    /// Native data import: whether the server may reach private addresses, and every limit and timeout the readers apply. All
+    /// values are written here once; the readers take them from DNA and never carry their own copies.
+    /// </summary>
     public class NativeImportSettings
     {
         /// <summary>
@@ -64,7 +69,81 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// from local services.
         /// </summary>
         public bool AllowPrivateAddresses { get; set; } = false;
+
+        /// <summary>Records one import may read per source on the sandbox (<see cref="SandboxSettings.Enabled"/>).</summary>
+        public int SandboxMaximumRecordsPerSource { get; set; } = 500;
+        /// <summary>Records one import may read per source for a signed-in avatar that is not a Wizard and imports its own database. Wizards are not capped.</summary>
+        public int UserMaximumRecordsPerSource { get; set; } = 5000;
+        /// <summary>Records a preview returns when a request does not say.</summary>
+        public int DefaultPreviewRecords { get; set; } = 5;
+        /// <summary>The most records a preview may ask for.</summary>
+        public int MaximumPreviewRecords { get; set; } = 20;
+        /// <summary>Records per page a reader is asked for.</summary>
+        public int MaximumPageSize { get; set; } = 1000;
+
+        /// <summary>Seconds a reader waits to open a connection to a caller's system.</summary>
+        public int ConnectTimeoutSeconds { get; set; } = 10;
+        /// <summary>Seconds a single read from a caller's system may take.</summary>
+        public int ReadTimeoutSeconds { get; set; } = 30;
+        /// <summary>Seconds a host name may take to resolve before it is refused.</summary>
+        public int DnsTimeoutSeconds { get; set; } = 5;
+
+        /// <summary>Records per page when a request does not say.</summary>
+        public int DefaultPageSize { get; set; } = 200;
+        /// <summary>Records per source one import reads when a request does not say.</summary>
+        public int DefaultMaximumRecordsPerSource { get; set; } = 10000;
+
+        /// <summary>Largest SQLite file a caller may upload, in megabytes.</summary>
+        public int MaximumSqliteUploadMegabytes { get; set; } = 8;
+        /// <summary>Most accounts one Solana program may own for an import to proceed; more is refused rather than partly imported.</summary>
+        public int MaximumSolanaAccountsPerProgram { get; set; } = 10000;
+        /// <summary>Seconds one Solana getProgramAccounts snapshot is reused so every page of an import is consistent.</summary>
+        public int SolanaSnapshotSeconds { get; set; } = 60;
+        /// <summary>Largest IPFS directory listing read from a node, in megabytes.</summary>
+        public int MaximumIpfsListingMegabytes { get; set; } = 4;
+        /// <summary>Largest SOLID resource read, in megabytes.</summary>
+        public int MaximumSolidResourceMegabytes { get; set; } = 1;
+        /// <summary>Most node labels listed when a Neo4j connection does not name them.</summary>
+        public int MaximumNeo4jDiscoveredLabels { get; set; } = 200;
     }
+
+    /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>
+    public class SandboxSettings
+    {
+        /// <summary>Turns the sandbox endpoints and the demo avatar cleanup on. Only the sandbox deployment sets this.</summary>
+        public bool Enabled { get; set; } = false;
+        /// <summary>The providers a demo avatar's HyperDrive settings route across, comma-separated.</summary>
+        public string Providers { get; set; } = "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS";
+
+        /// <summary>Demo avatars are named <c>&lt;prefix&gt;&lt;random hex&gt;</c>. Cleanup only ever removes an avatar with this prefix AND the email domain below.</summary>
+        public string DemoAvatarUsernamePrefix { get; set; } = "sandbox-";
+        /// <summary>Demo avatars get the email <c>&lt;username&gt;@&lt;domain&gt;</c>.</summary>
+        public string DemoAvatarEmailDomain { get; set; } = "sandbox.oasisomniverse.one";
+
+        /// <summary>Minutes after creation that a demo avatar and everything it owns is removed.</summary>
+        public int DemoAvatarRetentionMinutes { get; set; } = 1440;
+        /// <summary>Minutes between cleanup sweeps.</summary>
+        public int CleanupIntervalMinutes { get; set; } = 15;
+        /// <summary>Minutes after start-up before the first cleanup sweep.</summary>
+        public int CleanupInitialDelayMinutes { get; set; } = 1;
+        /// <summary>Most demo avatars one sweep removes, oldest first.</summary>
+        public int MaximumAvatarsRemovedPerSweep { get; set; } = 50;
+
+        /// <summary>Seconds a visitor's provider stays offline when the request does not say.</summary>
+        public int ProviderOfflineDefaultSeconds { get; set; } = 60;
+        /// <summary>Shortest and longest time a visitor may take a provider offline for, in seconds, so a demo can never leave one down.</summary>
+        public int ProviderOfflineMinimumSeconds { get; set; } = 5;
+        public int ProviderOfflineMaximumSeconds { get; set; } = 120;
+
+        /// <summary>The Neo4j label of the demo shop's loyalty members. It must also be listed in Neo4jOASIS.NativeImportLabels for the demo to be readable.</summary>
+        public string DemoNeo4jLabel { get; set; } = "ShopLoyaltyMember";
+
+        /// <summary>Demo avatars one address may create per hour.</summary>
+        public int MaximumSessionsPerAddressPerHour { get; set; } = 20;
+        /// <summary>Demo avatars the whole sandbox may create per 24 hours.</summary>
+        public int MaximumSessionsPerDay { get; set; } = 1000;
+    }
+
 
     public class OfflineSessionGrantSettings
     {

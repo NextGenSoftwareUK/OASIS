@@ -23,9 +23,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Authorize]
     public class NativeDataController : OASISControllerBase
     {
-        public const int SandboxMaximumRecords = 500;
-        public const int UserConnectionMaximumRecords = 5000;
-        public const int MaximumPreviewRecords = 20;
 
         HolonManager _holonManager;
 
@@ -67,16 +64,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public NativeDataMapping Mapping { get; set; }
             public NativeConnection Connection { get; set; }
-            public int PageSize { get; set; } = 200;
-            public int MaximumRecords { get; set; } = 10000;
+            public int? PageSize { get; set; }
+            public int? MaximumRecords { get; set; }
         }
 
         public sealed class NativeImportAllRequest
         {
             public Dictionary<string, NativeDataMapping> Mappings { get; set; }
             public NativeConnection Connection { get; set; }
-            public int PageSize { get; set; } = 200;
-            public int MaximumRecordsPerSource { get; set; } = 10000;
+            public int? PageSize { get; set; }
+            public int? MaximumRecordsPerSource { get; set; }
         }
 
         public sealed class NativeRecordPreview
@@ -123,14 +120,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("{providerType}/sources/{sourceName}/preview")]
         public async Task<ActionResult<OASISResult<IReadOnlyList<NativeRecordPreview>>>> Preview(ProviderType providerType, string sourceName,
             [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativePreviewRequest request,
-            [FromQuery] int count = 5, CancellationToken cancellationToken = default)
+            [FromQuery] int? count = null, CancellationToken cancellationToken = default)
         {
             var connection = request?.Connection;
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeRecordPreview>>(connection);
             var provider = Resolve<IReadOnlyList<NativeRecordPreview>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
-            if (count < 1 || count > MaximumPreviewRecords)
-                return BadRequest(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, Message = $"count must be between 1 and {MaximumPreviewRecords}." });
+            var previewLimit = NativeImportOptions.Positive(NativeImportOptions.Current.MaximumPreviewRecords, "MaximumPreviewRecords");
+            var previewCount = count ?? NativeImportOptions.Current.DefaultPreviewRecords;
+            if (previewCount < 1 || previewCount > previewLimit)
+                return BadRequest(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, Message = $"count must be between 1 and {previewLimit}." });
 
             string identity;
             try { identity = provider.DescribeNativeConnection(connection); }
@@ -140,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var saved = await SavedMappingAsync(providerType, sourceName, request?.Mapping);
             if (saved.IsError) return Respond(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, ErrorCode = saved.ErrorCode, Message = saved.Message });
             var mapping = saved.Result;
-            var page = await provider.ReadNativeRecordsAsync(sourceName, null, count, connection, cancellationToken);
+            var page = await provider.ReadNativeRecordsAsync(sourceName, null, previewCount, connection, cancellationToken);
             if (page.IsError)
                 return Respond(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, ErrorCode = page.ErrorCode, Message = page.Message });
 
@@ -238,10 +237,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             Avatar != null && (connection != null || ProviderFaultGate.IsEnabled || Avatar.AvatarType.Value == AvatarType.Wizard);
 
         /// <summary>Sandbox imports are small; other signed-in avatars importing their own database are bounded; Wizards are not capped.</summary>
-        private int Limit(int requested) =>
-            ProviderFaultGate.IsEnabled ? Math.Min(requested, SandboxMaximumRecords)
-            : Avatar?.AvatarType.Value == AvatarType.Wizard ? requested
-            : Math.Min(requested, UserConnectionMaximumRecords);
+private int Limit(int? requestedRecords)        {            var options = NativeImportOptions.Current;            var requested = requestedRecords ?? options.DefaultMaximumRecordsPerSource;            if (ProviderFaultGate.IsEnabled) return Math.Min(requested, NativeImportOptions.Positive(options.SandboxMaximumRecordsPerSource, nameof(options.SandboxMaximumRecordsPerSource)));            if (Avatar?.AvatarType.Value == AvatarType.Wizard) return requested;            return Math.Min(requested, NativeImportOptions.Positive(options.UserMaximumRecordsPerSource, nameof(options.UserMaximumRecordsPerSource)));        }
 
 
         /// <summary>
