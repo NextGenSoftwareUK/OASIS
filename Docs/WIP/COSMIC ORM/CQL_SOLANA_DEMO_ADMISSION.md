@@ -209,3 +209,8 @@ Rows/empty bill actual SQL/RPC receipts; replay and unsupported graph intent rej
 See [HTTP command, evidence and limits](CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
 Identity/ledger remain controlled; production authentication/durable billing,
 original recovery, common-demo capability breadth and full parity remain open.
+
+The native SDK gate now also executes ChainIndexedWalkthrough.RunProjectionAsync
+verbatim: standard indexed LINQ Select returns the retained native holon and exact
+source commit, with no seed resubmission. Prior SDK and constructor-shape failure
+evidence are preserved separately; [Select contract](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
