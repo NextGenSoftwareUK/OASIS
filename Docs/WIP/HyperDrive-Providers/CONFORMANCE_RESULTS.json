@@ -194,8 +194,8 @@
       "mode": "native",
       "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
-      "sha256": "fb946f3374c56ef3edcab06c6e61e1e735b90afeeb8f6af3f4553c5ee805d8a3",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awsoasis-current.json",
+      "sha256": "f08ed20dea809c09ca9c39b5b4563f470c05cd0178fd79c2d81a256bc5a66fb3",
       "blockers": []
     },
     {
@@ -204,8 +204,8 @@
       "mode": "native",
       "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
-      "sha256": "18ec94a32d1097939badbcd369e03db4533a0d3389f42555af99142d553fc429",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-dynamodboasis-current.json",
+      "sha256": "59b13a84dc309fa1c2f7ac7761647d656c179804ac39d2248f1f85b28c86ee4e",
       "blockers": []
     },
     {
@@ -314,10 +314,10 @@
       "Source-reviewed legacy map facade contains 47 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
     ],
     "AWSOASIS": [
-      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+      "Relocated retained DynamoDB Local3.3.2: canonical52/52, factory27, five tables empty before/after; stopped compaction43,008B. Hosted AWS IAM/region acceptance, complete interfaces and global routing remain open."
     ],
     "DynamoDBOASIS": [
-      "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
+      "Relocated retained DynamoDB Local3.3.2: canonical52/52, factory27, five tables empty before/after; stopped compaction43,008B. Hosted AWS IAM/region acceptance, complete interfaces and global routing remain open."
     ],
     "AWSS3OASIS": [
       "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
