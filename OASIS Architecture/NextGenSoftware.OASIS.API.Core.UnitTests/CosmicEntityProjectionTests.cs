@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
-public sealed class CosmicEntityProjectionTests
+public sealed partial class CosmicEntityProjectionTests
 {
     public sealed class ProjectionDto
     {

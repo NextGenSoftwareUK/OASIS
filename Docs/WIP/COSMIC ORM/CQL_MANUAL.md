@@ -452,7 +452,7 @@ Holon last = featured.LastOrDefault(holon => holon.Version >= 2, empty);
 
 The supplied reference is returned only after a successful native empty result. Present rows use normal typed hydration/tracking. Single ambiguity, protected traversal errors, incomplete acknowledgements and storage failures propagate; none return the supplied default instead.
 
-Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. Mongo/Neo enrollment, standard Select and selected-stage/numeric integration remain pending. Broader provider demo now takes priority.
+Entity-stage projection now has a shared foundation: `CosmicEntityCompositionQuery<T>.Select(selector)` captures a `CosmicEntityProjectionQuery<T,TResult>` without invoking DTO constructors. Its plan retains the unchanged source page and every entity stage. `HolonManager.ExecuteEntityProjectionQueryAsync` requires `ICosmicQueryEntityProjectionStorageProvider` with independent enrollment, actual stage capabilities and exact projection domains. The existing projection owner validates all native cells and output-window bounds before DTO construction. SQLite now enrolls native entity-stage projection:47 CQL tests and10 live cases pass. Source/stage proofs share the row/count helper, with selected-cell decoding under the same snapshot/budget and final ordinal. All three providers now enroll native entity projection and final standard Select; selected-stage/numeric integration remains pending. Broader provider demo now takes priority.
 # Azure Cosmos DB canonical rows (27 October 2026)
 
 Cosmos now implements the standard `ICosmicQueryStorageProvider` row contract.
@@ -980,7 +980,25 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. The standard IQueryable post-window Select bridge and remaining numeric integration are still pending. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. Operators after this selection (Where/order/windows/reselection, element/cardinality/numeric terminals) still reject pending native integration. Q01f remains red; this is not general LINQ parity.
+
+For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
+
+```csharp
+// Keep the first page intact before filtering and reversing it.
+// Execution is deferred until enumeration; the trusted host uses V2.
+var names = query
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Where(holon => holon.Version >= 1)
+    .Reverse()
+    .Take(5)
+    .Select(holon => holon.Name);
+
+var values = names.ToArray();
+```
+
+Do not append selected-stage operators to this entity projection yet. They return explicit unsupported errors rather than evaluating the page locally.
 
 An earlier page must retain its meaning when a later filter/order/selection runs.
 For example, select the first twenty names, then filter/reorder that page, then

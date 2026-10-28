@@ -44,7 +44,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             File.Move(acknowledged,journal,true);
             var checks=new List<object>();
             await VerifyEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,root.Id,checks);
-            Assert.AreEqual(10,checks.Count);
+            await VerifyStandardEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,root.Id,checks);
+            Assert.AreEqual(14,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));
