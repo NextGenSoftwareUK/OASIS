@@ -871,3 +871,10 @@ Actual browser clicks verified5 then4 rows; screenshot/layout QA remains unavail
 Native/HTTP acceptance1/1 passes after completing timed checks before interactive use.
 IPFS/SOLID use the same host implementation, but their federated HTTP/browser checks
 must still be rerun before declaring those browser presets verified.
+
+Federated browser verification now passes on Mongo+IPFS and Mongo+SOLID too: five
+physical rows, four after narrowing the native selection, and two native records
+through the protocol-only button. Use the same protocol Mongo runner with `-Serve`.
+Both sessions passed native acceptance, exact fixture cleanup and shutdown after
+browser use. See Docs/WIP/COSMIC ORM/CQL_PROTOCOL_BROWSER_VERIFICATION.md.
+Screenshot/layout QA and cloud/chain pairings remain open.
