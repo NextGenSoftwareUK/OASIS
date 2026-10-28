@@ -14,13 +14,17 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
     /// <summary>V2 owned writes enrol replication from the effective routing, only to providers able to apply replicas.</summary>
     public class HolonReplicationRoutesTests
     {
-        private static IOASISStorageProvider Provider(ProviderType type, bool atomicSource, bool replicaTarget)
+        private static IOASISStorageProvider Provider(ProviderType type, bool atomicSource, bool replicaTarget, bool boundOutbox = true)
         {
             var storage = new Mock<IOASISStorageProvider>();
             storage.SetupAllProperties();
             storage.SetupGet(value => value.ProviderType).Returns(new EnumValue<ProviderType>(type));
             storage.SetupGet(value => value.ProviderCategory).Returns(new EnumValue<ProviderCategory>(ProviderCategory.Storage));
-            if (atomicSource) storage.As<IBoundAtomicHolonReplicationStorageProvider>();
+            if (atomicSource)
+            {
+                storage.As<IBoundAtomicHolonReplicationStorageProvider>();
+                if (boundOutbox) storage.As<IBoundHolonReplicationOutboxSource>();
+            }
             if (replicaTarget) storage.As<IBoundCommittedHolonReplicaStorageProvider>();
             if (atomicSource || replicaTarget)
                 storage.As<ICosmicStorageIdentityProvider>().Setup(value => value.CaptureStorageIdentityAsync(It.IsAny<System.Threading.CancellationToken>()))
@@ -64,6 +68,17 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.Null(HolonReplicationRoutes.Plan(Node(false, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS), ProviderType.MongoDBOASIS));
             Assert.Null(HolonReplicationRoutes.Plan(Node(true, ProviderType.MongoDBOASIS), ProviderType.MongoDBOASIS));
             Assert.Throws<InvalidOperationException>(() => HolonReplicationRoutes.Plan(Node(true, ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS), ProviderType.IPFSOASIS));
+        }
+
+        [Fact]
+        public void BoundAtomicSourceWithoutBoundOutboxCannotEnrolAutomaticDelivery()
+        {
+            var manager = new ProviderManager(null, new OASISDNA());
+            manager.RegisterProvider(Provider(ProviderType.MongoDBOASIS, true, true, boundOutbox: false));
+            manager.RegisterProvider(Provider(ProviderType.SQLLiteDBOASIS, true, true));
+            Assert.False(manager.PublishRoutingOverrides(new ProviderRoutingOverrides(
+                autoReplicationEnabled: true, replicationProviders: new[] { ProviderType.SQLLiteDBOASIS })).IsError);
+            Assert.Throws<InvalidOperationException>(() => HolonReplicationRoutes.Plan(manager, ProviderType.MongoDBOASIS));
         }
 
         [Fact]

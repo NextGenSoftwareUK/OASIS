@@ -111,8 +111,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             {
                 var sourceType=source.ProviderType.Value;
                 var activated=manager.ResolveStorageProvider(sourceType);
-                if(activated.IsError || activated.Result is not IHolonReplicationOutboxSource outboxSource)continue;
-                var outbox=outboxSource.GetHolonReplicationOutbox();
+                if(activated.IsError || activated.Result is not IBoundHolonReplicationOutboxSource outboxSource)
+                { _logger.LogWarning("Replication source {Source} cannot capture a transaction-bound outbox.",sourceType);continue; }
+                CosmicStorageIdentity sourceStorage;
+                try { sourceStorage=await HolonReplicationRouteBinding.CapturePinnedAsync(activated.Result,cancellationToken); }
+                catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
+                catch(Exception cause){_logger.LogWarning(cause,"Replication source binding {Source} unavailable.",sourceType);continue;}
+                var outbox=outboxSource.GetBoundHolonReplicationOutbox(sourceStorage);
                 if(outbox.IsError || outbox.Result is not IHolonReplicationRouteInventoryOutbox inventory)
                 {_logger.LogWarning("Replication source {Source} has no verified route inventory: {Message}",sourceType,outbox.Message);continue;}
                 var policy=_authorization.BindingIdentity;
@@ -120,7 +125,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 var complete=true;
                 try
                 {
-                    var sourceStorage=await HolonReplicationRouteBinding.CapturePinnedAsync(activated.Result,cancellationToken);
                     foreach(var target in storage.Where(value=>value.ProviderType.Value!=sourceType && value is IBoundCommittedHolonReplicaStorageProvider))
                     {
                         try

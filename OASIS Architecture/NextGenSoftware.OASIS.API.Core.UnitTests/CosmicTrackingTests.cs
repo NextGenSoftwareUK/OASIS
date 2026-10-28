@@ -1067,6 +1067,7 @@ public partial class CosmicTrackingTests
         if (boundReplication)
         {
             p.As<IBoundAtomicHolonReplicationStorageProvider>();
+            p.As<IBoundHolonReplicationOutboxSource>();
             p.As<ICosmicStorageIdentityProvider>().Setup(value=>value.CaptureStorageIdentityAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new OASISResult<CosmicStorageIdentity>(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS)));
         }

@@ -10,6 +10,54 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
+    private sealed class SourceIdentityRaceClock(string connectionString)
+        : NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization.IHyperDriveClock
+    {
+        public int Attempts;
+        public DateTime UtcNow
+        {
+            get
+            {
+                // The production clock boundary follows identity admission and
+                // precedes each lease query/update. Use another real connection
+                // to attempt an identity replacement at that exact boundary.
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+                using var command = connection.CreateCommand();
+                command.CommandTimeout = 1;
+                command.CommandText = "UPDATE CosmicReplicationStoreIdentity SET Identity=$replacement WHERE Id=1";
+                command.Parameters.AddWithValue("$replacement", Guid.NewGuid().ToString("D"));
+                Action replace = () => command.ExecuteNonQuery();
+                replace.Should().Throw<SqliteException>().Which.SqliteErrorCode.Should().Be(5);
+                Attempts++;
+                return DateTime.UtcNow;
+            }
+        }
+    }
+
+    [Fact]
+    public async Task BoundOutboxIdentityCannotChangeBetweenAdmissionAndLeaseMutation()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var identity = await provider.CaptureStorageIdentityAsync();
+        identity.IsError.Should().BeFalse(identity.Message);
+        var request = OutboxCreate(new Holon { Id=Guid.NewGuid(), Name="outbox identity race" });
+        var enrollment = new HolonReplicationEnrollment("race-source", new[] { "target" }, identity.Result);
+        var saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+        saved.IsError.Should().BeFalse(saved.Message);
+        var clock = new SourceIdentityRaceClock(TestConnectionString);
+        var bound = new SqliteHolonReplicationOutbox(TestConnectionString, clock, identity.Result);
+        var claim = await bound.ClaimNextAsync("target", "original-owner", TimeSpan.FromMinutes(5));
+        claim.IsError.Should().BeFalse(claim.Message + claim.Exception);
+        (await bound.RenewAsync(claim.Result, TimeSpan.FromMinutes(1))).Result.Should().BeTrue();
+        (await bound.FinishAsync(claim.Result, HolonDeliveryOutcome.Completed)).Result.Should().BeTrue();
+        clock.Attempts.Should().Be(3);
+        var retained = await provider.CaptureStorageIdentityAsync();
+        retained.Result.BindingFingerprint.Should().Be(identity.Result.BindingFingerprint);
+        (await bound.InspectAsync(claim.Result.Sequence)).Result.State.Should().Be(HolonDeliveryState.Completed);
+    }
+
     [Fact]
     public async Task CopiedOutboxCannotReadClaimRenewOrAcknowledgeTheOriginalSourceLease()
     {

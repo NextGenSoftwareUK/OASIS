@@ -79,6 +79,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(second["Sequence"].As<long>(),replayCounter["value"].As<long>(),"Receipt replay must not allocate another sequence range.");
             var changed=await Write(new HolonReplicationEnrollment(source,new[]{targetA}));Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",changed.ErrorCode);
             var plain=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",plain.ErrorCode);
+            if(bindSource)await CosmicNativeAcceptance.CosmicOutboxSourceBindingProbe.VerifyAsync(provider,enrollment.SourceStorageIdentity,targetA,operation);
             complete=true;
         }
         finally

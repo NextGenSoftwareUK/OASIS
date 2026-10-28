@@ -120,6 +120,7 @@ public partial class SQLLiteDBOASISIntegrationTests
         var replay=await provider.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("owned-source",new[]{"target-a","target-b"},enrollment.SourceStorageIdentity));
         replay.IsError.Should().BeFalse(replay.Message+replay.Exception);replay.Result.Single().VersionId.Should().Be(committed.VersionId);
         query.CommandText="SELECT COUNT(*) FROM CosmicHolonOutbox";Convert.ToInt64(query.ExecuteScalar()).Should().Be(2);
+        if(bindSource)await CosmicNativeAcceptance.CosmicOutboxSourceBindingProbe.VerifyAsync(provider,enrollment.SourceStorageIdentity,"target-a",request.Write.OperationId);
         input.Name="later";input.Children.Clear();
         CommittedHolonReplicaPayload.Read(payloads[0]).Roots[0].Name.Should().Be("original");
     }
