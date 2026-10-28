@@ -1008,3 +1008,28 @@ Read `NativeImportCqlWalkthrough.cs` for the generic import/manager/CQL calls an
 `NativeImportCqlDemo.cs` for the spaced, commented fixture walkthrough. The executable
 also accepts `--native-import`. This gate uses SQLite source and target; cross-provider
 migration, encryption and replication remain separate acceptance, not implied support.
+
+
+### Cross-provider import: native SQLite -> MongoDB -> CQL
+
+```powershell
+# Console demo; reuses the retained local Mongo service/data, then stops it.
+& Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -Mongo -ArchiveCompletedDemo
+
+# Run the same workflow as a bounded native integration test.
+& Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -Mongo -VerifyOnly -ArchiveCompletedDemo
+```
+
+The source is an application SQLite table; the target is a distinct Mongo database.
+All saves and CQL queries use Mongo. Source provenance remains SQLLiteDBOASIS, and
+stable IDs derive from source/avatar identity rather than target database identity.
+The same shared scenario verifies3created,3unchanged,1updated, separate private
+avatar imports and both directions of visibility after6physical target holons exist.
+An application changes one native row; import refreshes that same target identity.
+
+Actual Mongo native test and console command pass. The complete owned Mongo scope
+is verified before dropping it; source files and journal are exactly cleaned. No
+replacement environment is installed. `NativeImportMongoDemo.cs` owns fixtures;
+`NativeImportCqlWalkthrough.cs` owns the public import/save/query calls shared by
+both target demos. Encryption, automatic replication, change-data capture, reverse
+migration and chain writes remain separate acceptance; this is explicit import/refresh.

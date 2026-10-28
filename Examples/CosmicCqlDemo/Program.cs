@@ -7,10 +7,10 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 // HOST SETUP - console mode runs once; --serve also opens the local Swagger API.
 var serve = args.Length == 1 && args[0] == "--serve";
-var nativeImport = args.Length == 1 && args[0] == "--native-import";
+var nativeImport = args.Length == 1 && args[0] is "--native-import" or "--native-import-mongo";
 if (args.Length != 0 && !serve && !nativeImport)
 {
-    Console.Error.WriteLine("Use no arguments, --serve for Swagger, or --native-import for the native-data-to-CQL walkthrough.");
+    Console.Error.WriteLine("Use no arguments, --serve for Swagger, or --native-import / --native-import-mongo for native-data-to-CQL walkthroughs.");
     return 2;
 }
 
@@ -29,7 +29,10 @@ if (nativeImport)
 {
     try
     {
-        await NativeImportCqlDemo.RunAsync(root.FullName, Console.Out);
+        if (args[0] == "--native-import-mongo")
+            await NativeImportMongoDemo.RunAsync(root.FullName, Console.Out);
+        else
+            await NativeImportCqlDemo.RunAsync(root.FullName, Console.Out);
         return 0;
     }
     catch (Exception error)
