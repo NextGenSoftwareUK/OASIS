@@ -10,7 +10,7 @@ Updated28October2026. Read first after compaction. Full programme remains incomp
 - HyperDriveV2 only; legacy gaps documented. No paid cloud provisioning/upgrade.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [launcher](CQL_DEMO_LAUNCHER.md), [manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md).
 
-Development sync28October includes upstream parent0f0d3d2de/Core50a3c35. [Automatic native-bound routing](AUTOMATIC_BOUND_REPLICATION.md) now verifies4400Core/1289Shared,SQLite4/Mongo8/Neo8primary cases,shipping admission5 and abrupt-process recovery1. Native receiver commit/process-kill/lease expiry/replay preserves the same obligation and target revision. Corec128178 pushed/remote verified;parent binding milestone publication follows. No full X10/deployment claim.
+Development sync28October includes upstream parent0f0d3d2de/Core50a3c35. [Automatic native-bound routing](AUTOMATIC_BOUND_REPLICATION.md) now verifies4400Core/1289Shared,SQLite4/Mongo8/Neo8primary cases,shipping admission5 and abrupt-process recovery1. Native receiver commit/process-kill/lease expiry/replay preserves the same obligation and target revision. Corec128178 and parent445070f42 pushed/remote verified;worktrees clean after publication. No full X10/deployment claim.
 
 ## External prerequisite and exact next step
 
