@@ -16,7 +16,7 @@ using INode=Neo4j.Driver.INode;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 /// <summary>Fenced delivery over an existing enrolled graph database. The caller retains driver ownership.</summary>
-public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
+public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly IDriver _driver;
     private readonly CosmicStorageIdentity _expectedSource;
@@ -203,7 +203,7 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
             || string.IsNullOrWhiteSpace(Text(row,"LeaseWorkerId"))))throw new InvalidDataException("Invalid active lease identity.");
         return (operation,state,(int)attempts,HolonRecoveryEvidenceJson.ReadStored(Text(row,"RecoveryEvidenceJson"),Text(row,"RecoveryEvidenceDigest"),state));
     }
-    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(INode row,Guid operation)
+    internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(INode row,Guid operation)
     {
         var json=Text(row,"PayloadJson");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=Text(row,"PayloadDigest"))throw new InvalidDataException("Outbox payload checksum differs.");

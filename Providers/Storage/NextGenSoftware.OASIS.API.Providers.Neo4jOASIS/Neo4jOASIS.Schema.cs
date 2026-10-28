@@ -26,6 +26,8 @@ public partial class Neo4jOASIS
                 .ConsumeAsync().ConfigureAwait(false);
             await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_operation_target IF NOT EXISTS FOR (s:CosmicHolonOutbox) REQUIRE (s.OperationId,s.TargetId) IS UNIQUE").ConfigureAwait(false))
                 .ConsumeAsync().ConfigureAwait(false);
+            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_destination_binding IF NOT EXISTS FOR (d:CosmicDestinationBinding) REQUIRE d.Key IS UNIQUE").ConfigureAwait(false))
+                .ConsumeAsync().ConfigureAwait(false);
             // IF NOT EXISTS can encounter an existing name. Verify the actual guarantee by shape.
             if (!await HasHolonWriteSchemaAsync(session).ConfigureAwait(false))
                 throw new InvalidDataException("Neo4j requires native holon, receipt, replica-head, historical-version and primary-outbox identity constraints before activation.");
@@ -41,12 +43,13 @@ public partial class Neo4jOASIS
             + "WHERE type IN ['UNIQUENESS','NODE_KEY'] AND "
             + "((labelsOrTypes=['Holon'] AND properties=['Id']) OR "
             + "(labelsOrTypes=['CosmicWriteReceipt'] AND properties=['OperationId']) OR "
+            + "(labelsOrTypes=['CosmicDestinationBinding'] AND properties=['Key']) OR "
             + "(labelsOrTypes=['CosmicReplicaHead'] AND properties=['HolonId']) OR "
             + "(labelsOrTypes=['CosmicHolonOutboxSequence'] AND properties=['Name']) OR "
             + "(labelsOrTypes=['CosmicHolonOutbox'] AND properties=['Sequence']) OR "
             + "(labelsOrTypes=['CosmicHolonOutbox'] AND size(properties)=2 AND all(p IN ['OperationId','TargetId'] WHERE p IN properties)) OR "
             + "(labelsOrTypes=['OasisRecordVersion'] AND size(properties)=3 AND all(p IN ['Kind','RecordId','Version'] WHERE p IN properties))) "
             + "RETURN count(DISTINCT CASE WHEN labelsOrTypes=['CosmicHolonOutbox'] THEN CASE WHEN properties=['Sequence'] THEN 'outbox-sequence' ELSE 'outbox-operation-target' END ELSE labelsOrTypes[0] END) AS count").ConfigureAwait(false)).SingleAsync().ConfigureAwait(false);
-        return verified["count"].As<long>() == 7;
+        return verified["count"].As<long>() == 8;
     }
 }
