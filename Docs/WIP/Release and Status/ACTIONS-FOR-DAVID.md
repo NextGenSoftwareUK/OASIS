@@ -26,7 +26,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 
 | Package | Version | Change |
 |---|---|---|
-| `@oasisomniverse/web4-api` | 2.0.15 | `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes) |
+| `@oasisomniverse/web4-api` | 2.0.16 | 2.0.15: `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes). 2.0.16 (28 Oct): keeps `metaData`/`providerMetaData` keys as sent, so a loaded holon saves back with its revision (PIPER edits) |
 | `@oasisomniverse/web5-api` | 1.0.6 | `Idempotency-Key` on every request (committed 21 Oct, never published) |
 | `@oasisomniverse/web6-api` | 2.1.2 | same as web5 |
 | `@oasisomniverse/web7-api` … `web10-api` | 1.0.5 each | same as web5 |
