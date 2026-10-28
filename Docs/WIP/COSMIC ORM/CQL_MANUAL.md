@@ -1066,3 +1066,19 @@ verifies exact successful cleanup. It never changes preserved SQLite evidence.
 
 Neo4j proof:149focused CQL tests (including3new compiler/admission cases) and the same10native cases as Mongo/SQLite. Unit TRX TestResults/CoreCurrent/neo-entity-projection-unit.trx SHA256E554D51BBB5F82DF2B800C50B4C3724550E729DC81BA68B12FB1359AA3897DCD. Native TRX TestResults/Neo4jCurrent/neo-entity-projection-native.trx SHA256E3313399375F4C27BDBE0B0FF0E1F61CF10FCDA37421EB38CB7F825AEF6776A1; native JSON A6391BC347A7B59A2306C8A32A74099BE7FBAE75373D18C4093E91F3BA4E90DD. Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedGraph.ps1 -EntityProjection under its own single lease. It reuses the retained container, journals five owned nodes before creation, preserves failed outcomes and verifies exact-ID cleanup before stopping the container. No Mongo service, old SQLite fixture or historical journal is needed by this mode. The new path reuses native cell decoding, canonical source-proof validation and the original entity-stage compiler rather than materializing an entity page for managed Select.
 
+
+### Explicit capture of selected stages after entity projection
+
+`CosmicEntityProjectionQuery<T,TResult>` now captures Where, OrderBy/Descending,
+ThenBy/Descending, Skip, Take and Reverse after selection. Each operation returns
+`OASISResult<CosmicEntityProjectionQuery<T,TResult>>`; unwrap/check errors as with
+the other explicit builders. This is a capture foundation, not native enrollment:
+the current entity-projection planner rejects these selected stages before I/O.
+Standard LINQ still rejects operators after entity selection. Do not present this
+foundation as a runnable cross-database feature yet.
+
+The entity source and its windows remain unchanged. Selected filters refer only
+to retained exact columns, captured literals are frozen, ThenBy extends only the
+immediately preceding selected order, and selected stages share the existing
+32-stage/10000-window limits. Combined native proof must validate the complete
+entity sequence and selected inputs before later windows can hide invalid cells.
