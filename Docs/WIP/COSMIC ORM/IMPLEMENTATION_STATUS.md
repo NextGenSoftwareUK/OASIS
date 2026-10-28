@@ -9,6 +9,7 @@ Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 cases,1280fullShared and4377fullCore pass. Receiver reads endpoint/store identity under
 BEGIN IMMEDIATE before receipt replay or mutation. A competing native identity writer
 is blocked until commit; replaced/missing/corrupt identity rejects without repair/write.
+Neo now adds3new/6identity-binding native cases plus6existing replica regressions;db.info checked in the write transaction before receipt replay, lifecycle gate pins the driver. Native Mongo admission remains next.
 Shared bound catalogs hash the native identity and binding contract separately from
 unbound descriptors; receivers cannot silently downgrade. Automatic routes remain unbound.
 
@@ -24,7 +25,7 @@ unbound descriptors; receivers cannot silently downgrade. Automatic routes remai
 
 ## Remaining acceptance
 
-1. Mongo/Neo transaction-bound receiver admission, automatic native source/target/policy binding, durable route discovery and old/unbound operator reconciliation. Tenant/encryption/residency/placement admission remains separate.
+1. Mongo transaction-bound receiver admission, automatic native source/target/policy binding, durable route discovery and old/unbound operator reconciliation. Tenant/encryption/residency/placement admission remains separate.
 2. Other native crash directions, lost primary outcomes, target outage/reconciliation, grant revocation, target-set changes and retention/operator repair. X10 stays red on all3.
 3. Full graph/child parameters, history/restore, authorized delta values/retention, controlled migration/cutover, gas-aware placement and remaining EF/NHibernate rows require independent acceptance.
 4. HostedAzure pending;originalSolana historical root/chunk has no backup. Preserve ledger/identities;never reset/reseed.

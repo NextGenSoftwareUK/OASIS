@@ -29,13 +29,7 @@ public partial class Neo4jOASIS : ICosmicStorageIdentityProvider
             var cursor = await session.RunAsync("CALL db.info() YIELD id,name RETURN id,name").ConfigureAwait(false);
             var rows = await cursor.ToListAsync().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (rows.Count != 1 || rows[0]["id"] is not string identity || rows[0]["name"] is not string name || string.IsNullOrWhiteSpace(name))
-                throw new InvalidDataException("The native database identity metadata is missing or malformed.");
-            var fields = new[] { "neo-storage-endpoint-v1", _storageDriverEndpoint.AbsoluteUri, name };
-            var canonical = string.Concat(fields.Select(value => Encoding.UTF8.GetByteCount(value).ToString(CultureInfo.InvariantCulture) + ":" + value));
-            using var hash = SHA256.Create();
-            var endpoint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(canonical))).Replace("-", "");
-            return new(new CosmicStorageIdentity(API.Core.Enums.ProviderType.Neo4jOASIS, endpoint, identity));
+            return new(ReadStorageIdentity(rows, _storageDriverEndpoint));
         }
         catch (Exception exception) when (exception is Neo4jException || exception is InvalidDataException ||
             exception is InvalidOperationException || exception is ArgumentException || exception is FormatException)
@@ -44,5 +38,16 @@ public partial class Neo4jOASIS : ICosmicStorageIdentityProvider
                 Message = "The native Neo storage identity could not be captured; no identity record was created.", Exception = exception };
         }
         finally { _lifecycleGate.Release(); }
+    }
+
+    private static CosmicStorageIdentity ReadStorageIdentity(System.Collections.Generic.IReadOnlyList<IRecord> rows, Uri endpointUri)
+    {
+        if (rows.Count != 1 || rows[0]["id"] is not string identity || rows[0]["name"] is not string name || string.IsNullOrWhiteSpace(name))
+            throw new InvalidDataException("The native database identity metadata is missing or malformed.");
+        var fields = new[] { "neo-storage-endpoint-v1", endpointUri.AbsoluteUri, name };
+        var canonical = string.Concat(fields.Select(value => Encoding.UTF8.GetByteCount(value).ToString(CultureInfo.InvariantCulture) + ":" + value));
+        using var hash = SHA256.Create();
+        var endpoint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(canonical))).Replace("-", "");
+        return new CosmicStorageIdentity(API.Core.Enums.ProviderType.Neo4jOASIS, endpoint, identity);
     }
 }

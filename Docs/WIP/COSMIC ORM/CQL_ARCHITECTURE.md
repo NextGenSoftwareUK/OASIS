@@ -349,5 +349,6 @@ Explicit catalogs may use a native `CosmicStorageIdentity` and
 `IBoundCommittedHolonReplicaStorageProvider` destination. This hashes a distinct
 bound-route contract and passes the captured identity into the receiver transaction.
 SQLite checks its native file/identity row under BEGIN IMMEDIATE before receipt
-replay or graph writes. This is separate from CQL read assurance and policy admission.
+replay or graph writes. Neo reads db.info on the write transaction before receipt
+replay, holding the driver lifecycle gate through completion. Mongo admission remains open. This is separate from CQL read assurance and policy admission.
 [Implementation, tests and open automatic-route scope](REPLICA_STORAGE_BINDING.md).

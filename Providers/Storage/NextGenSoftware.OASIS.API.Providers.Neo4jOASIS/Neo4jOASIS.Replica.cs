@@ -23,22 +23,69 @@ public sealed class Neo4jReplicaReconciliationException(Guid operationId,string 
     public string OriginalTransactionId=>string.Empty;
 }
 
-public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider
+public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
 {
+    private sealed class NeoReplicaStorageBindingException(string code, string message, Exception cause = null)
+        : InvalidOperationException(message, cause)
+    { internal string Code { get; } = code; }
+
+    public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage)
+        => ApplyBoundCommittedHolonReplicaAsync(request, expectedStorage).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(expectedStorage);
+        await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            if (!IsProviderActivated || _driver == null || _storageDriverEndpoint == null)
+                return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                    Message = "A bound receiver requires an active driver with its captured native endpoint." };
+            return await ApplyReplicaAsync(request, expectedStorage, cancellationToken).ConfigureAwait(false);
+        }
+        finally { _lifecycleGate.Release(); }
+    }
+
+    private async Task ValidateReplicaStorageBindingAsync(IAsyncTransaction transaction, NeoAtomicHolonWrite write)
+    {
+        if (write.ExpectedStorage == null) return;
+        CosmicStorageIdentity actual;
+        try
+        {
+            var rows = await (await transaction.RunAsync("CALL db.info() YIELD id,name RETURN id,name")
+                .ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
+            actual = ReadStorageIdentity(rows, _storageDriverEndpoint);
+        }
+        catch (Exception cause) when (cause is Neo4jException || cause is InvalidDataException || cause is ArgumentException)
+        {
+            throw new NeoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                "Native receiver identity could not be verified in the replica transaction.", cause);
+        }
+        write.Cancellation.ThrowIfCancellationRequested();
+        if (actual.BindingFingerprint != write.ExpectedStorage.BindingFingerprint)
+            throw new NeoReplicaStorageBindingException("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+                "The native receiver does not match the enrolled storage identity.");
+    }
+
     private sealed class NeoReplicaConflictException(IEnumerable<Guid> ids)
         :InvalidOperationException("Replica source lineage, local revision or enrollment differs for: "+string.Join(",",ids));
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         =>ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
-    public async Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
-        CancellationToken cancellationToken=default)
+    public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CancellationToken cancellationToken=default) => ApplyReplicaAsync(request, null, cancellationToken);
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             var plan=CommittedHolonReplicaPlan.Create(request,ReplicaProviderType.Neo4jOASIS);
             return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
-                new NeoAtomicHolonWrite(plan,request.ActorId,cancellationToken)).ConfigureAwait(false);
+                new NeoAtomicHolonWrite(plan,request.ActorId,cancellationToken) { ExpectedStorage = expectedStorage }).ConfigureAwait(false);
         }
         catch(Exception cause)
         {
