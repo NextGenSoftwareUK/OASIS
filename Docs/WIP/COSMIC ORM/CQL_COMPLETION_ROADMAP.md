@@ -56,3 +56,5 @@ incremental transport and production worker scheduling/accounting remain open.
 See CURRENT_STATUS and CQL_INDEXED_HTTP.md for evidence scope.
 
 Standard final entity-stage Select is now verified on all3 (14 native cases/store, including throwing source constructors, closure rebinding, source-page ordering and invalid-cell rejection);6 new Core tests,2165 CQL/4249 full Core pass. Q01f stays red for operators/terminals after entity selection and remaining numeric integration.
+
+Q01f next foundation: explicit selected-stage capture now preserves the entity source unchanged; combined native admission/proof/execution and standard LINQ wiring are still pending. No checklist cell promoted.
