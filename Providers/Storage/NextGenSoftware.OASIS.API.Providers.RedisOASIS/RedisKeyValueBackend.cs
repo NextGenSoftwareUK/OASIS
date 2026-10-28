@@ -22,9 +22,6 @@ internal sealed class RedisKeyValueBackend(
     string keyPrefix) : IConditionalKeyValueBackend
 {
     private static readonly UTF8Encoding Utf8 = new(false, true);
-    private const string RevisionPrefix = "redis-state-v1:";
-    private const string ReplaceScript = "if redis.call('GET',KEYS[1]) ~= ARGV[1] then return 0 end redis.call('SET',KEYS[1],ARGV[2]) return 1";
-    private const string DeleteScript = "if redis.call('GET',KEYS[1]) ~= ARGV[1] then return 0 end return redis.call('DEL',KEYS[1])";
     public Func<Task>? VerifyAdmission {get;init;}
 
     private string Key(string key)
@@ -47,18 +44,7 @@ internal sealed class RedisKeyValueBackend(
         var bytes=(byte[])value!;
         var text=Utf8.GetString(bytes);
         // Bind the observed state to its exact key; no caller-created revision/alternate parsing.
-        return new KeyValueObservation(text,RevisionPrefix+Convert.ToBase64String(Utf8.GetBytes(key))+":"+Convert.ToBase64String(bytes));
-    }
-
-    private byte[] Expected(string key,string revision)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(revision);
-        var header=RevisionPrefix+Convert.ToBase64String(Utf8.GetBytes(key))+":";
-        if(!revision.StartsWith(header,StringComparison.Ordinal))throw new ArgumentException("Redis observation belongs to another key or format.",nameof(revision));
-        var encoded=revision.Substring(header.Length);
-        var bytes=Convert.FromBase64String(encoded);
-        if(Convert.ToBase64String(bytes)!=encoded)throw new ArgumentException("Redis observation is not canonical.",nameof(revision));
-        return bytes;
+        return new KeyValueObservation(text,RedisStateComparison.Observe(key,bytes));
     }
 
     public Task PutAsync(string key,string value,CancellationToken cancellationToken=default)
@@ -86,18 +72,18 @@ internal sealed class RedisKeyValueBackend(
     public Task ReplaceUnchangedAsync(string key,string value,string revision,CancellationToken cancellationToken=default)
     {
         key=Key(key);ArgumentNullException.ThrowIfNull(value);
-        return ConditionalAsync(key,Expected(key,revision),Utf8.GetBytes(value),false,cancellationToken);
+        return ConditionalAsync(key,RedisStateComparison.Expected(key,revision),Utf8.GetBytes(value),false,cancellationToken);
     }
     public Task DeleteUnchangedAsync(string key,string revision,CancellationToken cancellationToken=default)
     {
-        key=Key(key);return ConditionalAsync(key,Expected(key,revision),null,true,cancellationToken);
+        key=Key(key);return ConditionalAsync(key,RedisStateComparison.Expected(key,revision),null,true,cancellationToken);
     }
     private async Task ConditionalAsync(string key,byte[] expected,byte[]? value,bool delete,CancellationToken token)
     {
         token.ThrowIfCancellationRequested();var db=await database();token.ThrowIfCancellationRequested();
         try
         {
-            var response=await db.ScriptEvaluateAsync(delete?DeleteScript:ReplaceScript,new RedisKey[]{key},
+            var response=await db.ScriptEvaluateAsync(delete?RedisStateComparison.DeleteScript:RedisStateComparison.ReplaceScript,new RedisKey[]{key},
                 delete?new RedisValue[]{expected}:new RedisValue[]{expected,value!},CommandFlags.DemandMaster);
             if(response.Type!=ResultType.Integer)throw new InvalidDataException("Redis conditional mutation omitted its integer acknowledgement.");
             var outcome=(long)response;
@@ -123,12 +109,10 @@ internal sealed class RedisKeyValueBackend(
         var db=await database();var servers=await primaries();
         if(servers.Count==0 || servers.Any(server=>server==null || server.IsReplica || !server.IsConnected))
             throw new InvalidOperationException("Complete connected Redis primary discovery is required for enumeration.");
-        var pattern=new StringBuilder();
-        foreach(var character in prefix){if(character is '\\' or '*' or '?' or '[' or ']')pattern.Append('\\');pattern.Append(character);}
-        pattern.Append('*');
+        var pattern=RedisStateComparison.PrefixPattern(prefix);
         var found=new HashSet<string>(StringComparer.Ordinal);
         foreach(var server in servers)
-            await foreach(var nativeKey in server.KeysAsync(db.Database,pattern.ToString(),pageSize:256,flags:CommandFlags.DemandMaster).WithCancellation(cancellationToken))
+            await foreach(var nativeKey in server.KeysAsync(db.Database,pattern,pageSize:256,flags:CommandFlags.DemandMaster).WithCancellation(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var key=Utf8.GetString((byte[])nativeKey!);

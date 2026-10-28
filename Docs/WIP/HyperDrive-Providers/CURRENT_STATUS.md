@@ -3,7 +3,7 @@ Updated28October2026. Read this first, then query relevant matrix rows; do not l
 
 ## Phase and rules
 
-Active checkpoint: native MinIO and Convex baselines complete; publish scoped source/evidence batch. Next: remaining document/SQL families through shared policy, preserving explicit native/cloud gates. Convex runtime stopped, records0; resource/package/failure-recovery receipts in CONVEX_STORAGE_BASELINE.md.
+Active checkpoint: native MinIO and Convex batch pushed as1ef629dc2. Redis state codec/Lua/glob rules extracted for Upstash reuse;6new/32existing controls pass. Next: Upstash REST shared-record adapter and native baseline (KEY_VALUE_FAMILY_BASELINE.md), then remaining families. No new environment/download. Convex runtime stopped, records0; receipts in CONVEX_STORAGE_BASELINE.md.
 
 - Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
