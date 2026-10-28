@@ -18,21 +18,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class Neo4jNativeAvatarTests
 {
-    public class RoutedOwnedTarget : DispatchProxy, ICommittedHolonReplicaStorageProvider
+    public class RoutedOwnedTarget : DispatchProxy, IBoundCommittedHolonReplicaStorageProvider, ICosmicStorageIdentityProvider
     {
         public ProviderType Identity;
         protected override object? Invoke(MethodInfo? method, object?[]? args) => method!.Name switch
         {
+            "get_IsProviderActivated" => true,
             "get_ProviderType" => new EnumValue<ProviderType>(Identity),
             "get_ProviderCategory" => new EnumValue<ProviderCategory>(ProviderCategory.Storage),
             "get_ProviderName" => "declaration-only-" + Identity,
             _ => throw new InvalidOperationException("Unexpected target call: " + method.Name)
         };
+        // A declared native identity tests enrollment only; no target delivery is claimed here.
+        public Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new OASISResult<CosmicStorageIdentity>(RoutedTargetIdentity(Identity)));
+        public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage)
+            => throw new InvalidOperationException("Primary writes cannot deliver inline.");
+        public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Primary writes cannot deliver inline.");
         public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
             => throw new InvalidOperationException("Primary writes cannot deliver inline.");
         public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("Primary writes cannot deliver inline.");
     }
+
+    private static CosmicStorageIdentity RoutedTargetIdentity(ProviderType type)
+        => new(type, new string('A', 64), "declaration-only-" + type);
 
     [DataTestMethod]
     [DataRow(false, false)]
@@ -71,9 +82,14 @@ public partial class Neo4jNativeAvatarTests
             try
             {
                 Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+                var nativeSource = (await provider.CaptureStorageIdentityAsync()).Result;
+                string BoundTarget(ProviderType type) => new HolonReplicationRouteBinding(nativeSource,
+                    RoutedTargetIdentity(type), HolonReplicationRoutes.DefaultPolicyBinding).TargetId;
+                var boundSourceId = new HolonReplicationRouteBinding(nativeSource,
+                    RoutedTargetIdentity(ProviderType.MongoDBOASIS), HolonReplicationRoutes.DefaultPolicyBinding).SourceId;
                 var before = await Counter();
                 if (fault)
-                    await (await inspect.RunAsync("CREATE (:CosmicHolonOutbox {OperationId:$op,TargetId:'hyperdrive-target:SQLLiteDBOASIS',Sequence:-1,OwnedFixture:true})", parameters)).ConsumeAsync();
+                    await (await inspect.RunAsync("CREATE (:CosmicHolonOutbox {OperationId:$op,TargetId:$target,Sequence:-1,OwnedFixture:true})", new { op = operation.ToString("D"), target = BoundTarget(ProviderType.SQLLiteDBOASIS) })).ConsumeAsync();
                 var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false } } };
                 dna.OASIS.SubscriptionConfig.PlanType = "Gold";
@@ -118,11 +134,11 @@ public partial class Neo4jNativeAvatarTests
                     for (var index = 0; index < rows.Count; index++)
                     {
                         var row = rows[index]["o"].As<Neo4j.Driver.INode>();
-                        Assert.AreEqual(HolonReplicationRoutes.TargetId(targets[index]), row["TargetId"].As<string>());
+                        Assert.AreEqual(BoundTarget(targets[index]), row["TargetId"].As<string>());
                         var payload = CommittedHolonReplicaPayload.Read(row["PayloadJson"].As<string>());
                         Assert.AreEqual(operation, payload.OperationId);
                         Assert.AreEqual(actor, payload.ActorId);
-                        Assert.AreEqual(HolonReplicationRoutes.SourceId(ProviderType.Neo4jOASIS), payload.SourceId);
+                        Assert.AreEqual(boundSourceId, payload.SourceId);
                         CollectionAssert.AreEquivalent(inputs.Select(input => input.VersionId).ToArray(), payload.Roots.Select(input => input.VersionId).ToArray());
                     }
                     foreach (var input in inputs) { Assert.AreEqual(1, input.Version); Assert.IsFalse(HolonChangeTracking.HasChanges(input)); }

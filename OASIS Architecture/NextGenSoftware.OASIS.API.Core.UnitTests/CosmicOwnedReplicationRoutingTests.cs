@@ -26,13 +26,17 @@ public partial class CosmicTrackingTests
     {
         await Task.Run(async () =>
         {
-            var fixture = Fixture(true, conditional: true, atomicReplication: true);
+            var fixture = Fixture(true, conditional: true, atomicReplication: true,boundReplication:true);
             foreach (var type in new[] { ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS })
             {
                 var target = new Mock<IOASISStorageProvider>();
-                target.As<ICommittedHolonReplicaStorageProvider>();
+                target.SetupAllProperties();
+                target.As<IBoundCommittedHolonReplicaStorageProvider>();
+                target.As<ICosmicStorageIdentityProvider>().Setup(value=>value.CaptureStorageIdentityAsync(It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new OASISResult<CosmicStorageIdentity>(ControlledNativeIdentity(type)));
                 target.SetupGet(value => value.ProviderType).Returns(new EnumValue<ProviderType>(type));
                 target.SetupGet(value => value.ProviderCategory).Returns(new EnumValue<ProviderCategory>(ProviderCategory.Storage));
+                target.Object.IsProviderActivated = true;
                 fixture.Providers.RegisterProvider(target.Object);
             }
 
@@ -72,13 +76,13 @@ public partial class CosmicTrackingTests
             submitted!.Write.OperationId.Should().Be(operation);
             submitted.Write.ActorId.Should().Be(actor);
             submitted.Write.ReplicationEnrollment.Should().BeSameAs(enrolled);
-            enrolled!.SourceId.Should().Be(explicitEnrollment?.SourceId ?? HolonReplicationRoutes.SourceId(ProviderType.SQLLiteDBOASIS));
+            enrolled!.SourceId.Should().Be(explicitEnrollment?.SourceId ?? new HolonReplicationRouteBinding(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS),ControlledNativeIdentity(ProviderType.MongoDBOASIS),HolonReplicationRoutes.DefaultPolicyBinding).SourceId);
             var expectedTargets = scope switch
             {
                 "explicit" => new[] { "explicit-target" },
-                "avatar" => new[] { HolonReplicationRoutes.TargetId(ProviderType.Neo4jOASIS) },
-                "request" => new[] { HolonReplicationRoutes.TargetId(ProviderType.MongoDBOASIS), HolonReplicationRoutes.TargetId(ProviderType.Neo4jOASIS) },
-                _ => new[] { HolonReplicationRoutes.TargetId(ProviderType.MongoDBOASIS) }
+                "avatar" => new[] { new HolonReplicationRouteBinding(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS),ControlledNativeIdentity(ProviderType.Neo4jOASIS),HolonReplicationRoutes.DefaultPolicyBinding).TargetId },
+                "request" => new[] { new HolonReplicationRouteBinding(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS),ControlledNativeIdentity(ProviderType.MongoDBOASIS),HolonReplicationRoutes.DefaultPolicyBinding).TargetId, new HolonReplicationRouteBinding(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS),ControlledNativeIdentity(ProviderType.Neo4jOASIS),HolonReplicationRoutes.DefaultPolicyBinding).TargetId },
+                _ => new[] { new HolonReplicationRouteBinding(ControlledNativeIdentity(ProviderType.SQLLiteDBOASIS),ControlledNativeIdentity(ProviderType.MongoDBOASIS),HolonReplicationRoutes.DefaultPolicyBinding).TargetId }
             };
             enrolled.TargetIds.Should().BeEquivalentTo(expectedTargets);
 
@@ -99,7 +103,7 @@ public partial class CosmicTrackingTests
     {
         await Task.Run(async () =>
         {
-            var fixture = Fixture(true, conditional: true, atomicReplication: true);
+            var fixture = Fixture(true, conditional: true, atomicReplication: true,boundReplication:true);
             var actor = Guid.NewGuid();
             var root = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = actor, Name = "unchanged" };
             CosmicConcurrency.SetProviderRevisionId(root, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());

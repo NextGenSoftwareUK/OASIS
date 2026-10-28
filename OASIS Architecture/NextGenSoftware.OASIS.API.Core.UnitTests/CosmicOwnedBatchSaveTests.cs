@@ -9,8 +9,10 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public partial class CosmicTrackingTests
 {
-    [Fact]
-    public async Task OwnedBatchValidatesWriteConditionsEvenWhenNothingChanged()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OwnedSaveValidatesWriteConditionsEvenWhenNothingChanged(bool batch)
     {
         var fixture = Fixture(true, conditional: true);
         var actor = Guid.NewGuid();
@@ -24,15 +26,16 @@ public partial class CosmicTrackingTests
                 Id = root.Id, CreatedByAvatarId = actor
             }) { IsLoaded = true });
 
-        var result = await fixture.Manager.SaveOwnedHolonsAsync(
-            new[] { root }, actor,
-            new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?>
-            {
-                [root.Id] = Guid.NewGuid(),
-                [Guid.NewGuid()] = null // Outside the selected plan: invalid intent.
-            }), saveChildren: false);
+        var options = new CosmicWriteOptions(Guid.NewGuid(), new Dictionary<Guid, Guid?>
+        {
+            [root.Id] = Guid.NewGuid(),
+            [Guid.NewGuid()] = null // Outside the selected plan: invalid intent.
+        });
+        var rejected = batch
+            ? (await fixture.Manager.SaveOwnedHolonsAsync(new[] { root }, actor, options, saveChildren: false)).IsError
+            : (await fixture.Manager.SaveOwnedHolonAsync(root, actor, options, saveChildren: false)).IsError;
 
-        result.IsError.Should().BeTrue("no-op input still requires valid selected write conditions");
+        rejected.Should().BeTrue("no-op input still requires valid selected write conditions");
         fixture.Provider.Invocations.Where(call => call.Method.Name.Contains("Save") ||
             call.Method.Name.Contains("Conditional")).Should().BeEmpty();
     }

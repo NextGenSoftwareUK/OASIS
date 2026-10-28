@@ -22,7 +22,7 @@ public partial class NativeHostedReplicaRestartTests
     public Task ShippingWorkerRecoversSameObligationAfterAbruptReceiverCommitProcessExit()
         => VerifyShippingWorkerRestart(true);
 
-    public class ExitAfterReplicaCommit : DispatchProxy, ICommittedHolonReplicaStorageProvider
+    public class ExitAfterReplicaCommit : DispatchProxy, IBoundCommittedHolonReplicaStorageProvider, ICosmicStorageIdentityProvider
     {
         public Sqlite Native = null!;
         public Guid ExpectedOperation;
@@ -34,14 +34,20 @@ public partial class NativeHostedReplicaRestartTests
             catch (TargetInvocationException error) when (error.InnerException != null)
             { ExceptionDispatchInfo.Capture(error.InnerException).Throw(); throw; }
         }
+        public Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken cancellationToken = default)
+            => Native.CaptureStorageIdentityAsync(cancellationToken);
+        public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage)
+            => throw new InvalidOperationException("The shipping worker must use the async bound receiver.");
+        public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Automatic delivery must remain bound to native storage.");
         public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
             => throw new InvalidOperationException("The shipping delivery worker uses the async receiver contract.");
-        public async Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(
-            CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
+        public async Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(
+            CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
         {
             Assert.AreEqual(ExpectedOperation, request.OperationId);
             Assert.AreEqual(ExpectedActor, request.ActorId);
-            var committed = await Native.ApplyCommittedHolonReplicaAsync(request, cancellationToken);
+            var committed = await Native.ApplyBoundCommittedHolonReplicaAsync(request, expectedStorage, cancellationToken);
             Assert.IsFalse(committed.IsError, committed.Message + committed.Exception);
             var root = committed.Result.Single();
             using (var file = new FileStream(Boundary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
