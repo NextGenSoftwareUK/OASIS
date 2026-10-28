@@ -878,3 +878,17 @@ through the protocol-only button. Use the same protocol Mongo runner with `-Serv
 Both sessions passed native acceptance, exact fixture cleanup and shutdown after
 browser use. See Docs/WIP/COSMIC ORM/CQL_PROTOCOL_BROWSER_VERIFICATION.md.
 Screenshot/layout QA and cloud/chain pairings remain open.
+
+### Live Mongo + retained Solana SDK acceptance
+
+```powershell
+& Scripts/TestHosts/Run-ReusableSolanaMongoTests.ps1 -ArchiveCompletedDemo
+```
+
+This bounded preset now passes one shared mixed query with two physical copies of
+one synthetic logical ID: Mongo1 and retained Solana1 via its explicit SQLite index.
+The chain copy retains source receipt/checkpoint/head; the unrelated Mongo control is
+excluded. Original chain ledger/ack/index remain intact, no transaction or reseed.
+Exact owned Mongo cleanup and both services' shutdown are verified. This is SDK/native
+proof; the mixed browser/HTTP preset is still being implemented. See Docs/WIP/COSMIC
+ORM/CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md for scope and evidence.
