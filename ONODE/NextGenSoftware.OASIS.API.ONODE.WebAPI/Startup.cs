@@ -405,6 +405,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             }
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
+            // Only the sandbox deployment (OASIS_SANDBOX=true) removes its throwaway demo avatars; no other WEB4 runs this.
+            if (Services.Sandbox.SandboxCleanupHostedService.IsSandbox)
+                services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
                 services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
                     new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
