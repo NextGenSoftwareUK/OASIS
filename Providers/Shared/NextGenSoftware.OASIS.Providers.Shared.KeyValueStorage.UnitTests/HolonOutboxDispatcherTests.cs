@@ -59,6 +59,24 @@ public class HolonOutboxDispatcherTests
         {Calls++;Received=item;return Apply?.Invoke(token) ?? Task.FromResult(new OASISResult<bool>(true));}
     }
     private static HolonOutboxDispatcher Dispatcher(Store store,Target target)=>new(store,new[]{target},"worker",new Clock());
+    [DataTestMethod]
+    [DataRow("COSMIC_REPLICATION_ROUTE_UNBOUND")]
+    [DataRow("COSMIC_REPLICATION_ROUTE_CHANGED")]
+    [DataRow("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH")]
+    [DataRow("COSMIC_REPLICA_STORAGE_BINDING_INVALID")]
+    public async Task BindingFailuresRequireReconciliationImmediatelyWithoutSchedulingRetry(string code)
+    {
+        var store = new Store();
+        var target = new Target { Apply = _ => Task.FromResult(new OASISResult<bool> { IsError = true, ErrorCode = code }) };
+        var result = await Dispatcher(store, target).DispatchOnceAsync("target");
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(1, result.Result.ReconciliationCount);
+        CollectionAssert.AreEqual(new[] { HolonDeliveryOutcome.ReconciliationRequired }, store.Outcomes);
+        Assert.AreEqual(code, store.Error);
+        Assert.IsNull(store.RetryAt);
+        Assert.AreEqual(1, target.Calls);
+    }
+
     private sealed class UnexposedNativeIdentity : Exception,INativeMutationReconciliationRequired
     {public string OriginalTransactionId=>null;}
 

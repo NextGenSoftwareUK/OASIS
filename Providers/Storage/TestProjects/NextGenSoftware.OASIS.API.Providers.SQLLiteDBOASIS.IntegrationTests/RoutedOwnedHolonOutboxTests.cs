@@ -22,18 +22,26 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     // Only the authority is native in this test. Targets advertise the receiver
     // contract, but must never receive an inline call before durable delivery.
-    public class RoutedReplicaDeclaration : DispatchProxy, ICommittedHolonReplicaStorageProvider
+    public class RoutedReplicaDeclaration : DispatchProxy, IBoundCommittedHolonReplicaStorageProvider, ICosmicStorageIdentityProvider
     {
         public ProviderType Identity;
 
         protected override object? Invoke(MethodInfo? method, object?[]? args) => method!.Name switch
         {
+            "get_IsProviderActivated" => true,
             "get_ProviderType" => new EnumValue<ProviderType>(Identity),
             "get_ProviderCategory" => new EnumValue<ProviderCategory>(ProviderCategory.Storage),
             "get_ProviderName" => "declaration-only-" + Identity,
             _ => throw new InvalidOperationException("A declaration-only target must not be invoked: " + method.Name)
         };
 
+        // A declared native identity tests enrollment only; no target delivery is claimed here.
+        public Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(new OASISResult<CosmicStorageIdentity>(RoutedTargetIdentity(Identity)));
+        public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage)
+            => throw new InvalidOperationException("Primary writes cannot deliver inline.");
+        public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request, CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Primary writes cannot deliver inline.");
         public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
             => throw new InvalidOperationException("Delivery is not inline with the primary transaction.");
 
@@ -41,6 +49,9 @@ public partial class SQLLiteDBOASISIntegrationTests
             CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
             => throw new InvalidOperationException("Delivery is not inline with the primary transaction.");
     }
+
+    private static CosmicStorageIdentity RoutedTargetIdentity(ProviderType type)
+        => new(type, new string('A', 64), "declaration-only-" + type);
 
     [Theory]
     [InlineData(false, false)]
@@ -60,11 +71,16 @@ public partial class SQLLiteDBOASISIntegrationTests
             using (var provider = new SQLLiteDBOASIS(TestConnectionString))
             {
                 (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+                var nativeSource = (await provider.CaptureStorageIdentityAsync()).Result;
+                string BoundTarget(ProviderType type) => new HolonReplicationRouteBinding(nativeSource,
+                    RoutedTargetIdentity(type), HolonReplicationRoutes.DefaultPolicyBinding).TargetId;
+                var boundSourceId = new HolonReplicationRouteBinding(nativeSource,
+                    RoutedTargetIdentity(ProviderType.MongoDBOASIS), HolonReplicationRoutes.DefaultPolicyBinding).SourceId;
                 if (failOutbox)
                 {
                     using var control = new DataContext(TestConnectionString);
                     // The second target fails after the first obligation was inserted.
-                    control.Database.ExecuteSqlRaw("CREATE TRIGGER routed_owned_fault BEFORE INSERT ON CosmicHolonOutbox WHEN NEW.TargetId='hyperdrive-target:Neo4jOASIS' BEGIN SELECT RAISE(ABORT,'routed owned outbox fault'); END");
+                    control.Database.ExecuteSqlRaw($"CREATE TRIGGER routed_owned_fault BEFORE INSERT ON CosmicHolonOutbox WHEN NEW.TargetId='{BoundTarget(ProviderType.Neo4jOASIS)}' BEGIN SELECT RAISE(ABORT,'routed owned outbox fault'); END");
                 }
 
                 var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
@@ -128,11 +144,11 @@ public partial class SQLLiteDBOASISIntegrationTests
                         foreach (var target in new[] { ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS })
                         {
                             (await reader.ReadAsync()).Should().BeTrue();
-                            reader.GetString(0).Should().Be(HolonReplicationRoutes.TargetId(target));
+                            reader.GetString(0).Should().Be(BoundTarget(target));
                             var frozen = CommittedHolonReplicaPayload.Read(reader.GetString(1));
                             frozen.OperationId.Should().Be(operation);
                             frozen.ActorId.Should().Be(actor);
-                            frozen.SourceId.Should().Be(HolonReplicationRoutes.SourceId(ProviderType.SQLLiteDBOASIS));
+                            frozen.SourceId.Should().Be(boundSourceId);
                             frozen.Roots.Select(root => root.VersionId).Should().BeEquivalentTo(inputs.Select(root => root.VersionId));
                         }
                         (await reader.ReadAsync()).Should().BeFalse();
