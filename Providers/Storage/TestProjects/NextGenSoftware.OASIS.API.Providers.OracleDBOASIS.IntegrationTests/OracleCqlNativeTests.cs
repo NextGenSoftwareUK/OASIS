@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
-public sealed class OracleCqlNativeTests
+public sealed partial class OracleCqlNativeTests
 {
     [TestMethod]
     public async Task NativeMembershipAuthorizationPagingAndExactCleanup()
@@ -104,6 +104,9 @@ public sealed class OracleCqlNativeTests
             var limited = await Execute(query, 2);
             Assert.AreEqual("CQL_QUERY_LIMIT", limited.ErrorCode);
             Assert.IsNull(limited.Result);
+
+            if (Environment.GetEnvironmentVariable("OASIS_ORACLE_MONGO_DEMO") == "1")
+                await VerifyMongoAsync(root.FullName, provider, allowed);
 
             // Compare exact acknowledged envelopes before deleting only this fixture.
             foreach (var row in rows)
