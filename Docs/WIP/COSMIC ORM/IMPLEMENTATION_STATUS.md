@@ -86,7 +86,21 @@ this is a logical routing binding,not remote attestation or backup-incarnation p
 - storage-identity-full-core.trx SHA256F60159D51F2E075F658A7CE05F157CB8924BB928CB0A4013470042220E88AA2E.
 - Fixture DB/copy/sidecars/journal absent. Earlier failed test TRX retained by hash under TestResults/OwnedRoutingCurrent/Archive;no business save was submitted by those failures.
 
-This capability is not wired into automatic routes yet. Mongo/Neo captures,persisted
+Mongo now implements read-only capture using the native Holon collection UUID,
+without an added identity collection or schema/data writes. Endpoint fields come
+from the actual repository database/client settings (namespace,seeds,replica set,
+TLS/direct mode);credentials and mutable public provider descriptors are excluded.
+Independent clients/reopening agree;distinct databases differ. Missing native
+collection fails without repair;explicit test-owner recreation changes the native
+UUID/binding at the same endpoint. This identifies the holon store,not every database
+collection or authenticated tenant. Native capture requires listCollections UUID access.
+
+- 4identity cases plus6existing atomic-save/outbox cases pass:10/10,no skips.
+- TestResults/OwnedRoutingCurrent/mongo-storage-identity-regression.trx SHA256A22065C7E63CA03C41BDEEB4509B4F8BF40746DE9B85F2A3F8F6076C6C2E0F66.
+- Reproduce with retained Mongo8.3.11/oasisRecoveryRs27029 and process environment OASIS_MONGO_REPLICA_SET_CONNECTION (same URI as existing reusable runner);filter MongoStorageIdentityTests. Frozen orchestration:TestResults/OwnedRoutingCurrent/run-mongo-storage-identity.ps1.
+- Exact test DBs/journal absent,ghost DB never created,owned service stopped;Core unchanged in this milestone.
+
+This capability is not wired into automatic routes yet. Neo capture,persisted
 policy binding,receiver-side verification and old unbound queue/operator migration
 remain open. A fingerprint DTO alone does not prevent automatic misrouting.
 
