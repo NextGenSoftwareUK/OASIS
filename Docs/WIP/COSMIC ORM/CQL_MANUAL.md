@@ -973,3 +973,7 @@ reject during planning/re-admission. Native selected values must match validated
 source witnesses before any DTO construction. See the [C# example and acceptance
 scope](CQL_INDEXED_METADATA.md#selected-metadata-shared-sdk-and-sqlite-verified).
 SDK/actual SQLite and declared-range live Solana selected-metadata HTTP/demo gates are verified. In the SolanaMetadata page, choose Select metadata columns. Exact Int64 values use decimal strings and missing nullable cells use null; production identity/durable settlement remain open.
+
+### Azure Cosmos DB teaching host
+From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB (or add -VerifyOnly for bounded native acceptance). Open http://127.0.0.1:5088/ after readiness. The page shows C# and real WEB4 JSON for rows, projection and LongCount over the retained local emulator. It uses a controlled server-owned catalogue and receipts, not production JWT/billing. Stop via the page to complete exact fixture cleanup and emulator teardown. See [interactive guide](CQL_INTERACTIVE_POINT_DEMO.md) and [cloud evidence and limits](CQL_COSMOS_NATIVE_ADMISSION.md).
+

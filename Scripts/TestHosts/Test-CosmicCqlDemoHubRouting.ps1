@@ -3,13 +3,14 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,8081,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
 $contracts=@(
     @{Provider='SQLite';Runner='Run-CosmicCqlDemo.ps1';Url='http://127.0.0.1:5087/swagger'},
     @{Provider='Databases';Runner='Run-CosmicCqlV1Demo.ps1';Url='http://127.0.0.1:5088/demo'},
+    @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Url='http://127.0.0.1:5088/'},
     @{Provider='IPFS';Runner='Run-ReusableIpfsTests.ps1';Url='http://127.0.0.1:5088/'},
     @{Provider='SOLID';Runner='Run-ReusableSolidReadiness.ps1';Url='http://127.0.0.1:5088/'},
     @{Provider='ActivityPub';Runner='Run-ReusableActivityPubPointDemo.ps1';Url='http://127.0.0.1:5088/'},
@@ -28,7 +29,7 @@ $verified=foreach($contract in $contracts){
         $plan
     }
 }
-foreach($provider in @('SQLite','Databases')){
+foreach($provider in @('SQLite','Databases','CosmosDB')){
     $denied=$false
     try{& $hub -Provider $provider -ArchiveCompletedDemo -ShowPlan}catch{$denied=$true}
     if(!$denied){throw 'Database fixture lifecycle must not accept protocol archive options.'}
@@ -37,6 +38,6 @@ $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
-@{profiles=$contracts.Count;plans=@($verified);archiveRejections=2;listenersUnchanged=$true} |
+@{profiles=$contracts.Count;plans=@($verified);archiveRejections=3;listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS: seven profiles, both lifecycle plans, two archive rejections; listeners unchanged.'
+Write-Output 'PASS: eight profiles, both lifecycle plans, three archive rejections; listeners unchanged.'

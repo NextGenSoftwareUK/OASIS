@@ -63,7 +63,8 @@ internal static class CqlNativeHttpAcceptance
             Args = Array.Empty<string>()
         });
         builder.Logging.ClearProviders();
-        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        var serve = Environment.GetEnvironmentVariable("OASIS_COSMOS_CQL_SERVE") == "1";
+        builder.WebHost.UseUrls(serve ? "http://127.0.0.1:5088" : "http://127.0.0.1:0");
         builder.Services.AddSingleton<ICqlV1Providers>(providers);
         builder.Services.AddSingleton<ICqlReadAccessPolicy>(new Catalogue(actor, privateRecord));
         builder.Services.AddSingleton(new CqlReadPolicyRequirement(true));
@@ -106,11 +107,25 @@ internal static class CqlNativeHttpAcceptance
             catch (Exception cause) { failures.Add(cause); throw; }
         });
         app.MapControllers();
+        var shutdown = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var ready = 0;
+        app.MapGet("/", () => Results.Content(CosmicCqlDemo.CloudCqlDemoPage.Html, "text/html"));
+        app.MapGet("/demo/health", () => Volatile.Read(ref ready) == 1
+            ? Results.Ok(new { provider = "AzureCosmosDBOASIS", ready = true })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
+        app.MapPost("/demo/shutdown", () => { shutdown.TrySetResult(); return Results.Ok(new { stopping = true }); });
         await app.StartAsync();
         try
         {
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
             using var client = new HttpClient { BaseAddress = new Uri(address), Timeout = TimeSpan.FromSeconds(10) };
+            var page = await client.GetStringAsync("/");
+            StringAssert.Contains(page, "CloudRowsWalkthrough.cs");
+            StringAssert.Contains(page, "data-query=\"projection\"");
+            using var health = await client.GetAsync("/demo/health");
+            Assert.AreEqual(HttpStatusCode.ServiceUnavailable, health.StatusCode,
+                "Interactive readiness must wait for automatic native acceptance.");
+            Assert.AreEqual(0, providers.Lookups, "Teaching page discovery must not query storage.");
             using var anonymous = await client.PostAsJsonAsync("/api/data/query-cql", new { });
             Assert.AreEqual(HttpStatusCode.Unauthorized, anonymous.StatusCode);
             Assert.AreEqual(0, providers.Lookups);
@@ -152,6 +167,22 @@ internal static class CqlNativeHttpAcceptance
                 Assert.AreEqual(1, receipt.Units);
                 Assert.AreEqual(0.002m, receipt.ActualCostUsd);
                 Assert.AreEqual("native-test-v1", receipt.PricingCatalogueVersion);
+            }
+            Volatile.Write(ref ready, 1);
+            using var readyHealth = await client.GetAsync("/demo/health");
+            Assert.AreEqual(HttpStatusCode.OK, readyHealth.StatusCode);
+            if (serve)
+            {
+                Console.WriteLine($"Cosmos DB CQL teaching page ready: {address}/ (POST /demo/shutdown to finish).");
+                // Explicit shutdown owns teardown. A bounded one-hour teaching
+                // session prevents an abandoned fixture from living forever.
+                await shutdown.Task.WaitAsync(TimeSpan.FromHours(1));
+            }
+            else
+            {
+                using var stopped = await client.PostAsync("/demo/shutdown", null);
+                Assert.AreEqual(HttpStatusCode.OK, stopped.StatusCode);
+                Assert.IsTrue(shutdown.Task.IsCompletedSuccessfully);
             }
         }
         finally { await app.StopAsync(); }

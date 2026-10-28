@@ -24,7 +24,7 @@ Updated27October2026. Read this first after compaction; update each milestone.
 ## Exact next work
 
 1. Databases hub entry now routes to the existing three-database runner;7profile/14plan discovery tests pass. Native launch is red: retained Mongo databases/146Neo4j Holons block preflight. Audit the147ID/610request snapshot at LocalState/COSMIC/Neo4jCurrent/cql-v1-web4-fixture.json before exact reconciliation; original SQLite path is outside this worktree. See CQL_DATABASE_DEMO_HUB.md. Preserve original state; no reset/replay. Create missing environments when needed, reusing suitable resources first.
-2. Dedicated Run-ReusableCosmosCqlDemo.ps1 now verifies the retained Azure Cosmos DB SDK/HTTP profile under one lease; native acceptance passes, journal absent and emulator stopped. Next add its teaching-host/hub integration. Cosmos blockchain runner remains separate.
+2. CosmosDB teaching page/hub integration is verified:8profiles/16discovery plans, native SDK/HTTP acceptance, interactive rows/projection/LongCount and shutdown. Health stays503 until automatic acceptance completes. Fixture journal absent/emulator stopped. Next resolve retained database fixture admission, then remaining demo gaps/red parity.
 3. Preserve broad demo limits. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain native point profiles.
 4. After bounded demo integration, resume red parity cells including Q01f Mongo/Neo entity projection and numeric/stage integration. Indexed other aggregates/selected stages and production acceptance remain open.
 
