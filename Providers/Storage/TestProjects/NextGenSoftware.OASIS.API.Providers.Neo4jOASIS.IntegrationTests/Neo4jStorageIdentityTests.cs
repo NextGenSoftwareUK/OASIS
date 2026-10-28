@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 [TestClass]
 [DoNotParallelize]
-public class Neo4jStorageIdentityTests
+public partial class Neo4jStorageIdentityTests
 {
     private const string Uri = "bolt://127.0.0.1:17687";
 

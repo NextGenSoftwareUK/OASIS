@@ -30,6 +30,7 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
 
     private sealed class NeoAtomicHolonWrite(IAtomicHolonWritePlan plan, Guid actor, CancellationToken cancellation) : NeoHolonTransactionState
     {
+        internal CosmicStorageIdentity ExpectedStorage { get; set; }
         internal IReadOnlyList<IHolon> PreviousRecords { get; set; }
         internal HolonCommittedDelta Delta { get; set; }
         internal bool RetainDeltaValues { get; set; }
@@ -210,6 +211,7 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IAtomicH
             : new Neo4jConditionalReconciliationException(write.Plan.OperationId,cause):cause;
         result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED":cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
             :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
+            :cause is NeoReplicaStorageBindingException binding ? binding.Code
             :cause is NeoReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
             :cause is NeoConditionalIntentException ? "COSMIC_OPERATION_ID_REUSED":cause is NeoConditionalReceiptException ? "COSMIC_RECEIPT_INVALID"
             :cause is OperationCanceledException ? write.Plan is CommittedHolonReplicaPlan ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
