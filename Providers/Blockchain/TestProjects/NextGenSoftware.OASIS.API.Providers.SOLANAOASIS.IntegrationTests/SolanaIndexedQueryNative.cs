@@ -182,13 +182,16 @@ public partial class SolanaIndexedQueryNative
                 metadata = new { rows = result.Rows.Rows.Count, count = result.Count, any = result.Any, emptyWindow = result.EmptyWindow,
                     selectedRows = selected.Rows.Count, selectedAmount = selected.Rows.Single().Amount.ToString() };
             }
+            object? mixedFederation = null;
+            if(Environment.GetEnvironmentVariable("OASIS_SOLANA_MONGO_FEDERATION_ROOT") is string mixedRoot)
+                mixedFederation = await VerifyNativeMongoFederationAsync(mixedRoot,manager,reopened,repository,requirement,seed);
             object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed, rows.Checkpoint.Position) : null;
             var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, metadataMode ? "solana-indexed-metadata-native.json" : httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
                 scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",
                 sourceProvider = source.SourceProvider.ToString(), executionProvider = source.ExecutionProvider.ToString(),
                 seed.Writer, seed.Genesis, seed.Id, seed.IndexId, seed.CoverageStart, seed.Signature,
-                http, metadata, schemaVersion = source.SchemaVersion, projectionRows = projected.Rows.Count, cardinalityCount = cardinality.Count, cardinalityLongCount = cardinality.LongCount,
+                http, metadata, mixedFederation, schemaVersion = source.SchemaVersion, projectionRows = projected.Rows.Count, cardinalityCount = cardinality.Count, cardinalityLongCount = cardinality.LongCount,
                 cardinalityAny = cardinality.Any, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
                 checkpoint = rows.Checkpoint.Position.Slot, finalizedHead = rows.Head.Position.Slot,
                 rows = rows.Rows.Count, emptyRows = demo.Empty.Rows.Count,
