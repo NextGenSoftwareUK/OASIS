@@ -130,3 +130,32 @@ not proof that every provider's live replication/failover/load balancing is comp
 |---|---:|---|
 | `TestResults/OwnedRoutingCurrent/bound-preparation-core-final.trx` | 4417 | `60969737D5C53BEC27088E2461D4CB930466E8DE18024544FBE4FE59EC1CA651` |
 | `TestResults/OwnedRoutingCurrent/bound-preparation-shared.trx` | 1316 | `294859ACA60BE858512E6F007DE148786C5D450995DAA1CCE87523196B8D29B0` |
+
+## Mongo destination catalogue
+
+Mongo now records approvals in `CosmicDestinationBinding` using a unique native
+`_id` scoped by source fingerprint and target authority. Approval insertion shares
+the graph/receipt/outbox transaction; exact receipt replay remains read-only.
+A replacement destination fails with the explicit rebind-required code. A second
+mapping conflict rolls back a newly inserted first mapping and graph state.
+
+Bound catalogue reads share native source identity admission. Missing records can
+bootstrap read-only from committed validated outbox descriptors; malformed records
+never fall through to discovery. Historical bootstrap has a256-row/16MiB decoded
+BSON budget; oversized history requires explicit migration. Same-store policy
+changes retain establishment provenance without authorizing the current actor.
+
+`Scripts/TestHosts/Run-CosmicMongoDestinationTests.ps1` reuses the pinned Mongo
+runtime/replica set, builds producers/consumer under one lease, requires exactly
+5unskipped cases and checks journal teardown. All5native scenarios pass;8existing
+owned-write/outbox scenarios also pass. No27029listener or pending fixture journals
+remain. Destination identities in catalogue tests are declarations, not delivery.
+
+Open:Neo catalogue, cross-client simultaneous first-approval race acceptance,
+automatic cold/offline planner restoration and audited operator/V2 lineage repair.
+No blanket replication/failover/load-balancing completion claim.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/mongo-destination-catalogue.trx` | 5 | `EE202937718CF2B0ACE61BFF9E923FC83EFA4E69D1F80AD0FEE91B41C8F10C06` |
+| `TestResults/OwnedRoutingCurrent/mongo-owned-atomic-regression.trx` | 8 | `AB4FC2546D1268B2174EE869DCB09C2F82EE950C523B74DA879277822626608A` |

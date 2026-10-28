@@ -16,7 +16,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>Consumes the enrolled Mongo queue. Native session/transaction ownership and server UTC fence mutations.</summary>
-public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
+public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly IMongoClient _client;
     private readonly IMongoDatabase _database;
@@ -245,7 +245,7 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
         var evidence=HolonRecoveryEvidenceJson.ReadStored(NullableString(row,"RecoveryEvidenceJson"),NullableString(row,"RecoveryEvidenceDigest"),state);
         return (operation,state,attempts.AsInt32,evidence);
     }
-    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(BsonDocument row,Guid operation)
+    internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(BsonDocument row,Guid operation)
     {
         var json=NullableString(row,"PayloadJson");var digest=NullableString(row,"PayloadDigest");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=digest)throw new InvalidDataException("Outbox payload checksum differs.");
