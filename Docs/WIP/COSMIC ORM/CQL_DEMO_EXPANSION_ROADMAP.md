@@ -64,3 +64,8 @@ using cached runtimes; [commands/evidence](CQL_DEMO_ENVIRONMENTS.md). Active nex
 IPFS V2 storage baseline/CQL admission, then SOLID; old-data recovery stays open.
 
 Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
+
+Live Solana declared-range SDK/index/manager/LINQ and shared C# walkthrough now
+pass against the retained validator with new coverage3073; original recovery stays
+red. [Native command and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
+Next chain gate is live source over HTTP, followed by common-demo capability gaps.
