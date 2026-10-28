@@ -162,3 +162,14 @@ three-record HTTP query, invalid-key and actor-forgery rejection. No point fan-o
 The captured metadata key is a local string, so expression admission never invokes a
 capability object's getter. Visual rendering and protocol launcher wiring are pending;
 this is not yet a ready Mongo federation preset or production authentication claim.
+
+## ActivityPub launcher and actual browser interaction
+
+Hub `-Provider ActivityPub -MultiRecord` now builds/starts the retained read-only
+collection host. Browser AX verification: three checked IDs yielded count3 and
+matching canonical IDs; deselecting the third and rerunning yielded count2 with only
+the first two native IDs. Screenshot API returned Unable to capture screenshot;
+visual layout proof remains unverified. Explicit shutdown completed, native acceptance
+1/1 passed, loopback5088 listener absent. Routing tests pass default8 profiles/16plans,
+plus2 multi-record plans and rejection of an unenrolled SQLite MultiRecord mode.
+No Mongo pairing, arbitrary filters, or IPFS/SOLID launcher completion is claimed.

@@ -1,5 +1,6 @@
 using System.Net.Http;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,6 +82,15 @@ public sealed class PublicMastodonKeySetTests
             Assert.Equal(2,guard.BatchReads);
         }
         finally { await app.StopAsync(); }
+
+        if(Environment.GetEnvironmentVariable("OASIS_CQL_POINT_SERVE")=="1")
+        {
+            await using var interactive = CosmicCqlDemo.ProtocolPointApiHost.BuildKeySet(
+                new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(provider,dna,registry),provider,
+                Guid.NewGuid(),result.Result.ToDictionary(row => (string)row.MetaData[ActivityPubOASIS.CqlStatusKey],row => row.Id));
+            Console.WriteLine("Multi-record demo: http://127.0.0.1:5088/ ; POST /demo/shutdown to stop.");
+            await interactive.RunAsync();
+        }
     }
 
     private sealed class BatchGuard(string path) : DelegatingHandler(new HttpClientHandler { AllowAutoRedirect = false })
@@ -94,8 +104,13 @@ public sealed class PublicMastodonKeySetTests
             Assert.Equal("https", uri.Scheme); Assert.Equal("mastodon.social", uri.Host); Assert.Equal(443, uri.Port);
             if (uri.PathAndQuery != "/api/v2/instance")
             {
-                Assert.Equal(Uri.UnescapeDataString(path), Uri.UnescapeDataString(uri.PathAndQuery));
-                Assert.InRange(++BatchReads,1,2);
+                Assert.Equal("/api/v1/statuses",uri.AbsolutePath);
+                var allowed = Uri.UnescapeDataString(path.Split('?')[1]).Split('&').ToHashSet(StringComparer.Ordinal);
+                var selected = Uri.UnescapeDataString(uri.Query.TrimStart('?')).Split('&');
+                Assert.InRange(selected.Length,1,allowed.Count);
+                Assert.Equal(selected.Length,selected.Distinct(StringComparer.Ordinal).Count());
+                Assert.All(selected,term => Assert.Contains(term,allowed));
+                Assert.InRange(++BatchReads,1,102);
             }
             return base.SendAsync(request, token);
         }

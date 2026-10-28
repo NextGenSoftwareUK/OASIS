@@ -764,3 +764,16 @@ provider, arbitrary metadata predicate or foreign key from browser input.
 Live Mastodon HTTP acceptance passes for three records and rejects foreign keys and
 forged actor fields. The page is implemented; visual browser QA, protocol launcher
 wiring and Mongo-paired presets are not yet complete.
+
+### Launch the multi-record Mastodon browser demo
+
+```powershell
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ActivityPub -MultiRecord
+```
+
+Open `http://127.0.0.1:5088/`, run the three checked records, deselect one and run
+again to show a two-record native query. Source data is existing public Mastodon
+statuses; the demo makes no remote writes. Stop with POST `/demo/shutdown`.
+Use `-VerifyOnly` for bounded HTTP acceptance and `-ShowPlan` for discovery only.
+For a later run, `-ArchiveCompletedDemo` archives only a prior passing report.
+IPFS/SOLID MultiRecord hub wiring and Mongo-paired presets remain pending.
