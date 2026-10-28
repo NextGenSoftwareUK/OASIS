@@ -39,7 +39,24 @@ Unit assets regenerated from local cached packages only; no download/install/con
 
 ## Exact next step
 
-Add the real Mongo+Oracle pairing, then readable C#/HTTP/browser preset.
+Mongo+Oracle SDK/native pairing now passes the commented
+[IdentityFederationWalkthrough](../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs):
+5 physical rows (Mongo2/Oracle3), then4 subset, unrelated Mongo record excluded.
+Each provider receives its own trusted readable-ID catalogue; HolonManager dispatches
+both native reads through an explicit V2 registry. Exact3 Mongo/4 Oracle records
+removed, journals absent, both services stopped (Oracle143/no OOM).
+Paired TRX:TestResults/OracleCurrent/oracle-cql-native-current.trx;
+SHA2567F4D1FF8D328B0A4047833BB5F5D8CDCEC44D8082B9BDF8571A5ECC8DE4B667F.
+Run `Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1` (owns one build lease).
+First preserve reviewed prior evidence; never replay pending fixtures.
+
+Initial test setup omitted explicit V2 DNA/registry and failed before query dispatch.
+Corrected the fixture configuration; original records reconciled without replay:
+TestResults/OracleCurrent/oracle-cql-manager-reconciliation.trx,
+SHA256439C115E1E96B324573AB40AB3F4FDF7F4E3F30833CFF49E763EE82ADAB359D5.
+Failed original evidence remains in TestResults/OracleCurrent/Archive.
+
+Exact next: HTTP/browser teaching preset with trusted server-owned IDs and source provenance.
 Reuse the retained database and runner `Run-ReusableOracleTests.ps1 -Cql` under
 one build lease. Persistent journal: LocalState/COSMIC/OracleCqlCurrent;
 raw evidence: TestResults/OracleCurrent. Never overwrite prior evidence or replay

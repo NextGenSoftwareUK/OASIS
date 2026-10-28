@@ -3,7 +3,7 @@
 ## Active user priority — 28 October2026
 
 1. Hosted Azure Cosmos test account, free only. Emulator proof does not satisfy this gate; no paid provisioning/upgrade/fallback.
-2. OracleDBOASIS:filtered multi-record native CQL and Mongo-paired preset required. Initial ID-membership/authoritative-catalogue profile implemented;473unit tests pass, native CQL still pending. [Admission](CQL_ORACLE_DEMO_ADMISSION.md).
+2. OracleDBOASIS:filtered multi-record native CQL and Mongo-paired preset required. Initial ID-membership/authoritative-catalogue profile implemented;473unit tests pass; native CQL and Mongo+Oracle SDK pairing now pass (5rows/4subset, exact cleanup). HTTP/browser pending. [Admission](CQL_ORACLE_DEMO_ADMISSION.md).
 3. IPFS/SOLID/ActivityPub:at least a small filtered native collection over several records, with explicit bounded scope and authorization. Existing point demos are insufficient.
 4. Actual Solana browser rendering/click verification against retained source/index, without reseeding the original ledger.
 5. One ready federated query preset per provider, each paired with Mongo. Show native provenance and capability errors explicitly.
