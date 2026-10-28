@@ -212,4 +212,27 @@ public sealed class HolonVisibilityGraphTests
             .Equal(includePublic ? new[] { owned.Id, visible.Id } : new[] { owned.Id });
         root.Children.Should().Equal(new IHolon[] { owned, visible, hidden }, "scoping must not mutate the provider's source graph");
     }
+
+    // A record an administrator creates for someone else (e.g. a role holon whose parent is the staff
+    // member's avatar) must be visible to that avatar, not only to its creator.
+    [Theory]
+    [InlineData("creator", false, true)]
+    [InlineData("attachedToActor", false, true)]
+    [InlineData("unrelated", false, false)]
+    [InlineData("unrelated", true, false)]
+    [InlineData("publicUnrelated", false, false)]
+    [InlineData("publicUnrelated", true, true)]
+    public void HolonIsVisibleToItsCreatorAndTheAvatarItIsAttachedTo(string kind, bool includePublic, bool expected)
+    {
+        var actor = Guid.NewGuid();
+        var holon = kind switch
+        {
+            "creator" => new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = actor },
+            "attachedToActor" => new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), ParentHolonId = actor },
+            "publicUnrelated" => new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), IsPublic = true },
+            _ => new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), ParentHolonId = Guid.NewGuid() }
+        };
+
+        HolonVisibilityProjection.IsVisibleTo(holon, actor, includePublic).Should().Be(expected);
+    }
 }
