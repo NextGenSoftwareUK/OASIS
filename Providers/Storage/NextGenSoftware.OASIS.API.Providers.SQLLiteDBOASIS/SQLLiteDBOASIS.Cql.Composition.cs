@@ -7,8 +7,22 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCompositionStorageProvider
 {
+    public bool SupportsEntityProjectionComposition => true;
+    public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
+        CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+    {
+        if(!IsProviderActivated || _holonRepository is not HolonRepository repository)
+            return Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>{IsError=true,
+                ErrorCode="CQL_PROVIDER_NOT_READY",Message="Activate SQLite before entity-selected composition execution."});
+        var admitted=CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits);
+        return admitted.IsError
+            ? Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>{IsError=true,ErrorCode=admitted.ErrorCode,Message=admitted.Message,Exception=admitted.Exception})
+            : repository.ExecuteCosmicEntityProjectionCompositionAsync(plan,limits,cancellationToken);
+    }
+
     private static class SelectedNumericContract
     {
         private static readonly System.Type[] Domains = { typeof(int), typeof(int?), typeof(long), typeof(long?),

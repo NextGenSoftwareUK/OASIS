@@ -12,20 +12,19 @@ Updated28October2026 UTC. Read this first after compaction; update each mileston
 
 ## Latest verified milestone
 
-- Shared indexed SDK/LINQ/V2 manager and stock WEB4 support rows, canonical/metadata projection, Count/LongCount/Any and explicit actor/source/index/freshness admission.
-- Schema3 exports only selected encryption-exempt metadata roots, authenticates projection/profile/revision and publishes history/rows/checkpoint atomically. Schema2 is retained unchanged.
-- Selected cells are compared with validated source witnesses before DTO construction. Wildcard/private roots, unsupported domains and changed intent reject; exact Int64/null wire values are preserved.
-- Final Core4243pass; full SQLite provider219pass (112indexed-store checks). Existing Solana799unit checkpoint remains verified; no new provider implementation edits in this milestone.
-- Live retained-validator schema3 SDK/HTTP passes1/1:50requests,21accepted,21replays rejected,8unsupported before reservation. Standard LINQ Select returns exact DTO values/source receipts.
-- Interactive HTTP page/profile/selection/shutdown passes with an additional selected request: amount"9007199254740993", missingnullablecellnull, no privateNote in response. Node syntax/example build pass; browser click/rendering unverified.
-- No new seed/source writes this milestone. Validator18899and page5089listeners verified absent after teardown.
-- [Metadata contract/evidence scope](CQL_INDEXED_METADATA.md), [HTTP contract](CQL_INDEXED_HTTP.md), [manual](CQL_MANUAL.md), [launcher](CQL_INTERACTIVE_POINT_DEMO.md).
+- Q01f: native final entity-stage Select remains verified on all3 (14 cases/store).
+- New combined entity-selected contract preserves both immutable sequences, re-admits actual capabilities and validates all selected input cells before DTO construction. Flat execution rejects combined plans.
+- SQLite now executes selected Where/order/ThenBy/Skip/Take/Reverse after entity stages under one serializable snapshot. Standard sync/async LINQ works, closure values rebind per read, original offsets are not replayed, source application constructors are not invoked.
+- Both Core targets build;2173 CQL tests and221 full SQLite provider tests pass. SQLite proof covers exact Int64, invalid cells hidden by Take(0), protected traversal and entity work limits. MongoDB/Neo4j combined enrollment and native proof remain pending; no Q01f cell promoted.
+- Combined graph sources, reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Earlier green scopes stay frozen.
+- Evidence in TestResults/CoreCurrent: entity-selected-owner-core.trx:8B2D359FCEB9C1E74B780E345F3698EC7693F2C1E6AAA854F53723F3DD3694E9; entity-selected-sqlite-full.trx:629CCDA3A1E72922E36752B2CCB5125DC334C7C348D2BF61B6A6ADDE0ED38AC9.
+- See [manual](CQL_MANUAL.md#explicit-capture-of-selected-stages-after-entity-projection), [shared owner tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicEntitySelectedExecutionTests.cs), [SQLite proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/CqlEntitySelectedCompositionTests.cs).
 
 ## Exact next work
 
 1. Three-database hub is restored: pinned fixture reconciliation passed; 14 persistent archive/journal files total207492bytes, original/local SQLite preserved. Fresh native demo passes681SDK queries,138walkthrough HTTP requests,30save checks,526settled operations/608provider attempts; exact fixture cleanup and service teardown pass. See CQL_DATABASE_DEMO_HUB.md.
 2. CosmosDB teaching page/hub native, interactive HTTP and actual browser rendering/clicks are verified:rows/projection/LongCount each200; code23.4px line height at13px font, no page horizontal overflow; clean teardown. Eight launcher profiles/16discovery plans pass. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain point profiles.
-3. Q01f explicit entity projection is native-proven on all3:Mongo218CQL controls/10native cases, Neo149controls/10native cases plus earlierSQLite proof. Neo keeps canonical input proof/position-ordered cells in one native query without upgrading snapshot consistency. Standard final IQueryable Select now passes on all3:14native cases/store,6newCore tests,2165CQL/4249fullCore tests. Explicit immutable selected-stage capture is implemented (Where/order/Skip/Take/Reverse), preserving both sequences and existing bounds. Exact next: admit a combined entity + selected-stage native proof contract, then wire providers/LINQ/terminals; remaining numeric reductions follow; keep Q01f red. Other unverified demo-browser gates remain open. Freeze green features/cursors unless a reproducible bug appears.
+3. Exact next: enroll MongoDB combined entity-selected composition in its existing snapshot/deadline owner, preserving entity-stage order and complete selected-input validation; add native/compiler tests, then Neo4j. Extend remaining reselection/terminal/graph integration afterward; Q01f stays red. The shared combined owner and SQLite implementation are in place.
 4. Indexed other aggregates/selected stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity remain open. Create genuinely missing environments as authorized, reusing suitable resources first.
 
 ## Other verified scope and remaining limits

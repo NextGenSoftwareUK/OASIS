@@ -17,7 +17,7 @@ public sealed partial class CosmicEntityProjectionTests
         public string Name {get;set;}="";
         public int Revision {get;set;}
     }
-    private sealed class Native:ICosmicQueryEntityProjectionStorageProvider
+    private class Native:ICosmicQueryEntityProjectionStorageProvider
     {
         public bool Enabled=true,StagesEnabled=true,Loaded=true,Warning;
         public int Calls;

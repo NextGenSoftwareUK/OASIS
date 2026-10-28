@@ -24,6 +24,11 @@ public partial class HolonRepository
         CancellationToken cancellationToken = default) where T : IHolon
         => ExecuteSelectedSnapshotAsync(plan, limits, cancellationToken);
 
+    public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
+        CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteSelectedSnapshotAsync(plan,limits,cancellationToken,entity:true);
+
     private sealed class AllReduction { internal long? Counterexamples; }
 
     public async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T, TResult>(
@@ -42,11 +47,11 @@ public partial class HolonRepository
 
     private async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteSelectedSnapshotAsync<T, TResult>(
         CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
-        CancellationToken cancellationToken, CosmicProjectedAllPlan<T, TResult> all = null, AllReduction reduction = null) where T : IHolon
+        CancellationToken cancellationToken, CosmicProjectedAllPlan<T, TResult> all = null, AllReduction reduction = null, bool entity=false) where T : IHolon
     {
         try
         {
-            var admitted = all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
+            var admitted = entity ? AdmitEntitySelected(plan,limits) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
                 SqliteCqlContract.Capabilities, SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all, ProviderType.SQLLiteDBOASIS, SqliteCqlContract.Capabilities,
                     SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits);
@@ -85,6 +90,8 @@ public partial class HolonRepository
                             command.Parameters.Add(new SqliteParameter(parameter.ParameterName, parameter.SqliteType) { Value = parameter.Value });
                         return command;
                     }
+                    if(compiled.Entity!=null)
+                        await ValidateEntityCompositionAsync(compiled.Entity,plan.EntitySource.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (compiled.HasRelationship)
                     {
                         using var validation = Command("SELECT count(*) FROM Holon WHERE " + compiled.Predicate);
@@ -260,6 +267,12 @@ public partial class HolonRepository
         catch (OperationCanceledException cause) { return CompositionError("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (Exception cause) { return CompositionError("CQL_QUERY_FAILED", "SQLite native composition did not complete.", cause); }
     }
+    private static OASISResult<bool> AdmitEntitySelected<T,TResult>(CosmicProjectionCompositionPlan<T,TResult> plan,
+        CosmicProjectionCompositionExecutionLimits limits) where T:IHolon
+        => CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,ProviderType.SQLLiteDBOASIS,
+            SqliteCqlContract.Capabilities,SQLLiteDBOASIS.CqlProjectionCapabilities,SQLLiteDBOASIS.CqlCompositionCapabilities,
+            SQLLiteDBOASIS.CqlEntityCompositionCapabilities,true,limits);
+
     private static OASISResult<CosmicProjectionCompositionPacket> CompositionError(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCode = code, Message = message, Exception = cause };
 }
