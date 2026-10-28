@@ -354,6 +354,9 @@
     ],
     "PocketBaseOASIS": [
       "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
+    ],
+    "ConvexOASIS": [
+      "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
     ]
   },
   "suites": [
