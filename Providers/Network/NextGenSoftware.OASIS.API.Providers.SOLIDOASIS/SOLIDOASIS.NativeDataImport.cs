@@ -33,12 +33,14 @@ public partial class SOLIDOASIS : INativeDataImportProvider
     public string NativeImportContainers { get; set; }
 
     public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.SOLIDOASIS;
+public string DescribeNativeConnection(NativeConnection connection)    {        NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");        return null;    }
 
-    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
         try
         {
+            NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");
             var sources = new List<NativeDataSource>();
             foreach (var path in AllowedNativeContainers())
             {
@@ -57,11 +59,12 @@ public partial class SOLIDOASIS : INativeDataImportProvider
     }
 
     public async Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-        CancellationToken cancellationToken = default)
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<NativeRecordPage>();
         try
         {
+            NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");
             if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
             if (!AllowedNativeContainers().Contains(sourceName, StringComparer.Ordinal))
                 throw new ArgumentException($"'{sourceName}' is not a container listed in NativeImportContainers.");

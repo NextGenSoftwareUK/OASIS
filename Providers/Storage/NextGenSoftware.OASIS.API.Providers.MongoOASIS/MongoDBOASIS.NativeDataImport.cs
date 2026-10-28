@@ -14,28 +14,39 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>
-/// Reads documents other applications stored on the same Mongo deployment so NativeDataImportManager can holonize them.
-/// Native data is read from <see cref="NativeImportDatabaseName"/>, which must not be the OASIS database: OASIS's own
-/// collections are never treated as foreign data, without maintaining a list of them here.
+/// Reads documents other applications keep in MongoDB so NativeDataImportManager can holonize them. Given a
+/// <see cref="NativeConnection"/> (<c>uri</c> and <c>database</c>) it reads whatever the caller points it at; with none it
+/// reads <see cref="NativeImportDatabaseName"/> on this deployment, which must not be the OASIS database.
 /// </summary>
 public partial class MongoDBOASIS : INativeDataImportProvider
 {
     private static readonly JsonWriterSettings CanonicalJson = new() { OutputMode = JsonOutputMode.CanonicalExtendedJson };
     private static readonly JsonWriterSettings ReadableJson = new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
+    private static readonly string[] ConnectionSettings = { "uri", "database" };
+    private static readonly string[] ReservedDatabases = { "admin", "local", "config" };
+    private static readonly TimeSpan NativeOperationLimit = TimeSpan.FromSeconds(30);
 
     /// <summary>The database holding the application data to import, on the same deployment as <see cref="DBName"/>.</summary>
     public string NativeImportDatabaseName { get; set; }
 
     public ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.MongoDBOASIS;
 
-    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+    public string DescribeNativeConnection(NativeConnection connection)
+    {
+        if (connection == null) return null;
+        var (url, database) = ParseConnection(connection);
+        return "mongodb://" + string.Join(",", url.Servers.Select(server => server.ToString().ToLowerInvariant()).OrderBy(server => server, StringComparer.Ordinal)) + "/" + database;
+    }
+
+    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null,
+        CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
-        var database = NativeImportDatabase(out var error);
-        if (database == null) return Refuse(result, error);
-
+        IDisposable lease = null;
         try
         {
+            IMongoDatabase database;
+            (database, lease) = await ResolveNativeDatabaseAsync(connection, cancellationToken).ConfigureAwait(false);
             var names = await (await database.ListCollectionNamesAsync(cancellationToken: cancellationToken).ConfigureAwait(false))
                 .ToListAsync(cancellationToken).ConfigureAwait(false);
             var sources = new List<NativeDataSource>();
@@ -48,32 +59,44 @@ public partial class MongoDBOASIS : INativeDataImportProvider
             result.Result = sources;
             result.Message = $"{sources.Count} collections in native database '{database.DatabaseNamespace.DatabaseName}'.";
         }
+        catch (NativeConnectionRefusedException cause)
+        {
+            return Refuse(result, Redact(connection, cause.Message), "NATIVE_IMPORT_CONNECTION_REFUSED");
+        }
+        catch (InvalidOperationException cause)
+        {
+            return Refuse(result, cause.Message);
+        }
         catch (MongoException cause)
         {
-            OASISErrorHandling.HandleError(ref result, $"Listing Mongo native collections failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Listing Mongo native collections failed: {Redact(connection, cause.Message)}");
             result.ErrorCode = "NATIVE_IMPORT_LIST_FAILED";
         }
+        finally { lease?.Dispose(); }
         return result;
     }
 
     public async Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-        CancellationToken cancellationToken = default)
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<NativeRecordPage>();
-        var database = NativeImportDatabase(out var error);
-        if (database == null) return Refuse(result, error);
         if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal))
             return Refuse(result, $"'{sourceName}' is not an importable Mongo collection.");
         if (pageSize < 1)
             return Refuse(result, "Page size must be at least 1.");
 
+        IDisposable lease = null;
         try
         {
+            IMongoDatabase database;
+            (database, lease) = await ResolveNativeDatabaseAsync(connection, cancellationToken).ConfigureAwait(false);
+
             // $expr compares across BSON types in sort order, unlike a plain $gt, so collections with mixed _id types page completely.
             var filter = continuationToken == null
                 ? FilterDefinition<BsonDocument>.Empty
                 : new BsonDocument("$expr", new BsonDocument("$gt", new BsonArray { "$_id", ParseToken(continuationToken) }));
-            var documents = await database.GetCollection<BsonDocument>(sourceName).Find(filter)
+            var documents = await database.GetCollection<BsonDocument>(sourceName)
+                .Find(filter, new FindOptions { MaxTime = NativeOperationLimit })
                 .Sort(Builders<BsonDocument>.Sort.Ascending("_id")).Limit(pageSize + 1)
                 .ToListAsync(cancellationToken).ConfigureAwait(false);
 
@@ -82,11 +105,20 @@ public partial class MongoDBOASIS : INativeDataImportProvider
             var next = more ? documents[pageSize - 1]["_id"].ToJson(CanonicalJson) : null;
             result.Result = new NativeRecordPage(page, next);
         }
+        catch (NativeConnectionRefusedException cause)
+        {
+            return Refuse(result, Redact(connection, cause.Message), "NATIVE_IMPORT_CONNECTION_REFUSED");
+        }
+        catch (InvalidOperationException cause)
+        {
+            return Refuse(result, cause.Message);
+        }
         catch (Exception cause) when (cause is MongoException or FormatException)
         {
-            OASISErrorHandling.HandleError(ref result, $"Reading Mongo collection '{sourceName}' failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Reading Mongo collection '{sourceName}' failed: {Redact(connection, cause.Message)}");
             result.ErrorCode = "NATIVE_IMPORT_READ_FAILED";
         }
+        finally { lease?.Dispose(); }
         return result;
     }
 
@@ -119,22 +151,65 @@ public partial class MongoDBOASIS : INativeDataImportProvider
 
     private static BsonValue ParseToken(string token) => BsonDocument.Parse("{\"v\":" + token + "}")["v"];
 
-    private IMongoDatabase NativeImportDatabase(out string error)
+    /// <summary>The caller's database when a connection is given (a client opened for this call, released by the lease), otherwise the configured one.</summary>
+    private async Task<(IMongoDatabase Database, IDisposable Lease)> ResolveNativeDatabaseAsync(NativeConnection connection, CancellationToken cancellationToken)
     {
-        error = null;
-        if (string.IsNullOrWhiteSpace(NativeImportDatabaseName))
-            error = "Set NativeImportDatabaseName to the Mongo database holding the data to import.";
-        else if (string.Equals(NativeImportDatabaseName, DBName, StringComparison.Ordinal))
-            error = $"'{NativeImportDatabaseName}' is the OASIS database; native import reads application data from a different database.";
-        else if (!IsProviderActivated || Database?.MongoClient == null)
-            error = "The MongoDB provider must be activated before importing native data.";
-        return error == null ? Database.MongoClient.GetDatabase(NativeImportDatabaseName) : null;
+        if (connection == null)
+        {
+            if (string.IsNullOrWhiteSpace(NativeImportDatabaseName))
+                throw new InvalidOperationException("Set NativeImportDatabaseName to the Mongo database holding the data to import, or send a connection.");
+            if (string.Equals(NativeImportDatabaseName, DBName, StringComparison.Ordinal))
+                throw new InvalidOperationException($"'{NativeImportDatabaseName}' is the OASIS database; native import reads application data from a different database.");
+            if (!IsProviderActivated || Database?.MongoClient == null)
+                throw new InvalidOperationException("The MongoDB provider must be activated before importing native data.");
+            return (Database.MongoClient.GetDatabase(NativeImportDatabaseName), null);
+        }
+
+        var (url, databaseName) = ParseConnection(connection);
+        foreach (var server in url.Servers)
+            await NativeConnectionGuard.EnsurePublicHostAsync(server.Host, cancellationToken).ConfigureAwait(false);
+
+        var settings = MongoClientSettings.FromUrl(url);
+        settings.ApplicationName = "OASIS-native-import";
+        settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+        settings.ConnectTimeout = TimeSpan.FromSeconds(10);
+        settings.SocketTimeout = NativeOperationLimit;
+        var client = new MongoClient(settings);
+        return (client.GetDatabase(databaseName), client);
     }
 
-    private static OASISResult<T> Refuse<T>(OASISResult<T> result, string message)
+    private static (MongoUrl Url, string Database) ParseConnection(NativeConnection connection)
+    {
+        connection.RequireOnly(ConnectionSettings);
+        MongoUrl url;
+        try { url = new MongoUrl(connection.Require("uri")); }
+        catch (Exception cause) when (cause is MongoConfigurationException or FormatException or ArgumentException)
+        { throw new NativeConnectionRefusedException("The MongoDB uri is not valid (expected mongodb://... or mongodb+srv://...)."); }
+
+        var database = connection.Optional("database") ?? url.DatabaseName
+            ?? throw new NativeConnectionRefusedException("Name the database to import: send 'database' or put it in the uri.");
+        if (ReservedDatabases.Contains(database, StringComparer.OrdinalIgnoreCase))
+            throw new NativeConnectionRefusedException($"'{database}' is a MongoDB system database and cannot be imported.");
+        return (url, database);
+    }
+
+    private static string Redact(NativeConnection connection, string message)
+    {
+        if (connection == null) return message;
+        message = connection.Redact(message, "uri");
+        try
+        {
+            var password = new MongoUrl(connection.Optional("uri") ?? "mongodb://x").Password;
+            if (!string.IsNullOrEmpty(password) && password.Length >= 3) message = message.Replace(password, "***", StringComparison.Ordinal);
+        }
+        catch (Exception cause) when (cause is MongoConfigurationException or FormatException or ArgumentException) { }
+        return message;
+    }
+
+    private static OASISResult<T> Refuse<T>(OASISResult<T> result, string message, string code = "NATIVE_IMPORT_UNAVAILABLE")
     {
         OASISErrorHandling.HandleError(ref result, message);
-        result.ErrorCode = "NATIVE_IMPORT_UNAVAILABLE";
+        result.ErrorCode = code;
         return result;
     }
 }

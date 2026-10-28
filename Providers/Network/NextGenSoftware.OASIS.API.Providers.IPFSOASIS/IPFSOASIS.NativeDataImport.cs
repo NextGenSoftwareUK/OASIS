@@ -45,12 +45,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.IPFSOASIS;
+public string DescribeNativeConnection(NativeConnection connection)        {            NativeConnectionGuard.RefuseUnsupported(connection, "IPFS");            return null;        }
 
-        public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+        public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
             try
             {
+                NativeConnectionGuard.RefuseUnsupported(connection, "IPFS");
                 var sources = new List<NativeDataSource>();
                 foreach (var path in AllowedNativePaths())
                     sources.Add(new NativeDataSource(path, "directory", (await ListDirectoryAsync(path, cancellationToken)).Count));
@@ -66,11 +68,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public async Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-            CancellationToken cancellationToken = default)
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<NativeRecordPage>();
             try
             {
+                NativeConnectionGuard.RefuseUnsupported(connection, "IPFS");
                 if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
                 if (!AllowedNativePaths().Contains(sourceName, StringComparer.Ordinal))
                     throw new ArgumentException($"'{sourceName}' is not a path listed in NativeImportPaths.");
