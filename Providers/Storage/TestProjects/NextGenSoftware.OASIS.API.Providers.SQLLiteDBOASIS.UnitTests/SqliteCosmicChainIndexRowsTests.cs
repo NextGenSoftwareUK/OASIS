@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests;
 
 [TestClass,DoNotParallelize]
-public class SqliteCosmicChainIndexRowsTests
+public partial class SqliteCosmicChainIndexRowsTests
 {
     private string database=null!;private bool owned;
     private readonly byte[] key=Enumerable.Range(1,32).Select(x=>(byte)x).ToArray();

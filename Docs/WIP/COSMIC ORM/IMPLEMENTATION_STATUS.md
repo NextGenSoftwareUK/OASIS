@@ -28,3 +28,8 @@ Shared entity-projection foundation implemented with4 new tests and both Core ta
 Priority27October: broader demo before full parity. Cosmos recommended first cloud, Solana first chain, then IPFS, SOLID, ActivityPub; see CQL_DEMO_EXPANSION_ROADMAP.md. SQLite entity projection passes47 CQL tests/10 native cases (combined1,791); unfinished parity depth deferred unless demo needs it.
 
 [Indexed HTTP checkpoint](CQL_INDEXED_HTTP.md): actual controller/context tests and full Core4,128/SQLite31/Solana789 gates pass. Exact measured cost, units, attempts and frozen intent are enforced; stock middleware fingerprint/admission integration, real-backend/native HTTP and full parity remain open.
+
+27October indexed projection SDK: native SQLite selected canonical cells plus
+shared proof-before-DTO construction and V2 manager implemented. FullCore4154,
+SQLite42,Solana799pass. LINQ/HTTP/live-source projection gates remain open;
+[contract](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).

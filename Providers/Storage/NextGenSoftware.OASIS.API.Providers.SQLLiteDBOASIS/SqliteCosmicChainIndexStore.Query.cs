@@ -17,7 +17,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndexReader
+public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndexProjectionReader
 {
     public CosmicChainQuerySource Source => source;
     public CosmicQueryCapabilities IndexedRowCapabilities => canonicalRowProjection
@@ -102,8 +102,13 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
     }
 
     /// <summary>Native SQL canonical leaf rows over an explicitly opted-in schema2 index, with independent source evidence.</summary>
-    public async Task<OASISResult<CosmicChainIndexRows>> QueryRowsAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<CosmicChainIndexRows>> QueryRowsAsync<T>(CosmicQueryPlan<T> plan,
         ICosmicChainQuerySourceObserver observer,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
+        => QueryRowsCoreAsync(plan,observer,maximumResults,cancellationToken,null,null);
+
+    private async Task<OASISResult<CosmicChainIndexRows>> QueryRowsCoreAsync<T>(CosmicQueryPlan<T> plan,
+        ICosmicChainQuerySourceObserver observer,int maximumResults,CancellationToken cancellationToken,
+        IReadOnlyList<CosmicProjectionColumn> columns,List<CosmicProjectionRow> selectedCells) where T:IHolon
     {
         try{
             ObjectDisposedException.ThrowIf(disposed,this);
@@ -120,7 +125,7 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                 var state=ReadState(connection,transaction);if(state==null)return Task.FromResult(Error<bool>("CQL_SOURCE_EVIDENCE_MISSING","Index has no complete checkpoint."));
                 ValidateQueryProjection(connection,transaction,state);checkpoint=state.Checkpoint;
                 using var command=connection.CreateCommand();command.Transaction=transaction;
-                command.CommandText="SELECT h.Receipt,h.Payload FROM CosmicChainIndexRows AS Holon JOIN CosmicChainIndexHistory h ON h.Id=Holon.Id AND h.Version=Holon.Version WHERE Holon.IsDeleted=0 AND ("+sql.Predicate+") ORDER BY "+sql.Ordering+" LIMIT $rowLimit OFFSET $rowOffset";
+                command.CommandText="SELECT h.Receipt,h.Payload"+(columns==null?"":","+string.Join(",",columns.Select(column=>ProjectionSqlColumn(column.Path))))+" FROM CosmicChainIndexRows AS Holon JOIN CosmicChainIndexHistory h ON h.Id=Holon.Id AND h.Version=Holon.Version WHERE Holon.IsDeleted=0 AND ("+sql.Predicate+") ORDER BY "+sql.Ordering+" LIMIT $rowLimit OFFSET $rowOffset";
                 command.Parameters.AddRange(sql.Parameters.ToArray());command.Parameters.AddWithValue("$rowLimit",plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1);
                 command.Parameters.AddWithValue("$rowOffset",plan.Query.Offset);
                 using var cancellation=cancellationToken.Register(command.Cancel);using var reader=command.ExecuteReader();
@@ -128,6 +133,8 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                     cancellationToken.ThrowIfCancellationRequested();if(raw.Count==maximumResults)return Task.FromResult(Error<bool>("CQL_QUERY_LIMIT","No partial indexed page is returned beyond its budget."));
                     var receiptJson=reader.GetString(0);var receipt=JsonSerializer.Deserialize<CosmicChainQueryRecordReceipt>(receiptJson);
                     raw.Add(new(receipt,codec.Decrypt(context+"/record/"+receiptJson,reader.GetString(1))));
+                    if(columns!=null)selectedCells.Add(new CosmicProjectionRow(columns.Select((column,index)=>
+                        ProjectionSqlValue(reader,index+2,column.Path)).ToArray()));
                 }
             }
                 return Task.FromResult(new OASISResult<bool>(true));

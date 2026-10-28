@@ -286,3 +286,39 @@ checkpoint statements that all prepared contexts reject. Exact server policies
 now enable durable SQL/RPC service-tariff capture with inherited actor/lifetime
 checks. Missing policies still reject before I/O. WEB4/reservation/native
 acceptance and other indexed shapes remain open; no demo/parity promotion.
+
+
+## Indexed native selected-cell SDK milestone (27 October)
+
+ICosmicChainQueryIndexProjectionReader explicitly enrolls native selected columns
+separately from row/filter capabilities. SQLite schema2 selects requested canonical
+cells alongside encrypted payload/source receipt in the same transaction. It does
+not load a row query and run a compiled client selector afterward. Visibility,
+deleted-row exclusion, ordering and source windows remain in the SQL statement.
+Canonical fields: Id, Name, Version, VersionId, CreatedByAvatarId, IsPublic,
+IsDeleted, with exact Guid/string/int/Boolean CLR domains. Metadata is not enrolled.
+The optional plaintext canonical projection policy and encrypted payload/metadata
+remain unchanged; schema1 stores do not gain projection support.
+
+CosmicIndexedProjectionExecutor uses the existing CosmicIndexedQueryExecutor as
+its single source-evidence owner. One selected dispatch supplies native cells and
+canonical witnesses; existing prepared actor/tariff/lifetime rules, complete
+checkpoint/older-anchor validation and source receipt/visibility checks run before
+publishing results. Every selected cell must equal its validated canonical source
+field. Only then does CosmicProjectionResults validate payload/types and invoke
+any application DTO constructor/setter. No partial DTO list survives failure.
+
+HolonManager.ExecuteIndexedProjectionQueryAsync is the shared V2 SDK entry point;
+CosmicProjectionPlanner already binds explicit indexed targets. Detached DTOs,
+anonymous shapes and scalar column selections retain checkpoint/head/receipts.
+A scalar column selection is NOT a Count/Sum aggregate. Indexed IQueryable.Select,
+HTTP selected endpoint, selected-result composition, metadata and aggregate shapes
+remain open. No parity row or complete provider-demo claim is promoted here.
+
+Tests exercise actual SQLite source visibility/windows, empty rows, every selected
+CLR domain, scalar columns, tampering, missing/changed source, stale evidence,
+cancellation and payload limits. Core tests additionally reject forged cells,
+warning/incomplete evidence and missing prepared tariff policy before dispatch.
+Actual source transports are controlled in this projection milestone; existing
+live-chain row acceptance does not certify live-chain projection execution.
+Evidence: TestResults/ProtocolCqlCurrent/index-projection-*-full.trx.

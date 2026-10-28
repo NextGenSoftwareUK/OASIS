@@ -25,3 +25,8 @@ Live declared-range chain SDK acceptance and shared C# walkthrough pass. Next:
 production admission/durable settlement (live-source HTTP five-request gate now passes),
 remaining indexed scalar/projection/metadata policies and the eight-provider demo.
 Original source recovery and full parity remain red. See CURRENT_STATUS for gates.
+
+Indexed canonical projection SDK now passes8newCore/11newSQLite checks, through
+the existing shared planner/row-proof owner and V2 HolonManager. LINQ Select, HTTP,
+live-chain projection acceptance, aggregates and metadata stay open.
+[Projection contract](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
