@@ -892,3 +892,11 @@ excluded. Original chain ledger/ack/index remain intact, no transaction or resee
 Exact owned Mongo cleanup and both services' shutdown are verified. This is SDK/native
 proof; the mixed browser/HTTP preset is still being implemented. See Docs/WIP/COSMIC
 ORM/CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md for scope and evidence.
+
+### Oracle demo work in progress
+
+OracleDBOASIS is now enrolled for bounded native canonical-ID equality/membership
+with trusted authoritative record catalogues. The provider builds;473Oracle unit
+tests pass, including7new CQL cases. Native Oracle CQL/Mongo federation and interactive
+preset are not yet verified. This is Oracle Database support, not hosted OCI proof.
+See Docs/WIP/COSMIC ORM/CQL_ORACLE_DEMO_ADMISSION.md for exact profile/next acceptance.
