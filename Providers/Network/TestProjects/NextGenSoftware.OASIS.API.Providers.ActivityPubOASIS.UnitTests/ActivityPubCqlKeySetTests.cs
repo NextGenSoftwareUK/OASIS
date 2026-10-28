@@ -1,4 +1,5 @@
 using System.Net;
+using Moq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -56,6 +57,27 @@ public sealed class ActivityPubCqlKeySetTests
         Assert.Equal(result.Result.Select(row => row.Id),demonstrated.Select(row => row.Id));
         Assert.Contains("Selected native keys: 3; returned holons: 2",output.ToString());
         Assert.Equal(2,transport.BatchReads);
+
+        var mongo = new Moq.Mock<NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicQueryStorageProvider>();
+        mongo.SetupGet(adapter => adapter.QueryProviderType).Returns(ProviderType.MongoDBOASIS);
+        mongo.SetupGet(adapter => adapter.QueryCapabilities).Returns(
+            CosmicQueryCapabilities.ForStringMetadataKeyLookup(ActivityPubOASIS.CqlStatusKey,128,40));
+        var mongoRow = new Holon { Id=Guid.NewGuid(), IsPublic=true, Name="Controlled Mongo row",
+            MetaData=new(){[ActivityPubOASIS.CqlStatusKey]="123"} };
+        mongo.Setup(adapter => adapter.ExecuteCosmicQueryAsync(
+            Moq.It.IsAny<CosmicQueryPlan<Holon>>(),Moq.It.IsAny<int>(),Moq.It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new NextGenSoftware.OASIS.Common.OASISResult<IReadOnlyList<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>>(
+                new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[]{mongoRow}){IsLoaded=true,LoadedCount=1});
+        var federation = await CosmicCqlDemo.NativeKeySetWalkthrough.RunFederatedAsync(
+            new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(provider,dna,registry),
+            mongo.Object,provider,new[]{"123","456","789"},Guid.NewGuid(),output);
+        Assert.Equal(3,federation.ObservedInputRows);Assert.Equal(3,federation.Rows.Count);
+        Assert.Equal(2,federation.Rows.Count(row => row.Selected.Provider==ProviderType.ActivityPubOASIS));
+        Assert.Single(federation.Rows,row => row.Selected.Provider==ProviderType.MongoDBOASIS);
+        Assert.Equal(3,transport.BatchReads);
+        mongo.Verify(adapter => adapter.ExecuteCosmicQueryAsync(
+            Moq.It.IsAny<CosmicQueryPlan<Holon>>(),Moq.It.IsAny<int>(),Moq.It.IsAny<CancellationToken>()),Moq.Times.Once);
+
     }
 
     [Theory]

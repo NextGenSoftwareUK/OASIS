@@ -187,3 +187,18 @@ IPFS native/HTTP1/1 and SOLID native/HTTP1/1 pass; completed journals retained,
 pending absent. Kubo stopped; SOLID exits143 without OOM. Routing:8profiles,
 16default lifecycle plans plus6protocol collection plans and unsupported-mode rejection.
 IPFS/SOLID browser clicks and Mongo-paired presets remain unverified.
+
+## Mongo/protocol federation SDK foundation
+
+`NativeKeySetWalkthrough.RunFederatedAsync` explicitly selects Mongo and one enrolled
+IPFS/SOLID/Mastodon adapter, captures the same native-key IN predicate for both, binds
+read access and executes through HolonManager's existing federation planner/executor.
+No new federation engine or managed filtering scan. Complete-source bounds80total/
+40per provider/2attempts/30seconds; PreserveCopies retains native provenance.
+
+321 ActivityPub unit tests pass, including actual native batch adapter plus controlled
+mock-Mongo dispatch exactly once,3physical rows and both provider identities. This is
+not live Mongo proof. Exact next step: create a journaled synthetic Mongo fixture in
+the retained27029 environment carrying the matching native key, verify both real
+adapters, clean only that exact fixture, then expose launcher presets. Repeat for
+other providers; no arbitrary cross-provider parity or repeatable-snapshot claim.
