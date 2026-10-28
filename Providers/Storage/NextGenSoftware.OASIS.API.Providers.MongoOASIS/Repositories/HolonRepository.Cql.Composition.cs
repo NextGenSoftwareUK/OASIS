@@ -51,6 +51,9 @@ public partial class HolonRepository
             if (command.Source.RequiresMembership)
                 await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
 
+            if(command.Source.EntityComposition!=null)
+                await ValidateNativeEntityStagesAsync(command.Source.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
+
             // Read and validate the entire source before a later filter/window can
             // hide a malformed required cell, access violation or overflow row.
             var input = new List<CosmicProjectionInputRow>();
@@ -67,7 +70,7 @@ public partial class HolonRepository
                         if (count > limits.MaximumInputRows || input.Count >= limits.MaximumInputRows) throw new MongoCqlLimitException();
                         if (input.Count > 0 && count != sourceCount) throw new InvalidDataException("Composition source count changed.");
                         sourceCount = count;
-                        if (data.ElementCount != 7 + query.Columns.Count + query.Source.Orderings.Count
+                        if (data.ElementCount != 7 + query.Columns.Count + query.Source.Orderings.Count + command.Source.EntityOrderingKeyCount
                             || !data.TryGetValue("id", out var rawId) || !data.TryGetValue("visible", out var rawVisible)
                             || !data.TryGetValue("creator", out var rawCreator))
                             throw new InvalidDataException("Composition source proof shape is invalid.");
