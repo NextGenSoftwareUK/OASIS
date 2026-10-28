@@ -141,3 +141,13 @@ TRX `C:/Source/OASIS-cosmic/TestResults/SolidCurrent/solid-cql-keyset-native.trx
 `8A76A73C9B30DE5B1D3EB3B1F159C4972FA05F3F9C73992B46B6352853F20F3B`.
 Teaching pages, HTTP/federated presets and richer non-key filters remain open. Native
 membership proof alone is not a claim of general LINQ/EF parity on protocol stores.
+
+## Shared executable C# developer sample
+
+`Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs` contains spaced/commented steps
+for explicit scope, frozen native keys, caller access, deferred manager/LINQ execution
+and safe provenance output. It is compiled into the ActivityPub controlled suite;
+321 tests pass, including execution of the exact sample against the batch transport.
+That validates the manager/LINQ path, not new browser or federation acceptance.
+See the example README for invocation. Native source keys must be supplied from the
+configured retained provider; the sample does not provision identities or scan data.
