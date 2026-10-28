@@ -13,9 +13,9 @@ Updated28October2026. Read first after compaction. Full programme remains incomp
 ## External prerequisite and exact next step
 
 1. Hosted Azure Cosmos is the remaining external prerequisite in the current breadth queue. User has no existing free subscription. The no-subscription sandbox was rechecked and still shows Under Construction.
-2. Official Azure free-account route reaches blank Microsoft sign-in. A handoff tab is ready; user asked to complete signup or leave this gate pending. No account/resource/subscription created and no terms accepted. Official page discloses a possible temporary$1 card-verification hold; never choose pay-as-you-go. [Admission and next gates](CQL_HOSTED_AZURE_FREE_ADMISSION.md).
+2. User explicitly chose **leave hosted Azure pending**. Do not repeat signup requests or provision an account. The last official free-account route reached blank Microsoft sign-in. No account/resource/subscription created and no terms accepted. Official page discloses a possible temporary$1 card-verification hold; never choose pay-as-you-go. [Admission and next gates](CQL_HOSTED_AZURE_FREE_ADMISSION.md).
 3. Hosted opt-in read runner now builds with strict non-secret configuration and explicit -Mongo/-Serve wiring;68controlled CQL tests pass, plus local SDK/HTTP1/1regression/exact cleanup. Hosted auth/config presence rechecked:false/false. The same signup/auth prerequisite remains an actual external blocker after preparation; do not claim completeness. Actual hosted SDK/HTTP/browser/Mongo and free-account verification remain red. Hosted prerequisite implemented:Cosmos ExistingResourcesOnly activation validates pre-provisioned database/container identity/partition without creation or provisioning fallback;6new cases/52affected CQL tests pass. Native hosted proof remains red. After an authenticated genuinely free account is available:verify spending protection/zero-cost configuration, prepare a dedicated journaled hosted fixture, then prove native SDK/HTTP/browser and Mongo pairing against the real hosted endpoint with exact cleanup. Emulator evidence cannot satisfy this.
-4. While signup is pending:keep recovery/status docs accurate and audit only remaining declared demo requirements. Do not turn green-demo maintenance into new hardening or start deferred parity programmes.
+4. Hosted Azure is user-deferred. Follow other explicitly authorized work and keep recovery/status docs accurate; the Development/Claude compatibility refresh below is complete. Do not turn green-demo maintenance into new hardening or start deferred parity programmes.
 5. Remaining full ORM correctness/replication/history/migration/placement acceptance is preserved in the [roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md); this phase does not declare it complete.
 
 ## Verified demo breadth
@@ -42,11 +42,12 @@ Oracle, mixed Solana and local Cosmos screenshots inspected/readable. Protocol s
 
 ## Git/publication and resources
 
-- Latest task milestone78be65b23 (central launcher) pushed/remote verified; subsequent status/signup documentation is this turn's scope.
+- Latest incoming Developmentf8e872a4f/Core319bd96 integrated into task branch; merged Coree6bc667127e2177a41e0a30a191faa1b9c3834f7 pushed/remote verified. Fixed incoming SettingsManager Enum qualification for netstandard2.1.4308Core tests/1shipping GraphQL schema test pass; SQLite/Neo/BootLoader/WEB4 builds pass.
 - Last Development deployment batch:parent858edd8280294d748e0e4999e39c0a141c5b6042/Corebd86a37fa1df02d50e5d2d0e5ad4bd76cce1d26d. Later verified work stays on task branch until a scoped daily integration batch.
-- Development parent829c35f9a/Core11e5ec6 pulled into task worktree; merged Corea2e9b6cc50d8d88af1fb398d96b89fd3b23372e4 pushed and pinned with matching parent manifest/gitlink.
-- Native evidence is milestone-specific:Oracle/Cosmos have post-merge gates; other native proofs predate that merge. Do not imply every provider was rerun on the merged revision.
+- Current parent manifest/gitlink point to merged Coree6bc667; native import mapping IDs include avatar identity and saved per-avatar mappings. Native reader runtime proofs from the incoming programme are separate from this compatibility check.
+- Native evidence is milestone-specific; latest refresh ran Core/GraphQL/build compatibility, not every native provider. Existing demo proofs retain their earlier revision scope.
 - [Resource/cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns exact paths/hashes/lifecycle. Reuse SDK10.0.401, caches and retained services. No new installations for demo milestones.
+- Docs/Devs/NATIVE_DATA_IMPORT.md is present. Referenced HYPERDRIVE_PER_AVATAR_SETTINGS.md is absent from fetched Development; use actual source/tests until that guide is published.
 - Raw logs/TRX/JSON go only to worktree TestResults. Persistent identities and pending journals stay LocalState/COSMIC; failed/unknown outcomes require reconciliation, never replay.
 - Last owned native services stopped and journals absent. Inspect actual state before reuse; a historical report alone does not prove today's process state.
 

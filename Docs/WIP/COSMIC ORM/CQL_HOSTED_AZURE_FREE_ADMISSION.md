@@ -157,3 +157,8 @@ explicitly deferred by user priority; do not manufacture green-feature hardening
 while waiting. Resume by completing user free-account signup/verification, binding
 actual existing hosted fixtures and running this prepared acceptance, then verify
 real browser/native evidence and remaining full scope. Never mark the goal complete.
+
+
+User decision28October2026:leave hosted Azure pending. No further signup prompts,
+provisioning, paid alternatives or credential requests. Prepared acceptance remains
+available for a later explicit resume; hosted success is still unverified.

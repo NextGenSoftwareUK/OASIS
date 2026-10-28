@@ -168,7 +168,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 ["products"] = await Upsert(database, "products", NativeDemoProducts()),
                 ["orders"] = await Upsert(database, "orders", NativeDemoOrders())
             };
-            return Ok(new OASISResult<Dictionary<string, long>>(counts) { Message = $"Demo shop data is ready in '{mongo.NativeImportDatabaseName}'." });
+
+            // The same pretend shop keeps its suppliers in its own SQLite file and its loyalty graph in Neo4j, so the
+            // import tab can holonize three different kinds of store. Each is optional: a node without the setting skips it.
+            var sqliteSettings = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.StorageProviders?.SQLLiteDBOASIS;
+            if (!string.IsNullOrWhiteSpace(sqliteSettings?.NativeImportConnectionString))
+                counts["sqlite:suppliers"] = await SeedSqliteSuppliersAsync(sqliteSettings.NativeImportConnectionString);
+            var neo4jSettings = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.StorageProviders?.Neo4jOASIS;
+            if ((neo4jSettings?.NativeImportLabels ?? "").Split(',').Select(label => label.Trim()).Contains(NativeDemoNeo4jLabel))
+                counts["neo4j:" + NativeDemoNeo4jLabel] = await SeedNeo4jLoyaltyAsync(neo4jSettings);
+
+            return Ok(new OASISResult<Dictionary<string, long>>(counts) { Message = "Demo shop data is ready." });
+        }
+
+        public const string NativeDemoNeo4jLabel = "ShopLoyaltyMember";
+
+        private static async Task<long> SeedSqliteSuppliersAsync(string connectionString)
+        {
+            var rows = new[]
+            {
+                (1, "Babbage & Sons", "United Kingdom", 4.8, "Brass gears and difference engines"),
+                (2, "Bletchley Rotors", "United Kingdom", 4.5, "Precision rotor drums"),
+                (3, "Flow-Matic Press", "United States", 4.2, "Technical manuals"),
+                (4, "CERN Software Co-op", "Switzerland", 5.0, "Open web software")
+            };
+            using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+            await connection.OpenAsync();
+            using (var create = connection.CreateCommand())
+            {
+                create.CommandText = "CREATE TABLE IF NOT EXISTS suppliers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, country TEXT, rating REAL, description TEXT)";
+                await create.ExecuteNonQueryAsync();
+            }
+            foreach (var row in rows)
+            {
+                using var upsert = connection.CreateCommand();
+                upsert.CommandText = "INSERT OR REPLACE INTO suppliers (id, name, country, rating, description) VALUES ($id, $name, $country, $rating, $description)";
+                upsert.Parameters.AddWithValue("$id", row.Item1); upsert.Parameters.AddWithValue("$name", row.Item2);
+                upsert.Parameters.AddWithValue("$country", row.Item3); upsert.Parameters.AddWithValue("$rating", row.Item4);
+                upsert.Parameters.AddWithValue("$description", row.Item5);
+                await upsert.ExecuteNonQueryAsync();
+            }
+            return rows.Length;
+        }
+
+        private static async Task<long> SeedNeo4jLoyaltyAsync(NextGenSoftware.OASIS.API.DNA.Neo4jOASISSettings settings)
+        {
+            var members = new[] { ("ada", "Ada Lovelace", "gold", 1840), ("grace", "Grace Hopper", "gold", 1210), ("alan", "Alan Turing", "silver", 760) };
+            using var driver = Neo4j.Driver.GraphDatabase.Driver(settings.ConnectionString, Neo4j.Driver.AuthTokens.Basic(settings.Username, settings.Password));
+            await using var session = driver.AsyncSession();
+            foreach (var member in members)
+                await session.RunAsync($"MERGE (m:{NativeDemoNeo4jLabel} {{handle: $handle}}) SET m.name = $name, m.tier = $tier, m.points = $points",
+                    new { handle = member.Item1, name = member.Item2, tier = member.Item3, points = member.Item4 });
+            await session.RunAsync($"MATCH (a:{NativeDemoNeo4jLabel} {{handle: 'ada'}}), (g:{NativeDemoNeo4jLabel} {{handle: 'grace'}}) MERGE (a)-[:REFERRED]->(g)");
+            return members.Length;
         }
 
         private static async Task<long> Upsert(IMongoDatabase database, string collection, IEnumerable<BsonDocument> documents)
