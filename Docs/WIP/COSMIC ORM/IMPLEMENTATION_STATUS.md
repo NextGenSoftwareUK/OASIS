@@ -140,3 +140,23 @@ CommittedHolonReplicaTarget; it does not use the configured catalog's explicit e
 authorization policy or endpoint/policy route binding. Source/actor validation at owned
 save is separate from delivery-time grant/revocation/placement admission; that gap
 remains open and is not certified by declared-target transaction tests.
+
+
+Actual shipping WEB4 service/native restart gate:1/1pass,zero skips. A real routed
+Neo4j owned save commits while no worker exists; its avatar settings expire before
+worker startup. The shipping HolonReplicationDeliveryHostedService discovers the
+pending native obligation and delivers to a real SQLite receiver. A completed pass
+is observed through service diagnostics, then StopAsync is joined before provider
+teardown. Fresh provider/service instances complete another pass without changing
+attempt1, frozen payload or replica revision. Source records/receipt/outbox deleted
+by exact acknowledged ID/operation and verified absent; SQLite files/journal absent;
+retained Neo container stopped. Shared sequence retained. No authorization or OS
+process-crash claim. The worker now accepts explicit host-owned registry/readiness
+dependencies while retaining its original startup constructor; one delivery loop.
+Both WEB4 and native consumer builds/hash checks pass. Existing dependencies reused.
+Test NativeHostedReplicaRestartTests.ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart;
+runner Run-ReusableNeo4jTests.ps1 -CosmicHostedReplicaRestart under one build lease.
+Evidence TestResults/Neo4jCurrent/neo4j-hosted-restart-current.trx SHA256
+063EB720D173521AEADBD32BE535D6CC6DBBF10BB80C9EDFD31736C89EAC34F0.
+Next:abrupt process/lost native acknowledgement and explicit delivery authorization/
+physical route binding. Full X10 remains red; no universal convergence claim.
