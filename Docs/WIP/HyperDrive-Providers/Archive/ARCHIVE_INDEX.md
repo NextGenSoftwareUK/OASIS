@@ -29,3 +29,5 @@ Current-status pre-compression checkpoint28October preserved byte-for-byte in CU
 - Native S3/Convex rollover appended chronological bytes verbatim, SHA256`deb91cbf42f837caaf0490eac0e95c154ea5e1f3537a42a02085921cf1b43e2f`; archive prefix unchanged, ten current milestones retained.
 
 - Upstash checkpoint rollover: six earlier milestones appended verbatim (chunk SHA256`7cb7ee64281ff8b99f41df01e63f411facbb453dd99d6e062ecf4de041b04224`); archive SHA256`e95fac519a3e8fe4dd8a941c559953c5b0ad003e0f258d4ee0430247c7311e20` (prior`4dbf29a1b57a473bdb4fa41b34ee9de09a0ba54f020737a3ee36fa28766d2357`). Original prefix unchanged; nine current milestones retained.
+
+- Cloudflare checkpoint rollover: three superseded summary paragraphs and two older milestones appended verbatim, chunk SHA256`f7190b478088f07afebabf6ada036e87feeacca33319239d9816fbce1347c3fa`; archive SHA256`14c653552941ee6623d9708d801e2d8c659bb29e05e275f06b896aa9457730f7` (prior`e95fac519a3e8fe4dd8a941c559953c5b0ad003e0f258d4ee0430247c7311e20`). Prefix unchanged; ten current milestones retained.
