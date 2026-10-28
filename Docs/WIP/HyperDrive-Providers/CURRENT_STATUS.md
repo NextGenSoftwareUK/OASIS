@@ -3,7 +3,7 @@ Updated28October2026. Read this first, then query relevant matrix rows; do not l
 
 ## Phase and rules
 
-Active checkpoint: real hosted Upstash REST52/52 and28controls pass; shared encrypted storage/state comparison, native cleanup0, one scratch service expires31October. Published90716cb0b. Next: Cloudflare Workers KV shared-record consolidation, then remaining families (KEY_VALUE_FAMILY_BASELINE.md). No local Upstash install/download. Convex stopped/records0; prior S3/Convex pushed1ef629dc2, shared Redis rules4886bc118.
+Active checkpoint: Cloudflare Workers KV now shares encrypted record policy;52controlled core checks and25transport/metadata controls pass, two native cases gated. No cloud resource/install/download. Native eventual-consistency/rate-limit/CAS limits remain open (CLOUDFLARE_KV_STORAGE_BASELINE.md). Next: Tigris S3 consolidation. Upstash native52/52 pushed90716cb0b; its sole scratch service expires31October.
 
 - Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
