@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param()
+param([switch]$Serve)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state=Join-Path $root 'LocalState/COSMIC/CosmosCqlCurrent'
@@ -13,7 +13,7 @@ if(Test-Path -LiteralPath (Join-Path $state 'rows.pending.json')){throw 'Reconci
 New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-cql-cloud-demo -Operation {
     $started=$false
-    $names=@('OASIS_COSMOS_CQL_NATIVE','OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_REVIEWED_COUNT','OASIS_COSMOS_CQL_REVIEWED_PROJECTION','OASIS_COSMOS_CQL_REVIEWED_HTTP')
+    $names=@('OASIS_COSMOS_CQL_NATIVE','OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_REVIEWED_COUNT','OASIS_COSMOS_CQL_REVIEWED_PROJECTION','OASIS_COSMOS_CQL_REVIEWED_HTTP','OASIS_COSMOS_CQL_SERVE')
     $previous=@{}
     foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
     try{
@@ -50,6 +50,7 @@ New-Item -ItemType Directory -Force -Path $state,$work | Out-Null
         if(!$ready){throw ('Emulator readiness deadline exceeded: '+$readinessFailure)}
         foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$null)}
         $env:OASIS_COSMOS_CQL_NATIVE='1';$env:OASIS_COSMOS_CQL_STATE=$state
+        if($Serve){$env:OASIS_COSMOS_CQL_SERVE='1';Write-Output 'Teaching page will bind http://127.0.0.1:5088/ after native verification. POST /demo/shutdown to finish.'}
         $began=[DateTime]::UtcNow
         & dotnet test (Join-Path $root $project) --no-build --no-restore --filter 'FullyQualifiedName~CqlNativeRowTests.JournaledNativeRowsRespectVisibilityWindowsAndBounds' --logger 'trx;LogFileName=cosmos-cql-demo-current.trx' --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Native CQL acceptance failed; preserve fixture/journal, no automatic retry.'}
