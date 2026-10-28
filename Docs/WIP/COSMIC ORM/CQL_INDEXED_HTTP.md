@@ -210,3 +210,58 @@ The strict ledger fixture is shared with controlled-RPC tests, not a second
 billing implementation or a production persistence substitute.
 
 Native HTTP TRX SHA256: F0C49FC0E6EAFDADD4FF0E233B000409CEBDF7F416763D53DCCD3F9E2C1F3690; JSON: 6503A37C13A53F625D80F5B78FB843DDF3F841E540A721B72ECAED7E820D1EAA; Solana799 TRX: B221F764234D3D3BA13260653275D7B9F8A8B2C490DFCBAD3FB0E856B55E334D. Raw files remain under TestResults; see cleanup ledger for sizes and teardown.
+
+
+## Optional native selected columns on /indexed (27 October)
+
+POST /api/data/query-cql/indexed now accepts an optional columns array. Omit it
+(or use null) for the existing entity-row profile. Provide1-32 explicit columns
+for an indexed-projection result. The alias must advertise the separate native
+selected-column contract. Unsupported metadata/field/domain shapes reject during
+preparation, before authority reservation or provider execution. Empty/duplicate
+columns and entity includeMetadata combined with columns are invalid.
+
+Column descriptors are deep-captured before the alias resolver callback and bound
+into a projection-specific semantic fingerprint. The exact admitted raw HTTP
+fingerprint, handle, tariff policy and frozen semantic intent remain separately
+checked. Changing columns cannot turn a row admission into a projection or change
+a selected result. This uses the existing route/reservation/physical-read ledger.
+
+Execution uses HolonManager's shared native indexed projection owner: one SQL
+snapshot, independent source proofs, visibility/checkpoint/anchor validation,
+canonical cell comparison and detached construction. Output reuses the existing
+public selected-column scalar encoder. Mode is indexed-projection, with columns
+and scalar-cell rows plus the same source/execution/checkpoint/head/receipts.
+Slots remain strings; no endpoint, price, checkpoint claim or actor grant is
+accepted from the caller. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
+IsPublic/IsDeleted selections are enrolled; metadata and aggregate shapes are not.
+
+```json
+{
+  "alias": "solana-native-demo",
+  "query": { "orderBy": "Name", "take": 1 },
+  "columns": [
+    { "alias": "identity", "field": "Id" },
+    { "alias": "label", "field": "Name" },
+    { "alias": "revision", "field": "Version" }
+  ]
+}
+```
+
+The selected rows contain cells in columns order, e.g. [["<id>","Coffee",1]].
+Use the existing AddCqlIndexedReadAdmission registration and explicit measured
+indexed-route policy. The native test host's alias is not auto-enrolled in a live
+deployment. The current runner stops its test host after acceptance.
+
+Verification: fullCore4165pass;11new projection cases cover rows/empty, unsupported
+or malformed columns, row-only alias rejection, contradictory metadata envelope,
+uncertain receipt, forged cells and column capture/semantic-intent separation.
+The retained live Solana/SQLite shipping HTTP gate now passes9requests: entity and
+projected rows/empty,4replays,1unsupported shape. Completed physical reads are
+9/6/9/6 in this run, with exact reservation/actual settlement assertions and zero
+new source submissions. Controlled identity/ledger remain explicit; production
+JWT/durable settlement, deployment, original recovery and full parity remain red.
+Evidence: TestResults/ProtocolCqlCurrent/index-http-projection-core-full.trx;
+TestResults/SolanaCurrent/solana-indexed-http-native.trx/json.
+
+Projection milestone hashes: Core TRX 7C3A2FBEB945E19597D30D7A550AF00F875E326607063F051AA47FD14372C34C; Solana799 TRX 05842494F8ADFDBD56401437B73B82FC47EFE967E6FC6B141E4348DC5A069214; native9request TRX 7F00801B6AA4412CB0CA08DD485BE133295276D8B8A1115B605A4E1F1EAAE010; native JSON A82683E2CF9A2D8E704CDD7F78D9C6C8ED708CA2C9F5A5AFC01C5B2D0DA15432. Paths above; teardown/resources in the single cleanup ledger.
