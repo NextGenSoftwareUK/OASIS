@@ -61,3 +61,10 @@ unskipped evidence; pending or unknown outcomes require reconciliation.
 Current launcher routing check: 8 single profiles/16 plans, 6 paired profiles/12 plans,
 4 unsupported-pair and 3 archive rejections pass; listeners unchanged. This checks
 routing only. Native proof and revision limits remain in [CURRENT_STATUS](CURRENT_STATUS.md).
+
+Latest Oracle+Mongo bounded SDK/HTTP regression: 1 passed, 0 failed, 0 skipped;
+runner exit0 with exact cleanup and no remaining owned27029/5090listeners.
+TRX: `TestResults/OracleCurrent/oracle-cql-native-current.trx`, SHA256
+`3D7CAF3F830D2E2A60849C3D33407C9CE02BE09F91D3987ACA6481DFD60B6DE2`.
+This verifies the current working tree, including uncommitted backend foundations;
+it is not a new browser, hosted-cloud or deployed revision certification.
