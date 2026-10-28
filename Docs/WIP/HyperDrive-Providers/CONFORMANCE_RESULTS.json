@@ -351,6 +351,9 @@
     ],
     "AppwriteOASIS": [
       "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
+    ],
+    "PocketBaseOASIS": [
+      "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
     ]
   },
   "suites": [
