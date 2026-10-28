@@ -103,3 +103,19 @@ Reproduce with retained Mongo8.3.11/oasisRecoveryRs on27029 and process environm
 OASIS_MONGO_REPLICA_SET_CONNECTION=mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000;
 filter MongoRoutedOwnedSaveCommitsEffectiveTargetsOrRollsBackAllState. One build lease
 and bounded workers; reusable orchestration retained at TestResults/OwnedRoutingCurrent/run-mongo-owned.ps1.
+
+
+Neo4j routed-owned-save acceptance:4new routed single/batch healthy/second-target
+conflict cases plus2existing native primary cases pass:6/6,zero skips. Request/
+avatar settings select the two targets over disabled node defaults. Native payloads
+bind operation/actor/source and committed revisions. Failure rolls back graph/receipt/
+first obligation/sequence and preserves pending callers; no-op advances neither
+sequence nor receipt. Fresh provider reads verify committed revisions. Controlled
+target declarations prove primary enrollment only, not delivery or process restart.
+No production fix needed. Operation receipt/outbox cleanup verified; acknowledged
+root IDs deleted, journal absent, retained container stopped. Shared sequence retained.
+Evidence TestResults/Neo4jCurrent/neo4j-routed-owned-outbox-current.trx SHA256
+223E226DC761B1DD8117571B8567CAD6AD2786BE24AFF4D610F862B609AD6BBD.
+Runner Run-ReusableNeo4jTests.ps1 -CosmicRoutedOwnedOutbox (one build lease).
+Next:routed owned-save worker restart/delivery through real authorized targets.
+X10/full programme remain red; hosted Azure pending and LINQ depth paused.
