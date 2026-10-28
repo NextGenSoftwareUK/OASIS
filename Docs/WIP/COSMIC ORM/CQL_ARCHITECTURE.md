@@ -240,5 +240,11 @@ before selected participation is accepted. It retains ProviderDefault consistenc
 limits and does not advertise snapshot isolation. No owner hydrates application
 source entities as an intermediate query engine.
 
-Combined graph sources, reselection and element/cardinality/numeric terminals
+Combined graph sources and element/cardinality/numeric terminals
 following this selection remain unintegrated. Q01f stays red.
+
+Entity-selected reselection uses the existing retained-column shape mapper. The
+IQueryable provider carries a factory for the whole entity projection, rather
+than separate source/selector factories that could rebind different query-source captures. Each read preserves both sequences and native input columns; only
+final output bindings/DTO shape change. Intermediate DTO constructors/setters are
+never part of execution. Explicit immutable builders use the same mapping rules.

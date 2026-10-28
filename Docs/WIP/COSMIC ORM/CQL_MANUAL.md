@@ -980,7 +980,7 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection is now implemented; element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
 
 For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
 
@@ -1114,7 +1114,7 @@ read. Existing exact-column/domain rules,32 selected-stage and10000-window bound
 apply alongside independent entity-source/work/payload and selected-proof bounds.
 Later Take(0) cannot hide invalid selected inputs or protected entity errors.
 
-Combined graph sources, reselection and element/cardinality/numeric terminals
+Combined graph sources and element/cardinality/numeric terminals
 after this selection remain unsupported; ordinary entity-stage terminals and
 flat selected terminals retain their existing separate supported scopes.
 
@@ -1135,3 +1135,43 @@ streamed before selected-input and stage proofs. The reader validates source
 proofs before accepting the selected packet; shared validation still precedes
 DTO constructors. Neo4j retains its ProviderDefault consistency restrictions;
 this read transaction does not establish ProviderSnapshot support.
+
+### Reselection after entity-selected stages
+
+Reselection works through the shared explicit builder and standard LINQ on
+SQLite, MongoDB and Neo4j. Select exact retained columns, including renaming them
+or mapping them into another detached DTO. Computations/conversions, entity output
+and unbound columns remain rejected. Standard LINQ permits at most32 reselections.
+
+```csharp
+// `query` is the explicitly provider-bound IQueryable from CosmicLinq.Create.
+// Entity paging stays before the later filter and selected-value stages.
+var selected = query
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Where(holon => holon.Version >= 1)
+    .Select(holon => new { holon.Name, holon.Version })
+    .Where(row => row.Version >= 3)
+    .OrderBy(row => row.Name)
+    .Take(5);
+
+// Change the final shape without constructing the intermediate anonymous DTO.
+// The Version column remains in native participation and validation.
+var names = selected.Select(row => row.Name);
+var result = await names.ToCosmicListAsync();
+// Check result.IsError before using result.Result.
+```
+
+For the explicit API, `CosmicEntityProjectionQuery<T,TResult>.Select(selector)`
+returns OASISResult wrapping a new entity projection. It retains the exact entity
+source, selected stages and all original native columns. Use the existing final
+entity projection planner if there are no selected stages, otherwise PlanEntity
+and the V2 composition owner.
+
+The LINQ provider carries a factory for the full entity projection across each
+Select. Each execution rebinds source/selected closures once through that factory.
+Only the final DTO is constructed, after complete native validation. Dropping an
+invalid required column from the final shape, even before Take(0), does not remove
+that native column or its error. Reselection never substitutes flat source reads
+for the combined owner. Non-generic IQueryProvider uses the same path and preserves
+explicit CQL errors instead of reflection wrappers.

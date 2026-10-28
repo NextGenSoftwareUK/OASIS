@@ -25,7 +25,8 @@ public sealed partial class CosmicEntityProjectionTests
             CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
         {
             CombinedCalls++;
-            CombinedSeen=(CosmicProjectionCompositionPlan<Holon,ProjectionDto>)(object)plan;
+            if(typeof(T)==typeof(Holon) && typeof(TResult)==typeof(ProjectionDto))
+                CombinedSeen=(CosmicProjectionCompositionPlan<Holon,ProjectionDto>)(object)plan;
             return Task.FromResult(new OASISResult<CosmicProjectionCompositionPacket>(Packet){IsLoaded=Complete,IsWarning=Partial});
         }
     }
