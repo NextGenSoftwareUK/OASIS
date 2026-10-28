@@ -267,6 +267,19 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-sqllitedboasis-current.json",
       "sha256": "29f7cbde398613132474899157b7c16334a882fd2d216b1f32bd288cf0942f59",
       "blockers": []
+    },
+    {
+      "provider": "DuckDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 2,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
+      "sha256": "f6db9356707d817dc6a1290ecf9a77036a914cb3100b85b45b25ef83f7bb05cc",
+      "blockers": [
+        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
+        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
+      ]
     }
   ],
   "providerBlockers": {
