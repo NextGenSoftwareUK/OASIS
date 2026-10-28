@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return new OASISResult<IAvatarDetail>(await SaveAvatarDetailToFile(avatarDetail));
+            return await SavePrivateResultAsync(()=>SaveAvatarDetailToFile(avatarDetail));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
@@ -165,8 +165,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var saved=await SaveSelectedGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
-            return new OASISResult<IHolon> {Result=saved.IsError ? null:holon,IsError=saved.IsError,IsSaved=saved.IsSaved,
-                ErrorCode=saved.ErrorCode,Exception=saved.Exception,Message=saved.Message};
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(saved);
+            result.Result=saved.IsError ? null:holon;
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

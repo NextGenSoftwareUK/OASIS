@@ -19,6 +19,10 @@ public class SolanaCoreStorageConformanceTests
         var registered = registry.RootElement.GetProperty("results").EnumerateArray().Single(row => row.GetProperty("provider").GetString() == "SOLANAOASIS");
         Assert.AreEqual(registered.GetProperty("sha256").GetString()!.ToUpperInvariant(), Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(evidencePath))));
         using var evidence = JsonDocument.Parse(await File.ReadAllTextAsync(evidencePath));
+        // Registered, hash-verified evidence survives cleanup; disposable raw reports do not.
+        var originalRuns = evidence.RootElement.GetProperty("runs").EnumerateArray().ToArray();
+        Assert.AreEqual(2, originalRuns.Length);
+        Assert.AreEqual(2, originalRuns.Select(run => run.GetProperty("Synchronous").GetBoolean()).Distinct().Count());
         var output = Path.Combine(nativeWork, "solana-core-read-diagnostic.json");
         Assert.IsFalse(File.Exists(output), "Preserve the previous diagnostic.");
         Assert.AreEqual("http://127.0.0.1:18899", Environment.GetEnvironmentVariable("SOLANA_RPC_URL"));
@@ -29,13 +33,11 @@ public class SolanaCoreStorageConformanceTests
             var activation = await provider.ActivateProviderAsync();
             Assert.IsFalse(activation.IsError);
             Assert.IsTrue(activation.Result);
-            foreach (var run in evidence.RootElement.GetProperty("runs").EnumerateArray())
+            foreach (var run in originalRuns)
             {
                 Assert.AreEqual("avatar-id", run.GetProperty("CurrentCase").GetString());
                 var id = run.GetProperty("OwnerId").GetGuid();
                 var mode = run.GetProperty("Synchronous").GetBoolean() ? "sync" : "async";
-                using var original = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "TestResults", "ProviderConformanceCurrent", "SOLANAOASIS", mode, "report.json")));
-                Assert.AreEqual(id, original.RootElement.GetProperty("OwnerId").GetGuid());
                 var result = await provider.LoadAvatarAsync(id);
                 // Only known static contract messages are classified; never dump provider/RPC messages or payloads.
                 var known = new[] { "Solana finalized history transaction is unavailable; no partial collection returned.",
@@ -45,6 +47,8 @@ public class SolanaCoreStorageConformanceTests
                     "No stored Solana record matches the requested identity." };
                 rows.Add(new { Id = id, Mode = mode, result.IsError, result.IsLoaded, result.LoadedCount,
                     ReturnedId = result.Result?.Id, result.ErrorCode, ExceptionType = result.Exception?.GetType().FullName,
+                    MissingMemo = result.Exception is NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaMemoChunkUnavailableException missing
+                        ? new { missing.RootSignature, missing.MissingSignature, missing.ChunkIndex, missing.ChunkCount, missing.WriteId } : null,
                     StaticCategory = known.FirstOrDefault(value => result.Exception?.Message == value) ?? "unclassified",
                     FailureMethods = result.Exception == null ? Array.Empty<string>() : (new System.Diagnostics.StackTrace(result.Exception, true).GetFrames() ?? Array.Empty<System.Diagnostics.StackFrame>())
                         .Where(frame => frame.GetMethod()?.DeclaringType?.FullName?.StartsWith("NextGenSoftware.OASIS.API.Providers.SOLANAOASIS", StringComparison.Ordinal) == true)

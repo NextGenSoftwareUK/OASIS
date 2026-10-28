@@ -24,6 +24,11 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationV1Endpoint.cs" Link="Web4/CqlFederationV1Endpoint.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorCodec.cs" Link="Web4/CqlFederationCursorCodec.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlFederationCursorHost.cs" Link="Web4/CqlFederationCursorHost.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/CqlIndexedV1Request.cs" Link="Web4/CqlIndexedV1Request.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1UsagePreparation.cs" Link="Web4/CqlIndexedV1UsagePreparation.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Preparation.cs" Link="Web4/CqlIndexedV1Preparation.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1RequestContext.cs" Link="Web4/CqlIndexedV1RequestContext.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlIndexedV1Endpoint.cs" Link="Web4/CqlIndexedV1Endpoint.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlRequestCapture.cs" Link="Web4/CqlRequestCapture.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlSelectedV1Compiler.cs" Link="Web4/CqlSelectedV1Compiler.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlCompositionV1Compiler.cs" Link="Web4/CqlCompositionV1Compiler.cs" />
@@ -43,6 +48,7 @@
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs" Link="Web4/HolonAccess.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadAccessPolicy.cs" Link="Web4/CqlReadAccessPolicy.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadPolicyDeployment.cs" Link="Web4/CqlReadPolicyDeployment.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/SourceAndProjectedAllDemo.cs" Link="Demo/SourceAndProjectedAllDemo.cs" />
     <!-- Exercise the shipping boundary, rather than maintaining a parallel HTTP implementation. -->
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1Walkthrough.cs" Link="Demo\V1Walkthrough.cs" />
     <Compile Include="..\..\..\..\Examples\CosmicCqlDemo\V1NativeQueries.cs" Link="Demo\V1NativeQueries.cs" />

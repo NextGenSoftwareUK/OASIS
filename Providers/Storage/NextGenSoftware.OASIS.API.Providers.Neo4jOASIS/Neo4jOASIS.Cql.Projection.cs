@@ -13,17 +13,29 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryEntityProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
         CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray());
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
+    public bool SupportsEntityProjection=>true;
 
-    public async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
+        CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,
+        int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
+        =>plan==null ? Task.FromResult(ProjectionCqlFailure("CQL_PLAN_INVALID","An immutable entity projection plan is required."))
+            : ExecuteProjectionReadAsync(plan.Selection,maximumResults,maximumPayloadBytes,cancellationToken,plan);
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
         CosmicProjectionPlan<T, TResult> plan, int maximumResults = 100,
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
+        =>ExecuteProjectionReadAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken);
+
+    private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
+        CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
+        CosmicEntityProjectionPlan<T,TResult> entityProjection=null) where T:IHolon
     {
         NeoCqlReadBudget readBudget = null;
         try
@@ -33,6 +45,13 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             if (maximumResults < 0 || maximumResults > CosmicProjectionResults.MaximumResultLimit
                 || maximumPayloadBytes < 0 || maximumPayloadBytes > CosmicProjectionResults.MaximumPayloadLimit)
                 return ProjectionCqlFailure("CQL_QUERY_LIMIT", "Projection output bounds are invalid.");
+            if(entityProjection!=null)
+            {
+                var sourceAdmission=CqlCapabilities.AdmitPlan(entityProjection.Source.Source);
+                if(sourceAdmission.IsError)return ProjectionCqlFailure(sourceAdmission.ErrorCode,sourceAdmission.Message,sourceAdmission.Exception);
+                var stageAdmission=EntityCompositionCapabilities.Admit(entityProjection.Source.Query);
+                if(stageAdmission.IsError)return ProjectionCqlFailure(stageAdmission.ErrorCode,stageAdmission.Message,stageAdmission.Exception);
+            }
             var source = plan.Query.Source;
             var compiled = CompileCqlSource(source);
             var translator = compiled.Translator;
@@ -50,14 +69,12 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             var cells = "[" + string.Join(",", columns.Select((_, index) => "{s:cqlSelectState" + index + ",v:cqlSelectValue" + index + "}")) + "]";
             // Character count is a lower bound on UTF-8 bytes. Reject impossible
             // rows before transferring values; the budget owner checks exact bytes.
-            var lowerBytes = (16 + columns.Count * 16).ToString(CultureInfo.InvariantCulture)
-                + string.Concat(plan.Query.Columns.Select((column, index) => column.Path.ValueType == typeof(string)
-                    ? "+CASE WHEN cqlSelectValue" + index + " IS NULL THEN 16 ELSE size(cqlSelectValue" + index + ") END" : "+16"));
+            var lowerBytes = ProjectionLowerBytes(plan.Query.Columns,columns.Select((_,i)=>"cqlSelectValue"+i).ToArray());
             var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumResults + 1) : maximumResults + 1;
             translator.Parameters.Add("projectionLimit", fetch); translator.Parameters.Add("projectionOffset", source.Offset);
             translator.Parameters.Add("projectionBytes", maximumPayloadBytes);
             cancellationToken.ThrowIfCancellationRequested();
-            if (fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
+            if (entityProjection==null && fetch == 0 && !translator.HasRelationship) return new OASISResult<IReadOnlyList<CosmicProjectionRow>>(Array.Empty<CosmicProjectionRow>()) { IsLoaded = true };
             if (!IsProviderActivated || _driver == null) return ProjectionCqlFailure("CQL_PROVIDER_INACTIVE", "Neo4j provider is not activated.");
 
             // Invalid ownership/traversal branches remain outside the page and
@@ -77,6 +94,9 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
                 + "cqlSelectBytes > $projectionBytes AS payloadLimit,"
                 + "CASE WHEN cqlSelectBytes > $projectionBytes THEN [] ELSE cqlSelectCells END AS cells" + returnedKeys
                 + " } RETURN id,valid,traversalCycle,traversalLimit,payloadLimit,cells" + returnedKeys + " ORDER BY " + finalOrder;
+            if(entityProjection!=null)
+                query=CompileCqlEntityComposition(compiled,entityProjection.Source,maximumResults,
+                    projection:plan.Query.Columns,maximumProjectionBytes:maximumPayloadBytes);
             using var budget = readBudget = new NeoCqlReadBudget(maximumPayloadBytes, cancellationToken);
             budget.Check();
             await using var readOwner = await LeaseCqlReadAsync(budget.Token).ConfigureAwait(false);
@@ -85,6 +105,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
             budget.Check();
             var cursor = await transaction.RunAsync(query, translator.Parameters).ConfigureAwait(false);
             var rows = new List<CosmicProjectionRow>();
+            var inputProof=entityProjection==null ? null : new NeoCqlEntityInputProof(entityProjection.Source.Options);
             while (true)
             {
                 budget.Check();
@@ -94,6 +115,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
                 if (record["traversalCycle"].As<bool>()) throw new InvalidDataException("Projection traversal encountered a cycle.");
                 if (record["traversalLimit"].As<bool>()) throw new NeoCqlLimitException("Projection traversal exceeds its visited-node budget.");
                 if (!record["valid"].As<bool>()) throw new InvalidDataException("Projection ownership or membership is invalid.");
+                if(inputProof!=null && record["entityInput"].As<bool>()){inputProof.Observe(record);continue;}
                 if (record["payloadLimit"].As<bool>()) throw new NeoCqlLimitException("Projection row exceeds its native payload bound.");
                 if (rows.Count >= maximumResults) throw new NeoCqlLimitException("Projection exceeds its result-count budget.");
                 if (record["cells"] is not IReadOnlyList<object> native) throw new InvalidDataException("Projection cell buffer is invalid.");
@@ -123,6 +145,11 @@ public partial class Neo4jOASIS : ICosmicQueryProjectionStorageProvider
         catch (InvalidDataException cause) { return ProjectionCqlFailure("CQL_DATA_INVALID", cause.Message, cause); }
         catch (Exception cause) { return ProjectionCqlFailure("CQL_PROVIDER_ERROR", cause.Message, cause); }
     }
+
+    private static string ProjectionLowerBytes(IReadOnlyList<CosmicProjectionColumn> columns,IReadOnlyList<string> values)
+        =>(16+columns.Count*16).ToString(CultureInfo.InvariantCulture)
+            +string.Concat(columns.Select((column,i)=>column.Path.ValueType==typeof(string)
+                ? "+CASE WHEN "+values[i]+" IS NULL THEN 16 ELSE size("+values[i]+") END" : "+16"));
 
     internal static CosmicProjectionRow ReadNativeProjectionRow(IReadOnlyList<object> native, IReadOnlyList<CosmicProjectionColumn> columns)
     {

@@ -64,6 +64,6 @@ public partial class IPFSOASIS
             OASISErrorHandling.HandleError(ref result,"IPFS selected graph save failed: "+cause.Message,cause);
             return result;
         }
-        result.Result=roots;result.IsSaved=true;return result;
+        result.Result=roots;result.IsSaved=true;result.SavedCount=nodes.Count;return result;
     }
 }

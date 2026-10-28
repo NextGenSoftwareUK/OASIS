@@ -22,10 +22,19 @@ public static partial class CqlV1Compiler
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
         var selected = source.SelectColumns(columns);
         if (selected.IsError) throw new ArgumentException(selected.Message);
+        return selected.Result;
+    }
+
+    internal static CosmicProjectionQuery<Holon,CosmicProjectionRecord> CompileIndexedProjection(
+        CosmicQuery<Holon> source,CqlProjectionV1Column[] columns)
+    {
+        if(columns==null||columns.Length is <1 or >32)throw new ArgumentException("Select one to32 indexed columns.");
+        var selected=source.SelectColumns(columns.Select(ProjectionColumn).ToArray());
+        if(selected.IsError)throw new ArgumentException(selected.Message);
         return selected.Result;
     }
 
@@ -63,6 +72,7 @@ public static partial class CqlV1Compiler
                 "HolonType" => consumer.Bind(alias, (Expression<Func<Holon, HolonType>>)(h => h.HolonType)),
                 "IsActive" => consumer.Bind(alias, (Expression<Func<Holon, bool>>)(h => h.IsActive)),
                 "IsPublic" => consumer.Bind(alias, (Expression<Func<Holon, bool>>)(h => h.IsPublic)),
+                "IsDeleted" => consumer.Bind(alias, (Expression<Func<Holon, bool>>)(h => h.IsDeleted)),
                 "ParentHolonId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.ParentHolonId)),
                 "VersionId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.VersionId)),
                 "PreviousVersionId" => consumer.Bind(alias, (Expression<Func<Holon, Guid>>)(h => h.PreviousVersionId)),

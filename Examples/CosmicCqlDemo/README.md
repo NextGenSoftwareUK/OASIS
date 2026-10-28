@@ -1,4 +1,117 @@
 # COSMIC CQL demo
+## Unified demo launcher
+
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite` opens the existing coffee
+Swagger demo. Choose IPFS, SOLID or ActivityPub with `-ArchiveCompletedDemo` for
+an interactive native point page on5088. Use `-ShowPlan` to preview scope or
+`-VerifyOnly` to run bounded acceptance and stop. Run one provider at a time.
+
+ActivityPub reads one existing public Mastodon status, with no posting or account
+creation. IPFS/SOLID use owned synthetic records. The page makes that distinction
+explicit. [Commands, native evidence and remaining limits](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md).
+
+## Interactive IPFS / SOLID point demo
+
+A readable loopback page now runs native CQL point reads through HolonManager/LINQ.
+Open `http://127.0.0.1:5088/` after launching the reusable runner with explicit
+`-CqlInteractive -ArchiveCompletedDemo -ServePointDemo`. Stop with POST
+`/demo/shutdown` to clean the exact fixture and backend. Run one provider at a time.
+
+[Launch commands, verification and limits](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md).
+
+## SOLID private Pod record point — verified 27 October 2026
+
+[SolidPointWalkthrough.cs](SolidPointWalkthrough.cs) is a spaced, commented C#
+example using explicit SOLID scope, canonical record key, caller read policy and
+HolonManager/LINQ. Supply the activated encrypted Pod adapter and record GUID as
+lowercase D-format text. This callable walkthrough performs no writes.
+
+The actual sample is linked into `SolidCqlNativeTests` and verified against the
+reusable private Pod using production DPoP credentials. A separate canonical read
+matches the returned identity/name; anonymous HTTP is denied and a different
+application actor receives no private row. The native test creates one synthetic
+record, records ownership before dispatch, and conditionally deletes it after
+verification. WEB4 HTTP/interactive enrollment and richer queries remain open.
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solid-cql -Operation {
+    & Scripts/TestHosts/Run-ReusableSolidReadiness.ps1 -CqlPoint -RequireCleanShutdown
+}
+```
+
+Preserve existing pending/completed fixture evidence before rerunning. Persistent
+state lives in `LocalState/COSMIC/SolidCurrent`; raw results go to worktree
+`TestResults/SolidCurrent`. See [the profile](../../Docs/WIP/COSMIC%20ORM/CQL_SOLID_NATIVE_PROFILE.md).
+
+## IPFS native CID point — verified 27 October 2026
+
+[IpfsPointWalkthrough.cs](IpfsPointWalkthrough.cs) is a spaced, commented C#
+walkthrough using explicit IPFS scope, a current record CID, read access and
+HolonManager/LINQ. The activated provider is supplied by the host. It performs
+no writes; use the CID acknowledged by your SaveHolonAsync operation.
+
+The actual sample is linked into `IPFSCqlNativeTests` and verified against the
+reusable offline Kubo node. The test compares it with a separate canonical point
+read, then cleans only its two owned fixture catalogue entries. This is a callable
+sample, not a console or Swagger switch. General filtering/indexing, WEB4 HTTP
+admission and the full common demo remain open.
+
+Run the native gate only when no prior CQL fixture exists; preserve any pending
+journal rather than replaying a failed write:
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-ipfs-cql -Operation {
+    & Scripts/TestHosts/Run-ReusableIpfsTests.ps1 -CqlPoint
+}
+```
+
+Persistent fixture state is under `LocalState/COSMIC/IPFSCurrent`; raw results
+are under worktree `TestResults/IPFSCurrent`. See the
+[IPFS admission report](../../Docs/WIP/COSMIC%20ORM/CQL_IPFS_DEMO_ADMISSION.md).
+
+## Mastodon native status point — verified 27 October 2026
+
+[MastodonPointWalkthrough.cs](MastodonPointWalkthrough.cs) is a spaced, commented
+C# example using explicit provider scope, native status-key equality, mandatory
+read access and HolonManager/LINQ. It shows instance/object provenance without
+printing untrusted content HTML. Supply an activated adapter and existing native
+status ID; the example creates no post/account or local database.
+
+The actual source is linked into `PublicMastodonCqlTests` and passes against
+mastodon.social with five allowlisted public GETs. This is a callable walkthrough,
+not a new console/Swagger switch. Full native profile, exact limits, test command
+and remaining WEB4/interactive-demo gaps are in
+[the profile guide](../../Docs/WIP/COSMIC%20ORM/CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+No arbitrary metadata search, scalar/projection, Save or universal ActivityPub
+server support is claimed.
+
+## Source composition and projected All — C# walkthrough (24 examples verified 27 October 2026)
+
+Read [SourceAndProjectedAllDemo.cs](SourceAndProjectedAllDemo.cs) first for eight
+spaced, commented examples. The same code runs on MongoDB, SQLite and Neo4j:
+nested source filtering, NOT with native LongCount, visibility at each hop,
+selected filters/order/windows before All, true/false/empty results, and a
+protected traversal error that survives OR and Take(0).
+
+Run from `C:/Source/OASIS-cosmic`:
+
+```powershell
+& 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner 'cosmic-source-demo' -Operation {
+    & 'Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1' -CosmicCqlSourceDemo
+}
+```
+
+The host reuses the installed runtimes and retained stores. It owns six synthetic
+IDs per database, checks all examples, and verifies exact cleanup after success.
+It refuses an unfinished fixture; inspect its journal before attempting recovery.
+The demo class itself only reads. Do not supply production data to this fixture host.
+
+Read console output in the worktree's `TestResults/Neo4jCurrent/`:
+`cql-source-demo-MongoDBOASIS.log`, `cql-source-demo-SQLLiteDBOASIS.log`, and
+`cql-source-demo-Neo4jOASIS.log`. The TRX and JSON summary are alongside them.
+[Current evidence/status](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) records
+verified counts and hashes. These are C# examples; HTTP syntax has its own
+capability and endpoint contracts below.
 
 ## Federation demo — verified 26 October 2026
 
@@ -110,7 +223,7 @@ Swagger `/swagger` has a prefilled v1 request, synthetic Alice authorization and
 
 Read **V1NativeQueries.cs** (LINQ-style SDK), **V1Walkthrough.cs** (C# HTTP), then **V1DemoPresentation.cs** / **V1SwaggerExample.cs** (presentation). The fixture's native acceptance matrix runs first. Transcript/result: `TestResults/CosmicCqlDemo/v1-walkthrough.txt` / `v1-demo-result.json`.
 
-[Manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md) · [Architecture](../../Docs/WIP/COSMIC%20ORM/CQL_ARCHITECTURE.md) · [Presenter script](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_RUNBOOK.md).
+[Manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md) · [Architecture](../../Docs/WIP/COSMIC%20ORM/CQL_ARCHITECTURE.md) · [Presenter script](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DEMO_RUNBOOK.md).
 
 ## Original SQLite coffee ORM walkthrough
 
@@ -125,7 +238,7 @@ From the repository root in PowerShell:
 
 For the second command, open http://127.0.0.1:5087/swagger. Ctrl+C stops the loopback-only synthetic demo and cleans its owned database. The sample is not a production ONODE endpoint.
 
-[Full walkthrough, requests and verification](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_RUNBOOK.md).
+[Full walkthrough, requests and verification](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DEMO_RUNBOOK.md).
 
 Read the source in this order:
 
@@ -138,7 +251,7 @@ Start with examples 1–3 for CQL querying. Examples 4–6 show how queried holo
 
 The current walkthrough has **twenty-seven** spaced/commented examples per provider: 81 SDK queries and 81 HTTP requests. Examples7–9 demonstrate LongCount, Count after a source window and access-protected Any. The scalar route is `/api/data/query-cql/scalar`; omitted take counts the complete visible source, and LongCount uses an exact Int64 decimal string. Example10 selects detached typed values through `/api/data/query-cql/projection`, preserving exact Int64 text, nullable leaves and nested metadata. Browser presets and Swagger also show `/api/data/query-cql/grouped` for native multi-aggregate reduction. The runner checks fresh actual completed counts; expanded scalar verification passes with 182settled operations/181physical attempts and scalar no-replay checks on all3 stores.
 
-Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
+Projection transport now passes fullCore2,059 controls and signed native three-store acceptance, including visibility before paging, exact large integers/null/GUID/nested values, receipts and no replay. The new10-example SDK/HTTP walkthroughs now pass their expanded30/30 verification plus broad147native regression (195settled operations/190physical attempts); consult the current [HTTP projection contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_PROJECTION_HTTP_CONTRACT.md) for limits and verified evidence.
 
 Maintainer verification can combine the expanded walkthrough with the broad native save/delete/CQL regression in one environment lifecycle: `pwsh -File Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 -IncludeRegression`. The same runner owns fresh-result checks and cleanup; `-Serve` remains the interactive mode.
 
@@ -147,7 +260,7 @@ Maintainer verification can combine the expanded walkthrough with the broad nati
 
 Examples11–12 demonstrate native Min/Max in both spaced/commented C# walkthroughs. Hidden roots contain stronger extrema; actor visibility is applied before reduction. Exact signed Int64 values remain decimal text. Browser presets and Swagger show the Selection shape.
 
-Earlier Min/Max verification passed **175native regression tests,36SDK queries and36HTTP examples**, with zero skips on MongoDB, SQLite and Neo4j. The run records216settled operations/211physical attempts. Full Core/HTTP tests pass2,117. The exact retained fixture was reconciled before this fresh run; owned data was cleaned after verified teardown. [Current contract/evidence](../../Docs/WIP/COSMIC%20ORM/CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026). Use current JSON/transcript evidence, not historical30/30results.
+Earlier Min/Max verification passed **175native regression tests,36SDK queries and36HTTP examples**, with zero skips on MongoDB, SQLite and Neo4j. The run records216settled operations/211physical attempts. Full Core/HTTP tests pass2,117. The exact retained fixture was reconciled before this fresh run; owned data was cleaned after verified teardown. [Current contract/evidence](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_SCALAR_HTTP_CONTRACT.md#selected-http-and-demo-gate-verified--23-october-2026). Use current JSON/transcript evidence, not historical30/30results.
 
 
 ## Numeric examples — verified across all three providers
@@ -265,7 +378,7 @@ attempts across all three providers. Generated Swagger examples and native resul
 checks passed. This is the dedicated joint acceptance case, not a new full269-case
 regression. The earlier63/63 UTC report retains its historical scope. Native
 UInt64 and compiler coverage are documented in
-[the contract](../../Docs/WIP/COSMIC%20ORM/CQL_UINT64_CONTRACT.md).
+[the contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_UINT64_CONTRACT.md).
 
 
 ## Examples 24–25: Decimal prices with exact fractions
@@ -288,7 +401,7 @@ metadata enrollment.
 The expanded live gate passes: **75 SDK queries and75 signed HTTP examples**,
 255 settled operations and250 provider attempts, zero failures/skips. Compiler coverage passes
 2,500 linked unit tests; native Decimal cohorts are recorded separately in the
-[Decimal contract](../../Docs/WIP/COSMIC%20ORM/CQL_DECIMAL_METADATA_CONTRACT.md).
+[Decimal contract](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_DECIMAL_METADATA_CONTRACT.md).
 The reusable offline UI check is `node Scripts/TestHosts/Test-CqlV1DemoPresentation.cjs`;
 it tests script behavior without browser interaction or network calls.
 
@@ -379,7 +492,7 @@ Actual cursor process acceptance: abrupt first-host termination, a different fre
 MongoDB, SQLite and Neo4j through HolonManager. Native queries request at most
 one or two rows, preserve source windows, and distinguish empty/default results
 from provider failures or ambiguous Single results. See the
-[manual](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md#native-element-terminals-c-sdk).
+[manual](../../Docs/WIP/COSMIC%20ORM/Archive/CQL_MANUAL_history_2026-10-27.md#native-element-terminals-c-sdk).
 These element-terminal examples occupy cases 47–58; operator examples 59–90
 follow them. The separate HTTP walkthrough has 46 cases per store and no new
 element-terminal route.
@@ -464,3 +577,109 @@ predicates, with independent bounded scopes, actor visibility, source windows
 and nested error propagation. All92All examples/store pass (276checks), plus
 114scope/cycle checks. Projected-source All is still missing; full Q23 stays red.
 The full681SDKwalkthrough rerun remains pending.
+# Cloud row walkthrough (Cosmos DB, limited demo profile)
+
+[`CloudRowsWalkthrough.cs`](CloudRowsWalkthrough.cs) shows the common native row
+subset through `HolonManager` and standard LINQ, with explicit provider scope,
+owner/public visibility, nested metadata, a bounded page, DTO projection and
+Count/LongCount/Any. It has no provider-specific query engine or storage setup.
+
+The trusted host supplies an explicitly activated provider, a V2 manager, an
+authenticated actor and synthetic fixtures tagged with metadata key `fixture`.
+Matching records need `IsActive`, `Name`, `Version` and `location.city` metadata.
+
+```csharp
+// The host owns activation, credentials and synthetic fixture cleanup.
+// cosmos implements the shared ICosmicQueryStorageProvider contract.
+var report = await CloudRowsWalkthrough.RunAsync(
+    manager,
+    cosmos,
+    authenticatedActorId,
+    "cosmic-cloud-rows-demo",
+    Console.Out,
+    cancellationToken);
+```
+
+This component is exercised verbatim by the Cosmos native integration gate. It is
+not a new command-line switch for the existing SQLite console/Swagger host.
+The existing three-database walkthroughs demonstrate a wider profile; Cosmos
+numeric metadata, save-state/concurrency/delta integration,
+HTTP demo and hosted Azure acceptance remain open. Local emulator proof must be
+labeled as such. Each query is an independent read, not one shared snapshot.
+
+The Mastodon point profile also has a verified WEB4 row request using
+`Provider: ActivityPubOASIS`, `OrderBy: None` and the exact native status-key
+filter. See the [profile guide](../../Docs/WIP/COSMIC%20ORM/CQL_ACTIVITYPUB_NATIVE_PROFILE.md)
+for JSON and required server admission. The interactive demo host switch is still
+pending; this does not enable AP in the three-provider federation demo.
+
+## WEB4 native point HTTP checks
+
+IPFS and SOLID now pass actual-controller HTTP checks against their native test
+backends. These use controlled identity/outbox fixtures, with one measured receipt
+for the accepted query. They do not start a persistent interactive demo host.
+Run with `-CqlWeb4` instead of `-CqlPoint` on the corresponding reusable runner,
+inside the same build lease shown above. Preserve existing `cql-web4` closure and
+fixture evidence before rerunning; no unknown writes may be replayed.
+
+[HTTP request examples, evidence and remaining host gates](../../Docs/WIP/COSMIC%20ORM/CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
+
+
+## Explicit indexed chain walkthrough
+
+`ChainIndexedWalkthrough.cs` demonstrates the shared chain/index SDK: explicit
+source and execution binding, LINQ Where/OrderBy/Take, checkpoint/head/source
+receipts and successful empty pages. The native Solana test runs this exact file
+against the retained local validator and a reopened SQLite index. It is a host
+component, not a new launcher switch; supply the trusted manager/index/observer,
+freshness and actor policy. It does not submit writes or activate providers.
+
+[Command, C# usage and evidence](../../Docs/WIP/COSMIC%20ORM/CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
+Local declared-range proof does not establish original-history recovery,
+production billing/authentication or live-source HTTP acceptance.
+
+The companion `-IndexedHttpDemo` native runner now exercises the same source/index
+through shipping HTTP (five requests), then stops its owned host.
+[Command, wire example and limits](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
+
+ChainIndexedWalkthrough.RunProjectionAsync now demonstrates standard LINQ Select
+with native selected columns and an evidence-aware result page. It is exercised
+verbatim against the retained live Solana record/SQLite index. Public DTO member
+assignments are shown with clear spacing; positional constructors and indexed
+selected-result stages/aggregates remain unsupported.
+
+IndexedHttpDemo now verifies nine requests, including entity and selected rows/empty
+results on the same indexed route. [Selected HTTP example](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
+
+ChainIndexedWalkthrough.RunCardinalityAsync demonstrates ordinary indexed LINQ
+Count/LongCount/Any with clear spacing/comments and explicit snapshot assurance.
+It runs verbatim in the retained live Solana SDK gate. Use the async scalar SDK
+for cancellation/evidence; HTTP cardinality and post-window predicate terminals
+are not enrolled yet.
+
+### Solana source / SQLite indexed HTTP demo
+
+From the worktree root, run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -ArchiveCompletedDemo`, then open http://127.0.0.1:5089/ after health is ready. Use `-VerifyOnly` for bounded acceptance instead. The spaced teaching page shows row/projection/cardinality requests, real WEB4 results and source/index evidence. It uses the retained local validator and acknowledged seed, with no source writes. Controlled identity/billing and bounded five-second complete-range ingestion (500-slot query freshness ceiling) are explicit demo limits. Stop using the page button or POST `/demo/shutdown`; retained keys/source/index remain reusable. See [launcher/lifecycle details](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md#solana-indexed-demo-port-5089).
+
+### Explicit indexed metadata walkthrough
+
+[ChainIndexedMetadataWalkthrough.cs](ChainIndexedMetadataWalkthrough.cs) demonstrates
+schema3 metadata queries through the shared manager/LINQ owner: nested string and
+exact Int64 predicates, ordering, row evidence, LongCount/Any and a zero window.
+Actual SQLite tests verify encrypted row hydration with an authorized runtime
+policy and rejection when it is missing. A trusted host must opt into the metadata
+profile before invoking it. The separate live SolanaMetadata fixture and HTTP/demo route now pass. Run the hub with `-Provider SolanaMetadata -ArchiveCompletedDemo` (add `-VerifyOnly` for bounded acceptance). The original Solana choice remains schema2; both use the same retained runtime. Production authentication/durable billing remain open.
+
+RunSelectionAsync in ChainIndexedMetadataWalkthrough.cs now demonstrates a mixed
+canonical/nested-metadata DTO through ordinary LINQ Select with source evidence.
+The live SolanaMetadata gate verifies it plus50HTTP requests. Its page includes
+Select metadata columns; Long/Int64 output remains a precise string and missing
+nullable cells remain null. All runs reuse the acknowledged fixture; no new source
+writes are needed. Production identity/billing and full parity remain open.
+
+### Three-database hub entry
+
+`Run-CosmicCqlDemoHub.ps1 -Provider Databases -ShowPlan` discovers the existing
+MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
+retained-fixture preflight; it does not reset data. See
+[required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).

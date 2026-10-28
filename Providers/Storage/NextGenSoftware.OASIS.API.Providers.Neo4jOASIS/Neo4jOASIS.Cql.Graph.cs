@@ -70,9 +70,11 @@ public partial class Neo4jOASIS
         return rows.AsReadOnly();
     }
 
-    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget)
+    private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null)
     {
         var rows=new List<IHolon>();
+        var inputProofOwner=entityOptions==null ? null : new NeoCqlEntityInputProof(entityOptions);
+        var countSeen=false;
         while(await cursor.FetchAsync().ConfigureAwait(false))
         {
             budget.Check();
@@ -80,23 +82,59 @@ public partial class Neo4jOASIS
             if(row.Keys.Contains("traversalCycle") && row["traversalCycle"].As<bool>())throw new InvalidDataException("Neo4j descendant traversal encountered a cycle.");
             if(row.Keys.Contains("traversalLimit") && row["traversalLimit"].As<bool>())throw new NeoCqlLimitException("Neo4j descendant traversal exceeds its visited-node budget.");
             if(!row["valid"].As<bool>())throw new InvalidDataException("Neo4j CQL relationship/projection ownership or schema is invalid.");
-            if(rows.Count>=maximumRows)throw new NeoCqlLimitException("Neo4j CQL exceeds its declared node/result limit.");
+            var inputProof = entityOptions != null && row["entityInput"].As<bool>();
+            if (observeEntityCount != null && !inputProof)
+            {
+                if (countSeen || !row.Keys.Contains("entityCount") || row["entityCount"] is not long count
+                    || count<0 || count>entityOptions.MaximumInputRows)
+                    throw new InvalidDataException("Entity count requires one exact bounded native integer acknowledgement.");
+                countSeen=true; observeEntityCount(count); continue;
+            }
+            if(!inputProof && rows.Count>=maximumRows)throw new NeoCqlLimitException("Neo4j CQL exceeds its declared node/result limit.");
             var snapshot=row["snapshot"].As<string>();
+            if (inputProof)
+            {
+                inputProofOwner.Observe(row);continue;
+            }
             budget.Reserve(snapshot);
-            var holon=StoredRecordJson.DeserializeStoredHolon(snapshot);
-            if(!Guid.TryParse(row["id"].As<string>(),out var id) || holon.Id!=id)
-                throw new InvalidDataException("Neo4j CQL snapshot identity differs from its native identity.");
-            var physical=row["revision"].As<string>();
-            var revision=Guid.Empty;
-            if(physical!=null && !Guid.TryParse(physical,out revision))throw new InvalidDataException("Neo4j CQL native revision is invalid.");
-            if(CosmicConcurrency.GetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS)!=revision)
-                throw new InvalidDataException("Neo4j CQL snapshot and native revision observations disagree.");
-            CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS,revision);
-            holon.IsNewHolon=false;
-            rows.Add(holon);
+            rows.Add(ReadCqlCanonicalSnapshot(row,snapshot));
         }
         budget.Check();
+        if (observeEntityCount != null && !countSeen)
+            throw new InvalidDataException("Entity count acknowledgement is missing.");
         return rows.AsReadOnly();
+    }
+
+    private sealed class NeoCqlEntityInputProof(CosmicEntityCompositionOptions options)
+    {
+        private int rows;private long bytes;
+        internal void Observe(IRecord record)=>Observe(record.Values);
+        internal void Observe(IReadOnlyDictionary<string,object> record)
+        {
+            if(record["traversalLimit"] is true)throw new NeoCqlLimitException("Entity source exceeded its protected traversal/work bound.");
+            if(record["traversalCycle"] is true || record["valid"] is not true)
+                throw new InvalidDataException("Entity source ownership/traversal proof is invalid.");
+            var snapshot=record["snapshot"].As<string>();
+            if(snapshot==null)throw new NeoCqlLimitException("Entity source record exceeds its native payload bound.");
+            bytes=checked(bytes+Encoding.UTF8.GetByteCount(snapshot));
+            if(++rows>options.MaximumInputRows || bytes>options.MaximumInputPayloadBytes)
+                throw new NeoCqlLimitException("Entity source exceeds its row/payload budget.");
+            _=ReadCqlCanonicalSnapshot(record,snapshot);
+        }
+    }
+
+    private static IHolon ReadCqlCanonicalSnapshot(IRecord row,string snapshot)=>ReadCqlCanonicalSnapshot(row.Values,snapshot);
+    private static IHolon ReadCqlCanonicalSnapshot(IReadOnlyDictionary<string,object> row,string snapshot)
+    {
+        var holon=StoredRecordJson.DeserializeStoredHolon(snapshot);
+        if(!Guid.TryParse(row["id"].As<string>(),out var id) || holon.Id!=id)
+            throw new InvalidDataException("Neo4j CQL snapshot identity differs from its native identity.");
+        var physical=row["revision"].As<string>();var revision=Guid.Empty;
+        if(physical!=null && !Guid.TryParse(physical,out revision))throw new InvalidDataException("Neo4j CQL native revision is invalid.");
+        if(CosmicConcurrency.GetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS)!=revision)
+            throw new InvalidDataException("Neo4j CQL snapshot and native revision observations disagree.");
+        CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS,revision);
+        holon.IsNewHolon=false;return holon;
     }
 
     private sealed class NeoCqlReadBudget : IDisposable

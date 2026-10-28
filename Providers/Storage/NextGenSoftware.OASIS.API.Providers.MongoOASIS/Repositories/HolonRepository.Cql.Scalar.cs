@@ -33,6 +33,8 @@ public partial class HolonRepository
             using var session = command.RequiresSnapshot
                 ? await _dbContext.MongoClient.StartSessionAsync(new ClientSessionOptions { Snapshot = true, CausalConsistency = false }, deadline.Token).ConfigureAwait(false)
                 : null;
+            if (command.EntityComposition != null)
+                await ValidateNativeEntityStagesAsync(command.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
             if (command.RequiresMembership)
             {
                 if (session == null) throw new InvalidOperationException("Scalar membership validation requires its snapshot owner.");
