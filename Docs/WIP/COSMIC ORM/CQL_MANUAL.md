@@ -745,8 +745,8 @@ var demo = await ChainIndexedWalkthrough.RunAsync(
 ### Native chain HTTP acceptance
 
 The reusable Solana runner's `-IndexedHttpDemo` mode exercises shipping HTTP with
-the acknowledged native seed and actual index. It runs five bounded requests
-(rows, empty, two replays, unsupported graph) and shuts the host down afterward.
+the acknowledged native seed and actual index. It runs nine bounded requests
+(entity/projected rows and empty results, four replays, unsupported graph) and shuts the host down afterward.
 It never creates a replacement seed. [Command and limits](CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
 
 The accepted wire shape is:
@@ -810,7 +810,7 @@ var result = await manager.ExecuteIndexedProjectionQueryAsync(
 ```
 
 This is the explicit indexed projection SDK; standard IQueryable.Select now uses
-the same owner. The HTTP projection route is still pending. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
+the same owner. HTTP now accepts optional columns on the existing indexed route. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
 IsPublic/IsDeleted columns are enrolled; metadata and aggregates remain unsupported.
 [Contract, tests and remaining gates](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
 
@@ -847,3 +847,26 @@ shows a spaced/commented public DTO example and is tested against the live sourc
 Anonymous shapes or public parameterless DTO/member assignments are supported;
 positional DTO/record constructors without explicit expression member bindings
 remain an M17 gap. [Contract and evidence](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
+
+
+### Indexed HTTP selected values
+
+Add a columns array to the existing /api/data/query-cql/indexed request. The server
+alias owns the actual source/index, actor grant, freshness and tariffs. Fields are
+capability checked before reservation; columns cannot request the entity metadata
+envelope. An omitted/null columns array retains ordinary entity-row behavior.
+
+```json
+{
+  "alias": "solana-native-demo",
+  "query": { "orderBy": "Name", "take": 10 },
+  "columns": [
+    { "alias": "name", "field": "Name" },
+    { "alias": "version", "field": "Version" }
+  ]
+}
+```
+
+On success, mode is indexed-projection. Columns describe the typed cells in each
+rows array; checkpoint, finalizedHead and receipts retain provenance/freshness.
+[Registration, complete contract and native evidence](CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).

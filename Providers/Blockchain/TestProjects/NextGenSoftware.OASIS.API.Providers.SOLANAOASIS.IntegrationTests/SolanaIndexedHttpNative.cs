@@ -81,17 +81,19 @@ public partial class SolanaIndexedQueryNative
             client.DefaultRequestHeaders.Authorization = new("Bearer", "controlled-native-test");
             var counts = new List<int>();
 
+            foreach (var projected in new[] { false, true })
             foreach (var empty in new[] { false, true })
             {
                 // Only bounded public wire intent crosses HTTP. Endpoints, keys,
                 // source proofs, prices and the actor grant remain server-owned.
                 var body = JsonSerializer.Serialize(new {
                     alias = "solana-native-demo",
+                    columns = projected ? new[] { new { alias = "identity", field = "Id" }, new { alias = "label", field = "Name" }, new { alias = "revision", field = "Version" } } : null,
                     query = new { filters = new[] { empty
                         ? new { field = "Name", scalar = "String", @operator = "Equal", value = "does-not-exist" }
                         : new { field = "Id", scalar = "Guid", @operator = "Equal", value = seed.Id.ToString("D") } }, orderBy = "Name", take = 1 } });
                 client.DefaultRequestHeaders.Remove("Idempotency-Key");
-                client.DefaultRequestHeaders.Add("Idempotency-Key", empty ? "native-index-empty" : "native-index-rows");
+                client.DefaultRequestHeaders.Add("Idempotency-Key", (projected ? "native-index-projection-" : "native-index-") + (empty ? "empty" : "rows"));
                 using var response = await client.PostAsync("/api/data/query-cql/indexed", new StringContent(body, Encoding.UTF8, "application/json"));
                 var text = await response.Content.ReadAsStringAsync();
                 Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
@@ -108,7 +110,19 @@ public partial class SolanaIndexedQueryNative
                 Assert.AreEqual(seed.CoverageStart.ToString(), page.GetProperty("checkpoint").GetProperty("completeFromSlot").GetString());
                 Assert.IsTrue(long.Parse(page.GetProperty("finalizedHead").GetProperty("position").GetProperty("slot").GetString()!) >=
                     long.Parse(page.GetProperty("checkpoint").GetProperty("position").GetProperty("slot").GetString()!));
-                if (!empty)
+                Assert.AreEqual(projected ? "indexed-projection" : "indexed", page.GetProperty("mode").GetString());
+                if (projected)
+                {
+                    Assert.AreEqual("label", page.GetProperty("columns")[1].GetProperty("alias").GetString());
+                    if (!empty)
+                    {
+                        Assert.AreEqual(seed.Id.ToString("D"), page.GetProperty("rows")[0][0].GetString());
+                        Assert.AreEqual("COSMIC native chain coffee", page.GetProperty("rows")[0][1].GetString());
+                        Assert.AreEqual(1, page.GetProperty("rows")[0][2].GetInt32());
+                        Assert.AreEqual(seed.Signature, page.GetProperty("receipts")[0].GetProperty("commitReference").GetString());
+                    }
+                }
+                if (!empty && !projected)
                 {
                     Assert.AreEqual(seed.Id.ToString("D"), page.GetProperty("rows")[0].GetProperty("id").GetString());
                     Assert.AreEqual(seed.Signature, page.GetProperty("receipts")[0].GetProperty("commitReference").GetString());
@@ -144,9 +158,9 @@ public partial class SolanaIndexedQueryNative
                 "{\"alias\":\"solana-native-demo\",\"query\":{\"graph\":{},\"take\":1}}", Encoding.UTF8, "application/json"));
             Assert.AreEqual(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.AreEqual(beforeRejected, evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count));
-            Assert.AreEqual(2, evidence.Operations.Count);
-            Assert.AreEqual(2, authorityEvidence.Settlements.Count);
-            return new { requests = 5, accepted = 2, rejectedReplays = 2, unsupportedBeforeExecution = 1,
+            Assert.AreEqual(4, evidence.Operations.Count);
+            Assert.AreEqual(4, authorityEvidence.Settlements.Count);
+            return new { requests = 9, accepted = 4, rejectedReplays = 4, unsupportedBeforeExecution = 1,
                 physicalReadCounts = counts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
                 authentication = "controlled validated identity", sourceWrites = 0 };
         }

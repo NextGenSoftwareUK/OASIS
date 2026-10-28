@@ -81,16 +81,21 @@ public partial class CosmicChainIndexedExecutionTests
     [Theory]
     [InlineData("rows")] [InlineData("empty")] [InlineData("bad-json")] [InlineData("graph")]
     [InlineData("policy-ceiling")] [InlineData("uncertain")]
+    [InlineData("projection-rows")] [InlineData("projection-empty")] [InlineData("projection-metadata")]
+    [InlineData("projection-empty-columns")] [InlineData("projection-row-only")] [InlineData("projection-duplicate")]
+    [InlineData("projection-uncertain")] [InlineData("projection-forged")] [InlineData("projection-include")]
     public async Task StockLedgerAndStorageMiddlewareReserveExecuteAndSettleIndexedRows(string mode)
     {
-        var empty=mode=="empty";
+        var empty=mode is "empty" or "projection-empty";
+        var projected=mode.StartsWith("projection-",StringComparison.Ordinal);
         var f=Fixture(empty?"empty":"rows");var reader=new BillingReader(source,f.Reader.Result,"rows");
-        var binding=new CqlIndexedV1Binding(reader,Mock.Of<NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver>(),
+        var actualReader=projected&&mode!="projection-row-only"?(NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQueryIndexReader)new BillingProjectionReader(reader,mode):reader;
+        var binding=new CqlIndexedV1Binding(actualReader,Mock.Of<NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicChainQuerySourceObserver>(),
             Tariffs(),position,10,TimeSpan.FromMinutes(1),CosmicQueryReadAccess.OwnerOrPublic(actor).Result,Manager());
         var registry=new BindingRegistry(binding);var native=new Mock<IPreparedStorageAdmissionFactory>(MockBehavior.Strict);
         var nativeProviders=new Mock<ICqlV1Providers>(MockBehavior.Strict);
         var allowedBeforeAuthorization=0;
-        var ledger=new StockLedger(actor,()=>Assert.Equal(allowedBeforeAuthorization,reader.PhysicalCalls)){FailReceipt=mode=="uncertain"};
+        var ledger=new StockLedger(actor,()=>Assert.Equal(allowedBeforeAuthorization,reader.PhysicalCalls)){FailReceipt=mode is "uncertain" or "projection-uncertain"};
         var policy=new UsageEndpointPolicy{MeterCategory="queries",PricingCatalogueVersion="stock-indexed-v1",RequiresProviderMeasurement=true,
             ReservedUnits=1,EstimatedCostUsd=0,MaximumProviderAttempts=mode=="policy-ceiling"?99:512,MaximumNativeFeeCostUsd=0};
         var options=new Web4UsageLedgerOptions{Service="WEB4",EndpointPolicy=_=>policy};
@@ -112,16 +117,22 @@ public partial class CosmicChainIndexedExecutionTests
             var addresses=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!;
             using var client=new HttpClient{BaseAddress=new Uri(Assert.Single(addresses.Addresses)),Timeout=TimeSpan.FromSeconds(10)};
             client.DefaultRequestHeaders.Authorization=new("Bearer","stock-fixture");client.DefaultRequestHeaders.Add("Idempotency-Key","indexed-stock-key");
-            const string body="{\"alias\":\"solana-demo\",\"query\":{\"orderBy\":\"Id\",\"take\":1}}";
+            var body="{\"alias\":\"solana-demo\",\"query\":{\"orderBy\":\"Id\",\"take\":1}}";
+            if(projected){
+                var columns=mode=="projection-empty-columns"?"[]":mode=="projection-metadata"?"[{\"alias\":\"label\",\"metadataPath\":[\"private\"],\"valueType\":\"String\"}]":
+                    mode=="projection-duplicate"?"[{\"alias\":\"label\",\"field\":\"Name\"},{\"alias\":\"label\",\"field\":\"Id\"}]":"[{\"alias\":\"label\",\"field\":\"Name\"}]";
+                body=body.Replace("\"alias\":\"solana-demo\"","\"alias\":\"solana-demo\",\"columns\":"+columns);
+                if(mode=="projection-include")body=body.Replace("\"take\":1","\"take\":1,\"includeMetadata\":true");
+            }
             var sent=mode=="bad-json"?"{broken":mode=="graph"?body.Replace("\"take\":1","\"take\":1,\"graph\":{}"):body;
             using var response=await client.PostAsync("/api/data/query-cql/indexed",new StringContent(sent,Encoding.UTF8,"application/json"));
             var text=await response.Content.ReadAsStringAsync();
-            if(mode is "bad-json" or "graph" or "policy-ceiling"){
+            if(mode is "bad-json" or "graph" or "policy-ceiling" or "projection-metadata" or "projection-empty-columns" or "projection-row-only" or "projection-duplicate" or "projection-include"){
                 Assert.True(response.StatusCode==(mode=="policy-ceiling"?HttpStatusCode.ServiceUnavailable:HttpStatusCode.BadRequest),text);
                 Assert.Empty(ledger.Authorizations);Assert.Empty(ledger.Operations);Assert.Equal(0,reader.PhysicalCalls);
-                Assert.Equal(mode=="policy-ceiling"?1:0,registry.Calls);native.VerifyNoOtherCalls();return;
+                Assert.Equal(mode is "policy-ceiling" or "projection-metadata" or "projection-row-only" or "projection-duplicate"?1:0,registry.Calls);native.VerifyNoOtherCalls();return;
             }
-            if(mode=="uncertain"){
+            if(mode is "uncertain" or "projection-uncertain"){
                 Assert.True(response.StatusCode==HttpStatusCode.ServiceUnavailable,text);
                 Assert.Contains("MEASUREMENT_REQUIRED",text);Assert.DoesNotContain("\"rows\"",text);
                 var pending=Assert.Single(ledger.Operations.Values);Assert.Equal("indeterminate",pending.State);
@@ -131,7 +142,18 @@ public partial class CosmicChainIndexedExecutionTests
                 using var denied=await client.PostAsync("/api/data/query-cql/indexed",new StringContent(body,Encoding.UTF8,"application/json"));
                 Assert.Equal(HttpStatusCode.Conflict,denied.StatusCode);Assert.Equal(1,reader.PhysicalCalls);return;
             }
+            if(mode=="projection-forged"){
+                Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);Assert.Contains("CQL_SOURCE_RECORD_MISMATCH",text);
+                Assert.Single(ledger.Settlements);Assert.Equal(7,reader.PhysicalCalls);Assert.Equal("failed",ledger.Operations.Values.Single().ObservedOutcome);return;
+            }
             Assert.True(response.StatusCode==HttpStatusCode.OK,text);
+            if(projected){
+                using var selectedJson=JsonDocument.Parse(text);var selectedPage=selectedJson.RootElement.GetProperty("result");
+                Assert.Equal("indexed-projection",selectedPage.GetProperty("mode").GetString());
+                Assert.Equal("label",selectedPage.GetProperty("columns")[0].GetProperty("alias").GetString());
+                Assert.Equal(empty?0:1,selectedPage.GetProperty("rows").GetArrayLength());
+                if(!empty)Assert.Equal("original",selectedPage.GetProperty("rows")[0][0].GetString());
+            }
             Assert.Equal("settled",Assert.Single(response.Headers.GetValues("X-OASIS-Usage-Settlement")));
             var authorization=Assert.Single(ledger.Authorizations);Assert.Equal(100,authorization.RequestedUnits);Assert.Equal(1m,authorization.EstimatedCostUsd);
             var semantic=CqlIndexedV1Preparation.Prepare(actor,WebRequest(),new BindingRegistry(binding)).Result.RequestFingerprint;

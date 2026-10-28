@@ -214,3 +214,8 @@ The native SDK gate now also executes ChainIndexedWalkthrough.RunProjectionAsync
 verbatim: standard indexed LINQ Select returns the retained native holon and exact
 source commit, with no seed resubmission. Prior SDK and constructor-shape failure
 evidence are preserved separately; [Select contract](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
+
+The IndexedHttpDemo gate now passes9requests including native selected rows/empty
+through the same indexed endpoint (optional columns), with actual SQL/source reads
+and preserved source receipts. Four replays and unsupported shape reject.
+[Wire contract and limits](CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).

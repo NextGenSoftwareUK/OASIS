@@ -55,6 +55,7 @@ public sealed class CqlIndexedV1Preparation
     public Guid Actor { get; }
     public CqlIndexedV1Binding Binding { get; }
     public CosmicQueryPlan<Holon> Plan { get; }
+    public CosmicProjectionPlan<Holon,CosmicProjectionRecord> ProjectionPlan { get; }
     public bool IncludeMetadata { get; }
     public int MaximumResults { get; }
     public decimal MaximumServiceCostUsd { get; }
@@ -62,9 +63,9 @@ public sealed class CqlIndexedV1Preparation
     public string RequestFingerprint { get; }
 
     private CqlIndexedV1Preparation(string alias, Guid actor, CqlIndexedV1Binding binding,
-        CosmicQueryPlan<Holon> plan, bool includeMetadata, int maximumResults, string fingerprint)
+        CosmicQueryPlan<Holon> plan, bool includeMetadata, int maximumResults, string fingerprint,CosmicProjectionPlan<Holon,CosmicProjectionRecord> projectionPlan)
     {
-        RequestFingerprint=fingerprint;
+        RequestFingerprint=fingerprint;ProjectionPlan=projectionPlan;
         Alias=alias;Actor=actor;Binding=binding;Plan=plan;IncludeMetadata=includeMetadata;MaximumResults=maximumResults;
         // Even an erroneous reader exhausting its full admitted physical budget is
         // covered; this is a conservative reservation bound, never an actual invoice.
@@ -80,10 +81,12 @@ public sealed class CqlIndexedV1Preparation
             // Capture every caller-owned field before invoking the server resolver.
             var alias=request.Alias;var lag=request.MaximumLagSlots;var age=request.MaximumHeadAgeSeconds;
             var query=CqlRequestCapture.Capture(request.Query);
+            var columns=CqlRequestCapture.CaptureColumns(request.Columns);
+            if(columns!=null&&query.IncludeMetadata)throw new ArgumentException("Selected columns cannot request the entity metadata envelope.");
             if(string.IsNullOrEmpty(alias)||alias.Length>64||alias.Any(c=>!(c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9' or '-' or '_' or '.'))
                 ||query.Provider!=null||query.Graph!=null||query.Take is <1 or >100)
                 throw new ArgumentException("An explicit bounded alias and alias-owned leaf query are required.");
-            var fingerprint=Fingerprint(new CqlIndexedV1Request{Alias=alias,Query=query,MaximumLagSlots=lag,MaximumHeadAgeSeconds=age});
+            var fingerprint=Fingerprint(new CqlIndexedV1Request{Alias=alias,Query=query,Columns=columns,MaximumLagSlots=lag,MaximumHeadAgeSeconds=age});
             var resolved=bindings.Resolve(actor,alias);
             if(resolved?.IsError==true)return Error("CQL_INDEX_FORBIDDEN","Server alias policy did not authorize this query.",resolved.Exception);
             if(resolved==null||resolved.IsWarning||resolved.Result==null)
@@ -100,7 +103,16 @@ public sealed class CqlIndexedV1Preparation
             var plan=CosmicQueryPlanner.Plan(intent,source.SourceProvider,new[]{
                 new CosmicQueryTarget(source.SourceProvider,binding.Reader.IndexedRowCapabilities,binding.Reader.Source)});
             if(plan.IsError)return Error(plan.ErrorCode,"The indexed profile does not support the complete query.",plan.Exception);
-            return new(new(alias,actor,binding,plan.Result,query.IncludeMetadata,query.Take,fingerprint));
+            CosmicProjectionPlan<Holon,CosmicProjectionRecord> projectionPlan=null;
+            if(columns!=null){
+                if(binding.Reader is not ICosmicChainQueryIndexProjectionReader selectedReader)
+                    return Error("CQL_CAPABILITY_UNSUPPORTED","The indexed alias has no native selected-column contract.");
+                var selected=CosmicProjectionPlanner.Plan(CqlV1Compiler.CompileIndexedProjection(intent,columns),source.SourceProvider,new[]{
+                    new CosmicProjectionTarget(source.SourceProvider,selectedReader.IndexedRowCapabilities,selectedReader.IndexedProjectionCapabilities,selectedReader.Source)});
+                if(selected.IsError)return Error(selected.ErrorCode,"The indexed alias does not support the complete selected shape.",selected.Exception);
+                projectionPlan=selected.Result;
+            }
+            return new(new(alias,actor,binding,plan.Result,query.IncludeMetadata,query.Take,fingerprint,projectionPlan));
         }
         catch(ArgumentException cause){return Error("CQL_REQUEST_INVALID","Invalid bounded indexed query description.",cause);}
         catch(Exception cause){return Error("CQL_INDEX_BINDING_FAILED","Server indexed preparation failed; no alternative was selected.",cause);}
@@ -110,14 +122,14 @@ public sealed class CqlIndexedV1Preparation
     {
         if(request==null)return false;
         var captured=new CqlIndexedV1Request{Alias=request.Alias,Query=CqlRequestCapture.Capture(request.Query),
-            MaximumLagSlots=request.MaximumLagSlots,MaximumHeadAgeSeconds=request.MaximumHeadAgeSeconds};
+            Columns=CqlRequestCapture.CaptureColumns(request.Columns),MaximumLagSlots=request.MaximumLagSlots,MaximumHeadAgeSeconds=request.MaximumHeadAgeSeconds};
         return string.Equals(RequestFingerprint,Fingerprint(captured),StringComparison.Ordinal);
     }
 
     private static string Fingerprint(CqlIndexedV1Request request)
     {
         // Include a route/version domain so this admission cannot become another result shape.
-        var wire=JsonSerializer.SerializeToUtf8Bytes(new{Contract="WEB4.CQL.indexed.rows.v1",Request=request},
+        var wire=JsonSerializer.SerializeToUtf8Bytes(new{Contract=request.Columns==null?"WEB4.CQL.indexed.rows.v1":"WEB4.CQL.indexed.projection.v1",Request=request},
             new JsonSerializerOptions{DefaultIgnoreCondition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault});
         if(wire.Length>32768)throw new ArgumentException("Indexed intent exceeds the bounded wire contract.");
         return Convert.ToHexString(SHA256.HashData(wire)).ToLowerInvariant();
