@@ -351,3 +351,44 @@ seed/source write), including standard Select and exact original source commit.
 HTTP projection enrollment and production admission remain open.
 Evidence: TestResults/ProtocolCqlCurrent/index-select-{core-full,sqlite,solana}.trx
 and TestResults/SolanaCurrent/solana-indexed-native.trx/json.
+
+
+## Indexed native cardinality SDK (27 October)
+
+ICosmicChainQueryIndexScalarReader separately enrolls Count/LongCount/Any.
+SQLite schema2 validates its authenticated history/current-row projection manifest
+and runs COUNT(*) or EXISTS over the admitted SQL source window in the SAME read
+transaction. Actor visibility/deleted exclusion and predicates precede ordering,
+Skip and Take. No application rows or business payloads are downloaded/decrypted
+for counting. Take(0), empty input and skipped-out input yield exact zero/false.
+The source observer then supplies a fresh finalized head and required older anchors.
+
+The shared CosmicScalarPlanner and HolonManager.ExecuteIndexedScalarQueryAsync
+use CosmicIndexedScalarExecutor. It re-admits actual capabilities/actor/source,
+complete operation-bound acknowledgement, checkpoint freshness and source window,
+then decodes exact count domains through CosmicScalarResults. Count checks Int32
+overflow; LongCount retains Int64. The generic evidence domain does not inherit
+SQLite's current10,000-history-entry integrity-scan limit; that remains a provider
+profile/scaling constraint, not a promise of arbitrary index size support.
+
+Assurance is authenticated-index-snapshot: the scalar is exact for the authenticated
+index projection at its checkpoint, with live head/anchor freshness. It does NOT
+claim every counted source transaction was independently re-read or every cached
+business payload is currently readable. A damaged business payload alone does
+not invalidate a still-authentic index count; row materialization has a different
+proof/readability obligation. Global manifest count/hash stay internal and are not
+included in the actor-filtered SDK result. Checkpoint/head remain public evidence.
+
+PreparedStorageExecution's existing read owner is generalized, not duplicated:
+exact source tariffs, actor/lifetime, aggregate reservation and durable begin/receipt
+rules apply. Cardinality requires one SQL snapshot and acknowledged source
+head/genesis/block reads; it never fabricates per-record transaction receipts.
+Unknown begin/acknowledgement fails and retains the original outcome for reconciliation.
+
+13newCore/18actualSQLite cases prove operation/ack/window binding, missing policy,
+incomplete capture, unknown begin/receipt, fresh evidence, wide integer domains,
+visibility/windows/empty results, tampering, head failures and cancellation. Full
+Core4180/SQLite67/Solana799pass. Existing row/projection prepared paths regress green.
+LINQ Count/LongCount/Any, HTTP enrollment, post-window predicates, other aggregates,
+metadata and live-source cardinality acceptance remain open. No broad parity cell
+is promoted. Evidence: TestResults/ProtocolCqlCurrent/index-cardinality-*-full.trx.
