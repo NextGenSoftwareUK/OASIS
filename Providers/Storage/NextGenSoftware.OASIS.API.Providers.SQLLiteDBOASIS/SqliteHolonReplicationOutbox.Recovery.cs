@@ -17,13 +17,23 @@ public sealed partial class SqliteHolonReplicationOutbox
     public Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
         =>Execute(()=>{
             if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
-            using var connection=Open();using var query=connection.CreateCommand();
+            using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
             query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox WHERE Sequence=$id";query.Parameters.AddWithValue("$id",sequence);
             using var reader=query.ExecuteReader();return ReadInspection(reader,false);
         },cancellationToken);
     public Task<OASISResult<HolonDeliveryInspection>> PeekNextAsync(string targetId,CancellationToken cancellationToken=default)
         =>Execute(()=>{
-            ValidateIdentity(targetId);using var connection=Open();using var query=connection.CreateCommand();
+            ValidateIdentity(targetId);using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
             query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox WHERE TargetId=$target AND DeliveryState<>'Completed' ORDER BY Sequence LIMIT 1";
             query.Parameters.AddWithValue("$target",targetId);using var reader=query.ExecuteReader();return ReadInspection(reader,true);
         },cancellationToken);
@@ -31,7 +41,12 @@ public sealed partial class SqliteHolonReplicationOutbox
         string afterTargetId=null,CancellationToken cancellationToken=default)
         =>Execute(()=>{
             HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId);
-            using var connection=Open();using var query=connection.CreateCommand();
+            using var connection=Open();
+            // Keep identity and queue reads on one native snapshot. An unbound
+            // explicit consumer retains its existing observation-only contract.
+            using var transaction = _expectedSource == null ? null : connection.BeginTransaction(deferred:true);
+            ValidateSource(connection, transaction);
+            using var query=connection.CreateCommand();query.Transaction=transaction;
             query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox AS o WHERE DeliveryState<>'Completed' "
                 +"AND ($after IS NULL OR TargetId COLLATE BINARY > $after) "
                 +"AND Sequence=(SELECT MIN(h.Sequence) FROM CosmicHolonOutbox AS h WHERE h.TargetId=o.TargetId COLLATE BINARY AND h.DeliveryState<>'Completed') "
