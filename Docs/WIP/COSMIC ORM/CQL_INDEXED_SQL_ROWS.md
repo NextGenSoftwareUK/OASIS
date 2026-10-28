@@ -322,3 +322,32 @@ warning/incomplete evidence and missing prepared tariff policy before dispatch.
 Actual source transports are controlled in this projection milestone; existing
 live-chain row acceptance does not certify live-chain projection execution.
 Evidence: TestResults/ProtocolCqlCurrent/index-projection-*-full.trx.
+
+
+## Standard indexed LINQ Select (27 October)
+
+The existing shared CosmicLinqProjectionProvider now has an explicitly bound
+indexed execution owner. Source Where/order/Skip/Take and closed values use the
+same execution-time binders. Standard Select supplies native selected columns;
+flat repeated Select reuses column bindings without constructing intermediate
+DTOs. Lists and synchronous enumeration execute that same provider pipeline.
+ToCosmicIndexedProjectionPageAsync retains checkpoint/head/source receipts.
+
+The source reader must explicitly implement ICosmicChainQueryIndexProjectionReader.
+A row-only index rejects Select with CQL_CAPABILITY_UNSUPPORTED before I/O.
+Selected-result Where/order/windows and aggregates/elements remain unsupported
+for indexed execution, with rejection before SQL/source dispatch. Apply supported
+source filters/windows before Select. No native scalar aggregate is inferred from
+selected column support. Positional constructor selection without expression member
+bindings remains unsupported (M17); anonymous shapes and public parameterless DTOs
+with explicit member assignments are the supported materialization forms.
+
+Seven new actual SQLite checks prove deferred filters, evidence, empty rows,
+changed source failure, cancellation/stage rejection, flat reselection with zero
+intermediate constructors, lists/enumeration and explicit terminal rejection.
+Full Core4154/SQLite49/Solana799 gates pass. The updated shared C# walkthrough
+runs verbatim in the retained live Solana/SQLite native gate (one pass, no new
+seed/source write), including standard Select and exact original source commit.
+HTTP projection enrollment and production admission remain open.
+Evidence: TestResults/ProtocolCqlCurrent/index-select-{core-full,sqlite,solana}.trx
+and TestResults/SolanaCurrent/solana-indexed-native.trx/json.

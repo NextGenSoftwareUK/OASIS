@@ -47,7 +47,7 @@ public partial class CosmicChainIndexedExecutionTests
             else if (mode == "stage") _ = query.Take(1).Where(row => row.IsPublic);
             else _ = query.Count();
         });
-        Assert.Equal("CQL_EXPRESSION_UNSUPPORTED", error.Code);
+        Assert.Equal(mode == "projection" ? "CQL_CAPABILITY_UNSUPPORTED" : "CQL_EXPRESSION_UNSUPPORTED", error.Code);
         Assert.Equal(0, f.Reader.Calls);
     }
 

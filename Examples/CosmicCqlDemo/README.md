@@ -641,3 +641,9 @@ production billing/authentication or live-source HTTP acceptance.
 The companion `-IndexedHttpDemo` native runner now exercises the same source/index
 through shipping HTTP (five requests), then stops its owned host.
 [Command, wire example and limits](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
+
+ChainIndexedWalkthrough.RunProjectionAsync now demonstrates standard LINQ Select
+with native selected columns and an evidence-aware result page. It is exercised
+verbatim against the retained live Solana record/SQLite index. Public DTO member
+assignments are shown with clear spacing; positional constructors and indexed
+selected-result stages/aggregates remain unsupported.

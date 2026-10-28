@@ -30,3 +30,8 @@ Indexed canonical projection SDK now passes8newCore/11newSQLite checks, through
 the existing shared planner/row-proof owner and V2 HolonManager. LINQ Select, HTTP,
 live-chain projection acceptance, aggregates and metadata stay open.
 [Projection contract](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
+
+Standard indexed LINQ Select and flat reselection/list/enumeration now pass7new
+SQLite cases and the live Solana shared-demo gate. Core4154/SQLite49/Solana799pass.
+Next: projection HTTP; metadata, aggregates, selected stages and M17 constructor
+shapes stay open. [Current contract](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
