@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 param(
     [switch]$ConformanceOnly,
+    [switch]$Cql,
     [switch]$BootstrapSchema,
     [switch]$Coverage,
     [switch]$RestartDatabaseBetweenPhases,
@@ -28,7 +29,7 @@ param(
     [switch]$ReconcileAmbiguity,[switch]$ReconcileHistoricalExport,
     [switch]$ReconcileCorruptAvatar,[switch]$ReconcileProjectionAssertions
 )
-$selectedModes=@($ConformanceOnly,$BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
+$selectedModes=@($Cql,$ConformanceOnly,$BootstrapSchema,$Coverage,$ReconcileKarmaReadGuard,$ReconcileKarmaNullOutcome,$PointReadSelectors,$ReconcileExportIdentity,$IndependentExportVersions,$InspectReadConnections,$ReconcileReadOutage,$ReadAcknowledgementOrder,$ReadAcknowledgementStress,$ExtraColumns,$ReconcileKarmaProjections,$MissingDeletion,$ReconcileKarmaAssertion,$KarmaManager,$LeastPrivilege,$V2Deletion,$DeleteAliases,$ReadAcknowledgements,$TableDurability,$ExistingSchema,$WriteRejections,$IdentityCapacity,$UpgradeIdentityCharacters,$RootParent,$HolonProjection,$IdentityRaces,
     $DetailDeletionResults,$AvatarDeletionResults,$SaveAcknowledgements,$AvatarProjection,$LifecycleGuards,
     $EncryptedProcess,$EncryptedReplay,$PreparationClaims,$ReconcileOriginal,$ReconcileExportVisibility,$ReconcileAmbiguity,
     $ReconcileHistoricalExport,$ReconcileCorruptAvatar,$ReconcileProjectionAssertions,$AllVersionExports,$ReconcileScopedVisibility,$ReconcileAcknowledgementViews,$ReconcileConditionalIntent).Where({$_.IsPresent}).Count
@@ -342,6 +343,7 @@ try{
     if($ReconcileKarmaNullOutcome){$report='oracle-karma-null-reconciliation-current.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaNullOutcomeWithoutReplayingMutation'}
     if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
     if($BootstrapSchema){$report='oracle-bootstrap-native-current.trx';$filter='FullyQualifiedName~OracleBootstrapNativeTests'}
+    if($Cql){$report='oracle-cql-native-current.trx';$filter='FullyQualifiedName~OracleCqlNativeTests'}
     if($Coverage){$report='oracle-native-coverage-current.trx'}
     if($ReconcileExportVisibility){$report='oracle-export-visibility-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAvatarExportVisibilityFixture'}
     if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}
@@ -366,6 +368,7 @@ try{
     [xml]$trx=Get-Content -LiteralPath $reportFile.FullName -Raw;$counts=$trx.TestRun.ResultSummary.Counters
     $expected=if($InspectReadConnections -or $ReadAcknowledgementStress -or $ReadAcknowledgementOrder){1}elseif($ExtraColumns){20}elseif($MissingDeletion){40}elseif($ReconcileKarmaAssertion -or $ReconcileKarmaProjections){1}elseif($KarmaManager -or $LeastPrivilege){2}elseif($V2Deletion){16}elseif($DeleteAliases){28}elseif($ReadAcknowledgements){2}elseif($TableDurability){6}elseif($ExistingSchema){2}elseif($WriteRejections){24}elseif($UpgradeIdentityCharacters){1}elseif($IdentityCapacity){4}elseif($RootParent){16}elseif($HolonProjection){112}elseif($IdentityRaces -or $DetailDeletionResults){8}elseif($AvatarDeletionResults -or $SaveAcknowledgements){12}elseif($AvatarProjection){128}elseif($LifecycleGuards){24}elseif($EncryptedReplay){4}elseif($PreparationClaims){6}elseif($ReconcileOriginal -or $ReconcileAmbiguity -or $ReconcileHistoricalExport -or $ReconcileCorruptAvatar -or $ReconcileProjectionAssertions){1}else{571}
     if($ReconcileReadOutage -or $ReconcileExportIdentity -or $ReconcileScopedVisibility -or $ReconcileAcknowledgementViews -or $ReconcileConditionalIntent -or $ReconcileKarmaNullOutcome -or $ReconcileKarmaReadGuard){$expected=1}
+    if($Cql){$expected=1}
     if($ConformanceOnly){$expected=2}
     if($BootstrapSchema){$expected=1}
     if($ReconcileExportVisibility){$expected=1}
