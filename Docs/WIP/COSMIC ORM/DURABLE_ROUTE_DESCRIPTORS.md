@@ -110,3 +110,23 @@ acceptance remain open. No public deployment promotion is implied.
 | `TestResults/OwnedRoutingCurrent/destination-catalogue-core.trx` | 4411 | `F9DCDCEA5078A2BC94EFA53246292A705C746E23D39543137512388512424CB7` |
 | `TestResults/OwnedRoutingCurrent/destination-catalogue-shared.trx` | 1316 | `1D80C80440E22FB5CB157FD11444FCFC9A25045F34344331E99E48FF6ADB4EF8` |
 | `TestResults/OwnedRoutingCurrent/destination-catalogue-sqlite.trx` | 9 | `B4A4A32A74F65DEA60977CBF2F4DD17D0E6BDC77D1A29EC4826D8B6297BD9123` |
+
+## Protected preparation recovery preserves native meaning
+
+Reproduced two failures: status recovery reconstructed only SourceId/TargetIds,
+losing SourceStorageIdentity both with and without complete NativeRoutes. Protected
+preparation now authenticates those native fields and reconstructs the same bound
+enrollment before any entity construction. Invalid/missing source, mismatched
+membership and malformed policy fail closed. Older unbound preparations retain
+their exact original format; no identities are guessed for old records.
+
+The canonical native descriptor codec now lives in Core serialization. The existing
+Shared entry point delegates to it, preserving the provider API and wire format.
+Core builds both targets;4417Core and1316Shared tests pass, including2previously
+failing cases and4malformed protected-intent cases. This is recovery correctness,
+not proof that every provider's live replication/failover/load balancing is complete.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/bound-preparation-core-final.trx` | 4417 | `60969737D5C53BEC27088E2461D4CB930466E8DE18024544FBE4FE59EC1CA651` |
+| `TestResults/OwnedRoutingCurrent/bound-preparation-shared.trx` | 1316 | `294859ACA60BE858512E6F007DE148786C5D450995DAA1CCE87523196B8D29B0` |
