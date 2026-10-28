@@ -18,7 +18,7 @@ Reproduce under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1: bounded cac
 
 ## Next
 
-Fauna service/lifecycle review next, then remaining document-family baselines. Convex companion implementation/deployment and all native shared-suite gates below remain open. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
+Fauna native access is recorded below; continue remaining SQL/document family baselines. Convex companion implementation/deployment and all native shared-suite gates below remain open. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
 
 ## PocketBase
 
@@ -40,3 +40,9 @@ Official [record pagination](https://pocketbase.io/docs/api-records/) and [authe
 - Native52 suite, all relevant interfaces, action return acknowledgements, identity/detail/child/version lifecycle, encrypted shared-record-policy base and deployment-auth acceptance remain open. The existing /version activation probe is readiness only, not proof that required functions or credentials work.
 
 Protocol sources: [Functions HTTP API](https://docs.convex.dev/http-api/), [official JS HTTP client](https://github.com/get-convex/convex-js/blob/main/src/browser/http_client.ts). This is distinct from user-defined HTTP Actions on convex.site. Reproduce via the same bounded cached-build recipe above for ConvexOASIS and its unit project.
+
+## Fauna native-access gate
+
+28October local DNS lookup for default db.fauna.com returned SocketException/host-not-found. No FAUNA environment variable names or task-cache runtime found. Do not describe the HTTP adapter as live-tested or fabricate a native pass.
+
+The [official FaunaDB source](https://github.com/fauna/faunadb) and [self-hosting guide](https://github.com/fauna/faunadb/blob/main/OPERATING.md) exist; releases API returned0 at inspection. The source supports building a JVM runtime, so default-host unavailability does not imply no self-hosted implementation is possible. No source clone, Scala toolchain, cluster or database was installed. A reachable configured FQLv10 deployment or a reviewed reusable self-hosted runtime is required before canonical native conformance; all relevant interface gates remain open. Original provider/source retained.
