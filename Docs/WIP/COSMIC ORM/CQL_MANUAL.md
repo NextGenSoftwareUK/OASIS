@@ -944,3 +944,7 @@ unwindowed Count/LongCount/Any are supported; predicates after Skip/Take, All an
 selected-result/numeric/element terminals remain unsupported before I/O.
 RunCardinalityAsync in [ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
 is a spaced/commented live-tested example. HTTP cardinality remains pending.
+
+### Indexed HTTP cardinality
+
+POST `/api/data/query-cql/indexed/scalar` with `{"alias":"solana-demo","query":{"operation":"LongCount","orderBy":"Id"}}`. The host must explicitly enroll the measured route and alias. Omitted Take counts the whole eligible source; zero creates an empty window. Count/LongCount/Any execute native indexed SQL under the actor grant. LongCount returns an exact decimal string. See [indexed HTTP contract](CQL_INDEXED_HTTP.md#indexed-cardinality-http) for freshness, reservation and assurance limits; live Solana/SQLite HTTP cardinality passes nine cases; production identity/durable settlement remains pending.
