@@ -51,6 +51,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(0,root.Version);Assert.AreEqual(0,child.Version);
             await(await inspection.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op,OwnedFixture:true}) DELETE o",new{op=operation.ToString("D")})).ConsumeAsync();
             var saved=await Write(enrollment);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
+            await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(provider.GetHolonReplicationOutbox().Result,enrollment.TargetIds,operation,sharedStore:true);
             var rows=await(await inspection.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o ORDER BY o.Sequence",new{op=operation.ToString("D")})).ToListAsync();
             Assert.AreEqual(2,rows.Count);var first=rows[0]["o"].As<INode>();var second=rows[1]["o"].As<INode>();
             Assert.AreEqual(first["Sequence"].As<long>()+1,second["Sequence"].As<long>());

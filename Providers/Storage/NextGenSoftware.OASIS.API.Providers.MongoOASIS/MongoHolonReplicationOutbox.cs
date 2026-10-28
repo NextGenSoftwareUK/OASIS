@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -15,7 +16,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>Consumes the enrolled Mongo queue. Native session/transaction ownership and server UTC fence mutations.</summary>
-public sealed class MongoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
+public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
 {
     private readonly IMongoClient _client;
     private readonly IMongoCollection<BsonDocument> _rows;
@@ -123,6 +124,32 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationReadinessOutb
         }
         catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
         catch(Exception cause){return Failure<HolonDeliveryInspection>(cause);}
+    }
+
+    public async Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
+        string afterTargetId=null,CancellationToken cancellationToken=default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId);
+            var filter=new BsonDocument("DeliveryState",new BsonDocument("$ne","Completed"));
+            if(afterTargetId!=null)filter.Add("TargetId",new BsonDocument("$gt",afterTargetId));
+            var pipeline=new[]{new BsonDocument("$match",filter),new BsonDocument("$sort",new BsonDocument{{"TargetId",1},{"Sequence",1}}),
+                new BsonDocument("$group",new BsonDocument{{"_id","$TargetId"},{"head",new BsonDocument("$first","$$ROOT")}}),
+                new BsonDocument("$sort",new BsonDocument("_id",1)),new BsonDocument("$limit",pageSize+1)};
+            using var cursor=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority)
+                .AggregateAsync<BsonDocument>(pipeline,new AggregateOptions{Collation=Collation.Simple},cancellationToken).ConfigureAwait(false);
+            var rows=await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var heads=rows.Select(group=>{
+                var row=group["head"].AsBsonDocument;var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+                return new HolonDeliveryInspection(row["Sequence"].AsInt64,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
+                    NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence);
+            }).ToArray();
+            return new(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize));
+        }
+        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
+        catch(Exception cause){return Failure<HolonReplicationRoutePage>(cause);}
     }
 
     private async Task<OASISResult<T>> Mutate<T>(Func<IClientSessionHandle,Task<(OASISResult<T> Result,bool Changed)>> action,CancellationToken token,Action validate)
