@@ -19,11 +19,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
 {
     private readonly IMongoClient _client;
+    private readonly IMongoDatabase _database;
+    private readonly CosmicStorageIdentity _expectedSource;
     private readonly IMongoCollection<BsonDocument> _rows;
-    public MongoHolonReplicationOutbox(MongoDbContext context)
+    public MongoHolonReplicationOutbox(MongoDbContext context) : this(context, null) { }
+
+    /// <summary>Expected source admission shares every queue transaction, including read-only snapshots.</summary>
+    public MongoHolonReplicationOutbox(MongoDbContext context, CosmicStorageIdentity expectedSource)
     {
         ArgumentNullException.ThrowIfNull(context);
         var database=context.MongoDB ?? throw new ArgumentException("A Mongo database is required.",nameof(context));
+        if (expectedSource != null && expectedSource.Authority != ProviderType.MongoDBOASIS)
+            throw new ArgumentException("The expected outbox source must be MongoDB.", nameof(expectedSource));
+        _expectedSource=expectedSource;
+        _database=database;
         _rows=database.GetCollection<BsonDocument>("CosmicHolonOutbox");
         _client=database.Client ?? throw new ArgumentException("The native database client is required.",nameof(context));
     }
@@ -93,63 +102,67 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
                 throw new ArgumentException("Delivery outcome, diagnostics and recovery evidence disagree.");
         });
 
-    public async Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
+    public Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
+        =>Observe(async session=>{
+
             if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
-            var row=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority).Find(new BsonDocument("Sequence",sequence)).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var rows=_rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority);
+            var filter=new BsonDocument("Sequence",sequence);
+            var query=session==null ? rows.Find(filter) : rows.Find(session,filter);
+            var row=await query.SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
             if(row==null)return new OASISResult<HolonDeliveryInspection>{Message="No delivery obligation exists at this sequence."};
             var value=ValidateRow(row);
             return new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(sequence,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
                 NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence));
-        }
-        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-        catch(Exception cause){return Failure<HolonDeliveryInspection>(cause);}
-    }
+        },cancellationToken);
 
-    public async Task<OASISResult<HolonDeliveryInspection>> PeekNextAsync(string targetId,CancellationToken cancellationToken=default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
+    public Task<OASISResult<HolonDeliveryInspection>> PeekNextAsync(string targetId,CancellationToken cancellationToken=default)
+        =>Observe(async session=>{
+
             Identity(targetId);
-            var row=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority).Find(new BsonDocument{{"TargetId",targetId},{"DeliveryState",new BsonDocument("$ne","Completed")}})
-                .Sort(new BsonDocument("Sequence",1)).Limit(1).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var rows=_rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority);
+            var filter=new BsonDocument{{"TargetId",targetId},{"DeliveryState",new BsonDocument("$ne","Completed")}};
+            var query=session==null ? rows.Find(filter) : rows.Find(session,filter);
+            var row=await query.Sort(new BsonDocument("Sequence",1)).Limit(1).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
             if(row==null)return new OASISResult<HolonDeliveryInspection>{Message="No unfinished obligation exists for this target."};
             var value=ValidateRow(row);ValidatePayload(row,value.Operation);
             return new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(row["Sequence"].AsInt64,value.Operation,targetId,value.State,value.Attempts,
                 NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence));
-        }
-        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-        catch(Exception cause){return Failure<HolonDeliveryInspection>(cause);}
-    }
+        },cancellationToken);
 
-    public async Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
+    public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
         string afterTargetId=null,CancellationToken cancellationToken=default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
+        =>Observe(async session=>{
+
             HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId);
             var filter=new BsonDocument("DeliveryState",new BsonDocument("$ne","Completed"));
             if(afterTargetId!=null)filter.Add("TargetId",new BsonDocument("$gt",afterTargetId));
             var pipeline=new[]{new BsonDocument("$match",filter),new BsonDocument("$sort",new BsonDocument{{"TargetId",1},{"Sequence",1}}),
                 new BsonDocument("$group",new BsonDocument{{"_id","$TargetId"},{"head",new BsonDocument("$first","$$ROOT")}}),
                 new BsonDocument("$sort",new BsonDocument("_id",1)),new BsonDocument("$limit",pageSize+1)};
-            using var cursor=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority)
-                .AggregateAsync<BsonDocument>(pipeline,new AggregateOptions{Collation=Collation.Simple},cancellationToken).ConfigureAwait(false);
+            var collection=_rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority);
+            var options=new AggregateOptions{Collation=Collation.Simple};
+            using var cursor=session==null
+                ? await collection.AggregateAsync<BsonDocument>(pipeline,options,cancellationToken).ConfigureAwait(false)
+                : await collection.AggregateAsync<BsonDocument>(session,pipeline,options,cancellationToken).ConfigureAwait(false);
             var rows=await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
             var heads=rows.Select(group=>{
                 var row=group["head"].AsBsonDocument;var value=ValidateRow(row);ValidatePayload(row,value.Operation);
                 return new HolonDeliveryInspection(row["Sequence"].AsInt64,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
                     NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence);
             }).ToArray();
-            return new(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize));
-        }
-        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-        catch(Exception cause){return Failure<HolonReplicationRoutePage>(cause);}
+            return new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize));
+        },cancellationToken);
+
+    private async Task<OASISResult<T>> Observe<T>(Func<IClientSessionHandle,Task<OASISResult<T>>> action, CancellationToken token)
+    {
+        if (_expectedSource != null)
+            return await Mutate(async session=>(await action(session).ConfigureAwait(false),false),token,()=>{}).ConfigureAwait(false);
+        // Explicit unbound consumers retain majority observation without a transaction.
+        token.ThrowIfCancellationRequested();
+        try { return await action(null).ConfigureAwait(false); }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
+        catch (Exception cause) { return Failure<T>(cause); }
     }
 
     private async Task<OASISResult<T>> Mutate<T>(Func<IClientSessionHandle,Task<(OASISResult<T> Result,bool Changed)>> action,CancellationToken token,Action validate)
@@ -161,6 +174,8 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
             validate();
             session=await _client.StartSessionAsync(cancellationToken:token).ConfigureAwait(false);
             session.StartTransaction(new TransactionOptions(readConcern:ReadConcern.Snapshot,writeConcern:WriteConcern.WMajority.With(journal:true)));
+            await HolonRepository.ValidateReplicaStorageBindingAsync(_database,session,_expectedSource,token,
+                "COSMIC_OUTBOX_SOURCE_STORAGE_BINDING").ConfigureAwait(false);
             var outcome=await action(session).ConfigureAwait(false);result=outcome.Result;token.ThrowIfCancellationRequested();
             if(outcome.Changed)
             {
@@ -241,5 +256,5 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
     }
     private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
         ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"
-            :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":MongoTransactionFailure.IsWriteConflict(cause) ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
+            :cause is MongoReplicaStorageBindingException binding ? binding.Code :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":MongoTransactionFailure.IsWriteConflict(cause) ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
 }

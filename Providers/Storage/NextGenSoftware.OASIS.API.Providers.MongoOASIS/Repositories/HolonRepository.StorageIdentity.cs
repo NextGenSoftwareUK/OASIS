@@ -65,7 +65,7 @@ public partial class HolonRepository
         return new CosmicStorageIdentity(ProviderType.MongoDBOASIS, endpoint, identity);
     }
 
-    private static async Task ValidateReplicaStorageBindingAsync(IMongoDatabase database, IClientSessionHandle session,
+    internal static async Task ValidateReplicaStorageBindingAsync(IMongoDatabase database, IClientSessionHandle session,
         CosmicStorageIdentity expected, CancellationToken token,string codePrefix="COSMIC_REPLICA_STORAGE_BINDING")
     {
         if (expected == null) return;
