@@ -20,7 +20,7 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 - All owned native fixtures removed; pending journals absent, Mongo27029/Neo17687 listeners absent; in-memory SQLite disposed.
 - [Demo catalogue](../../../Examples/CosmicCqlDemo/README.md), [manual](CQL_MANUAL.md#cardinality-after-entity-selected-stages), [architecture](CQL_ARCHITECTURE.md), [shared tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicEntityProjectionReselectionTests.cs), [native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntitySelectedReselectionAcceptanceTests.cs).
 
-- Demo breadth checkpoint: ActivityPub explicitly enrolled native key-set IN queries pass 321 controlled provider tests and one live three-record Mastodon batch test;2190 CQL regressions pass. [Usage and limits](CQL_PROTOCOL_MULTI_RECORD.md). IPFS/SOLID collections and Mongo-paired presets remain open.
+- Demo breadth checkpoint: ActivityPub explicitly enrolled native key-set IN queries pass 321 controlled provider tests and one live three-record Mastodon batch test;2190 CQL regressions pass. [Usage and limits](CQL_PROTOCOL_MULTI_RECORD.md). IPFS CID-set implementation passes195 controlled tests; native Kubo collection acceptance, SOLID collections and Mongo-paired presets remain open.
 
 ## Exact next work
 
