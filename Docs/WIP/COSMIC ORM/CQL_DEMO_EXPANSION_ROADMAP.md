@@ -7,6 +7,14 @@
 3. Actual Solana browser rendering/click verification against retained source/index, without reseeding the original ledger.
 4. One ready federated query preset per provider, each paired with Mongo. Show native provenance and capability errors explicitly.
 
+Current evidence28October:protocol native multi-record/HTTP and Mongo-paired browser
+presets pass for IPFS/SOLID/ActivityPub; Solana functional browser passes with no source
+writes/reseed. Screenshot/layout QA remains unavailable. Hosted Azure remains open
+(free-only authenticated setup missing). Mongo+Solana needs an explicit mixed
+native/indexed contract; [audit and next sequence](CQL_MIXED_FEDERATION_ADMISSION.md).
+Below is the27October provider selection baseline, not the current acceptance ledger;
+use CURRENT_STATUS.md and linked proving reports for current status.
+
 Entity-selected All/element/numeric parity is paused and preserved on the deferred branch. Full original roadmap remains open.
 
 
