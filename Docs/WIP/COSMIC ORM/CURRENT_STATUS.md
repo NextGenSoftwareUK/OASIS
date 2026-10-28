@@ -24,8 +24,8 @@ Updated28October2026 UTC. Read this first after compaction; update each mileston
 ## Exact next work
 
 1. Three-database hub is restored: pinned fixture reconciliation passed; 14 persistent archive/journal files total207492bytes, original/local SQLite preserved. Fresh native demo passes681SDK queries,138walkthrough HTTP requests,30save checks,526settled operations/608provider attempts; exact fixture cleanup and service teardown pass. See CQL_DATABASE_DEMO_HUB.md.
-2. CosmosDB teaching page/hub native and interactive HTTP lifecycle are verified; browser rendering remains unverified. Eight launcher profiles/16discovery plans pass. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain point profiles.
-3. Continue only red demo/parity gates: first remaining browser/demo acceptance, then Q01f Mongo/Neo entity projection and numeric/stage integration. Freeze green features/cursors unless a reproducible bug appears.
+2. CosmosDB teaching page/hub native, interactive HTTP and actual browser rendering/clicks are verified:rows/projection/LongCount each200; code23.4px line height at13px font, no page horizontal overflow; clean teardown. Eight launcher profiles/16discovery plans pass. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain point profiles.
+3. Continue only red demo/parity gates: first remaining non-cloud browser/demo acceptance, then Q01f Mongo/Neo entity projection and numeric/stage integration. Freeze green features/cursors unless a reproducible bug appears.
 4. Indexed other aggregates/selected stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity remain open. Create genuinely missing environments as authorized, reusing suitable resources first.
 
 ## Other verified scope and remaining limits
