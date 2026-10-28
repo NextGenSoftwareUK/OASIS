@@ -23,3 +23,5 @@ Four earlier compact environment paragraphs rolled verbatim to `ENVIRONMENT_INVE
 Rolled 6 older milestone lines28October verbatim; chunk SHA256 `e3791fc3a2de963e2576ac9e4dc6bd527e9e90ade5f5629a68641880c0b08ee3`. Current ledger retains ten recent entries.
 
 Current-status pre-compression checkpoint28October preserved byte-for-byte in CURRENT_STATUS_CHECKPOINT_2026-10-28.md; SHA256 `17be1c155a91314eb7413b2261b231dd122f4e83200db74769041045e8a54244`. Not a default recovery document.
+
+- 28October S3 checkpoint: [cleanup milestone rollover](WORKSPACE_CLEANUP_LEDGER_CHECKPOINTS_2026-10-28.md), SHA256`393d96463bb886a9f131ca783963d63a48a91f0acd2fcb0cf842e2c3cd2d22b6`; extracted chronological bytes SHA256`ea6cd02b3a2674c0cf7f0bed508794d88b7e6e99c17c4bf03a295083086b82f7`. Ten milestones retained in current ledger; no history rewritten.
