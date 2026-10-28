@@ -10,6 +10,9 @@
 
   <ItemGroup>
     <Compile Remove="AwsStorageConformanceTests.cs" />
+    <Compile Remove="S3CompatibleStorageConformanceTests.cs" />
+    <Compile Include="S3CompatibleStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="AwsStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
