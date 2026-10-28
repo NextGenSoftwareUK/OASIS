@@ -59,3 +59,20 @@ Hosted Azure is independently pending a verified free-only authenticated setup.
 
 Evidence: TestResults/DemoBreadthCurrent/mixed-federation-admission.trx/log.
 No native service, environment, install, dependency restore or source write in this audit.
+
+## Implemented planning checkpoint (not execution support)
+
+The shared planner now has an explicit overload accepting a bounded list of immutable
+CosmicFederationIndexRequirement grants alongside existing read policies. Each grant
+must name exactly one requested authorized indexed target and match its complete
+source/index binding. Missing/duplicate/foreign/unrequested grants reject before I/O;
+source-wide captured grants cannot be rebound. Native Mongo keeps IndexedSource=null;
+only the pinned indexed target captures its read/freshness requirement. Caller-list
+mutation after planning cannot change captured target queries.
+
+Both Core targets build;2198 CQL tests pass, including8 mixed-admission cases. Ordinary
+native executor still rejects indexed work before either adapter reads. This planning
+milestone does not certify mixed execution or a Mongo+Solana demo. Exact next step:
+explicit indexed reader/observer registration, all-target validation, existing indexed
+executor dispatch, evidence retention and cumulative budget accounting (steps2–3).
+No native adapter shim, metadata evidence injection, cursor changes or resumed LINQ depth.
