@@ -18,4 +18,15 @@ Reproduce under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1: bounded cac
 
 ## Next
 
-PocketBase shows the same non-success-to-empty pattern and an unpaged500-item read. Review native pagination/auth contracts and fix them with regression coverage. Convex already throws for non-success HTTP responses; its envelope/function provisioning and shared-suite gates still need review. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
+Convex already throws for non-success HTTP responses; its envelope/function provisioning and shared-suite gates still need review. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
+
+## PocketBase
+
+- Current official API uses `/api/collections/_superusers/auth-with-password` and the raw token in Authorization. Replaced obsolete `/api/admins` route; no automatic legacy fallback. Servers predating the superuser collection are not certified by this change.
+- Read HTTP failures retain HttpRequestException/status through existing OASISResult handling rather than becoming missing records/empty collections.
+- Collection reads now follow page numbers with `sort=id` and explicit totals, rather than silently stopping at500 records. Validate page/perPage/totalItems/totalPages/items, completeness, duplicate native identities and consistent continuation metadata. Failed later pages never return partial success. Changing totals during concurrent writes cause an explicit error; this is not snapshot isolation.
+- Authentication validates a nonempty token before caching it. An invalid token cannot poison later activation into false success. Caller-owned HttpClient overload keeps original constructor available.
+- Fifteen targeted regression cases observed red (14read/page cases,1empty-token case). Final24/24 unit cases pass:19new plus5existing identity checks. Includes valid empty collections and continuation failure controls.
+- Cached builds passed (producer6warnings, consumer2warnings,0errors); no native service, database, SDK download or runtime install. Native canonical52 suite, actual deployment auth/rules, full identity/child/version/lifecycle contracts, selector escaping and shared record-policy base consolidation remain open.
+
+Official [record pagination](https://pocketbase.io/docs/api-records/) and [authentication](https://pocketbase.io/docs/authentication/) references. Reproduction follows the Appwrite bounded cached-build recipe above, using PocketBaseOASIS and its unit project. Existing NuGet cache/installed library-packs only; fixed reusable output paths recorded in cleanup ledger.
