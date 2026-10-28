@@ -934,3 +934,21 @@ is submitted. Stop with **Stop demo and clean Mongo fixture** for verified teard
 The page and `MixedFederationWalkthrough.cs` have clear spacing/comments and share
 the native SDK execution. Actual clicks and screenshot readability are verified.
 This loopback teaching endpoint is separate from production WEB4 auth/billing.
+
+
+### Mongo + local Cosmos federation preset
+
+```powershell
+& Scripts/TestHosts/Run-ReusableCosmosCqlDemo.ps1 -Mongo -Serve
+```
+
+Open http://127.0.0.1:5092/ . The page explicitly identifies the local Cosmos
+emulator. Query all records returns5 physical copies (Mongo2/Cosmos3); the two-ID
+subset returns4. Trusted per-provider catalogues stay server-owned; an unrelated
+Mongo record is excluded. The commented `CloudFederationWalkthrough.cs` uses the
+shared HolonManager executor; no local query substitute.
+
+SDK/HTTP/browser clicks, readable screenshot spacing and exact fixture cleanup are
+verified on mergedCorea2e9b6c. Use **Stop demo and clean fixtures** to finish.
+This proves local native interoperability; hosted Azure/free-account authentication
+and hosted acceptance remain open. See Docs/WIP/COSMIC ORM/CQL_MONGO_COSMOS_VERIFICATION.md.
