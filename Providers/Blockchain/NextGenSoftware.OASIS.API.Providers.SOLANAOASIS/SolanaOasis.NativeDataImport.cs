@@ -39,12 +39,14 @@ public partial class SolanaOASIS : INativeDataImportProvider
     internal sealed record NativeSolanaAccount(string Address, ulong Lamports, string Owner, bool Executable, ulong RentEpoch, string DataBase64, long DataLength);
 
     public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.SolanaOASIS;
+public string DescribeNativeConnection(NativeConnection connection)    {        NativeConnectionGuard.RefuseUnsupported(connection, "Solana");        return null;    }
 
-    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+    public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
         try
         {
+            NativeConnectionGuard.RefuseUnsupported(connection, "Solana");
             var sources = new List<NativeDataSource>();
             foreach (var program in AllowedNativePrograms())
                 sources.Add(new NativeDataSource(program, "program", (await SnapshotAsync(program, cancellationToken)).Count));
@@ -60,11 +62,12 @@ public partial class SolanaOASIS : INativeDataImportProvider
     }
 
     public async Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-        CancellationToken cancellationToken = default)
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<NativeRecordPage>();
         try
         {
+            NativeConnectionGuard.RefuseUnsupported(connection, "Solana");
             if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
             if (!AllowedNativePrograms().Contains(sourceName, StringComparer.Ordinal))
                 throw new ArgumentException($"'{sourceName}' is not a program listed in NativeImportPrograms.");

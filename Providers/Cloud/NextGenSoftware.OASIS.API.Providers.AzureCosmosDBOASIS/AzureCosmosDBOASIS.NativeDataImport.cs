@@ -34,12 +34,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         public string NativeImportContainers { get; set; }
 
         public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.AzureCosmosDBOASIS;
+public string DescribeNativeConnection(NativeConnection connection)        {            NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");            return null;        }
 
-        public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+        public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
             try
             {
+                NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");
                 var sources = new List<NativeDataSource>();
                 foreach (var name in AllowedContainers())
                 {
@@ -62,11 +64,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public async Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-            CancellationToken cancellationToken = default)
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<NativeRecordPage>();
             try
             {
+                NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");
                 if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
                 if (!AllowedContainers().Contains(sourceName, StringComparer.Ordinal))
                     throw new ArgumentException($"'{sourceName}' is not a container listed in NativeImportContainers.");
