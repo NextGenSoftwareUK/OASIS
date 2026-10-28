@@ -10,7 +10,8 @@
 - Mongo verification:220 CQL/compiler/admission tests and23 live projection cases (14 earlier +9 combined), exact fixture cleanup and service teardown pass.
 - Neo verification:151 CQL controls and23 native cases; companion SQLite runs the same23 cases. Canonical input proof and selected proof are streamed by one statement/read owner; fixture cleanup and container teardown pass.
 - Reselection now works in shared explicit SDK and standard LINQ on all3:2178 CQL/4262 full Core and26 native cases/database pass. Intermediate DTO constructors never execute; dropped invalid input columns remain validated.
-- Next:Count/LongCount/Any after entity selection/reselection, then All/element/numeric terminals and combined graph sources. These remaining integrations are unsupported.
+- Entity-selected Count/LongCount/Any/predicate overloads now pass2182 CQL/4266 full Core and34 native cases/database; independent cardinality enrollment, native result/count proof and no DTO construction verified.
+- Next:All/element/numeric terminals and combined graph sources. These remaining integrations are unsupported.
 - Eight-provider demo expansion remains ahead of large parity-only rows (POCO without IHolon/migrations tooling). Cosmos native/local browser verified; IPFS/SOLID/ActivityPub have point profiles, not general-query parity.
 - Solana schema3 selected-metadata SDK/HTTP and exact values verified; original ledger recovery remains blocked by missing historical root/chunk with no known backup. Do not reset/replay it.
 - Production hosted auth/durable settlement/scaling and broad cross-provider snapshots remain open; HyperDrive implementation work is V2 only, legacy gaps documented.

@@ -980,7 +980,7 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection is now implemented; element/cardinality/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. Final standard IQueryable Select after entity windows/stages is also native-verified on all three. Sync and async enumeration rebind closures on each execution and validate native cells before DTO construction, without constructing source application entities. SQLite, MongoDB and Neo4j now support native Where/order/ThenBy/Skip/Take/Reverse after this selection. Reselection is now implemented; Count/LongCount/Any now work; All/element/numeric terminals after entity selection remain unsupported. Q01f remains red; this is not general LINQ parity.
 
 For an already bound `IQueryable<Holon>` named `query`, the final selection can use standard LINQ:
 
@@ -1114,7 +1114,7 @@ read. Existing exact-column/domain rules,32 selected-stage and10000-window bound
 apply alongside independent entity-source/work/payload and selected-proof bounds.
 Later Take(0) cannot hide invalid selected inputs or protected entity errors.
 
-Combined graph sources and element/cardinality/numeric terminals
+Combined graph sources and All/element/numeric terminals
 after this selection remain unsupported; ordinary entity-stage terminals and
 flat selected terminals retain their existing separate supported scopes.
 
@@ -1175,3 +1175,43 @@ invalid required column from the final shape, even before Take(0), does not remo
 that native column or its error. Reselection never substitutes flat source reads
 for the combined owner. Non-generic IQueryProvider uses the same path and preserves
 explicit CQL errors instead of reflection wrappers.
+
+### Cardinality after entity-selected stages
+
+SQLite, MongoDB and Neo4j now support Count, LongCount and Any after entity stages,
+selection, selected stages and reselection. Predicate overloads append after all
+prior stages/windows. They do not push predicates before an earlier page.
+
+```csharp
+// `query` is explicitly bound to one of the three enrolled database providers.
+var names = query
+    .OrderBy(holon => holon.Name)
+    .Take(20)
+    .Where(holon => holon.Version >= 1)
+    .Select(holon => new { holon.Name, holon.Version })
+    .Where(row => row.Version >= 3)
+    .Take(5)
+    .Select(row => row.Name);
+
+// These are three separate native executions. No intermediate DTO is constructed.
+int count = names.Count();
+long longCount = names.LongCount();
+bool hasEspresso = names.Any(name => name == "Espresso");
+```
+
+The explicit API uses `CosmicProjectedCardinalityPlanner.PlanEntity<T,TSelected,TValue>`
+and V2 `HolonManager.ExecuteProjectedCardinalityQueryAsync`. Supply the matching
+Count/int, LongCount/long or Any/bool domain, the full entity projection, target
+capabilities and explicit `SupportsEntityProjectionCardinality` declaration.
+Actual execution rechecks independent
+`ICosmicQueryEntityProjectionCardinalityStorageProvider` enrollment as well as
+selected cardinality permissions. A flat cardinality or row-composition permission
+does not grant combined cardinality.
+
+Native count acknowledgement must agree with complete source/selected proofs.
+Every retained input cell and protected source/work/payload outcome validates
+before returning a scalar. Any therefore does not bypass invalid participating
+cells after the first match. Empty selections yield0/0L/false. Work remains
+bounded by admitted entity-source, selected-input, stage and proof budgets;
+this is not an unbounded-table cardinality guarantee. No DTO materialization or
+managed row counting substitutes for native reduction.

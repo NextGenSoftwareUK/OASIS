@@ -271,7 +271,7 @@ public partial class HolonRepository
         CosmicProjectionCompositionExecutionLimits limits) where T:IHolon
         => CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,ProviderType.SQLLiteDBOASIS,
             SqliteCqlContract.Capabilities,SQLLiteDBOASIS.CqlProjectionCapabilities,SQLLiteDBOASIS.CqlCompositionCapabilities,
-            SQLLiteDBOASIS.CqlEntityCompositionCapabilities,true,limits);
+            SQLLiteDBOASIS.CqlEntityCompositionCapabilities,true,limits,supportsCardinality:true);
 
     private static OASISResult<CosmicProjectionCompositionPacket> CompositionError(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCode = code, Message = message, Exception = cause };

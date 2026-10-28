@@ -48,7 +48,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyStandardEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,root.Id,checks);
             await VerifyEntitySelectedComposition((ICosmicQueryEntityProjectionCompositionStorageProvider)provider,root.Id,ids,checks);
             await VerifyEntitySelectedReselection((ICosmicQueryEntityProjectionStorageProvider)provider,ids[0],checks);
-            Assert.AreEqual(26,checks.Count);
+            await VerifyEntitySelectedCardinality((ICosmicQueryEntityProjectionCardinalityStorageProvider)provider,ids[0],checks);
+            Assert.AreEqual(34,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));
