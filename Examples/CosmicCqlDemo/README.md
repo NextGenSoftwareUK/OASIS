@@ -751,3 +751,16 @@ IPFS/SOLID admit at most8 keys; Mastodon at most40. This does not enroll arbitra
 content filtering. Native multi-record tests pass for all three; this shared sample
 is also compiled/executed by the controlled ActivityPub suite. Multi-record browser
 buttons and actual Mongo-paired federation presets are still being implemented.
+
+### Multi-record teaching host
+
+`ProtocolPointApiHost.BuildKeySet(manager, adapter, actor, records)` serves a readable
+checkbox-based native membership demo at loopback5088. `records` maps approved native
+keys to their canonical OASIS IDs; the server owns this map and the actor/provider.
+POST `/api/cql/keyset` accepts only `{ "nativeKeys": [...] }` selected from that map.
+The host shares HolonManager/LINQ and reports native provenance. It accepts no actor,
+provider, arbitrary metadata predicate or foreign key from browser input.
+
+Live Mastodon HTTP acceptance passes for three records and rejects foreign keys and
+forged actor fields. The page is implemented; visual browser QA, protocol launcher
+wiring and Mongo-paired presets are not yet complete.

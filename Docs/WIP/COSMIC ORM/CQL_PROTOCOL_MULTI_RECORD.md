@@ -151,3 +151,14 @@ and safe provenance output. It is compiled into the ActivityPub controlled suite
 That validates the manager/LINQ path, not new browser or federation acceptance.
 See the example README for invocation. Native source keys must be supplied from the
 configured retained provider; the sample does not provision identities or scan data.
+
+## Teaching HTTP host
+
+`ProtocolPointApiHost.BuildKeySet` now serves the selectable multi-record example.
+The server freezes allowed key/identity pairs and binds authoritative access. Browser
+input only narrows that set; duplicate/foreign keys and unmapped actor fields fail400.
+One live Mastodon acceptance test passes independent direct-source comparison plus
+three-record HTTP query, invalid-key and actor-forgery rejection. No point fan-out.
+The captured metadata key is a local string, so expression admission never invokes a
+capability object's getter. Visual rendering and protocol launcher wiring are pending;
+this is not yet a ready Mongo federation preset or production authentication claim.
