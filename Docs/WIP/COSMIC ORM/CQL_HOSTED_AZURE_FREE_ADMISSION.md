@@ -124,3 +124,36 @@ mocked hosted pass. Original failed TRX retained as hosted-entry-controlled.trx.
 Live hosted SDK/HTTP/browser/Mongo pairing, account/free verification and owned
 hosted write/cleanup story remain red. This prepared read-only stage does not
 replace those gates or the broader objective.
+
+
+## Hosted HTTP/Mongo wiring prepared; external prerequisite remains
+
+Add `-Mongo` to the hosted runner for the shared SDK and HTTP pairing acceptance;
+add `-Serve` as well for http://127.0.0.1:5092/ . Serve requires explicit Mongo.
+The cloud host is labelled **hosted Azure Cosmos DB** only for the explicitly
+admitted hosted path; emulator runs retain their local label. Controlled HTTP
+page tests verify both labels without invoking any provider.
+
+The hosted path reads existing cloud fixtures only. It journals3synthetic Mongo
+copies in the existing local test environment, proves5/4physical rows, rejects
+forged actor/unknown preset input, and verifies exact local Mongo cleanup. Cloud
+records/resources remain operator-owned and unchanged. Its structured report
+separates hostedDataWrites0 from local Mongo fixture writes/cleanup and records
+interactive-requested status without claiming browser clicks were verified.
+
+68controlled CQL cases pass/no skips, runner syntax/build pass. Local native
+Mongo+Cosmos SDK/HTTP regression1/1passes after this shared-host change; exact
+4Cosmos/3Mongo cleanup/journals absent, services stopped. These are not hosted proof.
+Controlled TRX SHA25683FCB9F5A3470FAD894ABD8629861BBB5CC17FA806ABF3EDA26D08B47F0C4528;
+local native TRX SHA25668862E3DAC1DFDB8A810041DC5ED382862DFCFEB19A3B8498F9CFD995CDA539A,
+both under TestResults/CosmosCqlCurrent.
+
+Final prerequisite audit:hosted auth key absent and hosted configuration path absent
+(only presence Booleans inspected; no credential contents read). Free signup remains
+unanswered/pending; no authenticated hosted endpoint can run. The same external
+condition has persisted across the hosted preparation milestones. All actual hosted
+acceptance stays red. Deferred parity/unit-of-work/migration programmes remain
+explicitly deferred by user priority; do not manufacture green-feature hardening
+while waiting. Resume by completing user free-account signup/verification, binding
+actual existing hosted fixtures and running this prepared acceptance, then verify
+real browser/native evidence and remaining full scope. Never mark the goal complete.

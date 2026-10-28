@@ -26,7 +26,8 @@ public static class CloudFederationApiHost
         IEnumerable<Guid> selectedIds,
         IEnumerable<Guid> readableMongoIds,
         IEnumerable<Guid> readableCosmosIds,
-        string address = "http://127.0.0.1:5092")
+        string address = "http://127.0.0.1:5092",
+        bool hosted = false)
     {
         var uri = new Uri(address);
         if (uri.Scheme != "http" || uri.Host != "127.0.0.1")
@@ -46,7 +47,11 @@ public static class CloudFederationApiHost
         builder.WebHost.UseUrls(address);
         var app = builder.Build();
 
-        app.MapGet("/", () => Results.Content(Page, "text/html"));
+        var page = hosted ? Page.Replace(
+            "Read synthetic holons from Mongo and the local Cosmos emulator through HolonManager. Hosted Azure acceptance is separate.",
+            "Read synthetic holons from Mongo and hosted Azure Cosmos DB through HolonManager. This run uses existing cloud resources; free-account verification is recorded separately.",
+            StringComparison.Ordinal) : Page;
+        app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (CloudFederationRequest request, CancellationToken cancellation) =>
         {
             var selection = request.Preset switch
