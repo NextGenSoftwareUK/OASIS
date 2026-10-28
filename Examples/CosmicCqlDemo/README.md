@@ -845,3 +845,10 @@ Reuse retained provider environments; omit `-ArchiveCompletedDemo` on a first ru
 A pending/unknown fixture is preserved, never replayed. Interactive federated buttons
 and cloud/chain pairings are still being implemented. These commands verify real
 Mongo+IPFS/SOLID participation; they do not claim distributed repeatable snapshots.
+
+Solana browser milestone: `-Provider SolanaMetadata` now has actual browser evidence
+for row load, nested metadata filtering, exact Int64/null projection and LongCount.
+All four returned HTTP200/settled; the browser shutdown button completed teardown.
+Zero source writes/no new seed; retained index/source/ack preserved. Screenshot
+capture unavailable, so layout QA remains open. See Docs/WIP/COSMIC ORM/
+CQL_SOLANA_BROWSER_VERIFICATION.md for scope and evidence hashes.
