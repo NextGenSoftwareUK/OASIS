@@ -232,6 +232,7 @@ public partial class NativeHostedReplicaRestartTests
             {
                 await (await inspect.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = input.Id.ToString("D") })).ConsumeAsync();
                 await (await inspect.RunAsync("MATCH (r) WHERE (r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op DELETE r", new { op = operation.ToString("D") })).ConsumeAsync();
+                await (await inspect.RunAsync("MATCH (d:CosmicDestinationBinding {EstablishedOperationId:$op}) DELETE d", new { op = operation.ToString("D") })).ConsumeAsync();
                 var remaining = await (await inspect.RunAsync("MATCH (r) WHERE (r:Holon AND r.Id=$id) OR ((r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op) RETURN count(r) AS count", new { id = input.Id.ToString("D"), op = operation.ToString("D") })).SingleAsync();
                 Assert.AreEqual(0L, remaining["count"].As<long>());
                 foreach (var path in ownedFiles) { if (File.Exists(path)) File.Delete(path); Assert.IsFalse(File.Exists(path)); }

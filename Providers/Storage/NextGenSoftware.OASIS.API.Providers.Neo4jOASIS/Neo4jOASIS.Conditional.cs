@@ -218,6 +218,7 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAt
             ? new Neo4jReplicaReconciliationException(write.Plan.OperationId,replica.SourceId,cause)
             : new Neo4jConditionalReconciliationException(write.Plan.OperationId,cause):cause;
         result.ErrorCode=uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED":cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
+            :cause is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
             :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
             :cause is NeoReplicaStorageBindingException binding ? binding.Code
             :cause is NeoReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"

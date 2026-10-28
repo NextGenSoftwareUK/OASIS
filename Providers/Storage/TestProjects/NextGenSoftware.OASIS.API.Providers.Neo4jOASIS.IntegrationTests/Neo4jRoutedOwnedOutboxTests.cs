@@ -180,6 +180,7 @@ public partial class Neo4jNativeAvatarTests
                     await (await inspect.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = inputs.Where(input => input.Id != Guid.Empty).Select(input => input.Id.ToString("D")).ToArray() })).ConsumeAsync();
                     await (await inspect.RunAsync("MATCH (r) WHERE (r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op DELETE r", parameters)).ConsumeAsync();
                     Assert.AreEqual(0L, await Count("MATCH (r) WHERE (r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op RETURN count(r) AS count"));
+                    await (await inspect.RunAsync("MATCH (d:CosmicDestinationBinding {EstablishedOperationId:$op}) DELETE d", parameters)).ConsumeAsync();
                     File.Delete(journal);
                 }
             }

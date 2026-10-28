@@ -159,3 +159,35 @@ No blanket replication/failover/load-balancing completion claim.
 |---|---:|---|
 | `TestResults/OwnedRoutingCurrent/mongo-destination-catalogue.trx` | 5 | `EE202937718CF2B0ACE61BFF9E923FC83EFA4E69D1F80AD0FEE91B41C8F10C06` |
 | `TestResults/OwnedRoutingCurrent/mongo-owned-atomic-regression.trx` | 8 | `AB4FC2546D1268B2174EE869DCB09C2F82EE950C523B74DA879277822626608A` |
+
+## Neo4j destination catalogue
+
+Neo4j now implements the same source-owned destination catalogue. A unique
+`CosmicDestinationBinding.Key` constraint scopes each approval to physical source
+fingerprint and target authority; activation verifies its actual constraint shape.
+Approval and primary graph/receipt/outbox share one transaction, after exact replay
+admission. Changed physical destinations return the explicit rebind-required code.
+Bound reads retain native source admission and never repair corrupt approval data.
+
+The native scenario proves fresh-client replay/replacement refusal, rollback of an
+AWS declaration inserted before an Oracle replacement conflict, corrupt digest
+refusal, same-store policy provenance and read-only historical bootstrap. These
+Oracle/AWS identities are declarations only; this is not cloud delivery evidence.
+The fixture removes only its journaled graph IDs, operations and establishment IDs;
+shared graph data and monotonic sequence remain intact. Related routed/hosted test
+cleanup also removes only approvals established by their exact owned operation.
+
+Run `Scripts/TestHosts/Run-ReusableNeo4jTests.ps1 -CosmicDestinationCatalogue`.
+The existing pinned source-driver/Core/Shared hash guards remain enabled. The first
+admission refused stale Shared in a consumer before starting services; the normal
+producer build chain fixed this without copying DLLs or bypassing verification.
+Native scenario1/1 and existing routed/primary regression8/8 pass.
+
+Still open: simultaneous first-approval races, explicit rebinding, V2 lineage
+migration and automatic cold/offline planner integration. No full HyperDrive
+certification or hosted AWS/Oracle claim follows from this catalogue checkpoint.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/Neo4jCurrent/neo4j-destination-catalogue-current.trx` | 1 | `C8D7A555C5C969BDCD68718C9F043B72922BF030A628BC04791D7C8A5826CEE2` |
+| `TestResults/Neo4jCurrent/neo4j-routed-owned-outbox-current.trx` | 8 | `02B3C9B3AD154A97D419A9513AE623F08CC1FA5C8EFFD8A981E8B975E1E8B354` |

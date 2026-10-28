@@ -15,6 +15,7 @@ public partial class Neo4jOASIS
     private static async Task WritePrimaryHolonObligationsAsync(IAsyncTransaction transaction,ConditionalHolonPlan plan,
         Guid actor,List<IHolon> acknowledgedRoots)
     {
+        await NeoDestinationBindings.ApproveAsync(transaction, plan.ReplicationEnrollment, plan.OperationId).ConfigureAwait(false);
         // Freeze only the verified native acknowledgement, inside its existing graph transaction.
         var payload=CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(plan.OperationId,
             plan.ReplicationEnrollment.SourceId,plan.Authority,actor,plan.Operation,acknowledgedRoots,
