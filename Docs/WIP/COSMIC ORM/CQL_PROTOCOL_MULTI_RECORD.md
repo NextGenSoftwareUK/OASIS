@@ -238,3 +238,25 @@ all owned native listeners stopped, SOLID final exited143/no OOM. Existing Activ
 consumer compiles against the extracted helper. No new runtime/dependency download;
 IPFS/SOLID graph restore uses local NuGet cache only. Federated browser controls,
 other provider pairings and richer non-key queries remain open.
+
+## Federated teaching browser: Mongo + Mastodon
+
+`Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -Serve -ArchiveCompletedDemo`
+now keeps the journaled native fixtures active for the browser. BuildKeySet explicitly
+enrolls Mongo and captures separate authoritative readable-ID catalogues for each
+provider. POST /api/cql/federation accepts only selected keys from the server-owned
+protocol map; foreign keys/unmapped actor fields reject400 before native dispatch.
+
+Shared federation planner/executor owns native dispatch/merge. Response includes both
+providers, observed physical row count, MovingProviderReads and each copy's provenance.
+Browser AX/control evidence verifies5rows(Mongo2/Mastodon3) then4rows(Mongo2/Mastodon2)
+after deselecting one key. HTTP acceptance also verifies5/all,4/subset and admission.
+No screenshot/layout proof (capture service unavailable), repeatable snapshot or causal
+agreement is claimed. Source failures fail the query; no substitute provider results.
+
+Two fixture issues were corrected:request counts now measure the host's own request
+relative to federation reads, and timed acceptance completes before the unbounded
+human interactive host. Failures retained separately; exact fixture cleanup already
+completed, no writes replayed. Final bounded native acceptance1/1 passes after fixes;
+Mongo27029/HTTP5088 listeners absent, journal absent. IPFS/SOLID shared-host federated
+HTTP/browser acceptance still pending despite earlier verified SDK pairings.
