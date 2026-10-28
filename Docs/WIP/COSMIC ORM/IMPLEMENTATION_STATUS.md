@@ -38,3 +38,8 @@ Standard indexed LINQ Select and flat reselection/list/enumeration now pass7new
 SQLite cases and the live Solana shared-demo gate. Core4154/SQLite49/Solana799pass.
 Next: projection HTTP; metadata, aggregates, selected stages and M17 constructor
 shapes stay open. [Current contract](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).
+
+Indexed HTTP projection is implemented via optional frozen columns on the existing
+indexed route. FullCore4165 and nine-request live Solana/SQLite HTTP gate pass.
+Next: indexed aggregate/metadata capabilities and common-demo gaps; production
+authentication/durable billing and full parity remain open.

@@ -63,6 +63,15 @@ internal static class CqlRequestCapture
         };
     }
 
+    internal static CqlProjectionV1Column[] CaptureColumns(CqlProjectionV1Column[] columns)
+    {
+        if(columns==null)return null;
+        if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
+        return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
+            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,
+                MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
+    }
+
     private static TOutput[] Array<TInput, TOutput>(TInput[] values, int maximum, Func<TInput, TOutput> copy)
     {
         if (values == null || values.Length > maximum) throw new ArgumentException("Request collection capture is incomplete or oversized.");

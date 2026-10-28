@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using System.Globalization;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using System.Threading;
@@ -31,6 +33,18 @@ public static partial class CqlV1Endpoint
             using var deadline=CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
             deadline.CancelAfter(TimeSpan.FromSeconds(5));
             http.Items[CqlV1ResourceFilter.DispatchedKey]=true;
+            if(prepared.ProjectionPlan!=null){
+                var selected=await prepared.Binding.Manager.ExecuteIndexedProjectionQueryAsync(prepared.ProjectionPlan,
+                    (ICosmicChainQueryIndexProjectionReader)prepared.Binding.Reader,prepared.Binding.Observer,prepared.MaximumResults,
+                    MaximumResponseBytes,deadline.Token);
+                if(selected.IsError){
+                    if(!admission.ProviderExecutionPossible)http.Items.Remove(CqlV1ResourceFilter.DispatchedKey);
+                    return QueryFailure(http,selected.ErrorCode);
+                }
+                var projection=selected.Result;
+                return IndexedResponse("indexed-projection",projection.Checkpoint,projection.Head,projection.Receipts,
+                    SelectedWireRows(projection.Rows,deadline.Token),projection.Rows.Count,SelectedWireColumns(prepared.ProjectionPlan.Query.Columns));
+            }
             var result=await prepared.Binding.Manager.ExecuteIndexedQueryAsync(prepared.Plan,prepared.Binding.Reader,
                 prepared.Binding.Observer,prepared.MaximumResults,deadline.Token);
             if(result.IsError)
@@ -40,30 +54,33 @@ public static partial class CqlV1Endpoint
             }
             var page=result.Result;
             var rows=CqlV1Projection.Create(page.Rows,prepared.Plan.Query.ReadAccess,prepared.IncludeMetadata,null,deadline.Token);
-            var response=new OASISResult<object>(new{
-                mode="indexed",assurance="trusted-source-observation",
-                provider=page.Checkpoint.Source.SourceProvider.ToString(),
-                executionProvider=page.Checkpoint.Source.ExecutionProvider.ToString(),
-                count=page.Rows.Count,rows,
-                checkpoint=new{source=new{
-                    sourceProvider=page.Checkpoint.Source.SourceProvider.ToString(),page.Checkpoint.Source.NetworkIdentity,
-                    executionProvider=page.Checkpoint.Source.ExecutionProvider.ToString(),page.Checkpoint.Source.IndexId,
-                    page.Checkpoint.Source.SchemaVersion,page.Checkpoint.Source.CatalogueHash,
-                    coverageStartSlot=page.Checkpoint.Source.CoverageStartSlot.ToString(CultureInfo.InvariantCulture)},position=Position(page.Checkpoint.Position),
-                    completeFromSlot=page.Checkpoint.CompleteFromSlot.ToString(CultureInfo.InvariantCulture)},
-                finalizedHead=new{sourceProvider=page.Head.SourceProvider.ToString(),page.Head.NetworkIdentity,
-                    position=Position(page.Head.Position),page.Head.ObservedAt},
-                receipts=page.Receipts.Select(receipt=>new{position=Position(receipt.Position),receipt.CommitReference,record=receipt.Record})
-            }){IsLoaded=true,LoadedCount=page.Rows.Count};
-            return JsonResponse(response);
+            return IndexedResponse("indexed",page.Checkpoint,page.Head,page.Receipts,rows,page.Rows.Count);
         }
         catch(UsageProtocolException cause){return Failure(cause.StatusCode,cause.Code,"Indexed admission failed; retain the operation ID for reconciliation.");}
         catch(ArgumentException) when(!http.Items.ContainsKey(CqlV1ResourceFilter.DispatchedKey))
         {return Failure(400,"CQL_REQUEST_INVALID","Invalid bounded indexed wire intent.");}
         catch(CqlV1Projection.Rejected cause){return Failure(cause.Code=="CQL_RESPONSE_LIMIT"?413:503,cause.Code,"Indexed rows did not satisfy the public output contract.");}
+        catch(ProjectionWireException){return Failure(503,"CQL_PROVIDER_RESULT_INVALID","An indexed selected scalar has an invalid wire domain.");}
         catch(ResponseLimitException){return Failure(413,"CQL_RESPONSE_LIMIT","Indexed response exceeds the one MiB limit; narrow the query.");}
         catch(OperationCanceledException){return Failure(http.RequestAborted.IsCancellationRequested?499:504,"CQL_QUERY_CANCELLED","Indexed query cancelled.");}
         catch(Exception){return Failure(503,"CQL_INDEX_READ_FAILED","Indexed query failed; no partial page returned.");}
+    }
+
+    private static IActionResult IndexedResponse(string mode,CosmicChainQueryCheckpoint checkpoint,CosmicChainQueryFinalizedHead head,
+        IReadOnlyList<CosmicChainQueryRecordReceipt> receipts,object rows,int count,object columns=null)
+    {
+        var response=new Dictionary<string,object>{
+            ["mode"]=mode,["assurance"]="trusted-source-observation",["provider"]=checkpoint.Source.SourceProvider.ToString(),
+            ["executionProvider"]=checkpoint.Source.ExecutionProvider.ToString(),["count"]=count,["rows"]=rows,
+            ["checkpoint"]=new{source=new{sourceProvider=checkpoint.Source.SourceProvider.ToString(),checkpoint.Source.NetworkIdentity,
+                executionProvider=checkpoint.Source.ExecutionProvider.ToString(),checkpoint.Source.IndexId,checkpoint.Source.SchemaVersion,
+                checkpoint.Source.CatalogueHash,coverageStartSlot=checkpoint.Source.CoverageStartSlot.ToString(CultureInfo.InvariantCulture)},
+                position=Position(checkpoint.Position),completeFromSlot=checkpoint.CompleteFromSlot.ToString(CultureInfo.InvariantCulture)},
+            ["finalizedHead"]=new{sourceProvider=head.SourceProvider.ToString(),head.NetworkIdentity,position=Position(head.Position),head.ObservedAt},
+            ["receipts"]=receipts.Select(receipt=>new{position=Position(receipt.Position),receipt.CommitReference,record=receipt.Record})
+        };
+        if(columns!=null)response["columns"]=columns;
+        return JsonResponse(new OASISResult<object>(response){IsLoaded=true,LoadedCount=count});
     }
 
     private static object Position(CosmicChainQueryPosition position)

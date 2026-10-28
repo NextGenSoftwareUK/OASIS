@@ -647,3 +647,6 @@ with native selected columns and an evidence-aware result page. It is exercised
 verbatim against the retained live Solana record/SQLite index. Public DTO member
 assignments are shown with clear spacing; positional constructors and indexed
 selected-result stages/aggregates remain unsupported.
+
+IndexedHttpDemo now verifies nine requests, including entity and selected rows/empty
+results on the same indexed route. [Selected HTTP example](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
