@@ -7,9 +7,10 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 // HOST SETUP - console mode runs once; --serve also opens the local Swagger API.
 var serve = args.Length == 1 && args[0] == "--serve";
-if (args.Length != 0 && !serve)
+var nativeImport = args.Length == 1 && args[0] == "--native-import";
+if (args.Length != 0 && !serve && !nativeImport)
 {
-    Console.Error.WriteLine("Use no arguments for console mode, or --serve for the loopback Swagger demo.");
+    Console.Error.WriteLine("Use no arguments, --serve for Swagger, or --native-import for the native-data-to-CQL walkthrough.");
     return 2;
 }
 
@@ -22,6 +23,20 @@ if (root == null)
 {
     Console.Error.WriteLine("Run this sample from its existing OASIS checkout.");
     return 2;
+}
+
+if (nativeImport)
+{
+    try
+    {
+        await NativeImportCqlDemo.RunAsync(root.FullName, Console.Out);
+        return 0;
+    }
+    catch (Exception error)
+    {
+        Console.Error.WriteLine("Native import demo failed; preserve the fixture journal. " + error.Message);
+        return 1;
+    }
 }
 
 // FIXTURE OWNERSHIP - a fixed synthetic database is protected by an exclusive lock.

@@ -27,3 +27,18 @@ SHA2564B262EA2C14F4E2E9C04834444946008C6935F9DC18E59127253FD2FA9E568BF.
 Next migration-demo gap:real native data → shared import/save → CQL, including
 per-avatar identity/reimport behavior. This is separate from schema-migration tooling
 and does not resume paused LINQ depth or certify other providers' native readers.
+
+
+Native import-to-save-to-CQL gate now passes1real-file integration test and the actual
+console command. Root fix preserves save-owned metadata, eliminating false updates
+on unchanged re-import;3new protected-key/atomic rejection cases pass in4311full Core
+tests. Native stages prove3created/3unchanged/1updated, stable IDs, both avatars' private
+visibility and exact source/target cleanup. Generic sample uses shared APIs; this
+is SQLite-to-SQLite proof, not cross-provider/chain migration or full migrations tooling.
+Core7d05bdb138df39db7b6010272188464c63184558 pushed/remote verified.
+TRX TestResults/NativeImportCqlCurrent/native-import-cql.trx SHA256
+2C6781EEB263CF1CECF164CECFE2DAF97A408963B1596BC90983ED45125027E1;
+full Core TRXSHA256621633BB848CDC9354D98E2729352AB4A6AD9A24E1D41DFA315BA8BC2A7956EA.
+Initial failed re-import fixture was independently reconciled without replay;
+failed78012A8B...TRX retained. Committed report counts hash
+AD504EBCCF7F073950DBB4B9EDF49FDA4513ACE2F97E310CA5083861FD7274C7.
