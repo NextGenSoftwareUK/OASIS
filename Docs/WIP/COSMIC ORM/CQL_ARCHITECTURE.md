@@ -283,3 +283,16 @@ the target adapter determines query execution. Explicit re-import preserves no-o
 revisions or updates changed records. Save-owned metadata is preserved at mapping,
 so refresh cannot manufacture a dirty revision by erasing framework fields.
 Replication/encryption/CDC/reverse/chain acceptance remains separate from these gates.
+
+
+### Replication policy boundary
+
+`CommittedHolonReplicaTarget` exposes a policy/context constructor for server-owned
+`IHolonReplicationAuthorizationPolicy` implementations. Configured catalogs reuse it
+and retain their original versioned target hashes and captured policy binding. It
+freezes the envelope before awaiting policy and reparses original bytes for the
+receiver, so policy cannot rewrite the admitted mutation. The source-only constructor
+is a low-level trusted adapter;source enrollment alone is not caller authorization.
+Automatic WEB4 delivery has not yet adopted the policy constructor. Its physical
+endpoint binding and delivery-time admission remain open;the sandbox request-only
+fault gate is separate. Current tests/counts are in IMPLEMENTATION_STATUS.

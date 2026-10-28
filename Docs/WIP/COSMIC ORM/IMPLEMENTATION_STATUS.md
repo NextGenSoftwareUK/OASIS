@@ -37,6 +37,20 @@ Evidence (raw output only in the worktree):
 | TestResults/Neo4jCurrent/neo4j-hosted-restart-current.trx |1pass after shared-fixture refactor|0F4522767A377841C0192505293BDD1E4E928D7F0E7689A748430E3BA0D78EB9|
 | TestResults/OwnedRoutingCurrent/wake-full-core.trx |4325pass,last Core checkpoint|03D5E49BAD788D88BFA85DEE97EDD98EF200FA5E9B1D1EA5DE9FAD091F1E7651|
 
+## Shared authorization boundary prerequisite
+
+Configured catalog authorization now lives in the reusable policy constructor of
+`CommittedHolonReplicaTarget`;catalog route hashes and captured policy binding remain
+unchanged. It retains frozen transport/graph admission, actor-grant expiry, before/after
+policy-binding checks and warning evidence. The source-only constructor remains a
+low-level trusted adapter, not caller authorization. Automatic WEB4 still uses it;
+explicit automatic policy wiring/denial/expiry acceptance is next, not complete.
+
+- 1272Shared tests pass, including3new direct policy cases;2native configured-host cases pass;zero skips.
+- Evidence TestResults/OwnedRoutingCurrent/authorization-shared.trx SHA2569777F7BBAFE985BEBE16490F3F2979D0F2A7786E23060C86990CC76D233F35CB.
+- Native TestResults/Neo4jCurrent/neo4j-cosmic-configured-host-current.trx SHA256F2FF849EE7325529C28C3C7DE71248AB0842602CED3166A34FD96E8B40CEC02B.
+- Sandbox ProviderFaultGate explicitly excludes background work and is unchanged;it is not a grant/placement policy.
+
 ## Remaining acceptance
 
 1. Delivery-time actor/tenant/encryption/placement authorization and physical route binding. Automatic WEB4 delivery currently uses source enrollment, not the configured catalog's explicit expiring policy;do not conflate these.
