@@ -244,6 +244,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SQLLiteDBOASISSettings : ProviderSettingsBase
     {
+        /// <summary>SQLite database (another application's file) to read for native import; must not be the OASIS database.</summary>
+        public string NativeImportConnectionString { get; set; }
     }
 
     public class IPFSOASISSettings : ProviderSettingsBase
@@ -255,6 +257,8 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string Username { get; set; }
         public string Password { get; set; }
+        /// <summary>Comma-separated node labels other applications own that native import may read. Nothing else is exposed.</summary>
+        public string NativeImportLabels { get; set; }
     }
 
     public class LocalFileOASISSettings
