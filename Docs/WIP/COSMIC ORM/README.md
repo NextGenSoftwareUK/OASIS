@@ -23,6 +23,6 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 
 - [Indexed physical-read billing](CQL_INDEXED_BILLING.md): exact server tariffs, durable SQL/RPC attempts and current acceptance limits.
 
-- [WEB4 indexed frozen preparation](CQL_INDEXED_WEB4_PREPARATION.md): server aliases, immutable intent and reservation bound; HTTP wiring still pending.
+- [WEB4 indexed frozen preparation](CQL_INDEXED_WEB4_PREPARATION.md): server aliases, immutable intent and reservation bound; stock HTTP wiring verified; metadata live HTTP remains pending.
 
 - [Indexed WEB4 HTTP checkpoint](CQL_INDEXED_HTTP.md): frozen reservation/intent execution, precise receipts and current deployment limits.

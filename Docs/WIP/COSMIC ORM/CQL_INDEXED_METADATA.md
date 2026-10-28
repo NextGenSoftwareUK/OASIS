@@ -64,15 +64,40 @@ and rollback of metadata/history/checkpoint after a projection insert failure.
 Source transport in these tests is controlled; live-chain and production claims
 must not be inferred. [Proving tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/SqliteCosmicChainIndexMetadataTests.cs).
 
+## Shared manager and WEB4 preparation: verified
+
+[Readable C# walkthrough](../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs)
+uses ordinary LINQ over an explicit source/index/actor grant: nested string and
+exact Int64 filtering, ordering, evidence-bearing rows, LongCount, Any and a
+zero-length source window. It invokes the shared V2 manager and native owners.
+
+Actual SQLite acceptance now includes a real authenticated metadata envelope and
+an authorized runtime decryption policy. The returned row decrypts its private
+value and remains clean for tracking; hidden rows are excluded. Native scalar
+operations do not decrypt business payloads. With the runtime context omitted,
+the row is rejected with HOLON_METADATA_DECRYPTION_CONFIG_MISSING and no private
+value is published. This replaces an invalid placeholder-envelope fixture;
+no decryption guard was relaxed. Full SQLite provider suite207passes.
+
+Seven Core admission cases prove schema3 alias preparation for rows/LongCount/Any,
+exact root/case/envelope rejection without I/O, capture before resolver mutation,
+positive reservation bounds and rejection of history-only/unknown billing schemas.
+Tariff enrollment was still schema2-only; it now explicitly accepts schema2/3.
+The schema stays in BindingHash, so schema2 reservation identity cannot authorize
+schema3. Full Core4235passes. These controlled preparation tests are not metadata
+HTTP/native-transport acceptance.
+
 ## Exact next acceptance
 
-1. Add a readable SDK/schema3 binding example, then verify it through the shared
-   V2 manager and WEB4 alias preparation, including reservation and rejection cases.
-2. Enroll a separately acknowledged metadata-bearing synthetic chain dataset and
-   index binding; preserve the existing seed, schema2 index and original failure.
-   A new fixture is not recovery of missing original history.
-3. Verify live SQL/source/HTTP rows and cardinality plus the teaching demo. Selected
-   metadata columns and other aggregates need independent capability/evidence work.
+1. Enroll a separately acknowledged metadata-bearing synthetic chain dataset and
+   schema3 index binding; preserve existing seed, schema2 index and original failure.
+   Reuse the retained validator/runtime. Journal before any one-time local fixture
+   submission; never resubmit an unknown outcome or call a new fixture recovery.
+2. Verify shipping WEB4 stock pipeline with actual SQL and source observations,
+   row/scalar metadata filters, private-root rejection before reservation, actor
+   visibility, precise billing and source/index/checkpoint output.
+3. Add the verified profile to the teaching demo. Selected metadata columns and
+   other aggregates require independent capability/evidence work.
 
 Raw evidence belongs in TestResults. Preserve retained source keys/seed/index;
 new owned fixture state must be recorded in the existing resource ledger.
