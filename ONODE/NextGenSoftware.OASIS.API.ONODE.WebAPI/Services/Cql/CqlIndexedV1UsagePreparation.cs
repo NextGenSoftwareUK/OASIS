@@ -22,7 +22,10 @@ public sealed class CqlIndexedV1UsagePreparation(ICqlIndexedV1Bindings bindings,
     private static readonly object PendingKey=new();
     private sealed record Pending(CqlIndexedV1Preparation Preparation,string RawFingerprint);
     private static bool IsIndexed(HttpContext context)=>context.Request.Method=="POST"
-        && string.Equals(context.Request.Path.Value?.TrimEnd('/'),"/api/data/query-cql/indexed",StringComparison.OrdinalIgnoreCase);
+        && (string.Equals(context.Request.Path.Value?.TrimEnd('/'),"/api/data/query-cql/indexed",StringComparison.OrdinalIgnoreCase)
+            ||IsScalar(context));
+    private static bool IsScalar(HttpContext context)=>string.Equals(context.Request.Path.Value?.TrimEnd('/'),
+        "/api/data/query-cql/indexed/scalar",StringComparison.OrdinalIgnoreCase);
 
     public async Task<UsageEndpointPolicy> PrepareAsync(HttpContext context,UsageEndpointPolicy selectedPolicy,
         string rawRequestFingerprint,CancellationToken cancellationToken)
@@ -38,13 +41,14 @@ public sealed class CqlIndexedV1UsagePreparation(ICqlIndexedV1Bindings bindings,
             throw new UsageProtocolException("CQL_AUTHENTICATION_REQUIRED","Indexed preparation requires the authenticated avatar.",401);
         if(!context.Request.HasJsonContentType())
             throw new UsageProtocolException("CQL_REQUEST_INVALID","Indexed queries require JSON.",415);
-        CqlIndexedV1Request request;
+        NextGenSoftware.OASIS.Common.OASISResult<CqlIndexedV1Preparation> captured;
         try{
             var options=context.RequestServices.GetRequiredService<IOptions<Microsoft.AspNetCore.Mvc.JsonOptions>>().Value.JsonSerializerOptions;
-            request=await JsonSerializer.DeserializeAsync<CqlIndexedV1Request>(context.Request.Body,options,cancellationToken);
+            captured=IsScalar(context)
+                ? CqlIndexedV1Preparation.Prepare(actor,await JsonSerializer.DeserializeAsync<CqlIndexedScalarV1Request>(context.Request.Body,options,cancellationToken),bindings)
+                : CqlIndexedV1Preparation.Prepare(actor,await JsonSerializer.DeserializeAsync<CqlIndexedV1Request>(context.Request.Body,options,cancellationToken),bindings);
         }catch(JsonException){throw new UsageProtocolException("CQL_REQUEST_INVALID","Invalid bounded indexed query JSON.",400);}
         finally{context.Request.Body.Position=0;}
-        var captured=CqlIndexedV1Preparation.Prepare(actor,request,bindings);
         if(captured.IsError)
             throw new UsageProtocolException(captured.ErrorCode,"Indexed request was not admitted by the server binding.",
                 captured.ErrorCode=="CQL_INDEX_FORBIDDEN"?403:captured.ErrorCode=="CQL_REQUEST_INVALID"||captured.ErrorCode=="CQL_CAPABILITY_UNSUPPORTED"?400:503);

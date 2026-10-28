@@ -151,6 +151,51 @@ public partial class SolanaIndexedQueryNative
                 Assert.AreEqual(attempts, evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count));
             }
 
+            var scalarCounts = new List<int>();
+            foreach (var scalarOperation in new[] { "Count", "LongCount", "Any" })
+            foreach (var window in new[] { "whole", "filtered-empty", "zero" })
+            {
+                var scalarBody = JsonSerializer.Serialize(new {
+                    alias = "solana-native-demo",
+                    query = new { operation = scalarOperation, orderBy = "Id",
+                        filters = new[] { new { field = "Name", scalar = "String", @operator = "Equal",
+                            value = window == "filtered-empty" ? "does-not-exist" : "COSMIC native chain coffee" } },
+                        take = window == "zero" ? (int?)0 : null }
+                });
+                client.DefaultRequestHeaders.Remove("Idempotency-Key");
+                client.DefaultRequestHeaders.Add("Idempotency-Key", "native-index-scalar-" + scalarOperation + "-" + window);
+                using var scalarResponse = await client.PostAsync("/api/data/query-cql/indexed/scalar",
+                    new StringContent(scalarBody, Encoding.UTF8, "application/json"));
+                var scalarText = await scalarResponse.Content.ReadAsStringAsync();
+                Assert.AreEqual(HttpStatusCode.OK, scalarResponse.StatusCode, scalarText);
+                using var scalarJson = JsonDocument.Parse(scalarText);
+                var scalarResult = scalarJson.RootElement.GetProperty("result");
+                Assert.AreEqual("indexed-scalar", scalarResult.GetProperty("mode").GetString());
+                Assert.AreEqual("authenticated-index-snapshot", scalarResult.GetProperty("assurance").GetString());
+                var expectedCount = window == "whole" ? 1 : 0;
+                if (scalarOperation == "Any") Assert.AreEqual(expectedCount != 0, scalarResult.GetProperty("value").GetBoolean());
+                else if (scalarOperation == "LongCount") Assert.AreEqual(expectedCount.ToString(), scalarResult.GetProperty("value").GetString());
+                else Assert.AreEqual(expectedCount, scalarResult.GetProperty("value").GetInt32());
+                Assert.IsFalse(scalarResult.TryGetProperty("receipts", out _));
+                Assert.IsFalse(scalarResult.TryGetProperty("rows", out _));
+                Assert.IsFalse(scalarText.Contains("historyHash", StringComparison.OrdinalIgnoreCase));
+                var scalarId = scalarResponse.Headers.GetValues("X-OASIS-Operation-Id").Single();
+                var scalarEvidence = evidence.Operations[scalarId];
+                var scalarSettlement = authorityEvidence.Settlements.Single(value => value.OperationId == scalarId);
+                Assert.AreEqual("settled", scalarEvidence.State);
+                Assert.AreEqual(1, scalarEvidence.Receipts.Count(value => value.Provider == ProviderType.SQLLiteDBOASIS.ToString()));
+                Assert.AreEqual(scalarEvidence.ProviderAttempts.Count, scalarEvidence.Receipts.Count);
+                Assert.IsTrue(scalarEvidence.Receipts.Count >= 4);
+                Assert.AreEqual((long)scalarEvidence.Receipts.Count, scalarSettlement.Units);
+                Assert.AreEqual(scalarEvidence.Receipts.Count * 0.001m, scalarSettlement.ActualCostUsd);
+                scalarCounts.Add(scalarEvidence.Receipts.Count);
+                var scalarAttempts = evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count);
+                using var scalarReplay = await client.PostAsync("/api/data/query-cql/indexed/scalar",
+                    new StringContent(scalarBody, Encoding.UTF8, "application/json"));
+                Assert.AreEqual(HttpStatusCode.Conflict, scalarReplay.StatusCode);
+                Assert.AreEqual(scalarAttempts, evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count));
+            }
+
             var beforeRejected = evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count);
             client.DefaultRequestHeaders.Remove("Idempotency-Key");
             client.DefaultRequestHeaders.Add("Idempotency-Key", "native-index-unsupported");
@@ -158,10 +203,10 @@ public partial class SolanaIndexedQueryNative
                 "{\"alias\":\"solana-native-demo\",\"query\":{\"graph\":{},\"take\":1}}", Encoding.UTF8, "application/json"));
             Assert.AreEqual(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.AreEqual(beforeRejected, evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count));
-            Assert.AreEqual(4, evidence.Operations.Count);
-            Assert.AreEqual(4, authorityEvidence.Settlements.Count);
-            return new { requests = 9, accepted = 4, rejectedReplays = 4, unsupportedBeforeExecution = 1,
-                physicalReadCounts = counts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
+            Assert.AreEqual(13, evidence.Operations.Count);
+            Assert.AreEqual(13, authorityEvidence.Settlements.Count);
+            return new { requests = 27, accepted = 13, rejectedReplays = 13, unsupportedBeforeExecution = 1,
+                physicalReadCounts = counts, scalarPhysicalReadCounts = scalarCounts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
                 authentication = "controlled validated identity", sourceWrites = 0 };
         }
         finally { await app.StopAsync(); }

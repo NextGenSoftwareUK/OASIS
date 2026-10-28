@@ -49,13 +49,12 @@ regressions preserved without new legacy edits. Merged Core4eb3dab published to
 Development/task branch; parent pin/gitlink advance together. FullCore4167,
 SQLite49,Solana799pass; WEB4/demo/five controller consumers build.
 
-Indexed native Count/LongCount/Any SDK now passes13Core/18SQLite cases through
-shared scalar planner, V2 manager and the existing prepared read owner. Full
-Core4180/SQLite67/Solana799pass. Next: LINQ/HTTP and native-source cardinality
-acceptance; snapshot assurance differs from per-record row proofs. Metadata,
-other aggregates/selected stages and full parity remain open.
-
-Standard indexed Count/LongCount/Any now pass9newSQLite cases and the live shared
-demo (1/1/true, no new seed). FullCore4180/SQLite76/Solana799pass. Next: HTTP
-cardinality; metadata/other aggregates/selected stages, scaling and full parity
-remain open. See CURRENT_STATUS and the indexed SQL contract.
+Indexed Count/LongCount/Any now spans SDK, standard LINQ and the dedicated
+`/indexed/scalar` HTTP route. Final Core4198pass; existing SQLite76/Solana799
+checks remain verified. The live HTTP gate passes27requests:13accepted,
+13replays rejected,1unsupported;9scalar cases cover whole/filtered-empty/zero
+windows, six billed physical reads each, no source writes/new seed. Native
+selected/row evidence remains intact. Production identity/durable settlement,
+metadata/other aggregates/selected stages, scaling and full parity remain open.
+Next: prioritize remaining red demo capabilities from the checklist.
+See CURRENT_STATUS and CQL_INDEXED_HTTP.md for evidence scope.
