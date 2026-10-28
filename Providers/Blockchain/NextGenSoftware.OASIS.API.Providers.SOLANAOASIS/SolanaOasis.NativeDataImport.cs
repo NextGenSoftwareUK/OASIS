@@ -28,10 +28,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 /// </summary>
 public partial class SolanaOASIS : INativeDataImportProvider
 {
-    public const int MaximumAccounts = 10000;
+    /// <summary>Most accounts one program may own for an import to proceed (DNA OASIS.NativeImport.MaximumSolanaAccountsPerProgram).</summary>
+    public static int MaximumAccounts => NativeImportOptions.Positive(NativeImportOptions.Current.MaximumSolanaAccountsPerProgram, "MaximumSolanaAccountsPerProgram");
     private static readonly Regex AddressPattern = new Regex("^[1-9A-HJ-NP-Za-km-z]{32,44}$", RegexOptions.CultureInvariant);
     private static readonly string[] ConnectionSettings = { "rpcUrl", "programs" };
-    private static readonly TimeSpan SnapshotLifetime = TimeSpan.FromSeconds(60);
+    private static TimeSpan SnapshotLifetime => TimeSpan.FromSeconds(NativeImportOptions.Positive(NativeImportOptions.Current.SolanaSnapshotSeconds, "SolanaSnapshotSeconds"));
 
     private readonly object _nativeSnapshotGate = new object();
     private (string Identity, string Program, DateTime FetchedUtc, IReadOnlyList<NativeSolanaAccount> Accounts)? _nativeSnapshot;
@@ -137,7 +138,7 @@ public partial class SolanaOASIS : INativeDataImportProvider
     private async Task<IReadOnlyList<NativeSolanaAccount>> FetchThroughCallersNodeAsync(NativeConnection connection, string program, CancellationToken cancellationToken)
     {
         var (rpc, _) = ParseNativeConnection(connection);
-        using var http = new HttpClient(NativeConnectionHandler(), disposeHandler: true) { Timeout = TimeSpan.FromSeconds(60), BaseAddress = rpc };
+        using var http = new HttpClient(NativeConnectionHandler(), disposeHandler: true) { Timeout = NativeImportOptions.ReadTimeout, BaseAddress = rpc };
         var client = Solnet.Rpc.ClientFactory.GetClient(rpc.AbsoluteUri, httpClient: http);
         return await ReadProgramAccountsAsync(client, program, cancellationToken);
     }

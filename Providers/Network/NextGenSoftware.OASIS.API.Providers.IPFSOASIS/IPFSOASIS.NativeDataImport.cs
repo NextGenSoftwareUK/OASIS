@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
     {
         private static readonly Regex NativePathPattern = new Regex("^/(ipfs|ipns)/[A-Za-z0-9._-]{1,256}(/[^/\\s]+)*$", RegexOptions.CultureInvariant);
         private static readonly string[] ConnectionSettings = { "apiUrl", "paths" };
-        private const int MaximumListingBytes = 4 * 1024 * 1024;
+        private static int MaximumListingBytes => NativeImportOptions.MegabytesToBytes(NativeImportOptions.Current.MaximumIpfsListingMegabytes, "MaximumIpfsListingMegabytes");
 
         /// <summary>Comma-separated /ipfs/&lt;cid&gt; or /ipns/&lt;name&gt; directories native import may read (DNA IPFSOASIS.NativeImportPaths).</summary>
         public string NativeImportPaths
@@ -138,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         private async Task<IReadOnlyList<NativeIpfsEntry>> ListThroughCallersNodeAsync(NativeConnection connection, string path, CancellationToken cancellationToken)
         {
             var (api, _) = ParseNativeConnection(connection);
-            using var http = new HttpClient(NativeConnectionHandler(), disposeHandler: true) { Timeout = TimeSpan.FromSeconds(30) };
+            using var http = new HttpClient(NativeConnectionHandler(), disposeHandler: true) { Timeout = NativeImportOptions.ReadTimeout };
             using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(api, "api/v0/ls?arg=" + Uri.EscapeDataString(path)));
             using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             response.EnsureSuccessStatusCode();

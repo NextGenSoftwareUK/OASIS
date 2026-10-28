@@ -24,7 +24,7 @@ public partial class MongoDBOASIS : INativeDataImportProvider
     private static readonly JsonWriterSettings ReadableJson = new() { OutputMode = JsonOutputMode.RelaxedExtendedJson };
     private static readonly string[] ConnectionSettings = { "uri", "database" };
     private static readonly string[] ReservedDatabases = { "admin", "local", "config" };
-    private static readonly TimeSpan NativeOperationLimit = TimeSpan.FromSeconds(30);
+    private static TimeSpan NativeOperationLimit => NativeImportOptions.ReadTimeout;
 
     /// <summary>The database holding the application data to import, on the same deployment as <see cref="DBName"/>.</summary>
     public string NativeImportDatabaseName { get; set; }
@@ -171,8 +171,8 @@ public partial class MongoDBOASIS : INativeDataImportProvider
 
         var settings = MongoClientSettings.FromUrl(url);
         settings.ApplicationName = "OASIS-native-import";
-        settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
-        settings.ConnectTimeout = TimeSpan.FromSeconds(10);
+        settings.ServerSelectionTimeout = NativeImportOptions.ConnectTimeout;
+        settings.ConnectTimeout = NativeImportOptions.ConnectTimeout;
         settings.SocketTimeout = NativeOperationLimit;
         var client = new MongoClient(settings);
         return (client.GetDatabase(databaseName), client);

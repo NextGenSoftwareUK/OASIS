@@ -44,7 +44,7 @@ Code: `Core/Configuration/AvatarHyperDriveSettings.cs`, `ProviderRoutingOverride
 
 ## Sandbox controls (per visitor)
 
-Nodes with `OASIS_SANDBOX=true` expose `api/sandbox` (dev WEB4 does; production must not):
+Nodes whose DNA has `OASIS.Sandbox.Enabled` set expose `api/sandbox` (dev WEB4 does; production must not):
 
 - `POST session` creates a verified demo avatar whose HyperDrive settings route only across MongoDB, SQLite and Neo4j.
 - `POST providers/{p}/offline?seconds=` / `online`, `GET faults`, `GET refusals` act **only for the calling avatar**:
