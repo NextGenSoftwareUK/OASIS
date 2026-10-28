@@ -159,3 +159,43 @@ must not be presented as original-record recovery or complete historical coverag
 | TestResults/SolanaCurrent/solana-chain-index-readonly.trx | 9ADC4711A6152B53B4B09611F6684A849F392272B86384CC41DF2E875292F381 |
 
 Explicit indexedcanonicalSQLrow primitive is controlled-source proven (30SQLite/56Corechecks), not nativeSolanaexecution; source/executionidentities remainseparate. Fullrange0acceptance remainsblocked atretainedblock1402, no sourcewrite/recovery attempted. [Indexedrowcontract](CQL_INDEXED_SQL_ROWS.md).
+
+
+## Live declared-range SDK demo (new range, not original recovery)
+
+One native acceptance schedule now passes against the retained Agave4.3.0 local
+validator/genesis above. New declared coverage starts at finalized slot3073;
+a separately journaled canonical synthetic holon was submitted once. Its original
+acknowledgement, identities and encrypted SQLite index persist under
+LocalState/COSMIC/SolanaCqlCurrent. No new runtime, validator ledger, funding,
+reset or replay of an old uncertain submission was used.
+
+The shared ingestion coordinator independently decodes source commits, validates
+fresh head/older finalized anchors and atomically publishes schema2 SQLite rows.
+After reopening the index, the shared manager/LINQ pipeline returns the exact
+source revision/commit and a successful empty page. The test executes
+Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs verbatim; it prints source versus
+execution provider, declared range, checkpoint, head and source receipts.
+Subsequent verification reused the acknowledged seed with zero source writes.
+
+```powershell
+& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-solana-cql -Operation {
+    & Scripts/TestHosts/Run-ReusableSolanaTests.ps1 -IndexedQueryDemo
+}
+```
+
+Preserve existing solana-indexed-native.trx/json in TestResults/SolanaCurrent
+before rerunning. Never delete or replace seed.pending.json to make a run pass;
+reconcile an unknown outcome first. A pending seed blocks another submission.
+The runner refuses an existing report and validates source/binary/runtime/ledger
+identity before startup. The original journaled seed remains outside TestResults
+so cleanup cannot trigger another submission.
+
+Evidence: TestResults/SolanaCurrent/solana-indexed-native.trx/json (one pass,
+zero skips); original demo-code failure is retained as solana-indexed-native-first.trx.
+LocalState dataset is retained/reusable, not disposable failure debris. Validator
+is stopped after verification. This proves local-validator indexed SDK execution
+for the declared range only. Original historical recovery/range0, live-source HTTP,
+production authentication/durable billing, full common demo and parity remain red.
+
+Native walkthrough final TRX SHA256: 44C3556C46FB7203FB0F2010F266DAF0732B60E5DBAF0904DB266173A216C7DC; summary JSON SHA256: 80BD7F435BB5B814878DCC42405B52E9898AE817792A4277847F0A2705547571. See the single environment ledger for durable dataset hashes/sizes and verified shutdown.

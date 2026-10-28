@@ -716,3 +716,27 @@ Indexed freshness includes block identity: older minimum/checkpoint/previous slo
 require independent finalized anchors, even for empty results. Missing or conflicting
 anchors reject the whole page. Custom source observers must implement the bounded
 requiredSlots head contract; [details](CQL_CHAIN_QUERY_CONTRACT.md#finalized-anchor-identity-correction-27-october).
+
+
+### Live chain C# walkthrough
+
+[ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+is a spaced, commented shared SDK example with explicit source/index binding,
+Where/OrderBy/Take, clean typed rows, empty results and retained source evidence.
+It is exercised verbatim by the real Solana/SQLite native gate. Pass an already
+published index, trusted source observer, V2 manager, freshness requirement and
+server actor policy; the walkthrough itself never submits source writes.
+
+```csharp
+var demo = await ChainIndexedWalkthrough.RunAsync(
+    manager,
+    sqliteIndex,
+    solanaObserver,
+    freshness,
+    serverReadAccess,
+    selectedHolonId,
+    Console.Out,
+    cancellationToken);
+```
+
+[Native runner, evidence and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).

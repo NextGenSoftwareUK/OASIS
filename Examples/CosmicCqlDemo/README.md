@@ -623,3 +623,17 @@ inside the same build lease shown above. Preserve existing `cql-web4` closure an
 fixture evidence before rerunning; no unknown writes may be replayed.
 
 [HTTP request examples, evidence and remaining host gates](../../Docs/WIP/COSMIC%20ORM/CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
+
+
+## Explicit indexed chain walkthrough
+
+`ChainIndexedWalkthrough.cs` demonstrates the shared chain/index SDK: explicit
+source and execution binding, LINQ Where/OrderBy/Take, checkpoint/head/source
+receipts and successful empty pages. The native Solana test runs this exact file
+against the retained local validator and a reopened SQLite index. It is a host
+component, not a new launcher switch; supply the trusted manager/index/observer,
+freshness and actor policy. It does not submit writes or activate providers.
+
+[Command, C# usage and evidence](../../Docs/WIP/COSMIC%20ORM/CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
+Local declared-range proof does not establish original-history recovery,
+production billing/authentication or live-source HTTP acceptance.
