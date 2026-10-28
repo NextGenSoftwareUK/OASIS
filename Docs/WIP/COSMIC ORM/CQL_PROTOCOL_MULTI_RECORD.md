@@ -122,3 +122,22 @@ TRX: `C:/Source/OASIS-cosmic/TestResults/IPFSCurrent/ipfs-cql-keyset-native.trx`
 Do not rerun over the completed cql-keyset journal/DNA; review and archive those exact
 completed fixture records first. This proves native membership, not general content
 filtering or a Mongo-federated/HTTP/browser demonstration.
+
+## Native SOLID collection proof
+
+`Run-ReusableSolidReadiness.ps1 -CqlKeySet -RequireCleanShutdown`, under one build
+lease, passes one live acceptance case using the retained private CSS Pod and DPoP
+identity. Three private encrypted records are journaled before saves, read through
+native CQL as an all-three set and two-record subset, and independently compared
+against canonical loads. An unrelated actor receives no rows. URI, native ETag and
+identity provenance survive. Exact owners are verified before conditional deletion;
+all three resources then return404. Pending journal absent; completed journal retained.
+
+Factory callers explicitly opt in through `enableCqlRecordKeySets:true`; defaults
+retain point enrollment. No authentication, identity, Pod or data replacement occurs.
+Lifecycle testExit0/stopExit0, final `exited 143 false` (normal SIGTERM, no OOM).
+TRX `C:/Source/OASIS-cosmic/TestResults/SolidCurrent/solid-cql-keyset-native.trx`:
+1 passed/0 failed/0 skipped, SHA256
+`8A76A73C9B30DE5B1D3EB3B1F159C4972FA05F3F9C73992B46B6352853F20F3B`.
+Teaching pages, HTTP/federated presets and richer non-key filters remain open. Native
+membership proof alone is not a claim of general LINQ/EF parity on protocol stores.
