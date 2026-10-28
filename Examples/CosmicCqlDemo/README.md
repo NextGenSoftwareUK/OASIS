@@ -897,6 +897,20 @@ ORM/CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md for scope and evidence.
 
 OracleDBOASIS is now enrolled for bounded native canonical-ID equality/membership
 with trusted authoritative record catalogues. The provider builds;473Oracle unit
-tests pass, including7new CQL cases. Native Oracle CQL/Mongo federation and interactive
-preset are not yet verified. This is Oracle Database support, not hosted OCI proof.
+tests pass, including7new CQL cases. Native Oracle CQL and Mongo+Oracle SDK federation
+now pass; interactive HTTP/browser preset remains open. This is Oracle Database support, not hosted OCI proof.
 See Docs/WIP/COSMIC ORM/CQL_ORACLE_DEMO_ADMISSION.md for exact profile/next acceptance.
+
+The spaced, commented `IdentityFederationWalkthrough.cs` shows one shared canonical-ID
+membership query over Mongo+Oracle with separate trusted authorization catalogues.
+The live preset proves5 physical rows, then4 after narrowing the selected IDs;
+both providers contribute their own native results. Run:
+
+```powershell
+& Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1
+```
+
+The runner preserves previous reports and refuses pending fixtures; review/archive
+prior completed evidence before rerunning. It reuses the retained services, journals
+before writes and verifies exact fixture cleanup. This command currently runs the
+C# SDK acceptance; a browser demo is the next milestone.

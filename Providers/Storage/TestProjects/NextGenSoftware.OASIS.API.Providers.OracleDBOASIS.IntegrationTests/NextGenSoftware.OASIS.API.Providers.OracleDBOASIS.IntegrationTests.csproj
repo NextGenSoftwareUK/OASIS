@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Remove="OracleCoreStorageConformanceTests.cs" />
     <Compile Include="OracleCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
