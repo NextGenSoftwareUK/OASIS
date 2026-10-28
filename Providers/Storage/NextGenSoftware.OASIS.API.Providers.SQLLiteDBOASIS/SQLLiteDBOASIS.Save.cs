@@ -461,6 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 result.Result = filtered;
                 result.IsError = false;
                 result.IsLoaded = true;
+                result.LoadedCount = filtered.Count;
                 result.Message = $"Successfully loaded {filtered.Count} holons by metadata pairs from SQLite";
             }
             catch (Exception ex)

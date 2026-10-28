@@ -18,6 +18,42 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests
             _provider = new SQLLiteDBOASIS("Data Source=:memory:");
         }
 
+        [DataTestMethod,DoNotParallelize]
+        [DataRow(false,false)][DataRow(false,true)][DataRow(true,false)][DataRow(true,true)]
+        public async Task SuccessfulIdentitySaveReportsOneCommittedRecord(bool detail,bool synchronous)
+        {
+            await using var keepAlive=new Microsoft.Data.Sqlite.SqliteConnection("Data Source=owned-identity-save-count;Mode=Memory;Cache=Shared");
+            await keepAlive.OpenAsync();_provider.Dispose();_provider=new SQLLiteDBOASIS(keepAlive.ConnectionString);
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar{Id=Guid.NewGuid(),Username="count-owner",Email="count-owner@example.invalid"};
+            if(detail){
+                Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+                var value=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail{Id=avatar.Id,Username=avatar.Username,Email=avatar.Email};
+                var saved=synchronous?_provider.SaveAvatarDetail(value):await _provider.SaveAvatarDetailAsync(value);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
+                Assert.AreEqual(avatar.Id,(await _provider.LoadAvatarDetailAsync(avatar.Id)).Result.Id);
+            }else{
+                var saved=synchronous?_provider.SaveAvatar(avatar):await _provider.SaveAvatarAsync(avatar);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.IsSaved);Assert.AreEqual(1,saved.SavedCount);
+                Assert.AreEqual(avatar.Id,(await _provider.LoadAvatarAsync(avatar.Id)).Result.Id);
+            }
+        }
+
+        [DataTestMethod,DoNotParallelize]
+        [DataRow(false)][DataRow(true)]
+        public async Task MetadataQueryCountsOnlySelectedRows(bool synchronous)
+        {
+            await using var keepAlive=new Microsoft.Data.Sqlite.SqliteConnection("Data Source=owned-metadata-count;Mode=Memory;Cache=Shared");
+            await keepAlive.OpenAsync();_provider.Dispose();_provider=new SQLLiteDBOASIS(keepAlive.ConnectionString);
+            Assert.IsFalse((await _provider.ActivateProviderAsync()).IsError);
+            var selected=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),MetaData=new(){["count-probe"]="selected"}};
+            var other=new NextGenSoftware.OASIS.API.Core.Holons.Holon{Id=Guid.NewGuid(),MetaData=null};
+            Assert.IsFalse((await _provider.SaveHolonsAsync(new IHolon[]{selected,other},saveChildren:false)).IsError);
+            var result=synchronous?_provider.LoadHolonsByMetaData("count-probe","selected",loadChildren:false):await _provider.LoadHolonsByMetaDataAsync("count-probe","selected",loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+            CollectionAssert.AreEqual(new[]{selected.Id},result.Result.Select(row=>row.Id).ToArray());
+        }
+
         [TestMethod]
         public void ProviderType_ShouldBeSQLLiteDBOASIS()
         {

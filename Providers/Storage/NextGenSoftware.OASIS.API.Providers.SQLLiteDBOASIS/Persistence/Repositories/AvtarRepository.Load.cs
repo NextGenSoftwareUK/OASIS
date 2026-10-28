@@ -275,6 +275,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntity
@@ -306,6 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
                     IsLoaded = true,
+                    LoadedCount = avatarEntities.Count(),
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntities
@@ -337,6 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IAvatar>>
                 {
                     IsLoaded = true,
+                    LoadedCount = avatarEntities.Count(),
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntities
@@ -373,6 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntity
@@ -409,6 +413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntities
