@@ -34,7 +34,7 @@ public static class CloudCqlDemoPage
   <p>The shared <code>CloudRowsWalkthrough.cs</code> example shows explicit provider scope,
     actor access, nested metadata, projection and native cardinality. Its host supplies the activated adapter.</p>
   <pre><code>// Build a deferred query over the trusted host's provider and actor scope.
-var source = CosmicQuery&lt;Holon&gt;.Create(scope).Result
+var source = CosmicQuery&lt;Holon&gt;.Create(scope)
     .WithReadAccess(access).Result
     .Where(h =&gt; h.IsActive &amp;&amp;
         CosmicQueryMetadata.Value&lt;string&gt;(h, "fixture") == fixtureTag).Result;

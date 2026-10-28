@@ -24,6 +24,10 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         if($Canonical -or $EntityProjection){
             $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
             if($EntityProjection){
+                foreach($producer in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj')){
+                    & dotnet build (Join-Path $root $producer) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+                    if($LASTEXITCODE){throw 'Entity projection dependency build failed.'}
+                }
                 & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
                 if($LASTEXITCODE){throw 'Neo projection producer build failed.'}
             }
@@ -32,6 +36,8 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
             & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0') -VerifySourceDocuments
             $report=Join-Path $work $(if($EntityProjection){'neo-entity-projection-native.json'}else{'cql-retained-canonical-inspection.json'})
             if(Test-Path -LiteralPath $report){Move-Item -LiteralPath $report -Destination (Join-Path $work ((Get-FileHash $report).Hash+'.json'))}
+            $sqliteReport=Join-Path $work 'sqlite-entity-projection-native.json'
+            if($EntityProjection -and (Test-Path -LiteralPath $sqliteReport)){Move-Item -LiteralPath $sqliteReport -Destination (Join-Path $work ((Get-FileHash $sqliteReport).Hash+'.json'))}
             $trx=Join-Path $work $(if($EntityProjection){'neo-entity-projection-native.trx'}else{'cql-retained-canonical-inspection.trx'})
             if(Test-Path -LiteralPath $trx){Copy-Item -LiteralPath $trx -Destination (Join-Path $work ((Get-FileHash $trx).Hash+'.trx'))}
         }
@@ -49,14 +55,18 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
             $env:OASIS_CQL_GRAPH_INSPECTION_ROOT=$root
             $env:OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT=if($EntityProjection){$root}else{$null}
             $began=[DateTime]::UtcNow
-            $test=if($EntityProjection){'FullyQualifiedName~NativeNeoEntityProjectionPreservesStagesAndProofBeforeDtoConstruction'}else{'FullyQualifiedName~TypedDriverValidatesRetainedCanonicalVersionsAndReceiptBindingsWithoutWrites'}
+            $test=if($EntityProjection){'FullyQualifiedName~NativeNeoEntityProjectionPreservesStagesAndProofBeforeDtoConstruction|FullyQualifiedName~NativeSqliteEntityProjectionPreservesStagesAndProofBeforeDtoConstruction'}else{'FullyQualifiedName~TypedDriverValidatesRetainedCanonicalVersionsAndReceiptBindingsWithoutWrites'}
             & dotnet test $project --no-build --no-restore --filter $test --logger "trx;LogFileName=$([IO.Path]::GetFileName($trx))" --results-directory $work -v:q
             if($LASTEXITCODE){throw 'Typed inspection failed; preserve evidence and native state.'}
             if((Get-Item -LiteralPath $trx).LastWriteTimeUtc -lt $began){throw 'Stale typed inspection report.'}
             [xml]$result=Get-Content -LiteralPath $trx -Raw
             $counts=$result.TestRun.ResultSummary.Counters
-            if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly one complete typed audit.'}
-            if($EntityProjection){$proof=Get-Content $report -Raw|ConvertFrom-Json;if($proof.checks -ne 10 -or !$proof.exactCleanupVerified){throw 'Entity projection native proof incomplete.'}}
+            $expectedCases=if($EntityProjection){2}else{1}
+            if([int]$counts.total -ne $expectedCases -or [int]$counts.passed -ne $expectedCases -or [int]$counts.notExecuted -ne 0){throw 'Expected exact complete native task case count.'}
+            if($EntityProjection){
+                $proof=Get-Content $report -Raw|ConvertFrom-Json;if($proof.checks -ne 14 -or !$proof.exactCleanupVerified){throw 'Entity projection native proof incomplete.'}
+                $sqliteProof=Get-Content $sqliteReport -Raw|ConvertFrom-Json;if($sqliteProof.checks -ne 14 -or !$sqliteProof.inMemoryFixture){throw 'SQLite entity projection native proof incomplete.'}
+            }
             Write-Output ('Native graph task PASS; SHA256='+(Get-FileHash $report).Hash)
             return
         }

@@ -50,7 +50,7 @@ public sealed partial class CosmicEntityCountTests
         var count=Expression.Call(typeof(Queryable),nameof(Queryable.Count),new[] {typeof(Holon)},query.Expression);
         Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Provider.Execute<string>(count)).Code);
         Assert.Equal("CQL_ORDER_REQUIRED",Assert.Throws<CosmicLinqException>(()=>query.Last()).Code);
-        Assert.Equal("CQL_COMPOSITION_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Select(row=>row.Name)).Code);
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",Assert.Throws<CosmicLinqException>(()=>query.Select(row=>row.Name).ToArray()).Code);
         Assert.Equal(0,native.Calls);
     }
 
