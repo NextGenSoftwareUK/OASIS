@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 [TestClass]
 [DoNotParallelize]
-public class NativeHostedReplicaRestartTests
+public partial class NativeHostedReplicaRestartTests
 {
     private sealed class PassLogger : ILogger<Worker>
     {
@@ -35,7 +35,10 @@ public class NativeHostedReplicaRestartTests
     }
 
     [TestMethod]
-    public async Task ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart()
+    public Task ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart()
+        => VerifyShippingWorkerRestart(false);
+
+    private async Task VerifyShippingWorkerRestart(bool crash)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -48,6 +51,8 @@ public class NativeHostedReplicaRestartTests
         var journal = Path.Combine(state, "hosted-restart.pending.json");
         var file = Path.Combine(root.FullName, "TestResults/Neo4jCurrent/hosted-restart-target.db");
         Assert.IsFalse(File.Exists(journal));
+        var committedBoundary = Path.Combine(state, "hosted-restart-committed.json");
+        Assert.IsFalse(File.Exists(committedBoundary));
         var ownedFiles = new[] { file, file + "-wal", file + "-shm", file + "-journal" };
         foreach (var path in ownedFiles) Assert.IsFalse(File.Exists(path), "Reconcile original owned fixture before reuse.");
         var actor = Guid.NewGuid();
@@ -122,11 +127,32 @@ public class NativeHostedReplicaRestartTests
                     await worker.StopAsync(shutdown.Token);
                 }
             }
+            if (crash)
+            {
+                await CrashAfterNativeCommit(root.FullName, committedBoundary);
+                var interrupted = await outbox.InspectAsync(pending.Result.Sequence);
+                Assert.IsFalse(interrupted.IsError, interrupted.Message);
+                Assert.AreEqual(HolonDeliveryState.InFlight, interrupted.Result.State);
+                Assert.AreEqual(1, interrupted.Result.AttemptCount);
+                var nativeCopy = await target.LoadHolonAsync(input.Id, loadChildren: false);
+                Assert.IsFalse(nativeCopy.IsError, nativeCopy.Message);
+                Assert.AreEqual(input.VersionId, nativeCopy.Result.VersionId);
+                // Wait on the authority's actual clock/lease. No mutation of delivery
+                // state, synthetic clock advance or unsafe second source save.
+                var wait = System.Diagnostics.Stopwatch.StartNew();
+                while (true)
+                {
+                    var nativeLease = await (await inspect.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o.LeaseUntilUtcTicks - (datetime.realtime().epochMillis * 10000 + 621355968000000000) AS remaining", new { op = operation.ToString("D") })).SingleAsync();
+                    if (nativeLease["remaining"].As<long>() <= 0) break;
+                    Assert.IsTrue(wait.Elapsed < TimeSpan.FromMinutes(3), "Original native lease did not expire within the recovery deadline.");
+                    await Task.Delay(1000);
+                }
+            }
             await RunOneRealPass();
             var delivered = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(delivered.IsError, delivered.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, delivered.Result.State);
-            Assert.AreEqual(1, delivered.Result.AttemptCount);
+            Assert.AreEqual(crash ? 2 : 1, delivered.Result.AttemptCount);
             var copy = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsFalse(copy.IsError, copy.Message);
             Assert.AreEqual(input.VersionId, copy.Result.VersionId);
@@ -146,7 +172,7 @@ public class NativeHostedReplicaRestartTests
             var retained = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(retained.IsError, retained.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, retained.Result.State);
-            Assert.AreEqual(1, retained.Result.AttemptCount);
+            Assert.AreEqual(crash ? 2 : 1, retained.Result.AttemptCount);
             Assert.AreEqual(originalPayload, await FrozenPayload());
             var fresh = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsFalse(fresh.IsError, fresh.Message);
@@ -165,6 +191,7 @@ public class NativeHostedReplicaRestartTests
                 var remaining = await (await inspect.RunAsync("MATCH (r) WHERE (r:Holon AND r.Id=$id) OR ((r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op) RETURN count(r) AS count", new { id = input.Id.ToString("D"), op = operation.ToString("D") })).SingleAsync();
                 Assert.AreEqual(0L, remaining["count"].As<long>());
                 foreach (var path in ownedFiles) { if (File.Exists(path)) File.Delete(path); Assert.IsFalse(File.Exists(path)); }
+                if (crash) File.Delete(committedBoundary);
                 File.Delete(journal);
             }
         }
