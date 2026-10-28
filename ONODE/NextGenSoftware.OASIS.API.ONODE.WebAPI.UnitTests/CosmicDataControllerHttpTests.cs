@@ -426,7 +426,12 @@ public sealed partial class CosmicDataControllerHttpTests
             builder.Logging.ClearProviders();
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Services.AddControllers()
-                .AddJsonOptions(options => NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonJsonContracts.Configure(options.JsonSerializerOptions))
+                .AddJsonOptions(options =>
+                {
+                    // Same wire options as Startup, so tests post what real clients post.
+                    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(allowIntegerValues: true));
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonJsonContracts.Configure(options.JsonSerializerOptions);
+                })
                 .AddApplicationPart(typeof(DataController).Assembly)
                 .AddControllersAsServices();
             builder.Services.AddTransient<DataController>(_ => new DataController(manager));
