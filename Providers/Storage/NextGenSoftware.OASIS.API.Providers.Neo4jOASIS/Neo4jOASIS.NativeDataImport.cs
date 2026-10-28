@@ -25,7 +25,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         private static readonly Regex LabelPattern = new Regex("^[A-Za-z_][A-Za-z0-9_]{0,99}$", RegexOptions.CultureInvariant);
         private static readonly string[] ConnectionSettings = { "uri", "username", "password", "database", "labels" };
         private static readonly string[] AllowedSchemes = { "bolt", "bolt+s", "bolt+ssc", "neo4j", "neo4j+s", "neo4j+ssc" };
-        private const int MaximumDiscoveredLabels = 200;
 
         /// <summary>Comma-separated labels other applications own that native import may read from the OASIS database (DNA Neo4jOASIS.NativeImportLabels).</summary>
         public string NativeImportLabels { get; set; }
@@ -127,7 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var labels = narrowed != null
                 ? narrowed.Split(',').Select(label => label.Trim()).Where(label => label.Length > 0).Distinct(StringComparer.Ordinal).ToList()
                 : (await (await lease.Session.RunAsync("CALL db.labels() YIELD label RETURN label ORDER BY label")).ToListAsync())
-                    .Select(row => row["label"].As<string>()).Where(label => LabelPattern.IsMatch(label)).Take(MaximumDiscoveredLabels).ToList();
+                    .Select(row => row["label"].As<string>()).Where(label => LabelPattern.IsMatch(label)).Take(NativeImportOptions.Positive(NativeImportOptions.Current.MaximumNeo4jDiscoveredLabels, "MaximumNeo4jDiscoveredLabels")).ToList();
             var invalid = labels.FirstOrDefault(label => !LabelPattern.IsMatch(label));
             if (invalid != null) throw new NativeConnectionRefusedException($"'{invalid}' is not a valid Neo4j label name.");
             return labels;
@@ -170,9 +169,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var (uri, username, password, database, _) = ParseConnection(connection);
             await NativeConnectionGuard.EnsurePublicHostAsync(uri.Host, cancellationToken);
             var driver = GraphDatabase.Driver(uri, AuthTokens.Basic(username, password), config => config
-                .WithConnectionTimeout(TimeSpan.FromSeconds(10))
+                .WithConnectionTimeout(NativeImportOptions.ConnectTimeout)
                 .WithMaxConnectionPoolSize(2)
-                .WithMaxTransactionRetryTime(TimeSpan.FromSeconds(10)));
+                .WithMaxTransactionRetryTime(NativeImportOptions.ConnectTimeout));
             try
             {
                 return new NativeLease(driver.AsyncSession(options =>

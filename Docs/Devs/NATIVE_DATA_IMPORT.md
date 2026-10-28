@@ -73,12 +73,12 @@ string DescribeNativeConnection(NativeConnection connection);   // host + databa
 |---|---|
 | MongoDB | `uri` (`mongodb://` or `mongodb+srv://`), `database` (or put it in the uri). The `admin`, `local` and `config` databases are refused |
 | Neo4j | `uri` (`bolt`, `bolt+s`, `bolt+ssc`, `neo4j`, `neo4j+s`, `neo4j+ssc`, without credentials in it), `username`, `password`, optional `database`, optional `labels` (comma-separated; otherwise every label is listed) |
-| SQLite | `fileName` (a plain file name), `fileBase64` (the database file, up to 8 MB). It is written to a private temporary file, opened read-only with `query_only` and `trusted_schema=OFF`, and deleted straight after the call |
+| SQLite | `fileName` (a plain file name), `fileBase64` (the database file, up to `MaximumSqliteUploadMegabytes`, default 8). It is written to a private temporary file, opened read-only with `query_only` and `trusted_schema=OFF`, and deleted straight after the call |
 | Azure Cosmos DB | `endpoint` (`https://<account>.documents.azure.com:443/`), `key`, `database`, optional `containers` (comma-separated; otherwise every container is a source). Read in Gateway mode |
 | SOLID | `podUrl` (https, no credentials), optional `token` (bearer; leave out for public data), `containers` (Pod-relative paths such as `public/notes/`; anything under `oasis/` is refused) |
 | ActivityPub | `instanceUrl` (the https origin of a Mastodon-compatible server), `accessToken`. Reads that account's statuses, followers and following |
 | IPFS | `apiUrl` (the HTTP API of an IPFS node, for example `https://ipfs.example.com:5001/`), `paths` (`/ipfs/<cid>` or `/ipns/<name>` directories). Lists them with `POST /api/v0/ls` through that node |
-| Solana | `rpcUrl` (https), `programs` (comma-separated program addresses). One `getProgramAccounts` snapshot per node and program is held for 60 seconds so every page of an import is consistent; more than 10,000 accounts is refused |
+| Solana | `rpcUrl` (https), `programs` (comma-separated program addresses). One `getProgramAccounts` snapshot per node and program is held for `SolanaSnapshotSeconds` (default 60) so every page of an import is consistent; more than `MaximumSolanaAccountsPerProgram` (default 10,000) accounts is refused |
 
 Unknown setting names are refused, so a typo is reported instead of silently ignored.
 
@@ -92,7 +92,7 @@ they always had.
   shared-address (100.64/10), multicast and IPv6 unique-local/link-local addresses are refused, as are IPv4-mapped IPv6
   forms of them.
 - Internal names (`*.internal`, `*.local`, `*.localhost`, single-label hosts) are refused without a lookup. For other names
-  every resolved address must be public; one private answer refuses the host. A name that does not resolve in 5 seconds is refused.
+  every resolved address must be public; one private answer refuses the host. A name that does not resolve within `DnsTimeoutSeconds` (default 5) is refused.
 - DNA `OASIS.NativeImport.AllowPrivateAddresses` (default `false`) switches the guard off; the bootloader applies it at boot. Use it only on a development machine importing from local services, never on a hosted node.
 - **DNS rebinding.** The HTTP-based readers (SOLID, ActivityPub, IPFS, Solana, and Cosmos in Gateway mode) use
   `NativeConnectionGuard.CreateGuardedHttpHandler()`: every connection resolves the host once, checks every address, and
@@ -106,8 +106,8 @@ secret values are replaced with `***` in driver error messages. Saved mappings n
 create a read-only database user for OASIS.
 
 **Who may import.** A request with a connection is read by a stateless reader of that provider type (`OASISBootLoader.NativeImportReaders`), so it does not depend on the node having the provider configured or enabled. It may come from any signed-in avatar. Without one, the server's configured
-demo store is read, which needs a Wizard avatar (or the sandbox). Limits: the sandbox caps imports at 500 records per source;
-other non-Wizard avatars at 5,000; Wizards are not capped. Connections time out after 10 seconds and reads after 30.
+demo store is read, which needs a Wizard avatar (or the sandbox). Limits (DNA `OASIS.NativeImport`): the sandbox caps imports at `SandboxMaximumRecordsPerSource`;
+other non-Wizard avatars at `UserMaximumRecordsPerSource`; Wizards are not capped. Connections time out after `ConnectTimeoutSeconds` and reads after `ReadTimeoutSeconds`.
 
 ## MongoDB (reference implementation)
 
@@ -161,7 +161,7 @@ and `import-all` merges saved mappings with any sent in the request. They are st
 ## API (WEB4 ONODE)
 
 `NativeDataController`, route `api/native-data`. Any signed-in avatar may import from a connection it sends. Reading the server's configured store (no connection) needs a **Wizard** avatar, because it reads the provider's own
-databases; on the sandbox (`OASIS_SANDBOX=true`) any signed-in demo avatar may use it, capped at 500 records per source.
+databases; on the sandbox (DNA `OASIS.Sandbox.Enabled`) any signed-in demo avatar may use it, capped by `SandboxMaximumRecordsPerSource`.
 
 | Method | Route | Does |
 |---|---|---|
@@ -196,7 +196,7 @@ holons are updated rather than duplicated. Choosing "Import my own database" swa
   (`public/people/`). Anything under `oasis/` or containing `..` is refused.
 - Each container is a source; each resource directly inside it a record keyed by its path from the Pod root, paged in path
   order. Turtle resources contribute their literal and link properties (typed integers, decimals and booleans); any other
-  resource contributes `contentType` and `size`. Resources over 1 MiB fail the read.
+  resource contributes `contentType` and `size`. Resources over `MaximumSolidResourceMegabytes` (default 1) fail the read.
 
 ## ActivityPub (`ActivityPubOASIS.NativeDataImport.cs`)
 
@@ -215,8 +215,8 @@ holons are updated rather than duplicated. Choosing "Import my own database" swa
 
 - Each program address in DNA `SolanaOASIS.NativeImportPrograms` is a source; each account the program owns a record keyed by
   its address, with `lamports`, `owner`, `executable`, `rentEpoch`, `dataLength` and the raw `data` as base64.
-- `getProgramAccounts` cannot be paged, so one fetch is held for 60 seconds and every page comes from that snapshot. A
-  program with more than 10,000 accounts is refused rather than partly imported.
+- `getProgramAccounts` cannot be paged, so one fetch is held for `SolanaSnapshotSeconds` and every page comes from that snapshot. A
+  program with more than `MaximumSolanaAccountsPerProgram` accounts is refused rather than partly imported.
 
 ## STAR CLI
 
@@ -246,6 +246,34 @@ Provider names accept the full type (`MongoDBOASIS`) or the short form (`mongodb
 nothing. `import` and `preview` use the saved mapping for the source when there is one, and the naming convention
 otherwise; `import-all` applies every saved mapping. Implementation: `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/NativeImportCli.cs`
 (parsing and execution, unit-tested) and `Program.NativeImportCommands.cs` (wiring).
+
+## Settings (all in DNA, none hard-coded)
+
+Every limit and timeout is a setting in `OASIS.NativeImport` of the node's DNA (`OASIS_DNA.json`, or the `OASIS_DNA_JSON`
+variable on Railway). The defaults are written once, in `NativeImportSettings`; the shipped `Default/OASIS_DNA.json` lists every
+setting with the same values and a test keeps the two identical. The readers take them from DNA each time (`NativeImportOptions`),
+so a change applies without a code change. A value below 1 fails with a message naming the setting.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `AllowPrivateAddresses` | `false` | Let imports reach loopback and private addresses. Never on a hosted node |
+| `SandboxMaximumRecordsPerSource` | `500` | Records per source for an import on the sandbox |
+| `UserMaximumRecordsPerSource` | `5000` | Records per source for a non-Wizard avatar importing its own database |
+| `DefaultPreviewRecords` / `MaximumPreviewRecords` | `5` / `20` | Preview size when not given / the most a preview may ask for |
+| `DefaultPageSize` / `MaximumPageSize` | `200` / `1000` | Records per page when not given / the most a reader is asked for |
+| `DefaultMaximumRecordsPerSource` | `10000` | Records per source when a request does not say |
+| `ConnectTimeoutSeconds` | `10` | Opening a connection to a caller's system |
+| `ReadTimeoutSeconds` | `30` | One read from a caller's system |
+| `DnsTimeoutSeconds` | `5` | Resolving a host name before refusing it |
+| `MaximumSqliteUploadMegabytes` | `8` | Largest SQLite file a caller may upload |
+| `MaximumSolanaAccountsPerProgram` | `10000` | Accounts one program may own for an import to proceed |
+| `SolanaSnapshotSeconds` | `60` | How long one `getProgramAccounts` snapshot is reused |
+| `MaximumIpfsListingMegabytes` | `4` | Largest IPFS directory listing read |
+| `MaximumSolidResourceMegabytes` | `1` | Largest SOLID resource read |
+| `MaximumNeo4jDiscoveredLabels` | `200` | Labels listed when a Neo4j connection does not name them |
+
+The sandbox settings (`OASIS.Sandbox`) are described in `SANDBOX_DEMO_AVATARS.md`. The only values still fixed in code are protocol
+facts, such as Mastodon's page sizes (40 statuses, 80 accounts) and the SQLite file header.
 
 ## Not yet built
 

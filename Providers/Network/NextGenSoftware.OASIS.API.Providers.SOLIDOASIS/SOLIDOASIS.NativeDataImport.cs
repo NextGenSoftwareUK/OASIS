@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 public partial class SOLIDOASIS : INativeDataImportProvider
 {
     private const string LdpContains = "http://www.w3.org/ns/ldp#contains";
-    private const int MaximumResourceBytes = 1024 * 1024;
+    private static int MaximumResourceBytes => NativeImportOptions.MegabytesToBytes(NativeImportOptions.Current.MaximumSolidResourceMegabytes, "MaximumSolidResourceMegabytes");
 
     /// <summary>Comma-separated container paths relative to the Pod root, for example "public/people/" (DNA SOLIDOASIS.NativeImportContainers).</summary>
     public string NativeImportContainers { get; set; }

@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
@@ -21,7 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
     /// </summary>
     public partial class SQLLiteDBOASIS : INativeDataImportProvider
     {
-        public const int MaximumUploadBytes = 8 * 1024 * 1024;
+        /// <summary>The largest SQLite file a caller may upload (DNA OASIS.NativeImport.MaximumSqliteUploadMegabytes).</summary>
+        public static int MaximumUploadBytes => NativeImportOptions.MegabytesToBytes(NativeImportOptions.Current.MaximumSqliteUploadMegabytes, nameof(NativeImportSettings.MaximumSqliteUploadMegabytes));
         private static readonly string[] ConnectionSettings = { "fileName", "fileBase64" };
         private static readonly byte[] SqliteHeader = System.Text.Encoding.ASCII.GetBytes("SQLite format 3\0");
 

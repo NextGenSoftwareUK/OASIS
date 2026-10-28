@@ -3,21 +3,21 @@
 The public WEB4 sandbox lets a visitor try everything with one click, no account needed. `POST api/sandbox/session` creates a
 throwaway verified avatar named `sandbox-<8 hex>` with the email `sandbox-<8 hex>@sandbox.oasisomniverse.one` and a random
 password, routes it across the sandbox's three databases (MongoDB, SQLite, Neo4j) with its own HyperDrive settings, and signs it
-in. These endpoints exist only where `OASIS_SANDBOX=true`; everywhere else they answer 404.
+in. These endpoints exist only where DNA has `OASIS.Sandbox.Enabled` set to true; everywhere else they answer 404.
 
 ## Limits on creating them
 
 `SandboxSessionLimiter` (Core `Managers/SandboxAvatarCleanup.cs`) bounds the public button:
 
-- 20 demo avatars per address per hour, and 1,000 per 24 hours across the whole sandbox.
+- `MaximumSessionsPerAddressPerHour` demo avatars per address per hour (default 20), and `MaximumSessionsPerDay` across the whole sandbox per 24 hours (default 1,000).
 - A refused request answers HTTP 429 with the reason, which the sandbox page shows.
 - The counts are in memory, so a restart resets them.
 
 ## Cleanup
 
-`SandboxCleanupHostedService` runs inside the WEB4 API, **only when `OASIS_SANDBOX=true`**, so no other deployment ever runs it.
-It sweeps every 15 minutes (first sweep one minute after start-up) and removes a demo avatar once it is older than the
-retention period: 24 hours by default, or `OASIS_SANDBOX_RETENTION_MINUTES`.
+`SandboxCleanupHostedService` runs inside the WEB4 API and does nothing **unless DNA has `OASIS.Sandbox.Enabled`**, so no other deployment ever deletes anything.
+It sweeps every `CleanupIntervalMinutes` (default 15; the first sweep is `CleanupInitialDelayMinutes` after start-up) and removes a demo avatar once it is older than the
+retention period, `DemoAvatarRetentionMinutes` (default 1,440, which is 24 hours).
 
 An avatar is treated as a demo avatar only when **all** of these hold, so a real user can never be matched:
 
@@ -48,3 +48,28 @@ everything else. Credentials a visitor typed into the sandbox are not kept beyon
 `OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/SandboxAvatarCleanupTests.cs`: the demo-avatar match rules,
 holons-before-avatar ordering on every provider, retry after a failed deletion, one failing avatar not stopping the rest,
 the per-sweep cap, and the session limiter's sliding windows.
+
+## Settings (all in DNA, none hard-coded)
+
+Everything above is configured in `OASIS.Sandbox` of the node's DNA (`OASIS_DNA.json`, or the `OASIS_DNA_JSON` variable on
+Railway). The defaults are written once, in `SandboxSettings`; the shipped `Default/OASIS_DNA.json` lists every setting with the
+same values and a test keeps the two identical. A missing section or key takes the default; a value below 1 fails with a message
+naming the setting.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `Enabled` | `false` | Turns the sandbox endpoints and the cleanup on. Set it only on the sandbox deployment |
+| `Providers` | `MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS` | The providers a demo avatar's HyperDrive settings route across |
+| `DemoAvatarUsernamePrefix` | `sandbox-` | Demo avatars are `<prefix><8 hex>`. Cleanup requires this prefix and the domain below; at least 3 characters |
+| `DemoAvatarEmailDomain` | `sandbox.oasisomniverse.one` | Demo avatars get `<username>@<domain>`; must contain a dot |
+| `DemoAvatarRetentionMinutes` | `1440` | Age at which a demo avatar and its data are removed |
+| `CleanupIntervalMinutes` | `15` | Minutes between sweeps |
+| `CleanupInitialDelayMinutes` | `1` | Minutes after start-up before the first sweep |
+| `MaximumAvatarsRemovedPerSweep` | `50` | Avatars one sweep removes, oldest first |
+| `ProviderOfflineDefaultSeconds` | `60` | How long a visitor's "take provider offline" lasts when the request does not say |
+| `ProviderOfflineMinimumSeconds` / `ProviderOfflineMaximumSeconds` | `5` / `120` | The shortest and longest a visitor may take a provider offline for, so a demo can never leave one down |
+| `DemoNeo4jLabel` | `ShopLoyaltyMember` | Neo4j label of the demo shop's loyalty members. Also list it in `Neo4jOASIS.NativeImportLabels` |
+| `MaximumSessionsPerAddressPerHour` | `20` | Demo avatars one address may create per hour |
+| `MaximumSessionsPerDay` | `1000` | Demo avatars the whole sandbox may create per 24 hours |
+
+The old `OASIS_SANDBOX` and `OASIS_SANDBOX_RETENTION_MINUTES` environment variables are no longer read.
