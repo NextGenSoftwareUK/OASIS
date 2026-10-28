@@ -30,20 +30,22 @@ mutation/conditional/history behavior is unchanged.
 Provider builds.7 focused CQL cases pass; all473 existing+new Oracle unit tests pass.
 Tests cover frozen ID/auth snapshots, bound GUID parameters, empty catalogue FALSE,
 unsupported Name/metadata/order/graph, inactive provider and pre-cancelled dispatch.
-No native CQL test has run yet; these do not certify Oracle SQL runtime participation.
+Native CQL acceptance now passes (1 test, no skips): four real records, trusted authorization returns three, native membership subset returns two, stable page, Take(0), result-budget rejection without partial rows, canonical names/provider keys and exact envelope-checked cleanup.
+Proof: TestResults/OracleCurrent/oracle-cql-native-current.trx; SHA256 4F4BF7EBBB95E40D8BB0DAAB29304C1AF1D6712E4A6D39BA41D4E17A758A9ED0.
+[Test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/OracleCqlNativeTests.cs). Container stopped (143, no OOM); persistent fixture journal absent.
 Raw proof:TestResults/DemoBreadthCurrent/oracle-cql-unit-regression.trx
 SHA2564AE87058D9B651EFA6FF0C3B81A5D22F36B7A77F974496A2C00599E6563A9C4C.
 Unit assets regenerated from local cached packages only; no download/install/container.
 
 ## Exact next step
 
-Reuse retained oasis-oracle-free/image358b32468eddc329751c28007a535cbc661f1090ab5d8a9f02267cf44ef1e3b9,
-oasis-oracle-data/11521 and existing Podman secret. Inspect pending original fixtures
-before writes; never reprovision/reset the schema/container/identity. Extend the
-existing reusable runner with a bounded CQL mode and journal-owned3-record fixture.
-Prove native all/subset/paging, access exclusion, canonical history/provenance,
-cancellation/source failures/no partials and exact cleanup. Then Mongo pairing and
-readable C#/HTTP/browser preset. Richer business fields/scalars remain open, not EF parity.
+Add the real Mongo+Oracle pairing, then readable C#/HTTP/browser preset.
+Reuse the retained database and runner `Run-ReusableOracleTests.ps1 -Cql` under
+one build lease. Persistent journal: LocalState/COSMIC/OracleCqlCurrent;
+raw evidence: TestResults/OracleCurrent. Never overwrite prior evidence or replay
+pending fixture intent. Richer business fields/scalars, runtime outage/cancellation
+and history-specific CQL corruption gates remain open; this is not full EF parity
+or hosted OCI proof.
 
 Native contract reference:[OracleDbType RAW](https://docs.oracle.com/en/database/oracle/oracle-database/21/odpnt/OracleDbTypeEnumerationType.html).
 Hosted Azure separately requires free-account setup; user has no free subscription.
