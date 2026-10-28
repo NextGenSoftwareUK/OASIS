@@ -256,3 +256,14 @@ share the existing native reduction/proof owner and exact result-domain validato
 terminal predicates append after preceding windows. No DTOs are constructed, and
 missing/contradictory count acknowledgements fail before publication. Numeric,
 All and element permissions are not inferred from this enrollment.
+
+### Mixed native/indexed federation execution
+
+The shared federation planner captures target-local index requirements; execution has
+an explicit indexed-reader/observer registry separate from native adapters. Input
+capture validates the complete read set, including prepared indexed admission, before
+physical reads. Leaves retain their existing native/indexed executors and receipt
+owners; merge and HolonManager hydration preserve IndexedEvidence on physical copies
+and IndexedReads for empty pages. Input/output/work/attempt/deadline budgets cover
+source evidence as well as rows. No evidence is injected into user metadata. Full
+Core4298tests pass; actual Mongo+retained Solana/HTTP/browser acceptance is still open.
