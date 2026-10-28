@@ -127,7 +127,7 @@ public partial class SolanaIndexedQueryNative
         app.MapGet("/health", () => Results.Ok(new {
             status = Volatile.Read(ref ready) ? "ready" : "verifying", sourceProvider = source.SourceProvider.ToString(),
             executionProvider = source.ExecutionProvider.ToString(), source.NetworkIdentity,
-            source.IndexId, coverageStart = seed.CoverageStart.ToString(),
+            source.IndexId, schemaVersion = source.SchemaVersion, coverageStart = seed.CoverageStart.ToString(),
             identity = "controlled local demo", sourceWrites = 0,
             ingestion = new { advancements = Volatile.Read(ref advancements), failureCode = ingestionSession.FailureCode,
                 checkpointSlot = ingestionSession.AcknowledgedPosition.Slot.ToString(), intervalSeconds = 5,
@@ -266,6 +266,59 @@ public partial class SolanaIndexedQueryNative
                 Assert.AreEqual(scalarAttempts, evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count));
             }
 
+            var metadataAccepted = 0;
+            var metadataDenied = 0;
+            if (source.SchemaVersion == 3)
+            foreach (var metadataCase in new[] { "rows", "LongCount", "Any", "zero", "empty", "projection", "private", "case", "envelope" })
+            {
+                var deniedRoot = metadataCase is "private" or "case" or "envelope";
+                var scalar = metadataCase is "LongCount" or "Any" or "zero" or "empty";
+                var root = metadataCase == "private" ? "privateNote" : metadataCase == "case" ? "status" : metadataCase == "envelope" ? "__oasis_enc__" : "Status";
+                var filters = new object[] {
+                    new { metadataPath = new[] { root, "category" }, scalar = "String", @operator = "Equal", value = metadataCase == "empty" ? "absent" : "coffee" },
+                    new { metadataPath = new[] { root, "amount" }, scalar = "Integer", @operator = "GreaterThan", value = 9007199254740992L }
+                };
+                var body = scalar
+                    ? JsonSerializer.Serialize(new { alias = "solana-native-demo", query = new {
+                        operation = metadataCase == "Any" ? "Any" : "LongCount", filters, orderBy = "Id", take = metadataCase == "zero" ? (int?)0 : null } })
+                    : JsonSerializer.Serialize(new { alias = "solana-native-demo", query = new { filters, orderBy = "Name", take = 1 },
+                        columns = metadataCase == "projection" ? new[] { new { alias = "label", field = "Name" } } : null });
+                var route = scalar ? "/api/data/query-cql/indexed/scalar" : "/api/data/query-cql/indexed";
+                client.DefaultRequestHeaders.Remove("Idempotency-Key");
+                client.DefaultRequestHeaders.Add("Idempotency-Key", "native-metadata-" + metadataCase);
+                var authorizationsBefore = authorityEvidence.Authorizations.Count;
+                var attemptsBefore = evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count);
+                using var response = await client.PostAsync(route, new StringContent(body, Encoding.UTF8, "application/json"));
+                var text = await response.Content.ReadAsStringAsync();
+                if (deniedRoot)
+                {
+                    Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode, text);
+                    StringAssert.Contains(text, "CQL_CAPABILITY_UNSUPPORTED");
+                    Assert.AreEqual(authorizationsBefore, authorityEvidence.Authorizations.Count);
+                    Assert.AreEqual(attemptsBefore, evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count));
+                    metadataDenied++;continue;
+                }
+                Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, text);
+                Assert.IsFalse(text.Contains("privateNote", StringComparison.Ordinal));
+                using var json = JsonDocument.Parse(text);var page = json.RootElement.GetProperty("result");
+                Assert.AreEqual(3, page.GetProperty("checkpoint").GetProperty("source").GetProperty("schemaVersion").GetInt32());
+                if (metadataCase == "Any") Assert.IsTrue(page.GetProperty("value").GetBoolean());
+                else if (scalar) Assert.AreEqual(metadataCase is "zero" or "empty" ? "0" : "1", page.GetProperty("value").GetString());
+                else Assert.AreEqual(1, page.GetProperty("rows").GetArrayLength());
+                var id = response.Headers.GetValues("X-OASIS-Operation-Id").Single();
+                var operation = evidence.Operations[id];
+                var settlement = authorityEvidence.Settlements.Single(value => value.OperationId == id);
+                Assert.AreEqual("settled", operation.State);
+                Assert.AreEqual(operation.ProviderAttempts.Count, operation.Receipts.Count);
+                Assert.AreEqual((long)operation.Receipts.Count, settlement.Units);
+                Assert.AreEqual(operation.Receipts.Count * 0.001m, settlement.ActualCostUsd);
+                metadataAccepted++;
+                var attempts = evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count);
+                using var replay = await client.PostAsync(route, new StringContent(body, Encoding.UTF8, "application/json"));
+                Assert.AreEqual(HttpStatusCode.Conflict, replay.StatusCode);
+                Assert.AreEqual(attempts, evidence.Operations.Values.Sum(value => value.ProviderAttempts.Count));
+            }
+
             var beforeRejected = evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count);
             client.DefaultRequestHeaders.Remove("Idempotency-Key");
             client.DefaultRequestHeaders.Add("Idempotency-Key", "native-index-unsupported");
@@ -273,8 +326,8 @@ public partial class SolanaIndexedQueryNative
                 "{\"alias\":\"solana-native-demo\",\"query\":{\"graph\":{},\"take\":1}}", Encoding.UTF8, "application/json"));
             Assert.AreEqual(HttpStatusCode.BadRequest, rejected.StatusCode);
             Assert.AreEqual(beforeRejected, evidence.Operations.Values.Sum(op => op.ProviderAttempts.Count));
-            Assert.AreEqual(13, evidence.Operations.Count);
-            Assert.AreEqual(13, authorityEvidence.Settlements.Count);
+            Assert.AreEqual(13 + metadataAccepted, evidence.Operations.Count);
+            Assert.AreEqual(13 + metadataAccepted, authorityEvidence.Settlements.Count);
             // Native acceptance finishes before optional interactive queries become available.
             // Shutdown releases the index and runner-owned validator without deleting source state.
             var initialAdvance = await AdvanceIndexAsync();
@@ -300,9 +353,10 @@ public partial class SolanaIndexedQueryNative
                 Assert.AreEqual(HttpStatusCode.Accepted, stopped.StatusCode);
                 await shutdown.Task.WaitAsync(TimeSpan.FromSeconds(5));
             }
-            return new { requests = 27, accepted = 13, rejectedReplays = 13,
+            return new { requests = 27 + metadataAccepted * 2 + metadataDenied, accepted = 13 + metadataAccepted, rejectedReplays = 13 + metadataAccepted,
+                metadataAccepted, metadataDenied,
                 interactiveRequests, interactive = serve, ingestionAdvancements = advancements,
-                ingestionCheckpoint = ingestionSession.AcknowledgedPosition.Slot.ToString(), unsupportedBeforeExecution = 1,
+                ingestionCheckpoint = ingestionSession.AcknowledgedPosition.Slot.ToString(), unsupportedBeforeExecution = 1 + metadataDenied,
                 physicalReadCounts = counts, scalarPhysicalReadCounts = scalarCounts, sourceTransport = "live retained local validator", ledger = "controlled fixture",
                 authentication = "controlled validated identity", sourceWrites = 0 };
         }

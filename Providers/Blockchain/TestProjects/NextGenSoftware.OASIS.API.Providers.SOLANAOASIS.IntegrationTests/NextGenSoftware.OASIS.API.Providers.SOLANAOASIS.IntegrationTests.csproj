@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs" Link="Demo/ChainIndexedMetadataWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IndexedChainDemoPage.cs" Link="Demo/IndexedChainDemoPage.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs" Link="Demo/ChainIndexedWalkthrough.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
