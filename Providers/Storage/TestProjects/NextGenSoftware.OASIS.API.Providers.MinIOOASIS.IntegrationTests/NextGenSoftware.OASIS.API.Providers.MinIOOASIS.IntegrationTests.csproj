@@ -13,6 +13,8 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="Shared/CoreStorageConformance.cs" />
+    <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="Shared/AtomicConformanceCheckpoint.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.MinIOOASIS\NextGenSoftware.OASIS.API.Providers.MinIOOASIS.csproj" />
   </ItemGroup>
 </Project>

@@ -277,6 +277,26 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
       "sha256": "7297d27d62a7a4b50ae268a68fe8da03c6ff37ee30bbcf276880d49c853464d1",
       "blockers": []
+    },
+    {
+      "provider": "ThreeFoldOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-threefoldoasis-current.json",
+      "sha256": "45e8e426025cbe2944c4d5486896fdb19481126c657f740c188d2019b5e31567",
+      "blockers": []
+    },
+    {
+      "provider": "MinIOOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-miniooasis-current.json",
+      "sha256": "846e7a4253bea8e178f7c2490bd923652c69aa086e3edca2e801c33824f74047",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -381,7 +401,10 @@
       "Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification."
     ],
     "MinIOOASIS": [
-      "MinIO adapter29 controlled unit cases pass (16 regressions first reproduced red); service404 and failed soft-delete/public error boundaries corrected. No native core-storage-v2 pass for this adapter. Shared S3 record-policy consolidation, persistent encryption configuration, legacy-layout guard and complete relevant interfaces remain open; AWSS3-on-MinIO52 is separate."
+      "Shared encrypted S3 family facade; canonical52/52 controlled, native MinIO binding ready. Legacy plaintext prefixes refused unchanged, persisted key required, default soft holon deletion retained. Native CI, full interfaces and global routing remain open."
+    ],
+    "ThreeFoldOASIS": [
+      "Shared encrypted S3 record policy; canonical52/52 controlled and5metadata tests pass. Requires persisted OASIS_THREEFOLD_STORAGE_KEY or explicit resolver. QSS-native HEAD/conditional/pagination/IAM/durability and full interfaces remain open; controlled/MinIO evidence is not QSS certification."
     ]
   },
   "suites": [

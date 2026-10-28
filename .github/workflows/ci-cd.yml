@@ -390,6 +390,63 @@ jobs:
           --logger 'trx;LogFileName=s3-compatible-current.trx'
           --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
 
+      - name: Run shipping MinIO adapter conformance on the same service
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_MINIO_STORAGE_CONFORMANCE: '1'
+          OASIS_MINIO_CONFORMANCE_ENDPOINT: http://127.0.0.1:9000
+          OASIS_MINIO_CONFORMANCE_BUCKET: oasis-s3-conformance
+        run: >-
+          dotnet test
+          Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests.csproj
+          --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false
+          --logger 'trx;LogFileName=minio-adapter-current.trx'
+          --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
+
+      - name: Record S3 producer and consumer identities
+        if: success() && matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess
+          root = pathlib.Path('.')
+          identities = {}
+          sources = {
+              'NextGenSoftware.OASIS.API.Core': 'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+              'NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage': 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+              'NextGenSoftware.OASIS.Providers.Shared.S3': 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.S3',
+              'NextGenSoftware.OASIS.API.Providers.AWSS3OASIS': 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSS3OASIS',
+              'NextGenSoftware.OASIS.API.Providers.MinIOOASIS': 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS',
+          }
+          consumers = {
+              'AWS': ('Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests', set(sources) - {'NextGenSoftware.OASIS.API.Providers.MinIOOASIS'}),
+              'MinIO': ('Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.IntegrationTests', set(sources) - {'NextGenSoftware.OASIS.API.Providers.AWSS3OASIS'}),
+          }
+          for assembly, project in sources.items():
+              path = root / project / 'bin/Release/net10.0' / (assembly + '.dll')
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              identities[assembly] = {'producer': str(path), 'sha256': digest, 'consumers': {}}
+              for label, (host, dependencies) in consumers.items():
+                  if assembly not in dependencies:
+                      continue
+                  consumed = root / host / 'bin/Release/net10.0' / (assembly + '.dll')
+                  actual = hashlib.sha256(consumed.read_bytes()).hexdigest()
+                  assert actual == digest, f'{label} consumed a different {assembly}'
+                  identities[assembly]['consumers'][label] = actual
+          image = subprocess.check_output(['docker', 'inspect', '--format', '{{.Image}}', 'oasis-backend'], text=True).strip()
+          report = {
+              'sourceCommit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'serviceImageId': image,
+              'serviceRepoDigests': json.loads(subprocess.check_output(['docker', 'image', 'inspect', '--format', '{{json .RepoDigests}}', image], text=True)),
+              'assemblies': identities,
+              'scope': 'Fresh CI checkout/build; exact producer/consumer DLL hashes, not portable-PDB source-document verification',
+          }
+          output = root / 'TestResults/HyperDrive-Providers/S3CompatibleCurrent/identities.json'
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(report, indent=2) + '\n')
+          PY
+
       - name: Preserve S3-compatible conformance evidence
         if: always() && matrix.backend.name == 'MinIO'
         uses: actions/upload-artifact@v7
@@ -397,7 +454,9 @@ jobs:
           name: s3-compatible-conformance
           path: |
             OASIS/TestResults/ProviderConformanceCurrent/AWSS3OASIS-MinIO/**/report.json*
+            OASIS/TestResults/ProviderConformanceCurrent/MinIOOASIS/**/report.json*
             OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/*.trx
+            OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/identities.json
           retention-days: 7
           if-no-files-found: warn
 
