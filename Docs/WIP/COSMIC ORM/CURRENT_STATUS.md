@@ -23,7 +23,7 @@ Updated27October2026. Read this first after compaction; update each milestone.
 
 ## Exact next work
 
-1. Integrate existing Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 into the demo hub as an explicit three-database group. It already serves MongoDB/SQLite/Neo4j on5088 and owns its build lease; do not nest a lease.
+1. Databases hub entry now routes to the existing three-database runner;7profile/14plan discovery tests pass. Native launch is red: retained Mongo databases/146Neo4j Holons block preflight. Audit the147ID/610request snapshot at LocalState/COSMIC/Neo4jCurrent/cql-v1-web4-fixture.json before exact reconciliation; original SQLite path is outside this worktree. See CQL_DATABASE_DEMO_HUB.md. No reset/replay/new environment.
 2. Inspect the retained Azure Cosmos DB CQL native profile/environment, then add its teaching-host/hub integration. Run-ReusableCosmosV2Tests.ps1 is Cosmos blockchain, not Azure cloud; use the correct DB owner.
 3. Preserve broad demo limits. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain native point profiles.
 4. After bounded demo integration, resume red parity cells including Q01f Mongo/Neo entity projection and numeric/stage integration. Indexed other aggregates/selected stages and production acceptance remain open.
