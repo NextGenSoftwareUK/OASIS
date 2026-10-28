@@ -136,6 +136,19 @@ other non-Wizard avatars at `UserMaximumRecordsPerSource`; Wizards are not cappe
 - Each label is a source; each node a record keyed by its element id, paged in element-id order. Properties keep their
   scalar types; lists and maps become JSON text.
 
+## Saved connections
+
+A connection can be saved under a name so it need not be re-entered. **Where:** in the avatar's own record, `MetaData.preferences.nativeImportConnections`, the same place as saved mappings and per-avatar HyperDrive settings. It is
+written through the avatar manager to whichever providers that avatar's HyperDrive routes to, so the stored value is replicated like the rest of the avatar. **How:** each connection is serialised and encrypted with AES-256-GCM
+(`NativeConnectionVault`, using the existing `PasswordEncryptionHelper` quantum layer) before it is stored, with the key from DNA `OASIS.NativeImport.ConnectionEncryptionKey`. The key is never in the database.
+
+- With no key configured, saving is refused (`NATIVE_IMPORT_CONNECTION_INVALID`); nothing is ever stored in the clear, and a stored value that is not ciphertext is refused when opened.
+- Listing returns names only. Settings are decrypted only inside an import, preview or source listing for the same avatar, so one avatar can never use another's connection.
+- Names are 1-64 letters, digits, spaces, `-` or `_`. At most `MaximumSavedConnectionsPerAvatar` per avatar (`NATIVE_IMPORT_CONNECTION_LIMIT`).
+- Deleting an avatar deletes its saved connections, so the sandbox cleanup removes a demo avatar's along with everything else.
+- Changing or losing the key makes existing saved connections unreadable (`NATIVE_IMPORT_CONNECTION_UNREADABLE`); save them again.
+- STAR CLI does not save connections: it reads `--connection file.json` from the user's own disk.
+
 ## Saved mappings
 
 An avatar can save a mapping per provider and source (`PUT native-data/{provider}/sources/{source}/mapping`, list with
@@ -171,6 +184,11 @@ databases; on the sandbox (DNA `OASIS.Sandbox.Enabled`) any signed-in demo avata
 | POST | `{provider}/sources/{source}/preview?count=5` | Body: `{ mapping, connection }`, both optional. First records next to the holons they would become; saves nothing |
 | POST | `{provider}/sources/{source}/import` | Body: `{ mapping, connection, pageSize, maximumRecords }`. Returns the import report |
 | POST | `{provider}/import-all` | Body: `{ mappings: { source: mapping }, connection, pageSize, maximumRecordsPerSource }` |
+| GET | `{provider}/connections` | Names of this avatar's saved connections (never their settings) |
+| PUT | `{provider}/connections/{name}` | Body: the connection settings. Encrypts and saves them under that name |
+| DELETE | `{provider}/connections/{name}` | Removes a saved connection |
+
+Every request above that takes `connection` also takes `connectionName` instead, to use a saved one. Sending both is refused (`NATIVE_IMPORT_CONNECTION_AMBIGUOUS`).
 
 MongoDB reads its native database from DNA `StorageProviders.MongoDBOASIS.NativeImportDBName`.
 
@@ -271,11 +289,12 @@ so a change applies without a code change. A value below 1 fails with a message 
 | `MaximumIpfsListingMegabytes` | `4` | Largest IPFS directory listing read |
 | `MaximumSolidResourceMegabytes` | `1` | Largest SOLID resource read |
 | `MaximumNeo4jDiscoveredLabels` | `200` | Labels listed when a Neo4j connection does not name them |
+| `ConnectionEncryptionKey` | empty | Secret that encrypts saved connections. Empty means saving is refused. Set a long random value on any node that offers them |
+| `MaximumSavedConnectionsPerAvatar` | `10` | Connections one avatar may save |
 
 The sandbox settings (`OASIS.Sandbox`) are described in `SANDBOX_DEMO_AVATARS.md`. The only values still fixed in code are protocol
 facts, such as Mastodon's page sizes (40 statuses, 80 accounts) and the SQLite file header.
 
 ## Not yet built
 
-- Saved connections (a connection is re-entered for each request).
 - Live verification of caller-supplied connections. All eight readers are covered by unit tests against scripted services and real files (SQLite); the MongoDB, SQLite and Neo4j readers were verified live on dev WEB4 against the configured demo store, but not yet with a connection a user supplies.

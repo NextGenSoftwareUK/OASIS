@@ -40,8 +40,7 @@ Imported data is not left behind: imported holons are ordinary holons owned by t
 
 ## Saved connections
 
-Saved native-import connections (when built) will be stored with the avatar, so demo avatars lose them at cleanup like
-everything else. Credentials a visitor typed into the sandbox are not kept beyond the demo avatar's lifetime.
+A visitor may save a native-import connection under a name. It is stored encrypted in the demo avatar's own record (see NATIVE_DATA_IMPORT.md, "Saved connections"), so cleanup deletes it with the avatar, like everything else. The sandbox needs DNA `OASIS.NativeImport.ConnectionEncryptionKey` set for the Save button to work.
 
 ## Tests
 
