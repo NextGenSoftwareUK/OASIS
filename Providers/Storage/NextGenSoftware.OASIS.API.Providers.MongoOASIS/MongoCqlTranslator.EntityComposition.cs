@@ -12,8 +12,10 @@ internal sealed class MongoCqlEntityCompositionCommand
     internal MongoCqlCommand Source { get; }
     internal MongoCqlCommand[] Stages { get; }
     internal CosmicEntityCompositionOptions Options { get; }
-    internal MongoCqlEntityCompositionCommand(MongoCqlCommand source, MongoCqlCommand[] stages, CosmicEntityCompositionOptions options)
-    { Source = source; Stages = stages; Options = options; }
+    internal CosmicQueryOrdering[] EffectiveOrder { get; }
+    internal bool Reversed { get; }
+    internal MongoCqlEntityCompositionCommand(MongoCqlCommand source, MongoCqlCommand[] stages, CosmicEntityCompositionOptions options, IReadOnlyList<CosmicQueryOrdering> effectiveOrder, bool reversed)
+    { Source = source; Stages = stages; Options = options; EffectiveOrder=effectiveOrder.ToArray(); Reversed=reversed; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -119,6 +121,6 @@ internal sealed partial class MongoCqlTranslator
         current.Add(new("$limit", maximumResults + 1));
         ValidatePipeline(current);
         return new MongoCqlCommand(current.ToArray(), maximumResults + 1, membership,
-            entityComposition: new MongoCqlEntityCompositionCommand(source, stages.ToArray(), plan.Options));
+            entityComposition: new MongoCqlEntityCompositionCommand(source, stages.ToArray(), plan.Options, effectiveOrder, reversed));
     }
 }

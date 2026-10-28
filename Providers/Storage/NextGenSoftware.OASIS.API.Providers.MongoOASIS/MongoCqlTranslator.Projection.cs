@@ -15,9 +15,10 @@ internal sealed class MongoCqlProjectionCommand
     internal bool HasTraversalEnvelope { get; }
     internal bool IsEmpty { get; }
     internal MongoCqlEntityCompositionCommand EntityComposition { get; }
+    internal int EntityOrderingKeyCount { get; }
     internal MongoCqlProjectionCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool traverses, bool empty,
-        MongoCqlEntityCompositionCommand entityComposition=null)
-    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; HasTraversalEnvelope = traverses; IsEmpty = empty; EntityComposition=entityComposition; }
+        MongoCqlEntityCompositionCommand entityComposition=null, int entityOrderingKeyCount=0)
+    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; HasTraversalEnvelope = traverses; IsEmpty = empty; EntityComposition=entityComposition; EntityOrderingKeyCount=entityOrderingKeyCount; }
 }
 
 internal sealed partial class MongoCqlTranslator

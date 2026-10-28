@@ -11,8 +11,24 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider
+public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCompositionStorageProvider
 {
+    public bool SupportsEntityProjectionComposition => true;
+    public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
+        CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteSelectedCqlAsync(async () =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var admission=CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits);
+            if(admission.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,CosmicProjectionCompositionPacket>(admission);
+            var command=new MongoCqlTranslator().CompileComposition(plan,limits);
+            if(!IsProviderActivated || _holonRepository is not HolonRepository repository)
+                return SelectedCqlFailure<CosmicProjectionCompositionPacket>("CQL_PROVIDER_NOT_READY","Activate MongoDB before entity-selected composition execution.");
+            var packet=await repository.ExecuteNativeCqlCompositionAsync(command,plan.Query,limits,cancellationToken).ConfigureAwait(false);
+            return new OASISResult<CosmicProjectionCompositionPacket>(packet){IsLoaded=true};
+        });
+
     private static class SelectedNumericContract
     {
         private static readonly Type[] Domains = { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) };

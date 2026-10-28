@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using MongoProvider = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -45,7 +46,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var checks=new List<object>();
             await VerifyEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,root.Id,checks);
             await VerifyStandardEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,root.Id,checks);
-            Assert.AreEqual(14,checks.Count);
+            await VerifyEntitySelectedComposition((ICosmicQueryEntityProjectionCompositionStorageProvider)provider,root.Id,ids,checks);
+            Assert.AreEqual(23,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));
