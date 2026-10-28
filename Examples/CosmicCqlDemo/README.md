@@ -808,3 +808,22 @@ within declared limits; either target's error fails the query.
 Controlled dispatch/provenance tests pass with the actual ActivityPub adapter and a
 mocked Mongo adapter. Live Mongo-plus-protocol acceptance and ready federated launcher
 presets are still pending; do not present the controlled test as live Mongo proof.
+
+### Live Mongo + Mastodon federation acceptance
+
+```powershell
+& Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1
+```
+
+This bounded native preset reuses Mongo8.3.11/27029 and existing public Mastodon
+statuses. It creates a journaled synthetic Mongo database with two matching records
+and one unselected control, executes the shared federation sample, and proves five
+physical rows: Mongo2 + Mastodon3. Both providers' results retain provenance.
+It verifies all owned records and empty bootstrap collections before exact database
+cleanup. The retained Mongo service is stopped afterwards; no Mastodon writes occur.
+
+Fresh-run and explicit retained-fixture reconciliation acceptance both pass. The
+runner preserves existing reports and refuses rerunning over uncertain journals;
+`-Reconcile` reads the exact retained fixture without replaying saves. Review/archive
+completed evidence before subsequent fresh runs. This is SDK/native acceptance;
+a federated browser button and other provider pairings are still pending.

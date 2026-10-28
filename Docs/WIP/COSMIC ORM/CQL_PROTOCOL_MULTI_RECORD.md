@@ -202,3 +202,23 @@ not live Mongo proof. Exact next step: create a journaled synthetic Mongo fixtur
 the retained27029 environment carrying the matching native key, verify both real
 adapters, clean only that exact fixture, then expose launcher presets. Repeat for
 other providers; no arbitrary cross-provider parity or repeatable-snapshot claim.
+
+## Live Mongo + Mastodon SDK federation
+
+`Run-ReusableProtocolMongoTests.ps1` reuses Mongo8.3.11/27029 and the existing public
+Mastodon collection. Fresh acceptance1/1 and retained-fixture reconciliation1/1 pass:
+5 physical rows, Mongo2/Mastodon3; an unrelated third Mongo document is excluded by
+the native membership predicate. Exact source IDs/names/owners are independently read.
+No local substitute supplies the Mastodon rows and no mocked Mongo adapter is used.
+
+The initial run reached the correct federation result but failed a fixture cleanup
+assertion: activation creates Avatar/AvatarDetail/CosmicHolonOutbox alongside Holon.
+The journal was preserved. Explicit reconciliation verified all3 bootstrap collections
+empty and Holon count3, re-ran federation without replaying saves, then removed only
+the exact previously absent owned DB. A fresh lifecycle passes with this contract.
+No query engine fallback or weakened admission was introduced.
+
+No pending fixture remains; Mongo27029 and teaching5088 listeners absent. Evidence:
+TestResults/DemoBreadthCurrent/native-mongo-mastodon{,-reconcile}.trx and summary JSON.
+Package graph updated using existing local NuGet cache only, no remote package source.
+Other provider pairings, federated browser controls and hosted Azure remain open.
