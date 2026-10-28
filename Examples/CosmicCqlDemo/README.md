@@ -852,3 +852,22 @@ All four returned HTTP200/settled; the browser shutdown button completed teardow
 Zero source writes/no new seed; retained index/source/ack preserved. Screenshot
 capture unavailable, so layout QA remains open. See Docs/WIP/COSMIC ORM/
 CQL_SOLANA_BROWSER_VERIFICATION.md for scope and evidence hashes.
+
+### Federated browser preset (Mongo + Mastodon)
+
+```powershell
+& Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -Serve -ArchiveCompletedDemo
+```
+
+Open `http://127.0.0.1:5088/` and click **Run Mongo + protocol query**. Three selected
+native keys return five physical rows (Mongo2/Mastodon3); deselect the third native
+record to show four. Each row includes its provider/copy provenance and the response
+states `MovingProviderReads`. The single-provider button remains available.
+
+The server binds exact authoritative record IDs separately for Mongo and the protocol.
+The browser can only narrow the approved native key set. Foreign keys/actor fields
+are rejected. Stop with POST `/demo/shutdown` to finish exact fixture cleanup.
+Actual browser clicks verified5 then4 rows; screenshot/layout QA remains unavailable.
+Native/HTTP acceptance1/1 passes after completing timed checks before interactive use.
+IPFS/SOLID use the same host implementation, but their federated HTTP/browser checks
+must still be rerun before declaring those browser presets verified.

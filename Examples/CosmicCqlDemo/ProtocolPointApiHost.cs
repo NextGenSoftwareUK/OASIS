@@ -113,7 +113,9 @@ public static class ProtocolPointApiHost
         ICosmicQueryStorageProvider adapter,
         Guid actor,
         IReadOnlyDictionary<string,Guid> records,
-        string address = "http://127.0.0.1:5088")
+        string address = "http://127.0.0.1:5088",
+        ICosmicQueryStorageProvider? mongo = null,
+        IReadOnlyCollection<Guid>? mongoRecords = null)
     {
         var descriptor = adapter.QueryCapabilities.StringKeySetLookup
             ?? throw new ArgumentException("Explicit native key-set enrollment is required.", nameof(adapter));
@@ -126,6 +128,11 @@ public static class ProtocolPointApiHost
 
         // Freeze server ownership. Browser input can narrow this set but cannot change
         // provider, actor or authoritative readable identities.
+        if (mongo != null && (mongo.QueryProviderType != ProviderType.MongoDBOASIS
+            || mongoRecords == null || mongoRecords.Count < 1 || mongoRecords.Count > 40
+            || mongoRecords.Any(id => id == Guid.Empty) || mongoRecords.Distinct().Count() != mongoRecords.Count))
+            throw new ArgumentException("Mongo federation requires exact server-owned record IDs.", nameof(mongoRecords));
+        var mongoIds = mongoRecords?.ToArray();
         var metadataKey = descriptor.MetadataKey;
         var owned = new Dictionary<string,Guid>(records,StringComparer.Ordinal);
         var access = CosmicQueryReadAccess.AuthoritativeRecords(actor,adapter.QueryProviderType,owned.Values).Result;
@@ -135,14 +142,15 @@ public static class ProtocolPointApiHost
         builder.WebHost.UseUrls(address);
         var app = builder.Build();
 
-        app.MapGet("/", () => Results.Content(KeySetPage(adapter.QueryProviderType.ToString(),owned.Keys.ToArray()),"text/html"));
+        bool Allowed(string[]? keys) => keys != null && keys.Length > 0 && keys.Length <= owned.Count
+            && keys.Distinct(StringComparer.Ordinal).Count() == keys.Length
+            && keys.All(key => key != null && owned.ContainsKey(key));
+        app.MapGet("/", () => Results.Content(KeySetPage(adapter.QueryProviderType.ToString(),owned.Keys.ToArray(),mongo != null),"text/html"));
         app.MapGet("/health", () => Results.Ok(new { status = "ready", profile = "bounded-native-key-membership", provider = adapter.QueryProviderType.ToString(), records = owned.Count }));
         app.MapPost("/api/cql/keyset", async (ProtocolKeySetRequest request,CancellationToken cancellation) =>
         {
             var keys = request.NativeKeys;
-            if (keys == null || keys.Length < 1 || keys.Length > owned.Count
-                || keys.Distinct(StringComparer.Ordinal).Count() != keys.Length
-                || keys.Any(key => key == null || !owned.ContainsKey(key)))
+            if (!Allowed(keys))
                 return Results.BadRequest(new { code = "DEMO_FIXTURE_KEYS_REQUIRED" });
 
             var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
@@ -159,6 +167,39 @@ public static class ProtocolPointApiHost
                 rows = result.Result.Select(row => new { row.Id, row.Name, nativeKey = row.MetaData[descriptor.MetadataKey] })
             });
         });
+        if (mongo != null)
+        {
+            var policies = new[]
+            {
+                new CosmicFederationReadPolicy(adapter.QueryProviderType,access),
+                new CosmicFederationReadPolicy(ProviderType.MongoDBOASIS,
+                    CosmicQueryReadAccess.AuthoritativeRecords(actor,ProviderType.MongoDBOASIS,mongoIds!).Result)
+            };
+            app.MapPost("/api/cql/federation", async (ProtocolKeySetRequest request,CancellationToken cancellation) =>
+            {
+                var keys = request.NativeKeys;
+                if (!Allowed(keys)) return Results.BadRequest(new { code = "DEMO_FIXTURE_KEYS_REQUIRED" });
+                var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.MongoDBOASIS,adapter.QueryProviderType).Result)
+                    .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row,metadataKey)));
+                if (source.IsError) return Results.BadRequest(new { code = source.ErrorCode });
+                var options = CosmicFederationOptions.Create(take:80,maximumInputRows:80,maximumRowsPerProvider:40,
+                    maximumProviderAttempts:2,maximumDurationMilliseconds:30000).Result;
+                var adapters = new[] { mongo,adapter };
+                var targets = adapters.Select(target => new CosmicQueryTarget(target.QueryProviderType,target.QueryCapabilities)).ToArray();
+                var plan = CosmicFederationPlanner.Plan(source.Result,options,ProviderType.MongoDBOASIS,targets,policies);
+                if (plan.IsError) return Results.BadRequest(new { code = plan.ErrorCode });
+                var result = await manager.ExecuteFederationQueryAsync(plan.Result,adapters,cancellation);
+                if (result.IsError) return Results.Json(new { code = result.ErrorCode },statusCode:503);
+                return Results.Ok(new
+                {
+                    providers = adapters.Select(target => target.QueryProviderType.ToString()),
+                    count = result.Result.Rows.Count, observedPhysicalRows = result.Result.ObservedInputRows,
+                    consistency = result.Result.Consistency.ToString(),
+                    rows = result.Result.Rows.Select(row => new { provider = row.Selected.Provider.ToString(),
+                        row.Selected.Row.Id, row.Selected.Row.Name, copies = row.Copies.Select(copy => copy.Provider.ToString()) })
+                });
+            });
+        }
         app.MapPost("/demo/shutdown", (HttpContext context,IHostApplicationLifetime lifetime) =>
         {
             context.Response.OnCompleted(() => { lifetime.StopApplication(); return Task.CompletedTask; });
@@ -167,7 +208,7 @@ public static class ProtocolPointApiHost
         return app;
     }
 
-    private static string KeySetPage(string provider,string[] keys) => """
+    private static string KeySetPage(string provider,string[] keys,bool federation) => """
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>CQL multi-record native demo</title>
 <style>body{max-width:960px;margin:40px auto;padding:24px;font:18px/1.8 system-ui}pre{white-space:pre-wrap;background:#eee;padding:24px;line-height:1.9}label{display:block;margin:16px 0;overflow-wrap:anywhere}button{padding:14px 24px;margin:18px 12px 18px 0}</style></head>
@@ -181,13 +222,16 @@ public static class ProtocolPointApiHost
 // 3. Execute through the native adapter; display canonical identities.
 await query.ToCosmicListAsync(cancellationToken);</pre>
 <p>This profile supports bounded key membership. Content predicates and general query parity are not implied. The server fixes the actor, provider and allowed identities.</p>
-<div id="keys"></div><button id="run">Run selected-record query</button><pre id="result">Select two or more records to demonstrate a collection query.</pre>
+<div id="keys"></div><button id="run">Run selected-record query</button>FEDERATIONBUTTON<pre id="result">Select two or more records to demonstrate a collection query.</pre>
 <script>
 const keys=KEYJSON;
 for(const key of keys){const label=document.createElement('label');const box=document.createElement('input');box.type='checkbox';box.checked=true;box.value=key;label.append(box,document.createTextNode(' '+key));document.getElementById('keys').append(label);}
-document.getElementById('run').onclick=async()=>{const nativeKeys=[...document.querySelectorAll('input:checked')].map(box=>box.value);const response=await fetch('/api/cql/keyset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nativeKeys})});document.getElementById('result').textContent=JSON.stringify(await response.json(),null,2);};
+const runQuery=async(endpoint)=>{const nativeKeys=[...document.querySelectorAll('input:checked')].map(box=>box.value);const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nativeKeys})});document.getElementById('result').textContent=JSON.stringify(await response.json(),null,2);};
+document.getElementById('run').onclick=()=>runQuery('/api/cql/keyset');
+const federated=document.getElementById('federation');
+if(federated)federated.onclick=()=>runQuery('/api/cql/federation');
 </script></body></html>
-""".Replace("PROVIDER",HtmlEncoder.Default.Encode(provider)).Replace("KEYJSON",JsonSerializer.Serialize(keys));
+""".Replace("PROVIDER",HtmlEncoder.Default.Encode(provider)).Replace("KEYJSON",JsonSerializer.Serialize(keys)).Replace("FEDERATIONBUTTON",federation ? "<button id=\"federation\">Run Mongo + protocol query</button>" : "");
 
     private static string Page(string provider, string key, bool syntheticData) => """
 <!doctype html>

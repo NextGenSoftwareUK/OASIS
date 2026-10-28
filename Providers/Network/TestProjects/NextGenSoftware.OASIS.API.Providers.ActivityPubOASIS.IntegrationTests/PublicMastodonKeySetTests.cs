@@ -63,8 +63,7 @@ public sealed class PublicMastodonKeySetTests
           StorageProviders = new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings { LogSwitchingProviders = false } } };
         var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna)
         { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
-        if(Environment.GetEnvironmentVariable("OASIS_PROTOCOL_MONGO_ROOT") is string mongoRoot)
-            await NextGenSoftware.OASIS.Providers.TestSupport.NativeProtocolMongoAcceptance.RunAsync(mongoRoot,provider,ids,Guid.NewGuid(),dna,registry);
+        var readsBeforeTeaching=guard.BatchReads;
         await using var app = CosmicCqlDemo.ProtocolPointApiHost.BuildKeySet(
             new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(provider,dna,registry),provider,
             Guid.NewGuid(),result.Result.ToDictionary(row => (string)row.MetaData[ActivityPubOASIS.CqlStatusKey],row => row.Id),"http://127.0.0.1:0");
@@ -83,9 +82,15 @@ public sealed class PublicMastodonKeySetTests
             Assert.True(reply.IsSuccessStatusCode,json);
             using var response = JsonDocument.Parse(json);
             Assert.Equal(3,response.RootElement.GetProperty("count").GetInt32());
-            Assert.Equal(Environment.GetEnvironmentVariable("OASIS_PROTOCOL_MONGO_ROOT")==null?2:3,guard.BatchReads);
+            Assert.Equal(readsBeforeTeaching+1,guard.BatchReads);
         }
         finally { await app.StopAsync(); }
+
+        // Complete timed admission before the optional human-driven federation host.
+        // Human viewing time must not consume the earlier HTTP acceptance deadline.
+        if(Environment.GetEnvironmentVariable("OASIS_PROTOCOL_MONGO_ROOT") is string mongoRoot)
+            await NextGenSoftware.OASIS.Providers.TestSupport.NativeProtocolMongoAcceptance.RunAsync(mongoRoot,provider,ids,Guid.NewGuid(),dna,registry);
+
 
         if(Environment.GetEnvironmentVariable("OASIS_CQL_POINT_SERVE")=="1")
         {
