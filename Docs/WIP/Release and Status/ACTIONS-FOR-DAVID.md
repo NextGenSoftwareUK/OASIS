@@ -240,6 +240,12 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 
 ---
 
+### Pending Cloudflare Workers KV native acceptance — added28October2026
+
+The real REST/shared encrypted adapter passes52controlled core checks plus25protocol/metadata controls. Hosted acceptance still needs a dedicated owned namespace and scoped KV read/write token. No Cloudflare account/namespace or installation was created; process configuration and three standard Wrangler profile locations were empty.
+
+Configure account/namespace/token and the separately persisted32-byte storage key outside chat using the `OASIS_CLOUDFLARE_CONFORMANCE_*` variables listed in [the scoped baseline](../HyperDrive-Providers/CLOUDFLARE_KV_STORAGE_BASELINE.md). The opt-in native suite preserves actual failures. Workers KV's native eventual consistency, same-key write limit and lack of CAS/transactions remain contract gates even with credentials; do not assume a controlled pass certifies immediate visibility or current credential authority. A stronger authority/Durable Objects design is separate from this KV adapter.
+
 ## Part D — Older owner actions (14–15 October 2026)
 
 Things only you can do: they need your phone, your accounts, admin rights or a decision.

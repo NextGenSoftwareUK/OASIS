@@ -315,6 +315,16 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-upstashoasis-current.json",
       "sha256": "4b303018e706d63d3cf99e022bc56ba92aeda8085a3567e9a025450cc648bff4",
       "blockers": []
+    },
+    {
+      "provider": "CloudflareOASIS",
+      "suite": "core-storage-v2",
+      "mode": "controlled",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/CloudflareCurrent/conformance-controlled-current.json",
+      "sha256": "9cf5b1d9580db76ea77a53a3de73e192d01a6eff974b9f1300e5dc70f2839107",
+      "blockers": []
     }
   ],
   "providerBlockers": {
@@ -426,6 +436,9 @@
     ],
     "UpstashOASIS": [
       "Real hosted Upstash REST core-storage-v2 52/52; shared encrypted policy, native conditional scripts and causal sync-token session; namespace empty before/after both modes;28controlled cases. One protected scratch service expires31October2026. Cross-client linearizability, immutable release, full relevant interfaces and global routing remain open."
+    ],
+    "CloudflareOASIS": [
+      "Shared encrypted record/history/query adapter over real Workers KV REST;52/52 controlled core checks and25protocol/metadata controls pass, two native cases gated. No configured owned account/namespace/token found in process or three standard Wrangler profile locations inspected. Native eventual consistency, same-key write limit and absence of CAS/transactions prevent immediate-visibility or concurrency certification; no sleep/cache/fake-CAS workaround. Hosted/native/full-interface and global routing gates remain open."
     ]
   },
   "suites": [
