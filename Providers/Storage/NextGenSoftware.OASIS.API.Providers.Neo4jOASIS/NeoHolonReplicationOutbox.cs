@@ -207,7 +207,7 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
     {
         var json=Text(row,"PayloadJson");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=Text(row,"PayloadDigest"))throw new InvalidDataException("Outbox payload checksum differs.");
-        var delivery=CommittedHolonReplicaPayload.Read(json);
+        var delivery=CommittedHolonReplicaPayload.ReadForTarget(json,row["TargetId"].As<string>());
         if(delivery.OperationId!=operation || delivery.SourceId!=Text(row,"SourceId") || delivery.SourceAuthority!=ProviderType.Neo4jOASIS
             || Text(row,"SourceAuthority")!=ProviderType.Neo4jOASIS.ToString() || delivery.ActorId.ToString("D")!=Text(row,"ActorId"))
             throw new InvalidDataException("Outbox payload and enrollment disagree.");

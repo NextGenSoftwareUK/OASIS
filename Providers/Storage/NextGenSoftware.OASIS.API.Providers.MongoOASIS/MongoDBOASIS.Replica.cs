@@ -35,6 +35,7 @@ public partial class MongoDBOASIS : IBoundCommittedHolonReplicaStorageProvider
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request,expectedStorage);
             var plan = CommittedHolonReplicaPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
                 request.MaxChildDepth, 0, plan, request.ActorId, cancellationToken, expectedStorage: expectedStorage).ConfigureAwait(false);

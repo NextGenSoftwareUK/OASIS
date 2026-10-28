@@ -37,7 +37,8 @@ public partial class HolonRepository
     {
         var embedded=request?.Write.ReplicationEnrollment;
         if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
-            || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint))
+            || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint
+            || enrollment.NativeRoutes.Count!=embedded.NativeRoutes.Count))
             return ConditionalError("COSMIC_REPLICATION_ENROLLMENT_MISMATCH","The explicit and embedded replication enrollments differ.");
         enrollment??=embedded;
         var sourceBinding=enrollment?.SourceStorageIdentity;
@@ -86,6 +87,7 @@ public partial class HolonRepository
         OASISResult<IEnumerable<IHolon>> ApplyInTransaction()
         {
             token.ThrowIfCancellationRequested();
+            if(replicaRequest!=null) NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CommittedHolonReplicaPlan.ValidateNativeDestination(replicaRequest,expectedStorage);
             if(replicaRequest!=null)replica=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CommittedHolonReplicaPlan.Create(replicaRequest,Core.Enums.ProviderType.SQLLiteDBOASIS,
                 source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate));
             if (request == null && replica == null) throw new ArgumentNullException(nameof(request));

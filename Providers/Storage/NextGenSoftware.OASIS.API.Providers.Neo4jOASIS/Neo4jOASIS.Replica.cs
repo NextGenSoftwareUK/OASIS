@@ -90,6 +90,7 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request,expectedStorage);
             var plan=CommittedHolonReplicaPlan.Create(request,ReplicaProviderType.Neo4jOASIS);
             return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
                 new NeoAtomicHolonWrite(plan,request.ActorId,cancellationToken) { ExpectedStorage = expectedStorage }).ConfigureAwait(false);

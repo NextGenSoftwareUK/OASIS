@@ -58,8 +58,22 @@ public sealed class CommittedHolonReplicaPlan : IAtomicHolonWritePlan
             ["recursive"]=request.Recursive,["depth"]=request.MaxChildDepth,
             ["nodes"]=new JArray(Nodes.Select(node=>new JObject{["record"]=JObject.Parse(content[node.Snapshot.Id]),
                 ["children"]=new JArray(edges[node.Snapshot.Id])}))};
+        if(request.NativeRoutes.Count > 0)
+        {
+            intent["format"]=2;
+            intent["routes"]=JObject.Parse(HolonReplicationRouteDescriptors.Capture(request.NativeRoutes));
+        }
         Fingerprint=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(intent).ToString(Formatting.None))));
     }
+    /// <summary>Descriptor-bearing transport requires its declared native receiver; unbound apply is forbidden.</summary>
+    public static void ValidateNativeDestination(CommittedHolonReplicaRequest request,CosmicStorageIdentity expectedStorage)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if(request.NativeRoutes.Count > 0 && (expectedStorage == null ||
+            !request.NativeRoutes.Any(route => route.TargetStorage.BindingFingerprint == expectedStorage.BindingFingerprint)))
+            throw new ArgumentException("The committed descriptor requires its enrolled transaction-bound native destination.",nameof(expectedStorage));
+    }
+
     public static CommittedHolonReplicaPlan Create(CommittedHolonReplicaRequest request,ProviderType authority)=>new(request,authority);
     public static CommittedHolonReplicaPlan Create(CommittedHolonReplicaRequest request,ProviderType authority,Action<IHolon> validateSource)=>new(request,authority,validateSource);
     public void ValidateAcknowledgedRecord(IHolon record)

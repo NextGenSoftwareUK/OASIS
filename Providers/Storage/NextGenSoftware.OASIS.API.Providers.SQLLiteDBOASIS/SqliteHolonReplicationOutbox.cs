@@ -58,7 +58,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
             if(state=="InFlight" && reader.GetInt64(6)>now.Ticks || reader.GetInt64(7)>now.Ticks)
                 return new OASISResult<HolonDeliveryClaim>{Message="The oldest target obligation is leased or not yet due."};
             sequence=reader.GetInt64(0);operation=Guid.Parse(reader.GetString(1));payload=reader.GetString(2);
-            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10));
+            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10),targetId);
             if(reader.GetInt32(4)<0)throw new InvalidDataException("Invalid outbox attempt count.");
             attempts=checked(reader.GetInt32(4)+1);
         }
@@ -118,11 +118,11 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
             var result=OwnedResult(command.ExecuteNonQuery());cancellationToken.ThrowIfCancellationRequested();transaction.Commit();return result;
         },cancellationToken);
 
-    private static void ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor)
+    private static void ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))!=digest)
             throw new InvalidDataException("The frozen outbox payload digest differs.");
-        var delivery=CommittedHolonReplicaPayload.Read(payload);
+        var delivery=CommittedHolonReplicaPayload.ReadForTarget(payload,target);
         if(delivery.OperationId!=operation || delivery.SourceId!=source || delivery.SourceAuthority!=ProviderType.SQLLiteDBOASIS
             || authority!=ProviderType.SQLLiteDBOASIS.ToString() || delivery.ActorId.ToString("D")!=actor)
             throw new InvalidDataException("The frozen outbox payload disagrees with its enrollment.");

@@ -27,6 +27,7 @@ public partial class HolonRepository
         var intent=new JObject { ["format"]=1, ["kind"]="atomic-holon-replication",
             ["mutation"]=mutationFingerprint, ["source"]=enrollment.SourceId, ["targets"]=new JArray(enrollment.TargetIds) };
         if(enrollment.SourceStorageIdentity!=null){intent["format"]=2;intent["sourceStorageBinding"]=enrollment.SourceStorageIdentity.BindingFingerprint;}
+        if(enrollment.NativeRoutes.Count > 0){intent["format"]=3;intent["routes"]=JObject.Parse(HolonReplicationRouteDescriptors.Capture(enrollment.NativeRoutes));}
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(intent.ToString(Formatting.None))));
     }
 
@@ -35,7 +36,8 @@ public partial class HolonRepository
     {
         var payload=CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(request.Write.OperationId,
             enrollment.SourceId,ProviderType.SQLLiteDBOASIS,request.Write.ActorId,request.Operation,acknowledged,
-            request.SaveChildren,request.Recursive,request.MaxChildDepth));
+            request.SaveChildren,request.Recursive,request.MaxChildDepth,
+            enrollment.NativeRoutes.Count == 0 ? null : enrollment.NativeRoutes));
         var digest=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
         foreach(var target in enrollment.TargetIds)
         {

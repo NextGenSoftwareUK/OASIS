@@ -6,7 +6,7 @@ Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective rem
 
 | Order | Work | Acceptance owner |
 |---|---|---|
-| 1 | Finish durable native route/policy binding and replication correctness | X10 red; [SQLite bound receiver milestone](REPLICA_STORAGE_BINDING.md), All3local receivers and durable inventory verified;atomic source binding verified;[automatic enrollment/policy gates under verification](AUTOMATIC_BOUND_REPLICATION.md);operator and cold-start/physical-source-claim gates remain |
+| 1 | Finish durable native route/policy binding and replication correctness | X10 red; [SQLite bound receiver milestone](REPLICA_STORAGE_BINDING.md), All3local receivers and durable inventory verified;atomic source binding verified;[bound source/factory gates verified](SOURCE_OUTBOX_BINDING.md);[atomic complete route descriptors verified](DURABLE_ROUTE_DESCRIPTORS.md);snapshot-first worker,cold/offline binding,operator and physical replacement gates remain |
 | 2 | Hosted Azure breadth when user supplies a genuinely free authenticated account | User explicitly deferred; other scoped demo breadth verified; LINQ depth stays paused |
 | 3 | Reconcile remaining ORM correctness, child graph/parameter, history and replication requirements | Roadmap requirements preserved in historical plan; current source + proving tests |
 | 4 | Complete migration/placement/delta/history and operational acceptance still missing | Independent full-scope audit; do not infer success from focused tests |

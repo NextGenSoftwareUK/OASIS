@@ -151,6 +151,9 @@ public sealed partial class CosmicConditionalWriteTests
                         Assert.Equal(operation, payload.OperationId);
                         Assert.Equal(actor, payload.ActorId);
                         Assert.Equal(boundSourceId, payload.SourceId);
+                        Assert.Equal(2, payload.NativeRoutes.Count);
+                        Assert.All(payload.NativeRoutes, route => Assert.Equal(nativeSource.BindingFingerprint,route.SourceStorage.BindingFingerprint));
+                        Assert.Contains(payload.NativeRoutes,route => route.TargetId == row["TargetId"].AsString);
                         Assert.Equal(inputs.Select(input => input.VersionId).OrderBy(id => id), payload.Roots.Select(input => input.VersionId).OrderBy(id => id));
                     }
                     Assert.All(inputs, input => { Assert.NotEqual(Guid.Empty, input.Id); Assert.Equal(1, input.Version); Assert.False(HolonChangeTracking.HasChanges(input)); });

@@ -3,6 +3,14 @@
 Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next steps;
 [checklist](CQL_PARITY_CHECKLIST.md) owns per-database acceptance. Full programme incomplete.
 
+## Latest durable route persistence milestone
+
+[Durable route descriptors](DURABLE_ROUTE_DESCRIPTORS.md):complete frozen native source/
+target/policy snapshots now share graph/receipt/outbox transactions in all3databases.
+4401Core/1308Shared,SQLite8/Mongo8/Neo8native,shipping pair2/admission5/crash1pass.
+Snapshot-first worker recovery and new-write cold/offline restoration remain red.
+Core17ff240 pushed;new upstream sandbox/DNA integration is next before those gates.
+
 ## Latest source-outbox milestone
 
 [Bound source outboxes](SOURCE_OUTBOX_BINDING.md):all3native providers expose guarded

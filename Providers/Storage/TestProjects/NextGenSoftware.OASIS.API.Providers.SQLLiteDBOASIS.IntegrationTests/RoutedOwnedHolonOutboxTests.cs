@@ -149,10 +149,32 @@ public partial class SQLLiteDBOASISIntegrationTests
                             frozen.OperationId.Should().Be(operation);
                             frozen.ActorId.Should().Be(actor);
                             frozen.SourceId.Should().Be(boundSourceId);
+                            frozen.NativeRoutes.Should().HaveCount(2);
+                            frozen.NativeRoutes.Should().OnlyContain(route => route.SourceStorage.BindingFingerprint == nativeSource.BindingFingerprint);
+                            frozen.NativeRoutes.Single(route => route.TargetStorage.Authority == target).TargetId.Should().Be(BoundTarget(target));
                             frozen.Roots.Select(root => root.VersionId).Should().BeEquivalentTo(inputs.Select(root => root.VersionId));
                         }
                         (await reader.ReadAsync()).Should().BeFalse();
                     }
+
+                    // A native row cannot be retargeted outside its immutable
+                    // descriptor set, even when the payload/digest are unchanged.
+                    var boundOutbox = new SqliteHolonReplicationOutbox(TestConnectionString,null,nativeSource);
+                    (await boundOutbox.ReadRouteHeadsAsync()).IsError.Should().BeFalse();
+                    command.CommandText = "UPDATE CosmicHolonOutbox SET TargetId=$bad WHERE TargetId=$original AND OperationId=$operation";
+                    command.Parameters.AddWithValue("$bad","un-enrolled-target");
+                    command.Parameters.AddWithValue("$original",BoundTarget(ProviderType.MongoDBOASIS));
+                    command.Parameters.AddWithValue("$operation",operation.ToString("D"));
+                    (await command.ExecuteNonQueryAsync()).Should().Be(1);
+                    (await boundOutbox.ReadRouteHeadsAsync()).ErrorCode.Should().Be("COSMIC_OUTBOX_CORRUPT");
+                    (await boundOutbox.ClaimNextAsync("un-enrolled-target","owned-probe",TimeSpan.FromMinutes(1)))
+                        .ErrorCode.Should().Be("COSMIC_OUTBOX_CORRUPT");
+                    command.CommandText = "SELECT AttemptCount FROM CosmicHolonOutbox WHERE TargetId=$bad AND OperationId=$operation";
+                    Convert.ToInt64(await command.ExecuteScalarAsync()).Should().Be(0);
+                    command.CommandText = "UPDATE CosmicHolonOutbox SET TargetId=$original WHERE TargetId=$bad AND OperationId=$operation";
+                    (await command.ExecuteNonQueryAsync()).Should().Be(1);
+                    command.Parameters.Clear();
+                    (await boundOutbox.ReadRouteHeadsAsync()).IsError.Should().BeFalse();
 
                     var noOp = await manager.SaveOwnedHolonsAsync(inputs, actor, new CosmicWriteOptions(Guid.NewGuid()),
                         saveChildren: false, providerType: ProviderType.SQLLiteDBOASIS);
