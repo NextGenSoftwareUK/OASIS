@@ -28,11 +28,12 @@ Do not write per-provider importers, mapping rules or save loops. Those live onc
 
 ## Identity: re-importing updates, never duplicates
 
-The holon id is derived from `(provider, source, native key)` (`NativeRecordHolonMapper.StableHolonId`, a name-derived
-RFC 9562 version-8 GUID). Importing the same record again addresses the same holon, so the manager loads it
-(`allowMissing: true`), applies the record's current values and saves it. That makes scheduled re-syncs safe.
-Lineage is kept in holon metadata: `oasis.native.provider`, `oasis.native.source`, `oasis.native.key` (reserved; a native
-field mapping onto them is refused).
+The holon id is derived from `(importing avatar, provider, source, native key)` (`NativeRecordHolonMapper.StableHolonId`,
+a name-derived RFC 9562 version-8 GUID). Importing the same record again addresses the same holon, so the manager loads
+it (`allowMissing: true`), applies the record's current values and saves it; scheduled re-syncs are safe. Because the
+importing avatar is part of the id, two avatars importing the same source each own separate holons and can never
+overwrite each other's. Lineage is kept in holon metadata: `oasis.native.provider`, `oasis.native.source`,
+`oasis.native.key` (reserved; a native field mapping onto them is refused).
 
 ## Mappings: convention first, overrides only where wanted
 
@@ -66,6 +67,28 @@ counted and reported (`IsWarning`); a listing or reading failure stops the impor
   of `_id`, which keeps keys of different types distinct.
 - Converts BSON scalars to the supported types; ObjectIds become hex strings; arrays and sub-documents become relaxed JSON.
 
+## SQLite (`SQLLiteDBOASIS.NativeDataImport.cs`)
+
+- Reads another application's SQLite file from DNA `SQLLiteDBOASIS.NativeImportConnectionString`, opened read-only;
+  the OASIS database file itself is refused.
+- Sources are user tables (`sqlite_*` excluded). Rows page in rowid order; the native key is the declared primary key as
+  a JSON array of its values (`[3]`, `[10,1]`), or `rowid:N` for tables without one. WITHOUT ROWID tables are refused.
+- INTEGER and REAL stay numbers, TEXT stays text, BLOB becomes base64.
+
+## Neo4j (`Neo4jOASIS.NativeDataImport.cs`)
+
+- OASIS shares the Neo4j database with other applications, so only labels listed in DNA
+  `Neo4jOASIS.NativeImportLabels` (comma-separated) are ever read, through a read-only session.
+- Each label is a source; each node a record keyed by its element id, paged in element-id order. Properties keep their
+  scalar types; lists and maps become JSON text.
+
+## Saved mappings
+
+An avatar can save a mapping per provider and source (`PUT native-data/{provider}/sources/{source}/mapping`, list with
+`GET native-data/{provider}/mappings`, remove with `DELETE`). Imports and previews that send no mapping use the saved one,
+and `import-all` merges saved mappings with any sent in the request. They are stored with the avatar's settings
+(`SettingsManager`, category `nativeImportMappings`).
+
 ## Adding a provider
 
 1. Implement `INativeDataImportProvider` in a `<Provider>.NativeDataImport.cs` partial.
@@ -98,13 +121,13 @@ MongoDB reads its native database from DNA `StorageProviders.MongoDBOASIS.Native
 
 ## Sandbox
 
-`POST api/sandbox/native-demo` (sandbox only) writes a fixed demo shop into `SANDBOX_NATIVE_APPS`: `customers`
-(ObjectId keys), `products` (SKU string keys, decimal prices, tag arrays) and `orders` (numeric keys, nested items). The
+`POST api/sandbox/native-demo` (sandbox nodes only) writes a fixed demo shop: MongoDB `SANDBOX_NATIVE_APPS` gets
+`customers` (ObjectId keys), `products` (SKU keys, decimal prices, tag arrays) and `orders` (numeric keys, nested items);
+when configured, the SQLite native file gets `suppliers` and Neo4j gets `ShopLoyaltyMember` nodes. The
 sandbox page's Import tab seeds it, previews native records beside their holons, imports, and re-imports to show that
 holons are updated rather than duplicated.
 
 ## Not yet built
 
 - STAR CLI commands for listing sources and importing.
-- Persisting mappings (as holons) so they are reused across runs.
-- Readers for SQLite, Neo4j, Azure, Solana, IPFS, SOLID and ActivityPub.
+- Readers for Azure, Solana, IPFS, SOLID and ActivityPub.
