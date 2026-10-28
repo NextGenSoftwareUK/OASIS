@@ -18,7 +18,7 @@ Reproduce under Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1: bounded cac
 
 ## Next
 
-Convex already throws for non-success HTTP responses; its envelope/function provisioning and shared-suite gates still need review. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
+Fauna service/lifecycle review next, then remaining document-family baselines. Convex companion implementation/deployment and all native shared-suite gates below remain open. Do not copy Firestore acceptance onto Firebase Realtime Database; its separate binding/runtime gate is in FIREBASE_STORAGE_BASELINE.md.
 
 ## PocketBase
 
@@ -30,3 +30,13 @@ Convex already throws for non-success HTTP responses; its envelope/function prov
 - Cached builds passed (producer6warnings, consumer2warnings,0errors); no native service, database, SDK download or runtime install. Native canonical52 suite, actual deployment auth/rules, full identity/child/version/lifecycle contracts, selector escaping and shared record-policy base consolidation remain open.
 
 Official [record pagination](https://pocketbase.io/docs/api-records/) and [authentication](https://pocketbase.io/docs/authentication/) references. Reproduction follows the Appwrite bounded cached-build recipe above, using PocketBaseOASIS and its unit project. Existing NuGet cache/installed library-packs only; fixed reusable output paths recorded in cleanup ledger.
+
+## Convex
+
+- Functions HTTP API returns a status/value envelope. The adapter previously treated successful envelopes as empty lists and accepted function-error envelopes as successful writes. Now require valid status, throw on function error, extract explicit success value and validate list/record shapes. Remote error/log payloads are not copied to caller diagnostics.
+- Deployment admin keys now use the Convex authorization scheme, matching the official JS client; requests explicitly select JSON format. Non-success HTTP status remains available as HttpRequestException. Existing constructor retained, injected HttpClient stays caller-owned.
+- Fifteen new regressions observed red before fixes; final20/20 unit cases pass (15new+5existing). Cached producer/consumer builds passed with2warnings each,0errors; no native deployment/service or download.
+- Source claimed to ship companion code, but no oasis/avatars or oasis/holons modules exist in this provider directory. Corrected the claim; real companion implementation/provisioning remains required. This checkpoint does not implement those modules or certify any deployment.
+- Native52 suite, all relevant interfaces, action return acknowledgements, identity/detail/child/version lifecycle, encrypted shared-record-policy base and deployment-auth acceptance remain open. The existing /version activation probe is readiness only, not proof that required functions or credentials work.
+
+Protocol sources: [Functions HTTP API](https://docs.convex.dev/http-api/), [official JS HTTP client](https://github.com/get-convex/convex-js/blob/main/src/browser/http_client.ts). This is distinct from user-defined HTTP Actions on convex.site. Reproduce via the same bounded cached-build recipe above for ConvexOASIS and its unit project.
