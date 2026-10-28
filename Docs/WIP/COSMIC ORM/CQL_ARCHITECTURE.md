@@ -330,5 +330,15 @@ explicit native recreation changes its identity at the same endpoint. This is ho
 store identity,not an attestation of every collection or authenticated tenant;the
 native account must be able to read listCollections UUID metadata.
 
-Neo capture and consumption in durable automatic routing/policy binding remain open;
-current automatic target IDs are unchanged.
+Neo captures its native opaque ID/name using [db.info](https://neo4j.com/docs/operations-manual/current/procedures/built-in-procedures/),a READ procedure. The retained node returned a64-character token,not a UUID;
+StoreId therefore preserves a bounded native string without truncation/case guessing.
+GUID constructors retain their previous fingerprint bytes;malformed UTF8 is rejected.
+The storage driver creation URI is captured at actual driver construction and paired
+with native metadata under the lifecycle gate. Mutable Host/user/password are not
+used to guess the active endpoint. An injected driver with no captured endpoint is
+explicitly unsupported. Capture adds no metadata node or graph/schema writes.
+
+Single-node native tests verify independent clients,reopening,distinct URI alias
+bindings and unchanged graph/schema counts. This does not certify clustered identity,
+home-database reconfiguration or remote attestation. Consumption in durable automatic
+routing/policy binding remains open;current automatic target IDs are unchanged.
