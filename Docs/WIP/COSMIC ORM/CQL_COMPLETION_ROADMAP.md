@@ -2,6 +2,10 @@
 
 [Current status](CURRENT_STATUS.md) owns the next action; [checklist](CQL_PARITY_CHECKLIST.md) owns per-provider acceptance. Full original scope remains active.
 
+1. **Priority override28October:**pause entity-selected All/element/numeric parity. Hosted Azure free-only first; filtered multi-record IPFS/SOLID/ActivityPub next; verify Solana browser. Each provider gets a ready Mongo-paired federated preset. [Current status](CURRENT_STATUS.md) owns the next action.
+
+Historical parity checkpoint (deferred, not the active work queue):
+
 1. Q01f: SQLite and MongoDB combined entity-selected composition are implemented using existing snapshot/typed-cell owners. Mongo220 CQL controls/23 native cases now verify ordering, exact values, protected errors and work bounds.
 2. Neo combined native stages now pass151 CQL controls and23 native cases, with the same23 on SQLite and Mongo. Canonical/entity-source proofs and selected inputs/stages share one native statement/read owner; existing Neo consistency limits remain.
 3. Reselection now passes5 shared tests/3 native cases per database (26-case native cohort). Count/LongCount/Any and predicate overloads now pass4 shared tests/8 native cases per store (34 total). Next integrate All/element/numeric terminals and combined graph sources after entity selection. Preserve independent capability admission and proof-before-DTO ownership; no managed execution substitute.
