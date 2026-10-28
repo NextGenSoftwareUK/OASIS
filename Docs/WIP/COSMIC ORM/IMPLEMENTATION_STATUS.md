@@ -9,7 +9,8 @@ Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 target/policy snapshots now share graph/receipt/outbox transactions in all3databases.
 4401Core/1308Shared,SQLite8/Mongo8/Neo8native,shipping pair2/admission5/crash1pass.
 Snapshot-first worker recovery and new-write cold/offline restoration remain red.
-Core17ff240 pushed;new upstream sandbox/DNA integration is next before those gates.
+Core mergec194d536 includes incoming sandbox/DNA changes;4411Core/19DNA tests
+and WEB4 builds pass. Native proofs retain their original revision scope.
 
 ## Latest source-outbox milestone
 

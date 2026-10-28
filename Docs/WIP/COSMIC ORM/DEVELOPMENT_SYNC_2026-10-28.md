@@ -1,5 +1,15 @@
 # Development integration — 28 October 2026
 
+## Latest sandbox/DNA integration
+
+Upstream parent583bb5aa7/Core0d5e1e2 merged into task:Core mergec194d536 and parent merge d8c2db83a. Native route/snapshot implementation preserved. DNA/Core build both frameworks;affected provider readers,Shared,BootLoader andWEB4 build. DNA19/Core4411tests pass. Missing DNA.UnitTests assets recreated from local NuGet/runtime caches only,no downloads.
+
+Evidence:TestResults/OwnedRoutingCurrent/dna-sync-dna.trx (19passed,SHA256 9A9A76546966D99D428262153A276FDC59D0942ED4B6CB74ABC804D67235A982);dna-sync-core.trx (4411passed,SHA256 F0219AAF1E68018355610F930D8B936024F38CD9FCE5046727111CED38E72D12). Adjacent dna-sync-* build/restore logs. No native runtime fixtures started for this compatibility gate;earlier native proof is not recertified by these counts.
+
+V2 deployment gate:old type-only replica-head source IDs differ from new native-bound source IDs. Native lineage guards reject mismatched source lineage. An explicit audited migration/repair path is still required;do not rename heads automatically or claim seamless rollout over existing replicated data. This is V2 protocol/data evolution,not implementation work on legacy HyperDriveV1. Current work stays on work/cosmic-cql.
+
+---
+
 Merged parent Development 953cb7968 and Core Development 261fce1 into work/cosmic-cql in C:/Source/OASIS-cosmic. Core merge c1b8bd8a531de1e1812a678684cd335876d16779 was pushed and verified with git ls-remote. STAR dependency f005d8d is fetched and checked out locally. Original checkout untouched.
 
 Preserved CQL SOLID record-key-set configuration alongside incoming NativeImportContainers. Retained native-import walkthroughs, replaced obsolete missing-reader/CLI claims with incoming current gaps. Core gitlink and deployment manifest advance together. The per-avatar HyperDrive guide is now present.
