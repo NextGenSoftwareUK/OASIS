@@ -948,3 +948,19 @@ is a spaced/commented live-tested example. HTTP cardinality remains pending.
 ### Indexed HTTP cardinality
 
 POST `/api/data/query-cql/indexed/scalar` with `{"alias":"solana-demo","query":{"operation":"LongCount","orderBy":"Id"}}`. The host must explicitly enroll the measured route and alias. Omitted Take counts the whole eligible source; zero creates an empty window. Count/LongCount/Any execute native indexed SQL under the actor grant. LongCount returns an exact decimal string. See [indexed HTTP contract](CQL_INDEXED_HTTP.md#indexed-cardinality-http) for freshness, reservation and assurance limits; live Solana/SQLite HTTP cardinality passes nine cases; production identity/durable settlement remains pending.
+
+### Indexed metadata in C#
+
+Use [ChainIndexedMetadataWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs)
+for the spaced, commented example. The trusted host first constructs an explicit
+schema3 SqliteCosmicChainIndexStore with HolonQueryableMetadataPolicy selecting
+only encryption-exempt roots, then publishes the authenticated index. Source
+network/index/profile and actor access remain server-owned. The sample uses
+CosmicLinq.CreateIndexed, nested typed metadata markers and ordinary Where/order/
+LongCount/Any. Rows retain source evidence; cardinality uses snapshot assurance.
+
+Private metadata stays out of the plaintext index. Encrypted row hydration still
+requires manager.MetadataEncryptionPolicy with an authorized key resolver; index
+enrollment grants no decryption authority. SDK/actual SQLite acceptance is verified,
+including rejection without that runtime context. Metadata live-chain/HTTP demo
+enrollment remains pending; see [verified scope and next gates](CQL_INDEXED_METADATA.md).
