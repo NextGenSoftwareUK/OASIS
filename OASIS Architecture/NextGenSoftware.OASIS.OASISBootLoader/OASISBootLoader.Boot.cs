@@ -159,8 +159,6 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     OASISDNAManager.OASISDNA = OASISDNA;
                     ProviderManager.Instance.OASISDNA = OASISDNA;
-                    // Whether native import may connect to private/local addresses is a deployment decision made in DNA (default false).
-                    NextGenSoftware.OASIS.API.Core.Objects.NativeData.NativeConnectionGuard.AllowPrivate = OASISDNA.OASIS?.NativeImport?.AllowPrivateAddresses ?? false;
 
                     OASISResult<bool> secretKeyResult = await OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync();
                     if (secretKeyResult.IsError)
