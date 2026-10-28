@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         private readonly string authKey;
         private readonly string databaseName;
         private readonly List<string> collectionNames;
+        private readonly CosmosResourceInitializationMode resourceInitializationMode;
         private CosmosDbClientFactory dbClientFactory;
         private readonly System.Threading.SemaphoreSlim lifecycleGate=new(1,1);
         private IAvatarRepository avatarRepository;
@@ -32,7 +33,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         public bool IsVersionControlEnabled { get; set; }
 
         public AzureCosmosDBOASIS(Uri serviceEndpoint, string authKey, string databaseName, List<string> collectionNames)
+            : this(serviceEndpoint, authKey, databaseName, collectionNames, CosmosResourceInitializationMode.ProvisionMissingResources) { }
+
+        public AzureCosmosDBOASIS(Uri serviceEndpoint, string authKey, string databaseName, List<string> collectionNames,
+            CosmosResourceInitializationMode resourceInitializationMode)
         {
+            if (!Enum.IsDefined(typeof(CosmosResourceInitializationMode), resourceInitializationMode))
+                throw new ArgumentOutOfRangeException(nameof(resourceInitializationMode));
             this.ProviderName = "AzureCosmosDBOASIS";
             this.ProviderDescription = "Microsoft Azure Cosmos DB Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AzureCosmosDBOASIS);
@@ -43,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             this.authKey = authKey;
             this.databaseName = databaseName;
             this.collectionNames = collectionNames?.ToList();
+            this.resourceInitializationMode = resourceInitializationMode;
         }
 
     }

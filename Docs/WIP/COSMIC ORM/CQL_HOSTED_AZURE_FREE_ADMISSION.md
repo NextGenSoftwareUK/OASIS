@@ -50,3 +50,23 @@ accepted, subscription/account/resource created or paid option selected.
 User asked whether they will complete signup or leave hosted Azure pending.
 OAuth state/nonce URLs and credentials must never be copied into repository docs.
 The next acceptance gates above remain unverified.
+
+
+## Provider resource-admission prerequisite implemented
+
+`CosmosResourceInitializationMode.ExistingResourcesOnly` now explicitly binds
+pre-provisioned resources. Activation reads database/container schema and requires
+matching container identity with exactly one `/id` partition path; missing or
+incompatible resources fail with structured errors. There is no create/throughput
+or provisioning fallback. Original public constructor signatures/default provisioning
+behavior are preserved. [Usage](../../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/README.md).
+
+Six new controlled cases prove existing3container success, missing database/container,
+wrong identity/partition and invalid mode before client access. Strict mocks verify
+no other client/database/container calls even when exceptions are caught.
+All52affected non-native CQL cases pass/no skips; provider/consumer builds pass.
+TRX TestResults/CosmosCqlCurrent/hosted-resource-cql-regression.trx SHA256
+92872A8A41FDD071FE579928F4400113FD5EF7C9D4F960B05533AC7F46685413.
+No native/hosted network requests were made for this change. Actual hosted schema,
+account/free conditions and hosted SDK/HTTP/browser/Mongo acceptance remain red.
+The mode controls infrastructure creation, not data permissions or Azure billing.
