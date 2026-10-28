@@ -267,3 +267,19 @@ owners; merge and HolonManager hydration preserve IndexedEvidence on physical co
 and IndexedReads for empty pages. Input/output/work/attempt/deadline budgets cover
 source evidence as well as rows. No evidence is injected into user metadata. Full
 Core4298tests pass; actual Mongo+retained Solana/HTTP/browser acceptance is still open.
+
+
+## Native-data materialization before CQL
+
+Native import is a separate pipeline:the source's `INativeDataImportProvider` pages
+application records; `NativeRecordHolonMapper` owns per-avatar source identity;
+`NativeDataImportManager` saves through HolonManager to an explicitly configured
+target. CQL then queries the target's ordinary holons through its native adapter.
+This does not imply live CQL querying of an arbitrary application schema.
+
+The reusable native-import demo now proves SQLite source -> SQLite and SQLite source
+-> Mongo targets using one scenario owner. Provenance retains the original source;
+the target adapter determines query execution. Explicit re-import preserves no-op
+revisions or updates changed records. Save-owned metadata is preserved at mapping,
+so refresh cannot manufacture a dirty revision by erasing framework fields.
+Replication/encryption/CDC/reverse/chain acceptance remains separate from these gates.

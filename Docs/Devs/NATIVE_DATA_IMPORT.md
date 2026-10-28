@@ -158,3 +158,20 @@ keeps an unchanged re-import from manufacturing another dirty revision.
 The demo disables replication/failover and does not configure encryption. It does
 not certify cross-provider migration, encrypted import, replication delivery or a
 public schema-migration framework. Those need their own declared acceptance.
+
+
+### Cross-provider target demonstration
+
+Add `-Mongo` to `Run-CosmicNativeImportCqlDemo.ps1` for a real SQLite-native-source
+to Mongo-holon-target import. Add `-VerifyOnly` for the same native integration case.
+The runner reuses the existing pinned Mongo service/data and owns only its journaled
+`cosmic_native_import_cql_demo` database. It verifies6physical records' derived IDs,
+owners/provenance and complete collection set before exact teardown.
+
+The source reader and target query adapter are distinct arguments to the shared
+walkthrough. Stable identity remains tied to importing avatar/source provider/table/
+native key; moving the target does not redefine source provenance. Native source
+changes are refreshed by explicit re-import, not an implicit stream or CQL fallback.
+Both SQLite and Mongo target workflows pass the same no-op/update/private-visibility
+scenario. This does not certify reverse imports, schema migration tooling, encryption,
+automatic replication/failover, distributed transactions or chain migration.
