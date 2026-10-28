@@ -1,6 +1,6 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([ValidateSet('ActivityPub','IPFS','SOLID')][string]$Provider='ActivityPub',[switch]$Reconcile,[switch]$ArchiveCompletedDemo)
+param([ValidateSet('ActivityPub','IPFS','SOLID')][string]$Provider='ActivityPub',[switch]$Reconcile,[switch]$ArchiveCompletedDemo,[switch]$Serve)
 $ErrorActionPreference='Stop'
 if($Reconcile -and $Provider -ne 'ActivityPub'){throw 'Protocol fixture reconciliation requires its retained provider journal; no new protocol writes are allowed in this mode.'}
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -11,11 +11,21 @@ $project=Join-Path $root 'Providers/Network/TestProjects/NextGenSoftware.OASIS.A
 if($Provider -eq 'IPFS'){$project=Join-Path $root 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests.csproj'}
 if($Provider -eq 'SOLID'){$project=Join-Path $root 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj'}
 $report=if($Reconcile){'native-mongo-mastodon-reconcile.trx'}else{'native-mongo-mastodon.trx'}
-if($Provider -eq 'ActivityPub' -and (Test-Path (Join-Path $results $report))){throw 'Preserve previous native federation evidence before rerunning.'}
+if($Provider -eq 'ActivityPub' -and (Test-Path (Join-Path $results $report))){
+ if(!$ArchiveCompletedDemo -or $Reconcile){throw 'Preserve previous native federation evidence; archive only a completed pass.'}
+ [xml]$completed=Get-Content (Join-Path $results $report) -Raw
+ if([int]$completed.TestRun.ResultSummary.Counters.passed -ne 1 -or [int]$completed.TestRun.ResultSummary.Counters.total -ne 1){throw 'Only a completed successful report can be archived.'}
+ if(Test-Path (Join-Path $root 'LocalState/COSMIC/ProtocolMongoCurrent/fixture.pending.json')){throw 'Pending fixture requires reconciliation.'}
+ $archive=Join-Path $results 'Archive';New-Item -ItemType Directory -Path $archive -Force|Out-Null
+ $source=Join-Path $results $report;$hash=(Get-FileHash $source).Hash;$target=Join-Path $archive ($hash+'-'+$report)
+ if(Test-Path $target){throw 'Preserve existing archive.'}
+ Move-Item -LiteralPath $source -Destination $target
+ if((Get-FileHash $target).Hash -ne $hash){throw 'Report archive hash mismatch.'}
+}
 if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Retained Mongo data required; never initialize a replacement.'}
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-native-protocol-mongo -Operation {
     $owned=$null
-    $names=@('OASIS_PROTOCOL_MONGO_ROOT','OASIS_PROTOCOL_MONGO_RECONCILE','OASIS_ACTIVITYPUB_PUBLIC_LIVE','OASIS_CQL_POINT_SERVE')
+    $names=@('OASIS_PROTOCOL_MONGO_ROOT','OASIS_PROTOCOL_MONGO_RECONCILE','OASIS_ACTIVITYPUB_PUBLIC_LIVE','OASIS_CQL_POINT_SERVE','OASIS_CQL_FEDERATION_SERVE')
     $prior=@{};foreach($name in $names){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
     try{
         if(Get-NetTCPConnection -State Listen -LocalPort 27029,5088 -ErrorAction SilentlyContinue){throw 'Owned demo ports occupied; preserve other operations.'}
@@ -34,7 +44,7 @@ if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Retained Mongo data requi
         }
         if(!$ready){throw 'Mongo readiness deadline exceeded.'}
         $env:OASIS_PROTOCOL_MONGO_ROOT=$root;$env:OASIS_PROTOCOL_MONGO_RECONCILE=if($Reconcile){'1'}else{'0'}
-        $env:OASIS_ACTIVITYPUB_PUBLIC_LIVE='1';$env:OASIS_CQL_POINT_SERVE='0'
+        $env:OASIS_ACTIVITYPUB_PUBLIC_LIVE='1';$env:OASIS_CQL_POINT_SERVE='0';$env:OASIS_CQL_FEDERATION_SERVE=if($Serve){'1'}else{'0'}
         if($Provider -eq 'IPFS'){
             & (Join-Path $PSScriptRoot 'Run-ReusableIpfsTests.ps1') -CqlKeySet -ArchiveCompletedDemo:$ArchiveCompletedDemo
         }elseif($Provider -eq 'SOLID'){
