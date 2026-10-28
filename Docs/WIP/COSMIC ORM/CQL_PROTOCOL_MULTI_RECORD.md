@@ -65,3 +65,22 @@ This does not establish equivalent query support on every ActivityPub implementa
 - Still open: interactive teaching page/HTTP multi-record demonstration, actual
   Mongo-paired federated preset, broader content/tag filters, IPFS and SOLID collections,
   hosted free Azure and Solana browser verification. These are not marked green here.
+
+## IPFS encrypted CID-set implementation
+
+Set `EnableCqlCidKeySets = true` on the configured IPFS provider before planning.
+Use the same Contains expression above with `IPFSOASIS.CqlRecordCidKey` and 1–8
+valid CIDs. One authenticated immutable private catalogue is read; only selected
+holon entries are decrypted. Missing catalogue entries are absent, access/deletion
+filters precede paging, and every selected envelope validates before any page is
+published. No general content predicate, Pod query or plaintext index is implied.
+The native read bound is one catalogue plus at most8 record envelopes, each at most
+4 MiB. Result-budget excess fails the whole page. Default remains point enrollment.
+
+Controlled verification:17 point/membership cases and195 selected controlled provider
+tests pass, including selection from3 encrypted records, access-before-Skip, corrupt
+selected envelope even with Take(0), and budget failure. Actual Kubo collection
+acceptance and Mongo federation remain unverified; do not mark those gates green.
+An initial overbroad regression filter also selected8 historical native inspection/
+cleanup tests; they failed on missing environment prerequisites before native work.
+The corrected controlled selection passes; that first run is retained as evidence.
