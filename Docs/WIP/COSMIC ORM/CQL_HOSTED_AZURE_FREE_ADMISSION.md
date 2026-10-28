@@ -27,3 +27,12 @@ Status:not provisioned/not verified. No Azure account/resource/paid subscription
 - https://cosmos.azure.com/try/ (live UI inspected28October2026)
 
 This gate remains open. Emulator proof and under-construction pages do not satisfy hosted acceptance. Continue multi-record IPFS/SOLID/ActivityPub and Solana browser work while Azure prerequisites remain unavailable.
+
+
+## Local federation preparation completed
+
+Mongo+retained local Cosmos C#/HTTP/browser now passes5physical rows/4subset,
+source provenance, policy rejection and exact cleanup on mergedCorea2e9b6c.
+[Proof](CQL_MONGO_COSMOS_VERIFICATION.md). This removes the local federation
+implementation gap; it does not satisfy any hosted endpoint/account/zero-cost gate.
+No Azure resource/subscription/account was created and no billing terms accepted.

@@ -1286,3 +1286,15 @@ read catalogues passed to HolonManager. Use
 and http://127.0.0.1:5091/ for matching/empty presets. Read-level assurance survives
 zero matching rows; only the chain copy carries its original receipt/version.
 Stop with the page cleanup button. [Verification and limits](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md#mixed-httpbrowser-milestone).
+
+
+## Mongo + Azure Cosmos DB federation sample
+
+[CloudFederationWalkthrough](../../../Examples/CosmicCqlDemo/CloudFederationWalkthrough.cs)
+uses explicit provider scope, canonical-ID membership and separate trusted read
+catalogues over activated adapters. The sample owns no credentials or provisioning.
+The available live preset uses the retained local emulator, not hosted Azure:
+`Scripts/TestHosts/Run-ReusableCosmosCqlDemo.ps1 -Mongo -Serve`, then
+http://127.0.0.1:5092/ . Query5physical rows or4subset; inspect provider provenance,
+then use the page cleanup button. [Proof/limits](CQL_MONGO_COSMOS_VERIFICATION.md).
+Hosted zero-cost account/configuration and hosted proof remain required separately.
