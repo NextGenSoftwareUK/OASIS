@@ -42,3 +42,16 @@ full Core TRXSHA256621633BB848CDC9354D98E2729352AB4A6AD9A24E1D41DFA315BA8BC2A795
 Initial failed re-import fixture was independently reconciled without replay;
 failed78012A8B...TRX retained. Committed report counts hash
 AD504EBCCF7F073950DBB4B9EDF49FDA4513ACE2F97E310CA5083861FD7274C7.
+
+
+Cross-provider native import now verified:SQLite source -> Mongo target using the
+same public API walkthrough and shared assertion owner. Native1/1Mongo case and
+console command pass; original SQLite native1/1case also passes after refactor.
+Both prove no-op revisions,changed-row stable identity,2private avatar copies and
+source preservation. Mongo6records/complete collection set/owners/provenance checked
+before exact drop; source files/journal absent,ownedMongo stopped.
+Mongo TRX TestResults/NativeImportMongoCurrent/native-import-cql.trx SHA256
+42248339E20BD74DAE044473B4B3EDB0A0B113C023612A23B127F753CE05EB7E;
+reportSHA256045E70A09333C27DBD5E11C4B4A8C7FAB880021B00E1AC8C7951F7D9C5DD0B29.
+SQLite regressionTRX SHA2565ABDEB563905E797A8EC360201869E1109845481C491FB29F2FD040E1012CFA8.
+Reverse/Neo/chain/encryption/replication migration gates are not promoted by this proof.

@@ -1298,3 +1298,16 @@ The available live preset uses the retained local emulator, not hosted Azure:
 http://127.0.0.1:5092/ . Query5physical rows or4subset; inspect provider provenance,
 then use the page cleanup button. [Proof/limits](CQL_MONGO_COSMOS_VERIFICATION.md).
 Hosted zero-cost account/configuration and hosted proof remain required separately.
+
+
+## Import existing application data, then query it
+
+`Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -Mongo -ArchiveCompletedDemo`
+shows a native SQLite table materialized as Mongo holons and queried through CQL.
+Omit `-Mongo` for the SQLite target; add `-VerifyOnly` for bounded native acceptance.
+Both target cases use the same commented walkthrough and explicit actor visibility.
+They demonstrate3created/3unchanged/1updated, stable source-derived IDs, private
+per-avatar copies and exact fixture cleanup. The native source is read-only to the
+importer; the application's controlled edit is followed by an explicit refresh.
+This is a proven cross-provider import, not live querying over raw schemas or a
+claim of automatic replication, encrypted import, reverse migration or chain writes.
