@@ -68,6 +68,11 @@ public sealed class HostedCosmosReadTests
             var longCount = query.Result.LongCount();
             Assert.AreEqual((long)ids.Length, longCount);
 
+            var paired = Environment.GetEnvironmentVariable("OASIS_HOSTED_COSMOS_MONGO") == "1";
+            if (paired)
+                await CqlNativeCloudMongoAcceptance.VerifyAsync(root.FullName, manager, provider,
+                    ids.Take(3).ToArray(), settings.Actor, hosted: true);
+
             // Read-only evidence contains no key, connection string, raw data or
             // claim that operator confirmation independently verified Azure billing.
             using (var file = new FileStream(output + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
@@ -79,7 +84,10 @@ public sealed class HostedCosmosReadTests
                     rows = rows.Result.Count, subsetRows = subset.Result.Count, projectionRows = selected.Result.Count,
                     longCount = longCount.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     operatorFreeAccountConfirmation = true, independentBillingVerification = false,
-                    infrastructureProvisioned = false, dataWrites = 0
+                    infrastructureProvisioned = false, hostedDataWrites = 0,
+                    mongoFederationAndHttpVerified = paired, mongoFixtureWrites = paired ? 3 : 0,
+                    mongoFixtureCleanupVerified = paired,
+                    browserInteractionRequested = paired && Environment.GetEnvironmentVariable("OASIS_COSMOS_MONGO_SERVE") == "1"
                 });
                 file.Flush(true);
             }

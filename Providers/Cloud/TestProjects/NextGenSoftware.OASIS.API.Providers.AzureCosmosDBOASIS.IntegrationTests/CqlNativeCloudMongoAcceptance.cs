@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 
 internal static class CqlNativeCloudMongoAcceptance
 {
-    internal static async Task VerifyAsync(string root, HolonManager manager, AzureCosmosDBOASIS cosmos, Guid[] cosmosIds, Guid actor)
+    internal static async Task VerifyAsync(string root, HolonManager manager, AzureCosmosDBOASIS cosmos, Guid[] cosmosIds, Guid actor, bool hosted = false)
     {
         const string database = "cosmic_cql_mongo_cosmos_demo";
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -59,7 +59,7 @@ internal static class CqlNativeCloudMongoAcceptance
             // HTTP uses the same walkthrough with server-owned identity catalogues.
             await using (var app = CosmicCqlDemo.CloudFederationApiHost.Build(
                 manager, mongo, cosmos, actor, cosmosIds, records.Select(row => row.Id), cosmosIds,
-                "http://127.0.0.1:0"))
+                "http://127.0.0.1:0", hosted: hosted))
             {
                 await app.StartAsync();
                 try
@@ -67,7 +67,9 @@ internal static class CqlNativeCloudMongoAcceptance
                     var address = app.Services.GetRequiredService<IServer>()
                         .Features.Get<IServerAddressesFeature>()!.Addresses.Single();
                     using var http = new HttpClient { BaseAddress = new Uri(address) };
-                    StringAssert.Contains(await http.GetStringAsync("/"), "Query two-record subset");
+                    var page = await http.GetStringAsync("/");
+                    StringAssert.Contains(page, "Query two-record subset");
+                    StringAssert.Contains(page, hosted ? "hosted Azure Cosmos DB" : "local Cosmos emulator");
                     using var invalid = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "foreign" });
                     Assert.AreEqual(HttpStatusCode.BadRequest, invalid.StatusCode);
                     using var forged = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "all", actorId = Guid.NewGuid() });
@@ -92,7 +94,7 @@ internal static class CqlNativeCloudMongoAcceptance
             if (Environment.GetEnvironmentVariable("OASIS_COSMOS_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.CloudFederationApiHost.Build(
-                    manager, mongo, cosmos, actor, cosmosIds, records.Select(row => row.Id), cosmosIds);
+                    manager, mongo, cosmos, actor, cosmosIds, records.Select(row => row.Id), cosmosIds, hosted: hosted);
                 await interactive.StartAsync();
                 Console.WriteLine("Mongo + Cosmos demo ready: http://127.0.0.1:5092/ ; stop with the page button for exact fixture cleanup.");
                 await interactive.WaitForShutdownAsync();
