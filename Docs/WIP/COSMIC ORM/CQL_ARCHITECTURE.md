@@ -322,5 +322,13 @@ The endpoint comes from native pragma_database_list,not mutable node DNA. Its pa
 spelling is preserved conservatively;aliases may have distinct fingerprints. A backup
 copy retains the logical store GUID while another endpoint changes the binding. This
 is not remote attestation or proof that an identical backup restored at the same
-address is a new physical incarnation. Mongo/Neo capture and consumption in durable
-automatic routing/policy binding remain open;current automatic target IDs are unchanged.
+address is a new physical incarnation. Mongo capture now uses its actual repository database/client handle and the native
+Holon collection UUID. It is read-only and adds no identity collection. The digest
+includes actual namespace/seed endpoints/replica-set/TLS/direct mode,not credentials
+or mutable public provider descriptors. Missing collection fails without repair;
+explicit native recreation changes its identity at the same endpoint. This is holon-
+store identity,not an attestation of every collection or authenticated tenant;the
+native account must be able to read listCollections UUID metadata.
+
+Neo capture and consumption in durable automatic routing/policy binding remain open;
+current automatic target IDs are unchanged.
