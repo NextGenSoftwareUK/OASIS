@@ -1,5 +1,7 @@
 # Current provider environment inventory
 
+28October addition: official RTDB4.11.2 JAR at C:/Users/david/.cache/firebase/emulators/firebase-database-emulator-v4.11.2.jar,34,495,935 B, SHA256b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f, downloaded once after cache inspection. Reuse Java21.0.12 at C:/Program Files/Microsoft/jdk-21.0.12.101-hotspot/bin/java.exe (sizeunmeasured). Launch rejected by policy; no owner file/19000listener; no bypass. Retain reusable JAR; remove only when retired, recreate via pinned official Firebase URL/hash in ledger. S3 artifact3,205 B retrieved once to fixed TestResults/HyperDrive-Providers/S3CompatibleCurrent; retain two reports and1,244B gzipTRX, no local MinIO image/runtime.
+
 Observed 2026-10-27; owner is the HyperDrive provider task unless marked shared/unattributed. Entries are inherited/reused, not new installs in this checkpoint. Sizes below are logical container root filesystems (including shared image layers), not exclusive disk consumption; named-volume sizes remain unmeasured. All nine listed Podman containers were observed exited. This is a checked current subset, not a claim that every historical resource still exists.
 
 ## Fixed reusable resources
