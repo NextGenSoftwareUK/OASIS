@@ -25,6 +25,7 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
     private readonly string _policyBinding;
     private readonly string _catalogId;
     private readonly Guid _catalogVersion;
+    private readonly CosmicStorageIdentity _expectedStorage;
 
     public CommittedHolonReplicaTarget(string targetId, ICommittedHolonReplicaStorageProvider provider,
         ProviderType targetAuthority, string sourceId, ProviderType sourceAuthority)
@@ -41,6 +42,14 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
     public CommittedHolonReplicaTarget(string targetId, ICommittedHolonReplicaStorageProvider provider,
         ProviderType targetAuthority, string sourceId, ProviderType sourceAuthority,
         IHolonReplicationAuthorizationPolicy policy, string catalogId, Guid catalogVersion, string expectedPolicyBinding = null)
+        : this(targetId, provider, targetAuthority, sourceId, sourceAuthority, policy, catalogId,
+            catalogVersion, expectedPolicyBinding, null) { }
+
+    /// <summary>Native storage admission is enforced by the receiver transaction, not a separate preflight.</summary>
+    public CommittedHolonReplicaTarget(string targetId, ICommittedHolonReplicaStorageProvider provider,
+        ProviderType targetAuthority, string sourceId, ProviderType sourceAuthority,
+        IHolonReplicationAuthorizationPolicy policy, string catalogId, Guid catalogVersion,
+        string expectedPolicyBinding, CosmicStorageIdentity expectedStorage)
         : this(targetId, provider, targetAuthority, sourceId, sourceAuthority)
     {
         _policy = policy ?? throw new ArgumentNullException(nameof(policy));
@@ -50,6 +59,9 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
         if (catalogVersion == Guid.Empty) throw new ArgumentException("An explicit authorization context version is required.", nameof(catalogVersion));
         _catalogId = catalogId;
         _catalogVersion = catalogVersion;
+        if (expectedStorage != null && (expectedStorage.Authority != targetAuthority || provider is not IBoundCommittedHolonReplicaStorageProvider))
+            throw new ArgumentException("A bound route requires the matching authority and a transaction-bound receiver.", nameof(expectedStorage));
+        _expectedStorage = expectedStorage;
     }
 
     public static HostedSyncFanOutItem CaptureItem(CommittedHolonReplicaRequest request)
@@ -129,7 +141,10 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
         catch (Exception error) when (error is InvalidDataException || error is ArgumentException)
         { return Error("COSMIC_REPLICA_PAYLOAD_INVALID", error.Message, error); }
 
-        var applied = await _provider.ApplyCommittedHolonReplicaAsync(request, cancellationToken).ConfigureAwait(false);
+        var applied = _expectedStorage == null
+            ? await _provider.ApplyCommittedHolonReplicaAsync(request, cancellationToken).ConfigureAwait(false)
+            : await ((IBoundCommittedHolonReplicaStorageProvider)_provider).ApplyBoundCommittedHolonReplicaAsync(
+                request, _expectedStorage, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         if (applied == null) return Error("COSMIC_REPLICA_NO_RESULT", "The replica provider returned no acknowledgement.");
         var result = new OASISResult<bool> { IsError = applied.IsError, ErrorCode = applied.ErrorCode,
