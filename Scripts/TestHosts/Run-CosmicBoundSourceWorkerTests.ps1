@@ -19,7 +19,11 @@ try {
     $before = (Get-PSDrive C).Free
     $web4 = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj'
     $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
-    foreach ($entry in @(@($web4,'bound-worker-pair-web4-build.log'),@($project,'bound-worker-pair-build.log'))) {
+    foreach ($entry in @(
+        @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj','bound-worker-shared-build.log'),
+        @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','bound-worker-sqlite-build.log'),
+        @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj','bound-worker-mongo-build.log'),
+        @($web4,'bound-worker-pair-web4-build.log'),@($project,'bound-worker-pair-build.log'))) {
         dotnet build $entry[0] --no-restore --no-incremental /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false *> (Join-Path $work $entry[1])
         if ($LASTEXITCODE) { throw "Producer/consumer build failed: $($entry[0])" }
     }
@@ -62,7 +66,7 @@ try {
         if ($LASTEXITCODE) { throw 'Native bound-source worker verification failed; preserve the original outcome.' }
         [xml]$report = Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx') -Raw
         $counts = $report.TestRun.ResultSummary.Counters
-        if (!$counts -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly four native direction/probe-availability cases must pass without skips.' }
+        if (!$counts -or [int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly six native direction/probe-availability/cold-save cases must pass without skips.' }
         if (Test-Path -LiteralPath (Join-Path $state 'worker-pair.pending.json')) { throw 'Owned fixture cleanup did not finish.' }
         Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.log') -Tail 4
         Get-FileHash -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx')
