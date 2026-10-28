@@ -49,11 +49,14 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         };
 
         public PocketBaseOASIS(string baseUrl, string adminEmail, string adminPassword)
+            : this(baseUrl, adminEmail, adminPassword, new HttpClient()) { }
+
+        public PocketBaseOASIS(string baseUrl, string adminEmail, string adminPassword, HttpClient httpClient)
         {
             _baseUrl = baseUrl.TrimEnd('/');
             _adminEmail = adminEmail;
             _adminPassword = adminPassword;
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             ProviderName = "PocketBaseOASIS";
             ProviderDescription = "PocketBase provider (self-hosted open-source backend REST API)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PocketBaseOASIS);
@@ -66,13 +69,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         {
             if (_adminToken != null) return;
             var payload = new { identity = _adminEmail, password = _adminPassword };
-            var response = await _http.PostAsync($"{_baseUrl}/api/admins/auth-with-password",
+            using var response = await _http.PostAsync($"{_baseUrl}/api/collections/_superusers/auth-with-password",
                 new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
-            if (!response.IsSuccessStatusCode) throw new Exception($"PocketBase admin auth failed: {await response.Content.ReadAsStringAsync()}");
-            var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            _adminToken = doc.RootElement.GetProperty("token").GetString();
+            response.EnsureSuccessStatusCode();
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var token = doc.RootElement.GetProperty("token").GetString();
+            if (string.IsNullOrWhiteSpace(token)) throw new JsonException("PocketBase authentication omitted its token.");
             _http.DefaultRequestHeaders.Remove("Authorization");
-            _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {_adminToken}");
+            _http.DefaultRequestHeaders.Add("Authorization", token);
+            _adminToken = token;
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
@@ -102,27 +107,58 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         private StringContent JsonContent(object obj) => new StringContent(Serialize(obj), Encoding.UTF8, "application/json");
 
         // PocketBase list response envelope
-        private class PbList<T> { [JsonPropertyName("items")] public List<T>? Items { get; set; } }
+        private class PbList<T>
+        {
+            [JsonRequired, JsonPropertyName("items")] public List<T>? Items { get; set; }
+            [JsonRequired, JsonPropertyName("page")] public int Page { get; set; }
+            [JsonRequired, JsonPropertyName("perPage")] public int PerPage { get; set; }
+            [JsonRequired, JsonPropertyName("totalItems")] public int TotalItems { get; set; }
+            [JsonRequired, JsonPropertyName("totalPages")] public int TotalPages { get; set; }
+        }
         private class PbRecord { [JsonPropertyName("id")] public string Id { get; set; } = ""; [JsonPropertyName("data_json")] public string? DataJson { get; set; } [JsonPropertyName("is_deleted")] public bool IsDeleted { get; set; } }
 
         private async Task<PbRecord?> GetFirstAsync(string collection, string filter)
         {
             await EnsureAuthAsync();
-            var url = $"{_baseUrl}/api/collections/{collection}/records?filter={Uri.EscapeDataString(filter)}&perPage=1";
-            var response = await _http.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return null;
-            var list = Deserialize<PbList<PbRecord>>(await response.Content.ReadAsStringAsync());
-            return list?.Items?.FirstOrDefault();
+            var url = $"{_baseUrl}/api/collections/{collection}/records?filter={Uri.EscapeDataString(filter)}&perPage=1&page=1&sort=id&skipTotal=false";
+            using var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return ReadPage(await response.Content.ReadAsStringAsync(), 1).Items!.FirstOrDefault();
         }
 
         private async Task<List<PbRecord>> GetAllAsync(string collection, string? filter = null)
         {
             await EnsureAuthAsync();
-            var url = $"{_baseUrl}/api/collections/{collection}/records?perPage=500{(filter != null ? $"&filter={Uri.EscapeDataString(filter)}" : "")}";
-            var response = await _http.GetAsync(url);
-            if (!response.IsSuccessStatusCode) return new List<PbRecord>();
-            var list = Deserialize<PbList<PbRecord>>(await response.Content.ReadAsStringAsync());
-            return list?.Items ?? new List<PbRecord>();
+            var all = new List<PbRecord>();
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            int? total = null, perPage = null;
+            for (var page = 1; ; page = checked(page + 1))
+            {
+                var url = $"{_baseUrl}/api/collections/{collection}/records?perPage=500&page={page}&sort=id&skipTotal=false{(filter != null ? $"&filter={Uri.EscapeDataString(filter)}" : "")}";
+                using var response = await _http.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                var list = ReadPage(await response.Content.ReadAsStringAsync(), page);
+                if (total.HasValue && (total.Value != list.TotalItems || perPage != list.PerPage))
+                    throw new JsonException("PocketBase pagination metadata changed during collection read.");
+                total = list.TotalItems; perPage = list.PerPage;
+                foreach (var record in list.Items!)
+                {
+                    if (record == null || string.IsNullOrWhiteSpace(record.Id) || !ids.Add(record.Id))
+                        throw new JsonException("PocketBase collection repeated or omitted a native record identity.");
+                    all.Add(record);
+                }
+                if (page >= list.TotalPages) return all;
+            }
+        }
+
+        private static PbList<PbRecord> ReadPage(string json, int page)
+        {
+            var list = Deserialize<PbList<PbRecord>>(json);
+            if (list?.Items == null || list.Page != page || list.PerPage < 1 || list.TotalItems < 0
+                || list.TotalPages != ((long)list.TotalItems + list.PerPage - 1) / list.PerPage
+                || list.Items.Count != Math.Min(list.PerPage, Math.Max(0L, list.TotalItems - (long)(page - 1) * list.PerPage)))
+                throw new JsonException("PocketBase list response omitted a complete, consistent page.");
+            return list;
         }
 
         private async Task UpsertAsync(string collection, string oasisId, object row)

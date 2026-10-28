@@ -54,10 +54,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
         };
 
         public AppwriteOASIS(string appwriteUrl, string projectId, string apiKey, string databaseId)
+            : this(appwriteUrl, projectId, apiKey, databaseId, new HttpClient()) { }
+
+        public AppwriteOASIS(string appwriteUrl, string projectId, string apiKey, string databaseId, HttpClient httpClient)
         {
             _baseUrl = appwriteUrl.TrimEnd('/');
             _databaseId = databaseId;
-            _http = new HttpClient();
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Add("X-Appwrite-Project", projectId);
             _http.DefaultRequestHeaders.Add("X-Appwrite-Key", apiKey);
             _http.DefaultRequestHeaders.Add("X-Appwrite-Response-Format", "1.0.0");
@@ -95,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
         private string CollUrl(string collection) => $"{_baseUrl}/databases/{_databaseId}/collections/{collection}/documents";
 
         // Appwrite document list response
-        private class AppwriteList { [JsonPropertyName("documents")] public List<AppwriteDoc>? Documents { get; set; } [JsonPropertyName("total")] public int Total { get; set; } }
+        private class AppwriteList { [JsonRequired, JsonPropertyName("documents")] public List<AppwriteDoc>? Documents { get; set; } [JsonRequired, JsonPropertyName("total")] public int Total { get; set; } }
         private class AppwriteDoc
         {
             [JsonPropertyName("$id")] public string Id { get; set; } = "";
@@ -107,10 +110,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
         private async Task<AppwriteDoc?> GetFirstAsync(string collection, string[] queries)
         {
             var qParams = string.Join("&", queries.Select(q => $"queries[]={Uri.EscapeDataString(q)}"));
-            var response = await _http.GetAsync($"{CollUrl(collection)}?limit=1&{qParams}");
-            if (!response.IsSuccessStatusCode) return null;
-            var list = Des<AppwriteList>(await response.Content.ReadAsStringAsync());
-            return list?.Documents?.FirstOrDefault();
+            using var response = await _http.GetAsync($"{CollUrl(collection)}?limit=1&{qParams}");
+            response.EnsureSuccessStatusCode();
+            var list = ReadList(await response.Content.ReadAsStringAsync());
+            if (list.Documents!.Count == 0 && list.Total != 0) throw new JsonException("Appwrite point selector returned an incomplete page.");
+            return list.Documents.FirstOrDefault();
         }
 
         private async Task<List<AppwriteDoc>> GetAllAsync(string collection, string[]? queries = null)
@@ -120,10 +124,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             while (true)
             {
                 var qParams = queries != null ? "&" + string.Join("&", queries.Select(q => $"queries[]={Uri.EscapeDataString(q)}")) : "";
-                var response = await _http.GetAsync($"{CollUrl(collection)}?limit=100&offset={offset}{qParams}");
-                if (!response.IsSuccessStatusCode) break;
-                var list = Des<AppwriteList>(await response.Content.ReadAsStringAsync());
-                if (list?.Documents == null || list.Documents.Count == 0) break;
+                using var response = await _http.GetAsync($"{CollUrl(collection)}?limit=100&offset={offset}{qParams}");
+                response.EnsureSuccessStatusCode();
+                var list = ReadList(await response.Content.ReadAsStringAsync());
+                if (list.Documents!.Count == 0)
+                {
+                    if (all.Count < list.Total) throw new JsonException("Appwrite collection ended before its declared total.");
+                    break;
+                }
                 all.AddRange(list.Documents);
                 if (all.Count >= list.Total) break;
                 offset += list.Documents.Count;
@@ -131,9 +139,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AppwriteOASIS
             return all;
         }
 
+        private static AppwriteList ReadList(string json)
+        {
+            var list = Des<AppwriteList>(json);
+            if (list?.Documents == null || list.Total < 0 || list.Documents.Count > list.Total)
+                throw new JsonException("Appwrite collection requires documents and a consistent nonnegative total.");
+            return list;
+        }
+
         // Appwrite query helpers — Appwrite Query syntax: Query.equal("field", ["value"])
         private static string Q(string field, string value) => $"equal(\"{field}\", [\"{value}\"])";
-        private static string QBool(string field, bool value) => $"equal(\"{field}\", [{(value ? "true" : "false")})";
+        private static string QBool(string field, bool value) => $"equal(\"{field}\", [{(value ? "true" : "false")}])";
 
         private async Task<string> UpsertDocAsync(string collection, string oasisId, object data)
         {

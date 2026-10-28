@@ -42,15 +42,14 @@
     },
     {
       "provider": "AWSS3OASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
-      "sha256": "286e49489debc8fd63556dcd945ed41aedf5d618684c51f32fe732d36abf3ccb",
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
+      "sha256": "4946725d183ecbfdb39b2b222bab809cef90ced1171c4622699be3cef73b1d1b",
       "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
+        "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
       ]
     },
     {
@@ -258,6 +257,29 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
       "sha256": "f29b8cdfa9aac1f4aaeb33def6558c84e6d954f35d812e9de368d8ff5a3d4c91",
       "blockers": []
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-sqllitedboasis-current.json",
+      "sha256": "29f7cbde398613132474899157b7c16334a882fd2d216b1f32bd288cf0942f59",
+      "blockers": []
+    },
+    {
+      "provider": "DuckDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 2,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-duckdboasis-current.json",
+      "sha256": "f6db9356707d817dc6a1290ecf9a77036a914cb3100b85b45b25ef83f7bb05cc",
+      "blockers": [
+        "async: avatar-save: System.InvalidOperationException [save acknowledgement/count]",
+        "sync: avatar-save: System.InvalidOperationException [save acknowledgement/count]"
+      ]
     }
   ],
   "providerBlockers": {
@@ -301,7 +323,7 @@
       "Canonical shipping factory bound; existing stopped Dynamo container mounts a missing pinned runtime JAR; restore/review that same environment before native baseline, never silently reset old data; 27 factory controls are not native conformance"
     ],
     "AWSS3OASIS": [
-      "Canonical shipping S3 factory bound; existing isolated test-bucket/region/persisted-key-variable and explicit request-cost opt-in absent; no cloud requests dispatched; 27 factory controls are not native conformance"
+      "Shipping AWSS3OASIS official SDK adapter verified on MinIO compatible service only; hosted AWS S3, production IAM, all-interface coverage and broader routing remain open."
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [
@@ -336,6 +358,24 @@
     ],
     "SOLIDOASIS": [
       "Native core-storage-v2 baseline52/52 verified in fresh isolated demo Pod on retained pinned CSS environment, sync/async26 each and exact fixture cleanup complete.362 controlled tests pass. Original delete outcomes independently reconciled without replay. CQL point/index profile and full common demo remain open; storage conformance is not CQL enrollment."
+    ],
+    "FirebaseOASIS": [
+      "Firebase Realtime Database REST adapter:23 controlled tests pass after read/protocol error preservation and JSON-safe query encoding;15 regression cases reproduced red before fix. Native shared-suite binding and Realtime Database runtime/access pending. Existing Firestore emulator is a different product; no native acceptance claim."
+    ],
+    "AppwriteOASIS": [
+      "Appwrite REST read boundary:19 controlled unit cases pass;13 targeted regressions reproduced red before fixes. HTTP point/page failures and malformed/incomplete envelopes now fail visibly; boolean selector array syntax fixed. Native service, shared-suite run, deployed API query/pagination compatibility and full interfaces remain open."
+    ],
+    "PocketBaseOASIS": [
+      "PocketBase official REST:24 controlled tests pass after error preservation, complete page traversal/validation and modern superuser authentication fixes.15 targeted regressions reproduced red. No native service contacted; canonical suite, deployed API/auth/rules, selector escaping and full interfaces remain open."
+    ],
+    "ConvexOASIS": [
+      "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
+    ],
+    "NeonOASIS": [
+      "Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open."
+    ],
+    "FaunaOASIS": [
+      "Default db.fauna.com DNS host-not-found observed28October; no configured FAUNA env names or cached task runtime. Official self-hosted source exists; releases API0. Native access/runtime, shared-suite run and full interfaces remain open; no clone/install or hosted query attempted."
     ]
   },
   "suites": [
