@@ -84,3 +84,24 @@ acceptance and Mongo federation remain unverified; do not mark those gates green
 An initial overbroad regression filter also selected8 historical native inspection/
 cleanup tests; they failed on missing environment prerequisites before native work.
 The corrected controlled selection passes; that first run is retained as evidence.
+
+## SOLID encrypted resource-set implementation
+
+Set `EnableCqlRecordKeySets = true` before planning on the configured SOLID provider.
+Use Contains with `SOLIDOASIS.CqlRecordIdKey` and1–8 canonical lowercase nonempty
+GUIDs. LDP has individual resources: this explicitly enrolled strategy makes one GET
+per selected resource, never scans a container and never substitutes local results.
+It is not a native server batch or SPARQL/content-filter claim. Each encrypted RDF
+body is bounded to4 MiB, media/identity authenticated by the existing record reader.
+
+All keys validate before I/O; source failures stop execution without partial results.
+404 means an absent resource, while403/redirect/server errors fail. Access/deletion
+filters precede Skip/Take; selected envelopes validate even before Take(0). The full
+page must fit the requested result budget. Native resource URI/ETag and canonical
+identity remain attached. Default enrollment retains the point-only contract.
+
+393 SOLID unit tests pass, including9 new multi-record cases: subset selection,
+paging, access exclusion, corrupt later envelope, budget, absence, denied source,
+invalid key and cancellation. Live Pod resource-set acceptance is pending. Reuse
+LocalState/COSMIC/SolidCurrent identities and the existing journaled native runner;
+do not recreate identity or replay completed/unknown fixture journals.
