@@ -62,7 +62,7 @@ try {
         if ($LASTEXITCODE) { throw 'Native bound-source worker verification failed; preserve the original outcome.' }
         [xml]$report = Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx') -Raw
         $counts = $report.TestRun.ResultSummary.Counters
-        if (!$counts -or [int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly two fresh native source directions must pass without skips.' }
+        if (!$counts -or [int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly four native direction/probe-availability cases must pass without skips.' }
         if (Test-Path -LiteralPath (Join-Path $state 'worker-pair.pending.json')) { throw 'Owned fixture cleanup did not finish.' }
         Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.log') -Tail 4
         Get-FileHash -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx')
