@@ -22,8 +22,8 @@ It is separate from the production WEB4 controller's authentication/billing path
 
 Run one command/provider at a time. Protocol pages use5088; SQLite Swagger uses5087.
 Add `-VerifyOnly` for bounded native verification instead of keeping a host open.
-Four-provider ShowPlan routing and script parsing pass; native protocol host gates
-are the stronger execution evidence. MongoDB/Neo4j/Cosmos/chain are not silently
+Five-provider ShowPlan routing and script parsing pass; native protocol host gates
+are the stronger execution evidence. MongoDB/Neo4j/Cosmos are not silently
 routed by this launcher; their existing runners/remaining integration are separate.
 
 ActivityPub uses only fixed-origin public Mastodon GETs, no credentials/account,
@@ -109,3 +109,49 @@ eight-provider/common-query integration remains open.
 | ActivityPub native interactive evidence | SHA256 |
 |---|---|
 | TestResults/ActivityPubCurrent/activitypub-cql-interactive-native.trx | AE79CF903FA4A3246DD2766346B8C2F7A01496FCF8DDD488E6941D8610169517 |
+
+## Solana indexed demo (port 5089)
+
+```powershell
+# Preview only; no service starts.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -ShowPlan
+
+# Bounded verification, retaining/hash-archiving the prior completed report.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -VerifyOnly -ArchiveCompletedDemo
+
+# Interactive page; leave this terminal running until graceful shutdown.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -ArchiveCompletedDemo
+```
+
+Open `http://127.0.0.1:5089/` after `/health` reports ready. Buttons demonstrate
+rows, explicit selected columns, Count/LongCount/Any and an empty source window.
+The page shows spaced C# and JSON examples, exact requests and complete responses,
+including logical Solana source, physical SQLite executor, assurance, checkpoint
+and independently observed finalized head. These are actual shipping WEB4 routes
+through stock admission/measurement with controlled demo identity and outbox.
+They do not certify production authentication or durable external settlement.
+
+The host reopens the retained index over the existing acknowledged synthetic
+source. It never seeds or submits transactions. Its startup snapshot has a500-slot
+lag ceiling; ongoing ingestion remains open and stale queries fail explicitly.
+At most100interactive query requests are accepted before the host returns429.
+The teaching/health/shutdown routes do not reserve usage or enter storage admission.
+
+```powershell
+Invoke-RestMethod -NoProxy -Method Post http://127.0.0.1:5089/demo/shutdown
+```
+
+Shutdown completes the native report, disposes the index and stops the runner-owned
+validator. Source keys, acknowledgement, original ledger and persistent index remain.
+ArchiveCompletedDemo requires an acknowledged source, no pending/interrupted seed
+and a completed1/1read-only HTTP report; exact TRX/JSON reports are hash-moved under
+TestResults/SolanaCurrent/Archive. Failed/incomplete evidence is not overwritten.
+
+Both VerifyOnly and leave-running native modes pass1/1. Leave-running acceptance
+checked the HTML endpoint, health readiness, an additional native LongCount1 with
+snapshot assurance and graceful shutdown. The27automatic requests pass in both
+modes. Validator18899and teaching5089listeners are absent after teardown. Evidence:
+TestResults/SolanaCurrent/solana-indexed-http-native.trx/json and
+TestResults/ProtocolCqlCurrent/solana-interactive-lifecycle.json.
+Browser rendering/button automation has not been verified; HTTP page/API/lifecycle
+are verified. The readable teaching page is Examples/CosmicCqlDemo/IndexedChainDemoPage.cs.

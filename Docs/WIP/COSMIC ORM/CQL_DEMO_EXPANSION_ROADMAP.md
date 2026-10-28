@@ -55,7 +55,7 @@ does not establish global failover or 100% uptime.
 
 - SQLite projection checkpoint is committed; unfinished parity-only depth remains deferred.
 - Cosmos canonical and string/Boolean metadata rows are enrolled/native-proven; native Count/LongCount/Any and projection also pass; conditional Save/durable deltas are explicitly unsupported with pre-activation rejection tests; next implement numeric semantics and remaining lifecycle/HTTP/hosted acceptance; shared manager/LINQ row demo and canonical Version/Id index profile now pass.
-- Active next: [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md), then SOLID/ActivityPub. User reports no known Solana backup and requests other demo work. Preserve the failed source and defer recovery; [chain query contracts](CQL_CHAIN_QUERY_CONTRACT.md) now cover identity/checkpoint/receipts/lifetime and explicit composition/planning, but indexed execution/ingestion/WEB4 remain open. Continue IPFS, SOLID and ActivityPub in order; retain cloud numeric/lifecycle/hosted gaps on the full roadmap.
+- Solana declared-range source/index SDK, LINQ, rows/projection/cardinality HTTP and interactive launcher now pass. Original-history recovery remains red; no replacement seed is claimed as recovery. Next: common demo metadata/lifecycle capabilities, ongoing index ingestion, hosted-cloud and production auth/durable settlement; preserve all narrower point-profile limits.
 - Keep the full parity checklist strict and update CURRENT_STATUS each milestone. Unfinished Q01f depth remains deferred, not complete.
 
 Environment update: user explicitly authorized creating missing environments.
@@ -68,5 +68,5 @@ Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point 
 Live Solana declared-range SDK/index/manager/LINQ and shared C# walkthrough now
 pass against the retained validator with new coverage3073; original recovery stays
 red. [Native command and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
-Live-source shipping HTTP now passes five requests against the same seed/index and
-validator. Next: production authentication/durable billing and common-demo capability gaps.
+Live-source shipping HTTP now passes27requests against the same seed/index and
+validator. Interactive hub now adds Solana on5089 with native leave-running/shutdown acceptance. Next: ongoing index ingestion, production authentication/durable billing and common-demo capability gaps.

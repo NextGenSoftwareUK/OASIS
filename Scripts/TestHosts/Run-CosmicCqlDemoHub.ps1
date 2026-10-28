@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$ArchiveCompletedDemo,
     [switch]$ShowPlan
@@ -10,6 +10,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runner=switch($Provider){
     'SQLite' {'Scripts/TestHosts/Run-CosmicCqlDemo.ps1'}
+    'Solana' {'Scripts/TestHosts/Run-ReusableSolanaTests.ps1'}
     'IPFS' {'Scripts/TestHosts/Run-ReusableIpfsTests.ps1'}
     'SOLID' {'Scripts/TestHosts/Run-ReusableSolidReadiness.ps1'}
     'ActivityPub' {'Scripts/TestHosts/Run-ReusableActivityPubPointDemo.ps1'}
@@ -18,8 +19,8 @@ if($Provider -eq 'SQLite' -and $ArchiveCompletedDemo){throw 'SQLite owns its dis
 if($ShowPlan){
     [pscustomobject]@{
         Provider=$Provider;Mode=$(if($VerifyOnly){'bounded verification'}else{'interactive until explicit shutdown'})
-        Runner=(Join-Path $root $runner);Url=$(if($Provider -eq 'SQLite'){'http://127.0.0.1:5087/swagger'}else{'http://127.0.0.1:5088/'})
-        Scope=$(if($Provider -eq 'SQLite'){'Synthetic coffee queries/save/deltas/concurrency'}elseif($Provider -eq 'ActivityPub'){'One existing public Mastodon status; GET only'}else{'One owned synthetic native point record'})
+        Runner=(Join-Path $root $runner);Url=$(if($Provider -eq 'SQLite'){'http://127.0.0.1:5087/swagger'}elseif($Provider -eq 'Solana'){'http://127.0.0.1:5089/'}else{'http://127.0.0.1:5088/'})
+        Scope=$(if($Provider -eq 'SQLite'){'Synthetic coffee queries/save/deltas/concurrency'}elseif($Provider -eq 'Solana'){'Declared-range Solana source / SQLite index; rows, projection and cardinality; no source writes'}elseif($Provider -eq 'ActivityPub'){'One existing public Mastodon status; GET only'}else{'One owned synthetic native point record'})
     };return
 }
 
@@ -34,6 +35,9 @@ if($Provider -eq 'SQLite'){
 # Run one interactive host at a time. The lease lasts through graceful fixture teardown.
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner "cosmic-demo-$($Provider.ToLowerInvariant())" -Operation {
     switch($Provider){
+        'Solana' {
+            & (Join-Path $root $runner) -IndexedHttpDemo -ArchiveCompletedDemo:$ArchiveCompletedDemo -ServeIndexedDemo:(!$VerifyOnly)
+        }
         'IPFS' {
             & (Join-Path $root $runner) -CqlInteractive -ArchiveCompletedDemo:$ArchiveCompletedDemo -ServePointDemo:(!$VerifyOnly)
         }
