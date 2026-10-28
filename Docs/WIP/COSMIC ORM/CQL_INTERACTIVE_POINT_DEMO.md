@@ -188,3 +188,12 @@ additional interactive request returned exactInt64 "9007199254740993" and a null
 missing cell without privateNote. The expanded50automatic HTTP requests and
 native LINQ RunSelectionAsync pass. Page/profile/query/shutdown checked through
 HTTP; browser click/rendering remains unverified. Services stopped after acceptance.
+
+## Databases group
+
+The hub now accepts `-Provider Databases`: ShowPlan returns the existing
+MongoDB/SQLite/Neo4j runner and5088/demo endpoint, and VerifyOnly selects bounded
+verification. It owns its lease; do not wrap another lease around it. Discovery
+passes7profiles/14plans with unchanged listeners. Native launch currently refuses
+retained fixture data; [preflight evidence and required audit](CQL_DATABASE_DEMO_HUB.md)
+must be resolved before using the interactive command. No data was reset.

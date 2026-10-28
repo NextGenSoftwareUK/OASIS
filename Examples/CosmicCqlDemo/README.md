@@ -676,3 +676,10 @@ The live SolanaMetadata gate verifies it plus50HTTP requests. Its page includes
 Select metadata columns; Long/Int64 output remains a precise string and missing
 nullable cells remain null. All runs reuse the acknowledged fixture; no new source
 writes are needed. Production identity/billing and full parity remain open.
+
+### Three-database hub entry
+
+`Run-CosmicCqlDemoHub.ps1 -Provider Databases -ShowPlan` discovers the existing
+MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
+retained-fixture preflight; it does not reset data. See
+[required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).

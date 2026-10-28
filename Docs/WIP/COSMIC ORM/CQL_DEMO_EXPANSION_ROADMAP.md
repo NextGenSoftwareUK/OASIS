@@ -79,3 +79,9 @@ reuse Run-CosmicCqlV1Demo.ps1 for the existing three-database group, then the re
 Cosmos DB CQL profile/runtime for a cloud teaching host. Current hub lacks these
 entries; do not label the Cosmos blockchain runner as the Azure cloud runner.
 This integration takes priority over additional parity-only Solana operators.
+
+Databases hub routing is implemented/discovery-tested. Current native preflight
+is red due to retained Mongo/Neo4j fixture state, preserved without reset. Audit
+original identities/outcomes before reconciliation; see CQL_DATABASE_DEMO_HUB.md.
+Cloud profile integration remains independently actionable and takes priority
+over further hardening of green operators.
