@@ -10,7 +10,7 @@ public partial class MongoDBOASIS : IHolonReplicationOutboxSource
     {
         if(!IsProviderActivated)return new OASISResult<IHolonReplicationReadinessOutbox>{IsError=true,ErrorCount=1,
             ErrorCode="COSMIC_OUTBOX_SOURCE_NOT_ACTIVATED",Message="Activate the pinned source provider before capturing its native outbox."};
-        try{return new OASISResult<IHolonReplicationReadinessOutbox>(new MongoHolonReplicationOutbox(Database));}
+        try{return new OASISResult<IHolonReplicationReadinessOutbox>(_holonRepository.CaptureReplicationOutbox());}
         catch(Exception cause){return new OASISResult<IHolonReplicationReadinessOutbox>{IsError=true,ErrorCount=1,
             ErrorCode="COSMIC_OUTBOX_SOURCE_UNAVAILABLE",Message="The activated provider has no usable durable outbox binding.",Exception=cause};}
     }

@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IAtomicHolonReplicationStorageProvider
+public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IBoundAtomicHolonReplicationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,HolonReplicationEnrollment enrollment)
         =>ExecuteReplicatingHolonWriteAsync(request,enrollment).GetAwaiter().GetResult();
@@ -36,7 +36,7 @@ public partial class MongoDBOASIS : IConditionalHolonDeltaStorageProvider,IAtomi
             var plan = enrollment==null ? ConditionalHolonPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS)
                 :ConditionalHolonPlan.CreateReplicating(request,Core.Enums.ProviderType.MongoDBOASIS,enrollment);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
-                request.MaxChildDepth, 0, plan, request.Write.ActorId, cancellationToken).ConfigureAwait(false);
+                request.MaxChildDepth, 0, plan, request.Write.ActorId, cancellationToken, expectedStorage: enrollment?.SourceStorageIdentity).ConfigureAwait(false);
         }
         catch (Exception cause)
         {

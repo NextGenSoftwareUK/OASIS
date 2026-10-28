@@ -17,8 +17,11 @@ public partial class Neo4jOASIS : IConditionalHolonWriteRecoveryStorageProvider
     public async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
     {
+        var bound=original?.Write.ReplicationEnrollment?.SourceStorageIdentity!=null;
+        var locked=false;
         try
         {
+            if(bound){await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);locked=true;}
             cancellationToken.ThrowIfCancellationRequested();
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.Neo4jOASIS)
@@ -28,9 +31,15 @@ public partial class Neo4jOASIS : IConditionalHolonWriteRecoveryStorageProvider
             using var session = _driver.AsyncSession();
             // Deliberately no MERGE, claim, preparation, lock or mutation. An
             // absent/incomplete receipt does not establish a terminal rejection.
-            var rows = await (await session.RunAsync(
-                "MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN r LIMIT 2",
-                new { operation = plan.OperationId.ToString("D") })).ToListAsync().ConfigureAwait(false);
+            using var bindingTransaction=bound ? await session.BeginTransactionAsync().ConfigureAwait(false):null;
+            if(bound)await ValidateReplicaStorageBindingAsync(bindingTransaction,
+                new NeoAtomicHolonWrite(plan,plan.ActorId,cancellationToken){ExpectedStorage=plan.ReplicationEnrollment.SourceStorageIdentity,
+                    StorageBindingCodePrefix="COSMIC_SOURCE_STORAGE_BINDING"}).ConfigureAwait(false);
+            const string query="MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN r LIMIT 2";
+            var parameters=new { operation=plan.OperationId.ToString("D") };
+            var cursor=bindingTransaction==null ? await session.RunAsync(query,parameters).ConfigureAwait(false)
+                :await bindingTransaction.RunAsync(query,parameters).ConfigureAwait(false);
+            var rows=await cursor.ToListAsync().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             if (rows.Count > 1) throw new InvalidDataException("Conditional operation receipt identity is not unique.");
             HolonCommittedDelta delta = null;
@@ -59,5 +68,6 @@ public partial class Neo4jOASIS : IConditionalHolonWriteRecoveryStorageProvider
                 ErrorCode = cause is OperationCanceledException ? "COSMIC_OPERATION_STATUS_CANCELLED" : "COSMIC_OPERATION_STATUS_UNVERIFIED",
                 Message = "The original conditional operation receipt could not be verified.", Exception = cause };
         }
+        finally {if(locked)_lifecycleGate.Release();}
     }
 }

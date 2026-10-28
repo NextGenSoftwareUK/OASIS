@@ -20,8 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 public sealed partial class CosmicConditionalWriteTests
 {
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task NativePrimaryOutboxCommitsGraphReceiptAndEveryFrozenTargetTogether(bool synchronous)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public async Task NativePrimaryOutboxCommitsGraphReceiptAndEveryFrozenTargetTogether(bool synchronous,bool bindSource)
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
@@ -49,7 +49,14 @@ public sealed partial class CosmicConditionalWriteTests
                 MetaData=new(){["date"]=new DateTime(1960,1,2,3,4,5,DateTimeKind.Utc).AddTicks(1234567),["bytes"]=new byte[]{0,17,255}}};
             var create=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),actor,ProviderType.MongoDBOASIS,
                 new[]{new HolonWriteCondition(input.Id,null),new HolonWriteCondition(child.Id,null)}),ConditionalHolonOperation.Save,new[]{input});
+            if(bindSource)
+            {
+                var captured=await first.CaptureStorageIdentityAsync();Assert.False(captured.IsError,captured.Message+captured.Exception);
+                enrollment=new HolonReplicationEnrollment(enrollment.SourceId,enrollment.TargetIds,captured.Result);
+                await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.RejectWrongAsync(enrollment,e=>Write(first,create,e));
+            }
             var saved=await Write(first,create);Assert.False(saved.IsError,saved.Message+saved.Exception);var current=Assert.Single(saved.Result);
+            if(bindSource)await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.VerifyCommittedAsync(first,create,enrollment,e=>Write(first,create,e));
             await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(first.GetHolonReplicationOutbox().Result,enrollment.TargetIds,create.Write.OperationId);
             Assert.Equal(0,input.Version);Assert.Equal(0,child.Version);
             var frozen=await obligations.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("TargetId",1)).ToListAsync();Assert.Equal(2,frozen.Count);
@@ -67,7 +74,7 @@ public sealed partial class CosmicConditionalWriteTests
                 plan.ValidateAcknowledgedRecord(Assert.Single(actual.Result.Children));
             }
             var embedded=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(create.Write.OperationId,actor,ProviderType.MongoDBOASIS,
-                create.Write.Conditions,new HolonReplicationEnrollment("owned-primary",new[]{"target-a","target-b"})),create.Operation,create.Roots);
+                create.Write.Conditions,new HolonReplicationEnrollment("owned-primary",new[]{"target-a","target-b"},enrollment.SourceStorageIdentity)),create.Operation,create.Roots);
             var replay=await second.ExecuteConditionalHolonWriteAsync(embedded);Assert.False(replay.IsError,replay.Message+replay.Exception);
             Assert.Equal(current.VersionId,Assert.Single(replay.Result).VersionId);
             Assert.Equal(2,await obligations.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));

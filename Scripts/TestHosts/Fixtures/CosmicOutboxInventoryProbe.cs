@@ -43,3 +43,46 @@ public static class CosmicOutboxInventoryProbe
         throw new InvalidOperationException("Pre-cancelled inventory did not observe cancellation.");
     }
 }
+
+
+/// <summary>Physical source admission and recovery use the same immutable expectation.
+/// Uses existing recorded primary operations;does not create a second dataset.</summary>
+public static class CosmicPrimarySourceBindingProbe
+{
+    private static CosmicStorageIdentity Wrong(CosmicStorageIdentity value) => new(value.Authority,
+        value.EndpointFingerprint==new string('A',64)?new string('B',64):new string('A',64),value.StoreId);
+
+    public static async Task RejectWrongAsync(HolonReplicationEnrollment enrollment,
+        Func<HolonReplicationEnrollment,Task<NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>>> execute)
+    {
+        var identity=enrollment.SourceStorageIdentity;
+        if(identity==null)throw new InvalidOperationException("Bound source proof requires native identity capture.");
+        foreach(var wrong in new[]{Wrong(identity),new CosmicStorageIdentity(identity.Authority,identity.EndpointFingerprint,Guid.NewGuid())})
+        {
+            var denied=await execute(new HolonReplicationEnrollment(enrollment.SourceId,enrollment.TargetIds,wrong));
+            if(!denied.IsError || denied.IsSaved || denied.ErrorCode!="COSMIC_SOURCE_STORAGE_BINDING_MISMATCH")
+                throw new InvalidOperationException("A wrong native source was not refused before write/replay: "+denied.ErrorCode+denied.Message+denied.Exception);
+        }
+    }
+
+    private static ConditionalHolonWriteRequest Original(ConditionalHolonWriteRequest original,HolonReplicationEnrollment enrollment)
+        =>new(new ConditionalHolonWrite(original.Write.OperationId,original.Write.ActorId,original.Write.Authority,original.Write.Conditions,enrollment),
+            original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth,original.SubmittedRelationships);
+
+    public static async Task VerifyCommittedAsync(IConditionalHolonWriteRecoveryStorageProvider provider,
+        ConditionalHolonWriteRequest original,HolonReplicationEnrollment enrollment,
+        Func<HolonReplicationEnrollment,Task<NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>>> execute)
+    {
+        var verified=await provider.ReadConditionalHolonWriteOutcomeAsync(Original(original,enrollment));
+        if(verified.IsError || verified.Result?.ReceiptState!=ConditionalHolonReceiptState.Committed)
+            throw new InvalidOperationException("Bound original outcome was not verified: "+verified.Message+verified.Exception);
+        var wrong=new HolonReplicationEnrollment(enrollment.SourceId,enrollment.TargetIds,Wrong(enrollment.SourceStorageIdentity));
+        var rejected=await provider.ReadConditionalHolonWriteOutcomeAsync(Original(original,wrong));
+        if(!rejected.IsError || rejected.IsLoaded || rejected.Result!=null)
+            throw new InvalidOperationException("Recovery accepted a receipt under a different physical source expectation.");
+        await RejectWrongAsync(enrollment,execute);
+        var downgrade=await execute(new HolonReplicationEnrollment(enrollment.SourceId,enrollment.TargetIds));
+        if(!downgrade.IsError || downgrade.ErrorCode!="COSMIC_OPERATION_ID_REUSED")
+            throw new InvalidOperationException("Receipt silently downgraded bound enrollment to an unbound operation.");
+    }
+}

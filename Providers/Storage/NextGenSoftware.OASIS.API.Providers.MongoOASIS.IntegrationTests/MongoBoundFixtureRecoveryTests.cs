@@ -122,4 +122,83 @@ public class MongoBoundFixtureRecoveryTests
         using var names=await client.ListDatabaseNamesAsync();Assert.Empty((await names.ToListAsync()).Intersect(owned));
     }
 
+    [Fact]
+    public async Task InspectPreservedPrimaryOutboxWithoutMutation()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        Assert.Equal("inspect-primary-fixture-2026-10-28",Environment.GetEnvironmentVariable("OASIS_BOUND_FIXTURE_RECONCILE"));
+        var db=new MongoClient(uri).GetDatabase("cosmic_primary_outbox_fixture");
+        using var names=await db.ListCollectionNamesAsync();
+        foreach(var name in await names.ToListAsync())Console.WriteLine("COLLECTION "+name+" "+await db.GetCollection<BsonDocument>(name).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var rows=await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        foreach(var row in rows)Console.WriteLine("ROW "+row["Name"].AsString+" "+row["HolonId"].AsString+" version="+row["Version"]);
+        var queue=await db.GetCollection<BsonDocument>("CosmicHolonOutbox").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        foreach(var row in queue)Console.WriteLine("OBLIGATION "+row["OperationId"]+" "+row["TargetId"]+" "+row["DeliveryState"]+" attempts="+row["AttemptCount"]);
+    }
+
+    [Fact]
+    public async Task ReconcileEmptyRecordedPrimaryOutboxNamespace()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        Assert.Equal("reconcile-empty-primary-fixture-2026-10-28",Environment.GetEnvironmentVariable("OASIS_BOUND_FIXTURE_RECONCILE"));
+        var settings=MongoClientSettings.FromConnectionString(uri);settings.WriteConcern=WriteConcern.WMajority.With(journal:true);
+        var client=new MongoClient(settings);const string name="cosmic_primary_outbox_fixture";var db=client.GetDatabase(name);
+        using var cursor=await db.ListCollectionNamesAsync();var names=await cursor.ToListAsync();
+        Assert.True(new System.Collections.Generic.HashSet<string>(names).SetEquals(new[]{"CosmicOwnedFixture","CosmicHolonOutbox","Avatar","AvatarDetail","Holon"}));
+        foreach(var collection in names)Assert.Equal(0L,await db.GetCollection<BsonDocument>(collection).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        await client.DropDatabaseAsync(name);
+        using var remaining=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await remaining.ToListAsync());
+    }
+
+    [Fact]
+    public async Task ReconcileRecordedSourceBindingClassificationFailure()
+    {
+        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
+        Assert.Equal("source-classification-2026-10-28",Environment.GetEnvironmentVariable("OASIS_BOUND_FIXTURE_RECONCILE"));
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null && !File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1")))root=root.Parent;
+        Assert.NotNull(root);
+        var state=Path.Combine(root.FullName,"LocalState/COSMIC/OwnedRoutingCurrent");
+        using var lease=new FileStream(Path.Combine(state,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var physical=Path.Combine(state,"source-binding-physical.pending.json");
+        using var intent=System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(physical));
+        var op=intent.RootElement.GetProperty("OperationId").GetGuid();var id=intent.RootElement.GetProperty("Id").GetGuid();
+        var original=intent.RootElement.GetProperty("identity");
+        var identity=new CosmicStorageIdentity((ProviderType)original.GetProperty("Authority").GetInt32(),
+            original.GetProperty("EndpointFingerprint").GetString()!,original.GetProperty("StoreId").GetString()!);
+        var settings=MongoClientSettings.FromConnectionString(uri);settings.WriteConcern=WriteConcern.WMajority.With(journal:true);
+        var client=new MongoClient(settings);var db=client.GetDatabase("cosmic_storage_identity_fixture_a");
+        using(var names=await db.ListCollectionNamesAsync())Assert.DoesNotContain("Holon",await names.ToListAsync());
+        var receipts=await db.GetCollection<BsonDocument>("CosmicWriteReceipt").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        var obligations=await db.GetCollection<BsonDocument>("CosmicHolonOutbox").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        Assert.Single(receipts);Assert.Single(obligations);
+        Assert.Equal(op.ToString("D"),receipts[0]["_id"].AsString);Assert.Equal(op.ToString("D"),obligations[0]["OperationId"].AsString);
+        var payload=obligations[0]["PayloadJson"].AsString;
+        Assert.Equal(Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(payload))),obligations[0]["PayloadDigest"].AsString);
+        var mutation=CommittedHolonReplicaPayload.Read(payload);Assert.Equal(id,mutation.Roots.Single().Id);
+        Assert.Equal("bound-primary-source",mutation.Roots.Single().Name);Assert.Equal("Pending",obligations[0]["DeliveryState"].AsString);
+        Assert.Equal(0,obligations[0]["AttemptCount"].ToInt32());
+        var enrollment=new HolonReplicationEnrollment(mutation.SourceId,new[]{obligations[0]["TargetId"].AsString},identity);
+        var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(op,mutation.ActorId,ProviderType.MongoDBOASIS,
+            new[]{new HolonWriteCondition(id,null)},enrollment),ConditionalHolonOperation.Save,mutation.Roots,saveChildren:false);
+        var plan=ConditionalHolonPlan.CreateReplicating(request,ProviderType.MongoDBOASIS,enrollment);
+        Assert.Equal(plan.Fingerprint,receipts[0]["Fingerprint"].AsString);
+        Assert.Equal(id,Assert.Single(ConditionalHolonReceipt.Read(receipts[0]["ResultJson"].AsString,plan,out _)).Id);
+        var primary=client.GetDatabase("cosmic_primary_outbox_fixture");
+        using(var names=await primary.ListCollectionNamesAsync())
+        {
+            var all=await names.ToListAsync();Assert.True(new System.Collections.Generic.HashSet<string>(all).SetEquals(new[]{"CosmicOwnedFixture","CosmicHolonOutbox","Avatar","AvatarDetail","Holon"}));
+            foreach(var collection in all)Assert.Equal(0L,await primary.GetCollection<BsonDocument>(collection).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        }
+        var evidence=Path.Combine(root.FullName,"TestResults/OwnedRoutingCurrent/source-classification-reconciliation.json");
+        await File.WriteAllTextAsync(evidence,new BsonDocument{{"receipt",receipts[0]},{"obligation",obligations[0]},{"primaryFixtureEmpty",true}}.ToJson());
+        var owned=new[]{"cosmic_storage_identity_fixture_a","cosmic_storage_identity_fixture_b","cosmic_primary_outbox_fixture"};
+        foreach(var name in owned)await client.DropDatabaseAsync(name);
+        using(var names=await client.ListDatabaseNamesAsync())Assert.Empty((await names.ToListAsync()).Intersect(owned));
+        File.Delete(physical);File.Delete(Path.Combine(state,"mongo-storage-identity.pending.json"));
+    }
+
 }
