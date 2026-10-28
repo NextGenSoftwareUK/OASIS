@@ -113,12 +113,12 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.False(NativeConnectionGuard.AllowPrivate);
             try
             {
-                NativeConnectionGuard.AllowPrivate = true;
+                NativeConnectionGuard.AllowPrivateOverride = true;
                 await NativeConnectionGuard.EnsurePublicHostAsync("localhost");
                 await NativeConnectionGuard.EnsurePublicHostAsync("10.0.0.5");
                 await NativeConnectionGuard.EnsurePublicHostAsync("neo4j.railway.internal");
             }
-            finally { NativeConnectionGuard.AllowPrivate = false; }
+            finally { NativeConnectionGuard.AllowPrivateOverride = null; }
             await Assert.ThrowsAsync<NativeConnectionRefusedException>(() => NativeConnectionGuard.EnsurePublicHostAsync("localhost"));
         }
         [Fact]
