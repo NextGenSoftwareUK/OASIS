@@ -4,7 +4,7 @@
 
 1. Q01f: SQLite and MongoDB combined entity-selected composition are implemented using existing snapshot/typed-cell owners. Mongo220 CQL controls/23 native cases now verify ordering, exact values, protected errors and work bounds.
 2. Neo combined native stages now pass151 CQL controls and23 native cases, with the same23 on SQLite and Mongo. Canonical/entity-source proofs and selected inputs/stages share one native statement/read owner; existing Neo consistency limits remain.
-3. Complete reselection, combined graph sources and element/cardinality/numeric terminals after entity selection. Preserve independent capability admission and proof-before-DTO ownership; no managed execution substitute.
+3. Reselection now passes5 shared tests/3 native cases per database (26-case native cohort). Next integrate Count/LongCount/Any, then All/element/numeric terminals and combined graph sources after entity selection. Preserve independent capability admission and proof-before-DTO ownership; no managed execution substitute.
 4. Keep Q01f red until its full declared matrix passes on all3. Freeze already-green features/cursors absent a reproducible bug.
 5. Continue [eight-provider demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md): SQLite/Mongo/Neo, cloud, chain, IPFS, SOLID, ActivityPub. Demo breadth precedes large POCO/migration-tooling rows.
 6. Remaining indexed aggregates/stages, hosted cloud/chain auth, durable settlement and scaling require explicit acceptance; point profiles do not prove general query support.
