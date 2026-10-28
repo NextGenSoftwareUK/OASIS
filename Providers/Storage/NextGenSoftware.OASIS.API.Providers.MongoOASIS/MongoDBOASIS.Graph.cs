@@ -69,7 +69,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     }, cancellationToken,
                     conditionalPlan is ConditionalHolonPlan {ReplicationEnrollment:not null} edit
                         ?()=>CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(edit.OperationId,edit.ReplicationEnrollment.SourceId,
-                            edit.Authority,actorId,edit.Operation,responses,edit.SaveChildren,edit.Recursive,edit.MaxChildDepth)):null);
+                            edit.Authority,actorId,edit.Operation,responses,edit.SaveChildren,edit.Recursive,edit.MaxChildDepth,
+                            edit.ReplicationEnrollment.NativeRoutes.Count == 0 ? null : edit.ReplicationEnrollment.NativeRoutes)):null);
 
                 if (conditional != null) conditional.ExpectedStorage = expectedStorage;
                 var saved = await _holonRepository.ImportAtomicAsync(entries, PreserveCreationAuditFields, preparedEntries =>

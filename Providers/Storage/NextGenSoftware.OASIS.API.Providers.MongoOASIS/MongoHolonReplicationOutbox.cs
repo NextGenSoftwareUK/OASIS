@@ -249,7 +249,7 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
     {
         var json=NullableString(row,"PayloadJson");var digest=NullableString(row,"PayloadDigest");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=digest)throw new InvalidDataException("Outbox payload checksum differs.");
-        var delivery=CommittedHolonReplicaPayload.Read(json);
+        var delivery=CommittedHolonReplicaPayload.ReadForTarget(json,row["TargetId"].AsString);
         if(delivery.OperationId!=operation || delivery.SourceId!=NullableString(row,"SourceId") || delivery.SourceAuthority!=ProviderType.MongoDBOASIS
             || NullableString(row,"SourceAuthority")!=ProviderType.MongoDBOASIS.ToString() || delivery.ActorId.ToString("D")!=NullableString(row,"ActorId"))
             throw new InvalidDataException("Outbox payload and enrollment disagree.");

@@ -139,6 +139,9 @@ public partial class Neo4jNativeAvatarTests
                         Assert.AreEqual(operation, payload.OperationId);
                         Assert.AreEqual(actor, payload.ActorId);
                         Assert.AreEqual(boundSourceId, payload.SourceId);
+                        Assert.AreEqual(2,payload.NativeRoutes.Count);
+                        Assert.IsTrue(payload.NativeRoutes.All(route => route.SourceStorage.BindingFingerprint == nativeSource.BindingFingerprint));
+                        Assert.IsTrue(payload.NativeRoutes.Any(route => route.TargetId == row["TargetId"].As<string>()));
                         CollectionAssert.AreEquivalent(inputs.Select(input => input.VersionId).ToArray(), payload.Roots.Select(input => input.VersionId).ToArray());
                     }
                     foreach (var input in inputs) { Assert.AreEqual(1, input.Version); Assert.IsFalse(HolonChangeTracking.HasChanges(input)); }
