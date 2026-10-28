@@ -22,9 +22,7 @@ It is separate from the production WEB4 controller's authentication/billing path
 
 Run one command/provider at a time. Protocol pages use5088; SQLite Swagger uses5087.
 Add `-VerifyOnly` for bounded native verification instead of keeping a host open.
-Six-choice ShowPlan routing and script parsing pass; native protocol host gates
-are the stronger execution evidence. MongoDB/Neo4j/Cosmos are not silently
-routed by this launcher; their existing runners/remaining integration are separate.
+Eight-profile ShowPlan routing and script parsing pass. Native host gates provide execution evidence. Databases selects the explicit MongoDB/SQLite/Neo4j group; CosmosDB selects the retained Azure cloud emulator profile described below.
 
 ActivityPub uses only fixed-origin public Mastodon GETs, no credentials/account,
 posting or federation. It displays the correct public-source label and permits at
@@ -197,3 +195,14 @@ verification. It owns its lease; do not wrap another lease around it. Discovery
 passes7profiles/14plans with unchanged listeners. Native launch currently refuses
 retained fixture data; [preflight evidence and required audit](CQL_DATABASE_DEMO_HUB.md)
 must be resolved before using the interactive command. No data was reset.
+
+## Azure Cosmos DB cloud teaching page
+Run one teaching host at a time:
+
+    & Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB -ShowPlan
+    & Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB -VerifyOnly
+    & Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB
+
+Open http://127.0.0.1:5088/ after the health endpoint reports ready. The page contains a spaced C# example linking conceptually to Examples/CosmicCqlDemo/CloudRowsWalkthrough.cs, plus request/response panels for native rows, name projection and LongCount. Controls wait for automatic acceptance before enabling. Server access is a controlled authoritative catalogue of one private fixture record; a client cannot expand it by changing the provider or filter. Each query is an independent read. The local emulator and test identity/receipt store are explicit; this is not hosted Azure or production JWT/durable billing acceptance. Conditional saves, numeric metadata and full cloud lifecycle remain open.
+
+Use Stop and clean up (POST /demo/shutdown). The test then performs exact ETag cleanup/count0 and removes its durable journal; the runner finally stops the emulator. A one-hour teaching-session deadline prevents abandoned sessions running forever. Pending journals reject a new run for reconciliation. No ArchiveCompletedDemo flag: this runner automatically preserves its previous report under its SHA256 filename in TestResults/CosmosCqlCurrent. Browser rendering/click automation is not yet verified; HTTP lifecycle and JavaScript syntax are tested separately.
