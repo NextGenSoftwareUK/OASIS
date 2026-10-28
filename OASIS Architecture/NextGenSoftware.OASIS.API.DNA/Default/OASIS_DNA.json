@@ -577,7 +577,9 @@
       "SolanaSnapshotSeconds": 60,
       "MaximumIpfsListingMegabytes": 4,
       "MaximumSolidResourceMegabytes": 1,
-      "MaximumNeo4jDiscoveredLabels": 200
+      "MaximumNeo4jDiscoveredLabels": 200,
+      "ConnectionEncryptionKey": "",
+      "MaximumSavedConnectionsPerAvatar": 10
     },
     "Sandbox": {
       "Enabled": false,
