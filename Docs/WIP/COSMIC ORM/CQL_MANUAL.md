@@ -809,7 +809,41 @@ var result = await manager.ExecuteIndexedProjectionQueryAsync(
 // Checkpoint, Head and Receipts retain the source evidence for those rows.
 ```
 
-This is the explicit indexed projection SDK, not yet standard IQueryable.Select
-or the HTTP projection route. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
+This is the explicit indexed projection SDK; standard IQueryable.Select now uses
+the same owner. The HTTP projection route is still pending. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
 IsPublic/IsDeleted columns are enrolled; metadata and aggregates remain unsupported.
 [Contract, tests and remaining gates](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
+
+
+### Indexed LINQ Select
+
+```csharp
+var page = await query
+    .Where(holon => holon.Id == selectedHolonId)
+    .OrderBy(holon => holon.Name)
+    .Take(10)
+    .Select(holon => new
+    {
+        holon.Id,
+        holon.Name,
+        holon.Version
+    })
+    .ToCosmicIndexedProjectionPageAsync(cancellationToken);
+
+if (page.IsError)
+    throw new InvalidOperationException(page.ErrorCode + ": " + page.Message);
+
+foreach (var item in page.Result.Rows)
+    Console.WriteLine($"{item.Name} (version {item.Version})");
+```
+
+Here query is the explicitly bound IQueryable returned by CosmicLinq.CreateIndexed.
+The reader must advertise selected-column support. Flat repeated Select is admitted;
+selected-result filters/windows/aggregates remain unsupported. Put the supported
+source operators before Select. Use ToCosmicListAsync or enumeration when consuming
+selected values; use the page terminal when retaining source evidence in a demo.
+RunProjectionAsync in [ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+shows a spaced/commented public DTO example and is tested against the live source.
+Anonymous shapes or public parameterless DTO/member assignments are supported;
+positional DTO/record constructors without explicit expression member bindings
+remain an M17 gap. [Contract and evidence](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).

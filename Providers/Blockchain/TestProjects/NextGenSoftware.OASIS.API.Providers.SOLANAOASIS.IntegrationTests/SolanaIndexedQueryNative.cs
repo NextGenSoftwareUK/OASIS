@@ -137,13 +137,21 @@ public partial class SolanaIndexedQueryNative
             Assert.IsTrue(rows.Checkpoint.Position.Slot >= rows.Receipts.Single().Position.Slot);
             Assert.AreEqual(0, demo.Empty.Rows.Count);
 
+            var projected = await CosmicCqlDemo.ChainIndexedWalkthrough.RunProjectionAsync(manager, reopened, repository,
+                requirement, CosmicQueryReadAccess.OwnerOrPublic(seed.Actor).Result, seed.Id, Console.Out);
+            Assert.AreEqual(seed.Id, projected.Rows.Single().Id);
+            Assert.AreEqual("COSMIC native chain coffee", projected.Rows.Single().Name);
+            Assert.AreEqual(1, projected.Rows.Single().Version);
+            Assert.AreEqual(seed.Signature, projected.Receipts.Single().CommitReference);
+            Assert.AreEqual(seed.CoverageStart, projected.Checkpoint.CompleteFromSlot);
+
             object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed) : null;
             var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
                 scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",
                 sourceProvider = source.SourceProvider.ToString(), executionProvider = source.ExecutionProvider.ToString(),
                 seed.Writer, seed.Genesis, seed.Id, seed.IndexId, seed.CoverageStart, seed.Signature,
-                http, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
+                http, projectionRows = projected.Rows.Count, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
                 checkpoint = rows.Checkpoint.Position.Slot, finalizedHead = rows.Head.Position.Slot,
                 rows = rows.Rows.Count, emptyRows = demo.Empty.Rows.Count,
                 indexBytes = new FileInfo(database).Length, indexPath = database, seedPath = complete });

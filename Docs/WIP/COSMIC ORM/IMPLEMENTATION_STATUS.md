@@ -33,3 +33,8 @@ Priority27October: broader demo before full parity. Cosmos recommended first clo
 shared proof-before-DTO construction and V2 manager implemented. FullCore4154,
 SQLite42,Solana799pass. LINQ/HTTP/live-source projection gates remain open;
 [contract](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
+
+Standard indexed LINQ Select and flat reselection/list/enumeration now pass7new
+SQLite cases and the live Solana shared-demo gate. Core4154/SQLite49/Solana799pass.
+Next: projection HTTP; metadata, aggregates, selected stages and M17 constructor
+shapes stay open. [Current contract](CQL_INDEXED_SQL_ROWS.md#standard-indexed-linq-select-27-october).

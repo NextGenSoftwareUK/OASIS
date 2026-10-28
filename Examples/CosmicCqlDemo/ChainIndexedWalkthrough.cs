@@ -13,6 +13,59 @@ namespace CosmicCqlDemo;
 /// </summary>
 public static class ChainIndexedWalkthrough
 {
+    public sealed class MenuItem
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = "";
+        public int Version { get; set; }
+    }
+
+    /// <summary>Standard Select through native indexed columns, preserving source evidence.</summary>
+    public static async Task<CosmicIndexedProjectionExecution<MenuItem>> RunProjectionAsync(
+        HolonManager manager,
+        ICosmicChainQueryIndexProjectionReader index,
+        ICosmicChainQuerySourceObserver sourceObserver,
+        CosmicChainQueryReadRequirement freshness,
+        CosmicQueryReadAccess serverReadAccess,
+        Guid selectedId,
+        TextWriter output,
+        CancellationToken cancellationToken = default)
+    {
+        var scope = Value(CosmicQueryScope.Named(freshness.Source.SourceProvider));
+        var source = CosmicQuery<Holon>.Create(scope);
+        source = Value(source.WithIndexedSource(freshness));
+        source = Value(source.WithReadAccess(serverReadAccess));
+
+        var query = Value(CosmicLinq.CreateIndexed(manager, index, sourceObserver, source));
+
+        // Apply the supported source filter/order/window before Select. The shared
+        // planner selects native columns; it never runs a compiled client selector.
+        var selected = query
+            .Where(holon => holon.Id == selectedId)
+            .OrderBy(holon => holon.Name)
+            .Take(1)
+            .Select(holon => new MenuItem
+            {
+                Id = holon.Id,
+                Name = holon.Name,
+                Version = holon.Version
+            });
+
+        // Application DTOs are constructed only after all source witnesses and
+        // selected cells pass validation. Keep the evidence-aware page for a demo.
+        var page = Value(await selected.ToCosmicIndexedProjectionPageAsync(cancellationToken));
+
+        await output.WriteLineAsync("\n3. Standard LINQ Select over the explicit chain index\n");
+
+        foreach (var item in page.Rows)
+            await output.WriteLineAsync($"   {item.Name} (version {item.Version}, id {item.Id})\n");
+
+        await output.WriteLineAsync($"   Checkpoint: {page.Checkpoint.Position.Slot}");
+        await output.WriteLineAsync($"   Finalized head: {page.Head.Position.Slot}\n");
+
+        return page;
+    }
+
     public static async Task<(CosmicIndexedQueryExecution<Holon> Rows, CosmicIndexedQueryExecution<Holon> Empty)> RunAsync(
         HolonManager manager,
         ICosmicChainQueryIndexReader index,

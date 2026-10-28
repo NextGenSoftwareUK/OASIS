@@ -48,7 +48,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | M14 | Owned/complex/component types with nested updates | ❌ | ❌ | ❌ | Metadata objects alone do not prove component semantics. |
 | M15 | Primitive and value-object collections | ❌ | ❌ | ❌ | Needs mapping, equality and update semantics. |
 | M16 | Shadow and indexer properties | ❌ | ❌ | ❌ | No proven model/session state mapping. |
-| M17 | Backing fields, private setters and constructor materialization | ❌ | ❌ | ❌ | Reflection support requires explicit complete acceptance. |
+| M17 | Backing fields, private setters and constructor materialization | ❌ | ❌ | ❌ | Reflection support requires explicit complete acceptance. Positional record/DTO constructor selection without expression member bindings remains unsupported (native indexed demo reproduced rejection); public parameterless DTO/member-init and anonymous selections are separate proven shapes. |
 | M18 | Immutable entities / read-only mappings | ❌ | ❌ | ❌ | Detached results are not immutable entity persistence. |
 | M19 | Inheritance: discriminator / table-per-hierarchy equivalent | ❌ | ❌ | ❌ | HolonType alone is not proven polymorphic mapping. |
 | M20 | Inheritance: table-per-type equivalent | ❌ | ❌ | ❌ | Define faithful non-relational equivalent and test. |
