@@ -1,0 +1,31 @@
+{
+  "Provider": "CloudflareOASIS",
+  "Mode": "controlled",
+  "SharedChecks": 52,
+  "AdditionalControls": 25,
+  "NativeTestsSkippedWithoutConfiguration": 2,
+  "RawReports": [
+    {
+      "path": "TestResults/ProviderConformanceCurrent/CloudflareOASIS/async/report.json",
+      "sha256": "ec65b1be9f7cfc651c8a310e647bed8fa863806aab4c59076a6976d6d3f18de9"
+    },
+    {
+      "path": "TestResults/ProviderConformanceCurrent/CloudflareOASIS/sync/report.json",
+      "sha256": "b8492b2018f4ecd68c3753029007cfe198aa25badad66e3b9ce330655dbfca78"
+    }
+  ],
+  "PreservedPublicationEvidence": [
+    {
+      "path": "TestResults/ProviderConformanceCurrent/CloudflareOASIS/publication-failure-preservation.json",
+      "sha256": "4d15d9f378682e07f483d2b6330922272344def196efb77c768bcb037bedfac9"
+    },
+    {
+      "path": "TestResults/ProviderConformanceCurrent/CloudflareOASIS/publication-probe-result.json",
+      "sha256": "5f2c77271516228f5c9191c405e9df557f57955eadf86030d0454f7bacec3881"
+    }
+  ],
+  "NativeCloudflareRequests": 0,
+  "RuntimeOrNamespaceCreated": false,
+  "NoConditionalWritesAdvertised": true,
+  "NoNativeImmediateVisibilityClaim": true
+}

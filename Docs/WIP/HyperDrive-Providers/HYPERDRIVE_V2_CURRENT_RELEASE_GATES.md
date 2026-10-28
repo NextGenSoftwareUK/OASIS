@@ -4,13 +4,14 @@ Updated 2026-10-28. Start with [CURRENT_STATUS.md](CURRENT_STATUS.md). No whole-
 
 ## Current phase
 
-Provider-family implementations and shared baseline verification precede global routing and depth work. Twelve storage implementations have recorded local native 52/52 passes; ActivityPub has a published 5/5 public social capability baseline (`00235929a`).
+Provider-family implementations and shared baseline verification precede global routing and depth work. Sixteen storage rows have recorded scoped native52/52 baselines (including local/emulated services and hosted Upstash); ActivityPub has a5/5 public-GET baseline. See the current matrix for exact scope, not a whole-provider completion count.
 
 ## Open gates and next action
 
 | Gate | Current blocker / next action |
 |---|---|
-| SOLID storage | Original `storage-key.dpapi`, `private-local-client.dpapi`, `private-local-pod.dpapi` missing from `C:/Source/OASIS/TestResults/SolidCurrent/`; restore trusted originals under the same Windows user or locate their existing protected location. No replacement over retained encrypted records. 0/52, no HTTP/server start |
+| SOLID storage | Original `storage-key.dpapi`, `private-local-client.dpapi`, `private-local-pod.dpapi` missing from `C:/Source/OASIS/TestResults/SolidCurrent/`; restore trusted originals under the same Windows user or locate their existing protected location. No replacement over retained encrypted records. Recovered native52/52 summary is hash-bound; missing original keys still block a fresh local run |
+| Cloudflare KV |52controlled core checks/25controls; native credentials absent at inspected locations. Eventual consistency, same-key rate limit and no CAS/transactions remain contract gates; see CLOUDFLARE_KV_STORAGE_BASELINE.md |
 | Oracle cloud | Local Oracle 52/52 is not Autonomous Database or OCI Object Storage acceptance. Need protected OCI profile/key, region/namespace/test bucket and database connection/wallet |
 | Azure Blob hosted acceptance | Local automatic baseline52/52 +111controls passes; graceful stop persists0blobs/blocks. Real Azure account/IAM/cloud durability acceptance remains separate; see AZURE_BLOB_STORAGE_BASELINE.md |
 | AWS S3 / hosted AWS | Need explicit test bucket/region, protected credentials and persisted storage key; billable-request policy/configuration remains separate. Local DynamoDB 52/52 is not hosted acceptance |

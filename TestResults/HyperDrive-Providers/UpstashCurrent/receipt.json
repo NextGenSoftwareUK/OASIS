@@ -1,0 +1,24 @@
+{
+  "provider": "UpstashOASIS",
+  "nativeChecks": 52,
+  "controlledChecks": 28,
+  "nativeNamespaceEmptyBeforeAndAfterEachMode": true,
+  "causalScope": "Same native backend session used by shipping provider; distinct inspection commands, not cross-client linearizability",
+  "reports": [
+    {
+      "path": "TestResults/ProviderConformanceCurrent/UpstashOASIS/async/report.json",
+      "sha256": "ff68c2fda90b6ab1d54a8dd0e1223564b16056a4bfef659c8cc82aeb8addcffa",
+      "bytes": 1628
+    },
+    {
+      "path": "TestResults/ProviderConformanceCurrent/UpstashOASIS/sync/report.json",
+      "sha256": "15799555999d3572dbf1737e233c128c8590655b4ed933f6912385eeba3e8589",
+      "bytes": 1627
+    }
+  ],
+  "aggregate": {
+    "path": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-upstashoasis-current.json",
+    "sha256": "4b303018e706d63d3cf99e022bc56ba92aeda8085a3567e9a025450cc648bff4"
+  },
+  "sourceScope": "Native producer unchanged after 52-check run; later controlled-only consumer additions not a native rerun. Local source-matched Core working cohort, not immutable release certification."
+}

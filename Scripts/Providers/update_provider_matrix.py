@@ -160,7 +160,11 @@ def build():
   if e:
    report=ROOT/e['report']
    if not report.is_file() or hashlib.sha256(report.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('Missing/changed evidence: '+name)
-   status=f"{e['passed']}/{e['total']} ({e['mode']}; {e['suite']})";blockers+=e.get('blockers',[])
+   execution=e['mode']
+   if name=='AWSS3OASIS' and execution=='native':
+    runs=json.loads(report.read_text(encoding='utf-8-sig')).get('runs',[])
+    if runs and all(r.get('Provider')=='AWSS3OASIS-MinIO' for r in runs):execution='native MinIO-compatible'
+   status=f"{e['passed']}/{e['total']} ({execution}; {e['suite']})";blockers+=e.get('blockers',[])
    if e['mode']=='controlled':status='Controlled '+status;blockers.append('Controlled backend is not native product acceptance')
    if role!='Non-storage' and e['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
     status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
@@ -169,6 +173,7 @@ def build():
   if gap:blockers.append(gap)
   elif not sdk:blockers.append('Real SDK/API not yet source-reviewed')
   sdk_text='Yes - '+', '.join(sdk) if sdk else ('No - reviewed missing adapter' if gap else 'No - unverified')
+  blockers=list(dict.fromkeys(blockers))
   rows.append(f"| [{name}](../../../{rel.as_posix()}) | {role} | {sdk_text} | {status} | {'; '.join(blockers) or 'None recorded within suite scope'} |")
  header=f'''# Provider breadth-first status matrix
 
@@ -188,12 +193,12 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | PostgreSQL and Oracle v2 native52/52PASS; PostgreSQL shared collection counts fixed with original-fixture read2PASS; Cockroach/Timescale thin facades, other product-native runs pending | Foundation started 26 Oct; ~1 day |
-| Document | Existing Mongo/Azure Cosmos/Firestore owners; DynamoDB owner for AWS alias + shared record policy | Mongo, Azure Cosmos, Google Firestore, AWS alias and DynamoDB native52/52PASS each; AWS official SDK on local3.3.2/new synthetic store, all5native tables empty; historical data not restored/cloud acceptance pending | Started 26 Oct; ~1 day |
-| Key-value/object | Existing KeyValueStorageProviderBase / IKeyValueBackend / S3 transport | Redis v2 native52/52PASS; KeyDB/Valkey/Dragonfly/Garnet thin shared facades52/52CONTROLLED each/native pending; AWS S3 native config missing0/52 historical | Started 26 Oct; ~1 day |
-| IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS canonical binding compiled; 0/52 blocked by missing original repo/key; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | PostgreSQL and Oracle v2 native52/52PASS; PostgreSQL shared collection counts fixed with original-fixture read2PASS; Cockroach/Timescale/Neon thin facades; DuckDB native52/52, MotherDuck shares DuckDB policy (cloud open), other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| Document | Existing Mongo/Azure Cosmos/Firestore owners; DynamoDB owner for AWS alias + shared record policy | Mongo, Azure Cosmos, Google Firestore, AWS alias and DynamoDB native52/52PASS each; AWS official SDK on local3.3.2/new synthetic store, all5native tables empty; historical data not restored/cloud acceptance pending; Convex native52/52 on official retained engine with shared encrypted policy and real companion | Started 26 Oct; ~1 day |
+| Key-value/object | Existing KeyValueStorageProviderBase / S3StorageProviderBase / native transports | Redis v2 and hosted Upstash REST native52/52PASS each; KeyDB/Valkey/Dragonfly/Garnet thin shared facades52/52CONTROLLED each/native pending; AWSS3 adapter native52/52 on CI MinIO; shipping MinIO shared S3 facade native52/52; ThreeFold52/52CONTROLLED/QSS gates open | Started 26 Oct; ~1 day |
+| IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS native52/52 summary recovered with exact registry hash; retained runtime/key/lifecycle acceptance remains separate; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
 | Non-EVM | Existing encrypted record/version/query helpers + native SDK transports | Solana native4/52: read-only probe proves referenced memo chunk unavailable during collection decoding; fail-closed, original fixtures preserved. Baseline only, no contract/fee/recovery depth | Started 26 Oct; ~1 day |
-| Graph/federated/filesystem/other | Existing native owners | Neo4j native52/52PASS with all304preexistinggraph elements unchanged; remaining native bindings pending | Started 27 Oct; ~1 day |
+| Graph/federated/filesystem/other | Existing native owners | Neo4j native52/52PASS with all304preexistinggraph elements unchanged; SOLID native52/52 summary recovered with exact hash, lifecycle/private-federation gates open | Started 27 Oct; ~1 day |
 | Non-storage | NonStorageConformance / capability-v1 | ActivityPub Social/Network native5/5PASS with guarded real public Mastodon GETs and291controlled regressions; other native capability bindings pending, controlled shared harness7PASS | Foundation started 26 Oct; ~1 day |
 
 | Provider | Family | Real SDK/API source evidence | Applicable conformance passed | Blockers |

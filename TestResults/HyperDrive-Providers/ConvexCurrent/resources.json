@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-28",
+  "owner": "HyperDrive provider task",
+  "sdk": {
+    "path": "C:\\Users\\david\\AppData\\Local\\OASIS\\ReusableProviderTests\\NodeTools",
+    "packages": {
+      "convex": "1.48.0",
+      "esbuild": "0.27.0",
+      "prettier": "3.9.10",
+      "ws": "8.21.0",
+      "@esbuild/win32-x64": "0.27.0"
+    },
+    "bytes": 53750184,
+    "origin": "installed once; retained shared NodeTools",
+    "lockSha256": "7b2a3523b4af7faf64fb230ba7255fa71b276e583079415b3510d3d53ff650cc"
+  },
+  "runtime": {
+    "path": "/root/oasis-runtimes/convex",
+    "version": "precompiled-2026-10-22-1447815",
+    "binaryBytes": 213980664,
+    "totalBytes": 215216349,
+    "stateBytes": 628958,
+    "logBytes": 605847,
+    "state": "stopped reusable; no logical OASIS records; engine internal history retained",
+    "ports": [
+      13210,
+      13211
+    ],
+    "sourceArchiveRemoved": true
+  },
+  "existingCompiler": {
+    "path": "C:/Source/OASIS/oasisweb4.com/node_modules/typescript/lib/tsc.js",
+    "version": "5.5.4",
+    "origin": "reused; size unmeasured"
+  },
+  "junction": {
+    "path": "C:/Source/OASIS/Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/Companion/node_modules",
+    "target": "C:\\Users\\david\\AppData\\Local\\OASIS\\ReusableProviderTests\\NodeTools\\node_modules",
+    "copiesMade": false
+  },
+  "credentials": [
+    "/root/oasis-runtimes/convex/credentials/instance-secret (0600)",
+    "/root/oasis-runtimes/convex/credentials/admin-key (0600)",
+    "C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Convex/storage-key.dpapi (CurrentUser DPAPI)"
+  ],
+  "retention": "Retain one runtime/SDK and protected keys. Inspect owner/process/ports before teardown; preserve evidence and credentials. Do not delete shared npm cache (task contribution unmeasured). Regenerate from pinned official release/hash and package lock; no automatic duplicate install.",
+  "outputs": [
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.ConvexOASIS",
+      "binBytes": 7897551,
+      "objBytes": 868447,
+      "lifecycle": "reusable fixed outputs; dispose only after handles stop; regenerate via bounded cached producer/consumer runner"
+    },
+    {
+      "path": "C:\\Source\\OASIS\\Providers\\Cloud\\TestProjects\\NextGenSoftware.OASIS.API.Providers.ConvexOASIS.UnitTests",
+      "binBytes": 46822199,
+      "objBytes": 1125050,
+      "lifecycle": "reusable fixed outputs; dispose only after handles stop; regenerate via bounded cached producer/consumer runner"
+    }
+  ]
+}

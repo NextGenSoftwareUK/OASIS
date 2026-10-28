@@ -1,0 +1,64 @@
+{
+  "FreeCBytes": 94974009344,
+  "FixtureLifecycle": "Controlled dictionaries empty after successful suites, then disposed; no native records existed",
+  "PreservedEvidence": "Fixed TestResults/ProviderConformanceCurrent/CloudflareOASIS; exact checkpoint hashes in receipt/preservation metadata",
+  "ObservedUtc": "2026-10-28T21:41:02.505702Z",
+  "Resources": [
+    {
+      "Bytes": 7914272,
+      "Owner": "HyperDrive provider breadth",
+      "Cleanup": "Retain for reuse; after retirement and handle checks remove exact bin/obj only, regenerate bounded cached build under lease",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.CloudflareOASIS\\bin",
+      "Dependencies": "owned build/test handles terminal; no native port",
+      "Provenance": "reused/generated; cache-only restore",
+      "Version": ".NET10.0.401; existing NuGet cache",
+      "Lifecycle": "active/reusable",
+      "Purpose": "Cloudflare shared storage and protocol controls"
+    },
+    {
+      "Bytes": 865410,
+      "Owner": "HyperDrive provider breadth",
+      "Cleanup": "Retain for reuse; after retirement and handle checks remove exact bin/obj only, regenerate bounded cached build under lease",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\NextGenSoftware.OASIS.API.Providers.CloudflareOASIS\\obj",
+      "Dependencies": "owned build/test handles terminal; no native port",
+      "Provenance": "reused/generated; cache-only restore",
+      "Version": ".NET10.0.401; existing NuGet cache",
+      "Lifecycle": "active/reusable",
+      "Purpose": "Cloudflare shared storage and protocol controls"
+    },
+    {
+      "Bytes": 46836028,
+      "Owner": "HyperDrive provider breadth",
+      "Cleanup": "Retain for reuse; after retirement and handle checks remove exact bin/obj only, regenerate bounded cached build under lease",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\TestProjects\\NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests\\bin",
+      "Dependencies": "owned build/test handles terminal; no native port",
+      "Provenance": "reused/generated; cache-only restore",
+      "Version": ".NET10.0.401; existing NuGet cache",
+      "Lifecycle": "active/reusable",
+      "Purpose": "Cloudflare shared storage and protocol controls"
+    },
+    {
+      "Bytes": 1127342,
+      "Owner": "HyperDrive provider breadth",
+      "Cleanup": "Retain for reuse; after retirement and handle checks remove exact bin/obj only, regenerate bounded cached build under lease",
+      "Path": "C:\\Source\\OASIS\\Providers\\Cloud\\TestProjects\\NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests\\obj",
+      "Dependencies": "owned build/test handles terminal; no native port",
+      "Provenance": "reused/generated; cache-only restore",
+      "Version": ".NET10.0.401; existing NuGet cache",
+      "Lifecycle": "active/reusable",
+      "Purpose": "Cloudflare shared storage and protocol controls"
+    }
+  ],
+  "NoRuntimeAccountNamespaceOrDownloadCreated": true,
+  "CompactEvidence": {
+    "Path": "C:\\Source\\OASIS\\TestResults\\ProviderConformanceCurrent\\CloudflareOASIS",
+    "Cleanup": "Keep compact failure/current receipts; future rollover only after hash verification, no data/runtime recreation required",
+    "Bytes": 9452,
+    "Dependencies": "none; controlled model process terminal",
+    "InMemoryFixtureSize": "unmeasured; no persistent/native store",
+    "Version": "core-storage-v2",
+    "Owner": "HyperDrive provider breadth",
+    "Purpose": "hash-bound controlled reports and initial publication-failure metadata",
+    "Lifecycle": "preserved evidence/current+previous only"
+  }
+}

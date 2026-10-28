@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.UpstashOASIS
 
-Upstash OASIS Provider — serverless Redis-compatible key-value store for OASIS holons and avatars via Upstash REST API. No SDK required — uses System.Net.Http. https://oasisomniverse.one
+Upstash OASIS Provider â€” serverless Redis-compatible key-value store for OASIS holons and avatars via Upstash REST API. No SDK required â€” uses System.Net.Http. https://oasisomniverse.one
 
 ## Installation
 
@@ -8,7 +8,7 @@ Upstash OASIS Provider — serverless Redis-compatible key-value store for OASIS
 dotnet add package NextGenSoftware.OASIS.API.Providers.UpstashOASIS
 ```
 
-[NuGet versions](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.UpstashOASIS) · [Source project](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS/NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj)
+[NuGet versions](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.UpstashOASIS) Â· [Source project](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS/NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj)
 
 Choose a published version compatible with the other OASIS packages in your application. This guide describes current source; older packages may not contain the same functionality.
 
@@ -28,6 +28,16 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+## Storage configuration and consistency
+
+The source adapter uses the real Upstash REST API and shared encrypted OASIS record/history/query policy. Construct `UpstashOASIS(restUrl, token)` with a root HTTPS origin. Configure `OASIS_UPSTASH_STORAGE_KEY` as canonical Base64 for a separately persisted32-byte storage key. Missing keys fail before data access; the adapter never generates or migrates keys. The injected `HttpClient`/key-resolver constructor preserves caller ownership by default. Caller-supplied HTTP handlers must disable redirects and automatic mutation retries.
+
+The existing plaintext `avatar:`, `detail:` and `holon:` layouts are refused before new-layout access; stop old-layout writers and review migration separately. Default holon deletion is soft; history and queries use the shared storage policy. Native per-key comparisons are content-state comparisons, not monotonic versions or multi-record transactions.
+
+Requests within one provider instance are serialized and forward the native `upstash-sync-token` for read-your-writes. Independent clients do not automatically share causal state; do not infer cross-client linearizability or snapshots. Unknown write acknowledgements remain reconciliation errors and are never automatically replayed. Credentials and remote error bodies are not included in diagnostics.
+
+The opt-in canonical verification runner is `Scripts/Providers/Run-UpstashStorageConformance.ps1` in the source repository. It reuses its protected dedicated test resource and refuses expired resources or existing run reports. Native core-storage checks are a baseline, not certification of every optional interface or HyperDrive route.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
@@ -45,7 +55,7 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) Â· [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 

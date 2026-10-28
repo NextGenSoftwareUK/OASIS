@@ -26,7 +26,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 
 | Package | Version | Change |
 |---|---|---|
-| `@oasisomniverse/web4-api` | 2.0.15 | `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes) |
+| `@oasisomniverse/web4-api` | 2.0.16 | 2.0.15: `X-COSMIC-Operation-Id` on every write + `Idempotency-Key` on every request (same id on writes). 2.0.16 (28 Oct): keeps `metaData`/`providerMetaData` keys as sent, so a loaded holon saves back with its revision (PIPER edits) |
 | `@oasisomniverse/web5-api` | 1.0.6 | `Idempotency-Key` on every request (committed 21 Oct, never published) |
 | `@oasisomniverse/web6-api` | 2.1.2 | same as web5 |
 | `@oasisomniverse/web7-api` … `web10-api` | 1.0.5 each | same as web5 |
@@ -239,6 +239,12 @@ The optional `-RecordLifecycle -StorageEncryptionKeyEnvironmentVariable <variabl
 - [ ] Revoke/rotate the previously embedded CoinGecko credential if active. Configure its replacement as `COINGECKO_DEMO_API_KEY` in the retained test environment, not in chat or source control. Live quote verification remains pending.
 
 ---
+
+### Pending Cloudflare Workers KV native acceptance — added28October2026
+
+The real REST/shared encrypted adapter passes52controlled core checks plus25protocol/metadata controls. Hosted acceptance still needs a dedicated owned namespace and scoped KV read/write token. No Cloudflare account/namespace or installation was created; process configuration and three standard Wrangler profile locations were empty.
+
+Configure account/namespace/token and the separately persisted32-byte storage key outside chat using the `OASIS_CLOUDFLARE_CONFORMANCE_*` variables listed in [the scoped baseline](../HyperDrive-Providers/CLOUDFLARE_KV_STORAGE_BASELINE.md). The opt-in native suite preserves actual failures. Workers KV's native eventual consistency, same-key write limit and lack of CAS/transactions remain contract gates even with credentials; do not assume a controlled pass certifies immediate visibility or current credential authority. A stronger authority/Durable Objects design is separate from this KV adapter.
 
 ## Part D — Older owner actions (14–15 October 2026)
 
