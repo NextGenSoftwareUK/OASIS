@@ -13,3 +13,7 @@
 Connection behavior source: [official Neon pooling guide](https://neon.com/docs/connect/connection-pooling). Reproduce using existing provider build lease, bounded cached build of NeonOASIS then NeonOASIS.UnitTests, --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false; dotnet test the unit project --no-build --no-restore.
 
 Continue PostgreSQL-wire wrappers through this base where their native semantics fit. Preserve product-specific tenant/context behavior; do not replace a different transport or erase such behavior just to produce a thin class. Other SQL engines retain their own real native clients.
+
+## DuckDB
+
+[Native baseline](DUCKDB_STORAGE_BASELINE.md):52/52 plus6native controls on pinned real DuckDB.NET1.1.3. Thin SQL transport reuses KeyValueStorageProviderBase; default soft deletion preserved, native revision predicates verified, legacy files refused without changes. MotherDuck/cloud, version/concurrency stress, full interfaces and global routing remain separate gates. FlyIO/Nile were inspected and already share PostgreSQL storage, so no cosmetic rewrites were made.
