@@ -27,7 +27,7 @@ public partial class Neo4jOASIS
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS
             || plan.Query.ResultStages.Count == 0 && !plan.IsScalarTerminal)
             throw new ArgumentException("Composition requires a matching single-provider plan and admitted remaining limits.");
-        return CompileCqlSelected(plan.Query, limits, numeric: plan.NumericReduction);
+        return CompileCqlSelected(plan.Query, limits, numeric: plan.NumericReduction, entity: plan.EntitySource);
     }
 
     internal static NeoCqlCompositionCommand CompileCqlProjectedAll<T, TResult>(
@@ -40,12 +40,12 @@ public partial class Neo4jOASIS
     }
 
     private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
-        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, CosmicProjectedNumericIntent numeric = null) where T : IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CosmicQueryPredicate terminal = null, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity=null) where T : IHolon
     {
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Graph-source composition requires separate enrollment.");
         var parameters = new Dictionary<string, object>(StringComparer.Ordinal);
         var source = CompileCqlDetachedSource(query.Source, parameters, Array.Empty<CosmicQueryPath>(),
-            query.Columns.Select(column => column.Path).ToArray(), limits.MaximumInputRows, limits.MaximumInputPayloadBytes);
+            query.Columns.Select(column => column.Path).ToArray(), limits.MaximumInputRows, limits.MaximumInputPayloadBytes,entity);
         var binder = new NeoCqlTranslator("h", "p", parameters, null);
         var maximumRows = binder.Bind(limits.MaximumInputRows);
         var maximumBytes = binder.Bind(limits.MaximumInputPayloadBytes);
@@ -54,8 +54,9 @@ public partial class Neo4jOASIS
         var valid = "size(input)<=" + maximumRows
             + " AND all(x IN input WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"
             + " AND reduce(total=0,x IN input | total+x.bytes)<=" + maximumBytes;
-        var text = new StringBuilder("CALL { CALL { " + source + " } RETURN collect(input) AS input } "
-            + "WITH input,CASE WHEN " + valid + " THEN range(0,size(input)-1) ELSE [] END AS s0,0 AS work,0 AS proofBytes ");
+        var sourceScope=entity==null ? "CALL { CALL { "+source+" } RETURN collect(input) AS input } WITH input,"
+            : "CALL { "+source+" } WITH input,entityProofs,";
+        var text = new StringBuilder(sourceScope+"CASE WHEN " + valid + " THEN range(0,size(input)-1) ELSE [] END AS s0,0 AS work,0 AS proofBytes ");
         var aliases = query.Columns.Select((column, index) => new { column.Alias, Index = index })
             .ToDictionary(item => item.Alias, item => item.Index, StringComparer.Ordinal);
         var filters = new GroupFilterCompiler<T, object, object>(binder, path =>
@@ -65,7 +66,7 @@ public partial class Neo4jOASIS
                 throw new NotSupportedException("Composition filters require exact selected scalar bindings.");
             return "input[position].values[" + index + "].v";
         });
-        var carried = "input,s0";
+        var carried = "input,s0"+(entity==null ? "" : ",entityProofs");
         for (var index = 0; index < query.ResultStages.Count; index++)
         {
             var previous = "s" + index; var next = "s" + (index + 1);
@@ -109,8 +110,10 @@ public partial class Neo4jOASIS
         // Explicit headers make empty stages observable, rather than inferred
         // from absent rows. Source proofs precede all stage identities.
         var import = carried + ",work,proofBytes";
-        text.Append("CALL { WITH ").Append(import)
-            .Append(" RETURN -2 AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(input) AS nativeCount,work AS stageWork ")
+        text.Append("CALL { WITH ").Append(import);
+        if(entity!=null)
+            text.Append(" UNWIND range(0,size(entityProofs)-1) AS pos RETURN -3 AS phase,pos AS position,-1 AS sourcePosition,entityProofs[pos] AS proof,size(entityProofs) AS nativeCount,0 AS stageWork UNION ALL WITH ").Append(import);
+        text.Append(" RETURN -2 AS phase,-1 AS position,-1 AS sourcePosition,null AS proof,size(input) AS nativeCount,work AS stageWork ")
             .Append("UNION ALL WITH ").Append(import)
             .Append(" UNWIND range(0,size(input)-1) AS pos RETURN -1 AS phase,pos AS position,pos AS sourcePosition,input[pos] AS proof,size(input) AS nativeCount,work AS stageWork ");
         for (var index = 0; index < query.ResultStages.Count; index++)

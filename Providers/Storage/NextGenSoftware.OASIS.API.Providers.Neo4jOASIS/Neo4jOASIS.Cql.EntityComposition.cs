@@ -54,7 +54,7 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
 
     private static string CompileCqlEntityComposition<T>(NeoCqlSource compiled, CosmicEntityCompositionPlan<T> plan,
         int maximumResults, bool countOnly=false,IReadOnlyList<CosmicProjectionColumn> projection=null,
-        int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit) where T:IHolon
+        int maximumProjectionBytes=CosmicProjectionResults.MaximumPayloadLimit, bool relationOnly=false) where T:IHolon
     {
         var translator = compiled.Translator;
         var parameters = translator.Parameters;
@@ -120,6 +120,17 @@ public partial class Neo4jOASIS : ICosmicQueryEntityCountStorageProvider
             }
             else throw new NotSupportedException("Unknown native entity stage.");
             index++;
+        }
+        if(relationOnly)
+        {
+            const string relationFields="entityValid,entitySource,selected,entityCycle,entityLimit";
+            var relationErrors=compiled.Translator.TraversalClauses.Count==0 ? "" : " UNION ALL "+compiled.EligibleSource
+                +"WHERE "+compiled.Cycle+" OR "+compiled.TraversalLimit
+                +" RETURN true AS entityValid,[] AS entitySource,[] AS selected,"+compiled.Cycle
+                +" AS entityCycle,"+compiled.TraversalLimit+" AS entityLimit LIMIT 1";
+            return "CALL { "+compiled.Source+"WHERE NOT valid RETURN false AS entityValid,[] AS entitySource,[] AS selected,"
+                +"false AS entityCycle,false AS entityLimit LIMIT 1"+relationErrors+" UNION ALL "+text
+                +" RETURN true AS entityValid,entitySource,selected,entityCycle,entityLimit } RETURN "+relationFields;
         }
         var entries="CASE WHEN entityCycle OR entityLimit THEN [{h:null,p:null,input:false}] "
             + "ELSE [item IN entitySource | {h:item.h,p:item.p,input:true}] + "

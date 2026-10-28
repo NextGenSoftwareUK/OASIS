@@ -211,3 +211,34 @@ that policy on canonical point evidence. The ActivityPub/Mastodon adapter proves
 this path without timeline scans or local query substitution. It reuses its
 status projection owner, propagates cancellation, bounds streamed payloads and
 rejects ambiguous JSON. [Verified scope and remaining gates](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+
+### Entity stages followed by selected stages
+
+`CosmicProjectionCompositionPlanner.PlanEntity` retains an independent
+`EntitySource` plan alongside the selected plan. Standard LINQ captures both
+chains and rebinds them once per execution. Actual adapters must independently
+enroll `ICosmicQueryEntityProjectionCompositionStorageProvider`; the flat native
+entry point rejects combined plans. HolonManager uses the existing V2 composition
+attempt owner. All3 implementations now have23 common native acceptance cases.
+
+```mermaid
+flowchart LR
+    A[Immutable source page] --> B[Native entity stages]
+    B --> C[Complete selected input cells]
+    C --> D[Native selected stages]
+    D --> E[Shared proof validation]
+    E --> F[DTO construction]
+```
+
+SQLite validates both chains inside one serializable owner. Mongo validates
+entity proofs, selected inputs and selected stages in the same snapshot/deadline;
+final entity ordering and identity direction determine selected ranks. Neo exports
+the final entity relation from its existing compiler, then captures typed cells
+and selected stages in one statement. A leading canonical proof phase validates
+original source snapshots/revisions, sticky traversal errors and work bounds
+before selected participation is accepted. It retains ProviderDefault consistency
+limits and does not advertise snapshot isolation. No owner hydrates application
+source entities as an intermediate query engine.
+
+Combined graph sources, reselection and element/cardinality/numeric terminals
+following this selection remain unintegrated. Q01f stays red.
