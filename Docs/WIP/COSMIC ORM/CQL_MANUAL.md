@@ -977,3 +977,73 @@ SDK/actual SQLite and declared-range live Solana selected-metadata HTTP/demo gat
 ### Azure Cosmos DB teaching host
 From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB (or add -VerifyOnly for bounded native acceptance). Open http://127.0.0.1:5088/ after readiness. The page shows C# and real WEB4 JSON for rows, projection and LongCount over the retained local emulator. It uses a controlled server-owned catalogue and receipts, not production JWT/billing. Stop via the page to complete exact fixture cleanup and emulator teardown. See [interactive guide](CQL_INTERACTIVE_POINT_DEMO.md) and [cloud evidence and limits](CQL_COSMOS_NATIVE_ADMISSION.md).
 
+
+### Selection after entity windows and stages (Q01f, partial)
+
+The explicit entity-projection API is native-verified on SQLite and MongoDB.
+Neo4j, the standard IQueryable post-window Select bridge and remaining numeric
+integration are still pending. Q01f remains red; this is not general LINQ parity.
+
+An earlier page must retain its meaning when a later filter/order/selection runs.
+For example, select the first twenty names, then filter/reorder that page, then
+select columns. The provider must not push the later filter before that page.
+Use an already activated adapter and the trusted host's manager/actor:
+
+```csharp
+var scope = Require(CosmicQueryScope.Named(provider.QueryProviderType));
+var access = Require(CosmicQueryReadAccess.OwnerOrPublic(actorId));
+
+var source = Require(CosmicQuery<Holon>.Create(scope)
+    .WithReadAccess(access)
+    .OrderBy(holon => holon.Name)
+    .Take(20));
+
+var entities = Require(source.Compose());
+entities = Require(entities.Where(holon => holon.Version >= 1));
+entities = Require(entities.OrderByDescending(holon => holon.Version));
+entities = Require(entities.Take(5));
+
+var selected = Require(entities.Select(holon => new
+{
+    holon.Name,
+    holon.Version
+}));
+
+var plan = Require(CosmicEntityProjectionPlanner.Plan(
+    selected,
+    provider.QueryProviderType,
+    new CosmicProjectionTarget(
+        provider.QueryProviderType,
+        provider.QueryCapabilities,
+        provider.ProjectionCapabilities),
+    provider.EntityCompositionCapabilities));
+
+var result = Require(await manager.ExecuteEntityProjectionQueryAsync(
+    plan,
+    new ICosmicQueryStorageProvider[] { provider },
+    5,
+    1024 * 1024));
+```
+
+`Require` is the sample boundary helper that throws on an OASISResult error;
+applications should handle that result explicitly. Source and stage row/work/byte
+limits are independent of final output limits. Mongo runs source and every staged
+protected-scope proof in the same snapshot before publishing selected cells. The
+existing projection decoder validates exact domains and payload shape; the shared
+owner constructs application DTOs only after complete validation. Empty output
+cannot bypass a preceding protected error. There is no managed filtering or
+source-entity hydration substitute.
+
+Mongo proof:218focused CQL tests (including3new compiler/admission cases) and10
+native cases cover source/stage page order, reversal, Int64/UInt64/Decimal
+precision, visibility, protected scopes, source/work/output bounds and invalid
+cells before DTO construction. Raw evidence:
+TestResults/CoreCurrent/mongo-entity-projection-unit.trx SHA256
+D7B10A9E508D573EF7A06A0D887C71CE46F35ED737A4592E2956A32BE0378CBA;
+TestResults/Neo4jCurrent/mongo-entity-projection-native.trx SHA256
+A72ACC73C6876AFF92870E10DC5740738B2FB57F72741C1BF77FF7BACBB4135F;
+native JSON E497533119AEFADBEB32F6CAA00E1C29A761545AC54EC77618EA9CB1D3106940.
+Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedStorage.ps1 -MongoEntityProjection
+under its own single lease. It uses the existing replica environment, journals a
+small absent-at-preflight five-record database, preserves failed outcomes and
+verifies exact successful cleanup. It never changes preserved SQLite evidence.

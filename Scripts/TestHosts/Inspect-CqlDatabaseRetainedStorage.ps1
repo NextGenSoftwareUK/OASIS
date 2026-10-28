@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-param([switch]$ReconcileFixture)
+param([switch]$ReconcileFixture,[switch]$MongoEntityProjection)
+if($ReconcileFixture -and $MongoEntityProjection){throw 'Choose one exclusive native task.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $data=Join-Path $root 'LocalState/COSMIC/mongo-data'
@@ -8,16 +9,20 @@ $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
 if(!(Test-Path -LiteralPath $data -PathType Container)){throw 'Original retained Mongo data required for outcome inspection; a replacement cannot prove recovery.'}
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-cql-readonly-storage-audit -Operation {
-    $owned=$null;$attached=$null;$previous=$env:OASIS_CQL_STORAGE_INSPECTION_ROOT;$previousReconcile=$env:OASIS_CQL_RECONCILE_FIXTURE
+    $owned=$null;$attached=$null;$previous=$env:OASIS_CQL_STORAGE_INSPECTION_ROOT;$previousReconcile=$env:OASIS_CQL_RECONCILE_FIXTURE;$previousProjection=$env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT
     try{
         if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Retained Mongo port already owned; no interference.'}
         $version=(& $runtime --version) -join ' '
         if($LASTEXITCODE -or $version -notmatch 'v8\.3\.11\b'){throw 'Expected installed Mongo8.3.11 runtime.'}
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
+        if($MongoEntityProjection){
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+            if($LASTEXITCODE){throw 'Mongo entity projection producer build failed.'}
+        }
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw 'Storage inspection consumer build failed.'}
         & (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput (Join-Path (Split-Path $project) 'bin/Debug/net10.0') -VerifySourceDocuments
-        $reportNames=if($ReconcileFixture){@('cql-retained-fixture-reconciliation.trx')}else{@('cql-retained-storage-inspection.json','cql-retained-storage-inspection.trx')}
+        $reportNames=if($MongoEntityProjection){@('mongo-entity-projection-native.json','mongo-entity-projection-native.trx')}elseif($ReconcileFixture){@('cql-retained-fixture-reconciliation.trx')}else{@('cql-retained-storage-inspection.json','cql-retained-storage-inspection.trx')}
         foreach($name in $reportNames){
             $path=Join-Path $work $name
             if(Test-Path -LiteralPath $path){Move-Item -LiteralPath $path -Destination (Join-Path $work ((Get-FileHash $path).Hash+[IO.Path]::GetExtension($path)))}
@@ -48,9 +53,10 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         # Existing replica configuration is reused; no replSetInitiate, schema
         # initialization, fixture writes or recovery operations are submitted.
         $env:OASIS_CQL_STORAGE_INSPECTION_ROOT=$root
+        $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=if($MongoEntityProjection){$root}else{$null}
         $began=[DateTime]::UtcNow
-        $test=if($ReconcileFixture){'FullyQualifiedName~ReconcileReviewedRetainedThreeDatabaseFixtureAfterArchivingEvidence'}else{'FullyQualifiedName~RetainedMongoAndLocalSqliteInventoryPreservesDataAndReportsDurableOutcomes'}
-        $reportName=if($ReconcileFixture){'cql-retained-fixture-reconciliation.trx'}else{'cql-retained-storage-inspection.trx'}
+        $test=if($MongoEntityProjection){'FullyQualifiedName~NativeMongoEntityProjectionPreservesStagesAndProofBeforeDtoConstruction'}elseif($ReconcileFixture){'FullyQualifiedName~ReconcileReviewedRetainedThreeDatabaseFixtureAfterArchivingEvidence'}else{'FullyQualifiedName~RetainedMongoAndLocalSqliteInventoryPreservesDataAndReportsDurableOutcomes'}
+        $reportName=if($MongoEntityProjection){'mongo-entity-projection-native.trx'}elseif($ReconcileFixture){'cql-retained-fixture-reconciliation.trx'}else{'cql-retained-storage-inspection.trx'}
         & dotnet test $project --no-build --no-restore --filter $test --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
         if($LASTEXITCODE){throw 'Retained storage inspection failed; preserve data and evidence.'}
         $trx=Join-Path $work $reportName
@@ -58,6 +64,12 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         [xml]$result=Get-Content -LiteralPath $trx -Raw
         $counts=$result.TestRun.ResultSummary.Counters
         if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly one complete storage audit.'}
+        if($MongoEntityProjection){
+            $proof=Get-Content -LiteralPath (Join-Path $work 'mongo-entity-projection-native.json') -Raw|ConvertFrom-Json
+            if($proof.checks -ne 10 -or !$proof.exactCleanupVerified){throw 'Native entity projection proof incomplete.'}
+            Write-Output 'Mongo entity projection: ten native cases and fixture cleanup pass.'
+            return
+        }
         if($ReconcileFixture){
             $journal=Join-Path $root 'LocalState/COSMIC/Neo4jCurrent/ReconciledFixture892A8AF7/reconciliation.json'
             $completion=Get-Content -LiteralPath $journal -Raw|ConvertFrom-Json
@@ -73,6 +85,7 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
     finally{
         $env:OASIS_CQL_STORAGE_INSPECTION_ROOT=$previous
         $env:OASIS_CQL_RECONCILE_FIXTURE=$previousReconcile
+        $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT=$previousProjection
         try{
             if($null -ne $attached){
                 & wsl.exe -d Ubuntu -u root -- podman stop --time 20 oasis-neo4j

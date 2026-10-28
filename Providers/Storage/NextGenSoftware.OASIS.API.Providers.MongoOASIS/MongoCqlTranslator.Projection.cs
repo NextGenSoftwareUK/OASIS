@@ -14,12 +14,32 @@ internal sealed class MongoCqlProjectionCommand
     internal bool RequiresSnapshot { get; }
     internal bool HasTraversalEnvelope { get; }
     internal bool IsEmpty { get; }
-    internal MongoCqlProjectionCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool traverses, bool empty)
-    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; HasTraversalEnvelope = traverses; IsEmpty = empty; }
+    internal MongoCqlEntityCompositionCommand EntityComposition { get; }
+    internal MongoCqlProjectionCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool traverses, bool empty,
+        MongoCqlEntityCompositionCommand entityComposition=null)
+    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; HasTraversalEnvelope = traverses; IsEmpty = empty; EntityComposition=entityComposition; }
 }
 
 internal sealed partial class MongoCqlTranslator
 {
+    internal MongoCqlProjectionCommand CompileEntityProjection<T,TResult>(CosmicEntityProjectionPlan<T,TResult> plan,
+        int maximumResults) where T:IHolon
+    {
+        if(plan==null || maximumResults<0 || maximumResults>CosmicProjectionResults.MaximumResultLimit)
+            throw new ArgumentException("An admitted bounded entity projection is required.");
+        var entity=CompileEntityComposition(plan.Source,Math.Max(1,maximumResults));
+        // The source page and every later entity stage are already captured.
+        // Replace only the final publication sentinel; never reapply source paging.
+        var pipeline=entity.Pipeline.Take(entity.Pipeline.Length-1).Select(stage=>(BsonDocument)stage.DeepClone()).ToList();
+        pipeline.Add(new("$limit",maximumResults+1));
+        var cells=new BsonArray();
+        for(var index=0;index<plan.Selection.Query.Columns.Count;index++)
+            cells.Add(ProjectionCell(plan.Selection.Query.Columns[index].Path,"cqlep"+index));
+        pipeline.Add(new("$project",new BsonDocument { {"_id",0},{"cells",cells} }));
+        ValidatePipeline(pipeline);
+        return new MongoCqlProjectionCommand(pipeline.ToArray(),entity.RequiresMembership,true,false,false,entity.EntityComposition);
+    }
+
     internal MongoCqlProjectionCommand CompileProjection<T, TResult>(CosmicProjectionQuery<T, TResult> query, int maximumResults) where T : IHolon
     {
         var source = CompileSource(query.Source, out var traverses);
