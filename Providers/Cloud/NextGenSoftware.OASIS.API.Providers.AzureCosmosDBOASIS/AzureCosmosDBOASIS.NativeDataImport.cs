@@ -34,18 +34,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         public string NativeImportContainers { get; set; }
 
         public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.AzureCosmosDBOASIS;
-public string DescribeNativeConnection(NativeConnection connection)        {            NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");            return null;        }
+        public string DescribeNativeConnection(NativeConnection connection)
+        {
+            if (connection == null) return null;
+            var (endpoint, _, database, _) = ParseNativeConnection(connection);
+            return "cosmos://" + endpoint.Authority.ToLowerInvariant() + "/" + database;
+        }
 
         public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
             try
             {
-                NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");
+                using var native = await OpenNativeAsync(connection, cancellationToken);
                 var sources = new List<NativeDataSource>();
-                foreach (var name in AllowedContainers())
+                foreach (var name in native.Containers)
                 {
-                    var container = NativeClient().GetContainer(NativeImportDatabaseName, name);
+                    var container = native.Client.GetContainer(native.Database, name);
                     using var iterator = container.GetItemQueryIterator<long>(new QueryDefinition("SELECT VALUE COUNT(1) FROM c"));
                     long total = 0;
                     while (iterator.HasMoreResults)
@@ -53,11 +58,11 @@ public string DescribeNativeConnection(NativeConnection connection)        {    
                     sources.Add(new NativeDataSource(name, "container", total));
                 }
                 result.Result = sources;
-                result.Message = $"{sources.Count} allowed Cosmos containers in {NativeImportDatabaseName}.";
+                result.Message = $"{sources.Count} Cosmos containers in {native.Database}.";
             }
             catch (Exception cause) when (cause is CosmosException or InvalidOperationException)
             {
-                OASISErrorHandling.HandleError(ref result, $"Listing native Cosmos containers failed: {cause.Message}", cause);
+                OASISErrorHandling.HandleError(ref result, $"Listing native Cosmos containers failed: {(connection == null ? cause.Message : connection.Redact(NativeConnectionGuard.Explain(cause), "key"))}", cause);
                 result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_LIST_FAILED";
             }
             return result;
@@ -69,12 +74,12 @@ public string DescribeNativeConnection(NativeConnection connection)        {    
             var result = new OASISResult<NativeRecordPage>();
             try
             {
-                NativeConnectionGuard.RefuseUnsupported(connection, "Azure Cosmos DB");
+                using var native = await OpenNativeAsync(connection, cancellationToken);
                 if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
-                if (!AllowedContainers().Contains(sourceName, StringComparer.Ordinal))
-                    throw new ArgumentException($"'{sourceName}' is not a container listed in NativeImportContainers.");
+                if (!native.Containers.Contains(sourceName, StringComparer.Ordinal))
+                    throw new ArgumentException($"'{sourceName}' is not an importable container of this connection.");
 
-                var container = NativeClient().GetContainer(NativeImportDatabaseName, sourceName);
+                var container = native.Client.GetContainer(native.Database, sourceName);
                 var documents = new List<JObject>();
                 using (var iterator = container.GetItemQueryIterator<JObject>(NativePageQuery(continuationToken, pageSize),
                     requestOptions: new QueryRequestOptions { MaxItemCount = pageSize + 1 }))
@@ -88,7 +93,7 @@ public string DescribeNativeConnection(NativeConnection connection)        {    
             }
             catch (Exception cause) when (cause is CosmosException or InvalidOperationException or ArgumentException)
             {
-                OASISErrorHandling.HandleError(ref result, $"Reading native Cosmos container '{sourceName}' failed: {cause.Message}", cause);
+                OASISErrorHandling.HandleError(ref result, $"Reading native Cosmos container '{sourceName}' failed: {(connection == null ? cause.Message : connection.Redact(NativeConnectionGuard.Explain(cause), "key"))}", cause);
                 result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_READ_FAILED";
             }
             return result;
@@ -128,6 +133,67 @@ public string DescribeNativeConnection(NativeConnection connection)        {    
             JTokenType.Float => value.Value<double>(),
             _ => value.ToString(Formatting.None)
         };
+
+        private static readonly string[] ConnectionSettings = { "endpoint", "key", "database", "containers" };
+
+        /// <summary>A resolved native source: a client, the database and its readable containers. A caller's client is disposed with it.</summary>
+        private sealed class NativeLease : IDisposable
+        {
+            private readonly CosmosClient _ownedClient;
+            public CosmosClient Client { get; }
+            public string Database { get; }
+            public IReadOnlyList<string> Containers { get; }
+
+            public NativeLease(CosmosClient client, string database, IReadOnlyList<string> containers, CosmosClient ownedClient)
+            { Client = client; Database = database; Containers = containers; _ownedClient = ownedClient; }
+
+            public void Dispose() => _ownedClient?.Dispose();
+        }
+
+        private async Task<NativeLease> OpenNativeAsync(NativeConnection connection, CancellationToken cancellationToken)
+        {
+            if (connection == null)
+                return new NativeLease(NativeClient(), NativeImportDatabaseName, AllowedContainers(), null);
+
+            var (endpoint, key, database, containers) = ParseNativeConnection(connection);
+            await NativeConnectionGuard.EnsurePublicHostAsync(endpoint.Host, cancellationToken);
+            var client = new CosmosClient(endpoint.AbsoluteUri, key, new CosmosClientOptions
+            {
+                ConnectionMode = ConnectionMode.Gateway,
+                RequestTimeout = TimeSpan.FromSeconds(30),
+                // Gateway mode only: every connection resolves the host, checks every address and connects to those addresses.
+                HttpClientFactory = () => new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler())
+            });
+            try
+            {
+                var names = containers;
+                if (names == null)
+                {
+                    var found = new List<string>();
+                    using var iterator = client.GetDatabase(database).GetContainerQueryIterator<ContainerProperties>();
+                    while (iterator.HasMoreResults)
+                        found.AddRange((await iterator.ReadNextAsync(cancellationToken)).Select(properties => properties.Id));
+                    names = found.OrderBy(name => name, StringComparer.Ordinal).ToList();
+                }
+                return new NativeLease(client, database, names, client);
+            }
+            catch
+            {
+                client.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>Containers are optional: without them every container of the database is a source.</summary>
+        private static (Uri Endpoint, string Key, string Database, IReadOnlyList<string> Containers) ParseNativeConnection(NativeConnection connection)
+        {
+            connection.RequireOnly(ConnectionSettings);
+            if (!Uri.TryCreate(connection.Require("endpoint"), UriKind.Absolute, out var endpoint) || endpoint.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(endpoint.UserInfo))
+                throw new NativeConnectionRefusedException("endpoint must be the https address of your Cosmos account, for example https://myaccount.documents.azure.com:443/.");
+            var containers = connection.Optional("containers")?.Split(',').Select(name => name.Trim()).Where(name => name.Length > 0)
+                .Distinct(StringComparer.Ordinal).ToList();
+            return (endpoint, connection.Require("key"), connection.Require("database"), containers);
+        }
 
         private IReadOnlyList<string> AllowedContainers()
         {
