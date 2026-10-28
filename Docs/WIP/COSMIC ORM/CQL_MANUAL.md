@@ -963,3 +963,13 @@ Private metadata stays out of the plaintext index. Encrypted row hydration still
 requires manager.MetadataEncryptionPolicy with an authorized key resolver; index
 enrollment grants no decryption authority. SDK/actual SQLite acceptance is verified,
 including rejection without that runtime context. Declared-range live Solana/SQLite metadata SDK/HTTP and interactive acceptance now pass. Run the demo hub with `-Provider SolanaMetadata -ArchiveCompletedDemo`; add `-VerifyOnly` for bounded acceptance. Production identity/durable billing remain open; see [verified scope and next gates](CQL_INDEXED_METADATA.md).
+
+### Selecting indexed metadata columns
+
+The explicit schema3 profile can now select typed nested metadata alongside
+canonical fields with standard LINQ Select, including exact Int64 and nullable
+values. Projection roots are independently enrolled; private or wildcard roots
+reject during planning/re-admission. Native selected values must match validated
+source witnesses before any DTO construction. See the [C# example and acceptance
+scope](CQL_INDEXED_METADATA.md#selected-metadata-shared-sdk-and-sqlite-verified).
+SDK/actual SQLite are verified; the selected-metadata live HTTP/demo gate is pending.

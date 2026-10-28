@@ -87,4 +87,18 @@ public class CosmicQueryableMetadataPolicyTests
         var query=CosmicQuery<Holon>.Create().Where(row=>CosmicQueryMetadata.Exists(row,"Status")).Result;
         Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",denied.Admit(query).ErrorCode);
     }
+    [Theory]
+    [InlineData("Status",false)] [InlineData("private",true)] [InlineData("status",true)] [InlineData("__oasis_enc__",true)]
+    public void ProjectionRootsAreIndependentImmutableAndCannotBroaden(string root,bool denied)
+    {
+        var roots=new[]{"Status"};
+        var unrestricted=new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(),new[]{typeof(string)});
+        var selected=unrestricted.WithMetadataRoots(roots);roots[0]="private";
+        var query=CosmicQuery<Holon>.Create().Select(row=>CosmicQueryMetadata.Value<string>(row,root,"category")).Result;
+        Assert.Equal(denied,selected.Admit(query).IsError);
+        Assert.False(unrestricted.Admit(query).IsError);
+        Assert.Throws<ArgumentException>(()=>selected.WithMetadataRoots(new[]{"private"}));
+        Assert.True(selected.WithMetadataRoots(Array.Empty<string>()).Admit(query).IsError);
+    }
+
 }

@@ -19,7 +19,9 @@ public sealed partial class SqliteCosmicChainIndexStore
         new CosmicProjectionFieldCapability("IsDeleted", typeof(bool)) }, Array.Empty<Type>());
 
     public CosmicProjectionCapabilities IndexedProjectionCapabilities => canonicalRowProjection
-        ? CanonicalProjectionCapabilities : new(Array.Empty<CosmicProjectionFieldCapability>(), Array.Empty<Type>());
+        ? metadataPolicy==null?CanonicalProjectionCapabilities:new CosmicProjectionCapabilities(
+            CanonicalProjectionCapabilities.CanonicalFields.ToArray(),new[]{typeof(string),typeof(bool),typeof(bool?),typeof(int),typeof(int?),typeof(long),typeof(long?)})
+            .WithMetadataRoots(metadataPolicy.Keys) : new(Array.Empty<CosmicProjectionFieldCapability>(), Array.Empty<Type>());
 
     public async Task<OASISResult<CosmicChainIndexProjectionRows>> QueryProjectionAsync<T, TResult>(
         CosmicProjectionPlan<T, TResult> plan, ICosmicChainQuerySourceObserver observer,
@@ -36,21 +38,16 @@ public sealed partial class SqliteCosmicChainIndexStore
         return new(new(evidence.Result, cells)) { IsLoaded = true, LoadedCount = cells.Count };
     }
 
-    private static string ProjectionSqlColumn(CosmicQueryPath path)
+    private static object ProjectionSqlValue(SqliteDataReader reader,int stateOrdinal,CosmicQueryPath path)
     {
-        if(path.IsMetadata || path.Segments.Count != 1 || !CanonicalProjectionCapabilities.CanonicalFields.Any(
-            field => field.Name == path.Segments[0] && field.ValueType == path.ValueType))
-            throw new NotSupportedException("Indexed selected SQL requires an enrolled canonical field/domain.");
-        return "Holon.\"" + path.Segments[0] + "\"";
-    }
-
-    private static object ProjectionSqlValue(SqliteDataReader reader, int ordinal, CosmicQueryPath path)
-    {
-        if(reader.IsDBNull(ordinal)) return null;
-        if(path.ValueType == typeof(Guid)) return Guid.Parse(reader.GetString(ordinal));
-        if(path.ValueType == typeof(int)) return reader.GetInt32(ordinal);
-        if(path.ValueType == typeof(bool)) return reader.GetBoolean(ordinal);
-        if(path.ValueType == typeof(string)) return reader.GetString(ordinal);
-        throw new NotSupportedException("No indexed selected SQL scalar owner.");
+        var state=reader.GetInt64(stateOrdinal);
+        if(state is <0 or >2)throw new System.IO.InvalidDataException("Selected index metadata has an ambiguous or invalid domain.");
+        if(state is 0 or 1)
+        {
+            if(path.ValueType.IsValueType&&Nullable.GetUnderlyingType(path.ValueType)==null)
+                throw new System.IO.InvalidDataException("A selected non-nullable index value is missing or null.");
+            return null;
+        }
+        return Persistence.Repositories.HolonRepository.DecodeChainIndexProjection(reader.GetValue(stateOrdinal+1),path.ValueType);
     }
 }

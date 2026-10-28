@@ -191,4 +191,62 @@ public partial class SqliteCosmicChainIndexRowsTests
         Assert.AreEqual(2,resolver.Encryptions);Assert.AreEqual(1,resolver.Decryptions);
     }
 
+    [DataTestMethod]
+    [DataRow("string")] [DataRow("Int64")] [DataRow("Int32")] [DataRow("Boolean")]
+    [DataRow("nullable-int")] [DataRow("nullable-long")] [DataRow("nullable-bool")]
+    [DataRow("null")] [DataRow("missing")] [DataRow("wrong-type")] [DataRow("private")]
+    public async Task SelectedMetadataCellsUseNativeDomainsAndIndependentSourceWitnesses(string mode)
+    {
+        MetadataSource();using var store=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"}));
+        var entry=MetadataEntry("A",actor,false);Publish(store,entry);
+        var observer=new Observer(source,position,new[]{entry},"rows");
+        var id=entry.Receipt.Record.Id;
+        var query=Query().Where(row=>row.Id==id).Result;
+        var targets=new[]{new CosmicProjectionTarget(source.SourceProvider,store.IndexedRowCapabilities,store.IndexedProjectionCapabilities,source)};
+        async Task<(bool Error,object? Value)> Select<TResult>(CosmicProjectionQuery<Holon,TResult> selection)
+        {
+            var plan=CosmicProjectionPlanner.Plan(selection,source.SourceProvider,targets);
+            if(plan.IsError){Assert.AreEqual("private",mode,plan.ErrorCode+": "+plan.Message);Assert.AreEqual(0,observer.HeadCalls);return(true,null);}
+            var result=await CosmicIndexedProjectionExecutor.ExecuteAsync(plan.Result,store,observer);
+            return(result.IsError,result.IsError?null:result.Result.Rows.Single());
+        }
+        var result=mode switch {
+            "Int64"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<long>(row,"Status","amount")).Result),
+            "Int32"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<int>(row,"Status","stock")).Result),
+            "Boolean"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<bool>(row,"Status","active")).Result),
+            "nullable-int"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<int?>(row,"Status","stock")).Result),
+            "nullable-long"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<long?>(row,"Status","amount")).Result),
+            "nullable-bool"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<bool?>(row,"Status","active")).Result),
+            "null"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<int?>(row,"Status","optional")).Result),
+            "missing"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<string>(row,"Status","absent")).Result),
+            "wrong-type"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<long>(row,"Status","category")).Result),
+            "private"=>await Select(query.Select(row=>CosmicQueryMetadata.Value<string>(row,"secret")).Result),
+            _=>await Select(query.Select(row=>CosmicQueryMetadata.Value<string>(row,"Status","category")).Result)
+        };
+        if(mode is "private" or "wrong-type"){Assert.IsTrue(result.Error);Assert.IsNull(result.Value);return;}
+        Assert.IsFalse(result.Error);
+        if(mode is "Int64" or "nullable-long")Assert.AreEqual(9007199254740993L,result.Value);
+        else if(mode is "Int32" or "nullable-int")Assert.AreEqual(12,result.Value);
+        else if(mode is "Boolean" or "nullable-bool")Assert.AreEqual(true,result.Value);
+        else if(mode is "null" or "missing")Assert.IsNull(result.Value);
+        else Assert.AreEqual("coffee",result.Value);
+    }
+
+    [TestMethod]
+    public async Task MixedCanonicalAndMetadataSelectionPreservesColumnOrderAndExactValues()
+    {
+        MetadataSource();using var store=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"}));
+        var entry=MetadataEntry("A",actor,false);Publish(store,entry);
+        var selected=Query().Select(row=>new{row.Id,
+            Category=CosmicQueryMetadata.Value<string>(row,"Status","category"),
+            Amount=CosmicQueryMetadata.Value<long>(row,"Status","amount")}).Result;
+        var planned=CosmicProjectionPlanner.Plan(selected,source.SourceProvider,new[]{
+            new CosmicProjectionTarget(source.SourceProvider,store.IndexedRowCapabilities,store.IndexedProjectionCapabilities,source)});
+        Assert.IsFalse(planned.IsError,planned.Message);
+        var result=await CosmicIndexedProjectionExecutor.ExecuteAsync(planned.Result,store,new Observer(source,position,new[]{entry},"rows"));
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());
+        var row=result.Result.Rows.Single();Assert.AreEqual(entry.Receipt.Record.Id,row.Id);
+        Assert.AreEqual("coffee",row.Category);Assert.AreEqual(9007199254740993L,row.Amount);
+    }
+
 }

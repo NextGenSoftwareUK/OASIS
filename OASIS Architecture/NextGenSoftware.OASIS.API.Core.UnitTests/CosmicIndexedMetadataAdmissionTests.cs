@@ -79,4 +79,59 @@ public partial class CosmicChainIndexedExecutionTests
         }
     }
 
+    private sealed class MetadataWitnessReader(Reader inner,string mode):ICosmicChainQueryIndexProjectionReader
+    {
+        public int Calls;
+        public CosmicChainQuerySource Source=>inner.Source;
+        public CosmicQueryCapabilities IndexedRowCapabilities=>inner.IndexedRowCapabilities;
+        public CosmicProjectionCapabilities IndexedProjectionCapabilities=>mode=="wildcard"
+            ?new(Array.Empty<CosmicProjectionFieldCapability>(),new[]{typeof(string)})
+            :new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(),new[]{typeof(string)}).WithMetadataRoots(new[]{"Status"});
+        public Task<OASISResult<CosmicChainIndexRows>> QueryRowsAsync<T>(CosmicQueryPlan<T> plan,ICosmicChainQuerySourceObserver observer,
+            int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon=>throw new InvalidOperationException("Selected dispatch only.");
+        public Task<OASISResult<CosmicChainIndexProjectionRows>> QueryProjectionAsync<T,TResult>(CosmicProjectionPlan<T,TResult> plan,
+            ICosmicChainQuerySourceObserver observer,int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
+        {
+            Calls++;
+            return Task.FromResult(new OASISResult<CosmicChainIndexProjectionRows>(new(inner.Result.Result,
+                new[]{new CosmicProjectionRow(mode=="forged"?"forged":"coffee")})){IsLoaded=true});
+        }
+    }
+    public sealed class MetadataWitnessDto
+    {
+        public static int Constructed;
+        public MetadataWitnessDto(){Constructed++;}
+        public string Category{get;set;}="";
+    }
+
+    [Theory]
+    [InlineData("valid",null)] [InlineData("forged","CQL_SOURCE_RECORD_MISMATCH")]
+    [InlineData("wildcard","CQL_CAPABILITY_UNSUPPORTED")]
+    public async Task IndexedSelectedMetadataRequiresExplicitRootsAndProofBeforeDtoConstruction(string mode,string? error)
+    {
+        var fixture=Fixture("rows");
+        fixture.Row.MetaData=new(){["Status"]=new Dictionary<string,object>{["category"]="coffee"}};
+        var reader=new MetadataWitnessReader(fixture.Reader,mode);
+        var selected=Plan().Query.Select(row=>new MetadataWitnessDto{
+            Category=CosmicQueryMetadata.Value<string>(row,"Status","category")}).Result;
+        var planned=CosmicProjectionPlanner.Plan(selected,source.SourceProvider,new[]{
+            new CosmicProjectionTarget(source.SourceProvider,reader.IndexedRowCapabilities,
+                new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(),new[]{typeof(string)}).WithMetadataRoots(new[]{"Status"}),source)});
+        Assert.False(planned.IsError,planned.Message);
+        MetadataWitnessDto.Constructed=0;
+        var result=await CosmicIndexedProjectionExecutor.ExecuteAsync(planned.Result,reader,Mock.Of<ICosmicChainQuerySourceObserver>());
+        Assert.Equal(error,result.ErrorCode);Assert.Equal(error==null?1:0,MetadataWitnessDto.Constructed);
+        Assert.Equal(mode=="wildcard"?0:1,reader.Calls);
+        if(error==null)Assert.Equal("coffee",result.Result.Rows.Single().Category);
+    }
+
+    [Fact]
+    public void IndexedMetadataSelectionWithoutExplicitRootsRejectsDuringPlanning()
+    {
+        var selected=Plan().Query.Select(row=>CosmicQueryMetadata.Value<string>(row,"Status","category")).Result;
+        var planned=CosmicProjectionPlanner.Plan(selected,source.SourceProvider,new[]{new CosmicProjectionTarget(
+            source.SourceProvider,Capabilities,new CosmicProjectionCapabilities(Array.Empty<CosmicProjectionFieldCapability>(),new[]{typeof(string)}),source)});
+        Assert.Equal("CQL_CAPABILITY_UNSUPPORTED",planned.ErrorCode);
+    }
+
 }
