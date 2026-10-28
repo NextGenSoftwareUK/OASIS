@@ -1053,13 +1053,14 @@ public partial class CosmicTrackingTests
         root.MetaData["private-parent-note"].ToString().Should().Be("public-unit-test-value");child.ParentHolon.Should().BeSameAs(root);
     }
 
-    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false)
+    private static (HolonManager Manager, Mock<IOASISStorageProvider> Provider, ProviderManager Providers) Fixture(bool v2, bool reject = false, bool conditional = false, bool preparation = false, bool recovery = false, bool preparationRecovery = false, bool atomicReplication = false)
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
             HyperDriveMode = v2 ? HyperDriveModes.V2 : HyperDriveModes.Legacy,
             StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false } } };
         var p = new Mock<IOASISStorageProvider>(); p.SetupAllProperties();
         if (conditional) p.As<IConditionalHolonStorageProvider>();
+        if (atomicReplication) p.As<IAtomicHolonReplicationStorageProvider>();
         if (preparation) p.As<IHolonWritePreparationStorageProvider>();
         if (recovery) p.As<IConditionalHolonWriteRecoveryStorageProvider>();
         if (preparationRecovery) p.As<IHolonWritePreparationRecoveryStorageProvider>();

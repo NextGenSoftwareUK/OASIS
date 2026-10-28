@@ -24,7 +24,7 @@ Incoming native import refresh:SQLite reader3/3real-file cases pass on mergedCor
 This covers discovery/paging, stable keys/types and invalid-source rejection; all
 owned synthetic databases removed. Evidence TestResults/NativeImportCurrent/sqlite-native-reader.trx
 SHA2564B262EA2C14F4E2E9C04834444946008C6935F9DC18E59127253FD2FA9E568BF.
-Next migration-demo gap:real native data → shared import/save → CQL, including
+That import/save/CQL gap was subsequently verified below, including
 per-avatar identity/reimport behavior. This is separate from schema-migration tooling
 and does not resume paused LINQ depth or certify other providers' native readers.
 
@@ -55,3 +55,15 @@ Mongo TRX TestResults/NativeImportMongoCurrent/native-import-cql.trx SHA256
 reportSHA256045E70A09333C27DBD5E11C4B4A8C7FAB880021B00E1AC8C7951F7D9C5DD0B29.
 SQLite regressionTRX SHA2565ABDEB563905E797A8EC360201869E1109845481C491FB29F2FD040E1012CFA8.
 Reverse/Neo/chain/encryption/replication migration gates are not promoted by this proof.
+
+
+V2 owned-save replication submission boundary:10new manager/router cases pass for
+single/batch node/avatar/request/explicit enrollment, original actor/operation binding,
+atomic rejection without plain-write downgrade or caller acknowledgement, and no-op
+suppression. Full Core4321/4321,no skips. Tests:CosmicOwnedReplicationRoutingTests.cs.
+Evidence TestResults/OwnedRoutingCurrent/owned-routing.trx SHA256
+CF04DCD40A85A88E4BB586C66D12487258887D25928E87DF53D8255B6DB84AEC;
+core-full.trx SHA256F44DDA0B685A535F6AC019276687293DFCD8D163465D5F2AA6F9C823E6D25764.
+Controlled providers reject the attempted mutation; this proves submission/ownership,
+not a native commit or delivery. X10 remains red. Next:extend native SQLite primary/
+outbox acceptance to effective routing; preserve existing explicit-enrollment proof.
