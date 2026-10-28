@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param([switch]$ArchiveCompletedDemo,[switch]$ServePointDemo,[switch]$CqlInteractive,[switch]$CqlWeb4,[switch]$CqlPoint,[switch]$CqlKeySet,[switch]$ReconcileCore,[switch]$CoreStorage,[switch]$RequireCleanShutdown,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
-if(($ArchiveCompletedDemo -or $ServePointDemo) -and !$CqlInteractive){throw 'ServePointDemo requires the explicit CqlInteractive mode.'}
+if(($ArchiveCompletedDemo -or $ServePointDemo) -and !$CqlInteractive -and !$CqlKeySet){throw 'ServePointDemo requires the explicit CqlInteractive mode.'}
 if(@(@($CqlKeySet,$CqlInteractive,$CqlWeb4,$CqlPoint,$CoreStorage,$ReconcileCore)|Where-Object {$_}).Count -gt 1){throw 'Select one native mode.'}
 $taskSolidRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $taskSolidWork=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'}
@@ -20,7 +20,7 @@ $taskSolidEvidence=[ordered]@{startedUtc=[DateTime]::UtcNow.ToString('O');scope=
 try{
     $env:OASIS_CQL_POINT_SERVE=if($ServePointDemo){'1'}else{'0'}
 if($ArchiveCompletedDemo -and $taskSolidWork -ne [IO.Path]::GetFullPath((Join-Path $taskSolidRoot 'LocalState/COSMIC/SolidCurrent'))){throw 'Completed-demo archive is limited to this worktree default environment.'}
-    if($ArchiveCompletedDemo){& (Join-Path $PSScriptRoot 'Archive-CompletedProtocolPointDemo.ps1') -Provider SOLID}
+    if($ArchiveCompletedDemo){& (Join-Path $PSScriptRoot 'Archive-CompletedProtocolPointDemo.ps1') -Provider SOLID -KeySet:$CqlKeySet}
     if((Test-Path $taskSolidReport) -or (Test-Path $taskSolidTrx)){throw 'Preserve original readiness evidence before another run.'}
     $taskSolidPending=@(Get-ChildItem -LiteralPath $taskSolidWork -Filter '*pending*.json')
     if($taskSolidPending -and (!$ReconcileCore -or @($taskSolidPending|Where-Object Name -notin @('core-async.pending.json','core-sync.pending.json')).Count)){throw 'Original pending SOLID fixtures require reconciliation.'}
