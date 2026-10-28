@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$ReconcileManagerFailure)
+param([switch]$ReconcileManagerFailure,[switch]$Serve)
+if($Serve -and $ReconcileManagerFailure){throw 'Interactive demo is unavailable during original-fixture reconciliation.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/DemoBreadthCurrent'
@@ -12,9 +13,9 @@ foreach($name in @('fixture.pending.json','mongo.pending.json')){
     if(!$ReconcileManagerFailure -and (Test-Path (Join-Path $root ('LocalState/COSMIC/OracleCqlCurrent/'+$name)))){throw 'Reconcile original Oracle/Mongo fixture before writes.'}
 }
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-native-mongo-oracle -Operation {
-    $owned=$null;$prior=$env:OASIS_ORACLE_MONGO_DEMO
+    $owned=$null;$prior=$env:OASIS_ORACLE_MONGO_DEMO;$priorServe=$env:OASIS_ORACLE_MONGO_SERVE
     try{
-        if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned Mongo/Oracle demo port occupied.'}
+        if(Get-NetTCPConnection -State Listen -LocalPort 27029,5090 -ErrorAction SilentlyContinue){throw 'Owned Mongo/Oracle demo port occupied.'}
         if(((& $runtime --version) -join ' ') -notmatch 'v8\.3\.11\b'){throw 'Retained Mongo8.3.11 runtime required.'}
         foreach($project in @('Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
@@ -33,10 +34,12 @@ foreach($name in @('fixture.pending.json','mongo.pending.json')){
         }
         if(!$ready){throw 'Mongo listener readiness deadline exceeded.'}
         $env:OASIS_ORACLE_MONGO_DEMO='1'
+        $env:OASIS_ORACLE_MONGO_SERVE=if($Serve){'1'}else{$null}
         if($ReconcileManagerFailure){ & (Join-Path $PSScriptRoot 'Run-ReusableOracleTests.ps1') -CqlReconcile }
         else { & (Join-Path $PSScriptRoot 'Run-ReusableOracleTests.ps1') -Cql }
     }finally{
         $env:OASIS_ORACLE_MONGO_DEMO=$prior
+        $env:OASIS_ORACLE_MONGO_SERVE=$priorServe
         if($owned){if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(30000)){throw 'Owned Mongo did not stop.'}};$owned.Dispose()}
     }
 }

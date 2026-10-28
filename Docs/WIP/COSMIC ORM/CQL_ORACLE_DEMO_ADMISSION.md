@@ -56,7 +56,31 @@ TestResults/OracleCurrent/oracle-cql-manager-reconciliation.trx,
 SHA256439C115E1E96B324573AB40AB3F4FDF7F4E3F30833CFF49E763EE82ADAB359D5.
 Failed original evidence remains in TestResults/OracleCurrent/Archive.
 
-Exact next: HTTP/browser teaching preset with trusted server-owned IDs and source provenance.
+HTTP/browser teaching preset now verified through
+[IdentityFederationApiHost](../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs).
+Run `Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1 -Serve`, then open
+http://127.0.0.1:5090/ . Native SDK/HTTP acceptance precedes interactive use;
+click **Stop demo and clean fixtures** to finish and verify owned fixture teardown.
+The browser submits only `{ "preset": "all" }` or `{ "preset": "subset" }` to
+`POST /api/cql/federation`. Actor/catalogues/providers stay server-owned.
+Unknown presets and forged actor fields return400. Native source failure returns503
+without connection details or partial rows. This loopback teaching host is not a
+production WEB4 authentication/billing endpoint.
+
+Actual browser clicks prove5rows then4, both source provider labels, and shutdown.
+Screenshot capture now works; inspected readable section/line/button spacing.
+No durable screenshot archive was created; raw pixels were inspected in the browser tool.
+Final SDK/HTTP/browser acceptance1/1pass/no skips; exact4Oracle/3Mongo records removed,
+journals absent, Mongo27029/host5090 listeners absent, Oracle stopped143/no OOM.
+TRX TestResults/OracleCurrent/oracle-cql-native-current.trx SHA256
+AF6DE716288A6A662AC6A6FC13E4CA618124AD3E4F057548E83B9E794ABAA0DE.
+Original host-configuration failure was corrected by adding the in-memory
+configuration source before binding the URL; no query fallback. Original records
+reconciled without replay:oracle-cql-host-reconciliation.trx SHA256
+0EFBA2DA17BA1AAEECF38044767E5B571D411E8F5FD45BF78EDE8C20453647B3.
+
+Next breadth gate:Mongo+Solana mixed HTTP/browser preset. Hosted cloud, richer
+Oracle business predicates and full EF parity remain separate open gates.
 Reuse the retained database and runner `Run-ReusableOracleTests.ps1 -Cql` under
 one build lease. Persistent journal: LocalState/COSMIC/OracleCqlCurrent;
 raw evidence: TestResults/OracleCurrent. Never overwrite prior evidence or replay

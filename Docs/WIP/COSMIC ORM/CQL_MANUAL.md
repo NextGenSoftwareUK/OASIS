@@ -1258,3 +1258,20 @@ Evidence survives typed mapping outside user metadata and consumes operation bud
 Controlled SDK tests pass; actual Mongo+Solana runtime and HTTP/browser demos remain
 pending. This does not grant indexed execution to ordinary native adapters or certify
 hosted-chain semantics/distributed repeatable snapshots. LINQ depth remains paused.
+
+
+## Mongo + Oracle demonstration
+
+Use [the commented C# sample](../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs)
+for canonical-ID membership over explicit Mongo/Oracle scope and separate trusted
+read catalogues. Run `Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1 -Serve`
+from the task worktree, then open http://127.0.0.1:5090/ . The two buttons return5
+and4 physical rows, respectively, with native provider provenance. Stop through
+the page button so the runner verifies exact fixture cleanup. Review prior reports
+before rerunning; pending fixtures require reconciliation, never replay.
+
+This bounded Oracle profile admits canonical ID equality/membership, Boolean
+composition and bounded paging. It does not admit arbitrary Name/metadata queries,
+projection/aggregation or shared snapshots. The loopback host accepts only fixed
+presets; actor/access catalogues remain server-owned. See
+[Oracle admission and evidence](CQL_ORACLE_DEMO_ADMISSION.md).
