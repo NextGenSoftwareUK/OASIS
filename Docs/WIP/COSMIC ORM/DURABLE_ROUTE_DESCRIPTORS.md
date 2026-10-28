@@ -191,3 +191,27 @@ certification or hosted AWS/Oracle claim follows from this catalogue checkpoint.
 |---|---:|---|
 | `TestResults/Neo4jCurrent/neo4j-destination-catalogue-current.trx` | 1 | `C8D7A555C5C969BDCD68718C9F043B72922BF030A628BC04791D7C8A5826CEE2` |
 | `TestResults/Neo4jCurrent/neo4j-routed-owned-outbox-current.trx` | 8 | `02B3C9B3AD154A97D419A9513AE623F08CC1FA5C8EFFD8A981E8B975E1E8B354` |
+
+## Cold new-write planner restoration
+
+Core7afa384 opens the transaction-bound source outbox and requires its destination
+catalogue before enrollment. Every selected target is read explicitly: a verified
+approval supplies its original physical target identity without destination
+activation/capture. The target must still have its registered bound receiver role.
+The new route uses the current host policy, not the establishment policy. Unknown
+destinations require first native capture; catalogue errors/missing capability or
+source/authority mismatch cannot become permission to discover another identity.
+
+Five new controlled cases cover cold destination-probe outage/current policy,
+catalogue refusal, missing catalogue capability, wrong physical source and wrong
+target authority. Three failed before the fix. Existing owned-write mocks now
+provide the required source catalogue contract; node/avatar/request routing tests
+still reach their intended atomic write boundary. Core builds both targets;
+4422Core tests pass. No native restart/save/delivery certification from these mocks.
+
+Next required gate: real native source restart, a NEW save while destination
+metadata is unavailable, durable obligation inspection and eventual bound delivery.
+Simultaneous first approvals, audited rebinding/V2 migration and separate
+failover/load-balancing acceptance also remain open.
+
+Evidence: `TestResults/OwnedRoutingCurrent/cold-enrollment-core-final.trx`;4422passed/0failed/0skipped;SHA256 `266F646BB3419C1529CF485672F6872738165C012B67FD71235AA76747AFB185`.
