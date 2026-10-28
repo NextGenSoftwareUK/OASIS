@@ -307,3 +307,20 @@ borrowed by automatic canonical provider-type targets. Automatic physical endpoi
 store and durable policy-version binding,tenant/encryption/residency/placement grants
 remain open. The default context GUID is protocol context,not endpoint attestation.
 The sandbox request-only fault gate is unchanged and separate. Current tests/counts are in IMPLEMENTATION_STATUS.
+
+
+### Native store identity capture (binding prerequisite)
+
+`ICosmicStorageIdentityProvider.CaptureStorageIdentityAsync` is optional native
+capability admission. SQLite now returns a credential-free authority/endpoint/store
+binding from an activated existing file. The durable GUID and metadata table are
+created together under an immediate transaction;existing empty/corrupt metadata
+is an error,never a replacement identity. Capture never creates an absent database
+or upgrades a read-only/memory provider. Repeated capture is a native read/no change.
+
+The endpoint comes from native pragma_database_list,not mutable node DNA. Its path
+spelling is preserved conservatively;aliases may have distinct fingerprints. A backup
+copy retains the logical store GUID while another endpoint changes the binding. This
+is not remote attestation or proof that an identical backup restored at the same
+address is a new physical incarnation. Mongo/Neo capture and consumption in durable
+automatic routing/policy binding remain open;current automatic target IDs are unchanged.

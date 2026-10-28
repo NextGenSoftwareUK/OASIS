@@ -67,6 +67,29 @@ endpoint/policy binding. No automatic permission retry or new source save was ad
 - TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx SHA256A4DDD57630F7A96AA09211EB8230048BC0E9F10B12BD6E5BB64584EA3952DC8E.
 - Run `Run-ReusableNeo4jTests.ps1 -CosmicHostedReplicaAdmission` under one build lease.
 
+## Native storage identity prerequisite
+
+Core93de565 adds optional `ICosmicStorageIdentityProvider` and credential-free
+`CosmicStorageIdentity` (authority,endpoint SHA256,durable store GUID,binding SHA256).
+SQLite implements explicit capture against an activated existing file,using native
+`pragma_database_list` for the address. An immediate transaction atomically creates
+metadata table+identity once. Independent clients/reopening agree;subsequent capture
+changes neither native data_version nor identity. Existing empty/corrupt metadata
+fails without repair. Inactive/pre-cancelled/missing/memory/read-only guards prevent
+implicit store creation or permission promotion. A copied DB preserves store GUID
+but a different endpoint changes its binding. Path aliases conservatively may differ;
+this is a logical routing binding,not remote attestation or backup-incarnation proof.
+
+- 7native/7Core contract cases pass;4332full Core pass;zero skips. Both Core targets/SQLite build.
+- Evidence TestResults/OwnedRoutingCurrent/sqlite- storage-identity.trx SHA256515374674F02D10F422FC26BE3E23729A61EFDD97273FB0C138698A1959B5C6F.
+- storage-identity-core.trx SHA256C44CD11D592BF039032A30B0F977BCFC5DB176DEAD51275B8806F8A0A2AAC8CC.
+- storage-identity-full-core.trx SHA256F60159D51F2E075F658A7CE05F157CB8924BB928CB0A4013470042220E88AA2E.
+- Fixture DB/copy/sidecars/journal absent. Earlier failed test TRX retained by hash under TestResults/OwnedRoutingCurrent/Archive;no business save was submitted by those failures.
+
+This capability is not wired into automatic routes yet. Mongo/Neo captures,persisted
+policy binding,receiver-side verification and old unbound queue/operator migration
+remain open. A fingerprint DTO alone does not prevent automatic misrouting.
+
 ## Remaining acceptance
 
 1. Durable physical endpoint/store and policy-version binding for automatic routes;tenant/encryption/residency/placement admission. The default owner policy and demonstrated host-supplied actor grant are narrower than that full acceptance.
