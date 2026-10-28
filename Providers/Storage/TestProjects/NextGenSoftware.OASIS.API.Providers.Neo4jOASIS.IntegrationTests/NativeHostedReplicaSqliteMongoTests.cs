@@ -45,11 +45,13 @@ public partial class NativeHostedReplicaRestartTests
     }
 
     [DataTestMethod]
-    [DataRow(false,false)]
-    [DataRow(true,false)]
-    [DataRow(false,true)]
-    [DataRow(true,true)]
-    public async Task ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart(bool mongoSource,bool unavailableProbe)
+    [DataRow(false,false,false)]
+    [DataRow(true,false,false)]
+    [DataRow(false,true,false)]
+    [DataRow(true,true,false)]
+    [DataRow(false,true,true)]
+    [DataRow(true,true,true)]
+    public async Task ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart(bool mongoSource,bool unavailableProbe,bool newSaveAfterRestart)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string databaseName = "cosmic_bound_source_worker_fixture";
@@ -71,9 +73,11 @@ public partial class NativeHostedReplicaRestartTests
         var actor = Guid.NewGuid();
         var operation = Guid.NewGuid();
         var input = new Holon { Id=Guid.NewGuid(), Name="coffee bought before worker startup" };
+        var coldOperation = Guid.NewGuid();
+        var coldInput = new Holon { Id=Guid.NewGuid(), Name="coffee bought after source restart during metadata outage" };
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, input.Id, mongoSource, unavailableProbe, databaseName, file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, input.Id, coldOperation, coldId=coldInput.Id, mongoSource, unavailableProbe, newSaveAfterRestart, databaseName, file });
             intent.Flush(true);
         }
 
@@ -171,6 +175,36 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(originalSource.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(source)).BindingFingerprint);
             if(!unavailableProbe)
                 Assert.AreEqual(originalTarget.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(target)).BindingFingerprint);
+            HolonDeliveryInspection coldPending = null;
+            if (newSaveAfterRestart)
+            {
+                Assert.IsNotNull(probe);
+                Assert.IsFalse(HolonReplicationRouteBinding.IsPinned(registeredTarget));
+                var sourceOutbox = ((IBoundHolonReplicationOutboxSource)source).GetBoundHolonReplicationOutbox(originalSource).Result;
+                var approved = await ((IHolonReplicationDestinationCatalogue)sourceOutbox).ReadDestinationBindingAsync(target.ProviderType.Value);
+                Assert.IsFalse(approved.IsError, approved.Message);
+                Assert.AreEqual(operation, approved.Result.EstablishedOperationId);
+                Assert.AreEqual(originalTarget.BindingFingerprint, approved.Result.Route.TargetStorage.BindingFingerprint);
+                await Task.Run(async () =>
+                {
+                    OASISRequestContext.RequestRoutingOverrides = new ProviderRoutingOverrides(autoReplicationEnabled: true,
+                        replicationProviders: new[] { target.ProviderType.Value });
+                    var saved = await new HolonManager(null, dna, registry).SaveOwnedHolonAsync(coldInput, actor,
+                        new CosmicWriteOptions(coldOperation), saveChildren: false, providerType: source.ProviderType.Value);
+                    Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+                    Assert.IsTrue(saved.IsSaved);
+                });
+                Assert.AreEqual(0, probe.ProbeCalls, "New enrollment must reuse source-owned physical approval.");
+                // This isolated source owns only these two operations; the native
+                // monotonic sequence must expose the new obligation after the first.
+                var queued = await sourceOutbox.InspectAsync(pending.Result.Sequence + 1);
+                Assert.IsFalse(queued.IsError, queued.Message);
+                coldPending = queued.Result;
+                Assert.AreEqual(coldOperation, coldPending.OperationId);
+                Assert.AreEqual(HolonDeliveryState.Pending, coldPending.State);
+                Assert.AreEqual(0, coldPending.AttemptCount);
+                Assert.IsNull((await target.LoadHolonAsync(coldInput.Id, loadChildren: false)).Result);
+            }
             await RunPass();
             if(probe != null) Assert.AreEqual(0,probe.ProbeCalls,"Stored destination meaning must not require a fresh identity probe.");
             var outbox = ((IBoundHolonReplicationOutboxSource)source).GetBoundHolonReplicationOutbox(originalSource).Result;
@@ -185,6 +219,20 @@ public partial class NativeHostedReplicaRestartTests
             var targetRevision = CosmicConcurrency.GetProviderRevisionId(copy.Result,target.ProviderType.Value);
             Assert.IsNotNull(targetRevision);
 
+            Guid? coldTargetRevision = null;
+            if (newSaveAfterRestart)
+            {
+                var deliveredCold = await outbox.InspectAsync(coldPending.Sequence);
+                Assert.IsFalse(deliveredCold.IsError, deliveredCold.Message);
+                Assert.AreEqual(HolonDeliveryState.Completed, deliveredCold.Result.State);
+                Assert.AreEqual(1, deliveredCold.Result.AttemptCount);
+                var coldCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldCopy.IsError, coldCopy.Message);
+                Assert.AreEqual(coldInput.VersionId, coldCopy.Result.VersionId);
+                Assert.AreEqual(actor, coldCopy.Result.CreatedByAvatarId);
+                coldTargetRevision = CosmicConcurrency.GetProviderRevisionId(coldCopy.Result, target.ProviderType.Value);
+                Assert.IsNotNull(coldTargetRevision);
+            }
             await CloseProviders();
             await OpenProviders();
             await RunPass();
@@ -204,14 +252,24 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(actor,primary.Result.CreatedByAvatarId);
             Assert.AreEqual(originalSource.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(source)).BindingFingerprint);
             Assert.AreEqual(originalTarget.BindingFingerprint,(await HolonReplicationRouteBinding.CapturePinnedAsync(target)).BindingFingerprint);
+            if (newSaveAfterRestart)
+            {
+                var coldCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldCopy.IsError, coldCopy.Message);
+                Assert.AreEqual(coldTargetRevision, CosmicConcurrency.GetProviderRevisionId(coldCopy.Result, target.ProviderType.Value));
+                Assert.AreEqual(coldInput.VersionId, coldCopy.Result.VersionId);
+                var coldPrimary = await source.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldPrimary.IsError, coldPrimary.Message);
+                Assert.AreEqual(coldInput.VersionId, coldPrimary.Result.VersionId);
+            }
             // Exact test ownership is verified before native database deletion.
             var db = client.GetDatabase(databaseName);
             var rows = await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
-            Assert.AreEqual(1,rows.Count);
-            Assert.AreEqual(input.Id.ToString("D"),rows.Single()["HolonId"].AsString);
+            var expectedIds = newSaveAfterRestart ? new[] { input.Id.ToString("D"), coldInput.Id.ToString("D") } : new[] { input.Id.ToString("D") };
+            CollectionAssert.AreEquivalent(expectedIds, rows.Select(row => row["HolonId"].AsString).ToArray());
             var receipts = await db.GetCollection<BsonDocument>("CosmicWriteReceipt").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
-            Assert.AreEqual(1,receipts.Count);
-            Assert.AreEqual(operation.ToString("D"),receipts.Single()["_id"].AsString);
+            var expectedOperations = newSaveAfterRestart ? new[] { operation.ToString("D"), coldOperation.ToString("D") } : new[] { operation.ToString("D") };
+            CollectionAssert.AreEquivalent(expectedOperations, receipts.Select(receipt => receipt["_id"].AsString).ToArray());
             complete = true;
         }
         finally

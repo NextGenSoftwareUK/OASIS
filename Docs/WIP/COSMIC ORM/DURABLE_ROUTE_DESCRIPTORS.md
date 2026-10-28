@@ -215,3 +215,27 @@ Simultaneous first approvals, audited rebinding/V2 migration and separate
 failover/load-balancing acceptance also remain open.
 
 Evidence: `TestResults/OwnedRoutingCurrent/cold-enrollment-core-final.trx`;4422passed/0failed/0skipped;SHA256 `266F646BB3419C1529CF485672F6872738165C012B67FD71235AA76747AFB185`.
+
+## Native cold new-save and worker proof
+
+The shipping worker pair fixture now has six native cases: four original
+restart/delivery controls plus two new-save cases, one for each Mongo/SQLite source
+direction. Both providers are closed/reopened before the second owned save. A
+receiver-only registration throws on destination identity capture; its native
+bound receiver remains available. The fresh source reads its durable destination
+approval, commits a NEW owned save/receipt/outbox obligation with zero probe calls,
+and the shipping worker delivers both original and new obligations. Each completes
+in one attempt. Another client/worker restart leaves target revisions unchanged.
+
+All6cases pass. Journal includes both planned operation/holon identities before
+mutation. Exact native Mongo rows/receipts are checked before fixture database
+removal; SQLite files and pending journal are gone and the owned27029listener is
+absent after runner exit0. Shared/SQLite/Mongo producers are now rebuilt by the
+same reusable runner before WEB4/consumer, with existing hash guards intact.
+
+This closes the native cold-new-save METADATA-outage gate for these two directions.
+The entire destination service was not stopped; full service-outage enrollment,
+Neo source cold-new-save, simultaneous first approvals, operator rebinding and
+V2 lineage repair remain open. Failover/load balancing are independent acceptance.
+
+Evidence: `TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx`;6passed/0failed/0skipped;SHA256 `868DCCF9DCCB9D6AE3F07EBCCC0BFED94B83AD42D18D2E654300B2062D3B0C95`.
