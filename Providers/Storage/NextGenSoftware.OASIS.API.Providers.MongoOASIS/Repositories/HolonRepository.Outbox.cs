@@ -22,6 +22,8 @@ public partial class HolonRepository
     private async Task WritePrimaryHolonObligationsAsync(IMongoDatabase database,IClientSessionHandle session,ConditionalHolonPlan plan,Guid actor,
         string payload,DateTime now,CancellationToken cancellationToken)
     {
+        await MongoDestinationBindings.ApproveAsync(database, session, plan.ReplicationEnrollment,
+            plan.OperationId, cancellationToken).ConfigureAwait(false);
         // The counter shares the graph transaction: rolled-back source writes cannot consume or expose an obligation sequence.
         var counters=database.GetCollection<BsonDocument>("CosmicHolonOutboxSequence");
         var targetCount=plan.ReplicationEnrollment.TargetIds.Count;

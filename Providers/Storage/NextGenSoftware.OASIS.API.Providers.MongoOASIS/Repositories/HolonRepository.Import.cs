@@ -204,6 +204,7 @@ public partial class HolonRepository
                 result.Message="Mongo holon import transaction failed.";
                 if(cause is CosmicConcurrencyException) result.ErrorCode=CosmicConcurrencyException.Code;
                 else if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+                else if(cause is HolonDestinationRebindRequiredException) result.ErrorCode=HolonDestinationRebindRequiredException.Code;
                 else if(cause is MongoConditionalIntentException) result.ErrorCode="COSMIC_OPERATION_ID_REUSED";
                 else if(cause is MongoReplicaStorageBindingException binding) result.ErrorCode=binding.Code;
                 else if(cause is MongoReplicaConflictException) result.ErrorCode="COSMIC_REPLICA_LINEAGE_CONFLICT";
