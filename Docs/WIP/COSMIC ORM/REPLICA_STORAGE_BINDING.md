@@ -1,4 +1,4 @@
-# Transaction-bound SQLite replica admission
+# Transaction-bound native replica admission
 
 28 October 2026. Scoped prerequisite for X10; full convergence/placement remains red.
 
@@ -60,5 +60,45 @@ Raw evidence: C:/Source/OASIS-cosmic/TestResults/BoundReplicaCurrent; no raw out
 Successful fixtures disposed providers/contexts and removed their exact database/journal;
 only the reusable environment.lock remains in SQLiteCurrent. No services/downloads/restores.
 Remaining automatic routing still uses type-only IDs and must not be declared bound.
-Next:implement native transaction-bound admission for Mongo/Neo, then consume native
+Next:implement native transaction-bound admission for Mongo, then consume native
 identities in automatic enrollment and persisted route discovery/operator reconciliation.
+
+## Neo4j receiver milestone
+
+Neo4j now implements the same optional bound receiver capability through its existing
+atomic graph/receipt owner. It holds the lifecycle gate across bound apply and queries
+`CALL db.info() YIELD id,name RETURN id,name` on that write transaction, before even
+MERGE/lookup of an operation receipt. Native metadata and the captured storage-driver
+URI form the same fingerprint as explicit capture, using one shared parser. Mutable
+Host and credentials cannot relabel that driver. No identity node/table is introduced.
+An injected driver without captured endpoint refuses bound apply. The existing
+unbound contract stays explicit; automatic type-only routes still use it and remain open.
+
+Neo documents db.info as database identity metadata in READ mode:
+[official procedure reference](https://neo4j.com/docs/operations-manual/current/procedures/built-in-procedures/#_db_info).
+The retained native node also proves the procedure works inside the write transaction.
+
+Three new native cases pass:sync/async mismatch before graph/receipt/head writes,
+matching apply/replay, mismatch despite existing receipt, descriptor mutation and fresh
+provider replay; plus refusal of an uncaptured injected driver. Three existing identity
+cases also pass (6total). Existing 6native replica lineage/history/rollback/unknown-outcome
+regressions pass separately. Producer/consumer hashes match Core/Shared/source driver;
+Shared,SQLite,Mongo,Neo,WEB4 and native consumer rebuilt without package restore.
+
+These cases supply mismatched expected IDs; they do not drop/recreate the retained
+shared Neo database, alter its home database, exercise cluster topology, or certify
+administrative database replacement while a transaction is active. The protocol
+fixture models a committed source revision; authoritative source/save tests remain
+separate. Automatic route discovery/source binding/policy durability remains open.
+
+Evidence under C:/Source/OASIS-cosmic/TestResults/Neo4jCurrent:
+- neo4j-storage-identity-current.trx:6passed/0failed/0skipped;SHA256 6E458E76BCB887EE65C6B6C8F74A84020AD39F81CE6A1BCFDC06D3E25566A7C9.
+- neo4j-cosmic-replica-current.trx:6passed/0failed/0skipped;SHA256 6482F446718E2D35FE1FE0832EA0A1485651F3A8BD6F5FBE9F5443ECF735EBB3.
+
+Earlier 3case identity report29C73FAC4399CC8B785903FB0701EE0E7F6CC35B350F8F3AF748ABA7C078B719
+is preserved in TestResults/Neo4jCurrent/Archive. Other fixed-path historical raw hashes
+retain earlier revision scope; do not assume the latest TRX has historical bytes.
+Each new fixture journals before apply, deletes only its exact root/head/receipt after
+success, verifies absence, deactivates providers and removes its completed journal.
+Both owned WSL/container processes exited; retained container stopped, Bolt port free.
+No downloads,installations,restores or replacement environments. Next native owner:Mongo.

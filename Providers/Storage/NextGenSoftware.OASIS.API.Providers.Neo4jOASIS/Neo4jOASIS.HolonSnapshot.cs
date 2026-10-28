@@ -182,6 +182,9 @@ public partial class Neo4jOASIS
                     if (conditional != null)
                     {
                         conditional.Cancellation.ThrowIfCancellationRequested();
+                        // The same native transaction owns identity admission,
+                        // exact receipt replay and the replica graph commit.
+                        await ValidateReplicaStorageBindingAsync(transaction, conditional).ConfigureAwait(false);
                         var replay = await ReadConditionalReceiptAsync(transaction,conditional).ConfigureAwait(false);
                         if (replay != null)
                         {
