@@ -660,3 +660,13 @@ are not enrolled yet.
 ### Solana source / SQLite indexed HTTP demo
 
 From the worktree root, run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solana -ArchiveCompletedDemo`, then open http://127.0.0.1:5089/ after health is ready. Use `-VerifyOnly` for bounded acceptance instead. The spaced teaching page shows row/projection/cardinality requests, real WEB4 results and source/index evidence. It uses the retained local validator and acknowledged seed, with no source writes. Controlled identity/billing and bounded five-second complete-range ingestion (500-slot query freshness ceiling) are explicit demo limits. Stop using the page button or POST `/demo/shutdown`; retained keys/source/index remain reusable. See [launcher/lifecycle details](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md#solana-indexed-demo-port-5089).
+
+### Explicit indexed metadata walkthrough
+
+[ChainIndexedMetadataWalkthrough.cs](ChainIndexedMetadataWalkthrough.cs) demonstrates
+schema3 metadata queries through the shared manager/LINQ owner: nested string and
+exact Int64 predicates, ordering, row evidence, LongCount/Any and a zero window.
+Actual SQLite tests verify encrypted row hydration with an authorized runtime
+policy and rejection when it is missing. A trusted host must opt into the metadata
+profile before invoking it. The live Solana metadata fixture and HTTP/demo route
+acceptance are still pending; the existing Solana launcher uses schema2.

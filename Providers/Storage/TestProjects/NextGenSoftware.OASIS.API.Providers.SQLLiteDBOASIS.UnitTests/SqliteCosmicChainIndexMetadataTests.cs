@@ -136,4 +136,59 @@ public partial class SqliteCosmicChainIndexRowsTests
         StringAssert.Contains((string)command.ExecuteScalar()!,"coffee");
     }
 
+    private sealed class MetadataKeyResolver(byte[] bytes):IHolonMetadataKeyResolver
+    {
+        public int Encryptions,Decryptions;
+        public NextGenSoftware.OASIS.Common.OASISResult<HolonMetadataKeyMaterial> ResolveKey(HolonMetadataKeyRequest request)
+        {
+            Assert.AreEqual("schema3-demo",request.ContextId);Assert.AreEqual("metadata-key",request.KeyId);
+            if(request.Purpose==HolonMetadataKeyPurpose.Encrypt)Encryptions++;
+            else if(request.Purpose==HolonMetadataKeyPurpose.Decrypt)Decryptions++;
+            else Assert.Fail("Unexpected key operation.");
+            return new(new HolonMetadataKeyMaterial(bytes));
+        }
+    }
+    private CosmicChainIndexEntry AuthenticatedMetadataEntry(CosmicChainIndexEntry entry,HolonMetadataEncryptionPolicy policy)
+    {
+        var row=OasisJson.DeserializeStored<Holon>(entry.CanonicalJson);
+        row.MetaData.Remove("secret");
+        row.MetaData["__oasis_enc__"]=HolonMetadataCipher.Encrypt(row.Id,
+            NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(new Dictionary<string,object>{["secret"]="private-value"}),policy);
+        var json=OasisJson.Serialize(row);
+        var receipt=new CosmicChainQueryRecordReceipt(source,position,entry.Receipt.CommitReference,
+            new(row.Id,row.Version,row.VersionId,false,Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))));
+        return new(receipt,receipt,json);
+    }
+
+    [DataTestMethod]
+    [DataRow(true)] [DataRow(false)]
+    public async Task SharedMetadataWalkthroughUsesV2ManagerLinqAndCleanTracking(bool authorizedContext)
+    {
+        MetadataSource();using var store=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"}));
+        var resolver=new MetadataKeyResolver(key);
+        var encryption=new HolonMetadataEncryptionPolicy("schema3-demo","metadata-key",resolver);
+        var a=AuthenticatedMetadataEntry(MetadataEntry("A",actor,false),encryption);
+        var hidden=AuthenticatedMetadataEntry(MetadataEntry("hidden",Guid.NewGuid(),false),encryption);
+        Publish(store,a,hidden);
+        var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{
+            HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2}};
+        var manager=new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null,dna,new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna));
+        if(authorizedContext)manager.MetadataEncryptionPolicy=encryption;
+        var execution=CosmicCqlDemo.ChainIndexedMetadataWalkthrough.RunAsync(manager,store,
+            new Observer(source,position,new[]{a,hidden},"rows"),Requirement,CosmicQueryReadAccess.OwnerOrPublic(actor).Result,TextWriter.Null);
+        if(!authorizedContext)
+        {
+            var rejected=await Assert.ThrowsExceptionAsync<InvalidOperationException>(async()=>{await execution;});
+            StringAssert.Contains(rejected.Message,"HOLON_METADATA_DECRYPTION_CONFIG_MISSING");
+            Assert.AreEqual(0,resolver.Decryptions);return;
+        }
+        var report=await execution;
+        Assert.AreEqual(1,report.Rows.Rows.Count);Assert.AreEqual(1L,report.Count);Assert.IsTrue(report.Any);Assert.AreEqual(0L,report.EmptyWindow);
+        Assert.AreEqual(a.Receipt.Record.Id,report.Rows.Rows.Single().Id);
+        Assert.IsFalse(HolonChangeTracking.HasChanges(report.Rows.Rows.Single()));
+        Assert.AreEqual(a.Receipt.CommitReference,report.Rows.Receipts.Single().CommitReference);
+        Assert.AreEqual("private-value",Convert.ToString(report.Rows.Rows.Single().MetaData["secret"]));
+        Assert.AreEqual(2,resolver.Encryptions);Assert.AreEqual(1,resolver.Decryptions);
+    }
+
 }
