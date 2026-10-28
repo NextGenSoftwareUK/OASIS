@@ -18,12 +18,20 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
 {
     private readonly string _connectionString;
     private readonly IHyperDriveClock _clock;
+    private readonly CosmicStorageIdentity _expectedSource;
     public SqliteHolonReplicationOutbox(string connectionString,IHyperDriveClock clock=null)
+        : this(connectionString, clock, null) { }
+
+    /// <summary>Pins every read and mutation to the expected native source in its own transaction.</summary>
+    public SqliteHolonReplicationOutbox(string connectionString, IHyperDriveClock clock, CosmicStorageIdentity expectedSource)
     {
         if(string.IsNullOrWhiteSpace(connectionString))throw new ArgumentException("An existing SQLite connection is required.",nameof(connectionString));
         var builder=new SqliteConnectionStringBuilder(connectionString);
         if(string.IsNullOrWhiteSpace(builder.DataSource) || builder.DataSource==":memory:" || builder.Mode==SqliteOpenMode.Memory || builder.Mode==SqliteOpenMode.ReadOnly)
             throw new ArgumentException("A durable writable SQLite database is required.",nameof(connectionString));
+        if (expectedSource != null && expectedSource.Authority != ProviderType.SQLLiteDBOASIS)
+            throw new ArgumentException("The expected outbox source must be SQLite.", nameof(expectedSource));
+        _expectedSource = expectedSource;
         builder.Mode=SqliteOpenMode.ReadWrite;
         _connectionString=builder.ToString();_clock=clock ?? new SystemHyperDriveClock();
     }
@@ -35,6 +43,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
     {
         ValidateIdentity(targetId);ValidateIdentity(workerId);ValidateDuration(leaseDuration);
         using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+        ValidateSource(connection, transaction);
         var now=Now();var until=now.Add(leaseDuration);
         long sequence;Guid operation;string payload;int attempts;
         using(var query=connection.CreateCommand())
@@ -66,6 +75,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
         =>Execute(()=>{
             ValidateClaim(claim);ValidateDuration(leaseDuration);
             using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+            ValidateSource(connection, transaction);
             var now=Now();var until=now.Add(leaseDuration);using var command=OwnedCommand(connection,claim,now);command.Transaction=transaction;
             command.CommandText="UPDATE CosmicHolonOutbox SET LeaseUntilUtcTicks=MAX(LeaseUntilUtcTicks,$until) "+command.CommandText;
             command.Parameters.AddWithValue("$until",until.Ticks);
@@ -89,6 +99,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
                 throw new ArgumentException("Native reconciliation evidence cannot be completed or retried automatically.");
             var evidenceJson=recoveryEvidence==null ? null:HolonRecoveryEvidenceJson.Write(recoveryEvidence);
             using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
+            ValidateSource(connection, transaction);
             var now=Now();
             if(!Enum.IsDefined(typeof(HolonDeliveryOutcome),outcome))throw new ArgumentException("A defined delivery outcome is required.");
             if(outcome==HolonDeliveryOutcome.Completed && (errorCode!=null || message!=null || nextAttemptUtc!=null)
@@ -136,11 +147,32 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
         if(claim==null || claim.Sequence<=0 || claim.OperationId==Guid.Empty || claim.LeaseToken==Guid.Empty)throw new ArgumentException("A valid fenced delivery claim is required.");
         ValidateIdentity(claim.TargetId);ValidateIdentity(claim.WorkerId);
     }
+    private sealed class SourceBindingException(string code, string message, Exception cause = null)
+        : InvalidOperationException(message, cause)
+    {
+        internal string Code { get; } = code;
+    }
+
+    private void ValidateSource(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        if (_expectedSource == null) return;
+        CosmicStorageIdentity actual;
+        try { actual = SqliteStorageIdentity.Read(connection, transaction); }
+        catch (Exception cause) when (cause is SqliteException || cause is InvalidDataException)
+        {
+            throw new SourceBindingException("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_INVALID",
+                "The native outbox source identity cannot be verified; no delivery state was changed.", cause);
+        }
+        if (actual.BindingFingerprint != _expectedSource.BindingFingerprint)
+            throw new SourceBindingException("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH",
+                "The outbox source differs from the enrolled native store; no delivery state was changed.");
+    }
+
     private static Task<OASISResult<T>> Execute<T>(Func<OASISResult<T>> action,CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         try{return Task.FromResult(action());}
         catch(OperationCanceledException)when(token.IsCancellationRequested){throw;}
-        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
+        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is SourceBindingException binding ? binding.Code : error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
     }
 }
