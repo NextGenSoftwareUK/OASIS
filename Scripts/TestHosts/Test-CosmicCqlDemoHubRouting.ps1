@@ -34,6 +34,15 @@ foreach($provider in @('SQLite','Databases','CosmosDB')){
     try{& $hub -Provider $provider -ArchiveCompletedDemo -ShowPlan}catch{$denied=$true}
     if(!$denied){throw 'Database fixture lifecycle must not accept protocol archive options.'}
 }
+foreach($bounded in @($false,$true)){
+    $multi=& $hub -Provider ActivityPub -MultiRecord -VerifyOnly:$bounded -ShowPlan
+    if($multi.Scope -notmatch 'Three existing public Mastodon statuses' -or $multi.Url -ne 'http://127.0.0.1:5088/'){
+        throw 'Multi-record discovery scope mismatch.'
+    }
+}
+$unsupported=$false
+try{& $hub -Provider SQLite -MultiRecord -ShowPlan}catch{$unsupported=$true}
+if(!$unsupported){throw 'Unenrolled collection launcher must be rejected.'}
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
