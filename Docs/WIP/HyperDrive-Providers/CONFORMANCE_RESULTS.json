@@ -357,6 +357,12 @@
     ],
     "ConvexOASIS": [
       "Convex Function API boundary:20 controlled tests pass,15 regressions reproduced red. Fixes status/value envelope, explicit JSON format, deployment-key scheme and HTTP status preservation. Claimed companion oasis/avatars and oasis/holons modules are not shipped; implementation/deployment, native shared suite and full interfaces remain open."
+    ],
+    "NeonOASIS": [
+      "Thin PostgreSqlFamilyProviderBase adapter with existing Npgsql9.0.3;10 controlled cases pass,4 regressions red before fix. Correct pooler hostname/port behavior and verified TLS on known single Neon hosts. Hosted native suite, schema compatibility and full interfaces remain open."
+    ],
+    "FaunaOASIS": [
+      "Default db.fauna.com DNS host-not-found observed28October; no configured FAUNA env names or cached task runtime. Official self-hosted source exists; releases API0. Native access/runtime, shared-suite run and full interfaces remain open; no clone/install or hosted query attempted."
     ]
   },
   "suites": [
