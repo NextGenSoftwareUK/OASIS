@@ -16,6 +16,8 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         if($LASTEXITCODE -or $version -notmatch 'v8\.3\.11\b'){throw 'Expected installed Mongo8.3.11 runtime.'}
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
         if($MongoEntityProjection){
+            & dotnet build (Join-Path $root 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+            if($LASTEXITCODE){throw 'Shared entity projection producer build failed.'}
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
             if($LASTEXITCODE){throw 'Mongo entity projection producer build failed.'}
         }
@@ -66,8 +68,8 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly one complete storage audit.'}
         if($MongoEntityProjection){
             $proof=Get-Content -LiteralPath (Join-Path $work 'mongo-entity-projection-native.json') -Raw|ConvertFrom-Json
-            if($proof.checks -ne 10 -or !$proof.exactCleanupVerified){throw 'Native entity projection proof incomplete.'}
-            Write-Output 'Mongo entity projection: ten native cases and fixture cleanup pass.'
+            if($proof.checks -ne 14 -or !$proof.exactCleanupVerified){throw 'Native entity projection proof incomplete.'}
+            Write-Output 'Mongo entity projection: fourteen native cases and fixture cleanup pass.'
             return
         }
         if($ReconcileFixture){

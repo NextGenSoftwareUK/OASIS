@@ -77,4 +77,31 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);Passed("invalid native cells precede DTO construction");
         var payload=await Read(projection,maximumBytes:1);Assert.AreEqual("CQL_QUERY_LIMIT",payload.ErrorCode,payload.Message+payload.Exception);Passed("projection output payload bound");
     }
+
+    private static async Task VerifyStandardEntityProjection(ICosmicQueryEntityProjectionStorageProvider adapter,Guid rootId,List<object> checks)
+    {
+        var scope=CosmicQueryScope.Named(adapter.QueryProviderType).Result;
+        var source=CosmicQuery<Holon>.Create(scope).Where(row=>row.Id==rootId || row.ParentHolonId==rootId).Result;
+        var query=CosmicLinq.Create(NativeManager(adapter),adapter,source).Result.OrderBy(row=>row.Name);
+        void Passed(string label)=>checks.Add(new{provider=adapter.QueryProviderType.ToString(),standardEntityProjection=label});
+        var rows=await query.Take(3).Where(row=>row.Version>=1).Reverse().Take(2).Select(row=>row.Name).ToCosmicListAsync();
+        Assert.IsFalse(rows.IsError,rows.Message+rows.Exception);
+        CollectionAssert.AreEqual(new[]{"visible match","protected source root"},rows.Result.ToArray());Passed("standard Select preserves staged order and pages");
+        var empty=query.Take(1).Where(row=>row.Name=="protected source root").Select(row=>row.Name).ToArray();
+        Assert.AreEqual(0,empty.Length);Passed("standard Select cannot move filter before source page");
+        var rootSource=CosmicLinq.Create(NativeManager(adapter),adapter,CosmicQuery<NativeCountWithoutConstructor>.Create(scope).Where(row=>row.Id==rootId).Result).Result;
+        var desired="not-matched-at-construction";
+        NativeProjectionProbe.Constructors=0;
+        var deferred=rootSource.Take(1).Where(row=>row.Name==desired)
+            .Select(row=>new NativeProjectionProbe{Name=row.Name,Precision=CosmicQueryMetadata.Value<long>(row,"i64")});
+        Assert.AreEqual(0,NativeProjectionProbe.Constructors);desired="protected source root";
+        var selected=await deferred.ToCosmicListAsync();Assert.IsFalse(selected.IsError,selected.Message+selected.Exception);
+        Assert.AreEqual(9007199254740993L,selected.Result.Single().Precision);Assert.AreEqual(1,NativeProjectionProbe.Constructors);
+        desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
+        NativeProjectionProbe.Constructors=0;
+        var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
+            .Select(row=>new NativeProjectionProbe{Name=row.Name,Precision=CosmicQueryMetadata.Value<long>(row,"text")}).ToCosmicListAsync();
+        Assert.AreEqual("CQL_DATA_INVALID",invalid.ErrorCode,invalid.Message+invalid.Exception);
+        Assert.AreEqual(0,NativeProjectionProbe.Constructors);Passed("standard Select rejects invalid native cells before DTOs");
+    }
 }
