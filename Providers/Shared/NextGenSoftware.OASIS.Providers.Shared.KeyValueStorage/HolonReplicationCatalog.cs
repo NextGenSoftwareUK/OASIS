@@ -112,56 +112,16 @@ public sealed class HolonReplicationCatalog
     private sealed class AuthorizedTarget : IHyperDriveIdempotentReplicationTarget
     {
         public string ReplicationTargetId {get;}
-        private readonly HolonReplicationCatalog _catalog;
-        private readonly HolonReplicationDestination _destination;
         private readonly CommittedHolonReplicaTarget _target;
         internal AuthorizedTarget(HolonReplicationCatalog catalog,HolonReplicationDestination destination)
         {
-            _catalog=catalog;_destination=destination;
             ReplicationTargetId="cosmic:"+catalog.Version.ToString("N")+":"+Digest("catalog-route-v1",catalog.CatalogId,catalog.SourceId,
                 catalog.StoreIdentity,catalog.SourceAuthority.ToString(),destination.Name,destination.EndpointIdentity,
                 destination.Authority.ToString(),destination.PolicyBinding);
-            _target=new CommittedHolonReplicaTarget(ReplicationTargetId,destination.Provider,destination.Authority,catalog.SourceId,catalog.SourceAuthority);
+            _target=new CommittedHolonReplicaTarget(ReplicationTargetId,destination.Provider,destination.Authority,catalog.SourceId,catalog.SourceAuthority,
+                destination.Policy,catalog.CatalogId,catalog.Version,destination.PolicyBinding);
         }
-        public async Task<OASISResult<bool>> ApplyReplicatedMutationAsync(HostedSyncFanOutItem item,CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();OASISResult<bool> authorized;
-            HostedSyncFanOutItem frozen;
-            try
-            {
-                if(item==null)throw new InvalidDataException("A committed holon graph item is required.");
-                // The transport envelope is mutable. Capture every field before yielding to host policy;
-                // authorization and the receiver must use the same payload and routing assertions.
-                frozen=new HostedSyncFanOutItem{OperationId=item.OperationId,AvatarId=item.AvatarId,
-                    EntityId=item.EntityId,EntityType=item.EntityType,Kind=item.Kind,VersionId=item.VersionId,
-                    PayloadJson=item.PayloadJson,AttemptCount=item.AttemptCount};
-                var mutation=CommittedHolonReplicaPayload.Read(frozen.PayloadJson);
-                if(mutation.SourceId!=_catalog.SourceId || mutation.SourceAuthority!=_catalog.SourceAuthority)
-                    return Denied("COSMIC_REPLICA_SOURCE_NOT_ENROLLED","The source is not enrolled for this route.");
-                if(_destination.Policy.BindingIdentity!=_destination.PolicyBinding)
-                    return Denied("COSMIC_REPLICA_AUTHORIZATION_FAILED","Authorization binding changed without a new catalog route.");
-                authorized=await _destination.Policy.AuthorizeAsync(new HolonReplicationAuthorizationContext(_catalog.CatalogId,_catalog.Version,
-                    ReplicationTargetId,_destination.Authority,mutation),cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-                if(_destination.Policy.BindingIdentity!=_destination.PolicyBinding)
-                    return Denied("COSMIC_REPLICA_AUTHORIZATION_FAILED","Authorization binding changed while authorizing delivery.");
-                if(authorized==null || authorized.IsError || !authorized.Result)
-                    return Denied("COSMIC_REPLICA_AUTHORIZATION_DENIED","The explicit route policy did not authorize delivery.",authorized?.Exception);
-            }
-            catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-            catch(Exception cause)
-            {return Denied(cause is InvalidDataException || cause is ArgumentException ? "COSMIC_REPLICA_PAYLOAD_INVALID":"COSMIC_REPLICA_AUTHORIZATION_FAILED",cause.Message,cause);}
-            // Reparse the original frozen bytes inside the receiver adapter; policy cannot rewrite a mutation.
-            var result=await _target.ApplyReplicatedMutationAsync(frozen,cancellationToken).ConfigureAwait(false);
-            if(authorized.IsWarning || authorized.Exception!=null)
-            {
-                result.IsWarning=true;result.WarningCount+=Math.Max(1,authorized.WarningCount);
-                result.Exception=result.Exception==null ? authorized.Exception:authorized.Exception==null ? result.Exception:new AggregateException(authorized.Exception,result.Exception);
-                result.InnerMessages.Add("Authorization completed with a retained policy warning.");
-            }
-            return result;
-        }
-        private static OASISResult<bool> Denied(string code,string message,Exception cause=null)
-            =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
+        public Task<OASISResult<bool>> ApplyReplicatedMutationAsync(HostedSyncFanOutItem item,CancellationToken cancellationToken)
+            => _target.ApplyReplicatedMutationAsync(item,cancellationToken);
     }
 }
