@@ -105,3 +105,20 @@ paging, access exclusion, corrupt later envelope, budget, absence, denied source
 invalid key and cancellation. Live Pod resource-set acceptance is pending. Reuse
 LocalState/COSMIC/SolidCurrent identities and the existing journaled native runner;
 do not recreate identity or replay completed/unknown fixture journals.
+
+## Native IPFS collection proof
+
+`Run-ReusableIpfsTests.ps1 -CqlKeySet` under one provider-build lease now passes
+one native acceptance case against retained offline Kubo0.43.1. Three encrypted
+holons are saved under a before-write ownership journal, independently loaded, then
+queried using all three CIDs and a two-CID subset. Canonical IDs and metadata match.
+Exact catalogue membership and owners are verified before clearing only that owned
+catalogue. Native reads confirm absence afterwards. Completed journal and immutable
+blocks remain preserved; pending journal absent and daemon ports18547–18549 closed.
+
+TRX: `C:/Source/OASIS-cosmic/TestResults/IPFSCurrent/ipfs-cql-keyset-native.trx`,
+1 passed/0 failed/0 skipped. SHA256
+`BB18B7E9B10898EBA5688AABBE2322E7BF16ED0BAEEBE611D74B65973463B470`.
+Do not rerun over the completed cql-keyset journal/DNA; review and archive those exact
+completed fixture records first. This proves native membership, not general content
+filtering or a Mongo-federated/HTTP/browser demonstration.
