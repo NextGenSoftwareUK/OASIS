@@ -875,8 +875,8 @@ rows array; checkpoint, finalizedHead and receipts retain provenance/freshness.
 ### Indexed Count / LongCount / Any SDK
 
 Use a bound CosmicQuery source with explicit indexed freshness and server actor
-policy. These are scalar builder methods on CosmicQuery, not yet terminals on the
-indexed IQueryable bridge. The separate reader capability is mandatory.
+policy. These scalar builder methods on CosmicQuery also have standard synchronous
+Count/LongCount/Any terminals on the indexed IQueryable bridge. The separate reader capability is mandatory.
 
 ```csharp
 var scalar = sourceQuery.Count(); // Or LongCount() / Any().
@@ -917,3 +917,30 @@ index manifest statistics. Current SQLite index integrity scanning is bounded to
 10,000 history entries; larger-index scaling remains a separate gap. LINQ/HTTP,
 terminal predicates and additional aggregates are not enrolled by this milestone.
 [Contract and evidence](CQL_INDEXED_SQL_ROWS.md#indexed-native-cardinality-sdk-27-october).
+
+
+### Ordinary indexed LINQ cardinality
+
+```csharp
+var visibleCoffee = query.Where(holon => holon.Name == "Coffee");
+
+var count = visibleCoffee.Count();
+var longCount = visibleCoffee.LongCount();
+var any = visibleCoffee.Any();
+
+// Source windows retain their normal LINQ position in SQL.
+var firstPageCount = visibleCoffee
+    .OrderBy(holon => holon.Name)
+    .Skip(1)
+    .Take(10)
+    .Count();
+```
+
+query is the explicitly bound indexed IQueryable. Each terminal executes its own
+native SQL snapshot and source head/anchor checks. These return primitives and
+throw CosmicLinqException on failure; use the asynchronous scalar SDK when you
+need OASISResult, cancellation and checkpoint/head evidence. Predicates on an
+unwindowed Count/LongCount/Any are supported; predicates after Skip/Take, All and
+selected-result/numeric/element terminals remain unsupported before I/O.
+RunCardinalityAsync in [ChainIndexedWalkthrough.cs](../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs)
+is a spaced/commented live-tested example. HTTP cardinality remains pending.

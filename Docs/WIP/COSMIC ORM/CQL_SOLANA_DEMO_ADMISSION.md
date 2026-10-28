@@ -219,3 +219,9 @@ The IndexedHttpDemo gate now passes9requests including native selected rows/empt
 through the same indexed endpoint (optional columns), with actual SQL/source reads
 and preserved source receipts. Four replays and unsupported shape reject.
 [Wire contract and limits](CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
+
+The retained native SDK gate now also runs the exact shared RunCardinalityAsync
+demo: standard Count1,LongCount1,Anytrue from the authenticated SQLite index and
+fresh live source head/anchors. No new seed/submission. This is index-snapshot
+cardinality, not independent rereads of each counted transaction. HTTP cardinality
+remains open; the existing HTTP gate still covers rows/projections only.

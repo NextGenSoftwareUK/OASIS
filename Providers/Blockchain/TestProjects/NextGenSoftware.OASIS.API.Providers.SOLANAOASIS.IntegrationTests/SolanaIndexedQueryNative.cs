@@ -145,13 +145,20 @@ public partial class SolanaIndexedQueryNative
             Assert.AreEqual(seed.Signature, projected.Receipts.Single().CommitReference);
             Assert.AreEqual(seed.CoverageStart, projected.Checkpoint.CompleteFromSlot);
 
+            var cardinality = await CosmicCqlDemo.ChainIndexedWalkthrough.RunCardinalityAsync(manager, reopened, repository,
+                requirement, CosmicQueryReadAccess.OwnerOrPublic(seed.Actor).Result, seed.Id, Console.Out);
+            Assert.AreEqual(1, cardinality.Count);
+            Assert.AreEqual(1L, cardinality.LongCount);
+            Assert.IsTrue(cardinality.Any);
+
             object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed) : null;
             var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
                 scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",
                 sourceProvider = source.SourceProvider.ToString(), executionProvider = source.ExecutionProvider.ToString(),
                 seed.Writer, seed.Genesis, seed.Id, seed.IndexId, seed.CoverageStart, seed.Signature,
-                http, projectionRows = projected.Rows.Count, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
+                http, projectionRows = projected.Rows.Count, cardinalityCount = cardinality.Count, cardinalityLongCount = cardinality.LongCount,
+                cardinalityAny = cardinality.Any, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
                 checkpoint = rows.Checkpoint.Position.Slot, finalizedHead = rows.Head.Position.Slot,
                 rows = rows.Rows.Count, emptyRows = demo.Empty.Rows.Count,
                 indexBytes = new FileInfo(database).Length, indexPath = database, seedPath = complete });

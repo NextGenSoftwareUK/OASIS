@@ -650,3 +650,9 @@ selected-result stages/aggregates remain unsupported.
 
 IndexedHttpDemo now verifies nine requests, including entity and selected rows/empty
 results on the same indexed route. [Selected HTTP example](../../Docs/WIP/COSMIC%20ORM/CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
+
+ChainIndexedWalkthrough.RunCardinalityAsync demonstrates ordinary indexed LINQ
+Count/LongCount/Any with clear spacing/comments and explicit snapshot assurance.
+It runs verbatim in the retained live Solana SDK gate. Use the async scalar SDK
+for cancellation/evidence; HTTP cardinality and post-window predicate terminals
+are not enrolled yet.

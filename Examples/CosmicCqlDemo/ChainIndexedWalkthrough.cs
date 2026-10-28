@@ -13,6 +13,40 @@ namespace CosmicCqlDemo;
 /// </summary>
 public static class ChainIndexedWalkthrough
 {
+    /// <summary>SQL cardinality of an authenticated index snapshot, with fresh finalized source evidence.</summary>
+    public static async Task<(int Count, long LongCount, bool Any)> RunCardinalityAsync(
+        HolonManager manager,
+        ICosmicChainQueryIndexScalarReader index,
+        ICosmicChainQuerySourceObserver sourceObserver,
+        CosmicChainQueryReadRequirement freshness,
+        CosmicQueryReadAccess serverReadAccess,
+        Guid selectedId,
+        TextWriter output)
+    {
+        var scope = Value(CosmicQueryScope.Named(freshness.Source.SourceProvider));
+        var source = CosmicQuery<Holon>.Create(scope);
+        source = Value(source.WithIndexedSource(freshness));
+        source = Value(source.WithReadAccess(serverReadAccess));
+
+        var query = Value(CosmicLinq.CreateIndexed(manager, index, sourceObserver, source));
+        var selected = query.Where(holon => holon.Id == selectedId);
+
+        // These standard synchronous terminals execute separate native SQL
+        // operations. They do not load a page and count its application objects.
+        var count = selected.Count();
+        var longCount = selected.LongCount();
+        var any = selected.Any();
+
+        await output.WriteLineAsync("\n4. Native indexed cardinality through ordinary LINQ\n");
+        await output.WriteLineAsync($"   Count:     {count}");
+        await output.WriteLineAsync($"   LongCount: {longCount}");
+        await output.WriteLineAsync($"   Any:       {any}\n");
+        await output.WriteLineAsync("   Assurance: authenticated index snapshot with fresh source head/anchors.\n");
+        await output.WriteLineAsync("   Cardinality does not claim a separate live read of every counted record.\n");
+
+        return (count, longCount, any);
+    }
+
     public sealed class MenuItem
     {
         public Guid Id { get; set; }
