@@ -345,7 +345,7 @@ try{
     if($ReconcileKarmaReadGuard){$report='oracle-karma-read-guard-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownKarmaReadGuardFixture'}
     if($BootstrapSchema){$report='oracle-bootstrap-native-current.trx';$filter='FullyQualifiedName~OracleBootstrapNativeTests'}
     if($Cql){$report='oracle-cql-native-current.trx';$filter='FullyQualifiedName~OracleCqlNativeTests.NativeMembershipAuthorizationPagingAndExactCleanup'}
-    if($CqlReconcile){$report='oracle-cql-manager-reconciliation.trx';$filter='FullyQualifiedName~ReconcileOriginalManagerConfigurationFailureWithoutReplayingWrites'}
+    if($CqlReconcile){$report='oracle-cql-host-reconciliation.trx';$filter='FullyQualifiedName~ReconcileOriginalHostConfigurationFailureWithoutReplayingWrites'}
     if($Coverage){$report='oracle-native-coverage-current.trx'}
     if($ReconcileExportVisibility){$report='oracle-export-visibility-reconciliation.trx';$filter='FullyQualifiedName~ReconcileKnownAvatarExportVisibilityFixture'}
     if(Test-Path -LiteralPath (Join-Path $testResults $report)){throw 'Preserve the original native report before another run.'}

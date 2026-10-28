@@ -9,15 +9,15 @@ namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests;
 public sealed partial class OracleCqlNativeTests
 {
     [TestMethod]
-    public async Task ReconcileOriginalManagerConfigurationFailureWithoutReplayingWrites()
+    public async Task ReconcileOriginalHostConfigurationFailureWithoutReplayingWrites()
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts"))) root = root.Parent;
         Assert.IsNotNull(root);
         var state = Path.Combine(root.FullName, "LocalState/COSMIC/OracleCqlCurrent");
         using var lease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-        var failed = Path.Combine(root.FullName, "TestResults/OracleCurrent/Archive/oracle-mongo-manager-failed-B0390120.trx");
-        Assert.AreEqual("B03901203069577829EDB9F3AB5D4595BECEB9866E573587D006AC2E05E9E623",
+        var failed = Path.Combine(root.FullName, "TestResults/OracleCurrent/Archive/oracle-http-host-failed-F75CAFCC.trx");
+        Assert.AreEqual("F75CAFCCD460C47D8B8F7E93CDC225780A0B6B1FD07827C5840B9275A9F47CAB",
             Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(failed))));
         var mongoPath = Path.Combine(state, "mongo.pending.json");
         using var mongoIntent = JsonDocument.Parse(await File.ReadAllTextAsync(mongoPath));
