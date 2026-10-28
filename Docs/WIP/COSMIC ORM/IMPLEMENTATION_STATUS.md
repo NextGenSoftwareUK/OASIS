@@ -37,23 +37,39 @@ Evidence (raw output only in the worktree):
 | TestResults/Neo4jCurrent/neo4j-hosted-restart-current.trx |1pass after shared-fixture refactor|0F4522767A377841C0192505293BDD1E4E928D7F0E7689A748430E3BA0D78EB9|
 | TestResults/OwnedRoutingCurrent/wake-full-core.trx |4325pass,last Core checkpoint|03D5E49BAD788D88BFA85DEE97EDD98EF200FA5E9B1D1EA5DE9FAD091F1E7651|
 
-## Shared authorization boundary prerequisite
+## Shared and automatic delivery authorization
 
 Configured catalog authorization now lives in the reusable policy constructor of
 `CommittedHolonReplicaTarget`;catalog route hashes and captured policy binding remain
 unchanged. It retains frozen transport/graph admission, actor-grant expiry, before/after
 policy-binding checks and warning evidence. The source-only constructor remains a
-low-level trusted adapter, not caller authorization. Automatic WEB4 still uses it;
-explicit automatic policy wiring/denial/expiry acceptance is next, not complete.
+low-level trusted adapter, not caller authorization. Automatic WEB4 now uses the policy constructor. Default admission validates a
+nonempty committed actor and ownership of the complete selected graph. Host DI can
+replace that admission with a full server-owned policy;Startup uses TryAdd to preserve
+an existing registration. Stricter policies are responsible for all host constraints.
+The configured catalog JSON remains a separate versioned route owner;its grants are
+not silently applied to automatic provider-type routes.
 
 - 1272Shared tests pass, including3new direct policy cases;2native configured-host cases pass;zero skips.
 - Evidence TestResults/OwnedRoutingCurrent/authorization-shared.trx SHA2569777F7BBAFE985BEBE16490F3F2979D0F2A7786E23060C86990CC76D233F35CB.
 - Native TestResults/Neo4jCurrent/neo4j-cosmic-configured-host-current.trx SHA256F2FF849EE7325529C28C3C7DE71248AB0842602CED3166A34FD96E8B40CEC02B.
 - Sandbox ProviderFaultGate explicitly excludes background work and is unchanged;it is not a grant/placement policy.
 
+Automatic admission gate:6new controls/1278full Shared tests and3native shipping
+cases pass(default owned delivery/restart,denied actor,expired grant),zero skips.
+Denied/expired operations retain the primary and original payload,become reconciliation-
+required at attempt1,and remain blocked after worker restart with no target record.
+Successful fixture cleanup/container shutdown verified. Both WEB4/native builds pass.
+The authorization context version is a protocol identifier,not persisted physical
+endpoint/policy binding. No automatic permission retry or new source save was added.
+
+- TestResults/OwnedRoutingCurrent/automatic-policy-full-shared.trx SHA2567709BEC896EF2EAA7CF8C2BC92AEE739257D385A31362D076E271E480EBFB7F1.
+- TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx SHA256A4DDD57630F7A96AA09211EB8230048BC0E9F10B12BD6E5BB64584EA3952DC8E.
+- Run `Run-ReusableNeo4jTests.ps1 -CosmicHostedReplicaAdmission` under one build lease.
+
 ## Remaining acceptance
 
-1. Delivery-time actor/tenant/encryption/placement authorization and physical route binding. Automatic WEB4 delivery currently uses source enrollment, not the configured catalog's explicit expiring policy;do not conflate these.
+1. Durable physical endpoint/store and policy-version binding for automatic routes;tenant/encryption/residency/placement admission. The default owner policy and demonstrated host-supplied actor grant are narrower than that full acceptance.
 2. Other native crash directions, lost primary outcomes, target outage/reconciliation, grant revocation, target-set changes and retention/operator repair. One Neo→SQLite crash case does not close X10.
 3. Full graph/child parameters, history/restore, deltas' authorized stored values/retention, controlled migration/cutover, gas-aware placement and remaining EF/NHibernate checklist rows remain independently open.
 4. Hosted Azure pending;original Solana historical root/chunk recovery has no backup. Preserve identities/ledger;no reset/reseed.

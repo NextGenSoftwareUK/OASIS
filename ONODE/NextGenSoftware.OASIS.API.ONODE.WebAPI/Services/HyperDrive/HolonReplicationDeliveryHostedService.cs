@@ -25,22 +25,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
         private readonly ILogger<HolonReplicationDeliveryHostedService> _logger;
         private readonly Func<ProviderManager> _providers;
         private readonly Func<bool> _isReady;
+        private readonly IHolonReplicationAuthorizationPolicy _authorization;
+        // Authorization context schema, not a claim of persisted endpoint binding.
+        private static readonly Guid AuthorizationContextVersion = new Guid("e1d13ed7-2146-4f40-a799-c2bbbfd9113f");
         private readonly string _workerId = $"replication:{Environment.MachineName}:{Guid.NewGuid():N}";
         private readonly SemaphoreSlim _committed = new SemaphoreSlim(0, 1);
 
         public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger)
+            : this(logger, new CommittedOwnerReplicationPolicy()) { }
+
+        public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger,
+            IHolonReplicationAuthorizationPolicy authorization)
             : this(logger, () => ProviderManager.Instance,
                 () => OASISBootLoader.OASISBootLoader.IsOASISBooted &&
-                    OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2) { }
+                    OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2, authorization) { }
 
         /// <summary>Host-owned registry and readiness dependencies. Both construction
         /// paths use the same delivery loop and native outbox transaction owners.</summary>
         public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger,
             Func<ProviderManager> providers, Func<bool> isReady)
+            : this(logger, providers, isReady, new CommittedOwnerReplicationPolicy()) { }
+
+        public HolonReplicationDeliveryHostedService(ILogger<HolonReplicationDeliveryHostedService> logger,
+            Func<ProviderManager> providers, Func<bool> isReady, IHolonReplicationAuthorizationPolicy authorization)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _providers = providers ?? throw new ArgumentNullException(nameof(providers));
             _isReady = isReady ?? throw new ArgumentNullException(nameof(isReady));
+            _authorization = authorization ?? throw new ArgumentNullException(nameof(authorization));
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -107,7 +119,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
 
                     var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[]
                     {
-                        new CommittedHolonReplicaTarget(targetId, replicas, targetType, HolonReplicationRoutes.SourceId(sourceType), sourceType)
+                        new CommittedHolonReplicaTarget(targetId, replicas, targetType, HolonReplicationRoutes.SourceId(sourceType), sourceType,
+                            _authorization, "hyperdrive-owned-replication", AuthorizationContextVersion)
                     }, _workerId);
 
                     for (var round = 0; round < MaximumRoundsPerTarget; round++)
