@@ -17,7 +17,7 @@ Mismatch returns `COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH`;unverifiable na
 | Transaction-bound native outbox implementation | ✅ | ✅ | ✅ |
 | Actual native queue copy/replacement refuses original identity | ✅ native backup copy | ✅ native collection missing/replacement | ❌ |
 | Provider factory exposes transaction-bound source outbox | ✅ native probe | ✅ native probe | ✅ native probe |
-| Shipping worker executes with bound source | ❌ runtime pair pending | ❌ runtime pair pending | ✅ Neo→SQLite |
+| Shipping worker executes with bound source | ✅ SQLite→Mongo | ✅ Mongo→SQLite | ✅ Neo→SQLite |
 | Concurrent source replacement/claim race proof | ✅ native identity UPDATE refused after admission | ✅ native UUID/DDL transaction | ❌ physical lifecycle proof pending |
 
 ## Native proof
@@ -48,11 +48,11 @@ Final verification:4401Core,SQLite6,Mongo8,Neo4primary/factory and5shipping admi
 
 SQLite's new native race uses the production IHyperDriveClock boundary after identity admission and before each lease query/update. A second real connection attempts to replace the owned identity and receives native SQLITE_BUSY for claim,renew and finish. All three original-owner operations complete, and native identity remains unchanged. No provider test hook or speculative delay is added.
 
-All three provider factories are exercised by the shared primary probe. The shipping worker native runtime direction remains Neo→SQLite;Mongo/SQLite source directions are not certified by that test. No physical Neo database reset/replacement was performed.
+All three provider factories are exercised by the shared primary probe. The original worker gate covers Neo→SQLite;the new two-case shipping gate independently covers Mongo→SQLite and SQLite→Mongo. This establishes all three source implementations in those directions,not every source/target permutation. No physical Neo database reset/replacement was performed.
 
 ## Exact next step
 
-Add shipping-worker source-direction cases for Mongo and SQLite using retained runtimes,without another environment. Retain separate native Neo physical replacement/race acceptance. Then persist immutable complete route descriptors with native atomic obligations so cold-start/offline target identity recovery does not rely on process-local pins;operator repair remains a separate gate. No full X10 completion or universal availability claim.
+Retain separate native Neo physical replacement/race acceptance and unverified source/target permutations. Next persist immutable complete route descriptors with native atomic obligations so cold-start/offline target identity recovery does not rely on process-local pins;operator repair remains a separate gate. No full X10 completion or universal availability claim.
 
 ## Latest evidence
 
@@ -66,3 +66,11 @@ Core commit:`809a7c5d58c0f306946e0b1da880fe27b1d4aab8`. Raw outputs are regenera
 | `TestResults/Neo4jCurrent/neo4j-cosmic-primary-outbox-current.trx` | 4 | `1E015209ABEBE38305A49904756F1ABAC701D0DC6B6B3A1292336A37317B9D20` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 5 | `B99618294F3B43E9B11BFF1279800FF8F839C3F06863B0B4B7F93D5582CC06EA` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-crash-current.trx` | 1 | `7EFE1BB0D31020E1442436B0BA9F812312DF109BDA13C8B34BEEDDEF87769829` |
+
+## Shipping Mongo/SQLite source directions
+
+`NativeHostedReplicaSqliteMongoTests.cs` → `ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart` runs both source directions through the actual WEB4 hosted worker. No worker exists during the owned write. Request routing disappears,providers restart before delivery,and fresh registrations recapture stable native identities. The worker discovers the original native obligation,delivers it once,and records one attempt. After another provider/worker restart the obligation stays completed,source version stays unchanged,and target provider revision is unchanged. Both native stores retain the original actor and holon ID.
+
+Run `Scripts/TestHosts/Run-CosmicBoundSourceWorkerTests.ps1`. It uses the existing Mongo8.3.11 replica-set runtime/data and one fixed owned SQLite file;no Neo service/new environment/download is needed. Producer hashes must match WEB4 and the native consumer. Exactly2cases must pass with no skips. The test journals actor/operation/holon/file before any mutation,preserves unknown outcomes,and verifies exact native holon/receipt ownership before teardown.
+
+Latest evidence:`TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx`,2passed,SHA-256:`921C4F8C9B82C20184E417C5A59EE736DCCF7AED28E2A0A3A64D41D9F5598D40`. Mongo DB `cosmic_bound_source_worker_fixture`,owned SQLite file/sidecars and pending journal were removed after provider shutdown;the owned Mongo process was joined. This is ordinary restart/idempotence proof;these two directions do not yet have abrupt-process-exit or hosted-production certification.
