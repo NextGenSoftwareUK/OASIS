@@ -1,0 +1,139 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Data.Sqlite;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Security;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests;
+
+public partial class SqliteCosmicChainIndexRowsTests
+{
+    private void MetadataSource()=>source=new(source.SourceProvider,source.NetworkIdentity,source.ExecutionProvider,
+        source.IndexId,3,source.CatalogueHash,source.CoverageStartSlot);
+    private CosmicChainIndexEntry MetadataEntry(string name,Guid owner,bool isPublic,bool deleted=false)
+    {
+        var entry=Entry(name,owner,isPublic,deleted);
+        var row=OasisJson.DeserializeStored<Holon>(entry.CanonicalJson);
+        var status=new Dictionary<string,object>{["category"]=name=="B"?"tea":"coffee",
+            ["active"]=name!="B",["stock"]=name=="B"?4:12,["amount"]=name=="B"?9007199254740992L:9007199254740993L};
+        if(name!="B")status["optional"]=null!;
+        row.MetaData=new(){["Status"]=status,["secret"]="never-export-this-secret",
+            ["STARNETHolonId"]="unselected-system-key",["__oasis_enc__"]="opaque-envelope-do-not-index"};
+        var json=OasisJson.Serialize(row);
+        var identity=new CosmicChainQueryRecordIdentity(row.Id,row.Version,row.VersionId,deleted,
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))));
+        var receipt=new CosmicChainQueryRecordReceipt(source,position,entry.Receipt.CommitReference,identity);
+        return new(receipt,receipt,json);
+    }
+    private CosmicQueryPlan<Holon> MetadataPlan(SqliteCosmicChainIndexStore store,CosmicQuery<Holon> query)
+    {
+        var plan=CosmicQueryPlanner.Plan(query,source.SourceProvider,new[]{new CosmicQueryTarget(source.SourceProvider,store.IndexedRowCapabilities,source)});
+        Assert.IsFalse(plan.IsError,plan.Message);return plan.Result;
+    }
+
+    [DataTestMethod]
+    [DataRow("equality")] [DataRow("nested")] [DataRow("Boolean")] [DataRow("Int64")]
+    [DataRow("null")] [DataRow("exists")] [DataRow("missing")] [DataRow("membership")]
+    [DataRow("Int32")] [DataRow("nullable-int")] [DataRow("nullable-long")] [DataRow("nullable-bool")]
+    [DataRow("nullable-null")] [DataRow("integer-order")] [DataRow("Boolean-order")]
+    [DataRow("ordering")] [DataRow("zero")] [DataRow("tamper-json")] [DataRow("tamper-proof")]
+    public async Task Schema3MetadataRowsAndCardinalityUseOneAuthenticatedNativeProjection(string mode)
+    {
+        MetadataSource();var policy=new HolonQueryableMetadataPolicy(new[]{"Status"});
+        var a=MetadataEntry("A",actor,false);var b=MetadataEntry("B",Guid.NewGuid(),true);
+        var hidden=MetadataEntry("hidden",Guid.NewGuid(),false);var deleted=MetadataEntry("deleted",actor,true,true);
+        using(var initial=new SqliteCosmicChainIndexStore(database,source,key,policy))Publish(initial,a,b,hidden,deleted);
+        using var store=new SqliteCosmicChainIndexStore(database,source,key,policy); // Real close/reopen.
+        var query=Query();var values=new[]{"coffee"};
+        query=(mode switch {
+            "Boolean"=>query.Where(row=>CosmicQueryMetadata.Value<bool>(row,"Status","active")==true),
+            "Int64"=>query.Where(row=>CosmicQueryMetadata.Value<long>(row,"Status","amount")>9007199254740992L),
+            "Int32"=>query.Where(row=>CosmicQueryMetadata.Value<int>(row,"Status","stock")>8),
+            "nullable-int"=>query.Where(row=>CosmicQueryMetadata.Value<int?>(row,"Status","stock")>8),
+            "nullable-long"=>query.Where(row=>CosmicQueryMetadata.Value<long?>(row,"Status","amount")>9007199254740992L),
+            "nullable-bool"=>query.Where(row=>CosmicQueryMetadata.Value<bool?>(row,"Status","active")==true),
+            "nullable-null"=>query.Where(row=>CosmicQueryMetadata.Value<int?>(row,"Status","optional")==null),
+            "integer-order"=>query.OrderByDescending(row=>CosmicQueryMetadata.Value<long>(row,"Status","amount")).Take(1),
+            "Boolean-order"=>query.OrderByDescending(row=>CosmicQueryMetadata.Value<bool>(row,"Status","active")).Take(1),
+            "null"=>query.Where(row=>CosmicQueryMetadata.IsNull(row,"Status","optional")),
+            "exists"=>query.Where(row=>CosmicQueryMetadata.Exists(row,"Status","optional")),
+            "missing"=>query.Where(row=>CosmicQueryMetadata.IsNull(row,"Status","absent")),
+            "membership"=>query.Where(row=>values.Contains(CosmicQueryMetadata.Value<string>(row,"Status","category"))),
+            "ordering"=>query.OrderBy(row=>CosmicQueryMetadata.Value<string>(row,"Status","category")).Take(1),
+            _=>query.Where(row=>CosmicQueryMetadata.Value<string>(row,"Status","category")=="coffee")
+        }).Result;
+        if(mode=="zero")query=query.Take(0).Result;
+        if(mode=="tamper-json")Sql("UPDATE CosmicChainIndexRows SET MetaDataJson='{}'");
+        if(mode=="tamper-proof")Sql("UPDATE CosmicChainIndexRows SET MetaDataProof='altered'");
+        var observer=new Observer(source,position,new[]{a,b,hidden,deleted},"rows");
+        var rows=await store.QueryRowsAsync(MetadataPlan(store,query),observer);
+        var scalarPlan=CosmicScalarPlanner.Plan(query.LongCount().Result,source.SourceProvider,new[]{
+            new CosmicScalarTarget(source.SourceProvider,store.IndexedRowCapabilities,store.IndexedScalarCapabilities,source)});
+        Assert.IsFalse(scalarPlan.IsError,scalarPlan.Message);
+        var count=await CosmicIndexedScalarExecutor.ExecuteAsync(scalarPlan.Result,store,observer);
+        if(mode.StartsWith("tamper-"))
+        {
+            Assert.IsTrue(rows.IsError);Assert.IsTrue(count.IsError);
+            Assert.AreEqual(0,observer.RecordCalls);Assert.AreEqual(0,observer.HeadCalls);return;
+        }
+        Assert.IsFalse(rows.IsError,rows.Exception?.ToString());Assert.IsFalse(count.IsError,count.Exception?.ToString());
+        var expected=mode is "missing" or "zero"?0:1;
+        Assert.AreEqual(expected,rows.Result.Rows.Count);Assert.AreEqual((long)expected,count.Result.Value);
+        if(expected==1)Assert.AreEqual("A",rows.Result.Rows.Single().Name);
+        using var db=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=database,Pooling=false}.ToString());db.Open();
+        using var sql=db.CreateCommand();sql.CommandText="SELECT MetaDataJson FROM CosmicChainIndexRows";
+        using var reader=sql.ExecuteReader();while(reader.Read())
+        {
+            var plaintext=reader.GetString(0);StringAssert.Contains(plaintext,"Status");
+            Assert.IsFalse(plaintext.Contains("secret"));Assert.IsFalse(plaintext.Contains("__oasis_enc__"));
+            Assert.IsFalse(plaintext.Contains("STARNETHolonId"));
+        }
+    }
+
+    [TestMethod]
+    public void Schema3RequiresExplicitPolicyAndRejectsProfileMismatchWithoutMigration()
+    {
+        Assert.ThrowsException<ArgumentException>(()=>new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"})));
+        MetadataSource();
+        Assert.ThrowsException<ArgumentException>(()=>new SqliteCosmicChainIndexStore(database,source,key,canonicalRowProjection:true));
+        using(var initial=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"})))
+            Publish(initial,MetadataEntry("A",actor,false));
+        using var changed=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Name"}));
+        Assert.IsTrue(changed.ReadSnapshot().IsError);
+    }
+
+    [TestMethod]
+    public void Schema3UnenrolledMetadataRejectsBeforeCreatingDatabase()
+    {
+        MetadataSource();using var store=new SqliteCosmicChainIndexStore(database,source,key,new HolonQueryableMetadataPolicy(new[]{"Status"}));
+        var query=Query().Where(row=>CosmicQueryMetadata.Value<string>(row,"secret")=="value").Result;
+        var plan=CosmicQueryPlanner.Plan(query,source.SourceProvider,new[]{new CosmicQueryTarget(source.SourceProvider,store.IndexedRowCapabilities,source)});
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",plan.ErrorCode);Assert.IsFalse(File.Exists(database));
+    }
+    [TestMethod]
+    public void MetadataProjectionFailureCannotAdvanceHistoryOrCheckpoint()
+    {
+        MetadataSource();var policy=new HolonQueryableMetadataPolicy(new[]{"Status"});
+        using var store=new SqliteCosmicChainIndexStore(database,source,key,policy);
+        var initial=MetadataEntry("A",actor,false);Publish(store,initial);
+        Sql("CREATE TRIGGER RejectMetadata BEFORE INSERT ON CosmicChainIndexRows BEGIN SELECT RAISE(ABORT,'metadata failure'); END;");
+        var row=OasisJson.DeserializeStored<Holon>(initial.CanonicalJson);row.Version=2;row.VersionId=Guid.NewGuid();
+        row.MetaData["Status"]=new Dictionary<string,object>{["category"]="changed"};
+        var json=OasisJson.Serialize(row);var next=new CosmicChainQueryPosition(2,"block-2");
+        var identity=new CosmicChainQueryRecordIdentity(row.Id,row.Version,row.VersionId,false,Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json))));
+        var receipt=new CosmicChainQueryRecordReceipt(source,next,"metadata-next",identity);
+        var result=store.Publish(new(source,next,0,TimeSpan.FromMinutes(1)),new(source,next,0),
+            new(source.SourceProvider,source.NetworkIdentity,next,DateTimeOffset.UtcNow),DateTimeOffset.UtcNow,position,
+            new[]{new CosmicChainIndexEntry(receipt,receipt,json)});
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
+        var snapshot=store.ReadSnapshot();Assert.IsFalse(snapshot.IsError,snapshot.Exception?.ToString());
+        Assert.AreEqual(1,snapshot.Result.History.Count);Assert.AreEqual(position.Slot,snapshot.Result.Checkpoint.Position.Slot);
+        using var db=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=database,Pooling=false}.ToString());db.Open();
+        using var command=db.CreateCommand();command.CommandText="SELECT MetaDataJson FROM CosmicChainIndexRows";
+        StringAssert.Contains((string)command.ExecuteScalar()!,"coffee");
+    }
+
+}

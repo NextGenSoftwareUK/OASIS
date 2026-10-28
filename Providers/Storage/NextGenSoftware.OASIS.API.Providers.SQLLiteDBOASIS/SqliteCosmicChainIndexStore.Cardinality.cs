@@ -24,7 +24,7 @@ public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndex
             ObjectDisposedException.ThrowIf(disposed,this);
             if(!canonicalRowProjection||plan==null||observer==null)
                 return Error<CosmicChainIndexCardinality>("CQL_CAPABILITY_UNSUPPORTED","An opted-in canonical index and explicit observer/plan are required.");
-            var admitted=CanonicalRowCapabilities.AdmitIndexedRows(plan.SourcePlan,source);
+            var admitted=IndexedRowCapabilities.AdmitIndexedRows(plan.SourcePlan,source);
             if(admitted.IsError)return Error<CosmicChainIndexCardinality>(admitted.ErrorCode,admitted.Message);
             admitted=CanonicalScalarCapabilities.Admit(plan.Query);
             if(admitted.IsError)return Error<CosmicChainIndexCardinality>(admitted.ErrorCode,admitted.Message);
@@ -37,7 +37,9 @@ public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndex
             CosmicChainQueryCheckpoint checkpoint=null;long count=0;int historyCount=0;string historyHash=null;
             var snapshot=await CosmicIndexedReadAttempts.ExecuteIndexSnapshotAsync(source,()=>{
                 cancellationToken.ThrowIfCancellationRequested();
-                using var connection=Open();using var transaction=connection.BeginTransaction(deferred:true);
+                using var connection=Open();
+                using var budget=metadataPolicy==null?null:new SqliteCqlReadBudget(connection,cancellationToken);
+                using var transaction=connection.BeginTransaction(deferred:true);
                 var state=ReadState(connection,transaction);
                 if(state==null)return Task.FromResult(Error<bool>("CQL_SOURCE_EVIDENCE_MISSING","No complete authenticated index checkpoint exists."));
                 ValidateQueryProjection(connection,transaction,state);
@@ -51,7 +53,7 @@ public sealed partial class SqliteCosmicChainIndexStore : ICosmicChainQueryIndex
                 command.Parameters.AddWithValue("$limit",plan.Query.Source.Limit??-1);
                 command.Parameters.AddWithValue("$offset",plan.Query.Source.Offset);
                 using var registration=cancellationToken.Register(command.Cancel);
-                var native=command.ExecuteScalar();
+                var native=command.ExecuteScalar();budget?.Check();
                 if(native is not long integer)throw new InvalidOperationException("Native cardinality must retain the exact SQLite INTEGER domain.");
                 count=integer;return Task.FromResult(new OASISResult<bool>(true));
             },cancellationToken);
