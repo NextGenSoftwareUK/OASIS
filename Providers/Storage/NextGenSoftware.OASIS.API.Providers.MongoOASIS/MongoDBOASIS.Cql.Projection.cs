@@ -12,27 +12,48 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICosmicQueryProjectionStorageProvider
+public partial class MongoDBOASIS : ICosmicQueryEntityProjectionStorageProvider
 {
     public static CosmicProjectionCapabilities CqlProjectionCapabilities { get; } = new(
         CqlCapabilities.CanonicalFields.Select(field => new CosmicProjectionFieldCapability(field.Name, field.ValueType)).ToArray(),
         CqlCapabilities.MetadataTypes.Select(type => type.ValueType).ToArray());
     public CosmicProjectionCapabilities ProjectionCapabilities => CqlProjectionCapabilities;
+    public bool SupportsEntityProjection => true;
 
-    public async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicEntityProjectionAsync<T,TResult>(
+        CosmicEntityProjectionPlan<T,TResult> plan,int maximumResults=100,
+        int maximumPayloadBytes=CosmicProjectionResults.MaximumPayloadLimit,CancellationToken cancellationToken=default) where T:IHolon
+        => plan==null ? Task.FromResult(ProjectionCqlFailure("CQL_PLAN_INVALID","An immutable entity projection plan is required."))
+            : ExecuteProjectionReadAsync(plan.Selection,maximumResults,maximumPayloadBytes,cancellationToken,plan);
+
+    public Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteCosmicProjectionAsync<T, TResult>(
         CosmicProjectionPlan<T, TResult> plan, int maximumResults = 100,
         int maximumPayloadBytes = CosmicProjectionResults.MaximumPayloadLimit,
         CancellationToken cancellationToken = default) where T : IHolon
+        => ExecuteProjectionReadAsync(plan,maximumResults,maximumPayloadBytes,cancellationToken);
+
+    private async Task<OASISResult<IReadOnlyList<CosmicProjectionRow>>> ExecuteProjectionReadAsync<T,TResult>(
+        CosmicProjectionPlan<T,TResult> plan,int maximumResults,int maximumPayloadBytes,CancellationToken cancellationToken,
+        CosmicEntityProjectionPlan<T,TResult> entityProjection=null) where T:IHolon
     {
         try
         {
+            var composition=entityProjection?.Source;
             cancellationToken.ThrowIfCancellationRequested();
             var admission = CosmicProjectionPlanner.Admit(plan, Core.Enums.ProviderType.MongoDBOASIS, CqlCapabilities, CqlProjectionCapabilities);
             if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IReadOnlyList<CosmicProjectionRow>>(admission);
             if (maximumResults < 0 || maximumResults > CosmicProjectionResults.MaximumResultLimit
                 || maximumPayloadBytes < 0 || maximumPayloadBytes > CosmicProjectionResults.MaximumPayloadLimit)
                 return ProjectionCqlFailure("CQL_QUERY_LIMIT", "Projection output bounds are invalid.");
-            var command = new MongoCqlTranslator().CompileProjection(plan.Query, maximumResults);
+            if(composition!=null)
+            {
+                var source=CqlCapabilities.AdmitPlan(composition.Source);
+                if(source.IsError) return ProjectionCqlFailure(source.ErrorCode,source.Message,source.Exception);
+                var stages=EntityCompositionCapabilities.Admit(composition.Query);
+                if(stages.IsError) return ProjectionCqlFailure(stages.ErrorCode,stages.Message,stages.Exception);
+            }
+            var command = composition==null ? new MongoCqlTranslator().CompileProjection(plan.Query, maximumResults)
+                : new MongoCqlTranslator().CompileEntityProjection(entityProjection,maximumResults);
             if (!IsProviderActivated || _holonRepository is not HolonRepository repository)
                 return ProjectionCqlFailure("CQL_PROVIDER_NOT_READY", "Activate MongoDB before native projection execution.");
             var rows = await repository.ExecuteNativeCqlProjectionAsync(command, plan.Query.Columns, maximumResults, maximumPayloadBytes, cancellationToken).ConfigureAwait(false);
