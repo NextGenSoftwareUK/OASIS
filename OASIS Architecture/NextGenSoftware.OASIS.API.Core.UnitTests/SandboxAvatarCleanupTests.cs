@@ -57,13 +57,14 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
                     Avatars.RemoveAll(a => a.Id == avatarId);
                     return Task.FromResult(true);
                 },
-                Providers, retention ?? TimeSpan.FromHours(24), () => Now, cap);
+                Providers, "sandbox-", "sandbox.oasisomniverse.one", retention ?? TimeSpan.FromHours(24), cap, () => Now);
         }
 
         [Fact]
         public void AnAvatarIsDemoOnlyWhenEveryMarkerMatches()
         {
-            Assert.True(SandboxAvatarCleanup.IsDemoAvatar(Demo("a1", TimeSpan.FromHours(30))));
+            var cleanup = new World().Cleanup();
+            Assert.True(cleanup.IsDemoAvatar(Demo("a1", TimeSpan.FromHours(30))));
 
             var wrongPrefix = Demo("a2", TimeSpan.Zero); wrongPrefix.Username = "alice";
             var wrongDomain = Demo("a3", TimeSpan.Zero); wrongDomain.Email = "sandbox-a3@example.com";
@@ -71,8 +72,8 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             var wizard = Demo("a5", TimeSpan.Zero, AvatarType.Wizard);
             var noId = Demo("a6", TimeSpan.Zero); noId.Id = Guid.Empty;
             foreach (var notDemo in new[] { wrongPrefix, wrongDomain, lookalikeDomain, wizard, noId })
-                Assert.False(SandboxAvatarCleanup.IsDemoAvatar(notDemo), notDemo.Username + " " + notDemo.Email);
-            Assert.False(SandboxAvatarCleanup.IsDemoAvatar(null));
+                Assert.False(cleanup.IsDemoAvatar(notDemo), notDemo.Username + " " + notDemo.Email);
+            Assert.False(cleanup.IsDemoAvatar(null));
         }
 
         [Fact]
@@ -147,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
                 (avatarId, provider) => avatarId == first.Id ? throw new InvalidOperationException("store down") : Task.FromResult<IReadOnlyList<IHolon>>(new List<IHolon>()),
                 (h, a, p) => Task.FromResult(true),
                 (avatarId, provider) => { world.Avatars.RemoveAll(x => x.Id == avatarId); return Task.FromResult(true); },
-                Providers, TimeSpan.FromHours(24), () => Now);
+                Providers, "sandbox-", "sandbox.oasisomniverse.one", TimeSpan.FromHours(24), 50, () => Now);
 
             var report = await cleanup.SweepAsync();
 
@@ -171,11 +172,31 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
             Assert.DoesNotContain(world.Avatars, a => a.Username == "sandbox-n5" || a.Username == "sandbox-n4");
         }
 
+
+        [Theory]
+        [InlineData("", "sandbox.oasisomniverse.one")]
+        [InlineData("sb", "sandbox.oasisomniverse.one")]
+        [InlineData("sandbox-", "")]
+        [InlineData("sandbox-", "nodot")]
+        [InlineData("sandbox-", "@sandbox.oasisomniverse.one")]
+        public void AMarkerThatCouldMatchRealUsersIsRefused(string prefix, string domain) =>
+            Assert.ThrowsAny<ArgumentException>(() => new SandboxAvatarCleanup(() => null, (a, p) => null, (h, a, p) => null, (a, p) => null,
+                Providers, prefix, domain, TimeSpan.FromHours(1), 50));
+
+        [Fact]
+        public void CustomMarkersFromConfigurationAreHonoured()
+        {
+            var cleanup = new SandboxAvatarCleanup(() => null, (a, p) => null, (h, a, p) => null, (a, p) => null,
+                Providers, "demo_", "demo.example.org", TimeSpan.FromHours(1), 50);
+            var custom = new Avatar { Id = Guid.NewGuid(), Username = "demo_ab12", Email = "demo_ab12@demo.example.org", AvatarType = new EnumValue<AvatarType>(AvatarType.User), CreatedDate = Now };
+            Assert.True(cleanup.IsDemoAvatar(custom));
+            Assert.False(cleanup.IsDemoAvatar(Demo("x", TimeSpan.Zero)), "the default markers no longer apply once configured otherwise");
+        }
         [Fact]
         public void RetentionAndProvidersAreValidated()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new World().Cleanup(TimeSpan.FromSeconds(5)));
-            Assert.Throws<ArgumentException>(() => new SandboxAvatarCleanup(() => null, (a, p) => null, (h, a, p) => null, (a, p) => null, new ProviderType[0], TimeSpan.FromHours(1)));
+            Assert.Throws<ArgumentException>(() => new SandboxAvatarCleanup(() => null, (a, p) => null, (h, a, p) => null, (a, p) => null, new ProviderType[0], "sandbox-", "sandbox.oasisomniverse.one", TimeSpan.FromHours(1), 50));
         }
 
         [Fact]

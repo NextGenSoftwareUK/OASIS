@@ -8,39 +8,36 @@ using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
 {
     /// <summary>
-    /// Deletes the sandbox's throwaway demo avatars, and everything they own, once they are older than the retention period
-    /// (<c>OASIS_SANDBOX_RETENTION_MINUTES</c>, default 24 hours). It is registered only when <c>OASIS_SANDBOX=true</c>, so no
-    /// other WEB4 deployment ever runs it. See <see cref="SandboxAvatarCleanup"/> for what counts as a demo avatar.
+    /// Deletes the sandbox's throwaway demo avatars, and everything they own, once they are older than the retention period.
+    /// Every setting comes from DNA (<c>OASIS.Sandbox</c>). The service is registered on every WEB4 but does nothing unless that
+    /// node's DNA has <c>OASIS.Sandbox.Enabled</c> set, so no other deployment ever deletes anything. See
+    /// <see cref="SandboxAvatarCleanup"/> for what counts as a demo avatar.
     /// </summary>
     public sealed class SandboxCleanupHostedService : BackgroundService
     {
-        public const string RetentionVariable = "OASIS_SANDBOX_RETENTION_MINUTES";
-        private static readonly TimeSpan DefaultRetention = TimeSpan.FromHours(24);
-        private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
+        private static readonly TimeSpan BootPoll = TimeSpan.FromSeconds(5);
         private readonly ILogger<SandboxCleanupHostedService> _logger;
 
         public SandboxCleanupHostedService(ILogger<SandboxCleanupHostedService> logger) => _logger = logger;
 
-        public static bool IsSandbox =>
-            string.Equals(Environment.GetEnvironmentVariable("OASIS_SANDBOX"), "true", StringComparison.OrdinalIgnoreCase);
-
-        public static TimeSpan Retention =>
-            int.TryParse(Environment.GetEnvironmentVariable(RetentionVariable), out var minutes) && minutes >= 1 ? TimeSpan.FromMinutes(minutes) : DefaultRetention;
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Sandbox cleanup is on: demo avatars older than {Retention} are removed with their data.", Retention);
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                try { await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); }
-                catch (OperationCanceledException) { break; }
+                // The DNA is only loaded once OASIS has booted, so wait for that before reading the sandbox settings.
+                while (!OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                    await Task.Delay(BootPoll, stoppingToken);
 
-                if (OASISBootLoader.OASISBootLoader.IsOASISBooted)
+                if (!SandboxOptions.Enabled) return;
+                _logger.LogInformation("Sandbox cleanup is on: demo avatars older than {Retention} are removed with their data, every {Interval}.",
+                    SandboxOptions.Retention, SandboxOptions.CleanupInterval);
+
+                await Task.Delay(SandboxOptions.CleanupInitialDelay, stoppingToken);
+                while (!stoppingToken.IsCancellationRequested)
                 {
                     try
                     {
@@ -51,18 +48,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                         foreach (var failure in report.Failures)
                             _logger.LogWarning("Sandbox cleanup: {Failure}", failure);
                     }
-                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+                    catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
                     catch (Exception exception) { _logger.LogError(exception, "Sandbox cleanup pass failed."); }
-                }
 
-                try { await Task.Delay(Interval, stoppingToken); }
-                catch (OperationCanceledException) { break; }
+                    await Task.Delay(SandboxOptions.CleanupInterval, stoppingToken);
+                }
             }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
         }
 
         private static SandboxAvatarCleanup CreateCleanup()
         {
-            var providers = SandboxController.SandboxProviders.Split(',').Select(name => Enum.Parse<ProviderType>(name.Trim())).ToList();
+            var settings = SandboxOptions.Current;
             return new SandboxAvatarCleanup(
                 async () =>
                 {
@@ -84,7 +81,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                     var deleted = await Program.AvatarManager.DeleteAvatarAsync(avatarId, softDelete: false, providerType: provider);
                     return !deleted.IsError && deleted.Result;
                 },
-                providers, Retention);
+                SandboxOptions.Providers(), settings.DemoAvatarUsernamePrefix, settings.DemoAvatarEmailDomain, SandboxOptions.Retention,
+                SandboxOptions.AtLeastOne(settings.MaximumAvatarsRemovedPerSweep, nameof(settings.MaximumAvatarsRemovedPerSweep)));
         }
     }
 }
