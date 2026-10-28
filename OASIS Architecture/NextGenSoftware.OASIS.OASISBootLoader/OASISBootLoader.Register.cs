@@ -97,6 +97,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 SQLLiteDBOASIS SQLLiteDBOASIS = new SQLLiteDBOASIS(overrideConnectionString == null
                                     ? OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.ConnectionString
                                     : overrideConnectionString);
+                                SQLLiteDBOASIS.NativeImportConnectionString = OASISDNA.OASIS.StorageProviders.SQLLiteDBOASIS.NativeImportConnectionString;
                                 SQLLiteDBOASIS.OnStorageProviderError += SQLLiteDBOASIS_StorageProviderError;
                                 result.Result = SQLLiteDBOASIS;
                             }
