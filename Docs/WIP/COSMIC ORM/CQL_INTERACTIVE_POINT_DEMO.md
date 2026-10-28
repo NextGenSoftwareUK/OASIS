@@ -192,9 +192,7 @@ HTTP; browser click/rendering remains unverified. Services stopped after accepta
 The hub now accepts `-Provider Databases`: ShowPlan returns the existing
 MongoDB/SQLite/Neo4j runner and5088/demo endpoint, and VerifyOnly selects bounded
 verification. It owns its lease; do not wrap another lease around it. Discovery
-passes7profiles/14plans with unchanged listeners. Native launch currently refuses
-retained fixture data; [preflight evidence and required audit](CQL_DATABASE_DEMO_HUB.md)
-must be resolved before using the interactive command. No data was reset.
+passes8profiles/16plans with unchanged listeners. Retained fixture reconciliation and a fresh bounded native launch now pass:681SDK queries/138walkthrough HTTP requests/30save checks, with exact cleanup. [Reconciliation and native evidence](CQL_DATABASE_DEMO_HUB.md) records preserved archives and remaining scope limits. Interactive browser rendering remains unverified.
 
 ## Azure Cosmos DB cloud teaching page
 Run one teaching host at a time:
