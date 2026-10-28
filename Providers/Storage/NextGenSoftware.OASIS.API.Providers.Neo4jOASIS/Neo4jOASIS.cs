@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public string Password { get; set; }
         public bool IsVersionControlEnabled { get; set; }
         private IDriver _driver;
+        private Uri _storageDriverEndpoint;
         private readonly Func<IDriver> _driverFactory;
         private readonly Func<IDriver> _cqlReadDriverFactory;
         private NeoCqlReadTransportPool _cqlReadTransports;
@@ -56,7 +57,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         private IDriver CreateDriver()
         {
-            return GraphDatabase.Driver(ConnectionUri(Host), AuthTokens.Basic(Username, Password));
+            var endpoint = ConnectionUri(Host);
+            var driver = GraphDatabase.Driver(endpoint, AuthTokens.Basic(Username, Password));
+            _storageDriverEndpoint = endpoint;
+            return driver;
         }
 
         private async Task<NeoCqlReadTransportPool.Lease> LeaseCqlReadAsync(CancellationToken cancellationToken)
