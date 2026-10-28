@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntity
@@ -86,6 +87,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = true,
+                    LoadedCount = 1,
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntity
@@ -190,6 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -229,6 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -268,6 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -306,6 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -344,6 +350,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -380,6 +387,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -452,6 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
+                    LoadedCount = holonEntities.Count(),
                     IsError = false,
                     Message = $"Loaded {holonEntities.Count} holons of type {Type}",
                     Result = holonEntities

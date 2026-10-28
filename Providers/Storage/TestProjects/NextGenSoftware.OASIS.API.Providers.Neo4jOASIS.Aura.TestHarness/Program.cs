@@ -14,9 +14,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness
             Console.WriteLine("");
 
             Console.WriteLine("Connecting To Aura DB...");
-            //Neo4jOASIS neo = new Neo4jOASIS("http://localhost:7474", "neo4j", "letthereb@light!");
             //Neo4jOASIS neo = new Neo4jOASIS("<neo4j bolt URL>", "<username>", "<password>");
-            Neo4jOASIS neo = new Neo4jOASIS("neo4j+s://099535d5.databases.neo4j.io:7687", "neo4j", "buBFnYBmEe0p8wFl6si95_k0QnbAaIlxN5Eeuc3S5A4");
+            Neo4jOASIS neo = new Neo4jOASIS(
+                Environment.GetEnvironmentVariable("OASIS_AURA_URI") ?? throw new InvalidOperationException("Set OASIS_AURA_URI to your Aura bolt URI."),
+                Environment.GetEnvironmentVariable("OASIS_AURA_USERNAME") ?? "neo4j",
+                Environment.GetEnvironmentVariable("OASIS_AURA_PASSWORD") ?? throw new InvalidOperationException("Set OASIS_AURA_PASSWORD."));
 
             neo.ActivateProvider();
             

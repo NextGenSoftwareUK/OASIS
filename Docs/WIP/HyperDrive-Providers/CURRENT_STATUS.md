@@ -1,51 +1,37 @@
 # Current provider status
 
-Updated 2026-10-27. Read this first; the four current summaries plus this file and README total under 300 lines. Open the archive only for a specific historical question.
+Updated28October2026. Read this first, then query relevant matrix rows; do not load archives by default.
 
-## Scope and working rules
+## Phase and rules
 
-- Phase: provider implementations and shared conformance, by family; approximately one day per family.
-- Storage gate: `core-storage-v2`, 26 checks per sync/async mode (52 total).
-- Non-storage services use `capability-v1` (5 checks); this does not certify every service operation.
-- HyperDrive failover/load balancing/replication follows provider baselines. Custom contracts, fees and crash recovery follow afterward. No Polkadot/NEAR/SQLite depth work now.
-- Checkout: `C:/Source/OASIS`, branch `fix/hyperdrive-v2-providers`. Never recreate the deleted old checkout.
-- COSMIC/CQL uses `C:/Source/OASIS-cosmic`, branch `work/cosmic-cql`; contact it only for overlapping Core/Shared public API changes.
-- The user also works here: stage only owned named files; preserve other dirty files and submodules. No broad staging, attribution trailers or force pushes.
-- Batch verified scoped integration into `Development` once/twice daily. Fetch first; verify submodule pushes with `git ls-remote` before parent gitlinks. Do not sweep unverified work into deployment.
-- Reuse existing runtimes/caches. Keep reports bounded and log resources in the short current inventory/cleanup sections.
+- Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
+- All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
+- Use C:/Source/OASIS, fix/hyperdrive-v2-providers; never recreate deleted checkout. No new clones/worktrees/environments; reuse cached runtimes.
+- Stage exact owned files, preserve concurrent dirty work/submodules, no force pushes/attribution trailers. COSMIC is isolated in OASIS-cosmic; contact only for overlapping Core/Shared public API work.
+- Integrate scoped verified batches to Development once/twice daily; fetch first, verify submodule commits remotely and manifest/gitlink agreement. Never deploy unrelated/unverified changes just to synchronize.
+- New raw evidence under TestResults; compact hash-bound summaries only are tracked. Maintain resource ledger, ten recent entries, byte-preserved archive rollovers.
 
-## Recorded baseline evidence
+## Evidence now
 
-| State | Providers / scope |
+| State | Scope |
 |---|---|
-| Native storage 52/52 each | Oracle, PostgreSQL, Redis, MongoDB, Neo4j, Azure CosmosDB, Google Firestore, AWSOASIS, DynamoDBOASIS, LocalFile, Azure Blob |
-| Controlled 52/52 only | KeyDB, ValKey, Dragonfly, Garnet; actual product-native runs pending |
-| Native social capability 5/5 | ActivityPub public GET probe; 291 controlled tests. Source/result publication verified; full social operation gates remain open |
-| Partial native | Solana4/52: unavailable referenced history chunk; original outcomes retained |
-| Blocked before native | SOLID, IPFS, Cosmos blockchain, Ethereum/Arbitrum/Polygon, hosted S3; details in release gates |
-| Remaining families | Most matrix rows still lack a native shared-suite run |
+| Native core-storage-v2 52/52 | OracleDB, PostgreSQL, Redis, Mongo, Neo4j, CosmosDB emulator, Firestore emulator, AWS alias, DynamoDB, LocalFile, Azure Blob, SQLite |
+| Native compatible52/52 | Shipping AWSS3OASIS on existing CI MinIO; independent empty-bucket checks passed; hosted AWS/IAM open |
+| Recovered native52/52 summaries | SOLID/IPFS reports recovered from isolated checkout with exact registry hashes/contracts; original failed reports preserved, lifecycle/full-interface gates open |
+| Controlled52/52 only | KeyDB, ValKey, Dragonfly, Garnet; product-native shared-suite runs pending |
+| Non-storage ActivityPub | Native public-GET capability5/5, controlled291; full social operations open |
+| Other controlled cases | Firebase23, Appwrite19, PocketBase24, Convex20; these do not certify native storage |
+| Partial native | Solana4/52; original referenced history unavailable, unresolved outcomes preserved |
 
-These are captured local-engine/emulator or public-read results, not full provider, hosted cloud, all-interface or global HyperDrive certification. The working matrix has 229 projects: 56 non-storage, 173 storage/specialized; zero SDK-source-unverified rows and nine reviewed missing adapters. Source detection is not implementation completeness.
+229 matrix projects:56non-storage/173storage-specialized. SDK-source-unverified0, reviewed missing9; client detection is not implementation completeness. No overall100% claim.
 
-## Exact next steps
+## Exact next actions and gates
 
-1. Next: bind SQLite to the shared baseline with its cached host/in-process engine (baseline only; no SQLite depth). Azure Blob52/52 +111controls and graceful persisted cleanup are verified. New reports use TestResults; linked legacy evidence stays in place.
-2. ActivityPub `00235929a` published: Social/Network declaration and account/detail `IsLoaded` fix verified: native5/5, controlled291, source/PDB identities matched; raw proofs moved to TestResults. Next priority: SOLID input recovery, then EVM/remaining family baselines.
-3. SOLID: all three inputs rechecked absent after ActivityPub publication; recover the original three protected files listed in release gates. Do not replace a key over retained records. If unavailable, keep the blocker and continue other priority families.
-4. EVM breadth: inspect/reuse the retained runtime/cache and configured ABI/key before a minimal local baseline. Last preflight found no Hardhat CLI or protected local-chain configuration; do not start with custom contract/fee depth.
-5. Continue Oracle cloud/AWS S3 acceptance when access is configured, then remaining families. No completion claim until every applicable gate has evidence.
-
-## Latest checkpoint and pending work
-
-- Published `f446b70a2`: repo-relative DynamoDB paths, verified rerun, empty-store checks and 200 MB compaction/admission guard.
-- Moved DynamoDB JAR hash: `67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620`.
-- DynamoDB rerun: AWS/Dynamo 52/52 each + 27 factory controls; all five tables empty. SQLite database 43,008 bytes; evidence folder about 50.9 MB; container stopped.
-- LocalFile current-suite52/52 and20controls passed; counts/delete acknowledgement fixed; old failures preserved, current fixture payloads0. Details: [LocalFile baseline](LOCALFILE_STORAGE_BASELINE.md).
-- Azure Blob automatic runner52/52 +111controls passed; six containers empty, stopped metadata0blobs/blocks after official graceful IPC shutdown. Original failed payloads/checkpoints preserved. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) is draft; CI found a base manifest/gitlink mismatch and missing Redis-family test keys. Fixes validated locally; CI rerun pending. See [CI acceptance](CI_ACCEPTANCE.md). Previous batches already exist in Development.
-- SOLID binding builds; 0/52 due missing original protected inputs. Container not started; no key/identity/ACL mutation.
-- ActivityPub scoped source/tests and evidence summary published as `00235929a`; six red acknowledgement controls and final291/native5 evidence preserved. Latest Dynamo report updates remain separate. No unrelated changes or Core gitlink included.
-- Other dirty work includes a Core submodule and unrelated WIP moves/reports; inspect `git status` before staging.
-- Documentation tidy checkpoint591182879 preserved history and moved only unlinked evidence; subsequent scoped code/test milestones are recorded above.
+1. Neon thin PostgreSQL-family adapter now passes10controls; hosted/native gate remains open. Continue remaining SQL/document family baselines. Fauna default host does not resolve here; self-hosted source exists, no runtime installed. Convex companion oasis/avatars and oasis/holons modules are missing; implement/provision and verify them before native acceptance. Shared record-policy base consolidation and full interfaces remain open for these REST document providers.
+2. Firebase canonical binding builds;23controls pass,2native cases skip without configuration. One RTDB4.11.2 JAR cached (34,495,935 B); execution policy rejected loopback19000 launch. No retry/bypass, owner file or listener; native run remains open.
+3. S3 CI40731869610/job122970030713 passed52/52 and both post-suite bucket-empty checks. See S3_COMPATIBLE_STORAGE_BASELINE.md. PR501 remains draft; broader CI/deployment gates must pass independently.
+4. Oracle cloud credentials/bucket/ADB access absent at last check. EVM signer/ABI/runtime and Cosmos bridge inputs remain gates; reuse existing resources before any installation. Keep original stores/keys/outcomes intact.
+5. Development f8e872a4f merged as3f9ae8664. Core319bd96 includes7c45e2c: per-avatar request routing, owned-write outbox, fault gates and native-import contracts now present. Follow Docs/Devs/HYPERDRIVE_PER_AVATAR_SETTINGS.md and NATIVE_DATA_IMPORT.md; schema-unsafe holon properties must be excluded from GraphQL. Local changes preserved; no new all-provider routing proof claimed.
 
 ## Key commands
 
@@ -57,13 +43,10 @@ python -B Scripts/Providers/test_provider_matrix.py
 python -B Scripts/Providers/test_conformance_reports.py
 ```
 
-Native runners: `Scripts/Providers/Run-SolidStorageConformance.ps1` (only after input/report review), `Run-EvmStorageConformance.ps1`, and `Run-AwsStorageConformance.ps1 -DynamoOnly -RerunVerifiedDynamo`. Fix their evidence destinations before new raw runs; retain local build/environment leases without cross-agent messaging.
+Wrap producer/consumer builds once in Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; use cached restores and bounded workers. Native runners require original configuration/report review; do not reset failed fixtures to obtain a pass.
 
-## Recovery map
+## Recovery links
 
-- [Matrix](PROVIDER_MATRIX.md): per-provider details; query relevant rows instead of loading it all.
-- [Open gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md), [inventory](ENVIRONMENT_INVENTORY.md), [cleanup](WORKSPACE_CLEANUP_LEDGER.md), [I/O scope](HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md).
-- [Evidence locations](EVIDENCE_LOCATIONS.md): paths/hashes and migration limitations, not raw payloads.
-- [Archive index](Archive/ARCHIVE_INDEX.md): historical hashes; not a default reading list.
+[Matrix](PROVIDER_MATRIX.md), [gates](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md), [inventory](ENVIRONMENT_INVENTORY.md), [cleanup](WORKSPACE_CLEANUP_LEDGER.md), [I/O scope](HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), [evidence](EVIDENCE_LOCATIONS.md), [document family](DOCUMENT_FAMILY_BASELINE.md).
 
-Update this file at each milestone. Keep at most ten recent entries in current summaries; roll older entries verbatim into their matching archive rather than growing append-only logs again.
+Provider-specific audits hold details; [archive index](Archive/ARCHIVE_INDEX.md) is historical lookup only. Update at each milestone; status under100lines, each summary under150, entire default recovery set about300lines.

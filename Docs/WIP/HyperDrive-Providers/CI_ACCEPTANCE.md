@@ -1,6 +1,6 @@
 # Provider batch CI acceptance
 
-Updated 2026-10-27. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) targets Development; draft until relevant checks are verified. Azure local52/52 and111controls do not imply all CI checks passed.
+Updated 2026-10-28. [PR495](https://github.com/NextGenSoftwareUK/OASIS/pull/495) was observed already merged at2026-10-27T08:37:44Z, merge `a797a3c8fe2cba6241b228962726d65204596135`; this agent did not issue that merge. Final head `6dd6298c07b8dc2fc5d08678b01f90c03777e996` has no pending checks but five failed checks. Azure local52/52 and111controls do not imply CI green.
 
 ## Observed failures and root fixes
 
@@ -22,3 +22,5 @@ All local paths below are under `C:/Source/OASIS/TestResults/HyperDrive-Provider
 GitHub-managed ephemeral runners/containers follow the repository's existing CI workflows and caches; they do not allocate additional local environments. Local logs/snapshots are task-owned disposable diagnosis metadata: retain until final CI outcome is documented, then remove exact files; regenerate from these job URLs while GitHub retains logs. Runtime artifacts, native stores and earlier unresolved outcomes are not part of that cleanup.
 
 The PR body uses one fixed `azure-baseline-pr-body.md` path and is removed after successful submission/body verification. No new branch, clone, SDK installation or local container was introduced for CI diagnosis.
+
+Latest merged-PR failed jobs: Solution Integrity122090374355, ledger122090374040, Redis122090374561, STAR CLI122090374684 and Code Quality (run40474833084, ledger run40474833065). Causes at this newer head have not been diagnosed; earlier failure causes above must not be reused as their explanation without reading logs. Keep these CI follow-up gates separate from SQLite local52/52 and101maintained tests.

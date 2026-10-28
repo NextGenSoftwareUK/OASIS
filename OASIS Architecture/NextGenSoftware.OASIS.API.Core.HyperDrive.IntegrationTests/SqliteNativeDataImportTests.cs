@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using Xunit;
 
@@ -85,6 +86,64 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal("NATIVE_IMPORT_READ_FAILED", (await Provider().ReadNativeRecordsAsync("missing", null, 5)).ErrorCode);
             var absent = new SQLLiteDBOASIS($"Data Source={OasisPath}") { NativeImportConnectionString = $"Data Source={Path.Combine(_folder, "none.db")}" };
             Assert.Equal("NATIVE_IMPORT_UNAVAILABLE", (await absent.ListNativeDataSourcesAsync()).ErrorCode);
+        }
+
+        private byte[] NativeBytes()
+        {
+            SqliteConnection.ClearAllPools(); // the constructor's pooled connection still holds the file
+            return File.ReadAllBytes(NativePath);
+        }
+
+        private NativeConnection Upload(byte[] bytes, string name = "shop.db") =>
+            new NativeConnection { ["fileName"] = name, ["fileBase64"] = Convert.ToBase64String(bytes) };
+
+        [Fact]
+        public async Task ReadsAnUploadedDatabaseAndLeavesNoTemporaryFileBehind()
+        {
+            var before = Directory.GetFiles(Path.GetTempPath(), "oasis-native-*.db").Length;
+            var provider = new SQLLiteDBOASIS($"Data Source={OasisPath}");
+            var upload = Upload(NativeBytes());
+
+            var sources = await provider.ListNativeDataSourcesAsync(upload);
+            Assert.False(sources.IsError, sources.Message);
+            Assert.Equal(new[] { "lines", "notes", "suppliers" }, sources.Result.Select(source => source.Name));
+
+            var page = await provider.ReadNativeRecordsAsync("suppliers", null, 10, upload);
+            Assert.False(page.IsError, page.Message);
+            Assert.Equal(new[] { "Alpha", "Beta", "Gamma" }, page.Result.Records.Select(record => (string)record.Fields["name"]));
+
+            Assert.Equal("sqlite-file:shop.db", provider.DescribeNativeConnection(upload));
+            Assert.Null(provider.DescribeNativeConnection(null));
+            Assert.Equal(before, Directory.GetFiles(Path.GetTempPath(), "oasis-native-*.db").Length);
+        }
+
+        [Fact]
+        public async Task BadUploadsAreRefusedAsConnectionProblems()
+        {
+            var provider = new SQLLiteDBOASIS($"Data Source={OasisPath}");
+
+            async Task AssertRefused(NativeConnection connection, string expected)
+            {
+                var result = await provider.ListNativeDataSourcesAsync(connection);
+                Assert.Equal("NATIVE_IMPORT_CONNECTION_REFUSED", result.ErrorCode);
+                Assert.Contains(expected, result.Message);
+            }
+
+            await AssertRefused(Upload(System.Text.Encoding.ASCII.GetBytes("this is not a database, just text padding")), "not a SQLite 3 database");
+            await AssertRefused(new NativeConnection { ["fileName"] = "x.db", ["fileBase64"] = "%%%not base64%%%" }, "not valid base64");
+            await AssertRefused(Upload(NativeBytes(), "../../etc/passwd"), "plain file name");
+            await AssertRefused(new NativeConnection { ["fileBase64"] = Convert.ToBase64String(NativeBytes()) }, "fileName");
+            await AssertRefused(new NativeConnection { ["fileName"] = "x.db", ["fileBase64"] = "AA==", ["path"] = "/etc/passwd" }, "path");
+            await AssertRefused(Upload(new byte[SQLLiteDBOASIS.MaximumUploadBytes + 1]), "limit");
+        }
+
+        [Fact]
+        public async Task TheSameTableInTwoUploadedFilesGetsDifferentIdentity()
+        {
+            var provider = new SQLLiteDBOASIS($"Data Source={OasisPath}");
+            var bytes = NativeBytes();
+            Assert.NotEqual(provider.DescribeNativeConnection(Upload(bytes, "a.db")), provider.DescribeNativeConnection(Upload(bytes, "b.db")));
+            await Task.CompletedTask;
         }
 
         public void Dispose()

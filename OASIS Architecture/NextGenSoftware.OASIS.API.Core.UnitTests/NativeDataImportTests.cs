@@ -139,12 +139,17 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
 
             public ProviderType NativeDataProviderType => ProviderType.MongoDBOASIS;
 
-            public Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(CancellationToken cancellationToken = default)
+            public NativeConnection SeenConnection;
+
+            public string DescribeNativeConnection(NativeConnection connection) => connection == null ? null : "fake://" + connection["host"];
+
+            public Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
                 => Task.FromResult(new OASISResult<IReadOnlyList<NativeDataSource>>(new[] { new NativeDataSource("people", "collection", 3) }));
 
             public Task<OASISResult<NativeRecordPage>> ReadNativeRecordsAsync(string sourceName, string continuationToken, int pageSize,
-                CancellationToken cancellationToken = default)
+                NativeConnection connection = null, CancellationToken cancellationToken = default)
             {
+                SeenConnection = connection;
                 Reads.Add((continuationToken, pageSize));
                 if (Failure != null) return Task.FromResult(Failure);
                 var index = continuationToken == null ? 0 : int.Parse(continuationToken);

@@ -39,7 +39,7 @@ internal static class SolidProviderFactory
         HttpMessageHandler handler=null;
         try{
             handler=dpop?new SolidDpopClientCredentialsHandler(root,tokenEndpoint,settings.ClientId,secret):new HttpClientHandler();
-            return new SOLIDOASIS(root.AbsoluteUri,token,key,handler){IsVersionControlEnabled=settings.IsVersionControlEnabled,EnableCqlRecordKeySets=enableCqlRecordKeySets};
+            return new SOLIDOASIS(root.AbsoluteUri,token,key,handler){IsVersionControlEnabled=settings.IsVersionControlEnabled,EnableCqlRecordKeySets=enableCqlRecordKeySets,NativeImportContainers=settings.NativeImportContainers};
         }catch{handler?.Dispose();throw;}
         finally{CryptographicOperations.ZeroMemory(key);}
     }

@@ -356,6 +356,51 @@ jobs:
         working-directory: OASIS
         run: dotnet test "${{ matrix.backend.project }}" --configuration Release --logger "console;verbosity=normal"
 
+      - name: Configure isolated S3-compatible conformance bucket
+        if: matrix.backend.name == 'MinIO'
+        env:
+          AWS_ACCESS_KEY_ID: minioadmin
+          AWS_SECRET_ACCESS_KEY: minioadmin
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          # Reuse this job's MinIO service, not another container or hosted AWS.
+          command -v aws
+          aws --endpoint-url http://127.0.0.1:9000 s3api create-bucket --bucket oasis-s3-conformance
+          python3 - <<'PY'
+          import base64, os, secrets
+          key = base64.b64encode(secrets.token_bytes(32)).decode('ascii')
+          print(f'::add-mask::{key}')
+          with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as output:
+              output.write(f'OASIS_MINIO_CONFORMANCE_STORAGE_KEY={key}\n')
+          PY
+
+      - name: Run shared S3-compatible storage conformance
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_MINIO_STORAGE_CONFORMANCE: '1'
+          OASIS_MINIO_CONFORMANCE_ENDPOINT: http://127.0.0.1:9000
+          OASIS_MINIO_CONFORMANCE_BUCKET: oasis-s3-conformance
+        run: >-
+          dotnet test
+          Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.csproj
+          --configuration Release /p:IncludeCoreStorageConformance=true
+          /m:2 /nr:false /p:UseSharedCompilation=false
+          --filter FullyQualifiedName~S3CompatibleStorageConformanceTests
+          --logger 'trx;LogFileName=s3-compatible-current.trx'
+          --results-directory TestResults/HyperDrive-Providers/S3CompatibleCurrent
+
+      - name: Preserve S3-compatible conformance evidence
+        if: always() && matrix.backend.name == 'MinIO'
+        uses: actions/upload-artifact@v7
+        with:
+          name: s3-compatible-conformance
+          path: |
+            OASIS/TestResults/ProviderConformanceCurrent/AWSS3OASIS-MinIO/**/report.json*
+            OASIS/TestResults/HyperDrive-Providers/S3CompatibleCurrent/*.trx
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Backend logs on failure
         if: failure()
         run: docker logs oasis-backend || true
