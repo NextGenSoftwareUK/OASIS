@@ -1,4 +1,48 @@
 # COSMIC CQL demo
+
+## Current demo catalogue — 28 October 2026
+
+All eight providers below have a supported demo path. Scope differs by provider;
+this is not a claim that the same arbitrary query runs everywhere. Start one
+interactive provider host at a time from `C:/Source/OASIS-cosmic`.
+
+| Provider | What you can show now |
+|---|---|
+| SQLite | Coffee queries, save/change tracking, per-save deltas and stale-client conflict handling; console/Swagger. |
+| MongoDB, SQLite, Neo4j | Grouped CQL v1 walkthrough: native query/metadata/projection/aggregate and lifecycle examples. Latest entity-selected stages, repeated Select and subsequent Count/LongCount/Any are verified C# SDK/acceptance examples; not every new feature has a browser button. |
+| Azure Cosmos DB | Retained local emulator, not hosted Azure: interactive native rows, projection and LongCount; SDK/HTTP cardinality and controlled-identity receipts. |
+| Solana | Local-validator declared-range data read through the explicit SQLite index: rows, projection and cardinality. SolanaMetadata adds selected encryption-exempt metadata, exact Int64 and nullable values. This is not recovery of the missing original ledger data. |
+| IPFS | One owned synthetic native CID record, through shared manager/LINQ/HTTP point-query page. General searches remain unsupported. |
+| SOLID | One owned private Pod record, authenticated native point reads through manager/LINQ/HTTP. General queries remain unsupported. |
+| ActivityPub | One existing public Mastodon status via GET-only native point reads. No posting or federation demonstration. |
+
+Use the shared launcher (its ShowPlan mode does not start services):
+
+```powershell
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Databases -ShowPlan
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Databases
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite
+
+# For completed protocol/chain fixtures, archive completed evidence explicitly.
+# Pending/unknown journals must be reconciled; this flag does not reset them.
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider IPFS -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SOLID -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ActivityPub -ArchiveCompletedDemo
+```
+
+Use `Solana` instead of `SolanaMetadata` for the original declared-range profile.
+Use `-VerifyOnly` for bounded automated verification. Keep cached environments;
+no reinstall is needed. Stop through each host's documented `/demo/shutdown`
+route so the runner can complete exact fixture cleanup and stop its backend.
+
+[Current implementation status](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md),
+[manual with C# examples](../../Docs/WIP/COSMIC%20ORM/CQL_MANUAL.md),
+[interactive provider instructions](../../Docs/WIP/COSMIC%20ORM/CQL_INTERACTIVE_POINT_DEMO.md).
+The sections below retain individual sample history; this table owns current
+launcher/HTTP availability when an older checkpoint says HTTP is still pending.
+
 ## Unified demo launcher
 
 `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite` opens the existing coffee
