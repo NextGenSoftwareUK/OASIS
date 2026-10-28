@@ -54,6 +54,44 @@ public static class ChainIndexedMetadataWalkthrough
         return (rows, count, any, emptyWindow);
     }
 
+    public sealed class MenuMetadata
+    {
+        public Guid Id { get; set; }
+        public string Category { get; set; } = "";
+        public long Amount { get; set; }
+        public long? Missing { get; set; }
+    }
+
+    /// <summary>Native selected metadata, with source witnesses checked before DTO construction.</summary>
+    public static async Task<CosmicIndexedProjectionExecution<MenuMetadata>> RunSelectionAsync(
+        HolonManager manager,
+        ICosmicChainQueryIndexProjectionReader index,
+        ICosmicChainQuerySourceObserver observer,
+        CosmicChainQueryReadRequirement freshness,
+        CosmicQueryReadAccess serverReadAccess,
+        CancellationToken cancellationToken = default)
+    {
+        var source = CosmicQuery<Holon>.Create(Value(CosmicQueryScope.Named(freshness.Source.SourceProvider)));
+        source = Value(source.WithIndexedSource(freshness));
+        source = Value(source.WithReadAccess(serverReadAccess));
+        var query = Value(CosmicLinq.CreateIndexed(manager, index, observer, source));
+
+        // Projection roots are enrolled independently from predicate roots.
+        // Apply source filters/windows before selecting canonical and typed cells.
+        var selected = query
+            .Where(holon => CosmicQueryMetadata.Value<string>(holon, "Status", "category") == "coffee")
+            .Take(10)
+            .Select(holon => new MenuMetadata
+            {
+                Id = holon.Id,
+                Category = CosmicQueryMetadata.Value<string>(holon, "Status", "category"),
+                Amount = CosmicQueryMetadata.Value<long>(holon, "Status", "amount"),
+                Missing = CosmicQueryMetadata.Value<long?>(holon, "Status", "absent")
+            });
+
+        return Value(await selected.ToCosmicIndexedProjectionPageAsync(cancellationToken));
+    }
+
     private static T Value<T>(OASISResult<T> result)
     {
         if(result.IsError)throw new InvalidOperationException(result.ErrorCode+": "+result.Message,result.Exception);

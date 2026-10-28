@@ -172,7 +172,15 @@ public partial class SolanaIndexedQueryNative
                     requirement, CosmicQueryReadAccess.OwnerOrPublic(seed.Actor).Result, Console.Out);
                 Assert.AreEqual(1, result.Rows.Rows.Count);Assert.AreEqual(1L, result.Count);
                 Assert.IsTrue(result.Any);Assert.AreEqual(0L, result.EmptyWindow);
-                metadata = new { rows = result.Rows.Rows.Count, count = result.Count, any = result.Any, emptyWindow = result.EmptyWindow };
+                var selected = await CosmicCqlDemo.ChainIndexedMetadataWalkthrough.RunSelectionAsync(manager, reopened, repository,
+                    requirement, CosmicQueryReadAccess.OwnerOrPublic(seed.Actor).Result);
+                Assert.AreEqual(1, selected.Rows.Count);
+                Assert.AreEqual(seed.Id, selected.Rows.Single().Id);
+                Assert.AreEqual("coffee", selected.Rows.Single().Category);
+                Assert.AreEqual(9007199254740993L, selected.Rows.Single().Amount);
+                Assert.IsNull(selected.Rows.Single().Missing);
+                metadata = new { rows = result.Rows.Rows.Count, count = result.Count, any = result.Any, emptyWindow = result.EmptyWindow,
+                    selectedRows = selected.Rows.Count, selectedAmount = selected.Rows.Single().Amount.ToString() };
             }
             object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed, rows.Checkpoint.Position) : null;
             var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, metadataMode ? "solana-indexed-metadata-native.json" : httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
