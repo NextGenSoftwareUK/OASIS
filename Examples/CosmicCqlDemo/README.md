@@ -795,3 +795,16 @@ on a first run. Pending or unknown journals are never archived/replayed automati
 Both native/HTTP acceptance cases pass for all-three and two-record subsets, foreign
 key/actor rejection and exact cleanup. Browser clicks for these two are still pending;
 ActivityPub browser interaction is verified. Mongo-paired presets remain open.
+
+### Mongo + protocol federation SDK example
+
+`NativeKeySetWalkthrough.RunFederatedAsync(manager, mongo, protocol, nativeKeys,
+actorId, Console.Out, cancellationToken)` composes one explicit two-provider IN query.
+Mongo documents must carry the protocol's native-key metadata to match. The example
+preserves physical copies and prints provider provenance; it does not claim replica
+agreement, repeatable snapshots or a failover substitution. Both targets must finish
+within declared limits; either target's error fails the query.
+
+Controlled dispatch/provenance tests pass with the actual ActivityPub adapter and a
+mocked Mongo adapter. Live Mongo-plus-protocol acceptance and ready federated launcher
+presets are still pending; do not present the controlled test as live Mongo proof.
