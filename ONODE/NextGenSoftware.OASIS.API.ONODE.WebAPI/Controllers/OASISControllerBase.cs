@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using NextGenSoftware.OASIS.API.Core;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -291,6 +292,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             // restore an older snapshot over another request's global update.
             if (result.RequestRoutingPolicy != null) return true;
             if (!request.SetGlobally)
+            {
+                OASISRequestContext.RequestRoutingOverrides = null;
+                return true;
+            }
+            if (!request.SetGlobally)
                 ProviderManager.Instance.IsAutoFailOverEnabled = result.PreviousAutoFailOverEnabled;
 
             if (!request.SetGlobally)
@@ -494,6 +500,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 }
             }
 
+            if (!request.SetGlobally)
+            {
+                // Request-local routing lives in this request's async context (layered over the avatar's saved
+                // HyperDrive settings), never in the node-wide flags another concurrent request would also read.
+                try
+                {
+                    OASISRequestContext.RequestRoutingOverrides = new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
+                        RequestMode(request.AutoFailOverMode), RequestMode(request.AutoReplicationMode), RequestMode(request.AutoLoadBalanceMode),
+                        RequestProviders(request.AutoFailOverProviders), RequestProviders(request.AutoReplicationProviders),
+                        RequestProviders(request.AutoLoadBalanceProviders));
+                }
+                catch (ArgumentException exception)
+                {
+                    result.IsError = true;
+                    result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>
+                    { IsError = true, ErrorCount = 1, Message = exception.Message, Exception = exception }, HttpStatusCode.BadRequest);
+                    return (result, ProviderType.None);
+                }
+                return (result, providerTypeOverride);
+            }
+
             result.PreviousAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             result.PreviousAutoReplicationEnabled = ProviderManager.Instance.IsAutoReplicationEnabled;
             result.PreviousAutoLoadBalanaceEnabled = ProviderManager.Instance.IsAutoLoadBalanceEnabled;
@@ -551,6 +578,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
 
             return (result, providerTypeOverride);
+        }
+
+        private static bool? RequestMode(string value) =>
+            string.IsNullOrEmpty(value) ? null : value.Equals("ON", StringComparison.OrdinalIgnoreCase) ? true :
+            value.Equals("OFF", StringComparison.OrdinalIgnoreCase) ? false : (bool?)null;
+
+        private static IEnumerable<ProviderType> RequestProviders(string value)
+        {
+            if (string.IsNullOrEmpty(value) || value.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase)) return null;
+            var parsed = ProviderManager.Instance.GetProvidersFromList("Request routing", value);
+            if (parsed.IsError || parsed.IsWarning || parsed.WarningCount != 0 || parsed.Result == null)
+                throw new ArgumentException(parsed.Message ?? "Invalid request provider list.");
+            return parsed.Result;
         }
 
         /// <summary>
