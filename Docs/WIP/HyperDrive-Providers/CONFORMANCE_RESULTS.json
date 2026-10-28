@@ -379,6 +379,9 @@
     ],
     "MotherDuckOASIS": [
       "Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification."
+    ],
+    "MinIOOASIS": [
+      "MinIO adapter29 controlled unit cases pass (16 regressions first reproduced red); service404 and failed soft-delete/public error boundaries corrected. No native core-storage-v2 pass for this adapter. Shared S3 record-policy consolidation, persistent encryption configuration, legacy-layout guard and complete relevant interfaces remain open; AWSS3-on-MinIO52 is separate."
     ]
   },
   "suites": [
