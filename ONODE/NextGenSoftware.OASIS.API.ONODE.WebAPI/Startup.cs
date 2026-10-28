@@ -405,9 +405,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             }
             services.AddSingleton<Services.HyperDrive.HyperDriveHostedProviderAccessor>();
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
-            // Only the sandbox deployment (OASIS_SANDBOX=true) removes its throwaway demo avatars; no other WEB4 runs this.
-            if (Services.Sandbox.SandboxCleanupHostedService.IsSandbox)
-                services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
+            // Registered on every WEB4, but it does nothing unless that node's DNA has OASIS.Sandbox.Enabled (see SandboxCleanupHostedService).
+            services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
                 services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
                     new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
@@ -551,10 +550,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 KnownProxies = { }
             });
 
-            // The public WEB4 sandbox deployment lets visitors take providers offline to see HyperDrive fail over.
-            // Only that deployment sets OASIS_SANDBOX=true; everywhere else SandboxController answers 404.
-            if (string.Equals(Environment.GetEnvironmentVariable("OASIS_SANDBOX"), "true", StringComparison.OrdinalIgnoreCase))
-                NextGenSoftware.OASIS.API.Core.Managers.ProviderFaultGate.Enable();
 
             // Fail loudly at startup when outbound email is not configured - a stale/blank Resend key
             // previously only showed up as a per-registration warning in the client response.

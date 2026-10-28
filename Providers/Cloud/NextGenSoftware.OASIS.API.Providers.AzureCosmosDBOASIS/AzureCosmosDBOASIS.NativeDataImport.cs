@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 result.Result = sources;
                 result.Message = $"{sources.Count} Cosmos containers in {native.Database}.";
             }
-            catch (Exception cause) when (cause is CosmosException or InvalidOperationException)
+            catch (Exception cause) when (cause is CosmosException or InvalidOperationException or FormatException)
             {
                 OASISErrorHandling.HandleError(ref result, $"Listing native Cosmos containers failed: {(connection == null ? cause.Message : connection.Redact(NativeConnectionGuard.Explain(cause), "key"))}", cause);
                 result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_LIST_FAILED";
@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 var page = documents.Take(pageSize).Select(document => ToNativeRecord(sourceName, document)).ToList();
                 result.Result = new NativeRecordPage(page, documents.Count > pageSize ? page[^1].NativeKey : null);
             }
-            catch (Exception cause) when (cause is CosmosException or InvalidOperationException or ArgumentException)
+            catch (Exception cause) when (cause is CosmosException or InvalidOperationException or ArgumentException or FormatException)
             {
                 OASISErrorHandling.HandleError(ref result, $"Reading native Cosmos container '{sourceName}' failed: {(connection == null ? cause.Message : connection.Redact(NativeConnectionGuard.Explain(cause), "key"))}", cause);
                 result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_READ_FAILED";
@@ -153,17 +153,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         private async Task<NativeLease> OpenNativeAsync(NativeConnection connection, CancellationToken cancellationToken)
         {
             if (connection == null)
-                return new NativeLease(NativeClient(), NativeImportDatabaseName, AllowedContainers(), null);
+            {
+                var allowed = AllowedContainers(); // refuse an unconfigured or OASIS-owned source before any client is built
+                return new NativeLease(NativeClient(), NativeImportDatabaseName, allowed, null);
+            }
 
             var (endpoint, key, database, containers) = ParseNativeConnection(connection);
             await NativeConnectionGuard.EnsurePublicHostAsync(endpoint.Host, cancellationToken);
-            var client = new CosmosClient(endpoint.AbsoluteUri, key, new CosmosClientOptions
+            CosmosClient client;
+            try
             {
-                ConnectionMode = ConnectionMode.Gateway,
-                RequestTimeout = TimeSpan.FromSeconds(30),
-                // Gateway mode only: every connection resolves the host, checks every address and connects to those addresses.
-                HttpClientFactory = () => new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler())
-            });
+                client = new CosmosClient(endpoint.AbsoluteUri, key, new CosmosClientOptions
+                {
+                    ConnectionMode = ConnectionMode.Gateway,
+                    RequestTimeout = NativeImportOptions.ReadTimeout,
+                    // Gateway mode only: every connection resolves the host, checks every address and connects to those addresses.
+                    HttpClientFactory = () => new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler())
+                });
+            }
+            catch (FormatException)
+            {
+                throw new NativeConnectionRefusedException("The Cosmos account key is not valid (it must be the base64 key from the Azure portal).");
+            }
             try
             {
                 var names = containers;

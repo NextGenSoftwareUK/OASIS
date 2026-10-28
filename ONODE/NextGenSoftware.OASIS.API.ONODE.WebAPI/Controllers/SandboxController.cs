@@ -24,12 +24,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class SandboxController : OASISControllerBase
     {
         /// <summary>How long a provider stays offline before it restores itself, so a demo can never leave it down.</summary>
-        public static readonly TimeSpan MaxOfflineDuration = TimeSpan.FromMinutes(2);
 
         /// <summary>The databases sandbox demo avatars use for failover, replication and load balancing.</summary>
-        public const string SandboxProviders = "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS";
 
-        private static readonly SandboxSessionLimiter SessionLimiter = new SandboxSessionLimiter();
+        /// <summary>The providers a demo avatar routes across (DNA OASIS.Sandbox.Providers), in the comma-separated form HyperDrive settings use.</summary>
+        private static string SandboxProviders() => string.Join(", ", SandboxOptions.Providers());
+
+        private static readonly Lazy<SandboxSessionLimiter> SessionLimiter = new Lazy<SandboxSessionLimiter>(SandboxOptions.CreateSessionLimiter);
 
         /// <summary>
         /// Creates a fresh, verified demo avatar for this visitor and signs it in. Sandbox avatars live only in the
@@ -42,15 +43,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return NotFound();
 
             // The demo button is public, so cap how many avatars one address and the whole sandbox can create.
-            if (!SessionLimiter.TryAcquire(HttpContext.Connection.RemoteIpAddress?.ToString(), out var limit))
+            if (!SessionLimiter.Value.TryAcquire(HttpContext.Connection.RemoteIpAddress?.ToString(), out var limit))
                 return StatusCode(429, new OASISResult<IAvatar> { IsError = true, Message = limit });
 
             string suffix = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant();
-            string username = $"sandbox-{suffix}";
+            string username = $"{SandboxOptions.Current.DemoAvatarUsernamePrefix}{suffix}";
             string password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
 
             OASISResult<IAvatar> registerResult = await Program.AvatarManager.RegisterAsync("Explorer", "Sandbox", suffix,
-                $"{username}@sandbox.oasisomniverse.one", password, username, AvatarType.User, OASISType.OASISAPIREST, suppressVerificationEmail: true);
+                $"{username}@{SandboxOptions.Current.DemoAvatarEmailDomain}", password, username, AvatarType.User, OASISType.OASISAPIREST, suppressVerificationEmail: true);
 
             if (registerResult.IsError || registerResult.Result == null)
                 return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"Could not create a sandbox avatar: {registerResult.Message}" });
@@ -63,9 +64,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 [AvatarHyperDriveSettings.AutoFailoverEnabled] = true,
                 [AvatarHyperDriveSettings.AutoReplicationEnabled] = true,
                 [AvatarHyperDriveSettings.AutoLoadBalancingEnabled] = true,
-                [AvatarHyperDriveSettings.AutoFailoverProviders] = SandboxProviders,
-                [AvatarHyperDriveSettings.AutoReplicationProviders] = SandboxProviders,
-                [AvatarHyperDriveSettings.LoadBalancingProviders] = SandboxProviders
+                [AvatarHyperDriveSettings.AutoFailoverProviders] = SandboxProviders(),
+                [AvatarHyperDriveSettings.AutoReplicationProviders] = SandboxProviders(),
+                [AvatarHyperDriveSettings.LoadBalancingProviders] = SandboxProviders()
             }, provider => ProviderManager.Instance.GetStorageProvider(provider) != null);
             if (routing.IsError)
                 return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"This node cannot host the sandbox: {routing.Message}" });
@@ -120,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Takes a provider offline for up to two minutes so HyperDrive must fail over.</summary>
         [Authorize]
         [HttpPost("providers/{providerType}/offline")]
-        public ActionResult<OASISResult<DateTime>> TakeOffline(ProviderType providerType, [FromQuery] int seconds = 60)
+        public ActionResult<OASISResult<DateTime>> TakeOffline(ProviderType providerType, [FromQuery] int? seconds = null)
         {
             if (!ProviderFaultGate.IsEnabled)
                 return NotFound();
@@ -128,7 +129,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!ProviderManager.Instance.GetAllRegisteredProviders().Any(x => x.ProviderType.Value == providerType))
                 return BadRequest(new OASISResult<DateTime> { IsError = true, Message = $"{providerType} is not registered on the sandbox." });
 
-            TimeSpan duration = TimeSpan.FromSeconds(Math.Clamp(seconds, 5, (int)MaxOfflineDuration.TotalSeconds));
+            var sandbox = SandboxOptions.Current;
+            TimeSpan duration = TimeSpan.FromSeconds(Math.Clamp(seconds ?? sandbox.ProviderOfflineDefaultSeconds,
+                SandboxOptions.AtLeastOne(sandbox.ProviderOfflineMinimumSeconds, nameof(sandbox.ProviderOfflineMinimumSeconds)),
+                SandboxOptions.AtLeastOne(sandbox.ProviderOfflineMaximumSeconds, nameof(sandbox.ProviderOfflineMaximumSeconds))));
             ProviderFaultGate.Fault(AvatarId, providerType, duration);
 
             return Ok(new OASISResult<DateTime>
@@ -181,13 +185,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrWhiteSpace(sqliteSettings?.NativeImportConnectionString))
                 counts["sqlite:suppliers"] = await SeedSqliteSuppliersAsync(sqliteSettings.NativeImportConnectionString);
             var neo4jSettings = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.StorageProviders?.Neo4jOASIS;
-            if ((neo4jSettings?.NativeImportLabels ?? "").Split(',').Select(label => label.Trim()).Contains(NativeDemoNeo4jLabel))
-                counts["neo4j:" + NativeDemoNeo4jLabel] = await SeedNeo4jLoyaltyAsync(neo4jSettings);
+            if ((neo4jSettings?.NativeImportLabels ?? "").Split(',').Select(label => label.Trim()).Contains(SandboxOptions.Current.DemoNeo4jLabel))
+                counts["neo4j:" + SandboxOptions.Current.DemoNeo4jLabel] = await SeedNeo4jLoyaltyAsync(neo4jSettings);
 
             return Ok(new OASISResult<Dictionary<string, long>>(counts) { Message = "Demo shop data is ready." });
         }
 
-        public const string NativeDemoNeo4jLabel = "ShopLoyaltyMember";
 
         private static async Task<long> SeedSqliteSuppliersAsync(string connectionString)
         {
@@ -223,9 +226,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             using var driver = Neo4j.Driver.GraphDatabase.Driver(settings.ConnectionString, Neo4j.Driver.AuthTokens.Basic(settings.Username, settings.Password));
             await using var session = driver.AsyncSession();
             foreach (var member in members)
-                await session.RunAsync($"MERGE (m:{NativeDemoNeo4jLabel} {{handle: $handle}}) SET m.name = $name, m.tier = $tier, m.points = $points",
+                await session.RunAsync($"MERGE (m:{SandboxOptions.Current.DemoNeo4jLabel} {{handle: $handle}}) SET m.name = $name, m.tier = $tier, m.points = $points",
                     new { handle = member.Item1, name = member.Item2, tier = member.Item3, points = member.Item4 });
-            await session.RunAsync($"MATCH (a:{NativeDemoNeo4jLabel} {{handle: 'ada'}}), (g:{NativeDemoNeo4jLabel} {{handle: 'grace'}}) MERGE (a)-[:REFERRED]->(g)");
+            await session.RunAsync($"MATCH (a:{SandboxOptions.Current.DemoNeo4jLabel} {{handle: 'ada'}}), (g:{SandboxOptions.Current.DemoNeo4jLabel} {{handle: 'grace'}}) MERGE (a)-[:REFERRED]->(g)");
             return members.Length;
         }
 
