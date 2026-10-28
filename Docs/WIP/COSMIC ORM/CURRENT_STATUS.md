@@ -22,7 +22,7 @@ Updated 27 October 2026. Read this first after compaction; update each milestone
 ## Exact next work
 
 1. Stock usage/storage middleware integration now verified: raw HTTP reservation identity and frozen semantic query identity remain independently checked. AddCqlIndexedReadAdmission composes existing singleton storage admission. Shared handle budgets cannot reset across repeated prepared executions.
-2. Actual SQLite/canonical Solana decoder now pass through shipping HTTP plus stock middleware (rows, empty, missing source, wrong network; 799 Solana tests). Next: declared-range native chain acceptance. HTTP identity/outbox/RPC transport remain controlled; production JWT/durable settlement is not certified.
+2. Actual SQLite/canonical Solana decoder now pass through shipping HTTP plus stock middleware (rows, empty, missing source, wrong network; 799 Solana tests). Native declared-range SDK acceptance now passes1/1 with live source and reopened SQLite (coverage starts3073), including the shared C# walkthrough. Next: native source over HTTP; existing HTTP identity/outbox/RPC remain controlled, production JWT/durable settlement unverified.
 3. Older finalized minimum/checkpoint/previous identity bug reproduced and fixed. Shared admission requires independent bounded anchor observations; actual SQL/decoder HTTP and ingestion prove accept/reject, including empty pages. Still trusted-source-observation, not inclusion/ancestry proof.
 4. Complete indexed scalar/projection/metadata policy and common demo gaps. Running the same query across all eight providers remains open.
 5. Resume remaining red parity rows after demo acceptance, including Q01f Mongo/Neo projection/standard Select and numeric terminals.
@@ -39,7 +39,7 @@ Updated 27 October 2026. Read this first after compaction; update each milestone
 ## Resources and recovery
 
 - [Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records exact build/runtime/evidence identities. Latest inventory:TestResults/ProtocolCqlCurrent/index-http-build-resource-inventory.json; 1,770,881,866 observed build bytes, mixed inherited/regenerated ownership.
-- Latest owned HTTP listener 127.0.0.1:50259 stopped; no new native service/container/runtime installation. Fixed chain fixture DB directories verified empty after teardown.
+- Retained Solana validator reused and stopped; no new runtime/node. New persistent demo seed/index under LocalState/COSMIC/SolanaCqlCurrent retained; declared range3073 is separate from unrecovered original history.
 - TestResults/bin/obj are regenerable. Preserve LocalState/COSMIC identities/keys/journals and original failure evidence. Logs/TRX stay in TestResults, never Docs.
 - Shipping rebuild graph/target plans are in TestResults/ProtocolCqlCurrent/index-http-web4-*.json. 69 projects, 61 inside. Do not recursively build 8 outside sibling projects; reuse their binaries. Highest compatible runtime target precedes .NET Standard (ONET requires net8.0).
 - Earlier detailed status/hashes: [archived checkpoint](Archive/CURRENT_STATUS_before_indexed_http_2026-10-27.md).
