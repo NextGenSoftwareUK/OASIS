@@ -264,6 +264,16 @@
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
       "sha256": "aa3290ad148e8f761c6b182051428e7ade15256f4b995ae163a5ec28f925a870",
       "blockers": []
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-sqllitedboasis-current.json",
+      "sha256": "29f7cbde398613132474899157b7c16334a882fd2d216b1f32bd288cf0942f59",
+      "blockers": []
     }
   ],
   "providerBlockers": {
