@@ -129,7 +129,14 @@ public sealed class CommittedHolonReplicaTarget : IHyperDriveIdempotentReplicati
         try
         {
             if (item == null || item.EntityType != EntityType) throw new InvalidDataException("A committed holon graph item is required.");
-            request = CommittedHolonReplicaPayload.Read(item.PayloadJson);
+            request = CommittedHolonReplicaPayload.ReadForTarget(item.PayloadJson,ReplicationTargetId);
+            if(request.NativeRoutes.Count > 0)
+            {
+                CommittedHolonReplicaPlan.ValidateNativeDestination(request,_expectedStorage);
+                var route=request.NativeRoutes.Single(value => value.TargetId == ReplicationTargetId);
+                if(route.PolicyBinding != _policyBinding || route.TargetStorage.BindingFingerprint != _expectedStorage.BindingFingerprint)
+                    throw new InvalidDataException("The frozen destination or policy differs from the receiver's configured binding.");
+            }
             if (request.SourceId != _sourceId || request.SourceAuthority != _sourceAuthority)
                 return Error("COSMIC_REPLICA_SOURCE_NOT_ENROLLED", "The payload source is not enrolled for this target.");
             if (item.OperationId != request.OperationId || item.AvatarId != request.ActorId

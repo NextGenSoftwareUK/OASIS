@@ -20,13 +20,23 @@ public static class CommittedHolonReplicaPayload
     {
         var plan = CommittedHolonReplicaPlan.Create(request, request.SourceAuthority);
         return JsonConvert.SerializeObject(new Envelope {
-            Format = 1, OperationId = request.OperationId, SourceId = request.SourceId,
+            Format = request.NativeRoutes.Count == 0 ? 1 : 2, OperationId = request.OperationId, SourceId = request.SourceId,
             SourceAuthority = request.SourceAuthority, ActorId = request.ActorId, Operation = request.Operation,
             SaveChildren = request.SaveChildren, Recursive = request.Recursive, MaxChildDepth = request.MaxChildDepth,
+            RouteDescriptors = request.NativeRoutes.Count == 0 ? null : JObject.Parse(HolonReplicationRouteDescriptors.Capture(request.NativeRoutes)),
             Roots = plan.RootIds.ToArray(), Nodes = plan.Nodes.Select(node => new Node {
                 RecordJson = node.CapturedIntentJson, Children = node.SelectedChildIds.ToArray()
             }).ToArray()
         }, EnvelopeSettings);
+    }
+
+    /// <summary>Validates target membership without rewriting the original payload.</summary>
+    public static CommittedHolonReplicaRequest ReadForTarget(string json,string targetId)
+    {
+        var request=Read(json);
+        if(request.NativeRoutes.Count > 0 && !request.NativeRoutes.Any(route => route.TargetId == targetId))
+            throw new InvalidDataException("The frozen native descriptor does not enrol this target obligation.");
+        return request;
     }
 
     public static CommittedHolonReplicaRequest Read(string json)
@@ -39,7 +49,7 @@ public static class CommittedHolonReplicaPayload
             if (reader.Read()) throw new InvalidDataException("Trailing content after committed graph envelope.");
             ValidateWireShape(document);
             var envelope = document.ToObject<Envelope>(JsonSerializer.Create(EnvelopeSettings));
-            if (envelope == null || envelope.Format != 1 || envelope.Nodes == null || envelope.Roots == null)
+            if (envelope == null || (envelope.Format != 1 && envelope.Format != 2) || envelope.Nodes == null || envelope.Roots == null)
                 throw new InvalidDataException("Unsupported or incomplete committed graph envelope.");
             var records = new Dictionary<Guid, IHolon>();
             var edges = new Dictionary<Guid, Guid[]>();
@@ -56,7 +66,8 @@ public static class CommittedHolonReplicaPayload
                 records[edge.Key].Children = edge.Value.Select(id => records[id]).ToList();
             var request = new CommittedHolonReplicaRequest(envelope.OperationId, envelope.SourceId,
                 envelope.SourceAuthority, envelope.ActorId, envelope.Operation, envelope.Roots.Select(id => records[id]),
-                envelope.SaveChildren, envelope.Recursive, envelope.MaxChildDepth);
+                envelope.SaveChildren, envelope.Recursive, envelope.MaxChildDepth,
+                envelope.Format == 1 ? null : HolonReplicationRouteDescriptors.Read(envelope.RouteDescriptors?.ToString(Formatting.None)));
             var plan = CommittedHolonReplicaPlan.Create(request, request.SourceAuthority);
             if (plan.Nodes.Count != records.Count || plan.Nodes.Any(node =>
                 !node.SelectedChildIds.SequenceEqual(edges[node.Source.Id])))
@@ -71,8 +82,13 @@ public static class CommittedHolonReplicaPayload
     // integers. Validate the producer's versioned token contract before any such conversion.
     private static void ValidateWireShape(JObject document)
     {
-        Fields(document,"Format","OperationId","SourceId","SourceAuthority","ActorId","Operation",
-            "SaveChildren","Recursive","MaxChildDepth","Roots","Nodes");
+        Token(document["Format"],JTokenType.Integer);
+        var format=document["Format"].ToString(Formatting.None);
+        if (format != "1" && format != "2") throw new InvalidDataException("Unsupported committed graph format.");
+        var fields=new[]{"Format","OperationId","SourceId","SourceAuthority","ActorId","Operation",
+            "SaveChildren","Recursive","MaxChildDepth","Roots","Nodes"};
+        Fields(document,format == "1" ? fields : fields.Concat(new[]{"RouteDescriptors"}).ToArray());
+        if (format == "2") Token(document["RouteDescriptors"],JTokenType.Object);
         foreach(var name in new[]{"Format","SourceAuthority","Operation","MaxChildDepth"})
             Token(document[name],JTokenType.Integer);
         Token(document["SourceId"],JTokenType.String);
@@ -132,6 +148,8 @@ public static class CommittedHolonReplicaPayload
         public Guid[] Roots { get; set; }
         [JsonProperty(Required = Required.Always)]
         public Node[] Nodes { get; set; }
+        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
+        public JObject RouteDescriptors { get; set; }
     }
     private sealed class Node
     {
