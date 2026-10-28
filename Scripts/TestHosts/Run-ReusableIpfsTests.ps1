@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 param([switch]$ArchiveCompletedDemo,[switch]$ServePointDemo,[switch]$CqlInteractive,[switch]$CqlWeb4,[switch]$CqlPoint,[switch]$CqlKeySet,[switch]$ConformanceOnly,[switch]$InspectConformance,[switch]$ReconcileConformance,[switch]$ReconcileGraphConformance,[switch]$ReconcileDeleteConformance,[switch]$ReconcileParentConformance,[switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion,[switch]$InspectCredential,[switch]$InspectNamedRoles,[switch]$InspectDeleteFault,[string]$EnvironmentPath)
 $ErrorActionPreference='Stop'
-if(($ArchiveCompletedDemo -or $ServePointDemo) -and !$CqlInteractive){throw 'ServePointDemo requires the explicit CqlInteractive mode.'}
+if(($ArchiveCompletedDemo -or $ServePointDemo) -and !$CqlInteractive -and !$CqlKeySet){throw 'ServePointDemo requires the explicit CqlInteractive mode.'}
 $suiteModes=@($CqlKeySet,$CqlInteractive,$CqlWeb4,$CqlPoint,$ConformanceOnly,$InspectConformance,$ReconcileConformance,$ReconcileGraphConformance,$ReconcileDeleteConformance,$ReconcileParentConformance)|Where-Object {$_}
 if($suiteModes.Count -gt 1 -or ($suiteModes.Count -gt 0 -and ($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion -or $InspectCredential -or $InspectNamedRoles -or $InspectDeleteFault))){
     throw 'Select one shared conformance or original-fixture inspection/reconciliation mode alone.'
@@ -15,7 +15,7 @@ if(!(Test-Path -LiteralPath (Join-Path $work 'repo/config')) -or !(Test-Path -Li
 }
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 if($ArchiveCompletedDemo -and $work -ne [IO.Path]::GetFullPath((Join-Path $taskRoot 'LocalState/COSMIC/IPFSCurrent'))){throw 'Completed-demo archive is limited to this worktree default environment.'}
-if($ArchiveCompletedDemo){& (Join-Path $PSScriptRoot 'Archive-CompletedProtocolPointDemo.ps1') -Provider IPFS}
+if($ArchiveCompletedDemo){& (Join-Path $PSScriptRoot 'Archive-CompletedProtocolPointDemo.ps1') -Provider IPFS -KeySet:$CqlKeySet}
 if($ConformanceOnly){
     foreach($mode in @('async','sync')){
         $report=Join-Path $taskRoot ('TestResults/ProviderConformanceCurrent/IPFSOASIS/'+$mode+'/report.json')

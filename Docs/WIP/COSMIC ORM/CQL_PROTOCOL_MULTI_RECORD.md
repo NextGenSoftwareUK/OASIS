@@ -173,3 +173,17 @@ visual layout proof remains unverified. Explicit shutdown completed, native acce
 1/1 passed, loopback5088 listener absent. Routing tests pass default8 profiles/16plans,
 plus2 multi-record plans and rejection of an unenrolled SQLite MultiRecord mode.
 No Mongo pairing, arbitrary filters, or IPFS/SOLID launcher completion is claimed.
+
+## All three protocol collection launchers
+
+Hub `-MultiRecord` now supports IPFS, SOLID and ActivityPub. IPFS/SOLID native
+acceptance also runs the actual shared teaching HTTP host before cleanup:3 selected
+rows and2-row subset, canonical IDs and foreign key/actor rejection all pass.
+`-VerifyOnly` is bounded; interactive mode waits for explicit shutdown before cleanup.
+The completed-fixture archiver selects keyset journal/DNA/TRX/lifecycle exactly,
+checks phase/pending/listeners, and moves with hash manifests; identities untouched.
+
+IPFS native/HTTP1/1 and SOLID native/HTTP1/1 pass; completed journals retained,
+pending absent. Kubo stopped; SOLID exits143 without OOM. Routing:8profiles,
+16default lifecycle plans plus6protocol collection plans and unsupported-mode rejection.
+IPFS/SOLID browser clicks and Mongo-paired presets remain unverified.

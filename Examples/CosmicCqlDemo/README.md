@@ -777,3 +777,21 @@ statuses; the demo makes no remote writes. Stop with POST `/demo/shutdown`.
 Use `-VerifyOnly` for bounded HTTP acceptance and `-ShowPlan` for discovery only.
 For a later run, `-ArchiveCompletedDemo` archives only a prior passing report.
 IPFS/SOLID MultiRecord hub wiring and Mongo-paired presets remain pending.
+
+### IPFS and SOLID collection launchers
+
+```powershell
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider IPFS -MultiRecord -ArchiveCompletedDemo
+
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SOLID -MultiRecord -ArchiveCompletedDemo
+```
+
+Run one host at a time. Both use the same selectable teaching page at loopback5088,
+three encrypted native records and the retained provider identity/environment.
+`-VerifyOnly` runs bounded native/HTTP checks and cleanup without waiting for clicks.
+Stop interactive demos with POST `/demo/shutdown` so fixture cleanup can complete.
+`-ArchiveCompletedDemo` applies only when a previous completed fixture exists; omit it
+on a first run. Pending or unknown journals are never archived/replayed automatically.
+Both native/HTTP acceptance cases pass for all-three and two-record subsets, foreign
+key/actor rejection and exact cleanup. Browser clicks for these two are still pending;
+ActivityPub browser interaction is verified. Mongo-paired presets remain open.

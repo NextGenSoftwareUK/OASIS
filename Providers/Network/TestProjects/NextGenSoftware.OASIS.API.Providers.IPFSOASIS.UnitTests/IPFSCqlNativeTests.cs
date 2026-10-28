@@ -88,6 +88,12 @@ public class IPFSCqlNativeTests
                 Assert.False(subsetPlan.IsError,subsetPlan.Message);
                 var subsetRows=await provider.ExecuteCosmicQueryAsync(subsetPlan.Result,cancellationToken:timeout.Token);
                 Assert.False(subsetRows.IsError,subsetRows.Message);Assert.Equal(ownedIds.Take(2),subsetRows.Result.Select(row=>row.Id));
+                var nativeDna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,
+                    StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false}}};
+                var nativeRegistry=new ProviderManager(null,nativeDna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+                await NextGenSoftware.OASIS.Providers.TestSupport.ProtocolPointWeb4Acceptance.VerifyKeySetTeachingHostAsync(
+                    provider,new HolonManager(provider,nativeDna,nativeRegistry),owner,
+                    selected.Select((key,index)=>new{key,id=ownedIds[index]}).ToDictionary(pair=>pair.key,pair=>pair.id));
                 phase="native-keyset-verified";await Checkpoint();
             }
             else
