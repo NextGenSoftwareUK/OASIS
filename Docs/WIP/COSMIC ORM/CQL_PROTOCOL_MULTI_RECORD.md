@@ -260,3 +260,13 @@ human interactive host. Failures retained separately; exact fixture cleanup alre
 completed, no writes replayed. Final bounded native acceptance1/1 passes after fixes;
 Mongo27029/HTTP5088 listeners absent, journal absent. IPFS/SOLID shared-host federated
 HTTP/browser acceptance still pending despite earlier verified SDK pairings.
+
+## Protocol browser verification complete within declared membership scope
+
+Actual browser interactions now also verify IPFS and SOLID:5federated rows,4after
+narrowing the native selection and2protocol-only rows. Provider/copy provenance and
+MovingProviderReads are visible. Both native cases finish1/1 with cleanup/shutdown
+verified after interactive use. Screenshot/layout QA remains unverified because capture
+is unavailable. See CQL_PROTOCOL_BROWSER_VERIFICATION.md for commands and limits.
+Other provider pairings and hosted Azure remain open; no broader content-filter parity
+or production security claim is inferred from these native-key demonstrations.
