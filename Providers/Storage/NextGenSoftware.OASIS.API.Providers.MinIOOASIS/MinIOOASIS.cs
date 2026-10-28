@@ -50,7 +50,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
-        private AmazonS3Client _s3 = null!;
+        private IAmazonS3 _s3 = null!;
+        private readonly bool _ownsClient = true;
         private readonly string _endpoint;
         private readonly string _accessKey;
         private readonly string _secretKey;
@@ -76,6 +77,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
+        /// <summary>Use an existing SDK client; the caller retains its lifetime.</summary>
+        public MinIOOASIS(IAmazonS3 client, string bucketName = "oasis")
+            : this("", "", "", bucketName)
+        {
+            ArgumentNullException.ThrowIfNull(client);
+            ArgumentException.ThrowIfNullOrWhiteSpace(bucketName);
+            _s3 = client;
+            _ownsClient = false;
+        }
+
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private static T? Des<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
@@ -88,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
                 using var reader = new StreamReader(resp.ResponseStream);
                 return await reader.ReadToEndAsync();
             }
-            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound && ex.ErrorCode == "NoSuchKey") { return null; }
         }
 
         private async Task PutObjectAsync(string key, string json)
@@ -131,9 +142,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
                 {
                     ServiceURL = _endpoint,
                     ForcePathStyle = true,
-                    UseHttp = !_useSSL
+                    UseHttp = !_useSSL,
+                    MaxErrorRetry = 0
                 };
-                _s3 = new AmazonS3Client(_accessKey, _secretKey, config);
+                _s3 ??= new AmazonS3Client(_accessKey, _secretKey, config);
                 // DoesS3BucketExistV2Async probes GetBucketAcl, which is optional in
                 // S3-compatible stores such as ThreeFold QSS. ListBuckets is part of
                 // the common protocol implemented by both MinIO and QSS.
@@ -147,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _s3?.Dispose(); IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { if (_ownsClient) { _s3?.Dispose(); _s3 = null!; } IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MinIOOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar ───────────────────────────────────────────────────────────────
@@ -267,12 +279,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
 
+        private static async Task<OASISResult<bool>> SoftDeleteRecordAsync<T>(Guid id,
+            Func<Guid, Task<OASISResult<T>>> load, Func<T, Task<OASISResult<T>>> save) where T : IHolonBase
+        {
+            var selected = await load(id);
+            if (selected.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<T, bool>(selected);
+            if (selected.Result == null) return new OASISResult<bool>
+                { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "MinIOOASIS: Record not found." };
+            selected.Result.DeletedDate = DateTime.UtcNow;
+            var saved = await save(selected.Result);
+            if (saved.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<T, bool>(saved);
+            if (saved.Result == null) return new OASISResult<bool>
+                { IsError = true, Message = "MinIOOASIS: Soft deletion returned no saved record." };
+            return new OASISResult<bool> { Result = true, IsDeleted = true, DeletedCount = 1 };
+        }
+
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
+                if (softDelete) return await SoftDeleteRecordAsync<IAvatar>(id, key => LoadAvatarAsync(key), SaveAvatarAsync);
                 else { await DeleteObjectAsync($"oasis-avatars/{id}.json"); }
                 result.Result = true; result.IsError = false; result.Message = $"MinIOOASIS: Avatar '{id}' deleted.";
             }
@@ -463,7 +490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
+                if (softDelete) return await SoftDeleteRecordAsync<IHolon>(id, key => LoadHolonAsync(key), value => SaveHolonAsync(value));
                 else { await DeleteObjectAsync($"oasis-holons/{id}.json"); }
                 result.Result = true; result.IsError = false; result.Message = $"MinIOOASIS: Holon '{id}' deleted.";
             }
@@ -524,18 +551,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         {
             var result = new OASISResult<IHolon>();
             var loaded = await LoadHolonAsync(id);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
-                return result;
-            }
+            if (loaded.IsError) return loaded;
+            if (loaded.Result == null)
+                return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "MinIOOASIS: Holon not found." };
 
             var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
-
+            result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IHolon>(deleted);
+            if (!result.IsError) result.Result = loaded.Result;
             return result;
         }
 
@@ -546,11 +568,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MinIOOASIS
         {
             var result = new OASISResult<IHolon>();
             var holon = await LoadHolonAsync(providerKey);
-            if (holon.IsError || holon.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, holon.Message);
-                return result;
-            }
+            if (holon.IsError) return holon;
+            if (holon.Result == null)
+                return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "MinIOOASIS: Holon not found." };
             return await DeleteHolonAsync(holon.Result.Id);
         }
 
