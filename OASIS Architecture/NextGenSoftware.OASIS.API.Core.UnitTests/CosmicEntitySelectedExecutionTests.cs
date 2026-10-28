@@ -7,9 +7,10 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public sealed partial class CosmicEntityProjectionTests
 {
-    private sealed class EntitySelectedNative:Native,ICosmicQueryEntityProjectionCompositionStorageProvider
+    private sealed class EntitySelectedNative:Native,ICosmicQueryEntityProjectionCardinalityStorageProvider
     {
-        public bool Combined=true;
+        public bool Combined=true,CardinalityEnabled=true,CardinalityProfile=true;
+        public bool SupportsEntityProjectionCardinality=>CardinalityEnabled;
         public bool Complete=true,Partial;
         public int CombinedCalls;
         public CosmicProjectionCompositionPlan<Holon,ProjectionDto>? CombinedSeen;
@@ -17,7 +18,7 @@ public sealed partial class CosmicEntityProjectionTests
         public bool SupportsEntityProjectionComposition=>Combined;
         public CosmicProjectionCompositionCapabilities CompositionCapabilities=>new(
             CosmicSelectedStageFeatures.Paging,CosmicQueryFeatures.None,
-            Array.Empty<CosmicQueryMetadataCapability>(),Array.Empty<Type>());
+            Array.Empty<CosmicQueryMetadataCapability>(),Array.Empty<Type>(),32,false,CardinalityProfile);
         public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicProjectionCompositionAsync<T,TResult>(
             CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
             =>throw new Exception("The flat selected owner cannot substitute for entity-selected execution.");
@@ -42,11 +43,11 @@ public sealed partial class CosmicEntityProjectionTests
             native.EntityCompositionCapabilities);
         Assert.False(planned.IsError,planned.Message);return planned.Result;
     }
-    private static CosmicProjectionCompositionPacket CombinedPacket(bool invalidHidden=false)
+    private static CosmicProjectionCompositionPacket CombinedPacket(bool invalidHidden=false,long? nativeCount=null)
         =>new(new[]{
             new CosmicProjectionInputRow(High,true,Guid.Empty,new object[]{"high",7},Array.Empty<object>()),
             new CosmicProjectionInputRow(Low,true,Guid.Empty,new object[]{"low",invalidHidden?(object)"wrong":6},Array.Empty<object>())},
-            new[]{new CosmicProjectionStageProof(new[]{High})},new[]{new CosmicProjectionCompositionRow(High,"high",7)},2,2);
+            new[]{new CosmicProjectionStageProof(new[]{High})},new[]{new CosmicProjectionCompositionRow(High,"high",7)},2,2,nativeCount);
 
     [Fact]
     public async Task StandardSelectedStagesUseTheCombinedOwnerAndRegisteredRoot()

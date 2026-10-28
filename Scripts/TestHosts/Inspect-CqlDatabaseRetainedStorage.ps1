@@ -68,8 +68,8 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
         if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected exactly one complete storage audit.'}
         if($MongoEntityProjection){
             $proof=Get-Content -LiteralPath (Join-Path $work 'mongo-entity-projection-native.json') -Raw|ConvertFrom-Json
-            if($proof.checks -ne 26 -or !$proof.exactCleanupVerified){throw 'Native entity projection proof incomplete.'}
-            Write-Output 'Mongo entity projection: twenty-six native cases and fixture cleanup pass.'
+            if($proof.checks -ne 34 -or !$proof.exactCleanupVerified){throw 'Native entity projection proof incomplete.'}
+            Write-Output 'Mongo entity projection: thirty-four native cases and fixture cleanup pass.'
             return
         }
         if($ReconcileFixture){

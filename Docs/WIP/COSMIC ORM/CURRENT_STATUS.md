@@ -12,18 +12,18 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 
 ## Latest verified milestone
 
-- Reselection after entity-selected stages now works in explicit SDK and standard LINQ on SQLite/MongoDB/Neo4j.
+- Count/LongCount/Any after entity-selected stages/reselection now work in explicit SDK and standard LINQ on SQLite/MongoDB/Neo4j, including terminal predicates.
 - Full entity/selected capture and all native columns survive each Select. Only the final DTO is constructed; dropped invalid cells remain errors even before Take(0).
-- Both Core targets build;2178 CQL/4262 full Core tests pass. The same26 native cases/database pass:14 final projection,9 combined stages,3 reselection.
+- Both Core targets build;2182 CQL/4266 full Core tests pass. The same34 native cases/database pass:14 final projection,9 combined stages,3 reselection,8 cardinality.
 - Per-read closures, explicit scope/capabilities, original page/order, typed exact values and protected errors remain native-owned. No application source/intermediate DTO constructor substitutes for execution.
 - Logs/TRX/JSON stay in TestResults/CoreCurrent and TestResults/Neo4jCurrent. Exact hashes and lifecycle outcomes are in the [single resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 - All owned native fixtures removed; pending journals absent, Mongo27029/Neo17687 listeners absent; in-memory SQLite disposed.
-- [Manual](CQL_MANUAL.md#reselection-after-entity-selected-stages), [architecture](CQL_ARCHITECTURE.md), [shared tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicEntityProjectionReselectionTests.cs), [native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntitySelectedReselectionAcceptanceTests.cs).
+- [Demo catalogue](../../../Examples/CosmicCqlDemo/README.md), [manual](CQL_MANUAL.md#cardinality-after-entity-selected-stages), [architecture](CQL_ARCHITECTURE.md), [shared tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicEntityProjectionReselectionTests.cs), [native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/CqlEntitySelectedReselectionAcceptanceTests.cs).
 
 ## Exact next work
 
-1. Integrate Count/LongCount/Any after entity-selected stages/reselection. Preserve the whole entity plan, independent terminal enrollment, native reduction and proof-before-result ownership. No flat-source substitution or DTO construction.
-2. Follow with All, element/numeric terminals and combined graph sources; Q01f stays red until the declared matrix is proved on all3.
+1. Integrate All after entity-selected stages/reselection, retaining the complete entity plan, independently enrolled native counterexample reduction and proof-before-result ownership.
+2. Follow with element/numeric terminals and combined graph sources; Q01f stays red until the declared matrix is proved on all3.
 3. Keep broader indexed aggregates/stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity open; do not equate a demo milestone with completion.
 
 ## Other verified scope and limits
@@ -39,7 +39,7 @@ Updated28October2026 UTC. Read first after compaction; update each milestone.
 ## Publication and resources
 
 - Last Development batch:parent858edd8280294d748e0e4999e39c0a141c5b6042/Corebd86a37fa1df02d50e5d2d0e5ad4bd76cce1d26d; remote verified.
-- Reselection is a later task-branch milestone. Batch further verified Development updates at the agreed daily cadence.
+- Reselection/cardinality are later task-branch milestones. Batch further verified Development updates at the agreed daily cadence.
 - Reuse SDK10.0.401/NuGet/Agave4.3.0, retained service runtimes and LocalState/COSMIC identities/journals. No new installations this milestone.
 - Preserve SolanaCqlCurrent coverage3073, SolanaMetadataCurrent coverage3325, keys/acknowledgements/WSL ledger and reconciliation archive ReconciledFixture892A8AF7.
 - All disposable output goes to worktree TestResults, never Docs. Persistent failure/unknown journals stay in LocalState and must be reconciled before reuse.
