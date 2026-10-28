@@ -90,3 +90,16 @@ or hosted OCI proof.
 
 Native contract reference:[OracleDbType RAW](https://docs.oracle.com/en/database/oracle/oracle-database/21/odpnt/OracleDbTypeEnumerationType.html).
 Hosted Azure separately requires free-account setup; user has no free subscription.
+
+
+## Central launcher / post-Development-merge verification
+
+`Run-CosmicCqlDemoHub.ps1 -Provider Oracle -Federated -VerifyOnly -ArchiveCompletedDemo`
+now passes1/1native SDK/HTTP case on Corea2e9b6c. Exact4Oracle/3Mongo records
+removed; both pending journals absent, no27029/5090/11521listeners; Oracle143/no OOM.
+TRX TestResults/OracleCurrent/oracle-cql-native-current.trx SHA256
+28CA5EE9AA3B227E2320A1A3A492369D8661B94D82FD105A45D6CF47C4360239.
+The earlier AF6DE716... browser proof remains preserved under its full hash in
+TestResults/OracleCurrent/Archive. ArchiveCompletedDemo admits only one complete
+unskipped pass after pending-fixture checks; failed/unknown outcomes never replay.
+Omit VerifyOnly for the interactive page. [Launcher guide](CQL_DEMO_LAUNCHER.md).

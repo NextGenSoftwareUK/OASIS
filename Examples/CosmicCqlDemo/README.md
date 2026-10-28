@@ -952,3 +952,18 @@ SDK/HTTP/browser clicks, readable screenshot spacing and exact fixture cleanup a
 verified on mergedCorea2e9b6c. Use **Stop demo and clean fixtures** to finish.
 This proves local native interoperability; hosted Azure/free-account authentication
 and hosted acceptance remain open. See Docs/WIP/COSMIC ORM/CQL_MONGO_COSMOS_VERIFICATION.md.
+
+
+### One launcher for Mongo-paired presets
+
+```powershell
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Oracle -Federated -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -Federated -ArchiveCompletedDemo
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosDB -Federated
+```
+
+IPFS, SOLID and ActivityPub use the same `-Federated -ArchiveCompletedDemo` flags.
+Add `-ShowPlan` to inspect scope/URL without starting anything, or `-VerifyOnly`
+for bounded acceptance. Cosmos is explicitly the retained local emulator; hosted
+Azure remains open. Oracle preserves completed passing evidence by hash and refuses
+failed/pending outcomes. See [full launcher table](../../Docs/WIP/COSMIC%20ORM/CQL_DEMO_LAUNCHER.md).

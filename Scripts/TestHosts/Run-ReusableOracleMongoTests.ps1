@@ -1,16 +1,31 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([switch]$ReconcileManagerFailure,[switch]$Serve)
+param([switch]$ReconcileManagerFailure,[switch]$Serve,[switch]$ArchiveCompletedDemo)
 if($Serve -and $ReconcileManagerFailure){throw 'Interactive demo is unavailable during original-fixture reconciliation.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/DemoBreadthCurrent'
-if(!$ReconcileManagerFailure -and (Test-Path (Join-Path $root 'TestResults/OracleCurrent/oracle-cql-native-current.trx'))){throw 'Preserve/review prior CQL report before starting services.'}
 $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
 $data=Join-Path $root 'LocalState/COSMIC/mongo-data'
 if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Retained Mongo data required; no replacement initialization.'}
 foreach($name in @('fixture.pending.json','mongo.pending.json')){
     if(!$ReconcileManagerFailure -and (Test-Path (Join-Path $root ('LocalState/COSMIC/OracleCqlCurrent/'+$name)))){throw 'Reconcile original Oracle/Mongo fixture before writes.'}
+}
+# Archive only a proven completed report, after pending-fixture admission and
+# before starting either service. Failed/unknown outcomes are never replayed.
+$report=Join-Path $root 'TestResults/OracleCurrent/oracle-cql-native-current.trx'
+if(!$ReconcileManagerFailure -and (Test-Path -LiteralPath $report)){
+    if(!$ArchiveCompletedDemo){throw 'Preserve/review prior CQL report or opt into completed-pass archival.'}
+    [xml]$completed=Get-Content -LiteralPath $report -Raw
+    $counts=$completed.TestRun.ResultSummary.Counters
+    if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Only one completed unskipped pass can be archived.'}
+    $archive=Join-Path $root 'TestResults/OracleCurrent/Archive'
+    New-Item -ItemType Directory -Path $archive -Force|Out-Null
+    $hash=(Get-FileHash -LiteralPath $report).Hash
+    $destination=Join-Path $archive ($hash+'-oracle-cql-native-current.trx')
+    if(Test-Path -LiteralPath $destination){throw 'Archive destination exists; preserve both originals for review.'}
+    Move-Item -LiteralPath $report -Destination $destination
+    if((Get-FileHash -LiteralPath $destination).Hash -ne $hash){throw 'Archived evidence differs; stop before services.'}
 }
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-native-mongo-oracle -Operation {
     $owned=$null;$prior=$env:OASIS_ORACLE_MONGO_DEMO;$priorServe=$env:OASIS_ORACLE_MONGO_SERVE
