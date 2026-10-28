@@ -11,8 +11,13 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider
+public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
 {
+    public bool SupportsEntityProjectedAll=>true;
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,true);
+
     public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition => true;
     public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
@@ -66,13 +71,17 @@ public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICo
             return new OASISResult<CosmicProjectionCompositionPacket>(packet) { IsLoaded = true };
         });
 
-    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T, TResult>(
-        CosmicProjectedAllPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
-        CancellationToken cancellationToken = default) where T : IHolon
+    public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteProjectedAllReadAsync(plan,limits,cancellationToken,false);
+
+    private Task<OASISResult<CosmicProjectedAllPacket>> ExecuteProjectedAllReadAsync<T,TResult>(
+        CosmicProjectedAllPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,CancellationToken cancellationToken,bool entity) where T:IHolon
         => ExecuteSelectedCqlAsync(async () =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var admission = CosmicProjectedAllPlanner.AdmitExecution(plan, Core.Enums.ProviderType.MongoDBOASIS,
+            var admission = entity ? CosmicProjectedAllPlanner.AdmitEntityExecution(plan,this,limits)
+                : CosmicProjectedAllPlanner.AdmitExecution(plan, Core.Enums.ProviderType.MongoDBOASIS,
                 CqlCapabilities, CqlProjectionCapabilities, CqlCompositionCapabilities, limits);
             if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, CosmicProjectedAllPacket>(admission);
             var command = new MongoCqlTranslator().CompileProjectedAll(plan, limits);
