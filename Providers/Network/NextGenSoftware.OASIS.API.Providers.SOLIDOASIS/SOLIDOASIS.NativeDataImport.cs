@@ -33,14 +33,45 @@ public partial class SOLIDOASIS : INativeDataImportProvider
     public string NativeImportContainers { get; set; }
 
     public API.Core.Enums.ProviderType NativeDataProviderType => API.Core.Enums.ProviderType.SOLIDOASIS;
-public string DescribeNativeConnection(NativeConnection connection)    {        NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");        return null;    }
+    public string DescribeNativeConnection(NativeConnection connection)
+    {
+        if (connection == null) return null;
+        var (pod, _, _) = ParseNativeConnection(connection);
+        return "solid://" + pod.Host.ToLowerInvariant() + pod.AbsolutePath.TrimEnd('/');
+    }
+
+    private static readonly string[] ConnectionSettings = { "podUrl", "token", "containers" };
+
+    /// <summary>The handler used to reach a caller's Pod. Replaced in tests; by default it checks every address before connecting.</summary>
+    internal static Func<System.Net.Http.HttpMessageHandler> NativeConnectionHandlerFactory { get; set; } = NativeConnectionGuard.CreateGuardedHttpHandler;
+
+    private static (Uri Pod, string Token, string Containers) ParseNativeConnection(NativeConnection connection)
+    {
+        connection.RequireOnly(ConnectionSettings);
+        if (!Uri.TryCreate(connection.Require("podUrl"), UriKind.Absolute, out var pod) || pod.Scheme != Uri.UriSchemeHttps
+            || !string.IsNullOrEmpty(pod.UserInfo) || !string.IsNullOrEmpty(pod.Query) || !string.IsNullOrEmpty(pod.Fragment))
+            throw new NativeConnectionRefusedException("podUrl must be the https address of your Pod without credentials, for example https://alice.solidcommunity.net/.");
+        return (pod, connection.Optional("token") ?? "", connection.Require("containers"));
+    }
+
+    /// <summary>A short-lived reader for the caller's own Pod. Its handler checks every address before connecting and follows no redirects.</summary>
+    private static SOLIDOASIS OpenNativePod(NativeConnection connection)
+    {
+        var (pod, token, containers) = ParseNativeConnection(connection);
+        try { return new SOLIDOASIS(pod.AbsoluteUri, token, null, NativeConnectionHandlerFactory()) { NativeImportContainers = containers }; }
+        catch (ArgumentException cause) { throw new NativeConnectionRefusedException(cause.Message); }
+    }
 
     public async Task<OASISResult<IReadOnlyList<NativeDataSource>>> ListNativeDataSourcesAsync(NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeDataSource>>();
         try
         {
-            NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");
+            if (connection != null)
+            {
+                using var pod = OpenNativePod(connection);
+                return await pod.ListNativeDataSourcesAsync(null, cancellationToken);
+            }
             var sources = new List<NativeDataSource>();
             foreach (var path in AllowedNativeContainers())
             {
@@ -52,7 +83,7 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         }
         catch (Exception cause) when (cause is InvalidOperationException or HttpRequestException or InvalidDataException or ArgumentException)
         {
-            OASISErrorHandling.HandleError(ref result, $"Listing native SOLID containers failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Listing native SOLID containers failed: {NativeConnectionGuard.Explain(cause)}", cause);
             result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_LIST_FAILED";
         }
         return result;
@@ -64,7 +95,11 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         var result = new OASISResult<NativeRecordPage>();
         try
         {
-            NativeConnectionGuard.RefuseUnsupported(connection, "SOLID");
+            if (connection != null)
+            {
+                using var pod = OpenNativePod(connection);
+                return await pod.ReadNativeRecordsAsync(sourceName, continuationToken, pageSize, null, cancellationToken);
+            }
             if (pageSize < 1) throw new ArgumentException("Page size must be at least 1.");
             if (!AllowedNativeContainers().Contains(sourceName, StringComparer.Ordinal))
                 throw new ArgumentException($"'{sourceName}' is not a container listed in NativeImportContainers.");
@@ -83,7 +118,7 @@ public string DescribeNativeConnection(NativeConnection connection)    {        
         }
         catch (Exception cause) when (cause is InvalidOperationException or HttpRequestException or InvalidDataException or ArgumentException or RdfParseException)
         {
-            OASISErrorHandling.HandleError(ref result, $"Reading native SOLID container '{sourceName}' failed: {cause.Message}", cause);
+            OASISErrorHandling.HandleError(ref result, $"Reading native SOLID container '{sourceName}' failed: {NativeConnectionGuard.Explain(cause)}", cause);
             result.ErrorCode = cause is InvalidOperationException ? "NATIVE_IMPORT_UNAVAILABLE" : "NATIVE_IMPORT_READ_FAILED";
         }
         return result;

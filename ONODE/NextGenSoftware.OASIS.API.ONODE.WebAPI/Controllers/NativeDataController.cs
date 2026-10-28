@@ -90,13 +90,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public string Error { get; set; }
         }
 
-        /// <summary>Registered providers that can import native data.</summary>
+        /// <summary>Provider types that can import native data from a connection the caller supplies.</summary>
         [HttpGet("providers")]
         public ActionResult<OASISResult<IEnumerable<ProviderType>>> GetProviders()
         {
             if (Avatar == null) return Forbidden<IEnumerable<ProviderType>>(null);
-            var types = ProviderManager.Instance.GetAllRegisteredProviders().OfType<INativeDataImportProvider>()
-                .Select(provider => provider.NativeDataProviderType).Distinct().ToList();
+            var types = OASISBootLoader.NativeImportReaders.SupportedTypes.ToList();
             return Ok(new OASISResult<IEnumerable<ProviderType>>(types) { Message = $"{types.Count} providers support native import." });
         }
 
@@ -115,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             NativeConnection connection, CancellationToken cancellationToken)
         {
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeDataSource>>(connection);
-            var provider = Resolve<IReadOnlyList<NativeDataSource>>(providerType, out var refusal);
+            var provider = Resolve<IReadOnlyList<NativeDataSource>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
             return Respond(await new NativeDataImportManager(HolonManager).ListSourcesAsync(provider, connection, cancellationToken));
         }
@@ -128,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             var connection = request?.Connection;
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeRecordPreview>>(connection);
-            var provider = Resolve<IReadOnlyList<NativeRecordPreview>>(providerType, out var refusal);
+            var provider = Resolve<IReadOnlyList<NativeRecordPreview>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
             if (count < 1 || count > MaximumPreviewRecords)
                 return BadRequest(new OASISResult<IReadOnlyList<NativeRecordPreview>> { IsError = true, Message = $"count must be between 1 and {MaximumPreviewRecords}." });
@@ -169,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             request ??= new NativeImportRequest();
             if (!MayImport(request.Connection)) return Forbidden<NativeDataImportReport>(request.Connection);
-            var provider = Resolve<NativeDataImportReport>(providerType, out var refusal);
+            var provider = Resolve<NativeDataImportReport>(providerType, request.Connection, out var refusal);
             if (provider == null) return refusal;
             var mapping = await SavedMappingAsync(providerType, sourceName, request.Mapping);
             if (mapping.IsError) return Respond(new OASISResult<NativeDataImportReport> { IsError = true, ErrorCode = mapping.ErrorCode, Message = mapping.Message });
@@ -184,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             request ??= new NativeImportAllRequest();
             if (!MayImport(request.Connection)) return Forbidden<IReadOnlyList<NativeDataImportReport>>(request.Connection);
-            var provider = Resolve<IReadOnlyList<NativeDataImportReport>>(providerType, out var refusal);
+            var provider = Resolve<IReadOnlyList<NativeDataImportReport>>(providerType, request.Connection, out var refusal);
             if (provider == null) return refusal;
             var saved = await Program.SettingsManager.GetNativeImportMappingsAsync(AvatarId, providerType);
             if (saved.IsError) return Respond(new OASISResult<IReadOnlyList<NativeDataImportReport>> { IsError = true, ErrorCode = saved.ErrorCode, Message = saved.Message });
@@ -245,9 +244,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             : Math.Min(requested, UserConnectionMaximumRecords);
 
 
-        private INativeDataImportProvider Resolve<T>(ProviderType providerType, out ActionResult refusal)
+        /// <summary>
+        /// A reader for the request. With a connection it is a stateless reader of that provider type, so importing your own
+        /// database does not depend on the node having the provider configured. Without one it is the node's registered provider.
+        /// </summary>
+        private INativeDataImportProvider Resolve<T>(ProviderType providerType, NativeConnection connection, out ActionResult refusal)
         {
             refusal = null;
+            if (connection != null)
+            {
+                var reader = OASISBootLoader.NativeImportReaders.Create(providerType);
+                if (reader == null)
+                    refusal = BadRequest(new OASISResult<T> { IsError = true, ErrorCode = "NATIVE_IMPORT_UNSUPPORTED", Message = $"{providerType} does not support native data import yet." });
+                return reader;
+            }
+
             var resolved = ProviderManager.Instance.ResolveStorageProvider(providerType);
             if (resolved.IsError || resolved.Result == null)
             {
