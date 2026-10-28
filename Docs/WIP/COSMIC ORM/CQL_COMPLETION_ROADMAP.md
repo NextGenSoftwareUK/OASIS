@@ -46,3 +46,8 @@ shared scalar planner, V2 manager and the existing prepared read owner. Full
 Core4180/SQLite67/Solana799pass. Next: LINQ/HTTP and native-source cardinality
 acceptance; snapshot assurance differs from per-record row proofs. Metadata,
 other aggregates/selected stages and full parity remain open.
+
+Standard indexed Count/LongCount/Any now pass9newSQLite cases and the live shared
+demo (1/1/true, no new seed). FullCore4180/SQLite76/Solana799pass. Next: HTTP
+cardinality; metadata/other aggregates/selected stages, scaling and full parity
+remain open. See CURRENT_STATUS and the indexed SQL contract.

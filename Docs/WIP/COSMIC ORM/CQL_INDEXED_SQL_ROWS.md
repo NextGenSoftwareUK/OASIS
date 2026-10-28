@@ -392,3 +392,27 @@ Core4180/SQLite67/Solana799pass. Existing row/projection prepared paths regress 
 LINQ Count/LongCount/Any, HTTP enrollment, post-window predicates, other aggregates,
 metadata and live-source cardinality acceptance remain open. No broad parity cell
 is promoted. Evidence: TestResults/ProtocolCqlCurrent/index-cardinality-*-full.trx.
+
+
+## Standard indexed cardinality terminals and native demo (27 October)
+
+Standard IQueryable Count/LongCount/Any now bind through the existing scalar
+planner and indexed scalar reader, never through entity/page enumeration. Deferred
+source closure values are rebound for each execution. Unwindowed terminal predicates
+are admitted as source Where; predicates AFTER an existing source window remain
+explicitly unsupported and reject before SQL/head reads. All, numeric/element
+terminals and selected-result cardinality remain outside this indexed enrollment.
+A row-only reader returns CQL_CAPABILITY_UNSUPPORTED before dispatch.
+
+Nine new actual SQLite cases verify terminals, source windows/Take0, deferred
+values, predicate overloads and unsupported post-window/All rejection. FullCore4180,
+SQLite76 andSolana799pass. The live Solana/SQLite SDK gate executes the shared
+ChainIndexedWalkthrough.RunCardinalityAsync verbatim and returns1/1/true for the
+retained native record; no new seed/submission. Each terminal is a separate
+snapshot/read, not a cross-query atomic snapshot. Cardinality retains the
+previous authenticated-index-snapshot assurance, not per-record source rereads.
+The async evidence-aware SDK remains available for cancellation/checkpoint access;
+these standard LINQ terminals are synchronous primitive-returning operations.
+HTTP cardinality enrollment remains next. Larger-index scaling/metadata and full
+parity remain open. Evidence: TestResults/ProtocolCqlCurrent/index-count-linq-*.trx
+and TestResults/SolanaCurrent/solana-indexed-native.trx/json.

@@ -2,6 +2,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests;
@@ -73,5 +76,41 @@ public partial class SqliteCosmicChainIndexRowsTests
                 Assert.AreEqual(position.Slot,result.Result.Checkpoint.Position.Slot);Assert.AreEqual(1,observer.Heads);
             }
         }
+    }
+
+    [DataTestMethod]
+    [DataRow("count")] [DataRow("long")] [DataRow("any")]
+    [DataRow("window")] [DataRow("zero")] [DataRow("deferred")] [DataRow("predicate")]
+    [DataRow("window-predicate")] [DataRow("all")]
+    public async Task StandardIndexedCardinalityUsesNativeScalarContractAndDefersSourceValues(string mode)
+    {
+        using var store=new SqliteCosmicChainIndexStore(database,source,key,canonicalRowProjection:true);
+        var a=Entry("A",actor,false);var b=Entry("B",Guid.NewGuid(),true);var hidden=Entry("0-hidden",Guid.NewGuid(),false);
+        Publish(store,a,b,hidden);
+        var observer=new CardinalityObserver(source,position,"count");
+        var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2}};
+        var manager=new HolonManager(null,dna,new ProviderManager(null,dna));
+        var created=CosmicLinq.CreateIndexed(manager,store,observer,Query());Assert.IsFalse(created.IsError,created.Message);
+        var query=created.Result;var name="missing";
+        if(mode=="deferred"){query=query.Where(row=>row.Name==name);name="A";}
+        if(mode=="window")query=query.OrderBy(row=>row.Name).Skip(1).Take(1);
+        if(mode=="zero")query=query.Take(0);
+        var attempts=new SqlAttemptOwner();
+        await CosmicIndexedReadAttempts.RunAsync(source,attempts,()=>{
+            if(mode is "window-predicate" or "all"){
+                var error=Assert.ThrowsException<CosmicLinqException>(()=>{
+                    if(mode=="all")_ = query.All(row=>row.IsPublic);
+                    else _ = query.Take(1).Count(row=>row.IsPublic);
+                });
+                Assert.AreEqual(mode=="all"?"CQL_EXPRESSION_UNSUPPORTED":"CQL_CAPABILITY_UNSUPPORTED",error.Code);
+            }
+            else if(mode=="long")Assert.AreEqual(2L,query.LongCount());
+            else if(mode=="any")Assert.IsTrue(query.Any(row=>row.Name=="A"));
+            else if(mode=="predicate")Assert.AreEqual(1,query.Count(row=>row.Name=="B"));
+            else Assert.AreEqual(mode=="zero"?0:mode is "window" or "deferred"?1:2,query.Count());
+            return Task.FromResult(true);
+        });
+        Assert.AreEqual(mode is "window-predicate" or "all"?0:1,attempts.Count);
+        Assert.AreEqual(mode is "window-predicate" or "all"?0:1,observer.Heads);
     }
 }
