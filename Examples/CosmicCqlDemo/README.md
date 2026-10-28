@@ -669,3 +669,10 @@ exact Int64 predicates, ordering, row evidence, LongCount/Any and a zero window.
 Actual SQLite tests verify encrypted row hydration with an authorized runtime
 policy and rejection when it is missing. A trusted host must opt into the metadata
 profile before invoking it. The separate live SolanaMetadata fixture and HTTP/demo route now pass. Run the hub with `-Provider SolanaMetadata -ArchiveCompletedDemo` (add `-VerifyOnly` for bounded acceptance). The original Solana choice remains schema2; both use the same retained runtime. Production authentication/durable billing remain open.
+
+RunSelectionAsync in ChainIndexedMetadataWalkthrough.cs now demonstrates a mixed
+canonical/nested-metadata DTO through ordinary LINQ Select with source evidence.
+The live SolanaMetadata gate verifies it plus50HTTP requests. Its page includes
+Select metadata columns; Long/Int64 output remains a precise string and missing
+nullable cells remain null. All runs reuse the acknowledged fixture; no new source
+writes are needed. Production identity/billing and full parity remain open.

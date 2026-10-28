@@ -99,7 +99,8 @@ projection. The canonical Solana owner encrypts its source frame. This gate is n
 original-history recovery or a live field-level metadata-key-resolution certificate;
 the separately verified SDK test covers that authenticated envelope/runtime context.
 
-The native test passes1/1 with42HTTP requests:19accepted,19replays rejected and
+The initial filter gate passed1/1 with42HTTP requests (superseded by the50request
+selected gate below):19accepted,19replays rejected and
 4unsupported before execution. Six metadata cases cover rows, LongCount, Any,
 zero/empty source windows and canonical projection over metadata filters. Three
 forbidden roots (privateNote, wrong case and __oasis_enc__) reject before reservation
@@ -137,7 +138,7 @@ its source acknowledgement matches; incomplete/unknown outcomes are preserved.
 
 ## Remaining acceptance
 
-Selected metadata SDK/SQLite execution is now verified below; its live/HTTP/demo gate,
+Selected metadata SDK/SQLite/live HTTP/demo execution is verified below;
 other aggregates/selected stages, production JWT and
 durable external settlement, hosted-chain acceptance, incremental source transport
 and history/index scaling remain open. Do not promote broad EF/NHibernate parity
@@ -170,9 +171,8 @@ Eight new Core cases prove root isolation/narrowing, planning-time wildcard
 rejection, actual-profile re-admission and proof before DTO construction. Twelve
 new actual SQLite cases cover primitive/nullable selection, null/missing/wrong type,
 private-root denial, mixed canonical/metadata column order and exact Int64 above2^53.
-Full results/hashes are in CURRENT_STATUS and the resource ledger. Live selected
-metadata HTTP/demo acceptance is the next gate; existing42request evidence covers
-metadata filters plus canonical selected columns, not selected metadata cells.
+Full results/hashes are in CURRENT_STATUS and the resource ledger. Live selected metadata HTTP/demo acceptance now passes in the expanded50request
+gate described below; the earlier42request report is preserved in the archive.
 
 ```csharp
 // The host has already published an explicit schema3 Status-root profile.
@@ -188,3 +188,30 @@ var selected = query
 // Retain checkpoint/head/source receipts rather than hiding provenance.
 var page = await selected.ToCosmicIndexedProjectionPageAsync();
 ```
+
+## Live selected metadata HTTP and demo acceptance
+
+The expanded schema3 gate passes50HTTP requests:21accepted,21idempotency replays
+rejected and8unsupported requests rejected before reservation/execution. It reuses
+the same acknowledged fixture with submittedNewSeedfalse/sourceWrites0.
+
+The new selected-metadata cases return canonical Id plus nested category, exact
+Int64 amount and a missing nullable Int64. The wire amount is the decimal string
+"9007199254740993" and the missing cell is null. An empty selected result retains
+its checkpoint/head. Actual source receipts remain aligned with returned rows.
+Private/wrong-case/envelope roots and unsupported Decimal selection reject before
+reservation or reads. Accepted reads settle their exact captured physical receipts.
+
+RunSelectionAsync in ChainIndexedMetadataWalkthrough.cs runs the same shape through
+standard LINQ Select and the shared V2 manager. It verifies the exact DTO values
+and source evidence against the retained validator/reopened index. The interactive
+SolanaMetadata page now includes Select metadata columns. HTTP page/profile/query/
+shutdown acceptance passed with an additional selected request; Node syntax and
+example build pass. Browser rendering/click automation remains unverified.
+
+Both bounded and interactive native tests pass1/1. The validator18899and page5089
+listeners are absent after teardown; the seed/index/keys remain reusable. Reports:
+TestResults/SolanaCurrent/solana-indexed-metadata-native.trx/json and
+TestResults/ProtocolCqlCurrent/index-selected-metadata-interactive-lifecycle.json.
+Earlier reports are hash-preserved by the runner. Production identity/durable
+external settlement, other aggregates/selected stages and broad EF parity remain open.

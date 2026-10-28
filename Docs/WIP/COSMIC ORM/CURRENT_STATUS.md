@@ -1,62 +1,65 @@
 # Current COSMIC ORM / CQL status
 
-Updated 27 October 2026. Read this first after compaction; update each milestone.
+Updated27October2026. Read this first after compaction; update each milestone.
 
 ## Work and priority
 
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
-- Full roadmap remains active/incomplete. Demo breadth takes priority over remaining EF/NHibernate parity.
+- Full ORM/CQL roadmap remains active/incomplete. Eight-provider demo breadth precedes remaining EF/NHibernate depth.
 - Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
-- HyperDrive V2 implementation only; document legacy gaps. Large POCO/migrations tooling remains deferred.
-- [Checklist](CQL_PARITY_CHECKLIST.md), [demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md), [completion roadmap](CQL_COMPLETION_ROADMAP.md).
+- HyperDriveV2 implementation only; document legacy gaps. Large POCO/migrations tooling stays deferred.
+- [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
 
-## Latest verified checkpoint
+## Latest verified milestone
 
-- Indexed SDK: authenticated durable SQLite history/projection/checkpoint, canonical Solana observer/ingestion, typed manager/clean tracking, LINQ rows and explicit service-tariff physical-read capture implemented.
-- WEB4 indexed controller now consumes a frozen server alias/query/grant, exact usage handle/tariffs and sufficient cost/unit/attempt reservation. Changed intent and duplicate consumption reject before dispatch; public source/index/checkpoint/receipts retained. Slots are exact strings.
-- Full Core suite: 4,243 passed / 0 failed / 0 skipped. Solana unit suite: 799 passed. Actual SQLite indexed/store checks:112 passed; full SQLite provider unit suite219 passed. Includes 12 controlled loopback HTTP requests, single-use/policy cases, receipt precision and reservation failures.
-- Shipping WEB4 and five shared-controller consumers build. Missing outputs/assets regenerated cache-only for 61 in-worktree projects; 8 external sibling projects read-only. Full Core's prior missing-host prerequisite failures are resolved.
-- Daily Development integration verified: contributor RecordNotFound fix/regressions preserved; Core4eb3dab46b7658f1c574f432f5169035bb19acea published/remote-verified on Development and work/cosmic-cql. Parent manifest/gitlink aligned for the same verified batch.
-- [HTTP milestone/limits](CQL_INDEXED_HTTP.md), [billing contract](CQL_INDEXED_BILLING.md), [indexed SQL contract](CQL_INDEXED_SQL_ROWS.md).
-- Stock pipeline adds 12 tests: rows/empty/replay, malformed or unsupported intent, route ceiling, uncertain receipt, registration composition, shared aggregate budgets and preparation failure. Production JWT/durable authority remains open.
+- Shared indexed SDK/LINQ/V2 manager and stock WEB4 support rows, canonical/metadata projection, Count/LongCount/Any and explicit actor/source/index/freshness admission.
+- Schema3 exports only selected encryption-exempt metadata roots, authenticates projection/profile/revision and publishes history/rows/checkpoint atomically. Schema2 is retained unchanged.
+- Selected cells are compared with validated source witnesses before DTO construction. Wildcard/private roots, unsupported domains and changed intent reject; exact Int64/null wire values are preserved.
+- Final Core4243pass; full SQLite provider219pass (112indexed-store checks). Existing Solana799unit checkpoint remains verified; no new provider implementation edits in this milestone.
+- Live retained-validator schema3 SDK/HTTP passes1/1:50requests,21accepted,21replays rejected,8unsupported before reservation. Standard LINQ Select returns exact DTO values/source receipts.
+- Interactive HTTP page/profile/selection/shutdown passes with an additional selected request: amount"9007199254740993", missingnullablecellnull, no privateNote in response. Node syntax/example build pass; browser click/rendering unverified.
+- No new seed/source writes this milestone. Validator18899and page5089listeners verified absent after teardown.
+- [Metadata contract/evidence scope](CQL_INDEXED_METADATA.md), [HTTP contract](CQL_INDEXED_HTTP.md), [manual](CQL_MANUAL.md), [launcher](CQL_INTERACTIVE_POINT_DEMO.md).
 
 ## Exact next work
 
-1. Stock usage/storage middleware integration now verified: raw HTTP reservation identity and frozen semantic query identity remain independently checked. AddCqlIndexedReadAdmission composes existing singleton storage admission. Shared handle budgets cannot reset across repeated prepared executions.
-2. Actual SQLite/canonical Solana decoder now pass through shipping HTTP plus stock middleware (rows, empty, missing source, wrong network; 799 Solana tests). Native declared-range SDK acceptance now passes1/1 with live source and reopened SQLite (coverage starts3073), including the shared C# walkthrough. Native-source HTTP now passes1/1: 27 requests, real SQL/live RPC, stock middleware; 9/6 billed physical reads for entity and projected rows/empty;9scalar whole/filtered-empty/zero cases use6reads each. Identity/outbox remain controlled; production JWT/durable settlement unverified. Next: indexed scalar/projection/metadata policies and common demo gaps.
-3. Older finalized minimum/checkpoint/previous identity bug reproduced and fixed. Shared admission requires independent bounded anchor observations; actual SQL/decoder HTTP and ingestion prove accept/reject, including empty pages. Still trusted-source-observation, not inclusion/ancestry proof.
-4. Indexed native selected-cell SDK implemented: explicit reader capability, one SQLite snapshot, shared proof-before-DTO owner, V2 manager; Core8/SQLite11 new checks. Standard indexed Select, flat repeated Select/list/enumeration and evidence terminal now pass7newSQLite cases plus live-chain demo1/1. Indexed HTTP projection now passes11newCore cases and the nine-request live gate. Indexed Count/LongCount/Any SDK implemented with native SQL source windows, authenticated index manifest and fresh head/anchors (13Core/18SQLite new cases). Standard indexed LINQ cardinality now passes9newSQLite cases and the shared live-source demo (Count1/LongCount1/Anytrue, no new seed). HTTP cardinality foundation now preserves nullable source windows and deep scalar intent (6 targeted tests pass); route/admission/execution now implemented with9stock HTTP cases and3capture checks. Live-source HTTP cardinality now passes9cases as part of27requests, no new seed or source writes. Solana interactive hub now passes bounded and leave-running native modes (page/health/LongCount/shutdown). Shared acknowledged-checkpoint session and5secondbounded complete-range ingestion now pass; live serving advanced3308→3320 with LongCount1. Metadata policy/source-root admission now passes17focusedcases; existing encryption system list is reused without key resolution. Schema3 SQLite metadata rows/cardinality now pass22newcases (98indexed/205fullprovider), with atomic proofs/profile binding and no schema2 migration. Shared metadata SDK/manager encrypted-row and missing-context cases now pass;7Core WEB4/tariff admission cases pass. Live schema3 SDK/HTTP now passes42requests (19accepted/19replays/4unsupported), read-only reuse and interactive metadata LongCount1; one new seed acknowledged in SolanaMetadataCurrent, original schema2 untouched. Selected metadata SDK/SQLite now implements explicit projection roots, exact native domains and source proof before DTO construction (8newCore/12newSQLite cases). Next: live selected-metadata HTTP/demo gate per CQL_INDEXED_METADATA.md; incremental transport/production scheduling remain open. Metadata/other aggregates/selected stages remain open. Same query across all eight providers remains open.
-5. Resume remaining red parity rows after demo acceptance, including Q01f Mongo/Neo projection/standard Select and numeric terminals.
+1. Integrate existing Scripts/TestHosts/Run-CosmicCqlV1Demo.ps1 into the demo hub as an explicit three-database group. It already serves MongoDB/SQLite/Neo4j on5088 and owns its build lease; do not nest a lease.
+2. Inspect the retained Azure Cosmos DB CQL native profile/environment, then add its teaching-host/hub integration. Run-ReusableCosmosV2Tests.ps1 is Cosmos blockchain, not Azure cloud; use the correct DB owner.
+3. Preserve broad demo limits. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain native point profiles.
+4. After bounded demo integration, resume red parity cells including Q01f Mongo/Neo entity projection and numeric/stage integration. Indexed other aggregates/selected stages and production acceptance remain open.
 
-## Other verified scope / limits
+## Other verified scope and remaining limits
 
-- MongoDB/SQLite/Neo4j:12 original investor-demo rows green; Q01a-e, Q23/Q23e/Q49a scoped green. Q01f remains red despite native stages/count/element/default gates; SQLite entity projection only is integrated.
-- Cosmos:46 provider controls,47 native cases/5 manager demo operations and controlled-identity native HTTP rows/scalar/projection passed. Hosted cloud/production auth/billing, numeric metadata and conditional lifecycle remain open.
-- IPFS/SOLID:52 native storage checks each;191/384 CQL controls. Native manager/LINQ/sample and controlled-identity WEB4 point profiles passed. Persistent identities under LocalState/COSMIC retained; services stopped.
-- ActivityPub:311 provider controls,1,964 affected CQL regressions; native public-status manager/LINQ/sample/HTTP point gates passed. Broader queries/production admission remain open.
-- Solana original recovery stays red/deferred: no known backup; retained root/chunk unavailable. Native diagnostic rejects declared start 0 at first available block 1402, without writes/checkpoint/index. Never reset/replace the original retained ledger or claim a fresh demo repairs it.
-- [Solana admission](CQL_SOLANA_DEMO_ADMISSION.md), [interactive demo guide](CQL_INTERACTIVE_POINT_DEMO.md), [manual](CQL_MANUAL.md).
+- Three databases:12original investor-demo rows green; Q01a-e/Q23/Q23e/Q49a scoped green. Q01f and full EF/NHibernate parity remain red.
+- Cosmos DB:46controls/47native cases and5manager operations; controlled-identity HTTP rows/scalar/projection passed. Hosted cloud, numeric metadata, conditional lifecycle and production auth/billing remain open.
+- IPFS/SOLID:52native storage checks each;191/384CQL controls. Native manager/LINQ/sample/HTTP point profiles passed; richer general queries remain open.
+- ActivityPub:311provider controls/1964affected regressions; native public-status point manager/LINQ/sample/HTTP passed. No posting/federation or broad query claim.
+- Indexed ingestion session serializes compare-and-publish, advances only acknowledged cursors and stops on failure/uncertainty. Host uses5second bounded complete-range re-observation; incremental transport/production worker accounting/scaling remain open.
+- Production JWT, durable external outbox/authority settlement, hosted-chain acceptance and broad cross-provider snapshots are unverified.
+- Original Solana recovery remains red: no known backup and missing original root/chunk. Never reset/replay the original ledger or call a new declared-range fixture recovery.
 
 ## Resources and recovery
 
-- [Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records exact build/runtime/evidence identities. Latest inventory:TestResults/ProtocolCqlCurrent/index-http-build-resource-inventory.json; 1,770,881,866 observed build bytes, mixed inherited/regenerated ownership.
-- Retained Solana validator reused and stopped; no new runtime/node. New persistent demo seed/index under LocalState/COSMIC/SolanaCqlCurrent retained; declared range3073 is separate from unrecovered original history.
-- TestResults/bin/obj are regenerable. Preserve LocalState/COSMIC identities/keys/journals and original failure evidence. Logs/TRX stay in TestResults, never Docs.
-- Shipping rebuild graph/target plans are in TestResults/ProtocolCqlCurrent/index-http-web4-*.json. 69 projects, 61 inside. Do not recursively build 8 outside sibling projects; reuse their binaries. Highest compatible runtime target precedes .NET Standard (ONET requires net8.0).
-- Earlier detailed status/hashes: [archived checkpoint](Archive/CURRENT_STATUS_before_indexed_http_2026-10-27.md).
+- [Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns resource paths/hashes/retention. Reuse SDK10.0.401/NuGet/cache/Agave4.3.0; no new installations in this milestone.
+- Persistent schema2 state:LocalState/COSMIC/SolanaCqlCurrent, coverage3073. Schema3:LocalState/COSMIC/SolanaMetadataCurrent, coverage3325, acknowledged recorda03306d4-649f-4871-8f27-8e13869b59a1/index86d676b6-c2c5-4c8f-98b2-a88e0fb8bb11.
+- Preserve keys, acknowledgements, uncertain/pending journals and retained WSL ledger. Schema3 index32768bytes/ack511bytes; no pending seed. Completed prior TRX/JSON evidence is hash-archived by the runner.
+- All logs/TRX/generated JS stay in worktree TestResults; owned disposable SQLite fixture is torn down. Build outputs are regenerable; source/keys are not cleanup targets.
+- Shipping dependency graph plans:TestResults/ProtocolCqlCurrent/index-http-web4-*.json (69projects/61in-worktree). Reuse8external sibling outputs read-only; never recursively rebuild outside this worktree.
+- [Earlier detailed checkpoint](Archive/CURRENT_STATUS_before_selected_metadata_live_2026-10-27.md).
 
-## Key commands (worktree above)
+## Key commands
 
 ```powershell
 git status --short
 git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' status --short
-# Fetch/inspect before daily integration; preserve concurrent changes.
-git fetch origin
-# One build lease per batch; no nested leases.
-& 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1' -Owner cosmic-cql -Operation {
-    dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj' --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --results-directory TestResults/ProtocolCqlCurrent
-}
-python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ShowPlan
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -VerifyOnly -ArchiveCompletedDemo
+# Interactive alternative; stop via POST http://127.0.0.1:5089/demo/shutdown
+& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ArchiveCompletedDemo
 ```
 
-Commit named owned files only; Core push/ls-remote first, then parent gitlink/manifest. Batch verified Development integration once/twice daily; task-branch pushes do not imply a Development merge.
+All builds use one provider-build lease and /m:2 /nr:false /p:UseSharedCompilation=false.
+Commit named owned files only. Core push/ls-remote first, then parent gitlink/manifest;
+validate with python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
+Fetch/inspect before daily integration; preserve concurrent changes. Batch verified
+Development pushes once/twice daily; task-branch push does not imply a dev merge.

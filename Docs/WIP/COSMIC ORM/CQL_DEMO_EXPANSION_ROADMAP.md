@@ -72,3 +72,10 @@ Live-source shipping HTTP now passes27requests against the same seed/index and
 validator. Interactive hub now adds Solana on5089 with native leave-running/shutdown acceptance. Next: ongoing index ingestion, production authentication/durable billing and common-demo capability gaps.
 
 SolanaMetadata now explicitly selects the separate schema3 acknowledged fixture/index: live SDK/HTTP42requests and read-only/interactive reuse pass, including nested string/exactInt64 filters and pre-reservation private-root rejection. It shares the retained validator and preserves schema2/original history. Next selected metadata and remaining red demo capabilities; production identity/durable settlement remain open. See CQL_INDEXED_METADATA.md.
+
+Selected schema3 metadata is now native SDK/HTTP/demo proven (50requests plus
+interactive selection), with no new seed/source writes. Next demo integration:
+reuse Run-CosmicCqlV1Demo.ps1 for the existing three-database group, then the retained
+Cosmos DB CQL profile/runtime for a cloud teaching host. Current hub lacks these
+entries; do not label the Cosmos blockchain runner as the Azure cloud runner.
+This integration takes priority over additional parity-only Solana operators.

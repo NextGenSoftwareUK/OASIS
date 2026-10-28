@@ -269,20 +269,34 @@ public partial class SolanaIndexedQueryNative
             var metadataAccepted = 0;
             var metadataDenied = 0;
             if (source.SchemaVersion == 3)
-            foreach (var metadataCase in new[] { "rows", "LongCount", "Any", "zero", "empty", "projection", "private", "case", "envelope" })
+            foreach (var metadataCase in new[] { "rows", "LongCount", "Any", "zero", "empty", "projection", "private", "case", "envelope",
+                "selected", "selected-empty", "selected-private", "selected-case", "selected-envelope", "selected-decimal" })
             {
-                var deniedRoot = metadataCase is "private" or "case" or "envelope";
+                var deniedRoot = metadataCase is "private" or "case" or "envelope" or "selected-private" or "selected-case" or "selected-envelope" or "selected-decimal";
+                var selectedMetadata = metadataCase.StartsWith("selected", StringComparison.Ordinal);
                 var scalar = metadataCase is "LongCount" or "Any" or "zero" or "empty";
                 var root = metadataCase == "private" ? "privateNote" : metadataCase == "case" ? "status" : metadataCase == "envelope" ? "__oasis_enc__" : "Status";
                 var filters = new object[] {
-                    new { metadataPath = new[] { root, "category" }, scalar = "String", @operator = "Equal", value = metadataCase == "empty" ? "absent" : "coffee" },
+                    new { metadataPath = new[] { root, "category" }, scalar = "String", @operator = "Equal", value = metadataCase is "empty" or "selected-empty" ? "absent" : "coffee" },
                     new { metadataPath = new[] { root, "amount" }, scalar = "Integer", @operator = "GreaterThan", value = 9007199254740992L }
                 };
+                object[]? columns = metadataCase == "projection" ? new object[] { new { alias = "label", field = "Name" } } : null;
+                if (selectedMetadata)
+                {
+                    var selectedRoot = metadataCase == "selected-private" ? "privateNote" : metadataCase == "selected-case" ? "status" : metadataCase == "selected-envelope" ? "__oasis_enc__" : "Status";
+                    columns = deniedRoot ? new object[] { new { alias = "denied", metadataPath = new[] { selectedRoot, "amount" },
+                        valueType = metadataCase == "selected-decimal" ? "Decimal" : "String" } } : new object[] {
+                        new { alias = "identity", field = "Id" },
+                        new { alias = "category", metadataPath = new[] { "Status", "category" }, valueType = "String" },
+                        new { alias = "amount", metadataPath = new[] { "Status", "amount" }, valueType = "Int64" },
+                        new { alias = "missing", metadataPath = new[] { "Status", "absent" }, valueType = "Int64", nullable = true }
+                    };
+                }
                 var body = scalar
                     ? JsonSerializer.Serialize(new { alias = "solana-native-demo", query = new {
                         operation = metadataCase == "Any" ? "Any" : "LongCount", filters, orderBy = "Id", take = metadataCase == "zero" ? (int?)0 : null } })
                     : JsonSerializer.Serialize(new { alias = "solana-native-demo", query = new { filters, orderBy = "Name", take = 1 },
-                        columns = metadataCase == "projection" ? new[] { new { alias = "label", field = "Name" } } : null });
+                        columns });
                 var route = scalar ? "/api/data/query-cql/indexed/scalar" : "/api/data/query-cql/indexed";
                 client.DefaultRequestHeaders.Remove("Idempotency-Key");
                 client.DefaultRequestHeaders.Add("Idempotency-Key", "native-metadata-" + metadataCase);
@@ -304,6 +318,21 @@ public partial class SolanaIndexedQueryNative
                 Assert.AreEqual(3, page.GetProperty("checkpoint").GetProperty("source").GetProperty("schemaVersion").GetInt32());
                 if (metadataCase == "Any") Assert.IsTrue(page.GetProperty("value").GetBoolean());
                 else if (scalar) Assert.AreEqual(metadataCase is "zero" or "empty" ? "0" : "1", page.GetProperty("value").GetString());
+                else if (selectedMetadata)
+                {
+                    Assert.AreEqual("indexed-projection", page.GetProperty("mode").GetString());
+                    Assert.AreEqual(metadataCase == "selected-empty" ? 0 : 1, page.GetProperty("rows").GetArrayLength());
+                    Assert.AreEqual("amount", page.GetProperty("columns")[2].GetProperty("alias").GetString());
+                    if (metadataCase != "selected-empty")
+                    {
+                        var cells = page.GetProperty("rows")[0];
+                        Assert.AreEqual(seed.Id.ToString("D"), cells[0].GetString());
+                        Assert.AreEqual("coffee", cells[1].GetString());
+                        Assert.AreEqual("9007199254740993", cells[2].GetString());
+                        Assert.AreEqual(JsonValueKind.Null, cells[3].ValueKind);
+                        Assert.AreEqual(seed.Signature, page.GetProperty("receipts")[0].GetProperty("commitReference").GetString());
+                    }
+                }
                 else Assert.AreEqual(1, page.GetProperty("rows").GetArrayLength());
                 var id = response.Headers.GetValues("X-OASIS-Operation-Id").Single();
                 var operation = evidence.Operations[id];

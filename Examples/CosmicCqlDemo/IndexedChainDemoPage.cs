@@ -46,6 +46,7 @@ public static class IndexedChainDemoPage
     <button data-query="empty">Count empty window</button>
     <button data-query="metadata-rows" class="metadata" hidden>Filter nested metadata</button>
     <button data-query="metadata-count" class="metadata" hidden>Count metadata matches</button>
+    <button data-query="metadata-select" class="metadata" hidden>Select metadata columns</button>
   </div>
   <p id="status" role="status">Ready. Select a query to inspect its request and full provenance.</p>
 
@@ -89,7 +90,7 @@ var any = coffees.Any();</code></pre>
 
     async function run(kind) {
       buttons.forEach(button => button.disabled = true);
-      const scalar = !['rows', 'projection', 'metadata-rows'].includes(kind);
+      const scalar = !['rows', 'projection', 'metadata-rows', 'metadata-select'].includes(kind);
       const route = scalar ? '/api/data/query-cql/indexed/scalar' : '/api/data/query-cql/indexed';
       const query = {
         filters: [{ field: 'Name', scalar: 'String', operator: 'Equal', value: 'COSMIC native chain coffee' }],
@@ -108,6 +109,13 @@ var any = coffees.Any();</code></pre>
       if (kind === 'projection') body.columns = [
         { alias: 'label', field: 'Name' },
         { alias: 'revision', field: 'Version' }
+      ];
+
+      if (kind === 'metadata-select') body.columns = [
+        { alias: 'identity', field: 'Id' },
+        { alias: 'category', metadataPath: ['Status', 'category'], valueType: 'String' },
+        { alias: 'amount', metadataPath: ['Status', 'amount'], valueType: 'Int64' },
+        { alias: 'missing', metadataPath: ['Status', 'absent'], valueType: 'Int64', nullable: true }
       ];
 
       document.getElementById('request').textContent = 'POST ' + route + '\n\n' + JSON.stringify(body, null, 2);

@@ -318,3 +318,11 @@ Scalar String/Integer and native SQL; no source substitution or client filtering
 The server alias owns the selected queryable-root policy; callers cannot enroll
 keys or migrate a schema2 index. The first journaled metadata seed was acknowledged
 once, then reused read-only. See [profile, commands and limits](CQL_INDEXED_METADATA.md).
+
+Selected metadata now passes in the expanded50request native schema3 gate
+(21accepted/21replays/8pre-reservation unsupported). Columns may specify explicit
+metadataPath/valueType/nullable under the server's independently enrolled selected
+roots. ExactInt64 output remains a string; nullable missing is null. The gate
+verifies canonical+metadata values, empty shape, source receipts, tariff accounting
+and private/case/envelope/unsupported-domain rejection. See CQL_INDEXED_METADATA.md
+for command, source identity and production limits.
