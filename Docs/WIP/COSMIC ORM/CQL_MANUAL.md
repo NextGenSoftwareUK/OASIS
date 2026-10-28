@@ -769,3 +769,47 @@ The server must own that alias and its actor/source/index/tariff grant; this is
 not a command that enrolls the alias in a running deployment. Production JWT and
 durable ledger acceptance remain separate. Retain X-OASIS-Operation-Id and source
 receipts; slots are returned as strings to preserve integer precision.
+
+
+### Indexed native projection SDK
+
+Use the shared projection builder/planner and V2 manager. The source query must
+already have its explicit indexed freshness and server actor grant. The selected
+target names the logical source provider, while the registered reader owns the
+physical SQLite execution. Always inspect OASISResult.IsError before using Result.
+
+```csharp
+var selected = sourceQuery.Select(holon => new
+{
+    holon.Id,
+    holon.Name,
+    holon.Version
+});
+
+var target = new CosmicProjectionTarget(
+    index.Source.SourceProvider,
+    index.IndexedRowCapabilities,
+    index.IndexedProjectionCapabilities,
+    index.Source);
+
+var plan = CosmicProjectionPlanner.Plan(
+    selected.Result,
+    index.Source.SourceProvider,
+    new[] { target });
+
+var result = await manager.ExecuteIndexedProjectionQueryAsync(
+    plan.Result,
+    index,
+    sourceObserver,
+    maximumResults: 100,
+    maximumPayloadBytes: 64 * 1024,
+    cancellationToken: cancellationToken);
+
+// On success, result.Result.Rows contains detached selected values.
+// Checkpoint, Head and Receipts retain the source evidence for those rows.
+```
+
+This is the explicit indexed projection SDK, not yet standard IQueryable.Select
+or the HTTP projection route. Canonical Id/Name/Version/VersionId/CreatedByAvatarId/
+IsPublic/IsDeleted columns are enrolled; metadata and aggregates remain unsupported.
+[Contract, tests and remaining gates](CQL_INDEXED_SQL_ROWS.md#indexed-native-selected-cell-sdk-milestone-27-october).
