@@ -223,5 +223,6 @@ and preserved source receipts. Four replays and unsupported shape reject.
 The retained native SDK gate now also runs the exact shared RunCardinalityAsync
 demo: standard Count1,LongCount1,Anytrue from the authenticated SQLite index and
 fresh live source head/anchors. No new seed/submission. This is index-snapshot
-cardinality, not independent rereads of each counted transaction. HTTP cardinality
-remains open; the existing HTTP gate still covers rows/projections only.
+cardinality, not independent rereads of each counted transaction. HTTP cardinality now passes in the27request schema2 gate. The separate schema3
+metadata gate adds explicit queryable metadata and passes42requests; see
+[CQL_INDEXED_METADATA.md](CQL_INDEXED_METADATA.md).

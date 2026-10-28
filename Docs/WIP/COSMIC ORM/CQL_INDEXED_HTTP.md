@@ -308,3 +308,13 @@ operations across whole-source, filtered-empty and zero-length windows. Each
 settles six physical reads (including independent older anchors). No new seed or
 source writes; retained index reopens and validator stops after the gate.
 Production JWT/durable settlement remains pending.
+
+## Explicit schema3 metadata profile
+
+The live Solana/SQLite schema3 gate now passes42requests (19accepted/19replays/
+4unsupported), including six metadata row/scalar/canonical-projection cases and
+three forbidden-root rejections before reservation. Query filters use metadataPath,
+Scalar String/Integer and native SQL; no source substitution or client filtering.
+The server alias owns the selected queryable-root policy; callers cannot enroll
+keys or migrate a schema2 index. The first journaled metadata seed was acknowledged
+once, then reused read-only. See [profile, commands and limits](CQL_INDEXED_METADATA.md).
