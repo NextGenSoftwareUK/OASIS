@@ -71,6 +71,7 @@ public partial class HolonRepository
                 if(result?.IsError==true && !uncertain)result.Exception=failure;
                 else result=ConditionalError(uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
                     : failure is NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException ? NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode
+                    : failure is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
                     : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
@@ -161,6 +162,7 @@ public partial class HolonRepository
                     knownAcknowledgement=true;return result;
                 }
             }
+            SqliteDestinationBindings.Approve(connection,native,enrollment,operationId);
             var persisted = _dbContext.Holons.AsNoTracking().Where(row => ids.Contains(row.Id)).ToDictionary(row => row.Id);
             var conflicts = (conditions ?? new Dictionary<string,HolonWriteCondition>()).Select(pair => {
                 persisted.TryGetValue(pair.Key, out var actual);

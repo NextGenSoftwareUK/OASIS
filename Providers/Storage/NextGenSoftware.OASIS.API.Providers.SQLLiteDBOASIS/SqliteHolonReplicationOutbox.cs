@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 /// <summary>Lease-fenced delivery state for the existing atomic SQLite holon outbox. Does not initialize a database.</summary>
-public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox
+public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly string _connectionString;
     private readonly IHyperDriveClock _clock;
@@ -119,7 +119,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
             var result=OwnedResult(command.ExecuteNonQuery());cancellationToken.ThrowIfCancellationRequested();transaction.Commit();return result;
         },cancellationToken);
 
-    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
+    internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))!=digest)
             throw new InvalidDataException("The frozen outbox payload digest differs.");

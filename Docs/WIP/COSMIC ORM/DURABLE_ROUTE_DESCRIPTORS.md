@@ -78,3 +78,35 @@ Latest snapshot-worker evidence (paths relative to worktree):
 | `TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx` | 4 | `CB96B8606AAD57B90A16037B785C250F440795E2F7FCD6CF635A25ADA2BADFAE` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 6 | `A3D55E4BB8DFECE8E03C8BFDC1086EF1DF3F07A8C924A80C687C0589566AA597` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-crash-current.trx` | 1 | `34496FB3F68FE0F7EAA40884331D9ACDD44F4D2D726E7E629F1CE109BCFD2568` |
+
+## Source-owned destination catalogue foundation
+
+Core `da779a3` adds a native-source-scoped read-only catalogue contract. SQLite
+records a physical destination approval in the same native transaction as the
+primary graph, receipt and outbox. A new write to a different destination identity
+returns `COSMIC_REPLICATION_DESTINATION_REBIND_REQUIRED`. Exact receipt replay is
+checked first; failed transactions roll back newly introduced approvals as well.
+
+The integrity-bound Shared record retains original establishment operation,
+binding revision and policy provenance. Original policy is not current actor
+authorization. Corrupt records fail closed; reading never repairs them. On upgrade,
+an absent catalogue entry can be read from the latest complete immutable native
+outbox descriptor, with a 256-row scan limit; the next primary transaction records
+that original establishment. Older transport without descriptors is not identity
+proof. Migration downgrade refuses to remove nonempty approval storage.
+
+Five native SQLite scenarios cover independent-client/restart rebinding refusal,
+second-target transactional rollback, read-only historical bootstrap, corrupt
+approval refusal and same-destination/new-policy provenance. Mongo/Neo target
+identities in these tests are declarations only, not native delivery proofs.
+
+This is a foundation checkpoint, not completed automatic offline enrollment.
+Mongo/Neo catalogue implementations, planner integration, operator rebinding,
+V2 lineage migration, historical scan byte budgeting and all-provider lifecycle
+acceptance remain open. No public deployment promotion is implied.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/destination-catalogue-core.trx` | 4411 | `F9DCDCEA5078A2BC94EFA53246292A705C746E23D39543137512388512424CB7` |
+| `TestResults/OwnedRoutingCurrent/destination-catalogue-shared.trx` | 1316 | `1D80C80440E22FB5CB157FD11444FCFC9A25045F34344331E99E48FF6ADB4EF8` |
+| `TestResults/OwnedRoutingCurrent/destination-catalogue-sqlite.trx` | 9 | `B4A4A32A74F65DEA60977CBF2F4DD17D0E6BDC77D1A29EC4826D8B6297BD9123` |
