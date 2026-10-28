@@ -137,15 +137,16 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
             if(plan.Query.ReadAccess==null||plan.Query.ReadAccess.Authority.HasValue&&plan.Query.ReadAccess.Authority!=source.SourceProvider)
                 return Error<CosmicChainIndexRows>("CQL_ACCESS_INVALID","A server-bound matching actor read policy is required.");
             var sql=HolonRepository.CompileChainIndexRows(plan.Query); // Full translation precedes storage/source I/O.
+            var selectedSql=columns==null?null:HolonRepository.CompileChainIndexProjection(columns,sql.Parameters);
             cancellationToken.ThrowIfCancellationRequested();
             var raw=new List<CosmicChainQueryObservedRecord>();CosmicChainQueryCheckpoint checkpoint=null;
             var snapshot=await CosmicIndexedReadAttempts.ExecuteIndexSnapshotAsync(source,()=>{
-            using(var connection=Open())using(var budget=metadataPolicy==null?null:new SqliteCqlReadBudget(connection,cancellationToken))
+            using(var connection=Open())using(var budget=metadataPolicy==null&&columns==null?null:new SqliteCqlReadBudget(connection,cancellationToken))
             using(var transaction=connection.BeginTransaction(deferred:true)){
                 var state=ReadState(connection,transaction);if(state==null)return Task.FromResult(Error<bool>("CQL_SOURCE_EVIDENCE_MISSING","Index has no complete checkpoint."));
                 ValidateQueryProjection(connection,transaction,state);checkpoint=state.Checkpoint;
                 using var command=connection.CreateCommand();command.Transaction=transaction;
-                command.CommandText="SELECT h.Receipt,h.Payload"+(columns==null?"":","+string.Join(",",columns.Select(column=>ProjectionSqlColumn(column.Path))))+" FROM CosmicChainIndexRows AS Holon JOIN CosmicChainIndexHistory h ON h.Id=Holon.Id AND h.Version=Holon.Version WHERE Holon.IsDeleted=0 AND ("+sql.Predicate+") ORDER BY "+sql.Ordering+" LIMIT $rowLimit OFFSET $rowOffset";
+                command.CommandText="SELECT h.Receipt,h.Payload"+(columns==null?"":","+selectedSql)+" FROM CosmicChainIndexRows AS Holon JOIN CosmicChainIndexHistory h ON h.Id=Holon.Id AND h.Version=Holon.Version WHERE Holon.IsDeleted=0 AND ("+sql.Predicate+") ORDER BY "+sql.Ordering+" LIMIT $rowLimit OFFSET $rowOffset";
                 command.Parameters.AddRange(sql.Parameters.ToArray());command.Parameters.AddWithValue("$rowLimit",plan.Query.Limit.HasValue?Math.Min(plan.Query.Limit.Value,maximumResults+1):maximumResults+1);
                 command.Parameters.AddWithValue("$rowOffset",plan.Query.Offset);
                 using var cancellation=cancellationToken.Register(command.Cancel);using var reader=command.ExecuteReader();
@@ -154,7 +155,7 @@ SELECT r.Id,r.Version,r.VersionId,r.IsDeleted,r.CreatedByAvatarId,r.IsPublic,r.N
                     var receiptJson=reader.GetString(0);var receipt=JsonSerializer.Deserialize<CosmicChainQueryRecordReceipt>(receiptJson);
                     raw.Add(new(receipt,codec.Decrypt(context+"/record/"+receiptJson,reader.GetString(1))));
                     if(columns!=null)selectedCells.Add(new CosmicProjectionRow(columns.Select((column,index)=>
-                        ProjectionSqlValue(reader,index+2,column.Path)).ToArray()));
+                        ProjectionSqlValue(reader,index*2+2,column.Path)).ToArray()));
                 }
                 budget?.Check();
             }

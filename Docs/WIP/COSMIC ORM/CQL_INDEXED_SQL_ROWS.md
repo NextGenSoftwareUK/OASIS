@@ -420,3 +420,13 @@ and TestResults/SolanaCurrent/solana-indexed-native.trx/json.
 ## Metadata policy foundation
 
 The shared explicit queryable-root policy and source admission are implemented. Explicit schema3 now authenticates selected queryable metadata roots and executes native rows/cardinality;22newcases/98indexed-store/205fullprovider tests pass. Existing schema2 remains canonical-only and is not migrated. SDK/WEB4/live-dataset acceptance and selected metadata columns remain open. See [schema3 contract and verified scope](CQL_INDEXED_METADATA.md).
+
+## Selected metadata SDK milestone
+
+Schema3 now explicitly enrolls selected string/Boolean/Int32/Int64 and nullable
+metadata under its selected roots. The shared owner verifies typed cells against
+validated source witnesses before DTO construction. SQLite reuses its state/value
+projection translator and decoder with an explicit index canonical-column map.
+Full provider219tests pass, including12newselected-metadata cases;8newCore cases
+prove admission and forged-cell rejection. Existing schema2 remains canonical-only.
+Live/HTTP selected metadata acceptance remains pending; see CQL_INDEXED_METADATA.md.
