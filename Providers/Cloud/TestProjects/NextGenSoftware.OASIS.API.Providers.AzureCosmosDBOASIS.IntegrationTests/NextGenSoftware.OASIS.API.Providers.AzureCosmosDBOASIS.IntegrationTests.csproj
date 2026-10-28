@@ -12,6 +12,7 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/CloudFederationWalkthrough.cs" Link="Demo/CloudFederationWalkthrough.cs" />
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/CloudFederationApiHost.cs" Link="Demo/CloudFederationApiHost.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/HostedCosmosReadSettings.cs" Link="Demo/HostedCosmosReadSettings.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <!-- Compile the actual bounded WEB4 endpoints/controller, as the existing
