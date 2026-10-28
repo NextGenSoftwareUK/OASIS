@@ -740,3 +740,32 @@ var demo = await ChainIndexedWalkthrough.RunAsync(
 ```
 
 [Native runner, evidence and limits](CQL_SOLANA_DEMO_ADMISSION.md#live-declared-range-sdk-demo-new-range-not-original-recovery).
+
+
+### Native chain HTTP acceptance
+
+The reusable Solana runner's `-IndexedHttpDemo` mode exercises shipping HTTP with
+the acknowledged native seed and actual index. It runs five bounded requests
+(rows, empty, two replays, unsupported graph) and shuts the host down afterward.
+It never creates a replacement seed. [Command and limits](CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
+
+The accepted wire shape is:
+
+```json
+{
+  "alias": "solana-native-demo",
+  "query": {
+    "filters": [
+      { "field": "Id", "scalar": "Guid", "operator": "Equal", "value": "<selected-holon-id>" }
+    ],
+    "orderBy": "Name",
+    "take": 1
+  }
+}
+```
+
+Use the synthetic Id from LocalState/COSMIC/SolanaCqlCurrent/seed.acknowledged.json.
+The server must own that alias and its actor/source/index/tariff grant; this is
+not a command that enrolls the alias in a running deployment. Production JWT and
+durable ledger acceptance remain separate. Retain X-OASIS-Operation-Id and source
+receipts; slots are returned as strings to preserve integer precision.

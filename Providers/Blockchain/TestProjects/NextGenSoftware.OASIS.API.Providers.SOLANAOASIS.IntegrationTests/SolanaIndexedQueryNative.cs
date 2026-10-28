@@ -18,7 +18,7 @@ using Solnet.Wallet.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
-public class SolanaIndexedQueryNative
+public partial class SolanaIndexedQueryNative
 {
     // Persist this acknowledgement outside disposable TestResults. A lost outcome
     // must be reconciled from the original intent, never replaced with a new seed.
@@ -36,8 +36,10 @@ public class SolanaIndexedQueryNative
         Assert.IsNotNull(root);
         var state = Path.Combine(root.FullName, "LocalState", "COSMIC", "SolanaCqlCurrent");
         Directory.CreateDirectory(state);
+        var httpMode = Environment.GetEnvironmentVariable("OASIS_SOLANA_INDEXED_HTTP") == "1";
         var pending = Path.Combine(state, "seed.pending.json");
         var complete = Path.Combine(state, "seed.acknowledged.json");
+        if (httpMode) Assert.IsTrue(File.Exists(complete), "Run the explicit SDK seed gate first; HTTP never creates a seed.");
         Assert.IsFalse(File.Exists(pending), "Reconcile the original seed outcome; do not submit another seed.");
         Assert.IsFalse(File.Exists(complete + ".next"), "Preserve an interrupted acknowledgement.");
         var secret = Encoders.Base58.DecodeData(Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")!);
@@ -135,12 +137,13 @@ public class SolanaIndexedQueryNative
             Assert.IsTrue(rows.Checkpoint.Position.Slot >= rows.Receipts.Single().Position.Slot);
             Assert.AreEqual(0, demo.Empty.Rows.Count);
 
-            var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, "solana-indexed-native.json");
+            object? http = httpMode ? await VerifyNativeHttpAsync(manager, reopened, repository, source, requirement, seed) : null;
+            var output = Path.Combine(Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE")!, httpMode ? "solana-indexed-http-native.json" : "solana-indexed-native.json");
             await WriteNewAsync(output, new {
-                scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production WEB4 billing",
+                scope = "Native Solana declared-range SQLite index and manager/LINQ SDK; not original-history recovery or production authentication/durable billing",
                 sourceProvider = source.SourceProvider.ToString(), executionProvider = source.ExecutionProvider.ToString(),
                 seed.Writer, seed.Genesis, seed.Id, seed.IndexId, seed.CoverageStart, seed.Signature,
-                submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
+                http, submittedNewSeed = submitted, originalRecordRecoveryVerified = false,
                 checkpoint = rows.Checkpoint.Position.Slot, finalizedHead = rows.Head.Position.Slot,
                 rows = rows.Rows.Count, emptyRows = demo.Empty.Rows.Count,
                 indexBytes = new FileInfo(database).Length, indexPath = database, seedPath = complete });

@@ -199,3 +199,13 @@ for the declared range only. Original historical recovery/range0, live-source HT
 production authentication/durable billing, full common demo and parity remain red.
 
 Native walkthrough final TRX SHA256: 44C3556C46FB7203FB0F2010F266DAF0732B60E5DBAF0904DB266173A216C7DC; summary JSON SHA256: 80BD7F435BB5B814878DCC42405B52E9898AE817792A4277847F0A2705547571. See the single environment ledger for durable dataset hashes/sizes and verified shutdown.
+
+
+### Live-source HTTP milestone
+
+The separately selected `-IndexedHttpDemo` now passes a five-request shipping
+HTTP gate using this exact seed/index/live validator, with zero source writes.
+Rows/empty bill actual SQL/RPC receipts; replay and unsupported graph intent reject.
+See [HTTP command, evidence and limits](CQL_INDEXED_HTTP.md#live-solana-source-through-shipping-http-27-october).
+Identity/ledger remain controlled; production authentication/durable billing,
+original recovery, common-demo capability breadth and full parity remain open.
