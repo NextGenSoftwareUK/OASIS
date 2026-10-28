@@ -34,6 +34,28 @@ public sealed class ActivityPubCqlKeySetTests
         Assert.All(result.Result, row => { Assert.True(row.IsPublic); Assert.Empty(row.Children); Assert.Equal(row.MetaData[ActivityPubOASIS.CqlStatusKey], row.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]); });
         Assert.Equal(1, transport.BatchReads);
         Assert.Equal("?id[]=123&id[]=456&id[]=789", Uri.UnescapeDataString(transport.Query!));
+
+        // Execute the actual developer walkthrough through HolonManager and deferred
+        // LINQ too; the sample must not become a separate in-memory query engine.
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA
+        {
+            OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            {
+                HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                StorageProviders = new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings { LogSwitchingProviders = false }
+            }
+        };
+        var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna)
+        {
+            IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
+        };
+        using var output = new StringWriter();
+        var demonstrated = await CosmicCqlDemo.NativeKeySetWalkthrough.RunAsync(
+            new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(provider,dna,registry),
+            provider,new[] { "123", "456", "789" },Guid.NewGuid(),output);
+        Assert.Equal(result.Result.Select(row => row.Id),demonstrated.Select(row => row.Id));
+        Assert.Contains("Selected native keys: 3; returned holons: 2",output.ToString());
+        Assert.Equal(2,transport.BatchReads);
     }
 
     [Theory]
@@ -106,3 +128,4 @@ public sealed class ActivityPubCqlKeySetTests
         }
     }
 }
+

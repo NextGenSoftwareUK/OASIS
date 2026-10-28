@@ -727,3 +727,27 @@ writes are needed. Production identity/billing and full parity remain open.
 MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
 retained-fixture preflight; it does not reset data. See
 [required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).
+
+## Multi-record protocol C# walkthrough
+
+See [NativeKeySetWalkthrough.cs](NativeKeySetWalkthrough.cs) for one spaced,
+commented example shared by IPFS, SOLID and ActivityPub/Mastodon. Supply an activated
+adapter enrolled with `EnableCqlCidKeySets`, `EnableCqlRecordKeySets`, or
+`EnableCqlStatusKeySets`, respectively, then pass existing native keys and the actor:
+
+```csharp
+var rows = await NativeKeySetWalkthrough.RunAsync(
+    manager,
+    adapter,
+    nativeKeys,
+    actorId,
+    Console.Out,
+    cancellationToken);
+```
+
+The sample explicitly scopes the provider, captures `Contains` as native key
+membership, binds read access, and executes through shared HolonManager/LINQ.
+IPFS/SOLID admit at most8 keys; Mastodon at most40. This does not enroll arbitrary
+content filtering. Native multi-record tests pass for all three; this shared sample
+is also compiled/executed by the controlled ActivityPub suite. Multi-record browser
+buttons and actual Mongo-paired federation presets are still being implemented.
