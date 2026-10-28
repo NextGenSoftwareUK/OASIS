@@ -870,3 +870,50 @@ envelope. An omitted/null columns array retains ordinary entity-row behavior.
 On success, mode is indexed-projection. Columns describe the typed cells in each
 rows array; checkpoint, finalizedHead and receipts retain provenance/freshness.
 [Registration, complete contract and native evidence](CQL_INDEXED_HTTP.md#optional-native-selected-columns-on-indexed-27-october).
+
+
+### Indexed Count / LongCount / Any SDK
+
+Use a bound CosmicQuery source with explicit indexed freshness and server actor
+policy. These are scalar builder methods on CosmicQuery, not yet terminals on the
+indexed IQueryable bridge. The separate reader capability is mandatory.
+
+```csharp
+var scalar = sourceQuery.Count(); // Or LongCount() / Any().
+if (scalar.IsError)
+    throw new InvalidOperationException(scalar.Message);
+
+var target = new CosmicScalarTarget(
+    index.Source.SourceProvider,
+    index.IndexedRowCapabilities,
+    index.IndexedScalarCapabilities,
+    index.Source);
+
+var plan = CosmicScalarPlanner.Plan(
+    scalar.Result,
+    index.Source.SourceProvider,
+    new[] { target });
+
+if (plan.IsError)
+    throw new InvalidOperationException(plan.ErrorCode + ": " + plan.Message);
+
+var result = await manager.ExecuteIndexedScalarQueryAsync(
+    plan.Result,
+    index,
+    sourceObserver,
+    cancellationToken);
+
+if (result.IsError)
+    throw new InvalidOperationException(result.ErrorCode + ": " + result.Message);
+
+Console.WriteLine(result.Result.Value);
+Console.WriteLine(result.Result.Checkpoint.Position.Slot);
+```
+
+SQL counts the actor-visible source window, not a materialized result page.
+The returned assurance is authenticated-index-snapshot with fresh finalized
+head/anchors. It does not assert per-record source availability or expose global
+index manifest statistics. Current SQLite index integrity scanning is bounded to
+10,000 history entries; larger-index scaling remains a separate gap. LINQ/HTTP,
+terminal predicates and additional aggregates are not enrolled by this milestone.
+[Contract and evidence](CQL_INDEXED_SQL_ROWS.md#indexed-native-cardinality-sdk-27-october).

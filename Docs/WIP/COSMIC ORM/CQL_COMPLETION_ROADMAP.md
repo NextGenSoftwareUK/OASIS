@@ -40,3 +40,9 @@ Indexed HTTP projection is implemented via optional frozen columns on the existi
 indexed route. FullCore4165 and nine-request live Solana/SQLite HTTP gate pass.
 Next: indexed aggregate/metadata capabilities and common-demo gaps; production
 authentication/durable billing and full parity remain open.
+
+Indexed native Count/LongCount/Any SDK now passes13Core/18SQLite cases through
+shared scalar planner, V2 manager and the existing prepared read owner. Full
+Core4180/SQLite67/Solana799pass. Next: LINQ/HTTP and native-source cardinality
+acceptance; snapshot assurance differs from per-record row proofs. Metadata,
+other aggregates/selected stages and full parity remain open.

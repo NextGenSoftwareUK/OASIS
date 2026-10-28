@@ -48,3 +48,9 @@ Daily27October integration: incoming Development RecordNotFound fix and2legacy
 regressions preserved without new legacy edits. Merged Core4eb3dab published to
 Development/task branch; parent pin/gitlink advance together. FullCore4167,
 SQLite49,Solana799pass; WEB4/demo/five controller consumers build.
+
+Indexed native Count/LongCount/Any SDK now passes13Core/18SQLite cases through
+shared scalar planner, V2 manager and the existing prepared read owner. Full
+Core4180/SQLite67/Solana799pass. Next: LINQ/HTTP and native-source cardinality
+acceptance; snapshot assurance differs from per-record row proofs. Metadata,
+other aggregates/selected stages and full parity remain open.
