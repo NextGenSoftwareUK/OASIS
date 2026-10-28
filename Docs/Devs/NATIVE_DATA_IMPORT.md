@@ -89,7 +89,7 @@ they always had.
   forms of them.
 - Internal names (`*.internal`, `*.local`, `*.localhost`, single-label hosts) are refused without a lookup. For other names
   every resolved address must be public; one private answer refuses the host. A name that does not resolve in 5 seconds is refused.
-- `OASIS_NATIVE_IMPORT_ALLOW_PRIVATE=true` switches the guard off. Use it only on a development machine importing from local services.
+- DNA `OASIS.NativeImport.AllowPrivateAddresses` (default `false`) switches the guard off; the bootloader applies it at boot. Use it only on a development machine importing from local services, never on a hosted node.
 - Residual risk: the driver resolves the name again when it connects, so a hostile DNS server could answer differently the
   second time (DNS rebinding). Run WEB4 in a network that cannot reach anything sensitive from the importer's host.
 
@@ -233,7 +233,7 @@ nativeimport delete-mapping mongodb customers
 `{ "uri": "mongodb+srv://reader:...@cluster.example.net", "database": "shop" }`. It is a file, not a command-line value, so
 credentials stay out of shell history and process listings. Without it the server's configured demo store is read.
 The CLI runs on your own machine, so it may connect to local and private databases (`localhost`, a LAN host): the public-address
-guard is switched off inside the CLI process. The guard only applies to a hosted WEB4, where "localhost" would mean the server itself.
+guard is switched off inside the CLI process (it sets the guard flag for itself). The guard only applies to a hosted WEB4, where "localhost" would mean the server itself.
 Provider names accept the full type (`MongoDBOASIS`) or the short form (`mongodb`, `sqllite`, `neo4j`). `preview` saves
 nothing. `import` and `preview` use the saved mapping for the source when there is one, and the naming convention
 otherwise; `import-all` applies every saved mapping. Implementation: `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/NativeImportCli.cs`
