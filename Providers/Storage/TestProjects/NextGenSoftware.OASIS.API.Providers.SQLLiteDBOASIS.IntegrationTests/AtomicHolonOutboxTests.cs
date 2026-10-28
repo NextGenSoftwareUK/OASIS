@@ -79,19 +79,25 @@ public partial class SQLLiteDBOASISIntegrationTests
     }
 
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task AtomicOutboxCommitsFrozenGraphForEveryTargetAndReplaysWithoutDuplicates(bool synchronous)
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public async Task AtomicOutboxCommitsFrozenGraphForEveryTargetAndReplaysWithoutDuplicates(bool synchronous,bool bindSource)
     {
         using var provider=new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var child=new Holon{Id=Guid.NewGuid(),Name="child"};
         var input=new Holon{Id=Guid.NewGuid(),Name="original",Children=new List<IHolon>{child}};
         var request=OutboxCreate(input);var targets=new List<string>{"target-b","target-a"};
-        var enrollment=new HolonReplicationEnrollment("owned-source",targets);targets.Clear();
+        var captured=bindSource ? await provider.CaptureStorageIdentityAsync():null;
+        if(bindSource)captured!.IsError.Should().BeFalse(captured.Message+captured.Exception);
+        var enrollment=new HolonReplicationEnrollment("owned-source",targets,captured?.Result);
+        Task<NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>>> Execute(HolonReplicationEnrollment value)
+            => synchronous ? Task.FromResult(provider.ExecuteReplicatingHolonWrite(request,value)):provider.ExecuteReplicatingHolonWriteAsync(request,value);
+        if(bindSource)await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.RejectWrongAsync(enrollment,Execute);targets.Clear();
         var result=synchronous ? provider.ExecuteReplicatingHolonWrite(request,enrollment)
             :await provider.ExecuteReplicatingHolonWriteAsync(request,enrollment);
         result.IsError.Should().BeFalse(result.Message+result.Exception);
         var committed=result.Result.Single();
+        if(bindSource)await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.VerifyCommittedAsync(provider,request,enrollment,Execute);
         await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(provider.GetHolonReplicationOutbox().Result,enrollment.TargetIds,request.Write.OperationId);
         using var connection=new SqliteConnection(TestConnectionString);connection.Open();
         using var query=connection.CreateCommand();query.CommandText="SELECT TargetId,PayloadJson,PayloadDigest FROM CosmicHolonOutbox ORDER BY Sequence";
@@ -111,7 +117,7 @@ public partial class SQLLiteDBOASISIntegrationTests
             reader.Read().Should().BeFalse();
         }
         payloads.Distinct().Should().HaveCount(1);
-        var replay=await provider.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("owned-source",new[]{"target-a","target-b"}));
+        var replay=await provider.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("owned-source",new[]{"target-a","target-b"},enrollment.SourceStorageIdentity));
         replay.IsError.Should().BeFalse(replay.Message+replay.Exception);replay.Result.Single().VersionId.Should().Be(committed.VersionId);
         query.CommandText="SELECT COUNT(*) FROM CosmicHolonOutbox";Convert.ToInt64(query.ExecuteScalar()).Should().Be(2);
         input.Name="later";input.Children.Clear();

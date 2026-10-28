@@ -26,6 +26,7 @@ public partial class HolonRepository
     {
         var intent=new JObject { ["format"]=1, ["kind"]="atomic-holon-replication",
             ["mutation"]=mutationFingerprint, ["source"]=enrollment.SourceId, ["targets"]=new JArray(enrollment.TargetIds) };
+        if(enrollment.SourceStorageIdentity!=null){intent["format"]=2;intent["sourceStorageBinding"]=enrollment.SourceStorageIdentity.BindingFingerprint;}
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(intent.ToString(Formatting.None))));
     }
 

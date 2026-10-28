@@ -45,7 +45,8 @@ public partial class HolonRepository
             string sessionId=null;long transactionNumber=0;
             try
             {
-                await ValidateReplicaStorageBindingAsync(database, session, conditional?.ExpectedStorage, cancellation).ConfigureAwait(false);
+                await ValidateReplicaStorageBindingAsync(database, session, conditional?.ExpectedStorage, cancellation,
+                    conditional?.Plan is ConditionalHolonPlan ? "COSMIC_SOURCE_STORAGE_BINDING":"COSMIC_REPLICA_STORAGE_BINDING").ConfigureAwait(false);
                 var receipts = database.GetCollection<BsonDocument>("CosmicWriteReceipt");
                 if (conditional != null)
                 {

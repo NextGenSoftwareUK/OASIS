@@ -37,7 +37,12 @@ public partial class HolonRepository
             settings.Pooling = false;
             using var connection = new SqliteConnection(settings.ToString());
             connection.Open();
+            var expectedSource=original.Write.ReplicationEnrollment?.SourceStorageIdentity;
+            using var bindingTransaction=expectedSource==null ? null:connection.BeginTransaction(deferred:true);
+            if(expectedSource!=null && SqliteStorageIdentity.Read(connection,bindingTransaction).BindingFingerprint!=expectedSource.BindingFingerprint)
+                throw new InvalidDataException("The native source does not match the original operation binding.");
             using var command = connection.CreateCommand();
+            command.Transaction=bindingTransaction;
             command.CommandText = "SELECT RequestHash, ResultJson FROM CosmicWriteReceipt WHERE OperationId = $id LIMIT 2";
             command.Parameters.AddWithValue("$id", plan.OperationId.ToString("D"));
             using var reader = command.ExecuteReader();

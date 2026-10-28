@@ -22,15 +22,20 @@ public partial class MongoDBOASIS : IConditionalHolonWriteRecoveryStorageProvide
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.MongoDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.MongoDBOASIS, original.Write.ReplicationEnrollment);
-            var database = Database?.MongoDB;
-            if (!IsProviderActivated || database == null)
-                throw new InvalidOperationException("MongoDB provider is not activated.");
-            // Observe durable acknowledgement on the authority. No operation
-            // fence, transaction claim, preparation or mutation is entered.
-            var collection = database.GetCollection<BsonDocument>("CosmicWriteReceipt")
-                .WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority);
-            var receipt = await collection.Find(new BsonDocument("_id", plan.OperationId.ToString("D")))
-                .SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            if (!IsProviderActivated)throw new InvalidOperationException("MongoDB provider is not activated.");
+            BsonDocument receipt;
+            if(plan.ReplicationEnrollment?.SourceStorageIdentity!=null)
+            {
+                var repository=_holonRepository ?? throw new InvalidOperationException("The native repository is closed.");
+                receipt=await repository.ReadBoundConditionalReceiptAsync(plan.OperationId,plan.ReplicationEnrollment.SourceStorageIdentity,cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var database=Database?.MongoDB ?? throw new InvalidOperationException("MongoDB provider is not activated.");
+                receipt=await database.GetCollection<BsonDocument>("CosmicWriteReceipt")
+                    .WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority)
+                    .Find(new BsonDocument("_id",plan.OperationId.ToString("D"))).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            }
             HolonCommittedDelta delta = null;
             var state = ConditionalHolonReceiptState.Absent;
             if (receipt != null)

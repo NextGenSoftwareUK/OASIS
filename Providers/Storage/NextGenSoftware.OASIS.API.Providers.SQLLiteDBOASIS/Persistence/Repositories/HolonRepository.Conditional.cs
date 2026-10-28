@@ -36,9 +36,13 @@ public partial class HolonRepository
         CosmicStorageIdentity expectedStorage=null)
     {
         var embedded=request?.Write.ReplicationEnrollment;
-        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)))
+        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
+            || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint))
             return ConditionalError("COSMIC_REPLICATION_ENROLLMENT_MISMATCH","The explicit and embedded replication enrollments differ.");
         enrollment??=embedded;
+        var sourceBinding=enrollment?.SourceStorageIdentity;
+        var bindingCodePrefix=sourceBinding==null ? "COSMIC_REPLICA_STORAGE_BINDING":"COSMIC_SOURCE_STORAGE_BINDING";
+        expectedStorage??=sourceBinding;
         PreparedGraph graph=null;SqliteTransaction native=null;
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted=null;
         var commitEntered=false;var opened=false;var rollbackFailed=false;var knownAcknowledgement=false;var admissionComplete=false;
@@ -118,11 +122,11 @@ public partial class HolonRepository
                 try { actual = SqliteStorageIdentity.Read(connection, native); }
                 catch (Exception cause) when (cause is System.IO.InvalidDataException || cause is SqliteException)
                 {
-                    return ConditionalError("COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                    return ConditionalError(bindingCodePrefix+"_INVALID",
                         "The receiver identity is missing or invalid; no identity was initialized and no replica applied.", cause);
                 }
                 if (actual.BindingFingerprint != expectedStorage.BindingFingerprint)
-                    return ConditionalError("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+                    return ConditionalError(bindingCodePrefix+"_MISMATCH",
                         "The native receiver does not match the enrolled storage identity.");
             }
             enlisted = _dbContext.Database.UseTransaction(native);

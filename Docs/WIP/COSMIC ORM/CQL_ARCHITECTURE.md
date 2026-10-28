@@ -361,3 +361,10 @@ Native outboxes also provide bounded read-only inventory of oldest unfinished ro
 heads,independent of current configured targets. This keeps old route IDs discoverable
 for subsequent operator handling;the worker has not yet adopted native binding/inventory.
 [Contract,verification and remaining acceptance](REPLICA_ROUTE_INVENTORY.md).
+
+Primary enrollment can additionally carry SourceStorageIdentity. The provider must
+advertise IBoundAtomicHolonReplicationStorageProvider and check that identity in the
+native graph/receipt/outbox transaction before replay;bound intent has a distinct
+fingerprint from unbound intent. Original-outcome recovery repeats native source
+verification. All3local native stores implement this optional contract;automatic
+routing has not yet adopted it. [Proof and remaining scope](PRIMARY_SOURCE_BINDING.md).

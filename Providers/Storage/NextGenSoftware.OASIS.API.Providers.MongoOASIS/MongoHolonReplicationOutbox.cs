@@ -23,9 +23,9 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
     public MongoHolonReplicationOutbox(MongoDbContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        _client=context.MongoClient ?? throw new ArgumentException("An initialized Mongo context is required.",nameof(context));
-        _rows=(context.MongoDB ?? throw new ArgumentException("A Mongo database is required.",nameof(context)))
-            .GetCollection<BsonDocument>("CosmicHolonOutbox");
+        var database=context.MongoDB ?? throw new ArgumentException("A Mongo database is required.",nameof(context));
+        _rows=database.GetCollection<BsonDocument>("CosmicHolonOutbox");
+        _client=database.Client ?? throw new ArgumentException("The native database client is required.",nameof(context));
     }
 
     public Task<OASISResult<HolonDeliveryClaim>> ClaimNextAsync(string targetId,string workerId,TimeSpan leaseDuration,CancellationToken cancellationToken=default)

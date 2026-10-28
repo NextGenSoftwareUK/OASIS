@@ -5,11 +5,20 @@ Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Latest verified milestone
 
+[Atomic primary-source binding](PRIMARY_SOURCE_BINDING.md):all3local stores enforce
+optional source expectation before native commit/replay and original-outcome recovery.
+SQLite5/Mongo5/Neo4native,4386Core/1285Shared pass. Real SQLite copy/Mongo UUID replacement
+retain old receipts but cannot falsely verify/replay them. Plain atomic capability is
+insufficient for bound intent;Mongo queue/recovery use the activated native owner.
+Default automatic routes still do not supply these expectations.
+
+## Prior inventory milestone
+
 [Durable route inventory](REPLICA_ROUTE_INVENTORY.md) now discovers bounded pages of
 unfinished native targets independently of current configuration. SQLite3/Mongo2/Neo2
 native cases and4384Core pass. SQLite also proves blocked/leased/deferred visibility,
 completed-head skip,case-sensitive targets,read-only state and no partial corrupt page.
-Worker consumption and atomic primary source binding are next;automatic routing stays unbound.
+Worker consumption and automatic route/policy snapshots remain next;atomic source binding is verified by the newer milestone.
 
 ## Prior receiver milestone
 
