@@ -980,9 +980,7 @@ From C:/Source/OASIS-cosmic run Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Prov
 
 ### Selection after entity windows and stages (Q01f, partial)
 
-The explicit entity-projection API is native-verified on SQLite and MongoDB.
-Neo4j, the standard IQueryable post-window Select bridge and remaining numeric
-integration are still pending. Q01f remains red; this is not general LINQ parity.
+The explicit entity-projection API is native-verified on SQLite, MongoDB and Neo4j. The standard IQueryable post-window Select bridge and remaining numeric integration are still pending. Q01f remains red; this is not general LINQ parity.
 
 An earlier page must retain its meaning when a later filter/order/selection runs.
 For example, select the first twenty names, then filter/reorder that page, then
@@ -1027,7 +1025,7 @@ var result = Require(await manager.ExecuteEntityProjectionQueryAsync(
 
 `Require` is the sample boundary helper that throws on an OASISResult error;
 applications should handle that result explicitly. Source and stage row/work/byte
-limits are independent of final output limits. Mongo runs source and every staged
+limits are independent of final output limits. Neo4j streams canonical input proof and selected cells in one native Cypher query with explicit output positions. Its existing snapshot-consistency restrictions remain; a read transaction is not an upgrade to ProviderSnapshot. Canonical proof records are validated internally without constructing application source entities or result DTOs. Mongo runs source and every staged
 protected-scope proof in the same snapshot before publishing selected cells. The
 existing projection decoder validates exact domains and payload shape; the shared
 owner constructs application DTOs only after complete validation. Empty output
@@ -1047,3 +1045,6 @@ Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedStorage.ps1 -MongoEntityProject
 under its own single lease. It uses the existing replica environment, journals a
 small absent-at-preflight five-record database, preserves failed outcomes and
 verifies exact successful cleanup. It never changes preserved SQLite evidence.
+
+Neo4j proof:149focused CQL tests (including3new compiler/admission cases) and the same10native cases as Mongo/SQLite. Unit TRX TestResults/CoreCurrent/neo-entity-projection-unit.trx SHA256E554D51BBB5F82DF2B800C50B4C3724550E729DC81BA68B12FB1359AA3897DCD. Native TRX TestResults/Neo4jCurrent/neo-entity-projection-native.trx SHA256E3313399375F4C27BDBE0B0FF0E1F61CF10FCDA37421EB38CB7F825AEF6776A1; native JSON A6391BC347A7B59A2306C8A32A74099BE7FBAE75373D18C4093E91F3BA4E90DD. Run Scripts/TestHosts/Inspect-CqlDatabaseRetainedGraph.ps1 -EntityProjection under its own single lease. It reuses the retained container, journals five owned nodes before creation, preserves failed outcomes and verifies exact-ID cleanup before stopping the container. No Mongo service, old SQLite fixture or historical journal is needed by this mode. The new path reuses native cell decoding, canonical source-proof validation and the original entity-stage compiler rather than materializing an entity page for managed Select.
+

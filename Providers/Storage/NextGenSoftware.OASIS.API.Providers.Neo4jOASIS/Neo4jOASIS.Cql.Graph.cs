@@ -73,7 +73,7 @@ public partial class Neo4jOASIS
     private static async Task<IReadOnlyList<IHolon>> ReadCqlRowsAsync(IResultCursor cursor,int maximumRows,NeoCqlReadBudget budget, CosmicEntityCompositionOptions entityOptions=null, Action<long> observeEntityCount=null)
     {
         var rows=new List<IHolon>();
-        var inputRows=0; long inputBytes=0;
+        var inputProofOwner=entityOptions==null ? null : new NeoCqlEntityInputProof(entityOptions);
         var countSeen=false;
         while(await cursor.FetchAsync().ConfigureAwait(false))
         {
@@ -94,28 +94,42 @@ public partial class Neo4jOASIS
             var snapshot=row["snapshot"].As<string>();
             if (inputProof)
             {
-                if (snapshot == null) throw new NeoCqlLimitException("Entity source record exceeds its native payload bound.");
-                inputBytes=checked(inputBytes+Encoding.UTF8.GetByteCount(snapshot));
-                if (++inputRows>entityOptions.MaximumInputRows || inputBytes>entityOptions.MaximumInputPayloadBytes)
-                    throw new NeoCqlLimitException("Entity source exceeds its row/payload budget.");
+                inputProofOwner.Observe(row);continue;
             }
-            else budget.Reserve(snapshot);
-            var holon=StoredRecordJson.DeserializeStoredHolon(snapshot);
-            if(!Guid.TryParse(row["id"].As<string>(),out var id) || holon.Id!=id)
-                throw new InvalidDataException("Neo4j CQL snapshot identity differs from its native identity.");
-            var physical=row["revision"].As<string>();
-            var revision=Guid.Empty;
-            if(physical!=null && !Guid.TryParse(physical,out revision))throw new InvalidDataException("Neo4j CQL native revision is invalid.");
-            if(CosmicConcurrency.GetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS)!=revision)
-                throw new InvalidDataException("Neo4j CQL snapshot and native revision observations disagree.");
-            CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS,revision);
-            holon.IsNewHolon=false;
-            if (!inputProof) rows.Add(holon);
+            budget.Reserve(snapshot);
+            rows.Add(ReadCqlCanonicalSnapshot(row,snapshot));
         }
         budget.Check();
         if (observeEntityCount != null && !countSeen)
             throw new InvalidDataException("Entity count acknowledgement is missing.");
         return rows.AsReadOnly();
+    }
+
+    private sealed class NeoCqlEntityInputProof(CosmicEntityCompositionOptions options)
+    {
+        private int rows;private long bytes;
+        internal void Observe(IRecord record)
+        {
+            var snapshot=record["snapshot"].As<string>();
+            if(snapshot==null)throw new NeoCqlLimitException("Entity source record exceeds its native payload bound.");
+            bytes=checked(bytes+Encoding.UTF8.GetByteCount(snapshot));
+            if(++rows>options.MaximumInputRows || bytes>options.MaximumInputPayloadBytes)
+                throw new NeoCqlLimitException("Entity source exceeds its row/payload budget.");
+            _=ReadCqlCanonicalSnapshot(record,snapshot);
+        }
+    }
+
+    private static IHolon ReadCqlCanonicalSnapshot(IRecord row,string snapshot)
+    {
+        var holon=StoredRecordJson.DeserializeStoredHolon(snapshot);
+        if(!Guid.TryParse(row["id"].As<string>(),out var id) || holon.Id!=id)
+            throw new InvalidDataException("Neo4j CQL snapshot identity differs from its native identity.");
+        var physical=row["revision"].As<string>();var revision=Guid.Empty;
+        if(physical!=null && !Guid.TryParse(physical,out revision))throw new InvalidDataException("Neo4j CQL native revision is invalid.");
+        if(CosmicConcurrency.GetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS)!=revision)
+            throw new InvalidDataException("Neo4j CQL snapshot and native revision observations disagree.");
+        CosmicConcurrency.SetProviderRevisionId(holon,Core.Enums.ProviderType.Neo4jOASIS,revision);
+        holon.IsNewHolon=false;return holon;
     }
 
     private sealed class NeoCqlReadBudget : IDisposable
