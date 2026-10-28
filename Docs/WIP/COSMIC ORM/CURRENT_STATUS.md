@@ -5,6 +5,7 @@ Updated28October2026 UTC. Read this first after compaction; update each mileston
 ## Work and priority
 
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
+- Verified code/docs batch published to Development:parent858edd8280294d748e0e4999e39c0a141c5b6042/Corebd86a37fa1df02d50e5d2d0e5ad4bd76cce1d26d; both remote refs verified after fresh fetch/ancestry checks. Later task-only integration records do not trigger another deployment.
 - Full ORM/CQL roadmap remains active/incomplete. Eight-provider demo breadth precedes remaining EF/NHibernate depth.
 - Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
 - HyperDriveV2 implementation only; document legacy gaps. Large POCO/migrations tooling stays deferred.
