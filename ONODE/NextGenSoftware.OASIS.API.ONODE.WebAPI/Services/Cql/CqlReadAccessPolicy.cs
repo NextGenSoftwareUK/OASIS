@@ -34,7 +34,7 @@ public static partial class CqlV1Endpoint
         ICosmicQueryStorageProvider Adapter, ProviderType Selected, CosmicQueryReadAccess Access);
 
     private static ReadPolicyObservation CaptureReadPolicy(HttpContext http, Guid actor,
-        ProviderType? requested, ICqlV1Providers providers, PreparedStorageExecution admission)
+        ProviderType? requested, ICqlV1Providers providers, PreparedStorageExecution admission, bool includeCloudReadProfile=false)
     {
         var resolved = http.RequestServices?.GetService(typeof(ICqlReadAccessPolicy));
         if (resolved == null)
@@ -49,7 +49,8 @@ public static partial class CqlV1Endpoint
         if (resolved is not ICqlReadAccessPolicy service)
             throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
 
-        if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected))
+        if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,
+            includeCloudReadProfile:includeCloudReadProfile))
             throw new ReadPolicyRejected(403, "CQL_PROVIDER_NOT_ELIGIBLE");
 
         OASISResult<CosmicQueryReadAccess> authorization;

@@ -27,7 +27,7 @@ public partial class HolonRepository
         int maximumResults, int maximumPayloadBytes, Func<BsonDocument, TRow> decode, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (command.IsEmpty && !command.RequiresMembership && !command.HasTraversalEnvelope) return Array.Empty<TRow>();
+        if (command.IsEmpty && !command.RequiresMembership && !command.HasTraversalEnvelope && command.EntityComposition==null) return Array.Empty<TRow>();
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         var elapsed = System.Diagnostics.Stopwatch.StartNew();
@@ -49,6 +49,8 @@ public partial class HolonRepository
                 if (session == null) throw new InvalidOperationException("Projection membership validation requires its snapshot owner.");
                 await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
             }
+            if(command.EntityComposition!=null)
+                await ValidateNativeEntityStagesAsync(command.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
             using var cursor = session == null
                 ? await _dbContext.Holon.AggregateAsync<BsonDocument>(command.Pipeline, Options(), deadline.Token).ConfigureAwait(false)
                 : await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Pipeline, Options(), deadline.Token).ConfigureAwait(false);

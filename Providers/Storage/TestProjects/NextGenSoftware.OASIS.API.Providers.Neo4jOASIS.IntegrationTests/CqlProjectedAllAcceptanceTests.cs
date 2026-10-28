@@ -18,7 +18,7 @@ using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLit
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
-public sealed class CqlProjectedAllAcceptanceTests
+public sealed partial class CqlProjectedAllAcceptanceTests
 {
     // Transparent observation only: each call still executes the actual native adapter.
     private sealed class Observed(ICosmicQueryProjectedAllStorageProvider native) : ICosmicQueryProjectedAllStorageProvider
@@ -54,9 +54,23 @@ public sealed class CqlProjectedAllAcceptanceTests
     [TestMethod]
     public Task ReviewedProjectedAllInitialFixtureContinuesWithoutReplayingCreates()=>VerifyFixture(reviewed:true);
 
-    private static async Task VerifyFixture(bool reviewed)
+    [TestMethod]
+    public Task NativeSourceRelationshipCompositionShapesAndConsumers()=>VerifyFixture(reviewed:false,sourceMatrix:true);
+
+    [TestMethod]
+    public Task NativeSourceAndProjectedAllDeveloperDemo()=>VerifyFixture(reviewed:false,demo:true);
+
+    [TestMethod]
+    public Task NativeStandardQueryableEntityRows()=>VerifyFixture(reviewed:false,linq:true);
+
+    [TestMethod]
+    public Task ReviewedStandardQueryableFixtureContinuesWithoutReplayingCreates()=>VerifyFixture(reviewed:true,linq:true);
+
+    private static async Task VerifyFixture(bool reviewed, bool sourceMatrix=false, bool demo=false, bool linq=false)
     {
         var work=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!;
+        var reports=Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_RESULTS");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(reports),"The runner must supply this worktree's disposable results directory.");
         var originalPath=Path.Combine(work,"cql-v1-web4-fixture.json");
         var original=await File.ReadAllBytesAsync(originalPath);
         Assert.AreEqual("892A8AF780ED445887ECBD6C191A7577B053872A13E5CF35FE592A56899894C5",Convert.ToHexString(SHA256.HashData(original)));
@@ -65,7 +79,9 @@ public sealed class CqlProjectedAllAcceptanceTests
         if(reviewed)
         {
             var preserved=await File.ReadAllBytesAsync(journal);
-            Assert.AreEqual("FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",Convert.ToHexString(SHA256.HashData(preserved)),"Only the inspected initial fixture may continue.");
+            Assert.AreEqual(linq ? "FAB22BCE0B767D8E0CB623EAAEF3E63148FA1BCD550AF77A3E8C0D47F3ED504C"
+                : "FE53AE55DF84AC35E5A7D0A6787CDC51BB7AC4B5CDFC4207164D38C4B300EA1F",
+                Convert.ToHexString(SHA256.HashData(preserved)),"Only the exact inspected fixture may continue.");
             using var parsed=JsonDocument.Parse(preserved);var prior=parsed.RootElement;
             Assert.AreEqual("created-Neo4jOASIS",prior.GetProperty("stage").GetString());
             ids=prior.GetProperty("ids").EnumerateArray().Select(value=>value.GetGuid()).ToArray();
@@ -128,17 +144,55 @@ public sealed class CqlProjectedAllAcceptanceTests
                 root.MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,
                     ["double"]=1d+2.220446049250313e-16d,["float"]=1f+1.1920929e-7f,["guid"]=actor,
                     ["utc"]=new DateTime(2026,10,27,0,0,0,DateTimeKind.Utc).AddTicks(7),["text"]="Café 😀",["bool"]=true,
-                    ["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7};
-                root.Children.Add(new Holon{Id=ids[1],ParentHolonId=rootId,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1});
+                    ["extProvider"]=ProviderType.SQLLiteDBOASIS,["extByte"]=(byte)255,["extSByte"]=(sbyte)-128,["extShort"]=(short)-32768,["extUShort"]=(ushort)65535,["extUInt"]=uint.MaxValue,["nullable"]=null!,["enum"]=HolonType.Quest,["int"]=-7,["checked"]=long.MaxValue,["checkedNegative"]=long.MinValue,["checkedOrder"]=0,["intMax"]=int.MaxValue,
+                    ["wideDecimal"]=decimal.MaxValue,["wideDouble"]=double.MaxValue,["wideFloat"]=float.MaxValue,
+                    ["decimalMax"]=decimal.MaxValue,["doubleMax"]=double.MaxValue,["floatMax"]=float.MaxValue,["wideU64"]=ulong.MaxValue};
+                root.Children.Add(new Holon{Id=ids[1],ParentHolonId=rootId,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1,
+                    MetaData=new(){["checked"]=1L,["checkedNegative"]=-1L,["checkedOrder"]=1,["intMax"]=int.MaxValue,
+                        ["wideDecimal"]=0.0000000000000000000000000001m,["wideDouble"]=double.Epsilon,["wideFloat"]=float.Epsilon,
+                        ["decimalMax"]=decimal.MaxValue,["doubleMax"]=double.MaxValue,["floatMax"]=float.MaxValue,["wideU64"]=1UL}});
                 var later=new Holon{Id=ids[2],ParentHolonId=rootId,Name="private branch",CreatedByAvatarId=other,Version=1};
                 later.Children.Add(new Holon{Id=ids[3],ParentHolonId=later.Id,Name="grandchild one",CreatedByAvatarId=other,IsPublic=true,Version=1});
                 later.Children.Add(new Holon{Id=ids[4],ParentHolonId=later.Id,Name="grandchild two",CreatedByAvatarId=other,IsPublic=true,Version=1});root.Children.Add(later);
                 await Checkpoint("before-create-"+provider.ProviderName);
                 var saved=await provider.SaveHolonAsync(root,saveChildren:true);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
-                var cycle=await provider.SaveHolonAsync(new Holon{Id=cycleId,Name="owned cycle",CreatedByAvatarId=actor,IsPublic=true,Version=1},saveChildren:false);
+                var cycle=await provider.SaveHolonAsync(new Holon{Id=cycleId,Name="owned cycle",CreatedByAvatarId=actor,IsPublic=true,Version=1,
+                    MetaData=new(){["checked"]=-long.MaxValue,["checkedNegative"]=long.MaxValue,["checkedOrder"]=2,["intMax"]=int.MaxValue,
+                        ["wideDecimal"]=-decimal.MaxValue,["wideDouble"]=-double.MaxValue,["wideFloat"]=-float.MaxValue,
+                        ["decimalMax"]=decimal.MaxValue,["doubleMax"]=double.MaxValue,["floatMax"]=float.MaxValue,["wideU64"]=0UL}},saveChildren:false);
                 Assert.IsFalse(cycle.IsError,cycle.Message+cycle.Exception);states.Add(new{provider=provider.ProviderName,created=true});await Checkpoint("created-"+provider.ProviderName);
             }
             var adapters=providers.Cast<ICosmicQueryProjectedAllStorageProvider>().ToArray();
+            if(linq)
+            {
+                foreach(var adapter in adapters) await VerifyLinqRows(adapter,rootId,checks);
+                foreach (var adapter in adapters)
+                    await VerifyEntityStages((ICosmicQueryEntityCompositionStorageProvider)adapter, rootId, checks);
+                foreach (var adapter in adapters)
+                    await VerifyEntityCount((ICosmicQueryEntityCountStorageProvider)adapter,rootId,checks);
+                foreach (var adapter in adapters) VerifyEntityElements(adapter,rootId,checks);
+                foreach (var adapter in adapters) await VerifyEntityReverse((ICosmicQueryEntityCompositionStorageProvider)adapter,rootId,checks);
+                await VerifyEntityProjection((ICosmicQueryEntityProjectionStorageProvider)adapters.Single(item=>item.QueryProviderType==ProviderType.SQLLiteDBOASIS),rootId,checks);
+                Assert.AreEqual(1791,checks.Count);complete=true;return;
+            }
+            if(demo)
+            {
+                foreach(var adapter in adapters)
+                {
+                    var manager=NativeManager(adapter);
+                    using var output=new StringWriter();
+                    var count=await CosmicCqlDemo.SourceAndProjectedAllDemo.RunAsync(manager,adapter,rootId,actor,output);
+                    Assert.AreEqual(8,count);
+                    await File.WriteAllTextAsync(Path.Combine(reports!,"cql-source-demo-"+adapter.QueryProviderType+".log"),output.ToString());
+                    for(var index=0;index<count;index++)checks.Add(new{provider=adapter.QueryProviderType.ToString(),example=index+1});
+                }
+                Assert.AreEqual(24,checks.Count);complete=true;return;
+            }
+            if(sourceMatrix)
+            {
+                await VerifySourceMatrix(adapters, provider=>Source(provider), actor, checks);
+                Assert.AreEqual(216,checks.Count); complete=true; return;
+            }
             async Task Expect<TResult>(string label,CosmicProjectedAllQuery<Holon,TResult> query,ICosmicQueryProjectedAllStorageProvider adapter,string? error=null,bool value=true)
             {
                 var result=await Read(query,new[]{adapter});
@@ -254,7 +308,7 @@ public sealed class CqlProjectedAllAcceptanceTests
                     await(await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=textIds})).ConsumeAsync();
                     Assert.AreEqual(0L,await records.CountDocumentsAsync(mongoIds));Assert.AreEqual(0L,await Sql("SELECT count(*) FROM Holon WHERE Id IN ("+sqlIds+")"));Assert.AreEqual(0L,await NeoCount());
                     CollectionAssert.AreEqual(original,await File.ReadAllBytesAsync(originalPath));
-                    await File.WriteAllTextAsync(Path.Combine(work,"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
+                    await File.WriteAllTextAsync(Path.Combine(reports!,linq?"cql-linq-rows-result.json":demo?"cql-source-demo-result.json":sourceMatrix?"cql-source-composition-result.json":"cql-projected-all-acceptance-result.json"),JsonSerializer.Serialize(new{ids,checks=checks.Count,cases=checks,exactCleanupVerified=true,originalFixtureUnchanged=true}));
                     File.Delete(journal);
                 }
             }

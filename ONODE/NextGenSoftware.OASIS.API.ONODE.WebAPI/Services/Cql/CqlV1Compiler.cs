@@ -75,13 +75,19 @@ public static partial class CqlV1Compiler
         return value.ToString("R", CultureInfo.InvariantCulture) == text;
     }
     public static bool Supported(ProviderType type) => type is ProviderType.MongoDBOASIS or ProviderType.SQLLiteDBOASIS or ProviderType.Neo4jOASIS;
+    // Additional read profiles retain their own exact adapter capabilities. Existing
+    // federation/composition routes retain their independently verified scope.
+    public static bool SupportedReadProfile(ProviderType type) => Supported(type)
+        || type is ProviderType.AzureCosmosDBOASIS or ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS;
 
-    public static ProviderType? RequestedProvider(string name)
+    public static ProviderType? RequestedProvider(string name, bool includeCloudReadProfile = false)
     {
         if (name == null) return null;
         if (name.Length > 40 || !Enum.TryParse<ProviderType>(name, false, out var type) ||
-            type.ToString() != name || !Supported(type))
-            throw new ArgumentException("Select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS, or omit Provider for the current default.");
+            type.ToString() != name || !(includeCloudReadProfile ? SupportedReadProfile(type) : Supported(type)))
+            throw new ArgumentException(includeCloudReadProfile
+                ? "Select an enrolled MongoDB, SQLite, Neo4j, Cosmos DB, ActivityPub, IPFS or SOLID read profile, or omit Provider for the current default."
+                : "Select MongoDBOASIS, SQLLiteDBOASIS or Neo4jOASIS, or omit Provider for the current default.");
         return type;
     }
 
@@ -94,7 +100,7 @@ public static partial class CqlV1Compiler
         if (request == null || request.Take is < 1 or > 100)
             throw new ArgumentException("Row queries require Take 1–100.");
         return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
     }
 
     public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider)
@@ -105,7 +111,34 @@ public static partial class CqlV1Compiler
     {
         if (request == null) throw new ArgumentException("A scalar query description is required.");
         return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
+    }
+
+    internal static CosmicQuery<Holon> CompileIndexedScalarSource(CqlScalarV1Request request, Guid actor,
+        CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Selection != null
+            || request.Operation is not ("Count" or "LongCount" or "Any"))
+            throw new ArgumentException("Indexed cardinality requires an alias-owned source and Count, LongCount or Any.");
+        var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
+            request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
+            request.Skip, request.Take, access, includeCloudReadProfile: true, indexedSource: true);
+        var indexed = source.WithIndexedSource(requirement);
+        if (indexed.IsError) throw new ArgumentException(indexed.Message);
+        return indexed.Result;
+    }
+
+    internal static CosmicQuery<Holon> CompileIndexedSource(CqlV1Request request, Guid actor,
+        CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
+    {
+        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+            throw new ArgumentException("Indexed rows require Take1-100 with alias-owned provider and no graph.");
+        var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
+            request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
+            request.Skip, request.Take, access, includeCloudReadProfile:true, indexedSource:true);
+        var indexed = source.WithIndexedSource(requirement);
+        if(indexed.IsError)throw new ArgumentException(indexed.Message);
+        return indexed.Result;
     }
 
     // Only the federation planner may bind this unbound business intent to its
@@ -121,7 +154,7 @@ public static partial class CqlV1Compiler
     private static CosmicQuery<Holon> CompileSource(Guid actor, ProviderType? provider, CqlV1Filter[] filters,
         CqlV1Filter[] anyOf, CqlV1ChildExists[] anyChildren, CqlV1DescendantExists[] anyDescendants,
         CqlV1Graph graphDescription, string orderBy, bool descending, int skip, int? take,CosmicQueryReadAccess access=null,
-        bool bindAccess=true)
+        bool bindAccess=true, bool includeCloudReadProfile=false, bool indexedSource=false)
     {
         if(access!=null)
         {
@@ -129,7 +162,8 @@ public static partial class CqlV1Compiler
                 throw new ArgumentException("Trusted access must bind the same authenticated actor and concrete provider.");
             provider=access.Authority??provider;
         }
-        if (actor == Guid.Empty || provider.HasValue && !Supported(provider.Value)) throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
+        if (actor == Guid.Empty || provider.HasValue && !(indexedSource ? provider.Value==ProviderType.SolanaOASIS : includeCloudReadProfile ? SupportedReadProfile(provider.Value) : Supported(provider.Value)))
+            throw new ArgumentException("Authenticated actor and concrete v1 provider required.");
         if (filters == null || anyOf == null || anyChildren == null || anyDescendants == null ||
             anyChildren.Length + (long)anyDescendants.Length > 4 ||
             filters.Length + anyOf.Length > 12 || skip is < 0 or > 1000 || take is < 0 or > 10000)
@@ -204,6 +238,15 @@ public static partial class CqlV1Compiler
             query=related.Result;
         }
 
+        if (orderBy == "None")
+        {
+            if (provider is not (ProviderType.ActivityPubOASIS or ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS) || !includeCloudReadProfile || descending)
+                throw new ArgumentException("OrderBy None is reserved for the unsorted ActivityPub, IPFS or SOLID point-read profiles, without Descending.");
+            var pointPage = query.Skip(skip);
+            if (take.HasValue) pointPage = pointPage.Take(take.Value);
+            if (pointPage.IsError) throw new ArgumentException(pointPage.Message);
+            return pointPage.Result;
+        }
         var ordered = orderBy switch
         {
             "Name" => descending ? query.OrderByDescending(h => h.Name) : query.OrderBy(h => h.Name),

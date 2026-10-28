@@ -51,6 +51,9 @@ public partial class HolonRepository
             if (command.Source.RequiresMembership)
                 await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
 
+            if(command.Source.EntityComposition!=null)
+                await ValidateNativeEntityStagesAsync(command.Source.EntityComposition,session,Options,deadline.Token).ConfigureAwait(false);
+
             // Read and validate the entire source before a later filter/window can
             // hide a malformed required cell, access violation or overflow row.
             var input = new List<CosmicProjectionInputRow>();
@@ -67,7 +70,7 @@ public partial class HolonRepository
                         if (count > limits.MaximumInputRows || input.Count >= limits.MaximumInputRows) throw new MongoCqlLimitException();
                         if (input.Count > 0 && count != sourceCount) throw new InvalidDataException("Composition source count changed.");
                         sourceCount = count;
-                        if (data.ElementCount != 7 + query.Columns.Count + query.Source.Orderings.Count
+                        if (data.ElementCount != 7 + query.Columns.Count + query.Source.Orderings.Count + command.Source.EntityOrderingKeyCount
                             || !data.TryGetValue("id", out var rawId) || !data.TryGetValue("visible", out var rawVisible)
                             || !data.TryGetValue("creator", out var rawCreator))
                             throw new InvalidDataException("Composition source proof shape is invalid.");
@@ -149,7 +152,7 @@ public partial class HolonRepository
             foreach (var id in current)
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                if (command.Reduction != null) outputBytes = checked(outputBytes + 16);
+                if (command.Reduction != null || command.Cardinality != null || command.Numeric != null) outputBytes = checked(outputBytes + 16);
                 var values = byId[id].Values.ToArray();
                 foreach (var value in values) ReserveJoinCell(value, ref outputBytes, limits.MaximumPayloadBytes);
                 output.Add(new CosmicProjectionCompositionRow(id, values));
@@ -179,15 +182,51 @@ public partial class HolonRepository
                 counterexamples = count;
             }
             deadline.Token.ThrowIfCancellationRequested();
-            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work), counterexamples);
+            long? nativeSelectedCount = null;
+            if (command.Cardinality != null)
+            {
+                if (checked(work + current.Count) > limits.MaximumStageRows
+                    || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                    throw new MongoCqlLimitException();
+                using var countCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Cardinality,
+                    Options(), deadline.Token).ConfigureAwait(false);
+                while (await countCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    foreach (var document in countCursor.Current)
+                    {
+                        deadline.Token.ThrowIfCancellationRequested();
+                        if (nativeSelectedCount.HasValue || document.ElementCount != 1)
+                            throw new InvalidDataException("Native cardinality requires one exact acknowledgement.");
+                        nativeSelectedCount = CompositionCount(document, "selectedCount", allowZero: true);
+                    }
+                if (!nativeSelectedCount.HasValue || nativeSelectedCount.Value != output.Count)
+                    throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
+            }
+            CosmicProjectedNumericPacket nativeNumeric = null;
+            if (command.Numeric != null)
+            {
+                if (command.NumericIntent == null || checked(work + current.Count) > limits.MaximumStageRows
+                    || checked(proofBytes + outputBytes + 9 + 8 * MongoCqlTranslator.SelectedNumericWidth(command.NumericIntent.InputType)) > limits.MaximumProofPayloadBytes)
+                    throw new MongoCqlLimitException();
+                using var numericCursor = await _dbContext.Holon.AggregateAsync<BsonDocument>(session, command.Numeric,
+                    Options(), deadline.Token).ConfigureAwait(false);
+                while (await numericCursor.MoveNextAsync(deadline.Token).ConfigureAwait(false))
+                    foreach (var document in numericCursor.Current)
+                    {
+                        deadline.Token.ThrowIfCancellationRequested();
+                        if (nativeNumeric != null) throw new InvalidDataException("Selected numeric reduction returned multiple acknowledgements.");
+                        nativeNumeric = ReadNativeCqlSelectedNumeric(document, command.NumericIntent);
+                    }
+                if (nativeNumeric == null) throw new InvalidDataException("Selected numeric reduction acknowledgement is missing.");
+            }
+            return (new CosmicProjectionCompositionPacket(input, stages, output, sourceCount, work, nativeSelectedCount, nativeNumeric), counterexamples);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { throw new MongoCqlGraphTimeoutException(); }
     }
 
-    private static long CompositionCount(BsonDocument data, string name)
+    private static long CompositionCount(BsonDocument data, string name, bool allowZero = false)
     {
-        if (!data.TryGetValue(name, out var value) || !(value.IsInt32 || value.IsInt64) || value.ToInt64() < 1)
+        if (!data.TryGetValue(name, out var value) || !(value.IsInt32 || value.IsInt64) || value.ToInt64() < (allowZero ? 0 : 1))
             throw new InvalidDataException("Composition proof requires positive exact counts and ranks.");
         return value.ToInt64();
     }

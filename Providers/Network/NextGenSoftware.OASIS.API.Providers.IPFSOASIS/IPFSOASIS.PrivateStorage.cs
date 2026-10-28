@@ -13,6 +13,21 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS
 {
+    private static async Task<OASISResult<T>> SavePrivateResultAsync<T>(Func<Task<T>> publish) where T:class,IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            // The publication owner returns only after blob, private catalogue
+            // and durable DNA pointer acknowledgement. Never acknowledge earlier.
+            var saved=await publish();
+            if(saved==null)throw new InvalidDataException("IPFS record publication returned no entity.");
+            result.Result=saved;result.IsSaved=true;result.SavedCount=1;
+        }
+        catch(Exception cause){OASISErrorHandling.HandleError(ref result,"IPFS private record save failed.",cause);}
+        return result;
+    }
+
     private static void MarkIpfsLoaded<T>(OASISResult<T> result,int returnedRoots=1)
     {
         result.IsLoaded=true;
@@ -75,6 +90,11 @@ public partial class IPFSOASIS
     private async Task<T> ReadPrivateRecordAsync<T>(string cid,string kind,Guid id) where T:class,IHolonBase
     {
         var envelope=await LoadStringToJson(cid);
+        return DecodePrivateRecord<T>(cid,kind,id,envelope);
+    }
+
+    private T DecodePrivateRecord<T>(string cid,string kind,Guid id,string envelope) where T:class,IHolonBase
+    {
         var json=UnprotectRecord(kind,id,envelope);
         var record=OasisJson.DeserializeStored<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
         if(record.Id!=id) throw new InvalidDataException("IPFS private blob identity disagrees with its authenticated index.");

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Neo4j.Driver;
@@ -9,14 +10,35 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCompositionStorageProvider
 {
+    public bool SupportsEntityProjectionComposition=>true;
+    public async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
+        CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+    {
+        var result=await ExecuteSelectedSnapshotAsync(plan,null,limits,cancellationToken,entity:true).ConfigureAwait(false);
+        return result.IsError
+            ? OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<NeoSelectedResult,CosmicProjectionCompositionPacket>(result)
+            : new OASISResult<CosmicProjectionCompositionPacket>(result.Result.Proof){IsLoaded=true};
+    }
+
+    private static class SelectedNumericContract
+    {
+        private static readonly Type[] Domains = { typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(ulong), typeof(ulong?), typeof(decimal), typeof(decimal?), typeof(float), typeof(float?), typeof(double), typeof(double?) };
+        internal static readonly CosmicScalarCapabilities Value = new(Array.Empty<CosmicScalarOperation>(), new[]
+        {
+            new CosmicScalarSelectionCapability(CosmicScalarOperation.Sum, CqlProjectionCapabilities, Domains),
+            new CosmicScalarSelectionCapability(CosmicScalarOperation.Average, CqlProjectionCapabilities, Domains,
+                supportsInt32DoubleAverage: true, supportsInt64DoubleAverage: true)
+        });
+    }
     private static class CompositionContract
     {
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
-            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging,
+            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
-            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true);
+            CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true, numericReductions: SelectedNumericContract.Value, extremaDomains: CqlGroupedCapabilities.OrderingCapabilities.KeyTypes);
     }
     public static CosmicProjectionCompositionCapabilities CqlCompositionCapabilities => CompositionContract.Value;
     public CosmicProjectionCompositionCapabilities CompositionCapabilities => CqlCompositionCapabilities;
@@ -53,12 +75,12 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider
 
     private async Task<OASISResult<NeoSelectedResult>> ExecuteSelectedSnapshotAsync<T,TResult>(
         CosmicProjectionCompositionPlan<T,TResult> plan, CosmicProjectedAllPlan<T,TResult> all,
-        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken) where T:IHolon
+        CosmicProjectionCompositionExecutionLimits limits, CancellationToken cancellationToken, bool entity=false) where T:IHolon
     {
         NeoCqlReadBudget readBudget=null;
         try
         {
-            var admitted=all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan,Core.Enums.ProviderType.Neo4jOASIS,
+            var admitted=entity ? CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,this,limits) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan,Core.Enums.ProviderType.Neo4jOASIS,
                 CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all,Core.Enums.ProviderType.Neo4jOASIS,
                     CqlCapabilities,CqlProjectionCapabilities,CqlCompositionCapabilities,limits);
@@ -72,13 +94,31 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider
             using var transaction=await session.BeginTransactionAsync(config=>config.WithTimeout(TimeSpan.FromSeconds(30))).ConfigureAwait(false);
             budget.Check();
             var cursor=await transaction.RunAsync(command.Text,command.Parameters).ConfigureAwait(false);
-            var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null);
+            var decoder=new NeoCqlCompositionDecoder<T,TResult>(query,limits,budget.Check,terminal:all != null, cardinality:plan?.RequestsCardinality == true, numeric:plan?.NumericReduction);
+            var entityProof=entity ? new NeoCqlEntityInputProof(plan.EntitySource.Options) : null;
+            long observedEntity=0;long? expectedEntity=null;var selectedStarted=false;
             while(true)
             {
                 budget.Check();
                 if(!await cursor.FetchAsync().ConfigureAwait(false))break;
-                budget.Check();decoder.Add(cursor.Current.Values);
+                budget.Check();
+                var record=cursor.Current;
+                if(entityProof!=null && record["phase"].As<long>()==-3)
+                {
+                    if(selectedStarted || record.Values.Count!=6 || record["position"].As<long>()!=observedEntity
+                        || record["sourcePosition"].As<long>()!=-1 || record["stageWork"].As<long>()!=0)
+                        throw new System.IO.InvalidDataException("Entity source proof phase/order is invalid.");
+                    var count=record["nativeCount"].As<long>();
+                    if(count<=observedEntity || expectedEntity.HasValue && expectedEntity.Value!=count)
+                        throw new System.IO.InvalidDataException("Entity source proof count changed.");
+                    expectedEntity=count;
+                    entityProof.Observe(record["proof"].As<IReadOnlyDictionary<string,object>>());observedEntity++;
+                    continue;
+                }
+                selectedStarted=true;decoder.Add(record.Values);
             }
+            if(expectedEntity.HasValue && observedEntity!=expectedEntity.Value)
+                throw new System.IO.InvalidDataException("Entity source proof is incomplete.");
             budget.Check();var packet=decoder.Complete();
             await transaction.CommitAsync().ConfigureAwait(false);budget.Check();
             return new OASISResult<NeoSelectedResult>(new NeoSelectedResult { Proof=packet,Counterexamples=decoder.Counterexamples }){IsLoaded=true};

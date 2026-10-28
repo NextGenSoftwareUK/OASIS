@@ -13,8 +13,10 @@ internal sealed class MongoCqlScalarCommand
     internal bool RequiresSnapshot { get; }
     internal bool IsEmpty { get; }
     internal bool HasTraversalEnvelope { get; }
-    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty, bool traverses = false)
-    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; HasTraversalEnvelope = traverses; }
+    internal MongoCqlEntityCompositionCommand EntityComposition { get; }
+    internal MongoCqlScalarCommand(BsonDocument[] pipeline, bool membership, bool snapshot, bool empty, bool traverses = false,
+        MongoCqlEntityCompositionCommand entityComposition=null)
+    { Pipeline = pipeline; RequiresMembership = membership; RequiresSnapshot = snapshot; IsEmpty = empty; HasTraversalEnvelope = traverses; EntityComposition=entityComposition; }
 }
 
 internal sealed partial class MongoCqlTranslator
@@ -44,7 +46,7 @@ internal sealed partial class MongoCqlTranslator
                 Choose(Op("$gt", "$limited", Literal(0)), Literal(2), Literal(0))) }
         }));
         ValidatePipeline(pipeline);
-        var membership = query.Predicates.Any(predicate => predicate is CosmicQueryAnyChild || predicate is CosmicQueryAnyDescendant);
+        var membership = query.Predicates.Any(HasRelationships);
         return new MongoCqlScalarCommand(pipeline.ToArray(), membership, membership || query.GraphOptions != null, query.Limit == 0, traverses);
     }
 }

@@ -14,8 +14,9 @@ public partial class HolonRepository
     // validate the entire source before any selected filter/window can hide it.
     private sealed class CompositionSql
     {
-        internal string Source, Proof, Predicate, Reduction;
+        internal string Source, Proof, Predicate, Reduction, Cardinality, Numeric;
         internal bool HasRelationship;
+        internal EntityCompositionSql Entity;
         internal List<SqliteParameter> Parameters;
     }
 
@@ -24,22 +25,23 @@ public partial class HolonRepository
     {
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.SQLLiteDBOASIS)
             throw new ArgumentException("SQLite composition requires one matching plan and remaining limits.");
-        return CompileSelectedSql(plan.Query, plan.Options, limits);
+        return CompileSelectedSql(plan.Query, plan.Options, limits, cardinality: plan.RequestsCardinality, numeric: plan.NumericReduction, entity: plan.EntitySource);
     }
 
     // One compiler owns both the selected pipeline and its terminal reduction.
     private static CompositionSql CompileSelectedSql<T, TResult>(CosmicProjectionQuery<T, TResult> query,
         CosmicProjectionCompositionOptions options, CosmicProjectionCompositionExecutionLimits limits,
-        CosmicQueryPredicate terminal = null) where T : IHolon
+        CosmicQueryPredicate terminal = null, bool cardinality = false, CosmicProjectedNumericIntent numeric = null, CosmicEntityCompositionPlan<T> entity = null) where T : IHolon
     {
         var bounded = limits.Admit(options);
         if (bounded.IsError) throw new ArgumentException(bounded.Message);
-        if (query.ResultStages.Count == 0 && terminal == null) throw new ArgumentException("A selected-result pipeline is required.");
+        if (query.ResultStages.Count == 0 && terminal == null && !cardinality && numeric == null) throw new ArgumentException("A selected-result pipeline is required.");
         if (query.Source.GraphOptions != null) throw new NotSupportedException("Composed graph sources require separate native enrollment.");
-        var parameters = new List<SqliteParameter>();
-        var translator = new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
-        var predicate = query.Source.Predicates.Count == 0 ? "1" : string.Join(" AND ", query.Source.Predicates.Select(translator.Translate));
-        var sourceOrder = translator.TranslateOrdering(query.Source.Orderings);
+        var entitySql=entity==null ? null : CompileEntityCompositionSql(entity);
+        var parameters = entitySql?.Parameters ?? new List<SqliteParameter>();
+        var translator = entitySql?.SourceTranslator ?? new CqlSqlTranslator("Holon", parameters, query.Source.ReadAccess);
+        var predicate = entitySql?.SourcePredicate ?? translator.TranslateSource(query.Source.Predicates);
+        var sourceOrder = entitySql==null ? translator.TranslateOrdering(query.Source.Orderings) : "Holon."+entitySql.Position;
         var cells = new List<string>
         {
             "row_number() OVER (ORDER BY " + sourceOrder + ") AS position",
@@ -52,6 +54,9 @@ public partial class HolonRepository
         var inputOffset = translator.Bind((long)query.Source.Offset);
         var source = "SELECT " + string.Join(",", cells) + " FROM Holon WHERE " + predicate
             + " ORDER BY " + sourceOrder + " LIMIT " + inputLimit + " OFFSET " + inputOffset;
+        if(entitySql!=null)
+            source="SELECT "+string.Join(",",cells)+" FROM ("+entitySql.Rows+") AS Holon ORDER BY "+sourceOrder
+                +" LIMIT "+translator.Bind((long)limits.MaximumInputRows+1);
         var stages = new List<string> { "c0 AS MATERIALIZED (" + source + ")" };
         var proof = new List<string>();
         var work = new List<string>();
@@ -71,6 +76,8 @@ public partial class HolonRepository
                 keys.Add(previousRank + " ASC");
                 ranking = "row_number() OVER (ORDER BY " + string.Join(",", keys) + ")";
             }
+            else if (stage is CosmicSelectedReverseStage)
+                ranking = "row_number() OVER (ORDER BY " + previousRank + " DESC)";
             else if (stage is CosmicSelectedWindowStage window)
                 tail = " ORDER BY " + previousRank + " LIMIT " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Take ? (long)window.Count : -1L)
                     + " OFFSET " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Skip ? (long)window.Count : 0L);
@@ -87,9 +94,11 @@ public partial class HolonRepository
             + " WHERE NOT (" + translator.TranslateCompositionPredicate(query, terminal) + ")";
         return new CompositionSql
         {
-            Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship, Parameters = parameters,
+            Source = source, Predicate = predicate, HasRelationship = translator.HasRelationship || entitySql?.HasRelationship == true, Parameters = parameters, Entity=entitySql,
             Proof = common + header + (proof.Count == 0 ? "" : " UNION ALL " + string.Join(" UNION ALL ", proof))
-                + " ORDER BY phase,ordinal,position", Reduction = reduction
+                + " ORDER BY phase,ordinal,position", Reduction = reduction,
+            Cardinality = common + "SELECT count(*) FROM c" + query.ResultStages.Count,
+            Numeric = numeric == null ? null : common + CqlSqlTranslator.SelectedNumericReduction(numeric, "c" + query.ResultStages.Count, previousRank)
         };
 
         void Cell(CosmicQueryPath path, string alias)

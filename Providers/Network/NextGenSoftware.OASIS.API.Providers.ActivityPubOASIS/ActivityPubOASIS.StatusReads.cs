@@ -46,6 +46,13 @@ public partial class ActivityPubOASIS
 
     private Holon ProjectMastodonStatus(JsonElement status,string selected=null)
     {
+            static void RequireUniqueObject(JsonElement node){
+                if(node.ValueKind!=JsonValueKind.Object)throw new InvalidDataException("Native status evidence must be an object.");
+                var names=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+                foreach(var property in node.EnumerateObject())
+                    if(!names.Add(property.Name))throw new InvalidDataException("Native status evidence contains duplicate fields.");
+            }
+            RequireUniqueObject(status);
             string Required(JsonElement node,string name,bool allowEmpty=false){
                 if(node.ValueKind!=JsonValueKind.Object||!node.TryGetProperty(name,out var field)||field.ValueKind!=JsonValueKind.String||(!allowEmpty&&string.IsNullOrWhiteSpace(field.GetString())))
                     throw new InvalidDataException("Missing native status field: "+name);
@@ -57,16 +64,21 @@ public partial class ActivityPubOASIS
             var content=Required(status,"content",true);var created=Required(status,"created_at");
             if(!DateTimeOffset.TryParse(created,CultureInfo.InvariantCulture,DateTimeStyles.None,out var timestamp))throw new InvalidDataException("Invalid native status timestamp.");
             if(!status.TryGetProperty("account",out var account))throw new InvalidDataException("Missing native status author.");
+            RequireUniqueObject(account);
             var authorId=Required(account,"id");var authorAcct=Required(account,"acct");
             var holon=new Holon{Id=MastodonProjectionId("status",id),CreatedByAvatarId=MastodonProjectionId("account",authorId),Name="Mastodon status "+id,CreatedDate=timestamp.UtcDateTime,HolonType=Core.Enums.HolonType.Holon};
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS]=id;
+            holon.MetaData[CqlStatusKey]=id;holon.MetaData["MastodonInstance"]=_instanceUrl;
             holon.MetaData["MastodonObjectUri"]=objectUri.AbsoluteUri;holon.MetaData["MastodonContentHtml"]=content;
             holon.MetaData["MastodonAuthorId"]=authorId;holon.MetaData["MastodonAuthorAcct"]=authorAcct;
             if(status.TryGetProperty("in_reply_to_id",out var reply)&&reply.ValueKind!=JsonValueKind.Null){
                 if(reply.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(reply.GetString()))throw new InvalidDataException("Invalid native reply ID.");
                 holon.ParentHolonId=MastodonProjectionId("status",reply.GetString());
             }
-            if(status.TryGetProperty("visibility",out var visibility)&&visibility.ValueKind==JsonValueKind.String)holon.MetaData["MastodonVisibility"]=visibility.GetString();
+            if(status.TryGetProperty("visibility",out var visibility)&&visibility.ValueKind==JsonValueKind.String){
+                holon.MetaData["MastodonVisibility"]=visibility.GetString();
+                holon.IsPublic=visibility.GetString() is "public" or "unlisted";
+            }
             if(status.TryGetProperty("replies_count",out var count)){
                 if(!count.TryGetInt64(out var replies)||replies<0)throw new InvalidDataException("Invalid native reply count.");
                 holon.MetaData["MastodonRepliesCount"]=replies;

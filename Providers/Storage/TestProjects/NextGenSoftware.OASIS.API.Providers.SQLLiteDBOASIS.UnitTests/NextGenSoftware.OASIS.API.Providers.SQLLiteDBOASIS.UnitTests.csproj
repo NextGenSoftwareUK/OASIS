@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs" Link="Demo/ChainIndexedMetadataWalkthrough.cs" />
     <Compile Include="../../../Shared/TestSupport/ImportResultEnvelopeAssertions.cs" Link="TestSupport/ImportResultEnvelopeAssertions.cs" />
   </ItemGroup>
 

@@ -114,19 +114,6 @@
       "blockers": []
     },
     {
-      "provider": "IPFSOASIS",
-      "suite": "core-storage-v2",
-      "mode": "blocked-before-native",
-      "passed": 0,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
-      "sha256": "f306f92152d5d05e6bedc12ff6ce672434313185027805a9cfbc3a95cf42f4a5",
-      "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "SOLANAOASIS",
       "suite": "core-storage-v2",
       "mode": "native",
@@ -223,19 +210,6 @@
       "blockers": []
     },
     {
-      "provider": "SOLIDOASIS",
-      "suite": "core-storage-v2",
-      "mode": "blocked-before-native",
-      "passed": 0,
-      "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
-      "sha256": "024c788283ad82003b8e389ac39ac594fa6b870af0382578cfb35273f3c1b574",
-      "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
-      ]
-    },
-    {
       "provider": "ActivityPubOASIS",
       "suite": "capability-v1",
       "mode": "native",
@@ -263,6 +237,26 @@
       "total": 52,
       "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-azurestorageoasis-current.json",
       "sha256": "aa3290ad148e8f761c6b182051428e7ade15256f4b995ae163a5ec28f925a870",
+      "blockers": []
+    },
+    {
+      "provider": "IPFSOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-ipfsoasis-current.json",
+      "sha256": "d65463641ba8999e30f774dc2c633c6bd6d2a7944a0a5fcf8df175e9f09fbd78",
+      "blockers": []
+    },
+    {
+      "provider": "SOLIDOASIS",
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
+      "total": 52,
+      "report": "TestResults/HyperDrive-Providers/NativeEvidence/conformance-solidoasis-current.json",
+      "sha256": "f29b8cdfa9aac1f4aaeb33def6558c84e6d954f35d812e9de368d8ff5a3d4c91",
       "blockers": []
     },
     {
@@ -333,7 +327,7 @@
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
     "IPFSOASIS": [
-      "Canonical v2 binding builds; original retained Kubo repository/config and DPAPI storage key missing from both documented work directories. Recover original identity/key; no replacement repository, download or native dispatch attempted. Bundled SDK uses legacy full PDB, so portable source-identity validation is unavailable for that assembly; no native acceptance claim."
+      "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
     ],
     "PinataOASIS": [
       "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
@@ -349,6 +343,9 @@
     ],
     "GoogleCloudOASIS": [
       "Firestore backend native core-storage-v2 52/52 passes on retained emulator1.22.0 using explicit synthetic project/named databases. This does not prove GCS, BigQuery, hosted-account acceptance, or restoration/durability of old missing GoogleCurrent export. Legacy checkpoint absent at both documented paths; no restoration/reset/reconstruction claim."
+    ],
+    "SOLIDOASIS": [
+      "Native core-storage-v2 baseline52/52 verified in fresh isolated demo Pod on retained pinned CSS environment, sync/async26 each and exact fixture cleanup complete.362 controlled tests pass. Original delete outcomes independently reconciled without replay. CQL point/index profile and full common demo remain open; storage conformance is not CQL enrollment."
     ],
     "FirebaseOASIS": [
       "Firebase Realtime Database REST adapter:23 controlled tests pass after read/protocol error preservation and JSON-safe query encoding;15 regression cases reproduced red before fix. Native shared-suite binding and Realtime Database runtime/access pending. Existing Firestore emulator is a different product; no native acceptance claim."

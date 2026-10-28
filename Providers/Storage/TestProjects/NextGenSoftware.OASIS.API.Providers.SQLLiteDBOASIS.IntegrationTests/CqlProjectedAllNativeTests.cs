@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
-public sealed class CqlProjectedAllNativeTests
+public sealed partial class CqlProjectedAllNativeTests
 {
     // One private in-memory database per disposed context. No fixture files,
     // provider-row mocks or retained shared databases are involved.

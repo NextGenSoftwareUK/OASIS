@@ -27,11 +27,12 @@ public partial class HolonRepository
             if (admission.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, TResult>(admission);
             var source = plan.Query.Source;
             var translator = new CqlSqlTranslator(source.ReadAccess);
-            var predicate = source.Predicates.Count == 0 ? "1" : string.Join(" AND ", source.Predicates.Select(translator.Translate));
+            var predicate = translator.TranslateSource(source.Predicates);
             cancellationToken.ThrowIfCancellationRequested();
             var selected = plan.Query.Selector != null;
             var numeric = plan.Query.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             var all = plan.Query.Operation == CosmicScalarOperation.All;
+            var postWindow = plan.Query.TerminalPredicate != null;
             // Empty output cannot suppress protected relationship validation.
             // Plain empty queries still avoid opening an unnecessary connection.
             if (source.Limit == 0 && !translator.HasRelationship) return selected ? CosmicSelectedScalarResults.FromValue(plan.Query, null, false)
@@ -44,25 +45,25 @@ public partial class HolonRepository
             translator.Parameters.Add(new SqliteParameter("$countTake", source.Limit.HasValue ? (long)source.Limit.Value : long.MaxValue));
             var sql = "SELECT CASE WHEN total <= $countOffset THEN 0 ELSE min(total - $countOffset, $countTake) END AS Value "
                 + "FROM (SELECT count(*) AS total FROM Holon WHERE " + predicate + ")";
-            if (all)
+            if (postWindow)
             {
                 var ordering = translator.TranslateOrdering(source.Orderings);
-                var test = string.Join(" AND ", plan.Query.AllPredicate.Predicates.Select(translator.Translate));
+                var test = string.Join(" AND ", plan.Query.TerminalPredicate.Predicates.Select(translator.Translate));
                 sql = "SELECT count(*) AS Value FROM (SELECT * FROM Holon WHERE " + predicate
                     + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset) AS Holon"
-                    + " WHERE COALESCE((" + test + "),0)=0";
-                if (CosmicScalarCapabilities.HasAllDescendants(plan.Query.AllPredicate.Predicates))
+                    + " WHERE COALESCE((" + test + "),0)" + (all ? "=0" : "<>0");
+                if (CosmicScalarCapabilities.HasAllDescendants(plan.Query.TerminalPredicate.Predicates))
                 {
                     // Each protected traversal is evaluated before the business
                     // Boolean, including under false AND / true OR branches.
-                    var reduction = translator.ProtectTraversalScope(plan.Query.AllPredicate.Predicates,
-                        "CASE WHEN COALESCE((" + test + "),0)<>0 THEN 0 ELSE 1 END");
+                    var reduction = translator.ProtectTraversalScope(plan.Query.TerminalPredicate.Predicates,
+                        "CASE WHEN COALESCE((" + test + "),0)<>0 THEN " + (all ? "0 ELSE 1" : "1 ELSE 0") + " END");
                     sql = "SELECT coalesce(sum(" + reduction + "),0) AS Value FROM (SELECT * FROM Holon WHERE " + predicate
                         + " ORDER BY " + ordering + " LIMIT $countTake OFFSET $countOffset) AS Holon";
                 }
             }
             if (selected) sql = numeric
-                ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings))
+                ? translator.TranslateNumericAggregate(plan.Query.Selector, predicate, translator.TranslateOrdering(source.Orderings), plan.Query.UsesInt64DoubleAverage)
                 : translator.TranslateExtremum(plan.Query.Selector, plan.Query.Operation, predicate, translator.TranslateOrdering(source.Orderings));
 
             using var exclusive = _dbContext.GetService<IConcurrencyDetector>().EnterCriticalSection();
@@ -73,8 +74,9 @@ public partial class HolonRepository
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
                 using var floating = numeric && FloatingNumeric(plan.Query.Selector.ValueType) ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
+                using var checkedAverage = plan.Query.UsesInt64DoubleAverage ? new SqliteCqlCheckedInt64Average(connection, budget.Check) : null;
                 using var traversal = translator.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
-                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || (selected || all) && translator.HasRelationship;
+                var needsSnapshot = source.GraphOptions != null || translator.HasTraversal || (selected || postWindow) && translator.HasRelationship;
                 if (needsSnapshot && _dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
                     return ScalarCqlError<TResult>("CQL_CONSISTENCY_UNSUPPORTED", "SQLite scalar graph/traversal intent requires a serializable read owner.");
@@ -97,7 +99,7 @@ public partial class HolonRepository
                         {
                             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                                 throw new System.IO.InvalidDataException("Native scalar envelope is missing.");
-                            budget.Check(); traversal?.Check(); floating?.Check();
+                            budget.Check(); traversal?.Check(); floating?.Check(); checkedAverage?.Check();
                             if (reader.GetInt64(0) != 0) throw new System.IO.InvalidDataException("A participating selected value has an invalid domain.");
                             if (numeric)
                             {
@@ -114,7 +116,12 @@ public partial class HolonRepository
                                 var decimalInput = (Nullable.GetUnderlyingType(plan.Query.Selector.ValueType) ?? plan.Query.Selector.ValueType) == typeof(decimal);
                                 if (reader.GetInt64(decimalInput ? 9 : 4) != 0)
                                     throw new SqliteCqlResourceException("Numeric aggregation exceeds its explicit native input work bound.");
-                                result = decimalInput
+                                if (plan.Query.UsesInt64DoubleAverage && (reader.IsDBNull(5) || reader.GetInt64(5) is not (0 or 1)))
+                                    throw new System.IO.InvalidDataException("Checked Int64 reduction requires its exact prefix acknowledgement.");
+                                result = plan.Query.UsesInt64DoubleAverage
+                                    ? CosmicNumericScalarResults.FromCheckedInt64AverageParts(plan.Query,
+                                        reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1), reader.GetInt64(5) == 1)
+                                    : decimalInput
                                     ? CosmicDecimalScalarResults.FromParts(plan.Query,
                                         Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount).Select(index => reader.GetInt64(2 + index)).ToArray(), reader.GetInt64(1))
                                     : CosmicNumericScalarResults.FromParts(plan.Query, reader.GetInt64(2), reader.GetInt64(3), reader.GetInt64(1));
@@ -133,13 +140,13 @@ public partial class HolonRepository
                     }
                     else
                     {
-                        if (all)
+                        if (postWindow)
                             await ValidateCqlRelationshipScopeAsync(translator, predicate, budget, traversal, cancellationToken).ConfigureAwait(false);
                         var count = await _dbContext.Database.SqlQueryRaw<long>(sql, translator.Parameters.Cast<object>().ToArray())
                             .SingleAsync(cancellationToken).ConfigureAwait(false);
                         result = CosmicScalarResults.FromCount(plan.Query, count);
                     }
-                    budget.Check(); traversal?.Check(); floating?.Check();
+                    budget.Check(); traversal?.Check(); floating?.Check(); checkedAverage?.Check();
                     if (result.IsError) return result;
                     transaction?.Commit(); budget.Check();
                     return result;

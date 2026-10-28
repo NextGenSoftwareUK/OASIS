@@ -24,6 +24,11 @@ public partial class HolonRepository
         CancellationToken cancellationToken = default) where T : IHolon
         => ExecuteSelectedSnapshotAsync(plan, limits, cancellationToken);
 
+    public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
+        CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
+        CancellationToken cancellationToken=default) where T:IHolon
+        => ExecuteSelectedSnapshotAsync(plan,limits,cancellationToken,entity:true);
+
     private sealed class AllReduction { internal long? Counterexamples; }
 
     public async Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicProjectedAllAsync<T, TResult>(
@@ -42,11 +47,11 @@ public partial class HolonRepository
 
     private async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteSelectedSnapshotAsync<T, TResult>(
         CosmicProjectionCompositionPlan<T, TResult> plan, CosmicProjectionCompositionExecutionLimits limits,
-        CancellationToken cancellationToken, CosmicProjectedAllPlan<T, TResult> all = null, AllReduction reduction = null) where T : IHolon
+        CancellationToken cancellationToken, CosmicProjectedAllPlan<T, TResult> all = null, AllReduction reduction = null, bool entity=false) where T : IHolon
     {
         try
         {
-            var admitted = all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
+            var admitted = entity ? AdmitEntitySelected(plan,limits) : all == null ? CosmicProjectionCompositionPlanner.AdmitExecution(plan, ProviderType.SQLLiteDBOASIS,
                 SqliteCqlContract.Capabilities, SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits)
                 : CosmicProjectedAllPlanner.AdmitExecution(all, ProviderType.SQLLiteDBOASIS, SqliteCqlContract.Capabilities,
                     SQLLiteDBOASIS.CqlProjectionCapabilities, SQLLiteDBOASIS.CqlCompositionCapabilities, limits);
@@ -62,6 +67,10 @@ public partial class HolonRepository
             try
             {
                 using var budget = new SqliteCqlReadBudget(connection, cancellationToken);
+                using var floating = plan?.NumericReduction != null && FloatingNumeric(plan.NumericReduction.InputType)
+                    ? new SqliteCqlFloatingAggregates(connection, budget.Check) : null;
+                using var checkedAverage = plan?.NumericReduction?.UsesInt64DoubleAverage == true
+                    ? new SqliteCqlCheckedInt64Average(connection, budget.Check) : null;
                 using var traversal = compiled.HasRelationship ? new SqliteCqlTraversalGuard(connection, budget.Check) : null;
                 if (_dbContext.Database.CurrentTransaction != null
                     && _dbContext.Database.CurrentTransaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
@@ -71,7 +80,7 @@ public partial class HolonRepository
                 using var owner = transaction == null ? null : _dbContext.Database.UseTransaction(transaction);
                 try
                 {
-                    void Check() { budget.Check(); traversal?.Check(); }
+                    void Check() { budget.Check(); traversal?.Check(); checkedAverage?.Check(); floating?.Check(); }
                     SqliteCommand Command(string sql)
                     {
                         var command = connection.CreateCommand();
@@ -81,6 +90,8 @@ public partial class HolonRepository
                             command.Parameters.Add(new SqliteParameter(parameter.ParameterName, parameter.SqliteType) { Value = parameter.Value });
                         return command;
                     }
+                    if(compiled.Entity!=null)
+                        await ValidateEntityCompositionAsync(compiled.Entity,plan.EntitySource.Options,budget,traversal,cancellationToken).ConfigureAwait(false);
                     if (compiled.HasRelationship)
                     {
                         using var validation = Command("SELECT count(*) FROM Holon WHERE " + compiled.Predicate);
@@ -159,9 +170,8 @@ public partial class HolonRepository
                     }
                     if (!header || work != (stageIds.Length == 0 ? 0 : sourceCount + stageIds.Take(stageIds.Length - 1).Sum(stage => (long)stage.Count)))
                         throw new InvalidDataException("Composition proof work/header is incomplete.");
-                    if (all != null)
+                    if (stageIds.Length == 0 && (all != null || plan?.IsScalarTerminal == true))
                     {
-                        if (stageIds.Length == 0)
                             foreach (var row in input.Values)
                             {
                                 Check();
@@ -170,6 +180,9 @@ public partial class HolonRepository
                                 foreach (var value in row.Values) Reserve(value, ref outputBytes, limits.MaximumPayloadBytes);
                                 output.Add(new CosmicProjectionCompositionRow(row.Id, row.Values.ToArray()));
                             }
+                    }
+                    if (all != null)
+                    {
                         if (checked(work + output.Count) > limits.MaximumStageRows
                             || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
                             throw new SqliteCqlResourceException("All reduction/evidence exceeds its remaining work budget.");
@@ -180,9 +193,63 @@ public partial class HolonRepository
                             throw new InvalidDataException("All reduction disagrees with its complete selected sequence.");
                         reduction.Counterexamples = counterexamples;
                     }
+                    long? nativeSelectedCount = null;
+                    if (plan?.RequestsCardinality == true)
+                    {
+                        if (checked(work + output.Count) > limits.MaximumStageRows
+                            || checked(proofBytes + outputBytes) > limits.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("Selected cardinality exceeds its remaining work/proof budget.");
+                        using var countCommand = Command(compiled.Cardinality);
+                        var countValue = await countCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                        Check();
+                        if (countValue is not long acknowledged || acknowledged < 0 || acknowledged != output.Count)
+                            throw new InvalidDataException("Native selected count disagrees with its complete snapshot proof.");
+                        nativeSelectedCount = acknowledged;
+                    }
+                    CosmicProjectedNumericPacket nativeNumeric = null;
+                    if (plan?.NumericReduction != null)
+                    {
+                        var numeric = plan.NumericReduction;
+                        var width = CqlSqlTranslator.SelectedNumericPartCount(numeric.InputType);
+                        var floatingInput = FloatingNumeric(numeric.InputType);
+                        var inputType = Nullable.GetUnderlyingType(numeric.InputType) ?? numeric.InputType;
+                        var decimalInput = inputType == typeof(decimal);
+                        var packetBytes = 9 + 8 * width;
+                        if (checked(work + output.Count) > limits.MaximumStageRows
+                            || checked(proofBytes + outputBytes + packetBytes) > limits.MaximumProofPayloadBytes)
+                            throw new SqliteCqlResourceException("Selected numeric reduction exceeds its remaining work/proof budget.");
+                        using var numericCommand = Command(compiled.Numeric);
+                        await using var reader = await numericCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false)
+                            || reader.FieldCount != (floatingInput ? 2 : decimalInput ? 1 + width : numeric.UsesInt64DoubleAverage ? 4 : 3))
+                            throw new InvalidDataException("Selected numeric reduction requires one exact native packet.");
+                        Check();
+                        bool? prefixOverflow = null;
+                        if (numeric.UsesInt64DoubleAverage)
+                        {
+                            var flag = reader.GetInt64(3);
+                            if (flag is not (0 or 1)) throw new InvalidDataException("Checked numeric reduction requires its exact prefix acknowledgement.");
+                            prefixOverflow = flag == 1;
+                        }
+                        var participating = reader.GetInt64(0);
+                        long[] words;
+                        if (floatingInput)
+                        {
+                            var decoded = SqliteCqlFloatingAggregates.ReadPacket((byte[])reader.GetValue(1), inputType == typeof(float));
+                            if (decoded.IsError) throw new SqliteCqlNumericException(decoded.ErrorCode, decoded.Message);
+                            if (decoded.Result.Count != participating)
+                                throw new InvalidDataException("Selected floating participation disagrees with its native packet.");
+                            words = decoded.Result.Parts;
+                        }
+                        else words = Enumerable.Range(1, width).Select(reader.GetInt64).ToArray();
+                        nativeNumeric = new CosmicProjectedNumericPacket(participating, words, prefixOverflow);
+                        if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                            throw new InvalidDataException("Selected numeric reduction returned multiple packets.");
+                        Check();
+                    }
                     Check();
                     var packet = new CosmicProjectionCompositionPacket(input.Values.ToArray(),
-                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work);
+                        stageIds.Select(ids => new CosmicProjectionStageProof(ids)).ToArray(), output, sourceCount, work, nativeSelectedCount, nativeNumeric);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicProjectionCompositionPacket>(packet) { IsLoaded = true };
                 }
@@ -195,10 +262,17 @@ public partial class HolonRepository
         catch (SqliteCqlDeadlineException cause) { return CompositionError("CQL_QUERY_TIMEOUT", cause.Message, cause); }
         catch (SqliteCqlResourceException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
         catch (CqlTranslationLimitException cause) { return CompositionError("CQL_QUERY_LIMIT", cause.Message, cause); }
+        catch (SqliteCqlNumericException cause) { return CompositionError(cause.Code, cause.Message, cause); }
         catch (NotSupportedException cause) { return CompositionError("CQL_CAPABILITY_UNSUPPORTED", cause.Message, cause); }
         catch (OperationCanceledException cause) { return CompositionError("CQL_QUERY_CANCELLED", cause.Message, cause); }
         catch (Exception cause) { return CompositionError("CQL_QUERY_FAILED", "SQLite native composition did not complete.", cause); }
     }
+    private static OASISResult<bool> AdmitEntitySelected<T,TResult>(CosmicProjectionCompositionPlan<T,TResult> plan,
+        CosmicProjectionCompositionExecutionLimits limits) where T:IHolon
+        => CosmicProjectionCompositionPlanner.AdmitEntityExecution(plan,ProviderType.SQLLiteDBOASIS,
+            SqliteCqlContract.Capabilities,SQLLiteDBOASIS.CqlProjectionCapabilities,SQLLiteDBOASIS.CqlCompositionCapabilities,
+            SQLLiteDBOASIS.CqlEntityCompositionCapabilities,true,limits);
+
     private static OASISResult<CosmicProjectionCompositionPacket> CompositionError(string code, string message, Exception cause = null)
         => new() { IsError = true, ErrorCode = code, Message = message, Exception = cause };
 }

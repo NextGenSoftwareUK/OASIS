@@ -63,6 +63,44 @@ internal static class CqlRequestCapture
         };
     }
 
+    // Scalar windows deliberately retain null: omitted Take means the complete
+    // eligible source, whereas zero means an empty source window.
+    internal static CqlScalarV1Request Capture(CqlScalarV1Request value)
+    {
+        if (value == null) throw new ArgumentException("A scalar request is required.");
+        var operation = value.Operation;
+        var take = value.Take;
+        var selection = value.Selection;
+        var copiedSelection = selection == null ? null : new CqlScalarV1Selection
+        {
+            Field = selection.Field, ValueType = selection.ValueType, Nullable = selection.Nullable,
+            MetadataPath = selection.MetadataPath == null ? null : Array(selection.MetadataPath, 8, item => item)
+        };
+        var source = Capture(new CqlV1Request
+        {
+            Provider = value.Provider, Filters = value.Filters, AnyOf = value.AnyOf,
+            AnyChildren = value.AnyChildren, AnyDescendants = value.AnyDescendants,
+            Graph = value.Graph, OrderBy = value.OrderBy, Descending = value.Descending,
+            Skip = value.Skip, Take = take ?? 0
+        });
+        return new CqlScalarV1Request
+        {
+            Operation = operation, Selection = copiedSelection, Provider = source.Provider,
+            Filters = source.Filters, AnyOf = source.AnyOf, AnyChildren = source.AnyChildren,
+            AnyDescendants = source.AnyDescendants, Graph = source.Graph,
+            OrderBy = source.OrderBy, Descending = source.Descending, Skip = source.Skip, Take = take
+        };
+    }
+
+    internal static CqlProjectionV1Column[] CaptureColumns(CqlProjectionV1Column[] columns)
+    {
+        if(columns==null)return null;
+        if(columns.Length==0)throw new ArgumentException("Selected indexed intent requires at least one column.");
+        return Array(columns,32,column=>column==null?throw new ArgumentException("Missing selected column."):
+            new CqlProjectionV1Column{Alias=column.Alias,Field=column.Field,ValueType=column.ValueType,Nullable=column.Nullable,
+                MetadataPath=column.MetadataPath==null?null:Array(column.MetadataPath,8,item=>item)});
+    }
+
     private static TOutput[] Array<TInput, TOutput>(TInput[] values, int maximum, Func<TInput, TOutput> copy)
     {
         if (values == null || values.Length > maximum) throw new ArgumentException("Request collection capture is incomplete or oversized.");

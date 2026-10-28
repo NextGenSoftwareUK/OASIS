@@ -13,9 +13,12 @@ internal sealed class MongoCqlNumericValue
     internal long High { get; }
     internal long Low { get; }
     internal long Count { get; }
+    internal bool? PrefixOverflow { get; }
     internal long[] DecimalParts { get; }
     internal long[] FloatingParts { get; }
-    internal MongoCqlNumericValue(long high, long low, long count) { High = high; Low = low; Count = count; }
+    internal MongoCqlNumericValue(long high, long low, long count) : this(high,low,count,null) { }
+    internal MongoCqlNumericValue(long high,long low,long count,bool? prefixOverflow)
+    { High=high; Low=low; Count=count; PrefixOverflow=prefixOverflow; }
     internal MongoCqlNumericValue(long[] parts, long count, bool floating = false)
     {
         if (floating) FloatingParts = (long[])parts.Clone(); else DecimalParts = (long[])parts.Clone();
@@ -26,24 +29,38 @@ internal sealed class MongoCqlNumericValue
 public partial class HolonRepository
 {
     internal Task<MongoCqlNumericValue> ExecuteNativeCqlNumericAsync(MongoCqlScalarCommand command, Type inputType, CancellationToken cancellationToken)
+        => ExecuteNumericCore(command,inputType,false,cancellationToken);
+
+    internal Task<MongoCqlNumericValue> ExecuteNativeCqlCheckedNumericAsync(MongoCqlScalarCommand command,Type inputType,CancellationToken cancellationToken)
+        => ExecuteNumericCore(command,inputType,true,cancellationToken);
+
+    private Task<MongoCqlNumericValue> ExecuteNumericCore(MongoCqlScalarCommand command,Type inputType,bool checkedPrefix,CancellationToken cancellationToken)
     {
         var type = Nullable.GetUnderlyingType(inputType) ?? inputType;
         var decimalInput = type == typeof(decimal);
         var floatingWidth = type == typeof(float) ? CosmicFloatingAggregateResults.SingleLimbCount
             : type == typeof(double) ? CosmicFloatingAggregateResults.DoubleLimbCount : 0;
         var empty = floatingWidth != 0 ? new MongoCqlNumericValue(new long[floatingWidth], 0, floating: true)
-            : decimalInput ? new MongoCqlNumericValue(new long[CosmicDecimalScalarResults.LimbCount], 0) : new MongoCqlNumericValue(0, 0, 0);
-        return ExecuteNativeCqlScalarAsync(command, doc => ReadNativeCqlNumeric(doc, command.HasTraversalEnvelope,
-            decimalInput, Nullable.GetUnderlyingType(inputType) == null, floatingWidth), empty, cancellationToken);
+            : decimalInput ? new MongoCqlNumericValue(new long[CosmicDecimalScalarResults.LimbCount], 0) : new MongoCqlNumericValue(0, 0, 0, checkedPrefix ? false : null);
+        return ExecuteNativeCqlScalarAsync(command, doc => checkedPrefix
+            ? ReadNativeCqlCheckedNumeric(doc, command.HasTraversalEnvelope, Nullable.GetUnderlyingType(inputType) == null)
+            : ReadNativeCqlNumeric(doc, command.HasTraversalEnvelope, decimalInput, Nullable.GetUnderlyingType(inputType) == null, floatingWidth), empty, cancellationToken);
     }
 
     internal static MongoCqlNumericValue ReadNativeCqlNumeric(BsonDocument document, bool traverses, bool decimalInput = false, bool required = false, int floatingWidth = 0)
+        => ReadNumericCore(document,traverses,decimalInput,required,floatingWidth,false);
+
+    internal static MongoCqlNumericValue ReadNativeCqlCheckedNumeric(BsonDocument document, bool traverses, bool required)
+        => ReadNumericCore(document, traverses, false, required, 0, true);
+
+    private static MongoCqlNumericValue ReadNumericCore(BsonDocument document,bool traverses,bool decimalInput,bool required,int floatingWidth,bool checkedPrefix)
     {
+        if (checkedPrefix && (decimalInput || floatingWidth != 0)) throw new InvalidDataException("A checked Int64 packet is required.");
         if (floatingWidth != 0 && floatingWidth != CosmicFloatingAggregateResults.SingleLimbCount
             && floatingWidth != CosmicFloatingAggregateResults.DoubleLimbCount || floatingWidth != 0 && decimalInput)
             throw new InvalidDataException("A single declared numeric packet domain is required.");
         document = UnwrapNativeSelectedScalar(document, traverses);
-        if (document.ElementCount != (decimalInput || floatingWidth != 0 ? 4 : 5) || !document.TryGetValue("inputs", out var inputs) || !Integer(inputs)
+        if (document.ElementCount != (decimalInput || floatingWidth != 0 ? 4 : checkedPrefix ? 6 : 5) || !document.TryGetValue("inputs", out var inputs) || !Integer(inputs)
             || !document.TryGetValue("invalid", out var invalid) || !Integer(invalid)
             || !document.TryGetValue("present", out var present) || !Integer(present))
             throw new InvalidDataException("Native numeric reduction requires its exact declared packet shape.");
@@ -67,7 +84,14 @@ public partial class HolonRepository
         if (!document.TryGetValue("high", out var high) || !high.IsDecimal128
             || !document.TryGetValue("low", out var low) || !low.IsDecimal128)
             throw new InvalidDataException("Integer reduction requires two exact Decimal128 limbs.");
-        return new MongoCqlNumericValue(Limb(high), Limb(low), present.ToInt64());
+        bool? overflow = null;
+        if (checkedPrefix)
+        {
+            if (!document.TryGetValue("prefixOverflow",out var flag) || !flag.IsBoolean)
+                throw new InvalidDataException("Checked Int64 reduction requires its Boolean prefix acknowledgement.");
+            overflow=flag.AsBoolean;
+        }
+        return new MongoCqlNumericValue(Limb(high), Limb(low), present.ToInt64(),overflow);
     }
 
     private static bool Integer(BsonValue value) => value.IsInt32 || value.IsInt64;
