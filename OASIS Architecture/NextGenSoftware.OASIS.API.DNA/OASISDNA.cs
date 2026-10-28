@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public EmailSettings Email { get; set; }
         public StorageProviderSettings StorageProviders { get; set; }
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
+        public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
         
         // HyperDrive mode switch: "Legacy" or "OASISHyperDrive2"
@@ -53,6 +54,16 @@ namespace NextGenSoftware.OASIS.API.DNA
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;
         public int StatsCacheTtlSeconds { get; set; } = 45;
+    }
+
+    public class NativeImportSettings
+    {
+        /// <summary>
+        /// Lets native data import connect to loopback, private and link-local addresses. Leave false on any hosted node: a stranger
+        /// supplying "localhost" would otherwise reach the server's own network. Enable it only on a development machine that imports
+        /// from local services.
+        /// </summary>
+        public bool AllowPrivateAddresses { get; set; } = false;
     }
 
     public class OfflineSessionGrantSettings
