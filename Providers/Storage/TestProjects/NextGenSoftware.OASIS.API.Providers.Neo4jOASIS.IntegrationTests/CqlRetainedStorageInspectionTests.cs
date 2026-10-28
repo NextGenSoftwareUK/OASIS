@@ -24,11 +24,26 @@ public sealed class CqlRetainedStorageInspectionTests
         ["cosmic_cql_v1_web4_usage/subscription_usage_outbox_v1"] = 267
     };
 
-    private static void VerifyReviewedBoundaries(IReadOnlyDictionary<string, int> observed)
+    internal static void VerifyReviewedBoundaries(IReadOnlyDictionary<string, int> observed)
     {
         var expected = ReviewedBoundaries();
         if (observed.Count != expected.Count || expected.Any(pair => !observed.TryGetValue(pair.Key, out var count) || count != pair.Value))
             throw new InvalidDataException("Retained fixture collection boundaries changed; preserve all data.");
+    }
+
+    internal static (long Bytes, string Sha256) FingerprintDocuments(IReadOnlyCollection<BsonDocument> documents)
+    {
+        if (documents.Count > 1000) throw new InvalidDataException("Collection document budget exceeded.");
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        long bytes = 0;
+        foreach (var value in documents)
+        {
+            var bson = value.ToBson();
+            bytes += bson.Length;
+            if (bytes > 16 * 1024 * 1024) throw new InvalidDataException("Collection byte budget exceeded.");
+            digest.AppendData(bson);
+        }
+        return (bytes, Convert.ToHexString(digest.GetHashAndReset()));
     }
 
     [DataTestMethod]
@@ -50,6 +65,25 @@ public sealed class CqlRetainedStorageInspectionTests
             default: throw new ArgumentOutOfRangeException(nameof(change));
         }
         Assert.ThrowsException<InvalidDataException>(() => VerifyReviewedBoundaries(observed));
+    }
+
+    [DataTestMethod]
+    [DataRow("value")]
+    [DataRow("identity")]
+    [DataRow("extra-field")]
+    public void RetainedContentFingerprintDetectsChangedDocumentsWithUnchangedCounts(string change)
+    {
+        var original = new BsonDocument { ["_id"] = "owned", ["Version"] = 7 };
+        var changed = (BsonDocument)original.DeepClone();
+        switch (change)
+        {
+            case "value": changed["Version"] = 8; break;
+            case "identity": changed["_id"] = "foreign"; break;
+            case "extra-field": changed["Unexpected"] = true; break;
+            default: throw new ArgumentOutOfRangeException(nameof(change));
+        }
+        Assert.AreNotEqual(FingerprintDocuments(new[] { original }).Sha256, FingerprintDocuments(new[] { changed }).Sha256,
+            "Matching collection counts must never admit changed native contents.");
     }
 
     [TestMethod]
@@ -122,17 +156,9 @@ public sealed class CqlRetainedStorageInspectionTests
                 var documents = await database.GetCollection<BsonDocument>(name).Find(FilterDefinition<BsonDocument>.Empty)
                     .Sort(Builders<BsonDocument>.Sort.Ascending("_id")).Limit(1001).ToListAsync();
                 Assert.IsTrue(documents.Count <= 1000, "Collection inspection budget exceeded: " + name);
-                using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-                long byteCount = 0;
-                foreach (var value in documents)
-                {
-                    var bson = value.ToBson();
-                    byteCount += bson.Length;
-                    Assert.IsTrue(byteCount <= 16 * 1024 * 1024, "Collection byte budget exceeded: " + name);
-                    digest.AppendData(bson);
-                }
+                var fingerprint = FingerprintDocuments(documents);
                 collectionInventory.Add(new { database = databaseName, collection = name, count = documents.Count,
-                    bytes = byteCount, sha256 = Convert.ToHexString(digest.GetHashAndReset()) });
+                    bytes = fingerprint.Bytes, sha256 = fingerprint.Sha256 });
                 collectionBoundaries.Add(databaseName + "/" + name, documents.Count);
             }
         }
