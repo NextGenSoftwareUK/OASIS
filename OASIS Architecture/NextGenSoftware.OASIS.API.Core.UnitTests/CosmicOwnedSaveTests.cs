@@ -70,19 +70,37 @@ public partial class CosmicTrackingTests
         CosmicConcurrency.GetProviderRevisionId(source, ProviderType.SQLLiteDBOASIS).Should().Be(claimed);
     }
 
-    [Fact]
-    public async Task OwnedSaveRejectsBlindExistingUpdateWithoutRevision()
+    [Theory]
+    [InlineData("none")]
+    [InlineData("recased")]
+    public async Task OwnedSaveOfExistingRecordWithoutExactRevisionStillWrites(string claim)
     {
+        // A blind edit is last-write-wins against the stored revision; a revision whose key a
+        // client re-cased (e.g. a JSON key normaliser) is still the caller's claim.
         var fixture = Fixture(true, conditional: true);
         var actor = Guid.NewGuid();
-        var source = new Holon { Id = Guid.NewGuid() };
+        var stored = Guid.NewGuid();
+        var claimed = Guid.NewGuid();
+        var source = new Holon { Id = Guid.NewGuid(), Name = "edited" };
+        if (claim == "recased")
+            source.ProviderMetaData = new Dictionary<ProviderType, Dictionary<string, string>>
+            { [ProviderType.SQLLiteDBOASIS] = new() { ["cOSMIC.ProviderRevisionId"] = claimed.ToString("D") } };
+        var record = new Holon { Id = source.Id, CreatedByAvatarId = actor };
+        CosmicConcurrency.SetProviderRevisionId(record, ProviderType.SQLLiteDBOASIS, stored);
         fixture.Provider.Setup(provider => provider.LoadHolonAsync(source.Id, false, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon>(new Holon { Id = source.Id, CreatedByAvatarId = actor }) { IsLoaded = true });
+            .ReturnsAsync(new OASISResult<IHolon>(record) { IsLoaded = true });
+        ConditionalHolonWriteRequest? submitted = null;
+        fixture.Provider.As<IConditionalHolonStorageProvider>()
+            .Setup(provider => provider.ExecuteConditionalHolonWriteAsync(It.IsAny<ConditionalHolonWriteRequest>(), It.IsAny<CancellationToken>()))
+            .Callback<ConditionalHolonWriteRequest, CancellationToken>((request, _) => submitted = request)
+            .ReturnsAsync(new OASISResult<IEnumerable<IHolon>> { IsError = true,
+                ErrorCode = CosmicConcurrencyException.Code, Message = "stop after submission" });
 
         var result = await fixture.Manager.SaveOwnedHolonAsync(source, actor, new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false);
 
-        result.ErrorCode.Should().Be("COSMIC_EXPECTED_REVISION_REQUIRED");
-        fixture.Provider.Invocations.Where(call => call.Method.Name.Contains("Save") || call.Method.Name.Contains("Conditional")).Should().BeEmpty();
+        result.ErrorCode.Should().NotBe("COSMIC_EXPECTED_REVISION_REQUIRED");
+        submitted.Should().NotBeNull();
+        submitted!.Write.Conditions.Single().ExpectedRevisionId.Should().Be(claim == "none" ? stored : claimed);
     }
 
     [Fact]
