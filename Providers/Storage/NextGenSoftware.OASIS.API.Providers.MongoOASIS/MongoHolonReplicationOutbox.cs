@@ -125,9 +125,9 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
             var query=session==null ? rows.Find(filter) : rows.Find(session,filter);
             var row=await query.Sort(new BsonDocument("Sequence",1)).Limit(1).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
             if(row==null)return new OASISResult<HolonDeliveryInspection>{Message="No unfinished obligation exists for this target."};
-            var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+            var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
             return new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(row["Sequence"].AsInt64,value.Operation,targetId,value.State,value.Attempts,
-                NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence));
+                NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence,binding));
         },cancellationToken);
 
     public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
@@ -147,9 +147,9 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
                 : await collection.AggregateAsync<BsonDocument>(session,pipeline,options,cancellationToken).ConfigureAwait(false);
             var rows=await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
             var heads=rows.Select(group=>{
-                var row=group["head"].AsBsonDocument;var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+                var row=group["head"].AsBsonDocument;var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
                 return new HolonDeliveryInspection(row["Sequence"].AsInt64,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
-                    NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence);
+                    NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence,binding);
             }).ToArray();
             return new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize));
         },cancellationToken);
@@ -245,7 +245,7 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
         var evidence=HolonRecoveryEvidenceJson.ReadStored(NullableString(row,"RecoveryEvidenceJson"),NullableString(row,"RecoveryEvidenceDigest"),state);
         return (operation,state,attempts.AsInt32,evidence);
     }
-    private static void ValidatePayload(BsonDocument row,Guid operation)
+    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(BsonDocument row,Guid operation)
     {
         var json=NullableString(row,"PayloadJson");var digest=NullableString(row,"PayloadDigest");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=digest)throw new InvalidDataException("Outbox payload checksum differs.");
@@ -253,6 +253,7 @@ public sealed class MongoHolonReplicationOutbox : IHolonReplicationRouteInventor
         if(delivery.OperationId!=operation || delivery.SourceId!=NullableString(row,"SourceId") || delivery.SourceAuthority!=ProviderType.MongoDBOASIS
             || NullableString(row,"SourceAuthority")!=ProviderType.MongoDBOASIS.ToString() || delivery.ActorId.ToString("D")!=NullableString(row,"ActorId"))
             throw new InvalidDataException("Outbox payload and enrollment disagree.");
+        return delivery.NativeRoutes.SingleOrDefault(route=>route.TargetId == row["TargetId"].AsString);
     }
     private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
         ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"

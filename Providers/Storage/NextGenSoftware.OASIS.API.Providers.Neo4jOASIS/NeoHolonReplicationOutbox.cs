@@ -109,9 +109,9 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
             var rows=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {TargetId:$target}) WHERE o.DeliveryState<>'Completed' "
                 +"RETURN o ORDER BY o.Sequence LIMIT 1",new{target=targetId}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
             if(rows.Count==0)return (new OASISResult<HolonDeliveryInspection>{Message="No unfinished obligation exists for this target."},false);
-            var row=rows[0]["o"].As<INode>();var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+            var row=rows[0]["o"].As<INode>();var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
             return (new OASISResult<HolonDeliveryInspection>(new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,targetId,value.State,value.Attempts,
-                Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence)),false);
+                Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence,binding)),false);
         },()=>Identity(targetId),cancellationToken);
 
     public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
@@ -122,9 +122,9 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
                 +"MATCH (o:CosmicHolonOutbox {Sequence:first}) RETURN o ORDER BY target LIMIT $limit",
                 new{after=afterTargetId,limit=pageSize+1}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
             var heads=rows.Select(record=>{
-                var row=record["o"].As<INode>();var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+                var row=record["o"].As<INode>();var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
                 return new HolonDeliveryInspection(Long(row,"Sequence"),value.Operation,Text(row,"TargetId"),value.State,value.Attempts,
-                    Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence);
+                    Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),value.Evidence,binding);
             }).ToArray();
             return (new OASISResult<HolonReplicationRoutePage>(new HolonReplicationRoutePage(heads.Take(pageSize),heads.Length>pageSize)),false);
         },()=>HolonReplicationRoutePage.ValidateRequest(pageSize,afterTargetId),cancellationToken);
@@ -203,7 +203,7 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
             || string.IsNullOrWhiteSpace(Text(row,"LeaseWorkerId"))))throw new InvalidDataException("Invalid active lease identity.");
         return (operation,state,(int)attempts,HolonRecoveryEvidenceJson.ReadStored(Text(row,"RecoveryEvidenceJson"),Text(row,"RecoveryEvidenceDigest"),state));
     }
-    private static void ValidatePayload(INode row,Guid operation)
+    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidatePayload(INode row,Guid operation)
     {
         var json=Text(row,"PayloadJson");
         if(json==null || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)))!=Text(row,"PayloadDigest"))throw new InvalidDataException("Outbox payload checksum differs.");
@@ -211,6 +211,7 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationRouteInventoryO
         if(delivery.OperationId!=operation || delivery.SourceId!=Text(row,"SourceId") || delivery.SourceAuthority!=ProviderType.Neo4jOASIS
             || Text(row,"SourceAuthority")!=ProviderType.Neo4jOASIS.ToString() || delivery.ActorId.ToString("D")!=Text(row,"ActorId"))
             throw new InvalidDataException("Outbox payload and enrollment disagree.");
+        return delivery.NativeRoutes.SingleOrDefault(route=>route.TargetId == Text(row,"TargetId"));
     }
     private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
         ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"

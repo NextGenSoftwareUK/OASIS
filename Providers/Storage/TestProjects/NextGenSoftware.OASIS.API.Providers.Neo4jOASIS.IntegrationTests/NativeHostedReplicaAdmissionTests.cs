@@ -11,4 +11,8 @@ public partial class NativeHostedReplicaRestartTests
     [DataRow("policy-changed")]
     public Task ShippingWorkerRejectsUnadmittedOrExpiredActorBeforeNativeReplicaWrite(string admission)
         => VerifyShippingWorkerRestart(false, admission);
+    [TestMethod]
+    public Task ShippingWorkerRecoversOlderBoundTransportUsingFreshNativeProof()
+        => VerifyShippingWorkerRestart(false,olderBoundTransport:true);
+
 }

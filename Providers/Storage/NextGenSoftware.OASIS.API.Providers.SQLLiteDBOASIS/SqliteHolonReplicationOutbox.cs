@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -118,7 +119,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
             var result=OwnedResult(command.ExecuteNonQuery());cancellationToken.ThrowIfCancellationRequested();transaction.Commit();return result;
         },cancellationToken);
 
-    private static void ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
+    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))!=digest)
             throw new InvalidDataException("The frozen outbox payload digest differs.");
@@ -126,6 +127,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRout
         if(delivery.OperationId!=operation || delivery.SourceId!=source || delivery.SourceAuthority!=ProviderType.SQLLiteDBOASIS
             || authority!=ProviderType.SQLLiteDBOASIS.ToString() || delivery.ActorId.ToString("D")!=actor)
             throw new InvalidDataException("The frozen outbox payload disagrees with its enrollment.");
+        return delivery.NativeRoutes.SingleOrDefault(route=>route.TargetId == target);
     }
 
     private static SqliteCommand OwnedCommand(SqliteConnection connection,HolonDeliveryClaim claim,DateTime now)

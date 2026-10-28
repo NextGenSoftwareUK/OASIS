@@ -36,12 +36,12 @@ Real shipping-worker Mongo→SQLite/SQLite→Mongo2cases and Neo→SQLite admiss
 | Native atomic descriptor persistence/rollback | ✅ SQLite/Mongo/Neo scoped fixtures |
 | Destination membership/no unbound downgrade | ✅ controlled cases,SQLite native target-row fault,positive worker directions |
 | New-format abrupt receiver commit/process-exit/replay | ✅ native Neo→SQLite |
-| Verified descriptor exposed through native readiness/inventory | ❌ |
-| Worker resolves pending routes from the stored descriptor without recapturing the destination | ❌ |
+| Verified descriptor exposed through native readiness/inventory | ✅ SQLite/Mongo/Neo native scope |
+| Worker resolves pending routes from the stored descriptor without recapturing the destination | ✅ controlled probe outage over native Mongo/SQLite receivers;Neo normal delivery |
 | New writes after cold restart while a previously verified target is offline | ❌ |
 | Explicit operator repair/rebind with preserved original history | ❌ |
 
-Exact next step:expose the verified per-target descriptor on native inventory/readiness,then make the worker use that recorded meaning. Prove recovery with a cold target registration whose identity-probe path is unavailable while native bound receiving still works. New-write offline restoration needs its own authoritative binding lifecycle;do not introduce a local-file cache or config guess as a substitute. Tenant/encryption/residency grants and other failure directions remain separate.
+Exact next step:implement authoritative binding lifecycle for new writes after cold restart when a previously verified destination is offline. Explicit V2 lineage migration/repair remains a rollout gate. Tenant/encryption/residency grants,Neo physical replacement/race and other directions remain separate.
 
 Core descriptor API commit:`17ff24071672850fe98452d9820bd47f0a679ca7`. This report accompanies the parent persistence milestone. Raw logs/TRX stay under worktree TestResults;resource lifecycle is in ENVIRONMENT_AND_CLEANUP_LEDGER.md.
 
@@ -59,3 +59,22 @@ Paths are relative to C:/Source/OASIS-cosmic. Raw evidence is regenerable;only s
 | `TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx` | 2 | `214CD350CA048410DF0F35EE062D50CCA4685715FD260A36E3957370450EAEC4` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 5 | `9AB372A9BFA44E7F7E49BD0F16F00CDCA4DC46B613380CE8825A72FD7F21FD6B` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-crash-current.trx` | 1 | `55E58BADFE6FE93F0EFF649EE4808ED41439471359674C2AEDC406E9643AC6CF` |
+
+## Snapshot-first readiness and worker recovery
+
+`HolonDeliveryInspection.NativeRoute` is emitted by all3native providers only when readiness/inventory validates the original digested payload,target membership and descriptor. State-only Inspect retains its payload-free contract and returns null for this field. Older transport without descriptors also returns null;malformed descriptor-bearing transport fails validation instead of returning an older view.
+
+The worker uses the stored source/destination/policy meaning directly. It checks source fingerprint and current host policy,then passes the recorded destination expectation to the native bound receiver. It does not recapture destination identity to construct a replacement meaning. Legacy type-only obligations remain quarantined. Older bound Format1 transport uses its explicit native-proof reconstruction path;the payload is never rewritten or upgraded.
+
+Current gates:4411Core tests,4Mongo/SQLite shipping cases and6Neo shipping cases pass. Two Mongo/SQLite cases replace the destination registration after provider restart with a receiver-only proxy whose identity-probe method throws. The real native bound receiver still applies against its actual UUID/store identity. Both deliveries succeed with exactly0destination-probe calls and unchanged target revision on the following restart. This is a controlled metadata-probe outage over real stores,not a wholly offline destination or certification of its independent source role. New-write offline enrollment is not proved.
+
+Neo readiness and inventory drive normal delivery/policy quarantine;the added older-bound-transport case proves completion/restart with original payload bytes preserved. The snapshot-first crash gate passes1native case in2m7s with original obligation replay and unchanged target revision. Native API Core612d4f0 is pushed;this report accompanies parent publication.
+
+Latest snapshot-worker evidence (paths relative to worktree):
+
+| Path | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/snapshot-worker-core.trx` | 4411 | `FABB234DAED65ECBC74B3CA72F3A8C60DA4564FF368B690780F322A18AFB4B65` |
+| `TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx` | 4 | `CB96B8606AAD57B90A16037B785C250F440795E2F7FCD6CF635A25ADA2BADFAE` |
+| `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 6 | `A3D55E4BB8DFECE8E03C8BFDC1086EF1DF3F07A8C924A80C687C0589566AA597` |
+| `TestResults/Neo4jCurrent/neo4j-hosted-crash-current.trx` | 1 | `34496FB3F68FE0F7EAA40884331D9ACDD44F4D2D726E7E629F1CE109BCFD2568` |

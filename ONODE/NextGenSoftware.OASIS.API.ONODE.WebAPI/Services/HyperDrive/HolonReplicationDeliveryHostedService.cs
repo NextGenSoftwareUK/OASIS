@@ -121,10 +121,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                 if(outbox.IsError || outbox.Result is not IHolonReplicationRouteInventoryOutbox inventory)
                 {_logger.LogWarning("Replication source {Source} has no verified route inventory: {Message}",sourceType,outbox.Message);continue;}
                 var policy=_authorization.BindingIdentity;
-                var routes=new Dictionary<string,(HolonReplicationRouteBinding Binding,IOASISStorageProvider Provider)>(StringComparer.Ordinal);
-                var complete=true;
-                try
+                var olderRoutes=new Dictionary<string,HolonReplicationRouteBinding>(StringComparer.Ordinal);
+                var olderDiscovered=false;
+                var olderComplete=true;
+                async Task ReadOlderBindings()
                 {
+                    if(olderDiscovered)return;
+                    olderDiscovered=true;
+                    // Format1 bound routes have hashes but no stored descriptors.
+                    // Only that protocol version requires fresh destination proof.
                     foreach(var target in storage.Where(value=>value.ProviderType.Value!=sourceType && value is IBoundCommittedHolonReplicaStorageProvider))
                     {
                         try
@@ -132,14 +137,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                             var targetProvider=HolonReplicationRoutes.ResolveBindingProvider(manager,target.ProviderType.Value);
                             var targetStorage=await HolonReplicationRouteBinding.CapturePinnedAsync(targetProvider,cancellationToken);
                             var binding=new HolonReplicationRouteBinding(sourceStorage,targetStorage,policy);
-                            routes.Add(binding.TargetId,(binding,targetProvider));
+                            olderRoutes.Add(binding.TargetId,binding);
                         }
                         catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-                        catch(Exception cause){complete=false;_logger.LogWarning(cause,"Replication target binding {Target} unavailable.",target.ProviderType.Value);}
+                        catch(Exception cause){olderComplete=false;_logger.LogWarning(cause,"Replication target binding {Target} unavailable.",target.ProviderType.Value);}
                     }
                 }
-                catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-                catch(Exception cause){complete=false;_logger.LogWarning(cause,"Replication source binding {Source} unavailable.",sourceType);}
                 _routeContinuations.TryGetValue(sourceType,out var after);
                 // Bounded work per pass; continue next pass rather than starving
                 // later routes behind a large retained reconciliation backlog.
@@ -152,20 +155,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                         var legacy=head.TargetId.StartsWith("hyperdrive-target:",StringComparison.Ordinal);
                         if(!legacy && !head.TargetId.StartsWith("hyperdrive-target-v2:",StringComparison.Ordinal))continue;
                         if(head.State==HolonDeliveryState.ReconciliationRequired)continue;
-                        IHyperDriveIdempotentReplicationTarget receiver;
-                        if(routes.TryGetValue(head.TargetId,out var current))
+                        IHyperDriveIdempotentReplicationTarget receiver=null;
+                        HolonReplicationRouteBinding binding=null;
+                        if(legacy)
+                            receiver=new ReconciliationTarget(head.TargetId,"COSMIC_REPLICATION_ROUTE_UNBOUND");
+                        else if(head.NativeRoute != null)
                         {
-                            var resolved=manager.ResolveStorageProvider(current.Provider.ProviderType.Value);
-                            if(resolved.IsError || resolved.Result is not IBoundCommittedHolonReplicaStorageProvider native)
-                            {_logger.LogWarning("Replication receiver {Target} unavailable: {Message}",head.TargetId,resolved.Message);continue;}
-                            receiver=new CommittedHolonReplicaTarget(head.TargetId,native,current.Binding.TargetStorage.Authority,
-                                current.Binding.SourceId,sourceType,_authorization,"hyperdrive-bound-routing-v2",AuthorizationContextVersion,
-                                current.Binding.PolicyBinding,current.Binding.TargetStorage);
+                            // Readiness validated descriptor,checksum and target
+                            // membership in the native source snapshot. Never
+                            // replace that meaning with a fresh target capture.
+                            binding=head.NativeRoute;
+                            if(binding.SourceStorage.BindingFingerprint != sourceStorage.BindingFingerprint || binding.PolicyBinding != policy)
+                                receiver=new ReconciliationTarget(head.TargetId,"COSMIC_REPLICATION_ROUTE_CHANGED");
                         }
                         else
                         {
-                            if(!legacy && !complete)continue; // Failed discovery cannot prove a route changed.
-                            receiver=new ReconciliationTarget(head.TargetId,legacy?"COSMIC_REPLICATION_ROUTE_UNBOUND":"COSMIC_REPLICATION_ROUTE_CHANGED");
+                            await ReadOlderBindings();
+                            if(!olderRoutes.TryGetValue(head.TargetId,out binding))
+                            {
+                                if(!olderComplete)continue;
+                                receiver=new ReconciliationTarget(head.TargetId,"COSMIC_REPLICATION_ROUTE_CHANGED");
+                            }
+                        }
+                        if(receiver == null)
+                        {
+                            var resolved=manager.ResolveStorageProvider(binding.TargetStorage.Authority);
+                            if(resolved.IsError || resolved.Result is not IBoundCommittedHolonReplicaStorageProvider native)
+                            {_logger.LogWarning("Replication receiver {Target} unavailable: {Message}",head.TargetId,resolved.Message);continue;}
+                            receiver=new CommittedHolonReplicaTarget(head.TargetId,native,binding.TargetStorage.Authority,
+                                binding.SourceId,sourceType,_authorization,"hyperdrive-bound-routing-v2",AuthorizationContextVersion,
+                                binding.PolicyBinding,binding.TargetStorage);
                         }
                         var dispatcher=new HolonOutboxDispatcher(outbox.Result,new[]{receiver},_workerId);
                         for(var round=0;round<MaximumRoundsPerTarget;round++)
