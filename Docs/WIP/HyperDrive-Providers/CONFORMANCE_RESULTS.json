@@ -376,6 +376,9 @@
     ],
     "DuckDBOASIS": [
       "Native core-storage-v2 52/52 plus6 native control cases; native per-key CAS, independent zero-row checks, original soft-delete default and legacy-file refusal verified. Old failures preserved; no automatic legacy three-table migration. All-interface, version/concurrency stress, MotherDuck/cloud and HyperDrive routing remain separate gates."
+    ],
+    "MotherDuckOASIS": [
+      "Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification."
     ]
   },
   "suites": [
