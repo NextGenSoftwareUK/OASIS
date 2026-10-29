@@ -38,6 +38,12 @@ public class HolonMigrationMutationConsistencyTests
         Assert.AreEqual(source, restored.ApprovedSourceConsistency);
         Assert.AreEqual(replacement, restored.ApprovedReplacementConsistency);
         Assert.AreEqual(explicitPreparation.CanonicalJson, restored.CanonicalJson);
+        var adoption = new HolonMigrationReplicaAdoptionPlan(plan, restored);
+        Assert.AreEqual(plan.Context.ReplacementRoute.SourceId, adoption.ReplacementSourceId);
+        Assert.AreEqual(restored.Fingerprint, adoption.PreparationFingerprint);
+        Assert.AreEqual(plan.Context.ReplacementRoute.TargetStorage.BindingFingerprint, adoption.Fence.ExpectedStorage.BindingFingerprint);
+        Assert.AreEqual(new HolonMigrationReplicaAdoptionPlan(plan, explicitPreparation).Fingerprint, adoption.Fingerprint);
+        Assert.IsTrue(adoption.Records.All(row => row.Head.ProviderRevisionId != row.Expected.SourceProviderRevisionId));
         var wrong = source == HolonReplicaHeadReadConsistency.NativeSnapshot
             ? HolonReplicaHeadReadConsistency.ReadCommittedValidated : HolonReplicaHeadReadConsistency.NativeSnapshot;
         Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationPreparation(plan, delivery, target, "mutation-admin", wrong, replacement));
