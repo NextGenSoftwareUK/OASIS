@@ -20,10 +20,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # A token that can push to the branch AND trigger the follow-up Railway deploy
-          # (commits made with the default GITHUB_TOKEN do not start other workflows or
-          # protected-branch pushes). Falls back to GITHUB_TOKEN if the secret is unset.
-          token: ${{ secrets.RAILWAY_PIN_SYNC_TOKEN || secrets.GITHUB_TOKEN }}
+          # PRIVATE_SUBMODULE_PAT (the PAT the other sync/promotion workflows push with) so the
+          # fix-up commit can pass branch protection and start the follow-up Railway deploy;
+          # commits made with the default GITHUB_TOKEN do neither. Falls back to GITHUB_TOKEN.
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
           submodules: false
       - name: Check the pins match the gitlinks
         id: drift
