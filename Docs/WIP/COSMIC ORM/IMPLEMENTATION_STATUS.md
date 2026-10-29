@@ -5,6 +5,10 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Current migration checkpoint
 
+Frozen payload/source receipt verifier and exact native readers implemented:
+Shared1485/1485, native SQLite2/Mongo1/Neo2 pass scoped create/lease checks.
+Preview proof integration, native graph/delete/race breadth and execution remain open.
+
 Preview v2 integrates exact historical receiver outcomes and explicit consistency.
 Shared1473/1473, native SQLite2/Mongo1/Neo-source2 pass; Absent remains a finding.
 Payload/source equivalence, replacement admission, fences and cutover stay open.
