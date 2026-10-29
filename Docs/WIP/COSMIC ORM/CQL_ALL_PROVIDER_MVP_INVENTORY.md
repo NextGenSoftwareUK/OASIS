@@ -1,7 +1,7 @@
 # All-provider CQL MVP inventory
 
 Generated 2026-10-29 by Scripts/TestHosts/Update-CosmicCqlProviderInventory.ps1. 226 concrete enum identities; selectors None/All/Default excluded.
-Source SHA256: ProviderType 69F7623EF7D6C4BC9DAE0B7ED3599ADFD6DC8D4C066CF6E56FAE30CEA9F287B4; central registration 7C2CC24976AB057739A629021020B411A348320A14CD251C1827A74422834A07. Fetched Development: 7c56b2dcb. Source facts describe the current task checkout, before incoming integration.
+Source SHA256: ProviderType 69F7623EF7D6C4BC9DAE0B7ED3599ADFD6DC8D4C066CF6E56FAE30CEA9F287B4; central registration 7C2CC24976AB057739A629021020B411A348320A14CD251C1827A74422834A07. Fetched Development: 7c56b2dcb; ancestor of task HEAD: True. Core checkout: c2b16274c4e6847f6b0c84f36a2741ff3549dd80. These facts describe the current task checkout, not fresh native acceptance for every row.
 
 This is a source inventory, not certification. Green means only the linked scoped MVP, often local/emulated. Red means MVP proof is missing; a project or registration alone proves no storage/query capability. Registration observations cover active central switch cases only, not direct construction or every alternative registry. Inheritance, aliases, factory mode and source-only projects still require review before implementation.
 
@@ -9,9 +9,9 @@ Hosted Azure remains pending by user instruction. Legacy HyperDrive changes are 
 
 ## Next queue
 
-1. Integrate fetched Development into the task branch and reconcile Core/gitlink/deployment pins before the next provider change. Incoming parent at inventory time: 7c56b2dcb; do not deploy the entire task branch while migration gates remain open.
-2. BaseOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum. Add distinct authority controls, native proof and paired preset using the retained EVM environment.
-3. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.
+Fetched Development 7c56b2dcb is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.
+1. BaseOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum. Add distinct authority controls, native proof and paired preset using the retained EVM environment.
+2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.
 
 | Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |
 |---|---|---|---|

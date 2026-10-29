@@ -38,7 +38,12 @@ $enumHash = (Get-FileHash (Join-Path $root $enumPath) -Algorithm SHA256).Hash
 $registerHash = (Get-FileHash (Join-Path $root $registerPath) -Algorithm SHA256).Hash
 $incoming = (& git -C $root rev-parse --short origin/Development) -join ''
 if ($LASTEXITCODE) { throw 'Fetched Development identity unavailable.' }
-$report.Add("Source SHA256: ProviderType $enumHash; central registration $registerHash. Fetched Development: $incoming. Source facts describe the current task checkout, before incoming integration.")
+& git -C $root merge-base --is-ancestor origin/Development HEAD
+if ($LASTEXITCODE -notin 0,1) { throw 'Could not determine incoming integration state.' }
+$integrated = $LASTEXITCODE -eq 0
+$coreCommit = (& git -C (Join-Path $root 'OASIS Architecture/NextGenSoftware.OASIS.API.Core') rev-parse HEAD) -join ''
+if ($LASTEXITCODE) { throw 'Core checkout identity unavailable.' }
+$report.Add("Source SHA256: ProviderType $enumHash; central registration $registerHash. Fetched Development: $incoming; ancestor of task HEAD: $integrated. Core checkout: $coreCommit. These facts describe the current task checkout, not fresh native acceptance for every row.")
 $report.Add('')
 $report.Add('This is a source inventory, not certification. Green means only the linked scoped MVP, often local/emulated. Red means MVP proof is missing; a project or registration alone proves no storage/query capability. Registration observations cover active central switch cases only, not direct construction or every alternative registry. Inheritance, aliases, factory mode and source-only projects still require review before implementation.')
 $report.Add('')
@@ -46,9 +51,13 @@ $report.Add('Hosted Azure remains pending by user instruction. Legacy HyperDrive
 $report.Add('')
 $report.Add('## Next queue')
 $report.Add('')
-$report.Add("1. Integrate fetched Development into the task branch and reconcile Core/gitlink/deployment pins before the next provider change. Incoming parent at inventory time: $incoming; do not deploy the entire task branch while migration gates remain open.")
-$report.Add('2. BaseOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum. Add distinct authority controls, native proof and paired preset using the retained EVM environment.')
-$report.Add('3. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
+if (!$integrated) {
+    $report.Add("Integrate fetched Development $incoming and reconcile Core/gitlink/deployment pins before the next provider change. Do not deploy the entire task branch while migration gates remain open.")
+} else {
+    $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
+}
+$report.Add('1. BaseOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum. Add distinct authority controls, native proof and paired preset using the retained EVM environment.')
+$report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
 $report.Add('|---|---|---|---|')
