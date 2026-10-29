@@ -29,6 +29,8 @@ function Get-Disposition([string]$RelativePath, [string]$Body) {
     if ($RelativePath -match '/OASIS HyperDrive/') { return 'LocalHyperDriveAnalytics' }
     if ($RelativePath -match '/(AvatarManager|HolonManager)/') { return 'ModeAwareLegacyAndV2Boundary' }
     if ($RelativePath -match '/EmailManager\.') { return 'ExplicitExternalTransport' }
+    # Quote feed over plain HTTP: not a storage provider, so SendAsync/Load are transport, not provider I/O.
+    if ($RelativePath -match '/Bridge/Services/CoinGeckoExchangeRateService\.') { return 'ExplicitExternalTransport' }
     if ($Body -match '\b(?:_holonManager|HolonManager|_avatarManager|AvatarManager|_walletManager|WalletManager)\b') {
         return 'CoveredManagerDelegation'
     }

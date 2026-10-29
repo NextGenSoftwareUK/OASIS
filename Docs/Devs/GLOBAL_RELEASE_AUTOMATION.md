@@ -63,30 +63,110 @@ WEB5 and WEB6 source histories live in their owning private submodules, while th
 The release planner updates both copies in the same preparation PR, and Publish rejects a release if their SHA-256 hashes differ.
 All three Swagger histories are ordered chronologically by semantic version, with the oldest release at the top and the newest at the bottom. The release planner appends new entries and the automation test rejects an out-of-order or missing required history.
 
-WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation checks that their API versions did not move.
+### One switch for every API (WEB4-WEB10)
 
-Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.2.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
+Tick `advance_api_versions` in **Global OASIS Release** (or pass `-AdvanceWeb4ToWeb6ApiVersions` and `-AdvanceWeb7ToWeb10ApiVersions` to the script). The run then, with no manual steps:
 
-## Individual releases, version modes and preview
+- checks each API for changes (commits to its paths since the commit that last wrote its release history) and advances only those that changed, by the `version_mode` bump; an unchanged API keeps its version and gets no history entry, and nothing fails because of it. For each changed API it advances the `WEBnAPIVersion` constant and adds its release-history entry (WEB7-WEB10 histories live in this repo; WEB5/WEB6 histories are committed to their submodules and the pins updated);
+- sets `OASISRuntimeVersion` equal to `OASISAPIVersion` (the runtime ships with WEB4), and rewrites the version sentence above;
+- in OPORTAL-JS (`dev`), renames each Postman collection to the new version, fixes its title and every portal link;
+- commits all of it (this repo to the branch the run started from, OPORTAL-JS to `dev`).
 
-The global workflow is the coordinated monthly orchestrator. Every independently releasable component must also have a manual workflow: WEB4, WEB5, WEB6, MCP Server, OASIS Runtime, STAR ODK Runtime, OASIS Edge Runtime, OGEngineClient, Native Endpoint, Our World, ODOOM, OQUAKE, OIDE, ONODE Manager and HyperDrive Client. Each entry calls shared planning/build/publish code; it must not copy release logic. External products run their canonical owning-repository workflow. A missing tested binary workflow is a preview blocker, never permission to create a source-only release.
+The helper `Scripts/api_version_sync.py` does the propagation and every run of the workflow applies it (`--sync`), so drift is corrected rather than reported; `Test-OASISGlobalRelease.ps1` reads the versions from the constants instead of hardcoding them. Needs `PRIVATE_SUBMODULE_PAT` with write access to OPORTAL-JS and the private submodules.
 
-The Edge Runtime entry point is `.github/workflows/release-edge-runtime.yml`. It dispatches the shared workflow with `edge_runtime=true`, `nuget_packages=true`, and `nuget_package_scope=Edge`. The shared workflow enforces that an Edge release cannot omit its nine NuGet packages, runs the reusable Edge validation gate, packs the complete set before mutation, publishes that reviewed NuGet set after validation succeeds, and creates the GitHub release only after NuGet publication succeeds. Edge has no npm package; npm remains the JavaScript distribution channel for MCP Server.
+Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.3.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
 
-Each component offers `Automatic` (default), `Patch`, `Minor`, `Major` and `Manual`. Automatic selects major only for `BREAKING CHANGE`, a Conventional Commit `!`, or `release:major`; new public capabilities select minor; fixes, documentation, packaging and internal changes select patch. `release:major`, `release:minor`, `release:patch` and `release:none` override inference. New public packages start at `1.0.0`. Manual versions must be stable SemVer, greater than the latest publication and unused at every destination. No relevant changes stops the release.
+## How the next version is decided
 
-`Preview` is the default and never publishes. It produces a retained plan and Actions summary containing the source commit, current/proposed version, bump reason, relevant commits/PRs, full release notes and comparison, assets/platforms, destinations and blockers. When tracked source must change it creates a release-preparation PR. WEB4-WEB6 previews change only the selected API's BootLoader version and Swagger-linked history; all other API versions remain unchanged.
+Everything below is done by `Scripts/Invoke-OASISGlobalRelease.ps1`, started by the **Global OASIS Release** workflow. There are no per-component release buttons any more: each component is one checkbox on that workflow. Maintenance paths are in **Global release recovery** (see the end of this section).
 
-`Publish` accepts only that reviewed plan after its preparation PR reaches `master`. It verifies source commit, version, notes, artifacts and destinations before any mutation; drift requires a fresh preview. Builds and tests finish before publishing. The global workflow exposes the same per-component modes and defaults them to `Automatic`.
+### Version mode (the `version_mode` option)
+
+| Mode | What happens |
+|---|---|
+| `Automatic` (default) | The version bump is worked out from the changes, using the rules below |
+| `Patch`, `Minor`, `Major` | Forces that bump for every selected component that has changes |
+| `Manual` | You type the exact version in `manual_version` (stable `X.Y.Z`, greater than the current one). Only one component may be selected |
+
+### The rules in Automatic mode
+
+For each component the script lists the commits that touched that component's code since its last release (see "Last release" below). Commits whose subject starts with `Merge `, `Promote `, `chore: bump submodule` or `chore: update submodule` are ignored. Then, first match wins:
+
+| Step | Looks for | Result |
+|---|---|---|
+| 1. Labels | A `release:major`, `release:minor`, `release:patch` or `release:none` label on the pull request of any of the (up to) 50 most recent relevant commits. If several labels are found the order is major, minor, patch, none | That bump. `release:none` blocks the release of that component |
+| 2. Breaking | A commit **subject** containing `BREAKING CHANGE`, or a conventional-commit `!`, such as `feat!: ...` or `fix(auth)!: ...` | Major |
+| 3. Feature | A commit subject that **starts with** `feat:`, `add:` or `implement:`, optionally with a scope, such as `feat(sandbox): ...` | Minor |
+| 4. Anything else | Fixes, docs, refactors, packaging, free-text messages | Patch |
+
+Only subjects are read, not commit bodies. Free-text messages that do not start with one of those prefixes count as patch, so use `feat:` / `fix:` prefixes (or a release label on the PR) when you want a minor or major bump.
+
+| Example commit subject | Bump |
+|---|---|
+| `feat(native-data): save connections` | Minor |
+| `fix: sandbox cleanup skips new avatars` | Patch |
+| `feat!: remove the v1 holon routes` | Major |
+| `Sandbox and native import: settings come from DNA` | Patch (free text) |
+| Any of the above on a PR labelled `release:minor` | Minor |
+
+### APIs (WEB4 to WEB10): routes are checked as well
+
+An API's routes are its public contract, so for each API the script also compares the HTTP routes at its last release with the routes now, read from the controllers folder of that API:
+
+| API | Controllers folder |
+|---|---|
+| WEB4 | `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers` |
+| WEB5 | `STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/Controllers` |
+| WEB6 | `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers` |
+| WEB7 to WEB10 | `WEBn/NextGenSoftware.OASIS.Webn.WebAPI/Controllers` |
+
+- A route is the class `[Route("...")]` prefix plus each `[HttpGet|HttpPost|HttpPut|HttpDelete|HttpPatch("...")]` template, with `[controller]` replaced by the controller name. Parameter names are ignored, so renaming `{id}` to `{avatarId}` is not a change.
+- A route **removed or changed** (a different verb or path counts as removed plus added) raises the bump to **Major**.
+- A route **added** raises a patch to **Minor**.
+- The route check only ever **raises** the bump. A release label (step 1) overrides it.
+- It cannot see changes inside a route: renamed or removed request or response fields, a new required parameter, or behaviour changes. Those are caught only by commit prefixes and labels, so mark such commits `feat!:` or label the PR `release:major`.
+- It reads attribute routing only. Routes defined any other way are not seen.
+- The route comparison is `Scripts/api_route_diff.py`.
+
+### Last release (where "since" starts)
+
+- **WEB4 to WEB10:** the APIs are deployed from Railway and have no release tags. Their last release is the commit that last wrote their release-history file (for example `WEB4 OASIS API RELEASE HISTORY.md`). Anything committed to the API's code after that commit counts as a change.
+- **Other components** (runtimes, NuGet packages, MCP, and so on): the latest release tag for that component, and for NuGet the version already on the registry. A NuGet package whose inputs have not changed is not packed or pushed.
+
+### What happens to an API that has not changed
+
+With `advance_api_versions` ticked, an API with no commits to its code since its last release is skipped: its version stays, no history entry is written, nothing fails. The plan records "no changes since its last release".
+
+### What `advance_api_versions` does for each API that did change
+
+1. Works out the bump with the rules above and raises that API's `WEBnAPIVersion` in `OASISBootLoader.cs`. WEB4 is `OASISAPIVersion` and WEB5 is `STARAPIVersion`.
+2. Writes its release-history entry: the commits since the last release, each linked, with a full-changelog link. WEB5 and WEB6 histories are committed to their submodules and the Railway dependency pins updated; WEB4 and WEB7 to WEB10 are in this repository.
+3. Sets `OASISRuntimeVersion` equal to the WEB4 API version, and rewrites the version sentence in this document.
+4. In OPORTAL-JS (branch `dev`), renames each Postman collection to the new version, fixes its title and every portal link.
+5. Commits all of it (this repository to the branch the run started from, OPORTAL-JS to `dev`).
+
+`Scripts/api_version_sync.py` makes sure every place holding a version agrees, and it fixes any drift instead of failing. `Scripts/Test-OASISGlobalRelease.ps1` reads the versions from the constants rather than hardcoding them. Swagger, the version endpoint and the startup log read the constants at runtime, so they need no edit. The commit step needs `PRIVATE_SUBMODULE_PAT` with write access to OPORTAL-JS and the private submodules.
+
+### The Global release form (12 options)
+
+`publish` (off = build and validate only), `advance_api_versions`, `nuget_packages`, `oasis_runtime`, `star_runtime`, `edge_runtime`, `ogengine_client` (RemoteOnly, Edge and Edge + Unity together; needs `nuget_packages`), `native_endpoint`, `mcp_server`, `optional_components` (comma list of `our_world`, `odoom`, `oquake`, `oide`, `onode_manager`, `hyperdrive_client`), `version_mode`, `manual_version`. NuGet packages always release as the complete set. `onode_manager` runs `release-onode-manager.yml` as a step of the same run; OIDE, HyperDrive Client and the games dispatch their own repositories' workflows.
+
+### Global release recovery
+
+**Global release recovery** (`global-release-recovery.yml`) holds the rare paths, off the main form: *Review NuGet plan only* (builds the plan, packs and publishes nothing) and *Resume partly published NuGet batch* (give the already-published package IDs and their exact count; a wrong count stops before any upload).
+
+### Preview, publish and safety
+
+With `publish` off, the run plans, builds and validates but publishes nothing; the plan and release notes are kept as run artifacts. The run's summary page shows the version table, the version decision for each component with its reason, the release notes, and, when `advance_api_versions` is ticked, the exact version and release-history changes that would be written for the APIs (WEB5 and WEB6 are shown through their public copies in `Docs/API`). With `publish` on, publishing only happens after the build jobs have passed, using the plan produced in that run.
 
 ## GitHub Actions run
 
-1. Open **Actions → Global OASIS Release → Run workflow** on `master`.
+1. Open **Actions → Global OASIS Release → Run workflow** and choose the branch in "Use workflow from" (the form and the code come from that branch).
 2. Leave all release components selected, or turn off components intentionally omitted from that month's release.
 3. Optional application releases are off by default (`optional_components` is `none`). Replace it with a comma-separated list using `our_world`, `odoom`, `oquake`, `oide`, `onode_manager`, and/or `hyperdrive_client`. Each selected external product dispatches its owning repository's canonical workflow.
 4. Keep `publish` enabled for the real release. Disable it for a complete pack/build rehearsal.
 
-API version/history advancement is intentionally a source-preparation operation rather than an ephemeral GitHub runner change. Run the local command below, commit the parent and submodule history changes, pass CI, promote to `master`, and then run the publishing workflow.
+API versions are advanced by the same run: tick `advance_api_versions` (see "How the next version is decided"). Nothing needs to be run locally or committed by hand.
 
 Required repository secrets are `PRIVATE_SUBMODULE_PAT` and `NUGET_API_KEY`. npm uses GitHub trusted publishing with OIDC and requires the `@oasisomniverse` npm trusted-publisher configuration described in the MCP release documentation.
 
