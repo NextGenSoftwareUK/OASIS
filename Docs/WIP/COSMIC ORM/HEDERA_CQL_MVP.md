@@ -51,6 +51,19 @@ Full runtime bytes including metadata are still compared; no hash relaxation or
 alternative source parser was introduced. Failed-CRLF diagnostic report retained as
 mirror-runtime-crlf-rejection.json before successful canonical-source verification.
 
+## Native admission gate confirmed
+
+The current Run-ReusableHederaPreparedRead.ps1 requires an indexed85000000tinybar
+buffer for the routed scope; observed32485764 does not meet it. Archived release
+gates also record a prior COST_ANSWER quote12290939tinybars above its then payment/
+operation limits, followed by explicit pre-execution reconciliation/archive without
+ANSWER_ONLY replay. These are historical quote/reconciliation facts, not today's
+price or permission to retry. The current paid-query/funding guard remains intact.
+No signing key export, paid query, new identity or new contract occurred.
+
+Continue other provider breadth while Hedera native admission is pending. Only
+free testnet funding can be considered; no mainnet/purchased HBAR or paid hosting.
+
 ## Exact next step
 
 Reconcile historical retained deployment/admission evidence into persistent state
