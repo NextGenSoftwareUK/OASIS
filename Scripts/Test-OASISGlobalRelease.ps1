@@ -67,7 +67,7 @@ try {
         if ($after -ne $before[$path]) { throw "Default planning unexpectedly changed $path." }
     }
     $content = Get-Content -LiteralPath $bootLoader -Raw
-    foreach ($expected in @('OASISAPIVersion { get; set; } = "5.2.0"', 'STARAPIVersion { get; set; } = "3.2.0"', 'WEB6APIVersion { get; set; } = "3.2.0"')) {
+    foreach ($expected in @('OASISAPIVersion { get; set; } = "5.3.0"', 'STARAPIVersion { get; set; } = "3.2.0"', 'WEB6APIVersion { get; set; } = "3.2.0"')) {
         if (-not $content.Contains($expected)) { throw "Missing expected WEB4-WEB6 version: $expected" }
     }
     foreach ($expected in @('WEB7APIVersion { get; set; } = "1.0.0"', 'WEB8APIVersion { get; set; } = "1.0.0"', 'WEB9APIVersion { get; set; } = "1.0.0"', 'WEB10APIVersion { get; set; } = "1.0.0"')) {
@@ -92,7 +92,7 @@ try {
         }
     }
     $chronologicalHistories = @(
-        @{ Path = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md'; Required = @('4.0.0','4.5.0','4.5.1','5.2.0') },
+        @{ Path = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md'; Required = @('4.0.0','4.5.0','4.5.1','5.3.0') },
         @{ Path = 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md'; Required = @('2.0.0','3.0.0','3.2.0') },
         @{ Path = 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md'; Required = @('1.0.0','2.0.0','3.0.0','3.2.0') }
     )
