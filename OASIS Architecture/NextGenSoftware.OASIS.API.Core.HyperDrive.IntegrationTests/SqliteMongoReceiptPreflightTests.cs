@@ -51,7 +51,7 @@ public class SqliteMongoReceiptPreflightTests
             Assert.False((await target.ActivateProviderAsync()).IsError);
             var sourceBinding = await source.CaptureStorageIdentityAsync(); Assert.False(sourceBinding.IsError);
             var targetBinding = await target.CaptureStorageIdentityAsync(); Assert.False(targetBinding.IsError);
-            var enrollment = new HolonReplicationEnrollment("owned-sqlite-mongo-preflight", new[] { "target" });
+            var enrollment = new HolonReplicationEnrollment("owned-sqlite-mongo-preflight", new[] { "target", "target-b", "\uE000", "\U0001F600" });
             var original = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(createOperation, actor,
                 ProviderType.SQLLiteDBOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
@@ -69,6 +69,13 @@ public class SqliteMongoReceiptPreflightTests
                 Assert.False(applied.IsError, applied.Message + applied.Exception);
             }
             await Apply(original, acknowledged);
+            var boundSource = source.GetBoundHolonReplicationOutbox(sourceBinding.Result);
+            Assert.False(boundSource.IsError, boundSource.Message + boundSource.Exception);
+            await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
+                boundSource.Result, sourceBinding.Result, createOperation, "target");
+            await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
+                createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+
             var matched = await HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(original));
             Assert.False(matched.IsError, matched.Message + matched.Exception);
             Assert.Equal(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Result.Records[0].Kind);
@@ -97,6 +104,9 @@ public class SqliteMongoReceiptPreflightTests
                     ConditionalHolonOperation.HardDelete, new[] { StoredRecordJson.Project<Holon>(acknowledged) }, saveChildren: false);
                 var deleted = await source.ExecuteReplicatingHolonWriteAsync(deletion, enrollment); Assert.False(deleted.IsError, deleted.Message + deleted.Exception);
                 await Apply(deletion, deleted.Result.Single());
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
+                    createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+
                 var tombstone = await HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(deletion));
                 Assert.False(tombstone.IsError, tombstone.Message + tombstone.Exception);
                 Assert.Equal(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, tombstone.Result.Records[0].Kind);

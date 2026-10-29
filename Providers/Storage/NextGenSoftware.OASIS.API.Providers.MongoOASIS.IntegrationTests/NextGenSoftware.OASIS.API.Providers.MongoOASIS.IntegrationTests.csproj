@@ -26,4 +26,5 @@
   <ItemGroup><None Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/Fixtures/CqlNumericAggregateVectors.json" Link="Fixtures/CqlNumericAggregateVectors.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CqlEmptyWindowAcceptance.cs" Link="Fixtures/CqlEmptyWindowAcceptance.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CosmicOutboxInventoryProbe.cs" Link="Fixtures/CosmicOutboxInventoryProbe.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../Scripts/TestHosts/Fixtures/CosmicOperationInventoryProbe.cs" Link="Fixtures/CosmicOperationInventoryProbe.cs" /></ItemGroup>
 </Project>

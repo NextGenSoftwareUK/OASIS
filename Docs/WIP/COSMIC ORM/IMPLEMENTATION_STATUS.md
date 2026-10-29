@@ -19,6 +19,10 @@ Current-body false-match bug reproduced/fixed in all three V2 audit readers:
 Shared1392/Neo619 controls; native SQLite->Mongo2, Neo/SQLite content/race3 and Mongo
 lifecycle2 pass. Tokens alone no longer certify a changed current body. Legacy
 save paths unchanged. Authorized preview/CAS/cutover and full pair acceptance stay red.
+Complete original-operation inventory passes Core4462/Shared1404/GraphQL1,
+native SQLite2/Mongo1/Neo2 and exact-failure reconciliation1. The new Neo reader's
+Unicode cursor uses native indexed ordering; the older global route-head reader's
+related gap remains open. Inventory does not authorize migration.
 Older sections below retain their milestone-specific scope, not current open/closed authority.
 
 ## Latest snapshot-first worker milestone
