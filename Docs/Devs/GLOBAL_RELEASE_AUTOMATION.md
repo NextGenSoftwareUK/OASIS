@@ -67,7 +67,7 @@ All three Swagger histories are ordered chronologically by semantic version, wit
 
 Tick `advance_api_versions` in **Global OASIS Release** (or pass `-AdvanceWeb4ToWeb6ApiVersions` and `-AdvanceWeb7ToWeb10ApiVersions` to the script). The run then, with no manual steps:
 
-- advances each `WEBnAPIVersion` constant and adds its release-history entry (WEB7-WEB10 histories live in this repo; WEB5/WEB6 histories are committed to their submodules and the pins updated);
+- checks each API for changes (commits to its paths since the commit that last wrote its release history) and advances only those that changed, by the `version_mode` bump; an unchanged API keeps its version and gets no history entry, and nothing fails because of it. For each changed API it advances the `WEBnAPIVersion` constant and adds its release-history entry (WEB7-WEB10 histories live in this repo; WEB5/WEB6 histories are committed to their submodules and the pins updated);
 - sets `OASISRuntimeVersion` equal to `OASISAPIVersion` (the runtime ships with WEB4), and rewrites the version sentence above;
 - in OPORTAL-JS (`dev`), renames each Postman collection to the new version, fixes its title and every portal link;
 - commits all of it (this repo to the branch the run started from, OPORTAL-JS to `dev`).

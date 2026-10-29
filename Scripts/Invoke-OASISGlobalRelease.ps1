@@ -208,6 +208,14 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
     return $proposed
 }
 
+# An API has changed when commits touch its paths after the commit that last wrote its release history (its release point; needs no tags).
+function Test-ApiChangedSinceRelease([string]$HistoryPath, [string[]]$Paths, [string]$GitRoot = $repoRoot) {
+    $releasePoint = (& git -C $GitRoot log -1 --format=%H -- $HistoryPath)
+    $range = if ($releasePoint) { "$releasePoint..HEAD" } else { 'HEAD' }
+    $subjects = @(& git -C $GitRoot log $range --no-merges --format='%s' -- @Paths | Where-Object { $_ -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)' })
+    return $subjects.Count -gt 0
+}
+
 function Get-LatestNuGetVersion([string]$PackageId) {
     $release = Get-LatestNuGetRelease $PackageId
     if ($release) { return $release.Version }
@@ -423,19 +431,6 @@ function Get-BootLoaderVersions {
 function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     $bootLoaderPath = Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\OASISBootLoader.cs'
     $content = Get-Content -LiteralPath $bootLoaderPath -Raw
-    $all = $AdvanceWeb4ToWeb6ApiVersions
-    $updates = [ordered]@{}
-    if ($all -or $AdvanceWeb4ApiVersion) { $updates.OASISAPIVersion = Get-RequestedVersion $Versions.OASISAPIVersion @('ONODE','OASIS Architecture','Providers','ONET','Edge') @('WEB4-v','OASIS-Runtime-v') }
-    if ($all -or $AdvanceWeb5ApiVersion) { $updates.STARAPIVersion = Get-RequestedVersion $Versions.STARAPIVersion @('.') @('WEB5-v','STAR-ODK-Runtime-v') (Join-Path $repoRoot 'STAR ODK') }
-    if ($all -or $AdvanceWeb6ApiVersion) { $updates.WEB6APIVersion = Get-RequestedVersion $Versions.WEB6APIVersion @('.') @('WEB6-v','mcp-v') (Join-Path $repoRoot 'WEB6') }
-    foreach ($n in 7..10) { if ($AdvanceWeb7ToWeb10ApiVersions) { $updates["WEB${n}APIVersion"] = Get-RequestedVersion $Versions["WEB${n}APIVersion"] @("WEB$n") @("WEB$n-v") } }
-    foreach ($entry in $updates.GetEnumerator()) {
-        $pattern = "(?m)(public static string $($entry.Key) \{ get; set; \} = `")\d+\.\d+\.\d+(`";)"
-        $content = [regex]::Replace($content, $pattern, "`${1}$($entry.Value)`${2}", 1)
-    }
-    Set-TextPreservingUtf8Bom $bootLoaderPath $content
-
-    $date = Get-Date -Format 'dd/MM/yy'
     $histories = @(
         @{ Key='OASISAPIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('WEB4-v','OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
         @{ Key='STARAPIVersion'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB5-STAR-API-RELEASE-HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
@@ -445,6 +440,26 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         @{ Key='WEB9APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB9\NextGenSoftware.OASIS.Web9.WebAPI\WEB9 API RELEASE HISTORY.md'; Name = 'WEB9 OASIS Singularity API'; Intro = 'WEB9 is the OASIS Singularity API.'; Prefixes = @('WEB9-v'); Paths = @('WEB9') },
         @{ Key='WEB10APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB10\NextGenSoftware.OASIS.Web10.WebAPI\WEB10 API RELEASE HISTORY.md'; Name = 'WEB10 The Source API'; Intro = 'WEB10 is The Source API.'; Prefixes = @('WEB10-v'); Paths = @('WEB10') }
     )
+    $all = $AdvanceWeb4ToWeb6ApiVersions
+    $updates = [ordered]@{}
+    $wanted = [ordered]@{ OASISAPIVersion = ($all -or $AdvanceWeb4ApiVersion); STARAPIVersion = ($all -or $AdvanceWeb5ApiVersion); WEB6APIVersion = ($all -or $AdvanceWeb6ApiVersion) }
+    foreach ($n in 7..10) { $wanted["WEB${n}APIVersion"] = $AdvanceWeb7ToWeb10ApiVersions }
+    foreach ($history in $histories) {
+        if (-not $wanted[$history.Key]) { continue }
+        # Manual mode is an explicit version; Automatic and Major/Minor/Patch bump only an API whose code changed since its last release.
+        if ($VersionMode -ne 'Manual' -and -not (Test-ApiChangedSinceRelease (Join-Path $repoRoot $history.Path) $history.Paths $history.GitRoot)) {
+            $versionDecisions.Add([pscustomobject]@{ scope=($history.Paths -join ', '); current=$Versions[$history.Key]; proposed=$Versions[$history.Key]; bump='None'; reason="$($history.Name) has no changes since its last release; version kept." })
+            continue
+        }
+        $updates[$history.Key] = Get-RequestedVersion $Versions[$history.Key] $history.Paths $history.Prefixes $history.GitRoot
+    }
+    foreach ($entry in $updates.GetEnumerator()) {
+        $pattern = "(?m)(public static string $($entry.Key) \{ get; set; \} = `")\d+\.\d+\.\d+(`";)"
+        $content = [regex]::Replace($content, $pattern, "`${1}$($entry.Value)`${2}", 1)
+    }
+    Set-TextPreservingUtf8Bom $bootLoaderPath $content
+
+    $date = Get-Date -Format 'dd/MM/yy'
     foreach ($history in $histories) {
         if (-not $updates.Contains($history.Key)) { continue }
         $history.Version = $updates[$history.Key]
