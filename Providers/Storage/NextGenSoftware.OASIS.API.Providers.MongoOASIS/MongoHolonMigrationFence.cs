@@ -17,7 +17,7 @@ internal sealed class MongoMigrationFenceException(string code, string message) 
 
 internal static class MongoHolonMigrationFence
 {
-    internal enum Action { Acquire, Read, Cancel, BeginMutation }
+    internal enum Action { Acquire, Read, Cancel, BeginMutation, ApplyPreparedMutation }
     internal const string Gates = "CosmicMigrationRecordGate", Receipts = "CosmicMigrationFence";
     private const string SchemaId = "cosmic-migration-record-gate-schema-v1";
     private static void ValidateSchema(BsonDocument marker)
@@ -93,7 +93,7 @@ internal static class MongoHolonMigrationFence
     }
 
     internal static async Task<OASISResult<HolonMigrationFenceObservation>> ExecuteAsync(IMongoDatabase database,
-        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token, string mutationDigest = null)
+        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token, string mutationDigest = null, Func<IClientSessionHandle, CancellationToken, Task<bool>> mutation = null)
     {
         token.ThrowIfCancellationRequested();
         IClientSessionHandle session = null; OASISResult<HolonMigrationFenceObservation> result = null;
@@ -102,9 +102,9 @@ internal static class MongoHolonMigrationFence
         try
         {
             if (database == null || request == null || request.ExpectedStorage.Authority != Core.Enums.ProviderType.MongoDBOASIS
-                || action is Action.Cancel or Action.BeginMutation && owner == Guid.Empty)
+                || action is Action.Cancel or Action.BeginMutation or Action.ApplyPreparedMutation && owner == Guid.Empty)
                 throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_OPTIONS_INVALID", "An exact activated Mongo fence scope and owner are required.");
-            if (action == Action.BeginMutation) _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest);
+            if (action is Action.BeginMutation or Action.ApplyPreparedMutation) _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest);
             session = await database.Client.StartSessionAsync(cancellationToken: token).ConfigureAwait(false);
             session.StartTransaction(new TransactionOptions(readConcern: ReadConcern.Snapshot, writeConcern: WriteConcern.WMajority.With(journal: true)));
             await HolonRepository.ValidateReplicaStorageBindingAsync(database, session, request.ExpectedStorage, token,
@@ -137,6 +137,20 @@ internal static class MongoHolonMigrationFence
                 await receipts.InsertOneAsync(session, new BsonDocument { { "_id", request.MigrationId.ToString("D") },
                     { "RequestJson", request.CanonicalJson }, { "RequestHash", request.Fingerprint }, { "OwnerToken", owner.ToString("D") }, { "FenceState", "Held" } }, cancellationToken: token).ConfigureAwait(false);
                 result = new(new(request, owner, HolonMigrationFenceState.Held)) { IsSaved = true }; changed = true;
+            }
+            else if (action == Action.ApplyPreparedMutation)
+            {
+                if (stored.State != HolonMigrationFenceState.MutationStarted || stored.OwnerToken != owner
+                    || stored.MutationDigest != mutationDigest || mutation == null)
+                    throw new MongoMigrationFenceException("COSMIC_MIGRATION_MUTATION_SCOPE_OR_INTENT_MISMATCH", "Only the exact Started owner and prepared intent may mutate protected data.");
+                foreach (var id in request.HolonIds)
+                {
+                    var gate = await TouchAsync(database, session, id, token).ConfigureAwait(false);
+                    if (gate["FenceId"].AsString != request.MigrationId.ToString("D") || gate["FenceHash"].AsString != request.Fingerprint)
+                        throw new InvalidDataException("Native record admission differs from the started mutation scope.");
+                }
+                changed = await mutation(session, token).ConfigureAwait(false);
+                result = new(stored) { IsSaved = changed, IsLoaded = !changed };
             }
             else if (action == Action.BeginMutation)
             {

@@ -49,4 +49,27 @@ public class HolonMigrationMutationConsistencyTests
         Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationPreparation(plan, delivery, target, "mutation-admin", wrong, replacement));
         Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationPreparation(plan, delivery, target, "mutation-admin", source, (HolonReplicaHeadReadConsistency)999));
     }
+    [TestMethod]
+    public async Task NativeV2LineageAdoptionRecordsIntentWithoutRequiringSourceRename()
+    {
+        var f = new HolonReplicationMigrationPreviewTests.Fixture(nativeLineage: true);
+        f.ReplicaReceipt = row => new(f.Delivered(row)); f.PayloadProof = (row, receipt) => new(f.Proof(row, receipt));
+        var preview = await f.Read(); Assert.IsFalse(preview.IsError, preview.Message);
+        var context = preview.Result.AuthorizationContext(Guid.NewGuid(), Guid.NewGuid(), "owned-admin");
+        var plan = HolonReplicationMigrationBarrierPlan.Create(preview.Result, context);
+        var delivery = new HolonMigrationDeliveryReconciliationReport(plan, 3,
+            HolonReplicaHeadReadConsistency.NativeSnapshot, Array.Empty<HolonMigrationDeliveryObservation>());
+        var replacement = new HolonMigrationReplacementReport(plan, HolonReplicaHeadReadConsistency.NativeSnapshot,
+            new[] { HolonReplicaHeadReadConsistency.NativeSnapshot }, preview.Result.Receipts.SelectMany(r => r.Records)
+                .Select(r => r.Original).DistinctBy(r => r.HolonId).OrderBy(r => r.HolonId.ToString("D"), StringComparer.Ordinal)
+                .Select(r => new HolonMigrationReplacementRecord(r, true, new HolonReplicaHeadEvidence(context.OriginalSourceId,
+                    context.SourceStorage.Authority, r.VersionId, r.PreviousVersionId, r.Version, Guid.NewGuid(), false,
+                    new string('A',64), r.PortableContentDigest), HolonMigrationReplacementKind.MatchingOriginalLineage)));
+        var preparation = new HolonMigrationMutationPreparation(plan, delivery, replacement, "mutation-admin");
+        Assert.AreEqual(context.OriginalSourceId, context.ReplacementRoute.SourceId);
+        var adoption = new HolonMigrationReplicaAdoptionPlan(plan, preparation);
+        Assert.AreEqual(adoption.OriginalSourceId, adoption.ReplacementSourceId);
+        Assert.AreEqual(preparation.Fingerprint, adoption.PreparationFingerprint);
+    }
+
 }

@@ -1,6 +1,7 @@
 # COSMIC ORM implementation roadmap
 
 User priority28October: first prove HyperDriveV2 replication, failover and load balancing; then resume COSMIC ORM/CQL parity across MongoDB, SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Prove these priority providers before broadening implementation to others. Existing Solana demos remain preserved. Hosted Azure remains explicitly deferred pending a genuinely free authenticated account.
+Latest user steering: breadth first across demo providers; prioritize missing AWS CQL demo and usable multi-provider presets over deeper migration or parity.
 Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective remains active; no completion claim.
 
 | Order | Work | Acceptance owner |

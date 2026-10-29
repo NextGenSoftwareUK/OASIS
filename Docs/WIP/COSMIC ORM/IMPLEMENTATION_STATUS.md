@@ -5,7 +5,9 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
-Shared **1598/1598**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
+User priority: breadth first. Close missing priority-provider demo coverage (AWS first); deeper migration and parity are deferred. Mongo adoption3/3 and fence2/2 now pass, including unchanged native-source identity.
+
+Shared **1599/1599**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
 Native record barriers, exact administrative preview admission, persisted original evidence,
 partial/lost-ack recovery and one actual coordinator process-crash boundary are verified in
 those recorded scopes. Read-only delivery review retains current lease/state evidence and
