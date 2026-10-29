@@ -26,7 +26,7 @@ is mutation of the shared configured list.
 | Subscription/capability candidate filtering | Controlled selection/execution suites exist; audit native provider scope and denial behavior. |
 | Temporary read failure and failover | Native Mongo process-down -> SQLite reads pass sync/async/explicit with ordered diagnostics; other providers/consistency boundaries remain open. |
 | Unknown mutation outcome | Existing recovery/cancellation suites; never infer permission for a second mutation from a timeout. |
-| Empty replica response | Core8917a52 propagates failed primary confirmation and includes explicit loadbalance entry;12controls plus native primary-only Mongo witness/emptySQLite proof pass. Preferred-provider/explicit-failover scope remains next. |
+| Empty replica response | Core8917a52 propagates failed primary confirmation and includes explicit loadbalance entry;12controls plus native primary-only Mongo witness/emptySQLite proof pass. Preferred-provider/explicit-failover native proof also passes; see latest milestone below. |
 | Round-robin/performance/geography/cost | Native round-robin4reads alternate Mongo/SQLite after recovery; performance/geography/cost remain controlled-test evidence only. |
 | Avatar fault isolation | Controlled routing2/2 proves one-avatar refusal before storage IO, peer access unaffected and fault restoration. Native ACL/privacy certification is separate. |
 | Native provider breadth | Mongo/SQLite/Neo first; extend priority IPFS/Azure/AWS/Oracle/SOLID/ActivityPub only with proving evidence. |
@@ -99,8 +99,7 @@ recovery they return the real witness from Mongo, while SQLite stays empty for t
 ID. Existing replication/order/restart checks also run. Native scenario1/1 passes
 in22seconds; exact target cleanup includes the witness's own ID/receipt operation.
 
-Scope still open: preferred-provider and explicit-failover absence semantics,
-other provider pairs, strategy eligibility and full consistency/placement policy.
+Scope still open: other provider pairs, strategy eligibility and full consistency/placement policy.
 Do not infer all-provider or all-entry-point completion from this milestone.
 
 - `TestResults/OwnedRoutingCurrent/avatar-routing-execution.trx`: 2pass;SHA256 `164B3837723BEA573BF664B0A8598983358F7091750B04C4B1BE4D14CFCC407A`.
@@ -126,3 +125,43 @@ coverage is still next; this does not certify all provider pairs or policy strat
 - `TestResults/OwnedRoutingCurrent/preferred-absence-green.trx`: 9 passed; SHA256 `BE15BFC9BE595F5D96EAE6F43F511DB9370D6AFB1DF0AAC426191AA082502821`.
 
 - `TestResults/OwnedRoutingCurrent/preferred-absence-full.trx`: 4449 passed; SHA256 `1A4A6641483613F74F6BB5FF4071FDC950C26781273AE5C9F5C97DF8DA0C8ADA`.
+
+## Native preferred authority proof
+
+The expanded `-NativePrimaryConsistencyProof` now exercises six read forms:
+default-authority sync/async/explicit load balance, plus preferred-authority
+sync/async/explicit failover with SQLite deliberately the node default and Mongo
+the requested authority. All reject false absence while the Mongo process is
+stopped; all return the journaled Mongo-only witness after same-data recovery.
+Preferred failover diagnostics preserve the failed Mongo attempt and successful
+empty SQLite attempt, select Mongo with unsuccessful outcome, and contain exactly
+two attempts without a confirmation retry. SQLite never acquires the witness.
+
+The expanded native scenario passes1/1 in31seconds. Existing two queued writes
+also retain retry ordering, complete after recovery and keep stable target
+revisions on a further delivery pass. Exact fixture database/files/journal/signals
+were removed by the verified runner; the reusable Mongo data/runtime is retained.
+Core `ed83223` is unchanged by this test milestone.
+
+Two fixture lifecycle mistakes were found and corrected during the extension:
+reactivating the default Mongo before process recovery, then switching the main
+registry's default and deactivating its required active receiver. The final test
+uses a separate routing registry over the same stores, preserving that receiver.
+No production checks were relaxed. Original pending writes were reconciled through
+`-ReconcilePrimaryConsistencyFailure`, with exact journaled witness receipt and
+pending0/0 guards, without repeating either source save. The first reconciliation
+safely rejected the witness because the older zero-receipt guard did not describe
+this fixture; that guard now requires exactly the witness's operation ID.
+
+The native proof covers Mongo/SQLite and these entry points only. Other provider
+pairs, native strategy eligibility and full placement/consistency remain open.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-consistency.trx`: 1passed; SHA256 `3973D128AEBF9ABC098F50A965628D5FD0456EF430E66DC9CEC06BC8CE3747C7`.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-reconcile-consistency.trx`: 1passed; SHA256 `9632C2498DA3669C74EF0E96D5E2160E281B80C2195EFCBB97488D02AAC74F21`.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-consistency-teardown-failure.trx`: 1fixture failure; SHA256 `AB5390540710558D72645FAED26EFC5A30AA369D94DB0DB0DCF999661B131332`.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-consistency-receiver-lifecycle-failure.trx`: 1fixture failure; SHA256 `05FA77A519836B7CD1FD0F411CD3D65A6C6F4FDDC33C522EFE07DA7B3CA76FC4`.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-reconcile-consistency-witness-guard-failure.trx`: 1guard rejection; SHA256 `012C35C88A15B4F69C272A8E48D1E907089BBF113EF6CFAA3DF7A2492505A5CB`.
