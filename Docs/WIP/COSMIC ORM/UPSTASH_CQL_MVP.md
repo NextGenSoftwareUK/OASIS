@@ -1,6 +1,6 @@
 # Upstash CQL MVP admission
 
-Updated29 October2026. **Hosted native/repeat verified; paired demo remains red.**
+Updated29 October2026. **Scoped hosted native/repeat and Mongo-paired C#/HTTP/browser MVP verified.**
 
 ## Implemented scope
 
@@ -56,18 +56,51 @@ The old integration file had an incorrect Holon/Avatar namespace import, now fix
 - Initial result1passed2s/no skips; `TestResults/UpstashCqlCurrent/upstash-cql-initial.trx`.
 - Initial SHA256: `EF1B978C4A1EA0E28FC6489811C59E07B94088582B859F566616C0B444C842BE`.
 - Repeat result1passed1s/no skips; `TestResults/UpstashCqlCurrent/upstash-cql-native.trx`.
-- Repeat SHA256: `C8AB9790BD5CD2A2E9CD2050B2C813DDF314F7D2670C2866297AE388379756D2`.
+- Latest native/repeat preflight SHA256: `4AB29E843712870030AF63AE7CAFC15D330B92D15EA21CF47B55F1C991A6F19B`.
 - Seed SHA256: `B24961E3DB2A04F6F772B3472581BEC281B9CDEF7B13EFE4CEF8F20770480B35`.
 - Persistent source directory `LocalState/COSMIC/UpstashCql`: 763bytes,
   plus three hosted records/index entries (native size unmeasured), reusable until expiry.
 
+## Hosted Mongo-paired teaching demo
+
+Shared C#, HTTP and browser queries return five physical rows (hosted Upstash3 +
+local Mongo2), then four for the two-ID subset. Provider copies remain labelled.
+Forged actor/unknown preset reject, and an inactive Upstash target returns unavailable
+without partial rows. Only the owned temporary Mongo database is removed afterward;
+the original hosted source/credentials remain unchanged.
+
+- Fixture: `UpstashMongoCqlNativeTests.cs` in UpstashOASIS.IntegrationTests.
+- Result: one passed24s, zero failed/skipped.
+- Evidence: `TestResults/UpstashCqlCurrent/upstash-mongo-federation.trx`.
+- SHA256: `75B64517C4928A4E37358A406018AC1FB7386828BD8ED2CB80859309468187E2`.
+- Browser: `TestResults/UpstashCqlCurrent/upstash-mongo-browser.jpg`.
+- Runner26758 exit0; owned Mongo/HTTP listeners absent; ownership journal removed;
+  browser tab closed. Protected credential environment restored.
+- Hub: 8 single/16plans,24 paired/48plans,34 paired rejections and3 archive
+  rejections pass; listeners unchanged.
+
+```powershell
+# Inspect without services/credentials.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated -ShowPlan
+
+# SDK/HTTP checks, followed by loopback5115 browser demo.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated
+
+# Automatic verification and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated -VerifyOnly
+```
+
+Stop using the page button to finish temporary Mongo cleanup. **This retained free
+scratch expires2026-10-31T21:15:49.3541451Z**; the runner refuses expired admission.
+Missing/expired original source requires explicit reconciliation, never automatic
+reseed or allocation. A permanently available hosted demo needs separately admitted
+free infrastructure. Canonical JSON remains plaintext and multi-command saves are
+not certified atomic; arbitrary predicates/full ORM parity remain open.
+
 ## Exact next step
 
-Add a Mongo-paired C#/HTTP/browser teaching preset using the same admitted hosted
-source. Validate original endpoint/expiry and source hashes before each demo; never
-reseed if it expires or disappears. Include provider provenance and unavailable
-provider controls, then verify/drop only the owned temporary Mongo fixture. Keep
-paired admission red until verified. Native JSON is plaintext; no encryption,
-atomic save, hosted restart or full LINQ/ORM parity claim.
+Continue missing provider MVPs from the inventory. Preserve this scope and source
+until expiry; do not harden green rows absent a reproduced bug. Broader correctness,
+replication, migration and parity acceptance remain unchanged.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
