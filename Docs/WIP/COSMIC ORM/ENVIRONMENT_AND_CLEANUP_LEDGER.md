@@ -1597,3 +1597,11 @@ Owner COSMIC/CQL. Reuse admitted CosmicCql LocalDB/source and MongoDB8.3.11 C:/P
 ### 29 October 2026 — SQL Server paired demo outcome
 
 SDK/HTTP/browser5/4 verified; paired1pass32s/no skips. TRX SHA256 52DCCB5C526E06A43C02AD6F7A00FE6C0BC04DD279368DFA66D972B92039F235. Exact temporary database cosmic_cql_mongo_sqlserver_demo records/collections verified and dropped; mongo.pending.json/demo-ready.json removed. Runner8528 exit0; CosmicCql LocalDB Stopped, owned Mongo/HTTP27029/5113 listeners absent; browser tab24 closed. Original native source and shared Mongo store retained/reusable. TestResults/SqlServerCqlCurrent/sqlserver-mongo-browser.jpg generated (size unmeasured, compact disposable evidence). Hub22paired/44plans passed without listener changes. No new download/install/runtime.
+
+### 29 October 2026 — DuckDB CQL control preparation
+
+Owner COSMIC/CQL. Reuse cached DuckDB.NET.Data.Full1.1.3 and bindings in C:/Users/david/.nuget/packages (inherited, size unmeasured; retain shared cache). Existing worktree provider/unit bin/obj planned cache-only restore/build, regenerable outputs; compact logs/TRX TestResults/DuckDbCqlCurrent. No native source/database created yet, no process/port required by embedded runtime; no new runtime download/install. Control tests use inactive/empty-selection paths with :memory: configuration, no persistent data.
+
+### 29 October 2026 — DuckDB CQL control outcome
+
+Cached producer/unit builds pass, full unit suite14passed548ms/no skips. TRX TestResults/DuckDbCqlCurrent/duckdb-cql-controls.trx SHA256 DC8C7E95521BF34463285F0719AEBE50224B52401E55856A85B40BA19E9146C1. An existing removed-method compile error in provider metadata test corrected to current contract; constructor missing name/description fixed. No native database/source created, no processes/ports introduced. Existing cached package restore generated worktree bin/obj only (sizes unmeasured/regenerable); cache/runtime reusable. No download/install. Native/reopen/paired admission remains red.
