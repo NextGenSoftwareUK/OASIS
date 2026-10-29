@@ -439,6 +439,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
                     holon.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
