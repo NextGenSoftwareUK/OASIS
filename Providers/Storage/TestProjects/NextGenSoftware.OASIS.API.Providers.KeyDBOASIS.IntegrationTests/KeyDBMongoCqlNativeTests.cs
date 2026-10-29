@@ -21,7 +21,7 @@ public class KeyDBMongoCqlNativeTests
     [TestMethod]
     public async Task NativeKeyDBMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
-        
+
         const string mongoUri = "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000";
         const string database = "cosmic_cql_mongo_keydb_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
