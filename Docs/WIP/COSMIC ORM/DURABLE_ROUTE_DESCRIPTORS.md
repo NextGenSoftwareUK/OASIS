@@ -271,3 +271,30 @@ first approvals, operator/V2 lineage repair, failover or load balancing.
 | `TestResults/OwnedRoutingCurrent/worker-offline-seed.trx` | 1 | `74DD4D9935D945ABFE065483CE7B24159FF923B53CC8511D312598A49E19A33F` |
 | `TestResults/OwnedRoutingCurrent/worker-offline-offline.trx` | 1 | `839A592FDADC6FBFC5AABA00F67516436603C6296EF6CCAF756B55847C7DCCC7` |
 | `TestResults/OwnedRoutingCurrent/worker-offline-deliver.trx` | 1 | `1C41831A2570C4E9D7E589BB42CBF597D9D3E695B522DDF7E8FEA3A589A49F9B` |
+
+## Neo source cold-new-save proof
+
+`Run-ReusableNeo4jTests.ps1 -CosmicHostedColdSave` now proves a new Neo owned save
+following client/registry restart. The fresh native source catalogue retains the
+original SQLite store fingerprint and establishment operation. Its receiver-only
+registration throws on metadata capture; the new save and the shipping worker
+make zero such calls. Both original and new durable obligations complete once.
+Another client/worker restart preserves the second record's native target revision
+and logical version. This is a metadata outage, not stopped SQLite infrastructure.
+
+The native cold case passes1/1. Six existing admission/older-bound-transport cases
+also pass after the shared fixture change. Journal includes the second operation
+and record before writes. Cleanup removes only those exact Neo graph/receipt/
+outbox/establishment records and its private SQLite files, leaving shared graph and
+monotonic sequence intact. No pending journal or17687listener remains after teardown.
+
+Cold-new-save metadata-outage source coverage now includes Mongo, SQLite and Neo,
+within the recorded directions. Entire-service outage coverage is still the
+SQLite-source/Mongo-destination process case only. Active-delivery outage/retry,
+concurrent first approvals and audited operator/V2 lineage repair remain open;
+failover/load balancing and the other priority providers need separate proof.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/Neo4jCurrent/neo4j-hosted-cold-save-current.trx` | 1 | `BB59D74EAA643E85DCC1FA3D0BD99A47E34499DA4790147942DF23DE1BA38A76` |
+| `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 6 | `B2D9482A74A11E81D300625C506C9C1769657A523742FE8CBA226B7B08869290` |
