@@ -102,7 +102,13 @@ public class SqliteMongoReceiptPreflightTests
                     ProviderType.SQLLiteDBOASIS, new[] { new HolonWriteCondition(input.Id,
                         CosmicConcurrency.GetProviderRevisionId(acknowledged, ProviderType.SQLLiteDBOASIS)) }, enrollment),
                     ConditionalHolonOperation.HardDelete, new[] { StoredRecordJson.Project<Holon>(acknowledged) }, saveChildren: false);
-                var deleted = await source.ExecuteReplicatingHolonWriteAsync(deletion, enrollment); Assert.False(deleted.IsError, deleted.Message + deleted.Exception);
+                NextGenSoftware.OASIS.Common.OASISResult<System.Collections.Generic.IEnumerable<IHolon>> deleted = null!;
+                await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyWindowAsync(boundSource.Result, sourceBinding.Result,
+                    enrollment.SourceId, createOperation, enrollment.TargetIds.Count, deleteOperation, async () =>
+                    {
+                        deleted = await source.ExecuteReplicatingHolonWriteAsync(deletion, enrollment);
+                        Assert.False(deleted.IsError, deleted.Message + deleted.Exception);
+                    });
                 await Apply(deletion, deleted.Result.Single());
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
                     createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);
