@@ -8,11 +8,13 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Aptos hub enrollment/routing check**, currently automatic-review gated.
-Aptos native/restart and Mongo-paired SDK/HTTP/browser5/4 now pass; source/receipts
-preserved, owned node/Mongo stopped and exact temporary fixture removed. Direct
-commands are ready. [Proof/commands/gate](APTOS_CQL_MVP.md). Inventory stays red until
-hub enrollment completes. While gated, inspect Sui admission/reusable resources.
+**Next: Sui dedicated native source admission on its retained chain.** Adapter7
+controls pass. Actual encrypted source discovery found0 live holons; the required3
+assertion failed, so original source is untouched and no native CQL pass claimed.
+Create a separate demo package/Storage object, not another network or a replacement
+for original history. [Sui exact next step](SUI_CQL_MVP.md).
+Aptos native/restart/paired/browser5/4 is verified; main-hub enrollment remains
+review-gated. [Direct commands/gate](APTOS_CQL_MVP.md). All owned nodes are stopped.
 LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
 [Proof](LOCALFILE_CQL_MVP.md). TRON original source/fence recovery and S3 local launch
 policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL_MVP.md).
