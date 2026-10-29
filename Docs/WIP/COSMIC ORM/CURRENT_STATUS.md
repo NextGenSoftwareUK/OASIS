@@ -26,7 +26,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. SQLite matching-original replica adoption now compares complete native heads/current content under the existing Started-owner transaction, updates only lineage and inserts a distinct idempotent receipt atomically (native rollback/replay/local revision/history proof1/1). Next: deepen the red adoption acceptance with current-content CAS rejection, multi-record rollback, provider recreation/unknown-commit and receipt/downgrade controls; then implement Mongo/Neo adoption and empty-target transfer.
+1. SQLite matching-original replica adoption now compares complete native heads/current content under the existing Started-owner transaction, updates only lineage and inserts a distinct idempotent receipt atomically (native rollback/replay/local revision/history proof1/1). Parent/child content-drift rejection, two-head rollback, provider reconnect/replay and receipt downgrade protection now pass (fresh1/1, original-fixture continuation1/1; multi-route regressions2/2). Next: implement Mongo/Neo equivalent adoption and empty-target transfer; adoption unknown-commit/process-crash and broader history admission remain red.
 2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
 3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
 
