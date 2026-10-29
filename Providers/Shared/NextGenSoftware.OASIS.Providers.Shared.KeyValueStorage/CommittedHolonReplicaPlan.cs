@@ -86,6 +86,17 @@ public sealed class CommittedHolonReplicaPlan : IAtomicHolonWritePlan
         if(!token.HasValue || token.Value==Guid.Empty || token.Value==record.VersionId)
             throw new InvalidDataException("Replica acknowledgement has no valid target-owned provider revision.");
     }
+    /// <summary>Versioned portable comparison using the replica acknowledgement owner's
+    /// canonical values. Does not change immutable write/receipt fingerprint bytes.</summary>
+    public static string PortableContentDigest(IHolon record, ProviderType comparisonTarget)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        CosmicConcurrency.ValidateAuthority(comparisonTarget);
+        var portable = PortableValues(JObject.Parse(CanonicalContent(record, comparisonTarget))).ToString(Formatting.None);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+            ConditionalHolonReceiptEvidence.ContentFormat + ":" + comparisonTarget + ":" + portable)));
+    }
+
     // Native keys/revisions and the target's metadata namespace are local observations, not portable logical content.
     private static string CanonicalContent(IHolon record,ProviderType target)
     {

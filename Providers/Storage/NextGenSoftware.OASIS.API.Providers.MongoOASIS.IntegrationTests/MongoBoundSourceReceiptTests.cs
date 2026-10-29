@@ -43,6 +43,13 @@ public partial class MongoStorageIdentityTests
             Assert.False(verified.IsError, verified.Message + verified.Exception);
             Assert.Equal(ConditionalHolonReceiptState.Committed, verified.Result.ReceiptState);
             Assert.False(verified.IsSaved);
+            var comparison = new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A', 64), Guid.NewGuid());
+            var projected = await source.ReadConditionalHolonReceiptEvidenceAsync(new(request, expected, comparison, new[] { input.Id }));
+            Assert.False(projected.IsError, projected.Message + projected.Exception);
+            Assert.Equal(input.Id, projected.Result.ReceiptEvidence.Records.Single().HolonId);
+            Assert.Equal(1, projected.Result.ReceiptEvidence.OriginalSelectedRecordCount);
+            Assert.Equal(comparison.BindingFingerprint, projected.Result.ReceiptEvidence.ComparisonTargetFingerprint);
+
             Assert.Same(bindOriginal ? expected : null, request.Write.ReplicationEnrollment.SourceStorageIdentity);
             Assert.DoesNotContain(input.Name, System.Text.Json.JsonSerializer.Serialize(verified.Result));
             var wrong = new CosmicStorageIdentity(expected.Authority, expected.EndpointFingerprint, Guid.NewGuid());

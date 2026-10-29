@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : IBoundConditionalHolonWriteRecoveryStorageProvider
+public partial class Neo4jOASIS : IConditionalHolonReceiptEvidenceStorageProvider
 {
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
@@ -23,9 +23,13 @@ public partial class Neo4jOASIS : IBoundConditionalHolonWriteRecoveryStorageProv
         CancellationToken cancellationToken = default)
         => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
 
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(request?.Original, request?.ExpectedSource, true, cancellationToken, request);
+
     private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         var bound=requireBinding || original?.Write.ReplicationEnrollment?.SourceStorageIdentity!=null;
         var locked=false;
@@ -61,6 +65,7 @@ public partial class Neo4jOASIS : IBoundConditionalHolonWriteRecoveryStorageProv
             cancellationToken.ThrowIfCancellationRequested();
             if (rows.Count > 1) throw new InvalidDataException("Conditional operation receipt identity is not unique.");
             HolonCommittedDelta delta = null;
+            ConditionalHolonReceiptEvidence evidence = null;
             var state = ConditionalHolonReceiptState.Absent;
             if (rows.Count == 1)
             {
@@ -73,12 +78,13 @@ public partial class Neo4jOASIS : IBoundConditionalHolonWriteRecoveryStorageProv
                     if (stored is not string json) throw new InvalidDataException("Stored conditional receipt is invalid.");
                     // Reuse the execution owner's pure integrity/actor/authority/
                     // topology/revision validator without its write-path lookup.
-                    _ = ConditionalHolonReceipt.Read(json, plan, out delta);
+                    var verifiedRoots = ConditionalHolonReceipt.Read(json, plan, out delta);
+                    if (evidenceRequest != null) evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, verifiedRoots);
                     state = ConditionalHolonReceiptState.Committed;
                 }
             }
             return new OASISResult<ConditionalHolonWriteOutcome>(new ConditionalHolonWriteOutcome(
-                plan.OperationId, plan.ActorId, plan.Authority, plan.Operation, state, delta?.SummaryJson)) { IsLoaded = true };
+                plan.OperationId, plan.ActorId, plan.Authority, plan.Operation, state, delta?.SummaryJson, evidence)) { IsLoaded = true };
         }
         catch (Exception cause)
         {

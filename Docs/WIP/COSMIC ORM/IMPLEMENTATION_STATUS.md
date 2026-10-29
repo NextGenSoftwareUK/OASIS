@@ -7,7 +7,9 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 [Lineage migration](V2_LINEAGE_MIGRATION.md): explicit physical-source receipt
 verification implemented for historical type-only and already-bound intents.
-Core4462/Neo619 controls; native SQLite2/Mongo2/Neo2 pass. Existing receipt validators
+Core4462/Neo619 controls; native SQLite2/Mongo2/Neo2 pass. Selected-record content
+projection now passes Shared1360/native source2each/GraphQL1; portable target-head
+digests use the same canonicalizer as replica acknowledgement. Existing receipt validators
 remain the owners; no replay or intent rewriting. Selected-record preflight,
 authorized migration execution and cutover remain red. CURRENT_STATUS owns next steps.
 Older sections below retain their milestone-specific scope, not current open/closed authority.

@@ -330,3 +330,71 @@ not authorize migration: selected-record lineage/content comparison, concurrent
 change checks, preview authorization, atomic migration receipts and cutover remain red.
 - TestResults/OwnedRoutingCurrent/mongo-bound-source-receipt.trx SHA256 173E1788BCF47E0C5A50E1E72981167AB33471BE2341B73121A85F440B3BE033.
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 D90E4F353CF2E1947F13C44E897EB4295AB5377243D2DD559EC8FCFD9064ECCA.
+
+## Selected receipt content evidence (29 October)
+
+`IConditionalHolonReceiptEvidenceStorageProvider` is now implemented by SQLite,
+MongoDB and Neo4j. The original native receipt owner performs its complete existing
+integrity/actor/intent/topology validation, then projects only 1–256 requested IDs.
+The full original receipt is validated even for a subset; the projection limit is
+not a limit on receipt size. Unknown/duplicate/out-of-scope IDs are rejected.
+
+```csharp
+// Both identities were previously captured and approved by the host.
+// This reads evidence; it never executes the original save or captures identities.
+var request = new ConditionalHolonReceiptEvidenceRequest(
+    original,
+    expectedSource,
+    intendedTarget,
+    selectedHolonIds);
+
+var receipt = await source.ReadConditionalHolonReceiptEvidenceAsync(
+    request,
+    cancellationToken);
+
+if (receipt.IsError)
+    throw new InvalidOperationException(receipt.Message, receipt.Exception);
+
+// Absent means unknown. It never grants permission to replay a save.
+if (receipt.Result.ReceiptState == ConditionalHolonReceiptState.Committed)
+{
+    var evidence = receipt.Result.ReceiptEvidence;
+    Console.WriteLine(evidence.OriginalSelectedRecordCount);
+    Console.WriteLine(evidence.Records.Count);
+}
+```
+
+The redacted evidence binds operation/actor/operation kind, actual source binding,
+intended target binding/authority, original selected-record count and ordered IDs.
+Each record includes logical lineage, source provider revision, hard-delete state
+and a versioned portable-content digest. No graph, business values or historical
+membership list is returned. A subset cannot be mistaken for the complete save.
+A comparison target is an explicit hashing intention; the source read does not
+contact that target or prove its current physical identity.
+
+`CommittedHolonReplicaPlan.PortableContentDigest` owns the shared canonicalizer:
+`cosmic-portable-record-v1` binds target authority and normalized logical content.
+It reuses replica acknowledgement rules, excluding native storage keys/revisions
+and target-local provider metadata. Other portable metadata, business values,
+logical lineage and audit content remain bound. Existing immutable intent hashes
+and stored receipts are unchanged. Protected-head readers now return the same
+portable digest/format after validating their native snapshot checksum/header.
+Existing public constructors retain their original signatures for binary consumers;
+legacy head observations may lack a digest and cannot prove portable equality.
+
+Verified: Core4462, Shared1360 (17new controls), SQLite2/Mongo2/Neo2 native source
+projection cases, shipping GraphQL1; all pass, no skips. Six controls compare live/
+hard-deleted receipt and protected-head digests across all three target authorities.
+Native projection tests select a declared comparison target without contacting it;
+these are not source-to-target migration/cutover proofs. Neo retains its documented
+read-committed source observation. No cross-store snapshot or authorization granted.
+
+Exact next step: read-only source/target comparison report with strict identity,
+operation, scope and consistency validation, explicit missing/lineage/content
+mismatch classifications, then native pairs. Guarded execution remains red.
+- TestResults/DevelopmentSyncCurrent/receipt-evidence-core.trx SHA256 C4F21D608AF4FCA4882BFF59AE1C04C2ABAC99BDA20DCC4375B871BE3B38CB19.
+- TestResults/DevelopmentSyncCurrent/receipt-evidence-shared.trx SHA256 F26769032586F20C8E5FC45E9018AFACA83153D085300798AEC8E60863ED5638.
+- TestResults/DevelopmentSyncCurrent/receipt-evidence-sqlite.trx SHA256 AF229B2499F2322879E5BBF905424B7C473483DD9A3C21149C309423CA38A48D.
+- TestResults/DevelopmentSyncCurrent/receipt-evidence-graphql.trx SHA256 9CB37B9E2262714D1CC88642BB83BABFE649F611DB8B3F1D13BC88281DC20F89.
+- TestResults/OwnedRoutingCurrent/mongo-bound-source-receipt.trx SHA256 B84B95F97D737AFD768F9E69F5E007518A99714FD71FC4C1BC383399EF13AE48.
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 D6D7CE81A849F17348ACF7A103BAECB386F3CE473BD207B90EA352E3DD7D3B76.
