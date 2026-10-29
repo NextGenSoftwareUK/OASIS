@@ -1379,3 +1379,18 @@ Evidence:
 - TestResults/DevelopmentSyncCurrent/delivery-reconciliation.trx SHA256 F61F85D8BDFDE8EEC1D71A6DF2BE371F70AABBED074FA5F98F11132EBF75C126
 - TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 DAFD99F898B2E5D1D31733849F0D519D0A24629C2C07F6BEF4C295B71FAE2B18
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 FC395965261DB715E6578F3D2E466C8BF8891C805A73B0301D56DE6FA4884B9D
+
+## Fenced replacement identity/content review, 29 October 2026
+
+HolonMigrationReplacementReview.ReadAsync derives exact original logical/source/content evidence from the hash-verified persisted plan, refuses ambiguous versions rather than guessing latest, and reads only the explicitly bound replacement. Bounded pages require exact native physical identity, complete ordered graph ids and requested consistency; weak reads require opt-in and are reported per page. Administrative admission, same-owner held barriers before/after and warning/error preservation now have one shared evidence-scope owner used by delivery and replacement reviews.
+
+Replacement records classify EmptyAtObservation, MatchingOriginalLineage, MatchingReplacementLineage, UntrackedLocalRecord, ForeignLineage, LogicalVersionConflict, DeletionConflict, PortableContentUnverified or ContentConflict. Source and target native revision tokens are deliberately not equated. Empty does not prove absence of historical receipts; matching data/lineage does not establish this migration owns it. Reports bind redacted expected/head evidence and native revisions, never owner tokens/business values, and grant no overwrite/adoption/cutover permission. Native historical admission, CAS and migration receipts remain required.
+
+Shared1561/1561 passes (19 new replacement cases), including all classifications, wrong store/order/selection/consistency, barrier loss/revocation, native causes/warnings and explicit weak consistency; previous delivery controls remain green after shared-scope extraction. Native Mongo fixture now2/2: distinct Mongo source/receiver plus empty or foreign-lineage SQLite replacement. Identical body under a foreign lineage stays a conflict. Neo + SQLite2/2 confirms existing original-lineage matching alongside actual process-crash/recovery checks. Source/receiver business/queue data remains unchanged by review. Controlled foreign seed is private setup before barriers, fully journaled and cleaned.
+
+Current phase remains pre-mutation; broader target provider directions, historical receipts, graph/version ambiguity and live-worker cutover dispositions remain open.
+
+Evidence:
+- TestResults/DevelopmentSyncCurrent/replacement-review.trx SHA256 810FACECEA12AC6000C0454E2B53517A32D46D46E131395F8C2C70FC7B3B19F9
+- TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 45DD6B8594FF43DF48E5C878B70DB15AA64D067557D36B7DA4F363780DFED6DA
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 1379464AC660C63D7DEDCE24C50D51D17FCCA7A00B4AC72C119167B4C12B7E89

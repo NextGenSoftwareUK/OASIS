@@ -13,26 +13,20 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 
 ## Current phase: safe V2 lineage migration
 
-- Native SQLite/Mongo/Neo source and receiver reads verify exact physical bindings, original receipts, frozen payloads and current protected heads. Changed current bodies cannot pass on unchanged tokens alone.
-- Bounded source-wide inventory retains completed/later obligations; a sequence cutoff excludes later appends but does not freeze existing state or prove quiescence.
-- Preview v3 binds original source save -> frozen queued graph/revisions/content -> exact historical receiver intent, with explicit consistency and complete coverage checks. No partial result on failed evidence.
-- Separate host-owned, time-limited administrative grants bind the exact operator, stores, route, policy and reviewed preview digest. Owning a record grants no migration permission.
-- Latest Shared1497/1497; native SQLite2/Mongo1/Neo-source2 pass combined production preview cases. Native creates cover one record/four obligations; unit graph proof covers two records. Broader native graph/delete/race scope remains open.
-- Missing proof and receiver absence remain findings. Replacement admission, native fences, CAS/idempotent receipts and cutover remain red. No migration writes/state clearing or HTTP execution endpoint enabled.
-- Older type-only V2 heads/obligations remain a deployment gate. [Evidence, commands and limits](V2_LINEAGE_MIGRATION.md).
-
-Native record barriers implemented on SQLite/Mongo/Neo: Shared1506/1506; SQLite2; Mongo2 plus1 preview regression; Neo controlled625/625 and native2/2. They bar affected V2 mutations, receipt replays and new source claims while preserving unrelated writes/history. Neo explicitly observes native saves/replays and claims blocked by an acquiring transaction before commit, then rejected after commit. Held does not prove in-flight work has stopped. Broader graph/restart and paired-store coordination remain open.
-
-Shared acquire-only coordinator now passes1516/1516 (10 new controls). It verifies exact preview/operator grants, derives complete record scope, deduplicates/sorts physical participants, reads all durable native receipts before acquiring absent scopes, and preserves partial/unknown outcomes. No automatic compensation, cancellation executor, data mutation or cutover enabled. Native Neo-source/SQLite-receiver2/2 now proves acquisition from real preview evidence, blocked source/receiver replay, readable receipt and recovery by fresh provider instances without new acquisition. Mongo-preflight1/1 now adds three physical stores (Mongo source/receiver + SQLite replacement), controlled acknowledgement loss after real native commit, partial Held/Held/Unknown reporting and fresh-provider read recovery. Persisted evidence now passes Shared1529/1529 (13 new persistence cases), Mongo three-store1/1 and Neo+SQLite2/2. Actual coordinator process exit after first native commit and fresh-process recovery now passesNeo+SQLite2/2. Deployed WEB4 restart, server/power failure, other crash boundaries and real transport loss remain unverified.
-
-Post-barrier delivery evidence now passes Shared1542/1542 (13 new controls), Mongo three-store1/1 and Neo+SQLite2/2. It scans a fresh bounded current lineage window, verifies transient payload graph membership and exact historical acknowledgements, retains changed state/hidden-lease digests and distinguishes later affected/unrelated work plus other routes. No claim/finish/clear/relabel occurs; held barriers are checked before/after. In-flight/terminal/native-unknown outcomes still require explicit disposition.
+- Latest: Shared **1561/1561**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
+- Preview v3 binds exact source receipt, frozen graph/transport and historical receiver intent. Time-limited host approval binds operator, stores, route and reviewed digest.
+- SQLite/Mongo/Neo native record barriers block affected V2 mutations/replays/new claims while preserving unrelated writes/history. Held does not prove every in-flight delivery has stopped.
+- Acquire-only coordinator reads all native receipts before acquiring absent scopes. Durable hash-verified original evidence precedes acquisition; no automatic expiry, compensation or replacement of evidence.
+- Actual coordinator process exit after first native commit and fresh-process recovery pass over Neo + SQLite. WEB4 deployment/server/power restart, other crash boundaries and real transport loss remain unverified.
+- Read-only delivery review scans a fresh bounded lineage window, verifies graph membership and historical acknowledgements, and retains lease/recovery digests, later affected work and other routes. It never claims/finishes/clears/relabels work.
+- Replacement review classifies empty, matching original/new lineage, untracked data, foreign ownership and version/deletion/content conflicts. It checks exact native identity/selection/consistency and held owners before/after. Matching or empty observations grant no adoption/overwrite permission.
+- No migration data mutation or HTTP execution endpoint enabled. Native CAS, durable started/uncertain phases, historical-receipt admission and cutover/recovery remain red. Older type-only V2 routes and broader graph/multi-version/delete/provider-pair scope remain gates. [Detailed proof/history](V2_LINEAGE_MIGRATION.md).
 
 ## Exact next step
 
-1. Validate replacement identity/content and design native CAS for the reviewed delivery dispositions, including live/unknown workers and other affected routes. Current delivery review is evidence only; it does not finish or clear any obligation. Retain broader crash-boundary/ordered-pair acceptance alongside mutation work. Held is not quiescent: reconcile existing in-flight/unknown outcomes; no automatic expiry or post-mutation cancellation.
-2. Validate replacement physical identity/content under fences; compare-and-swap exact graph/head/receipt/obligation observations with durable per-store migration receipts.
-3. Implement idempotent cutover/recovery and old-obligation disposition without changing historical evidence; expand native graph/delete/race and ordered-pair acceptance alongside it.
-4. Complete remaining outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.
+1. Implement durable native mutation phase/journal admission before allowing changes; cancellation must be refused after mutation starts or becomes uncertain.
+2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
+3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
 
 ## HyperDrive verification already retained
 

@@ -170,6 +170,10 @@ public partial class Neo4jNativeAvatarTests
                         Assert.AreEqual(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
                             deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
                         Assert.AreEqual(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
+                        var replacementReview = await HolonMigrationReplacementReview.ReadAsync(durablePlan, policy,
+                            new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) }, pageSize: 1);
+                        Assert.IsFalse(replacementReview.IsError, replacementReview.Message + replacementReview.Exception); Assert.IsFalse(replacementReview.IsSaved);
+                        Assert.AreEqual(HolonMigrationReplacementKind.MatchingOriginalLineage, replacementReview.Result.Records.Single().Kind);
                         foreach (var participant in new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) })
                         {
                             var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
