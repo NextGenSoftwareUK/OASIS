@@ -11,23 +11,41 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IConditionalHolonWriteRecoveryStorageProvider
+public partial class MongoDBOASIS : IBoundConditionalHolonWriteRecoveryStorageProvider
 {
-    public async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (requireBinding && expectedSource == null)
+                throw new ArgumentNullException(nameof(expectedSource));
+            var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
+            if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.MongoDBOASIS
+                || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
+                throw new InvalidDataException("The requested source does not match the original operation binding.");
+            expectedSource ??= enrolledSource;
+
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.MongoDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.MongoDBOASIS, original.Write.ReplicationEnrollment);
             if (!IsProviderActivated)throw new InvalidOperationException("MongoDB provider is not activated.");
             BsonDocument receipt;
-            if(plan.ReplicationEnrollment?.SourceStorageIdentity!=null)
+            if(expectedSource!=null)
             {
                 var repository=_holonRepository ?? throw new InvalidOperationException("The native repository is closed.");
-                receipt=await repository.ReadBoundConditionalReceiptAsync(plan.OperationId,plan.ReplicationEnrollment.SourceStorageIdentity,cancellationToken).ConfigureAwait(false);
+                receipt=await repository.ReadBoundConditionalReceiptAsync(plan.OperationId,expectedSource,cancellationToken).ConfigureAwait(false);
             }
             else
             {

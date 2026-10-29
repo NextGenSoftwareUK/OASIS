@@ -12,17 +12,35 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : IConditionalHolonWriteRecoveryStorageProvider
+public partial class Neo4jOASIS : IBoundConditionalHolonWriteRecoveryStorageProvider
 {
-    public async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken)
     {
-        var bound=original?.Write.ReplicationEnrollment?.SourceStorageIdentity!=null;
+        var bound=requireBinding || original?.Write.ReplicationEnrollment?.SourceStorageIdentity!=null;
         var locked=false;
         try
         {
             if(bound){await _lifecycleGate.WaitAsync(cancellationToken).ConfigureAwait(false);locked=true;}
             cancellationToken.ThrowIfCancellationRequested();
+            if (requireBinding && expectedSource == null)
+                throw new ArgumentNullException(nameof(expectedSource));
+            var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
+            if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.Neo4jOASIS
+                || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
+                throw new InvalidDataException("The requested source does not match the original operation binding.");
+            expectedSource ??= enrolledSource;
+
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.Neo4jOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.Neo4jOASIS, original.Write.ReplicationEnrollment);
@@ -33,7 +51,7 @@ public partial class Neo4jOASIS : IConditionalHolonWriteRecoveryStorageProvider
             // absent/incomplete receipt does not establish a terminal rejection.
             using var bindingTransaction=bound ? await session.BeginTransactionAsync().ConfigureAwait(false):null;
             if(bound)await ValidateReplicaStorageBindingAsync(bindingTransaction,
-                new NeoAtomicHolonWrite(plan,plan.ActorId,cancellationToken){ExpectedStorage=plan.ReplicationEnrollment.SourceStorageIdentity,
+                new NeoAtomicHolonWrite(plan,plan.ActorId,cancellationToken){ExpectedStorage=expectedSource,
                     StorageBindingCodePrefix="COSMIC_SOURCE_STORAGE_BINDING"}).ConfigureAwait(false);
             const string query="MATCH (r:CosmicWriteReceipt {OperationId:$operation}) RETURN r LIMIT 2";
             var parameters=new { operation=plan.OperationId.ToString("D") };
