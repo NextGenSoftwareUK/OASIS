@@ -23,11 +23,11 @@ is mutation of the shared configured list.
 | Gate | Current evidence / remaining work |
 |---|---|
 | Request/avatar/node precedence | Concurrent controlled sync/async router execution2/2 proves request-over-avatar, avatar failover list overnode and peer opt-out without node mutation. |
-| Subscription/capability candidate filtering | Controlled selection/execution suites exist; audit native provider scope and denial behavior. |
+| Subscription/capability candidate filtering | Native Mongo/SQLite42strategy reads prove Gold/Free filtering through3entry points; other-provider/native denial scope remains open. |
 | Temporary read failure and failover | Native Mongo process-down -> SQLite reads pass sync/async/explicit with ordered diagnostics; other providers/consistency boundaries remain open. |
 | Unknown mutation outcome | Existing recovery/cancellation suites; never infer permission for a second mutation from a timeout. |
 | Empty replica response | Core8917a52 propagates failed primary confirmation and includes explicit loadbalance entry;12controls plus native primary-only Mongo witness/emptySQLite proof pass. Preferred-provider/explicit-failover native proof also passes; see latest milestone below. |
-| Round-robin/performance/geography/cost | Native round-robin4reads alternate Mongo/SQLite after recovery; performance/geography/cost remain controlled-test evidence only. |
+| Round-robin/performance/geography/cost | Native round-robin4reads alternate Mongo/SQLite; all7strategies execute real reads within subscription-permitted candidates. Real telemetry/ranking quality and other providers remain open. |
 | Avatar fault isolation | Controlled routing2/2 proves one-avatar refusal before storage IO, peer access unaffected and fault restoration. Native ACL/privacy certification is separate. |
 | Native provider breadth | Mongo/SQLite/Neo first; extend priority IPFS/Azure/AWS/Oracle/SOLID/ActivityPub only with proving evidence. |
 
@@ -165,3 +165,27 @@ pairs, native strategy eligibility and full placement/consistency remain open.
 - `TestResults/OwnedRoutingCurrent/worker-offline-consistency-receiver-lifecycle-failure.trx`: 1fixture failure; SHA256 `05FA77A519836B7CD1FD0F411CD3D65A6C6F4FDDC33C522EFE07DA7B3CA76FC4`.
 
 - `TestResults/OwnedRoutingCurrent/worker-offline-reconcile-consistency-witness-guard-failure.trx`: 1guard rejection; SHA256 `012C35C88A15B4F69C272A8E48D1E907089BBF113EF6CFAA3DF7A2492505A5CB`.
+
+## Native strategy eligibility
+
+`Run-CosmicBoundSourceWorkerTests.ps1 -NativeRoutingProof` now additionally executes
+42real native reads: seven strategies (RoundRobin, WeightedRoundRobin,
+LeastConnections, Geographic, CostBased, Performance, Auto), three entry points
+(sync route, async route, explicit load balance), and Gold/Free subscriptions.
+The diagnostic candidate set must be exactly Mongo+SQLite under Gold and SQLite
+under Free. Every result retains the expected ID/name/owner and a native storage
+key for its selected provider. Configured candidates remain unchanged after every
+read. The Free rule is the router's existing provider admission policy; it makes
+no claim about the actual hosting cost of a specific Mongo installation.
+
+The complete native scenario passes1/1 in22seconds, including actual Mongo outage,
+three-form failover, ordered replication recovery/idempotence and four round-robin
+reads. No production changes were needed for this acceptance gate. This verifies
+eligible selection and native execution, not optimal real-world geo/performance/
+cost rankings, cloud network behavior or all-provider capability compatibility.
+Neo4j/native denial and remaining priority-provider scope are still open.
+
+The fixed raw report path below supersedes its earlier regenerated report;
+previous hashes above describe the earlier milestone, not the current file.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-routing.trx`: 1passed/0failed/0skipped; SHA256 `221371B17F41B8EAB525D3CC99090D5B4A4B031E7F1A7E559DA89748AF60C790`.
