@@ -2,7 +2,7 @@
 
 [Current status](CURRENT_STATUS.md) owns the next action; [checklist](CQL_PARITY_CHECKLIST.md) owns per-provider acceptance. Full original scope remains active.
 
-1. **Priority override28October:**pause entity-selected All/element/numeric parity. Hosted Azure free-only first; filtered multi-record IPFS/SOLID/ActivityPub next; verify Solana browser. Each provider gets a ready Mongo-paired federated preset. [Current status](CURRENT_STATUS.md) owns the next action.
+1. **Current priority: MVP breadth across ALL providers**, using red inventory rows and independent native/query/preset proof. Entity-selected All/element/numeric depth stays paused; hosted Azure stays pending by user instruction. Preserve completed protocol/Solana scopes. [Current status](CURRENT_STATUS.md) owns the next action.
 
 Historical parity checkpoint (deferred, not the active work queue):
 
@@ -10,7 +10,7 @@ Historical parity checkpoint (deferred, not the active work queue):
 2. Neo combined native stages now pass151 CQL controls and23 native cases, with the same23 on SQLite and Mongo. Canonical/entity-source proofs and selected inputs/stages share one native statement/read owner; existing Neo consistency limits remain.
 3. Reselection now passes5 shared tests/3 native cases per database (26-case native cohort). Count/LongCount/Any and predicate overloads now pass4 shared tests/8 native cases per store (34 total). Next integrate All/element/numeric terminals and combined graph sources after entity selection. Preserve independent capability admission and proof-before-DTO ownership; no managed execution substitute.
 4. Keep Q01f red until its full declared matrix passes on all3. Freeze already-green features/cursors absent a reproducible bug.
-5. Continue [priority-provider demo work](CQL_DEMO_EXPANSION_ROADMAP.md): SQLite/Mongo/Neo, Azure, AWS, Oracle, IPFS, SOLID, ActivityPub; preserve Solana. AWS native CQL admission and paired presets remain red. Demo breadth precedes large POCO/migration-tooling rows.
+5. Continue [priority-provider demo work](CQL_DEMO_EXPANSION_ROADMAP.md): SQLite/Mongo/Neo, Azure, AWS, Oracle, IPFS, SOLID, ActivityPub; preserve Solana. DynamoDB Local and linked scoped presets are verified; hosted/other AWS scopes remain separate. Demo breadth precedes large POCO/migration-tooling rows.
 6. Remaining indexed aggregates/stages, hosted cloud/chain auth, durable settlement and scaling require explicit acceptance; point profiles do not prove general query support.
 7. Resume remaining full ORM/EF/NHibernate checklist rows and the [implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md). Do not equate a demo milestone with programme completion.
 
@@ -35,3 +35,5 @@ browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays r
 
 Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
 [scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.
+
+Valkey breadth milestone: native9.0.4/restart/paired/browser5/4 and hub repeat pass; [scope/evidence](VALKEY_CQL_MVP.md). Deeper parity stays deferred.

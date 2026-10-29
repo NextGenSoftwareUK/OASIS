@@ -8,8 +8,9 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: provision/reuse native Valkey and verify its encrypted query profile.**
-Valkey authority controls8 and Redis regression8 pass; native/paired admission stays red.
+**Next: inspect KeyDB implementation/native resources for independent admission.**
+Valkey9.0.4 controls8/native/restart/paired/browser5/4 and hub repeat pass; source
+preserved, temporary Mongo data removed and services stopped. [Scope](VALKEY_CQL_MVP.md).
 Memcached native/paired SDK/HTTP/browser5/4/CAS pass; owned services stopped and
 volatile generation retired. [Commands/proof/lifecycle](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
@@ -23,8 +24,7 @@ SQL Server control9/native/restart/SDK/HTTP/browser5/4 pass; original LocalDB so
 retained, owned services stopped and Mongo fixture removed ([scope](SQLSERVER_CQL_MVP.md)). PostgreSQL control8, native/restart
 1+1 and Mongo-paired C#/HTTP/browser5/4 pass ([scope](POSTGRESQL_CQL_MVP.md)).
 Owned services are stopped and temporary Mongo data removed; source retained.
-Redis native3/2/missing,
-exact ciphertext restart, SDK/HTTP/browser5/4 and launcher routing pass; dedicated
+Redis native3/2/missing, ciphertext restart, SDK/HTTP/browser5/4 and launcher pass;
 DB11/source/keys retained, temporary Mongo fixture removed and services stopped.
 [Redis proof/commands](REDIS_CQL_MVP.md). Aliases/central registration are not certified.
 Hedera controls/public runtime audit pass; existing routed-read funding guard is
@@ -37,10 +37,10 @@ LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
 policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL_MVP.md).
 
 ## Scoped demo proofs
-
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| Valkey + Mongo | Encrypted native/restart/SDK/HTTP/browser5/4; direct registration. [Guide](VALKEY_CQL_MVP.md). |
 | Memcached + Mongo | Volatile native/SDK/HTTP/browser5/4, values/CAS preserved; no persistence. [Guide](MEMCACHED_CQL_MVP.md). |
 | Litestream + Mongo | Linux live file replication/restore + SDK/HTTP/browser5/4; Windows fsync red. [Guide](LITESTREAM_CQL_MVP.md). |
 | Upstash + Mongo | Hosted free scratch native/repeat/SDK/HTTP/browser5/4; expires Oct31. [Guide](UPSTASH_CQL_MVP.md). |
@@ -61,7 +61,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 29 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 30 scoped MVP
 proof links, 33 active central cases, 11 extra project names; linked scopes only, no full-parity claim.
 
 ## Deferred correctness and parity gates
