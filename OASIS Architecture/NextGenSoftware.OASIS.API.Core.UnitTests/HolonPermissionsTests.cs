@@ -404,4 +404,12 @@ public class HolonPermissionsTests
         shown.Email.Should().BeNullOrEmpty();
         shown.FirstName.Should().BeNullOrEmpty();
     }
+    [Fact]
+    public void AnInheritedGrantCoversTheHolonThatCarriesItAsWellAsEverythingBelow()
+    {
+        var root = OwnedBy(Owner);
+        Store(root, b => b.SetInherit(G(Slp), HolonPermission.Read));
+        Resolver(Slp, prime: root).Resolve(root).Allows(HolonPermission.Read).Should().BeTrue();
+        Resolver(Stranger, prime: root).Resolve(root).CanSee.Should().BeFalse();
+    }
 }
