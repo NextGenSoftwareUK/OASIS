@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,5103,5104,5105,5106,5108,10000,3030,24567,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,5103,5104,5105,5106,5108,5110,9000,9123,10000,3030,24567,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -59,6 +59,7 @@ $pairedContracts=@(
     @{Provider='Avalanche';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5105},
     @{Provider='AzureBlob';Runner='Run-CosmicAzureBlobCqlNative.ps1';Port=5106},
     @{Provider='LocalFile';Runner='Run-CosmicLocalFileCqlNative.ps1';Port=5108},
+    @{Provider='Sui';Runner='Run-CosmicSuiCqlNative.ps1';Port=5110},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
     @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
     @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
@@ -113,7 +114,7 @@ try{& $hub -Provider CosmosChain -ShowPlan}catch{$denied=$true}
 if(!$denied){throw 'CosmosChain requires explicit paired scope.'}
 $pairedRejections++
 $oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
-foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Base'},@{Provider='Base';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Avalanche'},@{Provider='Avalanche';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='AzureBlob'},@{Provider='AzureBlob';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='LocalFile'},@{Provider='LocalFile';Federated=$true;ArchiveCompletedDemo=$true})) {
+foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Base'},@{Provider='Base';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Avalanche'},@{Provider='Avalanche';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='AzureBlob'},@{Provider='AzureBlob';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='LocalFile'},@{Provider='LocalFile';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Sui'},@{Provider='Sui';Federated=$true;ArchiveCompletedDemo=$true})) {
     $denied=$false
     try { & $hub @arguments -ShowPlan } catch { $denied=$true }
     if (!$denied) { throw 'Polkadot requires explicit paired scope and preserved source state.' }
