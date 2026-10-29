@@ -24,6 +24,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 |---|---|---|---|
 | CosmosChain | http://127.0.0.1:5101/ | Mongo2/retained Cosmos blockchain3, then2/2 | Omit; retained native contract/key/seed, temporary Mongo fixture |
 | Polkadot | http://127.0.0.1:5102/ | Mongo2/retained Polkadot3, then2/2 | Omit; retained encrypted native seed, temporary Mongo fixture |
+| NEAR | http://127.0.0.1:5103/ | Mongo2/retained NEAR3, then2/2 | Omit; original encrypted source/key, temporary Mongo fixture |
 | Google | http://127.0.0.1:5100/ | Mongo2/retained Firestore emulator3, then2/2 | Omit; immutable seed/checkpoint, temporary Mongo fixture |
 | Arbitrum | http://127.0.0.1:5099/ | Mongo2/shipping Arbitrum V2 adapter3, then2/2 on local EVM | Omit; retained chain/seed, temporary Mongo fixture |
 | Polygon | http://127.0.0.1:5098/ | Mongo2/concrete Polygon adapter3, then2/2 on retained local EVM | Omit; retained chain/seed, temporary Mongo fixture |
@@ -38,7 +39,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 
 Use `-Federated` for every row. Actor, source scopes and readable catalogues are
 server-owned. The Solana host uses independent bounded ingestion; no chain write.
-Oracle, AWS, Ethereum, Polygon, Arbitrum, Google, CosmosChain and Polkadot are exposed through paired presets only. Plain Solana (schema2), SQLite
+Oracle, AWS, Ethereum, Polygon, Arbitrum, Google, CosmosChain, Polkadot and NEAR are exposed through paired presets only. Plain Solana (schema2), SQLite
 and the Databases group do not accept this new flag; the group retains its existing
 federation walkthrough. Unsupported combinations reject before starting services.
 Protocol `-Federated` already selects the multi-record mode; `-MultiRecord` is optional.
