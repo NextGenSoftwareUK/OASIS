@@ -31,18 +31,18 @@ complete child/history/replication coverage or EF/NHibernate parity is claimed.
 
 ## Exact next steps
 
-1. Reconcile fetched Development (`87df54630`) into the task branch, including Core
-   and matching deployment manifest/gitlink state; preserve concurrent work. Do not
-   sweep unverified task work into Development merely to synchronize.
-2. Refresh source inventory after integration. The current snapshot has 226 concrete
-   enum identities, 33 active central registration cases and 11 additional project
-   names requiring classification. Registration observations are not a runtime audit.
-3. BaseOASIS next: active factory path selects the shipped Web3Core implementation;
+Development `87df54630` is now integrated with merged Core `c2b1627` and matching
+pins. Core4528/Shared1599/WEB4schema+admission5 pass; WEB4 builds. The two reproduced
+sharing input compile errors are fixed. [Verification](DEVELOPMENT_SYNC_2026-10-29.md).
+
+1. The refreshed inventory has 226 concrete identities, 33 active central cases and
+   11 additional project names requiring classification. These are source facts.
+2. BaseOASIS next: active factory path selects the shipped Web3Core implementation;
    its inherited CQL compiler currently rejects Base authority. Add authority tests,
    native selection and the Mongo-paired demo using the retained EVM environment.
-4. Continue missing registered storage MVPs, then unregistered/source-only entries.
+3. Continue missing registered storage MVPs, then unregistered/source-only entries.
    Track actual implementation, registration and external blockers independently.
-5. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)
+4. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)
    and deferred ORM/HyperDrive gates; do not change their acceptance definitions.
 
 [Previous expansion history](Archive/CQL_DEMO_EXPANSION_ROADMAP_PRE_ALL_PROVIDER_2026-10-29.md)
