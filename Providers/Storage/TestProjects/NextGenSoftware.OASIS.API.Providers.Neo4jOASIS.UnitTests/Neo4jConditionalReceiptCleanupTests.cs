@@ -28,10 +28,27 @@ public class Neo4jConditionalReceiptCleanupTests
             if(method.Name=="RollbackAsync"){Rollbacks++;return Task.FromException(Cleanup);}
             if(method.Name=="CommitAsync"){Commits++;throw new InvalidOperationException("Receipt replay must not commit another mutation.");}
             if(method.Name=="RunAsync")
-            {Queries++;var cursor=DispatchProxy.Create<IResultCursor,CursorProbe>();((CursorProbe)cursor).Record=Record;return Task.FromResult(cursor);}
+            {Queries++;var cursor=DispatchProxy.Create<IResultCursor,CursorProbe>();((CursorProbe)cursor).Record=((string)args![0]!).Contains("CosmicMigrationRecordGate",StringComparison.Ordinal) ? AdmissionRecord((string)args[0]!) : Record;return Task.FromResult(cursor);}
             throw new InvalidOperationException("Unexpected transaction operation: "+method.Name);
         }
     }
+    // Model the native schema marker and an unlocked record gate before receipt lookup.
+    internal static IRecord AdmissionRecord(string query)
+    {
+        var record=DispatchProxy.Create<IRecord,Neo4jPreparationTransactionTests.RecordProbe>();
+        var probe=(Neo4jPreparationTransactionTests.RecordProbe)record;
+        if(query.StartsWith("MATCH",StringComparison.Ordinal))
+        { probe.Key="format";probe.Value=1L; }
+        else
+        {
+            var node=DispatchProxy.Create<Neo4j.Driver.INode,Neo4jNativeIdentityTests.NodeProbe>();
+            ((Neo4jNativeIdentityTests.NodeProbe)node).Values=new Dictionary<string,object>
+                {{"Epoch",1L},{"FenceId",""},{"FenceHash",""}};
+            probe.Key="g";probe.Value=node;
+        }
+        return record;
+    }
+
     public class CursorProbe:DispatchProxy
     {
         public IRecord Record=null!;private int reads;
@@ -70,7 +87,7 @@ public class Neo4jConditionalReceiptCleanupTests
         Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.IsTrue(result.IsWarning);
         Assert.AreEqual(1,result.SavedCount);Assert.AreEqual(0,result.DeletedCount);Assert.IsTrue(result.HasAnyHolonsChanged);
         Assert.IsFalse(result.Result.Single().IsNewHolon);Assert.AreSame(probe.Cleanup,result.Exception);Assert.AreEqual(committed.VersionId,result.Result.Single().VersionId);
-        Assert.AreEqual(1,probe.Queries);Assert.AreEqual(1,probe.Rollbacks);Assert.AreEqual(0,probe.Commits);Assert.AreEqual(0,source.Version);
+        Assert.AreEqual(3,probe.Queries);Assert.AreEqual(1,probe.Rollbacks);Assert.AreEqual(0,probe.Commits);Assert.AreEqual(0,source.Version);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }
 }

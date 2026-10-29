@@ -222,6 +222,7 @@ public partial class Neo4jOASIS : IConditionalHolonDeltaStorageProvider,IBoundAt
             :cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
             :cause is NeoReplicaStorageBindingException binding ? binding.Code
             :cause is NeoReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
+            :cause is NeoMigrationFenceException fence ? fence.Code
             :cause is NeoConditionalIntentException ? "COSMIC_OPERATION_ID_REUSED":cause is NeoConditionalReceiptException ? "COSMIC_RECEIPT_INVALID"
             :cause is OperationCanceledException ? write.Plan is CommittedHolonReplicaPlan ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
             :cause is TransientException transient && transient.Code=="Neo.TransientError.Transaction.DeadlockDetected" ? "COSMIC_CONCURRENT_WRITE"

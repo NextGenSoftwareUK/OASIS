@@ -1306,3 +1306,9 @@ with explicit native index model types before any native fixture write.
 Next: implement Neo's native record admission coupling using real write locks,
 not read-committed existence checks; then pair all stores under exact authorized
 preview and reconcile in-flight/unknown outcomes. Migration execution remains off.
+
+## Neo record barrier baseline, 29 October 2026
+
+Controlled625/625 and native2/2 pass. NativeMigrationBarrierPreservesReceiptAndRejectsAffectedWrites covers separate provider instances, repeat owner, optional provider reactivation (not server restart), held receipt-replay rejection, historical receipt readability, unrelated saves, overlap rejection and exact-owner terminal cancellation. Fixture journal cleared only after exact scoped native cleanup verified zero. Evidence: TestResults/Neo4jCurrent/neo4j-migration-fence.trx SHA256 569BA50EC86CB8278E494405E8509E8BFC5602BE289DC66A352E257EA41DAD1B. Runner: Run-ReusableNeo4jTests.ps1 -CosmicMigrationFence under one external build lease. Initial runner selector incorrectly selected an existing failure-review test; fixed selector before native barrier run, no barrier fixture mutation from that attempt. Concurrent acquisition/write/delete/claim tests and paired coordinator remain open; Held is not quiescent.
+
+Native follow-up2/2 passes concurrent same-scope acquisition through separate drivers with identical durable owner, plus held new save/soft-delete/hard-delete rejection. TRX SHA256 D33CFBC234C16F3A1AB0287750ECD74D673BF66A7D72F9C64DE2042950603092. This is not yet a write-vs-acquisition race or source-claim proof. Exact fixture cleanup succeeded.
