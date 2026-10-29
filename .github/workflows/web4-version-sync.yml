@@ -1,0 +1,11 @@
+name: WEB4 version sync
+on:
+  pull_request:
+  push:
+    branches: [Development, master]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 Scripts/web4_version_sync.py --check
