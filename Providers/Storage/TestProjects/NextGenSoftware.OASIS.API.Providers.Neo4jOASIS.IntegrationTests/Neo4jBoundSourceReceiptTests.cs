@@ -136,7 +136,7 @@ public partial class Neo4jNativeAvatarTests
                     () => replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest), request);
                 // Coordinate actual Neo source + SQLite receiver from native evidence.
                 // The multi-route cases remain pre-mutation and may cancel.
-                // The single-route case starts native markers only; it never cuts over data.
+                // The single-route case starts markers and adopts receiver lineage; source queue cutover remains separate.
                 var context = reviewedPreview.AuthorizationContext(migration, actor, "owned-native-migration-admin");
                 var policy = new ScopedHolonReplicationMigrationPolicy(context.AuthorizationPolicyBinding,
                     new[] { new HolonReplicationMigrationGrant(context, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
@@ -213,6 +213,42 @@ public partial class Neo4jNativeAvatarTests
                                 Assert.IsFalse(observed.IsError); Assert.AreEqual(preparation.Fingerprint, observed.Result.MutationDigest);
                                 var cancelled = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observed.Result.OwnerToken);
                                 Assert.IsTrue(cancelled.IsError); Assert.AreEqual("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", cancelled.ErrorCode);
+                            }
+                            var adoption = new HolonMigrationReplicaAdoptionPlan(durablePlan, preparation);
+                            var targetScope = durablePlan.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint == targetBinding.Result.BindingFingerprint);
+                            var targetOwner = await recoveredTarget.ReadHolonMigrationFenceAsync(targetScope);
+                            Assert.IsFalse(targetOwner.IsError);
+                            var wrongOwnerAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, Guid.NewGuid());
+                            Assert.IsTrue(wrongOwnerAdoption.IsError);
+                            using (var nativeAdoption = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={targetPath};Pooling=False"))
+                            {
+                                await nativeAdoption.OpenAsync();
+                                async Task<string> NativeSource()
+                                {
+                                    using var head = nativeAdoption.CreateCommand();
+                                    head.CommandText = "SELECT SourceId FROM CosmicReplicaHead WHERE HolonId=$id";
+                                    head.Parameters.AddWithValue("$id", input.Id.ToString("D"));
+                                    return (string)(await head.ExecuteScalarAsync())!;
+                                }
+                                using var failReceipt = nativeAdoption.CreateCommand();
+                                failReceipt.CommandText = "CREATE TRIGGER owned_adoption_receipt_failure BEFORE INSERT ON CosmicMigrationReplicaAdoption BEGIN SELECT RAISE(ABORT,'owned receipt failure'); END";
+                                await failReceipt.ExecuteNonQueryAsync();
+                                var failedAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
+                                Assert.IsTrue(failedAdoption.IsError);
+                                Assert.AreEqual(adoption.OriginalSourceId, await NativeSource(), "Head change must roll back when receipt insert fails.");
+                                using var removeFailure = nativeAdoption.CreateCommand(); removeFailure.CommandText = "DROP TRIGGER owned_adoption_receipt_failure";
+                                await removeFailure.ExecuteNonQueryAsync();
+                                var adopted = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
+                                Assert.IsFalse(adopted.IsError, adopted.Message + adopted.Exception); Assert.IsTrue(adopted.IsSaved);
+                                Assert.AreEqual(adoption.Fingerprint, adopted.MetaData["COSMIC.MigrationAdoptionReceipt"]);
+                                Assert.AreEqual(adoption.ReplacementSourceId, await NativeSource());
+                                var replayAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
+                                Assert.IsFalse(replayAdoption.IsError); Assert.IsFalse(replayAdoption.IsSaved);
+                                var current = await recoveredTarget.ReadHolonReplicaHeadsAsync(new(targetBinding.Result, new[] { input.Id }));
+                                Assert.IsFalse(current.IsError, current.Message + current.Exception);
+                                Assert.AreEqual(adoption.Records.Single().Head.ProviderRevisionId, current.Result.Records.Single().Head.ProviderRevisionId);
+                                Assert.AreEqual(adoption.Records.Single().Head.VersionId, current.Result.Records.Single().Head.VersionId);
+                                Assert.AreEqual(adoption.Records.Single().Head.PortableContentDigest, current.Result.Records.Single().Head.PortableContentDigest);
                             }
                             var historical = await recoveredTarget.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
                             Assert.IsFalse(historical.IsError); Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, historical.Result.AcknowledgementDigest);

@@ -20,6 +20,7 @@ public partial class SQLLiteDBOASIS
             receiptSchema.Transaction = transaction.GetDbTransaction();
             receiptSchema.CommandText = CosmicSqliteSchema.CreateDestinationBindings+"; "+CosmicSqliteSchema.CreatePreparationTable+"; "+CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
             receiptSchema.CommandText += "; " + CosmicSqliteSchema.CreateMigrationFence;
+            receiptSchema.CommandText += "; " + CosmicSqliteSchema.CreateMigrationReplicaAdoption;
             await receiptSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicMigrationFence",
