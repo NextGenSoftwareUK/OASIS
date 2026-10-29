@@ -1,6 +1,6 @@
 # Azure Blob CQL MVP
 
-Updated 29 October 2026. **Adapter controls verified; native and paired demo pending.**
+Updated 29 October 2026. **Controls and native/restart query verified; paired demo pending.**
 This is separate from Azure Cosmos DB; hosted Cosmos remains pending by user instruction.
 
 ## Implemented profile
@@ -42,16 +42,32 @@ Report: `TestResults/AzureBlobCqlCurrent/azureblob-cql-controls.trx`, SHA256
 Controlled listener ports/modes are recorded in TRX stdout and awaited/stopped per
 case. These are signed SDK-pipeline controls, not native Azurite acceptance.
 
+Native acceptance now additionally passes **1/1** on retained Azurite3.37.0:
+three saved records filter to two; exact native blob contents and ETags remain
+unchanged. Full graceful stop/start reuse passes **1/1, zero skips, 257ms**, with
+an actual authorized missing-blob read returning an empty result. The actual
+shipping CloudProviderFactory constructs the provider with version control enabled.
+
+Native report: `TestResults/AzureBlobCqlCurrent/azureblob-cql-native.trx`, SHA256
+`CD90762E6E6CCAA79D28D110930D58F4B2CA3911DDEF8261301212DD64B059DC`.
+Original first-pass report is preserved as `azureblob-cql-native.initial.trx`.
+Persistent source: `LocalState/COSMIC/AzureBlobCql/demo-seed.json`173bytes, SHA256
+`9758C6A96B95BC00B2B3A4E8C8A800E61AED320ED943CBE0B8114DAB14C6E23A`.
+The complete retained store/catalogue/lock measured15,284bytes. Port10000 is closed
+after verified graceful IPC shutdown; setup journal is removed. No subscription,
+runtime install or new dependency download was needed.
+
 ## Exact next step
 
-1. Reuse cached Azurite3.37.0 and Node. Existing reusable host helpers support
-   graceful IPC shutdown; keep persistent source data/catalogue in LocalState and
-   logs/TRX in worktree TestResults. No runtime install or Azure subscription needed.
-2. Provision a journaled, task-owned three-record canonical source with distinct
-   containers through the actual shipping factory. Prove native3/2 selection,
-   absent key behavior and unchanged contents/ETags; retain it for restart reuse.
-3. Add the Mongo-paired C#/HTTP/browser five/four-result preset and launcher route;
+1. Add the Mongo-paired C#/HTTP/browser five/four-result preset and launcher route;
    validate/drop only its exact owned temporary Mongo database afterward.
+2. Reuse the original source containers/catalogue/store without reseeding. Persistent
+   data stays in LocalState; runtime logs/TRX stay in TestResults. The reusable host
+   helper now accepts an explicit data directory; existing callers retain their default.
+
+```powershell
+Scripts/TestHosts/Run-CosmicAzureBlobCqlNative.ps1
+```
 
 Do not green the [MVP inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) until those native
 and paired proofs pass. Free-only provisioning and existing historical/provider
