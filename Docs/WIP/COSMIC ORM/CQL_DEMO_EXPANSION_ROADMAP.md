@@ -1,4 +1,4 @@
-# Priority-provider CQL demo expansion
+# All-provider CQL MVP demo expansion
 
 
 ## Latest MVP breadth-first priority — 29 October
@@ -6,7 +6,19 @@
 Finish AWS first, then Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain,
 Polkadot and NEAR, in that order. Cosmos blockchain is tracked separately from
 Azure Cosmos DB; Google means the suitable existing Google provider after inspection.
-Then add other popular providers where an existing implementation can support a real MVP.
+After this list, expand MVP coverage to **all providers**, as requested on
+29 October. Complete breadth before returning to deeper parity.
+
+Inventory shipping providers and their factory-selected implementations before
+starting that second wave; distinguish aliases, V2 implementations and legacy-only
+adapters rather than counting project files as providers. Group related backends
+to reuse existing compiler/transport contracts, but prove each concrete provider's
+identity and native execution independently. Track every provider as verified,
+implemented but unverified, missing implementation, or externally blocked, with
+the proving test/demo or exact remaining requirement. Non-storage providers still
+need an explicit capability/gap assessment; they must not be reported as query-ready
+solely because another provider supplied their data. Legacy HyperDrive code remains
+documentation-only. No existing MVP receives a full-parity label.
 
 For each provider: one small native filtered query over several records, one
 Mongo-paired federated preset, readable C# examples, HTTP/browser integration and

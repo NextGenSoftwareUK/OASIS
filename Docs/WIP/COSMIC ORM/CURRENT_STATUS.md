@@ -5,7 +5,7 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 ## Workspace and priorities
 
 - Work/build/test only `C:/Source/OASIS-cosmic`; parent/Core branch `work/cosmic-cql`.
-- User priority: breadth first across the demo providers. Defer deeper migration/parity work while closing missing provider demos; retain verified HyperDrive V2 correctness work.
+- User priority: MVP breadth first across the current demo list, then **all providers**, before deeper parity. Defer deeper migration/parity work while closing missing provider demos; retain verified HyperDrive V2 correctness work.
 - Then ORM/CQL across MongoDB, SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Preserve Solana demos.
 - Work only on red [parity cells](CQL_PARITY_CHECKLIST.md). No green hardening without a reproduced bug.
 - Entity-selected All/element/numeric depth stays paused; large POCO/migrations tooling deferred.
@@ -27,7 +27,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 ## Exact next step
 
 1. Cosmos blockchain local MVP verified: controls14/14, native3/2 query1/1 plus full restart/reuse1/1, Mongo-paired C#/HTTP1/1 and actual browser5/4. Launcher `-Provider CosmosChain -Federated` (5101), distinct from Azure Cosmos DB. Original contract/key/seed and four signed preparations/acks retained unchanged. Owned services stopped; temporary Mongo DB cleaned. [Proof](COSMOS_BLOCKCHAIN_CQL_MVP.md).
-2. Polkadot adapter now builds and passes 7/7 controlled tests (`TestResults/PolkadotCqlCurrent/polkadot-cql-controls.trx`). Native service and paired demo are not yet verified. Next: reuse retained Polkadot runtime/contract, prove native selection, then add Mongo-paired demos. NEAR and other suitable existing providers follow before deeper parity. Inspect/reuse retained runtime, native state and dependencies; one bounded native filtered query + Mongo-paired C#/HTTP/browser MVP per provider. No historical resets. Hosted Azure stays pending by user instruction; legacy HyperDrive gaps are documentation-only.
+2. Polkadot adapter controls7/7 and original native3/2 query1/1 now pass; encrypted source unchanged and three signed writes/receipts retained. Full original-seed restart/reuse1/1 also passes without new signatures. Owned node stopped and ports closed. Mongo-paired demos remain pending. Next: add paired C#/HTTP/browser demos. [Proof](POLKADOT_CQL_MVP.md). NEAR and other suitable existing providers follow before deeper parity. Inspect/reuse retained runtime, native state and dependencies; one bounded native filtered query + Mongo-paired C#/HTTP/browser MVP per provider. No historical resets. Hosted Azure stays pending by user instruction; legacy HyperDrive gaps are documentation-only.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
