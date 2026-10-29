@@ -104,4 +104,61 @@ public sealed partial class HyperDriveProviderExecutionTests
             provider.Invocations.Count(call => call.Method.Name is "LoadHolon" or "LoadHolonAsync").Should().Be(1);
     }
 
+    [Theory]
+    [InlineData("sync", "outage")]
+    [InlineData("async", "outage")]
+    [InlineData("explicit", "outage")]
+    [InlineData("sync", "no-wrapper")]
+    [InlineData("async", "no-wrapper")]
+    [InlineData("explicit", "no-wrapper")]
+    [InlineData("sync", "healthy-empty")]
+    [InlineData("async", "healthy-empty")]
+    [InlineData("explicit", "healthy-empty")]
+    public async Task EmptyAlternateCannotOverrideTheKnownPreferredAuthorityOutcome(string mode, string condition)
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna) {
+            IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
+        var preferred = CreateActiveProvider(ProviderType.MongoDBOASIS, "preferred-authority");
+        var alternate = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "alternate-is-node-default");
+        var id = Guid.NewGuid();
+        var cause = new IOException("preferred store unavailable");
+        OASISResult<IHolon> first = condition == "no-wrapper" ? null
+            : condition == "healthy-empty" ? new OASISResult<IHolon>()
+            : new OASISResult<IHolon> { IsError = true, ErrorCode = "PREFERRED_STORE_UNAVAILABLE", Message = cause.Message, Exception = cause };
+        preferred.Setup(value => value.LoadHolon(id, true, true, 0, true, false, 0)).Returns(first);
+        preferred.Setup(value => value.LoadHolonAsync(id, true, true, 0, true, false, 0)).ReturnsAsync(first);
+        alternate.Setup(value => value.LoadHolon(id, true, true, 0, true, false, 0)).Returns(new OASISResult<IHolon>());
+        alternate.Setup(value => value.LoadHolonAsync(id, true, true, 0, true, false, 0)).ReturnsAsync(new OASISResult<IHolon>());
+        foreach (var provider in new[] { preferred, alternate })
+        {
+            provider.Setup(value => value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+            provider.Setup(value => value.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+            providers.RegisterProvider(provider.Object).Should().BeTrue();
+        }
+        providers.SetAndActivateCurrentStorageProvider(alternate.Object).IsError.Should().BeFalse();
+        providers.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
+            new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(providers);
+        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = id, PreferredProvider = ProviderType.MongoDBOASIS };
+
+        var result = mode == "sync" ? router.RouteRequest<IHolon>(request)
+            : mode == "async" ? await router.RouteRequestAsync<IHolon>(request) : await router.FailoverRequestAsync<IHolon>(request);
+
+        result.IsError.Should().Be(condition != "healthy-empty");
+        result.Result.Should().BeNull();
+        if (condition != "healthy-empty")
+        {
+            result.ErrorCode.Should().Be(condition == "outage" ? "PREFERRED_STORE_UNAVAILABLE" : "HYPERDRIVE_PROVIDER_NO_RESULT");
+            if (condition == "outage") result.Exception.GetBaseException().Should().BeSameAs(cause);
+            router.LastFailoverDiagnostic.Succeeded.Should().BeFalse();
+            router.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
+            router.LastFailoverDiagnostic.Attempts.Should().HaveCount(2);
+        }
+        preferred.Invocations.Count(call => call.Method.Name is "LoadHolon" or "LoadHolonAsync").Should().Be(1,
+            "the already observed authority failure must not trigger an extra read");
+        alternate.Invocations.Count(call => call.Method.Name is "LoadHolon" or "LoadHolonAsync").Should().Be(condition == "healthy-empty" ? 0 : 1);
+    }
+
 }
