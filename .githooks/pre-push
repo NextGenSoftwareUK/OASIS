@@ -6,8 +6,20 @@
 root=$(git rev-parse --show-toplevel) || exit 0
 cd "$root" || exit 0
 [ -f Scripts/sync_railway_dependency_manifest.py ] || exit 0
-PY=$(command -v python3 || command -v python) || exit 0
-if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check >/dev/null 2>&1; then
+# Windows may expose a nonfunctional Microsoft Store alias named python3.
+PY=
+for candidate in python3 python; do
+  bin=$(command -v "$candidate") || continue
+  if "$bin" -c 'import sys; sys.exit(sys.version_info < (3, 9))' >/dev/null 2>&1; then
+    PY=$bin
+    break
+  fi
+done
+if [ -z "$PY" ]; then
+  echo "pre-push: a working Python 3.9+ interpreter is required to validate Railway pins." >&2
+  exit 1
+fi
+if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check; then
   echo "pre-push: Docker/oasis-dependency-versions.env does not match the submodule gitlinks." >&2
   echo "Railway builds the pinned commits, so this change would not ship. Run:" >&2
   echo "  python Scripts/sync_railway_dependency_manifest.py && git commit -am 'sync Railway pins'" >&2
