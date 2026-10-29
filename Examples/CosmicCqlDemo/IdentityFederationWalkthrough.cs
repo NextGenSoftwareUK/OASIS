@@ -82,6 +82,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.SuiOASIS => "Sui",
         ProviderType.RedisOASIS => "Redis",
         ProviderType.PostgreSQLOASIS => "PostgreSQL",
+        ProviderType.SQLServerDBOASIS => "SQL Server",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
