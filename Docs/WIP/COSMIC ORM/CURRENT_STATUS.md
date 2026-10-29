@@ -8,8 +8,9 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: DuckDB Mongo-paired SDK/HTTP/browser demo**; control14/native1/reopen1 pass,
-original embedded source retained; paired remains red ([scope](DUCKDB_CQL_MVP.md)).
+**Next: inspect the next red provider implementation and reusable resources**.
+DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,
+owned processes stopped and temporary fixture removed ([scope](DUCKDB_CQL_MVP.md)).
 SQL Server control9/native/restart/SDK/HTTP/browser5/4 pass; original LocalDB source
 retained, owned services stopped and Mongo fixture removed ([scope](SQLSERVER_CQL_MVP.md)). PostgreSQL control8, native/restart
 1+1 and Mongo-paired C#/HTTP/browser5/4 pass ([scope](POSTGRESQL_CQL_MVP.md)).
@@ -32,6 +33,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| DuckDB + Mongo | Embedded native/reopen/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](DUCKDB_CQL_MVP.md). |
 | SQL Server + Mongo | LocalDB native/restart/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](SQLSERVER_CQL_MVP.md). |
 | PostgreSQL + Mongo | Native/restart/SDK/HTTP/browser5/4; canonical JSON, direct registration. [Guide](POSTGRESQL_CQL_MVP.md). |
 | Redis + Mongo | Encrypted DB11/native/restart/paired5/4, direct registration only. [Guide](REDIS_CQL_MVP.md). |
@@ -50,7 +52,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 25 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 26 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 

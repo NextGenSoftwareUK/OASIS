@@ -83,6 +83,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.RedisOASIS => "Redis",
         ProviderType.PostgreSQLOASIS => "PostgreSQL",
         ProviderType.SQLServerDBOASIS => "SQL Server",
+        ProviderType.DuckDBOASIS => "DuckDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",

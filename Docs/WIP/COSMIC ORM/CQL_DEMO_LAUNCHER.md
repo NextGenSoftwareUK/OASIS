@@ -173,3 +173,14 @@ unsupported content predicates reject. This is Windows-authenticated local Local
 canonical JSON, not Azure SQL or full LINQ certification. Stop with the page button;
 original SQL Server source is retained, verified temporary Mongo fixture removed.
 [Full scope, tests and evidence](SQLSERVER_CQL_MVP.md).
+
+## DuckDB + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated`.
+Use `-ShowPlan` to inspect or `-VerifyOnly` for automated checks/teardown. The shared
+C# example uses `Where(row => selectedIds.Contains(row.Id))`, returning five rows,
+then four for the subset, with provider labels. DuckDB performs native UUID selection,
+tombstone filtering and paging over its retained local file. Canonical JSON is
+plaintext; this does not certify MotherDuck or full LINQ parity. Stop with the page
+button; original embedded source stays and only verified temporary Mongo data is
+removed. [Full scope and evidence](DUCKDB_CQL_MVP.md).

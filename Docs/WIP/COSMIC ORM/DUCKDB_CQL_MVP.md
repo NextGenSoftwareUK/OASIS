@@ -1,6 +1,6 @@
 # DuckDB CQL MVP admission
 
-Updated 29 October 2026. **Native/reopen verified; paired demo remains red.**
+Updated 29 October 2026. **Scoped native/reopen and Mongo-paired C#/HTTP/browser MVP verified.**
 
 The adapter binds the shared bounded UUID selection compiler to DuckDBOASIS.
 An explicit trusted catalogue (at most100 UUIDs) becomes parameterized native IN
@@ -47,15 +47,46 @@ broader save/concurrency/history parity remains open.
 - Initial SHA256: `18179E3ABB8FF34838A7BD970CEFFD855CA518CC5D65E14305E6A08FBF0E15BD`.
 - Reopen: one passed236ms, zero failed/skipped.
 - Reopen evidence: `TestResults/DuckDbCqlCurrent/duckdb-cql-native.trx`.
-- Reopen SHA256: `6514F4513209A019DB36DEE1801DF81A8111E6CB0983561ECCFB17AB3E1C08F0`.
+- Latest native/reopen preflight SHA256: `394035EF4BD78354B0E4F0729BBF75C41355F2C31DDF58BA77EBC78106154372`.
 - Persistent seed SHA256: `01B37D20ADF928AF58B1557FF019C37C0C85AB12DA0016215B8D70487CBB2C35`.
 - `LocalState/COSMIC/DuckDbCql` measured 1324005 bytes; retain original source.
 
+## Mongo-paired teaching preset
+
+Shared C#, HTTP and browser queries return five physical rows (DuckDB3 + Mongo2)
+and four for the two-ID subset. Provider copies remain labelled and distinct.
+Forged actor/unknown preset reject; an inactive DuckDB target returns unavailable
+without partial rows. The temporary three-record Mongo database was verified and
+dropped; original DuckDB source and tombstone remain unchanged.
+
+- Fixture: `DuckDbMongoCqlNativeTests.cs` in DuckDBOASIS.IntegrationTests.
+- Result: one passed22s, zero failed/skipped.
+- Evidence: `TestResults/DuckDbCqlCurrent/duckdb-mongo-federation.trx`.
+- SHA256: `9A2749F4CCB2565B31F63B469E5B15BD548C8F56863408B47DA3444101B3BB83`.
+- Browser: `TestResults/DuckDbCqlCurrent/duckdb-mongo-browser.jpg`.
+- Runner91188 exited0, owned Mongo/HTTP listeners absent, fixture journal removed,
+  browser tab closed. Embedded connections are disposed; source is retained.
+- Hub: 8 single/16plans, 23 paired/46plans, 32 paired rejections and3 archive
+  rejections pass; listeners unchanged.
+
+```powershell
+# Inspect without services.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -ShowPlan
+
+# SDK/HTTP checks followed by browser service on loopback5114.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated
+
+# Automatic checks and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated -VerifyOnly
+```
+
+Stop using the page button to complete verified temporary Mongo cleanup. This scope
+proves bounded UUID selection/paging, not arbitrary content predicates, MotherDuck,
+production central registration or complete DuckDB ORM parity.
+
 ## Exact next step
 
-Add the Mongo-paired C#/HTTP/browser preset with provider provenance, request and
-unavailable-provider controls, then validate/remove only the owned Mongo fixture.
-Reuse the original DuckDB file/seed/receipts/snapshot read-only. Keep paired admission
-red until actual verification. No MotherDuck/hosted/alias certification is implied.
+Continue missing provider MVPs from the all-provider inventory; leave this green
+scope alone absent a reproduced bug. Full ORM/parity acceptance remains open.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).

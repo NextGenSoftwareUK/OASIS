@@ -108,6 +108,10 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained native SQL Server through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original SQL Server source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.DuckDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained native DuckDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original DuckDB source)", StringComparison.Ordinal);
         app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
         {
