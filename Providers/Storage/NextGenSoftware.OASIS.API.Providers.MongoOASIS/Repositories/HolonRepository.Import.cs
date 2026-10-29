@@ -50,6 +50,7 @@ public partial class HolonRepository
                 var receipts = database.GetCollection<BsonDocument>("CosmicWriteReceipt");
                 if (conditional != null)
                 {
+                    await MongoHolonMigrationFence.AssertUnfencedAsync(database, session, entries.Select(row => row.HolonId), cancellation).ConfigureAwait(false);
                     var receipt = await receipts.Find(session, new BsonDocument("_id", conditional.Plan.OperationId.ToString("D")))
                         .SingleOrDefaultAsync(cancellation).ConfigureAwait(false);
                     if (receipt != null)
@@ -59,7 +60,8 @@ public partial class HolonRepository
                         try { conditional.ReplayReceipt(receipt["ResultJson"].AsString); }
                         catch (Exception invalid) { throw new MongoConditionalReceiptException("Stored conditional acknowledgement is invalid.", invalid); }
                         // The validated receipt proves the original durable outcome. Closing this
-                        // read-only transaction cannot revoke it, or trigger a second abort attempt.
+                        // admission transaction cannot revoke it, or trigger a second abort attempt.
+                        // Record-gate touches are aborted, never committed by receipt replay.
                         result.Result=true; result.IsSaved=true; result.SavedCount=entries.Count;
                         try { await session.AbortTransactionAsync(CancellationToken.None).ConfigureAwait(false); }
                         catch(Exception cleanup)
@@ -69,7 +71,7 @@ public partial class HolonRepository
                         }
                         return result;
                     }
-                    // Positive receipt replay stays read-only. For an absent receipt, a
+                    // Positive receipt replay commits neither graph nor admission touches. For an absent receipt, a
                     // committed fence write makes a stale snapshot conflict before mutation.
                     await TouchOperationFenceAsync(database,session, conditional.Plan.OperationId, cancellation).ConfigureAwait(false);
                 }
@@ -208,6 +210,7 @@ public partial class HolonRepository
                 else if(cause is MongoConditionalIntentException) result.ErrorCode="COSMIC_OPERATION_ID_REUSED";
                 else if(cause is MongoReplicaStorageBindingException binding) result.ErrorCode=binding.Code;
                 else if(cause is MongoReplicaConflictException) result.ErrorCode="COSMIC_REPLICA_LINEAGE_CONFLICT";
+                else if(cause is MongoMigrationFenceException fence) result.ErrorCode=fence.Code;
                 else if(cause is MongoReplicaHeadException) result.ErrorCode="COSMIC_REPLICA_HEAD_INVALID";
                 else if(cause is MongoConditionalReceiptException) result.ErrorCode="COSMIC_RECEIPT_INVALID";
                 else if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;

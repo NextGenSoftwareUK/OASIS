@@ -1226,3 +1226,83 @@ one route's grant to whole-store interruption. Account for existing in-flight
 outcomes, replacement identity/content, native CAS and restart-safe phase receipts
 before any lineage mutation. Advance source native revision on cutover to reject
 outstanding pre-cutover conditional writes rather than allowing stale routing.
+
+
+## Mongo native record barrier — 29 October 2026
+
+Mongo implements the same Core record-fence storage contract as SQLite. Snapshot
+reads alone are insufficient: a source save and a separately inserted fence could
+both commit through write skew. Every affected V2 write and new delivery claim
+therefore touches the same per-record `CosmicMigrationRecordGate` document that
+fence acquisition owns, within its native snapshot transaction. Record gates are
+addressed by logical Holon ID and touched in canonical order; unrelated records
+have distinct gates. There is no global process-local mutex or automatic retry.
+A native conflict rejects admission explicitly for a new authorized observation.
+
+`CosmicMigrationFence` retains canonical scope/checksum, opaque host owner and
+Held/Cancelled history. Acquisition, all selected record gates and cancellation
+commit atomically with majority+journal acknowledgement. Owner recovery is
+idempotent; cancellation validates each gate's exact migration/hash, and terminal
+identities cannot be reacquired. Physical Holon namespace identity is verified
+inside the transaction before fence access. Native unknown commit keeps its real
+session/transaction reconciliation evidence. Known outcomes retain cleanup warnings;
+cancellation before commit remains cancellation. No automatic expiry is used.
+
+The activation schema owner initializes both metadata collections/indexes and a
+versioned admission marker. V2 writes/claims require that marker in their native
+transaction before touching record gates. Loss of the admission collection cannot
+silently erase protection: activation checks retained fence history BEFORE any
+metadata recreation and refuses the missing marker/namespace. Exact receipt
+absence also rejects orphan record ownership. No read/audit path initializes it.
+The synchronous initializer delegates to the same async schema implementation.
+
+Affected V2 save/soft-delete/hard-delete and replica apply/replay are barred before
+receipt replay or business mutation. Source claims are barred before lease/attempt
+changes. Historical receipt reads remain available. Operation receipt replay may
+touch admission records transiently, but aborts those touches and commits neither
+admission nor business changes. Existing lease renew/finish is deliberately not a
+claim of quiescence: paired receiver fencing and outcome reconciliation remain open.
+Legacy/unconditional/raw native writes remain outside V2 implementation scope.
+
+Native two-case acceptance verifies:
+- Separate provider instances racing one scope: exactly one owner, with the loser
+  explicitly rejected and no partial fence receipt.
+- An independent native transaction holding the real source admission document
+  makes acquisition fail with concurrent-change; rollback leaves no partial owner.
+- Old/new lineage save and both delete kinds, replica receipt replay and new claims
+  are fenced; unrelated writes and historical receipt reads remain available.
+- Owner identity survives provider deactivation/reactivation. This is NOT a Mongo
+  server-process crash/failover proof. Wrong cancellation owner is rejected;
+  cancellation is durable/idempotent and restores ordinary admission.
+- Dropping the admission namespace in the controlled private fixture causes V2
+  admission and reactivation to fail without recreating it over retained history.
+  Historical replica evidence is still readable; no metadata repair/reset is used.
+
+The no-held-fence source receipt/preview regression also passes1case. Shared1506
+and SQLite native2 controls are retained from the prior checkpoint; no Shared/Core
+implementation changed in this Mongo-only checkpoint. Two protocol fixture cases
+cover selected source and incoming replica records, not native child graph or all
+fencing/failover/transaction-fault directions. Host operator admission, Neo barriers,
+pairing, durable data-mutation phases, cutover and broad performance remain open.
+
+```powershell
+Scripts/TestHosts/Run-CosmicMongoDestinationTests.ps1 -MigrationFence
+```
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Mongo record barrier/race/provider reactivation | 2/2 | `TestResults/OwnedRoutingCurrent/mongo-migration-fence.trx` | `0AE66E311ACC7AAB81F8704EFD10F50FDD0A482B10C308E464B5FA36BC4F3A71` |
+| No-held-fence receipt/preview regression | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `9DE11997177E91A4913A4104FAB9AB2B17BFE4A0272691D2BFECCEDA964CC17E` |
+
+Final native54003 and regression11474 exited0. The existing journaled private
+databases cosmic_storage_identity_fixture_a/b were verified dropped by their
+owner, then the extra fence journal was removed. No remote delivery occurred.
+Pending journals absent, port27029 no listener. Last native free101810343936bytes;
+regression prior free101819949056bytes. Existing Mongo8.3.11/oasisRecoveryRs runtime,
+data directory and SDK/cache reused; no install/download/restore/environment.
+Raw TRX/logs stay TestResults. Initial compiler index-overload ambiguity was fixed
+with explicit native index model types before any native fixture write.
+
+Next: implement Neo's native record admission coupling using real write locks,
+not read-committed existence checks; then pair all stores under exact authorized
+preview and reconcile in-flight/unknown outcomes. Migration execution remains off.
