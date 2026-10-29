@@ -138,6 +138,45 @@ GET    /api/data/load-holon-by-meta-data              # Load holon by metadata
 POST   /api/data/save-holon-with-options               # Save holon with options
 ```
 
+### **CQL Controller** (bounded JSON queries; needs `Idempotency-Key`; see [CQL API](WEB4%20OASIS%20API/CQL-API.md))
+```http
+POST /api/data/query-cql                   # Filtered, ordered, paged query
+POST /api/data/query-cql/indexed           # Query against an indexed alias
+POST /api/data/query-cql/indexed/scalar    # Scalar over an indexed alias
+POST /api/data/query-cql/scalar            # Count, sum and other scalars
+POST /api/data/query-cql/projection        # Selected columns
+POST /api/data/query-cql/grouped           # Grouping and aggregates
+POST /api/data/query-cql/join              # Bounded join of two sources
+POST /api/data/query-cql/composition       # Staged composition
+POST /api/data/query-cql/federation        # One query across several providers
+```
+
+### **Native Data Controller** (see [Native Data API](WEB4%20OASIS%20API/Native-Data-API.md))
+```http
+GET    /api/native-data/providers                                           # Providers that accept a connection you supply
+GET    /api/native-data/{provider}/sources                                  # Sources of the server's demo store (Wizard or sandbox)
+POST   /api/native-data/{provider}/sources                                  # Sources of your own database {connection|connectionName}
+POST   /api/native-data/{provider}/sources/{source}/preview?count=5         # Preview records and the holons they become
+POST   /api/native-data/{provider}/sources/{source}/import                  # Import one source
+POST   /api/native-data/{provider}/import-all                               # Import every source
+GET    /api/native-data/{provider}/mappings                                 # Your saved mappings
+PUT    /api/native-data/{provider}/sources/{source}/mapping                 # Save a mapping
+DELETE /api/native-data/{provider}/sources/{source}/mapping                 # Delete a mapping
+GET    /api/native-data/{provider}/connections                              # Names of your saved connections
+PUT    /api/native-data/{provider}/connections/{name}                       # Save an encrypted connection
+DELETE /api/native-data/{provider}/connections/{name}                       # Delete a saved connection
+```
+
+### **Sandbox Controller** (404 unless DNA `OASIS.Sandbox.Enabled`; see [Sandbox API](WEB4%20OASIS%20API/Sandbox-API.md))
+```http
+POST /api/sandbox/session                          # Create a throwaway demo avatar and sign it in
+GET  /api/sandbox/faults                           # Providers taken offline for this avatar
+GET  /api/sandbox/refusals                         # Requests offline providers refused
+POST /api/sandbox/providers/{provider}/offline     # Take a provider offline (seconds)
+POST /api/sandbox/providers/{provider}/online      # Bring it back
+POST /api/sandbox/native-demo                      # Write the demo shop data
+```
+
 ### **Karma Controller**
 ```http
 GET    /api/karma/get-positive-karma-weighting/{karmaType}                      # Get positive karma weighting
