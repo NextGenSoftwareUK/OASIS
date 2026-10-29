@@ -15,11 +15,28 @@ public partial class HolonRepository
 {
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    private Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken)
     {
         var result = new OASISResult<ConditionalHolonWriteOutcome>();
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (requireBinding && expectedSource == null)
+                throw new ArgumentNullException(nameof(expectedSource));
+            var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
+            if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS
+                || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
+                throw new InvalidDataException("The requested source does not match the original operation binding.");
+            expectedSource ??= enrolledSource;
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.SQLLiteDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.SQLLiteDBOASIS, original.Write.ReplicationEnrollment);
@@ -37,7 +54,6 @@ public partial class HolonRepository
             settings.Pooling = false;
             using var connection = new SqliteConnection(settings.ToString());
             connection.Open();
-            var expectedSource=original.Write.ReplicationEnrollment?.SourceStorageIdentity;
             using var bindingTransaction=expectedSource==null ? null:connection.BeginTransaction(deferred:true);
             if(expectedSource!=null && SqliteStorageIdentity.Read(connection,bindingTransaction).BindingFingerprint!=expectedSource.BindingFingerprint)
                 throw new InvalidDataException("The native source does not match the original operation binding.");
