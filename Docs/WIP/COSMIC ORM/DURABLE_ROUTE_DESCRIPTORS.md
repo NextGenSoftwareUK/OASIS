@@ -298,3 +298,42 @@ failover/load balancing and the other priority providers need separate proof.
 |---|---:|---|
 | `TestResults/Neo4jCurrent/neo4j-hosted-cold-save-current.trx` | 1 | `BB59D74EAA643E85DCC1FA3D0BD99A47E34499DA4790147942DF23DE1BA38A76` |
 | `TestResults/Neo4jCurrent/neo4j-hosted-admission-current.trx` | 6 | `B2D9482A74A11E81D300625C506C9C1769657A523742FE8CBA226B7B08869290` |
+
+## Active delivery attempt during real Mongo process outage
+
+`Run-CosmicBoundSourceWorkerTests.ps1 -ActiveDeliveryOutage` retains the actual
+activated native Mongo client while the runner kills/joins only its owned Mongo
+process. TCP refusal is verified. SQLite accepts a second owned save, then the
+shipping worker actually attempts the original delivery during the outage.
+
+The first obligation becomes Pending/attempt1 with its native error retained;
+the second stays Pending/attempt0, proving target order. After same-data Mongo
+restart and fresh physical identity verification, native delivery completes on
+attempt2 for the first operation and attempt1 for the second. A further worker
+pass preserves target revisions. No synthetic clock/state changes or source-save
+replay are used. Fresh full scenario passes1/1 in13seconds. The earlier independent
+three-process seed/offline/deliver regression also passes1/1 each after refactoring.
+
+The first run failed only because the fixture logger omitted the expected Mongo
+source-role route-inventory warning. Read-only source inspection proved original
+receipts2 and pending attempts1/0. The explicit `-ReconcileActiveOutage` mode then
+admitted only that reviewed journal phase, verified the original operation states,
+physical bindings and zero target receipts, and retried the existing obligations
+without repeating source saves. That reconciliation passes1/1. The corrected fresh
+scenario subsequently passes end-to-end. Failed evidence is preserved separately.
+
+Exact fixture DB/files/journal/control signals are removed after verified results;
+runner joins its owned test/service processes. Reusable runtime/data remain.
+Scope is SQLite-source/Mongo-destination only; native retry-exhaustion, other pairs,
+simultaneous first approvals, audited operator/V2 lineage repair, failover and load
+balancing remain separate open acceptance gates. No production fix was necessary
+for this network-failure classification; the actual worker behavior was correct.
+
+| Evidence | Result | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/worker-offline-active.trx` | 1pass | `DE380332CC5115FAC0352F4C9F1DF45EAE04B2B4853E0E950BA82F42467C2B3B` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-reconcile-active.trx` | 1pass | `4D402EA74B715337003BBD54D2B96E28292819D0903A70C8AE63A49FC65D3455` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-seed.trx` | 1pass | `3033016E6EB28316854FCE5A0B3300548B93A6B8B314A811C40141D6CBC467C0` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-offline.trx` | 1pass | `81738BE7361502A7070B680F868AFC87A8AA50B47792E980475E052DF5F3A327` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-deliver.trx` | 1pass | `ECDDA6B1AC8FC298A595AE56B3BE81827D1B5D045D1E6E3AE862067BBF9F374F` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-active-first-failure.trx` | 1diagnostic-assertion failure | `652A246525AE3FC611DD7A5B14EE696DF08BBF478D1E8CC5C800BC805EC7E221` |
