@@ -386,3 +386,15 @@ FirestoreCqlCompiler intersects captured ID algebra with the exact trusted Googl
 ### Cosmos blockchain key selection
 
 CosmosCqlCompiler intersects captured ID selection with trusted authority records. CosmosBlockChainOASIS.Cql.cs uses the shared canonical RecordKey builder, shipping private-storage backend and canonical decoder. Selected native gets do not enumerate the source; visibility/paging follow complete validation. The teaching host calls the generic HolonManager federation walkthrough for both C# and HTTP. The original native contract/seed are separately owned and every initial physical submission was verified/journaled before broadcast. [Scope](COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+## Polkadot bounded native adapter
+
+`PolkadotCqlCompiler` admits identity algebra and intersects the captured selection
+with the server-owned authority catalogue. `PolkadotOASIS.Cql.cs` reads canonical
+shared keys through `PolkadotConfiguredRecordBackend` and its encrypted native
+contract adapter. It neither enumerates records nor signs query reads. Genesis,
+contract/code identity and authenticated decryption remain backend responsibilities.
+The common `HolonManager` federation walkthrough powers C# and HTTP demos; physical
+source copies remain visible. Initial seed writes have durable signed preparations
+and finalized effect receipts; the demo retains them across restarts. Native reads
+can observe different blocks. [Proof and remaining scope](POLKADOT_CQL_MVP.md).

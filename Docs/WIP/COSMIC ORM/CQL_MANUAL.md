@@ -1373,3 +1373,21 @@ Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated` (51
 CosmosBlockChainOASIS compiles catalogue-intersected ID equality/membership/Boolean selection into at most100 native contract-key reads through the shipping encrypted backend. The canonical key builder owns key formatting. Unsupported metadata/order/graph shapes reject before I/O; transport/authentication/identity errors fail the whole query without partial rows. Reads may observe different blocks.
 
 Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated` (5101), or add `-VerifyOnly`. All/subset yield5/4 physical rows across retained local Cosmos blockchain and Mongo. Original native records are reused, with no demo read submissions. This is separate from Azure Cosmos DB and does not prove Cosmos Hub/mainnet/finality/distributed snapshot behaviour. [Guide](COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+## Polkadot bounded identity profile
+
+PolkadotOASIS compiles captured ID equality/membership, AND/OR and constants into
+at most 100 native contract-key reads intersected with a trusted authorization
+catalogue. The shipping encrypted backend owns key authentication, contract/code
+identity and decryption. Unsupported metadata/order/graph expressions fail before
+native execution. Paging follows complete validation; errors publish no partial rows.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polkadot -Federated
+```
+
+The teaching host is at http://127.0.0.1:5102/. All/subset presets expect five/four
+physical rows, retaining Mongo and Polkadot copies. Add `-VerifyOnly` for bounded
+SDK/HTTP acceptance. The original three encrypted records are reused without
+signing. This is a retained local Substrate-chain profile, not public Polkadot,
+full parity or a shared snapshot. [Evidence and limits](POLKADOT_CQL_MVP.md).

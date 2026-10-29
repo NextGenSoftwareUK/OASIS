@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain') -and $ArchiveCompletedDemo){throw 'Cosmos owns hash-preserved database report reuse; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -26,6 +26,7 @@ if($Federated){
         'Arbitrum' {'Run-CosmicEthereumCqlNative.ps1'}
         'Google' {'Run-CosmicFirestoreCqlNative.ps1'}
         'CosmosChain' {'Run-CosmicCosmosCqlNative.ps1'}
+        'Polkadot' {'Run-CosmicPolkadotCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
@@ -38,6 +39,7 @@ if($Federated){
         'Arbitrum' {'http://127.0.0.1:5099/'}
         'Google' {'http://127.0.0.1:5100/'}
         'CosmosChain' {'http://127.0.0.1:5101/'}
+        'Polkadot' {'http://127.0.0.1:5102/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
@@ -50,6 +52,7 @@ if($Federated){
         'Arbitrum' {'Mongo + shipping Arbitrum V2 Web3Core adapter on local EVM chain31338:5rows/4subset; no rollup/mainnet/finality claim'}
         'Google' {'Mongo + retained Firestore emulator:5rows/4subset; bounded native keys, no hosted Google or shared-snapshot claim'}
         'CosmosChain' {'Mongo + retained local Cosmos blockchain:5rows/4subset; encrypted native keys, no Cosmos Hub/mainnet/snapshot claim'}
+        'Polkadot' {'Mongo + retained local Polkadot chain:5rows/4subset; encrypted native keys, no public-network/snapshot claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -66,6 +69,7 @@ if($Federated){
         'Arbitrum' { & $path -Provider Arbitrum -Federated -Serve:(!$VerifyOnly) }
         'Google' { & $path -Federated -Serve:(!$VerifyOnly) }
         'CosmosChain' { & $path -Federated -Serve:(!$VerifyOnly) }
+        'Polkadot' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
