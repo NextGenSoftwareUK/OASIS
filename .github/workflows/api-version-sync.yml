@@ -1,4 +1,4 @@
-name: WEB4 version sync
+name: API version sync
 on:
   pull_request:
   push:
@@ -8,4 +8,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 Scripts/web4_version_sync.py --check
+      - run: python3 Scripts/api_version_sync.py --check
