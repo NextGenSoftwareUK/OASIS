@@ -15,16 +15,17 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public sealed class HolonReplicaHeadRecordTests
 {
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public void ProtectedHeadRetainsLineageAndDeletionWithoutExposingTheGraph(bool deleted)
+    [DataRow(false, ProviderType.SQLLiteDBOASIS)] [DataRow(true, ProviderType.SQLLiteDBOASIS)]
+    [DataRow(false, ProviderType.MongoDBOASIS)] [DataRow(true, ProviderType.MongoDBOASIS)]
+    public void ProtectedHeadRetainsLineageAndDeletionWithoutExposingTheGraph(bool deleted, ProviderType target)
     {
         var record = new Holon { Id = Guid.NewGuid(), Version = 2, VersionId = Guid.NewGuid(),
             PreviousVersionId = Guid.NewGuid(), DeletedDate = deleted ? new DateTime(2026, 10, 28, 0, 0, 0, DateTimeKind.Utc) : DateTime.MinValue, Name = "private business content" };
         var revision = Guid.NewGuid();
-        CosmicConcurrency.SetProviderRevisionId(record, ProviderType.SQLLiteDBOASIS, revision);
+        CosmicConcurrency.SetProviderRevisionId(record, target, revision);
         var json = StoredRecordJson.Serialize(record);
         var digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
-        var validated = HolonReplicaHeadRecord.Read(record.Id, ProviderType.SQLLiteDBOASIS, "original-source",
+        var validated = HolonReplicaHeadRecord.Read(record.Id, target, "original-source",
             ProviderType.Neo4jOASIS.ToString(), json, digest, revision.ToString("D"), deleted);
         Assert.AreEqual(record.VersionId, validated.Evidence.VersionId);
         Assert.AreEqual(record.PreviousVersionId, validated.Evidence.PreviousVersionId);
