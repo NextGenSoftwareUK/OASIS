@@ -71,6 +71,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.OracleDBOASIS => "Oracle",
         ProviderType.AWSOASIS => "AWS DynamoDB",
         ProviderType.EthereumOASIS => "Ethereum",
+        ProviderType.PolygonOASIS => "Polygon",
         _ => provider.QueryProviderType.ToString()
     };
 

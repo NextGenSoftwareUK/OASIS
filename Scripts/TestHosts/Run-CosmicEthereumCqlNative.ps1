@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 param([switch]$Federated,[switch]$Serve,[ValidateSet('Ethereum','Polygon')][string]$Provider='Ethereum')
-if ($Provider -eq 'Polygon' -and $Federated) { throw 'Polygon paired preset is not enrolled yet.' }
 if ($Serve -and !$Federated) { throw 'Serve requires explicit federation.' }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -14,6 +13,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
     $ownedMongo = $null
     $oldMongo = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
     $oldServe = $env:OASIS_EVM_MONGO_SERVE
+    $oldProvider = $env:OASIS_EVM_CQL_PROVIDER
     $oldWeb3Key = $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY
     $oldKey = $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
     $oldState = $env:OASIS_EVM_CQL_STATE
@@ -44,6 +44,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         }
         finally { [Security.Cryptography.CryptographicOperations]::ZeroMemory($key) }
         $env:OASIS_EVM_CQL_STATE = $state
+        $env:OASIS_EVM_CQL_PROVIDER = $Provider
         $ethereumProject = Join-Path $root 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj'
         $tests = Join-Path $root 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests.csproj'
         if ($Federated) {
@@ -116,15 +117,16 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             if(!$ready){throw 'Owned Mongo startup deadline exceeded.'}
             $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
             $env:OASIS_EVM_MONGO_SERVE=if($Serve){'1'}else{'0'}
+            $pairedName = $Provider.ToLowerInvariant() + "-mongo-federation"
             $pairedStarted=[DateTime]::UtcNow
-            dotnet test $tests --no-build --no-restore --filter 'FullyQualifiedName~NativeEthereumMongoFederationRunsSdkAndHttpWithProviderProvenance' --logger 'trx;LogFileName=ethereum-mongo-federation.trx' --results-directory $results *> (Join-Path $results 'ethereum-mongo-federation.log')
-            if($LASTEXITCODE){throw 'Ethereum Mongo demo failed; preserve pending fixture.'}
-            $pairedReport=Get-Item -LiteralPath (Join-Path $results 'ethereum-mongo-federation.trx')
+            dotnet test $tests --no-build --no-restore --filter 'FullyQualifiedName~NativeEvmMongoFederationRunsSdkAndHttpWithProviderProvenance' --logger ("trx;LogFileName=" + $pairedName + ".trx") --results-directory $results *> (Join-Path $results ($pairedName + ".log"))
+            if($LASTEXITCODE){throw 'EVM Mongo demo failed; preserve pending fixture.'}
+            $pairedReport=Get-Item -LiteralPath (Join-Path $results ($pairedName + ".trx"))
             if($pairedReport.LastWriteTimeUtc -lt $pairedStarted){throw 'Paired report is stale.'}
             [xml]$paired=Get-Content $pairedReport.FullName
             if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one fresh federation case required.'}
             if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Mongo fixture cleanup incomplete.'}
-            Get-Content (Join-Path $results 'ethereum-mongo-federation.log') -Tail 5
+            Get-Content (Join-Path $results ($pairedName + ".log")) -Tail 5
         }
     }
     finally {
@@ -150,6 +152,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
        finally {
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = $oldMongo
         $env:OASIS_EVM_MONGO_SERVE = $oldServe
+        $env:OASIS_EVM_CQL_PROVIDER = $oldProvider
         $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY = $oldWeb3Key
         $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY = $oldKey
         $env:OASIS_EVM_CQL_STATE = $oldState

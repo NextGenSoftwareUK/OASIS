@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -49,6 +49,7 @@ $pairedContracts=@(
     @{Provider='Oracle';Runner='Run-ReusableOracleMongoTests.ps1';Port=5090},
     @{Provider='AWS';Runner='Run-CosmicAwsCqlNative.ps1';Port=5096},
     @{Provider='Ethereum';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5097},
+    @{Provider='Polygon';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5098},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
     @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
     @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
@@ -86,6 +87,10 @@ $denied=$false
 try{& $hub -Provider Ethereum -ShowPlan}catch{$denied=$true}
 if(!$denied){throw 'Ethereum requires explicit paired scope.'}
 $pairedRejections++
+$denied=$false
+try{& $hub -Provider Polygon -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Polygon requires explicit paired scope.'}
+$pairedRejections++
 $oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
 if(!$oracleArchive.Federated){throw 'Archive option must not lose explicit paired scope.'}
 $after=Listeners
@@ -94,4 +99,4 @@ $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 @{profiles=$contracts.Count;plans=@($verified);pairedProfiles=$pairedContracts.Count;pairedPlans=@($paired);pairedRejections=$pairedRejections;archiveRejections=3;listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS:8single profiles/16plans,8paired profiles/16plans,6paired rejections,3archive rejections; listeners unchanged.'
+Write-Output 'PASS:8single profiles/16plans,9paired profiles/18plans,7paired rejections,3archive rejections; listeners unchanged.'
