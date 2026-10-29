@@ -1,6 +1,21 @@
-# Eight-provider CQL demo expansion
+# Priority-provider CQL demo expansion
 
 ## Active user priority — 28 October2026
+
+HyperDrive V2 correctness comes first; then ORM/CQL acceptance for MongoDB,
+SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Preserve
+Solana's existing demo as well. The older eight-provider selection below is
+historical; AWS and Oracle are now required scope, not optional alternatives.
+
+AWS admission remains red: AWSOASIS inherits DynamoDBOASIS and uses the official
+DynamoDB transport. Neither currently advertises a native CQL execution contract;
+ordinary storage tests do not prove query support. Implement capability-aware
+bounded native CQL, prove filtered multi-record results and protected failure,
+then add readable C#/HTTP/browser and Mongo-paired presets. Reuse retained pinned
+DynamoDB Local resources for local acceptance; label that evidence local. Hosted
+AWS requires separate authorized credentials/free infrastructure; do not provision
+paid resources. Do not silently route an AWS query to Mongo or scan/filter a whole
+store in memory. Public demo discovery must reject AWS until its contract is proven.
 
 1. Hosted Azure Cosmos test account, free only. Emulator proof does not satisfy this gate; no paid provisioning/upgrade/fallback.
 2. OracleDBOASIS:filtered multi-record native CQL and Mongo-paired preset required. Initial ID-membership/authoritative-catalogue profile implemented;473unit tests pass; native CQL and Mongo+Oracle SDK pairing now pass (5rows/4subset, exact cleanup). HTTP/browser now verified5/4rows with provenance and exact cleanup. [Admission](CQL_ORACLE_DEMO_ADMISSION.md).
