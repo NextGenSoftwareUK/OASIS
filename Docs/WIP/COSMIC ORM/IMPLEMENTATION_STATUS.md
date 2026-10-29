@@ -14,8 +14,8 @@ unknown outcomes and migration mutation/recovery remain open.
 
 Acquire-only shared coordinator: Shared1516/1516 (10 new controls), exact reviewed scope
 and current administrator grant, complete native read-before-acquire, deduplicated physical
-stores, partial/unknown receipt recovery and redacted progress. Native multi-store proof
-and durable host preview retention remain open; no cutover or compensation enabled.
+stores, partial/unknown receipt recovery and redacted progress. Native Neo+SQLite2/2 proves held replay protection and fresh-provider recovery; Mongo/three-store,
+partial/unknown native outcomes and durable host preview retention remain open; no cutover or compensation enabled.
 
 Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
 Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.

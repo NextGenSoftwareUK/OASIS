@@ -127,7 +127,7 @@ public static class CosmicOperationInventoryProbe
 
 public static class CosmicLineageInventoryProbe
 {
-    public static async Task VerifyPreviewAsync(IHolonReplicationRouteInventoryOutbox outbox,
+    public static async Task<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationPreview> VerifyPreviewAsync(IHolonReplicationRouteInventoryOutbox outbox,
         CosmicStorageIdentity source, CosmicStorageIdentity originalTarget, string sourceId,
         Guid operation, int originalCount,
         Func<Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationReceiptPreflightReport>>> readReceipt,
@@ -189,6 +189,7 @@ public static class CosmicLineageInventoryProbe
             || !preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired)
             || !preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified))
             throw new InvalidOperationException("Native preview omitted evidence, changed without writes, or concealed unresolved execution gates.");
+        return preview;
     }
 
     public static async Task VerifyWindowAsync(IHolonReplicationRouteInventoryOutbox outbox, CosmicStorageIdentity source,
