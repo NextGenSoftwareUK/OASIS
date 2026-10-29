@@ -59,14 +59,6 @@ on:
         description: Release the separate OGEngineClient + Edge + Unity integration
         type: boolean
         default: false
-      ogengine_remote_only:
-        description: Select OGEngineClient RemoteOnly independently (legacy ogengine_client selects both)
-        type: boolean
-        default: false
-      ogengine_edge:
-        description: Select OGEngineClient + Edge independently (legacy ogengine_client selects both)
-        type: boolean
-        default: false
       native_endpoint:
         description: Release OASIS Native Endpoint
         required: true
@@ -180,9 +172,7 @@ jobs:
           -STARRuntime $${{ inputs.star_runtime }}
           -EdgeRuntime $${{ inputs.edge_runtime }}
           -EdgeUnity $${{ inputs.edge_unity }}
-          -OGEngineClient $${{ inputs.ogengine_client || inputs.ogengine_remote_only || inputs.ogengine_edge }}
-          -OGEngineRemoteOnly $${{ inputs.ogengine_remote_only }}
-          -OGEngineEdge $${{ inputs.ogengine_edge }}
+          -OGEngineClient $${{ inputs.ogengine_client }}
           -NativeEndpoint $${{ inputs.native_endpoint }}
           -MCPServer $${{ inputs.mcp_server }}
           -OurWorld $${{ contains(inputs.optional_components, 'our_world') }}
@@ -476,14 +466,14 @@ jobs:
           path: artifacts/unity-nuget/*.nupkg
 
   ogengine-profiles:
-    if: inputs.ogengine_client || inputs.ogengine_remote_only || inputs.ogengine_edge
+    if: inputs.ogengine_client
     needs: plan
     uses: ./.github/workflows/build-ogengine-profiles.yml
     with:
       version: ${{ needs.plan.outputs.ogengine_version }}
       publish: ${{ inputs.publish }}
-      remote_only: ${{ inputs.ogengine_client || inputs.ogengine_remote_only }}
-      edge: ${{ inputs.ogengine_client || inputs.ogengine_edge }}
+      remote_only: ${{ inputs.ogengine_client }}
+      edge: ${{ inputs.ogengine_client }}
     secrets: inherit
 
   runtime-assets:
