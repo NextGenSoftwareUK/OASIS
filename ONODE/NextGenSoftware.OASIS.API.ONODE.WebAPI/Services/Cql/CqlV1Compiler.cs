@@ -280,9 +280,22 @@ public static partial class CqlV1Compiler
         return Expression.Lambda<Func<IHolon,bool>>(condition,child);
     }
 
+    /// <summary>
+    /// Opt-in: when set, plain CQL queries also return holons whose owner granted the actor (or a group they are in, or
+    /// everyone) whole-holon read, found natively through the "shared with" index. The host returns the actor's group ids.
+    /// Left null, queries keep the owner/public rule. Joins and projection composition always use owner/public.
+    /// </summary>
+    public static Func<Guid, System.Collections.Generic.IEnumerable<Guid>> SharedReadGroups { get; set; }
+
+    internal static NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess> DefaultReadAccess(Guid actor)
+    {
+        var groups=SharedReadGroups;
+        return groups==null?CosmicQueryReadAccess.OwnerOrPublic(actor):CosmicQueryReadAccess.OwnerPublicOrShared(actor,groups(actor));
+    }
+
     private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor,CosmicQueryReadAccess trusted)
     {
-        var access=trusted==null?CosmicQueryReadAccess.OwnerOrPublic(actor):new NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess>(trusted);
+        var access=trusted==null?DefaultReadAccess(actor):new NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess>(trusted);
         if(access.IsError)throw new ArgumentException(access.Message);
         var secured = query.WithReadAccess(access.Result);
         if (secured.IsError) throw new ArgumentException(secured.Message);

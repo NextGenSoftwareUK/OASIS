@@ -75,10 +75,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var holon = (Holon)result.Result;
 
                 // Non-Wizards may only read holons they created, that are public, or that were shared with them
-                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && !HolonAccess.CanRead(holon, AvatarId))
-                    return TestDataHelper.CreateErrorResponse<Holon>(
-                        "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard)
+                {
+                    // Whole holon, or only the fields this avatar may read (per-holon and per-field permissions).
+                    holon = await HolonManager.ProjectForAvatarAsync(holon, AvatarId) as Holon;
+                    if (holon == null)
+                        return TestDataHelper.CreateErrorResponse<Holon>(
+                            "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
+                }
 
                 response.Result.Result = holon;
 

@@ -107,7 +107,7 @@ public static partial class CqlV1Endpoint
                 if (!TryResolveEligible(providers, provider, admission, out var storage, out var adapter, out var selected, policy))
                     return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "Every federation target must be eligible for this admitted request.");
                 observations.Add(policy ?? new ReadPolicyObservation(storage, adapter, selected,
-                    CosmicQueryReadAccess.OwnerOrPublic(actor).Result));
+                    CqlV1Compiler.DefaultReadAccess(actor).Result));
             }
             if (observations.Select(value => value.Selected).Distinct().Count() != observations.Count)
                 throw new ArgumentException("Resolved targets must be unique.");
