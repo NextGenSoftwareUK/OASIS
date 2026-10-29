@@ -676,3 +676,59 @@ This is read-only evidence. It does not freeze earlier states, acquire a write/d
 | Neo | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `7BF13776AADFC91FC1D5D6315062AE9AA306919BC51BFE5434811281BC7B062C` |
 
 Owned fixture journals and temporary receiver files are absent; native fixture cleanup verified, Mongo/Neo ports have no listeners. Reusable runtime/data resources retained.
+
+
+## Exact operator authorization — 29 October 2026
+
+Shared now defines a separate `IHolonReplicationMigrationAuthorizationPolicy`.
+`ScopedHolonReplicationMigrationPolicy` is an immutable host-owned allowlist;
+an empty configuration denies every request. Ordinary committed-owner replication
+permission does not implement this administrative contract.
+
+Each host grant binds the authenticated operator, migration ID, exact physical
+source and original target, original source/target IDs, replacement native route
+(including its target store and replication policy), preview digest and
+administrative policy revision. All are included in `ContextDigest`. Grants have
+an inclusive start and exclusive expiry. The host must derive the operator from
+its authenticated context and create grants through its administrative process;
+HTTP callers must never supply the grant list. Replace the registered policy to
+revoke grants; execution must reauthorize immediately before native mutation.
+
+```csharp
+// Host-owned configuration following operator review; never construct grants
+// directly from an untrusted request body.
+var grant = new HolonReplicationMigrationGrant(
+    reviewedContext,
+    reviewTime,
+    reviewTime.AddMinutes(5));
+
+var policy = new ScopedHolonReplicationMigrationPolicy(
+    reviewedContext.AuthorizationPolicyBinding,
+    new[] { grant });
+
+var admitted = await policy.AuthorizeAsync(
+    contextFromAuthenticatedHost,
+    cancellationToken);
+
+if (admitted.IsError || !admitted.Result)
+    throw new InvalidOperationException(admitted.Message);
+
+// Admission alone cannot execute a migration. The native executor still needs
+// complete verified evidence, write/delivery fences, CAS and durable receipts.
+```
+
+This checkpoint supplies authorization, not a complete preview generator or an
+execution endpoint. `PreviewDigest` is the exact reviewed checksum; this policy
+does not certify the completeness or truth of the evidence it identifies. The
+future preview builder and native executor must establish that independently.
+There is no automatic registration, migration write or change to ordinary saves.
+The current contract retains one physical source while rebinding lineage/routes;
+cross-source relocation needs its own explicitly reviewed protocol.
+
+Verification: 14 new controls, full Shared1430/1430, no failures/skips. Cases
+reject changed operator/migration/source/old or new target store/lineage/route
+policy/administrative policy/preview, missing grants, early/expired grants,
+cancellation, mismatched host policy, duplicate grants and invalid context.
+The caller's mutable grant list cannot alter a registered policy.
+Evidence: `TestResults/DevelopmentSyncCurrent/migration-authorization-shared.trx`;
+SHA256 `B00E8D2222328A64E71027AFC295ACB4CAB563AB5D6E369AD65C59908F274A08`.

@@ -25,9 +25,11 @@ Complete-operation inventory now implemented on all3native providers: Core4462/S
 
 Source-wide lineage inventory now passes Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2. A later save is excluded from the captured window and visible in a new scan on all three sources. Earlier row state changes remain possible; authorization, fences and execution are still open.
 
+Separate exact operator authorization now implemented in Shared (1430 tests pass). Empty host policy denies all; time-limited grants bind operator, stores, lineage, policies and reviewed preview digest. No execution endpoint or complete preview generator is enabled.
+
 ## Exact next step
 
-1. Implement the authorized immutable operator preview, using the completed source-wide sequence-window inventory and exact original receipt/target evidence. A captured upper sequence is not a write fence or proof of quiescence.
+1. Implement the immutable evidence preview generator and connect the separate operator policy, using the completed source-wide sequence-window inventory and exact original receipt/target evidence. A captured upper sequence is not a write fence or proof of quiescence.
 2. Bind the preview to the operator policy, exact physical stores, old/new lineage, complete obligations, revisions and content. Revalidate under native fences before any mutation.
 3. Complete remaining ordered-pair and concurrent-change acceptance alongside preview validation; current native cases are scoped, not all-pair certification.
 4. Implement per-store compare-and-swap and durable idempotent migration receipts, then interrupted-cutover recovery and old-obligation disposition.
