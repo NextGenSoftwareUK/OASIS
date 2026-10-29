@@ -7,28 +7,28 @@ using NextGenSoftware.OASIS.Common;
 
 namespace CosmicCqlDemo;
 
-/// <summary>One native identity-membership query over Mongo and Oracle.</summary>
+/// <summary>One native identity-membership query over Mongo and another admitted provider.</summary>
 public static class IdentityFederationWalkthrough
 {
     public static async Task<CosmicFederationResult> RunAsync(
         HolonManager manager,
         ICosmicQueryStorageProvider mongo,
-        ICosmicQueryStorageProvider oracle,
+        ICosmicQueryStorageProvider secondary,
         IEnumerable<Guid> selectedIds,
         IEnumerable<Guid> readableMongoIds,
-        IEnumerable<Guid> readableOracleIds,
+        IEnumerable<Guid> readableSecondaryIds,
         Guid actor,
         TextWriter output,
         CancellationToken cancellationToken = default)
     {
         if (mongo.QueryProviderType != ProviderType.MongoDBOASIS ||
-            oracle.QueryProviderType != ProviderType.OracleDBOASIS)
-            throw new ArgumentException("Supply activated Mongo and Oracle adapters, in that order.");
+            secondary.QueryProviderType is ProviderType.MongoDBOASIS or ProviderType.Default or ProviderType.None or ProviderType.All)
+            throw new ArgumentException("Supply activated Mongo and one distinct concrete provider, in that order.");
 
-        // 1. Freeze the user's selection. Both native databases receive the same
+        // 1. Freeze the user's selection. Both native sources receive the same
         // Contains predicate. These are canonical holon IDs, not storage addresses.
         var ids = selectedIds.ToArray();
-        var scope = Require(CosmicQueryScope.Named(mongo.QueryProviderType, oracle.QueryProviderType));
+        var scope = Require(CosmicQueryScope.Named(mongo.QueryProviderType, secondary.QueryProviderType));
         var source = Require(CosmicQuery<Holon>.Create(scope).Where(row => ids.Contains(row.Id)));
 
         // 2. Authorization belongs to each source. Obtain these catalogues from
@@ -37,13 +37,13 @@ public static class IdentityFederationWalkthrough
         {
             new CosmicFederationReadPolicy(mongo.QueryProviderType,
                 Require(CosmicQueryReadAccess.AuthoritativeRecords(actor, mongo.QueryProviderType, readableMongoIds))),
-            new CosmicFederationReadPolicy(oracle.QueryProviderType,
-                Require(CosmicQueryReadAccess.AuthoritativeRecords(actor, oracle.QueryProviderType, readableOracleIds)))
+            new CosmicFederationReadPolicy(secondary.QueryProviderType,
+                Require(CosmicQueryReadAccess.AuthoritativeRecords(actor, secondary.QueryProviderType, readableSecondaryIds)))
         };
 
         // 3. Bound complete provider reads before merging. Physical copies remain
         // visible with provider provenance; this does not claim a shared snapshot.
-        var adapters = new[] { mongo, oracle };
+        var adapters = new[] { mongo, secondary };
         var targets = adapters.Select(adapter => new CosmicQueryTarget(
             adapter.QueryProviderType, adapter.QueryCapabilities)).ToArray();
         var options = Require(CosmicFederationOptions.Create(
@@ -55,7 +55,7 @@ public static class IdentityFederationWalkthrough
         // operation: no cached or other-provider rows replace its contribution.
         var result = Require(await manager.ExecuteFederationQueryAsync(plan, adapters, cancellationToken));
 
-        await output.WriteLineAsync("\n=== CQL: Mongo + Oracle identity membership ===\n");
+        await output.WriteLineAsync($"\n=== CQL: Mongo + {DisplayName(secondary)} identity membership ===\n");
         await output.WriteLineAsync($"Physical rows observed: {result.ObservedInputRows}\n");
         foreach (var row in result.Rows)
         {
@@ -65,6 +65,13 @@ public static class IdentityFederationWalkthrough
 
         return result;
     }
+
+    internal static string DisplayName(ICosmicQueryStorageProvider provider) => provider.QueryProviderType switch
+    {
+        ProviderType.OracleDBOASIS => "Oracle",
+        ProviderType.AWSOASIS => "AWS DynamoDB",
+        _ => provider.QueryProviderType.ToString()
+    };
 
     private static T Require<T>(OASISResult<T> result)
     {

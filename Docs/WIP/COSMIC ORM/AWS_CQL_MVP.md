@@ -1,6 +1,6 @@
 # AWS CQL MVP admission
 
-Updated 29 October 2026. **MVP incomplete: native service proof passes; Mongo-paired SDK/HTTP/browser integration pending.**
+Updated 29 October 2026. **Local query-demo MVP verified: native AWS wrapper, Mongo pairing, C#, HTTP and browser. Hosted AWS and deeper parity remain unverified.**
 
 ## Implemented and verified
 
@@ -19,12 +19,45 @@ Focused compiler/response tests **13/13** pass: frozen authorization intersectio
 Evidence: `C:/Source/OASIS-cosmic/TestResults/AwsCqlCurrent/dynamo-cql.trx`.
 SHA256: `539F6EAEDBBB3CB41DA45A1F9E86FF15C76A3B7C89DF504AAF96950A8D627A17`.
 
-## Exact next steps
+## Run the demo
 
-1. Add the Mongo-paired C# walkthrough, HTTP preset and browser view using existing identity-federation demo patterns. Expected 3 AWS + 2 Mongo copies = 5 rows; subset 2 + 2 = 4. Keep public discovery unavailable until verified.
-2. Reuse `Scripts/TestHosts/Run-CosmicAwsCqlNative.ps1` and its stopped container `oasis-cosmic-cql-dynamo`, port18002. Shared runtime remains mounted read-only; original retained container/data are untouched.
-3. Seed is retained at `LocalState/COSMIC/AwsCql/demo-seed.json`; its three IDs/actor and 51,200-byte DynamoDB Local database are reusable. Do not reseed per run. Pending seeds require explicit review; the one activation-only failure was verified unwritten before continuing the same IDs.
-4. Move to Ethereum after the AWS MVP. Advanced operators and deeper migration remain deferred.
+From `C:/Source/OASIS-cosmic`:
+
+```powershell
+# Start the interactive teaching page at http://127.0.0.1:5096/.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AWS -Federated
+
+# Bounded native + C# + HTTP acceptance, then stop both owned services.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AWS -Federated -VerifyOnly
+```
+
+The full preset returns **AWS 3 + Mongo 2 = 5 physical rows**; subset returns
+**2 + 2 = 4**. Copies retain provider provenance. Identity membership is the MVP
+filter, not arbitrary metadata/content search. Read the spaced generic source in
+`Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`; its HTTP/browser host is
+`IdentityFederationApiHost.cs`. HolonManager dispatches both native providers.
+
+Actor/readable catalogues are server-owned. HTTP accepts only named presets;
+forged actor fields and unknown presets reject. An unavailable AWS source fails
+the complete query instead of returning Mongo as a partial substitute.
+
+AWS seed/data stay reusable in LocalState/COSMIC/AwsCql. The temporary exact Mongo
+database is ownership-checked and dropped when the page stops. Use the page's
+shutdown button or POST /demo/shutdown. The runner stops both owned services.
+There is no cloud account, payment, shared snapshot or full-parity claim.
+
+## Verified scope and next provider
+
+- Query controls13/13 and native DynamoDB Local1/1 pass.
+- Actual AWS + Mongo SDK/HTTP1/1 passes, including5/4 participation/provenance,
+  input rejection, unavailable-source failure and exact Mongo cleanup.
+- Browser buttons clicked: visible full5 and subset4 verified; screenshot retained
+  at TestResults/AwsCqlCurrent/aws-mongo-browser.jpg (24,158 bytes).
+- Hub discovery now7 paired profiles/14 plans; no listener changes on ShowPlan.
+- Legacy garbled tab-title text fixed at the shared template; final HTTP test
+  verifies the ASCII AWS title. Existing Oracle label/URL behavior is preserved.
+- **Next: Ethereum MVP**, then Polygon, Arbitrum, Google, Cosmos blockchain,
+  Polkadot and NEAR. Deep operators/migration remain deferred.
 
 ## Retained runtime inventory
 
@@ -42,3 +75,9 @@ argument vector, validated the exact stopped owned definition and replaced that
 configuration only, preserving runtime/data/IDs. Full command validation and a
 bounded native Dynamo protocol readiness check now precede tests. No alternate
 runtime, download or silent query retry. Service confirmed stopped after success.
+
+Final paired evidence: `TestResults/AwsCqlCurrent/aws-mongo-federation.trx`.
+- Evidence `TestResults/AwsCqlCurrent/aws-cql-native.trx`, SHA256 `540CB7219E1E02E5472C3E13473B0EAE17A5B2E9C6D5DF3DF41BDAC17508F814`.
+- Evidence `TestResults/AwsCqlCurrent/aws-mongo-federation.trx`, SHA256 `8399C304BBE7838D02086488F75A9EE0B0E2EA7E01270605EA724E9C814D53E3`.
+- Evidence `TestResults/AwsCqlCurrent/aws-mongo-browser.jpg`, SHA256 `5850ED5A629D6557FFAEDD6D8390C595B796A6EBF255995D5309F7291F32EB6A`.
+- Evidence `TestResults/ProtocolCqlCurrent/database-hub-routing.json`, SHA256 `421D897AC12202637326E967D014C7590F52EE477677DEF2E4C8E205D790E296`.

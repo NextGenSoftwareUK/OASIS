@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,26 +12,29 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -eq 'Oracle' -and !$Federated){throw 'Oracle currently exposes its Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -eq 'CosmosDB' -and $ArchiveCompletedDemo){throw 'Cosmos owns hash-preserved database report reuse; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS') -and $ArchiveCompletedDemo){throw 'Cosmos owns hash-preserved database report reuse; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
+        'AWS' {'Run-CosmicAwsCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
     $url=switch($Provider){
         'CosmosDB' {'http://127.0.0.1:5092/'}
         'Oracle' {'http://127.0.0.1:5090/'}
+        'AWS' {'http://127.0.0.1:5096/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
     $scope=switch($Provider){
         'CosmosDB' {'Mongo + local Azure Cosmos emulator:5rows/4subset; hosted Azure remains separate'}
         'Oracle' {'Mongo + retained Oracle Database:5rows/4subset; no hosted OCI claim'}
+        'AWS' {'Mongo + DynamoDB Local:5rows/4subset; bounded native keys, no hosted AWS or shared-snapshot claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -42,6 +45,7 @@ if($Federated){
     }
     switch($Provider){
         'CosmosDB' { & $path -Mongo -Serve:(!$VerifyOnly) }
+        'AWS' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }

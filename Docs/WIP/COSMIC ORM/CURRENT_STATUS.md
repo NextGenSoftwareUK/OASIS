@@ -11,7 +11,7 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Entity-selected All/element/numeric depth stays paused; large POCO/migrations tooling deferred.
 - V1: document gaps only. No paid provisioning, repeated signup requests or colleague build chatter.
 
-## Current phase: safe V2 lineage migration
+## Current phase: provider MVP demo breadth
 
 - Latest: Shared **1599/1599**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
 - Preview v3 binds exact source receipt, frozen graph/transport and historical receiver intent. Time-limited host approval binds operator, stores, route and reviewed digest.
@@ -26,7 +26,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. AWS CQL controls13/13 and real DynamoDB Local proof1/1 now pass (actual AWS wrapper, retained3 records -> filtered2). Next: add Mongo-paired C# walkthrough and HTTP/browser presets (3+2=5, subset2+2=4) using existing identity-federation demo helpers. Reuse stopped CQL container on18002 and own LocalState/COSMIC/AwsCql/demo-seed.json; no reseeding or original-container/data mutation. [AWS MVP](AWS_CQL_MVP.md).
+1. AWS local query-demo MVP verified: controls13/13, native3/2 selection1/1, Mongo-paired C#/HTTP1/1 and actual browser5/4 rows with provenance. Launch `Run-CosmicCqlDemoHub.ps1 -Provider AWS -Federated` (5096); `-VerifyOnly` runs bounded checks. Both owned services stopped; AWS3-record seed retained, temporary Mongo fixture cleaned. Next: inspect Ethereum's existing provider and free native-read environment, implement its bounded multi-record query + Mongo-paired MVP. [AWS guide](AWS_CQL_MVP.md).
 2. After AWS: Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain, Polkadot and NEAR, in that order; then other suitable existing popular providers. Each MVP needs a genuinely native bounded filtered multi-record query and a Mongo-paired demo with explicit limits; no full-parity gate. Reconcile existing Mongo/SQLite/Neo/IPFS/Azure emulator/Oracle/SOLID/ActivityPub/Solana demos; hosted Azure stays pending.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
@@ -48,7 +48,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 | Cosmos + Mongo | Emulator C#/HTTP/browser 5/4. Hosted Azure pending by user instruction: no free subscription/auth; do not provision or repeat signup requests. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
 | IPFS/SOLID/ActivityPub + Mongo | Native 3/2 bounded-key queries, paired SDK/HTTP/browser 5/4. Arbitrary content queries remain open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
 | Solana + Mongo | Retained local validator + explicit SQLite index, C#/HTTP/browser. No hosted-chain/reseed claim. Original missing historical chunk has no known backup; preserve retained state. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). |
-| AWS + Mongo | Native-key execution implementation/control tests13/13 done; DynamoDB Local acceptance1/1 passes (3/2); Mongo-paired C#/HTTP/browser presets remain red. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
+| AWS + Mongo | Native-key execution implementation/control tests13/13 done; DynamoDB Local acceptance1/1 passes (3/2); Mongo-paired C#/HTTP/browser5/4 verified1/1; launcher AWS -Federated ready. Hosted AWS/deep features unverified. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
 
 Three-database save demos cover dirty/no-op ownership, generated IDs, concurrency and per-save deltas within checklist scopes. Full history/value authorization, broad child/provider parity, placement, hosted durability/scaling and migration remain open.
 
