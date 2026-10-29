@@ -1366,3 +1366,16 @@ Evidence:
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 31F6791198F146440CEE241128C32E8D586E51B78A27EB3DEC543F0D45AFB294
 - TestResults/Neo4jCurrent/barrier-acquire-crash-child.log SHA256 8271D9D9BBB789A82BCAC79A02B5D5144C4773FD3B9D55B5AA1EB1BDF3C146AC
 - TestResults/Neo4jCurrent/barrier-resume-child.trx SHA256 8B0370253F19307F5621871DB74BA552BE086922B085400ECC3833F7DC87311E
+
+## Post-barrier delivery evidence, 29 October 2026
+
+HolonMigrationDeliveryReconciliation.ReadAsync verifies the exact current administrator grant and every original held native barrier, then captures a fresh bounded lineage window rather than reusing the original cutoff. It retains completed/non-head and other-route obligations. Missing reviewed rows or changed immutable operation/actor/target/payload identity fail without a partial report. Native frozen payloads are read transiently, hash/transport/graph membership checked, and never returned/logged. Later affected work is distinguished from unrelated graphs; other affected routes are not silently dropped. Selected original receiver acknowledgements must match their exact frozen intent, physical store, complete graph and original acknowledgement digest. Held owners are rechecked afterward and current approval rechecked before returning.
+
+The redacted report binds current source state and hidden lease/recovery StateDigest, reviewed-state change, acknowledgement digest and fresh window. InFlight, ReconciliationRequired/native-unknown and other-route states remain explicit. A known target acknowledgement never finishes/clears/retries the source or releases protection; no mutation or global-quiescence permission is returned. Native read errors/warnings retain their causes. Native compare-and-swap dispositions, durable started/uncertain mutation phases and replacement validation remain open. Current strict plan admission still requires original current-head matches; broader multi-version/divergent-head admission needs dedicated acceptance before full migration support.
+
+Shared1542/1542 passes (13 new delivery-review controls): in-flight/terminal metadata retained despite committed receiver acknowledgement, later affected/unrelated graph detection, changed lease-state digest, other affected routes retained, barrier loss/missing original/payload failure/bounds return no partial report, current grant before/after, receiver causes and cleanup warnings. Native Mongo three-store1/1 and Neo+SQLite process-restart2/2 additionally execute the production review with one acknowledged selected target and three separately retained affected routes; business/queue state is unchanged. Native live-worker/unknown-transaction disposition races are not claimed.
+
+Evidence:
+- TestResults/DevelopmentSyncCurrent/delivery-reconciliation.trx SHA256 F61F85D8BDFDE8EEC1D71A6DF2BE371F70AABBED074FA5F98F11132EBF75C126
+- TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 DAFD99F898B2E5D1D31733849F0D519D0A24629C2C07F6BEF4C295B71FAE2B18
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 FC395965261DB715E6578F3D2E466C8BF8891C805A73B0301D56DE6FA4884B9D

@@ -162,6 +162,14 @@ public partial class Neo4jNativeAvatarTests
                             new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) });
                         Assert.IsFalse(resumed.IsError, resumed.Message + resumed.Exception); Assert.IsTrue(resumed.Result.AllBarriersHeld);
                         Assert.IsFalse(resumed.IsSaved, "Recovery must read original native receipts rather than acquire again.");
+                        var deliveryReview = await HolonMigrationDeliveryReconciliation.ReadAsync(durablePlan, policy,
+                            new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) },
+                            (IHolonReplicationLineageInventoryOutbox)boundSource.Result, pageSize: 1);
+                        Assert.IsFalse(deliveryReview.IsError, deliveryReview.Message + deliveryReview.Exception);
+                        Assert.IsFalse(deliveryReview.IsSaved); Assert.AreEqual(enrollment.TargetIds.Count, deliveryReview.Result.Obligations.Count);
+                        Assert.AreEqual(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
+                            deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
+                        Assert.AreEqual(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
                         foreach (var participant in new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) })
                         {
                             var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
