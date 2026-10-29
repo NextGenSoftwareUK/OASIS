@@ -70,7 +70,7 @@ foreach ($name in $names) {
         $status = "✅ [Scoped proof]($proof)"
         if ($name -eq 'AzureCosmosDBOASIS') { $status += '; emulator only, hosted pending' }
     } elseif ($name -eq 'AzureStorageOASIS') {
-        $status = '❌ [Adapter controls only; native/paired pending](AZURE_BLOB_CQL_MVP.md)'
+        $status = '❌ [Controls/native3/2/restart verified; paired pending](AZURE_BLOB_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }
     $source = if ($byName.ContainsKey($name)) { ($byName[$name] | ForEach-Object { "[project](<../../../$_>)" }) -join ', ' } else { 'No exact project-name match; alias/source review required' }
     $registration = if ($registrations.ContainsKey($name)) { "[Active case](<../../../${registerPath}#L$($registrations[$name])>); verify factory/mode" } else { 'No active central case found; review registration/direct construction' }
