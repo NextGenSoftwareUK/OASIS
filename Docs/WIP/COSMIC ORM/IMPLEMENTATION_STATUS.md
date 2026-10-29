@@ -19,6 +19,10 @@ persisted original evidence now passes Shared1529/1529 plus both native fixtures
 Actual coordinator process kill after first native commit and fresh-process recovery pass Neo+SQLite2/2.
 Deployed WEB4/server/power restart, other boundaries and real transport loss remain open; no cutover or compensation enabled.
 
+Post-barrier read-only delivery review passes Shared1542/1542 (13 new controls), Mongo1
+and Neo+SQLite2 native cases. Fresh current lineage, frozen graph membership, historical
+acknowledgements and hidden-state digests retained; no claim/finish/clear or cutover.
+
 Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
 Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.
 Physical bindings, graph membership/content/revisions, obligation state and explicit
