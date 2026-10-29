@@ -8,10 +8,10 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: admit one reusable Linux Mongo runtime**, then Litestream paired demo.
-Fixture builds; WSL NAT cannot use Windows loopback. Keep bindings unchanged.
-Linux provider/live LTX/restore CQL3/2 pass, source/probes preserved, no daemon live.
-Paired remains red. [Exact runtime/topology/proof](LITESTREAM_CQL_MVP.md).
+**Next: inspect Memcached implementation and reusable native resources**.
+Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
+owned services stopped, fixture removed, source/replicas retained. Windows failure
+stays separate. [Scope/resources/commands](LITESTREAM_CQL_MVP.md).
 Upstash control17/hosted-native/repeat/SDK/HTTP/browser5/4 pass ([scope](UPSTASH_CQL_MVP.md)).
 Free scratch expires2026-10-31; preserve original/no reseed or reallocation.
 DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,
@@ -38,6 +38,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| Litestream + Mongo | Linux live file replication/restore + SDK/HTTP/browser5/4; Windows fsync red. [Guide](LITESTREAM_CQL_MVP.md). |
 | Upstash + Mongo | Hosted free scratch native/repeat/SDK/HTTP/browser5/4; expires Oct31. [Guide](UPSTASH_CQL_MVP.md). |
 | DuckDB + Mongo | Embedded native/reopen/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](DUCKDB_CQL_MVP.md). |
 | SQL Server + Mongo | LocalDB native/restart/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](SQLSERVER_CQL_MVP.md). |
@@ -58,7 +59,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 27 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 28 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 
@@ -90,8 +91,7 @@ Green means only linked scope; it does not establish full provider/production pa
   exact teardown in [the ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Free-only services.
 
 ```powershell
-Scripts/TestHosts/Run-CosmicAzureBlobCqlNative.ps1
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Avalanche -Federated -ShowPlan
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated -ShowPlan
 Scripts/TestHosts/Update-CosmicCqlProviderInventory.ps1
 ```
 

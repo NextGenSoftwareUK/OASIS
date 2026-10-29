@@ -197,3 +197,16 @@ The retained free scratch expires2026-10-31T21:15:49.3541451Z; expired admission
 missing source must be reconciled, never silently replaced. Stop with the page
 button; only the verified temporary Mongo fixture is removed.
 [Tests, commands and full scope](UPSTASH_CQL_MVP.md).
+
+## Linux Litestream + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` runs automated checks and teardown. The preset
+executes in existing Ubuntu WSL with pinned native runtimes and one reusable Linux
+Mongo store, keeping both services on loopback. CQL ID-membership returns five
+physical rows, then four for the subset, preserving provider-labelled copies.
+Actual Linux live file replication and restored CQL are separately proved against
+the same retained source lineage. Stop with the page button; original source,
+replicas and reusable native store remain, verified temporary Mongo data is removed.
+Windows Litestream directory-fsync failure and remote/PITR/crash acceptance remain
+separate open scopes. [Setup, tests, resource limits and evidence](LITESTREAM_CQL_MVP.md).
