@@ -178,3 +178,12 @@ serves localhost5108. A bounded authorized ID query returns five physical rows;
 the two-ID subset returns four, preserving both provider copies. Native file reads,
 process restart reuse and C#/HTTP/browser are verified. Source files are plaintext;
 reads have separate observation times. [Tests, commands and limits](LOCALFILE_CQL_MVP.md).
+
+## Aptos + Mongo direct preset
+
+Start `Scripts/TestHosts/Start-CosmicAptosCqlNode.ps1` in terminal1, then
+`Scripts/TestHosts/Run-CosmicAptosCqlNative.ps1 -Federated -Serve` in terminal2.
+Browser localhost5109 shows full5/subset4 rows with provider provenance. Native,
+restart, SDK, HTTP and browser are verified; main-hub enrollment remains pending.
+The retained plaintext Move source/key is reused; no faucet or chain reset. Stop
+the demo to clean Mongo, then Ctrl-C terminal1. [Tests and scope](APTOS_CQL_MVP.md).

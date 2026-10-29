@@ -78,6 +78,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.AzureStorageOASIS => "Azure Blob",
         ProviderType.AWSS3OASIS => "AWS S3",
         ProviderType.LocalFileOASIS => "LocalFile",
+        ProviderType.AptosOASIS => "Aptos",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
