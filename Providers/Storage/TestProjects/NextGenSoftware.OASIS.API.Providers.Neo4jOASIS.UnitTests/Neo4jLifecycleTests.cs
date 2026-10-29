@@ -19,6 +19,12 @@ public class Neo4jLifecycleTests
         public Exception? CloseFailure;
         public Exception? SchemaFailure;
         public long ConstraintKinds = RequiredConstraintKinds;
+        public long MigrationConstraintKinds = 2;
+        public bool InstallMigrationConstraints = true;
+        public bool MigrationMarkerExists = true;
+        public long MigrationHistoryCount;
+        public bool MigrationMarkerValid = true;
+        public int MigrationConstraintCreates;
         public int SchemaRuns;
         public int SchemaCreates;
         public bool TargetIndexExists = true;
@@ -83,6 +89,11 @@ public class Neo4jLifecycleTests
                 {
                     if(Owner.SchemaWriteFailure!=null)return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
                     Owner.SchemaCreates++;
+                    if (query.Contains("oasis_cosmic_migration_", StringComparison.Ordinal))
+                    {
+                        Owner.MigrationConstraintCreates++;
+                        if (Owner.InstallMigrationConstraints && Owner.MigrationConstraintCreates == 2) Owner.MigrationConstraintKinds = 2;
+                    }
                     if(Owner.InstallAfterCreates && Owner.SchemaCreates==RequiredConstraintKinds)Owner.ConstraintKinds=RequiredConstraintKinds;
                 }
 
@@ -102,6 +113,22 @@ public class Neo4jLifecycleTests
                 var probe = (SchemaCursorProbe)cursor;
                 probe.Count=Owner.ConstraintKinds;
                 probe.Name=Owner.TargetIndexName;
+                if (args[0] is string migrationQuery)
+                {
+                    if (migrationQuery.StartsWith("SHOW CONSTRAINTS", StringComparison.Ordinal) && migrationQuery.Contains("CosmicMigrationRecordGate", StringComparison.Ordinal))
+                        probe.Count = Owner.MigrationConstraintKinds;
+                    if (migrationQuery.Contains("CosmicMigrationRecordGate {HolonId:$schema}", StringComparison.Ordinal))
+                    {
+                        if (migrationQuery.StartsWith("MERGE", StringComparison.Ordinal))
+                        {
+                            if (Owner.SchemaWriteFailure != null) return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
+                            Owner.MigrationMarkerExists = true;
+                        }
+                        probe.Empty = !Owner.MigrationMarkerExists;
+                        probe.Count = Owner.MigrationMarkerValid ? 1 : -1;
+                    }
+                    if (migrationQuery.StartsWith("MATCH (f:CosmicMigrationFence)", StringComparison.Ordinal)) probe.Count = Owner.MigrationHistoryCount;
+                }
                 if (args[0] is string show && show.StartsWith("SHOW INDEXES", StringComparison.Ordinal))
                 {
                     var exists = Owner.TargetIndexExists && Owner.TargetIndexShapeValid;
@@ -151,7 +178,7 @@ public class Neo4jLifecycleTests
         public string Name = "oasis_cosmic_outbox_target_order";
         protected override object? Invoke(MethodInfo? method,object?[]? args)
             => method!.Name=="get_Item" ? (string)args![0]! switch {
-                "count" => Count, "name" => Name,
+                "count" => Count, "format" => Count, "name" => Name,
                 _ => throw new InvalidOperationException("Unexpected schema field.") }
                 : throw new InvalidOperationException("Unexpected schema record call: "+method.Name);
     }

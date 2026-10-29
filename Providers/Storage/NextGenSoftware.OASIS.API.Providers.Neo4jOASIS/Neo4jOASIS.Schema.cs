@@ -34,6 +34,7 @@ public partial class Neo4jOASIS
                     throw new InvalidDataException("Neo4j requires native holon, receipt, replica-head, historical-version and primary-outbox identity constraints before activation.");
             }
             await EnsureOutboxTargetOrderingIndexAsync(session).ConfigureAwait(false);
+            await EnsureMigrationFenceSchemaAsync(session).ConfigureAwait(false);
         }
         catch (ClientException cause)
         {
