@@ -1427,3 +1427,9 @@ Evidence:
 - TestResults/Neo4jCurrent/neo4j-migration-fence.trx SHA256 8A3FC3E94C085744F006E4CF94AE13C80B66C62A409F5A056AD08186491717F0
 - TestResults/Neo4jCurrent/neo4j-mutation-phase-review.trx SHA256 AD9A12D9C17E2E50AA0D7EE0F82CB8D1215CE23E38A4CD03AB5CBEB2FF2F84EC
 - TestResults/DevelopmentSyncCurrent/neo-mutation-controls.trx SHA256 180F0FC649CF5B7FC4123CC38883BEFEBD9AB2E0282D8865AB1ADF2893431A93
+
+## 29 October: evidence-bound mutation preparation
+
+`HolonMigrationMutationPreparation` binds the original plan/context, fresh delivery and replacement report digests, and a distinct mutation policy identity into one immutable canonical fingerprint. It rejects report/store mismatch, weak observations, unresolved workers, additional affected obligations/routes, incomplete replacement selection and conflicting/unknown ownership. Matching/empty replacement remains observation only: historical receipt admission, native CAS and migration receipts are still required. This object does not grant approval, persist preparation or start mutation. No execution endpoint enabled.
+
+Shared suite: **1578/1578**, including 11 new preparation controls. Evidence: `C:/Source/OASIS-cosmic/TestResults/MutationPreparationCurrent/preparation.trx`, SHA256 `10142DDA649E663A13DA961493A1AA8C027D4E2D39DB333EECAB1A730DF2473C`. Initial test compilation used stale Shared outputs and an unavailable assertion name; corrected by building the producer before tests and using the repository assertion API. Next: independent exact-preparation policy, durable preparation/recovery, all-participant capability admission before start; then real CAS/cutover.
