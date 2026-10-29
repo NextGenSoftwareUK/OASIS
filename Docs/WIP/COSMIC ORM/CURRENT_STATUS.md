@@ -8,13 +8,14 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect Aptos admission and retained local resources**, then bounded native
-query and Mongo-paired proof. LocalFile native/restart/SDK/HTTP/browser5/4 is now
-verified; all owned listeners stopped and temporary Mongo fixture removed.
-[LocalFile proof](LOCALFILE_CQL_MVP.md). TRON controls pass7, but original source/fence
-files were absent at checked locations; do not bypass historical admission guards.
-[TRON gate](TRON_CQL_MVP.md). S3 native/paired fixtures prepared; local launch remains
-policy-gated. [S3 gate](AWS_S3_CQL_MVP.md). Both remain red; continue other breadth work.
+**Next: Aptos native setup/admission**, using one reusable ledger and cached CLI.
+Aptos bounded CQL and strict Move-result decoding pass10 controls/18 with selector
+regressions. Native/restart/Mongo/browser remain red. Existing documented CLI folder
+is empty; search other caches before restoring pinned9.6.0 once. The old per-run
+force-restart runner stays unused. [Aptos scope/next step](APTOS_CQL_MVP.md).
+LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
+[Proof](LOCALFILE_CQL_MVP.md). TRON original source/fence recovery and S3 local launch
+policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL_MVP.md).
 
 ## Scoped demo proofs
 
