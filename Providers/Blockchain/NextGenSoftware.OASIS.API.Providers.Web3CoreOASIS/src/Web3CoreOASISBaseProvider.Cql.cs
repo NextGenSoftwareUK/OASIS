@@ -31,7 +31,7 @@ public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
             // Admit the complete expression before activation or any RPC. Unsupported
             // business predicates must never become an in-memory scan of the chain.
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
-                return Error("CQL_PLAN_TARGET_UNAVAILABLE", "One explicit Polygon/Web3Core target is required.");
+                return Error("CQL_PLAN_TARGET_UNAVAILABLE", "One explicit Web3Core target is required.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
@@ -40,7 +40,7 @@ public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated)
-                return Error("CQL_PROVIDER_INACTIVE", "Activate the configured Polygon/Web3Core provider before querying.");
+                return Error("CQL_PROVIDER_INACTIVE", "Activate the configured Web3Core provider before querying.");
 
             var rows = new List<IHolon>();
             if (selection.Result.Count != 0)
@@ -63,7 +63,7 @@ public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
                     if (IsPrivateRecordAbsent(native)) continue;
                     var row = DecodePrivateRecord<Holon>("holon", id, native);
                     if (row == null || !plan.Query.ReadAccess.CanRead(row))
-                        throw new InvalidDataException("Native Polygon/Web3Core record differs from the authorized identity.");
+                        throw new InvalidDataException("Native Web3Core record differs from the authorized identity.");
                     if (row.IsDeleted) continue;
                     row.Children = Array.Empty<IHolon>();
                     rows.Add(row);
@@ -77,8 +77,8 @@ public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
             return new(Array.AsReadOnly<IHolon>(page)) { IsLoaded = true, LoadedCount = page.Length };
         }
         catch (OperationCanceledException cause)
-        { return Error("CQL_QUERY_CANCELLED", "Polygon/Web3Core query cancelled; no partial result published.", cause); }
+        { return Error("CQL_QUERY_CANCELLED", "Web3Core query cancelled; no partial result published.", cause); }
         catch (Exception cause)
-        { return Error("CQL_QUERY_FAILED", "Native Polygon/Web3Core query failed; no partial result published.", cause); }
+        { return Error("CQL_QUERY_FAILED", "Native Web3Core query failed; no partial result published.", cause); }
     }
 }

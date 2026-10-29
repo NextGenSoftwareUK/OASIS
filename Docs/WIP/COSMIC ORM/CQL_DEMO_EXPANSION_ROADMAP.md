@@ -136,3 +136,5 @@ This integration takes priority over additional parity-only Solana operators.
 Databases hub native launch is restored after exact archived fixture reconciliation:681SDK queries/138walkthrough HTTP requests/30save checks pass, with cleanup. CosmosDB teaching-host/hub integration also passes native and interactive HTTP lifecycle; browser rendering and remaining red demo/parity gates follow. See CQL_DATABASE_DEMO_HUB.md and CURRENT_STATUS.md.
 
 Polygon stage: shared Web3Core adapter controls7/7 and native3/2 query1/1 pass using the existing runtime/chain. Mongo-paired C#/HTTP1/1 and actual browser5/4 are now verified; [scope](POLYGON_CQL_MVP.md). Arbitrum V2 is next: BootLoader selects ArbitrumOASIS_Web3Core; custom legacy adapter gaps are documentation-only.
+
+Arbitrum V2 MVP now verified: linked BootLoader factory, native3/2 acceptance1/1, authority controls7/7 (+Polygon7/7 regression), paired C#/HTTP1/1 and actual browser5/4. Existing runtime/chain reused; source state retained and Mongo fixture cleaned. Google Firestore is next. [Scope](ARBITRUM_CQL_MVP.md).
