@@ -58,7 +58,7 @@ if (!$integrated) {
 } else {
     $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
 }
-$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. Next assess AWSS3OASIS admission and reusable local resources; prove a bounded query and Mongo-paired preset. Hosted Azure Cosmos remains pending.')
+$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. S3 compiler/SDK controls and native/paired fixtures are prepared; local native launch is policy-gated. TRON compiler controls now pass; next inspect retained source/key admission before native/restart/paired proof. Hosted Azure Cosmos remains pending.')
 $report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
@@ -70,6 +70,10 @@ foreach ($name in $names) {
         $status = "✅ [Scoped proof]($proof)"
         if ($name -eq 'AzureCosmosDBOASIS') { $status += '; emulator only, hosted pending' }
 
+    } elseif ($name -eq 'AWSS3OASIS') {
+        $status = '❌ [Controls pass; native/paired pending](AWS_S3_CQL_MVP.md)'
+    } elseif ($name -eq 'TRONOASIS') {
+        $status = '❌ [Controls pass; source/native/paired pending](TRON_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }
     $source = if ($byName.ContainsKey($name)) { ($byName[$name] | ForEach-Object { "[project](<../../../$_>)" }) -join ', ' } else { 'No exact project-name match; alias/source review required' }
     $registration = if ($registrations.ContainsKey($name)) { "[Active case](<../../../${registerPath}#L$($registrations[$name])>); verify factory/mode" } else { 'No active central case found; review registration/direct construction' }

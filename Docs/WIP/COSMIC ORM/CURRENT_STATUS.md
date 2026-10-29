@@ -8,13 +8,11 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: AWS S3 native/restart and paired evidence**; fixtures are prepared.
-The new S3 adapter uses existing encrypted backend/canonical save keys;7 compiler
-controls and1 signed-SDK encrypted/failure/cancellation control pass. Native CQL,
-restart and paired/browser acceptance remain red. Native fixture compiles and existing
-CI MinIO wiring and paired C#/HTTP fixture compile; browser/native checks remain
-unexecuted. Local launch was policy-rejected, no service created.
-[S3 scope and exact gate](AWS_S3_CQL_MVP.md).
+**Next: TRON native-source admission**, then native/restart and paired/browser proof.
+TRON's bounded CQL adapter passes7 controls; shared ID compiler also passes S3's
+7 controls plus encrypted SDK regression1. [TRON scope/next step](TRON_CQL_MVP.md).
+S3 native/restart/paired fixtures compile but remain unexecuted; local launch was
+policy-rejected. [S3 exact gate](AWS_S3_CQL_MVP.md). Both inventory rows remain red.
 Azure Blob native/reuse and SDK/HTTP/browser5/4 are verified; source unchanged,
 owned services stopped and temporary Mongo data cleaned. [Proof](AZURE_BLOB_CQL_MVP.md).
 
