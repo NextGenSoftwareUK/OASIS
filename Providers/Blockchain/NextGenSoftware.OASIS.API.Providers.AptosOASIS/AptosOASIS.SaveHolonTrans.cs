@@ -55,9 +55,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
 
-                await UpsertRecordAsync(HolonRecordType, holon.Id.ToString(), holon);
+                var transactionHash = await UpsertRecordWithHashAsync(HolonRecordType, holon.Id.ToString(), holon);
                 response.Result = holon;
                 response.IsError = false;
+                response.IsSaved = true;
+                response.SavedCount = 1;
+                response.MetaData = new Dictionary<string, string> { ["Aptos.TransactionHash"] = transactionHash };
                 response.Message = "Holon committed to Aptos by a signed SDK transaction";
             }
             catch (Exception ex)

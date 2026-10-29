@@ -70,5 +70,10 @@ public class AptosCqlTests
         Assert.AreEqual("CQL_QUERY_CANCELLED", stopped.ErrorCode);
         Assert.AreEqual(typeof(OperationCanceledException), stopped.Exception.GetType());
         Assert.IsFalse(provider.IsProviderActivated);
+        var rejectedSave = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid() }, saveChildren: false);
+        Assert.IsTrue(rejectedSave.IsError);
+        Assert.IsFalse(rejectedSave.IsSaved);
+        Assert.AreEqual(0, rejectedSave.SavedCount);
+        Assert.IsNull(rejectedSave.Result);
     }
 }
