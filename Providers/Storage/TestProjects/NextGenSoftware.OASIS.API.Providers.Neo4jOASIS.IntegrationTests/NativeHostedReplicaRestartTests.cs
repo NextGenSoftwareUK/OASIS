@@ -38,7 +38,11 @@ public partial class NativeHostedReplicaRestartTests
     public Task ShippingWorkerRecoversRoutedNativeObligationAndDoesNotRedeliverAfterRestart()
         => VerifyShippingWorkerRestart(false);
 
-    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false)
+    [TestMethod]
+    public Task ShippingWorkerAcceptsNewNeoSaveAfterRestartDuringDestinationMetadataOutage()
+        => VerifyShippingWorkerRestart(false, coldNewSave: true);
+
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -57,9 +61,12 @@ public partial class NativeHostedReplicaRestartTests
         foreach (var path in ownedFiles) Assert.IsFalse(File.Exists(path), "Reconcile original owned fixture before reuse.");
         var actor = Guid.NewGuid();
         var operation = Guid.NewGuid();
+        var input = new Holon { Id = coldNewSave ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
+        var coldInput = new Holon { Id = Guid.NewGuid(), Name = "coffee bought after Neo restart" };
+        var coldOperation = Guid.NewGuid();
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, target = file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, target = file });
             intent.Flush(true);
         }
         var source = new Neo(uri, "neo4j", "oasis-local-test-only");
@@ -72,17 +79,26 @@ public partial class NativeHostedReplicaRestartTests
         IHolonReplicationAuthorizationPolicy policy = admission == null || admission == "legacy-route" ? null
             : new HolonReplicationActorGrant(new[] { admission == "denied" ? Guid.NewGuid() : actor },
                 DateTime.UtcNow.AddMinutes(admission == "expired" ? -1 : 5));
+        var coldRegistration = false;
+        DestinationProbeUnavailable probe = null;
         ProviderManager Registry()
         {
             var registry = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
             registry.RegisterProvider(source);
-            registry.RegisterProvider(target);
+            if (coldRegistration)
+            {
+                var receiver = System.Reflection.DispatchProxy.Create<IOASISStorageProvider, DestinationProbeUnavailable>();
+                probe = (DestinationProbeUnavailable)receiver;
+                probe.Native = target;
+                Assert.IsFalse(HolonReplicationRouteBinding.IsPinned(receiver));
+                registry.RegisterProvider(receiver);
+            }
+            else registry.RegisterProvider(target);
             if (policy != null && admission != "policy-changed") HolonReplicationRoutes.UseAuthorizationBinding(registry, () => policy.BindingIdentity);
             return registry;
         }
         var registry = Registry();
-        var input = new Holon { Name = "coffee bought while worker stopped" };
         string targetId = null;
         async Task<string> FrozenPayload() => (await (await inspect.RunAsync(
             "MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o.PayloadJson AS payload",
@@ -148,6 +164,44 @@ public partial class NativeHostedReplicaRestartTests
                     await worker.StopAsync(shutdown.Token);
                 }
             }
+            long coldSequence = 0;
+            Guid? coldTargetRevision = null;
+            if (coldNewSave)
+            {
+                Assert.IsFalse((await source.DeActivateProviderAsync()).IsError);
+                target.Dispose();
+                source = new Neo(uri, "neo4j", "oasis-local-test-only");
+                target = new Sqlite($"Data Source={file};Pooling=False");
+                Assert.IsFalse((await source.ActivateProviderAsync()).IsError);
+                Assert.IsFalse((await target.ActivateProviderAsync()).IsError);
+                coldRegistration = true;
+                registry = Registry();
+                var freshBinding = await HolonReplicationRouteBinding.CapturePinnedAsync(source);
+                Assert.AreEqual(sourceBinding.BindingFingerprint, freshBinding.BindingFingerprint);
+                var boundOutbox = source.GetBoundHolonReplicationOutbox(freshBinding).Result;
+                var approval = await ((IHolonReplicationDestinationCatalogue)boundOutbox).ReadDestinationBindingAsync(ProviderType.SQLLiteDBOASIS);
+                Assert.IsFalse(approval.IsError, approval.Message);
+                Assert.AreEqual(operation, approval.Result.EstablishedOperationId);
+                Assert.AreEqual(targetBinding.BindingFingerprint, approval.Result.Route.TargetStorage.BindingFingerprint);
+                await Task.Run(async () => {
+                    OASISRequestContext.AvatarRoutingOverrides = new ProviderRoutingOverrides(autoReplicationEnabled: true,
+                        replicationProviders: new[] { ProviderType.SQLLiteDBOASIS });
+                    var saved = await new HolonManager(null, dna, registry).SaveOwnedHolonAsync(coldInput, actor,
+                        new CosmicWriteOptions(coldOperation), saveChildren: false, providerType: ProviderType.Neo4jOASIS);
+                    Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+                    Assert.IsTrue(saved.IsSaved);
+                });
+                Assert.AreEqual(0, probe.ProbeCalls, "A fresh source must enroll from native approval without destination recapture.");
+                coldSequence = (await (await inspect.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o.Sequence AS sequence",
+                    new { op = coldOperation.ToString("D") })).SingleAsync())["sequence"].As<long>();
+                outbox = source.GetHolonReplicationOutbox().Result;
+                var queued = await outbox.InspectAsync(coldSequence);
+                Assert.IsFalse(queued.IsError, queued.Message);
+                Assert.AreEqual(coldOperation, queued.Result.OperationId);
+                Assert.AreEqual(HolonDeliveryState.Pending, queued.Result.State);
+                Assert.AreEqual(0, queued.Result.AttemptCount);
+                Assert.IsNull((await target.LoadHolonAsync(coldInput.Id, loadChildren: false)).Result);
+            }
             if (crash)
             {
                 await CrashAfterNativeCommit(root.FullName, committedBoundary);
@@ -202,6 +256,21 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(input.VersionId, copy.Result.VersionId);
             Assert.AreEqual(actor, copy.Result.CreatedByAvatarId);
 
+            if (coldNewSave)
+            {
+                var deliveredCold = await outbox.InspectAsync(coldSequence);
+                Assert.IsFalse(deliveredCold.IsError, deliveredCold.Message);
+                Assert.AreEqual(HolonDeliveryState.Completed, deliveredCold.Result.State);
+                Assert.AreEqual(1, deliveredCold.Result.AttemptCount);
+                Assert.AreEqual(0, probe.ProbeCalls);
+                var coldCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldCopy.IsError, coldCopy.Message);
+                Assert.AreEqual(coldInput.VersionId, coldCopy.Result.VersionId);
+                Assert.AreEqual(actor, coldCopy.Result.CreatedByAvatarId);
+                coldTargetRevision = CosmicConcurrency.GetProviderRevisionId(coldCopy.Result, ProviderType.SQLLiteDBOASIS);
+                Assert.IsNotNull(coldTargetRevision);
+            }
+
             // Join the old worker before releasing provider resources, then create
             // new provider/service instances. This is service restart, not OS crash.
             Assert.IsFalse((await source.DeActivateProviderAsync()).IsError);
@@ -222,6 +291,17 @@ public partial class NativeHostedReplicaRestartTests
             Assert.IsFalse(fresh.IsError, fresh.Message);
             Assert.AreEqual(copy.Result.VersionId, fresh.Result.VersionId);
             Assert.AreEqual(copy.Result.Version, fresh.Result.Version);
+            if (coldNewSave)
+            {
+                Assert.AreEqual(0, probe.ProbeCalls);
+                var coldCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldCopy.IsError, coldCopy.Message);
+                Assert.AreEqual(coldInput.VersionId, coldCopy.Result.VersionId);
+                Assert.AreEqual(coldTargetRevision, CosmicConcurrency.GetProviderRevisionId(coldCopy.Result, ProviderType.SQLLiteDBOASIS));
+                var coldPrimary = await source.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(coldPrimary.IsError, coldPrimary.Message);
+                Assert.AreEqual(coldInput.VersionId, coldPrimary.Result.VersionId);
+            }
             complete = true;
         }
         finally
@@ -236,6 +316,15 @@ public partial class NativeHostedReplicaRestartTests
                 var remaining = await (await inspect.RunAsync("MATCH (r) WHERE (r:Holon AND r.Id=$id) OR ((r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op) RETURN count(r) AS count", new { id = input.Id.ToString("D"), op = operation.ToString("D") })).SingleAsync();
                 Assert.AreEqual(0L, remaining["count"].As<long>());
                 foreach (var path in ownedFiles) { if (File.Exists(path)) File.Delete(path); Assert.IsFalse(File.Exists(path)); }
+                if (coldNewSave)
+                {
+                    await (await inspect.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = coldInput.Id.ToString("D") })).ConsumeAsync();
+                    await (await inspect.RunAsync("MATCH (r) WHERE (r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op DELETE r",
+                        new { op = coldOperation.ToString("D") })).ConsumeAsync();
+                    var remainingCold = await (await inspect.RunAsync("MATCH (r) WHERE (r:Holon AND r.Id=$id) OR ((r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op) RETURN count(r) AS count",
+                        new { id = coldInput.Id.ToString("D"), op = coldOperation.ToString("D") })).SingleAsync();
+                    Assert.AreEqual(0L, remainingCold["count"].As<long>());
+                }
                 if (crash) File.Delete(committedBoundary);
                 File.Delete(journal);
             }
