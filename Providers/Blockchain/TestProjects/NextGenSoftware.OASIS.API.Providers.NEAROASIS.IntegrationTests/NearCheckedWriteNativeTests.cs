@@ -18,9 +18,9 @@ public class NearCheckedWriteNativeTests
         var serviceType=typeof(NEAROASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearSdkService")!;
         var service=Activator.CreateInstance(serviceType,new object[]{Required("NEAROASIS_RPCENDPOINT"),Required("NEAROASIS_NETWORKID"),Required("NEAROASIS_CONTRACTADDRESS"),Required("NEAROASIS_ACCOUNTID"),Required("NEAROASIS_PRIVATEKEY"),Required("OASIS_NEAR_NODE"),Required("OASIS_NEAR_SDK_BRIDGE")})!;
         var provider=new NEAROASIS(Required("NEAROASIS_RPCENDPOINT"),Required("NEAROASIS_NETWORKID"),Required("NEAROASIS_CHAINID"),Required("NEAROASIS_CONTRACTADDRESS"),Required("NEAROASIS_ACCOUNTID"),Required("NEAROASIS_PRIVATEKEY"));
-        async Task<object> Snapshot(string key){var task=(Task)serviceType.GetMethod("ReadSnapshotAsync")!.Invoke(service,new object[]{key})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
+        async Task<object> Snapshot(string key){var task=(Task)serviceType.GetMethod("ReadSnapshotAsync")!.Invoke(service,new object[]{key,CancellationToken.None})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
         string? Field(object snapshot,string name)=>(string?)snapshot.GetType().GetProperty(name)!.GetValue(snapshot);
-        Task<string> Get(string key)=>(Task<string>)serviceType.GetMethod("GetAsync")!.Invoke(service,new object[]{key})!;
+        Task<string> Get(string key)=>(Task<string>)serviceType.GetMethod("GetAsync")!.Invoke(service,new object[]{key,CancellationToken.None})!;
         Task<string> Write(object original,string json,string? archive=null,string? archived=null)=>(Task<string>)serviceType.GetMethod("PutRecordCheckedAsync")!.Invoke(service,new object?[]{original,json,archive,archived})!;
         var repository=new DirectoryInfo(Environment.CurrentDirectory);
         while(repository!=null&&!File.Exists(Path.Combine(repository.FullName,"Scripts","run_near_provider_evidence.ps1")))repository=repository.Parent;

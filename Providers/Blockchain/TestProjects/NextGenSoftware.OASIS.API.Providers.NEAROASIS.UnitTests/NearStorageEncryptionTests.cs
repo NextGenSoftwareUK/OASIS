@@ -19,7 +19,7 @@ public class NearStorageEncryptionTests
         var variable="OASIS_NEAR_SNAPSHOT_FIXTURE_RESPONSE";var previous=Environment.GetEnvironmentVariable(variable);
         try{
             Environment.SetEnvironmentVariable(variable,mode=="absent"?"null":mode=="invalid-shape"?"{}":System.Text.Json.JsonSerializer.Serialize(encrypted));
-            var task=(Task)Service.GetMethod("ReadSnapshotAsync")!.Invoke(service,new object[]{key})!;
+            var task=(Task)Service.GetMethod("ReadSnapshotAsync")!.Invoke(service,new object[]{key,CancellationToken.None})!;
             if(mode=="wrong-context"){await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(async()=>await task);return;}
             if(mode=="invalid-shape"){await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>await task);return;}
             await task;var snapshot=task.GetType().GetProperty("Result")!.GetValue(task)!;var type=snapshot.GetType();
@@ -70,6 +70,7 @@ public class NearStorageEncryptionTests
     {
         Environment.SetEnvironmentVariable(Setting,null);
         var args=method=="PutAsync"?new object[]{"avatar:owned-record","synthetic"}:new object[]{"avatar:owned-record"};
+        if(method is "GetAsync" or "ReadSnapshotAsync")args=new object[]{"avatar:owned-record",CancellationToken.None};
         var operation=(Task)Service.GetMethod(method)!.Invoke(Create(),args)!;
         var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(async()=>await operation);
         StringAssert.Contains(error.Message,"configured separately from the signing key");
