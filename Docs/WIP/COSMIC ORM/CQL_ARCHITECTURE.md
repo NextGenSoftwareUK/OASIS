@@ -564,3 +564,15 @@ paging, budgets and unchanged ciphertext across a clean server restart. Stop wit
 the page button; Valkey source stays and verified temporary Mongo data is removed.
 Full LINQ, cluster behavior and distributed snapshots remain separate scopes.
 [Commands, evidence and lifecycle](VALKEY_CQL_MVP.md).
+
+## Native KeyDB + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider KeyDB -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` checks and tears down. The reusable Linux
+KeyDB6.3.4 runtime was built from pinned official source without vendor patches.
+Its encrypted source survives native restart unchanged. The shared C# membership
+query returns five physical rows, then four for the two-ID subset, retaining source
+labels. Missing/deleted records, paging, budgets and HTTP errors are verified.
+Stop with the page button; original KeyDB data remains, verified temporary Mongo
+fixture is removed and services stop. Full LINQ/cluster/distributed snapshots stay
+separate scopes. [Commands, tests and lifecycle](KEYDB_CQL_MVP.md).

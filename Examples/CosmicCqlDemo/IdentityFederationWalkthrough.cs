@@ -88,6 +88,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.LitestreamOASIS => "Litestream",
         ProviderType.MemcachedOASIS => "Memcached",
         ProviderType.ValKeyOASIS => "Valkey",
+        ProviderType.KeyDBOASIS => "KeyDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",

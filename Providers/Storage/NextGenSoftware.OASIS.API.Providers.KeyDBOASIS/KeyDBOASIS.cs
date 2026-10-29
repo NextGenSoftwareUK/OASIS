@@ -7,7 +7,7 @@ using SharedRedis=NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
 namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS;
 
 /// <summary>Thin Redis-protocol transport facade. Native product conformance is a separate gate.</summary>
-public class KeyDBOASIS : SharedRedis
+public partial class KeyDBOASIS : SharedRedis
 {
     public new const string StorageKeyEnvironmentVariable="OASIS_KEYDB_STORAGE_ENCRYPTION_KEY";
     private const string Prefix="oasis/keydb/";
