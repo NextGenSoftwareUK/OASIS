@@ -8,7 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect Valkey implementation/native resources**, with independent admission.
+**Next: provision/reuse native Valkey and verify its encrypted query profile.**
+Valkey authority controls8 and Redis regression8 pass; native/paired admission stays red.
 Memcached native/paired SDK/HTTP/browser5/4/CAS pass; owned services stopped and
 volatile generation retired. [Commands/proof/lifecycle](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
@@ -61,8 +62,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 29 scoped MVP
-proof links, 33 active central cases, 11 extra project names requiring classification.
-Green means only linked scope; it does not establish full provider/production parity.
+proof links, 33 active central cases, 11 extra project names; linked scopes only, no full-parity claim.
 
 ## Deferred correctness and parity gates
 
