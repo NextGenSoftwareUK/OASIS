@@ -410,3 +410,13 @@ walkthrough serves both C# and HTTP. One-time diagnostic fixture discovery is
 separate from execution: the reusable demo catalogue selects three existing encrypted
 synthetic records. Subsequent queries read only selected native keys, without a
 signer, source scan, mutation or historical replay. [Proof](NEAR_CQL_MVP.md).
+
+## Base shared Web3Core admission
+
+BaseOASIS inherits the same bounded native query engine as Polygon/Arbitrum, while
+retaining its own authority and isolated native contract. The compiler's explicit
+allowlist now admits Base after red/green authority controls. No new query engine
+or legacy path was introduced. The central registration constructs the shipped
+Base Web3Core class; the native fixture uses that concrete class against a retained
+local EVM environment. The common HolonManager federation host preserves physical
+source copies for C# and HTTP/browser demos. [Scope and proof](BASE_CQL_MVP.md).

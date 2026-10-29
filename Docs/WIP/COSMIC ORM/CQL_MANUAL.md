@@ -1411,3 +1411,21 @@ retaining Mongo and NEAR provenance. Add `-VerifyOnly` for bounded SDK/HTTP chec
 The read-only source reuses original encrypted test records and the retained key;
 no signing or reseeding. Native history issues remain separate open gates. This
 local-chain MVP is not full parity or mainnet acceptance. [Guide](NEAR_CQL_MVP.md).
+
+## Base bounded identity profile
+
+The shipped BaseOASIS Web3Core class now admits Base's distinct authority alongside
+Polygon/Arbitrum. Capture ID equality/membership, AND/OR/constants and paging over
+at most 100 trusted catalogue-intersected keys. Unsupported metadata/order/graph
+expressions fail before native I/O. The common encrypted Web3Core adapter validates
+identity/access and complete response budgets, using one observed block number.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Base -Federated
+```
+
+The teaching host is at http://127.0.0.1:5104/. All/subset return five/four physical
+rows, preserving Mongo/Base copies. Add `-VerifyOnly` for bounded native/SDK/HTTP
+verification. Original source records are reused after restart without new native
+writes. This is local chain31338, not public Base/finality/distributed-snapshot or
+full-parity acceptance. [Proof and limits](BASE_CQL_MVP.md).

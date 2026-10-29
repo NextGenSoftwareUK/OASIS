@@ -18,6 +18,7 @@ $proofs = @{
     OracleDBOASIS='CQL_ORACLE_DEMO_ADMISSION.md'; AzureCosmosDBOASIS='CQL_HOSTED_AZURE_FREE_ADMISSION.md'
     AWSOASIS='AWS_CQL_MVP.md'; EthereumOASIS='ETHEREUM_CQL_MVP.md'; PolygonOASIS='POLYGON_CQL_MVP.md'
     ArbitrumOASIS='ARBITRUM_CQL_MVP.md'; GoogleCloudOASIS='FIRESTORE_CQL_MVP.md'
+    BaseOASIS='BASE_CQL_MVP.md'
     CosmosBlockChainOASIS='COSMOS_BLOCKCHAIN_CQL_MVP.md'; PolkadotOASIS='POLKADOT_CQL_MVP.md'; NEAROASIS='NEAR_CQL_MVP.md'
     SolanaOASIS='CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md'; IPFSOASIS='CQL_PROTOCOL_MULTI_RECORD.md'
     SOLIDOASIS='CQL_PROTOCOL_MULTI_RECORD.md'; ActivityPubOASIS='CQL_PROTOCOL_MULTI_RECORD.md'
@@ -56,7 +57,7 @@ if (!$integrated) {
 } else {
     $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
 }
-$report.Add('1. BaseOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum. Add distinct authority controls, native proof and paired preset using the retained EVM environment.')
+$report.Add('1. AvalancheOASIS: active central registration selects the shipped Web3Core implementation, but Web3CoreCqlCompiler currently admits only Polygon/Arbitrum/Base. Add distinct authority controls, native proof and paired preset using the retained EVM environment. Base now has its linked scoped MVP proof.')
 $report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
@@ -70,7 +71,7 @@ foreach ($name in $names) {
     } else { $status = '❌ Not verified' }
     $source = if ($byName.ContainsKey($name)) { ($byName[$name] | ForEach-Object { "[project](<../../../$_>)" }) -join ', ' } else { 'No exact project-name match; alias/source review required' }
     $registration = if ($registrations.ContainsKey($name)) { "[Active case](<../../../${registerPath}#L$($registrations[$name])>); verify factory/mode" } else { 'No active central case found; review registration/direct construction' }
-    if ($name -eq 'BaseOASIS') { $registration += '; CQL authority currently rejected' }
+    if ($name -eq 'AvalancheOASIS') { $registration += '; CQL authority currently rejected' }
     $report.Add("| $name | $status | $source | $registration |")
 }
 $extras = @($byName.Keys | Where-Object { $_ -notin $names } | Sort-Object)

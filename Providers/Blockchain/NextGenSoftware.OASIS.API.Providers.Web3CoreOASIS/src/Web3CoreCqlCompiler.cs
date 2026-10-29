@@ -24,9 +24,9 @@ public static class Web3CoreCqlCompiler
             if (query == null) throw new ArgumentException("A captured query is required.");
             var admitted = Capabilities.Admit(query);
             if (admitted.IsError) return new() { IsError = true, ErrorCount = 1, ErrorCode = admitted.ErrorCode, Message = admitted.Message };
-            if (authority is not (ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS) || query.ReadAccess?.Authority != authority)
+            if (authority is not (ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS or ProviderType.BaseOASIS) || query.ReadAccess?.Authority != authority)
                 return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_ACCESS_INVALID",
-                    Message = "A complete server-authorized record catalogue for this exact Polygon/Arbitrum authority is required." };
+                    Message = "A complete server-authorized record catalogue for this admitted Web3Core authority is required." };
             Guid Identity(CosmicQueryLiteral literal) => literal.Kind == CosmicQueryScalarKind.Guid
                 && literal.Value is Guid id && id != Guid.Empty ? id : throw new ArgumentException("Nonempty GUID identities are required.");
             HashSet<Guid>? Combine(HashSet<Guid>? left, HashSet<Guid>? right, bool and)
