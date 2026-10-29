@@ -21,11 +21,11 @@ public static class IdentityFederationApiHost
     public static WebApplication Build(
         HolonManager manager,
         ICosmicQueryStorageProvider mongo,
-        ICosmicQueryStorageProvider oracle,
+        ICosmicQueryStorageProvider secondary,
         Guid actor,
         IEnumerable<Guid> selectedIds,
         IEnumerable<Guid> readableMongoIds,
-        IEnumerable<Guid> readableOracleIds,
+        IEnumerable<Guid> readableSecondaryIds,
         string address = "http://127.0.0.1:5090")
     {
         var uri = new Uri(address);
@@ -36,7 +36,7 @@ public static class IdentityFederationApiHost
         // named preset and cannot grant access, choose a provider or change actor.
         var ids = selectedIds.ToArray();
         var mongoIds = readableMongoIds.ToArray();
-        var oracleIds = readableOracleIds.ToArray();
+        var secondaryIds = readableSecondaryIds.ToArray();
         if (ids.Length != 3 || ids.Distinct().Count() != 3)
             throw new ArgumentException("The synthetic demo requires three distinct selected IDs.");
 
@@ -46,7 +46,13 @@ public static class IdentityFederationApiHost
         builder.WebHost.UseUrls(address);
         var app = builder.Build();
 
-        app.MapGet("/", () => Results.Content(Page, "text/html"));
+        var page = Page.Replace("OracleDBOASIS", secondary.QueryProviderType.ToString(), StringComparison.Ordinal)
+            .Replace("Oracle", IdentityFederationWalkthrough.DisplayName(secondary), StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.AWSOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and DynamoDB Local through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable AWS seed)", StringComparison.Ordinal);
+        app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
         {
             var selection = request.Preset switch
@@ -62,7 +68,7 @@ public static class IdentityFederationApiHost
                 // The same C# walkthrough used by the SDK acceptance executes the
                 // native providers; no HTTP-specific query engine or local scan.
                 var result = await IdentityFederationWalkthrough.RunAsync(
-                    manager, mongo, oracle, selection, mongoIds, oracleIds, actor, TextWriter.Null, cancellation);
+                    manager, mongo, secondary, selection, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation);
                 return Results.Ok(new
                 {
                     count = result.Rows.Count,
@@ -98,7 +104,7 @@ public static class IdentityFederationApiHost
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>CQL · Mongo + Oracle</title>
+          <title>CQL - Mongo + Oracle</title>
           <style>
             body { margin: 0; background: #111827; color: #e5e7eb; font: 18px/1.7 system-ui; }
             main { max-width: 1000px; margin: 48px auto; padding: 0 28px 60px; }
@@ -140,7 +146,7 @@ public static class IdentityFederationApiHost
         <script>
           const result = document.getElementById('result');
           async function query(preset) {
-            result.textContent = 'Reading Mongo and Oracle…';
+            result.textContent = 'Reading Mongo and OracleÃ¢â‚¬Â¦';
             try {
               const response = await fetch('/api/cql/federation', {
                 method: 'POST', headers: {'Content-Type':'application/json'},

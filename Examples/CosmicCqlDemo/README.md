@@ -1,8 +1,8 @@
 # COSMIC CQL demo
 
-## Current demo catalogue — 28 October 2026
+## Current demo catalogue — 29 October 2026
 
-All eight providers below have a supported demo path. Scope differs by provider;
+The providers below have a supported demo path. Scope differs by provider;
 this is not a claim that the same arbitrary query runs everywhere. Start one
 interactive provider host at a time from `C:/Source/OASIS-cosmic`.
 
@@ -10,6 +10,7 @@ interactive provider host at a time from `C:/Source/OASIS-cosmic`.
 |---|---|
 | SQLite | Coffee queries, save/change tracking, per-save deltas and stale-client conflict handling; console/Swagger. |
 | MongoDB, SQLite, Neo4j | Grouped CQL v1 walkthrough: native query/metadata/projection/aggregate and lifecycle examples. Latest entity-selected stages, repeated Select and subsequent Count/LongCount/Any are verified C# SDK/acceptance examples; not every new feature has a browser button. |
+| AWS | Actual AWS adapter against retained DynamoDB Local; native ID membership3/2 and Mongo-paired C#/HTTP/browser5/4. Launch `Run-CosmicCqlDemoHub.ps1 -Provider AWS -Federated` (5096). No hosted AWS/full-parity claim. |
 | Oracle | Local Oracle plus Mongo: five records and a four-record subset through C#, HTTP and browser. No hosted OCI claim. |
 | Azure Cosmos DB | Retained local emulator, not hosted Azure: interactive native rows, projection and LongCount; SDK/HTTP cardinality and controlled-identity receipts. |
 | Solana | Local-validator declared-range data read through the explicit SQLite index: rows, projection and cardinality. SolanaMetadata adds selected encryption-exempt metadata, exact Int64 and nullable values. This is not recovery of the missing original ledger data. |

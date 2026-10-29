@@ -22,22 +22,18 @@ Existing SQLite/Mongo/Neo/Oracle/IPFS/SOLID/ActivityPub/Solana and Cosmos-emulat
 proofs remain scoped to their recorded tests. Do not present the new queue as
 implemented, or local/free test services as hosted production acceptance.
 
-## Active user priority — 28 October2026
+## Earlier priority and retained scope — 28 October2026
 
 HyperDrive V2 correctness comes first; then ORM/CQL acceptance for MongoDB,
 SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Preserve
 Solana's existing demo as well. The older eight-provider selection below is
 historical; AWS and Oracle are now required scope, not optional alternatives.
 
-AWS admission remains red: AWSOASIS inherits DynamoDBOASIS and uses the official
-DynamoDB transport. Bounded native-key CQL now has an implementation and13/13 controlled tests; real-service proof and paired demos remain red ([AWS MVP](AWS_CQL_MVP.md)). Previously neither advertised a native CQL execution contract;
-ordinary storage tests do not prove query support. Implement capability-aware
-bounded native CQL, prove filtered multi-record results and protected failure,
-then add readable C#/HTTP/browser and Mongo-paired presets. Reuse retained pinned
-DynamoDB Local resources for local acceptance; label that evidence local. Hosted
-AWS requires separate authorized credentials/free infrastructure; do not provision
-paid resources. Do not silently route an AWS query to Mongo or scan/filter a whole
-store in memory. Public demo discovery must reject AWS until its contract is proven.
+AWS local query-demo MVP is verified: official DynamoDB transport, bounded native
+ID selection, controlled tests13/13, native DynamoDB Local1/1 and Mongo-paired
+C#/HTTP/browser5/4 rows. Hub command: `-Provider AWS -Federated`. This is a native
+local-service proof, not hosted AWS, arbitrary content queries or full parity.
+[Scope, source and evidence](AWS_CQL_MVP.md). Ethereum is the next breadth MVP.
 
 1. Hosted Azure Cosmos test account, free only. Emulator proof does not satisfy this gate; no paid provisioning/upgrade/fallback.
 2. OracleDBOASIS:filtered multi-record native CQL and Mongo-paired preset required. Initial ID-membership/authoritative-catalogue profile implemented;473unit tests pass; native CQL and Mongo+Oracle SDK pairing now pass (5rows/4subset, exact cleanup). HTTP/browser now verified5/4rows with provenance and exact cleanup. [Admission](CQL_ORACLE_DEMO_ADMISSION.md).
