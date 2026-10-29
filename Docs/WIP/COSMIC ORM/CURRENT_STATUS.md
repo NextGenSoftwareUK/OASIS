@@ -8,7 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect Memcached implementation and reusable native resources**.
+**Next: Memcached native loopback service and cache lifecycle admission**.
+Adapter/control15 pass; miss/error and write-ack root fixes; native/paired red. [Scope](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
 owned services stopped, fixture removed, source/replicas retained. Windows failure
 stays separate. [Scope/resources/commands](LITESTREAM_CQL_MVP.md).
@@ -91,7 +92,6 @@ Green means only linked scope; it does not establish full provider/production pa
   exact teardown in [the ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Free-only services.
 
 ```powershell
-Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated -ShowPlan
 Scripts/TestHosts/Update-CosmicCqlProviderInventory.ps1
 ```
 
