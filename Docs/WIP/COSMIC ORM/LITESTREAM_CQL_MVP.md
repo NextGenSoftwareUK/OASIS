@@ -1,6 +1,6 @@
 # Litestream CQL MVP admission
 
-Updated29 October2026. **Linux native/live replication/restore CQL verified; Mongo-paired demo pending.**
+Updated29 October2026. **Scoped Linux native/live replication/restore and Mongo-paired SDK/HTTP/browser MVP verified.**
 Windows sidecar failure remains a separate red platform outcome.
 
 ## Implemented scope
@@ -156,36 +156,60 @@ replaying the live probe, recreating the replica or restoring over the original
 recovered file. Final-source runner rerun passes with freshness/count checks for
 one passed test and zero skips per scope. Original Linux/Windows evidence retained.
 
-## Paired fixture prepared — remains red
+## Verified Linux Mongo-paired teaching demo
 
-LitestreamMongoCqlNativeTests.cs compiles with the shared teaching host/walkthrough.
-It requires Linux, `/var/tmp/oasis-litestream-cql`, successful native replication
-receipt and no pending outcome. The planned SDK/HTTP/browser fixture uses three
-owned Mongo records, explicit source labels, invalid-request/inactive-provider
-checks, and verified temporary database cleanup. No paired execution yet.
+The actual Linux provider source and Linux Mongo return five physical rows, then
+four for the two-ID subset, with explicit provider copies in C#, HTTP and browser.
+Invalid actor/preset reject; an inactive Litestream target returns unavailable
+without partial rows. The exact temporary Mongo database is verified/dropped.
 
-WSL reports NAT; Windows Mongo's127.0.0.1 service is not shared with Linux loopback.
-No bindings, firewall or host networking settings were changed. No Linux Mongo
-binary was found in retained runtime/mongodb-memory-server caches. A single native
-Linux loopback service is technically required for this Linux provider fixture;
-it will be reused for other Linux demos, not recreated per run.
+- Fixture: `LitestreamMongoCqlNativeTests.cs`, with
+  `LinuxMongoDemoEnvironmentTests.cs` for owned replica admission/reuse.
+- Browser run1passed25s; launcher automated repeat1passed1s; zero failures/skips.
+- Current evidence: `TestResults/LitestreamCqlCurrent/litestream-mongo-federation.trx`.
+- Paired SHA256: `D997ED81B558245746BCD04A34CA518106331674E0A31AF10863D07BDA1810D8`.
+- Replica init/identity proof: `TestResults/LitestreamCqlCurrent/linux-mongo-init.trx`.
+- Init SHA256: `EDACD3EA29E362DE3E792F1263D6EBF8654D8F131B4B86B225052DB2BAA1E649`.
+- Browser: `TestResults/LitestreamCqlCurrent/litestream-mongo-browser.jpg`.
+- Hub:8single/16plans,25paired/50plans,36paired rejections,3archive rejections pass;
+  listeners unchanged by planning checks.
+- Runner40826 and launcher92578 exited0, owned daemon SIGTERM/wait exit0;
+  Linux27039/5116 listeners absent, fixture journal removed and browser tab closed.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated -ShowPlan
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Litestream -Federated -VerifyOnly
+```
+
+The page's stop button completes cleanup. The original Linux source, replicas,
+probe receipts and reusable Mongo store are retained; no probe replay/reseed.
+
+## Linux Mongo resource scope
+
+WSL NAT cannot share Windows Mongo's loopback service. No firewall/network binding
+was widened. One reusable Linux Community8.3.13 daemon was acquired from the vendor
+catalogue and digest-verified; only daemon/licenses extracted, installation archive
+removed. Native execution on existing Ubuntu26 passes, independently of Windows8.3.11.
+
+- Runtime `/var/tmp/oasis-runtimes/mongodb-8.3.13`:169,204,667bytes including admission.
+- Executable SHA256: `6e449a554aca8ba29c91c6d640d47a6ed32c1856384925b707ca684c3743570c`.
+- Fixed store `/var/tmp/oasis-cosmic-mongo`:211,031,587bytes; loopback27039,
+  replica set cosmicLinuxDemoRs, ordinary journaling,0.25GBcache/32MBoplog.
+- Init journal precedes native configuration. Unowned configuration/pending outcomes
+  refuse adoption/replay. Later runs verify the original member/config identity.
+- Setup `prepare-cosmic-linux-mongo.py`; runner
+  `run-cosmic-litestream-mongo-linux.py`, both under Scripts/TestHosts.
+
+This certifies the linked local Linux demo only. Windows sidecar fsync failure,
+remote/PITR/crash recovery, production central registration, broader queries,
+concurrency/children/history and full ORM parity remain open.
 
 ## Exact next step
 
-Admit official MongoDB Community8.3.13 Ubuntu2404 x86_64 runtime once, then run on
-Linux loopback27039 with a fixed reusable store and replica set cosmicLinuxDemoRs.
-The vendor [download catalogue](https://downloads.mongodb.org/current.json) identifies
-archive `https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2404-8.3.13.tgz`,
-SHA256 `a55780ed9bb5410ae5ea8e8c5b882cb1cd9389da689c417d6265929ad28a1f7f`.
-No runtime/service/data has been allocated yet; record measured resources before
-acquisition and remove the verified installation archive afterward. Extract only
-needed daemon/runtime files, no global service installation or Windows-store copy.
-
-Use the retained Linux source, .NET runtime and portable runner. Paired database
-`cosmic_cql_mongo_litestream_demo` is disposable only after identity/collection
-verification; original source/replica remains retained. Serve loopback5116 for
-browser proof. Native8.3.13 Ubuntu compatibility, replica initialization, SDK/HTTP
-and browser must pass before this demo is green. Windows sidecar failure and
-remote/PITR/crash recovery stay separate gates.
+Continue the next red provider MVP from the inventory; inspect Memcached's existing
+implementation and reusable native resources. Preserve this green Linux scope,
+Windows failure and all owned source/identity/replica receipts. No further hardening
+without a reproduced bug; deeper parity remains deferred for breadth.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
