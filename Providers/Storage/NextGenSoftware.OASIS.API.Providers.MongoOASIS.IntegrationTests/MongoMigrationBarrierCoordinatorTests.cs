@@ -33,6 +33,22 @@ public partial class MongoStorageIdentityTests
             => throw new InvalidOperationException("Coordinator must preserve unknown acquisitions.");
     }
 
+    private sealed class LostMutationAcknowledgement(IHolonMigrationMutationStorageProvider native) : IHolonMigrationMutationStorageProvider
+    {
+        public Task<OASISResult<HolonMigrationFenceObservation>> ReadHolonMigrationFenceAsync(HolonMigrationFenceRequest r, CancellationToken c = default)
+            => native.ReadHolonMigrationFenceAsync(r, c);
+        public async Task<OASISResult<HolonMigrationFenceObservation>> BeginHolonMigrationMutationAsync(HolonMigrationMutationStartRequest r, CancellationToken c = default)
+        {
+            var committed = await native.BeginHolonMigrationMutationAsync(r, c);
+            Assert.False(committed.IsError, committed.Message + committed.Exception);
+            return new() { IsError = true, ErrorCode = "OWNED_MUTATION_ACK_LOST", Exception = new IOException("controlled native start acknowledgement loss") };
+        }
+        public Task<OASISResult<HolonMigrationFenceObservation>> AcquireHolonMigrationFenceAsync(HolonMigrationFenceRequest r, CancellationToken c = default)
+            => throw new InvalidOperationException("No acquire during mutation start.");
+        public Task<OASISResult<HolonMigrationFenceObservation>> CancelHolonMigrationFenceAsync(HolonMigrationFenceRequest r, Guid owner, CancellationToken c = default)
+            => throw new InvalidOperationException("No cancellation after mutation start.");
+    }
+
     private static async Task VerifyNativeThreeStoreBarrierRecovery(Provider source, Provider target,
         CosmicStorageIdentity sourceBinding, CosmicStorageIdentity targetBinding, IHolonReplicationRouteInventoryOutbox outbox,
         ConditionalHolonWriteRequest original, HolonReplicationEnrollment enrollment, IHolon acknowledged,
@@ -117,12 +133,50 @@ public partial class MongoStorageIdentityTests
                 Assert.False(deliveryReview.IsSaved); Assert.Equal(enrollment.TargetIds.Count, deliveryReview.Result.Obligations.Count);
                 Assert.Equal(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
                     deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
-                Assert.Equal(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
+                Assert.Equal(enrollment.TargetIds.Count - 1, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
                 var replacementReview = await HolonMigrationReplacementReview.ReadAsync(plan, policy, recoveredParticipants, pageSize: 1);
                 Assert.False(replacementReview.IsError, replacementReview.Message + replacementReview.Exception); Assert.False(replacementReview.IsSaved);
                 Assert.Equal(foreignReplacement ? HolonMigrationReplacementKind.ForeignLineage : HolonMigrationReplacementKind.EmptyAtObservation,
                     Assert.Single(replacementReview.Result.Records).Kind);
-                // No migration data has been changed: explicit exact-owner pre-mutation cancellation is valid.
+                if (enrollment.TargetIds.Count == 1)
+                {
+                    var preparation = new HolonMigrationMutationPreparation(plan, deliveryReview.Result, replacementReview.Result, "owned-three-store-mutation");
+                    var mutationPolicy = new ScopedHolonMigrationMutationPolicy(preparation.MutationPolicyBinding,
+                        new[] { new HolonMigrationMutationGrant(preparation, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
+                    var preparationStore = new FileHolonMigrationMutationPreparationStore(planFolder);
+                    var stored = await preparationStore.SaveAsync(preparation, plan, preparation.Fingerprint);
+                    Assert.False(stored.IsError, stored.Message + stored.Exception);
+                    var mutationParticipants = recoveredParticipants.OrderBy(p => p.Storage.BindingFingerprint, StringComparer.Ordinal).ToArray();
+                    mutationParticipants[0] = mutationParticipants[0] with {
+                        Provider = new LostMutationAcknowledgement((IHolonMigrationMutationStorageProvider)mutationParticipants[0].Provider) };
+                    var interrupted = await HolonMigrationMutationCoordinator.StartPersistedAsync(plan, preparation.Fingerprint,
+                        preparationStore, policy, mutationPolicy, mutationParticipants);
+                    Assert.Equal("OWNED_MUTATION_ACK_LOST", interrupted.ErrorCode);
+                    Assert.Equal(HolonMigrationBarrierObservationState.Unknown, interrupted.Result.Barriers.Stores[0].State);
+                    Assert.All(interrupted.Result.Barriers.Stores.Skip(1), p => Assert.Equal(HolonMigrationBarrierObservationState.Held, p.State));
+                    var resumed = await HolonMigrationMutationCoordinator.StartPersistedAsync(plan, preparation.Fingerprint,
+                        new FileHolonMigrationMutationPreparationStore(planFolder), policy, mutationPolicy, recoveredParticipants);
+                    Assert.False(resumed.IsError, resumed.Message + resumed.Exception); Assert.True(resumed.Result.AllParticipantsStarted);
+                    Assert.Equal(2, resumed.SavedCount);
+                    var again = await HolonMigrationMutationCoordinator.StartPersistedAsync(plan, preparation.Fingerprint,
+                        preparationStore, policy, mutationPolicy, recoveredParticipants);
+                    Assert.False(again.IsError); Assert.False(again.IsSaved);
+                    foreach (var participant in recoveredParticipants)
+                    {
+                        var scope = plan.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint == participant.Storage.BindingFingerprint);
+                        var observed = await participant.Provider.ReadHolonMigrationFenceAsync(scope);
+                        Assert.False(observed.IsError); Assert.Equal(preparation.Fingerprint, observed.Result.MutationDigest);
+                        var cancel = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observed.Result.OwnerToken);
+                        Assert.True(cancel.IsError); Assert.Equal("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", cancel.ErrorCode);
+                    }
+                    var history = await reopenedTarget.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                    Assert.False(history.IsError); Assert.Equal(originalReceipt.Result.AcknowledgementDigest, history.Result.AcknowledgementDigest);
+                    var blocked = await reopenedSource.ExecuteReplicatingHolonWriteAsync(original, enrollment);
+                    Assert.True(blocked.IsError); Assert.Equal("COSMIC_MIGRATION_RECORD_FENCED", blocked.ErrorCode);
+                }
+                else
+                {
+                // No mutation started in the multi-route review: exact-owner cancellation remains valid.
                 foreach (var participant in recoveredParticipants)
                 {
                     var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
@@ -132,6 +186,7 @@ public partial class MongoStorageIdentityTests
                     var cancelled = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observation.Result.OwnerToken);
                     Assert.False(cancelled.IsError, cancelled.Message + cancelled.Exception);
                     Assert.Equal(HolonMigrationFenceState.Cancelled, cancelled.Result.State);
+                }
                 }
             }
             finally
@@ -145,6 +200,11 @@ public partial class MongoStorageIdentityTests
         {
             var ownedPlanPath = Path.Combine(planFolder, migration.ToString("D") + ".barrier-plan.json" + suffix);
             if (File.Exists(ownedPlanPath)) File.Delete(ownedPlanPath);
+        }
+        foreach (var suffix in new[] { "", ".pending", ".lock" })
+        {
+            var ownedPreparation = Path.Combine(planFolder, migration.ToString("D") + ".mutation-preparation.json" + suffix);
+            if (File.Exists(ownedPreparation)) File.Delete(ownedPreparation);
         }
         File.Delete(journal);
         // RunOwned retains or drops both exact Mongo fixture databases after this returns.
