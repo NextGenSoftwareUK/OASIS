@@ -163,36 +163,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var bad = (string message) => new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                    ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = message };
-
-                Dictionary<string, HolonPermission> Map(Dictionary<string, string[]> source, out string error)
-                {
-                    error = null;
-                    var map = new Dictionary<string, HolonPermission>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var entry in source ?? new Dictionary<string, string[]>())
-                    {
-                        if (!HolonPermissions.TryParse(entry.Value, out var flags))
-                        { error = $"Invalid permission names for '{entry.Key}'. Use read, write, delete, addChildren, manage."; return null; }
-                        map[entry.Key] = flags;
-                    }
-                    return map;
-                }
-
-                var grants = Map(request?.Grants, out var error);
-                if (error != null) return bad(error);
-                var inherit = Map(request?.Inherit, out error);
-                if (error != null) return bad(error);
-                var fields = new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>(StringComparer.OrdinalIgnoreCase);
-                foreach (var grantee in request?.Fields ?? new Dictionary<string, Dictionary<string, string[]>>())
-                {
-                    var perField = Map(grantee.Value, out error);
-                    if (error != null) return bad(error);
-                    fields[grantee.Key] = perField;
-                }
-
-                return await HolonAccess.SetPermissionsAsync(HolonManager, holonId,
-                    new HolonAccess.PermissionChange { Grants = grants, Inherit = inherit, Fields = fields }, Avatar);
+                var change = request?.ToChange(out var error);
+                if (change == null || error != null)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
+                        Message = error ?? "A request body is required." };
+                return await HolonAccess.SetPermissionsAsync(HolonManager, holonId, change, Avatar);
             }
             catch (Exception exception)
             {
@@ -221,14 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     OASISErrorHandling.HandleError(ref result, "Unauthorized. Only the creator, or an avatar granted Manage, can see who has access.");
                     return result;
                 }
-                var set = HolonAccess.GetPermissions(loaded.Result);
-                string[] Names(HolonPermission p) => HolonPermissions.NamesOf(p).ToArray();
-                result.Result = new Dictionary<string, object>
-                {
-                    ["grants"] = set.Grants.ToDictionary(g => g.Key, g => Names(g.Value)),
-                    ["inherit"] = set.Inherit.ToDictionary(g => g.Key, g => Names(g.Value)),
-                    ["fields"] = set.Fields.ToDictionary(g => g.Key, g => (object)g.Value.ToDictionary(f => f.Key, f => Names(f.Value))),
-                };
+                result.Result = SetPermissionsRequest.Describe(HolonAccess.GetPermissions(loaded.Result));
                 return result;
             }
             catch (Exception ex)
@@ -337,13 +305,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
     }
-    /// <summary>Body of <c>POST api/share/permissions/{holonId}</c>. Grantee (avatar id, group id or "public") to permission names.</summary>
+    /// <summary>
+    /// Body of <c>POST api/share/permissions/{holonId}</c> and of the avatar sharing endpoints. A grantee (avatar id, group id
+    /// or "public") maps to permission names; the field maps add a field name level.
+    /// </summary>
     public class SetPermissionsRequest
     {
         public Dictionary<string, string[]> Grants { get; set; } = new Dictionary<string, string[]>();
         public Dictionary<string, string[]> Inherit { get; set; } = new Dictionary<string, string[]>();
         /// <summary>Grantee to field name to permission names (read, write, delete).</summary>
         public Dictionary<string, Dictionary<string, string[]>> Fields { get; set; } = new Dictionary<string, Dictionary<string, string[]>>();
+        /// <summary>Like <see cref="Fields"/>, and also applying to every holon below this one.</summary>
+        public Dictionary<string, Dictionary<string, string[]>> InheritFields { get; set; } = new Dictionary<string, Dictionary<string, string[]>>();
+
+        /// <summary>The change this body asks for, or the reason it is invalid.</summary>
+        public HolonPermissionChange ToChange(out string error)
+        {
+            string problem = null;
+            Dictionary<string, HolonPermission> Map(Dictionary<string, string[]> source)
+            {
+                var map = new Dictionary<string, HolonPermission>(StringComparer.OrdinalIgnoreCase);
+                foreach (var entry in source ?? new Dictionary<string, string[]>())
+                {
+                    if (!HolonPermissions.TryParse(entry.Value, out var flags))
+                    { problem ??= $"Invalid permission names for '{entry.Key}'. Use read, write, delete, addChildren, manage."; continue; }
+                    map[entry.Key] = flags;
+                }
+                return map;
+            }
+            Dictionary<string, IReadOnlyDictionary<string, HolonPermission>> FieldMap(Dictionary<string, Dictionary<string, string[]>> source)
+            {
+                var map = new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var grantee in source ?? new Dictionary<string, Dictionary<string, string[]>>()) map[grantee.Key] = Map(grantee.Value);
+                return map;
+            }
+
+            var change = new HolonPermissionChange { Grants = Map(Grants), Inherit = Map(Inherit), Fields = FieldMap(Fields), InheritFields = FieldMap(InheritFields) };
+            error = problem ?? change.Validate();
+            return change;
+        }
+
+        /// <summary>A stored permission set as the API shows it.</summary>
+        public static Dictionary<string, object> Describe(HolonPermissionSet set)
+        {
+            string[] Names(HolonPermission p) => HolonPermissions.NamesOf(p).ToArray();
+            Dictionary<string, object> Fields(IReadOnlyDictionary<string, IReadOnlyDictionary<string, HolonPermission>> source) =>
+                source.ToDictionary(g => g.Key, g => (object)g.Value.ToDictionary(f => f.Key, f => Names(f.Value)));
+            return new Dictionary<string, object>
+            {
+                ["grants"] = set.Grants.ToDictionary(g => g.Key, g => Names(g.Value)),
+                ["inherit"] = set.Inherit.ToDictionary(g => g.Key, g => Names(g.Value)),
+                ["fields"] = Fields(set.Fields),
+                ["inheritFields"] = Fields(set.InheritFields),
+            };
+        }
     }
 
     public class CreateGroupRequest

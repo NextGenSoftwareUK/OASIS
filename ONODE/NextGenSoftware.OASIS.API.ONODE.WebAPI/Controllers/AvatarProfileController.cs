@@ -182,11 +182,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
-            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             try
             {
-                var response = HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
+                var response = await SharedView(await Program.AvatarManager.LoadAvatarDetailAsync(id));
                 if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(response))
                     return TestDataHelper.CreateSuccessResponse<IAvatarDetail>(null, "Avatar detail retrieved successfully (using test data)");
                 return response;
@@ -211,9 +209,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
-            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
+            return await SharedView(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
         }
 
         [Authorize]
@@ -228,9 +224,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
-            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
+            return await SharedView(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
         }
 
         [Authorize]
@@ -325,13 +319,100 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await GetAllAvatarNamesGroupedByName(includeUsernames, includeIds);
         }
 
+        private bool IsWizard => Avatar?.AvatarType?.Value == AvatarType.Wizard;
+
+        // Avatars are private: the person themselves (and a Wizard) get everything, anyone else gets only the fields the avatar
+        // chose to share (api/avatar/sharing). A missing avatar and a private one look the same to someone else.
+        private async Task<OASISHttpResponseMessage<IAvatar>> SharedView(OASISResult<IAvatar> loaded)
+        {
+            if (!IsWizard && (loaded?.Result == null || loaded.Result.Id != Avatar.Id))
+            {
+                var shown = loaded?.Result == null ? null : await AvatarManager.ViewAsAsync(loaded.Result, Avatar.Id, false);
+                if (shown == null)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
+                loaded.Result = shown;
+            }
+            return HttpResponseHelper.FormatResponse(loaded);
+        }
+
+        private async Task<OASISHttpResponseMessage<IAvatarDetail>> SharedView(OASISResult<IAvatarDetail> loaded)
+        {
+            if (!IsWizard && (loaded?.Result == null || loaded.Result.Id != Avatar.Id))
+            {
+                var shown = loaded?.Result == null ? null : await AvatarManager.ViewAsAsync(loaded.Result, Avatar.Id, false);
+                if (shown == null)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
+                loaded.Result = shown;
+            }
+            return HttpResponseHelper.FormatResponse(loaded);
+        }
+
+        /// <summary>
+        /// Choose what your avatar shares, and with whom. <c>target</c> is <c>avatar</c> (username, name, email...) or
+        /// <c>detail</c> (profile details). Body as for <c>POST api/share/permissions</c>: grantees are avatar ids, group ids
+        /// or <c>public</c>; <c>fields</c> shares single fields, for example
+        /// <c>{"fields":{"public":{"username":["read"]}}}</c> shares only your username with everyone.
+        /// Passwords and tokens can never be shared. Only you (or a Wizard, with <c>avatarId</c>) can change this.
+        /// </summary>
+        [Authorize]
+        [HttpPost("sharing/{target}")]
+        public async Task<OASISResult<bool>> SetSharing(string target, [FromBody] SetPermissionsRequest request, Guid? avatarId = null)
+        {
+            try
+            {
+                if (!TryTarget(target, out var detail))
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = "target must be 'avatar' or 'detail'." };
+                var change = request?.ToChange(out var error);
+                if (change == null || error != null)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = error ?? "A request body is required." };
+                return await AvatarManager.SetSharingAsync(avatarId ?? Avatar.Id, detail, change, Avatar);
+            }
+            catch (Exception exception)
+            {
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_FAILED", Message = "Sharing could not be changed.", Exception = exception };
+            }
+        }
+
+        /// <summary>What your avatar (<c>target</c> = <c>avatar</c>) or its profile details (<c>detail</c>) currently shares.</summary>
+        [Authorize]
+        [HttpGet("sharing/{target}")]
+        public async Task<OASISResult<Dictionary<string, object>>> GetSharing(string target, Guid? avatarId = null)
+        {
+            var result = new OASISResult<Dictionary<string, object>>();
+            try
+            {
+                if (!TryTarget(target, out var detail))
+                {
+                    OASISErrorHandling.HandleError(ref result, "target must be 'avatar' or 'detail'.");
+                    return result;
+                }
+                var set = await AvatarManager.GetSharingAsync(avatarId ?? Avatar.Id, detail, Avatar);
+                if (set.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, set.Message);
+                    return result;
+                }
+                result.Result = SetPermissionsRequest.Describe(set.Result);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unable to read sharing. Reason: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        private static bool TryTarget(string target, out bool detail)
+        {
+            detail = string.Equals(target, "detail", StringComparison.OrdinalIgnoreCase);
+            return detail || string.Equals(target, "avatar", StringComparison.OrdinalIgnoreCase);
+        }
+
         [Authorize]
         [HttpGet("get-by-id/{id}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetById(Guid id)
         {
-            if (id != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(id));
+            return await SharedView(await Program.AvatarManager.LoadAvatarAsync(id));
         }
 
         [Authorize]
@@ -346,11 +427,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetByUsername(string username)
         {
-            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             try
             {
-                return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarAsync(username));
+                return await SharedView(await Program.AvatarManager.LoadAvatarAsync(username));
             }
             catch (Exception ex)
             {
@@ -370,9 +449,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetByEmail(string email)
         {
-            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { Result = null, IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
+            return await SharedView(await Program.AvatarManager.LoadAvatarByEmailAsync(email));
         }
 
         [Authorize]

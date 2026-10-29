@@ -14,13 +14,13 @@ public class HolonPermissionsTests
     private static Holon OwnedBy(Guid owner, Guid? parent = null) =>
         new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = owner, ParentHolonId = parent ?? Guid.NewGuid() };
 
-    private static void Store(Holon holon, Func<HolonPermissionSet.Builder, HolonPermissionSet.Builder> change) =>
+    private static void Store(IHolonBase holon, Func<HolonPermissionSet.Builder, HolonPermissionSet.Builder> change) =>
         holon.MetaData[HolonPermissions.MetadataKey] = HolonPermissionSet.Read(holon).Result.With(change).Encode().Result;
 
     private static string G(Guid id) => HolonPermissionSet.Key(id);
 
     private static HolonAccessResolver Resolver(Guid actor, bool includePublic = true,
-        IDictionary<Guid, IHolon> others = null, IEnumerable<IHolon> groups = null, params IHolon[] prime)
+        IDictionary<Guid, IHolon> others = null, IEnumerable<IHolon> groups = null, params IHolonBase[] prime)
     {
         var resolver = new HolonAccessResolver(actor, includePublic);
         resolver.Prime(prime, id => others != null && others.TryGetValue(id, out var h) ? h : null, _ => groups);
@@ -317,5 +317,91 @@ public class HolonPermissionsTests
         Store(holon, b => b.SetGrant(G(Slp), HolonPermission.Read));
         HolonVisibilityProjection.IsVisibleTo(holon, Slp, false).Should().BeTrue();
         HolonVisibilityProjection.IsVisibleTo(holon, Stranger, false).Should().BeFalse();
+    }
+    // ── nested groups, inherited fields, credentials ───────────────────────────
+
+    [Fact]
+    public void GroupsCanContainGroupsAndAccessFollowsTheNesting()
+    {
+        var team = Group(Slp);                       // Slp is in "team"
+        var org = Group(team.Id);                    // "team" is in "org"
+        var holon = OwnedBy(Owner);
+        Store(holon, b => b.SetGrant(G(org.Id), HolonPermission.Read));
+        var groupsByMember = new Dictionary<Guid, IHolon[]> { [Slp] = new IHolon[] { team }, [team.Id] = new IHolon[] { org } };
+
+        var resolver = new HolonAccessResolver(Slp);
+        resolver.Prime(new IHolonBase[] { holon }, _ => null, member => groupsByMember.TryGetValue(member, out var g) ? g : null);
+
+        resolver.Resolve(holon).CanSee.Should().BeTrue();
+    }
+
+    [Fact]
+    public void NestedGroupsDoNotLoopAndAreBounded()
+    {
+        var a = Group(Slp);
+        var b = Group(a.Id);
+        HolonGroup.SetMembers(a, new[] { Slp, b.Id }); // a and b contain each other
+        var holon = OwnedBy(Owner);
+        Store(holon, x => x.SetGrant(G(b.Id), HolonPermission.Read));
+        var groupsByMember = new Dictionary<Guid, IHolon[]> { [Slp] = new IHolon[] { a }, [a.Id] = new IHolon[] { b }, [b.Id] = new IHolon[] { a } };
+
+        var resolver = new HolonAccessResolver(Slp);
+        resolver.Prime(new IHolonBase[] { holon }, _ => null, member => groupsByMember.TryGetValue(member, out var g) ? g : null);
+
+        resolver.Resolve(holon).CanSee.Should().BeTrue();
+    }
+
+    [Fact]
+    public void InheritedFieldGrantsReachDescendantsWithoutGrantingTheWholeHolon()
+    {
+        var root = OwnedBy(Owner);
+        var leaf = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Owner, ParentHolonId = root.Id, Name = "Leaf" };
+        leaf.MetaData["note"] = "n";
+        leaf.MetaData["secret"] = "s";
+        Store(root, b => b.SetInheritField(G(Slp), "metadata.note", HolonPermission.Read));
+        var others = new Dictionary<Guid, IHolon> { [root.Id] = root };
+
+        var shown = Resolver(Slp, others: others, prime: leaf).Project(leaf);
+
+        shown.MetaData.Should().ContainKey("note").And.NotContainKey("secret");
+        shown.Name.Should().BeNullOrEmpty();
+        Resolver(Stranger, others: others, prime: leaf).Project(leaf).Should().BeNull();
+    }
+
+    [Fact]
+    public void InheritFieldsRoundTrip()
+    {
+        var holon = OwnedBy(Owner);
+        Store(holon, b => b.SetInheritField(HolonPermissionSet.Public, "name", HolonPermission.Read));
+        var back = HolonPermissionSet.Read(holon).Result;
+        back.InheritFields["public"]["name"].Should().Be(HolonPermission.Read);
+        back.IsEmpty.Should().BeFalse();
+    }
+
+    [Fact]
+    public void CredentialsAreNeverSharedEvenWithAWildcard()
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), CreatedByAvatarId = Owner, Username = "dave", Email = "d@example.com", Password = "hash", JwtToken = "jwt" };
+        Store(avatar, b => b.SetField(HolonPermissionSet.Public, "*", HolonPermission.Read));
+
+        var shown = Resolver(Stranger, prime: avatar).Project(avatar);
+
+        shown.Username.Should().Be("dave");
+        shown.Email.Should().Be("d@example.com");
+        shown.Password.Should().BeNullOrEmpty();
+        shown.JwtToken.Should().BeNullOrEmpty();
+    }
+
+    [Fact]
+    public void ShareOnlyTheUsernameOnAnAvatar()
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), CreatedByAvatarId = Owner, Username = "dave", Email = "d@example.com", FirstName = "Dave" };
+        Store(avatar, b => b.SetField(HolonPermissionSet.Public, "username", HolonPermission.Read));
+
+        var shown = Resolver(Stranger, prime: avatar).Project(avatar);
+
+        shown.Username.Should().Be("dave");
+        shown.Email.Should().BeNullOrEmpty();
+        shown.FirstName.Should().BeNullOrEmpty();
     }
 }
