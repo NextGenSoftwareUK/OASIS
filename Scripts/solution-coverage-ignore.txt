@@ -56,3 +56,7 @@ OASIS Omniverse/OASIS Hub/
 # as providers. See Docs/REMOVED_AND_MOVED_PROJECTS.md.
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/
 Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/
+
+# Scratch deployment probe and a standalone usage example: not part of any shipped solution.
+Docs/WIP/Mongo-Test-Traffic/deployment-check/
+Examples/CosmicCqlDemo/
