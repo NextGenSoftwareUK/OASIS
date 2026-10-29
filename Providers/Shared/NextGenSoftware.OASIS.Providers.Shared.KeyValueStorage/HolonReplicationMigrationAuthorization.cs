@@ -56,7 +56,7 @@ public sealed class HolonReplicationMigrationAuthorizationContext
         ContextDigest = Convert.ToHexString(SHA256.HashData(bytes));
     }
 
-    private static void ValidateToken(string token)
+    internal static void ValidateToken(string token)
     {
         if (string.IsNullOrWhiteSpace(token) || token.Length > 256 || token != token.Trim()
             || token.Any(char.IsControl)) throw new ArgumentException("An exact bounded identity is required.");
