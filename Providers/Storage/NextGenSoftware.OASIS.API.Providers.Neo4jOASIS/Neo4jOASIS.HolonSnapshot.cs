@@ -185,6 +185,7 @@ public partial class Neo4jOASIS
                         // The same native transaction owns identity admission,
                         // exact receipt replay and the replica graph commit.
                         await ValidateReplicaStorageBindingAsync(transaction, conditional).ConfigureAwait(false);
+                        await NeoHolonMigrationFence.AssertUnfencedAsync(transaction, conditional.Plan.Nodes.Select(n => n.Snapshot.Id), conditional.Cancellation).ConfigureAwait(false);
                         var replay = await ReadConditionalReceiptAsync(transaction,conditional).ConfigureAwait(false);
                         if (replay != null)
                         {
