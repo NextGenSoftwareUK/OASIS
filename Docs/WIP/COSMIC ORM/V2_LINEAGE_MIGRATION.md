@@ -914,3 +914,77 @@ lineage/target evidence must reject the preview. Original frozen-payload/source
 receipt binding remains separate proof; neither a valid historical replica
 receipt nor a matching current head establishes it. Native fences, replacement
 admission, CAS/idempotent cutover and recovery remain open.
+
+
+## Preview v2 includes historical receiver evidence — 29 October 2026
+
+`HolonReplicationMigrationPreviewReader.ReadAsync` now accepts an explicit
+host-owned `readOriginalReplicaReceipt` callback. For every selected-route
+operation it verifies historical receiver operation/actor/source ID/authority,
+physical target, operation kind and full original selected-record count against
+the source obligation and source-receipt report. Missing/error/wrong-scope evidence
+rejects the review without a partial result; native errors/causes remain intact.
+
+The immutable preview now exposes `ReplicaReceipts`. Its format is
+`cosmic-lineage-migration-preview-v2`; the review checksum binds all these redacted
+outcomes (including exact intent/acknowledgement checksums, state and actual
+consistency), plus the explicitly required receiver consistency. Old review
+checksums must not be reused as approval of a new v2 review.
+
+NativeSnapshot remains the receiver-evidence default. Weaker Neo historical reads
+require explicit `replicaReceiptConsistency: ReadCommittedValidated`; a weaker
+outcome cannot silently meet a strict review request. The authenticated operator
+context continues to bind the exact preview digest and administrative policy.
+
+Three distinct states remain clear:
+- No historical reader supplied: `OriginalReplicaReceiptsUnverified` remains.
+- A valid native Absent outcome: `OriginalReplicaReceiptAbsent` remains, even
+  when the source obligation claims Completed. Absence does not permit replay.
+- All selected original receipts observed Committed: the blanket unverified
+  finding is removed, while original payload/source-receipt equivalence,
+  replacement admission and native fences remain explicit independent gates.
+
+The callback must use the real unchanged historical transport. It must never
+construct a replacement transport from today's destination record. The current
+API supplies an audit review with visible missing evidence when the optional
+reader is absent; it does not try another writer or authorize execution.
+
+Developer integration (host owns both the historical registry and captured store):
+```csharp
+// Within the existing preview reader call:
+readOriginalReplicaReceipt: (obligation, token) =>
+    receiver.ReadCommittedHolonReplicaReceiptAsync(
+        new CommittedHolonReplicaReceiptReadRequest(
+            originalTransports[obligation.OperationId],
+            capturedReceiverIdentity,
+            requiredReceiverConsistency),
+        token),
+replicaReceiptConsistency: requiredReceiverConsistency
+```
+
+Verification: 11new controls, full Shared1473/1473. Controls cover scope substitution,
+Absent-after-Completed, changed evidence digest, retained independent findings,
+strict/weaker consistency and native read failure with cause/no partial result.
+Native SQLite2/Mongo1/Neo-source2 cases collect all four obligations and include
+one exact historical receiver receipt in stable repeated previews. Mongo and
+SQLite are the native receivers in these combined tests; the Neo receiver's
+four direct historical-reader cases remain proved by the preceding checkpoint.
+No all-pair migration execution or simultaneous source/target snapshot claim.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared | 1473/1473 | `TestResults/DevelopmentSyncCurrent/preview-receipts-shared.trx` | `CF8F2A93DBBE0445E49E54A3EFD49BCEFC3ADE117D7594F054D6A7FF6B53A6A3` |
+| SQLite source / Mongo receiver | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `46FE835235781F5E1F8FEB0AF7F7AB21CFFBF64378EB87B4AF0C903D7233D49A` |
+| Mongo source / Mongo receiver | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `0AA4A8FE143BD5C63D3C541C27A3A2C03A23F8E40B6A904774EE41ACCB6FC1C1` |
+| Neo source / SQLite receiver | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `8F428B78BFC96739578ED889FD6CB9AAFBED82146397C0FB4483A6FBA6DF13D2` |
+
+Native batch50228 exited0; Neo attachment22000 joined/stopped. Exact pending
+journals/receiver DBs/sidecars absent and ports27029/17687 have no listeners.
+Neo free before102413889536/after102373027840bytes. No new installation, download,
+restore or environment; reusable SDK/cache/database runtimes/data retained.
+
+Next: verify the original frozen outbox transport against the original source
+receipt, including graph membership, logical/source revisions and portable values.
+Then implement native write/delivery fences, replacement-target admission,
+per-store CAS, durable idempotent migration receipts and interrupted cutover.
+Migration mutation remains disabled.

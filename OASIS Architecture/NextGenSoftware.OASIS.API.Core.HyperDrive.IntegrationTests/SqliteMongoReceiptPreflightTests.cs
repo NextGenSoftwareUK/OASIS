@@ -87,7 +87,8 @@ public class SqliteMongoReceiptPreflightTests
             Assert.Equal(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Result.Records[0].Kind);
             await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyPreviewAsync(boundSource.Result,
                 sourceBinding.Result, targetBinding.Result, enrollment.SourceId, createOperation, enrollment.TargetIds.Count,
-                () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(original)));
+                () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(original)),
+                readReplicaReceipt: () => target.ReadCommittedHolonReplicaReceiptAsync(new(originalReplica, targetBinding.Result)));
             if (editTarget)
             {
                 var collection = client.GetDatabase(databaseName).GetCollection<BsonDocument>("Holon");

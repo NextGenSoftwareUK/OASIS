@@ -127,7 +127,8 @@ public static class CosmicLineageInventoryProbe
         CosmicStorageIdentity source, CosmicStorageIdentity originalTarget, string sourceId,
         Guid operation, int originalCount,
         Func<Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationReceiptPreflightReport>>> readReceipt,
-        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
+        Func<Task<NextGenSoftware.OASIS.Common.OASISResult<CommittedHolonReplicaReceiptEvidence>>> readReplicaReceipt = null)
     {
         // Proposed replacement identity is not contacted or admitted here. The
         // same-authority Mongo fixture needs a distinct-authority proposal only.
@@ -140,11 +141,16 @@ public static class CosmicLineageInventoryProbe
             var result = await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationPreviewReader.ReadAsync(
                 (IHolonReplicationLineageInventoryOutbox)outbox, source, sourceId, "target", originalTarget, route,
                 (row, token) => row.OperationId == operation ? readReceipt() : throw new InvalidOperationException("Unexpected fixture operation."),
-                maxObligations: originalCount, pageSize: 1, sourceConsistency: consistency);
+                maxObligations: originalCount, pageSize: 1, sourceConsistency: consistency,
+                readOriginalReplicaReceipt: readReplicaReceipt == null ? null : (row, token) => readReplicaReceipt());
             if (result.IsError || result.Result == null) throw new InvalidOperationException(result.Message, result.Exception);
             return result.Result;
         }
         var preview = await Read();
+        if (readReplicaReceipt != null && (preview.ReplicaReceipts.Count != 1
+            || preview.ReplicaReceipts[0].ReceiptState != ConditionalHolonReceiptState.Committed
+            || preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified)))
+            throw new InvalidOperationException("Native historical receipt evidence was not incorporated into the exact preview.");
         if (preview.Obligations.Count != originalCount || preview.Receipts.Count != 1
             || preview.Obligations.All(row => row.State != HolonDeliveryState.Completed)
             || preview.PreviewDigest != (await Read()).PreviewDigest
