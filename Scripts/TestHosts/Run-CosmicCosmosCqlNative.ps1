@@ -1,5 +1,6 @@
 #Requires -Version 7.5
-param([int]$ContinueOwnedNodePid=0)
+param([int]$ContinueOwnedNodePid=0,[switch]$Federated,[switch]$Serve)
+if ($Serve -and !$Federated) { throw 'Serve requires explicit federation.' }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-cosmos-cql -Operation {
@@ -7,7 +8,8 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
     $results = Join-Path $root 'TestResults/CosmosCqlCurrent'
     New-Item -ItemType Directory -Force -Path $state,$results | Out-Null
     $lease = [IO.File]::Open((Join-Path $state 'environment.lock'),'OpenOrCreate','ReadWrite','None')
-    $names = @('OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_SIGNING_KEY','OASIS_COSMOS_STORAGE_ENCRYPTION_KEY','OASIS_COSMOS_NODE','OASIS_COSMOS_SDK_BRIDGE')
+    $ownedMongo = $null
+    $names = @('OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_COSMOS_MONGO_SERVE','OASIS_COSMOS_CQL_STATE','OASIS_COSMOS_CQL_SIGNING_KEY','OASIS_COSMOS_STORAGE_ENCRYPTION_KEY','OASIS_COSMOS_NODE','OASIS_COSMOS_SDK_BRIDGE')
     $prior = @{}
     foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name) }
     $containerStarted = $false
@@ -22,6 +24,12 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             throw 'Retained Cosmos runtime identity differs; no image pull/replacement.'
         }
         $project = Join-Path $root 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'
+        if ($Federated) {
+            & dotnet restore $project --source C:/Users/david/.nuget/packages /m:2 /nr:false /p:NuGetAudit=false -v:q
+            if ($LASTEXITCODE) { throw 'Offline paired restore failed.' }
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if ($LASTEXITCODE) { throw 'Mongo producer build failed.' }
+        }
         foreach ($build in @((Join-Path $root 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'),(Join-Path $root 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj'),$project)) {
             & dotnet build $build --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if ($LASTEXITCODE) { throw 'Bounded Cosmos CQL build failed.' }
@@ -105,6 +113,33 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         if ($report.LastWriteTimeUtc -lt $started -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly one fresh native pass required.' }
         if (Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')) { throw 'Original setup journal remains unresolved.' }
         $safeToStop = $true
+        if ($Federated) {
+            $mongoRuntime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $mongoData=Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if(!(Test-Path (Join-Path $mongoData 'WiredTiger'))){throw 'Existing Mongo environment is missing; no reset.'}
+            if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Mongo demo port occupied.'}
+            if(((& $mongoRuntime --version)-join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo runtime differs.'}
+            $ownedMongo=Start-Process $mongoRuntime -ArgumentList @('--dbpath',$mongoData,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $ready=$false
+            for($i=0;$i -lt 40;$i++){
+                if($ownedMongo.HasExited){throw 'Owned Mongo exited during startup.'}
+                $listeners=Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if($listeners){if(@($listeners|Where-Object OwningProcess -ne $ownedMongo.Id).Count){throw 'Mongo listener owner differs.'};$ready=$true;break}
+                Start-Sleep -Milliseconds 500
+            }
+            if(!$ready){throw 'Owned Mongo startup deadline exceeded.'}
+            $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+            $env:OASIS_COSMOS_MONGO_SERVE=if($Serve){'1'}else{'0'}
+            $pairedStarted=[DateTime]::UtcNow
+            dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~NativeCosmosMongoFederationRunsSdkAndHttpWithProviderProvenance' --logger 'trx;LogFileName=cosmos-mongo-federation.trx' --results-directory $results *> (Join-Path $results 'cosmos-mongo-federation.log')
+            if($LASTEXITCODE){throw 'Cosmos Mongo demo failed; preserve pending fixture.'}
+            $pairedReport=Get-Item -LiteralPath (Join-Path $results 'cosmos-mongo-federation.trx')
+            if($pairedReport.LastWriteTimeUtc -lt $pairedStarted){throw 'Paired report is stale.'}
+            [xml]$paired=Get-Content $pairedReport.FullName
+            if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one fresh federation case required.'}
+            if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Mongo fixture cleanup incomplete.'}
+            Get-Content (Join-Path $results 'cosmos-mongo-federation.log') -Tail 5
+        }
     }
     finally {
         try {
@@ -121,9 +156,17 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             if (!$safeToStop) { Write-Warning "Preserve original live Cosmos PID $ownedPid and $state; no restart/reset or replay." }
         }
         finally {
+          try {
+            if ($ownedMongo) {
+                if (!$ownedMongo.HasExited) { $ownedMongo.Kill();if (!$ownedMongo.WaitForExit(30000)) { throw 'Owned Mongo teardown incomplete.' } }
+                $ownedMongo.Dispose()
+            }
+          }
+          finally {
             $signingKey = $null
             foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name]) }
             $lease.Dispose()
+          }
         }
     }
 }
