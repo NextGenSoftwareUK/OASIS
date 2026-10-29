@@ -33,7 +33,7 @@ is mutation of the shared configured list.
 
 Replication restart/outage/order/budget proofs are separately scoped in
 [DURABLE_ROUTE_DESCRIPTORS](DURABLE_ROUTE_DESCRIPTORS.md). They do not certify
-failover/load balancing. Default retry scheduling, other-pair outages and audited
+failover/load balancing. Shipping-default native SQLite->Mongo retry scheduling now passes; other-pair outages and audited
 operator/V2 lineage migration remain open; no global snapshot or100%uptime claim.
 
 ## Evidence

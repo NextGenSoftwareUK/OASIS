@@ -391,3 +391,35 @@ No production retry-policy change was needed. A fixture local-name compiler erro
 was corrected before any service/data admission.
 
 Evidence: `TestResults/OwnedRoutingCurrent/worker-offline-exhaust.trx`;1passed/0failed/0skipped;SHA256 `A3285DB69F67A86BCA0A26034548B1D4EE4694AAC4AD3CA90298E293737DF39A`.
+
+## Shipping default ten-attempt native retry schedule
+
+Run `Scripts/TestHosts/Run-CosmicBoundSourceWorkerTests.ps1 -DefaultDeliveryBudget`.
+This separate exclusive mode keeps the owned Mongo process stopped throughout all
+ten actual native failures. It uses the public dispatcher without overriding its
+maximumAttempts or clock, and the real SQLite outbox without modifying persisted
+state/timestamps. Unlike the earlier configured-one-attempt gate, this verifies
+the shipping ten-attempt budget and system-clock schedule.
+
+The native scenario passes1/1 in9minutes8seconds. After each of attempts1–9,
+read-only SQL checks NextAttemptUtcTicks against the actual call-time interval
+plus the specified1,2,4,8,16,32,64,128,256second delay. Premature dispatches return
+zero claims; the test waits for each persisted due time before the next attempt.
+Every inspection retains the exact head attempt count and laterPending0 state.
+Attempt10 enters ReconciliationRequired with COSMIC_REPLICA_WRITE_FAILED,
+Attempt limit reached message, and non-ambiguous recovery evidence.
+
+The runner then restarts the same Mongo data and verifies the physical binding.
+Two real shipping-worker passes retain the same terminal block, code/message and
+attempt10; the later obligation remainsPending0. Mongo has no target receipts or
+copies, and SQLite still has exactly the two original source receipts/version1.
+Verified cleanup drops only the private fixture database and removes its disposed
+SQLite files, journal and process signals. Owned test/Mongo processes are joined;
+the reusable runtime/data remains. Bounded progressJSON is disposable TestResults
+output, not a second journal or source of recovery authority.
+
+This closes default-budget native SQLite->Mongo acceptance. Other source/target
+pairs, full deployed worker scheduling/lifecycle, audited operator rebind and
+old V2 lineage migration remain open. No automatic reset/relabel/replay is allowed.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-default-budget.trx`: 1passed/0failed/0skipped; SHA256 `FC477654CCCDE7F9163C0E82C95A8CFC22D7C42F4F69B12BE09D80BC2002A7B7`.
