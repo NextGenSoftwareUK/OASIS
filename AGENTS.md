@@ -52,6 +52,8 @@ For a **new chat**, paste: goal + â€œsee `Docs/Devs/STAR_CLI_SessionHandoff.md`â
 - `Docker/oasis-dependency-versions.env` is the single source of deployed dependency SHAs. Never duplicate commit pins in individual WEB4-WEB10 Dockerfiles or clone moving branch tips.
 - When advancing a deployed private submodule, update its parent gitlink and manifest value together, then run `python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks` and publish the affected services.
 - CI enforces Dockerfile usage and exact manifest/gitlink equality on both deployment branches, `Development` and `master`. The legacy parent `main` branch has no WEB4-WEB10 Dockerfiles, so this policy is not applicable there.
+- **Railway builds the manifest pins, NOT the parent gitlinks.** Moving a submodule gitlink alone ships nothing: Railway keeps building the old source until `OASIS_*_COMMIT` in the manifest moves too. Always run `python3 Scripts/sync_railway_dependency_manifest.py` after advancing a gitlink and commit both together.
+- Safety nets (do not rely on them instead of the step above): `.github/workflows/sync-railway-pins.yml` commits corrected pins after a push to `Development`/`master`, and `.githooks/pre-push` refuses a push whose pins differ from the gitlinks. Enable the hook once per clone (and in any agent or worktree checkout you push from) with `git config core.hooksPath .githooks`.
 - Full workflow: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
 - Development-to-production release sequence: `Docs/Devs/DEVELOPMENT_TO_MASTER_PROMOTION.md`.
 - Stale branch cleanup (parent + submodules): `Scripts/branch_cleanup.sh` (dry run by default), process in `Docs/Devs/BRANCH_CLEANUP_RUNBOOK.md`.

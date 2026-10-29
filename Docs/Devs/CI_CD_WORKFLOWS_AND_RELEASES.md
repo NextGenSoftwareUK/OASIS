@@ -37,6 +37,7 @@ The Unity Edge `.tgz` uses a deterministic no-compression gzip stream. Holo-enab
 | `master_oasisapionode.yml` — **Build and deploy ASP.Net Core app to Azure Web App - OASISAPIONODE** | Configured production branch push or manual | Builds and publishes the ONODE WebAPI and authenticates to Azure with OIDC | Workflow deployment artifact and Azure Web App deployment |
 | `deploy-oasisweb4.yml` — **Deploy OASIS Web4 Site** | Changes to `oasisweb4 site/**` on `max-build`, or manual | Copies the static Web4 site, removes oversized media, uploads the official Pages artifact, and deploys through GitHub Pages OIDC | GitHub Pages deployment at the repository Pages URL |
 | `render-mermaid.yml` — **Render Mermaid Diagrams** | Changes to Mermaid source diagrams | Installs the Mermaid CLI, renders SVGs, and commits changed generated diagrams | Versioned SVG diagrams in the repository |
+| `sync-railway-pins.yml` — **Sync Railway dependency pins** | Push to `Development` or `master` | If `Docker/oasis-dependency-versions.env` differs from the parent gitlinks, regenerates it with `Scripts/sync_railway_dependency_manifest.py`, validates, and commits the fix (rebasing and retrying if another push lands first). Railway builds the manifest pins, not the gitlinks, so without this a submodule change can merge and never deploy | A `chore(railway): sync dependency pins…` commit on the branch. Pair with the local `.githooks/pre-push` check (`git config core.hooksPath .githooks`) |
 | `submodule-sync.yml` — **Submodule Sync** | Scheduled or manual | For both `Development` and `master`, moves every gitlink to the branch declared in `.gitmodules`, regenerates the Railway dependency manifest, validates equality, and opens or updates a review PR | A `sync-submodules-*` pull request; no branch deletion |
 | `promote-development-to-master.yml` — **Promote Development to master** | Manual | Opens missing submodule Development-to-main PRs, verifies each production submodule SHA, regenerates/validates Railway pins, and opens or updates the parent promotion PR | Promotion PRs in submodule repositories and the parent OASIS repository; no branch deletion |
 
@@ -70,7 +71,7 @@ A GitHub release is not proof that every registry accepted a publication. Check 
 
 | Name or permission | Used for |
 |---|---|
-| `PRIVATE_SUBMODULE_PAT` | Reading all private submodules during checkout and promotion/sync operations |
+| `PRIVATE_SUBMODULE_PAT` | Reading all private submodules during checkout and promotion/sync operations, and pushing the corrected pins in `sync-railway-pins.yml` (commits made with the default `GITHUB_TOKEN` cannot pass branch protection or start the follow-up Railway deploy) |
 | `NUGET_API_KEY` | NuGet publishing in workflows that do not use registry trusted publishing |
 | GitHub `id-token: write` | npm trusted publishing, Azure OIDC, and GitHub Pages deployment where configured |
 | GitHub `contents: write` | Creating releases, committing generated Mermaid SVGs, and updating synchronization branches |

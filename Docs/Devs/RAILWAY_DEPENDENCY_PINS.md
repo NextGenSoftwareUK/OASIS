@@ -30,7 +30,7 @@ On `Development` and `master`, the seven private repository values in that branc
 
 Moving a submodule gitlink without the matching pin means Railway keeps building the OLD source, so the change never ships (a Core fix once sat undeployed for a day this way).
 
-- **CI fixes it:** [`sync-railway-pins.yml`](../../.github/workflows/sync-railway-pins.yml) runs on every push to `Development`/`master`, and if the pins differ from the gitlinks it commits the corrected `Docker/oasis-dependency-versions.env`. Optional secret `RAILWAY_PIN_SYNC_TOKEN` (a PAT or deploy key with push access) lets that commit pass branch protection and trigger the follow-up Railway deploy; without it the default token is used.
+- **CI fixes it:** [`sync-railway-pins.yml`](../../.github/workflows/sync-railway-pins.yml) runs on every push to `Development`/`master`, and if the pins differ from the gitlinks it commits the corrected `Docker/oasis-dependency-versions.env`. It pushes with the existing `PRIVATE_SUBMODULE_PAT` secret (the same PAT the submodule-sync and promotion workflows use), so its commit can pass branch protection and trigger the follow-up Railway deploy; if that secret is missing it falls back to the default token.
 - **A local hook prevents it:** enable once per clone with `git config core.hooksPath .githooks`. `.githooks/pre-push` refuses a push whose pins differ from the gitlinks and prints the one-line fix, so the wrong build is never deployed first.
 
 ## Files and responsibilities
