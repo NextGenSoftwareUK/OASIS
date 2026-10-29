@@ -239,3 +239,35 @@ Neo source cold-new-save, simultaneous first approvals, operator rebinding and
 V2 lineage repair remain open. Failover/load balancing are independent acceptance.
 
 Evidence: `TestResults/OwnedRoutingCurrent/bound-worker-pair-current.trx`;6passed/0failed/0skipped;SHA256 `868DCCF9DCCB9D6AE3F07EBCCC0BFED94B83AD42D18D2E654300B2062D3B0C95`.
+
+## Fully stopped Mongo destination process
+
+`Run-CosmicBoundSourceWorkerTests.ps1 -FullDestinationOutage` runs three independent
+test processes. Seed commits an owned SQLite save with an approved native Mongo
+destination and pending obligation. The runner then kills and joins only the
+Mongo process it started and verifies the listener is absent. The offline test
+proves TCP connection refusal, leaves its newly constructed Mongo provider
+inactive, and commits a NEW owned SQLite save plus a second pending obligation.
+
+The runner restarts its pinned Mongo runtime with the SAME retained data directory.
+A third process verifies original source/target fingerprints, confirms neither
+record has yet arrived, and starts the shipping worker. Both obligations complete
+in one attempt with matching logical versions and owner. A second worker pass
+preserves both native target revisions. All3phases pass1/1 without skips.
+
+The fixture journals both IDs/operations before writes and preserves unknown
+outcomes. Final native Mongo IDs/receipt operation IDs are checked before dropping
+only `cosmic_stopped_destination_fixture`; SQLite files/sidecars and journal are
+removed after provider disposal. Runner exits0; no27029listener remains. No source,
+key, reusable runtime, shared replica data or other environment was removed.
+
+This certifies SQLite-source enrollment while its Mongo destination PROCESS is
+stopped, followed by recovery/delivery. It does not certify all provider pairs,
+Neo cold saves, ordinary retry during an active delivery outage, simultaneous
+first approvals, operator/V2 lineage repair, failover or load balancing.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/worker-offline-seed.trx` | 1 | `74DD4D9935D945ABFE065483CE7B24159FF923B53CC8511D312598A49E19A33F` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-offline.trx` | 1 | `839A592FDADC6FBFC5AABA00F67516436603C6296EF6CCAF756B55847C7DCCC7` |
+| `TestResults/OwnedRoutingCurrent/worker-offline-deliver.trx` | 1 | `1C41831A2570C4E9D7E589BB42CBF597D9D3E695B522DDF7E8FEA3A589A49F9B` |
