@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-This is 17 identities with scoped evidence, not 17 production-complete providers.
+Including Base, 18 identities now have scoped MVP evidence. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -37,9 +37,9 @@ sharing input compile errors are fixed. [Verification](DEVELOPMENT_SYNC_2026-10-
 
 1. The refreshed inventory has 226 concrete identities, 33 active central cases and
    11 additional project names requiring classification. These are source facts.
-2. BaseOASIS next: active factory path selects the shipped Web3Core implementation;
-   its inherited CQL compiler currently rejects Base authority. Add authority tests,
-   native selection and the Mongo-paired demo using the retained EVM environment.
+2. Base MVP is verified: controls7/family21, native3/2 and restart reuse, paired
+   C#/HTTP1/1/browser5/4. [Scope](BASE_CQL_MVP.md). Avalanche is next: its active
+   registration selects Web3Core, but CQL authority admission remains missing.
 3. Continue missing registered storage MVPs, then unregistered/source-only entries.
    Track actual implementation, registration and external blockers independently.
 4. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)

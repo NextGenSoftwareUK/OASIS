@@ -127,3 +127,19 @@ bounded ID selection over an authorized catalogue, not arbitrary metadata predic
 public NEAR or a distributed snapshot. Stop the demo to validate and remove its
 owned Mongo fixture while keeping the original key/ledger/catalogue. Add
 `-VerifyOnly` for bounded SDK/HTTP acceptance. [Scope and evidence](NEAR_CQL_MVP.md).
+
+## Base + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Base -Federated
+```
+
+Open http://127.0.0.1:5104/. Show the explicit MongoDB/Base scope and C# membership
+query. **Query all records** returns five physical rows; **Query two-record subset**
+returns four. Compare provider labels and shared IDs: both physical copies remain.
+
+The concrete Base Web3Core adapter reads encrypted records on local EVM chain31338;
+this does not demonstrate public Base or rollup finality. The trusted catalogue
+bounds native key selection; arbitrary metadata filters remain unsupported. Stop
+preserves the original native seed/key/ledger and removes the validated owned Mongo
+fixture. Add `-VerifyOnly` for bounded acceptance. [Scope](BASE_CQL_MVP.md).

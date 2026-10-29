@@ -26,9 +26,9 @@ public class EvmMongoCqlNativeTests
         
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         var name = Environment.GetEnvironmentVariable("OASIS_EVM_CQL_PROVIDER");
-        Assert.IsTrue(name is "Ethereum" or "Polygon" or "Arbitrum", "The runner must explicitly select an enrolled provider.");
-        var authority = name switch { "Polygon" => ProviderType.PolygonOASIS, "Arbitrum" => ProviderType.ArbitrumOASIS, _ => ProviderType.EthereumOASIS };
-        var port = name switch { "Polygon" => 5098, "Arbitrum" => 5099, _ => 5097 };
+        Assert.IsTrue(name is "Ethereum" or "Polygon" or "Arbitrum" or "Base", "The runner must explicitly select an enrolled provider.");
+        var authority = name switch { "Polygon" => ProviderType.PolygonOASIS, "Arbitrum" => ProviderType.ArbitrumOASIS, "Base" => ProviderType.BaseOASIS, _ => ProviderType.EthereumOASIS };
+        var port = name switch { "Polygon" => 5098, "Arbitrum" => 5099, "Base" => 5104, _ => 5097 };
         var database = "cosmic_cql_mongo_" + name.ToLowerInvariant() + "_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Environment.GetEnvironmentVariable("OASIS_EVM_CQL_STATE")!;
@@ -53,6 +53,7 @@ public class EvmMongoCqlNativeTests
         {
             "Polygon" => new NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS("http://127.0.0.1:18547", devKey, contract, 31338),
             "Arbitrum" => EvmCqlDemoProviders.CreateArbitrum("http://127.0.0.1:18547", devKey, contract),
+            "Base" => EvmCqlDemoProviders.CreateBase("http://127.0.0.1:18547", devKey, contract),
             _ => new EthereumOASIS("http://127.0.0.1:18547", devKey, 31338, contract)
         };
         var queryAdapter = (ICosmicQueryStorageProvider)secondary;
