@@ -26,7 +26,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. AWS bounded native-key CQL is implemented with13/13 controlled tests and successful Dynamo/AWS builds. Next: native DynamoDB Local acceptance using the verified shared immutable JAR read-only and this worktree's own persistent CQL data, then Mongo-paired C#/HTTP/browser presets. Existing original container/data must remain stopped/untouched. [AWS MVP](AWS_CQL_MVP.md).
+1. AWS CQL controls13/13 and real DynamoDB Local proof1/1 now pass (actual AWS wrapper, retained3 records -> filtered2). Next: add Mongo-paired C# walkthrough and HTTP/browser presets (3+2=5, subset2+2=4) using existing identity-federation demo helpers. Reuse stopped CQL container on18002 and own LocalState/COSMIC/AwsCql/demo-seed.json; no reseeding or original-container/data mutation. [AWS MVP](AWS_CQL_MVP.md).
 2. After AWS: Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain, Polkadot and NEAR, in that order; then other suitable existing popular providers. Each MVP needs a genuinely native bounded filtered multi-record query and a Mongo-paired demo with explicit limits; no full-parity gate. Reconcile existing Mongo/SQLite/Neo/IPFS/Azure emulator/Oracle/SOLID/ActivityPub/Solana demos; hosted Azure stays pending.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
@@ -48,7 +48,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 | Cosmos + Mongo | Emulator C#/HTTP/browser 5/4. Hosted Azure pending by user instruction: no free subscription/auth; do not provision or repeat signup requests. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
 | IPFS/SOLID/ActivityPub + Mongo | Native 3/2 bounded-key queries, paired SDK/HTTP/browser 5/4. Arbitrary content queries remain open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
 | Solana + Mongo | Retained local validator + explicit SQLite index, C#/HTTP/browser. No hosted-chain/reseed claim. Original missing historical chunk has no known backup; preserve retained state. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). |
-| AWS + Mongo | Native-key execution implementation/control tests13/13 done; real-service acceptance and C#/HTTP/browser presets remain red. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
+| AWS + Mongo | Native-key execution implementation/control tests13/13 done; DynamoDB Local acceptance1/1 passes (3/2); Mongo-paired C#/HTTP/browser presets remain red. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
 
 Three-database save demos cover dirty/no-op ownership, generated IDs, concurrency and per-save deltas within checklist scopes. Full history/value authorization, broad child/provider parity, placement, hosted durability/scaling and migration remain open.
 
@@ -57,12 +57,12 @@ Three-database save demos cover dirty/no-op ownership, generated IDs, concurrenc
 - Parent Development c8a381dd2/Core0240771 integrated into task; current Core276b780. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
 - Last outgoing Development batch: parent858edd828/Corebd86a37. Later work remains on the pushed task branch; no entire-branch deployment while the lineage gate is open.
 - Commit named files only; Core push/remote verification first, then matching parent gitlink + deployment manifest. Fetch before scoped daily integration; never force push.
-- Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. No new install/restore for these milestones.
+- Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. AWS/Dynamo test assets restored offline from existing cache; no new package downloads or runtime installs.
 - Logs/TRX/JSON go to worktree TestResults; persistent identities/pending journals to LocalState/COSMIC. Preserve failed/unknown outcomes; never replay to hide them.
 - Latest successful fixture journals/files removed, owned Mongo/Neo services stopped. Reinspect live state before reuse. [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 ```powershell
-Scripts/TestHosts/Run-CosmicMongoDestinationTests.ps1 -MigrationPreflight
+Scripts/TestHosts/Run-CosmicAwsCqlNative.ps1
 Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-neo -Operation { Scripts/TestHosts/Run-ReusableNeo4jTests.ps1 -CosmicSourceReceipt }
 Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Oracle -Federated -ShowPlan
 ```
