@@ -8,8 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: DuckDB native source/reopen admission**; cached1.1.3 producer and14 controls
-pass, native/paired remain red ([scope](DUCKDB_CQL_MVP.md)).
+**Next: DuckDB Mongo-paired SDK/HTTP/browser demo**; control14/native1/reopen1 pass,
+original embedded source retained; paired remains red ([scope](DUCKDB_CQL_MVP.md)).
 SQL Server control9/native/restart/SDK/HTTP/browser5/4 pass; original LocalDB source
 retained, owned services stopped and Mongo fixture removed ([scope](SQLSERVER_CQL_MVP.md)). PostgreSQL control8, native/restart
 1+1 and Mongo-paired C#/HTTP/browser5/4 pass ([scope](POSTGRESQL_CQL_MVP.md)).

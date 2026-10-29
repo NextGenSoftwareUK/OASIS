@@ -1605,3 +1605,11 @@ Owner COSMIC/CQL. Reuse cached DuckDB.NET.Data.Full1.1.3 and bindings in C:/User
 ### 29 October 2026 — DuckDB CQL control outcome
 
 Cached producer/unit builds pass, full unit suite14passed548ms/no skips. TRX TestResults/DuckDbCqlCurrent/duckdb-cql-controls.trx SHA256 DC8C7E95521BF34463285F0719AEBE50224B52401E55856A85B40BA19E9146C1. An existing removed-method compile error in provider metadata test corrected to current contract; constructor missing name/description fixed. No native database/source created, no processes/ports introduced. Existing cached package restore generated worktree bin/obj only (sizes unmeasured/regenerable); cache/runtime reusable. No download/install. Native/reopen/paired admission remains red.
+
+### 29 October 2026 — DuckDB native source preparation
+
+Owner COSMIC/CQL. Planned fixed LocalState/COSMIC/DuckDbCql/source.duckdb plus initial intent/seed/four acknowledgements/native snapshot; 3live+1deleted synthetic records, reusable source size unmeasured. Native embedded cached DuckDB1.1.3, no server/port/installation/download. File/pending guard prevents adoption/reseed; source retained across process reopen. Logs/TRX TestResults/DuckDbCqlCurrent regenerable after summary hashes. Build producer/integration outputs reused/regenerated bin/obj; cache retained. Cleanup only after ownership/integrity validation and explicit fixture retirement, no broad directory deletion.
+
+### 29 October 2026 — DuckDB native/reopen outcome
+
+Created single owned source LocalState/COSMIC/DuckDbCql/source.duckdb1,323,008bytes; total source/seed/4receipts/snapshot/locks 1324005bytes. Three live+one tombstone acknowledged saves, live load roundtrips and native3/2/missing/tombstone/paging/budget proof pass. Initial1passed936ms and fresh process reopen1passed236ms/no skips, native JSON hashes/timestamps unchanged; hashes in DUCKDB_CQL_MVP.md. Persistent seed SHA256 01B37D20ADF928AF58B1557FF019C37C0C85AB12DA0016215B8D70487CBB2C35. Reusable source retained, test processes exited, no server/ports/process ownership beyond awaited test. Cache-only integration restore/build regenerated bin/obj (sizes unmeasured); compact TestResults/DuckDbCqlCurrent logs/TRX disposable after report. No download/install/new runtime.
