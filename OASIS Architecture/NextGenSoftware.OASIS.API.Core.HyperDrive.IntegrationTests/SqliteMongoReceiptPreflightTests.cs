@@ -62,11 +62,17 @@ public class SqliteMongoReceiptPreflightTests
             var missing = await HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(original));
             Assert.False(missing.IsError, missing.Message + missing.Exception);
             Assert.Equal(HolonReplicationReceiptComparisonKind.MissingReplicaHead, missing.Result.Records[0].Kind);
+            CommittedHolonReplicaRequest originalReplica = null!;
+            string originalAcknowledgement = null!;
             async Task Apply(ConditionalHolonWriteRequest request, IHolon row)
             {
-                var applied = await target.ApplyBoundCommittedHolonReplicaAsync(new CommittedHolonReplicaRequest(request.Write.OperationId,
-                    enrollment.SourceId, ProviderType.SQLLiteDBOASIS, actor, request.Operation, new[] { row }, saveChildren: false), targetBinding.Result);
+                var transport = new CommittedHolonReplicaRequest(request.Write.OperationId,
+                    enrollment.SourceId, ProviderType.SQLLiteDBOASIS, actor, request.Operation, new[] { row }, saveChildren: false);
+                await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(target, transport, targetBinding.Result, ConditionalHolonReceiptState.Absent);
+                var applied = await target.ApplyBoundCommittedHolonReplicaAsync(transport, targetBinding.Result);
                 Assert.False(applied.IsError, applied.Message + applied.Exception);
+                var digest = await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(target, transport, targetBinding.Result, ConditionalHolonReceiptState.Committed);
+                if (request.Write.OperationId == createOperation) { originalReplica = transport; originalAcknowledgement = digest; }
             }
             await Apply(original, acknowledged);
             var boundSource = source.GetBoundHolonReplicationOutbox(sourceBinding.Result);
@@ -96,6 +102,8 @@ public class SqliteMongoReceiptPreflightTests
                 Assert.True(divergence.IsError, "Changed current content must invalidate protected target evidence.");
                 Assert.Null(divergence.Result);
                 Assert.Equal("COSMIC_REPLICA_HEAD_AUDIT_UNVERIFIED", divergence.ErrorCode);
+                Assert.Equal(originalAcknowledgement, await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(
+                    target, originalReplica, targetBinding.Result, ConditionalHolonReceiptState.Committed));
                 var retained = await collection.Find(new BsonDocument("HolonId", input.Id.ToString("D"))).SingleAsync();
                 Assert.Equal(after.ToJson(), retained.ToJson()); // Evidence reads must not repair the divergent record.
             }
