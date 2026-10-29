@@ -5,6 +5,10 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
+Mongo record barrier: native2 race/reactivation/lost-namespace cases and1 preview
+regression pass. Shared1506/SQLite2 retained. Snapshot write skew is prevented by
+transactional per-record admission. Neo and paired migration admission remain open.
+
 First SQLite native record barrier: Shared1506/1506 and native2 race/restart cases pass.
 Affected V2 saves/deletes/replica replay/new claims are blocked durably; unrelated records
 remain writable. Mongo/Neo and paired migration admission/quiescence remain open.

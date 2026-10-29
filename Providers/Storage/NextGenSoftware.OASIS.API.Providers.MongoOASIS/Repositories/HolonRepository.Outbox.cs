@@ -16,8 +16,18 @@ public partial class HolonRepository
         new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("Sequence"),new CreateIndexOptions{Unique=true,Name="cosmic_holon_outbox_sequence_v1"}),
         new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("OperationId").Ascending("TargetId"),new CreateIndexOptions{Unique=true,Name="cosmic_holon_outbox_operation_target_v1"}),
         new CreateIndexModel<BsonDocument>(Builders<BsonDocument>.IndexKeys.Ascending("TargetId").Ascending("Sequence"),new CreateIndexOptions{Name="cosmic_holon_outbox_target_order_v1"})};
-    internal void EnsurePrimaryOutboxIndexes()=>_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateMany(PrimaryOutboxIndexes());
-    internal Task EnsurePrimaryOutboxIndexesAsync()=>_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateManyAsync(PrimaryOutboxIndexes());
+    internal void EnsurePrimaryOutboxIndexes()
+    {
+        var database = _dbContext.MongoDB;
+        database.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateMany(PrimaryOutboxIndexes());
+        MongoHolonMigrationFence.EnsureSchema(database);
+    }
+    internal async Task EnsurePrimaryOutboxIndexesAsync()
+    {
+        var database = _dbContext.MongoDB;
+        await database.GetCollection<BsonDocument>("CosmicHolonOutbox").Indexes.CreateManyAsync(PrimaryOutboxIndexes()).ConfigureAwait(false);
+        await MongoHolonMigrationFence.EnsureSchemaAsync(database).ConfigureAwait(false);
+    }
 
     private async Task WritePrimaryHolonObligationsAsync(IMongoDatabase database,IClientSessionHandle session,ConditionalHolonPlan plan,Guid actor,
         string payload,DateTime now,CancellationToken cancellationToken)
