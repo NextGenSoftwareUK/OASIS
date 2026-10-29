@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+param([switch]$FullDestinationOutage)
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work = Join-Path $taskRoot 'TestResults/OwnedRoutingCurrent'
@@ -12,6 +13,13 @@ try {
     foreach ($path in @((Join-Path $state 'worker-pair.pending.json'), (Join-Path $work 'worker-pair.db'),
         (Join-Path $work 'worker-pair.db-wal'), (Join-Path $work 'worker-pair.db-shm'), (Join-Path $work 'worker-pair.db-journal'))) {
         if (Test-Path -LiteralPath $path) { throw "Preserve and reconcile the owned fixture before reuse: $path" }
+    }
+    if ($FullDestinationOutage) {
+        foreach ($path in @((Join-Path $state 'worker-offline.pending.json'), (Join-Path $state 'worker-offline.pending.json.next'),
+            (Join-Path $work 'worker-offline.db'), (Join-Path $work 'worker-offline.db-wal'),
+            (Join-Path $work 'worker-offline.db-shm'), (Join-Path $work 'worker-offline.db-journal'))) {
+            if (Test-Path -LiteralPath $path) { throw "Preserve and reconcile the offline fixture: $path" }
+        }
     }
     if (!(Test-Path -LiteralPath (Join-Path $data 'WiredTiger'))) { throw 'Retained Mongo data is required; do not initialize a new environment.' }
     if (((& $runtime --version) -join ' ') -notmatch 'v8\.3\.11\b') { throw 'Pinned Mongo runtime mismatch.' }
@@ -45,10 +53,12 @@ try {
     }
     $owned = $null
     $prior = $env:OASIS_MONGO_REPLICA_SET_CONNECTION
+    $priorPhase = $env:OASIS_OFFLINE_REPLICATION_PHASE
+    $mongoArguments = @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029',
+        '--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32',
+        '--logpath',(Join-Path $work 'bound-worker-pair-mongo-service.log'),'--logappend')
     try {
-        $owned = Start-Process $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029',
-            '--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32',
-            '--logpath',(Join-Path $work 'bound-worker-pair-mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+        $owned = Start-Process $runtime -ArgumentList $mongoArguments -WindowStyle Hidden -PassThru
         $ready = $false
         for ($attempt=0; $attempt -lt 40; $attempt++) {
             if ($owned.HasExited) { throw 'Owned Mongo process exited.' }
@@ -62,6 +72,40 @@ try {
         }
         if (!$ready) { throw 'Owned Mongo startup deadline exceeded.' }
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+        if ($FullDestinationOutage) {
+            function Test-OfflinePhase([string]$phase) {
+                $env:OASIS_OFFLINE_REPLICATION_PHASE = $phase
+                & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped' --logger "trx;LogFileName=worker-offline-$phase.trx" --results-directory $work *> (Join-Path $work "worker-offline-$phase.log")
+                if ($LASTEXITCODE) { throw "Offline phase failed: $phase; preserve original fixture." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $work "worker-offline-$phase.trx") -Raw
+                $counts = $report.TestRun.ResultSummary.Counters
+                if (!$counts -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) { throw "Exactly one unskipped phase required: $phase" }
+                Get-Content -LiteralPath (Join-Path $work "worker-offline-$phase.log") -Tail 3
+            }
+            Test-OfflinePhase 'seed'
+            # Only this runner's exact owned process is stopped. Preserve its data.
+            if ($owned.HasExited) { throw 'Owned Mongo exited before the requested outage.' }
+            $owned.Kill()
+            if (!$owned.WaitForExit(30000)) { throw 'Owned destination process did not stop.' }
+            $owned.Dispose(); $owned = $null
+            if (Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue) { throw 'Destination listener still present; no offline claim.' }
+            Test-OfflinePhase 'offline'
+            $owned = Start-Process $runtime -ArgumentList $mongoArguments -WindowStyle Hidden -PassThru
+            $ready = $false
+            for ($attempt=0; $attempt -lt 40; $attempt++) {
+                if ($owned.HasExited) { throw 'Owned Mongo restart exited; preserve fixture.' }
+                $listeners = Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if ($listeners) {
+                    if (@($listeners | Where-Object OwningProcess -ne $owned.Id).Count) { throw 'Restart listener ownership differs.' }
+                    $ready = $true; break
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            if (!$ready) { throw 'Owned Mongo restart deadline exceeded.' }
+            Test-OfflinePhase 'deliver'
+            if (Test-Path -LiteralPath (Join-Path $state 'worker-offline.pending.json')) { throw 'Offline fixture cleanup incomplete.' }
+        }
+        else {
         dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ShippingWorkerUsesBoundMongoAndSqliteSourcesAcrossProviderRestart' --logger 'trx;LogFileName=bound-worker-pair-current.trx' --results-directory $work *> (Join-Path $work 'bound-worker-pair-current.log')
         if ($LASTEXITCODE) { throw 'Native bound-source worker verification failed; preserve the original outcome.' }
         [xml]$report = Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx') -Raw
@@ -70,9 +114,11 @@ try {
         if (Test-Path -LiteralPath (Join-Path $state 'worker-pair.pending.json')) { throw 'Owned fixture cleanup did not finish.' }
         Get-Content -LiteralPath (Join-Path $work 'bound-worker-pair-current.log') -Tail 4
         Get-FileHash -LiteralPath (Join-Path $work 'bound-worker-pair-current.trx')
+        }
     }
     finally {
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = $prior
+        $env:OASIS_OFFLINE_REPLICATION_PHASE = $priorPhase
         if ($owned) {
             if (!$owned.HasExited) { $owned.Kill(); if (!$owned.WaitForExit(30000)) { throw 'Owned Mongo process teardown incomplete.' } }
             $owned.Dispose()
