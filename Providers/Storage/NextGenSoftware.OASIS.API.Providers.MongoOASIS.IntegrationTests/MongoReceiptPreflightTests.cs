@@ -76,6 +76,9 @@ public partial class MongoStorageIdentityTests
                 Assert.Equal(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Records[0].Kind);
                 Assert.True(matched.IsCompleteOriginalGraph);
                 Assert.Equal(matched.ObservationDigest, (await Observe(create)).ObservationDigest);
+                await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyPreviewAsync(boundSource.Result,
+                    sourceBinding.Result, targetBinding.Result, enrollment.SourceId, create.Write.OperationId, enrollment.TargetIds.Count,
+                    () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(create)));
                 Assert.Equal(before, await Snapshot());
                 var edit = StoredRecordJson.Project<Holon>(first); edit.Name = "later-preflight-value";
                 var update = Original(edit, CosmicConcurrency.GetProviderRevisionId(first, ProviderType.MongoDBOASIS));

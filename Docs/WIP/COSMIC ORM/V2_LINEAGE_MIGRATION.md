@@ -732,3 +732,69 @@ cancellation, mismatched host policy, duplicate grants and invalid context.
 The caller's mutable grant list cannot alter a registered policy.
 Evidence: `TestResults/DevelopmentSyncCurrent/migration-authorization-shared.trx`;
 SHA256 `B00E8D2222328A64E71027AFC295ACB4CAB563AB5D6E369AD65C59908F274A08`.
+
+
+## Immutable review preview — 29 October 2026
+
+`HolonReplicationMigrationPreviewReader.ReadAsync` now consumes the native
+source-wide sequence-window reader and the existing exact receipt/target
+preflight. Shared owns orchestration for all providers. It retains every route
+and every state in the captured source lineage, including completed obligations,
+then obtains original receipt evidence for each operation on the selected route.
+The host supplies the exact historical-intent reader; the preview never replays
+an intent, initializes a binding, claims delivery or applies a mutation.
+
+The preview rejects missing pages, inconsistent source/window/consistency,
+backtracking sequences, duplicate operation/target pairs, changed operation
+actor/payload observations, exceeded explicit bounds, missing receipts and wrong
+receipt operation/actor/lineage/physical source/target. No partial preview is
+returned on failure. Defaults: 64 rows/page, 4096 obligations/review; explicit
+maximum 65536. Increase a review bound deliberately; no silent truncation.
+
+The immutable preview checksum binds physical source/original target, old IDs,
+replacement native route/policy, captured upper sequence/consistency, complete
+observed obligation rows/state digests, receipt comparison digests and findings.
+`preview.AuthorizationContext(migrationId, authenticatedOperator, adminPolicy)`
+connects that exact checksum to the separate host-owned administrative policy.
+No business values, leases or worker identities are included.
+
+Findings remain visible for active deliveries, partial original graph evidence
+and conflicting current heads. Four execution gates are always declared by this
+version: original replica receipts unverified, original payload-to-receipt binding
+unverified, native write/delivery fences required, and replacement-target evidence
+unverified. A matching latest head cannot close any of these. Approval of the
+review does not authorize ignoring them. There is no mutation endpoint or
+executable plan yet; explicit fences/CAS/idempotent receipts/cutover remain red.
+
+Tests: 23 new preview controls; full Shared1453/1453, no skipped/failing tests.
+They include concurrent appends excluded by the captured window, changed preview
+digests, in-flight delivery findings, wrong evidence scope, page substitution,
+review bounds, native failures and cancellation before/during evidence reads.
+Native SQLite2/Mongo1/Neo2 cases each collect all four original obligations with
+page-size1, retain the completed target, compare a stable second preview, and
+preserve unresolved execution findings. Mongo also verifies unchanged native
+source/target documents. These are native inventory/receipt/preview proofs, not
+all-pair migration execution acceptance. The same-authority Mongo fixture uses
+an explicitly synthetic distinct-authority replacement proposal named
+`preview-only-not-contacted`; it is never contacted or admitted. Other fixtures
+use their captured target as the proposed replacement. Replacement admission is
+not claimed in any case.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared | 1453/1453 | `TestResults/DevelopmentSyncCurrent/migration-preview-shared.trx` | `8A76A54E7A3CD6D5676DAAFCBFF61588F7AC67AB29F6877784219FEF656CC886` |
+| SQLite source / Mongo target | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `7FC8219BDBA221FFD455AEB71E3EF005061CEBCA94E524A30BC3441E903757B6` |
+| Mongo source / Mongo target | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `063DFE55815B330B0549F041B3A5E42573159376E5255E10F8D8E6867573B411` |
+| Neo source / SQLite target | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `6F8398A3D2CF4AE2B31BBD6FCF0415B039547FE95094341256A6D36BD68A074D` |
+
+Native batch71146 and final Shared controls41065 exited0. Neo attachment13160
+joined/stopped. Exact pending journals/receiver files/sidecars absent; ports27029
+and17687 have no listeners. Free disk102800048128bytes. No new environment,
+installation, download or restore. Detailed resource lifecycle remains in the
+existing cleanup ledger; raw evidence remains in TestResults.
+
+Next: expose read-only exact historical replica-receipt evidence and verify each
+original frozen payload against its original source receipt. Feed those proofs
+into preview findings; then implement native write/delivery fencing and CAS with
+durable migration receipts. Do not interpret sequence windows as quiescence or
+current-head matches as historical delivery receipts.
