@@ -22,13 +22,13 @@ is mutation of the shared configured list.
 
 | Gate | Current evidence / remaining work |
 |---|---|
-| Request/avatar/node precedence | Existing AvatarHyperDriveRoutingTests; inspect end-to-end selection and cross-request isolation. |
+| Request/avatar/node precedence | Concurrent controlled sync/async router execution2/2 proves request-over-avatar, avatar failover list overnode and peer opt-out without node mutation. |
 | Subscription/capability candidate filtering | Controlled selection/execution suites exist; audit native provider scope and denial behavior. |
 | Temporary read failure and failover | Native Mongo process-down -> SQLite reads pass sync/async/explicit with ordered diagnostics; other providers/consistency boundaries remain open. |
 | Unknown mutation outcome | Existing recovery/cancellation suites; never infer permission for a second mutation from a timeout. |
-| Empty replica response | Preserve upstream primary-confirmation fix and controlled tests; native read consistency proof required. |
+| Empty replica response | Core8917a52 propagates failed primary confirmation and includes explicit loadbalance entry;12controls plus native primary-only Mongo witness/emptySQLite proof pass. Preferred-provider/explicit-failover scope remains next. |
 | Round-robin/performance/geography/cost | Native round-robin4reads alternate Mongo/SQLite after recovery; performance/geography/cost remain controlled-test evidence only. |
-| Avatar fault isolation | Audit faulted-provider eligibility and effect on other avatars. |
+| Avatar fault isolation | Controlled routing2/2 proves one-avatar refusal before storage IO, peer access unaffected and fault restoration. Native ACL/privacy certification is separate. |
 | Native provider breadth | Mongo/SQLite/Neo first; extend priority IPFS/Azure/AWS/Oracle/SOLID/ActivityPub only with proving evidence. |
 
 Replication restart/outage/order/budget proofs are separately scoped in
@@ -75,3 +75,35 @@ No production failover behavior was changed to satisfy these fixture corrections
 - `TestResults/OwnedRoutingCurrent/worker-offline-reconcile-routing.trx`: 1pass;SHA256 `E34759CA7183F7C195F3BE72DA5522257E9FD1193CF086D68CA827B501135731`.
 - `TestResults/OwnedRoutingCurrent/worker-offline-routing-initial-failure.trx`: 1setup failure;SHA256 `D0935BE65CF362957B713217717DE4A9691487AB991C64ECD837F6D39AA2D810`.
 - `TestResults/OwnedRoutingCurrent/worker-offline-routing-diagnostic-assertion-failure.trx`: 1assertion failure;SHA256 `806F8BBD509CEE405A4039E4822CEA142720ABDECFEE0A2267FC099F050E227B`.
+
+## Concurrent scoped execution and primary-absence correctness
+
+Two sync/async controlled cases use one registry and concurrent AsyncLocal avatar
+contexts. Request load-balancing preference overrides the avatar preference; that
+avatar's fault forces its scoped SQLite failover. A peer with failover disabled
+still reads Mongo. The faulted avatar makes no primary storage call; node flags,
+node lists and parent identity stay unchanged. This tests routing, not record ACLs.
+
+A separate reproduced defect ignored primary errors after an empty replica read,
+returning false successful absence. Explicit LoadBalanceRequestAsync skipped that
+confirmation entirely. Core8917a52 centralizes sync/async primary confirmation and
+preserves its actual failure. Default-provider, unpinned reads now return the
+primary's connection/denial/no-wrapper error; genuine primary absence still succeeds.
+Ten of12new cases failed before the fix; all12now pass. Existing primary-hit controls
+remain intact. Both Core targets build and4440Core tests pass overall.
+
+Native `-NativePrimaryConsistencyProof` creates a journaled Mongo-only witness with
+replication off. While Mongo's owned process is stopped, an empty SQLite replica
+cannot prove that record absent: all3public forms return an error. After same-data
+recovery they return the real witness from Mongo, while SQLite stays empty for that
+ID. Existing replication/order/restart checks also run. Native scenario1/1 passes
+in22seconds; exact target cleanup includes the witness's own ID/receipt operation.
+
+Scope still open: preferred-provider and explicit-failover absence semantics,
+other provider pairs, strategy eligibility and full consistency/placement policy.
+Do not infer all-provider or all-entry-point completion from this milestone.
+
+- `TestResults/OwnedRoutingCurrent/avatar-routing-execution.trx`: 2pass;SHA256 `164B3837723BEA573BF664B0A8598983358F7091750B04C4B1BE4D14CFCC407A`.
+- `TestResults/OwnedRoutingCurrent/primary-absence-red.trx`: 10failed/2passed beforefix;SHA256 `16DAFFBCE68986BAA693F05AA7FC941D6567A8D0AFB93A87F00B1620792913D6`.
+- `TestResults/OwnedRoutingCurrent/primary-absence-final.trx`: 4440pass;SHA256 `64E52D1446DA7A775A885E372D0EF6093CCF82AF4380F6ACFE784FF6C88D8205`.
+- `TestResults/OwnedRoutingCurrent/worker-offline-consistency.trx`: 1nativepass;SHA256 `E23DF6B123094B0014CE6398528F129BB113F76A0FB5A92467D18226E3993BD5`.

@@ -48,4 +48,60 @@ public sealed partial class HyperDriveProviderExecutionTests
         result.Result.Id.Should().Be(id);
         replica.Invocations.Count(call=>call.Method.Name is "LoadHolon" or "LoadHolonAsync").Should().Be(1);
     }
+    [Theory]
+    [InlineData("sync", "outage")]
+    [InlineData("async", "outage")]
+    [InlineData("load-balance", "outage")]
+    [InlineData("sync", "denied")]
+    [InlineData("async", "denied")]
+    [InlineData("load-balance", "denied")]
+    [InlineData("sync", "no-wrapper")]
+    [InlineData("async", "no-wrapper")]
+    [InlineData("load-balance", "no-wrapper")]
+    [InlineData("sync", "healthy-empty")]
+    [InlineData("async", "healthy-empty")]
+    [InlineData("load-balance", "healthy-empty")]
+    public async Task ReplicaAbsenceRequiresASuccessfulPrimaryConfirmation(string mode, string condition)
+    {
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var providers = new ProviderManager(null, dna) {
+            IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = true, IsAutoReplicationEnabled = false };
+        var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "confirmation-primary");
+        var replica = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "confirmation-replica");
+        var id = Guid.NewGuid();
+        Exception cause = condition == "outage" ? new IOException("primary connection unavailable")
+            : condition == "denied" ? new UnauthorizedAccessException("primary read denied") : null;
+        var expectedCode = condition == "outage" ? "CONTROLLED_PRIMARY_UNAVAILABLE"
+            : condition == "denied" ? "CONTROLLED_PRIMARY_DENIED" : "HYPERDRIVE_PROVIDER_NO_RESULT";
+        OASISResult<IHolon> confirmation = condition == "no-wrapper" ? null
+            : condition == "healthy-empty" ? new OASISResult<IHolon>()
+            : new OASISResult<IHolon> { IsError = true, ErrorCode = expectedCode, Message = cause.Message, Exception = cause };
+        primary.Setup(value => value.LoadHolon(id, true, true, 0, true, false, 0)).Returns(confirmation);
+        primary.Setup(value => value.LoadHolonAsync(id, true, true, 0, true, false, 0)).ReturnsAsync(confirmation);
+        replica.Setup(value => value.LoadHolon(id, true, true, 0, true, false, 0)).Returns(new OASISResult<IHolon>());
+        replica.Setup(value => value.LoadHolonAsync(id, true, true, 0, true, false, 0)).ReturnsAsync(new OASISResult<IHolon>());
+        foreach (var provider in new[] { primary, replica })
+        {
+            provider.Setup(value => value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+            provider.Setup(value => value.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+            providers.RegisterProvider(provider.Object).Should().BeTrue();
+        }
+        providers.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
+        providers.AddProvidersToAutoLoadBalanceList(new[] { ProviderType.SQLLiteDBOASIS });
+        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = id };
+        var router = new OASISHyperDrive(providers);
+
+        var result = mode == "sync" ? router.RouteRequest<IHolon>(request)
+            : mode == "async" ? await router.RouteRequestAsync<IHolon>(request)
+            : await router.LoadBalanceRequestAsync<IHolon>(request);
+
+        result.Result.Should().BeNull();
+        result.IsError.Should().Be(condition != "healthy-empty", "a replica miss cannot prove absence while its primary is unavailable or refuses the read");
+        if (condition != "healthy-empty") result.ErrorCode.Should().Be(expectedCode);
+        if (cause != null) result.Exception.GetBaseException().Should().BeSameAs(cause);
+        foreach (var provider in new[] { primary, replica })
+            provider.Invocations.Count(call => call.Method.Name is "LoadHolon" or "LoadHolonAsync").Should().Be(1);
+    }
+
 }
