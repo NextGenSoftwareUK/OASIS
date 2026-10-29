@@ -20,7 +20,15 @@ public partial class Neo4jNativeAvatarTests
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
         var work=Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_WORK")!);
         Assert.IsTrue(work.EndsWith(Path.Combine("TestResults","Neo4jCurrent"),StringComparison.OrdinalIgnoreCase));
-        var database=Path.Combine(work,"committed-replica-source.db");
+        var legacyDatabase=Path.Combine(work,"committed-replica-source.db");
+        Assert.IsFalse(File.Exists(legacyDatabase),"Preserve any original disposable-location fixture before reuse.");
+        var root=new DirectoryInfo(work);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1")))root=root.Parent;
+        Assert.IsNotNull(root);
+        var durable=Path.Combine(root.FullName,"LocalState/COSMIC/Neo4jCurrent");Directory.CreateDirectory(durable);
+        var database=Path.Combine(durable,"committed-replica-source.db");
+        var journal=Path.Combine(durable,"committed-replica-source.pending.json");
+        Assert.IsFalse(File.Exists(journal));Assert.IsFalse(File.Exists(journal+".next"));
         Assert.IsFalse(File.Exists(database),"A retained source fixture requires inspection, not reset.");
         var source=new SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={database};Pooling=False");
         var target=new Provider(uri,"neo4j","oasis-local-test-only"){IsVersionControlEnabled=history};
@@ -28,6 +36,20 @@ public partial class Neo4jNativeAvatarTests
         using var inspection=driver.AsyncSession();
         var ids=new HashSet<string>();var operations=new HashSet<string>();var actor=Guid.NewGuid();
         var sourceId="owned-sqlite-origin-"+Guid.NewGuid().ToString("N");var complete=false;
+        using var journalGate=new System.Threading.SemaphoreSlim(1,1);
+        async Task RecordIntent(string phase)
+        {
+            await journalGate.WaitAsync();
+            try
+            {
+                var next=journal+".next";
+                using(var file=new FileStream(next,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+                {await System.Text.Json.JsonSerializer.SerializeAsync(file,new{format=1,phase,database,actor,sourceId,ids=ids.ToArray(),operations=operations.ToArray()});file.Flush(true);}
+                File.Move(next,journal,true);
+            }
+            finally{journalGate.Release();}
+        }
+        await RecordIntent("planned");
         Holon New(string name){var row=new Holon{Id=Guid.NewGuid(),Name="owned replica "+name};ids.Add(row.Id.ToString());return row;}
         static Holon Clone(IHolon value){var row=OasisJson.Project<Holon>(value);row.Children=value.Children.Select(Clone).Cast<IHolon>().ToList();return row;}
         static IEnumerable<IHolon> Flatten(IHolon value){yield return value;foreach(var child in value.Children)foreach(var node in Flatten(child))yield return node;}
@@ -37,13 +59,17 @@ public partial class Neo4jNativeAvatarTests
             var nodes=children ? Flatten(value):new[]{value};
             var conditions=nodes.Select(row=>new HolonWriteCondition(row.Id,create ? null:CosmicConcurrency.GetProviderRevisionId(row,ProviderType.SQLLiteDBOASIS)));
             var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation,actor,ProviderType.SQLLiteDBOASIS,conditions),kind,new[]{value},saveChildren:children);
+            await RecordIntent("source-write-prepared");
             var result=synchronous ? source.ExecuteConditionalHolonWrite(request):await source.ExecuteConditionalHolonWriteAsync(request);
             Assert.IsFalse(result.IsError,result.Message+result.Exception);return(result.Result.Single(),operation);
         }
         CommittedHolonReplicaRequest Delivery((IHolon Record,Guid Operation) committed,ConditionalHolonOperation kind=ConditionalHolonOperation.Save,bool children=true,string? origin=null)
             =>new(committed.Operation,origin ?? sourceId,ProviderType.SQLLiteDBOASIS,actor,kind,new[]{committed.Record},saveChildren:children);
-        Task<OASISResult<IEnumerable<IHolon>>> ApplyOn(Provider receiver,CommittedHolonReplicaRequest request)
-            =>synchronous ? Task.Run(()=>receiver.ApplyCommittedHolonReplica(request)):receiver.ApplyCommittedHolonReplicaAsync(request);
+        async Task<OASISResult<IEnumerable<IHolon>>> ApplyOn(Provider receiver,CommittedHolonReplicaRequest request)
+        {
+            await RecordIntent("replica-write-prepared");
+            return synchronous ? await Task.Run(()=>receiver.ApplyCommittedHolonReplica(request)):await receiver.ApplyCommittedHolonReplicaAsync(request);
+        }
         Task<OASISResult<IEnumerable<IHolon>>> Apply(CommittedHolonReplicaRequest request)=>ApplyOn(target,request);
         async Task<string> Snapshot(Guid id)=>(await(await inspection.RunAsync("MATCH (h:Holon {Id:$id}) RETURN h.SnapshotJson AS json",new{id=id.ToString()})).SingleAsync())["json"].As<string>();
         async Task<long> Count(string query,object values)=>(await(await inspection.RunAsync(query,values)).SingleAsync())["count"].As<long>();
@@ -66,6 +92,8 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(initial.Record.Children.Single().VersionId,ack.Children.Single().VersionId);
             Assert.AreNotEqual(CosmicConcurrency.GetProviderRevisionId(initial.Record,ProviderType.SQLLiteDBOASIS),TargetToken(ack));
             Assert.AreEqual(initialSource,OasisJson.Serialize(initial.Record));
+            var headBinding=await target.CaptureStorageIdentityAsync();Assert.IsFalse(headBinding.IsError,headBinding.Message);
+            await VerifyNeoReplicaHeadAudit(target,headBinding.Result,inspection,ack,sourceId,false,!synchronous&&!history);
             var secondInput=Clone(initial.Record);secondInput.Name="owned replica second";secondInput.Children.Single().Name="owned replica child second";
             var second=await Commit(secondInput);
             var thirdInput=Clone(second.Record);thirdInput.Description="owned replica third";var third=await Commit(thirdInput);
@@ -96,6 +124,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(hardResult.IsError,hardResult.Message+hardResult.Exception);Assert.AreEqual(hard.Record.VersionId,hardResult.Result.Single().VersionId);
             Assert.AreEqual(0L,await Count("MATCH (h:Holon {Id:$id}) RETURN count(h) AS count",new{id=input.Id.ToString()}));
             Assert.AreEqual(1L,await Count("MATCH (h:CosmicReplicaHead {HolonId:$id,HardDeleted:true}) RETURN count(h) AS count",new{id=input.Id.ToString()}));
+            await VerifyNeoReplicaHeadAudit(target,headBinding.Result,inspection,hardResult.Result.Single(),sourceId,true,false);
             var hardReplay=await Apply(Delivery(hard,ConditionalHolonOperation.HardDelete,children:false));
             Assert.IsFalse(hardReplay.IsError,hardReplay.Message);Assert.AreEqual(TargetToken(hardResult.Result.Single()),TargetToken(hardReplay.Result.Single()));
             Assert.AreEqual(childBefore,await Snapshot(childId));
@@ -201,6 +230,7 @@ public partial class Neo4jNativeAvatarTests
             }
             await target.DeActivateProviderAsync();await source.DeActivateProviderAsync();
             if(complete)foreach(var path in new[]{database,database+"-wal",database+"-shm"})if(File.Exists(path))File.Delete(path);
+            if(complete)File.Delete(journal);
         }
     }
 }

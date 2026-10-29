@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jLifecycleTests
 {
+    private const int RequiredConstraintKinds = 8;
     public class DriverProbe : DispatchProxy
     {
         public int Verifications;
@@ -17,7 +18,7 @@ public class Neo4jLifecycleTests
         public Exception? VerifyFailure;
         public Exception? CloseFailure;
         public Exception? SchemaFailure;
-        public long ConstraintKinds = 7;
+        public long ConstraintKinds = RequiredConstraintKinds;
         public int SchemaRuns;
         public int SchemaCreates;
         public bool InstallAfterCreates;
@@ -74,7 +75,7 @@ public class Neo4jLifecycleTests
                 {
                     if(Owner.SchemaWriteFailure!=null)return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
                     Owner.SchemaCreates++;
-                    if(Owner.InstallAfterCreates && Owner.SchemaCreates==7)Owner.ConstraintKinds=7;
+                    if(Owner.InstallAfterCreates && Owner.SchemaCreates==RequiredConstraintKinds)Owner.ConstraintKinds=RequiredConstraintKinds;
                 }
 
                 var cursor=DispatchProxy.Create<IResultCursor,SchemaCursorProbe>();
@@ -216,7 +217,7 @@ public class Neo4jLifecycleTests
         owned.Probe.SchemaFailure=null;owned.Probe.ConstraintKinds=1;
         var incomplete=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
         Assert.IsTrue(incomplete.IsError);Assert.IsInstanceOfType(incomplete.Exception,typeof(InvalidDataException));Assert.IsFalse(provider.IsProviderActivated);
-        owned.Probe.ConstraintKinds=7;
+        owned.Probe.ConstraintKinds=RequiredConstraintKinds;
         var active=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
         Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(provider.IsProviderActivated);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
@@ -228,10 +229,22 @@ public class Neo4jLifecycleTests
         var owned=NewDriver();owned.Probe.ConstraintKinds=0;owned.Probe.InstallAfterCreates=true;
         var provider=new Provider("bolt://127.0.0.1:17687","owned","owned",()=>owned.Driver);
         var initial=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
-        Assert.IsFalse(initial.IsError,initial.Message);Assert.AreEqual(7,owned.Probe.SchemaCreates);
+        Assert.IsFalse(initial.IsError,initial.Message);Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
         owned.Probe.SchemaWriteFailure=new UnauthorizedAccessException("DDL privilege is not available after provisioning");
         var existing=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
-        Assert.IsFalse(existing.IsError,existing.Message);Assert.AreEqual(7,owned.Probe.SchemaCreates);
+        Assert.IsFalse(existing.IsError,existing.Message);Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task SevenPriorConstraintsCannotSatisfyTheDestinationCatalogueGate(bool synchronous)
+    {
+        var owned=NewDriver();owned.Probe.ConstraintKinds=7;
+        var provider=new Provider("bolt://127.0.0.1:17687","owned","owned",()=>owned.Driver);
+        var result=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsInstanceOfType<InvalidDataException>(result.Exception);
+        Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
+    }
+
 }

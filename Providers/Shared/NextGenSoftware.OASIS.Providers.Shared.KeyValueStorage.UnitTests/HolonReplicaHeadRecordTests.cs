@@ -17,6 +17,7 @@ public sealed class HolonReplicaHeadRecordTests
     [DataTestMethod]
     [DataRow(false, ProviderType.SQLLiteDBOASIS)] [DataRow(true, ProviderType.SQLLiteDBOASIS)]
     [DataRow(false, ProviderType.MongoDBOASIS)] [DataRow(true, ProviderType.MongoDBOASIS)]
+    [DataRow(false, ProviderType.Neo4jOASIS)] [DataRow(true, ProviderType.Neo4jOASIS)]
     public void ProtectedHeadRetainsLineageAndDeletionWithoutExposingTheGraph(bool deleted, ProviderType target)
     {
         var record = new Holon { Id = Guid.NewGuid(), Version = 2, VersionId = Guid.NewGuid(),
@@ -66,4 +67,20 @@ public sealed class HolonReplicaHeadRecordTests
         Assert.ThrowsException<ArgumentException>(() => new HolonReplicaHeadReadRequest(storage, Array.Empty<Guid>()));
         Assert.ThrowsException<ArgumentException>(() => new HolonReplicaHeadReadRequest(storage, new[] { Guid.Empty }));
     }
+    [TestMethod]
+    public void HeadAuditConsistencyIsExplicitAndStrictByDefault()
+    {
+        var storage = new CosmicStorageIdentity(ProviderType.Neo4jOASIS, new string('A',64), Guid.NewGuid());
+        var ids = new[] { Guid.NewGuid() };
+        Assert.AreEqual(HolonReplicaHeadReadConsistency.NativeSnapshot, new HolonReplicaHeadReadRequest(storage,ids).RequiredConsistency);
+        Assert.AreEqual(HolonReplicaHeadReadConsistency.ReadCommittedValidated,
+            new HolonReplicaHeadReadRequest(storage,ids,HolonReplicaHeadReadConsistency.ReadCommittedValidated).RequiredConsistency);
+        var rows = new[] { new HolonReplicaHeadObservation(ids[0],false,null) };
+        Assert.AreEqual(HolonReplicaHeadReadConsistency.NativeSnapshot,new HolonReplicaHeadReadResult(storage,rows).Consistency);
+        Assert.AreEqual(HolonReplicaHeadReadConsistency.ReadCommittedValidated,
+            new HolonReplicaHeadReadResult(storage,rows,HolonReplicaHeadReadConsistency.ReadCommittedValidated).Consistency);
+        Assert.ThrowsException<ArgumentOutOfRangeException>(()=>new HolonReplicaHeadReadRequest(storage,ids,(HolonReplicaHeadReadConsistency)99));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(()=>new HolonReplicaHeadReadResult(storage,rows,(HolonReplicaHeadReadConsistency)99));
+    }
+
 }

@@ -120,20 +120,10 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
                 if(current!=null || item.Version!=1 || item.PreviousVersionId!=Guid.Empty)conflicts.Add(item.Id);
                 previous.Add(item.Id,null);continue;
             }
-            var fields=head.Properties;
-            if(!fields.TryGetValue("SnapshotJson",out var json) || json is not string snapshot
-                || !fields.TryGetValue("SnapshotDigest",out var digest) || digest is not string checksum
-                || !fields.TryGetValue("SourceId",out var source) || source is not string sourceId
-                || !fields.TryGetValue("SourceAuthority",out var sourceAuthority) || sourceAuthority is not string sourceKind
-                || !fields.TryGetValue("HardDeleted",out var deleted) || deleted is not bool hardDeleted
-                || !fields.TryGetValue("ProviderRevisionId",out var token) || token is not string revisionText
-                || !Guid.TryParse(revisionText,out var revision) || revision==Guid.Empty)
-                throw new InvalidDataException("Committed replica head is incomplete or corrupt.");
-            if(checksum!=ReplicaHeadDigest(snapshot))throw new InvalidDataException("Committed replica head checksum is invalid.");
-            var stored=OasisJson.DeserializeStored<Holon>(snapshot);
-            if(stored==null || stored.Id!=item.Id || stored.VersionId==Guid.Empty || stored.Version<1
-                || CosmicConcurrency.GetProviderRevisionId(stored,ReplicaProviderType.Neo4jOASIS)!=revision)
-                throw new InvalidDataException("Committed replica head snapshot/revision is inconsistent.");
+            var validated=ReadProtectedReplicaHead(head,item.Id);
+            var stored=validated.Snapshot;var revision=validated.Evidence.ProviderRevisionId;
+            var sourceId=validated.Evidence.SourceId;var sourceKind=validated.Evidence.SourceAuthority.ToString();
+            var hardDeleted=validated.Evidence.HardDeleted;
             previous.Add(item.Id,current ?? stored);
             if(sourceId!=plan.SourceId || sourceKind!=plan.SourceAuthority.ToString()
                 || item.PreviousVersionId!=stored.VersionId || item.Version-1!=stored.Version
@@ -158,6 +148,16 @@ public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider
             plan.ValidateAcknowledgedRecord(record);
         }
         return submitted;
+    }
+
+    private static HolonReplicaHeadRecord ReadProtectedReplicaHead(Neo4j.Driver.INode head,Guid id)
+    {
+        string Text(string name)=>head.Properties.TryGetValue(name,out var value) && value is string text ? text
+            :throw new InvalidDataException("Committed replica head field is missing or invalid: "+name);
+        if(!head.Properties.TryGetValue("HardDeleted",out var deleted) || deleted is not bool hardDeleted)
+            throw new InvalidDataException("Committed replica deletion state is invalid.");
+        return HolonReplicaHeadRecord.Read(id,ReplicaProviderType.Neo4jOASIS,Text("SourceId"),Text("SourceAuthority"),
+            Text("SnapshotJson"),Text("SnapshotDigest"),Text("ProviderRevisionId"),hardDeleted);
     }
 
     private static async Task WriteCommittedReplicaHeadsAsync(IAsyncTransaction transaction,CommittedHolonReplicaPlan plan,IEnumerable<IHolon> records)

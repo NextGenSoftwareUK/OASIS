@@ -1,6 +1,6 @@
 # HyperDrive V2 lineage migration
 
-Status: migration execution remains red. The bounded source audit and SQLite/Mongo target-head readers are implemented;
+Status: migration execution remains red. The bounded source audit and SQLite/Mongo/Neo target-head readers are implemented (with explicit consistency);
 no automatic retarget, old-head relabel, state reset or historical payload rewrite.
 Legacy HyperDrive V1 is documentation-only and outside implementation scope.
 
@@ -62,7 +62,7 @@ endpoint configuration, claim tokens and exception text are excluded from rows.
 
 ## Remaining execution gates
 
-1. Neo native target-head reader, SQLite/Mongo hard-delete/concurrent-change audit
+1. SQLite/Mongo hard-delete and all-three concurrent-change audit
    acceptance, plus source receipt/history proof for exact graph lineage. The new
    SQLite exact-ID reader is a first verified target-evidence capability, not full
    source/target preflight or a receipt substitute.
@@ -203,3 +203,69 @@ production migration or permission to rewrite lineage.
 - `TestResults/OwnedRoutingCurrent/mongo-head-unit-admission-fake-failure.trx`: 7failed/620passed before test-double repair; SHA256 `89F9EFC2C7E2844DBC988B81A7CDF9CF4D4C26F921D63E7FE1112C1F3191931F`.
 
 - `TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle-failpoint-prerequisite-failure.trx`: 2failed before environment prerequisite repair; SHA256 `886A572513E6C1742E16E6FD4330913DAE10019F211636A004EB0202CC75683A`.
+
+## Neo head reader and explicit consistency
+
+Core `209d478` retains NativeSnapshot as the default request/response guarantee.
+A caller may explicitly opt into ReadCommittedValidated; results report their
+actual guarantee. Existing SQLite/Mongo constructors still return native snapshots.
+No provider may silently satisfy a strict request with a weaker observation.
+
+Neo's default read-committed isolation does not guarantee repeatable reads.
+[Official Neo4j concurrency documentation](https://neo4j.com/docs/operations-manual/current/database-internals/concurrent-data-access/).
+The new read-only Neo reader therefore rejects NativeSnapshot before native I/O.
+It does not acquire write locks or retry queries to simulate stronger isolation.
+
+```csharp
+// Choose this only when the operator workflow accepts read-committed evidence
+// and will revalidate exact revisions with conditional writes before cutover.
+var request = new HolonReplicaHeadReadRequest(
+    expectedNeoStore,
+    holonIds,
+    HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+
+var evidence = await neo.ReadHolonReplicaHeadsAsync(request, cancellationToken);
+if (evidence.IsError)
+    throw new InvalidOperationException(evidence.Message, evidence.Exception);
+
+Console.WriteLine(evidence.Result.Consistency);
+```
+
+Native database identity is verified in the same explicit read transaction before
+one exact-ID head/current-record query. Canonical snapshots, protected hashes,
+lineage/revisions and current-record presence are checked. Inconsistent observations,
+wrong store, duplicates or missing requested identities reject the entire result.
+A known observation retains cleanup errors as warnings; cancellation/failed reads
+do not become successful absence. Neo writes and audit reads share the same header
+validator as SQLite/Mongo. These observations are not an operator migration grant
+or a common snapshot spanning several stores.
+
+Verification: both Core targets build;4449Core/1343Shared/616Neo unit controls pass.
+The native6-case replica cohort passes in10seconds. Its4sync/history lifecycle cases
+now audit live and hard-deleted records, explicit missing IDs, strict refusal,
+read-committed labeling, physical-store mismatch and one corrupt-checksum/exact-CAS
+restoration. Existing graph lineage, rollback, versions and receipt/restart checks
+also pass. A stale seven-constraint test fixture caused56initial unit failures;
+it now models the actual8-constraint schema, with2controls proving7is insufficient.
+The production schema requirement was not relaxed.
+
+The native cohort's SQLite source and atomic pre-write intent journal now use
+`LocalState/COSMIC/Neo4jCurrent/committed-replica-source.db` and
+`committed-replica-source.pending.json`. Failed outcomes survive build-output
+cleanup. Successful tests remove only their owned graph records/receipts/history
+and source/journal after closing providers. The retained graph/sequence/runtime
+survives. No new runtime, restore or environment was introduced.
+
+Source-receipt proof, concurrent-change acceptance and guarded migration execution
+remain open. Neo's weaker explicitly chosen evidence must be accounted for there;
+these tests do not establish a native repeatable snapshot capability.
+
+- `TestResults/OwnedRoutingCurrent/neo-head-core.trx`: 4449passed; SHA256 `632E41802EC4855D429B800DA3DB3A6E5C01F2FF577E019DA9CD57C775018718`.
+
+- `TestResults/OwnedRoutingCurrent/neo-head-shared.trx`: 1343passed; SHA256 `BFF528A0D2E08A0DA9588E34295E6685BD0340333305C706F7635E589541DA7B`.
+
+- `TestResults/OwnedRoutingCurrent/neo-head-unit.trx`: 616passed; SHA256 `E64EC7FD373352D7682D2EBD2DBAA3371897BE366269DEC51EC2210B808A04DD`.
+
+- `TestResults/Neo4jCurrent/neo4j-cosmic-replica-current.trx`: 6passed; SHA256 `6E228B7265C7562CB198A9867B1D02E48322896A0BC2632E55473D01BA165414`.
+
+- `TestResults/OwnedRoutingCurrent/neo-head-unit-schema-fake-failure.trx`: 56failed/558passed before test-fixture correction; SHA256 `5CF94502613D745CC4A25A3EE7EAE3771CCD3EF3A03014ACEEAFB6D8E5FDA341`.
