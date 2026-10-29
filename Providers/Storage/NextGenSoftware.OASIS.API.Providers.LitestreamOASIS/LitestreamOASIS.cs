@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
     /// Constructor parameters:
     ///   databasePath — path to the SQLite database file managed by Litestream, e.g. "/data/oasis.db"
     /// </summary>
-    public class LitestreamOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class LitestreamOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
