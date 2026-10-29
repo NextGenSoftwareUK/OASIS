@@ -72,7 +72,7 @@ jobs:
             [IO.File]::WriteAllText((Resolve-Path 'Docker/oasis-dependency-versions.env'), $manifest, [Text.UTF8Encoding]::new($false))
           }
           git checkout -b $branch
-          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' 'Docker/oasis-dependency-versions.env' 'Docs/API' 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md' 'STAR ODK' 'WEB6'
+          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' 'Docker/oasis-dependency-versions.env' 'Docs/API' 'Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md' 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md' 'STAR ODK' 'WEB6'
           git commit -m "Prepare ${{ inputs.api }} API release"
           git push origin $branch
           $body = "Generated from reviewed release mode **${{ inputs.version_mode }}**. The diff contains only the selected API version, its Swagger-linked release history, and any required exact dependency pin."
@@ -122,6 +122,8 @@ jobs:
           New-Item artifacts -ItemType Directory -Force | Out-Null
           [IO.File]::WriteAllText((Join-Path (Resolve-Path artifacts) 'api-release-notes.md'), $entry + "`n", [Text.UTF8Encoding]::new($false))
           "version=$version" >> $env:GITHUB_OUTPUT; "project=$($item[1])" >> $env:GITHUB_OUTPUT; "history=$($item[2])" >> $env:GITHUB_OUTPUT
+      - name: Verify WEB4-WEB10 API versions are in sync
+        run: python Scripts/api_version_sync.py --check
       - name: Build selected API
         run: dotnet publish '${{ steps.release.outputs.project }}' -c Release --nologo
       - name: Create API release

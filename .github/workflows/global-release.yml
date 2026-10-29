@@ -138,6 +138,8 @@ jobs:
           python -B Scripts/test_release_dependency_freshness.py
           python -B Scripts/validate_release_dependency_freshness.py
           python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - name: Verify WEB4-WEB10 API versions are in sync
+        run: python -B Scripts/api_version_sync.py --check
       - name: Verify NuGet version-selection invariants
         shell: pwsh
         run: ./Scripts/Test-NuGetVersionSelection.ps1

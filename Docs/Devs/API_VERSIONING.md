@@ -40,3 +40,16 @@ Lists every place that disagrees and exits non-zero. It runs in CI (`.github/wor
 `api_version_sync.py --sync`, so the runtime, docs sentence and (if present) OPORTAL-JS follow automatically. A runtime release in the same run
 takes the new WEB4 version as its tag. The release does **not** open a pull request in OPORTAL-JS; run the same command locally in a checkout
 that has `../OPORTAL-JS`, or run `--sync` there afterwards, and commit it. WEB7-WEB10 are outside the automation: bump them with `--apply`.
+
+## Automation map
+
+| Event | What runs |
+|---|---|
+| Any pull request or push to Development/master | `api-version-sync.yml`: `--check` (OASIS-side places) |
+| Global release plan (`global-release.yml`) | `--check` before planning |
+| WEB4/5/6 release preview (`reusable-api-release.yml`) | `Invoke-OASISGlobalRelease.ps1` writes the constant + history, runs `--sync`; the preparation PR includes the runtime tie and the docs sentence |
+| WEB4/5/6 publish | `--check` before building and tagging |
+| Push to Development/master changing a constant or history | `api-version-oportal-sync.yml`: checks out OPORTAL-JS `dev`, runs `--sync`, commits and pushes the Postman rename/title and portal links, then `--check` (needs `PRIVATE_SUBMODULE_PAT` with write access to OPORTAL-JS) |
+| WEB7-WEB10 bump | run **Bump WEB7-WEB10 API version** (`bump-api-version.yml`): sets the constant and history, pushes to Development, which triggers the OPORTAL-JS sync above |
+
+OPORTAL-JS `dev` is the branch the sync writes; promote `dev` to `main` there as usual.
