@@ -7,6 +7,37 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace CosmicNativeAcceptance;
 
+public static class CosmicReplicaReceiptProbe
+{
+    public static async Task<string> ObserveAsync(ICommittedHolonReplicaReceiptStorageProvider receiver,
+        CommittedHolonReplicaRequest original, CosmicStorageIdentity binding, ConditionalHolonReceiptState state,
+        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+    {
+        if (consistency == HolonReplicaHeadReadConsistency.ReadCommittedValidated)
+        {
+            var strict = await receiver.ReadCommittedHolonReplicaReceiptAsync(new(original, binding));
+            if (!strict.IsError || strict.ErrorCode != "COSMIC_REPLICA_RECEIPT_CONSISTENCY_UNSUPPORTED")
+                throw new InvalidOperationException("Neo must reject strict historical receipt reads without touching state.");
+        }
+        var observed = await receiver.ReadCommittedHolonReplicaReceiptAsync(new(original, binding, consistency));
+        if (observed.IsError || observed.Result == null) throw new InvalidOperationException(observed.Message, observed.Exception);
+        var receipt = observed.Result;
+        if (receipt.OperationId != original.OperationId || receipt.ActorId != original.ActorId || receipt.SourceId != original.SourceId
+            || receipt.SourceAuthority != original.SourceAuthority || receipt.TargetStorageFingerprint != binding.BindingFingerprint
+            || receipt.ReceiptState != state || receipt.Consistency != consistency || receipt.SelectedRecordCount < 1
+            || observed.IsSaved || observed.IsDeleted)
+            throw new InvalidOperationException("Historical receipt observation differs from its exact intent or state.");
+        var wrong = new CosmicStorageIdentity(binding.Authority, binding.EndpointFingerprint, Guid.NewGuid());
+        var rejected = await receiver.ReadCommittedHolonReplicaReceiptAsync(new(original, wrong, consistency));
+        if (!rejected.IsError || rejected.Result != null || rejected.ErrorCode != "COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH")
+            throw new InvalidOperationException("Historical receipt read accepted another physical receiver.");
+        using var cancel = new CancellationTokenSource(); cancel.Cancel();
+        try { await receiver.ReadCommittedHolonReplicaReceiptAsync(new(original, binding, consistency), cancel.Token); }
+        catch (OperationCanceledException) { return receipt.AcknowledgementDigest; }
+        throw new InvalidOperationException("Cancelled historical receipt read accessed native state.");
+    }
+}
+
 public static class CosmicOperationInventoryProbe
 {
     public static async Task VerifyAsync(IHolonReplicationRouteInventoryOutbox outbox, CosmicStorageIdentity source,

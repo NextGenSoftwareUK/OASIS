@@ -5,6 +5,10 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Current migration checkpoint
 
+Historical receiver readers now implemented on all three native databases. Latest
+Mongo2/Neo replica-group6 pass; SQLite2/Shared1462 proofs retained. Exact preview
+integration, payload/source proof and native migration execution remain open.
+
 Historical replica-receipt capability/shared projection added. SQLite native receiver
 passes2cases, including retained delivery proof after current-body divergence;
 Shared1462/1462 pass. Mongo/Neo receivers, preview integration and native migration
