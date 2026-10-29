@@ -365,3 +365,29 @@ not certify the nine-provider programme or migration tooling.
 | `TestResults/OwnedRoutingCurrent/mongo-destination-catalogue.trx` | 6 | `1F0B92CAD8B7D85422BD8B42BD976591E3E85BE4D338EC60549E10200F4E98A4` |
 | `TestResults/OwnedRoutingCurrent/sqlite-first-approval.trx` | 6 | `A4AE825621D17FDD038CA5BB2871D0F3FE84E9107CEADEBDDECAD78F54A5A3CA` |
 | `TestResults/Neo4jCurrent/neo4j-destination-catalogue-current.trx` | 2 | `03FBF3CDDB9D49C35425469F045191C5892721CCBB60A5AF84E49D477BC2865E` |
+
+## Native configured retry-budget exhaustion
+
+`Run-CosmicBoundSourceWorkerTests.ps1 -ExhaustDeliveryBudget` reuses the actual
+Mongo process-outage fixture and live native receiver. The public native dispatcher
+is configured with maximumAttempts1 and the production committed-owner policy.
+Its first real connection failure records ReconciliationRequired/attempt1 with
+`COSMIC_REPLICA_WRITE_FAILED`, the attempt-limit message and recovery evidence.
+RequiresNativeReconciliation remains false: known pre-commit budget exhaustion is
+distinct from an ambiguous native commit. The later obligation remains Pending/0.
+
+After same-data Mongo restart and physical fingerprint verification, two shipping
+worker passes leave that terminal head, cause/message and attempt count unchanged.
+Neither record is delivered. Both source records remain version1/owned by the
+original actor; exact two source receipt IDs remain, target receipts stay0.
+This proves exhaustion cannot silently resume or let later writes overtake it.
+Exact test-owned cleanup is separate from operator permission to reset real work.
+
+Native case1/1 passes in10seconds. This certifies the explicitly configured
+one-attempt public dispatcher budget plus shipping-worker respect for its terminal
+state; it does not run the default ten-attempt backoff schedule. Other provider
+pairs, audited operator/V2 lineage repair, failover and load balancing remain open.
+No production retry-policy change was needed. A fixture local-name compiler error
+was corrected before any service/data admission.
+
+Evidence: `TestResults/OwnedRoutingCurrent/worker-offline-exhaust.trx`;1passed/0failed/0skipped;SHA256 `A3285DB69F67A86BCA0A26034548B1D4EE4694AAC4AD3CA90298E293737DF39A`.
