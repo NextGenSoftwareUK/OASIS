@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -24,6 +25,7 @@ public sealed class HolonMigrationMutationPreparation
     public HolonReplicaHeadReadConsistency ApprovedReplacementConsistency { get; }
     public string DeliveryReviewJson { get; }
     public string ReplacementReviewJson { get; }
+    public IReadOnlyList<HolonMigrationReplacementRecord> ReplacementRecords { get; }
     public string CanonicalJson { get; }
     public string Fingerprint { get; }
 
@@ -86,6 +88,7 @@ public sealed class HolonMigrationMutationPreparation
         ApprovedReplacementConsistency = approvedReplacementConsistency;
         DeliveryReviewJson = JsonSerializer.Serialize(delivery);
         ReplacementReviewJson = JsonSerializer.Serialize(replacement);
+        ReplacementRecords = Array.AsReadOnly(replacement.Records.ToArray());
         CanonicalJson = JsonSerializer.Serialize(new {
             format = "cosmic-migration-mutation-preparation-v1", PlanFingerprint,
             AuthorizationContextDigest, DeliveryObservationDigest,

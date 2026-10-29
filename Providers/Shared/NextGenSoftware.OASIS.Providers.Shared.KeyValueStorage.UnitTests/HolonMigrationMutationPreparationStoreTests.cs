@@ -30,6 +30,7 @@ public class HolonMigrationMutationPreparationStoreTests
     public async Task RecreationLoadsExactEvidenceAndNeverReplacesOriginal()
     {
         var (plan, preparation) = await HolonMigrationMutationAuthorizationTests.PrepareWithPlan();
+        Assert.ThrowsException<ArgumentException>(() => new HolonMigrationReplicaAdoptionPlan(plan, preparation));
         var store = new FileHolonMigrationMutationPreparationStore(folder);
         var saved = await store.SaveAsync(preparation, plan, preparation.Fingerprint);
         Assert.IsFalse(saved.IsError, saved.Message + saved.Exception); Assert.IsTrue(saved.IsSaved);
