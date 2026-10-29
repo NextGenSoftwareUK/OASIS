@@ -107,3 +107,22 @@ Do not infer all-provider or all-entry-point completion from this milestone.
 - `TestResults/OwnedRoutingCurrent/primary-absence-red.trx`: 10failed/2passed beforefix;SHA256 `16DAFFBCE68986BAA693F05AA7FC941D6567A8D0AFB93A87F00B1620792913D6`.
 - `TestResults/OwnedRoutingCurrent/primary-absence-final.trx`: 4440pass;SHA256 `64E52D1446DA7A775A885E372D0EF6093CCF82AF4380F6ACFE784FF6C88D8205`.
 - `TestResults/OwnedRoutingCurrent/worker-offline-consistency.trx`: 1nativepass;SHA256 `E23DF6B123094B0014CE6398528F129BB113F76A0FB5A92467D18226E3993BD5`.
+
+## Preferred authority and explicit failover outcome ownership
+
+Core `ed83223` chooses request preference before node default for read authority.
+An empty alternate cannot erase an authority failure already observed in the same
+request. Sync, async and explicit failover retain the original code/cause and mark
+the public diagnostic unsuccessful with the authority selected. Known outcomes are
+reused without a duplicate authority read; an additional confirmation, when needed,
+is recorded as an actual diagnostic attempt. Healthy authority absence stays terminal.
+
+Nine new controlled cases: six failed before the fix, all nine pass afterward.
+Both Core targets build; full Core suite passes 4449/4449. Native preferred-provider
+coverage is still next; this does not certify all provider pairs or policy strategies.
+
+- `TestResults/OwnedRoutingCurrent/preferred-absence-red.trx`: 6 failed / 3 passed; SHA256 `9ACE5271A8C40B8B51688117507DA05E1E26B2F3032AF3F021DD190BD3B6E030`.
+
+- `TestResults/OwnedRoutingCurrent/preferred-absence-green.trx`: 9 passed; SHA256 `BE15BFC9BE595F5D96EAE6F43F511DB9370D6AFB1DF0AAC426191AA082502821`.
+
+- `TestResults/OwnedRoutingCurrent/preferred-absence-full.trx`: 4449 passed; SHA256 `1A4A6641483613F74F6BB5FF4071FDC950C26781273AE5C9F5C97DF8DA0C8ADA`.
