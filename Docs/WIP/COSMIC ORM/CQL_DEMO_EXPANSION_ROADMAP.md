@@ -1,5 +1,27 @@
 # Priority-provider CQL demo expansion
 
+
+## Latest MVP breadth-first priority — 29 October
+
+Finish AWS first, then Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain,
+Polkadot and NEAR, in that order. Cosmos blockchain is tracked separately from
+Azure Cosmos DB; Google means the suitable existing Google provider after inspection.
+Then add other popular providers where an existing implementation can support a real MVP.
+
+For each provider: one small native filtered query over several records, one
+Mongo-paired federated preset, readable C# examples, HTTP/browser integration and
+focused proving tests. Clearly expose supported filters and consistency, source/work
+bounds, test-network/emulator/hosted identity, and unsupported operations. Native
+indexed key-set selection is an acceptable explicitly labelled MVP; a full-store
+managed scan/filter or silently redirected query is not. Prove the smallest useful
+complete demo, then move on; defer advanced operators, parity depth and deeper
+migration/cutover work. Reuse environments and free test infrastructure; do not
+provision paid services. Hosted Azure remains pending by the user's instruction.
+
+Existing SQLite/Mongo/Neo/Oracle/IPFS/SOLID/ActivityPub/Solana and Cosmos-emulator
+proofs remain scoped to their recorded tests. Do not present the new queue as
+implemented, or local/free test services as hosted production acceptance.
+
 ## Active user priority — 28 October2026
 
 HyperDrive V2 correctness comes first; then ORM/CQL acceptance for MongoDB,
