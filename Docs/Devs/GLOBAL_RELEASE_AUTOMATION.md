@@ -65,7 +65,7 @@ All three Swagger histories are ordered chronologically by semantic version, wit
 
 WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation checks that their API versions did not move.
 
-Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.2.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
+Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.3.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
 
 ## Individual releases, version modes and preview
 
