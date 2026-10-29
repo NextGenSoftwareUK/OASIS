@@ -1,7 +1,7 @@
 # GitHub Actions audit and catalog (29 Oct 2026)
 
 Source: every file in `.github/workflows/` on `Development` (40 files), their triggers, inputs and jobs, plus recent run history from `gh`.
-This is an audit, not a change: nothing has been deleted. Section 5 is the proposed clean-up and needs your decision.
+Status: the 3 per-API release buttons, `reusable-api-release`, the Azure deploy and the Pages deploy were deleted (decided with the owner: the WEB4-WEB10 APIs are Railway-hosted Swagger services with no GitHub releases, so those flows were obsolete). Everything else in section 5 is still proposed.
 
 ## 1. Why the "API" option is missing from the Run workflow form
 
@@ -55,7 +55,6 @@ Each of these is 46 lines with options `operation` (Preview or Publish), `versio
 | Release — ONODE Manager `release-onode-manager-entry.yml` | optional component `onode_manager` |
 | Release — OGEngineClient (+ cross-platform profiles job) | `ogengine_client`, then calls `build-ogengine-profiles.yml` |
 | Release — OASIS Edge Runtime `release-edge-runtime.yml` (166 lines, 7 options) | `edge_runtime`, plus artifact-only republish and Standalone/Unity choice |
-| **Release — WEB4 / WEB5 / WEB6 API** `release-web4/5/6-api.yml` | **Not the global release.** Calls `reusable-api-release.yml`: Preview opens a release-preparation PR, Publish builds merged `master` and creates the API GitHub release. Has its own `release_notes` option |
 
 ### 3.3 Global OASIS Release `global-release.yml` (742 lines, 20 options, 16 jobs)
 
@@ -104,9 +103,6 @@ Button only. Jobs: plan, nuget, nuget-publish, edge-runtime-validation, edge-run
 | Build WEB4 image `build-web4-image.yml` | button | Builds and pushes the WEB4 Docker image | Keep, if Railway uses the image |
 | Publish — ONODE Manager Binaries `release-onode-manager.yml` (339 lines) | push (filter not summarised), button | Tests, builds Windows, macOS, Linux installers, creates release | Keep, check the push filter |
 | Build and publish standalone Edge Runtime, Build OGEngineClient profiles | callable only | Helpers that Global release calls | Keep (hidden from the form) |
-| Reusable API Release | callable only | Helper behind the three WEB4/5/6 API buttons | See section 5 |
-| Deploy OASIS Web4 Site `deploy-oasisweb4.yml` | push to `max-build`, button | Publishes the site to GitHub Pages | Verify whether still used |
-| Build and deploy … OASISAPIONODE `master_oasisapionode.yml` | push master, button | Azure Web App deploy | Azure; Railway is the current host, verify and likely retire |
 
 ## 4. Recent activity (last 200 runs, `gh`)
 
@@ -117,11 +113,11 @@ Not seen in the last 200 runs (not proof they are unused, GitHub only returned r
 
 Nothing here has been done. Order is by how much confusion it removes.
 
-1. **One API release path.** Today two flows exist: the per-API buttons (`release-web4/5/6-api` + `reusable-api-release`: prep PR, then publish from `master`) and `advance_api_versions` in Global release. I have not verified that Global release creates the API GitHub releases, so I cannot yet say the buttons are redundant. Decision needed: make Global release the only path (delete 3 buttons and the reusable file), or keep the buttons and drop `advance_api_versions`.
+1. **One API release path: done.** Global release (`advance_api_versions`) is the only way API versions change. The per-API buttons only opened a prep PR and created a GitHub release that was never used; the APIs deploy from Railway.
 2. **Delete the 11 thin "Release — X" buttons** (OASIS Runtime, STAR, MCP, Native Endpoint, HyperDrive Client, ODOOM, OQUAKE, OIDE, Our World, ONODE Manager entry, OGEngineClient). Global release already has a checkbox for each. That removes 11 of the entries in the left list. Edge Runtime's button has extra options (artifact-only republish), so keep it or move those options into Global release.
 3. **Trim Global release from 20 options to about 12:** drop `nuget_plan_only`, `ogengine_remote_only`, `ogengine_edge`, `star_existing_version`; move `excluded_nuget_ids` and `expected_excluded_nuget_count` to the recovery workflow; replace the `optional_components` text box with checkboxes or a dropdown.
 4. **Retire the old NuGet publishers:** `publish-nuget` (stale), `repair-nuget-initial-versions` (one-off), and fold `publish-oasis-packages` into Global release. Keep HoloNET and the review tool until they are replaced.
-5. **Retire Azure and Pages deploys** if unused: `master_oasisapionode`, `deploy-oasisweb4`.
+5. **Azure and Pages deploys: done** (deleted).
 6. **Hide helpers** from the left list by keeping them callable-only (already true for Edge standalone, OGEngine profiles).
 7. Merge `onet-onode-tests` into `ci-cd` if the duplication is confirmed.
 
