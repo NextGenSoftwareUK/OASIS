@@ -25,6 +25,7 @@ param(
     [string]$ManualVersion = '',
     [bool]$AllowBlockedPlan = $true,
     [bool]$AdvanceWeb4ToWeb6ApiVersions = $false,
+    [bool]$AdvanceWeb7ToWeb10ApiVersions = $false,
     [bool]$AdvanceWeb4ApiVersion = $false,
     [bool]$AdvanceWeb5ApiVersion = $false,
     [bool]$AdvanceWeb6ApiVersion = $false,
@@ -427,6 +428,7 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     if ($all -or $AdvanceWeb4ApiVersion) { $updates.OASISAPIVersion = Get-RequestedVersion $Versions.OASISAPIVersion @('ONODE','OASIS Architecture','Providers','ONET','Edge') @('WEB4-v','OASIS-Runtime-v') }
     if ($all -or $AdvanceWeb5ApiVersion) { $updates.STARAPIVersion = Get-RequestedVersion $Versions.STARAPIVersion @('.') @('WEB5-v','STAR-ODK-Runtime-v') (Join-Path $repoRoot 'STAR ODK') }
     if ($all -or $AdvanceWeb6ApiVersion) { $updates.WEB6APIVersion = Get-RequestedVersion $Versions.WEB6APIVersion @('.') @('WEB6-v','mcp-v') (Join-Path $repoRoot 'WEB6') }
+    foreach ($n in 7..10) { if ($AdvanceWeb7ToWeb10ApiVersions) { $updates["WEB${n}APIVersion"] = Get-RequestedVersion $Versions["WEB${n}APIVersion"] @("WEB$n") @("WEB$n-v") } }
     foreach ($entry in $updates.GetEnumerator()) {
         $pattern = "(?m)(public static string $($entry.Key) \{ get; set; \} = `")\d+\.\d+\.\d+(`";)"
         $content = [regex]::Replace($content, $pattern, "`${1}$($entry.Value)`${2}", 1)
@@ -437,7 +439,11 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
     $histories = @(
         @{ Key='OASISAPIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS API RELEASE HISTORY.md'; Name = 'WEB4 OASIS API'; Intro = 'WEB4 is the OASIS identity, data, provider, NFT, GeoNFT, inventory, ONET and HyperDrive API.'; Prefixes = @('WEB4-v','OASIS-Runtime-v', 'OASIS-Runtime-'); Paths = @('ONODE', 'OASIS Architecture', 'Providers', 'ONET', 'Edge') },
         @{ Key='STARAPIVersion'; GitRoot=(Join-Path $repoRoot 'STAR ODK'); Repository='NextGenSoftwareUK/STAR-ODK'; Path = 'STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI\STAR API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB5-STAR-API-RELEASE-HISTORY.md'; Name = 'WEB5 STAR API'; Intro = 'WEB5 is the STAR gamification and metaverse API for OAPPs, quests, missions, GeoHotSpots, games and STARNET content.'; Prefixes = @('WEB5-v','STAR-ODK-Runtime-v', 'STAR-ODK-Runtime-'); Paths = @('.') },
-        @{ Key='WEB6APIVersion'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB6-AI-API-RELEASE-HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') }
+        @{ Key='WEB6APIVersion'; GitRoot=(Join-Path $repoRoot 'WEB6'); Repository='NextGenSoftwareUK/OASIS-WEB6'; Path = 'WEB6\NextGenSoftware.OASIS.Web6.WebAPI\WEB6 API RELEASE HISTORY.md'; PublicPath = 'Docs\API\WEB6-AI-API-RELEASE-HISTORY.md'; Name = 'WEB6 OASIS AI API'; Intro = 'WEB6 is the unified OASIS AI, agent, orchestration, memory, MCP and model-provider API.'; Prefixes = @('WEB6-v','mcp-v'); Paths = @('.') },
+        @{ Key='WEB7APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB7\NextGenSoftware.OASIS.Web7.WebAPI\WEB7 API RELEASE HISTORY.md'; Name = 'WEB7 OASIS Symbiotic Layer API'; Intro = 'WEB7 is the OASIS Symbiotic Layer API.'; Prefixes = @('WEB7-v'); Paths = @('WEB7') },
+        @{ Key='WEB8APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB8\NextGenSoftware.OASIS.Web8.WebAPI\WEB8 API RELEASE HISTORY.md'; Name = 'WEB8 OASIS IGN API'; Intro = 'WEB8 is the OASIS IGN API.'; Prefixes = @('WEB8-v'); Paths = @('WEB8') },
+        @{ Key='WEB9APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB9\NextGenSoftware.OASIS.Web9.WebAPI\WEB9 API RELEASE HISTORY.md'; Name = 'WEB9 OASIS Singularity API'; Intro = 'WEB9 is the OASIS Singularity API.'; Prefixes = @('WEB9-v'); Paths = @('WEB9') },
+        @{ Key='WEB10APIVersion'; GitRoot=$repoRoot; Repository='NextGenSoftwareUK/OASIS'; Path = 'WEB10\NextGenSoftware.OASIS.Web10.WebAPI\WEB10 API RELEASE HISTORY.md'; Name = 'WEB10 The Source API'; Intro = 'WEB10 is The Source API.'; Prefixes = @('WEB10-v'); Paths = @('WEB10') }
     )
     foreach ($history in $histories) {
         if (-not $updates.Contains($history.Key)) { continue }
@@ -482,12 +488,12 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $bootVersions = Get-BootLoaderVersions
 $webVersions = $null
-if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5ApiVersion -or $AdvanceWeb6ApiVersion) {
+if ($AdvanceWeb7ToWeb10ApiVersions -or $AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5ApiVersion -or $AdvanceWeb6ApiVersion) {
     $webVersions = Set-Web4ToWeb6VersionsAndHistory $bootVersions
     & python (Join-Path $PSScriptRoot 'api_version_sync.py') --sync
-    if ($LASTEXITCODE -ne 0) { throw 'API version sync failed; see Docs/Devs/API_VERSIONING.md.' }
+    if ($LASTEXITCODE -ne 0) { throw 'API version sync failed; see Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md.' }
     $unchanged = Get-BootLoaderVersions
-    foreach ($name in @('WEB7APIVersion', 'WEB8APIVersion', 'WEB9APIVersion', 'WEB10APIVersion')) {
+    foreach ($name in @('WEB7APIVersion', 'WEB8APIVersion', 'WEB9APIVersion', 'WEB10APIVersion').Where({ -not $AdvanceWeb7ToWeb10ApiVersions })) {
         if ($unchanged[$name] -ne $bootVersions[$name]) { throw "$name changed, but global release automation may only advance WEB4-WEB6." }
     }
 }
@@ -593,6 +599,7 @@ $components = [ordered]@{
     onodeManager = $ONODEManager
     hyperDriveClient = $HyperDriveClient
     advanceWeb4ToWeb6ApiVersions = $AdvanceWeb4ToWeb6ApiVersions
+    advanceWeb7ToWeb10ApiVersions = $AdvanceWeb7ToWeb10ApiVersions
     advanceWeb4ApiVersion = $AdvanceWeb4ApiVersion
     advanceWeb5ApiVersion = $AdvanceWeb5ApiVersion
     advanceWeb6ApiVersion = $AdvanceWeb6ApiVersion
