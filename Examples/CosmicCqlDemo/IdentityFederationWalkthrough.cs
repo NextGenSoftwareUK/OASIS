@@ -73,6 +73,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.EthereumOASIS => "Ethereum",
         ProviderType.PolygonOASIS => "Polygon",
         ProviderType.ArbitrumOASIS => "Arbitrum",
+        ProviderType.GoogleCloudOASIS => "Google Firestore",
         _ => provider.QueryProviderType.ToString()
     };
 

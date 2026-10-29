@@ -378,3 +378,7 @@ routing has not yet adopted it. [Proof and remaining scope](PRIMARY_SOURCE_BINDI
 The shared Web3Core base implements ICosmicQueryStorageProvider; the admitted authorities are Polygon and Arbitrum V2. The compiler selects a finite catalogue-intersected native key set, then shipping lookupHolon/decoder executes at one observed block number. The concrete Polygon wrapper retains provider/chain/contract encryption binding. Ethereum and Polygon paired acceptance use one parameterized fixture and the same HolonManager federation walkthrough/HTTP host. Unsupported shapes reject before native I/O. [Scope and evidence](POLYGON_CQL_MVP.md).
 
 Arbitrum acceptance links the shipping EvmProviderFactory and asserts the V2 Web3Core result; the legacy custom adapter remains unchanged. The same compiler/decoder/teaching host serve both authorities with exact per-provider access/context binding. [Scope](ARBITRUM_CQL_MVP.md).
+
+### Firestore native-key adapter
+
+FirestoreCqlCompiler intersects captured ID algebra with the exact trusted Google catalogue. GoogleCloud.Cql.cs fetches only selected native document references using GetAllSnapshotsAsync, validates ordered complete acknowledgements, reuses shipping DecodeHolon and publishes only a complete admitted page. The teaching host reuses HolonManager federation. A hash-bound immutable native emulator checkpoint preserves one seed across runs under LocalState. [Scope](FIRESTORE_CQL_MVP.md).

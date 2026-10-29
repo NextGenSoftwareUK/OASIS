@@ -1079,3 +1079,13 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated
 Open http://127.0.0.1:5099/. Show **Query all records** (Arbitrum3 + Mongo2), then **Query two-record subset** (2+2); copies keep both source labels. BootLoader's shipping V2 factory selects ArbitrumOASIS_Web3Core. The concrete adapter uses its retained encrypted contract records on local EVM chain31338; this does not demonstrate hosted Arbitrum or rollup finality.
 
 The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures ID membership, intersects each server-owned catalogue, plans explicit provider scope and calls `HolonManager.ExecuteFederationQueryAsync`. HTTP calls that walkthrough too. Unsupported metadata/order/graph shapes fail before RPC. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. [Detailed scope](../../Docs/WIP/COSMIC%20ORM/ARBITRUM_CQL_MVP.md).
+
+## Google Firestore + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated
+```
+
+Open http://127.0.0.1:5100/. Show **Query all records** (Firestore3 + Mongo2), then **Query two-record subset** (2+2). Copies retain both provider labels. This uses the retained local Firestore emulator and native document-key batch reads, not hosted Google Cloud.
+
+The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures `source.Where(row => selectedIds.Contains(row.Id))`, intersects server-owned catalogues and executes through `HolonManager.ExecuteFederationQueryAsync`. HTTP uses that exact walkthrough. Unsupported metadata/order/graph expressions reject before native execution. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. Stop the demo to remove its verified temporary Mongo fixture; Firestore's original seed/checkpoint remain intact. [Scope](../../Docs/WIP/COSMIC%20ORM/FIRESTORE_CQL_MVP.md).

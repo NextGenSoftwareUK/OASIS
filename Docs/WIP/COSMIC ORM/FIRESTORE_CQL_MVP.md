@@ -1,6 +1,6 @@
 # Google Firestore CQL MVP
 
-Updated 29 October 2026. Stage: adapter build + initial controls verified. Native/paired investor demo is not ready.
+Updated 29 October 2026. Stage: local native + Mongo-paired C#/HTTP/browser MVP verified. Hosted Google and full parity remain unverified.
 
 ## Current implementation and evidence
 
@@ -12,10 +12,7 @@ Updated 29 October 2026. Stage: adapter build + initial controls verified. Nativ
 
 ## Exact next step
 
-1. Reuse cached official Firestore emulator1.22.0 JAR and Java21.0.12.101. Old worktree durability checkpoint is missing; do not replay its original journal or touch another checkout's historical state.
-2. Create one fixed owned CQL fixture/project, proposed loopback18084/18085/18086, with persistent manifest/checkpoint/journals under `LocalState/COSMIC/FirestoreCql`. Inventory before allocation. Preserve original uncertain outcomes and export/checkpoint state before any teardown; never reseed a pending original.
-3. Verify three native records and a two-record filtered query, missing/deleted/error semantics, no query writes and original seed reuse. Then Mongo-paired5/4 C#/HTTP/browser with provenance, fail-whole-query and exact fixture cleanup through the existing generic teaching flow.
-4. Enrol the launcher only with verified scope. Then Cosmos blockchain, Polkadot and NEAR MVPs before deeper parity. Hosted Azure stays pending by user instruction.
+Continue Cosmos blockchain, Polkadot and NEAR MVPs before deeper parity. Hosted Azure stays pending by user instruction. Broader content/order/graph/RPC-failure parity remains open.
 
 ## Reproduce initial controls
 
@@ -26,3 +23,26 @@ The consumer initially stopped at missing restored assets (NETSDK1004), before s
 No hosted Google, arbitrary metadata/order/graph, distributed snapshot or full parity claim. Unsupported shapes remain explicit errors.
 
 [Current status](CURRENT_STATUS.md) / [breadth roadmap](CQL_DEMO_EXPANSION_ROADMAP.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Native proof and retained state
+
+Native acceptance1/1 passes: three native records, filtered Espresso/Latte subset, explicit missing-ID empty result and unchanged source document revisions after queries. A complete stop/start import run passes1/1 with original seed/checkpoint hashes unchanged. Evidence `TestResults/FirestoreCqlCurrent/firestore-cql-native.trx`.
+
+`LocalState/COSMIC/FirestoreCql` retains one original seed (actor/three IDs) and immutable native checkpoint (total10122bytes at first measurement). The runner verifies each export-file hash and seed hash before import, never overwrites a checkpoint and refuses an unacknowledged seed/export or pending original. Failed native execution without an acknowledged checkpoint preserves the original live emulator for reconciliation. Successful runs stop the owned process. Historical Google project/checkpoint is untouched; no runtime download or duplicate installation.
+
+## Paired preset
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated
+
+# Bounded native + C#/HTTP verification:
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated -VerifyOnly
+```
+
+Open http://127.0.0.1:5100/ after startup. All returns Firestore3 + Mongo2 =5 physical rows; subset returns2 +2 =4. The generic C# identity-membership walkthrough executes through HolonManager, and HTTP calls the same walkthrough. Server-owned actor/catalogues cannot be replaced by browser input.
+
+Paired SDK/HTTP acceptance1/1 passes, including provenance/unrelated-row exclusion, forged actor/unknown preset rejection and source deactivation503 with no partial Mongo rows. Evidence `TestResults/FirestoreCqlCurrent/firestore-mongo-federation.trx`. Mongo fixture ownership is journaled and exact native contents are checked before dropping its temporary database; Firestore seed/checkpoint remain reusable.
+
+No hosted Google Cloud, arbitrary metadata query, shared-snapshot, scaling or full parity claim. Local Firestore is clearly labelled in the page. Cached emulator runtime/Java and existing Mongo runtime/data are reused.
+
+Actual browser all5/subset4 and both source labels verified. Screenshot `TestResults/FirestoreCqlCurrent/firestore-mongo-browser.jpg`; final interactive1/1 duration1m3s includes UI verification/shutdown, not query latency. Owned emulator/Mongo services stopped; exact temporary Mongo DB validated/dropped; pending/ready markers removed. Original seed/checkpoint remain unchanged and reusable. Launcher discovery11paired profiles/22plans,9pair rejections,8single/16plans passed with unchanged listeners. No historical Google state was reset.

@@ -80,3 +80,7 @@ Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated`, t
 ## Arbitrum V2 + Mongo
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated`, then open http://127.0.0.1:5099/. Show the C# identity-membership query, all5/subset4 rows and provider copies. Explain that the shipping V2 Arbitrum adapter runs on the retained local EVM chain, not a hosted rollup. Stop the demo to clean the owned Mongo fixture while preserving original native state. [Scope](ARBITRUM_CQL_MVP.md).
+
+## Google Firestore + Mongo
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated`, then open http://127.0.0.1:5100/. Show explicit Google/Mongo scope and the C# ID-membership query; run all5/subset4 and inspect source-labelled copies. Explain that Firestore is a retained local emulator checkpoint, not hosted Google Cloud. Stop the host to clean the owned Mongo fixture while preserving the original Firestore seed/checkpoint. [Scope](FIRESTORE_CQL_MVP.md).
