@@ -25,7 +25,7 @@ First SQLite native record barrier now passes Shared1506/1506 and native2 race/r
 
 Mongo native record barriers now pass2 native cases plus1 no-held-fence preview regression. Per-record transactional admission prevents snapshot write skew; namespace loss fails closed. Shared1506/SQLite2 retained. Neo barriers and paired coordinator remain open.
 
-Neo barrier implementation builds; controlled suite now passes625/625 after updating transaction doubles to model schema and record-lock admission before receipt lookup. Real Neo baseline2/2 now verifies repeat ownership, provider reactivation, blocked receipt replay, readable history, unrelated writes, overlap rejection and owner-only terminal cancellation. Concurrent same-scope acquisition and held new save/soft/hard-delete rejection pass; concurrent write-vs-fence and replication claim races remain unverified; no migration cutover is enabled.
+Neo barrier implementation builds; controlled suite now passes625/625 after updating transaction doubles to model schema and record-lock admission before receipt lookup. Real Neo baseline2/2 now verifies repeat ownership, provider reactivation, blocked receipt replay, readable history, unrelated writes, overlap rejection and owner-only terminal cancellation. Concurrent same-scope acquisition and held new save/soft/hard-delete rejection pass; held source claims reject without changing queued properties and become claimable after cancellation; concurrent write-vs-fence/claim-vs-fence races remain unverified; no migration cutover is enabled.
 
 ## Exact next step
 
