@@ -5,12 +5,16 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
-Shared **1561/1561**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
+Shared **1567/1567**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
 Native record barriers, exact administrative preview admission, persisted original evidence,
 partial/lost-ack recovery and one actual coordinator process-crash boundary are verified in
 those recorded scopes. Read-only delivery review retains current lease/state evidence and
 other routes. Replacement review distinguishes empty/matching/foreign/local/conflicting
 records without adoption or writes; exact consistency and held owners remain checked.
+
+SQLite native mutation-start marker passes2/2, including old-schema preservation, restart,
+immutable intent, cancellation/downgrade protection and start/cancel race. Core4462/DNA19/
+GraphQL1 pass. Mongo/Neo mutation-start support and cross-store admission remain open.
 
 No migration data mutation, automatic compensation or HTTP executor is enabled.
 Next: durable native started/uncertain phases, exact CAS and idempotent migration receipts,

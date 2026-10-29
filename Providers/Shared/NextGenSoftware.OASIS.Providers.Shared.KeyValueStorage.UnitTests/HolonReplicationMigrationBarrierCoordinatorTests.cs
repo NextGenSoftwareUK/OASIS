@@ -159,4 +159,16 @@ public class HolonReplicationMigrationBarrierCoordinatorTests
         var failed = await f.Run(); Assert.IsTrue(failed.IsError); Assert.AreEqual("COSMIC_MIGRATION_BARRIER_TERMINAL", failed.ErrorCode);
         Assert.AreEqual(1, f.Providers[1].Acquires);
     }
+    [TestMethod]
+    public async Task StartedMutationRequiresDedicatedRecoveryAndDoesNotAcquireMoreStores()
+    {
+        var f = new Setup(); await f.Initialize(); Assert.IsFalse((await f.Run()).IsError);
+        var old = f.Providers[0].Stored;
+        f.Providers[0].Stored = new(old.Request, old.OwnerToken, HolonMigrationFenceState.MutationStarted, new string('D',64));
+        f.Providers[1].Stored = null;
+        var recovery = await f.Run(); Assert.IsTrue(recovery.IsError); Assert.AreEqual("COSMIC_MIGRATION_MUTATION_RECOVERY_REQUIRED", recovery.ErrorCode);
+        Assert.AreEqual(HolonMigrationBarrierObservationState.MutationStarted, recovery.Result.Stores[0].State);
+        Assert.IsFalse(recovery.Result.AllBarriersHeld); Assert.AreEqual(1, f.Providers[1].Acquires);
+    }
+
 }

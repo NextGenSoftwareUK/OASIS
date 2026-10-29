@@ -19,7 +19,7 @@ internal sealed class HolonMigrationEvidenceReadScope
     private readonly HolonReplicationMigrationBarrierPlan plan;
     private readonly IHolonReplicationMigrationAuthorizationPolicy policy;
     private readonly CancellationToken token;
-    private readonly Dictionary<string, Guid> owners = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, (Guid Owner, HolonMigrationFenceState Phase, string Digest)> owners = new(StringComparer.Ordinal);
     private readonly List<Exception> warnings = new();
     private int warningCount;
     internal HolonMigrationBarrierParticipant[] Participants { get; }
@@ -53,10 +53,10 @@ internal sealed class HolonMigrationEvidenceReadScope
                 throw new HolonMigrationEvidenceReadException(string.IsNullOrWhiteSpace(read?.ErrorCode)
                     ? "COSMIC_MIGRATION_EVIDENCE_BARRIER_UNVERIFIED" : read.ErrorCode, read?.Exception);
             Observe(read);
-            if (read.Result == null || read.Result.Request.Fingerprint != request.Fingerprint || read.Result.State != HolonMigrationFenceState.Held
-                || !first && owners[request.Fingerprint] != read.Result.OwnerToken)
+            if (read.Result == null || read.Result.Request.Fingerprint != request.Fingerprint || read.Result.State is not (HolonMigrationFenceState.Held or HolonMigrationFenceState.MutationStarted)
+                || !first && owners[request.Fingerprint] != (read.Result.OwnerToken, read.Result.State, read.Result.MutationDigest))
                 throw new InvalidDataException("Every original native record barrier must remain held by the same owner.");
-            if (first) owners.Add(request.Fingerprint, read.Result.OwnerToken);
+            if (first) owners.Add(request.Fingerprint, (read.Result.OwnerToken, read.Result.State, read.Result.MutationDigest));
         }
     }
     internal async Task CompleteAsync()

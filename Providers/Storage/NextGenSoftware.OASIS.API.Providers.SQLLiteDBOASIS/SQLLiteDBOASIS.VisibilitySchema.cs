@@ -22,6 +22,8 @@ public partial class SQLLiteDBOASIS
             receiptSchema.CommandText += "; " + CosmicSqliteSchema.CreateMigrationFence;
             await receiptSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicMigrationFence",
+            new Dictionary<string,string> {{"MutationDigest",CosmicSqliteSchema.MigrationMutationDigestDefinition}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxDeliveryColumns()).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxRecoveryColumns()).ConfigureAwait(false);
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})

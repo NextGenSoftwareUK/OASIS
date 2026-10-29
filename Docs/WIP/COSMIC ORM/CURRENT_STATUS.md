@@ -13,7 +13,7 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 
 ## Current phase: safe V2 lineage migration
 
-- Latest: Shared **1561/1561**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
+- Latest: Shared **1567/1567**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
 - Preview v3 binds exact source receipt, frozen graph/transport and historical receiver intent. Time-limited host approval binds operator, stores, route and reviewed digest.
 - SQLite/Mongo/Neo native record barriers block affected V2 mutations/replays/new claims while preserving unrelated writes/history. Held does not prove every in-flight delivery has stopped.
 - Acquire-only coordinator reads all native receipts before acquiring absent scopes. Durable hash-verified original evidence precedes acquisition; no automatic expiry, compensation or replacement of evidence.
@@ -22,9 +22,11 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Replacement review classifies empty, matching original/new lineage, untracked data, foreign ownership and version/deletion/content conflicts. It checks exact native identity/selection/consistency and held owners before/after. Matching or empty observations grant no adoption/overwrite permission.
 - No migration data mutation or HTTP execution endpoint enabled. Native CAS, durable started/uncertain phases, historical-receipt admission and cutover/recovery remain red. Older type-only V2 routes and broader graph/multi-version/delete/provider-pair scope remain gates. [Detailed proof/history](V2_LINEAGE_MIGRATION.md).
 
+SQLite native mutation-start marker now passes2/2 (upgrade/recreation, same-intent idempotence, cancellation/downgrade guard, protected writes/claims and start/cancel race). Core4462/DNA19/GraphQL1 pass. Core276b780 is pushed. Marker support is SQLite only; Mongo/Neo and cross-store mutation admission remain open. No business cutover enabled.
+
 ## Exact next step
 
-1. Implement durable native mutation phase/journal admission before allowing changes; cancellation must be refused after mutation starts or becomes uncertain.
+1. Implement the same native mutation-start/intent binding and cancellation guard on Mongo and Neo, then independently authorize/bind complete mutation preparation before any cross-store start. SQLite marker alone is not cutover permission.
 2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
 3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
 
@@ -52,7 +54,7 @@ Three-database save demos cover dirty/no-op ownership, generated IDs, concurrenc
 
 ## Git, resources and commands
 
-- Parent Development c8a381dd2/Core0240771 integrated into task; current Coree5bcf46. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
+- Parent Development c8a381dd2/Core0240771 integrated into task; current Core276b780. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
 - Last outgoing Development batch: parent858edd828/Corebd86a37. Later work remains on the pushed task branch; no entire-branch deployment while the lineage gate is open.
 - Commit named files only; Core push/remote verification first, then matching parent gitlink + deployment manifest. Fetch before scoped daily integration; never force push.
 - Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. No new install/restore for these milestones.
