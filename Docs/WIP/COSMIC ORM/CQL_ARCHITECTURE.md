@@ -368,3 +368,7 @@ native graph/receipt/outbox transaction before replay;bound intent has a distinc
 fingerprint from unbound intent. Original-outcome recovery repeats native source
 verification. All3local native stores implement this optional contract;automatic
 routing has not yet adopted it. [Proof and remaining scope](PRIMARY_SOURCE_BINDING.md).
+
+### Ethereum demo adapter
+
+`EthereumCqlCompiler` intersects captured ID selection with the trusted provider catalogue. `EthereumOASIS.Cql.cs` admits the full plan before native I/O, then reads bounded contract keys at one observed block number and reuses the shipping authenticated decoder. Any source failure discards the accumulated result. The generic identity federation walkthrough dispatches through HolonManager, shared by C# and HTTP; no browser-specific query engine. Local-chain acceptance and remaining limits: [Ethereum MVP](ETHEREUM_CQL_MVP.md).

@@ -1343,3 +1343,9 @@ Per-item strong reads are not a multi-item/distributed snapshot. Metadata/conten
 predicates, explicit ordering, graph expansion and advanced operators remain
 unsupported for this profile. Unprocessed keys fail without partial results/retry.
 See [complete MVP scope and evidence](AWS_CQL_MVP.md).
+
+## Ethereum bounded native-key profile (29 October 2026)
+
+The Ethereum adapter uses the common CQL provider contract and existing contract/encrypted-record decoder. An authoritative Ethereum ID catalogue is mandatory. Up to100 selected identities compile into native contract lookups at one observed block number; unsupported metadata, sorting and graph expressions fail capability admission before RPC. This does not promise finality or a snapshot shared with Mongo.
+
+For a runnable C#/HTTP/browser preset use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated` (loopback5097). All/subset yield5/4 physical rows across local Ethereum and Mongo. [Example and verified scope](ETHEREUM_CQL_MVP.md).
