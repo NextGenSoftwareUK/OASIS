@@ -187,3 +187,12 @@ Browser localhost5109 shows full5/subset4 rows with provider provenance. Native,
 restart, SDK, HTTP and browser are verified; main-hub enrollment remains pending.
 The retained plaintext Move source/key is reused; no faucet or chain reset. Stop
 the demo to clean Mongo, then Ctrl-C terminal1. [Tests and scope](APTOS_CQL_MVP.md).
+
+## Sui + Mongo MVP
+
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Sui -Federated` serves localhost5110
+and owns its reusable local node/Mongo lifecycle. Full query returns5 physical rows,
+two-ID subset4, with provenance. Native/restart/C#/HTTP/browser are verified on the
+same dedicated encrypted source. Original deployment/Storage stays untouched; signed
+preparations persist. No hosted/finality/snapshot or arbitrary content-query claim.
+[Commands, evidence and limits](SUI_CQL_MVP.md).

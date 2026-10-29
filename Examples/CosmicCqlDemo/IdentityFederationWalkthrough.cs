@@ -79,6 +79,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.AWSS3OASIS => "AWS S3",
         ProviderType.LocalFileOASIS => "LocalFile",
         ProviderType.AptosOASIS => "Aptos",
+        ProviderType.SuiOASIS => "Sui",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
