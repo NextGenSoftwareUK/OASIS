@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -19,6 +20,8 @@ public sealed class HolonMigrationMutationPreparation
     public string DeliveryObservationDigest { get; }
     public string ReplacementObservationDigest { get; }
     public string MutationPolicyBinding { get; }
+    public string DeliveryReviewJson { get; }
+    public string ReplacementReviewJson { get; }
     public string CanonicalJson { get; }
     public string Fingerprint { get; }
 
@@ -59,10 +62,46 @@ public sealed class HolonMigrationMutationPreparation
         DeliveryObservationDigest = delivery.ObservationDigest;
         ReplacementObservationDigest = replacement.ObservationDigest;
         MutationPolicyBinding = mutationPolicyBinding;
+        DeliveryReviewJson = JsonSerializer.Serialize(delivery);
+        ReplacementReviewJson = JsonSerializer.Serialize(replacement);
         CanonicalJson = JsonSerializer.Serialize(new {
             format = "cosmic-migration-mutation-preparation-v1", PlanFingerprint,
             AuthorizationContextDigest, DeliveryObservationDigest,
-            ReplacementObservationDigest, MutationPolicyBinding });
+            ReplacementObservationDigest, MutationPolicyBinding, DeliveryReviewJson, ReplacementReviewJson });
         Fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalJson)));
     }
+
+    /// <summary>Restore only against the independently retained approval fingerprint
+    /// and original verified plan. A checksum stored alongside this file is not approval.</summary>
+    public static HolonMigrationMutationPreparation ReadCanonical(string json,
+        HolonReplicationMigrationBarrierPlan plan, string approvedFingerprint)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        if (json == null || Encoding.UTF8.GetByteCount(json) > 16 * 1024 * 1024)
+            throw new InvalidDataException("Mutation preparation exceeds its bounded evidence limit.");
+        using var archive = JsonDocument.Parse(json);
+        var root = archive.RootElement;
+        using var deliveryJson = JsonDocument.Parse(root.GetProperty("DeliveryReviewJson").GetString());
+        using var replacementJson = JsonDocument.Parse(root.GetProperty("ReplacementReviewJson").GetString());
+        var d = deliveryJson.RootElement;
+        var r = replacementJson.RootElement;
+        if (d.GetProperty("PlanFingerprint").GetString() != plan.Fingerprint
+            || r.GetProperty("PlanFingerprint").GetString() != plan.Fingerprint
+            || r.GetProperty("StorageFingerprint").GetString() != plan.Context.ReplacementRoute.TargetStorage.BindingFingerprint)
+            throw new InvalidDataException("Archived observations belong to another plan or store.");
+        var delivery = new HolonMigrationDeliveryReconciliationReport(plan,
+            d.GetProperty("ThroughSequence").GetInt64(),
+            (HolonReplicaHeadReadConsistency)d.GetProperty("SourceConsistency").GetInt32(),
+            d.GetProperty("Obligations").Deserialize<HolonMigrationDeliveryObservation[]>());
+        var replacement = new HolonMigrationReplacementReport(plan,
+            (HolonReplicaHeadReadConsistency)r.GetProperty("RequiredConsistency").GetInt32(),
+            r.GetProperty("PageConsistencies").Deserialize<HolonReplicaHeadReadConsistency[]>(),
+            r.GetProperty("Records").Deserialize<HolonMigrationReplacementRecord[]>());
+        var restored = new HolonMigrationMutationPreparation(plan, delivery, replacement,
+            root.GetProperty("MutationPolicyBinding").GetString());
+        if (restored.CanonicalJson != json || restored.Fingerprint != approvedFingerprint)
+            throw new InvalidDataException("Preparation differs from the exact independently approved canonical evidence.");
+        return restored;
+    }
+
 }
