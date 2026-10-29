@@ -43,6 +43,13 @@ public partial class SQLLiteDBOASISIntegrationTests
             boundStatus.IsError.Should().BeFalse(boundStatus.Message + boundStatus.Exception);
             boundStatus.Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Committed);
             boundStatus.IsSaved.Should().BeFalse();
+            var comparison = new CosmicStorageIdentity(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS, new string('A', 64), Guid.NewGuid());
+            var projected = await original.ReadConditionalHolonReceiptEvidenceAsync(new(request, identity.Result, comparison, new[] { request.Roots.Single().Id }));
+            projected.IsError.Should().BeFalse(projected.Message + projected.Exception);
+            projected.Result.ReceiptEvidence.Records.Single().HolonId.Should().Be(request.Roots.Single().Id);
+            projected.Result.ReceiptEvidence.OriginalSelectedRecordCount.Should().Be(1);
+            projected.Result.ReceiptEvidence.ComparisonTargetFingerprint.Should().Be(comparison.BindingFingerprint);
+
             request.Write.ReplicationEnrollment.SourceStorageIdentity.Should().Be(bindOriginal ? identity.Result : null);
             using(var source=new SqliteConnection(TestConnectionString))
             using(var destination=new SqliteConnection($"Data Source={copy};Pooling=False"))

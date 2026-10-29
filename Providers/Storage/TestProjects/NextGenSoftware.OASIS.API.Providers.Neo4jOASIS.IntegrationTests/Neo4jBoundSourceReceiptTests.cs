@@ -61,6 +61,13 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(verified.IsError, verified.Message + verified.Exception);
             Assert.AreEqual(ConditionalHolonReceiptState.Committed, verified.Result.ReceiptState);
             Assert.IsFalse(verified.IsSaved);
+            var comparison = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64), Guid.NewGuid());
+            var projected = await provider.ReadConditionalHolonReceiptEvidenceAsync(new(request, expected, comparison, new[] { input.Id }));
+            Assert.IsFalse(projected.IsError, projected.Message + projected.Exception);
+            Assert.AreEqual(input.Id, projected.Result.ReceiptEvidence.Records.Single().HolonId);
+            Assert.AreEqual(1, projected.Result.ReceiptEvidence.OriginalSelectedRecordCount);
+            Assert.AreEqual(comparison.BindingFingerprint, projected.Result.ReceiptEvidence.ComparisonTargetFingerprint);
+
             Assert.AreSame(bindOriginal ? expected : null, request.Write.ReplicationEnrollment.SourceStorageIdentity);
             Assert.IsFalse(JsonSerializer.Serialize(verified.Result).Contains(input.Name, StringComparison.Ordinal));
             var wrong = new CosmicStorageIdentity(expected.Authority, expected.EndpointFingerprint, Guid.NewGuid());

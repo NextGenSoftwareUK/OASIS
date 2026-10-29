@@ -22,9 +22,13 @@ public partial class HolonRepository
         CancellationToken cancellationToken = default)
         => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
 
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(request?.Original, request?.ExpectedSource, true, cancellationToken, request);
+
     private Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         var result = new OASISResult<ConditionalHolonWriteOutcome>();
         try
@@ -63,18 +67,20 @@ public partial class HolonRepository
             command.Parameters.AddWithValue("$id", plan.OperationId.ToString("D"));
             using var reader = command.ExecuteReader();
             HolonCommittedDelta delta = null;
+            ConditionalHolonReceiptEvidence evidence = null;
             var state = ConditionalHolonReceiptState.Absent;
             if (reader.Read())
             {
                 if (reader.IsDBNull(0) || reader.GetString(0) != fingerprint || reader.IsDBNull(1))
                     throw new InvalidDataException("Receipt is not bound to the original conditional intent.");
-                _ = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta);
+                var verifiedRoots = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta);
+                if (evidenceRequest != null) evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, verifiedRoots);
                 if (reader.Read()) throw new InvalidDataException("Conditional receipt identity is not unique.");
                 state = ConditionalHolonReceiptState.Committed;
             }
             cancellationToken.ThrowIfCancellationRequested();
             result.Result = new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
-                plan.Operation, state, delta?.SummaryJson);
+                plan.Operation, state, delta?.SummaryJson, evidence);
             result.IsLoaded = true;
         }
         catch (Exception cause)

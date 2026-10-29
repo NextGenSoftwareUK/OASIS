@@ -31,7 +31,8 @@ public sealed class HolonReplicaHeadRecord
             || CosmicConcurrency.GetProviderRevisionId(stored, targetAuthority) != revision)
             throw new InvalidDataException("Committed replica head snapshot/revision is inconsistent.");
         var evidence = new HolonReplicaHeadEvidence(sourceId, authority, stored.VersionId,
-            stored.PreviousVersionId, stored.Version, revision, hardDeleted, snapshotDigest);
+            stored.PreviousVersionId, stored.Version, revision, hardDeleted, snapshotDigest,
+            CommittedHolonReplicaPlan.PortableContentDigest(stored, targetAuthority));
         return new(stored, evidence);
     }
 }

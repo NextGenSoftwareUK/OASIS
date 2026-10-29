@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IBoundConditionalHolonWriteRecoveryStorageProvider
+public partial class MongoDBOASIS : IConditionalHolonReceiptEvidenceStorageProvider
 {
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
@@ -22,9 +22,13 @@ public partial class MongoDBOASIS : IBoundConditionalHolonWriteRecoveryStoragePr
         CancellationToken cancellationToken = default)
         => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
 
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(request?.Original, request?.ExpectedSource, true, cancellationToken, request);
+
     private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         try
         {
@@ -55,6 +59,7 @@ public partial class MongoDBOASIS : IBoundConditionalHolonWriteRecoveryStoragePr
                     .Find(new BsonDocument("_id",plan.OperationId.ToString("D"))).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
             }
             HolonCommittedDelta delta = null;
+            ConditionalHolonReceiptEvidence evidence = null;
             var state = ConditionalHolonReceiptState.Absent;
             if (receipt != null)
             {
@@ -62,11 +67,12 @@ public partial class MongoDBOASIS : IBoundConditionalHolonWriteRecoveryStoragePr
                     || fingerprint.AsString != plan.Fingerprint
                     || !receipt.TryGetValue("ResultJson", out var json) || !json.IsString)
                     throw new InvalidDataException("Receipt is not bound to the original conditional intent.");
-                _ = ConditionalHolonReceipt.Read(json.AsString, plan, out delta);
+                var verifiedRoots = ConditionalHolonReceipt.Read(json.AsString, plan, out delta);
+                if (evidenceRequest != null) evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, verifiedRoots);
                 state = ConditionalHolonReceiptState.Committed;
             }
             return new OASISResult<ConditionalHolonWriteOutcome>(new ConditionalHolonWriteOutcome(
-                plan.OperationId, plan.ActorId, plan.Authority, plan.Operation, state, delta?.SummaryJson)) { IsLoaded = true };
+                plan.OperationId, plan.ActorId, plan.Authority, plan.Operation, state, delta?.SummaryJson, evidence)) { IsLoaded = true };
         }
         catch (Exception cause)
         {
