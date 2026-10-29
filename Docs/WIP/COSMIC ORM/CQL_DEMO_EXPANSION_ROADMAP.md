@@ -160,3 +160,5 @@ Cosmos readiness: pinned CosmJS SDK restored once and verified; retained chain/c
 Cosmos native MVP stage now passes3/2 query1/1 and full original-seed restart/reuse1/1, with corrected controls14/14. Root GUID-format mismatch fixed through canonical shared key builder; no alternate lookups or resubmissions. One owned contract/seed, four signed acknowledgements retained. Mongo-paired C#/HTTP/browser is next. [Proof](COSMOS_BLOCKCHAIN_CQL_MVP.md).
 
 Cosmos blockchain local MVP now verified across native/C#/HTTP/browser:3/2 native selection/restart reuse, controls14/14 and paired5/4 with provenance. Launcher CosmosChain5101; original contract/key/seed/four signed acknowledgements unchanged, exact Mongo fixture cleaned and services stopped. Polkadot is next. [Proof](COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+Polkadot local MVP verified: controls7/7, native3/2 and original-seed restart/reuse, paired C#/HTTP1/1 and actual browser5/4. Launcher Polkadot5102. Exact Mongo fixture cleaned; original source/key/three signed writes unchanged and services stopped. NEAR is next, then all-provider MVP breadth. [Proof](POLKADOT_CQL_MVP.md).

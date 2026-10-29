@@ -75,6 +75,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.ArbitrumOASIS => "Arbitrum",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
+        ProviderType.PolkadotOASIS => "Polkadot",
         _ => provider.QueryProviderType.ToString()
     };
 

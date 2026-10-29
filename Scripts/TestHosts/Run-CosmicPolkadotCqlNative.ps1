@@ -1,5 +1,6 @@
 #Requires -Version 7.5
-param([int]$ContinueOwnedNodePid = 0)
+param([int]$ContinueOwnedNodePid = 0,[switch]$Federated,[switch]$Serve)
+if ($Serve -and !$Federated) { throw 'Serve requires explicit federation.' }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner cosmic-polkadot-cql -Operation {
@@ -8,12 +9,15 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
     New-Item -ItemType Directory -Force -Path $state,$results | Out-Null
     $lease = [IO.File]::Open((Join-Path $state 'environment.lock'),'OpenOrCreate','ReadWrite','None')
     $node = $null
+    $ownedMongo = $null
     $nodePid = $null
-    $names = @('OASIS_POLKADOT_CQL_STATE','OASIS_POLKADOT_CQL_CONTRACT','OASIS_POLKADOT_SDK_BRIDGE','OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY')
+    $names = @('OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_POLKADOT_MONGO_SERVE','OASIS_POLKADOT_CQL_STATE','OASIS_POLKADOT_CQL_CONTRACT','OASIS_POLKADOT_SDK_BRIDGE','OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY')
     $prior = @{}
     foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name) }
     try {
         if (Test-Path (Join-Path $state 'demo-seed.pending.json')) { throw 'Original seed setup requires reconciliation; never replay.' }
+        if (Test-Path (Join-Path $state 'mongo.pending.json')) { throw 'Original Mongo fixture requires reconciliation.' }
+        if ($Federated -and !(Test-Path (Join-Path $state 'demo-seed.json'))) { throw 'Verify the native seed before federation.' }
         if (!$ContinueOwnedNodePid -and (Get-NetTCPConnection -State Listen -LocalPort 19944,19945 -ErrorAction SilentlyContinue)) { throw 'Polkadot ports occupied; do not adopt another process.' }
         $existing = (& wsl -d Ubuntu -- pgrep -f '[s]ubstrate-contracts-node.*--base-path /var/tmp/oasis-polkadot-evidence/ledger') -join ''
         if ($existing.Trim() -and $existing.Trim() -ne "$ContinueOwnedNodePid") { throw 'Retained Polkadot ledger is in use; preserve its owner.' }
@@ -27,6 +31,12 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         $sdk = Join-Path $root 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge'
         if (!(Test-Path (Join-Path $sdk 'node_modules/@polkadot/api/package.json'))) { throw 'Restore the pinned SDK before native startup.' }
         $project = Join-Path $root 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests.csproj'
+        & dotnet restore $project --source C:/Users/david/.nuget/packages /m:2 /nr:false /p:NuGetAudit=false -v:q
+        if ($LASTEXITCODE) { throw 'Offline paired restore failed.' }
+        if ($Federated) {
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+            if ($LASTEXITCODE) { throw 'Mongo producer build failed.' }
+        }
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if ($LASTEXITCODE) { throw 'Native consumer build failed.' }
 
@@ -68,10 +78,39 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         }
         if (!$ready) { throw 'Owned node readiness timed out; preserve state.' }
         $nodePid = [int]([IO.File]::ReadAllText($pidPath).Trim())
+        if (!$Federated) {
         & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PolkadotCqlNativeTests' --logger 'trx;LogFileName=polkadot-cql-native.trx' --results-directory $results -v:q
         if ($LASTEXITCODE) { throw 'Native CQL failed; preserve original setup and journals.' }
         [xml]$report = Get-Content (Join-Path $results 'polkadot-cql-native.trx')
         if ($report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.passed -ne '1') { throw 'Exactly one executed native acceptance case required.' }
+        }
+        else {
+            $mongoRuntime = 'C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $mongoData = Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if (!(Test-Path (Join-Path $mongoData 'WiredTiger'))) { throw 'Retained Mongo environment missing; no reset.' }
+            if (Get-NetTCPConnection -State Listen -LocalPort 27029,5102 -ErrorAction SilentlyContinue) { throw 'Paired demo port occupied.' }
+            if (((& $mongoRuntime --version) -join ' ') -notmatch 'v8\.3\.11\b') { throw 'Pinned Mongo runtime differs.' }
+            $ownedMongo = Start-Process $mongoRuntime -ArgumentList @('--dbpath',$mongoData,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $mongoReady = $false
+            for ($i=0;$i -lt 40;$i++) {
+                if ($ownedMongo.HasExited) { throw 'Owned Mongo exited during startup.' }
+                $listeners = Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if ($listeners) {
+                    if (@($listeners | Where-Object OwningProcess -ne $ownedMongo.Id).Count) { throw 'Mongo listener owner differs.' }
+                    $mongoReady = $true; break
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            if (!$mongoReady) { throw 'Owned Mongo startup deadline exceeded.' }
+            $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+            $env:OASIS_POLKADOT_MONGO_SERVE = if ($Serve) { '1' } else { '0' }
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PolkadotMongoCqlNativeTests' --logger 'trx;LogFileName=polkadot-mongo-federation.trx' --results-directory $results -v:q *> (Join-Path $results 'polkadot-mongo-federation.log')
+            if ($LASTEXITCODE) { throw 'Polkadot Mongo demo failed; preserve pending fixture.' }
+            [xml]$paired = Get-Content (Join-Path $results 'polkadot-mongo-federation.trx')
+            if ($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1') { throw 'Exactly one paired case required.' }
+            if (Test-Path (Join-Path $state 'mongo.pending.json')) { throw 'Mongo fixture cleanup incomplete.' }
+            Get-Content (Join-Path $results 'polkadot-mongo-federation.log') -Tail 5
+        }
     }
     finally {
       try {
@@ -95,6 +134,10 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         }
       }
       finally {
+        if ($ownedMongo) {
+            if (!$ownedMongo.HasExited) { $ownedMongo.Kill(); if (!$ownedMongo.WaitForExit(30000)) { throw 'Owned Mongo teardown incomplete.' } }
+            $ownedMongo.Dispose()
+        }
         foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name]) }
         $lease.Dispose()
       }
