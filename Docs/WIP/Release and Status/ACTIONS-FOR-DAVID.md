@@ -14,6 +14,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 4 | Release gate: Railway tokens, staging Mongo user, staging connection strings | B |
 | 5 | OurWorld Unity Cloud access | B |
 | 6 | Provider acceptance access: ActivityPub, EVM decision, AWS S3, Solana devnet funding, Oracle Cloud, CoinGecko key | C |
+| 8 | Railway pin sync (one-time): enable the pre-push hook in each OASIS clone | A4 |
 | 7 | Older items: HoloNET NuGet secrets, phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 
 ---
@@ -57,6 +58,17 @@ Full context: `C:/Source/PIPERDOCS/milestone4-session-plan-engine/piper-m4-work-
 - [ ] Check the screens: new student, goal form, SA plan panel, session reports, hand-scored session panel, Start session.
 - [ ] Then tell Hailey it's ready for Gate 2.
 - [ ] Optional: copy Hailey's Drive recordings into piper-ui `public/voice/lines/` as .ogg and list them in `voiceLinesIndex.json`.
+
+---
+
+### A4. Railway pin sync (one-time, added 28 October 2026)
+
+**Why:** Railway builds the private submodules at the commits in `Docker/oasis-dependency-versions.env`, not at the parent's gitlinks. A Core fix pushed without moving that pin never deployed (it cost a day). `sync-railway-pins.yml` now corrects the pins after each push to `Development`/`master`, and `.githooks/pre-push` stops a mismatched push before it deploys.
+
+- [ ] **Enable the hook** in each OASIS clone you push from (once per clone): `git config core.hooksPath .githooks`
+- No new secret is needed: the workflow pushes with the existing `PRIVATE_SUBMODULE_PAT`.
+
+Details: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
 
 ---
 

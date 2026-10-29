@@ -52,18 +52,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public sealed class NativeSourcesRequest
         {
             public NativeConnection Connection { get; set; }
+            /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
+            public string ConnectionName { get; set; }
         }
 
         public sealed class NativePreviewRequest
         {
             public NativeDataMapping Mapping { get; set; }
             public NativeConnection Connection { get; set; }
+            /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
+            public string ConnectionName { get; set; }
         }
 
         public sealed class NativeImportRequest
         {
             public NativeDataMapping Mapping { get; set; }
             public NativeConnection Connection { get; set; }
+            /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
+            public string ConnectionName { get; set; }
             public int? PageSize { get; set; }
             public int? MaximumRecords { get; set; }
         }
@@ -72,6 +78,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public Dictionary<string, NativeDataMapping> Mappings { get; set; }
             public NativeConnection Connection { get; set; }
+            /// <summary>Name of a connection this avatar saved. Send this or <c>connection</c>, not both.</summary>
+            public string ConnectionName { get; set; }
             public int? PageSize { get; set; }
             public int? MaximumRecordsPerSource { get; set; }
         }
@@ -99,17 +107,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>The collections, tables or labels in the server's configured demo store (Wizard or sandbox only).</summary>
         [HttpGet("{providerType}/sources")]
         public Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> GetSources(ProviderType providerType,
-            CancellationToken cancellationToken) => SourcesAsync(providerType, null, cancellationToken);
+            CancellationToken cancellationToken) => SourcesAsync(providerType, null, null, cancellationToken);
 
         /// <summary>The collections, tables or labels in the caller's own database. Send { connection }; nothing is saved.</summary>
         [HttpPost("{providerType}/sources")]
         public Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> PostSources(ProviderType providerType,
             [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativeSourcesRequest request,
-            CancellationToken cancellationToken) => SourcesAsync(providerType, request?.Connection, cancellationToken);
+            CancellationToken cancellationToken) => SourcesAsync(providerType, request?.Connection, request?.ConnectionName, cancellationToken);
 
         private async Task<ActionResult<OASISResult<IReadOnlyList<NativeDataSource>>>> SourcesAsync(ProviderType providerType,
-            NativeConnection connection, CancellationToken cancellationToken)
+            NativeConnection sentConnection, string connectionName, CancellationToken cancellationToken)
         {
+            var (connection, unusable) = await UseConnectionAsync<IReadOnlyList<NativeDataSource>>(providerType, sentConnection, connectionName);
+            if (unusable != null) return unusable;
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeDataSource>>(connection);
             var provider = Resolve<IReadOnlyList<NativeDataSource>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
@@ -122,7 +132,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] NativePreviewRequest request,
             [FromQuery] int? count = null, CancellationToken cancellationToken = default)
         {
-            var connection = request?.Connection;
+            var (connection, unusable) = await UseConnectionAsync<IReadOnlyList<NativeRecordPreview>>(providerType, request?.Connection, request?.ConnectionName);
+            if (unusable != null) return unusable;
             if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeRecordPreview>>(connection);
             var provider = Resolve<IReadOnlyList<NativeRecordPreview>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
@@ -166,13 +177,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromBody] NativeImportRequest request, CancellationToken cancellationToken)
         {
             request ??= new NativeImportRequest();
-            if (!MayImport(request.Connection)) return Forbidden<NativeDataImportReport>(request.Connection);
-            var provider = Resolve<NativeDataImportReport>(providerType, request.Connection, out var refusal);
+            var (connection, unusable) = await UseConnectionAsync<NativeDataImportReport>(providerType, request.Connection, request.ConnectionName);
+            if (unusable != null) return unusable;
+            if (!MayImport(connection)) return Forbidden<NativeDataImportReport>(connection);
+            var provider = Resolve<NativeDataImportReport>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
             var mapping = await SavedMappingAsync(providerType, sourceName, request.Mapping);
             if (mapping.IsError) return Respond(new OASISResult<NativeDataImportReport> { IsError = true, ErrorCode = mapping.ErrorCode, Message = mapping.Message });
             return Respond(await new NativeDataImportManager(HolonManager).ImportSourceAsync(provider, sourceName, AvatarId,
-                mapping.Result, request.PageSize, Limit(request.MaximumRecords), request.Connection, cancellationToken));
+                mapping.Result, request.PageSize, Limit(request.MaximumRecords), connection, cancellationToken));
         }
 
         /// <summary>Imports every source the connection lists, with the given mappings and the naming convention for the rest.</summary>
@@ -181,15 +194,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             [FromBody] NativeImportAllRequest request, CancellationToken cancellationToken)
         {
             request ??= new NativeImportAllRequest();
-            if (!MayImport(request.Connection)) return Forbidden<IReadOnlyList<NativeDataImportReport>>(request.Connection);
-            var provider = Resolve<IReadOnlyList<NativeDataImportReport>>(providerType, request.Connection, out var refusal);
+            var (connection, unusable) = await UseConnectionAsync<IReadOnlyList<NativeDataImportReport>>(providerType, request.Connection, request.ConnectionName);
+            if (unusable != null) return unusable;
+            if (!MayImport(connection)) return Forbidden<IReadOnlyList<NativeDataImportReport>>(connection);
+            var provider = Resolve<IReadOnlyList<NativeDataImportReport>>(providerType, connection, out var refusal);
             if (provider == null) return refusal;
             var saved = await Program.SettingsManager.GetNativeImportMappingsAsync(AvatarId, providerType);
             if (saved.IsError) return Respond(new OASISResult<IReadOnlyList<NativeDataImportReport>> { IsError = true, ErrorCode = saved.ErrorCode, Message = saved.Message });
             var mappings = new Dictionary<string, NativeDataMapping>(saved.Result, StringComparer.Ordinal);
             foreach (var entry in request.Mappings ?? new Dictionary<string, NativeDataMapping>()) mappings[entry.Key] = entry.Value;
             return Respond(await new NativeDataImportManager(HolonManager).ImportAllAsync(provider, AvatarId, mappings,
-                request.PageSize, Limit(request.MaximumRecordsPerSource), request.Connection, cancellationToken));
+                request.PageSize, Limit(request.MaximumRecordsPerSource), connection, cancellationToken));
         }
 
         /// <summary>This avatar's saved mappings for a provider. Imports and previews use them when no mapping is sent.</summary>
@@ -217,6 +232,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (Avatar == null) return Forbidden<bool>(null);
             return Respond(await Program.SettingsManager.DeleteNativeImportMappingAsync(AvatarId, providerType, sourceName));
+        }
+
+        /// <summary>Names of this avatar's saved connections for a provider. The settings and secrets are never returned.</summary>
+        [HttpGet("{providerType}/connections")]
+        public async Task<ActionResult<OASISResult<List<string>>>> GetConnections(ProviderType providerType)
+        {
+            if (Avatar == null) return Forbidden<List<string>>(null);
+            return Respond(await Program.SettingsManager.ListNativeImportConnectionNamesAsync(AvatarId, providerType));
+        }
+
+        /// <summary>Saves a named connection, encrypted, so later calls can send <c>connectionName</c> instead of the secrets.</summary>
+        [HttpPut("{providerType}/connections/{name}")]
+        public async Task<ActionResult<OASISResult<bool>>> SaveConnection(ProviderType providerType, string name, [FromBody] NativeConnection connection)
+        {
+            if (Avatar == null) return Forbidden<bool>(null);
+            if (OASISBootLoader.NativeImportReaders.Create(providerType) == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, ErrorCode = "NATIVE_IMPORT_UNSUPPORTED", Message = $"{providerType} does not support native data import yet." });
+            return Respond(await Program.SettingsManager.SaveNativeImportConnectionAsync(AvatarId, providerType, name, connection));
+        }
+
+        [HttpDelete("{providerType}/connections/{name}")]
+        public async Task<ActionResult<OASISResult<bool>>> DeleteConnection(ProviderType providerType, string name)
+        {
+            if (Avatar == null) return Forbidden<bool>(null);
+            return Respond(await Program.SettingsManager.DeleteNativeImportConnectionAsync(AvatarId, providerType, name));
+        }
+
+        /// <summary>The connection a request names: the one it sends, or the avatar's saved one. Naming one while also sending one is refused.</summary>
+        private async Task<(NativeConnection Connection, ActionResult Refusal)> UseConnectionAsync<T>(ProviderType providerType, NativeConnection sent, string name)
+        {
+            if (name == null) return (sent, null);
+            if (sent != null)
+                return (null, BadRequest(new OASISResult<T> { IsError = true, ErrorCode = "NATIVE_IMPORT_CONNECTION_AMBIGUOUS", Message = "Send either 'connection' or 'connectionName', not both." }));
+            if (Avatar == null) return (null, Forbidden<T>(null));
+            var opened = await Program.SettingsManager.GetNativeImportConnectionAsync(AvatarId, providerType, name);
+            if (opened.IsError)
+                return (null, BadRequest(new OASISResult<T> { IsError = true, ErrorCode = opened.ErrorCode, Message = opened.Message }));
+            return (opened.Result, null);
         }
 
         /// <summary>The mapping sent with the request, else the avatar's saved one, else null (the naming convention).</summary>

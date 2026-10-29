@@ -105,6 +105,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int MaximumSolidResourceMegabytes { get; set; } = 1;
         /// <summary>Most node labels listed when a Neo4j connection does not name them.</summary>
         public int MaximumNeo4jDiscoveredLabels { get; set; } = 200;
+
+        /// <summary>Secret that encrypts connections an avatar saves for later imports (AES-256-GCM). Leave empty to refuse saving connections; set a long random value on any node that offers them.</summary>
+        public string ConnectionEncryptionKey { get; set; } = "";
+        /// <summary>Most connections one avatar may save.</summary>
+        public int MaximumSavedConnectionsPerAvatar { get; set; } = 10;
     }
 
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>
