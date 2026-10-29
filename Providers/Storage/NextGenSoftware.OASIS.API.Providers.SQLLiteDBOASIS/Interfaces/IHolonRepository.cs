@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
-    public interface IHolonRepository : IConditionalHolonWriteRecoveryStorageProvider
+    public interface IHolonRepository : IConditionalHolonWriteRecoveryStorageProvider, IHolonReplicaHeadAuditStorageProvider
     {
         Task<OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync();
         OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate, System.Threading.CancellationToken cancellationToken);

@@ -50,7 +50,11 @@ public partial class NativeHostedReplicaRestartTests
     public Task NativeNeoSourceRetainsOrderedWritesWhileSqliteDestinationIsLocked()
         => VerifyShippingWorkerRestart(false, sqliteOutage: true);
 
-    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false, bool nativeRouting = false, bool sqliteOutage = false)
+    [TestMethod]
+    public Task NativeSqliteReplicaHeadAuditPreservesProtectedTargetEvidence()
+        => VerifyShippingWorkerRestart(false, headAudit: true);
+
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false, bool nativeRouting = false, bool sqliteOutage = false, bool headAudit = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -69,12 +73,12 @@ public partial class NativeHostedReplicaRestartTests
         foreach (var path in ownedFiles) Assert.IsFalse(File.Exists(path), "Reconcile original owned fixture before reuse.");
         var actor = Guid.NewGuid();
         var operation = Guid.NewGuid();
-        var input = new Holon { Id = coldNewSave || nativeRouting || sqliteOutage ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
+        var input = new Holon { Id = coldNewSave || nativeRouting || sqliteOutage || headAudit ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
         var coldInput = new Holon { Id = Guid.NewGuid(), Name = "coffee bought after Neo restart" };
         var coldOperation = Guid.NewGuid();
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, nativeRouting, sqliteOutage, target = file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, nativeRouting, sqliteOutage, headAudit, target = file });
             intent.Flush(true);
         }
         var source = new Neo(uri, "neo4j", "oasis-local-test-only");
@@ -279,6 +283,7 @@ public partial class NativeHostedReplicaRestartTests
             Assert.AreEqual(input.VersionId, copy.Result.VersionId);
             Assert.AreEqual(actor, copy.Result.CreatedByAvatarId);
 
+            if (headAudit) await VerifySqliteReplicaHeadAudit(target, targetBinding, file, input);
             if (sqliteOutage)
             {
                 var second = await outbox.InspectAsync(coldSequence);
