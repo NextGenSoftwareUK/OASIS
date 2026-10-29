@@ -67,3 +67,53 @@ Authorization: Bearer YOUR_TOKEN
 ## Navigation
 
 **← Previous:** [Video API](Video-API.md) | **Next:** [Seeds API](Seeds-API.md) →
+
+## Holon permissions
+
+Owners decide, per holon and per field, who may `read`, `write`, `delete`, create children under (`addChildren`) and
+change access to (`manage`) it. A grantee is an avatar id, a group id, or `public`. Needs `manage` on the holon (the
+creator always has it).
+
+```http
+POST /api/share/permissions/{holonId}
+Authorization: Bearer YOUR_TOKEN
+Content-Type: application/json
+
+{
+  "grants":  { "<grantee>": ["read", "write"], "<other>": [] },
+  "inherit": { "<grantee>": ["read"] },
+  "fields":  { "public": { "metadata.username": ["read"] } },
+  "inheritFields": { "<grantee>": { "metadata.note": ["read"] } }
+}
+```
+
+`grants` apply to this holon, `inherit` to it and everything below it, `fields` to single fields (`name`, `description`,
+a property, `metadata.<key>`, `metadata.*`, `*`; read, write, delete only), `inheritFields` to those fields on
+everything below too. A list of names sets exactly those; an empty
+list removes; anything not listed is unchanged.
+
+```http
+GET /api/share/permissions/{holonId}
+```
+
+Returns the stored `grants`, `inherit` and `fields`.
+
+### Groups
+
+```http
+POST /api/share/groups
+{ "name": "Speech therapists", "members": ["<avatarId>"] }
+
+POST /api/share/groups/{groupId}/members
+{ "add": ["<avatarId>"], "remove": ["<avatarId>"] }
+```
+
+Grant to the group's id like an avatar's; changing the members changes everyone's access at once.
+
+Full model, enforcement and error codes: [Holon Permissions](../../HOLON_PERMISSIONS.md).
+
+### Avatar sharing
+
+Avatars are private; you choose what to share. `POST /api/avatar/sharing/avatar` (or `/detail` for profile details) takes
+the same body, for example `{ "fields": { "public": { "username": ["read"] } } }` to share only your username with
+everyone. `GET /api/avatar/sharing/{avatar|detail}` shows what is shared. Passwords and tokens can never be shared.

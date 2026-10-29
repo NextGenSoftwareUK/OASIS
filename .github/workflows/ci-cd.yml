@@ -113,6 +113,8 @@ jobs:
             image: redis:7-alpine
             ports: 6379:6379
             wait: 6379
+            # OwnedNative* tests assert the reusable private test host (127.0.0.1:18679); they run via Scripts/TestHosts/Run-ReusableRedisKeyTests.ps1, not against this service container.
+            filter: TestCategory!~OwnedNative
           - name: KeyDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
             image: eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
@@ -354,7 +356,7 @@ jobs:
 
       - name: Run the integration tests
         working-directory: OASIS
-        run: dotnet test "${{ matrix.backend.project }}" --configuration Release --logger "console;verbosity=normal"
+        run: dotnet test "${{ matrix.backend.project }}" --configuration Release ${{ matrix.backend.filter && format('--filter "{0}"', matrix.backend.filter) || '' }} --logger "console;verbosity=normal"
 
       - name: Configure isolated S3-compatible conformance bucket
         if: matrix.backend.name == 'MinIO'

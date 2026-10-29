@@ -14,6 +14,7 @@ Last updated 28 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 4 | Release gate: Railway tokens, staging Mongo user, staging connection strings | B |
 | 5 | OurWorld Unity Cloud access | B |
 | 6 | Provider acceptance access: ActivityPub, EVM decision, AWS S3, Solana devnet funding, Oracle Cloud, CoinGecko key | C |
+| 9 | Holon permissions: publish web4-api 2.0.17, then click Reapply access once Railway has deployed | A5 |
 | 8 | Railway pin sync (one-time): enable the pre-push hook in each OASIS clone | A4 |
 | 7 | Older items: HoloNET NuGet secrets, phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
 
@@ -69,6 +70,19 @@ Full context: `C:/Source/PIPERDOCS/milestone4-session-plan-engine/piper-m4-work-
 - No new secret is needed: the workflow pushes with the existing `PRIVATE_SUBMODULE_PAT`.
 
 Details: `Docs/Devs/RAILWAY_DEPENDENCY_PINS.md`.
+
+---
+
+### A5. Holon permissions rollout (29 October 2026)
+
+**Why:** PIPER staff (SLP, Head of School) could not read the records the System Administrator created, which broke
+their sign-in. OASIS now has per-holon read, write, delete, add-children and manage permissions, and PIPER uses them.
+See `Docs/Devs/HOLON_PERMISSIONS.md`.
+
+- [ ] **Wait for Railway** to deploy the OASIS API from Development (root commit `6b32f6116` or later, Core `bceaee8`). Until then PIPER saves show "who can see it could not be set".
+- [ ] **Publish `@oasisomniverse/web4-api` 2.0.17** (`npm login` then `npm run publish-all`). It adds `share.setPermissions` and `share.getPermissions`. piper-server does not need it yet (it calls the endpoint directly), but other apps will.
+- [ ] **Sign in as the SA, open Staff Management and press Reapply access** once. It sets permissions on every existing district, school, staff and student record. A toast says how many were updated.
+- [ ] Sign in as an SLP (e.g. david@piperspeech.com) and check the dashboard loads their students with no "not linked" error.
 
 ---
 

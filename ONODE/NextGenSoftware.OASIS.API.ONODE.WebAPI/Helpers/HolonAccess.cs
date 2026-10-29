@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
 {
     /// <summary>
     /// Read-access rule for holons: the creator, anyone if the holon is public, and any avatar it has been shared
-    /// with (via api/share/share-holon). Sharing grants read access only; writes and deletes stay creator-only.
+    /// with (via api/share/share-holon). Sharing grants read access only; write, delete, add-children and manage are granted per holon with SetPermissionsAsync.
     /// </summary>
     public static class HolonAccess
     {
@@ -26,13 +26,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         /// One flag per recipient so "shared with me" is an exact-match metadata lookup, since
         /// <see cref="SharedAvatarIdsMetaKey"/> holds a list and metadata queries match whole values.
         /// </summary>
-        public static string SharedWithIndexKey(Guid avatarId) => $"SHARED_WITH_{avatarId:N}";
+        public static string SharedWithIndexKey(Guid avatarId) => HolonReadIndex.KeyFor(avatarId);
 
         public const string SharedWithIndexValue = "true";
 
+        /// <summary>True when the avatar may be given the whole holon. Field-limited readers need <see cref="Project"/>.</summary>
         public static bool CanRead(IHolon holon, Guid avatarId) =>
-            holon != null && (holon.IsPublic || (avatarId != Guid.Empty &&
-                (holon.CreatedByAvatarId == avatarId || GetSharedAvatarIds(holon).Contains(avatarId))));
+            holon != null && HolonPermissions.Allows(holon, avatarId, HolonPermission.Read);
+
+        /// <summary>
+        /// The holon as this avatar may see it: the holon itself, a copy holding only the fields they may read, or null.
+        /// Resolves the holon's own grants only; the manager's loads additionally apply groups and inherited grants.
+        /// </summary>
+        public static IHolon Project(IHolon holon, Guid avatarId) =>
+            holon == null ? null : new HolonAccessResolver(avatarId, includePublic: true).Project(holon);
 
         public static HashSet<Guid> GetSharedAvatarIds(IHolon holon)
         {
@@ -66,9 +73,122 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             CosmicWriteOptions writeOptions = null) =>
             ChangeSharesAsync(holonManager, holonId, avatarIds, caller, revoke: true, writeOptions);
 
-        private static async Task<OASISResult<bool>> ChangeSharesAsync(
+        private static Task<OASISResult<bool>> ChangeSharesAsync(
             HolonManager holonManager, Guid holonId, IEnumerable<Guid> avatarIds, IAvatar caller,
             bool revoke, CosmicWriteOptions writeOptions)
+        {
+            var input = avatarIds?.Take(HolonReadGrants.MaximumRecipients + 1).ToArray() ?? Array.Empty<Guid>();
+            var recipients = input.Where(id => id != Guid.Empty).Distinct().ToList();
+            if (recipients.Count == 0 || holonId == Guid.Empty || input.Length > HolonReadGrants.MaximumRecipients)
+                return Task.FromResult(new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_SHARE_INPUT_INVALID",
+                    Message = "At least one valid avatar id and a nonempty holon id must be supplied." });
+
+            return ChangeAccessAsync(holonManager, holonId, caller, writeOptions, holon =>
+            {
+                var parsed = HolonReadGrants.Read(holon, allowLegacyText: true);
+                if (parsed.IsError)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                        ErrorCode = parsed.ErrorCode, Message = parsed.Message, Exception = parsed.Exception };
+                var sharedIds = new HashSet<Guid>(parsed.Result);
+                if (revoke) sharedIds.ExceptWith(recipients);
+                else sharedIds.UnionWith(recipients);
+                if (sharedIds.Count > HolonReadGrants.MaximumRecipients)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                        ErrorCode = HolonReadGrants.InvalidCode, Message = "Recipient limit exceeded." };
+                RecordShares(holon, sharedIds);
+                return null;
+            }, revoke ? $"Read access revoked for {recipients.Count} avatar(s)."
+                : $"Holon {holonId} shared with {recipients.Count} avatar(s).");
+        }
+
+        /// <summary>The stored permission set of a holon (empty if none, or if the stored value is malformed).</summary>
+        public static HolonPermissionSet GetPermissions(IHolon holon)
+        {
+            var stored = HolonPermissionSet.Read(holon);
+            return stored.IsError ? HolonPermissionSet.Empty : stored.Result;
+        }
+
+        /// <summary>
+        /// Changes who may do what with the holon, as a whole and field by field. Only an avatar with
+        /// <see cref="HolonPermission.Manage"/> (the creator always has it) or a Wizard may. An empty change marks the holon
+        /// as restricted: creating children under it then needs AddChildren.
+        /// </summary>
+        public static Task<OASISResult<bool>> SetPermissionsAsync(
+            HolonManager holonManager, Guid holonId, HolonPermissionChange change, IAvatar caller,
+            CosmicWriteOptions writeOptions = null)
+        {
+            var invalid = change == null ? "A permission change is required." : change.Validate();
+            if (holonId == Guid.Empty || invalid != null)
+                return Task.FromResult(new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
+                    Message = holonId == Guid.Empty ? "A nonempty holon id is required." : invalid });
+
+            return ChangeAccessAsync(holonManager, holonId, caller, writeOptions, holon =>
+            {
+                var applied = change.ApplyTo(holon);
+                return applied.IsError ? applied : null;
+            }, $"Permissions updated on holon {holonId}.");
+        }
+
+        /// <summary>
+        /// Creates a group (or role): a holon whose members can be granted permissions as one. The creator owns it and
+        /// controls its membership.
+        /// </summary>
+        public static async Task<OASISResult<IHolon>> CreateGroupAsync(
+            HolonManager holonManager, string name, IEnumerable<Guid> members, IAvatar caller)
+        {
+            var callerId = caller?.Id ?? Guid.Empty;
+            if (callerId == Guid.Empty || string.IsNullOrWhiteSpace(name))
+                return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_INPUT_INVALID",
+                    Message = "Sign in and give the group a name." };
+            var group = new Holon { Id = Guid.Empty, Name = name.Trim(), HolonType = HolonType.Holon,
+                CustomHolonType = HolonGroup.CustomType };
+            var set = HolonGroup.SetMembers(group, (members ?? Array.Empty<Guid>()).Where(m => m != Guid.Empty).Distinct().ToArray());
+            if (set.IsError)
+                return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = set.ErrorCode, Message = set.Message };
+            return await holonManager.SaveHolonAsync(group, callerId, new CosmicWriteOptions(Guid.NewGuid()), saveChildren: false);
+        }
+
+        /// <summary>Adds and removes group members. Needs Manage on the group (its creator has it).</summary>
+        public static Task<OASISResult<bool>> SetGroupMembersAsync(
+            HolonManager holonManager, Guid groupId, IEnumerable<Guid> add, IEnumerable<Guid> remove, IAvatar caller,
+            CosmicWriteOptions writeOptions = null)
+        {
+            var toAdd = (add ?? Array.Empty<Guid>()).Where(m => m != Guid.Empty).ToList();
+            var toRemove = new HashSet<Guid>(remove ?? Array.Empty<Guid>());
+            if (groupId == Guid.Empty || (toAdd.Count == 0 && toRemove.Count == 0))
+                return Task.FromResult(new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_INPUT_INVALID",
+                    Message = "A group id and at least one member to add or remove are required." });
+            return ChangeAccessAsync(holonManager, groupId, caller, writeOptions, holon =>
+            {
+                if (!HolonGroup.IsGroup(holon))
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_INPUT_INVALID",
+                        Message = "That holon is not a group." };
+                var members = HolonGroup.Members(holon);
+                if (members.IsError)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = members.ErrorCode, Message = members.Message };
+                var next = new HashSet<Guid>(members.Result);
+                next.UnionWith(toAdd);
+                next.ExceptWith(toRemove);
+                var set = HolonGroup.SetMembers(holon, next);
+                return set.IsError ? set : null;
+            }, $"Group {groupId} membership updated.");
+        }
+
+        /// <summary>Rebuilds the "shared with" lookup flags from what the holon grants (see <see cref="HolonReadIndex"/>).</summary>
+        public static void RebuildReadIndex(IHolon holon) => HolonReadIndex.Rebuild(holon);
+
+        /// <summary>The index flag for a holon granted to everyone.</summary>
+        public const string SharedWithPublicKey = HolonReadIndex.PublicKey;
+
+        /// <summary>
+        /// The one load, check, change, conditional-save path for anything that changes who may access a holon.
+        /// <paramref name="mutate"/> edits the loaded holon and returns an error result, or null to proceed.
+        /// </summary>
+        private static async Task<OASISResult<bool>> ChangeAccessAsync(
+            HolonManager holonManager, Guid holonId, IAvatar caller, CosmicWriteOptions writeOptions,
+            Func<IHolon, OASISResult<bool>> mutate, string successMessage)
         {
             var callerId = caller?.Id ?? Guid.Empty;
             var callerIsWizard = caller?.AvatarType?.Value == AvatarType.Wizard;
@@ -76,14 +196,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN", Message = "Unauthorized. Sign in to change sharing." };
 
-            var input = avatarIds?.Take(HolonReadGrants.MaximumRecipients + 1).ToArray() ?? Array.Empty<Guid>();
-            var recipients = input.Where(id => id != Guid.Empty).Distinct().ToList();
-            if (recipients.Count == 0 || holonId == Guid.Empty || input.Length > HolonReadGrants.MaximumRecipients)
-                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                    ErrorCode = "COSMIC_SHARE_INPUT_INVALID",
-                    Message = "At least one valid avatar id and a nonempty holon id must be supplied." };
-
-            // Sharing changes only this record. Do not load or write its child graph.
+            // Access changes touch only this record. Do not load or write its child graph.
             var authority = ProviderType.Default;
             OASISResult<IHolon> loaded;
             if (holonManager.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
@@ -103,22 +216,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                     Exception = loaded?.Exception };
 
             var holon = loaded.Result;
-            if (holon.CreatedByAvatarId != callerId && !callerIsWizard)
+            if (!callerIsWizard && !await holonManager.AllowsAsync(holon, callerId, HolonPermission.Manage))
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_SHARE_FORBIDDEN",
-                    Message = "Unauthorized. You can only change sharing on holons that you created." };
+                    Message = "Unauthorized. Only the creator, or an avatar granted Manage, can change access to this holon." };
 
-            var parsed = HolonReadGrants.Read(holon, allowLegacyText: true);
-            if (parsed.IsError)
-                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                    ErrorCode = parsed.ErrorCode, Message = parsed.Message, Exception = parsed.Exception };
-            var sharedIds = new HashSet<Guid>(parsed.Result);
-            if (revoke) sharedIds.ExceptWith(recipients);
-            else sharedIds.UnionWith(recipients);
-            if (sharedIds.Count > HolonReadGrants.MaximumRecipients)
-                return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                    ErrorCode = HolonReadGrants.InvalidCode, Message = "Recipient limit exceeded." };
-            RecordShares(holon, sharedIds);
+            var failure = mutate(holon);
+            if (failure != null) return failure;
 
             // Conditions bind the accepted provider revision from this load.
             // Unsupported providers and uncertain/conflicting outcomes fail closed.
@@ -130,14 +234,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                     return ShareFailure(saved, "COSMIC_SHARE_SAVE_INVALID");
                 return new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = saved?.ErrorCode ?? "COSMIC_SHARE_SAVE_INVALID",
-                    Message = $"Unable to persist sharing for holon {holonId}. Reason: {saved?.Message}",
+                    Message = $"Unable to persist access change for holon {holon.Id}. Reason: {saved?.Message}",
                     Exception = saved?.Exception };
             }
 
             return new OASISResult<bool> { Result = true, IsSaved = saved.IsSaved,
-                MetaData = saved.MetaData,
-                Message = revoke ? $"Read access revoked for {recipients.Count} avatar(s)."
-                    : $"Holon {holonId} shared with {recipients.Count} avatar(s)." };
+                MetaData = saved.MetaData, Message = successMessage };
         }
 
         private static OASISResult<bool> ShareFailure<T>(OASISResult<T> source, string invalidCode)
@@ -170,17 +272,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
                 throw new ArgumentException("Recipient limit exceeded.", nameof(sharedIds));
             var encoded = HolonReadGrants.Encode(input.Where(id => id != Guid.Empty));
             if (encoded.IsError) throw new ArgumentException(encoded.Message, nameof(sharedIds));
-            var all = input.Where(id => id != Guid.Empty).Distinct().OrderBy(id => id).ToArray();
             holon.MetaData ??= new Dictionary<string, object>();
-            // Indexes are derived lookup hints, never independent grants. Remove
-            // revoked entries before rebuilding the current canonical set.
-            foreach (var key in holon.MetaData.Keys.Where(key =>
-                key.StartsWith("SHARED_WITH_", StringComparison.Ordinal)
-                && Guid.TryParseExact(key.Substring("SHARED_WITH_".Length), "N", out _)).ToArray())
-                holon.MetaData.Remove(key);
             holon.MetaData[SharedAvatarIdsMetaKey] = encoded.Result;
-            foreach (var id in all)
-                holon.MetaData[SharedWithIndexKey(id)] = SharedWithIndexValue;
+            RebuildReadIndex(holon);
         }
     }
 }

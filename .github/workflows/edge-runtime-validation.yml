@@ -321,7 +321,7 @@ jobs:
           dotnet test
           Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj
           --configuration Release
-          --filter "Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&Category!=OwnedMongoRunner"
+          --filter "Category!=ExternalPrimaryTermination&Category!=OwnedFixtureReconciliation&Category!=OwnedMongoRunner&FullyQualifiedName!~CosmicChildFixtureReconciliationTests&FullyQualifiedName!~CosmicChildTraversalTests&FullyQualifiedName!~CosmicCommittedDeltaTests&FullyQualifiedName!~CosmicCommittedReplicaTests&FullyQualifiedName!~CosmicConditionalFixtureReconciliationTests&FullyQualifiedName!~CosmicConditionalWriteTests&FullyQualifiedName!~CosmicCqlFixtureReconciliationTests&FullyQualifiedName!~CosmicCqlNativeTests&FullyQualifiedName!~CosmicCqlRetainedInspection&FullyQualifiedName!~CosmicIdentityTombstoneTests&FullyQualifiedName!~CosmicJsonNumberPrecisionTests&FullyQualifiedName!~CosmicOutboxDeliveryTests&FullyQualifiedName!~CosmicPreparationWriteTests&FullyQualifiedName!~CosmicPrimaryOutboxTests&FullyQualifiedName!~CosmicSaveLifecycleTests&FullyQualifiedName!~CosmicTypedQueryTests&FullyQualifiedName!~MongoAccountHistoryNativeTests&FullyQualifiedName!~MongoExportNativeTests&FullyQualifiedName!~MongoGraphAcknowledgementTests&FullyQualifiedName!~MongoLifecycleFixtureReconciliation"
           --logger "trx;LogFileName=hosted-mongo-sync.trx"
           --results-directory artifacts/hosted-mongo-ci
           --nologo

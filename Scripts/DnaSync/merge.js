@@ -82,7 +82,8 @@ function applyOverrides(v, path, overrides) {
   return v;
 }
 
-exports.merge = function merge(text, template, overrides = {}) {
+exports.merge = function merge(text, template, overrides = {}, options = {}) {
+  const clean = (v, k) => (options.keepSecrets ? v : scrub(v, k));
   const root = parseWithPositions(text);
   const edits = []; // {pos, insert, end?}
   const added = [];
@@ -93,7 +94,7 @@ exports.merge = function merge(text, template, overrides = {}) {
         ? lineIndent(text, [...node.members.values()][0].start)
         : lineIndent(text, node.openPos) + '  ';
       const block = missing.map(k => {
-        const v = applyOverrides(scrub(tpl[k], k), path + '/' + k, overrides);
+        const v = applyOverrides(clean(tpl[k], k), path + '/' + k, overrides);
         added.push(path + '/' + k);
         const body = JSON.stringify(v, null, 2).split('\n').join('\n' + memberIndent);
         return memberIndent + JSON.stringify(k) + ': ' + body;
@@ -106,7 +107,7 @@ exports.merge = function merge(text, template, overrides = {}) {
       // A section set to null is filled with its defaults, as Scripts/Sync-OASISDNATemplate.ps1 does.
       if (child && child.type === 'scalar' && text.slice(child.start, child.end) === 'null' && tpl[k] && typeof tpl[k] === 'object' && !Array.isArray(tpl[k])) {
         const memberIndent = lineIndent(text, child.start);
-        const v = applyOverrides(scrub(tpl[k], k), path + '/' + k, overrides);
+        const v = applyOverrides(clean(tpl[k], k), path + '/' + k, overrides);
         added.push(path + '/' + k + ' (was null)');
         edits.push({ pos: child.start, end: child.end, insert: JSON.stringify(v, null, 2).split('\n').join('\n' + memberIndent) });
         continue;

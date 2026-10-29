@@ -49,4 +49,4 @@ Content-Type: application/json
 
 ---
 
-**← Previous:** [Sandbox API](Sandbox-API.md) | **Next:** [Files API](Files-API.md) →
+**← Back to the [WEB4 API index](README.md)**
