@@ -8,12 +8,11 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: finish Azure Blob's Mongo-paired C#/HTTP/browser preset.** Its 14 controls,
-native 3/2/missing-blob query and full restart reuse1/1 pass; exact ETags/content
-remain unchanged. Actual shipping factory and cached Azurite3.37.0 are used. Own
-source/store is retained, port 10000 closed. [Proof/next step](AZURE_BLOB_CQL_MVP.md).
-Azure Blob stays red until paired 5/4 results, provenance, failure handling, browser
-verification and exact Mongo cleanup pass. Then continue the remaining breadth queue.
+**Next: assess AWSS3OASIS admission and reusable local resources**, then implement
+its bounded query and Mongo-paired preset. Azure Blob now passes controls14,
+native/reuse1/1 and paired SDK/HTTP/browser5/4; exact source ETags/content unchanged.
+All owned Blob/Mongo/demo listeners stopped and temporary Mongo data cleaned.
+[Azure Blob scope/proof](AZURE_BLOB_CQL_MVP.md).
 
 ## Scoped demo proofs
 
@@ -30,9 +29,10 @@ verification and exact Mongo cleanup pass. Then continue the remaining breadth q
 | Cosmos blockchain + Mongo | Native encrypted contract/restart/paired 5/4. Original four signed writes retained. [Guide](COSMOS_BLOCKCHAIN_CQL_MVP.md). |
 | Polkadot + Mongo | Native encrypted contract/restart/paired 5/4. Original three signed writes retained. [Guide](POLKADOT_CQL_MVP.md). |
 | NEAR + Mongo | Original encrypted records/restart/paired 5/4; historical write gate remains open. [Guide](NEAR_CQL_MVP.md). |
+| Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 19 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 20 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 

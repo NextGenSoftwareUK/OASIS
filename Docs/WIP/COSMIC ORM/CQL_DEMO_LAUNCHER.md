@@ -106,3 +106,13 @@ Arbitrum V2 uses `-Provider Arbitrum -Federated` (5099), with the same5/4 teachi
 Google Firestore uses `-Provider Google -Federated` (5100), or add `-VerifyOnly` for bounded checks. Reuses the exact immutable local checkpoint, produces5/4 physical rows and labels emulator scope explicitly. No hosted Google claim. [Guide](FIRESTORE_CQL_MVP.md).
 
 Cosmos **blockchain** uses `-Provider CosmosChain -Federated` (5101), distinct from `-Provider CosmosDB` (Azure emulator). Add `-VerifyOnly` for bounded native/SDK/HTTP checks. The existing encrypted native seed is reused without new submissions, and all/subset yield5/4 physical rows. No Cosmos Hub/mainnet or shared-snapshot claim. [Guide](COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+## Azure Blob + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AzureBlob -Federated`.
+The retained Azurite source supplies three records and Mongo two copies: full query
+returns five physical rows; the two-ID subset returns four. C#, HTTP and browser
+share HolonManager federation and preserve provider provenance. Reads observe
+separate moments. This is local Azurite, not hosted Azure; arbitrary blob discovery,
+content predicates and full provider parity remain outside this MVP.
+See [commands, tests and limits](AZURE_BLOB_CQL_MVP.md).

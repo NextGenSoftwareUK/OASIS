@@ -160,3 +160,13 @@ on local EVM chain31338. It does not demonstrate public Avalanche finality. The
 factory now binds the configured chain identity into encryption. Stop preserves
 the original contract/IDs/key/ledger and removes the validated Mongo fixture. Add
 `-VerifyOnly` for bounded acceptance. [Proof and recovery limits](AVALANCHE_CQL_MVP.md).
+
+## Azure Blob + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AzureBlob -Federated`.
+The retained Azurite source supplies three records and Mongo two copies: full query
+returns five physical rows; the two-ID subset returns four. C#, HTTP and browser
+share HolonManager federation and preserve provider provenance. Reads observe
+separate moments. This is local Azurite, not hosted Azure; arbitrary blob discovery,
+content predicates and full provider parity remain outside this MVP.
+See [commands, tests and limits](AZURE_BLOB_CQL_MVP.md).

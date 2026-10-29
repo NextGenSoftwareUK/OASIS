@@ -49,7 +49,7 @@ an actual authorized missing-blob read returning an empty result. The actual
 shipping CloudProviderFactory constructs the provider with version control enabled.
 
 Native report: `TestResults/AzureBlobCqlCurrent/azureblob-cql-native.trx`, SHA256
-`CD90762E6E6CCAA79D28D110930D58F4B2CA3911DDEF8261301212DD64B059DC`.
+`6F4F8E9EE48973624B4DAFB4F6B61FCDA101FF15F0185017E1425B888DEFB138`.
 Original first-pass report is preserved as `azureblob-cql-native.initial.trx`.
 Persistent source: `LocalState/COSMIC/AzureBlobCql/demo-seed.json`173bytes, SHA256
 `9758C6A96B95BC00B2B3A4E8C8A800E61AED320ED943CBE0B8114DAB14C6E23A`.
@@ -57,19 +57,30 @@ The complete retained store/catalogue/lock measured15,284bytes. Port10000 is clo
 after verified graceful IPC shutdown; setup journal is removed. No subscription,
 runtime install or new dependency download was needed.
 
-## Exact next step
+## Paired demo acceptance
 
-1. Add the Mongo-paired C#/HTTP/browser five/four-result preset and launcher route;
-   validate/drop only its exact owned temporary Mongo database afterward.
-2. Reuse the original source containers/catalogue/store without reseeding. Persistent
-   data stays in LocalState; runtime logs/TRX stay in TestResults. The reusable host
-   helper now accepts an explicit data directory; existing callers retain their default.
+`AzureBlobMongoCqlNativeTests.NativeAzureBlobMongoFederationRunsSdkAndHttpWithProviderProvenance`
+passes 1/1, zero skips. SDK and HTTP return five/full and four/subset rows,
+exclude unrelated Mongo identities, preserve provider copies and reject forged
+actors, unknown presets and inactive Blob authority without partial rows.
+The browser independently verified both counts and provenance at localhost5106.
+
+Evidence under `TestResults/AzureBlobCqlCurrent/`:
+- `azureblob-mongo-federation.trx`: 1/1; SHA256
+  `05332369A4BA0CF715F09D68A60AB906751F920A16203C2A7BA33E524F868537`.
+- `azureblob-mongo-browser.jpg`: verified four-row subset screenshot.
+- `hub-routing.log`: 8 single/16 plans,17 paired/34 plans,20 paired rejections,
+  3 archive rejections; listeners unchanged.
+
+After requested shutdown the same owned runner completed with exit0. Exact owned
+Mongo database `cosmic_cql_mongo_blob_demo` was validated/dropped; pending and ready
+journals are gone; ports10000/27029/5106 have no listeners. Persistent Blob source
+is retained. No hosted Azure or distributed snapshot guarantee is claimed.
 
 ```powershell
-Scripts/TestHosts/Run-CosmicAzureBlobCqlNative.ps1
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AzureBlob -Federated
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AzureBlob -Federated -VerifyOnly
 ```
 
-Do not green the [MVP inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) until those native
-and paired proofs pass. Free-only provisioning and existing historical/provider
-gates remain in force. [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) /
-[current status](CURRENT_STATUS.md).
+Continue other red provider MVPs. [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
+[current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

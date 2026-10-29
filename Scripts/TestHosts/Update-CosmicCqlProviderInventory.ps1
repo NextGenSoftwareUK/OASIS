@@ -19,7 +19,7 @@ $proofs = @{
     AWSOASIS='AWS_CQL_MVP.md'; EthereumOASIS='ETHEREUM_CQL_MVP.md'; PolygonOASIS='POLYGON_CQL_MVP.md'
     ArbitrumOASIS='ARBITRUM_CQL_MVP.md'; GoogleCloudOASIS='FIRESTORE_CQL_MVP.md'
     BaseOASIS='BASE_CQL_MVP.md'
-    AvalancheOASIS='AVALANCHE_CQL_MVP.md'
+    AvalancheOASIS='AVALANCHE_CQL_MVP.md'; AzureStorageOASIS='AZURE_BLOB_CQL_MVP.md'
     CosmosBlockChainOASIS='COSMOS_BLOCKCHAIN_CQL_MVP.md'; PolkadotOASIS='POLKADOT_CQL_MVP.md'; NEAROASIS='NEAR_CQL_MVP.md'
     SolanaOASIS='CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md'; IPFSOASIS='CQL_PROTOCOL_MULTI_RECORD.md'
     SOLIDOASIS='CQL_PROTOCOL_MULTI_RECORD.md'; ActivityPubOASIS='CQL_PROTOCOL_MULTI_RECORD.md'
@@ -58,7 +58,7 @@ if (!$integrated) {
 } else {
     $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
 }
-$report.Add('1. AzureStorageOASIS next: active central registration uses CloudProviderFactory.CreateAzureStorage and native Blob containers. Review CQL admission/native emulator resources, then prove bounded multi-record selection and a Mongo-paired preset. Hosted Azure Cosmos remains pending by user instruction; this is separate Blob Storage scope.')
+$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. Next assess AWSS3OASIS admission and reusable local resources; prove a bounded query and Mongo-paired preset. Hosted Azure Cosmos remains pending.')
 $report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
@@ -69,12 +69,10 @@ foreach ($name in $names) {
         if (!(Test-Path (Join-Path $root "Docs/WIP/COSMIC ORM/$proof"))) { throw "Missing proof guide: $proof" }
         $status = "✅ [Scoped proof]($proof)"
         if ($name -eq 'AzureCosmosDBOASIS') { $status += '; emulator only, hosted pending' }
-    } elseif ($name -eq 'AzureStorageOASIS') {
-        $status = '❌ [Controls/native3/2/restart verified; paired pending](AZURE_BLOB_CQL_MVP.md)'
+
     } else { $status = '❌ Not verified' }
     $source = if ($byName.ContainsKey($name)) { ($byName[$name] | ForEach-Object { "[project](<../../../$_>)" }) -join ', ' } else { 'No exact project-name match; alias/source review required' }
     $registration = if ($registrations.ContainsKey($name)) { "[Active case](<../../../${registerPath}#L$($registrations[$name])>); verify factory/mode" } else { 'No active central case found; review registration/direct construction' }
-    if ($name -eq 'AzureStorageOASIS') { $registration += '; CQL/native pairing review required' }
     $report.Add("| $name | $status | $source | $registration |")
 }
 $extras = @($byName.Keys | Where-Object { $_ -notin $names } | Sort-Object)

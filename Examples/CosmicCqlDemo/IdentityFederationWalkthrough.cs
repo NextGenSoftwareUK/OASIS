@@ -75,6 +75,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.ArbitrumOASIS => "Arbitrum",
         ProviderType.BaseOASIS => "Base",
         ProviderType.AvalancheOASIS => "Avalanche",
+        ProviderType.AzureStorageOASIS => "Azure Blob",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
