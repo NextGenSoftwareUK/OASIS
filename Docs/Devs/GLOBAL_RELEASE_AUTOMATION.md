@@ -63,7 +63,16 @@ WEB5 and WEB6 source histories live in their owning private submodules, while th
 The release planner updates both copies in the same preparation PR, and Publish rejects a release if their SHA-256 hashes differ.
 All three Swagger histories are ordered chronologically by semantic version, with the oldest release at the top and the newest at the bottom. The release planner appends new entries and the automation test rejects an out-of-order or missing required history.
 
-WEB7, WEB8, WEB9 and WEB10 are deliberately outside this option. The automation checks that their API versions did not move.
+### One switch for every API (WEB4-WEB10)
+
+Tick `advance_api_versions` in **Global OASIS Release** (or pass `-AdvanceWeb4ToWeb6ApiVersions` and `-AdvanceWeb7ToWeb10ApiVersions` to the script). The run then, with no manual steps:
+
+- advances each `WEBnAPIVersion` constant and adds its release-history entry (WEB7-WEB10 histories live in this repo; WEB5/WEB6 histories are committed to their submodules and the pins updated);
+- sets `OASISRuntimeVersion` equal to `OASISAPIVersion` (the runtime ships with WEB4), and rewrites the version sentence above;
+- in OPORTAL-JS (`dev`), renames each Postman collection to the new version, fixes its title and every portal link;
+- commits all of it (this repo to the branch the run started from, OPORTAL-JS to `dev`).
+
+The helper `Scripts/api_version_sync.py` does the propagation and every run of the workflow applies it (`--sync`), so drift is corrected rather than reported; `Test-OASISGlobalRelease.ps1` reads the versions from the constants instead of hardcoding them. Needs `PRIVATE_SUBMODULE_PAT` with write access to OPORTAL-JS and the private submodules.
 
 Version/history changes must be committed and pass CI before publishing from `master`. For the current release, WEB4, WEB5 and WEB6 are 5.3.0, 3.2.0 and 3.2.0 respectively; WEB7-WEB10 remain 1.0.0.
 
