@@ -5,6 +5,11 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Current migration checkpoint
 
+Latest: source-wide bounded lineage windows implemented on SQLite/Mongo/Neo;
+Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2 pass. Later
+appends excluded from captured windows and visible on new scans. Native fences,
+authorized immutable preview and cutover remain open; windows do not prove quiescence.
+
 [Lineage migration](V2_LINEAGE_MIGRATION.md): explicit physical-source receipt
 verification implemented for historical type-only and already-bound intents.
 Core4462/Neo619 controls; native SQLite2/Mongo2/Neo2 pass. Selected-record content
