@@ -26,7 +26,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. MVP breadth first, depth afterward: inspect AWS DynamoDB native query capability and add its bounded multi-record CQL + Mongo federated C#/HTTP/browser demo admission, tests and docs. Reuse existing free/local environment; no paid provisioning.
+1. AWS bounded native-key CQL is implemented with13/13 controlled tests and successful Dynamo/AWS builds. Next: native DynamoDB Local acceptance using the verified shared immutable JAR read-only and this worktree's own persistent CQL data, then Mongo-paired C#/HTTP/browser presets. Existing original container/data must remain stopped/untouched. [AWS MVP](AWS_CQL_MVP.md).
 2. After AWS: Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain, Polkadot and NEAR, in that order; then other suitable existing popular providers. Each MVP needs a genuinely native bounded filtered multi-record query and a Mongo-paired demo with explicit limits; no full-parity gate. Reconcile existing Mongo/SQLite/Neo/IPFS/Azure emulator/Oracle/SOLID/ActivityPub/Solana demos; hosted Azure stays pending.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
@@ -48,7 +48,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 | Cosmos + Mongo | Emulator C#/HTTP/browser 5/4. Hosted Azure pending by user instruction: no free subscription/auth; do not provision or repeat signup requests. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
 | IPFS/SOLID/ActivityPub + Mongo | Native 3/2 bounded-key queries, paired SDK/HTTP/browser 5/4. Arbitrary content queries remain open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
 | Solana + Mongo | Retained local validator + explicit SQLite index, C#/HTTP/browser. No hosted-chain/reseed claim. Original missing historical chunk has no known backup; preserve retained state. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). |
-| AWS + Mongo | Native DynamoDB CQL admission and C#/HTTP/browser presets remain red. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
+| AWS + Mongo | Native-key execution implementation/control tests13/13 done; real-service acceptance and C#/HTTP/browser presets remain red. Storage support alone is insufficient. [Roadmap](CQL_DEMO_EXPANSION_ROADMAP.md). |
 
 Three-database save demos cover dirty/no-op ownership, generated IDs, concurrency and per-save deltas within checklist scopes. Full history/value authorization, broad child/provider parity, placement, hosted durability/scaling and migration remain open.
 
