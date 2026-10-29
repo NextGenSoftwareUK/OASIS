@@ -469,9 +469,10 @@ WHEN NOT MATCHED THEN
                 cmd.Parameters.AddWithValue("@HolonType", (int)holon.HolonType);
                 cmd.Parameters.AddWithValue("@IsDeleted", holon.IsDeleted);
                 cmd.Parameters.AddWithValue("@DataJson", Serialize(holon));
-                await cmd.ExecuteNonQueryAsync();
+                var affected = await cmd.ExecuteNonQueryAsync();
+                if (affected != 1) throw new InvalidOperationException("SQL Server holon upsert must acknowledge exactly one row.");
 
-                result.Result = holon; result.IsError = false; result.Message = $"SQLServerDBOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"SQLServerDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
             return result;
