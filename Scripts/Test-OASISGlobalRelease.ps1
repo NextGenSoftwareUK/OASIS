@@ -66,13 +66,9 @@ try {
         $after = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
         if ($after -ne $before[$path]) { throw "Default planning unexpectedly changed $path." }
     }
-    $content = Get-Content -LiteralPath $bootLoader -Raw
-    foreach ($expected in @('OASISAPIVersion { get; set; } = "5.3.0"', 'STARAPIVersion { get; set; } = "3.2.0"', 'WEB6APIVersion { get; set; } = "3.2.0"')) {
-        if (-not $content.Contains($expected)) { throw "Missing expected WEB4-WEB6 version: $expected" }
-    }
-    foreach ($expected in @('WEB7APIVersion { get; set; } = "1.0.0"', 'WEB8APIVersion { get; set; } = "1.0.0"', 'WEB9APIVersion { get; set; } = "1.0.0"', 'WEB10APIVersion { get; set; } = "1.0.0"')) {
-        if (-not $content.Contains($expected)) { throw "WEB7-WEB10 version changed unexpectedly: $expected" }
-    }
+    # Versions are read from OASISBootLoader.cs and compared with every place they are written down; nothing is hardcoded here.
+    & python (Join-Path $PSScriptRoot 'api_version_sync.py') --check
+    if ($LASTEXITCODE -ne 0) { throw 'API versions are out of sync; run Scripts/api_version_sync.py --sync (see Docs/Devs/API_VERSIONING.md).' }
     Write-Host "Global release automation tests passed for $($plan.packages.Count) packages."
 
     $publicHistories = @(
@@ -92,9 +88,9 @@ try {
         }
     }
     $chronologicalHistories = @(
-        @{ Path = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md'; Required = @('4.0.0','4.5.0','4.5.1','5.3.0') },
-        @{ Path = 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md'; Required = @('2.0.0','3.0.0','3.2.0') },
-        @{ Path = 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md'; Required = @('1.0.0','2.0.0','3.0.0','3.2.0') }
+        @{ Path = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS API RELEASE HISTORY.md'; Required = @('4.0.0','4.5.0','4.5.1') },
+        @{ Path = 'Docs/API/WEB5-STAR-API-RELEASE-HISTORY.md'; Required = @('2.0.0','3.0.0') },
+        @{ Path = 'Docs/API/WEB6-AI-API-RELEASE-HISTORY.md'; Required = @('1.0.0','2.0.0','3.0.0') }
     )
     foreach ($history in $chronologicalHistories) {
         $historyText = Get-Content -LiteralPath (Join-Path $repoRoot $history.Path) -Raw
