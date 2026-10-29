@@ -8,8 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Memcached native cache-generation runner and queries**. Pinned1.6.40 runtime
-ready, no daemon/source yet; control15 pass, native/paired red. [Contract/resources](MEMCACHED_CQL_MVP.md).
+**Next: Memcached Mongo-paired SDK/HTTP/browser demo in an active volatile generation**.
+Control15/native generations pass3/2/miss/tombstone/paging/CAS; owned daemon stopped. [Contract/proof](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
 owned services stopped, fixture removed, source/replicas retained. Windows failure
 stays separate. [Scope/resources/commands](LITESTREAM_CQL_MVP.md).

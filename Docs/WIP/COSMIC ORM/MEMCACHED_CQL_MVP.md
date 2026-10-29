@@ -1,6 +1,6 @@
 # Memcached CQL MVP admission
 
-Updated29 October2026. **Native cache and Mongo-paired demo remain red.**
+Updated29 October2026. **Native volatile-cache proof passes; Mongo-paired demo remains red.**
 
 ## Implemented scope
 
@@ -22,7 +22,7 @@ save sets IsSaved/SavedCount only after existing record/index operations succeed
 Cached JSON is plaintext. Memcached is volatile; no persistence/restart durability
 is claimed. Existing shared index read-modify-write is not atomic across clients;
 conditional writes, broader history/child semantics and production routing remain
-open. Native miss/status1 behavior still needs actual server proof.
+open. Native status1 cache-miss behavior is now verified against the actual server.
 
 ## Verified controls
 
@@ -40,13 +40,14 @@ checks actual provider category without a shim.
 - Used package inventory: `TestResults/MemcachedCqlCurrent/packages-resource-inventory.json`;
   other transitive provenance is explicitly unverified. Existing runtime cache reused.
 
-## Native runtime admitted; query proof still pending
+## Native runtime admission
 
-No native daemon/package/cache was installed. The official signed Ubuntu package
+At admission no native daemon/package/cache was available. The official signed Ubuntu package
 metadata identified1.6.40-1ubuntu0.3; its296,868byte DEB was downloaded once,
 SHA256-verified and extracted without installing a system service. The extracted
 binary was compared with the original archive and reports memcached1.6.40.
-No native daemon has been started; no cache source/data exists yet.
+Native generations are now verified below; no daemon remains running, and retired
+cache data is intentionally volatile.
 
 - Runtime: `/var/tmp/oasis-runtimes/memcached-1.6.40`,791,732bytes including admission.
 - Executable SHA256: `a1d63f0865bafd0fb1c64022f90fd9be5a58a095fa4856ef56d50aa20cabfb6e`.
@@ -59,23 +60,46 @@ No native daemon has been started; no cache source/data exists yet.
   and reuses the admitted binary. Explicit extracted-state finalization preserves
   and validates the original package rather than overlaying a partial setup.
 
-## Exact next step and ephemeral cache contract
+## Verified native volatile generations
 
-Implement one bounded native runner over the existing Linux environment/runtime,
-loopback11239, UDPdisabled,32MiBmemory/one thread. Before writing, persist a canonical
-synthetic seed plus an active process-generation intent and prove the owned cache
-is initially empty. Verify acknowledged Save/Load for three live records and a
-tombstone, real KEY_ENOENT vs transport failure, native3/2/missing queries,
-paging/result budgets and unchanged native record bytes/CAS across queries.
+The actual pinned Memcached daemon runs on Linux loopback11239,UDPdisabled,
+32MiBmemory/one thread. Runner verifies the exact process owns the listener and
+native stats show an empty cache before any fixture writes; no scans/flush/adoption.
+Canonical actor/three live IDs/tombstone ID remain in one persistent seed. Each
+owned process has an active intent before writes and becomes a clean retired
+generation only after the native proof and exact process shutdown succeed.
 
-Treat each owned daemon lifetime as an explicitly volatile generation. On verified
-success, stop the exact owned daemon and record a clean retired generation; a later
-explicit demo may warm the same canonical fixture into a new empty owned cache.
-This is planned cache initialization, never persistence recovery. Unknown write or
-teardown outcomes keep pending state and must not trigger automatic replay/reseed.
-Keep original canonical IDs/receipts/baselines for audit, no cache restart durability
-claim. Then add Mongo-paired C#/HTTP/browser using the existing Linux Mongo store,
-without creating another runtime/environment or per-run database copy.
-Native and paired inventory remain red until actual proof.
+Four acknowledged saves and live Load round trips pass. Actual native missing-key
+responses return empty query results, whereas unavailable-endpoint unit controls
+return errors. CQL returns3/2/missing/tombstone results, applies paging, and rejects
+an undersized result budget without partial rows. Independent bounded binary GETs
+verify identical raw value hashes and CAS versions for all four record keys plus
+the index before/after queries. Native stats show exactly five owned cache items.
+
+The initial generation1passed752ms; an explicit subsequent empty generation using
+the same retained canonical identities1passed274ms. Final-source runner verification
+also passes. This proves intentional cache warmup/lifecycle, not persistence or
+byte equality across process restart. Unknown write/teardown outcomes retain pending
+state and refuse automatic replay. Known clean retirement intentionally loses the
+volatile cache. No daemon or11239listener remains.
+
+- Fixture: `MemcachedCqlNativeTests.cs` in MemcachedOASIS.IntegrationTests.
+- Runner: `Scripts/TestHosts/run-cosmic-memcached-linux.py`.
+- Initial evidence: `TestResults/MemcachedCqlCurrent/memcached-cql-initial.trx`.
+- Initial SHA256: `FC19ECF876CF09F2B4B2A88608C38AF795A3FB1F1F50882071F9DA38E55E3B67`.
+- Current evidence: `TestResults/MemcachedCqlCurrent/memcached-cql-native.trx`.
+- Current SHA256: `7416A6D2B91FD1F0238271F9A8628F7ECF1D7B63217160ED436D45EB9CA4943F`.
+- Canonical seed/last generation/CAS receipt/PID receipt: `/var/tmp/oasis-memcached-cql`,
+  measured1,689bytes after second verification; reusable, not cache persistence.
+
+## Exact next step
+
+Add one Mongo-paired C#/HTTP/browser preset during the same admitted active cache
+generation. Reuse the existing Linux Mongo runtime/store and the native generation
+runner; no new environment. Warm the cache only under the defined clean-generation
+contract, retain provider copies/provenance, test invalid/inactive cases, then
+verify/drop only owned temporary Mongo data before cache retirement. Keep paired
+admission red until actual SDK/HTTP/browser proof. Wider index atomicity, durability,
+history/children, conditional writes and full ORM parity remain open.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
