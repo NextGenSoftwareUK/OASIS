@@ -12,6 +12,11 @@ wait for acquisition commit then reject; no remote delivery sent. Unrelated writ
 historical reads remain available. Paired-store admission, preexisting in-flight work,
 unknown outcomes and migration mutation/recovery remain open.
 
+Acquire-only shared coordinator: Shared1516/1516 (10 new controls), exact reviewed scope
+and current administrator grant, complete native read-before-acquire, deduplicated physical
+stores, partial/unknown receipt recovery and redacted progress. Native multi-store proof
+and durable host preview retention remain open; no cutover or compensation enabled.
+
 Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
 Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.
 Physical bindings, graph membership/content/revisions, obligation state and explicit
