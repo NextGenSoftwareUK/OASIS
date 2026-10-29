@@ -46,7 +46,11 @@ public partial class NativeHostedReplicaRestartTests
     public Task NativeNeoAndSqliteRoutingPreservesEligibilityAndAvatarFaultIsolation()
         => VerifyShippingWorkerRestart(false, nativeRouting: true);
 
-    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false, bool nativeRouting = false)
+    [TestMethod]
+    public Task NativeNeoSourceRetainsOrderedWritesWhileSqliteDestinationIsLocked()
+        => VerifyShippingWorkerRestart(false, sqliteOutage: true);
+
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false, bool nativeRouting = false, bool sqliteOutage = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -65,16 +69,16 @@ public partial class NativeHostedReplicaRestartTests
         foreach (var path in ownedFiles) Assert.IsFalse(File.Exists(path), "Reconcile original owned fixture before reuse.");
         var actor = Guid.NewGuid();
         var operation = Guid.NewGuid();
-        var input = new Holon { Id = coldNewSave || nativeRouting ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
+        var input = new Holon { Id = coldNewSave || nativeRouting || sqliteOutage ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
         var coldInput = new Holon { Id = Guid.NewGuid(), Name = "coffee bought after Neo restart" };
         var coldOperation = Guid.NewGuid();
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, nativeRouting, target = file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, nativeRouting, sqliteOutage, target = file });
             intent.Flush(true);
         }
         var source = new Neo(uri, "neo4j", "oasis-local-test-only");
-        var target = new Sqlite($"Data Source={file};Pooling=False");
+        var target = new Sqlite($"Data Source={file};Pooling=False{(sqliteOutage ? ";Default Timeout=1" : "")}");
         using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var inspect = driver.AsyncSession();
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
@@ -175,7 +179,7 @@ public partial class NativeHostedReplicaRestartTests
                 Assert.IsFalse((await source.DeActivateProviderAsync()).IsError);
                 target.Dispose();
                 source = new Neo(uri, "neo4j", "oasis-local-test-only");
-                target = new Sqlite($"Data Source={file};Pooling=False");
+                target = new Sqlite($"Data Source={file};Pooling=False{(sqliteOutage ? ";Default Timeout=1" : "")}");
                 Assert.IsFalse((await source.ActivateProviderAsync()).IsError);
                 Assert.IsFalse((await target.ActivateProviderAsync()).IsError);
                 coldRegistration = true;
@@ -227,6 +231,9 @@ public partial class NativeHostedReplicaRestartTests
                     await Task.Delay(1000);
                 }
             }
+            if (sqliteOutage)
+                coldSequence = await VerifyNeoSourceWhileSqliteLocked(source, target, dna, registry, file,
+                    actor, coldInput, coldOperation, sourceBinding, targetBinding, targetId, pending.Result.Sequence);
             await RunOneRealPass();
             var delivered = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(delivered.IsError, delivered.Message);
@@ -254,12 +261,24 @@ public partial class NativeHostedReplicaRestartTests
                 return; // Test-owned fixture cleanup, never automatic permission retry.
             }
             Assert.AreEqual(HolonDeliveryState.Completed, delivered.Result.State);
-            Assert.AreEqual(crash ? 2 : 1, delivered.Result.AttemptCount);
+            Assert.AreEqual(crash || sqliteOutage ? 2 : 1, delivered.Result.AttemptCount);
             var copy = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsFalse(copy.IsError, copy.Message);
             Assert.AreEqual(input.VersionId, copy.Result.VersionId);
             Assert.AreEqual(actor, copy.Result.CreatedByAvatarId);
 
+            if (sqliteOutage)
+            {
+                var second = await outbox.InspectAsync(coldSequence);
+                Assert.IsFalse(second.IsError, second.Message);
+                Assert.AreEqual(HolonDeliveryState.Completed, second.Result.State);
+                Assert.AreEqual(1, second.Result.AttemptCount);
+                var secondCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(secondCopy.IsError, secondCopy.Message);
+                Assert.AreEqual(coldInput.VersionId, secondCopy.Result.VersionId);
+                coldTargetRevision = CosmicConcurrency.GetProviderRevisionId(secondCopy.Result, ProviderType.SQLLiteDBOASIS);
+                Assert.IsNotNull(coldTargetRevision);
+            }
             if (coldNewSave)
             {
                 var deliveredCold = await outbox.InspectAsync(coldSequence);
@@ -280,7 +299,7 @@ public partial class NativeHostedReplicaRestartTests
             Assert.IsFalse((await source.DeActivateProviderAsync()).IsError);
             target.Dispose();
             source = new Neo(uri, "neo4j", "oasis-local-test-only");
-            target = new Sqlite($"Data Source={file};Pooling=False");
+            target = new Sqlite($"Data Source={file};Pooling=False{(sqliteOutage ? ";Default Timeout=1" : "")}");
             Assert.IsFalse((await source.ActivateProviderAsync()).IsError);
             Assert.IsFalse((await target.ActivateProviderAsync()).IsError);
             registry = Registry();
@@ -289,7 +308,7 @@ public partial class NativeHostedReplicaRestartTests
             var retained = await outbox.InspectAsync(pending.Result.Sequence);
             Assert.IsFalse(retained.IsError, retained.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, retained.Result.State);
-            Assert.AreEqual(crash ? 2 : 1, retained.Result.AttemptCount);
+            Assert.AreEqual(crash || sqliteOutage ? 2 : 1, retained.Result.AttemptCount);
             Assert.AreEqual(originalPayload, await FrozenPayload());
             var fresh = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsFalse(fresh.IsError, fresh.Message);
@@ -306,6 +325,13 @@ public partial class NativeHostedReplicaRestartTests
                 Assert.IsFalse(coldPrimary.IsError, coldPrimary.Message);
                 Assert.AreEqual(coldInput.VersionId, coldPrimary.Result.VersionId);
             }
+            if (sqliteOutage)
+            {
+                var secondCopy = await target.LoadHolonAsync(coldInput.Id, loadChildren: false);
+                Assert.IsFalse(secondCopy.IsError, secondCopy.Message);
+                Assert.AreEqual(coldInput.VersionId, secondCopy.Result.VersionId);
+                Assert.AreEqual(coldTargetRevision, CosmicConcurrency.GetProviderRevisionId(secondCopy.Result, ProviderType.SQLLiteDBOASIS));
+            }
             if (nativeRouting) await VerifyNativeReadRouting(registry, dna, source, input, actor);
             complete = true;
         }
@@ -321,7 +347,7 @@ public partial class NativeHostedReplicaRestartTests
                 var remaining = await (await inspect.RunAsync("MATCH (r) WHERE (r:Holon AND r.Id=$id) OR ((r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op) RETURN count(r) AS count", new { id = input.Id.ToString("D"), op = operation.ToString("D") })).SingleAsync();
                 Assert.AreEqual(0L, remaining["count"].As<long>());
                 foreach (var path in ownedFiles) { if (File.Exists(path)) File.Delete(path); Assert.IsFalse(File.Exists(path)); }
-                if (coldNewSave)
+                if (coldNewSave || sqliteOutage)
                 {
                     await (await inspect.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = coldInput.Id.ToString("D") })).ConsumeAsync();
                     await (await inspect.RunAsync("MATCH (r) WHERE (r:CosmicWriteReceipt OR r:CosmicHolonOutbox) AND r.OperationId=$op DELETE r",
