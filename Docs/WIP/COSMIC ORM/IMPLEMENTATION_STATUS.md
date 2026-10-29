@@ -5,7 +5,7 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
-User priority: breadth first. Close missing priority-provider demo coverage (AWS first); deeper migration and parity are deferred. Mongo adoption3/3 and fence2/2 now pass, including unchanged native-source identity.
+User priority: MVP breadth across ALL providers; follow red inventory rows. Deeper migration and parity stay deferred. Mongo adoption3/3 and fence2/2 now pass, including unchanged native-source identity.
 
 Shared **1599/1599**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
 Native record barriers, exact administrative preview admission, persisted original evidence,
@@ -33,7 +33,7 @@ Broader graph/multi-version/delete/provider-pair and deployed restart proof rema
 2. Replacement admission, native CAS, durable idempotent migration receipts, interrupted cutover and original-obligation disposition. Broader native graph/delete/race and ordered-pair acceptance remain open.
 3. Remaining HyperDrive outage/cold-start/retry/actor-policy directions. Routing strategy reads, transaction-bound identities, durable native route catalogues and selected restart/exhaustion cases retain scoped proofs; X10 is not universally green.
 4. Remaining ORM child/graph parameters, history/restore and authorized delta values/retention; placement, tenant/encryption/residency admission and remaining EF/NHibernate red rows.
-5. AWS DynamoDB CQL demo admission/presets. Hosted Azure stays pending by user instruction. Preserve Solana's retained identities/ledger; no original missing historical chunk backup is known.
+5. Remaining red identities and native/query/preset admission in the all-provider inventory. DynamoDB Local is verified; hosted Azure stays pending by user instruction. Preserve Solana's retained identities/ledger; no original missing historical chunk backup is known.
 
 ## Scope retained
 
@@ -62,3 +62,5 @@ browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays r
 
 Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
 [scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.
+
+Valkey breadth milestone: native9.0.4/restart/paired/browser5/4 and hub repeat pass; [scope/evidence](VALKEY_CQL_MVP.md). Original source retained; services stopped.
