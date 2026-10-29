@@ -39,6 +39,7 @@ public sealed class HolonReplicationMigrationPreview
     public IReadOnlyList<HolonReplicationPayloadReceiptProof> PayloadProofs { get; }
     public IReadOnlyList<HolonReplicationMigrationFinding> Findings { get; }
     public string PreviewDigest { get; }
+    internal string DigestMaterial { get; }
 
     internal HolonReplicationMigrationPreview(CosmicStorageIdentity source, CosmicStorageIdentity target,
         string sourceId, string targetId, HolonReplicationRouteBinding replacement, long through,
@@ -77,6 +78,7 @@ public sealed class HolonReplicationMigrationPreview
             replacementTarget = replacement.TargetId, replacementPolicy = replacement.PolicyBinding,
             ThroughSequence, SourceConsistency, RequiredReplicaReceiptConsistency, Obligations,
             receipts = Receipts.Select(r => r.ObservationDigest).ToArray(), ReplicaReceipts, PayloadProofs, Findings });
+        DigestMaterial = System.Text.Encoding.UTF8.GetString(bytes);
         PreviewDigest = Convert.ToHexString(SHA256.HashData(bytes));
     }
 

@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class HolonReplicationMigrationBarrierCoordinatorTests
 {
-    private sealed class Native : IHolonMigrationFenceStorageProvider
+    internal sealed class Native : IHolonMigrationFenceStorageProvider
     {
         public HolonMigrationFenceObservation Stored;
         public int Reads, Acquires;
@@ -37,14 +37,14 @@ public class HolonReplicationMigrationBarrierCoordinatorTests
         public Task<OASISResult<HolonMigrationFenceObservation>> CancelHolonMigrationFenceAsync(HolonMigrationFenceRequest r, Guid owner, CancellationToken c = default)
             => throw new AssertFailedException("Coordinator must never compensate or release uncertain scopes.");
     }
-    private sealed class Policy : IHolonReplicationMigrationAuthorizationPolicy
+    internal sealed class Policy : IHolonReplicationMigrationAuthorizationPolicy
     {
         public string BindingIdentity => "owned-admin";
         public bool Deny;
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicationMigrationAuthorizationContext context, CancellationToken token = default)
             => Task.FromResult(new OASISResult<bool>(!Deny));
     }
-    private sealed class Setup
+    internal sealed class Setup
     {
         public HolonReplicationMigrationPreview Preview;
         public HolonReplicationMigrationAuthorizationContext Context;
