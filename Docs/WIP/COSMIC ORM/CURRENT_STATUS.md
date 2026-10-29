@@ -21,15 +21,11 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Missing proof and receiver absence remain findings. Replacement admission, native fences, CAS/idempotent receipts and cutover remain red. No migration writes/state clearing or HTTP execution endpoint enabled.
 - Older type-only V2 heads/obligations remain a deployment gate. [Evidence, commands and limits](V2_LINEAGE_MIGRATION.md).
 
-First SQLite native record barrier now passes Shared1506/1506 and native2 race/restart cases. It blocks affected V2 save/delete/replica replay and new claims; unrelated records and historical reads remain available. Mongo/Neo, paired authorization/quiescence and migration mutation remain open.
-
-Mongo native record barriers now pass2 native cases plus1 no-held-fence preview regression. Per-record transactional admission prevents snapshot write skew; namespace loss fails closed. Shared1506/SQLite2 retained. Neo barriers and paired coordinator remain open.
-
-Neo barrier implementation builds; controlled suite now passes625/625 after updating transaction doubles to model schema and record-lock admission before receipt lookup. Real Neo baseline2/2 now verifies repeat ownership, provider reactivation, blocked receipt replay, readable history, unrelated writes, overlap rejection and owner-only terminal cancellation. Concurrent same-scope acquisition and held new save/soft/hard-delete rejection pass; held source claims reject without changing queued properties and become claimable after cancellation; concurrent write-vs-fence/claim-vs-fence races remain unverified; no migration cutover is enabled.
+Native record barriers implemented on SQLite/Mongo/Neo: Shared1506/1506; SQLite2; Mongo2 plus1 preview regression; Neo controlled625/625 and native2/2. They bar affected V2 mutations, receipt replays and new source claims while preserving unrelated writes/history. Neo explicitly observes native saves/replays and claims blocked by an acquiring transaction before commit, then rejected after commit. Held does not prove in-flight work has stopped. Broader graph/restart and paired-store coordination remain open.
 
 ## Exact next step
 
-1. Implement Neo native record barriers with real admission write locks, then pair SQLite/Mongo/Neo physical-store fences under exact preview/operator admission. Held is not quiescent: reconcile existing in-flight/unknown outcomes; no automatic expiry or post-mutation cancellation.
+1. Pair SQLite/Mongo/Neo physical-store fences under exact preview/operator admission, with durable recovery of partially acquired or uncertain outcomes. Held is not quiescent: reconcile existing in-flight/unknown outcomes; no automatic expiry or post-mutation cancellation.
 2. Validate replacement physical identity/content under fences; compare-and-swap exact graph/head/receipt/obligation observations with durable per-store migration receipts.
 3. Implement idempotent cutover/recovery and old-obligation disposition without changing historical evidence; expand native graph/delete/race and ordered-pair acceptance alongside it.
 4. Complete remaining outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.

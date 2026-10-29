@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo4j.Driver;
@@ -10,6 +12,46 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class Neo4jNativeAvatarTests
 {
+    // Delay the real native commit, preserving its transaction and database locks.
+    public class MigrationCommitProbe : DispatchProxy
+    {
+        public object Inner = null!;
+        public MigrationCommitControl Control = null!;
+        public static T Wrap<T>(T inner, MigrationCommitControl control) where T : class
+        {
+            var wrapped = DispatchProxy.Create<T, MigrationCommitProbe>();
+            ((MigrationCommitProbe)(object)wrapped).Inner = inner;
+            ((MigrationCommitProbe)(object)wrapped).Control = control;
+            return wrapped;
+        }
+        protected override object? Invoke(MethodInfo? method, object?[]? args)
+        {
+            if (method!.Name == "CommitAsync" && Control.Enabled)
+                return Commit();
+            object? value;
+            try { value = method.Invoke(Inner, args); }
+            catch (TargetInvocationException e) when (e.InnerException != null)
+            { ExceptionDispatchInfo.Capture(e.InnerException).Throw(); throw; }
+            if (value is IAsyncSession session) return Wrap(session, Control);
+            if (value is Task<IAsyncTransaction> transaction) return WrapTransaction(transaction);
+            return value;
+        }
+        private async Task<IAsyncTransaction> WrapTransaction(Task<IAsyncTransaction> transaction)
+            => Wrap(await transaction, Control);
+        private async Task Commit()
+        {
+            Control.Entered.TrySetResult(true);
+            await Control.Release.Task.WaitAsync(TimeSpan.FromSeconds(20));
+            await ((IAsyncTransaction)Inner).CommitAsync();
+        }
+    }
+    public sealed class MigrationCommitControl
+    {
+        public bool Enabled;
+        public TaskCompletionSource<bool> Entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -23,6 +65,7 @@ public partial class Neo4jNativeAvatarTests
         var journal = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/migration-fence.pending.json");
         Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
         Assert.IsFalse(File.Exists(journal), "Reconcile retained outcomes before another fixture.");
+        var commitControl = new MigrationCommitControl();
         var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
         var other = new Provider(uri, "neo4j", "oasis-local-test-only");
         var actor = Guid.NewGuid(); var operation = Guid.NewGuid(); var unrelatedOperation = Guid.NewGuid();
@@ -48,12 +91,43 @@ public partial class Neo4jNativeAvatarTests
             var saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
             var fence = new HolonMigrationFenceRequest(migration, actor, binding.Result, new string('A', 64), new string('B', 64), new[] { record.Id });
-            // Independent drivers contend on the same native fence identity.
-            var acquisitions = await Task.WhenAll(provider.AcquireHolonMigrationFenceAsync(fence),
-                other.AcquireHolonMigrationFenceAsync(fence));
-            var held = acquisitions[0];
-            Assert.IsFalse(acquisitions[1].IsError, acquisitions[1].Message + acquisitions[1].Exception);
-            Assert.AreEqual(held.Result.OwnerToken, acquisitions[1].Result.OwnerToken);
+            // Hold the actual acquisition before its native commit. Other drivers
+            // must wait on its record lock, then observe the committed barrier.
+            var driverField = typeof(Provider).GetField("_driver", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            driverField.SetValue(provider, MigrationCommitProbe.Wrap((IDriver)driverField.GetValue(provider)!, commitControl));
+            commitControl.Enabled = true;
+            var acquisition = provider.AcquireHolonMigrationFenceAsync(fence);
+            await commitControl.Entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            var racingOutbox = other.GetBoundHolonReplicationOutbox(binding.Result);
+            Assert.IsFalse(racingOutbox.IsError, racingOutbox.Message);
+            var racingUpdate = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(blockedOperations[0], actor,
+                ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(record.Id,
+                    CosmicConcurrency.GetProviderRevisionId(saved.Result.Single(), ProviderType.Neo4jOASIS)) }),
+                ConditionalHolonOperation.Save, saved.Result, saveChildren: false);
+            var racingReplay = reactivate ? other.ExecuteConditionalHolonWriteAsync(racingUpdate)
+                : other.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            var racingClaim = racingOutbox.Result.ClaimNextAsync(target, "owned-racing-worker", TimeSpan.FromSeconds(30));
+            try
+            {
+                using var raceDriver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+                using var raceInspection = raceDriver.AsyncSession();
+                var deadline = DateTime.UtcNow.AddSeconds(10);
+                var blockedCount = 0;
+                do
+                {
+                    var transactions = await (await raceInspection.RunAsync(
+                        "SHOW TRANSACTIONS YIELD currentQuery,status WHERE currentQuery STARTS WITH 'MERGE (g:CosmicMigrationRecordGate' RETURN status")).ToListAsync();
+                    blockedCount = transactions.Count(row => row["status"].As<string>().StartsWith("Blocked", StringComparison.OrdinalIgnoreCase));
+                    if (blockedCount < 2) await Task.Delay(50);
+                } while (blockedCount < 2 && !racingReplay.IsCompleted && !racingClaim.IsCompleted && DateTime.UtcNow < deadline);
+                Assert.AreEqual(2, blockedCount, "Both actual native operations must block on the acquiring record gate.");
+            }
+            finally { commitControl.Enabled = false; commitControl.Release.TrySetResult(true); }
+            var held = await acquisition;
+            var racedWrite = await racingReplay;
+            var racedClaim = await racingClaim;
+            Assert.IsTrue(racedWrite.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", racedWrite.ErrorCode);
+            Assert.IsTrue(racedClaim.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", racedClaim.ErrorCode);
             Assert.IsFalse(held.IsError, held.Message + held.Exception);
             Assert.AreEqual(HolonMigrationFenceState.Held, held.Result.State);
             var repeat = await other.AcquireHolonMigrationFenceAsync(fence);
@@ -134,6 +208,7 @@ public partial class Neo4jNativeAvatarTests
         }
         finally
         {
+            commitControl.Enabled = false; commitControl.Release.TrySetResult(true);
             Assert.IsFalse((await other.DeActivateProviderAsync()).IsError);
             Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
         }
