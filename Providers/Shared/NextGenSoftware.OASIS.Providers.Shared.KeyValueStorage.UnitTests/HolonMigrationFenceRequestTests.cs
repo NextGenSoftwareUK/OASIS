@@ -46,4 +46,19 @@ public class HolonMigrationFenceRequestTests
         Assert.ThrowsException<ArgumentException>(() => new HolonMigrationFenceObservation(request, Guid.NewGuid(), HolonMigrationFenceState.Absent));
         Assert.ThrowsException<ArgumentException>(() => new HolonMigrationFenceObservation(request, Guid.Empty, HolonMigrationFenceState.Held));
     }
+    [DataTestMethod]
+    [DataRow("owner")] [DataRow("digest")] [DataRow("phase")]
+    public void StartedMutationRequiresExactOwnerAndImmutableDigest(string fault)
+    {
+        var request = new HolonMigrationFenceRequest(Guid.NewGuid(), Guid.NewGuid(), store, new string('B',64), new string('C',64), new[] { Guid.NewGuid() });
+        if (fault == "phase") Assert.ThrowsException<ArgumentException>(() => new HolonMigrationFenceObservation(request,
+            Guid.NewGuid(), HolonMigrationFenceState.Held, new string('D',64)));
+        else Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationStartRequest(request,
+            fault == "owner" ? Guid.Empty : Guid.NewGuid(), fault == "digest" ? "unbound" : new string('D',64)));
+        Assert.ThrowsException<ArgumentException>(() => new HolonMigrationFenceObservation(request, Guid.NewGuid(), HolonMigrationFenceState.MutationStarted));
+        var valid = new HolonMigrationMutationStartRequest(request, Guid.NewGuid(), new string('D',64));
+        var started = new HolonMigrationFenceObservation(request, valid.OwnerToken, HolonMigrationFenceState.MutationStarted, valid.MutationDigest);
+        Assert.AreEqual(valid.MutationDigest, started.MutationDigest);
+    }
+
 }

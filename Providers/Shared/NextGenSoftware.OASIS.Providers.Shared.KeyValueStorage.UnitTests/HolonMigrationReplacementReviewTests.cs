@@ -127,4 +127,19 @@ public class HolonMigrationReplacementReviewTests
         Assert.IsFalse(result.IsError); Assert.AreEqual(HolonReplicaHeadReadConsistency.ReadCommittedValidated, result.Result.RequiredConsistency);
         Assert.IsTrue(result.Result.PageConsistencies.All(c => c == HolonReplicaHeadReadConsistency.ReadCommittedValidated));
     }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task EvidenceCanReadStableStartedPhaseButNotAnIntentChangingDuringTheRead(bool change)
+    {
+        var f = new Setup(); await f.Initialize(); var prior = f.Fixture.Providers[0].Stored;
+        f.Fixture.Providers[0].Stored = new(prior.Request, prior.OwnerToken, HolonMigrationFenceState.MutationStarted, new string('D',64));
+        if (change) f.ReadHeads = request => {
+            f.Fixture.Providers[0].Stored = new(prior.Request, prior.OwnerToken, HolonMigrationFenceState.MutationStarted, new string('E',64));
+            return new(new(request.ExpectedStorage, request.HolonIds.Select(f.Observe)));
+        };
+        var read = await f.Read(); Assert.AreEqual(change, read.IsError);
+        if (change) Assert.IsNull(read.Result); else Assert.IsNotNull(read.Result);
+        Assert.IsFalse(read.IsSaved); Assert.IsTrue(f.Fixture.Providers.All(p => p.Acquires == 0));
+    }
+
 }

@@ -1394,3 +1394,20 @@ Evidence:
 - TestResults/DevelopmentSyncCurrent/replacement-review.trx SHA256 810FACECEA12AC6000C0454E2B53517A32D46D46E131395F8C2C70FC7B3B19F9
 - TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 45DD6B8594FF43DF48E5C878B70DB15AA64D067557D36B7DA4F363780DFED6DA
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 1379464AC660C63D7DEDCE24C50D51D17FCCA7A00B4AC72C119167B4C12B7E89
+
+## First native mutation-start marker: SQLite, 29 October 2026
+
+Additive Core276b780 introduces optional IHolonMigrationMutationStorageProvider, immutable HolonMigrationMutationStartRequest and MutationStarted observations carrying an exact intent digest. Existing three-argument observation constructor remains binary-compatible; missing/different phase digests are rejected. The marker means data may have started or become uncertain, not that a cross-store commit decision or business mutation has occurred. Host must independently authorize complete preparation and require native support on all stores; no managed substitute or shipping mutation executor exists. Mongo/Neo marker support remains open.
+
+SQLite adds nullable canonical MutationDigest with a native constraint requiring FenceState=Held whenever a digest exists. Underlying Held keeps old native write/claim guards effective, while the public observation distinguishes MutationStarted. Ordinary old-style cancellation also fails the database constraint. BEGIN IMMEDIATE serializes exact owner/scope CAS: first start persists digest; same intent reads original acknowledgement; changed intent rejects; started cancellation rejects. Column upgrade preserves existing Held/Cancelled rows atomically. EF migration refuses downgrade while any started digest exists. Original fence migration remains unchanged.
+
+Acquire-only coordinator reports MutationStarted and requires dedicated mutation recovery rather than acquiring more scopes. Read-only evidence accepts stable Started barriers but rejects owner/phase/intent changes during observation. No generic starter, preparation authorization, global decision or data mutation enabled.
+
+Shared1567/1567 passes (6 new contract/progress/stable-started-read cases). Native SQLite2/2 extends original fence suite: retained held fence survives old-schema upgrade, wrong owner/changed digest reject, idempotent start/recreation preserve intent, API/old SQL cancellation and actual EF Down operation refuse to erase it; protected save/delete/claim remain barred, history/unrelated writes remain available, independent native start/cancel race has exactly one winner. Fixture deliberately records marker only and sends no remote delivery/business cutover; exact owned DB/journal removed on success, never real started migration evidence. Core4462/DNA19/GraphQL1 pass. Broader phase crash/commit uncertainty and other native stores remain open.
+
+Evidence:
+- TestResults/DevelopmentSyncCurrent/mutation-start-controls.trx SHA256 4368518ADF606130CDAF4E46CFE6240C35CD5BDF27DBD0A7E84C6B1009138EFC
+- TestResults/DevelopmentSyncCurrent/native-fence-sqlite.trx SHA256 13743E6274260845109E6DFC4D09F5F4FDEBBCD55BEC946672578EFADC29DDEB
+- TestResults/DevelopmentSyncCurrent/mutation-core.trx SHA256 FBE359D40350E45DC8666ABA8070A66D03D9FBD7E3BE0F4280CCDB596FB84332
+- TestResults/DevelopmentSyncCurrent/mutation-dna.trx SHA256 9E5826F7AA05D87C7DE40946F9997DF7EAE4DDB42C3A722B93D2AFC96BD61FBB
+- TestResults/DevelopmentSyncCurrent/mutation-graphql.trx SHA256 CBF2F3AE582687D067D5FC9C5E40937E85AA37E2F8B5019F844DB83689BEF31A
