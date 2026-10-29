@@ -1411,3 +1411,19 @@ Evidence:
 - TestResults/DevelopmentSyncCurrent/mutation-core.trx SHA256 FBE359D40350E45DC8666ABA8070A66D03D9FBD7E3BE0F4280CCDB596FB84332
 - TestResults/DevelopmentSyncCurrent/mutation-dna.trx SHA256 9E5826F7AA05D87C7DE40946F9997DF7EAE4DDB42C3A722B93D2AFC96BD61FBB
 - TestResults/DevelopmentSyncCurrent/mutation-graphql.trx SHA256 CBF2F3AE582687D067D5FC9C5E40937E85AA37E2F8B5019F844DB83689BEF31A
+
+## Mongo and Neo native mutation-start markers, 29 October 2026
+
+Both providers now implement IHolonMigrationMutationStorageProvider. Existing native transaction owners verify physical identity and canonical scope, lock/touch every exact held gate, then CAS the original owner/receipt from Held to MutationStarted with an immutable digest. Same intent reads original state; different intent rejects; ordinary cancellation cannot clear started/uncertain protection. Gate ownership remains unchanged, so affected V2 saves/deletes/replica replay/new claims stay blocked while historical reads/unrelated writes work. Mongo uses existing snapshot/majority+journal commit handling and preserves native transaction reconciliation evidence; Neo uses native receipt/gate write locks and existing commit/cleanup outcome handling.
+
+Mongo/Neo persist an explicit MutationStarted receipt state, which old receipt parsers reject before cancellation gate changes (old Neo lock-epoch increments roll back with that failure). SQLite retains its constrained nullable digest approach to preserve old Held write guards. No fallback, retry or phase-to-Held reset. Per-store markers do not authorize business mutation; complete cross-store preparation/approval, partial-start recovery/global decision and native data CAS remain open.
+
+Native Mongo2/2 passes busy native gate rejection without partial marker, competing intents, same-intent idempotence, changed owner/scope/digest rejection, repeat acquire returns Started, provider reactivation, protected save/delete/replica/claim, history/unrelated writes, start/cancel race and lost-schema fail-closed retention. Native Neo2/2 passes competing intents, same-intent/repeat acquire, recreation, blocked cancellation and affected operations, readable historical receipt with explicit ReadCommittedValidated, unrelated writes and native start/cancel race. Neo controlled625/625 also passes; previous Shared1567/Core4462/DNA19/GraphQL1 retained. No remote delivery or business cutover invoked.
+
+Initial Neo fixture stopped at an incorrectly strict historical receipt request, then dereferenced its error result. The corrected fixture explicitly opts into the documented weak read and asserts success before using evidence. Original failed operation3e9085b0-1eef-47fb-bea5-e9b6c294fef0 was preserved and reconciled in a separately selected1/1 review: exact journal-owned four version1 records/actor/names, four receipts, two checksummed queued payloads and known started digest matched; no cutover/remote I/O had run. Only that exact owned dataset was removed after inspection. The review initially queried nonexistent top-level version fields, then correctly used canonical SnapshotJson; no deletion happened before complete successful review. Original journal retained at TestResults/Neo4jCurrent/mutation-phase-reviewed-journal.json. Corrected native fixtures clean their exact received heads/history/receipts/gates/fences/queue nodes and verify zero.
+
+Evidence:
+- TestResults/OwnedRoutingCurrent/mongo-migration-fence.trx SHA256 29EB5AB7B534A3BB2433ECC517358F2F50C82412386A210E45047BDC32E334D6
+- TestResults/Neo4jCurrent/neo4j-migration-fence.trx SHA256 8A3FC3E94C085744F006E4CF94AE13C80B66C62A409F5A056AD08186491717F0
+- TestResults/Neo4jCurrent/neo4j-mutation-phase-review.trx SHA256 AD9A12D9C17E2E50AA0D7EE0F82CB8D1215CE23E38A4CD03AB5CBEB2FF2F84EC
+- TestResults/DevelopmentSyncCurrent/neo-mutation-controls.trx SHA256 180F0FC649CF5B7FC4123CC38883BEFEBD9AB2E0282D8865AB1ADF2893431A93

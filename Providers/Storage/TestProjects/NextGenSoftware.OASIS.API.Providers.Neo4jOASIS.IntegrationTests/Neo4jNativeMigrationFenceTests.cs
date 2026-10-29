@@ -72,11 +72,14 @@ public partial class Neo4jNativeAvatarTests
         var record = new Holon { Id = Guid.NewGuid(), Name = "owned-neo-migration-barrier" };
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "owned-neo-unrelated" };
         var migration = Guid.NewGuid(); var competing = Guid.NewGuid();
+        var phaseMigration = Guid.NewGuid(); var phaseRaceMigration = Guid.NewGuid();
+        var phaseId = Guid.NewGuid(); var phaseReplicaId = Guid.NewGuid(); var phaseOtherId = Guid.NewGuid();
+        var phaseSeedOp = Guid.NewGuid(); var phaseReplicaOp = Guid.NewGuid(); var phaseOtherOp = Guid.NewGuid();
         var target = "owned-fence-target-" + operation; var source = "owned-fence-source-" + operation;
         var blockedOperations = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(file, new { actor, operation, unrelatedOperation, migration, competing, source, target, blockedOperations, ids = new[] { record.Id, unrelated.Id } });
+            await JsonSerializer.SerializeAsync(file, new { actor, operation, unrelatedOperation, migration, competing, phaseMigration, phaseRaceMigration, phaseSeedOp, phaseReplicaOp, phaseOtherOp, source, target, blockedOperations, ids = new[] { record.Id, unrelated.Id, phaseId, phaseReplicaId, phaseOtherId } });
             file.Flush(true);
         }
         try
@@ -193,14 +196,70 @@ public partial class Neo4jNativeAvatarTests
             var admittedClaim = await outbox.Result.ClaimNextAsync(target, "owned-fence-worker", TimeSpan.FromSeconds(30));
             Assert.IsFalse(admittedClaim.IsError, admittedClaim.Message + admittedClaim.Exception);
             Assert.IsNotNull(admittedClaim.Result);
+            // Durable native mutation marker: no migration business write is enabled.
+            var phaseRoute = new HolonReplicationEnrollment("phase-source-" + phaseSeedOp, new[] { "phase-target-" + phaseSeedOp }, binding.Result);
+            var phaseSeedRequest = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(phaseSeedOp, actor, ProviderType.Neo4jOASIS,
+                new[] { new HolonWriteCondition(phaseId, null) }, phaseRoute), ConditionalHolonOperation.Save,
+                new[] { new Holon { Id = phaseId, Name = "phase-protected" } }, saveChildren: false);
+            var phaseSeed = await provider.ExecuteReplicatingHolonWriteAsync(phaseSeedRequest, phaseRoute); Assert.IsFalse(phaseSeed.IsError, phaseSeed.Message + phaseSeed.Exception);
+            var incoming = new Holon { Id = phaseReplicaId, Name = "phase-incoming", Version = 1, VersionId = Guid.NewGuid(), CreatedByAvatarId = actor };
+            CosmicConcurrency.SetProviderRevisionId(incoming, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var incomingRequest = new CommittedHolonReplicaRequest(phaseReplicaOp, "phase-incoming-source", ProviderType.SQLLiteDBOASIS,
+                actor, ConditionalHolonOperation.Save, new[] { incoming }, saveChildren: false);
+            var received = await provider.ApplyBoundCommittedHolonReplicaAsync(incomingRequest, binding.Result); Assert.IsFalse(received.IsError, received.Message + received.Exception);
+            var phase = new HolonMigrationFenceRequest(phaseMigration, actor, binding.Result, new string('A',64), new string('B',64), new[] { record.Id, phaseId, phaseReplicaId });
+            var phaseHeld = await provider.AcquireHolonMigrationFenceAsync(phase); Assert.IsFalse(phaseHeld.IsError);
+            var phaseOwner = phaseHeld.Result.OwnerToken;
+            Assert.AreEqual("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", (await other.BeginHolonMigrationMutationAsync(new(phase, Guid.NewGuid(), new string('C',64)))).ErrorCode);
+            var starts = await Task.WhenAll(provider.BeginHolonMigrationMutationAsync(new(phase, phaseOwner, new string('C',64))),
+                other.BeginHolonMigrationMutationAsync(new(phase, phaseOwner, new string('D',64))));
+            Assert.AreEqual(1, starts.Count(r => !r.IsError));
+            var started = starts.Single(r => !r.IsError); Assert.IsTrue(started.IsSaved);
+            Assert.AreEqual(HolonMigrationFenceState.MutationStarted, started.Result.State);
+            Assert.AreEqual("COSMIC_MIGRATION_MUTATION_INTENT_REUSED", starts.Single(r => r.IsError).ErrorCode);
+            var startRequest = new HolonMigrationMutationStartRequest(phase, phaseOwner, started.Result.MutationDigest);
+            Assert.IsFalse((await provider.BeginHolonMigrationMutationAsync(startRequest)).IsSaved);
+            var repeatedPhase = await other.AcquireHolonMigrationFenceAsync(phase); Assert.IsFalse(repeatedPhase.IsError);
+            Assert.AreEqual(HolonMigrationFenceState.MutationStarted, repeatedPhase.Result.State); Assert.AreEqual(startRequest.MutationDigest, repeatedPhase.Result.MutationDigest);
+            Assert.AreEqual("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", (await other.CancelHolonMigrationFenceAsync(phase, phaseOwner)).ErrorCode);
+            Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
+            Assert.AreEqual("COSMIC_MIGRATION_FENCE_NOT_READY", (await provider.BeginHolonMigrationMutationAsync(startRequest)).ErrorCode);
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var recoveredPhase = await provider.ReadHolonMigrationFenceAsync(phase); Assert.IsFalse(recoveredPhase.IsError);
+            Assert.AreEqual(HolonMigrationFenceState.MutationStarted, recoveredPhase.Result.State); Assert.AreEqual(startRequest.MutationDigest, recoveredPhase.Result.MutationDigest);
+            Assert.IsFalse((await provider.BeginHolonMigrationMutationAsync(startRequest)).IsSaved);
+            foreach (var kind in new[] { ConditionalHolonOperation.Save, ConditionalHolonOperation.SoftDelete, ConditionalHolonOperation.HardDelete })
+            {
+                var blocked = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(blockedOperations[0], actor, ProviderType.Neo4jOASIS,
+                    new[] { new HolonWriteCondition(record.Id, CosmicConcurrency.GetProviderRevisionId(saved.Result.Single(), ProviderType.Neo4jOASIS)) }),
+                    kind, saved.Result, saveChildren: false);
+                Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", (await other.ExecuteConditionalHolonWriteAsync(blocked)).ErrorCode);
+            }
+            Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", (await other.ApplyBoundCommittedHolonReplicaAsync(incomingRequest, binding.Result)).ErrorCode);
+            var retainedIncoming = await provider.ReadCommittedHolonReplicaReceiptAsync(new(incomingRequest, binding.Result, HolonReplicaHeadReadConsistency.ReadCommittedValidated));
+            Assert.IsFalse(retainedIncoming.IsError, retainedIncoming.Message + retainedIncoming.Exception);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, retainedIncoming.Result.ReceiptState);
+            var phaseOutbox = provider.GetBoundHolonReplicationOutbox(binding.Result); Assert.IsFalse(phaseOutbox.IsError);
+            Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", (await phaseOutbox.Result.ClaimNextAsync(phaseRoute.TargetIds.Single(), "phase-worker", TimeSpan.FromSeconds(30))).ErrorCode);
+            var outside = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(phaseOtherOp, actor, ProviderType.Neo4jOASIS,
+                new[] { new HolonWriteCondition(phaseOtherId, null) }), ConditionalHolonOperation.Save,
+                new[] { new Holon { Id = phaseOtherId, Name = "phase-unrelated" } }, saveChildren: false);
+            Assert.IsFalse((await other.ExecuteConditionalHolonWriteAsync(outside)).IsError);
+            var racePhase = new HolonMigrationFenceRequest(phaseRaceMigration, actor, binding.Result, new string('A',64), new string('B',64), new[] { unrelated.Id });
+            var raceHeld = await provider.AcquireHolonMigrationFenceAsync(racePhase); Assert.IsFalse(raceHeld.IsError);
+            var raceOutcomes = await Task.WhenAll(provider.BeginHolonMigrationMutationAsync(new(racePhase, raceHeld.Result.OwnerToken, new string('E',64))),
+                other.CancelHolonMigrationFenceAsync(racePhase, raceHeld.Result.OwnerToken));
+            Assert.AreEqual(1, raceOutcomes.Count(r => !r.IsError));
+            var raceState = await provider.ReadHolonMigrationFenceAsync(racePhase); Assert.IsFalse(raceState.IsError);
+            Assert.IsTrue(raceState.Result.State is HolonMigrationFenceState.MutationStarted or HolonMigrationFenceState.Cancelled);
             // No delivery is sent: remove this exact known fixture claim with its owned queue below.
             // Delete only this journal's exact fixture identities. Global schema survives.
             using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
             using var session = driver.AsyncSession();
-            var args = new { ids = new[] { record.Id.ToString("D"), unrelated.Id.ToString("D") },
-                operations = new[] { operation, unrelatedOperation }.Concat(blockedOperations).Select(id => id.ToString("D")).ToArray(),
-                migrations = new[] { migration.ToString("D"), competing.ToString("D") } };
-            const string owned = "(n:Holon AND n.Id IN $ids) OR (n:CosmicMigrationRecordGate AND n.HolonId IN $ids) OR (n:CosmicMigrationFence AND n.MigrationId IN $migrations) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations)";
+            var args = new { ids = new[] { record.Id, unrelated.Id, phaseId, phaseReplicaId, phaseOtherId }.Select(id => id.ToString("D")).ToArray(),
+                operations = new[] { operation, unrelatedOperation, phaseSeedOp, phaseReplicaOp, phaseOtherOp }.Concat(blockedOperations).Select(id => id.ToString("D")).ToArray(),
+                migrations = new[] { migration, competing, phaseMigration, phaseRaceMigration }.Select(id => id.ToString("D")).ToArray() };
+            const string owned = "((n:Holon AND n.Id IN $ids) OR (n:CosmicReplicaHead AND n.HolonId IN $ids) OR (n:OasisRecordVersion AND n.Kind='Holon' AND n.RecordId IN $ids)) OR (n:CosmicMigrationRecordGate AND n.HolonId IN $ids) OR (n:CosmicMigrationFence AND n.MigrationId IN $migrations) OR ((n:CosmicWriteReceipt OR n:CosmicReplicaHead OR n:CosmicHolonOutbox) AND n.OperationId IN $operations)";
             await (await session.RunAsync("MATCH (n) WHERE " + owned + " DETACH DELETE n", args)).ConsumeAsync();
             var remaining = await (await session.RunAsync("MATCH (n) WHERE " + owned + " RETURN count(n) AS count", args)).SingleAsync();
             Assert.AreEqual(0L, remaining["count"].As<long>());
