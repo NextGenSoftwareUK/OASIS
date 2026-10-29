@@ -1,10 +1,10 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure)
-if ($ReconcileUnwrittenRoutingFixture -and ($ActiveDeliveryOutage -or $ReconcileActiveOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $ReconcileRoutingReadFailure)) { throw 'Unwritten fixture reconciliation is exclusive.' }
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof)
+if ($ReconcileUnwrittenRoutingFixture -and ($ActiveDeliveryOutage -or $ReconcileActiveOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $ReconcileRoutingReadFailure -or $NativePrimaryConsistencyProof)) { throw 'Unwritten fixture reconciliation is exclusive.' }
 if ($ReconcileUnwrittenRoutingFixture -or $ReconcileRoutingReadFailure) { $FullDestinationOutage = $true }
 if ($ReconcileActiveOutage -and $ReconcileRoutingReadFailure) { throw 'Choose the exact reviewed outcome.' }
-if ($ExhaustDeliveryBudget -and $NativeRoutingProof) { throw 'Choose retry exhaustion or routing proof.' }
-if ($ExhaustDeliveryBudget -or $NativeRoutingProof) { $ActiveDeliveryOutage = $true }
+if ((@($ExhaustDeliveryBudget,$NativeRoutingProof,$NativePrimaryConsistencyProof) | Where-Object { $_ }).Count -gt 1) { throw 'Choose retry exhaustion or routing proof.' }
+if ($ExhaustDeliveryBudget -or $NativeRoutingProof -or $NativePrimaryConsistencyProof) { $ActiveDeliveryOutage = $true }
 if ($ActiveDeliveryOutage -and ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure)) { throw 'Choose fresh proof or original-outcome reconciliation.' }
 if ($ActiveDeliveryOutage -or $ReconcileActiveOutage) { $FullDestinationOutage = $true }
 $ErrorActionPreference = 'Stop'
@@ -130,7 +130,7 @@ try {
             Get-Content -LiteralPath (Join-Path $work "worker-offline-$recoveryPhase.log") -Tail 4
         }
         elseif ($ActiveDeliveryOutage) {
-            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } else { 'active' }
+            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } elseif ($NativePrimaryConsistencyProof) { 'consistency' } else { 'active' }
             $env:OASIS_OFFLINE_REPLICATION_PHASE = $scenario
             $testProcess = Start-Process dotnet -ArgumentList @('test',$project,'--no-build','--no-restore','/m:2','/nr:false',
                 '--filter','FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped',
