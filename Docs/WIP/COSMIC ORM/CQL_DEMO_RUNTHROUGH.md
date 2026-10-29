@@ -72,3 +72,7 @@ it is not a new browser, hosted-cloud or deployed revision certification.
 ## Ethereum + Mongo local MVP
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated`, then open http://127.0.0.1:5097/. Explain that this is the retained local EVM chain31338 and native Mongo, not Ethereum mainnet. Click **Query all records** (five rows), then **Query two-record subset** (four). Point out the two provider copies of each selected coffee ID and the explicit consistency scope. The page shows the same C# identity-membership query used by SDK/HTTP tests. Stop through the demo shutdown route when finished; original chain/seed are preserved and the owned Mongo fixture is cleaned. [Detailed scope](ETHEREUM_CQL_MVP.md).
+
+## Polygon + Mongo
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated`, then open http://127.0.0.1:5098/. Show the explicit Polygon/Mongo scope and identity-membership C# query. Click **Query all records** (5), then **Query two-record subset** (4); point out that identical IDs retain separate source-labelled physical copies. State that the concrete Polygon adapter uses a retained local EVM deployment, not mainnet. Stop through the demo shutdown route; the original chain/seed survives and only the verified temporary Mongo fixture is removed. [Scope](POLYGON_CQL_MVP.md).

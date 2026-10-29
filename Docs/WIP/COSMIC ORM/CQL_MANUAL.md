@@ -1349,3 +1349,9 @@ See [complete MVP scope and evidence](AWS_CQL_MVP.md).
 The Ethereum adapter uses the common CQL provider contract and existing contract/encrypted-record decoder. An authoritative Ethereum ID catalogue is mandatory. Up to100 selected identities compile into native contract lookups at one observed block number; unsupported metadata, sorting and graph expressions fail capability admission before RPC. This does not promise finality or a snapshot shared with Mongo.
 
 For a runnable C#/HTTP/browser preset use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated` (loopback5097). All/subset yield5/4 physical rows across local Ethereum and Mongo. [Example and verified scope](ETHEREUM_CQL_MVP.md).
+
+## Polygon bounded identity profile
+
+`PolygonOASIS` implements the common CQL provider contract through `Web3CoreOASISBaseProvider`. Captured ID equality/membership and Boolean combinations select at most100 native contract keys, intersected with an authoritative Polygon catalogue. Lookup/decryption uses the shipping provider/chain/contract-bound record format and one observed block number. Full metadata queries, sorting and graph parity remain deferred.
+
+Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated` (loopback5098), or add `-VerifyOnly` for native/SDK/HTTP checks. Mongo-paired all/subset presets yield5/4 physical rows, preserving provenance. This is a local EVM proof, not Polygon mainnet/finality/shared-snapshot acceptance. [Scope](POLYGON_CQL_MVP.md).

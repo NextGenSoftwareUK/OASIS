@@ -22,6 +22,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 
 | Provider argument | URL | Matching native participation | ArchiveCompletedDemo |
 |---|---|---|---|
+| Polygon | http://127.0.0.1:5098/ | Mongo2/concrete Polygon adapter3, then2/2 on retained local EVM | Omit; retained chain/seed, temporary Mongo fixture |
 | Ethereum | http://127.0.0.1:5097/ | Mongo2/local Ethereum3, then2/2 | Omit; retained local chain/seed, temporary Mongo fixture |
 | AWS | http://127.0.0.1:5096/ | Mongo2/DynamoDB Local3, then2/2 | Omit; reusable AWS seed, verified temporary Mongo cleanup |
 | Oracle | http://127.0.0.1:5090/ | Mongo2/Oracle3, then2/2 | Explicit opt-in; rejects failed/pending outcomes |
@@ -33,7 +34,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 
 Use `-Federated` for every row. Actor, source scopes and readable catalogues are
 server-owned. The Solana host uses independent bounded ingestion; no chain write.
-Oracle, AWS and Ethereum are exposed through paired presets only. Plain Solana (schema2), SQLite
+Oracle, AWS, Ethereum and Polygon are exposed through paired presets only. Plain Solana (schema2), SQLite
 and the Databases group do not accept this new flag; the group retains its existing
 federation walkthrough. Unsupported combinations reject before starting services.
 Protocol `-Federated` already selects the multi-record mode; `-MultiRecord` is optional.
@@ -52,7 +53,7 @@ keeps acceptance bounded; `-ShowPlan` is read-only and starts no services.
 ## Verification scope
 
 `Scripts/TestHosts/Test-CosmicCqlDemoHubRouting.ps1` checks8individual profiles,
-16lifecycle plans,8paired profiles/16plans,6unsupported-pair rejections and3existing
+16lifecycle plans,9paired profiles/18plans,7unsupported-pair rejections and3existing
 archive rejections. Native/demo listeners remain unchanged during discovery.
 Raw report:TestResults/ProtocolCqlCurrent/database-hub-routing.json.
 Discovery proves routing only; native provider proof remains in each linked report
@@ -84,3 +85,11 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated
 ```
 
 Open http://127.0.0.1:5097/ after startup. Add `-VerifyOnly` for bounded native/SDK/HTTP verification. The all preset returns Ethereum3 + Mongo2 physical rows; subset returns2 +2. Native Ethereum reads use one observed local block number; federation retains provider copies and makes no shared-snapshot/finality/mainnet claim. Original chain/key/seed are reused; shutdown removes only the verified temporary Mongo fixture. [Scope](ETHEREUM_CQL_MVP.md).
+
+## Polygon local MVP
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated
+```
+
+Open http://127.0.0.1:5098/ after startup. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. Concrete PolygonOASIS uses its existing Web3Core contract/encrypted records on local chain31338; this is not Polygon mainnet. All/subset yield5/4 physical rows, with both provider copies preserved. [Scope and evidence](POLYGON_CQL_MVP.md).
