@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,5103,3030,24567,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -54,6 +54,7 @@ $pairedContracts=@(
     @{Provider='Google';Runner='Run-CosmicFirestoreCqlNative.ps1';Port=5100},
     @{Provider='CosmosChain';Runner='Run-CosmicCosmosCqlNative.ps1';Port=5101},
     @{Provider='Polkadot';Runner='Run-CosmicPolkadotCqlNative.ps1';Port=5102},
+    @{Provider='NEAR';Runner='Run-CosmicNearCqlNative.ps1';Port=5103},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
     @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
     @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
@@ -108,7 +109,7 @@ try{& $hub -Provider CosmosChain -ShowPlan}catch{$denied=$true}
 if(!$denied){throw 'CosmosChain requires explicit paired scope.'}
 $pairedRejections++
 $oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
-foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true})) {
+foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true})) {
     $denied=$false
     try { & $hub @arguments -ShowPlan } catch { $denied=$true }
     if (!$denied) { throw 'Polkadot requires explicit paired scope and preserved source state.' }
