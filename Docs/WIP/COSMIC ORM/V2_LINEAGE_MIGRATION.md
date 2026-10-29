@@ -335,7 +335,7 @@ change checks, preview authorization, atomic migration receipts and cutover rema
 
 `IConditionalHolonReceiptEvidenceStorageProvider` is now implemented by SQLite,
 MongoDB and Neo4j. The original native receipt owner performs its complete existing
-integrity/actor/intent/topology validation, then projects only 1–256 requested IDs.
+integrity/actor/intent/topology validation, then projects only 1â€“256 requested IDs.
 The full original receipt is validated even for a subset; the projection limit is
 not a limit on receipt size. Unknown/duplicate/out-of-scope IDs are rejected.
 
@@ -530,3 +530,89 @@ and interrupted-cutover recovery, with remaining pair/race acceptance still open
 - TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle.trx SHA256 BB02F1D1779781E14FCD8DCA2D5992A858A8A1D6AC5AE0A4DF297D9E8FFC9D55.
 - TestResults/DevelopmentSyncCurrent/current-content-shared.trx SHA256 FC289C80414D50E7A23E66059B63DCEA87C2DA309B8905BB9CD283327FD5076C.
 - TestResults/DevelopmentSyncCurrent/current-content-neo-controls.trx SHA256 A6B92D59F60248AB5342B67AA8730D4408F32ADB62CC98B7B619EF68E94F2D3F.
+
+## Complete original-operation inventory (29 October)
+
+Route heads are not an exhaustive obligation list: they omit Completed work and
+later operations queued behind the oldest target head. The new optional Core
+`IHolonReplicationOperationInventoryOutbox.ReadOperationObligationsAsync` exposes
+all states for one exact original operation, on SQLite, Mongo and Neo. Obtain it
+from the explicitly bound source factory; unbound instances refuse the capability.
+
+```csharp
+var opened = source.GetBoundHolonReplicationOutbox(expectedSource);
+
+if (opened.IsError || opened.Result is not IHolonReplicationOperationInventoryOutbox inventory)
+    throw new InvalidOperationException("Complete operation inventory is unavailable.");
+
+var request = new HolonReplicationOperationReadRequest(
+    expectedSource,
+    originalOperationId,
+    pageSize: 32);
+
+var page = await inventory.ReadOperationObligationsAsync(request, cancellationToken);
+
+if (page.IsError)
+    throw new InvalidOperationException(page.Message, page.Exception);
+
+foreach (var obligation in page.Result.Obligations)
+    Console.WriteLine($"{obligation.TargetId}: {obligation.State}");
+
+// Use this cursor in a separate explicit request if more targets remain.
+Console.WriteLine(page.Result.NextAfterTargetId);
+```
+
+Pages bind physical source, operation, exact cursor/limit, required/actual consistency,
+ordered obligations and next cursor. Rows expose source/actor/target, sequence/state/
+attempts, payload checksum, validated frozen route and a state fingerprint. Hidden
+lease token/worker/deadline, retry/completion times and native recovery-evidence
+checksum participate in that fingerprint. Renewing a lease changes it even when
+state/attempt count remain unchanged. Business payloads, claim tokens, worker IDs,
+transaction lists and exception messages are excluded from the returned evidence.
+Unknown operation means empty observation, never permission to recreate obligations.
+
+SQLite uses an existing-file read-only connection and native snapshot; Mongo uses
+the existing bound snapshot owner and batch-size1 payload validation. Neo requires
+explicit ReadCommittedValidated opt-in. Completed rows are validated as well.
+Each page is independent: no cross-page/global snapshot or quiescence is implied.
+
+### Neo Unicode cursor root cause and recovery
+
+Native inspection found all4 ASCII/BMP/astral obligations, while scalar cursor
+filtering returned only3. The pinned runtime's scalar string comparison and native
+range-index ordering disagree for supplementary Unicode. The exact-operation reader
+now explicitly uses its existing operation/target range index for cursor requests,
+aligning admission with indexed ordering. No plugin/index/runtime was installed;
+there is no managed business-payload sort, error-triggered alternative or replay.
+
+The preserved fixture was inspected without mutation: original source receipt
+Committed,4 payload checksums/identities intact, one Completed/three Pending. After
+the index-plan fix the same fixture returns all4. Reconciliation verified the
+SQLite receiver's original replica receipt, protected head and current identity,
+then removed only that owned fixture. A fresh historical/bound Neo cohort passed.
+The failure, inspection and reconciliation evidence remains in TestResults.
+
+Verified: Core4462/Shared1404 (12new controls)/GraphQL1; native SQLite2/Mongo1/Neo2,
+plus reviewed-failure reconciliation1 pass, no skips. Native cases exercise4 mixed
+ASCII/BMP/astral targets, page-size1, completed/later/non-head obligations, stable
+checksums, hidden renewal changes, unknown operation, wrong source and cancellation.
+Neo strict consistency is explicitly refused. Source saves were not replayed.
+
+**Related remaining V2 gap:** the existing global Neo route-head reader still uses
+the scalar cursor predicate. Correct its native index/order plan and shared ordering
+validation before relying on Unicode route discovery. This checkpoint fixes the
+exact-operation reader, not that global reader. Source-wide lineage inventory/
+quiescence, authorized previews, original target-receipt proof for pending-obligation
+disposition, native CAS/migration receipts and interrupted cutover remain open.
+
+- TestResults/DevelopmentSyncCurrent/operation-inventory-core.trx SHA256 7690BF7897C206682ACE7E55391954726C024BC54FDEAE605A67A74D059E1FB3.
+- TestResults/DevelopmentSyncCurrent/operation-inventory-shared.trx SHA256 8DB58F5252944F1385B72DEF910B2BAE0993DAF5FCC2CE38372263DCFC24860D.
+- TestResults/DevelopmentSyncCurrent/operation-inventory-graphql.trx SHA256 5276E6E69FAF51EFBADA18B8DF2BE26DFC890830EF3EE69DA1620B3B19EBD7AF.
+- TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx SHA256 B5B53295D0F52800B3E5801230EBAC16DB65BD77E0C8139129481A5C87CA2CA5.
+- TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 C9EEEA3F8BE144266F753E9D7523C60E604658F8F222055A5C3BD6F45749E1E4.
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 57CB3C10FE3D17F481B655DC5FCF62882FF1022BD648D1992414F003CE79DA39.
+- TestResults/Neo4jCurrent/neo4j-operation-inventory-unicode-failure.trx SHA256 46FC3D369D9A35333B86A24EFD3108FF437C2267590E4CCD6FB9F5D8E1AA27B5.
+- TestResults/Neo4jCurrent/neo4j-operation-inventory-inspection.trx SHA256 AD6C23B84077FE64698DBB9E9EA4392332E6BB7DB000424B0ADAE7A21D954AB8.
+- TestResults/Neo4jCurrent/neo4j-operation-inventory-reconciliation.trx SHA256 B6EE642F6536D40B6BD2697177CDDC150CD97115FE9F7A1CF4FF79699DFFBC32.
+- TestResults/Neo4jCurrent/operation-inventory-unicode-inspect.json SHA256 E51B85ED74C4C054348432E656FD7FAE611B85388016846D75AEB31292E77FF6.
+- TestResults/Neo4jCurrent/operation-inventory-unicode-reconcile.json SHA256 FC9791D218AAD629AC24E22C7F353EE7AC6ED4DF6BBDBB03B7AE085859033074.

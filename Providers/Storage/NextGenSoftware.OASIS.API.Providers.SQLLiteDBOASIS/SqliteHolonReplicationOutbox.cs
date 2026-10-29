@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 /// <summary>Lease-fenced delivery state for the existing atomic SQLite holon outbox. Does not initialize a database.</summary>
-public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationRouteInventoryOutbox, IHolonReplicationDestinationCatalogue
+public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationOperationInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly string _connectionString;
     private readonly IHyperDriveClock _clock;
