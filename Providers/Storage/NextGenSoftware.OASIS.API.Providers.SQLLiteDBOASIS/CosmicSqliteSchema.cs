@@ -2,6 +2,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 internal static class CosmicSqliteSchema
 {
+    internal const string CreateMigrationReplicaAdoption = "CREATE TABLE IF NOT EXISTS CosmicMigrationReplicaAdoption (MigrationId TEXT PRIMARY KEY NOT NULL, RequestJson TEXT NOT NULL, RequestHash TEXT NOT NULL CHECK(length(RequestHash)=64), PreparationHash TEXT NOT NULL CHECK(length(PreparationHash)=64), RecordCount INTEGER NOT NULL CHECK(RecordCount BETWEEN 1 AND 4096))";
     internal const string MigrationMutationDigestDefinition = "TEXT NULL CHECK(MutationDigest IS NULL OR (FenceState='Held' AND length(MutationDigest)=64 AND MutationDigest NOT GLOB '*[^0-9A-F]*'))";
     internal const string AddMigrationMutationDigest = "ALTER TABLE CosmicMigrationFence ADD COLUMN MutationDigest " + MigrationMutationDigestDefinition;
     internal const string CreateMigrationFence = "CREATE TABLE IF NOT EXISTS CosmicMigrationFence (MigrationId TEXT PRIMARY KEY NOT NULL, RequestJson TEXT NOT NULL, RequestHash TEXT NOT NULL CHECK(length(RequestHash)=64), OwnerToken TEXT NOT NULL, FenceState TEXT NOT NULL CHECK(FenceState IN ('Held','Cancelled')))";

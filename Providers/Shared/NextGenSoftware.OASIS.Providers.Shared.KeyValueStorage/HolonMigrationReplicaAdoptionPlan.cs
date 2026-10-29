@@ -56,3 +56,12 @@ public sealed class HolonMigrationReplicaAdoptionPlan
         Fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalJson)));
     }
 }
+
+/// <summary>Optional native atomic existing-replica adoption. Trusted host must
+/// enforce current approval; the native store still verifies Started ownership
+/// and exact immutable preparation. No implicit ordinary-write fallback.</summary>
+public interface IHolonMigrationReplicaAdoptionStorageProvider
+{
+    System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<HolonMigrationFenceObservation>> AdoptPreparedHolonReplicaAsync(
+        HolonMigrationReplicaAdoptionPlan plan, Guid owner, System.Threading.CancellationToken token = default);
+}
