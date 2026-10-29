@@ -708,7 +708,7 @@ jobs:
       NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
   optional-established-release-workflows:
-    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'onode_manager') || contains(inputs.optional_components, 'hyperdrive_client'))
+    if: inputs.publish && (contains(inputs.optional_components, 'oide') || contains(inputs.optional_components, 'hyperdrive_client'))
     needs: plan
     runs-on: ubuntu-latest
     steps:
@@ -722,12 +722,19 @@ jobs:
             sha=$(gh api repos/NextGenSoftwareUK/OIDE/commits/main --jq .sha)
             gh api --method POST repos/NextGenSoftwareUK/OIDE/git/refs -f ref='refs/tags/v${{ needs.plan.outputs.oide_version }}' -f sha="$sha"
           fi
-          if [[ '${{ contains(inputs.optional_components, 'onode_manager') }}' == 'true' ]]; then
-            gh workflow run release-onode-manager.yml --repo NextGenSoftwareUK/OASIS --ref master -f version='${{ needs.plan.outputs.onode_manager_version }}'
-          fi
           if [[ '${{ contains(inputs.optional_components, 'hyperdrive_client') }}' == 'true' ]]; then
             gh workflow run release.yml --repo NextGenSoftwareUK/OASIS-HyperDrive-Client --ref main -f version='${{ needs.plan.outputs.hyperdrive_client_version }}'
           fi
+
+  onode-manager:
+    if: inputs.publish && contains(inputs.optional_components, 'onode_manager')
+    needs: plan
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release-onode-manager.yml
+    with:
+      version: ${{ needs.plan.outputs.onode_manager_version }}
+    secrets: inherit
 
   optional-game-release-workflows:
     if: inputs.publish && (contains(inputs.optional_components, 'our_world') || contains(inputs.optional_components, 'odoom') || contains(inputs.optional_components, 'oquake'))
