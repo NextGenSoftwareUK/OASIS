@@ -97,9 +97,22 @@ public partial class Neo4jNativeAvatarTests
                 var missing = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
                 Assert.IsFalse(missing.IsError, missing.Message + missing.Exception);
                 Assert.AreEqual(HolonReplicationReceiptComparisonKind.MissingReplicaHead, missing.Result.Records[0].Kind);
-                var applied = await replica.ApplyBoundCommittedHolonReplicaAsync(new CommittedHolonReplicaRequest(
-                    operation, enrollment.SourceId, ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: false), targetBinding.Result);
+                var originalReplica = new CommittedHolonReplicaRequest(operation, enrollment.SourceId,
+                    ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: false);
+                var receiptRequest = new CommittedHolonReplicaReceiptReadRequest(originalReplica, targetBinding.Result);
+                var absentReceipt = await replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.IsFalse(absentReceipt.IsError, absentReceipt.Message + absentReceipt.Exception);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentReceipt.Result.ReceiptState);
+                var applied = await replica.ApplyBoundCommittedHolonReplicaAsync(originalReplica, targetBinding.Result);
                 Assert.IsFalse(applied.IsError, applied.Message + applied.Exception);
+                var historicalReceipt = await replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.IsFalse(historicalReceipt.IsError, historicalReceipt.Message + historicalReceipt.Exception);
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, historicalReceipt.Result.ReceiptState);
+                var wrongBinding = new CosmicStorageIdentity(targetBinding.Result.Authority,
+                    targetBinding.Result.EndpointFingerprint, Guid.NewGuid());
+                var wrongReceipt = await replica.ReadCommittedHolonReplicaReceiptAsync(new(originalReplica, wrongBinding));
+                Assert.IsTrue(wrongReceipt.IsError); Assert.IsNull(wrongReceipt.Result);
+                Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongReceipt.ErrorCode);
                 var boundSource = provider.GetBoundHolonReplicationOutbox(expected);
                 Assert.IsFalse(boundSource.IsError, boundSource.Message + boundSource.Exception);
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
@@ -142,6 +155,12 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsTrue(changed.IsError, "An unchanged revision cannot certify changed current SQLite content.");
                 Assert.IsNull(changed.Result);
                 Assert.AreEqual("COSMIC_REPLICA_HEAD_AUDIT_UNVERIFIED", changed.ErrorCode);
+                // Current content has diverged, but the original delivery remains
+                // provable through its immutable receipt; never replay the write.
+                var retainedReceipt = await replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.IsFalse(retainedReceipt.IsError, retainedReceipt.Message + retainedReceipt.Exception);
+                Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, retainedReceipt.Result.AcknowledgementDigest);
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, retainedReceipt.Result.ReceiptState);
 
             }
             foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })

@@ -29,9 +29,11 @@ Separate exact operator authorization now implemented in Shared (1430 tests pass
 
 Immutable preview now passes Shared1453/1453 plus native SQLite2/Mongo1/Neo2. It retains every observed route/state and binds selected-route receipt evidence to operator review. Missing original replica receipts, payload-to-receipt proof, replacement admission and native fences remain explicit findings. No partial preview on failed evidence.
 
+Historical replica-receipt contract and shared existing-validator projection now implemented; first native receiver SQLite passes2cases (Neo source) including original proof after current-body divergence. Shared1462/1462 pass. Mongo/Neo receivers and preview integration remain open.
+
 ## Exact next step
 
-1. Implement read-only original replica-receipt evidence and verify original frozen payload/source-receipt binding; incorporate proofs into the immutable preview.
+1. Implement Mongo/Neo historical replica-receipt readers using the shared validator, then connect exact scoped receipt outcomes to each preview operation/target. Verify original frozen payload/source-receipt binding too.
 2. Validate replacement-target evidence and reauthorize the exact preview before mutation; implement native source/target write and delivery fences. A sequence window is not quiescence.
 3. Implement per-store CAS, durable idempotent migration receipts, interrupted-cutover recovery and old-obligation disposition without rewriting historical evidence.
 4. Complete remaining ordered-pair/concurrent-change/outage/cold-start acceptance, then resume broader priority-provider ORM/CQL parity.

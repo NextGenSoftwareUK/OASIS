@@ -15,8 +15,12 @@ public sealed class SqliteReplicaReconciliationException(Guid operationId,string
     public string OriginalTransactionId=>string.Empty;
 }
 
-public partial class SQLLiteDBOASIS : IBoundCommittedHolonReplicaStorageProvider, IHolonReplicaHeadAuditStorageProvider
+public partial class SQLLiteDBOASIS : IBoundCommittedHolonReplicaStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
+    public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+        => _holonRepository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken);
+
     public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
         HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
         => _holonRepository.ReadHolonReplicaHeadsAsync(request, cancellationToken);
