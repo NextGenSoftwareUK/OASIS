@@ -46,6 +46,10 @@ public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationLinea
             if(record.State==HolonDeliveryState.ReconciliationRequired)
                 return (new OASISResult<HolonDeliveryClaim>{Message="The oldest target obligation requires reconciliation."},false);
             ValidatePayload(row,record.Operation);
+            var delivery = CommittedHolonReplicaPayload.ReadForTarget(row["PayloadJson"].AsString, targetId);
+            await MongoHolonMigrationFence.AssertUnfencedAsync(_database, session,
+                HolonGraphWritePlan.Create(delivery.Roots, delivery.SaveChildren, delivery.Recursive, delivery.MaxChildDepth, 0)
+                    .Nodes.Select(node => node.Snapshot.Id), cancellationToken).ConfigureAwait(false);
             if(record.Attempts==int.MaxValue)throw new InvalidDataException("Outbox attempt count is exhausted.");
             var lease=Guid.NewGuid();
             var filter=new BsonDocument{{"_id",row["_id"]},{"$expr",new BsonDocument("$and",new BsonArray{
@@ -257,5 +261,6 @@ public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationLinea
     }
     private static OASISResult<T> Failure<T>(Exception cause)=>new(){IsError=true,ErrorCount=1,Exception=cause,Message=cause.Message,
         ErrorCode=Core.Helpers.NativeMutationReconciliation.IsRequired(cause) ? "COSMIC_OUTBOX_RECONCILIATION_REQUIRED"
-            :cause is MongoReplicaStorageBindingException binding ? binding.Code :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":MongoTransactionFailure.IsWriteConflict(cause) ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
+            :cause is MongoReplicaStorageBindingException binding ? binding.Code :cause is MongoMigrationFenceException fence ? fence.Code
+            :cause is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":MongoTransactionFailure.IsWriteConflict(cause) ? "COSMIC_OUTBOX_CONCURRENT_WRITE":"COSMIC_OUTBOX_OPERATION_FAILED"};
 }
