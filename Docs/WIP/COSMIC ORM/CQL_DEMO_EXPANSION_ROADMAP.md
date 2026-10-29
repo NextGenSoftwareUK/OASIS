@@ -30,7 +30,7 @@ Solana's existing demo as well. The older eight-provider selection below is
 historical; AWS and Oracle are now required scope, not optional alternatives.
 
 AWS admission remains red: AWSOASIS inherits DynamoDBOASIS and uses the official
-DynamoDB transport. Neither currently advertises a native CQL execution contract;
+DynamoDB transport. Bounded native-key CQL now has an implementation and13/13 controlled tests; real-service proof and paired demos remain red ([AWS MVP](AWS_CQL_MVP.md)). Previously neither advertised a native CQL execution contract;
 ordinary storage tests do not prove query support. Implement capability-aware
 bounded native CQL, prove filtered multi-record results and protected failure,
 then add readable C#/HTTP/browser and Mongo-paired presets. Reuse retained pinned
