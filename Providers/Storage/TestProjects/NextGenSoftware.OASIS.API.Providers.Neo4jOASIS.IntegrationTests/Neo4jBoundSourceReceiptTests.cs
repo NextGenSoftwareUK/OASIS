@@ -30,7 +30,7 @@ public partial class Neo4jNativeAvatarTests
         using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var inspection = driver.AsyncSession();
         var input = new Holon { Id = Guid.NewGuid(), Name = "private-neo-original-receipt" };
-        var operation = Guid.NewGuid(); var appendOperation = Guid.NewGuid();
+        var operation = Guid.NewGuid(); var appendOperation = Guid.NewGuid(); var migration = Guid.NewGuid();
         var actor = Guid.NewGuid();
         var arguments = new { id = input.Id.ToString("D"), operation = operation.ToString("D") };
         try
@@ -44,7 +44,7 @@ public partial class Neo4jNativeAvatarTests
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, actor, source = expected, bindOriginal, targetPath });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, actor, source = expected, bindOriginal, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
@@ -121,11 +121,53 @@ public partial class Neo4jNativeAvatarTests
                     operation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true,
                     consistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated, migrationSource: provider);
 
-                await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyPreviewAsync(boundSource.Result,
+                var reviewedPreview = await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyPreviewAsync(boundSource.Result,
                     expected, targetBinding.Result, enrollment.SourceId, operation, enrollment.TargetIds.Count,
                     () => HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest),
                     HolonReplicaHeadReadConsistency.ReadCommittedValidated,
                     () => replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest), request);
+                // Coordinate actual Neo source + SQLite receiver from native evidence.
+                // This fixture performs no migration mutation, so explicit owner
+                // cancellation below is still a pre-mutation operation.
+                var context = reviewedPreview.AuthorizationContext(migration, actor, "owned-native-migration-admin");
+                var policy = new ScopedHolonReplicationMigrationPolicy(context.AuthorizationPolicyBinding,
+                    new[] { new HolonReplicationMigrationGrant(context, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
+                var participants = new[] { new HolonMigrationBarrierParticipant(expected, provider),
+                    new HolonMigrationBarrierParticipant(targetBinding.Result, replica) };
+                var held = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(reviewedPreview, context, policy, participants);
+                Assert.IsFalse(held.IsError, held.Message + held.Exception);
+                Assert.IsTrue(held.Result.AllBarriersHeld); Assert.AreEqual(2, held.Result.Stores.Count);
+                var barredSource = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+                Assert.IsTrue(barredSource.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", barredSource.ErrorCode);
+                var barredTarget = await replica.ApplyBoundCommittedHolonReplicaAsync(originalReplica, targetBinding.Result);
+                Assert.IsTrue(barredTarget.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", barredTarget.ErrorCode);
+                var retained = await replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.IsFalse(retained.IsError); Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, retained.Result.AcknowledgementDigest);
+                // Fresh native owners recover receipts without another acquire.
+                var recoveredSource = new Provider(uri, "neo4j", "oasis-local-test-only");
+                using (var recoveredTarget = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={targetPath};Pooling=False"))
+                {
+                    try
+                    {
+                        Assert.IsFalse((await recoveredSource.ActivateProviderAsync()).IsError);
+                        Assert.IsFalse((await recoveredTarget.ActivateProviderAsync()).IsError);
+                        var resumed = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(reviewedPreview, context, policy,
+                            new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) });
+                        Assert.IsFalse(resumed.IsError, resumed.Message + resumed.Exception); Assert.IsTrue(resumed.Result.AllBarriersHeld);
+                        Assert.IsFalse(resumed.IsSaved, "Recovery must read original native receipts rather than acquire again.");
+                        foreach (var participant in new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) })
+                        {
+                            var scope = new HolonMigrationFenceRequest(migration, actor, participant.Storage, reviewedPreview.PreviewDigest,
+                                context.ContextDigest, new[] { input.Id });
+                            var observation = await participant.Provider.ReadHolonMigrationFenceAsync(scope);
+                            Assert.IsFalse(observation.IsError, observation.Message + observation.Exception);
+                            var released = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observation.Result.OwnerToken);
+                            Assert.IsFalse(released.IsError, released.Message + released.Exception);
+                            Assert.AreEqual(HolonMigrationFenceState.Cancelled, released.Result.State);
+                        }
+                    }
+                    finally { Assert.IsFalse((await recoveredSource.DeActivateProviderAsync()).IsError); }
+                }
                 await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyWindowAsync(boundSource.Result, expected,
                     enrollment.SourceId, operation, enrollment.TargetIds.Count, appendOperation, async () =>
                     {
@@ -170,6 +212,11 @@ public partial class Neo4jNativeAvatarTests
             await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations DETACH DELETE n", new { operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).ConsumeAsync();
             var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations) RETURN count(n) AS count", new { arguments.id, operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).SingleAsync();
             Assert.AreEqual(0L, remaining["count"].As<long>());
+            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId=$id) DETACH DELETE n",
+                new { migration = migration.ToString("D"), arguments.id })).ConsumeAsync();
+            var fenceRemaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId=$id) RETURN count(n) AS count",
+                new { migration = migration.ToString("D"), arguments.id })).SingleAsync();
+            Assert.AreEqual(0L, fenceRemaining["count"].As<long>());
             File.Delete(journal);
         }
         finally { Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError); }
