@@ -55,6 +55,8 @@ public partial class NativeHostedReplicaRestartTests
         public string TargetFingerprint { get; set; }
         public string TargetId { get; set; }
         public long FirstSequence { get; set; }
+        public Guid WitnessId { get; set; } = Guid.NewGuid();
+        public Guid WitnessOperation { get; set; } = Guid.NewGuid();
     }
 
     [TestMethod]
@@ -64,11 +66,12 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing", "Use the explicit process-owning runner.");
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency", "Use the explicit process-owning runner.");
         var exhaust = phase == "exhaust";
         var routingProof = phase == "routing";
+        var consistencyProof = phase == "consistency";
         var cleanupUnwritten = phase == "cleanup-unwritten";
-        var activeOutage = phase == "active" || exhaust || routingProof;
+        var activeOutage = phase == "active" || exhaust || routingProof || consistencyProof;
         var reconcileActive = phase == "reconcile-active";
         var reconcileRouting = phase == "reconcile-routing";
         var seeding = phase == "seed" || activeOutage;
@@ -81,7 +84,7 @@ public partial class NativeHostedReplicaRestartTests
         var journal = Path.Combine(state, "worker-offline.pending.json");
         var file = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/worker-offline.db");
         var ownedFiles = new[] { file, file + "-wal", file + "-shm", file + "-journal" };
-        if (routingProof) OASISHyperDrive.DataDirectory = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/routing-quota");
+        if (routingProof || consistencyProof) OASISHyperDrive.DataDirectory = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/routing-quota");
         var client = new MongoClient(uri);
         StoppedDestinationIntent intent;
         if (seeding)
@@ -191,6 +194,35 @@ public partial class NativeHostedReplicaRestartTests
                 var marker = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/worker-offline-" + signal);
                 while (!File.Exists(marker)) await Task.Delay(100, deadline.Token);
             }
+            async Task VerifyPrimaryWitness(bool unavailable)
+            {
+                registry.IsAutoLoadBalanceEnabled = true;
+                registry.AddProvidersToAutoLoadBalanceList(new[] { ProviderType.SQLLiteDBOASIS });
+                foreach (var mode in new[] { "sync", "async", "load-balance" })
+                {
+                    var router = new OASISHyperDrive(registry);
+                    var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = intent.WitnessId, AvatarId = intent.Actor };
+                    var read = mode == "sync" ? router.RouteRequest<IHolon>(request)
+                        : mode == "async" ? await router.RouteRequestAsync<IHolon>(request)
+                        : await router.LoadBalanceRequestAsync<IHolon>(request);
+                    Assert.AreEqual(unavailable, read.IsError, read.Message + read.Exception);
+                    if (unavailable)
+                    {
+                        Assert.IsNull(read.Result);
+                        Assert.IsNotNull(read.Exception, "Preserve the real primary connection failure.");
+                    }
+                    else
+                    {
+                        Assert.AreEqual(intent.WitnessId, read.Result.Id);
+                        Assert.AreEqual("primary-only record", read.Result.Name);
+                        Assert.AreEqual(intent.Actor, read.Result.CreatedByAvatarId);
+                    }
+                    Assert.IsNull((await sqlite.LoadHolonAsync(intent.WitnessId, loadChildren: false)).Result,
+                        "Read confirmation cannot create a replica or substitute its empty answer.");
+                }
+                registry.IsAutoLoadBalanceEnabled = false;
+            }
+
             async Task SaveAt(int index)
             {
                 var input = new Holon { Id = intent.Ids[index], Name = index == 0 ? "before process outage" : "bought while Mongo stopped" };
@@ -230,7 +262,16 @@ public partial class NativeHostedReplicaRestartTests
             if (activeOutage)
             {
                 await SaveAt(0);
-                if (routingProof)
+                if (consistencyProof)
+                {
+                    var witness = new Holon { Id = intent.WitnessId, Name = "primary-only record" };
+                    var witnessSave = await new HolonManager(null, dna, registry).SaveOwnedHolonAsync(witness, intent.Actor,
+                        new CosmicWriteOptions(intent.WitnessOperation), saveChildren: false, providerType: ProviderType.MongoDBOASIS);
+                    Assert.IsFalse(witnessSave.IsError, witnessSave.Message + witnessSave.Exception);
+                    Assert.IsTrue(witnessSave.IsSaved);
+                    Assert.IsNull((await sqlite.LoadHolonAsync(intent.WitnessId, loadChildren: false)).Result);
+                }
+                if (routingProof || consistencyProof)
                     Assert.IsFalse(registry.SetAndActivateCurrentStorageProvider(mongo).IsError);
                 await Publish("ready-to-stop");
                 await WaitForRunner("stopped");
@@ -238,6 +279,7 @@ public partial class NativeHostedReplicaRestartTests
                     await Assert.ThrowsExceptionAsync<SocketException>(async () => await socket.ConnectAsync("127.0.0.1", 27029));
                 Assert.IsTrue(mongo.IsProviderActivated, "Keep the actual native receiver client alive across the process outage.");
                 await SaveAt(1);
+                if (consistencyProof) await VerifyPrimaryWitness(unavailable: true);
                 if (routingProof)
                 {
                     registry.IsAutoFailOverEnabled = true;
@@ -324,6 +366,7 @@ public partial class NativeHostedReplicaRestartTests
 
             Assert.AreEqual(intent.TargetFingerprint, (await HolonReplicationRouteBinding.CapturePinnedAsync(mongo)).BindingFingerprint);
             foreach (var id in intent.Ids) Assert.IsNull((await mongo.LoadHolonAsync(id, loadChildren: false)).Result);
+            if (consistencyProof) await VerifyPrimaryWitness(unavailable: false);
             if (exhaust)
             {
                 var blockedBefore = await outbox.InspectAsync(intent.FirstSequence);
@@ -407,9 +450,11 @@ public partial class NativeHostedReplicaRestartTests
             }
             var db = client.GetDatabase(database);
             var rows = await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
-            CollectionAssert.AreEquivalent(intent.Ids.Select(id => id.ToString("D")).ToArray(), rows.Select(row => row["HolonId"].AsString).ToArray());
+            var expectedIds = consistencyProof ? intent.Ids.Append(intent.WitnessId) : intent.Ids.AsEnumerable();
+            CollectionAssert.AreEquivalent(expectedIds.Select(id => id.ToString("D")).ToArray(), rows.Select(row => row["HolonId"].AsString).ToArray());
             var receipts = await db.GetCollection<BsonDocument>("CosmicWriteReceipt").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
-            CollectionAssert.AreEquivalent(intent.Operations.Select(op => op.ToString("D")).ToArray(), receipts.Select(row => row["_id"].AsString).ToArray());
+            var expectedOperations = consistencyProof ? intent.Operations.Append(intent.WitnessOperation) : intent.Operations.AsEnumerable();
+            CollectionAssert.AreEquivalent(expectedOperations.Select(op => op.ToString("D")).ToArray(), receipts.Select(row => row["_id"].AsString).ToArray());
             complete = true;
         }
         finally
