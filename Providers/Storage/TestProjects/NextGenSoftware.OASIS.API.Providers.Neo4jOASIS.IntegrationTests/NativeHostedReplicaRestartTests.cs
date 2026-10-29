@@ -154,6 +154,18 @@ public partial class NativeHostedReplicaRestartTests
                 Assert.AreEqual(targetBinding.BindingFingerprint,pending.Result.NativeRoute.TargetStorage.BindingFingerprint);
             }
             var originalPayload = await FrozenPayload();
+            var audited = await HolonReplicationMigrationAudit.ReadPageAsync(source, sourceBinding);
+            Assert.IsFalse(audited.IsError, audited.Message);
+            Assert.AreEqual(sourceBinding.BindingFingerprint, audited.Result.SourceStorageFingerprint);
+            Assert.AreEqual(1, audited.Result.Heads.Count);
+            Assert.AreEqual(targetId, audited.Result.Heads[0].TargetId);
+            Assert.AreEqual(operation, audited.Result.Heads[0].OperationId);
+            Assert.AreEqual(0, audited.Result.Heads[0].AttemptCount);
+            Assert.AreEqual(pending.Result.NativeRoute == null, audited.Result.Heads[0].RequiresNativeBindingProof);
+            Assert.AreEqual(originalPayload, await FrozenPayload(), "Audit cannot rewrite the frozen historical payload.");
+            var afterAudit = await outbox.InspectAsync(pending.Result.Sequence);
+            Assert.AreEqual(HolonDeliveryState.Pending, afterAudit.Result.State);
+            Assert.AreEqual(0, afterAudit.Result.AttemptCount, "Audit cannot claim or retry the original write.");
             var before = await target.LoadHolonAsync(input.Id, loadChildren: false);
             Assert.IsNull(before.Result);
 

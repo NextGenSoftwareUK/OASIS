@@ -1,11 +1,11 @@
 # COSMIC ORM / CQL
 
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
-2. [Presenter run-through](CQL_DEMO_RUNTHROUGH.md) and [demo launcher](CQL_DEMO_LAUNCHER.md). [Eight-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md): active priority before full parity. [Solana next-provider admission](CQL_SOLANA_DEMO_ADMISSION.md) and [chain query contract](CQL_CHAIN_QUERY_CONTRACT.md). [fresh reusable environments](CQL_DEMO_ENVIRONMENTS.md), [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md) and [protocol admission](CQL_PROTOCOL_DEMO_ADMISSION.md) and [verified Mastodon CQL point profile](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
+2. [Presenter run-through](CQL_DEMO_RUNTHROUGH.md) and [demo launcher](CQL_DEMO_LAUNCHER.md). [Priority-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md): active priority before full parity. [Solana next-provider admission](CQL_SOLANA_DEMO_ADMISSION.md) and [chain query contract](CQL_CHAIN_QUERY_CONTRACT.md). [fresh reusable environments](CQL_DEMO_ENVIRONMENTS.md), [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md) and [protocol admission](CQL_PROTOCOL_DEMO_ADMISSION.md) and [verified Mastodon CQL point profile](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
 3. [CQL parity checklist](CQL_PARITY_CHECKLIST.md): one feature row, independent proof per database; red rows only.
 3. [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and [COSMIC ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
-4. [Implementation status](IMPLEMENTATION_STATUS.md) and [active projected-All/source contract](CQL_PROJECTED_ALL_EXECUTION_CONTRACT.md).
-5. [V2 failover/load-balancing acceptance](V2_ROUTING_ACCEPTANCE.md). [CQL manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+4. [Implementation status](IMPLEMENTATION_STATUS.md) and [deferred parity handoff](DEFERRED_PARITY_HANDOFF.md).
+5. [V2 failover/load-balancing acceptance](V2_ROUTING_ACCEPTANCE.md) and [lineage migration/audit](V2_LINEAGE_MIGRATION.md). [CQL manual](CQL_MANUAL.md), [architecture](CQL_ARCHITECTURE.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 6. [Historical reports/reference](Archive/README.md) and [previously committed evidence](Evidence/README.md).
 
 Recovery: read CURRENT_STATUS, the two short roadmaps, IMPLEMENTATION_STATUS and the active contract; together they stay below 300 lines.
