@@ -43,7 +43,7 @@ sharing input compile errors are fixed. [Verification](DEVELOPMENT_SYNC_2026-10-
    S3/TRON adapters and controls exist but native admission remains open. LocalFile
    native/restart/paired proof is verified. Aptos direct paired proof passes (hub review-gated); Sui full local paired/browser
    and hub proof passes. Hedera native fee/funding admission is pending; Redis encrypted native/restart/paired
-   and hub proof passes. Next PostgreSQL reusable native admission.
+   and hub proof passes. PostgreSQL native/restart/paired/browser and hub proof passes; continue remaining red provider MVPs.
 3. Continue missing registered storage MVPs, then unregistered/source-only entries.
    Track actual implementation, registration and external blockers independently.
 4. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)
@@ -51,3 +51,6 @@ sharing input compile errors are fixed. [Verification](DEVELOPMENT_SYNC_2026-10-
 
 [Previous expansion history](Archive/CQL_DEMO_EXPANSION_ROADMAP_PRE_ALL_PROVIDER_2026-10-29.md)
 was archived with its superseded next steps intact. Update current status at each milestone.
+
+PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
+[scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.

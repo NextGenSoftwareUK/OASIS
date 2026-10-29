@@ -18,3 +18,6 @@ Keep change tracking, save ownership, concurrency, conditional writes, rollback/
 
 [Feature checklist](CQL_PARITY_CHECKLIST.md) is the authoritative remaining feature inventory.
 [Full original roadmap and history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) preserves all earlier requirements and checkpoints.
+
+PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
+[scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.
