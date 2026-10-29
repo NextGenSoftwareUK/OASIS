@@ -8,10 +8,11 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Redis native dataset admission**, then3/2/missing/restart and Mongo/browser.
-Redis8 controls pass; encrypted backend reused, unadmitted aliases cannot inherit
-Redis query capabilities. Existing stopped local container/volume/keys are available;
-no new service/download. [Redis exact next](REDIS_CQL_MVP.md).
+**Next: PostgreSQL admission/reusable native resources**, continuing available
+local breadth while paid/external gates remain pending. Redis native3/2/missing,
+exact ciphertext restart, SDK/HTTP/browser5/4 and launcher routing pass; dedicated
+DB11/source/keys retained, temporary Mongo fixture removed and services stopped.
+[Redis proof/commands](REDIS_CQL_MVP.md). Aliases/central registration are not certified.
 Hedera controls/public runtime audit pass; existing routed-read funding guard is
 not met by indexed testnet balance. No paid queries/key export performed; retain
 historical admission guards. [Hedera gate](HEDERA_CQL_MVP.md). Sui full demo verified.
@@ -26,6 +27,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| Redis + Mongo | Encrypted DB11/native/restart/paired5/4, direct registration only. [Guide](REDIS_CQL_MVP.md). |
 | Sui + Mongo | Dedicated encrypted native/restart/paired5/4, original Storage preserved. [Guide](SUI_CQL_MVP.md). |
 | LocalFile + Mongo | Native files/restart/paired5/4; plaintext scope. [Guide](LOCALFILE_CQL_MVP.md). |
 | Oracle + Mongo | Native/SDK/HTTP/browser5/4. [Scope](CQL_ORACLE_DEMO_ADMISSION.md). |
@@ -41,7 +43,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 22 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 23 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 

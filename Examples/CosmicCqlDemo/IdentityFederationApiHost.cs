@@ -96,6 +96,10 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and the retained local Sui chain through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep admitted Sui source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.RedisOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained encrypted Redis through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original Redis source)", StringComparison.Ordinal);
         app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
         {
