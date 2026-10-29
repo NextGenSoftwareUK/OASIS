@@ -16,7 +16,9 @@ public class HolonMigrationMutationAuthorizationTests
         public override DateTimeOffset GetUtcNow() => Now;
     }
 
-    private static async Task<HolonMigrationMutationPreparation> Prepare()
+    private static async Task<HolonMigrationMutationPreparation> Prepare() => (await PrepareWithPlan()).Preparation;
+
+    internal static async Task<(HolonReplicationMigrationBarrierPlan Plan, HolonMigrationMutationPreparation Preparation)> PrepareWithPlan()
     {
         var f = new HolonReplicationMigrationBarrierCoordinatorTests.Setup(); await f.Initialize();
         var plan = HolonReplicationMigrationBarrierPlan.Create(f.Preview, f.Context);
@@ -27,7 +29,7 @@ public class HolonMigrationMutationAuthorizationTests
             f.Preview.Receipts.SelectMany(r => r.Records).Select(r => r.Original).DistinctBy(r => r.HolonId)
                 .OrderBy(r => r.HolonId.ToString("D"), StringComparer.Ordinal)
                 .Select(r => new HolonMigrationReplacementRecord(r, false, null, HolonMigrationReplacementKind.EmptyAtObservation)));
-        return new(plan, delivery, replacement, "mutation-admin");
+        return (plan, new(plan, delivery, replacement, "mutation-admin"));
     }
 
     [DataTestMethod]
