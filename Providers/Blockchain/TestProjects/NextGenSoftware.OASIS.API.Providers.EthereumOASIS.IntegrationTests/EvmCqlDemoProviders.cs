@@ -7,6 +7,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
 internal static class EvmCqlDemoProviders
 {
+    // Base's central BootLoader registration directly constructs this shipped
+    // Web3Core class. Keep its real authority and isolated native contract.
+    internal static OASISStorageProviderBase CreateBase(string rpc, string key, string contract)
+        => new NextGenSoftware.OASIS.API.Providers.BaseOASIS.BaseOASIS(rpc, key, 31338, contract)
+            { IsVersionControlEnabled = false };
+
     // Compile/link the actual BootLoader factory so acceptance proves the V2
     // shipping selection, rather than a separately constructed legacy provider.
     internal static OASISStorageProviderBase CreateArbitrum(string rpc, string key, string contract)

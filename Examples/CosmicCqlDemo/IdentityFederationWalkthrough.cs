@@ -73,6 +73,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.EthereumOASIS => "Ethereum",
         ProviderType.PolygonOASIS => "Polygon",
         ProviderType.ArbitrumOASIS => "Arbitrum",
+        ProviderType.BaseOASIS => "Base",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
