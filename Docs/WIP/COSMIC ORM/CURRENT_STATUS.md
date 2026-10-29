@@ -29,11 +29,13 @@ Separate exact operator authorization now implemented in Shared (1430 tests pass
 
 Immutable preview now passes Shared1453/1453 plus native SQLite2/Mongo1/Neo2. It retains every observed route/state and binds selected-route receipt evidence to operator review. Missing original replica receipts, payload-to-receipt proof, replacement admission and native fences remain explicit findings. No partial preview on failed evidence.
 
-Historical replica-receipt contract and shared existing-validator projection now implemented; all three native receivers are implemented. SQLite2cases retained; latest Mongo2/Neo replica-group6 pass, including original proof after later changes. Shared1462 controls retained. Preview integration remains open.
+Historical replica-receipt contract and shared existing-validator projection now implemented; all three native receivers are implemented. SQLite2cases retained; latest Mongo2/Neo replica-group6 pass, including original proof after later changes. Shared1462 controls retained. Preview integration is now implemented in v2 below.
+
+Preview v2 now incorporates exact historical receiver evidence: Shared1473/1473 and native SQLite2/Mongo1/Neo-source2 pass. Committed/Absent/not-read remain distinct; scope and strict consistency enforced, evidence bound into review checksum. Payload/source equivalence, replacement admission and native fences remain open.
 
 ## Exact next step
 
-1. Connect exact historical replica-receipt outcomes to each preview operation/target. Preserve Absent as a finding and reject mismatched scope. Verify original frozen payload/source-receipt binding separately.
+1. Verify exact original frozen payload/source-receipt binding: selected graph, logical/source revisions and portable content. Incorporate that proof into the preview without relabeling historical bytes.
 2. Validate replacement-target evidence and reauthorize the exact preview before mutation; implement native source/target write and delivery fences. A sequence window is not quiescence.
 3. Implement per-store CAS, durable idempotent migration receipts, interrupted-cutover recovery and old-obligation disposition without rewriting historical evidence.
 4. Complete remaining ordered-pair/concurrent-change/outage/cold-start acceptance, then resume broader priority-provider ORM/CQL parity.
@@ -62,7 +64,7 @@ Three-database save demos cover dirty/no-op ownership, generated IDs, concurrenc
 
 ## Git, resources and commands
 
-- Parent Development c8a381dd2/Core0240771 integrated into task; current Core5baaab3. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
+- Parent Development c8a381dd2/Core0240771 integrated into task; current Core1709572. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
 - Last outgoing Development batch: parent858edd828/Corebd86a37. Later work remains on the pushed task branch; no entire-branch deployment while the lineage gate is open.
 - Commit named files only; Core push/remote verification first, then matching parent gitlink + deployment manifest. Fetch before scoped daily integration; never force push.
 - Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. No new install/restore for these milestones.
