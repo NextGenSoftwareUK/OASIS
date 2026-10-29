@@ -1,0 +1,43 @@
+name: Bump WEB7-WEB10 API version
+# WEB4-WEB6 are advanced by the global release. WEB7-WEB10 are bumped here: sets the constant and release-history entry, then pushes
+# to Development; the OPORTAL-JS sync workflow follows from that push (or run it by hand).
+on:
+  workflow_dispatch:
+    inputs:
+      api:
+        description: API to bump
+        type: choice
+        options: [WEB7, WEB8, WEB9, WEB10]
+        required: true
+      version:
+        description: New version, X.Y.Z (must be higher than the current one)
+        required: true
+      notes:
+        description: Release-history text for this version
+        required: true
+permissions:
+  contents: write
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Development
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Apply
+        env:
+          API: ${{ inputs.api }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: python3 Scripts/api_version_sync.py --apply "$API" "$VERSION" --notes "$NOTES"
+      - name: Commit and push to Development
+        env:
+          API: ${{ inputs.api }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          git config user.name "oasis-release-bot"
+          git config user.email "noreply@github.com"
+          git add -A
+          git commit -m "$API API v$VERSION"
+          git push origin HEAD:Development
