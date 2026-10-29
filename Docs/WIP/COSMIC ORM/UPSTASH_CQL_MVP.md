@@ -1,6 +1,6 @@
 # Upstash CQL MVP admission
 
-Updated29 October2026. **Native hosted and paired demo admission remain red.**
+Updated29 October2026. **Hosted native/repeat verified; paired demo remains red.**
 
 ## Implemented scope
 
@@ -31,19 +31,43 @@ wrapper directly; these now test the current category/value contract.
 - Evidence: `TestResults/UpstashCqlCurrent/upstash-cql-controls.trx`.
 - SHA256: `9A32920872FCE08A1098F61D4ED0BCE8FFF08DC373C44804C0CD65F5BA705017`.
 
-## Resource admission and exact next step
+## Hosted native verification
 
-A retained official scratch resource has metadata expiry2026-10-31T21:15:49.3541451Z
-under C:/Users/david/AppData/Local/OASIS/ReusableProviderTests/Upstash. Only lifecycle
-metadata/file names were inspected; credentials have not been decrypted or sent.
-No new account/service/paid resource is created.
+The retained official free scratch resource was reused without provisioning. The
+runner checks expiry2026-10-31T21:15:49.3541451Z before credential use and restricts
+the protected identity to the original HTTPS Upstash service. Credentials are
+unprotected only in-process, passed to the awaited test via environment, restored
+and excluded from logs. No account, purchase or infrastructure installation occurred.
 
-Before native writes, validate that this resource remains the same free scratch
-service and has not expired. Reuse protected credentials only in awaited native
-processes, never logs. Persist source intent/IDs before three synthetic saves;
-validate bounded native3/2/missing/paging/budget responses and preserved original
-values on repeat. Do not scan or remove shared data. Then add a Mongo-paired
-C#/HTTP/browser preset. Preserve uncertain outcomes instead of reseeding; keep
-inventory red until native and paired proof are complete.
+Three acknowledged synthetic saves and load round trips pass. Bounded native MGET
+returns3/2/missing rows; paging and result-budget rejection pass with no partial
+results. Native GET value hashes and membership of the three owned IDs in the
+existing holons:all index survive fresh clients/processes unchanged. No keyspace
+scan, shared-index replacement or unrelated-key deletion occurs. This is fresh
+client repeat verification, not a hosted service restart or durability/failover test.
+
+SaveHolonAsync now reports IsSaved=true/SavedCount=1 after its existing native
+record/index operations succeed. Native assertions prove those acknowledgements;
+the multi-command save is not certified atomic and wider concurrency remains open.
+The old integration file had an incorrect Holon/Avatar namespace import, now fixed.
+
+- Test: `UpstashCqlNativeTests.cs` in UpstashOASIS.IntegrationTests.
+- Runner: `Scripts/TestHosts/Run-CosmicUpstashCqlNative.ps1`.
+- Initial result1passed2s/no skips; `TestResults/UpstashCqlCurrent/upstash-cql-initial.trx`.
+- Initial SHA256: `EF1B978C4A1EA0E28FC6489811C59E07B94088582B859F566616C0B444C842BE`.
+- Repeat result1passed1s/no skips; `TestResults/UpstashCqlCurrent/upstash-cql-native.trx`.
+- Repeat SHA256: `C8AB9790BD5CD2A2E9CD2050B2C813DDF314F7D2670C2866297AE388379756D2`.
+- Seed SHA256: `B24961E3DB2A04F6F772B3472581BEC281B9CDEF7B13EFE4CEF8F20770480B35`.
+- Persistent source directory `LocalState/COSMIC/UpstashCql`: 763bytes,
+  plus three hosted records/index entries (native size unmeasured), reusable until expiry.
+
+## Exact next step
+
+Add a Mongo-paired C#/HTTP/browser teaching preset using the same admitted hosted
+source. Validate original endpoint/expiry and source hashes before each demo; never
+reseed if it expires or disappears. Include provider provenance and unavailable
+provider controls, then verify/drop only the owned temporary Mongo fixture. Keep
+paired admission red until verified. Native JSON is plaintext; no encryption,
+atomic save, hosted restart or full LINQ/ORM parity claim.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
