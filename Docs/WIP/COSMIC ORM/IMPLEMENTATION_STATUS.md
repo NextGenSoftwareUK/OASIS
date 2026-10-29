@@ -19,7 +19,7 @@ controls pass. Exact prepared-start recovery passes native Mongo/Mongo/SQLite1/1
 plus preserved nonempty-head failure recovery1/1. Preparation, approval and read/write-once
 evidence bind the original plan and explicit consistency; native start is not data cutover.
 
-No migration data mutation, automatic compensation or HTTP executor is enabled.
+SQLite matching-head adoption now changes receiver lineage with an atomic dedicated receipt (native1/1); business content/version/local revision/history remain unchanged. No global cutover, automatic compensation or HTTP executor is enabled.
 Next: native business-state CAS and idempotent migration receipts,
 replacement-history admission, interrupted cutover and explicit old-work disposition.
 Broader graph/multi-version/delete/provider-pair and deployed restart proof remain open.
