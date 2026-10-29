@@ -26,7 +26,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. Implement native business-state compare-and-swap from the exact persisted preparation: source/head/record/outbox observations must still match, destination history must be admitted explicitly, and every data change needs an idempotent migration receipt. Native start markers do not authorize or prove cutover. Original Neo failure recovered; no pending fixture remains.
+1. Exact existing-replica adoption comparison plan is now implemented and verified under Shared1598: it binds destination fence, approved preparation, complete expected heads and replacement lineage; empty/foreign/current conflicts are not adoption. Next: implement SQLite atomic adoption + dedicated migration receipt from that plan: source/head/record/outbox observations must still match, destination history must be admitted explicitly, and every data change needs an idempotent migration receipt. Native start markers do not authorize or prove cutover. Original Neo failure recovered; no pending fixture remains.
 2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
 3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
 
