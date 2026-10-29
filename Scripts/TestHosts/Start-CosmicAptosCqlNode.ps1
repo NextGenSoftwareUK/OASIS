@@ -19,8 +19,10 @@ if(Get-NetTCPConnection -State Listen -LocalPort 18080,18081,18070 -ErrorAction 
 $lease=[IO.File]::Open((Join-Path $state 'node.lock'),'OpenOrCreate','ReadWrite','None')
 try {
     Write-Output 'Resuming original Aptos source. Ctrl-C stops this owned node; preserve its ledger.'
-    & $cli node run-localnet --no-txn-stream --bind-to 127.0.0.1 --test-dir (Join-Path $state 'node') `
+    # The retained account is already funded. Starting a faucet would create a
+    # new faucet account during each resume, outside this read-only demo scope.
+    & $cli node run-localnet --no-txn-stream --no-faucet --bind-to 127.0.0.1 --test-dir (Join-Path $state 'node') `
         --test-config-override (Join-Path $root 'Scripts/TestHosts/aptos-node-override.yaml') `
-        --faucet-port 18081 --ready-server-listen-port 18070 *> (Join-Path $results 'node-current.log')
+        --ready-server-listen-port 18070 *> (Join-Path $results 'node-current.log')
     if($LASTEXITCODE){throw 'Owned Aptos node exited; inspect retained ledger/log before any restart.'}
 } finally {$lease.Dispose()}
