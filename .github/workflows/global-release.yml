@@ -8,20 +8,8 @@ on:
         required: true
         type: boolean
         default: false
-      excluded_nuget_ids:
-        description: Comma-separated already-completed package IDs, recorded in the immutable plan
-        type: string
-        default: ''
-      expected_excluded_nuget_count:
-        description: Required exact exclusion count; mismatches stop before packing or upload
-        type: number
-        default: 0
       advance_api_versions:
         description: Advance the version of each WEB4-WEB10 API that has changed since its last release (unchanged APIs keep theirs), update their release histories, runtime tie, docs, and the OPORTAL-JS Postman collections and links, and commit them
-        type: boolean
-        default: false
-      nuget_plan_only:
-        description: Review NuGet plan without packing or publishing packages
         type: boolean
         default: false
       nuget_packages:
@@ -85,9 +73,80 @@ on:
         required: false
         type: string
         default: ''
+
+  workflow_call:
+    inputs:
+      publish:
+        description: "Publish after all builds pass"
+        required: true
+        type: boolean
+        default: false
+      excluded_nuget_ids:
+        description: "Comma-separated already-completed package IDs, recorded in the immutable plan"
+        type: string
+        default: ''
+      expected_excluded_nuget_count:
+        description: "Required exact exclusion count; mismatches stop before packing or upload"
+        type: number
+        default: 0
+      advance_api_versions:
+        description: "Advance the version of each WEB4-WEB10 API that has changed since its last release (unchanged APIs keep theirs), update their release histories, runtime tie, docs, and the OPORTAL-JS Postman collections and links, and commit them"
+        type: boolean
+        default: false
+      nuget_plan_only:
+        description: "Review NuGet plan without packing or publishing packages"
+        type: boolean
+        default: false
+      nuget_packages:
+        description: "Release all first-party NuGet packages"
+        type: boolean
+        default: true
+      oasis_runtime:
+        description: "Release OASIS Runtime"
+        type: boolean
+        default: true
+      star_runtime:
+        description: "Release STAR Runtime and CLI"
+        type: boolean
+        default: true
+      nuget_package_scope:
+        description: "Publish all first-party NuGet packages or only the Edge bundle packages"
+        type: string
+        default: 'All'
+      edge_runtime:
+        description: "Release the validated OASIS Edge Runtime bundle"
+        type: boolean
+        default: true
+      ogengine_client:
+        description: "Release OGEngineClient (formerly STAR API Client)"
+        type: boolean
+        default: true
+      edge_unity:
+        description: "Release the separate OGEngineClient + Edge + Unity integration"
+        type: boolean
+        default: false
+      native_endpoint:
+        description: "Release OASIS Native Endpoint"
+        type: boolean
+        default: true
+      mcp_server:
+        description: "Release MCP Server to GitHub, NuGet, and npm"
+        type: boolean
+        default: true
+      optional_components:
+        description: "Optional comma-separated releases: our_world,odoom,oquake,oide,onode_manager,hyperdrive_client"
+        type: string
+        default: 'none'
+      version_mode:
+        description: "Automatic, Patch, Minor, Major, or Manual for selected components"
+        type: string
+        default: 'Automatic'
+      manual_version:
+        description: "Stable X.Y.Z value required when version_mode is Manual"
+        type: string
+        default: ''
       star_existing_version:
-        description: Existing STAR X.Y.Z release to rebuild in place (STAR-only maintenance)
-        required: false
+        description: "Existing STAR X.Y.Z release to rebuild in place (STAR-only maintenance)"
         type: string
         default: ''
 
@@ -167,7 +226,7 @@ jobs:
           -NuGetPackages $${{ inputs.nuget_packages }}
           -NuGetPackageScope '${{ inputs.nuget_package_scope }}'
           -ExcludedPackageIds ('${{ inputs.excluded_nuget_ids }}'.Split(',', [StringSplitOptions]::RemoveEmptyEntries))
-          -ExpectedExcludedPackageCount ${{ inputs.expected_excluded_nuget_count }}
+          -ExpectedExcludedPackageCount ${{ inputs.expected_excluded_nuget_count || 0 }}
           -OASISRuntime $${{ inputs.oasis_runtime }}
           -STARRuntime $${{ inputs.star_runtime }}
           -EdgeRuntime $${{ inputs.edge_runtime }}
