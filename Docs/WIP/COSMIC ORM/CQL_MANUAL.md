@@ -1322,3 +1322,24 @@ caller state; `IsWarning`, `WarningCount`, `InnerMessages` and `Exception` retai
 notification diagnostic. Preserve receipt metadata and inspect the outcome flags.
 Do not replay a committed save because its wake notification warned. Delivery completion
 is a separate outcome; a committed primary save does not certify replica convergence.
+
+## AWS / DynamoDB bounded query-demo profile — 29 October
+
+Launch from the worktree root:
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AWS -Federated
+```
+
+The teaching page at http://127.0.0.1:5096/ executes one HolonManager federated
+query over Mongo and the actual AWS adapter using DynamoDB Local. All5/subset4
+retain physical provider provenance. The spaced C# source is
+`Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`; HTTP uses the same path.
+
+Supported: canonical ID equality/membership and ID-only AND/OR, a trusted complete
+per-provider readable catalogue, bounded paging, at most100 native Dynamo keys.
+One BatchGetItem performs native selection, not a full-store managed scan/filter.
+Per-item strong reads are not a multi-item/distributed snapshot. Metadata/content
+predicates, explicit ordering, graph expansion and advanced operators remain
+unsupported for this profile. Unprocessed keys fail without partial results/retry.
+See [complete MVP scope and evidence](AWS_CQL_MVP.md).
