@@ -26,8 +26,8 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. Breadth first: inspect AWS DynamoDB native query capability and add its bounded multi-record CQL + Mongo federated C#/HTTP/browser demo admission, tests and docs. Reuse existing free/local environment; no paid provisioning.
-2. Reconcile demo readiness for Mongo/SQLite/Neo, IPFS, Azure emulator (hosted stays pending), Oracle, SOLID and ActivityPub; preserve Solana. Fix demonstrated blockers to demo use before deep parity.
+1. MVP breadth first, depth afterward: inspect AWS DynamoDB native query capability and add its bounded multi-record CQL + Mongo federated C#/HTTP/browser demo admission, tests and docs. Reuse existing free/local environment; no paid provisioning.
+2. After AWS: Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain, Polkadot and NEAR, in that order; then other suitable existing popular providers. Each MVP needs a genuinely native bounded filtered multi-record query and a Mongo-paired demo with explicit limits; no full-parity gate. Reconcile existing Mongo/SQLite/Neo/IPFS/Azure emulator/Oracle/SOLID/ActivityPub/Solana demos; hosted Azure stays pending.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
