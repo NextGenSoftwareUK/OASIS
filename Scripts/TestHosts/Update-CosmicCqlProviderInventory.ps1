@@ -58,7 +58,7 @@ if (!$integrated) {
 } else {
     $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
 }
-$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. S3 compiler/SDK controls and native/paired fixtures are prepared; local native launch is policy-gated. TRON compiler controls pass but original source/fence recovery remains open. LocalFile native/restart/paired proof is verified. Aptos controls/decoder regressions pass; next restore/reuse pinned CLI and one persistent native source before paired proof. Hosted Azure Cosmos remains pending.')
+$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. S3 compiler/SDK controls and native/paired fixtures are prepared; local native launch is policy-gated. TRON compiler controls pass but original source/fence recovery remains open. LocalFile native/restart/paired proof is verified. Aptos native/restart source and saved-state proofs now pass; next complete its Mongo-paired C#/HTTP/browser preset. Hosted Azure Cosmos remains pending.')
 $report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
@@ -73,7 +73,7 @@ foreach ($name in $names) {
     } elseif ($name -eq 'AWSS3OASIS') {
         $status = '❌ [Controls pass; native/paired pending](AWS_S3_CQL_MVP.md)'
     } elseif ($name -eq 'AptosOASIS') {
-        $status = '❌ [Controls pass; native/restart/paired pending](APTOS_CQL_MVP.md)'
+        $status = '❌ [Controls/native/restart pass; paired pending](APTOS_CQL_MVP.md)'
     } elseif ($name -eq 'TRONOASIS') {
         $status = '❌ [Controls pass; source/native/paired pending](TRON_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }
