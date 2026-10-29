@@ -20,6 +20,8 @@ public sealed class HolonMigrationMutationPreparation
     public string DeliveryObservationDigest { get; }
     public string ReplacementObservationDigest { get; }
     public string MutationPolicyBinding { get; }
+    public HolonReplicaHeadReadConsistency ApprovedSourceConsistency { get; }
+    public HolonReplicaHeadReadConsistency ApprovedReplacementConsistency { get; }
     public string DeliveryReviewJson { get; }
     public string ReplacementReviewJson { get; }
     public string CanonicalJson { get; }
@@ -28,6 +30,17 @@ public sealed class HolonMigrationMutationPreparation
     public HolonMigrationMutationPreparation(HolonReplicationMigrationBarrierPlan plan,
         HolonMigrationDeliveryReconciliationReport delivery,
         HolonMigrationReplacementReport replacement, string mutationPolicyBinding)
+        : this(plan, delivery, replacement, mutationPolicyBinding,
+            HolonReplicaHeadReadConsistency.NativeSnapshot, HolonReplicaHeadReadConsistency.NativeSnapshot) { }
+
+    /// <summary>Explicit consistency admission. Weaker evidence must be selected
+    /// by the host, retained in the approval fingerprint and matched to the original
+    /// source review. It never substitutes for native CAS before business writes.</summary>
+    public HolonMigrationMutationPreparation(HolonReplicationMigrationBarrierPlan plan,
+        HolonMigrationDeliveryReconciliationReport delivery,
+        HolonMigrationReplacementReport replacement, string mutationPolicyBinding,
+        HolonReplicaHeadReadConsistency approvedSourceConsistency,
+        HolonReplicaHeadReadConsistency approvedReplacementConsistency)
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(delivery);
@@ -38,9 +51,16 @@ public sealed class HolonMigrationMutationPreparation
             || replacement.StorageFingerprint != plan.Context.ReplacementRoute.TargetStorage.BindingFingerprint)
             throw new ArgumentException("Mutation preparation must use observations of the exact original plan and replacement store.");
 
+        if (!Enum.IsDefined(approvedSourceConsistency) || !Enum.IsDefined(approvedReplacementConsistency))
+            throw new ArgumentException("Explicit supported evidence consistency is required.");
+        using var originalPlan = JsonDocument.Parse(plan.CanonicalJson);
+        using var originalPreview = JsonDocument.Parse(originalPlan.RootElement.GetProperty("previewMaterial").GetString());
+        if (originalPreview.RootElement.GetProperty("SourceConsistency").GetInt32() != (int)approvedSourceConsistency)
+            throw new ArgumentException("Mutation source consistency must match the original independently reviewed plan.");
+
         // These observations cannot authorize treatment of another route or an
         // unresolved worker. A wider migration needs its own reviewed disposition.
-        if (delivery.SourceConsistency != HolonReplicaHeadReadConsistency.NativeSnapshot
+        if (delivery.SourceConsistency != approvedSourceConsistency
             || delivery.Obligations.Any(r => r.RequiresNativeReconciliation
                 || r.SourceState == HolonDeliveryState.InFlight
                 || r.SourceState == HolonDeliveryState.ReconciliationRequired
@@ -48,9 +68,9 @@ public sealed class HolonMigrationMutationPreparation
                 || r.Kind == HolonMigrationDeliveryObservationKind.AdditionalAffectedObligation))
             throw new ArgumentException("Unresolved workers, affected routes or weak observations require fresh migration review.");
 
-        if (replacement.RequiredConsistency != HolonReplicaHeadReadConsistency.NativeSnapshot
+        if (replacement.RequiredConsistency != approvedReplacementConsistency
             || replacement.PageConsistencies.Count == 0
-            || replacement.PageConsistencies.Any(c => c != HolonReplicaHeadReadConsistency.NativeSnapshot)
+            || replacement.PageConsistencies.Any(c => c != approvedReplacementConsistency)
             || replacement.Records.Any(r => r.Kind != HolonMigrationReplacementKind.EmptyAtObservation
                 && r.Kind != HolonMigrationReplacementKind.MatchingOriginalLineage
                 && r.Kind != HolonMigrationReplacementKind.MatchingReplacementLineage)
@@ -62,12 +82,14 @@ public sealed class HolonMigrationMutationPreparation
         DeliveryObservationDigest = delivery.ObservationDigest;
         ReplacementObservationDigest = replacement.ObservationDigest;
         MutationPolicyBinding = mutationPolicyBinding;
+        ApprovedSourceConsistency = approvedSourceConsistency;
+        ApprovedReplacementConsistency = approvedReplacementConsistency;
         DeliveryReviewJson = JsonSerializer.Serialize(delivery);
         ReplacementReviewJson = JsonSerializer.Serialize(replacement);
         CanonicalJson = JsonSerializer.Serialize(new {
             format = "cosmic-migration-mutation-preparation-v1", PlanFingerprint,
             AuthorizationContextDigest, DeliveryObservationDigest,
-            ReplacementObservationDigest, MutationPolicyBinding, DeliveryReviewJson, ReplacementReviewJson });
+            ReplacementObservationDigest, MutationPolicyBinding, ApprovedSourceConsistency, ApprovedReplacementConsistency, DeliveryReviewJson, ReplacementReviewJson });
         Fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalJson)));
     }
 
@@ -98,7 +120,9 @@ public sealed class HolonMigrationMutationPreparation
             r.GetProperty("PageConsistencies").Deserialize<HolonReplicaHeadReadConsistency[]>(),
             r.GetProperty("Records").Deserialize<HolonMigrationReplacementRecord[]>());
         var restored = new HolonMigrationMutationPreparation(plan, delivery, replacement,
-            root.GetProperty("MutationPolicyBinding").GetString());
+            root.GetProperty("MutationPolicyBinding").GetString(),
+            (HolonReplicaHeadReadConsistency)root.GetProperty("ApprovedSourceConsistency").GetInt32(),
+            (HolonReplicaHeadReadConsistency)root.GetProperty("ApprovedReplacementConsistency").GetInt32());
         if (restored.CanonicalJson != json || restored.Fingerprint != approvedFingerprint)
             throw new InvalidDataException("Preparation differs from the exact independently approved canonical evidence.");
         return restored;
