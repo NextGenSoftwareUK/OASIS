@@ -33,7 +33,7 @@ AWS local query-demo MVP is verified: official DynamoDB transport, bounded nativ
 ID selection, controlled tests13/13, native DynamoDB Local1/1 and Mongo-paired
 C#/HTTP/browser5/4 rows. Hub command: `-Provider AWS -Federated`. This is a native
 local-service proof, not hosted AWS, arbitrary content queries or full parity.
-[Scope, source and evidence](AWS_CQL_MVP.md). Ethereum controls12/12 and native local-chain query3/2 acceptance1/1 pass, with original-seed restart reuse. Mongo-paired C#/HTTP/browser is next; [scope and next step](ETHEREUM_CQL_MVP.md).
+[Scope, source and evidence](AWS_CQL_MVP.md). Ethereum controls12/12 and native local-chain query3/2 acceptance1/1 pass, with original-seed restart reuse. Mongo-paired C#/HTTP1/1 and actual browser5/4 are now verified; Polygon is next; [scope and next step](ETHEREUM_CQL_MVP.md).
 
 1. Hosted Azure Cosmos test account, free only. Emulator proof does not satisfy this gate; no paid provisioning/upgrade/fallback.
 2. OracleDBOASIS:filtered multi-record native CQL and Mongo-paired preset required. Initial ID-membership/authoritative-catalogue profile implemented;473unit tests pass; native CQL and Mongo+Oracle SDK pairing now pass (5rows/4subset, exact cleanup). HTTP/browser now verified5/4rows with provenance and exact cleanup. [Admission](CQL_ORACLE_DEMO_ADMISSION.md).

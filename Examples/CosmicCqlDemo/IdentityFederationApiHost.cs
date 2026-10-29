@@ -52,6 +52,10 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and DynamoDB Local through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable AWS seed)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EthereumOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and local EVM chain31338 through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable Ethereum seed)", StringComparison.Ordinal);
         app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
         {
@@ -146,7 +150,7 @@ public static class IdentityFederationApiHost
         <script>
           const result = document.getElementById('result');
           async function query(preset) {
-            result.textContent = 'Reading Mongo and OracleÃ¢â‚¬Â¦';
+            result.textContent = 'Reading Mongo and Oracle...';
             try {
               const response = await fetch('/api/cql/federation', {
                 method: 'POST', headers: {'Content-Type':'application/json'},
