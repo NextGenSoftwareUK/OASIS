@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-param([switch]$Federated,[switch]$Serve,[ValidateSet('Ethereum','Polygon','Arbitrum','Base')][string]$Provider='Ethereum')
+param([switch]$Federated,[switch]$Serve,[ValidateSet('Ethereum','Polygon','Arbitrum','Base','Avalanche')][string]$Provider='Ethereum',[switch]$ContinueEmptyOriginal)
+if ($ContinueEmptyOriginal -and ($Provider -ne 'Avalanche' -or $Federated)) { throw 'Empty-original continuation is only for the explicit Avalanche native pre-write failure.' }
 if ($Serve -and !$Federated) { throw 'Serve requires explicit federation.' }
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -17,8 +18,11 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
     $oldWeb3Key = $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY
     $oldKey = $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
     $oldState = $env:OASIS_EVM_CQL_STATE
+    $oldContinuation = $env:OASIS_EVM_CQL_CONTINUE_EMPTY_SEED
     try {
-        if (Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')) {
+        $pendingSource = Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')
+        if ($ContinueEmptyOriginal -and (!$pendingSource -or (Test-Path (Join-Path $state 'demo-seed.json')))) { throw 'Continuation requires only the original pending source, not a new or completed seed.' }
+        if ($pendingSource -and !$ContinueEmptyOriginal) {
             throw 'Unresolved original setup exists. Reconcile retained chain and journal; no replay/reset attempted.'
         }
         if (Get-NetTCPConnection -State Listen -LocalPort 18547 -ErrorAction SilentlyContinue) {
@@ -45,6 +49,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         finally { [Security.Cryptography.CryptographicOperations]::ZeroMemory($key) }
         $env:OASIS_EVM_CQL_STATE = $state
         $env:OASIS_EVM_CQL_PROVIDER = $Provider
+        $env:OASIS_EVM_CQL_CONTINUE_EMPTY_SEED = if ($ContinueEmptyOriginal) { '1' } else { '0' }
         $ethereumProject = Join-Path $root 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj'
         $tests = Join-Path $root 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests.csproj'
         if ($Federated) {
@@ -53,10 +58,10 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if ($LASTEXITCODE) { throw 'Mongo producer build failed.' }
         }
-        if ($Provider -in @('Polygon','Arbitrum','Base')) {
+        if ($Provider -in @('Polygon','Arbitrum','Base','Avalanche')) {
             & $node (Join-Path $PSScriptRoot 'compile-cosmic-web3core.cjs')
             if ($LASTEXITCODE) { throw 'Pinned contract compilation or ABI verification failed.' }
-            foreach ($relative in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj', 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj', 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj','Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BaseOASIS/NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj')) {
+            foreach ($relative in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj', 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj', 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj','Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BaseOASIS/NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj','Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS/NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.csproj')) {
                 & dotnet build (Join-Path $root $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
                 if ($LASTEXITCODE) { throw 'Web3Core family producer build failed.' }
             }
@@ -156,6 +161,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
         $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY = $oldWeb3Key
         $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY = $oldKey
         $env:OASIS_EVM_CQL_STATE = $oldState
+        $env:OASIS_EVM_CQL_CONTINUE_EMPTY_SEED = $oldContinuation
         $lease.Dispose()
        }
       }

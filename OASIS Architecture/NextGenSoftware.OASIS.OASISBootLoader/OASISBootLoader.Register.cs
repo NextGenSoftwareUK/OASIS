@@ -483,10 +483,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var avalancheProvider = new AvalancheOASIS(
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
+                            var avalancheProvider = EvmProviderFactory.CreateAvalanche(
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS,overrideConnectionString);
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;
                         }
