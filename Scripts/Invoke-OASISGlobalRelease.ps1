@@ -484,6 +484,8 @@ $bootVersions = Get-BootLoaderVersions
 $webVersions = $null
 if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5ApiVersion -or $AdvanceWeb6ApiVersion) {
     $webVersions = Set-Web4ToWeb6VersionsAndHistory $bootVersions
+    & python (Join-Path $PSScriptRoot 'api_version_sync.py') --sync
+    if ($LASTEXITCODE -ne 0) { throw 'API version sync failed; see Docs/Devs/API_VERSIONING.md.' }
     $unchanged = Get-BootLoaderVersions
     foreach ($name in @('WEB7APIVersion', 'WEB8APIVersion', 'WEB9APIVersion', 'WEB10APIVersion')) {
         if ($unchanged[$name] -ne $bootVersions[$name]) { throw "$name changed, but global release automation may only advance WEB4-WEB6." }
@@ -602,7 +604,7 @@ $releaseVersions = [ordered]@{
         Get-PlannedPackageVersion $unityProject (Get-LatestNuGetRelease $unityProject.PackageId)
     } else { 'not-selected' }
     edgeUnity = if ($EdgeUnity) { Get-NextReleaseVersion '1.0.0' @('OASIS-Edge-Unity-v') @('UnityPackages','Scripts/build_edge_unity_package.ps1','Scripts/New-OASISEdgeRuntimeArchive.ps1') } else { 'not-selected' }
-    oasisRuntime = if ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
+    oasisRuntime = if ($OASISRuntime -and $webVersions -and $webVersions.Contains('OASISAPIVersion')) { $webVersions['OASISAPIVersion'] } elseif ($OASISRuntime) { Get-NextReleaseVersion $bootVersions.OASISRuntimeVersion @('OASIS-Runtime-v') @('OASIS Architecture','ONODE','Providers','ONET','Edge') } else { $bootVersions.OASISRuntimeVersion }
     starRuntime = if ($STARRuntime) { Get-NextReleaseVersion $bootVersions.STARRuntimeVersion @('STAR-ODK-Runtime-v') @('STAR ODK') } else { $bootVersions.STARRuntimeVersion }
     edgeRuntime = if ($EdgeRuntime) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Architecture\NextGenSoftware.OASIS.Edge.Runtime\NextGenSoftware.OASIS.Edge.Runtime.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Runtime' })) @('OASIS-Edge-Runtime-v') @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime','OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime','OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization','OASIS Architecture/NextGenSoftware.OASIS.ONET','Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge','Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge','Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity','OASIS Omniverse/OGEngineClient/Edge') } else { 'not-selected' }
     ogEngineClient = if ($OGEngineClient) { Get-NextReleaseVersion (Get-SourceVersion ([pscustomobject]@{ Xml = [xml](Get-Content -LiteralPath (Join-Path $repoRoot 'OASIS Omniverse\OGEngineClient\OGEngineClient.csproj') -Raw); PackageId = 'NextGenSoftware.OGEngine.Client' })) @('OGEngineClient-v', 'STAR-API-CLIENT-v', 'OGEngineClient-RemoteOnly-v', 'OGEngineClient-Edge-v') @('OASIS Omniverse/OGEngineClient','ONET','Edge') } else { 'not-selected' }
