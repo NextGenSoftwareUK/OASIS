@@ -988,3 +988,76 @@ receipt, including graph membership, logical/source revisions and portable value
 Then implement native write/delivery fences, replacement-target admission,
 per-store CAS, durable idempotent migration receipts and interrupted cutover.
 Migration mutation remains disabled.
+
+
+## Frozen transport/source receipt equivalence — 29 October 2026
+
+Core's optional `IHolonReplicationPayloadAuditOutbox` is implemented by SQLite,
+Mongo and Neo. It reads exactly one existing frozen obligation in a native
+read-only scope, with an expected physical source and immutable inventory row.
+The existing payload owner validates the stored envelope/checksum, and Shared's
+observation check requires unchanged sequence/operation/actor/source/target,
+payload checksum and complete hidden-state checksum. A changed lease or retry/
+completion/recovery state invalidates the read rather than claiming/resetting it.
+Neo rejects strict snapshot requests and requires explicit weak-read opt-in.
+
+This is a HOST-ONLY raw transport read containing business data. It must not be
+exposed over HTTP, written to audit reports or logged. The migration layer uses
+it transiently and retains only redacted proof. No identity/schema initialization,
+claim, delivery, replay, relabel, historical receipt rewrite or state clearing.
+
+Shared `HolonReplicationPayloadReceiptVerifier.Verify` checks the original source
+intent fingerprint/enrollment against the verified complete source-receipt report,
+then checks exact queued bytes against the observed payload checksum. It reuses
+the existing payload codec, graph planner, route descriptor codec and portable
+content canonicalizer. It verifies operation/actor/source, selected target,
+operation kind, selection flags/depth, native descriptor meaning, root order,
+complete membership/child-edge order, each logical version/predecessor, source
+provider revision, deletion kind and portable content against receipt evidence.
+No equivalent proof is issued for a partial source-receipt graph.
+
+The returned `HolonReplicationPayloadReceiptProof` contains no graph or business
+values. It binds original obligation/state/payload checksums, physical source and
+target fingerprints, source receipt observation, original input fingerprint and
+the frozen transport's target-specific replica intent fingerprint. Native fixture
+integration also compares that replica intent with the historical receiver's
+validated original-intent fingerprint. This closes the logical chain from source
+save to queued bytes to exact receiver acknowledgement for those tested cases.
+The verifier itself is a pure validator, not native attestation: hosts must first
+obtain bytes through the exact bound audit read, use verified receipt evidence,
+and check the resulting scope. Native reads are separate observations, not fences.
+
+Verification: 12new controls, full Shared1485/1485. Rehashed valid transports with
+changed content, source revision, logical version, selected graph/root structure,
+parent or source identity are rejected. Native descriptor policy changes, raw
+checksum changes, partial source receipt and changed original actor are rejected.
+Valid legacy type-only and descriptor-bearing transports produce stable redacted
+proof; changed hidden lease evidence invalidates exact observation comparison.
+
+Native SQLite2/Mongo1/Neo2 cases verify unchanged completed original payloads,
+source-receipt equivalence and equality with actual historical receiver intent.
+Each source also renews a claimed fixture lease and confirms the old observation
+can no longer read raw payload; delivery can then finish under the real owner.
+Wrong physical source is rejected and Neo strict reads are explicitly refused.
+Native equivalence cases cover the existing one-record original create with four
+obligations; unit controls cover the two-record selected graph. This is not full
+native graph/delete/race or all-pair migration execution certification.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared | 1485/1485 | `TestResults/DevelopmentSyncCurrent/payload-proof-shared.trx` | `52269BF00D79FD22818E1CB1FD6DA7BAE42F5A2533757E5536BC17FE8B8E4A66` |
+| SQLite source | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `7474B9E2805979C8D726F78E1CBC07E6531607A82FE228C108BA286B8BD0C600` |
+| Mongo source | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `27905E8F25DC18A23BBF446AB15F0205B50D900993C4D60F81DD38EA38DCE1E7` |
+| Neo source | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `A29BD0D902718741DCE0107B4382FF947E765100B38545383C72B41387449980` |
+
+Native batch13013 and final controls65943 exited0; Neo attachment44776 joined/
+stopped. Exact pending journals/receiver DBs/sidecars absent; ports27029/17687 no
+listeners. Final free102087045120bytes; Neo before102383046656/after102097076224.
+Existing runtime/data/SDK/cache retained; no download/install/restore/environment.
+Initial missing namespace import and an invalid parent-mutation test fixture were
+corrected before final controls; no failed native outcome resulted.
+
+The production preview still retains `OriginalPayloadReceiptBindingUnverified`:
+next integrate these proofs per selected operation, bind them into its digest and
+compare their replica intent with historical receiver evidence. Native fencing,
+replacement admission, CAS/idempotent migration receipts and cutover remain open.

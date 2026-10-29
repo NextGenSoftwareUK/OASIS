@@ -33,9 +33,11 @@ Historical replica-receipt contract and shared existing-validator projection now
 
 Preview v2 now incorporates exact historical receiver evidence: Shared1473/1473 and native SQLite2/Mongo1/Neo-source2 pass. Committed/Absent/not-read remain distinct; scope and strict consistency enforced, evidence bound into review checksum. Payload/source equivalence, replacement admission and native fences remain open.
 
+Frozen payload readers and shared source-receipt equivalence verifier now implemented on all three sources. Shared1485/1485; native SQLite2/Mongo1/Neo2 prove original one-record transport/receipt/receiver intent and stale-lease rejection. Production preview proof integration and broad native graph/delete/race acceptance remain open.
+
 ## Exact next step
 
-1. Verify exact original frozen payload/source-receipt binding: selected graph, logical/source revisions and portable content. Incorporate that proof into the preview without relabeling historical bytes.
+1. Bind validated payload/source-receipt proofs into the production preview; compare exact scope and replica intent with historical receiver evidence. Preserve missing proofs as findings. Complete native graph/delete/race gaps alongside integration.
 2. Validate replacement-target evidence and reauthorize the exact preview before mutation; implement native source/target write and delivery fences. A sequence window is not quiescence.
 3. Implement per-store CAS, durable idempotent migration receipts, interrupted-cutover recovery and old-obligation disposition without rewriting historical evidence.
 4. Complete remaining ordered-pair/concurrent-change/outage/cold-start acceptance, then resume broader priority-provider ORM/CQL parity.
@@ -64,7 +66,7 @@ Three-database save demos cover dirty/no-op ownership, generated IDs, concurrenc
 
 ## Git, resources and commands
 
-- Parent Development c8a381dd2/Core0240771 integrated into task; current Core1709572. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
+- Parent Development c8a381dd2/Core0240771 integrated into task; current Core22b79be. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
 - Last outgoing Development batch: parent858edd828/Corebd86a37. Later work remains on the pushed task branch; no entire-branch deployment while the lineage gate is open.
 - Commit named files only; Core push/remote verification first, then matching parent gitlink + deployment manifest. Fetch before scoped daily integration; never force push.
 - Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. No new install/restore for these milestones.
