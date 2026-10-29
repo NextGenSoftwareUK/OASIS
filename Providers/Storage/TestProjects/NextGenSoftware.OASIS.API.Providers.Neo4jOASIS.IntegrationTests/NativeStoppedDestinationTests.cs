@@ -12,6 +12,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Policy = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.CommittedOwnerReplicationPolicy;
@@ -61,10 +64,13 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust", "Use the explicit process-owning runner.");
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing", "Use the explicit process-owning runner.");
         var exhaust = phase == "exhaust";
-        var activeOutage = phase == "active" || exhaust;
+        var routingProof = phase == "routing";
+        var cleanupUnwritten = phase == "cleanup-unwritten";
+        var activeOutage = phase == "active" || exhaust || routingProof;
         var reconcileActive = phase == "reconcile-active";
+        var reconcileRouting = phase == "reconcile-routing";
         var seeding = phase == "seed" || activeOutage;
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !File.Exists(Path.Combine(root.FullName, "Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1"))) root = root.Parent;
@@ -75,6 +81,7 @@ public partial class NativeHostedReplicaRestartTests
         var journal = Path.Combine(state, "worker-offline.pending.json");
         var file = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/worker-offline.db");
         var ownedFiles = new[] { file, file + "-wal", file + "-shm", file + "-journal" };
+        if (routingProof) OASISHyperDrive.DataDirectory = Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/routing-quota");
         var client = new MongoClient(uri);
         StoppedDestinationIntent intent;
         if (seeding)
@@ -84,15 +91,16 @@ public partial class NativeHostedReplicaRestartTests
             using var names = await client.ListDatabaseNamesAsync();
             Assert.IsFalse((await names.ToListAsync()).Contains(database));
             intent = new();
-            using var planned = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-            await JsonSerializer.SerializeAsync(planned, intent);
-            planned.Flush(true);
+            var initial = journal + ".next";
+            using (var planned = new FileStream(initial, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            { await JsonSerializer.SerializeAsync(planned, intent); planned.Flush(true); }
+            File.Move(initial, journal, false); // Publish only a complete flushed journal to the observing runner.
         }
         else
         {
             intent = JsonSerializer.Deserialize<StoppedDestinationIntent>(await File.ReadAllTextAsync(journal));
             Assert.IsNotNull(intent);
-            Assert.AreEqual(reconcileActive ? "ready-to-stop" : phase == "offline" ? "seeded" : "offline-saved", intent.Phase);
+            Assert.AreEqual(cleanupUnwritten ? "planned" : reconcileActive || reconcileRouting ? "ready-to-stop" : phase == "offline" ? "seeded" : "offline-saved", intent.Phase);
         }
         async Task Publish(string nextPhase)
         {
@@ -135,6 +143,27 @@ public partial class NativeHostedReplicaRestartTests
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
             registry.RegisterProvider(sqlite);
             registry.RegisterProvider(mongo);
+            if (cleanupUnwritten)
+            {
+                Assert.IsNull(intent.SourceFingerprint);
+                Assert.IsNull(intent.TargetFingerprint);
+                Assert.AreEqual(0L, intent.FirstSequence);
+                foreach (var collection in new[] { "Holon", "CosmicWriteReceipt", "CosmicHolonOutbox", "CosmicDestinationBinding" })
+                    Assert.AreEqual(0L, await client.GetDatabase(database).GetCollection<BsonDocument>(collection)
+                        .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty), "Preserve any unexpected native data.");
+                using (var unread = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={file};Mode=ReadOnly;Pooling=False"))
+                {
+                    await unread.OpenAsync();
+                    using var query = unread.CreateCommand();
+                    foreach (var table in new[] { "Holon", "CosmicWriteReceipt", "CosmicHolonOutbox", "CosmicDestinationBinding" })
+                    {
+                        query.CommandText = "SELECT COUNT(*) FROM " + table;
+                        Assert.AreEqual(0L, Convert.ToInt64(await query.ExecuteScalarAsync()));
+                    }
+                }
+                complete = true;
+                return; // Proven unwritten owned fixture only; no source save or delivery replay.
+            }
             var source = await HolonReplicationRouteBinding.CapturePinnedAsync(sqlite);
             if (seeding)
             {
@@ -183,9 +212,9 @@ public partial class NativeHostedReplicaRestartTests
                 Assert.AreEqual(0, obligation.Result.AttemptCount);
             }
 
-            if (reconcileActive)
+            if (reconcileActive || reconcileRouting)
             {
-                // Resume only the verified original pending retry. Never repeat
+                // Resume only the verified original pending obligations. Never repeat
                 // either source save or mutate its delivery state/receipt.
                 for (var index = 0; index < intent.Operations.Length; index++)
                 {
@@ -193,7 +222,7 @@ public partial class NativeHostedReplicaRestartTests
                     Assert.IsFalse(original.IsError, original.Message);
                     Assert.AreEqual(intent.Operations[index], original.Result.OperationId);
                     Assert.AreEqual(HolonDeliveryState.Pending, original.Result.State);
-                    Assert.AreEqual(index == 0 ? 1 : 0, original.Result.AttemptCount);
+                    Assert.AreEqual(reconcileActive && index == 0 ? 1 : 0, original.Result.AttemptCount);
                 }
                 Assert.AreEqual(0L, await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWriteReceipt")
                     .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty), "No original target commit can be silently replayed.");
@@ -201,12 +230,48 @@ public partial class NativeHostedReplicaRestartTests
             if (activeOutage)
             {
                 await SaveAt(0);
+                if (routingProof)
+                    Assert.IsFalse(registry.SetAndActivateCurrentStorageProvider(mongo).IsError);
                 await Publish("ready-to-stop");
                 await WaitForRunner("stopped");
                 using (var socket = new TcpClient())
                     await Assert.ThrowsExceptionAsync<SocketException>(async () => await socket.ConnectAsync("127.0.0.1", 27029));
                 Assert.IsTrue(mongo.IsProviderActivated, "Keep the actual native receiver client alive across the process outage.");
                 await SaveAt(1);
+                if (routingProof)
+                {
+                    registry.IsAutoFailOverEnabled = true;
+                    Assert.IsFalse(registry.SetAndReplaceAutoFailOverListForProviders(new[] {
+                        new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError);
+                    foreach (var mode in new[] { "sync", "async", "explicit" })
+                    {
+                        var router = new OASISHyperDrive(registry);
+                        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = intent.Ids[0],
+                            AvatarId = intent.Actor, PreferredProvider = ProviderType.MongoDBOASIS };
+                        var result = mode == "sync" ? router.RouteRequest<IHolon>(request)
+                            : mode == "async" ? await router.RouteRequestAsync<IHolon>(request)
+                            : await router.FailoverRequestAsync<IHolon>(request);
+                        Assert.IsFalse(result.IsError, result.Message + result.Exception);
+                        Assert.AreEqual(intent.Ids[0], result.Result.Id);
+                        Assert.AreEqual(intent.Actor, result.Result.CreatedByAvatarId);
+                        Assert.AreEqual("before process outage", result.Result.Name);
+                        var diagnostic = router.LastFailoverDiagnostic;
+                        Assert.IsNotNull(diagnostic);
+                        Assert.IsTrue(diagnostic.Succeeded);
+                        Assert.IsFalse(diagnostic.Exhausted);
+                        Assert.AreEqual(mode == "explicit" ? ProviderType.Default : ProviderType.MongoDBOASIS, diagnostic.OriginalProvider);
+                        Assert.AreEqual(mode == "explicit", diagnostic.IsExplicitRequest);
+                        Assert.AreEqual(ProviderType.SQLLiteDBOASIS, diagnostic.SelectedProvider);
+                        Assert.AreEqual(2, diagnostic.Attempts.Count);
+                        Assert.IsFalse(diagnostic.Attempts[0].Succeeded);
+                        Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Attempts[0].Message));
+                        Assert.AreEqual(ProviderType.MongoDBOASIS, diagnostic.Attempts[0].Provider);
+                        Assert.AreEqual(ProviderType.SQLLiteDBOASIS, diagnostic.Attempts[1].Provider);
+                        Assert.IsTrue(diagnostic.Attempts[1].Succeeded);
+                        Assert.IsTrue(result.MetaData.ContainsKey("hyperDriveFailoverDiagnostic"));
+                    }
+                    registry.IsAutoFailOverEnabled = false;
+                }
                 if (exhaust)
                 {
                     var approval = await ((IHolonReplicationDestinationCatalogue)outbox).ReadDestinationBindingAsync(ProviderType.MongoDBOASIS);
@@ -317,6 +382,29 @@ public partial class NativeHostedReplicaRestartTests
             for (var index = 0; index < intent.Ids.Length; index++)
                 Assert.AreEqual(revisions[index], CosmicConcurrency.GetProviderRevisionId(
                     (await mongo.LoadHolonAsync(intent.Ids[index], loadChildren: false)).Result, ProviderType.MongoDBOASIS));
+            if (routingProof)
+            {
+                registry.IsAutoLoadBalanceEnabled = true;
+                registry.AddProvidersToAutoLoadBalanceList(new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS });
+                var selections = new List<ProviderType>();
+                for (var index = 0; index < 4; index++)
+                {
+                    var router = new OASISHyperDrive(registry);
+                    var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = intent.Ids[0], AvatarId = intent.Actor };
+                    var result = index % 2 == 0 ? router.RouteRequest<IHolon>(request, LoadBalancingStrategy.RoundRobin)
+                        : await router.RouteRequestAsync<IHolon>(request, LoadBalancingStrategy.RoundRobin);
+                    Assert.IsFalse(result.IsError, result.Message + result.Exception);
+                    Assert.AreEqual(intent.Ids[0], result.Result.Id);
+                    Assert.AreEqual(intent.Actor, result.Result.CreatedByAvatarId);
+                    Assert.AreEqual("before process outage", result.Result.Name);
+                    selections.Add(registry.LastProviderSelectionDiagnostic.SelectedProvider);
+                    Assert.IsTrue(result.Result.ProviderUniqueStorageKey.ContainsKey(registry.LastProviderSelectionDiagnostic.SelectedProvider));
+                }
+                CollectionAssert.AreEqual(new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS,
+                    ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS }, selections.ToArray());
+                CollectionAssert.AreEquivalent(new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS },
+                    registry.GetProviderAutoLoadBalanceList().Select(value => value.Value).ToArray());
+            }
             var db = client.GetDatabase(database);
             var rows = await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
             CollectionAssert.AreEquivalent(intent.Ids.Select(id => id.ToString("D")).ToArray(), rows.Select(row => row["HolonId"].AsString).ToArray());

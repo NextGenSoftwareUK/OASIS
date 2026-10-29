@@ -1,9 +1,25 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget)
-if ($ExhaustDeliveryBudget) { $ActiveDeliveryOutage = $true }
-if ($ActiveDeliveryOutage -and $ReconcileActiveOutage) { throw 'Choose fresh proof or original-outcome reconciliation.' }
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure)
+if ($ReconcileUnwrittenRoutingFixture -and ($ActiveDeliveryOutage -or $ReconcileActiveOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $ReconcileRoutingReadFailure)) { throw 'Unwritten fixture reconciliation is exclusive.' }
+if ($ReconcileUnwrittenRoutingFixture -or $ReconcileRoutingReadFailure) { $FullDestinationOutage = $true }
+if ($ReconcileActiveOutage -and $ReconcileRoutingReadFailure) { throw 'Choose the exact reviewed outcome.' }
+if ($ExhaustDeliveryBudget -and $NativeRoutingProof) { throw 'Choose retry exhaustion or routing proof.' }
+if ($ExhaustDeliveryBudget -or $NativeRoutingProof) { $ActiveDeliveryOutage = $true }
+if ($ActiveDeliveryOutage -and ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure)) { throw 'Choose fresh proof or original-outcome reconciliation.' }
 if ($ActiveDeliveryOutage -or $ReconcileActiveOutage) { $FullDestinationOutage = $true }
 $ErrorActionPreference = 'Stop'
+function Read-OfflineJournal([string]$path) {
+    # The writer publishes complete snapshots by rename. Share deletion so an
+    # in-flight reader retains its old snapshot without blocking replacement.
+    $stream = [IO.FileStream]::new($path,[IO.FileMode]::Open,[IO.FileAccess]::Read,
+        ([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+    try {
+        $reader = [IO.StreamReader]::new($stream)
+        try { return ($reader.ReadToEnd() | ConvertFrom-Json) }
+        finally { $reader.Dispose() }
+    }
+    finally { $stream.Dispose() }
+}
 $taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work = Join-Path $taskRoot 'TestResults/OwnedRoutingCurrent'
 $state = Join-Path $taskRoot 'LocalState/COSMIC/OwnedRoutingCurrent'
@@ -17,7 +33,16 @@ try {
         (Join-Path $work 'worker-pair.db-wal'), (Join-Path $work 'worker-pair.db-shm'), (Join-Path $work 'worker-pair.db-journal'))) {
         if (Test-Path -LiteralPath $path) { throw "Preserve and reconcile the owned fixture before reuse: $path" }
     }
-    if ($ReconcileActiveOutage) {
+    if ($ReconcileUnwrittenRoutingFixture) {
+        $pending = Join-Path $state 'worker-offline.pending.json'
+        if (!(Test-Path -LiteralPath $pending) -or (Test-Path -LiteralPath ($pending+'.next'))) { throw 'Exact original planned journal required.' }
+        $intent = Read-OfflineJournal $pending
+        if ($intent.Phase -ne 'planned' -or $intent.SourceFingerprint -or $intent.TargetFingerprint -or $intent.FirstSequence -ne 0) { throw 'Only the reviewed unwritten phase is admitted.' }
+        foreach ($signal in 'stopped','restarted') {
+            if (Test-Path -LiteralPath (Join-Path $work ('worker-offline-'+$signal))) { throw 'No process handoff was acknowledged in the reviewed failure.' }
+        }
+    }
+    elseif ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure) {
         $pending = Join-Path $state 'worker-offline.pending.json'
         if (!(Test-Path -LiteralPath $pending) -or (Test-Path -LiteralPath ($pending+'.next'))) { throw 'Exact original pending journal required.' }
         if ((Get-Content -LiteralPath $pending -Raw | ConvertFrom-Json).Phase -ne 'ready-to-stop') { throw 'Only the reviewed stopped-phase outcome is admitted.' }
@@ -82,19 +107,30 @@ try {
         }
         if (!$ready) { throw 'Owned Mongo startup deadline exceeded.' }
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
-        if ($ReconcileActiveOutage) {
-            $env:OASIS_OFFLINE_REPLICATION_PHASE = 'reconcile-active'
-            & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped' --logger 'trx;LogFileName=worker-offline-reconcile-active.trx' --results-directory $work *> (Join-Path $work 'worker-offline-reconcile-active.log')
+        if ($ReconcileUnwrittenRoutingFixture) {
+            $env:OASIS_OFFLINE_REPLICATION_PHASE = 'cleanup-unwritten'
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped' --logger 'trx;LogFileName=worker-offline-cleanup-unwritten.trx' --results-directory $work *> (Join-Path $work 'worker-offline-cleanup-unwritten.log')
+            if ($LASTEXITCODE) { throw 'Unwritten native fixture verification failed; preserve original state.' }
+            [xml]$report = Get-Content -LiteralPath (Join-Path $work 'worker-offline-cleanup-unwritten.trx') -Raw
+            $counts = $report.TestRun.ResultSummary.Counters
+            if (!$counts -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly one unskipped unwritten fixture check required.' }
+            if (Test-Path -LiteralPath (Join-Path $state 'worker-offline.pending.json')) { throw 'Unwritten fixture cleanup incomplete.' }
+            Get-Content -LiteralPath (Join-Path $work 'worker-offline-cleanup-unwritten.log') -Tail 4
+        }
+        elseif ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure) {
+            $recoveryPhase = if ($ReconcileRoutingReadFailure) { 'reconcile-routing' } else { 'reconcile-active' }
+            $env:OASIS_OFFLINE_REPLICATION_PHASE = $recoveryPhase
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped' --logger "trx;LogFileName=worker-offline-$recoveryPhase.trx" --results-directory $work *> (Join-Path $work "worker-offline-$recoveryPhase.log")
             if ($LASTEXITCODE) { throw 'Original active-outage reconciliation failed; preserve fixture.' }
-            [xml]$report = Get-Content -LiteralPath (Join-Path $work 'worker-offline-reconcile-active.trx') -Raw
+            [xml]$report = Get-Content -LiteralPath (Join-Path $work "worker-offline-$recoveryPhase.trx") -Raw
             $counts = $report.TestRun.ResultSummary.Counters
             if (!$counts -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly one unskipped reconciliation required.' }
             if (Test-Path -LiteralPath (Join-Path $state 'worker-offline.pending.json')) { throw 'Original fixture cleanup incomplete.' }
             Remove-Item -LiteralPath (Join-Path $work 'worker-offline-stopped')
-            Get-Content -LiteralPath (Join-Path $work 'worker-offline-reconcile-active.log') -Tail 4
+            Get-Content -LiteralPath (Join-Path $work "worker-offline-$recoveryPhase.log") -Tail 4
         }
         elseif ($ActiveDeliveryOutage) {
-            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } else { 'active' }
+            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } else { 'active' }
             $env:OASIS_OFFLINE_REPLICATION_PHASE = $scenario
             $testProcess = Start-Process dotnet -ArgumentList @('test',$project,'--no-build','--no-restore','/m:2','/nr:false',
                 '--filter','FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped',
@@ -105,8 +141,8 @@ try {
             while (!$testProcess.HasExited) {
                 if ([DateTime]::UtcNow -gt $deadline) { throw 'Active outage test deadline exceeded; preserve native fixture.' }
                 $journal = Join-Path $state 'worker-offline.pending.json'
-                if (Test-Path -LiteralPath $journal) {
-                    $phase = (Get-Content -LiteralPath $journal -Raw | ConvertFrom-Json).Phase
+                if (!$restarted -and (Test-Path -LiteralPath $journal)) {
+                    $phase = (Read-OfflineJournal $journal).Phase
                     if ($phase -eq 'ready-to-stop' -and !$stopped) {
                         if ($owned.HasExited) { throw 'Owned Mongo exited before requested outage.' }
                         $owned.Kill()
