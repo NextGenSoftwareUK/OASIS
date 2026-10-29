@@ -136,7 +136,10 @@ public partial class Neo4jNativeAvatarTests
                 var participants = new[] { new HolonMigrationBarrierParticipant(expected, provider),
                     new HolonMigrationBarrierParticipant(targetBinding.Result, replica) };
                 var durablePlan = HolonReplicationMigrationBarrierPlan.Create(reviewedPreview, context);
-                var held = await HolonReplicationMigrationBarrierCoordinator.AcquirePersistedAsync(durablePlan,
+                var persisted = await new FileHolonMigrationBarrierPlanStore(planFolder).SaveAsync(durablePlan);
+                Assert.IsFalse(persisted.IsError, persisted.Message + persisted.Exception);
+                await NativeMigrationBarrierProcessTests.VerifyProcessRestartAsync(root.FullName, context);
+                var held = await HolonReplicationMigrationBarrierCoordinator.ResumePersistedAsync(context,
                     new FileHolonMigrationBarrierPlanStore(planFolder), policy, participants);
                 Assert.IsFalse(held.IsError, held.Message + held.Exception);
                 Assert.IsTrue(held.Result.AllBarriersHeld); Assert.AreEqual(2, held.Result.Stores.Count);
@@ -227,6 +230,8 @@ public partial class Neo4jNativeAvatarTests
                 var ownedPlanPath = Path.Combine(planFolder, migration.ToString("D") + ".barrier-plan.json" + suffix);
                 if (File.Exists(ownedPlanPath)) File.Delete(ownedPlanPath);
             }
+            foreach (var name in new[] { "barrier-host-context.json", "barrier-process-acquired.json", "barrier-process-resumed.json" })
+                File.Delete(Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent", name));
             File.Delete(journal);
         }
         finally { Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError); }
