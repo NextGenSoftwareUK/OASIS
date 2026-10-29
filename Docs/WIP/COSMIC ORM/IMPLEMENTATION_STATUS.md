@@ -23,6 +23,9 @@ Complete original-operation inventory passes Core4462/Shared1404/GraphQL1,
 native SQLite2/Mongo1/Neo2 and exact-failure reconciliation1. The new Neo reader's
 Unicode cursor uses native indexed ordering; the older global route-head reader's
 related gap remains open. Inventory does not authorize migration.
+Global Neo route-head Unicode gap now fixed and its required RANGE index verified
+at activation; Core4462/Shared1405/Neo625/GraphQL1 and native Neo2/SQLite2/Mongo1 pass.
+Source-wide fencing, authorized preview and mutation acceptance remain open.
 Older sections below retain their milestone-specific scope, not current open/closed authority.
 
 ## Latest snapshot-first worker milestone

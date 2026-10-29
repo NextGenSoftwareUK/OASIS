@@ -21,6 +21,14 @@ public class Neo4jLifecycleTests
         public long ConstraintKinds = RequiredConstraintKinds;
         public int SchemaRuns;
         public int SchemaCreates;
+        public bool TargetIndexExists = true;
+        public bool TargetIndexOnline = true;
+        public bool TargetIndexShapeValid = true;
+        public bool InstallTargetIndex = true;
+        public string TargetIndexName = "oasis_cosmic_outbox_target_order";
+        public int TargetIndexCreates;
+        public int TargetIndexWaits;
+        public Exception? TargetIndexWaitFailure;
         public bool InstallAfterCreates;
         public Exception? SchemaWriteFailure;
         public Exception? CqlUpgradeFailure;
@@ -78,8 +86,28 @@ public class Neo4jLifecycleTests
                     if(Owner.InstallAfterCreates && Owner.SchemaCreates==RequiredConstraintKinds)Owner.ConstraintKinds=RequiredConstraintKinds;
                 }
 
+                if (args![0] is string indexQuery && indexQuery.StartsWith("CREATE RANGE INDEX", StringComparison.Ordinal))
+                {
+                    if (Owner.SchemaWriteFailure != null) return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
+                    Owner.TargetIndexCreates++;
+                    if (Owner.InstallTargetIndex) Owner.TargetIndexExists = true;
+                }
+                if (args[0] is string awaitQuery && awaitQuery.StartsWith("CALL db.awaitIndex", StringComparison.Ordinal))
+                {
+                    Owner.TargetIndexWaits++;
+                    if (Owner.TargetIndexWaitFailure != null) return Task.FromException<IResultCursor>(Owner.TargetIndexWaitFailure);
+                    Owner.TargetIndexOnline = Owner.TargetIndexExists;
+                }
                 var cursor=DispatchProxy.Create<IResultCursor,SchemaCursorProbe>();
-                ((SchemaCursorProbe)cursor).Count=Owner.ConstraintKinds;
+                var probe = (SchemaCursorProbe)cursor;
+                probe.Count=Owner.ConstraintKinds;
+                probe.Name=Owner.TargetIndexName;
+                if (args[0] is string show && show.StartsWith("SHOW INDEXES", StringComparison.Ordinal))
+                {
+                    var exists = Owner.TargetIndexExists && Owner.TargetIndexShapeValid;
+                    probe.Count = exists && Owner.TargetIndexOnline ? 1 : 0;
+                    probe.Empty = show.Contains("RETURN name", StringComparison.Ordinal) && !exists;
+                }
                 return Task.FromResult(cursor);
             }
             throw new InvalidOperationException("Unexpected schema session call: "+method.Name);
@@ -104,6 +132,7 @@ public class Neo4jLifecycleTests
     }
     public class SchemaCursorProbe : DispatchProxy
     {
+        public string Name = "oasis_cosmic_outbox_target_order";
         public long Count;public bool Empty;private int reads;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
@@ -111,7 +140,7 @@ public class Neo4jLifecycleTests
             if(method.Name=="FetchAsync")return Task.FromResult(!Empty && reads++==0);
             if(method.Name=="get_Current")
             {
-                var record=DispatchProxy.Create<IRecord,SchemaRecordProbe>();((SchemaRecordProbe)record).Count=Count;return record;
+                var record=DispatchProxy.Create<IRecord,SchemaRecordProbe>();((SchemaRecordProbe)record).Count=Count;((SchemaRecordProbe)record).Name=Name;return record;
             }
             throw new InvalidOperationException("Unexpected schema cursor call: "+method.Name);
         }
@@ -119,8 +148,11 @@ public class Neo4jLifecycleTests
     public class SchemaRecordProbe : DispatchProxy
     {
         public long Count;
+        public string Name = "oasis_cosmic_outbox_target_order";
         protected override object? Invoke(MethodInfo? method,object?[]? args)
-            => method!.Name=="get_Item" && (string)args![0]! == "count" ? Count
+            => method!.Name=="get_Item" ? (string)args![0]! switch {
+                "count" => Count, "name" => Name,
+                _ => throw new InvalidOperationException("Unexpected schema field.") }
                 : throw new InvalidOperationException("Unexpected schema record call: "+method.Name);
     }
 

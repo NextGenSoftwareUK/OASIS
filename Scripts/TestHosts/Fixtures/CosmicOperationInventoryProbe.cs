@@ -11,7 +11,8 @@ public static class CosmicOperationInventoryProbe
 {
     public static async Task VerifyAsync(IHolonReplicationRouteInventoryOutbox outbox, CosmicStorageIdentity source,
         Guid operation, string sourceId, Guid actor, IEnumerable<string> expectedTargets, bool requireCompleted,
-        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
+        IBoundHolonReplicationOutboxSource migrationSource = null)
     {
         var reader = outbox as IHolonReplicationOperationInventoryOutbox
             ?? throw new InvalidOperationException("The native source must expose complete operation inventory.");
@@ -38,6 +39,24 @@ public static class CosmicOperationInventoryProbe
             || rows.Any(row => row.OperationId != operation || row.SourceId != sourceId || row.ActorId != actor)
             || requireCompleted && !rows.Any(row => row.State == HolonDeliveryState.Completed))
             throw new InvalidOperationException("Complete operation inventory omitted or rebound an original obligation.");
+        if (migrationSource != null)
+        {
+            // Global discovery must retain every still-pending target, including
+            // targets after a supplementary-Unicode cursor. Newer operations may
+            // also contribute a head for an already completed original target.
+            var required = rows.Where(row => row.State != HolonDeliveryState.Completed).Select(row => row.TargetId).ToHashSet(StringComparer.Ordinal);
+            string routeAfter = null; var routePages = 0;
+            do
+            {
+                var route = await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationAudit.ReadPageAsync(
+                    migrationSource, source, 1, routeAfter);
+                if (route.IsError || route.Result == null) throw new InvalidOperationException(route.Message, route.Exception);
+                foreach (var head in route.Result.Heads) required.Remove(head.TargetId);
+                routeAfter = route.Result.NextAfterTargetId;
+                if (++routePages > 4096) throw new InvalidOperationException("Global fixture inventory exceeded its explicit read budget.");
+            } while (routeAfter != null);
+            if (required.Count != 0) throw new InvalidOperationException("Global route discovery omitted an unfinished original target.");
+        }
         var missing = await reader.ReadOperationObligationsAsync(new(source, Guid.NewGuid(), requiredConsistency: consistency));
         if (missing.IsError || missing.Result.Obligations.Count != 0 || missing.Result.NextAfterTargetId != null)
             throw new InvalidOperationException("Unknown operation inventory must be an explicit empty observation.");

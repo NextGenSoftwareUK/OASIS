@@ -92,6 +92,21 @@ public sealed class HolonReplicationMigrationAuditTests
         var changed = await HolonReplicationMigrationAudit.ReadPageAsync(source, identity, 1, "target-a");
         Assert.AreNotEqual(first.Result.ObservationDigest, changed.Result.ObservationDigest);
     }
+    [TestMethod]
+    public async Task AuditUsesNativeBinaryOrderAcrossBmpAndSupplementaryTargets()
+    {
+        var source = new Source(); var identity = Identity();
+        var first = Head("\uE000"); var last = Head("\U0001F600");
+        last = new HolonDeliveryInspection(2, last.OperationId, last.TargetId, last.State, last.AttemptCount, last.ErrorCode, last.Message, null);
+        source.Store.Page = new(new(new[] { first, last }, false));
+        var result = await HolonReplicationMigrationAudit.ReadPageAsync(source, identity, 2);
+        Assert.IsFalse(result.IsError, result.Message);
+        source.Store.Page = new(new(new[] { last }, false));
+        var continued = await HolonReplicationMigrationAudit.ReadPageAsync(source, identity, 1, "\uE000");
+        Assert.IsFalse(continued.IsError, continued.Message);
+        Assert.AreEqual(1, continued.Result.Heads.Count);
+    }
+
     [DataTestMethod]
     [DataRow(true)] [DataRow(false)]
     public async Task NativeFailuresRetainOriginalCodeAndCauseWithoutPartialSuccess(bool atOpen)

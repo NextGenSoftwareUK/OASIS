@@ -616,3 +616,45 @@ disposition, native CAS/migration receipts and interrupted cutover remain open.
 - TestResults/Neo4jCurrent/neo4j-operation-inventory-reconciliation.trx SHA256 B6EE642F6536D40B6BD2697177CDDC150CD97115FE9F7A1CF4FF79699DFFBC32.
 - TestResults/Neo4jCurrent/operation-inventory-unicode-inspect.json SHA256 E51B85ED74C4C054348432E656FD7FAE611B85388016846D75AEB31292E77FF6.
 - TestResults/Neo4jCurrent/operation-inventory-unicode-reconcile.json SHA256 FC9791D218AAD629AC24E22C7F353EE7AC6ED4DF6BBDBB03B7AE085859033074.
+
+## Global route-head Unicode discovery fixed (29 October)
+
+The related existing V2 Neo route-head reader now uses a native target-range index
+for cursor admission, matching native indexed ordering rather than the pinned
+runtime's inconsistent scalar string predicate. The oldest-unfinished-per-target
+contract remains intact: this is route discovery, not complete obligation inventory.
+
+Provider activation owns `oasis_cosmic_outbox_target_order` (RANGE on
+CosmicHolonOutbox.TargetId). It accepts an existing equivalent online index by shape,
+creates only missing ordering schema, resolves the actual index name, waits through
+the bounded native population procedure and verifies ONLINE state before readiness.
+A name collision, denied creation, missing/wrong shape or population failure rejects
+activation. The eight existing uniqueness guarantees remain unchanged. Read-only
+inventory never initializes schema and does not switch to another query on failure.
+
+`HolonReplicationRoutePage.CompareTargetIds` is the single Core owner for native
+UTF8/binary target ordering. Exact-operation page validation and Shared migration
+audit use it; the audit no longer applies UTF16 ordinal ordering to native Unicode
+pages. Native fixture probes now read the global audit at page-size1 and require
+all unfinished original targets to remain discoverable, even after newer operations
+are queued. This exercises ASCII, BMP private-use and supplementary characters.
+
+Verified: Neo625 (6new schema controls), Shared1405 (native-order audit control),
+Core4462 and GraphQL1 pass; native Neo2, SQLite2 and Mongo1 pass with global discovery
+checks alongside complete-operation/receipt/content verification. No skipped cases.
+The new ordering guarantee is installed and checked on the retained Neo graph;
+its exact equivalent name was not separately inventoried, so the resource identity
+is the required RANGE/label/property shape in that existing container/database.
+
+This closes the reported Unicode route-discovery gap within those scopes. It does
+not establish source-wide quiescence, a cross-page snapshot, operator authorization
+or migration execution. Next: complete lineage scope/fencing, immutable authorized
+preview binding all affected obligations and original target receipts, then native
+CAS/migration receipts and interrupted-cutover recovery. V1 remains documentation-only.
+- TestResults/DevelopmentSyncCurrent/global-route-unicode-core.trx SHA256 468EE9F4D4FEBB793FB30D08E8DF4DB49A2348BD5D31E713DA5D8841AD8CD150.
+- TestResults/DevelopmentSyncCurrent/global-route-unicode-shared.trx SHA256 4C78AC1EDC7FA754F3D0876AB9CA461F3FB79BA7A31D550ECBAACE1993C94C84.
+- TestResults/DevelopmentSyncCurrent/global-route-unicode-neo.trx SHA256 53CEE7A353C4299544A813F289F3B25944698E15C119EE77909FBC87F4B1037B.
+- TestResults/DevelopmentSyncCurrent/global-route-unicode-graphql.trx SHA256 C2DA7C030FF63C7E03E98D8B4CDE28CCC041DD48BF8CED01EDB037CDEA0FAF13.
+- TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx SHA256 6560DAE50032E921051B7EFC5726397AD7187F81DB8E180C237957FB12C9E9EB.
+- TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 6E8F96829F5C1638F1E549C6ED268FB5AA032F9681C98E84DEBDA3BDF5649964.
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 93E1B313D058C3DA7C4B114AA46BFC7C685B92BFB320735866EA21E962AF3EB7.
