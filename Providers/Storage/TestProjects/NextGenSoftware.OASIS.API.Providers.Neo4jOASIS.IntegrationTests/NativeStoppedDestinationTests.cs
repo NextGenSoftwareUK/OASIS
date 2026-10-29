@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using Policy = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.CommittedOwnerReplicationPolicy;
 using Worker = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive.HolonReplicationDeliveryHostedService;
 using Mongo = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using Sqlite = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -59,8 +61,9 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active", "Use the explicit process-owning runner.");
-        var activeOutage = phase == "active";
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust", "Use the explicit process-owning runner.");
+        var exhaust = phase == "exhaust";
+        var activeOutage = phase == "active" || exhaust;
         var reconcileActive = phase == "reconcile-active";
         var seeding = phase == "seed" || activeOutage;
         var root = new DirectoryInfo(AppContext.BaseDirectory);
@@ -204,12 +207,36 @@ public partial class NativeHostedReplicaRestartTests
                     await Assert.ThrowsExceptionAsync<SocketException>(async () => await socket.ConnectAsync("127.0.0.1", 27029));
                 Assert.IsTrue(mongo.IsProviderActivated, "Keep the actual native receiver client alive across the process outage.");
                 await SaveAt(1);
-                await Pass(outage: true);
+                if (exhaust)
+                {
+                    var approval = await ((IHolonReplicationDestinationCatalogue)outbox).ReadDestinationBindingAsync(ProviderType.MongoDBOASIS);
+                    Assert.IsFalse(approval.IsError, approval.Message);
+                    var binding = approval.Result.Route;
+                    var receiver = new CommittedHolonReplicaTarget(intent.TargetId, mongo, ProviderType.MongoDBOASIS,
+                        binding.SourceId, ProviderType.SQLLiteDBOASIS, new Policy(), "native-exhaustion-fixture-v1",
+                        new Guid("e1d13ed7-2146-4f40-a799-c2bbbfd9113f"), binding.PolicyBinding, binding.TargetStorage);
+                    var dispatcher = new HolonOutboxDispatcher(outbox, new[] { receiver }, "native-budget-one", maximumAttempts: 1);
+                    var attempted = await dispatcher.DispatchOnceAsync(intent.TargetId);
+                    Assert.IsFalse(attempted.IsError, attempted.Message + attempted.Exception);
+                    Assert.AreEqual(1, attempted.Result.ClaimedCount);
+                    Assert.AreEqual(1, attempted.Result.ReconciliationCount);
+                    Assert.AreEqual(0, attempted.Result.CompletedCount);
+                }
+                else await Pass(outage: true);
                 var deferred = await outbox.InspectAsync(intent.FirstSequence);
                 Assert.IsFalse(deferred.IsError, deferred.Message);
-                Assert.AreEqual(HolonDeliveryState.Pending, deferred.Result.State, "A known pre-commit connection outage must be retryable.");
+                Assert.AreEqual(exhaust ? HolonDeliveryState.ReconciliationRequired : HolonDeliveryState.Pending, deferred.Result.State,
+                    "A known pre-commit failure retries only within its explicit attempt budget.");
                 Assert.AreEqual(1, deferred.Result.AttemptCount);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(deferred.Result.ErrorCode));
+                if (exhaust)
+                {
+                    Assert.AreEqual("COSMIC_REPLICA_WRITE_FAILED", deferred.Result.ErrorCode);
+                    StringAssert.StartsWith(deferred.Result.Message, "Attempt limit reached.");
+                    Assert.IsNotNull(deferred.Result.RecoveryEvidence);
+                    Assert.IsFalse(deferred.Result.RecoveryEvidence.RequiresNativeReconciliation,
+                        "Budget exhaustion is distinct from an ambiguous native commit.");
+                }
                 var ordered = await outbox.InspectAsync(intent.FirstSequence + 1);
                 Assert.AreEqual(HolonDeliveryState.Pending, ordered.Result.State);
                 Assert.AreEqual(0, ordered.Result.AttemptCount, "Later operations cannot overtake the deferred target head.");
@@ -232,6 +259,43 @@ public partial class NativeHostedReplicaRestartTests
 
             Assert.AreEqual(intent.TargetFingerprint, (await HolonReplicationRouteBinding.CapturePinnedAsync(mongo)).BindingFingerprint);
             foreach (var id in intent.Ids) Assert.IsNull((await mongo.LoadHolonAsync(id, loadChildren: false)).Result);
+            if (exhaust)
+            {
+                var blockedBefore = await outbox.InspectAsync(intent.FirstSequence);
+                await Pass();
+                await Pass();
+                var blockedAfter = await outbox.InspectAsync(intent.FirstSequence);
+                Assert.IsFalse(blockedAfter.IsError, blockedAfter.Message);
+                Assert.AreEqual(HolonDeliveryState.ReconciliationRequired, blockedAfter.Result.State);
+                Assert.AreEqual(1, blockedAfter.Result.AttemptCount);
+                Assert.AreEqual(blockedBefore.Result.ErrorCode, blockedAfter.Result.ErrorCode);
+                Assert.AreEqual(blockedBefore.Result.Message, blockedAfter.Result.Message);
+                var later = await outbox.InspectAsync(intent.FirstSequence + 1);
+                Assert.AreEqual(HolonDeliveryState.Pending, later.Result.State);
+                Assert.AreEqual(0, later.Result.AttemptCount);
+                foreach (var id in intent.Ids)
+                {
+                    var original = await sqlite.LoadHolonAsync(id, loadChildren: false);
+                    Assert.IsFalse(original.IsError, original.Message);
+                    Assert.AreEqual(1, original.Result.Version);
+                    Assert.AreEqual(intent.Actor, original.Result.CreatedByAvatarId);
+                    Assert.IsNull((await mongo.LoadHolonAsync(id, loadChildren: false)).Result);
+                }
+                Assert.AreEqual(0L, await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWriteReceipt")
+                    .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                using (var native = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={file};Mode=ReadOnly;Pooling=False"))
+                {
+                    await native.OpenAsync();
+                    using var query = native.CreateCommand();
+                    query.CommandText = "SELECT OperationId FROM CosmicWriteReceipt";
+                    using var sourceReceiptsReader = await query.ExecuteReaderAsync();
+                    var retained = new List<string>();
+                    while (await sourceReceiptsReader.ReadAsync()) retained.Add(sourceReceiptsReader.GetString(0));
+                    CollectionAssert.AreEquivalent(intent.Operations.Select(op => op.ToString("D")).ToArray(), retained.ToArray());
+                }
+                complete = true;
+                return; // Exact test-owned cleanup, never an automatic operator reset.
+            }
             await Pass();
             var revisions = new List<Guid?>();
             for (var index = 0; index < intent.Ids.Length; index++)
