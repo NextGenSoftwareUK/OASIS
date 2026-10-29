@@ -12,6 +12,9 @@ projection now passes Shared1360/native source2each/GraphQL1; portable target-he
 digests use the same canonicalizer as replica acknowledgement. Existing receipt validators
 remain the owners; no replay or intent rewriting. Selected-record preflight,
 authorized migration execution and cutover remain red. CURRENT_STATUS owns next steps.
+Read-only receipt/target comparison report now passes Shared1380 and native
+Mongo1/SQLite2/Neo2 scoped cases; remaining pairs/races and mutation authorization/
+CAS/cutover stay red. The report is an observation, not migration permission.
 Older sections below retain their milestone-specific scope, not current open/closed authority.
 
 ## Latest snapshot-first worker milestone
