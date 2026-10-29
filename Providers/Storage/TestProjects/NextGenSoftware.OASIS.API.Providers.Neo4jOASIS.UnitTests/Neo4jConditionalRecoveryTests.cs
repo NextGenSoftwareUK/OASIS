@@ -12,6 +12,40 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jConditionalRecoveryTests
 {
+    [DataTestMethod]
+    [DataRow("missing")]
+    [DataRow("foreign-provider")]
+    [DataRow("cancelled")]
+    public async Task BoundRecoveryRejectsInvalidEvidenceBeforeOpeningNativeSession(string mode)
+    {
+        var source = new Holon { Id = Guid.NewGuid() };
+        var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(),
+            ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(source.Id, null) }),
+            ConditionalHolonOperation.Save, new[] { source }, saveChildren: false);
+        var driver = DispatchProxy.Create<IDriver, Neo4jLifecycleTests.DriverProbe>();
+        var driverProbe = (Neo4jLifecycleTests.DriverProbe)driver;
+        var provider = new Provider("bolt://owned.invalid", "owned", "owned", () => driver);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var sessionCalls = 0;
+        driverProbe.SessionFactory = () =>
+        {
+            sessionCalls++;
+            throw new InvalidOperationException("Invalid evidence must not open a session.");
+        };
+        var expected = mode == "missing" ? null : new CosmicStorageIdentity(
+            mode == "foreign-provider" ? ProviderType.MongoDBOASIS : ProviderType.Neo4jOASIS,
+            new string('A', 64), Guid.NewGuid());
+        using var cancellation = new CancellationTokenSource();
+        if (mode == "cancelled") cancellation.Cancel();
+        var result = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected!, cancellation.Token);
+        Assert.IsTrue(result.IsError);
+        Assert.IsNull(result.Result);
+        Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual(mode == "cancelled" ? "COSMIC_OPERATION_STATUS_CANCELLED" : "COSMIC_OPERATION_STATUS_UNVERIFIED", result.ErrorCode);
+        Assert.AreEqual(0, sessionCalls);
+        Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
+    }
+
     public class SessionProbe : DispatchProxy
     {
         public IRecord Record = null!;

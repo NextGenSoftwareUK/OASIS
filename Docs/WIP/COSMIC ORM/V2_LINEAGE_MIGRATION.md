@@ -269,3 +269,35 @@ these tests do not establish a native repeatable snapshot capability.
 - `TestResults/Neo4jCurrent/neo4j-cosmic-replica-current.trx`: 6passed; SHA256 `6E228B7265C7562CB198A9867B1D02E48322896A0BC2632E55473D01BA165414`.
 
 - `TestResults/OwnedRoutingCurrent/neo-head-unit-schema-fake-failure.trx`: 56failed/558passed before test-fixture correction; SHA256 `5CF94502613D745CC4A25A3EE7EAE3771CCD3EF3A03014ACEEAFB6D8E5FDA341`.
+
+## Source-bound original receipt checkpoint (29 October)
+
+`IBoundConditionalHolonWriteRecoveryStorageProvider` adds
+`ReadBoundConditionalHolonWriteOutcomeAsync(original, expectedSource, token)`.
+SQLite, MongoDB and Neo4j implement it through their existing receipt validators.
+The explicit physical source is checked in the same native read transaction as
+receipt lookup. It is separate from the immutable original intent: older type-only
+operations retain their original fingerprint and enrollment. An already-bound
+operation cannot be checked against a different enrolled identity.
+
+Null/foreign bindings, a different native store, cancellation or invalid receipts
+return an error with no outcome. Absent remains unknown, not permission to replay.
+No identity capture, schema creation, claim or original write occurs. Neo4j uses
+its existing read-committed transaction; this is not a cross-store snapshot.
+
+Verified: both Core targets and all three provider builds; Core4462/4462,
+Neo619/619 controlled tests, SQLite2/2 native copied-file cases (bound and historical
+type-only intents). SQLite covers absent/committed/null/cancelled checks and
+unchanged copied-store data version. The same historical receipt verifies only
+when the caller explicitly supplies that copy's actual identity. This establishes
+where the receipt was observed, not that the copy is an authorized new authority.
+No native Mongo/Neo validation of the new overload is claimed yet.
+
+Next: native Mongo/Neo bound historical-receipt tests, then redacted selected-record
+lineage/content evidence and source/target preflight. Operator authorization,
+atomic migration receipts, cutover and recovery remain red.
+
+Evidence: worktree `TestResults/DevelopmentSyncCurrent/bound-source-{core,neo,sqlite}.trx`.
+- TestResults/DevelopmentSyncCurrent/bound-source-core.trx SHA256 756C6BF18EC3F29BB874F7C799F3CED97A7606F613DCEDB980DBC2E89306C668.
+- TestResults/DevelopmentSyncCurrent/bound-source-neo.trx SHA256 38B120421A67ACD39698E9DBB5B1024FBCAF4EE43658DC1F362E426C38693E90.
+- TestResults/DevelopmentSyncCurrent/bound-source-sqlite.trx SHA256 EC875469CAF8F8A254217014FD8A467500C065C09220AF4325BBA805BB4D11EE.

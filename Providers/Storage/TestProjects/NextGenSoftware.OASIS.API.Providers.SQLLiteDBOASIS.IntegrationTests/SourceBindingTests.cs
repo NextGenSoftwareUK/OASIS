@@ -9,8 +9,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
-    [Fact]
-    public async Task CopiedSourceReceiptCannotVerifyOrReplayOriginalBoundOperation()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CopiedSourceReceiptCannotVerifyOrReplayOriginalBoundOperation(bool bindOriginal)
     {
         var copy=Path.Combine(Path.GetDirectoryName(_databasePath)!,"source-binding-copy.db");
         File.Exists(copy).Should().BeFalse("an unfinished copy must be preserved");
@@ -20,13 +22,28 @@ public partial class SQLLiteDBOASISIntegrationTests
             (await original.ActivateProviderAsync()).IsError.Should().BeFalse();
             var identity=await original.CaptureStorageIdentityAsync();identity.IsError.Should().BeFalse();
             var input=OutboxCreate(new Holon{Id=Guid.NewGuid(),Name="owned bound source"});
-            var enrollment=new HolonReplicationEnrollment("owned-bound-source",new[]{"target"},identity.Result);
+            var enrollment=new HolonReplicationEnrollment("owned-bound-source",new[]{"target"},bindOriginal ? identity.Result : null);
             var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(input.Write.OperationId,input.Write.ActorId,
                 input.Write.Authority,input.Write.Conditions,enrollment),input.Operation,input.Roots);
             await File.WriteAllTextAsync(journal,JsonSerializer.Serialize(new{copy,request.Write.OperationId,identity=identity.Result}));
+            var absent = await original.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
+            absent.IsError.Should().BeFalse(absent.Message + absent.Exception);
+            absent.Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Absent);
+            var missingBinding = await original.ReadBoundConditionalHolonWriteOutcomeAsync(request, null!);
+            missingBinding.IsError.Should().BeTrue();
+            missingBinding.Result.Should().BeNull();
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+            var cancelled = await original.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result, cancellation.Token);
+            cancelled.ErrorCode.Should().Be("COSMIC_OPERATION_STATUS_CANCELLED");
             var saved=await original.ExecuteReplicatingHolonWriteAsync(request,enrollment);
             saved.IsError.Should().BeFalse(saved.Message+saved.Exception);
             (await original.ReadConditionalHolonWriteOutcomeAsync(request)).Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Committed);
+            var boundStatus = await original.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
+            boundStatus.IsError.Should().BeFalse(boundStatus.Message + boundStatus.Exception);
+            boundStatus.Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Committed);
+            boundStatus.IsSaved.Should().BeFalse();
+            request.Write.ReplicationEnrollment.SourceStorageIdentity.Should().Be(bindOriginal ? identity.Result : null);
             using(var source=new SqliteConnection(TestConnectionString))
             using(var destination=new SqliteConnection($"Data Source={copy};Pooling=False"))
             {await source.OpenAsync();await destination.OpenAsync();source.BackupDatabase(destination);}
@@ -39,10 +56,19 @@ public partial class SQLLiteDBOASISIntegrationTests
                 using var observer=new SqliteConnection($"Data Source={copy};Pooling=False");await observer.OpenAsync();
                 using var version=observer.CreateCommand();version.CommandText="PRAGMA data_version";
                 var before=Convert.ToInt64(await version.ExecuteScalarAsync());
-                var replay=await copied.ExecuteReplicatingHolonWriteAsync(request,enrollment);
-                replay.ErrorCode.Should().Be("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH");replay.IsSaved.Should().BeFalse();
-                var status=await copied.ReadConditionalHolonWriteOutcomeAsync(request);
+                if (bindOriginal)
+                {
+                    var replay=await copied.ExecuteReplicatingHolonWriteAsync(request,enrollment);
+                    replay.ErrorCode.Should().Be("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH");
+                    replay.IsSaved.Should().BeFalse();
+                }
+                var status=await copied.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
                 status.IsError.Should().BeTrue();status.IsLoaded.Should().BeFalse();status.Result.Should().BeNull();
+                // A type-only receipt remains verifiable against the explicitly
+                // approved copy, but cannot masquerade as the original file.
+                var approvedCopy = await copied.ReadBoundConditionalHolonWriteOutcomeAsync(request, copiedIdentity.Result);
+                approvedCopy.IsError.Should().Be(bindOriginal);
+                if (!bindOriginal) approvedCopy.Result.ReceiptState.Should().Be(ConditionalHolonReceiptState.Committed);
                 Convert.ToInt64(await version.ExecuteScalarAsync()).Should().Be(before,"neither mismatch nor recovery may mutate the copied queue");
             }
         }
