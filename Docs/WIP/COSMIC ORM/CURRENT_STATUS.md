@@ -8,8 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect the next unverified storage provider's implementation and reusable
-native resources** in the all-provider inventory. PostgreSQL control8, native/restart
+**Next: SQL Server LocalDB native source/restart admission**. Adapter/control9 pass;
+installed runtime exists but no task instance created yet ([scope](SQLSERVER_CQL_MVP.md)). PostgreSQL control8, native/restart
 1+1 and Mongo-paired C#/HTTP/browser5/4 pass ([scope](POSTGRESQL_CQL_MVP.md)).
 Owned services are stopped and temporary Mongo data removed; source retained.
 Redis native3/2/missing,
