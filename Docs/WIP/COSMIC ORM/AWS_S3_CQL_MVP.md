@@ -49,6 +49,32 @@ service. `TestResults/AwsS3CqlCurrent/s3-cql-native-admission.trx`, SHA256
 `4EC16A5A00FCAAE2722B013ADA1408AB1B88200B0CA8F57C1B7F2E6763BAC69C`.
 A skip proves no native storage/query behavior.
 
+## Mongo-paired preset prepared, not natively verified
+
+`AwsS3MongoCqlNativeTests.NativeAwsS3MongoFederationRunsSdkAndHttpWithProviderProvenance`
+compiles and links the common spaced/commented C# walkthrough and HTTP host.
+Explicit scope: MongoDBOASIS plus AWSS3OASIS. Prepared checks cover full5/subset4
+physical rows and provenance, forged actors/unknown presets, and inactive S3 failing
+without partial rows. Exact owned Mongo records are validated before dropping only
+`cosmic_cql_mongo_s3_demo`. Failure preserves the pending journal for review.
+
+`OASIS_S3_MONGO_SERVE=1` serves localhost5107 after automatic checks. It preserves
+the original S3 source. Native/browser verification is pending; the main demo hub
+is deliberately not enrolled yet. The fixture locks the original state directory,
+requires its three-ID manifest/key and existing services, and starts no environment.
+
+Required settings (names only, never credential values): `OASIS_S3_CQL_PAIRED=1`,
+`OASIS_S3_CQL_STATE` (original LocalState), `OASIS_S3_CQL_ENDPOINT` (loopback),
+`OASIS_S3_CQL_BUCKET`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, original
+`OASIS_S3_CQL_STORAGE_KEY`. `OASIS_MONGO_REPLICA_SET_CONNECTION` must match the
+retained localhost27029 oasisRecoveryRs URI with serverSelectionTimeoutMS=3000.
+
+Compile/admission:7 controls passed/1 paired native skipped. Report
+`TestResults/AwsS3CqlCurrent/s3-cql-paired-admission.trx`, SHA256
+`3BFFB7CE89943402D987294F3B21B84DAA85E3D175BDB244E223673FCE4D6D56`.
+No requests/datasets/service starts occurred in that skipped fixture. Dependencies
+were restored from the existing offline cache only.
+
 ## Exact next step and environment gate
 
 Obtain the existing-service native/restart results, then complete Mongo-paired
