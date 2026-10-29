@@ -102,6 +102,13 @@ public partial class MongoStorageIdentityTests
                 Assert.True(deniedReplacement.IsError); Assert.Equal("COSMIC_MIGRATION_RECORD_FENCED", deniedReplacement.ErrorCode);
                 var retained = await reopenedTarget.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
                 Assert.False(retained.IsError); Assert.Equal(originalReceipt.Result.AcknowledgementDigest, retained.Result.AcknowledgementDigest);
+                var deliveryReview = await HolonMigrationDeliveryReconciliation.ReadAsync(plan, policy,
+                    recoveredParticipants, (IHolonReplicationLineageInventoryOutbox)outbox, pageSize: 1);
+                Assert.False(deliveryReview.IsError, deliveryReview.Message + deliveryReview.Exception);
+                Assert.False(deliveryReview.IsSaved); Assert.Equal(enrollment.TargetIds.Count, deliveryReview.Result.Obligations.Count);
+                Assert.Equal(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
+                    deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
+                Assert.Equal(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
                 // No migration data has been changed: explicit exact-owner pre-mutation cancellation is valid.
                 foreach (var participant in recoveredParticipants)
                 {

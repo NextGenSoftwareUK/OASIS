@@ -13,12 +13,15 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class HolonReplicationMigrationBarrierCoordinatorTests
 {
-    internal sealed class Native : IHolonMigrationFenceStorageProvider
+    internal sealed class Native : IHolonMigrationFenceStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
     {
         public HolonMigrationFenceObservation Stored;
         public int Reads, Acquires;
         public bool LoseAcknowledgement, ForeignScope, FailRead, Warn;
         public Action AfterAcquire;
+        public Func<CommittedHolonReplicaReceiptReadRequest, OASISResult<CommittedHolonReplicaReceiptEvidence>> Receipt;
+        public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(CommittedHolonReplicaReceiptReadRequest request, CancellationToken token = default)
+            => Task.FromResult(Receipt(request));
         public Task<OASISResult<HolonMigrationFenceObservation>> ReadHolonMigrationFenceAsync(HolonMigrationFenceRequest r, CancellationToken c = default)
         {
             Reads++;
@@ -47,13 +50,14 @@ public class HolonReplicationMigrationBarrierCoordinatorTests
     internal sealed class Setup
     {
         public HolonReplicationMigrationPreview Preview;
+        public HolonReplicationMigrationPreviewTests.Fixture Evidence;
         public HolonReplicationMigrationAuthorizationContext Context;
         public Policy Permission = new();
         public Native[] Providers = { new(), new() };
         public HolonMigrationBarrierParticipant[] Participants;
         public async Task Initialize(bool proofs = true, bool thirdStore = false)
         {
-            var f = new HolonReplicationMigrationPreviewTests.Fixture();
+            var f = Evidence = new HolonReplicationMigrationPreviewTests.Fixture();
             if (thirdStore) { f.ReplacementTarget = new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Neo4jOASIS, new string('E',64), Guid.NewGuid()); Providers = new[] { new Native(), new Native(), new Native() }; }
             if (proofs) { f.ReplicaReceipt = row => new(f.Delivered(row)); f.PayloadProof = (row, receipt) => new(f.Proof(row, receipt)); }
             var preview = await f.Read(); Assert.IsFalse(preview.IsError, preview.Message); Preview = preview.Result;

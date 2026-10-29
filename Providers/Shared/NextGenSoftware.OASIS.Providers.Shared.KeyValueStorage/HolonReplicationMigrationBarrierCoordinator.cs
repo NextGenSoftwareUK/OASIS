@@ -69,11 +69,9 @@ public static partial class HolonReplicationMigrationBarrierCoordinator
             return Fail("COSMIC_MIGRATION_BARRIER_SCOPE_MISMATCH", "The host policy must describe this exact reviewed context.");
         var scopes = plan.Scopes.ToArray();
         var stores = scopes.Select(s => s.ExpectedStorage).ToArray();
-        var owners = participants.Take(4).ToArray();
-        if (owners.Length != stores.Length || owners.Any(p => p?.Storage == null || p.Provider == null)
-            || owners.Select(p => p.Storage.BindingFingerprint).Distinct(StringComparer.Ordinal).Count() != owners.Length
-            || stores.Any(s => !owners.Any(p => p.Storage.BindingFingerprint == s.BindingFingerprint)))
-            return Fail("COSMIC_MIGRATION_BARRIER_CAPABILITY_REQUIRED", "Supply one explicit native barrier provider for every distinct physical participant.");
+        HolonMigrationBarrierParticipant[] owners;
+        try { owners = HolonMigrationBarrierParticipants.Bind(plan, participants); }
+        catch (HolonMigrationBarrierPlanException error) { return Fail(error.Code, error.Message, error); }
         progress.AddRange(scopes.Select(s => new HolonMigrationBarrierStoreProgress(s.ExpectedStorage.BindingFingerprint,
             s.Fingerprint, HolonMigrationBarrierObservationState.Unobserved)));
         var active = -1;
