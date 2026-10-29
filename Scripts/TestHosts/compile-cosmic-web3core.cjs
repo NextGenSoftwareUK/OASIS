@@ -11,7 +11,7 @@ const contracts = path.join(provider, 'Contracts');
 const source = 'Web3CoreOASIS.sol';
 const output = JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
     sources:{[source]:{content:fs.readFileSync(path.join(contracts, source), 'utf8')}},
-    settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}}),
+    settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object','evm.deployedBytecode.object']}}}}),
     {import:name => {
         const target = path.resolve(contracts, name);
         if (!target.startsWith(contracts + path.sep)) return {error:'Import escapes contract directory.'};
@@ -29,5 +29,5 @@ if (!embedded || JSON.stringify(canonical(JSON.parse(embedded[1].replace(/""/g, 
 const folder = path.join(root, 'TestResults/EthereumCqlCurrent');
 fs.mkdirSync(folder, {recursive:true});
 fs.writeFileSync(path.join(folder, 'web3-storage.json'), JSON.stringify({compiler:solc.version(),
-    abi:contract.abi,bytecode:'0x' + contract.evm.bytecode.object}));
+    abi:contract.abi,bytecode:'0x' + contract.evm.bytecode.object,deployedBytecode:'0x' + contract.evm.deployedBytecode.object}));
 console.log('Compiled shipping Web3Core contract with pinned local solc; ABI matches.');
