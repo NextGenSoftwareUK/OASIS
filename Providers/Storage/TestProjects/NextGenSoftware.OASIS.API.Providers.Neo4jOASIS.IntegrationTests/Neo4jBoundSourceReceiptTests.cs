@@ -15,6 +15,13 @@ public partial class Neo4jNativeAvatarTests
     [DataRow(false)]
     [DataRow(true)]
     public async Task NativeBoundOriginalReceiptPreservesHistoricalIntentAndQueue(bool bindOriginal)
+        => await RunNativeBoundSourceReceipt(bindOriginal, false);
+
+    [TestMethod]
+    public async Task NativePreparedNeoSqliteMutationRestoresExactStartWithoutCutover()
+        => await RunNativeBoundSourceReceipt(true, true);
+
+    private async Task RunNativeBoundSourceReceipt(bool bindOriginal, bool startMutation)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -39,13 +46,13 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             var captured = await provider.CaptureStorageIdentityAsync(); Assert.IsFalse(captured.IsError);
             var expected = captured.Result;
-            var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, new[] { "target", "target-b", "\uE000", "\U0001F600" }, bindOriginal ? expected : null);
+            var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, startMutation ? new[] { "target" } : new[] { "target", "target-b", "\uE000", "\U0001F600" }, bindOriginal ? expected : null);
             var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, actor,
                 ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, planFolder, actor, source = expected, bindOriginal, targetPath });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, planFolder, actor, source = expected, bindOriginal, startMutation, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
@@ -128,8 +135,8 @@ public partial class Neo4jNativeAvatarTests
                     HolonReplicaHeadReadConsistency.ReadCommittedValidated,
                     () => replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest), request);
                 // Coordinate actual Neo source + SQLite receiver from native evidence.
-                // This fixture performs no migration mutation, so explicit owner
-                // cancellation below is still a pre-mutation operation.
+                // The multi-route cases remain pre-mutation and may cancel.
+                // The single-route case starts native markers only; it never cuts over data.
                 var context = reviewedPreview.AuthorizationContext(migration, actor, "owned-native-migration-admin");
                 var policy = new ScopedHolonReplicationMigrationPolicy(context.AuthorizationPolicyBinding,
                     new[] { new HolonReplicationMigrationGrant(context, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
@@ -169,12 +176,51 @@ public partial class Neo4jNativeAvatarTests
                         Assert.IsFalse(deliveryReview.IsSaved); Assert.AreEqual(enrollment.TargetIds.Count, deliveryReview.Result.Obligations.Count);
                         Assert.AreEqual(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
                             deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
-                        Assert.AreEqual(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
+                        Assert.AreEqual(enrollment.TargetIds.Count - 1, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
                         var replacementReview = await HolonMigrationReplacementReview.ReadAsync(durablePlan, policy,
                             new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) }, pageSize: 1);
                         Assert.IsFalse(replacementReview.IsError, replacementReview.Message + replacementReview.Exception); Assert.IsFalse(replacementReview.IsSaved);
                         Assert.AreEqual(HolonMigrationReplacementKind.MatchingOriginalLineage, replacementReview.Result.Records.Single().Kind);
-                        foreach (var participant in new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) })
+                        var mutationParticipants = new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) };
+                        if (startMutation)
+                        {
+                            Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationPreparation(durablePlan,
+                                deliveryReview.Result, replacementReview.Result, "owned-neo-mutation"));
+                            var preparation = new HolonMigrationMutationPreparation(durablePlan, deliveryReview.Result,
+                                replacementReview.Result, "owned-neo-mutation", HolonReplicaHeadReadConsistency.ReadCommittedValidated,
+                                HolonReplicaHeadReadConsistency.NativeSnapshot);
+                            var mutationPolicy = new ScopedHolonMigrationMutationPolicy(preparation.MutationPolicyBinding,
+                                new[] { new HolonMigrationMutationGrant(preparation, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
+                            var preparationStore = new FileHolonMigrationMutationPreparationStore(planFolder);
+                            var stored = await preparationStore.SaveAsync(preparation, durablePlan, preparation.Fingerprint);
+                            Assert.IsFalse(stored.IsError, stored.Message + stored.Exception);
+                            var started = await HolonMigrationMutationCoordinator.StartPersistedAsync(durablePlan, preparation.Fingerprint,
+                                preparationStore, policy, mutationPolicy, mutationParticipants);
+                            Assert.IsFalse(started.IsError, started.Message + started.Exception);
+                            Assert.IsTrue(started.Result.AllParticipantsStarted); Assert.AreEqual(2, started.SavedCount);
+                            Assert.IsFalse((await recoveredSource.DeActivateProviderAsync()).IsError);
+                            Assert.IsFalse((await recoveredTarget.DeActivateProviderAsync()).IsError);
+                            Assert.IsFalse((await recoveredSource.ActivateProviderAsync()).IsError);
+                            Assert.IsFalse((await recoveredTarget.ActivateProviderAsync()).IsError);
+                            var restoredStart = await HolonMigrationMutationCoordinator.StartPersistedAsync(durablePlan, preparation.Fingerprint,
+                                new FileHolonMigrationMutationPreparationStore(planFolder), policy, mutationPolicy, mutationParticipants);
+                            Assert.IsFalse(restoredStart.IsError, restoredStart.Message + restoredStart.Exception);
+                            Assert.IsTrue(restoredStart.Result.AllParticipantsStarted); Assert.IsFalse(restoredStart.IsSaved);
+                            foreach (var participant in mutationParticipants)
+                            {
+                                var scope = durablePlan.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint == participant.Storage.BindingFingerprint);
+                                var observed = await participant.Provider.ReadHolonMigrationFenceAsync(scope);
+                                Assert.IsFalse(observed.IsError); Assert.AreEqual(preparation.Fingerprint, observed.Result.MutationDigest);
+                                var cancelled = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observed.Result.OwnerToken);
+                                Assert.IsTrue(cancelled.IsError); Assert.AreEqual("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", cancelled.ErrorCode);
+                            }
+                            var historical = await recoveredTarget.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                            Assert.IsFalse(historical.IsError); Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, historical.Result.AcknowledgementDigest);
+                            var blocked = await recoveredSource.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+                            Assert.IsTrue(blocked.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", blocked.ErrorCode);
+                        }
+                        else
+                        foreach (var participant in mutationParticipants)
                         {
                             var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
                             Assert.IsFalse(retainedPlan.IsError);
@@ -188,6 +234,8 @@ public partial class Neo4jNativeAvatarTests
                     }
                     finally { Assert.IsFalse((await recoveredSource.DeActivateProviderAsync()).IsError); }
                 }
+                if (!startMutation)
+                {
                 await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyWindowAsync(boundSource.Result, expected,
                     enrollment.SourceId, operation, enrollment.TargetIds.Count, appendOperation, async () =>
                     {
@@ -224,6 +272,7 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse(retainedReceipt.IsError, retainedReceipt.Message + retainedReceipt.Exception);
                 Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, retainedReceipt.Result.AcknowledgementDigest);
                 Assert.AreEqual(ConditionalHolonReceiptState.Committed, retainedReceipt.Result.ReceiptState);
+                }
 
             }
             foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })
@@ -241,6 +290,11 @@ public partial class Neo4jNativeAvatarTests
             {
                 var ownedPlanPath = Path.Combine(planFolder, migration.ToString("D") + ".barrier-plan.json" + suffix);
                 if (File.Exists(ownedPlanPath)) File.Delete(ownedPlanPath);
+            }
+            foreach (var suffix in new[] { "", ".pending", ".lock" })
+            {
+                var ownedPreparation = Path.Combine(planFolder, migration.ToString("D") + ".mutation-preparation.json" + suffix);
+                if (File.Exists(ownedPreparation)) File.Delete(ownedPreparation);
             }
             foreach (var name in new[] { "barrier-host-context.json", "barrier-process-acquired.json", "barrier-process-resumed.json" })
                 File.Delete(Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent", name));
