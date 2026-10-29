@@ -1,4 +1,4 @@
-# Aptos CQL MVP - native and restart verified, paired demo pending
+# Aptos CQL MVP - native/restart/paired verified, hub enrollment pending
 
 29 October 2026. The adapter uses the shipping Aptos0.1.1-beta official SDK Move
 views and canonical GUID save keys. No alternate HTTP or managed-scan query path.
@@ -81,12 +81,58 @@ Ctrl-C stops that owner. It checks pinned CLI, original source and pending journ
 refuses occupied ports and performs no provisioning. No new downloads/installations.
 The original per-run unique-temp/force-restart evidence runner stays unused.
 
-## Exact next step
+## Paired C#/HTTP/browser acceptance
 
-Add the Mongo-paired C#/HTTP/browser5/4 preset against this original source, preserve
-receipts/catalogue and verify cleanup of only its owned Mongo fixture. Keep the
-inventory row red until paired/browser acceptance passes. Then continue breadth.
-Hosted Azure/S3 local launch/TRON historical source gates remain unchanged.
+AptosMongoCqlNativeTests passes1/1,zero skips,29s. SDK and HTTP return full5/subset4
+physical rows, preserving provider copies, excluding unrelated Mongo IDs, rejecting
+forged actors/unknown presets and failing inactive Aptos with HTTP503/no rows.
+Browser independently verified both counts and provenance at localhost5109.
+- `TestResults/AptosCqlCurrent/aptos-mongo-federation.trx`, SHA256
+  `CF064891CE08DE534106CA373CA3694239978625EFE60EFDB589EB5B822005BC`.
+- Native preflight1/1, `aptos-cql-native.trx`, SHA256
+  `4CE87CF40B6EBE7DFFD2EFFE90E1F28C026558799719BC7159C19152A917F8F1`.
+- Screenshot `aptos-mongo-browser.jpg` in the same TestResults folder.
+
+The original three source receipts and seed remain unchanged. Same paired runner
+10951 exited0 after browser shutdown, exact Mongo fixture
+`cosmic_cql_mongo_aptos_demo` validated/dropped and pending/ready journals removed.
+Owned node57361 stopped via Ctrl-C; ports18080/18081/18070/27029/5109 closed.
+Retained ledger/profile/source measured26818790bytes after teardown.
+
+Resume-only helper now explicitly disables the faucet. CLI resume with faucet had
+attempted a new faucet account and failed expiry admission; that failed startup/log
+was preserved, no transaction replay or chain reset. Existing demo account is funded,
+so normal resume owns node/ready endpoints only and creates no faucet account.
+The corrected helper ran successfully through native and paired/browser verification.
+
+## Direct demo commands
+
+Terminal1 (keep open, Ctrl-C stops the original node):
+
+```powershell
+Scripts/TestHosts/Start-CosmicAptosCqlNode.ps1
+```
+
+Terminal2:
+
+```powershell
+Scripts/TestHosts/Run-CosmicAptosCqlNative.ps1 -Federated -Serve
+```
+
+Open localhost5109. The stop button cleans only the owned Mongo teaching fixture;
+then Ctrl-C terminal1. Omit Serve for bounded SDK/HTTP verification and cleanup.
+The paired runner validates the actual native listener executable/command plus
+native genesis/source preflight; it starts/stops only its own Mongo process.
+Profile credentials stay in the inherited environment only for the awaited run.
+
+## Exact remaining gate
+
+Enroll Aptos in Run-CosmicCqlDemoHub and its routing verifier. Automatic approval
+review rejected the combined launcher-enrollment/routing-check command with only
+blocked-by-policy, no detailed reason. Authoritative git status confirmed launcher
+files unchanged. No retry through another tool or alternate path was attempted.
+Direct preset is verified; inventory remains red until this remaining integration
+is finished. Continue other missing provider work while this gate is pending.
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
