@@ -82,7 +82,13 @@ public partial class Neo4jNativeAvatarTests
             input.ProviderMetaData[ProviderType.SQLLiteDBOASIS]=new Dictionary<string,string>{{"origin-note","retained"}};
             input.ProviderMetaData[ProviderType.Neo4jOASIS]=new Dictionary<string,string>{{"spoof-local","must not import"}};
             var initial=await Commit(input,create:true);var initialSource=OasisJson.Serialize(initial.Record);
-            var first=await Apply(Delivery(initial));Assert.IsFalse(first.IsError,first.Message+first.Exception);
+            var targetBinding=await target.CaptureStorageIdentityAsync();Assert.IsFalse(targetBinding.IsError);
+            var originalDelivery=Delivery(initial);
+            await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(target,originalDelivery,targetBinding.Result,
+                ConditionalHolonReceiptState.Absent,HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+            var first=await Apply(originalDelivery);Assert.IsFalse(first.IsError,first.Message+first.Exception);
+            var originalReceipt=await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(target,originalDelivery,targetBinding.Result,
+                ConditionalHolonReceiptState.Committed,HolonReplicaHeadReadConsistency.ReadCommittedValidated);
             var ack=first.Result.Single();Assert.AreEqual(initial.Record.VersionId,ack.VersionId);Assert.AreEqual(1,ack.Version);
             Assert.AreEqual(initial.Record.CreatedDate,ack.CreatedDate);Assert.AreEqual(actor,ack.CreatedByAvatarId);
             Assert.AreEqual(((Holon)initial.Record).CustomKey,((Holon)ack).CustomKey);
@@ -216,6 +222,8 @@ public partial class Neo4jNativeAvatarTests
             StringAssert.Contains(corruptResult.Exception.Message,"checksum");
             Assert.AreEqual("COSMIC_REPLICA_WRITE_FAILED",corruptResult.ErrorCode);Assert.AreEqual(corruptBefore,await Snapshot(corruptSource.Record.Id));
             Assert.AreEqual(0L,await Count("MATCH (r:CosmicWriteReceipt {OperationId:$id}) RETURN count(r) AS count",new{id=corruptNext.Operation.ToString()}));
+            Assert.AreEqual(originalReceipt,await CosmicNativeAcceptance.CosmicReplicaReceiptProbe.ObserveAsync(target,
+                originalDelivery,targetBinding.Result,ConditionalHolonReceiptState.Committed,HolonReplicaHeadReadConsistency.ReadCommittedValidated));
             complete=true;
         }
         finally

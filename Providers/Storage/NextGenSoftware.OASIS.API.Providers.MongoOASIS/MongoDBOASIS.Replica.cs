@@ -9,8 +9,19 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : IBoundCommittedHolonReplicaStorageProvider, IHolonReplicaHeadAuditStorageProvider
+public partial class MongoDBOASIS : IBoundCommittedHolonReplicaStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
+    public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!IsProviderActivated || _holonRepository == null)
+            return Task.FromResult(new OASISResult<CommittedHolonReplicaReceiptEvidence> {
+                IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_NOT_READY",
+                Message = "Activate the existing Mongo receiver before reading its historical receipt." });
+        return _holonRepository.ReadCommittedHolonReplicaReceiptAsync(request, cancellationToken);
+    }
+
     public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
         HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
     {

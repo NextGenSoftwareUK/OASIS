@@ -867,3 +867,50 @@ still declares original replica receipts unverified until this capability is
 connected for every selected operation/target and its returned scope is checked.
 Original payload-to-source-receipt binding, replacement admission, native fences,
 CAS/idempotent migration receipts and cutover also remain open.
+
+
+## Mongo/Neo historical replica readers — 29 October 2026
+
+All three native providers now implement the optional historical replica-receipt
+read capability. Mongo uses one read-only snapshot transaction: the existing
+UUID-bound physical-store validator acquires the actual native Holon namespace,
+then the exact historical receipt is read in that scope. Neo uses its activated
+driver/lifecycle gate and a read-only transaction, with native database identity
+validated before the receipt query. Neo explicitly rejects NativeSnapshot and
+requires ReadCommittedValidated opt-in. Neither reader commits, claims delivery,
+initializes identity/schema, reads current heads or replays the mutation.
+
+Both use Shared's existing plan/receipt validator and return only redacted
+historical evidence. Existing native scope cleanup semantics are preserved:
+an observed result survives cleanup failure as a warning; an unobserved or
+invalid outcome returns a real error, with cancellation and cleanup causes kept.
+
+Native Mongo cases cover Absent before initial and hard-delete delivery,
+Committed after delivery, exact operation/actor/source/target scope, wrong-store
+rejection and cancellation. An independent current-body edit invalidates the
+head audit but leaves the original historical receipt provable.
+Native Neo cases cover the same admission/absence/commit proof with explicit
+weaker consistency; the original acknowledgement remains unchanged after later
+logical mutations, deletions and failure cases. Four Neo receiver cases cover
+sync/async plus history enabled/disabled; the runner also retains two SQLite
+receiver controls. These are receipt checks, not migration execution or global
+snapshot certification. Shared1462 controls are retained from the preceding
+checkpoint; no Shared implementation changed in this native-reader checkpoint.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| SQLite source / Mongo historical receiver | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `CEF9C9D72244254413E9E46DE19D547F8BB660B840BBE5A1D81CC1BF4EFAB200` |
+| Native replica group: 4Neo receipt cases + 2retained SQLite cases | 6/6 | `TestResults/Neo4jCurrent/neo4j-cosmic-replica-current.trx` | `7C791BD3100F77CE4116201B9843324DD20D5C85C26436D4B46DA15D7745A0EC` |
+
+Native batch77454 exited0; Neo attachment46712 stopped/joined. Pending fixture
+journals and temporary SQLite source/receiver files are absent; ports27029 and
+17687 have no listeners. Neo free bytes before102803189760/after102753132544;
+observed102753202176after batch. No new download, restore, installation or
+environment; reusable Mongo/Neo runtimes/data and SDK/cache retained.
+
+Next: integrate per-operation exact receiver evidence into the immutable preview.
+An explicit Absent observation must remain a finding, and wrong actor/operation/
+lineage/target evidence must reject the preview. Original frozen-payload/source
+receipt binding remains separate proof; neither a valid historical replica
+receipt nor a matching current head establishes it. Native fences, replacement
+admission, CAS/idempotent cutover and recovery remain open.
