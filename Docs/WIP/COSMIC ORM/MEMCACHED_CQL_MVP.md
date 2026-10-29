@@ -1,6 +1,6 @@
 # Memcached CQL MVP admission
 
-Updated29 October2026. **Native volatile-cache proof passes; Mongo-paired demo remains red.**
+Updated29 October2026. **Scoped native volatile-cache and Mongo-paired C#/HTTP/browser MVP verified.**
 
 ## Implemented scope
 
@@ -92,14 +92,46 @@ volatile cache. No daemon or11239listener remains.
 - Canonical seed/last generation/CAS receipt/PID receipt: `/var/tmp/oasis-memcached-cql`,
   measured1,689bytes after second verification; reusable, not cache persistence.
 
+## Mongo-paired teaching demo
+
+One admitted volatile generation stays active through native checks and the paired
+C#/HTTP/browser demo. The existing Linux Mongo runtime/store is reused. Results
+preserve provider-labelled copies: five physical rows, then four for the two-ID
+subset. Invalid actor/preset reject; an inactive cache adapter returns unavailable
+without partial results. Independent native GETs before/after the entire demo
+verify identical values/CAS for all four cache records and their index.
+
+- Fixture: MemcachedMongoCqlNativeTests.cs; shared existing owned Linux replica
+  admission test linked unchanged into the integration consumer.
+- Browser run1passed24s; launcher automated repeat1passed2s; zero failures/skips.
+- Current evidence: `TestResults/MemcachedCqlCurrent/memcached-mongo-federation.trx`.
+- Paired SHA256: `95C0693D4E275F27C36ED2EE7469311CE9357C36A92907941D4C971025492F23`.
+- Browser: `TestResults/MemcachedCqlCurrent/memcached-mongo-browser.jpg`.
+- Hub:8single/16plans,26paired/52plans,38paired rejections,3archive rejections pass;
+  listeners unchanged by planning tests.
+- Owned Mongo database cosmic_cql_mongo_memcached_demo verified/dropped. Native
+  cache generation retired only after paired proof and owned service teardown.
+- Runner62897 and corrected launcher45553 exit0; no cache/Mongo/HTTP listener
+  remains. Browser tab closed; canonical fixture/retirement receipts retained.
+- An initial launcher check selected a nonexistent runner filename and stopped
+  before service startup; fixed to the existing runner and reran the actual preset.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Memcached -Federated -ShowPlan
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Memcached -Federated
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Memcached -Federated -VerifyOnly
+```
+
+Stop using the page button to verify fixture cleanup and retire the volatile cache.
+An explicit later demo initializes a new empty owned generation from the same
+canonical identities; this is not persistence recovery. Pending/unknown outcomes
+refuse replay. No new runtime/data-store environment was created for the pair.
+
 ## Exact next step
 
-Add one Mongo-paired C#/HTTP/browser preset during the same admitted active cache
-generation. Reuse the existing Linux Mongo runtime/store and the native generation
-runner; no new environment. Warm the cache only under the defined clean-generation
-contract, retain provider copies/provenance, test invalid/inactive cases, then
-verify/drop only owned temporary Mongo data before cache retirement. Keep paired
-admission red until actual SDK/HTTP/browser proof. Wider index atomicity, durability,
-history/children, conditional writes and full ORM parity remain open.
+Continue the next red provider MVP; inspect Valkey implementation and native
+resources without inheriting Redis certification. Preserve this green scope and
+explicit volatile lifecycle. Shared-index atomicity, conditional writes, broader
+history/children and complete ORM/production acceptance remain open.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).

@@ -210,3 +210,16 @@ the same retained source lineage. Stop with the page button; original source,
 replicas and reusable native store remain, verified temporary Mongo data is removed.
 Windows Litestream directory-fsync failure and remote/PITR/crash acceptance remain
 separate open scopes. [Setup, tests, resource limits and evidence](LITESTREAM_CQL_MVP.md).
+
+## Volatile Memcached + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Memcached -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` checks and cleans up. The retained Linux runtime
+starts one empty loopback cache generation using canonical synthetic identities.
+Native CQL3/2/miss/tombstone/paging checks precede the shared C#/HTTP/browser preset:
+five physical rows, four for the two-ID subset, preserving provider labels.
+Independent native checks confirm cache values/CAS stay unchanged through the demo.
+Stop with the page button to remove verified temporary Mongo data and retire the
+volatile cache. Subsequent explicit warmup is not restart persistence; unknown
+pending outcomes refuse replay. Existing Linux Mongo/runtime/store are reused.
+[Scope, commands, tests and resource lifecycle](MEMCACHED_CQL_MVP.md).
