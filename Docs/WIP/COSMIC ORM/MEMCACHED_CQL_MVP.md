@@ -40,15 +40,42 @@ checks actual provider category without a shim.
 - Used package inventory: `TestResults/MemcachedCqlCurrent/packages-resource-inventory.json`;
   other transitive provenance is explicitly unverified. Existing runtime cache reused.
 
-## Exact next step
+## Native runtime admitted; query proof still pending
 
-Admit a bounded loopback-only native Memcached service in the reusable Linux
-provider environment; inspect OS/runtime caches before installation. Verify actual
-cache misses separately from transport failures, acknowledged saves/load, native
-three/two/missing queries, paging/budget/tombstones and no query mutation. Add one
-Mongo-paired C#/HTTP/browser preset using the retained Linux Mongo environment.
-Define the cache's intentional ephemeral lifecycle explicitly: do not imply that
-records survive process restart or silently recreate an uncertain source. Keep
-native and paired inventory red until actual proof.
+No native daemon/package/cache was installed. The official signed Ubuntu package
+metadata identified1.6.40-1ubuntu0.3; its296,868byte DEB was downloaded once,
+SHA256-verified and extracted without installing a system service. The extracted
+binary was compared with the original archive and reports memcached1.6.40.
+No native daemon has been started; no cache source/data exists yet.
+
+- Runtime: `/var/tmp/oasis-runtimes/memcached-1.6.40`,791,732bytes including admission.
+- Executable SHA256: `a1d63f0865bafd0fb1c64022f90fd9be5a58a095fa4856ef56d50aa20cabfb6e`.
+- Archive SHA256: `1e5272002efa8674959ee9796356b89bb1075ccb59f12a429d1a72396b61f15a`.
+- Verified installation archive removed after version/admission check.
+- Missing libevent-2.1-7t64 2.1.12-stable-10ubuntu0.2 (383KiB installed) and
+  liblua5.4-0 5.4.8-1build1 (570KiB installed) were added from Ubuntu; other OS
+  libraries reused. No memcached package/global service/autostart installed.
+- Setup: `Scripts/TestHosts/prepare-cosmic-memcached-linux.py`; normal rerun verifies
+  and reuses the admitted binary. Explicit extracted-state finalization preserves
+  and validates the original package rather than overlaying a partial setup.
+
+## Exact next step and ephemeral cache contract
+
+Implement one bounded native runner over the existing Linux environment/runtime,
+loopback11239, UDPdisabled,32MiBmemory/one thread. Before writing, persist a canonical
+synthetic seed plus an active process-generation intent and prove the owned cache
+is initially empty. Verify acknowledged Save/Load for three live records and a
+tombstone, real KEY_ENOENT vs transport failure, native3/2/missing queries,
+paging/result budgets and unchanged native record bytes/CAS across queries.
+
+Treat each owned daemon lifetime as an explicitly volatile generation. On verified
+success, stop the exact owned daemon and record a clean retired generation; a later
+explicit demo may warm the same canonical fixture into a new empty owned cache.
+This is planned cache initialization, never persistence recovery. Unknown write or
+teardown outcomes keep pending state and must not trigger automatic replay/reseed.
+Keep original canonical IDs/receipts/baselines for audit, no cache restart durability
+claim. Then add Mongo-paired C#/HTTP/browser using the existing Linux Mongo store,
+without creating another runtime/environment or per-run database copy.
+Native and paired inventory remain red until actual proof.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
