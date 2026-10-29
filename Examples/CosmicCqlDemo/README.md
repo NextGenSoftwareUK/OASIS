@@ -1037,3 +1037,25 @@ replacement environment is installed. `NativeImportMongoDemo.cs` owns fixtures;
 `NativeImportCqlWalkthrough.cs` owns the public import/save/query calls shared by
 both target demos. Encryption, automatic replication, change-data capture, reverse
 migration and chain writes remain separate acceptance; this is explicit import/refresh.
+
+## Ethereum + Mongo: local MVP (29 October 2026)
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated
+```
+
+Open http://127.0.0.1:5097/. Use **Query all records** for five physical rows, then **Query two-record subset** for four. Copies keep their Ethereum/Mongo labels. This uses the retained local EVM chain31338, not Ethereum mainnet.
+
+The reusable C# example is [IdentityFederationWalkthrough.cs](IdentityFederationWalkthrough.cs), executed through `HolonManager.ExecuteFederationQueryAsync`. The HTTP host calls the exact same walkthrough. The captured query is:
+
+```csharp
+// The server supplies a trusted record catalogue for each provider.
+// A caller's selected IDs can narrow that catalogue, never enlarge it.
+var selectedQuery = source.Where(row => selectedIds.Contains(row.Id));
+
+// Plan both explicit providers against their advertised capabilities.
+// HolonManager preserves provider provenance for each physical copy.
+var result = await manager.ExecuteFederationQueryAsync(plan, adapters);
+```
+
+Ethereum supports bounded identity equality/membership, Boolean combinations and paging for this profile. Metadata predicates, arbitrary sorting, child graphs and full LINQ parity are deferred. Add `-VerifyOnly` for bounded checks. See [Ethereum guide](../../Docs/WIP/COSMIC%20ORM/ETHEREUM_CQL_MVP.md) for scope, tests, setup and cleanup.
