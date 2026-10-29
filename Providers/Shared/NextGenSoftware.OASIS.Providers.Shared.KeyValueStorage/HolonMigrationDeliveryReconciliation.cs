@@ -40,9 +40,6 @@ public sealed class HolonMigrationDeliveryReconciliationReport
 
 public static class HolonMigrationDeliveryReconciliation
 {
-    private sealed class NativeReadException(string code, Exception cause) : Exception("Native migration evidence read failed.", cause)
-    { internal string Code { get; } = code; }
-
     /// <summary>Read all current lineage obligations within a fresh bounded window,
     /// not only the original window or route head. Native payloads are transient:
     /// decode graph membership but never return/log their business bodies. Re-read
@@ -55,50 +52,16 @@ public static class HolonMigrationDeliveryReconciliation
         ArgumentNullException.ThrowIfNull(plan); ArgumentNullException.ThrowIfNull(policy);
         OASISResult<HolonMigrationDeliveryReconciliationReport> Error(string code, string message, Exception cause = null)
             => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
-        var warnings = new List<Exception>(); var warningCount = 0;
-        void Observe<T>(OASISResult<T> observed)
-        {
-            if (!observed.IsWarning) return;
-            warningCount += Math.Max(1, observed.WarningCount);
-            if (observed.Exception != null) warnings.Add(observed.Exception);
-        }
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (source is not IHolonReplicationPayloadAuditOutbox payloads || pageSize < 1 || pageSize > 256 || maxObligations < 1 || maxObligations > 4096)
                 return Error("COSMIC_MIGRATION_DELIVERY_OPTIONS_INVALID", "Bounded native lineage and frozen payload readers are required.");
             var context = plan.Context;
-            if (policy.BindingIdentity != context.AuthorizationPolicyBinding)
-                return Error("COSMIC_MIGRATION_AUTHORIZATION_DENIED", "The exact host policy is required.");
-            async Task Authorize()
-            {
-                var allowed = await policy.AuthorizeAsync(context, cancellationToken).ConfigureAwait(false);
-                if (allowed == null || allowed.IsError || !allowed.Result)
-                    throw new NativeReadException(allowed?.ErrorCode ?? "COSMIC_MIGRATION_AUTHORIZATION_DENIED", allowed?.Exception);
-            }
-            await Authorize().ConfigureAwait(false);
-            var owners = HolonMigrationBarrierParticipants.Bind(plan, participants);
-            var target = owners.Single(p => p.Storage.BindingFingerprint == context.OriginalTargetStorage.BindingFingerprint);
+            var evidence = await HolonMigrationEvidenceReadScope.OpenAsync(plan, policy, participants, cancellationToken).ConfigureAwait(false);
+            var target = evidence.Participants.Single(p => p.Storage.BindingFingerprint == context.OriginalTargetStorage.BindingFingerprint);
             if (target.Provider is not ICommittedHolonReplicaReceiptStorageProvider receiver)
                 return Error("COSMIC_MIGRATION_DELIVERY_RECEIPT_CAPABILITY_REQUIRED", "The original fenced receiver must read its native historical receipts.");
-            var heldOwners = new Dictionary<string, Guid>(StringComparer.Ordinal);
-            async Task CheckFences(bool first)
-            {
-                foreach (var scope in plan.Scopes)
-                {
-                    var native = owners.Single(p => p.Storage.BindingFingerprint == scope.ExpectedStorage.BindingFingerprint).Provider;
-                    var fence = await native.ReadHolonMigrationFenceAsync(scope, cancellationToken).ConfigureAwait(false);
-                    if (fence == null || fence.IsError)
-                        throw new NativeReadException(fence?.ErrorCode ?? "COSMIC_MIGRATION_DELIVERY_BARRIER_UNVERIFIED", fence?.Exception);
-                    Observe(fence);
-                    if (fence.Result == null || fence.Result.Request.Fingerprint != scope.Fingerprint
-                        || fence.Result.State != HolonMigrationFenceState.Held
-                        || !first && heldOwners[scope.Fingerprint] != fence.Result.OwnerToken)
-                        throw new InvalidDataException("Every original native record barrier must remain held by the same owner.");
-                    if (first) heldOwners.Add(scope.Fingerprint, fence.Result.OwnerToken);
-                }
-            }
-            await CheckFences(true).ConfigureAwait(false);
             using var envelope = JsonDocument.Parse(plan.CanonicalJson);
             using var reviewed = JsonDocument.Parse(envelope.RootElement.GetProperty("previewMaterial").GetString());
             var material = reviewed.RootElement;
@@ -115,7 +78,7 @@ public static class HolonMigrationDeliveryReconciliation
                 var observed = await source.ReadLineageObligationsAsync(request, cancellationToken).ConfigureAwait(false);
                 if (observed == null || observed.IsError || observed.Result == null)
                     return Error(observed?.ErrorCode ?? "COSMIC_MIGRATION_DELIVERY_INVENTORY_UNVERIFIED", "Native lineage observation failed.", observed?.Exception);
-                Observe(observed);
+                evidence.Observe(observed);
                 var page = observed.Result; upper ??= page.ThroughSequence;
                 if (page.SourceStorageFingerprint != context.SourceStorage.BindingFingerprint || page.SourceId != context.OriginalSourceId
                     || page.ThroughSequence != upper || consistency == HolonReplicaHeadReadConsistency.NativeSnapshot && page.Consistency != consistency)
@@ -144,7 +107,7 @@ public static class HolonMigrationDeliveryReconciliation
                 var raw = await payloads.ReadFrozenPayloadAsync(context.SourceStorage, row, consistency, cancellationToken).ConfigureAwait(false);
                 if (raw == null || raw.IsError || raw.Result == null)
                     return Error(raw?.ErrorCode ?? "COSMIC_MIGRATION_DELIVERY_PAYLOAD_UNVERIFIED", "Frozen graph evidence failed.", raw?.Exception);
-                Observe(raw);
+                evidence.Observe(raw);
                 if (Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw.Result))) != row.PayloadDigest)
                     throw new InvalidDataException("Frozen transport hash differs from the native obligation.");
                 var transport = CommittedHolonReplicaPayload.ReadForTarget(raw.Result, row.TargetId);
@@ -162,7 +125,7 @@ public static class HolonMigrationDeliveryReconciliation
                     var receipt = await receiver.ReadCommittedHolonReplicaReceiptAsync(new(transport, context.OriginalTargetStorage, receiptConsistency), cancellationToken).ConfigureAwait(false);
                     if (receipt == null || receipt.IsError || receipt.Result == null)
                         return Error(receipt?.ErrorCode ?? "COSMIC_MIGRATION_DELIVERY_RECEIPT_UNVERIFIED", "Original receiver acknowledgement could not be read.", receipt?.Exception);
-                    Observe(receipt);
+                    evidence.Observe(receipt);
                     var e = receipt.Result;
                     if (!originalReceipts.TryGetValue(row.OperationId, out var original) || e.OperationId != row.OperationId || e.ActorId != row.ActorId
                         || e.SourceId != row.SourceId || e.SourceAuthority != row.SourceAuthority || e.Operation != transport.Operation
@@ -176,15 +139,14 @@ public static class HolonMigrationDeliveryReconciliation
                 reports.Add(new(row.Sequence, row.OperationId, row.TargetId, row.State, row.StateDigest,
                     !known || row.StateDigest != old.GetProperty("StateDigest").GetString(), row.RequiresNativeReconciliation, kind, acknowledgement));
             }
-            await CheckFences(false).ConfigureAwait(false); await Authorize().ConfigureAwait(false);
-            return new(new(plan, upper ?? 0, consistency, reports)) { IsLoaded = true, IsWarning = warningCount > 0, WarningCount = warningCount,
-                Exception = warnings.Count == 0 ? null : warnings.Count == 1 ? warnings[0] : new AggregateException(warnings),
-                Message = "Read-only delivery evidence; in-flight/native-unknown/other-route obligations still require explicit disposition and native CAS." };
+            await evidence.CompleteAsync().ConfigureAwait(false);
+            return evidence.ApplyWarnings(new OASISResult<HolonMigrationDeliveryReconciliationReport>(new(plan, upper ?? 0, consistency, reports))
+                { IsLoaded = true, Message = "Read-only delivery evidence; in-flight/native-unknown/other-route obligations still require explicit disposition and native CAS." });
         }
         catch (Exception error)
         {
-            return Error(error is NativeReadException native ? native.Code : error is HolonMigrationBarrierPlanException scoped ? scoped.Code : error is OperationCanceledException
-                ? "COSMIC_MIGRATION_DELIVERY_CANCELLED" : "COSMIC_MIGRATION_DELIVERY_UNVERIFIED", "No partial report or obligation mutation was returned.", error is NativeReadException failure ? failure.InnerException ?? failure : error);
+            return Error(error is HolonMigrationEvidenceReadException native ? native.Code : error is HolonMigrationBarrierPlanException scoped ? scoped.Code : error is OperationCanceledException
+                ? "COSMIC_MIGRATION_DELIVERY_CANCELLED" : "COSMIC_MIGRATION_DELIVERY_UNVERIFIED", "No partial report or obligation mutation was returned.", error is HolonMigrationEvidenceReadException failure ? failure.InnerException ?? failure : error);
         }
     }
 }
