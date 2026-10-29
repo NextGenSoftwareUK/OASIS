@@ -8,7 +8,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect the next red provider implementation and reusable native resources**.
+**Next: Litestream local native source/reopen, then real sidecar admission**.
+Adapter/control14 pass; local/replication/paired remain red ([scope](LITESTREAM_CQL_MVP.md)).
 Upstash control17/hosted-native/repeat/SDK/HTTP/browser5/4 pass ([scope](UPSTASH_CQL_MVP.md)).
 Free scratch expires2026-10-31; preserve original/no reseed or reallocation.
 DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,

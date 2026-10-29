@@ -1645,3 +1645,13 @@ Owner COSMIC/CQL. Reuse original hosted free scratch Upstash source/credentials 
 ### 29 October2026 — Upstash hosted paired demo outcome
 
 Paired1passed24s/no skips; SDK/HTTP/browser5/4 and provider/failure checks pass. TRX SHA256 75B64517C4928A4E37358A406018AC1FB7386828BD8ED2CB80859309468187E2. TestResults/UpstashCqlCurrent/upstash-mongo-browser.jpg generated(size unmeasured, compact disposable evidence). Exact owned cosmic_cql_mongo_upstash_demo identities/content/collections verified before drop; mongo.pending.json/demo-ready.json removed. Runner26758 exit0, owned27029/5115listeners absent, browser26closed; protected environment restored. Original3hosted records/index IDs and protected resource credentials preserved/reusable until recorded2026-10-31expiry. Hub24paired/48plans passed, no listener changes. Native preflight refreshed current native TRX, latest hash in UPSTASH_CQL_MVP.md. No new runtime/account/install/download/payment.
+
+### 29 October2026 — Litestream CQL controls preparation
+
+Owner COSMIC/CQL. Reuse Microsoft.Data.Sqlite10.0.12/native SQLite cache under C:/Users/david/.nuget/packages and existing worktree; no sidecar installed/launched/configured. Provider/unit bin/obj cached restore/build regenerable, sizes unmeasured; logs/TRX TestResults/LitestreamCqlCurrent. Controls construct inactive :memory: provider and native-free empty catalogue, no persistent database/source/port. Native SQLite source, sidecar replication/restore and paired proof all pending; no replication certification from SQLite code reuse. Convex source/retained storage-key file listing inspected only, no service deployed or credentials used.
+
+Litestream cached-restore correction: original metapackage Microsoft.Data.Sqlite10.0.12 is not installed (initial ledger planned reuse was unverified). Existing workspace uses Microsoft.Data.Sqlite.Core10.0.9 with cached SQLitePCLRaw.bundle_e_sqlite3 2.1.11 and native lib2.1.12; align this provider to those explicit cached runtime components, no new download. Native compatibility remains to verify, not inferred from restore.
+
+### 29 October2026 — Litestream CQL control outcome
+
+Cached producer/full unit builds pass;14controls476ms/no skips. TestResults/LitestreamCqlCurrent/litestream-cql-controls.trx SHA256 F182AE037E1A7BE97786D3A8AADBB0C6E9F2616D4619DB1252D4BC03568540CE. Explicit cached SQLite.Core10.0.9/bundle2.1.11 dependencies reused; native compatibility pending. No native source created or sidecar installed/started, no download. Existing bin/obj and compact test evidence regenerated(sizes unmeasured), safe to regenerate after builds stop. Sidecar/native/paired gates remain red; no replicated data or restore certified.
