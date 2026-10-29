@@ -23,6 +23,7 @@ public sealed partial class CosmicConditionalWriteTests
     [InlineData("history-bootstrap")]
     [InlineData("corrupt-record")]
     [InlineData("new-policy")]
+    [InlineData("concurrent-first")]
     public async Task MongoDestinationCatalogueRetainsNativeMeaningAtomically(string scenario)
     {
         const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -59,6 +60,60 @@ public sealed partial class CosmicConditionalWriteTests
             HolonReplicationEnrollment Enrol(params HolonReplicationRouteBinding[] routes)
                 => new(routes[0].SourceId, routes.Select(route => route.TargetId), source, routes);
             var initial = Enrol(Route(sqlite));
+            if (scenario == "concurrent-first")
+            {
+                var independent = new Provider(uri, name);
+                try
+                {
+                    Assert.False((await independent.ActivateProviderAsync()).IsError);
+                    var independentSource = await independent.CaptureStorageIdentityAsync();
+                    Assert.False(independentSource.IsError, independentSource.Message);
+                    Assert.Equal(source.BindingFingerprint, independentSource.Result.BindingFingerprint);
+                    var competing = new CosmicStorageIdentity(sqlite.Authority, sqlite.EndpointFingerprint, Guid.NewGuid());
+                    var enrollments = new[] { initial, Enrol(Route(competing)) };
+                    var providers = new[] { provider, independent };
+                    var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var arrivals = 0;
+                    var writes = Enumerable.Range(0, 2).Select(index => Task.Run(async () => {
+                        if (System.Threading.Interlocked.Increment(ref arrivals) == 2) ready.TrySetResult();
+                        await gate.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                        return await providers[index].ExecuteReplicatingHolonWriteAsync(Write(index), enrollments[index]);
+                    })).ToArray();
+                    await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    gate.SetResult();
+                    var outcomes = await Task.WhenAll(writes);
+                    var winner = Assert.Single(Enumerable.Range(0, 2).Where(index => !outcomes[index].IsError && outcomes[index].IsSaved));
+                    var loser = 1 - winner;
+                    Assert.True(outcomes[loser].IsError);
+                    Assert.False(outcomes[loser].IsSaved);
+                    Assert.Contains(outcomes[loser].ErrorCode, new[] { HolonDestinationRebindRequiredException.Code, "COSMIC_CONCURRENT_WRITE" });
+                    var raceCatalogue = (IHolonReplicationDestinationCatalogue)provider.GetBoundHolonReplicationOutbox(source).Result;
+                    var raceApproval = await raceCatalogue.ReadDestinationBindingAsync(sqlite.Authority);
+                    Assert.False(raceApproval.IsError, raceApproval.Message + raceApproval.Exception);
+                    Assert.Equal(operations[winner], raceApproval.Result.EstablishedOperationId);
+                    Assert.Equal(enrollments[winner].NativeRoutes.Single().TargetStorage.BindingFingerprint,
+                        raceApproval.Result.Route.TargetStorage.BindingFingerprint);
+                    // Replay the winning exact intent through the other native client;
+                    // an explicit losing-target retry must remain a rebind refusal.
+                    Assert.False((await providers[loser].ExecuteReplicatingHolonWriteAsync(Write(winner), enrollments[winner])).IsError);
+                    Assert.Equal(HolonDestinationRebindRequiredException.Code,
+                        (await providers[loser].ExecuteReplicatingHolonWriteAsync(Write(loser), enrollments[loser])).ErrorCode);
+                    var allRows = await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                    Assert.Equal(ids[winner].ToString("D"), Assert.Single(allRows)["HolonId"].AsString);
+                    foreach (var collection in new[] { "CosmicWriteReceipt", "CosmicHolonOutbox" })
+                    {
+                        var rows = await database.GetCollection<BsonDocument>(collection).Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                        var row = Assert.Single(rows);
+                        Assert.Equal(operations[winner].ToString("D"), row[collection == "CosmicWriteReceipt" ? "_id" : "OperationId"].AsString);
+                    }
+                    Assert.Equal(1, await database.GetCollection<BsonDocument>("CosmicDestinationBinding")
+                        .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+                }
+                finally { Assert.False((await independent.DeActivateProviderAsync()).IsError); }
+                complete = true;
+                return;
+            }
             var first = Write(0);
             var saved = await provider.ExecuteReplicatingHolonWriteAsync(first, initial);
             Assert.False(saved.IsError, saved.Message + saved.Exception);
