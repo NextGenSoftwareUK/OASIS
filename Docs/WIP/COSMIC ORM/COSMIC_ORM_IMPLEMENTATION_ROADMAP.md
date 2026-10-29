@@ -21,3 +21,6 @@ Keep change tracking, save ownership, concurrency, conditional writes, rollback/
 
 PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
 [scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.
+
+SQL Server breadth milestone: control9/native/restart/paired and browser5/4 pass;
+[scope and evidence](SQLSERVER_CQL_MVP.md). Wider parity stays deferred.

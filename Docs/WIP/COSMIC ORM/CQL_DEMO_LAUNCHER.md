@@ -162,3 +162,14 @@ explicit trusted UUID catalogue; unsupported content predicates reject. This is
 retained local canonical JSON, not application encryption or hosted certification.
 Stop using the page button; the original PostgreSQL source is preserved and only
 the verified temporary Mongo fixture is removed. [Full scope](POSTGRESQL_CQL_MVP.md).
+
+## SQL Server + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated`.
+Use `-ShowPlan` to inspect or `-VerifyOnly` for automated verification/teardown.
+The preset returns five physical rows, then four for the two-ID subset, preserving
+provider copies. SQL Server uses parameterized native UUID selection and paging;
+unsupported content predicates reject. This is Windows-authenticated local LocalDB
+canonical JSON, not Azure SQL or full LINQ certification. Stop with the page button;
+original SQL Server source is retained, verified temporary Mongo fixture removed.
+[Full scope, tests and evidence](SQLSERVER_CQL_MVP.md).

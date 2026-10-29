@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -35,6 +35,7 @@ if($Federated){
         'Sui' {'Run-CosmicSuiCqlNative.ps1'}
         'Redis' {'Run-CosmicRedisCqlNative.ps1'}
         'PostgreSQL' {'Run-CosmicPostgreSqlCqlNative.ps1'}
+        'SQLServer' {'Run-CosmicSqlServerCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
@@ -56,6 +57,7 @@ if($Federated){
         'Sui' {'http://127.0.0.1:5110/'}
         'Redis' {'http://127.0.0.1:5111/'}
         'PostgreSQL' {'http://127.0.0.1:5112/'}
+        'SQLServer' {'http://127.0.0.1:5113/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
@@ -77,6 +79,7 @@ if($Federated){
         'Sui' {'Mongo + retained local Sui encrypted source:5rows/4subset; no hosted chain or distributed snapshot claim'}
         'Redis' {'Mongo + retained encrypted Redis DB11:5rows/4subset; direct registration, no distributed snapshot or alias certification'}
         'PostgreSQL' {'Mongo + retained native PostgreSQL JSON source:5rows/4subset; direct registration, no distributed snapshot or alias certification'}
+        'SQLServer' {'Mongo + retained native SQL Server LocalDB JSON source:5rows/4subset; direct registration, no hosted or distributed snapshot claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -102,6 +105,7 @@ if($Federated){
         'Sui' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Redis' { & $path -Federated -Serve:(!$VerifyOnly) }
         'PostgreSQL' { & $path -Federated -Serve:(!$VerifyOnly) }
+        'SQLServer' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }

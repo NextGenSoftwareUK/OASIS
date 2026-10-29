@@ -1,6 +1,6 @@
 # SQL Server CQL MVP admission
 
-Updated 29 October 2026. **Native/restart verified; Mongo-paired admission remains red.**
+Updated 29 October 2026. **Scoped native/restart and Mongo-paired C#/HTTP/browser MVP verified.**
 
 ## Implemented scope
 
@@ -57,11 +57,42 @@ assertions verify this at the write boundary; wider save/concurrency parity is o
 - Restart SHA256: `BFC39406CE22D9530EECCC8777093F8B0AA29756EAD31005F7E9C181CFDD451E`.
 - Seed SHA256: `E8845E29EB703BD1495C51FE9CFCA734C3DB624D2B599952C82C002F39AAC914`.
 
+## Mongo-paired teaching demo
+
+The shared C# walkthrough, HTTP endpoints and browser return five physical rows
+(three SQL Server plus two Mongo copies), then four for the two-ID subset. Copies
+remain labelled by provider. Forged actor and unknown preset reject; an inactive
+SQL Server target returns unavailable without partial rows.
+
+- Test: `SqlServerMongoCqlNativeTests.cs` in SQLServerDBOASIS.IntegrationTests.
+- Evidence: `TestResults/SqlServerCqlCurrent/sqlserver-mongo-federation.trx`.
+- Result: one passed, zero failed/skipped, 32 seconds.
+- SHA256: `52DCCB5C526E06A43C02AD6F7A00FE6C0BC04DD279368DFA66D972B92039F235`.
+- Browser: `TestResults/SqlServerCqlCurrent/sqlserver-mongo-browser.jpg`.
+- Final state: runner8528 exit0; LocalDB **Stopped**, Mongo/HTTP listeners absent;
+  exact temporary Mongo fixture verified/dropped and ownership journal removed.
+- Launcher routing: 8 single/16 plans, 22 paired/44 plans, 30 paired rejections,
+  3 archive rejections; listeners unchanged.
+
+```powershell
+# Inspect the preset without starting services.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated -ShowPlan
+
+# Run SDK/HTTP verification, then serve the browser demo on loopback5113.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated
+
+# Automated verification and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLServer -Federated -VerifyOnly
+```
+
+Stop with the page button to finish owned fixture cleanup. The original SQL Server
+source remains intact. This proves bounded UUID selection/native paging on local
+SQL Server; arbitrary predicates, full LINQ parity, cloud/alias/product registration
+and broader concurrency/child/history acceptance remain open.
+
 ## Exact next step
 
-Add SQL Server's Mongo-paired C#/HTTP/browser preset with explicit provider labels,
-invalid request/unavailable-provider controls and verified temporary fixture cleanup.
-Reuse the original native database, source identities and baseline read-only. Keep
-paired admission red until it passes, then proceed to the next red provider.
+Continue the next red provider MVP from the all-provider inventory. Preserve this
+source and reuse it; no further hardening of the green scope absent a reproduced bug.
 
 All-provider [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
