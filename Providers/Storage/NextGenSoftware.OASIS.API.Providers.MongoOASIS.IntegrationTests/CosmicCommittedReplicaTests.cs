@@ -29,7 +29,13 @@ public sealed partial class CosmicConditionalWriteTests
         var workspace = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../.."));
         using var lease = File.Open(Path.Combine(workspace, "TestResults/SubscriptionUsageCurrent/cosmic-conditional-environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         const string sourceName = "cosmic_committed_replica_source_fixture", targetName = "cosmic_committed_replica_target_fixture";
-        var client = new MongoClient(uri); using var names = await client.ListDatabaseNamesAsync(); var existing = await names.ToListAsync();
+        var client = new MongoClient(uri);
+        // Fail before creating fixture data when the native failure-injection contract
+        // is unavailable. The reusable runner enables this only on its owned local node.
+        var nativeOptions = await client.GetDatabase("admin").RunCommandAsync<BsonDocument>(
+            new BsonDocument { { "getParameter", 1 }, { "enableTestCommands", 1 } });
+        Assert.True(nativeOptions.GetValue("enableTestCommands", false).AsBoolean, "The owned native test node must support commit failpoints.");
+        using var names = await client.ListDatabaseNamesAsync(); var existing = await names.ToListAsync();
         Assert.DoesNotContain(sourceName, existing); Assert.DoesNotContain(targetName, existing);
         var sourceDb = client.GetDatabase(sourceName); var targetDb = client.GetDatabase(targetName);
         await sourceDb.CreateCollectionAsync("CosmicOwnedFixture"); await targetDb.CreateCollectionAsync("CosmicOwnedFixture");

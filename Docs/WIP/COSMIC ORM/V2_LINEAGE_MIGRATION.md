@@ -1,6 +1,6 @@
 # HyperDrive V2 lineage migration
 
-Status: migration execution remains red. The bounded source audit and SQLite target-head reader are implemented;
+Status: migration execution remains red. The bounded source audit and SQLite/Mongo target-head readers are implemented;
 no automatic retarget, old-head relabel, state reset or historical payload rewrite.
 Legacy HyperDrive V1 is documentation-only and outside implementation scope.
 
@@ -62,7 +62,7 @@ endpoint configuration, claim tokens and exception text are excluded from rows.
 
 ## Remaining execution gates
 
-1. Mongo/Neo native target-head readers, SQLite hard-delete/concurrent-change audit
+1. Neo native target-head reader, SQLite/Mongo hard-delete/concurrent-change audit
    acceptance, plus source receipt/history proof for exact graph lineage. The new
    SQLite exact-ID reader is a first verified target-evidence capability, not full
    source/target preflight or a receipt substitute.
@@ -140,3 +140,66 @@ rebind, replay, state reset or historical rewriting.
 - `TestResults/SQLiteCurrent/cosmic-production-native-current.trx`: 1825passed/0failed/0skipped; SHA256 `AFC3E06ADC4BA92868AD309DEDD8B6AEA13FD13DF7EF431E4B923EE4BE13F341`.
 
 - `TestResults/SQLiteCurrent/cosmic-production-unit-current.trx`: 227passed/0failed/0skipped; SHA256 `3CBCED51DA29075853A7498631BBFEBC791668C4273C884533DA32F8CC5225D4`.
+
+## Mongo target-head evidence checkpoint
+
+Mongo now implements the same exact-ID audit contract. Its repository's actual
+database client owns a snapshot transaction; native collectionUUID admission and
+head/current-revision reads share that transaction. No listCollections preflight,
+store initialization, write, commit or automatic retry is used. Heads stream in
+one-record batches; current reads project only identity/revision fields. A mismatch,
+corrupt header/checksum or divergent current revision rejects the whole result.
+Known observations survive read-only session cleanup failures as warnings.
+Mongo replica writes and audit reads now share the protected-header validator.
+
+Native `Run-CosmicBoundSourceWorkerTests.ps1 -NativeMongoHeadAudit` passes1/1 in13s:
+real outage/new-save/delivery recovery, exact present/missing head observations,
+physical UUID mismatch, corrupt checksum rejection, exact CAS restoration and
+unchanged receipts/data. Modern Mongo controlled suite628 and Shared1340pass.
+A stale no-I/O test double was corrected: database.Client is a local handle lookup;
+actual session calls still fail/count. A new control proves session ownership
+comes from the native database rather than a mutable context client.
+
+`Run-CosmicMongoDestinationTests.ps1 -ReplicaLifecycle` passes2native sync/async
+cases (existing-head updates, graph lineage, rollback, soft/hard deletes, uncertain
+commit receipt proof/replay). Default catalogue mode passes6native cases. The
+runner now selects each mode explicitly, requires fresh exact-count reports and
+enables native test commands only on its owned local node. Lifecycle tests check
+that prerequisite before creating data.
+
+The first lifecycle attempt lacked native test commands and preserved its synthetic
+source/target databases. Read-only inspection1/1 captured108554bytes at
+`LocalState/COSMIC/OwnedRoutingCurrent/mongo-replica-lifecycle-failure.json`, SHA256
+`13BD5E08EA2260AF089B6FB86C752F89A8D648467055A25EA2707D3AE9A80C7E`.
+Explicit reconciliation1/1 verified every collection UUID/document and protected
+receipt digest against that pinned snapshot before dropping only those2private
+fixture databases. No source save or target replay was used for cleanup. The
+snapshot and completed `.cleanup.json` receipt are retained; fresh native reruns
+then passed. An initial output-directory/cleanup diagnosis was incorrect: a new
+runner mode had an unset filename and the reports remained intact. That runner
+error and its ledger entry are corrected.
+
+The auxiliary older TestProjects/MongoOASIS.UnitTests project has missing restore
+assets and stale unsupported-operation expectations; it was not restored, changed
+or counted as passing. This does not replace the current628-test provider suite.
+Neo head reads, native hard-delete/concurrent-change audit acceptance and complete
+source-receipt/operator migration proof remain open. Fixture cleanup is not a
+production migration or permission to rewrite lineage.
+
+- `TestResults/OwnedRoutingCurrent/mongo-head-shared.trx`: 1340passed; SHA256 `DF8CE5E9BA77C5756C6C84A92EF00ABFD5A2ADD7211553C7454205861559F63E`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-head-unit.trx`: 628passed; SHA256 `980DB713DD3165BD56CD026ECD3FA2E5CF21CADD8CA5F38DDA4ED5E9FA74BF1C`.
+
+- `TestResults/OwnedRoutingCurrent/worker-offline-head-audit.trx`: 1passed; SHA256 `3A13B9288ACEFB9CE4319140EC08E8864D778C9EB634340C812006936252787C`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle.trx`: 2passed; SHA256 `D7D3301FC845CE7BE56CC3BEF3139FDAE1D612C64C1D0F30148A808F2A48A10C`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-destination-catalogue.trx`: 6passed; SHA256 `FB59E345E34BB9CAA972B165E725A1E5BCEBD90501F2D3D5CB7124998C4A7439`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle-inspection.trx`: 1passed; SHA256 `C64A60434818C299B6AFAEF6061AF60CDA95A254C754B6909CDB1821A6090BEA`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle-reconciliation.trx`: 1passed; SHA256 `D88AC1D754EB617EE4F6E894938D7D6C6173A36A23711B26DFB9D5A9B5BF7F95`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-head-unit-admission-fake-failure.trx`: 7failed/620passed before test-double repair; SHA256 `89F9EFC2C7E2844DBC988B81A7CDF9CF4D4C26F921D63E7FE1112C1F3191931F`.
+
+- `TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle-failpoint-prerequisite-failure.trx`: 2failed before environment prerequisite repair; SHA256 `886A572513E6C1742E16E6FD4330913DAE10019F211636A004EB0202CC75683A`.

@@ -1,5 +1,9 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof,[switch]$ReconcilePrimaryConsistencyFailure,[switch]$DefaultDeliveryBudget)
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof,[switch]$ReconcilePrimaryConsistencyFailure,[switch]$DefaultDeliveryBudget,[switch]$NativeMongoHeadAudit)
+if ($NativeMongoHeadAudit) {
+    if ($PSBoundParameters.Count -ne 1) { throw 'Mongo head audit proof is exclusive.' }
+    $ActiveDeliveryOutage = $true
+}
 if ($DefaultDeliveryBudget) {
     if ($PSBoundParameters.Count -ne 1) { throw 'Default-budget proof is exclusive.' }
     $ExhaustDeliveryBudget = $true
@@ -139,7 +143,7 @@ try {
             Get-Content -LiteralPath (Join-Path $work "worker-offline-$recoveryPhase.log") -Tail 4
         }
         elseif ($ActiveDeliveryOutage) {
-            $scenario = if ($DefaultDeliveryBudget) { 'default-budget' } elseif ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } elseif ($NativePrimaryConsistencyProof) { 'consistency' } else { 'active' }
+            $scenario = if ($NativeMongoHeadAudit) { 'head-audit' } elseif ($DefaultDeliveryBudget) { 'default-budget' } elseif ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } elseif ($NativePrimaryConsistencyProof) { 'consistency' } else { 'active' }
             $env:OASIS_OFFLINE_REPLICATION_PHASE = $scenario
             $testProcess = Start-Process dotnet -ArgumentList @('test',$project,'--no-build','--no-restore','/m:2','/nr:false',
                 '--filter','FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped',
