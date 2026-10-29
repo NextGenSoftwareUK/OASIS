@@ -5,6 +5,10 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Current migration checkpoint
 
+Migration-specific host authorization now implemented: exact immutable scope,
+time-bounded grants, deny by default, separate from replication ownership.
+Shared1430/1430 pass; complete preview generation/native fences/execution remain open.
+
 Latest: source-wide bounded lineage windows implemented on SQLite/Mongo/Neo;
 Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2 pass. Later
 appends excluded from captured windows and visible on new scans. Native fences,
