@@ -116,6 +116,10 @@ public static class CosmicOperationInventoryProbe
         if (after.IsError || before.Result.Obligations.Single(row => row.TargetId == target).StateDigest
             == after.Result.Obligations.Single(row => row.TargetId == target).StateDigest)
             throw new InvalidOperationException("Native renewal must change the hidden-state digest.");
+        var stalePayload = await ((IHolonReplicationPayloadAuditOutbox)outbox).ReadFrozenPayloadAsync(source,
+            before.Result.Obligations.Single(row => row.TargetId == target), consistency);
+        if (!stalePayload.IsError || stalePayload.Result != null)
+            throw new InvalidOperationException("Frozen payload audit accepted a stale lease/state observation.");
         var finished = await outbox.FinishAsync(claim.Result, HolonDeliveryOutcome.Completed);
         if (finished.IsError || !finished.Result) throw new InvalidOperationException("Acknowledged fixture delivery could not be completed.", finished.Exception);
     }
@@ -128,7 +132,8 @@ public static class CosmicLineageInventoryProbe
         Guid operation, int originalCount,
         Func<Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationReceiptPreflightReport>>> readReceipt,
         HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
-        Func<Task<NextGenSoftware.OASIS.Common.OASISResult<CommittedHolonReplicaReceiptEvidence>>> readReplicaReceipt = null)
+        Func<Task<NextGenSoftware.OASIS.Common.OASISResult<CommittedHolonReplicaReceiptEvidence>>> readReplicaReceipt = null,
+        ConditionalHolonWriteRequest originalWrite = null)
     {
         // Proposed replacement identity is not contacted or admitted here. The
         // same-authority Mongo fixture needs a distinct-authority proposal only.
@@ -147,6 +152,27 @@ public static class CosmicLineageInventoryProbe
             return result.Result;
         }
         var preview = await Read();
+        if (originalWrite != null)
+        {
+            var reader = (IHolonReplicationPayloadAuditOutbox)outbox;
+            var row = preview.Obligations.Single(r => r.OperationId == operation && r.TargetId == "target");
+            if (consistency == HolonReplicaHeadReadConsistency.ReadCommittedValidated)
+            {
+                var strict = await reader.ReadFrozenPayloadAsync(source, row);
+                if (!strict.IsError || strict.ErrorCode != "COSMIC_PAYLOAD_AUDIT_CONSISTENCY_UNSUPPORTED")
+                    throw new InvalidOperationException("Neo payload reads must require explicit weak consistency.");
+            }
+            var payload = await reader.ReadFrozenPayloadAsync(source, row, consistency);
+            if (payload.IsError || payload.Result == null) throw new InvalidOperationException(payload.Message, payload.Exception);
+            var proof = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationPayloadReceiptVerifier.Verify(
+                payload.Result, row, originalWrite, preview.Receipts.Single());
+            if (proof.SourceReceiptObservationDigest != preview.Receipts.Single().ObservationDigest
+                || preview.ReplicaReceipts.Count != 0 && proof.ReplicaIntentFingerprint != preview.ReplicaReceipts.Single().OriginalRequestFingerprint)
+                throw new InvalidOperationException("Frozen source transport is not the exact historical receiver intent.");
+            var wrong = new CosmicStorageIdentity(source.Authority, source.EndpointFingerprint, Guid.NewGuid());
+            var rejected = await reader.ReadFrozenPayloadAsync(wrong, row, consistency);
+            if (!rejected.IsError || rejected.Result != null) throw new InvalidOperationException("Payload reader accepted a different physical source.");
+        }
         if (readReplicaReceipt != null && (preview.ReplicaReceipts.Count != 1
             || preview.ReplicaReceipts[0].ReceiptState != ConditionalHolonReceiptState.Committed
             || preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified)))
