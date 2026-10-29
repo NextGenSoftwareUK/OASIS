@@ -19,7 +19,13 @@ public partial class RedisOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAliasCapabilities = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());
-    public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == Core.Enums.ProviderType.RedisOASIS
+    // A protocol-compatible facade must explicitly bind its own authority.
+    // Changing the mutable provider identity alone never grants query capabilities.
+    protected virtual ProviderType CqlAuthority => Core.Enums.ProviderType.RedisOASIS;
+    protected virtual OASISResult<IReadOnlyList<Guid>> CompileCqlSelection<T>(CosmicQuery<T> query)
+        where T : IHolon => RedisCqlCompiler.Compile(query, QueryProviderType);
+
+    public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == CqlAuthority
         ? RedisCqlCompiler.Capabilities : UnsupportedAliasCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
@@ -37,7 +43,7 @@ public partial class RedisOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
-            var selection = RedisCqlCompiler.Compile(plan.Query, QueryProviderType);
+            var selection = CompileCqlSelection(plan.Query);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated)
