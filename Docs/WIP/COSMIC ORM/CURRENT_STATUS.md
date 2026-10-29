@@ -27,7 +27,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 ## Exact next step
 
 1. Arbitrum V2 local MVP verified: native3/2 query1/1 through linked shipping BootLoader factory, controls7/7 plus Polygon7/7 regressions, Mongo-paired C#/HTTP1/1 and actual browser5/4. Launcher `-Provider Arbitrum -Federated` (5099). Both owned services stopped; temporary Mongo DB cleaned; original chain/key/seeds retained. [Arbitrum proof](ARBITRUM_CQL_MVP.md).
-2. Next: Google Cloud's existing Firestore provider — bounded native filtered multi-record query + Mongo-paired C#/HTTP/browser MVP, reusing retained emulator/runtime where available. Then Cosmos blockchain, Polkadot, NEAR and other suitable existing providers before deeper parity. Hosted Azure stays pending by user instruction. Arbitrum V2 uses Web3Core; legacy custom-adapter gaps are documentation-only.
+2. Google Firestore CQL adapter builds; initial controls7/7 pass (no native acceptance yet). Cached emulator JAR/Java exist, old worktree checkpoint absent. Next: one fixed owned CQL project with persistent LocalState manifest/checkpoint; prove native3/2 and Mongo-paired5/4 C#/HTTP/browser, preserving historical originals. [Firestore stage](FIRESTORE_CQL_MVP.md). Then Cosmos blockchain, Polkadot, NEAR and other suitable existing providers before deeper parity. Hosted Azure stays pending by user instruction. Arbitrum V2 uses Web3Core; legacy custom-adapter gaps are documentation-only.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
