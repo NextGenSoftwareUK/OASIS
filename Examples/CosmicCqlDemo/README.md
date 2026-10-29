@@ -1069,3 +1069,13 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated
 Open http://127.0.0.1:5098/. **Query all records** shows Polygon3 + Mongo2 physical rows; **Query two-record subset** shows2 +2. The concrete Polygon adapter reads its own retained encrypted Web3Core contract records on local EVM chain31338. Mainnet and finality are outside this demo scope.
 
 C# and HTTP both use [IdentityFederationWalkthrough.cs](IdentityFederationWalkthrough.cs), which captures `source.Where(row => selectedIds.Contains(row.Id))`, intersects server-owned per-provider catalogues and calls `HolonManager.ExecuteFederationQueryAsync`. There is one common teaching host and no Polygon-specific HTTP query engine. Unsupported metadata, ordering and child expressions fail capability admission. Add `-VerifyOnly` for bounded checks; stop the host to clean only the verified temporary Mongo fixture. [Detailed scope](../../Docs/WIP/COSMIC%20ORM/POLYGON_CQL_MVP.md).
+
+## Arbitrum V2 + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated
+```
+
+Open http://127.0.0.1:5099/. Show **Query all records** (Arbitrum3 + Mongo2), then **Query two-record subset** (2+2); copies keep both source labels. BootLoader's shipping V2 factory selects ArbitrumOASIS_Web3Core. The concrete adapter uses its retained encrypted contract records on local EVM chain31338; this does not demonstrate hosted Arbitrum or rollup finality.
+
+The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures ID membership, intersects each server-owned catalogue, plans explicit provider scope and calls `HolonManager.ExecuteFederationQueryAsync`. HTTP calls that walkthrough too. Unsupported metadata/order/graph shapes fail before RPC. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. [Detailed scope](../../Docs/WIP/COSMIC%20ORM/ARBITRUM_CQL_MVP.md).

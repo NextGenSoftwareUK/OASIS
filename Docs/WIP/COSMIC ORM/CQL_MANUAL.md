@@ -1355,3 +1355,9 @@ For a runnable C#/HTTP/browser preset use `Scripts/TestHosts/Run-CosmicCqlDemoHu
 `PolygonOASIS` implements the common CQL provider contract through `Web3CoreOASISBaseProvider`. Captured ID equality/membership and Boolean combinations select at most100 native contract keys, intersected with an authoritative Polygon catalogue. Lookup/decryption uses the shipping provider/chain/contract-bound record format and one observed block number. Full metadata queries, sorting and graph parity remain deferred.
 
 Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated` (loopback5098), or add `-VerifyOnly` for native/SDK/HTTP checks. Mongo-paired all/subset presets yield5/4 physical rows, preserving provenance. This is a local EVM proof, not Polygon mainnet/finality/shared-snapshot acceptance. [Scope](POLYGON_CQL_MVP.md).
+
+## Arbitrum V2 bounded identity profile
+
+The shipping V2 factory selects ArbitrumOASIS_Web3Core, which shares the Polygon Web3Core CQL implementation while retaining Arbitrum-specific authority and encrypted-record context. At most100 catalogue-intersected IDs compile to native key reads at one observed block number. Metadata/order/graph and full parity are deferred.
+
+Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated` (5099), or add `-VerifyOnly`. Mongo-paired all/subset yield5/4 physical rows. This is local EVM acceptance, not hosted Arbitrum/rollup/finality/distributed-snapshot proof. [Guide](ARBITRUM_CQL_MVP.md).

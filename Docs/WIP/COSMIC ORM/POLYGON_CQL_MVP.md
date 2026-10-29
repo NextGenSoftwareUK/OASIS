@@ -5,7 +5,7 @@ Updated 29 October 2026. Local native + Mongo-paired C#/HTTP/browser MVP verifie
 ## Implemented and verified
 
 - Concrete `PolygonOASIS` inherits the CQL adapter in `Web3CoreOASISBaseProvider`. It uses the shipping Web3Core contract ABI, native `lookupHolon` key reads and existing provider/chain/contract-bound authenticated decoder.
-- `Web3CoreCqlCompiler` currently admits only the Polygon authority. Captured ID equality/membership, AND/OR, constants and paging are bounded to100 native keys and intersect the trusted server catalogue. Unsupported metadata, sorting, child graphs and unbounded shapes reject before RPC.
+- `Web3CoreCqlCompiler` now admits Polygon and Arbitrum V2 authorities, each requiring its exact catalogue. Captured ID equality/membership, AND/OR, constants and paging are bounded to100 native keys and intersect the trusted server catalogue. Unsupported metadata, sorting, child graphs and unbounded shapes reject before RPC.
 - Every lookup uses one observed block number. No mainnet, finality, reorg-immunity or cross-provider snapshot claim.
 - Shared Web3Core and Polygon builds pass. Initial controls7/7 pass (captured selection, access/authority mismatch, empty selection, five unsupported shapes, inactive execution and pre-cancellation). Report `TestResults/EthereumCqlCurrent/polygon-cql-controls.trx`.
 - Native acceptance1/1 passes through concrete Polygon save/read/query: three encrypted records, filtered Espresso/Latte subset, zero transactions during queries. Report `TestResults/EthereumCqlCurrent/polygon-cql-native.trx`. Failure-RPC and broader semantics remain unverified for this adapter.
@@ -13,7 +13,7 @@ Updated 29 October 2026. Local native + Mongo-paired C#/HTTP/browser MVP verifie
 
 ## Exact next step
 
-Continue Arbitrum V2 next, then Google, Cosmos blockchain, Polkadot and NEAR before deeper parity. BootLoader EvmProviderFactory.CreateArbitrum explicitly selects ArbitrumOASIS_Web3Core for HyperDrive V2; the custom adapter is the legacy-mode path. Reuse the V2 Web3Core contract/query implementation with authority-specific admission and native/Mongo-paired proof; document legacy gaps only.
+Arbitrum V2 MVP is now verified; continue Google, Cosmos blockchain, Polkadot and NEAR before deeper parity. BootLoader EvmProviderFactory.CreateArbitrum explicitly selects ArbitrumOASIS_Web3Core for HyperDrive V2; the custom adapter is the legacy-mode path. Reuse the V2 Web3Core contract/query implementation with authority-specific admission and native/Mongo-paired proof; document legacy gaps only.
 
 ## Reproduce native verification
 

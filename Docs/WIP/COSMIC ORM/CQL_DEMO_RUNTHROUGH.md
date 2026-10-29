@@ -76,3 +76,7 @@ Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Ethereum -Federated`, 
 ## Polygon + Mongo
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated`, then open http://127.0.0.1:5098/. Show the explicit Polygon/Mongo scope and identity-membership C# query. Click **Query all records** (5), then **Query two-record subset** (4); point out that identical IDs retain separate source-labelled physical copies. State that the concrete Polygon adapter uses a retained local EVM deployment, not mainnet. Stop through the demo shutdown route; the original chain/seed survives and only the verified temporary Mongo fixture is removed. [Scope](POLYGON_CQL_MVP.md).
+
+## Arbitrum V2 + Mongo
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated`, then open http://127.0.0.1:5099/. Show the C# identity-membership query, all5/subset4 rows and provider copies. Explain that the shipping V2 Arbitrum adapter runs on the retained local EVM chain, not a hosted rollup. Stop the demo to clean the owned Mongo fixture while preserving original native state. [Scope](ARBITRUM_CQL_MVP.md).

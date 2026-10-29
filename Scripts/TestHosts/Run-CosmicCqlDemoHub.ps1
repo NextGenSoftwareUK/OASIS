@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,17 +12,18 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon') -and $ArchiveCompletedDemo){throw 'Cosmos owns hash-preserved database report reuse; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum') -and $ArchiveCompletedDemo){throw 'Cosmos owns hash-preserved database report reuse; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
         'AWS' {'Run-CosmicAwsCqlNative.ps1'}
         'Ethereum' {'Run-CosmicEthereumCqlNative.ps1'}
         'Polygon' {'Run-CosmicEthereumCqlNative.ps1'}
+        'Arbitrum' {'Run-CosmicEthereumCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
@@ -32,6 +33,7 @@ if($Federated){
         'AWS' {'http://127.0.0.1:5096/'}
         'Ethereum' {'http://127.0.0.1:5097/'}
         'Polygon' {'http://127.0.0.1:5098/'}
+        'Arbitrum' {'http://127.0.0.1:5099/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
@@ -41,6 +43,7 @@ if($Federated){
         'AWS' {'Mongo + DynamoDB Local:5rows/4subset; bounded native keys, no hosted AWS or shared-snapshot claim'}
         'Ethereum' {'Mongo + retained local EVM chain31338:5rows/4subset; bounded keys, no mainnet or shared-snapshot claim'}
         'Polygon' {'Mongo + concrete Polygon adapter on local EVM chain31338:5rows/4subset; no mainnet or shared-snapshot claim'}
+        'Arbitrum' {'Mongo + shipping Arbitrum V2 Web3Core adapter on local EVM chain31338:5rows/4subset; no rollup/mainnet/finality claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -54,6 +57,7 @@ if($Federated){
         'AWS' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Ethereum' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Polygon' { & $path -Provider Polygon -Federated -Serve:(!$VerifyOnly) }
+        'Arbitrum' { & $path -Provider Arbitrum -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
