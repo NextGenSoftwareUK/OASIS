@@ -27,7 +27,10 @@ public class HolonMigrationMutationConsistencyTests
         var target = new HolonMigrationReplacementReport(plan, replacement, new[] { replacement },
             preview.Result.Receipts.SelectMany(r => r.Records).Select(r => r.Original).DistinctBy(r => r.HolonId)
                 .OrderBy(r => r.HolonId.ToString("D"), StringComparer.Ordinal)
-                .Select(r => new HolonMigrationReplacementRecord(r, false, null, HolonMigrationReplacementKind.EmptyAtObservation)));
+                .Select(r => new HolonMigrationReplacementRecord(r, true,
+                    new HolonReplicaHeadEvidence(context.OriginalSourceId, context.SourceStorage.Authority, r.VersionId,
+                        r.PreviousVersionId, r.Version, Guid.NewGuid(), false, new string('A',64), r.PortableContentDigest),
+                    HolonMigrationReplacementKind.MatchingOriginalLineage)));
         if (source != HolonReplicaHeadReadConsistency.NativeSnapshot || replacement != HolonReplicaHeadReadConsistency.NativeSnapshot)
             Assert.ThrowsException<ArgumentException>(() => new HolonMigrationMutationPreparation(plan, delivery, target, "mutation-admin"));
         var explicitPreparation = new HolonMigrationMutationPreparation(plan, delivery, target, "mutation-admin", source, replacement);
