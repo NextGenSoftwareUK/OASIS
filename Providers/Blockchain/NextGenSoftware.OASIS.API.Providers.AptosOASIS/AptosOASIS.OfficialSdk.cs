@@ -69,17 +69,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         Encoding.UTF8.GetBytes(providerKey)
                     },
                     new List<object>()));
-            if (values == null || values.Count == 0)
-                return default;
+            return DecodeRecordPayload<T>(values);
+        }
 
-            byte[] bytes = values[0] switch
+        private static T DecodeRecordPayload<T>(IReadOnlyList<object> values)
+        {
+            if (values == null || values.Count != 1)
+                throw new System.IO.InvalidDataException("Aptos get_record must return exactly one byte vector.");
+            var bytes = values[0] switch
             {
                 JArray array => array.ToObject<byte[]>(),
                 byte[] raw => raw,
                 string hex => Hex.FromHexInput(hex).ToByteArray(),
-                _ => throw new InvalidOperationException($"Unexpected Aptos record response: {values[0]?.GetType().FullName}")
+                _ => throw new System.IO.InvalidDataException("Aptos get_record returned a non-vector value.")
             };
-            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes));
+            if (bytes == null || bytes.Length == 0)
+                throw new System.IO.InvalidDataException("Aptos get_record returned an empty canonical payload.");
+            var record = JsonConvert.DeserializeObject<T>(new UTF8Encoding(false, true).GetString(bytes));
+            if (record is null)
+                throw new System.IO.InvalidDataException("Aptos get_record returned a null canonical record.");
+            return record;
         }
 
         private async Task<bool> HasRecordAsync(string recordType, string providerKey)
@@ -95,12 +104,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                         Encoding.UTF8.GetBytes(providerKey)
                     },
                     new List<object>()));
-            return values != null && values.Count > 0 && values[0] switch
+            return DecodeRecordPresence(values);
+        }
+
+        private static bool DecodeRecordPresence(IReadOnlyList<object> values)
+        {
+            if (values == null || values.Count != 1)
+                throw new System.IO.InvalidDataException("Aptos has_record must return exactly one Boolean.");
+            return values[0] switch
             {
                 bool value => value,
                 JValue value when value.Type == JTokenType.Boolean => value.Value<bool>(),
-                string value when bool.TryParse(value, out var parsed) => parsed,
-                _ => false
+                _ => throw new System.IO.InvalidDataException("Aptos has_record returned a non-Boolean value.")
             };
         }
 
