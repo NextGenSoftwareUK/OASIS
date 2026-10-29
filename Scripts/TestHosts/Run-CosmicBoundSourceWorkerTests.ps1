@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof)
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof,[switch]$ReconcilePrimaryConsistencyFailure)
 if ($ReconcileUnwrittenRoutingFixture -and ($ActiveDeliveryOutage -or $ReconcileActiveOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $ReconcileRoutingReadFailure -or $NativePrimaryConsistencyProof)) { throw 'Unwritten fixture reconciliation is exclusive.' }
 if ($ReconcileUnwrittenRoutingFixture -or $ReconcileRoutingReadFailure) { $FullDestinationOutage = $true }
 if ($ReconcileActiveOutage -and $ReconcileRoutingReadFailure) { throw 'Choose the exact reviewed outcome.' }
@@ -7,6 +7,11 @@ if ((@($ExhaustDeliveryBudget,$NativeRoutingProof,$NativePrimaryConsistencyProof
 if ($ExhaustDeliveryBudget -or $NativeRoutingProof -or $NativePrimaryConsistencyProof) { $ActiveDeliveryOutage = $true }
 if ($ActiveDeliveryOutage -and ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure)) { throw 'Choose fresh proof or original-outcome reconciliation.' }
 if ($ActiveDeliveryOutage -or $ReconcileActiveOutage) { $FullDestinationOutage = $true }
+if ($ReconcilePrimaryConsistencyFailure) {
+    if ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure -or $ReconcileUnwrittenRoutingFixture -or $ActiveDeliveryOutage -or $FullDestinationOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $NativePrimaryConsistencyProof) { throw 'Consistency reconciliation is exclusive.' }
+    $ReconcileRoutingReadFailure = $true
+    $FullDestinationOutage = $true
+}
 $ErrorActionPreference = 'Stop'
 function Read-OfflineJournal([string]$path) {
     # The writer publishes complete snapshots by rename. Share deletion so an
@@ -118,7 +123,7 @@ try {
             Get-Content -LiteralPath (Join-Path $work 'worker-offline-cleanup-unwritten.log') -Tail 4
         }
         elseif ($ReconcileActiveOutage -or $ReconcileRoutingReadFailure) {
-            $recoveryPhase = if ($ReconcileRoutingReadFailure) { 'reconcile-routing' } else { 'reconcile-active' }
+            $recoveryPhase = if ($ReconcilePrimaryConsistencyFailure) { 'reconcile-consistency' } elseif ($ReconcileRoutingReadFailure) { 'reconcile-routing' } else { 'reconcile-active' }
             $env:OASIS_OFFLINE_REPLICATION_PHASE = $recoveryPhase
             & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter 'FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped' --logger "trx;LogFileName=worker-offline-$recoveryPhase.trx" --results-directory $work *> (Join-Path $work "worker-offline-$recoveryPhase.log")
             if ($LASTEXITCODE) { throw 'Original active-outage reconciliation failed; preserve fixture.' }
