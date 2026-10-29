@@ -21,7 +21,11 @@ public partial class Neo4jNativeAvatarTests
     public async Task NativePreparedNeoSqliteMutationRestoresExactStartWithoutCutover()
         => await RunNativeBoundSourceReceipt(true, true);
 
-    private async Task RunNativeBoundSourceReceipt(bool bindOriginal, bool startMutation)
+    [TestMethod]
+    public async Task NativePreparedNeoSqliteGraphAdoptionRejectsContentDriftAndRollsBackEveryHead()
+        => await RunNativeBoundSourceReceipt(true, true, true);
+
+    internal async Task RunNativeBoundSourceReceipt(bool bindOriginal, bool startMutation, bool graphAdoption = false, bool resumeGraph = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -30,17 +34,38 @@ public partial class Neo4jNativeAvatarTests
         Assert.IsNotNull(root);
         var journal = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/source-receipt.pending.json");
         Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
-        Assert.IsFalse(File.Exists(journal), "Unfinished original outcomes require reconciliation.");
+        using var recoveryJournal = resumeGraph ? JsonDocument.Parse(await File.ReadAllTextAsync(journal)) : null;
+        if (resumeGraph)
+        {
+            Assert.AreEqual(Guid.Parse("7076260b-5ff3-490a-93a3-fbd05ef43087"), recoveryJournal!.RootElement.GetProperty("operation").GetGuid());
+            Assert.IsTrue(recoveryJournal.RootElement.GetProperty("graphAdoption").GetBoolean());
+            Assert.IsTrue(graphAdoption && startMutation && bindOriginal);
+        }
+        else Assert.IsFalse(File.Exists(journal), "Unfinished original outcomes require reconciliation.");
         var targetPath = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/source-receipt-target.db");
         Assert.IsFalse(File.Exists(targetPath), "Preserve any unfinished replica fixture.");
         var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
         using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var inspection = driver.AsyncSession();
         var input = new Holon { Id = Guid.NewGuid(), Name = "private-neo-original-receipt" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "private-adoption-child", ParentHolonId = input.Id };
+        if (graphAdoption) input.Children = new List<IHolon> { child };
+        if (resumeGraph)
+        {
+            var originalIds = recoveryJournal!.RootElement.GetProperty("selectedIds").EnumerateArray().Select(v => v.GetGuid()).ToArray();
+            Assert.AreEqual(2, originalIds.Length); input.Id = originalIds[0]; child.Id = originalIds[1]; child.ParentHolonId = input.Id;
+        }
+        var selectedIds = graphAdoption ? new[] { input.Id, child.Id } : new[] { input.Id };
         var operation = Guid.NewGuid(); var appendOperation = Guid.NewGuid(); var migration = Guid.NewGuid();
         var planFolder = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/barrier-plans");
         var actor = Guid.NewGuid();
-        var arguments = new { id = input.Id.ToString("D"), operation = operation.ToString("D") };
+        if (resumeGraph)
+        {
+            var original = recoveryJournal!.RootElement;
+            operation = original.GetProperty("operation").GetGuid(); appendOperation = original.GetProperty("appendOperation").GetGuid();
+            migration = original.GetProperty("migration").GetGuid(); actor = original.GetProperty("actor").GetGuid();
+        }
+        var arguments = new { id = input.Id.ToString("D"), ids = selectedIds.Select(v => v.ToString("D")).ToArray(), operation = operation.ToString("D") };
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
@@ -48,23 +73,44 @@ public partial class Neo4jNativeAvatarTests
             var expected = captured.Result;
             var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, startMutation ? new[] { "target" } : new[] { "target", "target-b", "\uE000", "\U0001F600" }, bindOriginal ? expected : null);
             var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, actor,
-                ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
-                ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
+                ProviderType.Neo4jOASIS, selectedIds.Select(id => new HolonWriteCondition(id, null)), enrollment),
+                ConditionalHolonOperation.Save, new[] { input }, saveChildren: graphAdoption);
+            if (!resumeGraph)
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, planFolder, actor, source = expected, bindOriginal, startMutation, targetPath });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, planFolder, actor, source = expected, bindOriginal, startMutation, graphAdoption, selectedIds, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
             Assert.IsFalse(absent.IsError, absent.Message + absent.Exception);
-            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
-            var saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
-            Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+            NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>> saved;
+            if (resumeGraph)
+            {
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, absent.Result.ReceiptState);
+                var originalOutbox = provider.GetBoundHolonReplicationOutbox(expected); Assert.IsFalse(originalOutbox.IsError);
+                var lineage = await ((IHolonReplicationLineageInventoryOutbox)originalOutbox.Result).ReadLineageObligationsAsync(
+                    new(expected, enrollment.SourceId, 2, requiredConsistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated));
+                Assert.IsFalse(lineage.IsError, lineage.Message + lineage.Exception);
+                var originalRow = lineage.Result.Obligations.Single(); Assert.AreEqual(operation, originalRow.OperationId);
+                var frozen = await ((IHolonReplicationPayloadAuditOutbox)originalOutbox.Result).ReadFrozenPayloadAsync(expected, originalRow,
+                    HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+                Assert.IsFalse(frozen.IsError, frozen.Message + frozen.Exception);
+                var transport = CommittedHolonReplicaPayload.Read(frozen.Result);
+                Assert.AreEqual(actor, transport.ActorId); Assert.AreEqual(operation, transport.OperationId);
+                saved = new(transport.Roots);
+                await File.WriteAllTextAsync(Path.Combine(root.FullName, "TestResults/Neo4jCurrent/graph-adoption-reviewed-source-journal.json"), await File.ReadAllTextAsync(journal));
+            }
+            else
+            {
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+                saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+                Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+            }
             async Task<string> Snapshot()
             {
                 var rows = await (await inspection.RunAsync(
-                    "MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN labels(n) AS labels, properties(n) AS values ORDER BY labels(n)[0]", arguments)).ToListAsync();
-                Assert.AreEqual(2 + enrollment.TargetIds.Count, rows.Count);
+                    "MATCH (n) WHERE (n:Holon AND n.Id IN $ids) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN labels(n) AS labels, properties(n) AS values ORDER BY labels(n)[0]", arguments)).ToListAsync();
+                Assert.AreEqual(selectedIds.Length + 1 + enrollment.TargetIds.Count, rows.Count);
                 return JsonSerializer.Serialize(rows.Select(row => new { labels = row["labels"], values = row["values"] }));
             }
             var before = await Snapshot();
@@ -76,7 +122,7 @@ public partial class Neo4jNativeAvatarTests
             var projected = await provider.ReadConditionalHolonReceiptEvidenceAsync(new(request, expected, comparison, new[] { input.Id }));
             Assert.IsFalse(projected.IsError, projected.Message + projected.Exception);
             Assert.AreEqual(input.Id, projected.Result.ReceiptEvidence.Records.Single().HolonId);
-            Assert.AreEqual(1, projected.Result.ReceiptEvidence.OriginalSelectedRecordCount);
+            Assert.AreEqual(selectedIds.Length, projected.Result.ReceiptEvidence.OriginalSelectedRecordCount);
             Assert.AreEqual(comparison.BindingFingerprint, projected.Result.ReceiptEvidence.ComparisonTargetFingerprint);
 
             Assert.AreSame(bindOriginal ? expected : null, request.Write.ReplicationEnrollment.SourceStorageIdentity);
@@ -85,7 +131,7 @@ public partial class Neo4jNativeAvatarTests
             var rejected = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, wrong);
             Assert.IsTrue(rejected.IsError); Assert.IsNull(rejected.Result);
             var foreign = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, Guid.NewGuid(),
-                ProviderType.Neo4jOASIS, request.Write.Conditions, enrollment), request.Operation, request.Roots, saveChildren: false);
+                ProviderType.Neo4jOASIS, request.Write.Conditions, enrollment), request.Operation, request.Roots, saveChildren: graphAdoption);
             var foreignOutcome = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(foreign, expected);
             Assert.IsTrue(foreignOutcome.IsError); Assert.IsNull(foreignOutcome.Result);
             Assert.AreEqual(before, await Snapshot(), "Evidence reads must not alter graph, receipt or pending queue.");
@@ -101,12 +147,12 @@ public partial class Neo4jNativeAvatarTests
             {
                 Assert.IsFalse((await replica.ActivateProviderAsync()).IsError);
                 var targetBinding = await replica.CaptureStorageIdentityAsync(); Assert.IsFalse(targetBinding.IsError);
-                var preflightRequest = new ConditionalHolonReceiptEvidenceRequest(request, expected, targetBinding.Result, new[] { input.Id });
+                var preflightRequest = new ConditionalHolonReceiptEvidenceRequest(request, expected, targetBinding.Result, selectedIds);
                 var missing = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
                 Assert.IsFalse(missing.IsError, missing.Message + missing.Exception);
                 Assert.AreEqual(HolonReplicationReceiptComparisonKind.MissingReplicaHead, missing.Result.Records[0].Kind);
                 var originalReplica = new CommittedHolonReplicaRequest(operation, enrollment.SourceId,
-                    ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: false);
+                    ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: graphAdoption);
                 var receiptRequest = new CommittedHolonReplicaReceiptReadRequest(originalReplica, targetBinding.Result);
                 var absentReceipt = await replica.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
                 Assert.IsFalse(absentReceipt.IsError, absentReceipt.Message + absentReceipt.Exception);
@@ -180,7 +226,8 @@ public partial class Neo4jNativeAvatarTests
                         var replacementReview = await HolonMigrationReplacementReview.ReadAsync(durablePlan, policy,
                             new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) }, pageSize: 1);
                         Assert.IsFalse(replacementReview.IsError, replacementReview.Message + replacementReview.Exception); Assert.IsFalse(replacementReview.IsSaved);
-                        Assert.AreEqual(HolonMigrationReplacementKind.MatchingOriginalLineage, replacementReview.Result.Records.Single().Kind);
+                        Assert.AreEqual(selectedIds.Length, replacementReview.Result.Records.Count);
+                        Assert.IsTrue(replacementReview.Result.Records.All(r => r.Kind == HolonMigrationReplacementKind.MatchingOriginalLineage));
                         var mutationParticipants = new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) };
                         if (startMutation)
                         {
@@ -230,12 +277,30 @@ public partial class Neo4jNativeAvatarTests
                                     head.Parameters.AddWithValue("$id", input.Id.ToString("D"));
                                     return (string)(await head.ExecuteScalarAsync())!;
                                 }
+                                if (graphAdoption)
+                                {
+                                    using var drift = nativeAdoption.CreateCommand();
+                                    drift.CommandText = "UPDATE Holon SET Name=$name WHERE Id=$id";
+                                    drift.Parameters.AddWithValue("$name", "owned-cas-drift"); drift.Parameters.AddWithValue("$id", child.Id.ToString("D"));
+                                    Assert.AreEqual(1, await drift.ExecuteNonQueryAsync());
+                                    var rejectedDrift = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
+                                    Assert.IsTrue(rejectedDrift.IsError, "Unchanged revision cannot certify changed current child content.");
+                                    Assert.AreEqual(adoption.OriginalSourceId, await NativeSource());
+                                    using var noReceipt = nativeAdoption.CreateCommand(); noReceipt.CommandText = "SELECT COUNT(*) FROM CosmicMigrationReplicaAdoption";
+                                    Assert.AreEqual(0L, (long)(await noReceipt.ExecuteScalarAsync())!);
+                                    drift.Parameters["$name"].Value = child.Name;
+                                    Assert.AreEqual(1, await drift.ExecuteNonQueryAsync());
+                                }
                                 using var failReceipt = nativeAdoption.CreateCommand();
                                 failReceipt.CommandText = "CREATE TRIGGER owned_adoption_receipt_failure BEFORE INSERT ON CosmicMigrationReplicaAdoption BEGIN SELECT RAISE(ABORT,'owned receipt failure'); END";
                                 await failReceipt.ExecuteNonQueryAsync();
                                 var failedAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
                                 Assert.IsTrue(failedAdoption.IsError);
                                 Assert.AreEqual(adoption.OriginalSourceId, await NativeSource(), "Head change must roll back when receipt insert fails.");
+                                using var rollbackGraph = nativeAdoption.CreateCommand();
+                                rollbackGraph.CommandText = "SELECT COUNT(*) FROM CosmicReplicaHead WHERE SourceId=$source";
+                                rollbackGraph.Parameters.AddWithValue("$source", adoption.OriginalSourceId);
+                                Assert.AreEqual((long)selectedIds.Length, (long)(await rollbackGraph.ExecuteScalarAsync())!, "Every head must roll back with the failed receipt.");
                                 using var removeFailure = nativeAdoption.CreateCommand(); removeFailure.CommandText = "DROP TRIGGER owned_adoption_receipt_failure";
                                 await removeFailure.ExecuteNonQueryAsync();
                                 var adopted = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
@@ -244,11 +309,30 @@ public partial class Neo4jNativeAvatarTests
                                 Assert.AreEqual(adoption.ReplacementSourceId, await NativeSource());
                                 var replayAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
                                 Assert.IsFalse(replayAdoption.IsError); Assert.IsFalse(replayAdoption.IsSaved);
-                                var current = await recoveredTarget.ReadHolonReplicaHeadsAsync(new(targetBinding.Result, new[] { input.Id }));
+                                var current = await recoveredTarget.ReadHolonReplicaHeadsAsync(new(targetBinding.Result, selectedIds));
                                 Assert.IsFalse(current.IsError, current.Message + current.Exception);
-                                Assert.AreEqual(adoption.Records.Single().Head.ProviderRevisionId, current.Result.Records.Single().Head.ProviderRevisionId);
-                                Assert.AreEqual(adoption.Records.Single().Head.VersionId, current.Result.Records.Single().Head.VersionId);
-                                Assert.AreEqual(adoption.Records.Single().Head.PortableContentDigest, current.Result.Records.Single().Head.PortableContentDigest);
+                                foreach (var expectedHead in adoption.Records)
+                                {
+                                    var actual = current.Result.Records.Single(r => r.HolonId == expectedHead.Expected.HolonId).Head;
+                                    Assert.AreEqual(expectedHead.Head.ProviderRevisionId, actual.ProviderRevisionId);
+                                    Assert.AreEqual(expectedHead.Head.VersionId, actual.VersionId);
+                                    Assert.AreEqual(expectedHead.Head.PortableContentDigest, actual.PortableContentDigest);
+                                    Assert.AreEqual(adoption.ReplacementSourceId, actual.SourceId);
+                                }
+                                if (graphAdoption)
+                                {
+                                    using var downgrade = nativeAdoption.CreateCommand();
+                                    downgrade.CommandText = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations.AddCosmicMigrationReplicaAdoption()
+                                        .DownOperations.OfType<Microsoft.EntityFrameworkCore.Migrations.Operations.SqlOperation>().Single().Sql;
+                                    await Assert.ThrowsExceptionAsync<Microsoft.Data.Sqlite.SqliteException>(async () => { await downgrade.ExecuteNonQueryAsync(); });
+                                    using var kept = nativeAdoption.CreateCommand(); kept.CommandText = "SELECT COUNT(*) FROM CosmicMigrationReplicaAdoption";
+                                    Assert.AreEqual(1L, (long)(await kept.ExecuteScalarAsync())!);
+                                    Assert.IsFalse((await recoveredTarget.DeActivateProviderAsync()).IsError);
+                                    Assert.IsFalse((await recoveredTarget.ActivateProviderAsync()).IsError);
+                                    var reopenedAdoption = await recoveredTarget.AdoptPreparedHolonReplicaAsync(adoption, targetOwner.Result.OwnerToken);
+                                    Assert.IsFalse(reopenedAdoption.IsError, reopenedAdoption.Message + reopenedAdoption.Exception);
+                                    Assert.IsFalse(reopenedAdoption.IsSaved);
+                                }
                             }
                             var historical = await recoveredTarget.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
                             Assert.IsFalse(historical.IsError); Assert.AreEqual(historicalReceipt.Result.AcknowledgementDigest, historical.Result.AcknowledgementDigest);
@@ -313,14 +397,14 @@ public partial class Neo4jNativeAvatarTests
             }
             foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })
                 if (File.Exists(path)) File.Delete(path);
-            await (await inspection.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", arguments)).ConsumeAsync();
+            await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", arguments)).ConsumeAsync();
             await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations DETACH DELETE n", new { operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).ConsumeAsync();
-            var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations) RETURN count(n) AS count", new { arguments.id, operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).SingleAsync();
+            var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id IN $ids) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations) RETURN count(n) AS count", new { arguments.id, arguments.ids, operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).SingleAsync();
             Assert.AreEqual(0L, remaining["count"].As<long>());
-            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId=$id) DETACH DELETE n",
-                new { migration = migration.ToString("D"), arguments.id })).ConsumeAsync();
-            var fenceRemaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId=$id) RETURN count(n) AS count",
-                new { migration = migration.ToString("D"), arguments.id })).SingleAsync();
+            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId IN $ids) DETACH DELETE n",
+                new { migration = migration.ToString("D"), arguments.id, arguments.ids })).ConsumeAsync();
+            var fenceRemaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId IN $ids) RETURN count(n) AS count",
+                new { migration = migration.ToString("D"), arguments.id, arguments.ids })).SingleAsync();
             Assert.AreEqual(0L, fenceRemaining["count"].As<long>());
             foreach (var suffix in new[] { "", ".pending", ".lock" })
             {
