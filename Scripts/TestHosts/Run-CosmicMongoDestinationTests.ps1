@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$MigrationPreflight,[switch]$SourceReceipt,[switch]$ReplicaLifecycle,[switch]$InspectReplicaLifecycleFailure,[switch]$ReconcileReplicaLifecycleFailure)
+param([switch]$SqlitePreflight,[switch]$MigrationPreflight,[switch]$SourceReceipt,[switch]$ReplicaLifecycle,[switch]$InspectReplicaLifecycleFailure,[switch]$ReconcileReplicaLifecycleFailure)
 if($PSBoundParameters.Count -gt 1){throw 'Choose one explicit mode.'}
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -15,15 +15,17 @@ Set-Location $root
     if(((& $runtime --version) -join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned runtime mismatch.'}
     Get-PSDrive C | Select-Object Free
     $project='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
+    if($SqlitePreflight){$project='OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}
     New-Item -ItemType Directory -Force -Path $work | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $root 'TestResults/SubscriptionUsageCurrent') | Out-Null
-    $filter=if($MigrationPreflight){'FullyQualifiedName~NativeReceiptPreflightClassifiesMissingCurrentLaterAndHardDeletedReplicaWithoutMutation'}elseif($SourceReceipt){'FullyQualifiedName~BoundOriginalReceiptRequiresActualNativeSourceWithoutRewritingIntent'}elseif($ReconcileReplicaLifecycleFailure){'FullyQualifiedName~ReconcileInspectedReplicaLifecycleSetupFailureWithoutReplayingWrites'}elseif($InspectReplicaLifecycleFailure){'FullyQualifiedName~InspectOriginalReplicaLifecycleFailureWithoutMutatingStores'}elseif($ReplicaLifecycle){'FullyQualifiedName~NativeCommittedReplicasBindSourceLineageGraphHeadAndReceipt'}else{'FullyQualifiedName~MongoDestinationCatalogueRetainsNativeMeaningAtomically'}
-    $reportName=if($MigrationPreflight){'mongo-receipt-preflight.trx'}elseif($SourceReceipt){'mongo-bound-source-receipt.trx'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.trx'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.trx'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.trx'}else{'mongo-destination-catalogue.trx'}
-    $logName=if($MigrationPreflight){'mongo-receipt-preflight.log'}elseif($SourceReceipt){'mongo-bound-source-receipt.log'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.log'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.log'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.log'}else{'mongo-destination-catalogue.log'}
-    $expectedCount=if($MigrationPreflight){1}elseif($SourceReceipt){2}elseif($ReconcileReplicaLifecycleFailure){1}elseif($InspectReplicaLifecycleFailure){1}elseif($ReplicaLifecycle){2}else{6}
+    $filter=if($SqlitePreflight){'FullyQualifiedName~NativeSqliteMongoPreflightDetectsIndependentTargetEditsAndHardDelete'}elseif($MigrationPreflight){'FullyQualifiedName~NativeReceiptPreflightClassifiesMissingCurrentLaterAndHardDeletedReplicaWithoutMutation'}elseif($SourceReceipt){'FullyQualifiedName~BoundOriginalReceiptRequiresActualNativeSourceWithoutRewritingIntent'}elseif($ReconcileReplicaLifecycleFailure){'FullyQualifiedName~ReconcileInspectedReplicaLifecycleSetupFailureWithoutReplayingWrites'}elseif($InspectReplicaLifecycleFailure){'FullyQualifiedName~InspectOriginalReplicaLifecycleFailureWithoutMutatingStores'}elseif($ReplicaLifecycle){'FullyQualifiedName~NativeCommittedReplicasBindSourceLineageGraphHeadAndReceipt'}else{'FullyQualifiedName~MongoDestinationCatalogueRetainsNativeMeaningAtomically'}
+    $reportName=if($SqlitePreflight){'sqlite-mongo-receipt-preflight.trx'}elseif($MigrationPreflight){'mongo-receipt-preflight.trx'}elseif($SourceReceipt){'mongo-bound-source-receipt.trx'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.trx'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.trx'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.trx'}else{'mongo-destination-catalogue.trx'}
+    $logName=if($SqlitePreflight){'sqlite-mongo-receipt-preflight.log'}elseif($MigrationPreflight){'mongo-receipt-preflight.log'}elseif($SourceReceipt){'mongo-bound-source-receipt.log'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.log'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.log'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.log'}else{'mongo-destination-catalogue.log'}
+    $expectedCount=if($SqlitePreflight){2}elseif($MigrationPreflight){1}elseif($SourceReceipt){2}elseif($ReconcileReplicaLifecycleFailure){1}elseif($InspectReplicaLifecycleFailure){1}elseif($ReplicaLifecycle){2}else{6}
     foreach($producer in @(
         'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj',
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
+        'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
         'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj',
         $project)) {
         & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly >> (Join-Path $work 'mongo-destination-test-build.log')

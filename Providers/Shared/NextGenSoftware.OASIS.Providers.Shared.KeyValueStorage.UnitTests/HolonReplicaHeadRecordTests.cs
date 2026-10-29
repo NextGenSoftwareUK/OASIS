@@ -83,4 +83,31 @@ public sealed class HolonReplicaHeadRecordTests
         Assert.ThrowsException<ArgumentOutOfRangeException>(()=>new HolonReplicaHeadReadResult(storage,rows,(HolonReplicaHeadReadConsistency)99));
     }
 
+    [DataTestMethod]
+    [DataRow(ProviderType.SQLLiteDBOASIS, "business")] [DataRow(ProviderType.MongoDBOASIS, "business")] [DataRow(ProviderType.Neo4jOASIS, "business")]
+    [DataRow(ProviderType.SQLLiteDBOASIS, "audit")] [DataRow(ProviderType.MongoDBOASIS, "audit")] [DataRow(ProviderType.Neo4jOASIS, "audit")]
+    [DataRow(ProviderType.SQLLiteDBOASIS, "revision")] [DataRow(ProviderType.MongoDBOASIS, "revision")] [DataRow(ProviderType.Neo4jOASIS, "revision")]
+    [DataRow(ProviderType.SQLLiteDBOASIS, "local")] [DataRow(ProviderType.MongoDBOASIS, "local")] [DataRow(ProviderType.Neo4jOASIS, "local")]
+    public void CurrentBodyMustMatchProtectedContentEvenWhenTheRevisionWasNotChanged(ProviderType target, string change)
+    {
+        var record = new Holon { Id = Guid.NewGuid(), Version = 2, VersionId = Guid.NewGuid(),
+            PreviousVersionId = Guid.NewGuid(), Name = "protected-original" };
+        var revision = Guid.NewGuid(); CosmicConcurrency.SetProviderRevisionId(record, target, revision);
+        var json = StoredRecordJson.Serialize(record);
+        var checksum = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
+        var head = HolonReplicaHeadRecord.Read(record.Id, target, "original-source", ProviderType.Neo4jOASIS.ToString(),
+            json, checksum, revision.ToString("D"), false);
+        var current = StoredRecordJson.DeserializeStored<Holon>(json);
+        if (change == "business") current.Name = "independent-change";
+        if (change == "audit") current.ModifiedByAvatarId = Guid.NewGuid();
+        if (change == "revision") CosmicConcurrency.SetProviderRevisionId(current, target, Guid.NewGuid());
+        if (change == "local")
+        {
+            current.ProviderUniqueStorageKey[target] = "local-key";
+            current.ProviderMetaData[target]["local-only"] = "local-observation";
+            HolonReplicaHeadRecord.ValidateCurrent(record.Id, target, current, head.Evidence);
+        }
+        else Assert.ThrowsException<InvalidDataException>(() => HolonReplicaHeadRecord.ValidateCurrent(record.Id, target, current, head.Evidence));
+    }
+
 }

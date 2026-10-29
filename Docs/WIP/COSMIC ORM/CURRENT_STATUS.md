@@ -17,14 +17,14 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Selected-record evidence binds original input, operation/actor, source/target identities, revisions and portable content; no business values returned.
 - Shared read-only preflight compares that evidence with protected target heads. Missing/untracked records, lineage/version/deletion/content conflicts and insufficient evidence are distinct.
 - NativeSnapshot is the target default. Neo targets require explicit ReadCommittedValidated; source and target reads are never a global snapshot.
-- Core4462/Shared1380/GraphQL1 pass. Native Mongo1 cohort covers missing/matching/later-version/hard-delete; SQLite2 covers untracked copies; Neo2 covers actual Neo -> SQLite missing/matching pairs.
-- Native cohorts preceded final report-only serialization layout; final format/digest binding is covered by Shared controls. [Exact proof and limitations](V2_LINEAGE_MIGRATION.md).
+- Retained Core4462/GraphQL1 compatibility; latest Shared1392/Neo619 controls pass. Native SQLite -> Mongo2, Neo/SQLite content/race3 and Mongo graph/head/receipt lifecycle2 pass.
+- Reproduced/fixed false matches when current business content changed but revision tokens did not. All three V2 readers now validate the actual current body against the protected content. [Exact proof and limitations](V2_LINEAGE_MIGRATION.md).
 - No migration writes, adoption/rebind, state clearing or operator authorization are enabled. Older type-only V2 heads/obligations remain a deployment gate.
 
 ## Exact next step
 
-1. Add native SQLite source -> Mongo receiver comparison, including hard-delete and independent target edits; then Neo-target explicit-consistency/race acceptance.
-2. Implement an immutable, authorized operator preview bound to exact source/target, old/new lineage, revisions, policy and obligations.
+1. Implement an immutable, authorized operator preview bound to source outbox inventory, original receipts, exact targets, old/new lineage, revisions, policy and obligations.
+2. Complete remaining ordered-pair and concurrent-change acceptance alongside preview validation; current native cases are scoped, not all-pair certification.
 3. Implement per-store compare-and-swap and durable idempotent migration receipts, then interrupted-cutover recovery and old-obligation disposition.
 4. Finish remaining provider-pair outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.
 
