@@ -13,7 +13,7 @@ on:
         type: boolean
         default: false
       nuget_packages:
-        description: Release all first-party NuGet packages
+        description: Release NuGet packages
         required: true
         type: boolean
         default: true
@@ -88,7 +88,7 @@ on:
         type: boolean
         default: false
       nuget_packages:
-        description: "Release all first-party NuGet packages"
+        description: "Release NuGet packages"
         type: boolean
         default: true
       oasis_runtime:
