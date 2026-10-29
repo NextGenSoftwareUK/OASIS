@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
     ///   avatars:index — JSON array of GUID strings
     ///   holons:index  — JSON array of GUID strings
     /// </summary>
-    public class MemcachedOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class MemcachedOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -93,18 +93,35 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        private async Task<T?> GetAsync<T>(string key) where T : class
+        private async Task<string?> GetStoredJsonAsync(string key)
         {
-            var val = await _client.GetValueAsync<string>(SafeKey(key));
-            return val == null ? null : Des<T>(val);
+            var result = await _client.GetAsync<string>(SafeKey(key));
+            if (!result.Success)
+            {
+                // Native binary protocol status 1 means KEY_ENOENT. Connection,
+                // timeout and server errors must not masquerade as an absent key.
+                if (result.StatusCode == 1 && result.Exception == null) return null;
+                throw new System.IO.IOException("Memcached read failed: " + result.Message, result.Exception);
+            }
+            return result.Value ?? throw new System.IO.InvalidDataException("Successful Memcached string read omitted its value.");
         }
 
-        private async Task SetAsync(string key, object value) => await _client.SetAsync(SafeKey(key), Ser(value), 0);
+        private async Task<T?> GetAsync<T>(string key) where T : class
+        {
+            var value = await GetStoredJsonAsync(key);
+            return value == null ? null : Des<T>(value);
+        }
+
+        private async Task SetAsync(string key, object value)
+        {
+            if (!await _client.SetAsync(SafeKey(key), Ser(value), 0))
+                throw new System.IO.IOException("Memcached did not acknowledge the cache write.");
+        }
         private async Task DeleteAsync(string key) => await _client.RemoveAsync(SafeKey(key));
 
         private async Task<List<string>> GetIndexAsync(string indexKey)
         {
-            var raw = await _client.GetValueAsync<string>(SafeKey(indexKey));
+            var raw = await GetStoredJsonAsync(indexKey);
             return raw == null ? new List<string>() : JsonSerializer.Deserialize<List<string>>(raw) ?? new List<string>();
         }
 
@@ -291,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 await SetAsync($"holon:{holon.Id}", holon);
                 await AddToIndexAsync("holons:index", holon.Id.ToString());
-                result.Result = holon; result.IsError = false; result.Message = $"MemcachedOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"MemcachedOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error saving holon: {ex.Message}"); }
             return result;
