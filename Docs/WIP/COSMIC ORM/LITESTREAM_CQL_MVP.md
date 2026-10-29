@@ -63,14 +63,51 @@ The verified13,870,760byte ZIP was removed after extraction/version check.
 provides Windows convenience binaries but does not officially support Windows;
 any acceptance here must retain that platform limit. No daemon/replica started yet.
 
+## Actual Windows replication/restore attempt — remains red
+
+The pinned actual daemon ran with the original source and a dedicated file replica.
+A child test waited for initial native LTX, committed one new probe table/marker,
+and observed a subsequent native LTX object. That test passed1s. Original holons
+were untouched. The daemon exited after the child; no Litestream process remains.
+
+However, upstream Windows directory sync calls report **Access is denied** for
+local LTX/replica directories and database close. Native restore produced a file
+but exited1 at output-directory sync. A successful child or usable recovered file
+cannot override these explicit native failures. Replication/restore acceptance
+stays red; do not discard durability errors or retry/reseed the probe.
+
+Read-only data inspection1passed194ms verifies all four original holon JSON hashes,
+the committed probe, and restored-file CQL3/2. This proves recovered contents only,
+not successful durable restore. The test's adapter activation touches only the
+separate restored file. Original source/replica/probe/restore are preserved.
+
+- Runner: `Scripts/TestHosts/Run-CosmicLitestreamReplication.ps1`.
+- Probe/restore tests: `LitestreamReplicationTests.cs` in integration project.
+- Data inspection: `TestResults/LitestreamCqlCurrent/litestream-restore-inspection.trx`.
+- Inspection SHA256: `C555E5CF85263A13FE8C0E50F38747EE3AF545F77BB5A1B906F5B543087C4442`.
+- Native log: `TestResults/LitestreamCqlCurrent/replication.log`.
+- Native log SHA256: `4A0A8D207198E1C7D8A01D4B2D08414F86B6C76AD6010BA907FFE753DA037A1C`.
+- Restore log: `TestResults/LitestreamCqlCurrent/restore.log`.
+- Restore log SHA256: `594740FD32B7BAF38858D594B29C821A0012C61C27BB7654EABFC60A4B2A1613`.
+- Persistent source/replica/shadow/restore/probe/journals total234462bytes.
+- `replication.pending.json` is deliberately retained; runner refuses replay.
+
+The first attempt's file URL was interpreted as invalid C:\C:\ and the child
+command consumed backslashes. The documented YAML replica.path form and absolute
+forward-slash child paths fixed parameter encoding; native source hashes were
+reverified before that corrected attempt. Its original admission is preserved as
+`replication-first-path-failure.json`. No probe existed at that earlier failure.
+
 ## Exact next step
 
-Run the pinned actual sidecar against the original source and a dedicated local
-file replica, then restore to a distinct owned path and prove matching records/CQL.
-Use upstream [file-replica workflow](https://litestream.io/guides/file/) and
-[restore contract](https://litestream.io/reference/restore/), preserve original
-source/replica/unknown outcomes, stop exact owned daemon and retain compact proof.
-Then add Mongo-paired C#/HTTP/browser. Remote storage/PITR/crash recovery remain
-separate gates; do not mark complete from local SQLite alone.
+Use the supported Linux Litestream binary in the existing WSL environment to
+investigate/verify replication with native Linux filesystem semantics. Windows
+convenience runtime remains a preserved failed platform outcome. No Linux dotnet
+runtime is currently on PATH/in the inspected standard install directories; avoid
+installing a duplicate SDK. Plan a verified SQLite backup/restore portability test
+with existing tools while preserving original source/probe identities, then CQL
+verification on the recovered file. Do not bypass fsync errors, reset original
+replica, replay writes or claim Linux proof from Windows results. Mongo-paired
+teaching coverage and remote/PITR/crash recovery remain separate open gates.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).

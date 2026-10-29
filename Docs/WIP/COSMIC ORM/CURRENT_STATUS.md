@@ -8,9 +8,10 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Litestream actual sidecar file replication/restore**, then Mongo-paired demo.
-Control14/local-native1/reopen1 pass; pinned0.5.17 runtime ready, daemon not started;
-replication/paired remain red ([scope](LITESTREAM_CQL_MVP.md)).
+**Next: Litestream supported-Linux replication admission in existing WSL**. Windows
+probe reached native replica, recovered CQL3/2 passes, but directory fsync/restore
+errors keep acceptance red. Original probe/replica/pending preserved; no daemon live.
+[Failure/proof/next step](LITESTREAM_CQL_MVP.md); Mongo-paired remains open.
 Upstash control17/hosted-native/repeat/SDK/HTTP/browser5/4 pass ([scope](UPSTASH_CQL_MVP.md)).
 Free scratch expires2026-10-31; preserve original/no reseed or reallocation.
 DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,
