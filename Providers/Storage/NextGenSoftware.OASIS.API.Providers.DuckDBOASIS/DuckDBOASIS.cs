@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
     ///
     /// Tables: oasis_avatars, oasis_avatar_details, oasis_holons
     /// </summary>
-    public class DuckDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class DuckDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -43,6 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
         public DuckDBOASIS(string connectionString = "Data Source=oasis.duckdb")
         {
             _connectionString = connectionString;
+            ProviderName = "DuckDBOASIS";
+            ProviderDescription = "Embedded DuckDB document storage for OASIS holons and avatars.";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DuckDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
@@ -1007,6 +1009,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
             return (json, u, e, p);
         }
 
+        private static T? DecodeStored<T>(string json) where T : class
+            => JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
         private static List<T> Read<T>(DbDataReader reader) where T : class
         {
             var list = new List<T>();
@@ -1014,7 +1019,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DuckDBOASIS
             {
                 var raw = reader.IsDBNull(0) ? null : reader.GetString(0);
                 if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = DecodeStored<T>(raw);
                 if (item != null) list.Add(item);
             }
             return list;
