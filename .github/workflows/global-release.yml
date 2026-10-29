@@ -28,7 +28,7 @@ on:
         type: boolean
         default: true
       edge_runtime:
-        description: Release the validated ]OASIS Edge Runtime bundle
+        description: Release OASIS Edge Runtime
         required: true
         type: boolean
         default: true
@@ -100,7 +100,7 @@ on:
         type: boolean
         default: true
       edge_runtime:
-        description: "Release the validated ]OASIS Edge Runtime bundle"
+        description: "Release OASIS Edge Runtime"
         type: boolean
         default: true
       ogengine_client:
