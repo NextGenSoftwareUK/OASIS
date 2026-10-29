@@ -109,4 +109,4 @@ See [STAR_CLI_Implemented_Commands.md](../../STAR_CLI_Implemented_Commands.md).
 
 ---
 
-**← Previous:** [Data API](Data-API.md) | **Next:** [Sandbox API](Sandbox-API.md) →
+**← Back to the [WEB4 API index](README.md)**

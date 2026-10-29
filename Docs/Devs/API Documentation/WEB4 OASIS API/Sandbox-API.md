@@ -31,4 +31,4 @@ Design, cleanup rules and every setting: [SANDBOX_DEMO_AVATARS.md](../../SANDBOX
 
 ---
 
-**← Previous:** [Native Data API](Native-Data-API.md) | **Next:** [CQL API](CQL-API.md) →
+**← Back to the [WEB4 API index](README.md)**
