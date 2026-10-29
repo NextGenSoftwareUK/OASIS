@@ -74,7 +74,7 @@ public class SqliteMongoReceiptPreflightTests
             await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
                 boundSource.Result, sourceBinding.Result, createOperation, "target");
             await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
-                createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+                createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);
 
             var matched = await HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(original));
             Assert.False(matched.IsError, matched.Message + matched.Exception);
@@ -105,7 +105,7 @@ public class SqliteMongoReceiptPreflightTests
                 var deleted = await source.ExecuteReplicatingHolonWriteAsync(deletion, enrollment); Assert.False(deleted.IsError, deleted.Message + deleted.Exception);
                 await Apply(deletion, deleted.Result.Single());
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
-                    createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+                    createOperation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);
 
                 var tombstone = await HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(deletion));
                 Assert.False(tombstone.IsError, tombstone.Message + tombstone.Exception);
