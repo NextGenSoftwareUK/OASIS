@@ -31,7 +31,7 @@ public class HolonReplicationMigrationPreviewTests
         }
     }
 
-    private sealed class Fixture
+    internal sealed class Fixture
     {
         public readonly CosmicStorageIdentity Source = new(ProviderType.SQLLiteDBOASIS, new string('A',64), Guid.NewGuid());
         public readonly CosmicStorageIdentity Target = new(ProviderType.MongoDBOASIS, new string('B',64), Guid.NewGuid());
@@ -47,7 +47,8 @@ public class HolonReplicationMigrationPreviewTests
         public HolonReplicaHeadReadConsistency ReplicaConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot;
         public HolonReplicaHeadReadConsistency SourceConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot;
         public Func<HolonReplicationOperationObligation, HolonReplicationReceiptPreflightReport, OASISResult<HolonReplicationPayloadReceiptProof>> PayloadProof;
-        public HolonReplicationRouteBinding Replacement => new(Source, Target, "new-route-policy");
+        public CosmicStorageIdentity ReplacementTarget;
+        public HolonReplicationRouteBinding Replacement => new(Source, ReplacementTarget ?? Target, "new-route-policy");
 
         public Fixture()
         {
