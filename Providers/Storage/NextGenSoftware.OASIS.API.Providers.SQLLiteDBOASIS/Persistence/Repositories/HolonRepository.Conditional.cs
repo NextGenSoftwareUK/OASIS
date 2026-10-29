@@ -74,6 +74,7 @@ public partial class HolonRepository
                     : failure is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
                     : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    : failure is SqliteMigrationFenceException fence ? fence.Code
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
                     : replicaRequest!=null && !admissionComplete && failure is ArgumentException ? "COSMIC_REPLICA_WRITE_INVALID"
                     : replicaRequest!=null ? "COSMIC_REPLICA_WRITE_FAILED":"COSMIC_CONDITIONAL_WRITE_FAILED",
@@ -133,6 +134,7 @@ public partial class HolonRepository
                         "The native receiver does not match the enrolled storage identity.");
             }
             enlisted = _dbContext.Database.UseTransaction(native);
+            SqliteHolonMigrationFence.AssertUnfenced(connection, native, ids.Select(Guid.Parse));
             token.ThrowIfCancellationRequested();
             using (var receipt = connection.CreateCommand())
             {

@@ -46,7 +46,7 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationLine
         using var connection=Open();using var transaction=connection.BeginTransaction(deferred:false);
         ValidateSource(connection, transaction);
         var now=Now();var until=now.Add(leaseDuration);
-        long sequence;Guid operation;string payload;int attempts;
+        long sequence;Guid operation;string payload;int attempts;CommittedHolonReplicaRequest delivery;
         using(var query=connection.CreateCommand())
         {
             query.Transaction=transaction;
@@ -59,10 +59,12 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationLine
             if(state=="InFlight" && reader.GetInt64(6)>now.Ticks || reader.GetInt64(7)>now.Ticks)
                 return new OASISResult<HolonDeliveryClaim>{Message="The oldest target obligation is leased or not yet due."};
             sequence=reader.GetInt64(0);operation=Guid.Parse(reader.GetString(1));payload=reader.GetString(2);
-            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10),targetId);
+            ValidateFrozenPayload(payload,reader.GetString(3),operation,reader.GetString(8),reader.GetString(9),reader.GetString(10),targetId,out delivery);
             if(reader.GetInt32(4)<0)throw new InvalidDataException("Invalid outbox attempt count.");
             attempts=checked(reader.GetInt32(4)+1);
         }
+        SqliteHolonMigrationFence.AssertUnfenced(connection, transaction, HolonGraphWritePlan.Create(delivery.Roots,
+            delivery.SaveChildren, delivery.Recursive, delivery.MaxChildDepth, 0).Nodes.Select(n => n.Snapshot.Id));
         var lease=Guid.NewGuid();using var command=connection.CreateCommand();command.Transaction=transaction;
         command.CommandText="UPDATE CosmicHolonOutbox SET DeliveryState='InFlight',LeaseToken=$lease,LeaseWorkerId=$worker,LeaseUntilUtcTicks=$until,AttemptCount=$attempts WHERE Sequence=$sequence";
         command.Parameters.AddWithValue("$lease",lease.ToString("D"));command.Parameters.AddWithValue("$worker",workerId);
@@ -120,10 +122,13 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationLine
         },cancellationToken);
 
     internal static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target)
+        => ValidateFrozenPayload(payload,digest,operation,source,authority,actor,target,out _);
+
+    private static NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding ValidateFrozenPayload(string payload,string digest,Guid operation,string source,string authority,string actor,string target,out CommittedHolonReplicaRequest delivery)
     {
         if(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)))!=digest)
             throw new InvalidDataException("The frozen outbox payload digest differs.");
-        var delivery=CommittedHolonReplicaPayload.ReadForTarget(payload,target);
+        delivery=CommittedHolonReplicaPayload.ReadForTarget(payload,target);
         if(delivery.OperationId!=operation || delivery.SourceId!=source || delivery.SourceAuthority!=ProviderType.SQLLiteDBOASIS
             || authority!=ProviderType.SQLLiteDBOASIS.ToString() || delivery.ActorId.ToString("D")!=actor)
             throw new InvalidDataException("The frozen outbox payload disagrees with its enrollment.");
@@ -175,6 +180,6 @@ public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationLine
         token.ThrowIfCancellationRequested();
         try{return Task.FromResult(action());}
         catch(OperationCanceledException)when(token.IsCancellationRequested){throw;}
-        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is SourceBindingException binding ? binding.Code : error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
+        catch(Exception error){return Task.FromResult(new OASISResult<T>{IsError=true,ErrorCount=1,ErrorCode=error is SourceBindingException binding ? binding.Code : error is SqliteMigrationFenceException fence ? fence.Code : error is InvalidDataException ? "COSMIC_OUTBOX_CORRUPT":"COSMIC_OUTBOX_OPERATION_FAILED",Message=error.Message,Exception=error});}
     }
 }

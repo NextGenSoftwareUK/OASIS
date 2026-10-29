@@ -2,6 +2,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 internal static class CosmicSqliteSchema
 {
+    internal const string CreateMigrationFence = "CREATE TABLE IF NOT EXISTS CosmicMigrationFence (MigrationId TEXT PRIMARY KEY NOT NULL, RequestJson TEXT NOT NULL, RequestHash TEXT NOT NULL CHECK(length(RequestHash)=64), OwnerToken TEXT NOT NULL, FenceState TEXT NOT NULL CHECK(FenceState IN ('Held','Cancelled')))";
     internal const string CreateDestinationBindings = "CREATE TABLE IF NOT EXISTS CosmicDestinationBinding (SourceBinding TEXT NOT NULL CHECK(length(SourceBinding)=64), TargetAuthority TEXT NOT NULL, RecordJson TEXT NOT NULL, RecordDigest TEXT NOT NULL CHECK(length(RecordDigest)=64), PRIMARY KEY(SourceBinding,TargetAuthority))";
     internal const string CreatePreparationTable = "CREATE TABLE IF NOT EXISTS CosmicWritePreparation (OperationId TEXT PRIMARY KEY NOT NULL, ActorId TEXT NOT NULL, PayloadJson TEXT NOT NULL, CreatedAtUtc TEXT NOT NULL)";
     internal const string CreateRevisionCollectionIndex = "CREATE INDEX IF NOT EXISTS IX_CosmicHolonRevision_CollectionVersion ON CosmicHolonRevision(Version, HolonId)";
