@@ -228,11 +228,12 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationLineage
             :cause is InvalidDataException ? prefix+"_CORRUPT":cause is TransientException ? prefix+"_CONCURRENT_WRITE":prefix+"_OPERATION_FAILED"};
 
     internal Task<OASISResult<HolonMigrationFenceObservation>> ExecuteMigrationFenceAsync(HolonMigrationFenceRequest request,
-        NeoHolonMigrationFence.Action action, Guid owner, CancellationToken token)
+        NeoHolonMigrationFence.Action action, Guid owner, CancellationToken token, string mutationDigest = null)
         => Execute(async tx => {
-            var observed = await NeoHolonMigrationFence.ApplyAsync(tx, request, action, owner, token).ConfigureAwait(false);
+            var observed = await NeoHolonMigrationFence.ApplyAsync(tx, request, action, owner, token, mutationDigest).ConfigureAwait(false);
             return (new OASISResult<HolonMigrationFenceObservation>(observed.Result) { IsLoaded = !observed.Changed, IsSaved = observed.Changed }, observed.Changed);
-        }, () => { if (request == null || action == NeoHolonMigrationFence.Action.Cancel && owner == Guid.Empty)
-            throw new ArgumentException("An exact native migration fence request and owner are required."); }, token,
+        }, () => { if (request == null || action is NeoHolonMigrationFence.Action.Cancel or NeoHolonMigrationFence.Action.BeginMutation && owner == Guid.Empty)
+            throw new ArgumentException("An exact native migration fence request and owner are required.");
+            if (action == NeoHolonMigrationFence.Action.BeginMutation) _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest); }, token,
             "COSMIC_MIGRATION_FENCE_STORAGE", "COSMIC_MIGRATION_FENCE");
 }

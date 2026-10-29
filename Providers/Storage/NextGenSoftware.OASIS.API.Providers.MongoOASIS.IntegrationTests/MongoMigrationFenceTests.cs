@@ -27,11 +27,13 @@ public partial class MongoStorageIdentityTests
             Assert.NotNull(root);
             extraJournal = Path.Combine(root.FullName, "LocalState/COSMIC/OwnedRoutingCurrent/mongo-fence.pending.json");
             Assert.False(File.Exists(extraJournal), "Preserve original fence outcome.");
-            var actor = Guid.NewGuid(); var migration = Guid.NewGuid(); var races = new[] { Guid.NewGuid(), Guid.NewGuid() };
+            var actor = Guid.NewGuid(); var migration = Guid.NewGuid();
+            var phaseMigration = Guid.NewGuid(); var phaseRaceMigration = Guid.NewGuid();
+            var phaseOps = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }; var phaseUnrelatedId = Guid.NewGuid(); var races = new[] { Guid.NewGuid(), Guid.NewGuid() };
             var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
             var ops = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
             using (var file = new FileStream(extraJournal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            { await JsonSerializer.SerializeAsync(file, new { owner = "cosmic-mongo-fence", database = First, actor, migration, races, ids, operations = ops }); file.Flush(true); }
+            { await JsonSerializer.SerializeAsync(file, new { owner = "cosmic-mongo-fence", database = First, actor, migration, races, ids, phaseMigration, phaseRaceMigration, phaseOps, phaseUnrelatedId, operations = ops }); file.Flush(true); }
             var binding = await source.CaptureStorageIdentityAsync(); Assert.False(binding.IsError);
             var enrollment = new HolonReplicationEnrollment("old-lineage", new[] { "target" });
             var initial = new Holon { Id = ids[0], Name = "fenced-source" };
@@ -106,6 +108,79 @@ public partial class MongoStorageIdentityTests
             // No remote delivery is attempted by this protocol fixture.
             var released = await outbox.Result.FinishAsync(claim.Result, HolonDeliveryOutcome.Retry, "FIXTURE_NO_DELIVERY", nextAttemptUtc: DateTime.UtcNow.AddMinutes(1));
             Assert.False(released.IsError, released.Message + released.Exception); Assert.True(released.Result);
+            // Mutation phase remains metadata only; all original business and
+            // delivery evidence stays protected, with no remote delivery sent.
+            var phaseRoute = new HolonReplicationEnrollment("phase-lineage", new[] { "phase-target" }, binding.Result);
+            var seed = new ConditionalHolonWriteRequest(new(phaseOps[0], actor, ProviderType.MongoDBOASIS,
+                new[] { new HolonWriteCondition(ids[3], null) }, phaseRoute), ConditionalHolonOperation.Save,
+                new[] { new Holon { Id = ids[3], Name = "phase-protected" } }, saveChildren: false);
+            var seeded = await source.ExecuteReplicatingHolonWriteAsync(seed, phaseRoute); Assert.False(seeded.IsError, seeded.Message + seeded.Exception);
+            var phase = new HolonMigrationFenceRequest(phaseMigration, actor, binding.Result, scope.PreviewDigest, scope.AuthorizationContextDigest,
+                new[] { ids[0], ids[1], ids[3] });
+            var phaseHeld = await source.AcquireHolonMigrationFenceAsync(phase); Assert.False(phaseHeld.IsError);
+            var phaseOwner = phaseHeld.Result.OwnerToken;
+            Assert.Equal("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", (await other.BeginHolonMigrationMutationAsync(new(phase, Guid.NewGuid(), new string('C',64)))).ErrorCode);
+            var firstStart = new HolonMigrationMutationStartRequest(phase, phaseOwner, new string('C',64));
+            using (var blocker = await client.StartSessionAsync())
+            {
+                blocker.StartTransaction(new TransactionOptions(readConcern: ReadConcern.Snapshot, writeConcern: WriteConcern.WMajority));
+                try
+                {
+                    var gate = client.GetDatabase(First).GetCollection<BsonDocument>("CosmicMigrationRecordGate");
+                    Assert.Equal(1L, (await gate.UpdateOneAsync(blocker, new BsonDocument("_id", ids[0].ToString("D")),
+                        new BsonDocument("$inc", new BsonDocument("Epoch", 1L)))).MatchedCount);
+                    Assert.Equal("COSMIC_MIGRATION_FENCE_CONCURRENT_CHANGE", (await other.BeginHolonMigrationMutationAsync(firstStart)).ErrorCode);
+                }
+                finally { await blocker.AbortTransactionAsync(); }
+            }
+            Assert.Equal(HolonMigrationFenceState.Held, (await source.ReadHolonMigrationFenceAsync(phase)).Result.State);
+            var starts = await Task.WhenAll(source.BeginHolonMigrationMutationAsync(firstStart),
+                other.BeginHolonMigrationMutationAsync(new(phase, phaseOwner, new string('D',64))));
+            Assert.Single(starts.Where(r => !r.IsError));
+            var started = starts.Single(r => !r.IsError); Assert.True(started.IsSaved);
+            Assert.Equal(HolonMigrationFenceState.MutationStarted, started.Result.State);
+            Assert.Contains(starts.Single(r => r.IsError).ErrorCode, new[] { "COSMIC_MIGRATION_FENCE_CONCURRENT_CHANGE", "COSMIC_MIGRATION_MUTATION_INTENT_REUSED" });
+            var committedStart = new HolonMigrationMutationStartRequest(phase, phaseOwner, started.Result.MutationDigest);
+            Assert.False((await source.BeginHolonMigrationMutationAsync(committedStart)).IsSaved);
+            var repeatedAcquire = await other.AcquireHolonMigrationFenceAsync(phase); Assert.False(repeatedAcquire.IsError);
+            Assert.Equal(HolonMigrationFenceState.MutationStarted, repeatedAcquire.Result.State);
+            Assert.Equal(committedStart.MutationDigest, repeatedAcquire.Result.MutationDigest); Assert.False(repeatedAcquire.IsSaved);
+            var foreignScope = new HolonMigrationFenceRequest(phaseMigration, Guid.NewGuid(), binding.Result, phase.PreviewDigest,
+                phase.AuthorizationContextDigest, phase.HolonIds);
+            Assert.Equal("COSMIC_MIGRATION_FENCE_SCOPE_MISMATCH", (await source.BeginHolonMigrationMutationAsync(new(foreignScope, phaseOwner, committedStart.MutationDigest))).ErrorCode);
+            var differentDigest = started.Result.MutationDigest == new string('C',64) ? new string('D',64) : new string('C',64);
+            Assert.Equal("COSMIC_MIGRATION_MUTATION_INTENT_REUSED", (await source.BeginHolonMigrationMutationAsync(new(phase, phaseOwner, differentDigest))).ErrorCode);
+            Assert.Equal("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", (await other.CancelHolonMigrationFenceAsync(phase, phaseOwner)).ErrorCode);
+            Assert.False((await source.DeActivateProviderAsync()).IsError);
+            Assert.Equal("COSMIC_MIGRATION_FENCE_NOT_READY", (await source.BeginHolonMigrationMutationAsync(committedStart)).ErrorCode);
+            Assert.False((await source.ActivateProviderAsync()).IsError);
+            var recoveredStart = await source.ReadHolonMigrationFenceAsync(phase); Assert.False(recoveredStart.IsError);
+            Assert.Equal(HolonMigrationFenceState.MutationStarted, recoveredStart.Result.State);
+            Assert.Equal(committedStart.MutationDigest, recoveredStart.Result.MutationDigest);
+            Assert.False((await source.BeginHolonMigrationMutationAsync(committedStart)).IsSaved);
+            foreach (var kind in new[] { ConditionalHolonOperation.Save, ConditionalHolonOperation.SoftDelete, ConditionalHolonOperation.HardDelete })
+            {
+                var row = StoredRecordJson.Project<Holon>(original); row.Name = "phase-must-reject";
+                var blocked = new ConditionalHolonWriteRequest(new(phaseOps[1], actor, ProviderType.MongoDBOASIS,
+                    new[] { new HolonWriteCondition(ids[0], CosmicConcurrency.GetProviderRevisionId(original, ProviderType.MongoDBOASIS)) }), kind, new[] { row }, saveChildren: false);
+                Assert.Equal("COSMIC_MIGRATION_RECORD_FENCED", (await other.ExecuteConditionalHolonWriteAsync(blocked)).ErrorCode);
+            }
+            Assert.Equal("COSMIC_MIGRATION_RECORD_FENCED", (await source.ApplyBoundCommittedHolonReplicaAsync(replica, binding.Result)).ErrorCode);
+            var phaseOutbox = source.GetBoundHolonReplicationOutbox(binding.Result); Assert.False(phaseOutbox.IsError);
+            Assert.Equal("COSMIC_MIGRATION_RECORD_FENCED", (await phaseOutbox.Result.ClaimNextAsync("phase-target", "phase-worker", TimeSpan.FromMinutes(1))).ErrorCode);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, (await source.ReadCommittedHolonReplicaReceiptAsync(new(replica, binding.Result))).Result.ReceiptState);
+            var outside = new ConditionalHolonWriteRequest(new(phaseOps[2], actor, ProviderType.MongoDBOASIS,
+                new[] { new HolonWriteCondition(phaseUnrelatedId, null) }), ConditionalHolonOperation.Save,
+                new[] { new Holon { Id = phaseUnrelatedId, Name = "phase-unrelated" } }, saveChildren: false);
+            Assert.False((await other.ExecuteConditionalHolonWriteAsync(outside)).IsError);
+            var racePhase = new HolonMigrationFenceRequest(phaseRaceMigration, actor, binding.Result,
+                scope.PreviewDigest, scope.AuthorizationContextDigest, new[] { ids[2] });
+            var raceHeld = await source.AcquireHolonMigrationFenceAsync(racePhase); Assert.False(raceHeld.IsError);
+            var competing = await Task.WhenAll(source.BeginHolonMigrationMutationAsync(new(racePhase, raceHeld.Result.OwnerToken, new string('E',64))),
+                other.CancelHolonMigrationFenceAsync(racePhase, raceHeld.Result.OwnerToken));
+            Assert.Single(competing.Where(r => !r.IsError));
+            var finalRace = await source.ReadHolonMigrationFenceAsync(racePhase); Assert.False(finalRace.IsError);
+            Assert.True(finalRace.Result.State is HolonMigrationFenceState.MutationStarted or HolonMigrationFenceState.Cancelled);
             // A lost admission namespace/marker must not be silently recreated
             // in the presence of retained fence history, even after cancellation.
             await client.GetDatabase(First).DropCollectionAsync("CosmicMigrationRecordGate");

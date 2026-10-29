@@ -9,6 +9,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     internal Task<OASISResult<HolonMigrationFenceObservation>> ExecuteMigrationFenceAsync(HolonMigrationFenceRequest request,
-        MongoHolonMigrationFence.Action action, Guid owner, CancellationToken token)
-        => MongoHolonMigrationFence.ExecuteAsync(_dbContext.MongoDB, request, action, owner, token);
+        MongoHolonMigrationFence.Action action, Guid owner, CancellationToken token, string mutationDigest = null)
+        => MongoHolonMigrationFence.ExecuteAsync(_dbContext.MongoDB, request, action, owner, token, mutationDigest);
 }

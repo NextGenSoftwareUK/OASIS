@@ -22,11 +22,11 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Replacement review classifies empty, matching original/new lineage, untracked data, foreign ownership and version/deletion/content conflicts. It checks exact native identity/selection/consistency and held owners before/after. Matching or empty observations grant no adoption/overwrite permission.
 - No migration data mutation or HTTP execution endpoint enabled. Native CAS, durable started/uncertain phases, historical-receipt admission and cutover/recovery remain red. Older type-only V2 routes and broader graph/multi-version/delete/provider-pair scope remain gates. [Detailed proof/history](V2_LINEAGE_MIGRATION.md).
 
-SQLite native mutation-start marker now passes2/2 (upgrade/recreation, same-intent idempotence, cancellation/downgrade guard, protected writes/claims and start/cancel race). Core4462/DNA19/GraphQL1 pass. Core276b780 is pushed. Marker support is SQLite only; Mongo/Neo and cross-store mutation admission remain open. No business cutover enabled.
+Native mutation-start capability now implemented on SQLite/Mongo/Neo: SQLite2/2 retained; Mongo2/2 and Neo2/2 pass intent/owner binding, competing start/cancel, recreation, protected writes/claims and readable history. Neo625/625 controls pass; Shared1567/Core4462/DNA19/GraphQL1 retained. Cross-store mutation preparation/admission and data cutover remain open. No business cutover enabled.
 
 ## Exact next step
 
-1. Implement the same native mutation-start/intent binding and cancellation guard on Mongo and Neo, then independently authorize/bind complete mutation preparation before any cross-store start. SQLite marker alone is not cutover permission.
+1. Independently authorize and bind complete mutation preparation (original plan plus current delivery/replacement observations) before any cross-store start. Require all native capabilities and durable recovery of partial/unknown starts; per-store markers alone are not cutover permission.
 2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
 3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
 
