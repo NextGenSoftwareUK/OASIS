@@ -223,7 +223,7 @@ jobs:
           -AdvanceWeb4ToWeb6ApiVersions $${{ inputs.advance_api_versions }}
           -AdvanceWeb7ToWeb10ApiVersions $${{ inputs.advance_api_versions }}
       - name: Commit API version changes
-        if: inputs.advance_api_versions
+        if: inputs.publish && inputs.advance_api_versions
         shell: bash
         run: |
           set -euo pipefail
