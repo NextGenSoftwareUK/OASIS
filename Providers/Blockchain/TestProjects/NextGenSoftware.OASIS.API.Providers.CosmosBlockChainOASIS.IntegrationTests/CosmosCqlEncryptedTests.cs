@@ -48,18 +48,6 @@ public class CosmosCqlEncryptedTests
             Guid.Parse("20000000-0000-0000-0000-000000000002") };
         var probe = new Probe(shape);
         using var storage = new PersistedPrivateKeyValueBackend(probe, () => new byte[32]);
-        for (var index = 0; index < ids.Length; index++)
-        {
-            if (shape == "absent" && index == 1) continue;
-            var row = new Holon { Id = shape == "foreign" && index == 1 ? Guid.NewGuid() : ids[index],
-                Name = "coffee", CreatedByAvatarId = actor,
-                DeletedDate = shape == "deleted" && index == 1 ? new DateTime(2026,10,29,0,0,0,DateTimeKind.Utc) : DateTime.MinValue };
-            await storage.PutAsync("oasis/holon/" + ids[index].ToString("D"), OasisJson.Serialize(row));
-        }
-        var physicalKeys = probe.Values.Keys.ToArray();
-        Assert.IsFalse(probe.Values.Values.Any(value => value.Contains("coffee", StringComparison.Ordinal)),
-            "The controlled source must exercise actual encrypted records, not plaintext fixtures.");
-
         // Inject only the transport beneath the existing encrypted storage wrapper;
         // production query, key layout, codec, access and error handling all run.
         using var template = new CosmosBlockChainOASIS(rpcEndpoint: "http://127.0.0.1:1",
@@ -70,8 +58,28 @@ public class CosmosCqlEncryptedTests
         using var provider = (CosmosBlockChainOASIS)constructor.Invoke(new[] { sdk, storage, "", "owned-unused", "utest", (object)6 });
         var activated = await provider.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
-        // Activation checks existing encrypted key material. Only subsequent
-        // query I/O is subject to this test's no-enumeration/fault boundary.
+        // Seed through the shipping SaveHolon path, so this test cannot repeat
+        // a query's incorrect guess about the canonical storage-key format.
+        var keyBuilder = typeof(KeyValueStorageProviderBase).GetMethod("RecordKey", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        for (var index = 0; index < ids.Length; index++)
+        {
+            if (shape == "absent" && index == 1) continue;
+            var row = new Holon { Id = ids[index], Name = "coffee", CreatedByAvatarId = actor, IsNewHolon = true };
+            var saved = await provider.SaveHolonAsync(row, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Exception?.ToString() ?? saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+            if (index == 1 && shape is "foreign" or "deleted")
+            {
+                var actualKey = (string)keyBuilder.Invoke(provider, new object[] { "holon", ids[index] })!;
+                if (shape == "foreign") row.Id = Guid.NewGuid();
+                else row.DeletedDate = new DateTime(2026,10,29,0,0,0,DateTimeKind.Utc);
+                await storage.PutAsync(actualKey, OasisJson.Serialize(row));
+            }
+        }
+        var physicalKeys = probe.Values.Keys.ToArray();
+        Assert.IsFalse(probe.Values.Values.Any(value => value.Contains("coffee", StringComparison.Ordinal)),
+            "The controlled source must exercise actual encrypted records, not plaintext fixtures.");
+        // Only subsequent query I/O is subject to the no-enumeration/fault boundary.
         probe.Reads.Clear();
         probe.QueryStarted = true;
         if (shape == "corrupt") probe.Values[physicalKeys[1]] = "invalid-ciphertext";
