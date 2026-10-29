@@ -1,4 +1,4 @@
-# Sui CQL MVP - native/restart pass, paired demo pending
+# Sui + Mongo CQL MVP - native/restart/paired/browser verified
 
 29 October 2026. SuiOASIS implements ICosmicQueryStorageProvider using its existing
 persisted encrypted backend and official Mysten SDK bridge. No parallel transport.
@@ -82,12 +82,39 @@ launch shells73028/52392 are terminal. No Sui processes/9000/9123 listeners rema
 Retain original ledger/deployment and new source/preparations together. Generated
 logs/TRX/compiled artifacts stay in TestResults/source build output; no raw docs.
 
-## Exact next step
+## Paired SDK/HTTP/browser proof and demo
 
-Add Mongo-paired C#/HTTP/browser5/4 against the admitted source. Resume the original
-chain with start-sui-test-network.sh --reuse-only; never genesis/reset/reseed/replay.
-Verify exact owned Mongo cleanup and retain all original signed preparations.
-Inventory stays red until paired/browser acceptance and preset wiring are verified.
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Sui -Federated
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Sui -Federated -VerifyOnly
+```
+
+The runner owns reuse-only startup/shutdown of the existing chain and exact Mongo
+fixture. Browser localhost5110. One HolonManager query returns Sui3+Mongo2=5 physical
+rows; selecting two IDs returns4, preserving source copies. Queries are bounded
+identity predicates; arbitrary metadata/content queries remain outside this MVP.
+
+SuiMongoCqlNativeTests passes1/1,zero skips,48s. SDK/HTTP verify5/4, physical provenance,
+foreign Mongo ID exclusion, invalid actor/preset rejection and inactive-Sui HTTP503
+without rows. Browser independently verified full/subset counts and provenance.
+`TestResults/SuiCqlCurrent/sui-mongo-federation.trx`, SHA256
+`FEBA1C7721118D18973234821E09B3B46FA3745DF1DFD5BC8057BF2E842359DC`.
+Native preflight1/1,4s, `sui-cql-native.trx`, SHA256
+`F054E1E6DA341417AD8E587A434948DB03F1AC8FC4F663FFB1849AD091FABD2B`.
+Screenshot `sui-mongo-browser.jpg` in the same TestResults directory.
+
+Hub routing check passes8 single/16 plans,19 paired/38 plans,24 paired rejections,
+3 archive rejections, listeners unchanged (`hub-routing.log`). The shared C# and
+HTTP teaching files provide spaced code/comments and explicit Sui provider scope.
+
+After browser shutdown same runner32601 exited0; exact temporary Mongo DB
+`cosmic_cql_mongo_sui_demo` was content/identity-validated and dropped, pending/ready
+journals removed. Owned Sui stopped through the exact-owner helper; no Sui process,
+9000/9123 native sockets or27029/5110 teaching listeners remain. Seed/source/5 signed
+preparations retained unchanged; source metadata remains15045bytes. No new downloads.
+
+Continue other red provider MVPs. Preserve scope: no mainnet/finality/full ORM,
+child/history/atomic-write/HyperDrive certification follows from this bounded demo.
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
