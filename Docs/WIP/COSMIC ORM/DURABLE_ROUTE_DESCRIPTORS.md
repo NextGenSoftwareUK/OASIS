@@ -423,3 +423,35 @@ pairs, full deployed worker scheduling/lifecycle, audited operator rebind and
 old V2 lineage migration remain open. No automatic reset/relabel/replay is allowed.
 
 - `TestResults/OwnedRoutingCurrent/worker-offline-default-budget.trx`: 1passed/0failed/0skipped; SHA256 `FC477654CCCDE7F9163C0E82C95A8CFC22D7C42F4F69B12BE09D80BC2002A7B7`.
+
+## Neo4j source with a natively locked SQLite destination
+
+Under one producer/consumer build lease run
+`Scripts/TestHosts/Run-ReusableNeo4jTests.ps1 -CosmicSqliteDestinationLock`.
+The pinned retained Neo4j runtime and the fixed hosted-restart target SQLite file
+are reused. Both source IDs and operation IDs are journaled before business writes.
+A second native SQLite connection holds an immediate transaction; the real replica
+provider has a1second busy timeout. There is no injected transport failure or
+managed stand-in for the native replica write.
+
+Native scenario1/1 passes in8seconds. While SQLite is write-locked, a second owned
+Neo save commits and enrolls against the established immutable destination catalogue.
+A real bound dispatch attempts the first native replica write, preserves its busy
+exception/COSMIC_REPLICA_WRITE_FAILED, and retains Pending1 with recovery evidence
+that does not mark an ambiguous native commit. The later journaled operation is
+Pending0: it never overtakes the failed head.
+
+After the lock is disposed, the fixture waits the specified first retry interval.
+The shipping hosted worker delivers the original head at attempt2 and the later
+save at attempt1. Both carry the source version/owner. Recreating native providers
+and running the shipping worker again preserves completion and both target
+revision IDs. The existing fixture also checks frozen payload preservation.
+
+Verified cleanup removes only the two journaled test-owned Neo Holons and their
+operation receipts/outbox, the fixture's destination approval, and disposed SQLite
+files/journal. Shared Neo graph/runtime/sequence survive; the retained container is
+stopped and its WSL attachment joined. This is a native SQLite write-lock outage,
+not file loss, disk exhaustion or a stopped Neo process. Other pair/failure classes,
+operator rebind and old V2 lineage migration remain open.
+
+- `TestResults/Neo4jCurrent/neo4j-sqlite-destination-lock-current.trx`: 1passed/0failed/0skipped; SHA256 `2E4B4966C77EF5C4310A64DF6F6045C5A7A2A95D1E83832449A1A02DF85C072E`.
