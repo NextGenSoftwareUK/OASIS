@@ -36,7 +36,7 @@ public partial class MongoStorageIdentityTests
     private static async Task VerifyNativeThreeStoreBarrierRecovery(Provider source, Provider target,
         CosmicStorageIdentity sourceBinding, CosmicStorageIdentity targetBinding, IHolonReplicationRouteInventoryOutbox outbox,
         ConditionalHolonWriteRequest original, HolonReplicationEnrollment enrollment, IHolon acknowledged,
-        Func<Task<OASISResult<HolonReplicationReceiptPreflightReport>>> readReceipt)
+        Func<Task<OASISResult<HolonReplicationReceiptPreflightReport>>> readReceipt, bool foreignReplacement)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !File.Exists(Path.Combine(root.FullName, "Scripts/TestHosts/Run-CosmicMongoDestinationTests.ps1"))) root = root.Parent;
@@ -46,16 +46,25 @@ public partial class MongoStorageIdentityTests
         var journal = Path.Combine(folder, "mongo-barrier-coordinator.pending.json");
         var planFolder = Path.Combine(folder, "barrier-plans");
         Assert.False(File.Exists(database)); Assert.False(File.Exists(journal));
-        var migration = Guid.NewGuid(); var blockedReplacementOperation = Guid.NewGuid(); var actor = original.Write.ActorId;
+        var migration = Guid.NewGuid(); var replacementSeedOperation = Guid.NewGuid(); var blockedReplacementOperation = Guid.NewGuid(); var actor = original.Write.ActorId;
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(file, new { migration, blockedReplacementOperation, actor, database, planFolder, operation = original.Write.OperationId,
+            await JsonSerializer.SerializeAsync(file, new { migration, replacementSeedOperation, foreignReplacement, blockedReplacementOperation, actor, database, planFolder, operation = original.Write.OperationId,
                 holon = acknowledged.Id, sourceBinding, targetBinding }); file.Flush(true);
         }
         using (var replacement = new Sqlite($"Data Source={database};Pooling=False"))
         {
             Assert.False((await replacement.ActivateProviderAsync()).IsError);
             var replacementBinding = await replacement.CaptureStorageIdentityAsync(); Assert.False(replacementBinding.IsError);
+            if (foreignReplacement)
+            {
+                // Deliberate private fixture: same business data, foreign lineage.
+                // Matching content must never become permission to adopt this head.
+                var seeded = await replacement.ApplyBoundCommittedHolonReplicaAsync(new(replacementSeedOperation,
+                    "owned-foreign-replacement-" + migration, ProviderType.MongoDBOASIS, actor, original.Operation,
+                    new[] { acknowledged }, saveChildren: false), replacementBinding.Result);
+                Assert.False(seeded.IsError, seeded.Message + seeded.Exception);
+            }
             var transport = new CommittedHolonReplicaRequest(original.Write.OperationId, enrollment.SourceId,
                 ProviderType.MongoDBOASIS, actor, original.Operation, new[] { acknowledged }, saveChildren: false);
             var receiptRequest = new CommittedHolonReplicaReceiptReadRequest(transport, targetBinding);
@@ -109,6 +118,10 @@ public partial class MongoStorageIdentityTests
                 Assert.Equal(HolonMigrationDeliveryObservationKind.OriginalReceiverCommitted,
                     deliveryReview.Result.Obligations.Single(r => r.TargetId == "target").Kind);
                 Assert.Equal(3, deliveryReview.Result.Obligations.Count(r => r.Kind == HolonMigrationDeliveryObservationKind.OtherAffectedRoute));
+                var replacementReview = await HolonMigrationReplacementReview.ReadAsync(plan, policy, recoveredParticipants, pageSize: 1);
+                Assert.False(replacementReview.IsError, replacementReview.Message + replacementReview.Exception); Assert.False(replacementReview.IsSaved);
+                Assert.Equal(foreignReplacement ? HolonMigrationReplacementKind.ForeignLineage : HolonMigrationReplacementKind.EmptyAtObservation,
+                    Assert.Single(replacementReview.Result.Records).Kind);
                 // No migration data has been changed: explicit exact-owner pre-mutation cancellation is valid.
                 foreach (var participant in recoveredParticipants)
                 {

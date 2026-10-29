@@ -15,8 +15,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public partial class MongoStorageIdentityTests
 {
-    [Fact]
-    public async Task NativeReceiptPreflightClassifiesMissingCurrentLaterAndHardDeletedReplicaWithoutMutation()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task NativeReceiptPreflightClassifiesMissingCurrentLaterAndHardDeletedReplicaWithoutMutation(bool foreignReplacement)
     {
         await RunOwned(async (client, source, _) =>
         {
@@ -83,7 +85,7 @@ public partial class MongoStorageIdentityTests
                         create.Write.OperationId, enrollment.SourceId, ProviderType.MongoDBOASIS, actor, create.Operation,
                         new[] { first }, saveChildren: false), targetBinding.Result)), originalWrite: create);
                 await VerifyNativeThreeStoreBarrierRecovery(source, target, sourceBinding.Result, targetBinding.Result,
-                    boundSource.Result, create, enrollment, first, () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(create)));
+                    boundSource.Result, create, enrollment, first, () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(create)), foreignReplacement);
                 Assert.Equal(before, await Snapshot());
                 var edit = StoredRecordJson.Project<Holon>(first); edit.Name = "later-preflight-value";
                 var update = Original(edit, CosmicConcurrency.GetProviderRevisionId(first, ProviderType.MongoDBOASIS));

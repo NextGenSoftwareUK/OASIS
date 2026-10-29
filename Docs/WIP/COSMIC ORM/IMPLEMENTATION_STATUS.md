@@ -5,29 +5,18 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
-SQLite/Mongo/Neo record-barrier primitives implemented. Shared1506/1506; native SQLite2,
-Mongo2 plus1 preview regression, Neo controlled625/625 and native2/2 pass scoped cases.
-Neo native transaction inspection proves overlapping save/replay and claim operations
-wait for acquisition commit then reject; no remote delivery sent. Unrelated writes and
-historical reads remain available. Paired-store admission, preexisting in-flight work,
-unknown outcomes and migration mutation/recovery remain open.
+Shared **1561/1561**; native Mongo three-store **2/2** and Neo + SQLite **2/2** pass.
+Native record barriers, exact administrative preview admission, persisted original evidence,
+partial/lost-ack recovery and one actual coordinator process-crash boundary are verified in
+those recorded scopes. Read-only delivery review retains current lease/state evidence and
+other routes. Replacement review distinguishes empty/matching/foreign/local/conflicting
+records without adoption or writes; exact consistency and held owners remain checked.
 
-Acquire-only shared coordinator: Shared1516/1516 (10 new controls), exact reviewed scope
-and current administrator grant, complete native read-before-acquire, deduplicated physical
-stores, partial/unknown receipt recovery and redacted progress. Native Neo+SQLite2/2 proves held replay protection and fresh-provider recovery; Mongo-preflight1/1 adds three native stores and controlled lost-ack recovery;
-persisted original evidence now passes Shared1529/1529 plus both native fixtures.
-Actual coordinator process kill after first native commit and fresh-process recovery pass Neo+SQLite2/2.
-Deployed WEB4/server/power restart, other boundaries and real transport loss remain open; no cutover or compensation enabled.
-
-Post-barrier read-only delivery review passes Shared1542/1542 (13 new controls), Mongo1
-and Neo+SQLite2 native cases. Fresh current lineage, frozen graph membership, historical
-acknowledgements and hidden-state digests retained; no claim/finish/clear or cutover.
-
-Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
-Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.
-Physical bindings, graph membership/content/revisions, obligation state and explicit
-read consistency are checked; reviewed evidence enters the operator grant digest.
-No migration writes or execution endpoint enabled. [Proof and limits](V2_LINEAGE_MIGRATION.md).
+No migration data mutation, automatic compensation or HTTP executor is enabled.
+Next: durable native started/uncertain phases, exact CAS and idempotent migration receipts,
+replacement-history admission, interrupted cutover and explicit old-work disposition.
+Broader graph/multi-version/delete/provider-pair and deployed restart proof remain open.
+[Proof and limits](V2_LINEAGE_MIGRATION.md).
 
 ## Remaining implementation and acceptance
 

@@ -13,12 +13,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class HolonReplicationMigrationBarrierCoordinatorTests
 {
-    internal sealed class Native : IHolonMigrationFenceStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
+    internal sealed class Native : IHolonMigrationFenceStorageProvider, ICommittedHolonReplicaReceiptStorageProvider, IHolonReplicaHeadAuditStorageProvider
     {
         public HolonMigrationFenceObservation Stored;
         public int Reads, Acquires;
         public bool LoseAcknowledgement, ForeignScope, FailRead, Warn;
         public Action AfterAcquire;
+        public int HeadReads;
+        public Func<HolonReplicaHeadReadRequest, OASISResult<HolonReplicaHeadReadResult>> Heads;
+        public Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(HolonReplicaHeadReadRequest request, CancellationToken token = default)
+        { HeadReads++; return Task.FromResult(Heads(request)); }
         public Func<CommittedHolonReplicaReceiptReadRequest, OASISResult<CommittedHolonReplicaReceiptEvidence>> Receipt;
         public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(CommittedHolonReplicaReceiptReadRequest request, CancellationToken token = default)
             => Task.FromResult(Receipt(request));
