@@ -39,6 +39,8 @@ public class HolonReplicationMigrationPreviewTests
         public readonly Dictionary<Guid, HolonReplicationReceiptPreflightReport> Receipts = new();
         public readonly List<Guid> ReceiptReads = new();
         public Func<HolonReplicationOperationObligation, OASISResult<HolonReplicationReceiptPreflightReport>> Receipt;
+        public Func<HolonReplicationOperationObligation, OASISResult<CommittedHolonReplicaReceiptEvidence>> ReplicaReceipt;
+        public HolonReplicaHeadReadConsistency ReplicaConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot;
         public HolonReplicationRouteBinding Replacement => new(Source, Target, "new-route-policy");
 
         public Fixture()
@@ -96,7 +98,24 @@ public class HolonReplicationMigrationPreviewTests
         public Task<OASISResult<HolonReplicationMigrationPreview>> Read(int max = 10, CancellationToken token = default)
             => HolonReplicationMigrationPreviewReader.ReadAsync(Native, Source, "legacy-source", "selected", Target, Replacement,
                 (row, cancellation) => { ReceiptReads.Add(row.OperationId); return Task.FromResult(Receipt(row)); },
-                maxObligations: max, pageSize: 1, cancellationToken: token);
+                maxObligations: max, pageSize: 1, cancellationToken: token,
+                readOriginalReplicaReceipt: ReplicaReceipt == null ? null : (row, cancellation) => Task.FromResult(ReplicaReceipt(row)),
+                replicaReceiptConsistency: ReplicaConsistency);
+
+        public CommittedHolonReplicaReceiptEvidence Delivered(HolonReplicationOperationObligation row, string fault = null)
+        {
+            var target = fault == "target" ? new CosmicStorageIdentity(Target.Authority, Target.EndpointFingerprint, Guid.NewGuid()) : Target;
+            var sourceAuthority = fault == "authority" ? ProviderType.Neo4jOASIS : Source.Authority;
+            var transport = new CommittedHolonReplicaRequest(fault == "operation" ? Guid.NewGuid() : row.OperationId,
+                fault == "lineage" ? "other-source" : row.SourceId, sourceAuthority,
+                fault == "actor" ? Guid.NewGuid() : row.ActorId,
+                fault == "kind" ? ConditionalHolonOperation.HardDelete : ConditionalHolonOperation.Save,
+                new[] { new Holon { Id = Guid.NewGuid() } }, saveChildren: false);
+            var consistency = fault == "weak" ? HolonReplicaHeadReadConsistency.ReadCommittedValidated : HolonReplicaHeadReadConsistency.NativeSnapshot;
+            var request = new CommittedHolonReplicaReceiptReadRequest(transport, target, consistency);
+            return new(request, new string('A',64), fault == "absent" ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed,
+                fault == "absent" ? null : new string(fault == "changed-digest" ? 'C' : 'B',64), fault == "graph" ? 2 : 1, consistency);
+        }
     }
 
     [TestMethod]
@@ -174,6 +193,60 @@ public class HolonReplicationMigrationPreviewTests
         if (fault.EndsWith("error", StringComparison.Ordinal))
         { Assert.AreEqual("NATIVE_FAILURE", result.ErrorCode); Assert.AreSame(cause, result.Exception); }
         if (fault != "receipt-error") Assert.AreEqual(0, f.ReceiptReads.Count);
+    }
+
+    [TestMethod]
+    public async Task HistoricalReceiverProofIsBoundToReviewWithoutClosingOtherExecutionGates()
+    {
+        var f = new Fixture(); var unverified = await f.Read();
+        f.ReplicaReceipt = row => new(f.Delivered(row));
+        var verified = await f.Read(); Assert.IsFalse(verified.IsError, verified.Message);
+        Assert.AreEqual(2, verified.Result.ReplicaReceipts.Count);
+        Assert.IsFalse(verified.Result.Findings.Contains(HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified));
+        Assert.IsTrue(verified.Result.Findings.Contains(HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified));
+        Assert.IsTrue(verified.Result.Findings.Contains(HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired));
+        Assert.AreNotEqual(unverified.Result.PreviewDigest, verified.Result.PreviewDigest);
+        f.ReplicaReceipt = row => new(f.Delivered(row, "changed-digest"));
+        Assert.AreNotEqual(verified.Result.PreviewDigest, (await f.Read()).Result.PreviewDigest);
+    }
+
+    [TestMethod]
+    public async Task ExplicitAbsenceRemainsAFindingEvenWhenObligationClaimsCompleted()
+    {
+        var f = new Fixture(); f.ReplicaReceipt = row => new(f.Delivered(row, "absent"));
+        var result = await f.Read(); Assert.IsFalse(result.IsError);
+        Assert.IsTrue(result.Result.Findings.Contains(HolonReplicationMigrationFinding.OriginalReplicaReceiptAbsent));
+        Assert.AreEqual(2, result.Result.ReplicaReceipts.Count);
+    }
+
+    [DataTestMethod]
+    [DataRow("operation")] [DataRow("actor")] [DataRow("target")] [DataRow("authority")]
+    [DataRow("lineage")] [DataRow("kind")] [DataRow("graph")]
+    public async Task HistoricalReceiverEvidenceCannotSubstituteAnotherScope(string fault)
+    {
+        var f = new Fixture(); f.ReplicaReceipt = row => new(f.Delivered(row, fault));
+        var result = await f.Read(); Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_REPLICA_RECEIPT_SCOPE_MISMATCH", result.ErrorCode);
+    }
+
+    [TestMethod]
+    public async Task HistoricalReceiverWeakConsistencyRequiresExplicitReviewOptIn()
+    {
+        var f = new Fixture(); f.ReplicaReceipt = row => new(f.Delivered(row, "weak"));
+        var rejected = await f.Read(); Assert.IsNull(rejected.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_REPLICA_RECEIPT_CONSISTENCY_UNSUPPORTED", rejected.ErrorCode);
+        f.ReplicaConsistency = HolonReplicaHeadReadConsistency.ReadCommittedValidated;
+        var admitted = await f.Read(); Assert.IsFalse(admitted.IsError);
+        Assert.AreEqual(f.ReplicaConsistency, admitted.Result.RequiredReplicaReceiptConsistency);
+    }
+
+    [TestMethod]
+    public async Task ReceiverReadFailurePreservesCauseAndPublishesNoPartialReview()
+    {
+        var f = new Fixture(); var cause = new InvalidOperationException("native-receipt-failure");
+        f.ReplicaReceipt = _ => new() { IsError = true, ErrorCode = "NATIVE_RECEIPT_UNVERIFIED", Exception = cause };
+        var rejected = await f.Read(); Assert.IsNull(rejected.Result); Assert.AreSame(cause, rejected.Exception);
+        Assert.AreEqual("NATIVE_RECEIPT_UNVERIFIED", rejected.ErrorCode);
     }
 
     [TestMethod]
