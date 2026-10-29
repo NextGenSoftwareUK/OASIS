@@ -98,16 +98,38 @@ forward-slash child paths fixed parameter encoding; native source hashes were
 reverified before that corrected attempt. Its original admission is preserved as
 `replication-first-path-failure.json`. No probe existed at that earlier failure.
 
+## Supported Linux execution setup
+
+Existing Ubuntu26.04 WSL is reused. No Linux runtime/portable test runner was
+available. Installed one minimal .NET/ASP.NET10.0.12 runtime (no SDK), pinned native
+Litestream0.5.17, and missing official Ubuntu libicu78 78.2-2ubuntu1. Default
+globalization is preserved. Verified download archives were removed.
+
+- Runtime: `/var/tmp/oasis-runtimes/dotnet-10.0.12`,109,735,717bytes including admission.
+- Sidecar: `/var/tmp/oasis-runtimes/litestream-0.5.17`,38,989,116bytes including admission.
+- ICU dpkg Installed-Size38,705KiB; reusable shared OS dependency.
+- Reproducible admission: `Scripts/TestHosts/prepare-cosmic-litestream-linux.py`.
+
+The Windows SDK runner cannot load on Linux (BadImageFormat); no SDK clone or
+compatibility override was used. The official
+[portable test platform](https://www.nuget.org/packages/Microsoft.TestPlatform.Portable/18.11.0)
+is restored once in the existing NuGet cache and read directly from its WSL mount.
+It supports major runtime roll-forward itself. Test discovery succeeds for all
+seven existing test methods; no Linux source or native execution proof yet.
+
+- Portable runner18.11.0 cache: `C:/Users/david/.nuget/packages/microsoft.testplatform.portable/18.11.0`,47341656bytes.
+- Runner DLL SHA256: `78509A95B634BEF64D081D5F13F3733D81424BE0667BB8AE614325E155D11273`.
+- Discovery evidence: `TestResults/LitestreamCqlCurrent/linux-test-discovery.log`.
+- Discovery SHA256: `5DA733C1748603AFBB4A8006A77398D0BE06B5C177368FA5A14DB054A6C09636`.
+
 ## Exact next step
 
-Use the supported Linux Litestream binary in the existing WSL environment to
-investigate/verify replication with native Linux filesystem semantics. Windows
-convenience runtime remains a preserved failed platform outcome. No Linux dotnet
-runtime is currently on PATH/in the inspected standard install directories; avoid
-installing a duplicate SDK. Plan a verified SQLite backup/restore portability test
-with existing tools while preserving original source/probe identities, then CQL
-verification on the recovered file. Do not bypass fsync errors, reset original
-replica, replay writes or claim Linux proof from Windows results. Mongo-paired
-teaching coverage and remote/PITR/crash recovery remain separate open gates.
+Admit one fixed native Linux source at `/var/tmp/oasis-litestream-cql` via a verified
+SQLite backup of the original provider-created source. Preserve actor/holon IDs,
+original hashes/tombstone and inherited Windows probe; never reseed or mutate the
+preserved failed Windows replica. Run the actual compiled provider's native tests
+using the portable runner and admitted Linux runtime, then a separately journalled
+live Linux probe/replication/restore. Preserve all unknown outcomes. Windows failure
+remains red; Linux/paired/remote/PITR/crash recovery are not yet certified.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
