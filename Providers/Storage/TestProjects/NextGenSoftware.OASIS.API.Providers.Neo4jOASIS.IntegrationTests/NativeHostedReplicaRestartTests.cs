@@ -42,7 +42,11 @@ public partial class NativeHostedReplicaRestartTests
     public Task ShippingWorkerAcceptsNewNeoSaveAfterRestartDuringDestinationMetadataOutage()
         => VerifyShippingWorkerRestart(false, coldNewSave: true);
 
-    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false)
+    [TestMethod]
+    public Task NativeNeoAndSqliteRoutingPreservesEligibilityAndAvatarFaultIsolation()
+        => VerifyShippingWorkerRestart(false, nativeRouting: true);
+
+    private async Task VerifyShippingWorkerRestart(bool crash, string admission = null, bool olderBoundTransport = false, bool coldNewSave = false, bool nativeRouting = false)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -61,12 +65,12 @@ public partial class NativeHostedReplicaRestartTests
         foreach (var path in ownedFiles) Assert.IsFalse(File.Exists(path), "Reconcile original owned fixture before reuse.");
         var actor = Guid.NewGuid();
         var operation = Guid.NewGuid();
-        var input = new Holon { Id = coldNewSave ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
+        var input = new Holon { Id = coldNewSave || nativeRouting ? Guid.NewGuid() : Guid.Empty, Name = "coffee bought while worker stopped" };
         var coldInput = new Holon { Id = Guid.NewGuid(), Name = "coffee bought after Neo restart" };
         var coldOperation = Guid.NewGuid();
         using (var intent = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, target = file });
+            await JsonSerializer.SerializeAsync(intent, new { actor, operation, firstId = input.Id, coldOperation, coldId = coldInput.Id, coldNewSave, nativeRouting, target = file });
             intent.Flush(true);
         }
         var source = new Neo(uri, "neo4j", "oasis-local-test-only");
@@ -302,6 +306,7 @@ public partial class NativeHostedReplicaRestartTests
                 Assert.IsFalse(coldPrimary.IsError, coldPrimary.Message);
                 Assert.AreEqual(coldInput.VersionId, coldPrimary.Result.VersionId);
             }
+            if (nativeRouting) await VerifyNativeReadRouting(registry, dna, source, input, actor);
             complete = true;
         }
         finally
