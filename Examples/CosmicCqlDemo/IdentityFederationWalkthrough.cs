@@ -84,6 +84,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.PostgreSQLOASIS => "PostgreSQL",
         ProviderType.SQLServerDBOASIS => "SQL Server",
         ProviderType.DuckDBOASIS => "DuckDB",
+        ProviderType.UpstashOASIS => "Upstash",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
