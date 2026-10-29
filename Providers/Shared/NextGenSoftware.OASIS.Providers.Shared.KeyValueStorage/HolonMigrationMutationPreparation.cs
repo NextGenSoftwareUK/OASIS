@@ -93,6 +93,21 @@ public sealed class HolonMigrationMutationPreparation
         Fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(CanonicalJson)));
     }
 
+    private static HolonMigrationReplacementRecord ReadReplacementRecord(JsonElement row)
+    {
+        var h = row.GetProperty("Head");
+        HolonReplicaHeadEvidence head = h.ValueKind == JsonValueKind.Null ? null : new(
+            h.GetProperty("SourceId").GetString(),
+            (NextGenSoftware.OASIS.API.Core.Enums.ProviderType)h.GetProperty("SourceAuthority").GetInt32(),
+            h.GetProperty("VersionId").GetGuid(), h.GetProperty("PreviousVersionId").GetGuid(),
+            h.GetProperty("Version").GetInt32(), h.GetProperty("ProviderRevisionId").GetGuid(),
+            h.GetProperty("HardDeleted").GetBoolean(), h.GetProperty("SnapshotDigest").GetString(),
+            h.GetProperty("PortableContentDigest").GetString());
+        return new(row.GetProperty("Expected").Deserialize<ConditionalHolonReceiptRecordEvidence>(),
+            row.GetProperty("HasCurrentRecord").GetBoolean(), head,
+            (HolonMigrationReplacementKind)row.GetProperty("Kind").GetInt32());
+    }
+
     /// <summary>Restore only against the independently retained approval fingerprint
     /// and original verified plan. A checksum stored alongside this file is not approval.</summary>
     public static HolonMigrationMutationPreparation ReadCanonical(string json,
@@ -118,7 +133,7 @@ public sealed class HolonMigrationMutationPreparation
         var replacement = new HolonMigrationReplacementReport(plan,
             (HolonReplicaHeadReadConsistency)r.GetProperty("RequiredConsistency").GetInt32(),
             r.GetProperty("PageConsistencies").Deserialize<HolonReplicaHeadReadConsistency[]>(),
-            r.GetProperty("Records").Deserialize<HolonMigrationReplacementRecord[]>());
+            r.GetProperty("Records").EnumerateArray().Select(ReadReplacementRecord).ToArray());
         var restored = new HolonMigrationMutationPreparation(plan, delivery, replacement,
             root.GetProperty("MutationPolicyBinding").GetString(),
             (HolonReplicaHeadReadConsistency)root.GetProperty("ApprovedSourceConsistency").GetInt32(),
