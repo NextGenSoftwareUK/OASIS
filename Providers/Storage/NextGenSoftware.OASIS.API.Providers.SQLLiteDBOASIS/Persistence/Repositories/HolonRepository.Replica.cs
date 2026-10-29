@@ -49,15 +49,11 @@ public partial class HolonRepository
                 if(current!=null || model.Version!=1 || model.PreviousVersionId!=Guid.Empty)conflicts.Add(model.Id);
                 prior.Add(model.Id,null);continue;
             }
-            var json=reader.GetString(2);
-            if(reader.GetString(3)!=ReplicaSnapshotDigest(json))throw new InvalidDataException("Committed replica head checksum is invalid.");
-            var stored=StoredRecordJson.DeserializeStored<Holon>(json);
-            var revisionText=reader.GetString(4);var hardDeleted=reader.GetInt64(5);
-            if(stored==null || stored.Id.ToString()!=model.Id || stored.Version<1 || stored.VersionId==Guid.Empty
-                || !Guid.TryParse(revisionText,out var revision) || revision==Guid.Empty
-                || CosmicConcurrency.GetProviderRevisionId(stored,ProviderType.SQLLiteDBOASIS)!=revision
-                || hardDeleted is not 0 and not 1)
-                throw new InvalidDataException("Committed replica head snapshot/revision is inconsistent.");
+            var hardDeleted=reader.GetInt64(5);
+            if(hardDeleted is not 0 and not 1)throw new InvalidDataException("Committed replica deletion state is invalid.");
+            var validated=HolonReplicaHeadRecord.Read(Guid.Parse(model.Id),ProviderType.SQLLiteDBOASIS,
+                reader.GetString(0),reader.GetString(1),reader.GetString(2),reader.GetString(3),reader.GetString(4),hardDeleted==1);
+            var stored=validated.Snapshot;var revision=validated.Evidence.ProviderRevisionId;
             prior.Add(model.Id,current==null ? stored:GetHolonFromEntity(current));
             if(reader.GetString(0)!=plan.SourceId || reader.GetString(1)!=plan.SourceAuthority.ToString()
                 || model.PreviousVersionId!=stored.VersionId || model.Version-1!=stored.Version
