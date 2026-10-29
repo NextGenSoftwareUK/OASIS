@@ -5,7 +5,7 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 ## Workspace and priorities
 
 - Work/build/test only `C:/Source/OASIS-cosmic`; parent/Core branch `work/cosmic-cql`.
-- First: HyperDrive V2 replication, failover and load balancing correctness.
+- User priority: breadth first across the demo providers. Defer deeper migration/parity work while closing missing provider demos; retain verified HyperDrive V2 correctness work.
 - Then ORM/CQL across MongoDB, SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Preserve Solana demos.
 - Work only on red [parity cells](CQL_PARITY_CHECKLIST.md). No green hardening without a reproduced bug.
 - Entity-selected All/element/numeric depth stays paused; large POCO/migrations tooling deferred.
@@ -13,7 +13,7 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 
 ## Current phase: safe V2 lineage migration
 
-- Latest: Shared **1598/1598**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
+- Latest: Shared **1599/1599**; native Mongo three-store **2/2** (empty/foreign SQLite replacement), Neo + SQLite **2/2** (existing replica, process-crash recovery). Programme incomplete.
 - Preview v3 binds exact source receipt, frozen graph/transport and historical receiver intent. Time-limited host approval binds operator, stores, route and reviewed digest.
 - SQLite/Mongo/Neo native record barriers block affected V2 mutations/replays/new claims while preserving unrelated writes/history. Held does not prove every in-flight delivery has stopped.
 - Acquire-only coordinator reads all native receipts before acquiring absent scopes. Durable hash-verified original evidence precedes acquisition; no automatic expiry, compensation or replacement of evidence.
@@ -22,13 +22,13 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Replacement review classifies empty, matching original/new lineage, untracked data, foreign ownership and version/deletion/content conflicts. It checks exact native identity/selection/consistency and held owners before/after. Matching or empty observations grant no adoption/overwrite permission.
 - SQLite matching-receiver lineage adoption now mutates heads atomically with a dedicated receipt; native1/1, SQLite fence2/2 and Shared1598 pass. No business-content transfer/source cutover or HTTP execution endpoint enabled. Native business CAS, durable final decision, historical-receipt admission and cutover/recovery remain red. Older type-only V2 routes and broader graph/multi-version/delete/provider-pair scope remain gates. [Detailed proof/history](V2_LINEAGE_MIGRATION.md).
 
-Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact prepared-start coordinator now passes native Mongo/Mongo/SQLite1/1, Neo/SQLite fresh1/1 and original nonempty-head failure recovery1/1; Neo multi-route regressions2/2. Shared1598/Core4462/DNA19/GraphQL1 retained. Nonempty-head canonical recovery bug fixed. No global cutover enabled; empty-target transfer, broader history admission, source/outbox CAS and final decision remain open.
+Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact prepared-start coordinator now passes native Mongo/Mongo/SQLite1/1, Neo/SQLite fresh1/1 and original nonempty-head failure recovery1/1; Neo multi-route regressions2/2. Shared1598/Core4462/DNA19/GraphQL1 retained. Nonempty-head canonical recovery bug fixed. Mongo adoption now passes3/3 including unchanged native V2 source lineage, absent receipt namespace, drift/rollback/reconnect/history. Mongo fence controls2/2 retained. No global cutover enabled; deeper migration gaps are deferred for demo breadth.
 
 ## Exact next step
 
-1. SQLite matching-original replica adoption now compares complete native heads/current content under the existing Started-owner transaction, updates only lineage and inserts a distinct idempotent receipt atomically (native rollback/replay/local revision/history proof1/1). Parent/child content-drift rejection, two-head rollback, provider reconnect/replay and receipt downgrade protection now pass (fresh1/1, original-fixture continuation1/1; multi-route regressions2/2). Next: implement Mongo/Neo equivalent adoption and empty-target transfer; adoption unknown-commit/process-crash and broader history admission remain red.
-2. Implement exact source/head/record/outbox CAS, replacement-history admission and idempotent per-store migration receipts/dispositions. Live/unknown workers and other affected routes must remain explicit.
-3. Verify interrupted cutover/recovery, broader graph/multi-version/delete and ordered-provider pairs; then finish remaining HyperDrive outage/cold-start acceptance and resume priority-provider ORM/CQL parity.
+1. Breadth first: inspect AWS DynamoDB native query capability and add its bounded multi-record CQL + Mongo federated C#/HTTP/browser demo admission, tests and docs. Reuse existing free/local environment; no paid provisioning.
+2. Reconcile demo readiness for Mongo/SQLite/Neo, IPFS, Azure emulator (hosted stays pending), Oracle, SOLID and ActivityPub; preserve Solana. Fix demonstrated blockers to demo use before deep parity.
+3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
 

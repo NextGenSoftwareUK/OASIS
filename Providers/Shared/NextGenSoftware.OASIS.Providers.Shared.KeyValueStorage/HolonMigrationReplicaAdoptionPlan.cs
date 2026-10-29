@@ -44,8 +44,9 @@ public sealed class HolonMigrationReplicaAdoptionPlan
             throw new ArgumentException("Only complete, exactly matching original replica heads admit adoption comparison.");
         OriginalSourceId = plan.Context.OriginalSourceId;
         ReplacementSourceId = plan.Context.ReplacementRoute.SourceId;
-        if (OriginalSourceId == ReplacementSourceId)
-            throw new ArgumentException("A lineage adoption must name a distinct reviewed replacement lineage.");
+        // V2 source identity is independent of destination/policy. Adopting a
+        // destination may keep this ID unchanged; the distinct migration receipt
+        // still proves admission without inventing a new logical source.
         Fence = plan.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint
             == plan.Context.ReplacementRoute.TargetStorage.BindingFingerprint);
         PreparationFingerprint = preparation.Fingerprint;

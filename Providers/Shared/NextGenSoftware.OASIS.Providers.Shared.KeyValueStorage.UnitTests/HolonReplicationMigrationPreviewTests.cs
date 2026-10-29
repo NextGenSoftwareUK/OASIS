@@ -37,6 +37,7 @@ public class HolonReplicationMigrationPreviewTests
         public readonly CosmicStorageIdentity Target = new(ProviderType.MongoDBOASIS, new string('B',64), Guid.NewGuid());
         public readonly IHolonReplicationLineageInventoryOutbox Native = DispatchProxy.Create<IHolonReplicationLineageInventoryOutbox, SourceProbe>();
         public SourceProbe Probe => (SourceProbe)Native;
+        public readonly string SourceLineage;
         public readonly List<HolonReplicationOperationObligation> Rows = new();
         public readonly Dictionary<Guid, HolonReplicationReceiptPreflightReport> Receipts = new();
         public readonly Dictionary<Guid, ConditionalHolonWriteRequest> Originals = new();
@@ -50,8 +51,9 @@ public class HolonReplicationMigrationPreviewTests
         public CosmicStorageIdentity ReplacementTarget;
         public HolonReplicationRouteBinding Replacement => new(Source, ReplacementTarget ?? Target, "new-route-policy");
 
-        public Fixture()
+        public Fixture(bool nativeLineage = false)
         {
+            SourceLineage = nativeLineage ? HolonReplicationRouteBinding.NativeSourceId(Source) : "legacy-source";
             Add(1, "selected", HolonDeliveryState.Completed);
             Add(2, "other", HolonDeliveryState.Pending, Rows[0].OperationId, Rows[0].ActorId);
             Add(3, "selected", HolonDeliveryState.Pending);
@@ -69,7 +71,7 @@ public class HolonReplicationMigrationPreviewTests
             var op = operation ?? Guid.NewGuid(); var owner = actor ?? Guid.NewGuid();
             if (!Receipts.ContainsKey(op)) Receipts.Add(op, Report(op, owner));
             Rows.Add(HolonReplicationOperationObservation.Capture(new HolonDeliveryInspection(sequence, op, targetId, state,
-                state == HolonDeliveryState.Pending ? 0 : 1, null, null, null), "legacy-source", Source.Authority,
+                state == HolonDeliveryState.Pending ? 0 : 1, null, null, null), SourceLineage, Source.Authority,
                 owner, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Payloads[op]))), "secret-lease", "secret-worker", 10, 0, state == HolonDeliveryState.Completed ? 1 : 0, null));
         }
 
@@ -88,7 +90,7 @@ public class HolonReplicationMigrationPreviewTests
             var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(
                 fault == "operation" ? Guid.NewGuid() : operation, fault == "actor" ? Guid.NewGuid() : actor,
                 Source.Authority, records.Select(r => new HolonWriteCondition(r.Id, null)),
-                new HolonReplicationEnrollment(fault == "lineage" ? "other-lineage" : "legacy-source", new[] { "selected", "other" })),
+                new HolonReplicationEnrollment(fault == "lineage" ? "other-lineage" : SourceLineage, new[] { "selected", "other" })),
                 ConditionalHolonOperation.Save, records, saveChildren: false);
             Originals[operation] = request;
             Payloads[operation] = CommittedHolonReplicaPayload.Capture(new(request.Write.OperationId, request.Write.ReplicationEnrollment.SourceId,
@@ -106,7 +108,7 @@ public class HolonReplicationMigrationPreviewTests
         }
 
         public Task<OASISResult<HolonReplicationMigrationPreview>> Read(int max = 10, CancellationToken token = default)
-            => HolonReplicationMigrationPreviewReader.ReadAsync(Native, Source, "legacy-source", "selected", Target, Replacement,
+            => HolonReplicationMigrationPreviewReader.ReadAsync(Native, Source, SourceLineage, "selected", Target, Replacement,
                 (row, cancellation) => { ReceiptReads.Add(row.OperationId); return Task.FromResult(Receipt(row)); },
                 maxObligations: max, pageSize: 1, cancellationToken: token, sourceConsistency: SourceConsistency,
                 readOriginalReplicaReceipt: ReplicaReceipt == null ? null : (row, cancellation) => Task.FromResult(ReplicaReceipt(row)),
