@@ -502,6 +502,41 @@ public partial class NativeHostedReplicaRestartTests
                     ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS }, selections.ToArray());
                 CollectionAssert.AreEquivalent(new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS },
                     registry.GetProviderAutoLoadBalanceList().Select(value => value.Value).ToArray());
+
+                // Exercise every public selection strategy through real reads. Subscription
+                // filtering precedes scoring: Free may select SQLite only, even with Mongo
+                // configured and physically available. Gold may use either native store.
+                foreach (var plan in new[] { "Gold", "Free" })
+                foreach (var strategy in new[] { LoadBalancingStrategy.RoundRobin,
+                    LoadBalancingStrategy.WeightedRoundRobin, LoadBalancingStrategy.LeastConnections,
+                    LoadBalancingStrategy.Geographic, LoadBalancingStrategy.CostBased,
+                    LoadBalancingStrategy.Performance, LoadBalancingStrategy.Auto })
+                foreach (var mode in new[] { "sync", "async", "explicit" })
+                {
+                    dna.OASIS.SubscriptionConfig.PlanType = plan;
+                    var router = new OASISHyperDrive(registry);
+                    var request = new StorageOperationRequest {
+                        Operation = "LoadHolon", HolonId = intent.Ids[0], AvatarId = intent.Actor
+                    };
+                    var result = mode == "sync" ? router.RouteRequest<IHolon>(request, strategy)
+                        : mode == "async" ? await router.RouteRequestAsync<IHolon>(request, strategy)
+                        : await router.LoadBalanceRequestAsync<IHolon>(request, strategy);
+                    var context = $"{plan}/{strategy}/{mode}: {result.Message}";
+                    Assert.IsFalse(result.IsError, context);
+                    Assert.AreEqual(intent.Ids[0], result.Result.Id, context);
+                    Assert.AreEqual(intent.Actor, result.Result.CreatedByAvatarId, context);
+                    Assert.AreEqual("before process outage", result.Result.Name, context);
+                    var selection = registry.LastProviderSelectionDiagnostic;
+                    Assert.IsNotNull(selection, context);
+                    var permitted = plan == "Free" ? new[] { ProviderType.SQLLiteDBOASIS }
+                        : new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS };
+                    CollectionAssert.AreEquivalent(permitted, selection.Candidates.Select(value => value.Provider).ToArray(), context);
+                    Assert.IsTrue(permitted.Contains(selection.SelectedProvider), context);
+                    Assert.IsTrue(result.Result.ProviderUniqueStorageKey.ContainsKey(selection.SelectedProvider), context);
+                    CollectionAssert.AreEquivalent(new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS },
+                        registry.GetProviderAutoLoadBalanceList().Select(value => value.Value).ToArray(), context);
+                }
+                dna.OASIS.SubscriptionConfig.PlanType = "Gold";
             }
             var db = client.GetDatabase(database);
             var rows = await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
