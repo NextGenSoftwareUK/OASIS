@@ -398,3 +398,15 @@ The common `HolonManager` federation walkthrough powers C# and HTTP demos; physi
 source copies remain visible. Initial seed writes have durable signed preparations
 and finalized effect receipts; the demo retains them across restarts. Native reads
 can observe different blocks. [Proof and remaining scope](POLKADOT_CQL_MVP.md).
+
+## NEAR bounded native adapter
+
+`NearCqlCompiler` admits bounded identity algebra and intersects selection with the
+trusted server catalogue. `NEAROASIS.Cql.cs` uses `NearSdkService.GetAsync` with the
+caller cancellation token and the shared load/save/query key builder. Authenticated
+snapshot decoding stays in the SDK storage reader; cancellation uses the existing
+worker-process owner, not an abandoned task. The common HolonManager federation
+walkthrough serves both C# and HTTP. One-time diagnostic fixture discovery is
+separate from execution: the reusable demo catalogue selects three existing encrypted
+synthetic records. Subsequent queries read only selected native keys, without a
+signer, source scan, mutation or historical replay. [Proof](NEAR_CQL_MVP.md).

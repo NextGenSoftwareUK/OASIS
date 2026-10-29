@@ -1,6 +1,6 @@
 # NEAR CQL MVP
 
-Updated 29 October 2026. **Controls and native query verified; paired demo pending.**
+Updated 29 October 2026. **Local native/C#/HTTP/browser MVP verified.**
 
 ## Implemented scope
 
@@ -68,10 +68,35 @@ synthetic records in its trusted server-owned catalogue. Subsequent query execut
 uses only those selected native keys; it does not scan the store. No historical
 write outcome is inferred from the readable inventory.
 
-Next: add the reusable runner and Mongo-paired C#/HTTP/browser five/four-result
-presets, reusing this original catalogue/key/ledger across a full restart. Keep
-historical unresolved writes untouched and their gate open; no new source writes
-are needed for this MVP.
+## Mongo-paired demo and restart reuse
+
+The reusable runner restarts the original ledger and verifies its runtime, genesis,
+chain and reviewed contract code before querying. The original catalogue hash is
+unchanged. No signing/source mutation is enabled. Paired SDK/HTTP acceptance passes
+**1/1, zero skips** (1m19s including interactive browser verification): all returns
+five physical rows and subset four, with explicit NEAR/Mongo provenance. Forged
+actor/unknown preset return 400; inactive NEAR returns 503 without partial rows.
+Actual browser clicks verified both counts and labels.
+
+- Paired report: `TestResults/NearCqlCurrent/near-mongo-federation.trx`, SHA256
+  `3753CC90A861A4CB42ED1A2630A5DC205BA6C5C3FC3540DD90AFA95F1D0D7870`.
+- Screenshot: `TestResults/NearCqlCurrent/near-mongo-browser.jpg`, SHA256
+  `F36195C6850F6DE5A86CD7A49FA7131C91518F820BF27F00B27E115EBCF8CC03`.
+- Exact owned Mongo fixture `cosmic_cql_mongo_near_demo` validated/dropped,
+  pending/ready markers removed; ports3030/24567/27029/5103 closed afterward.
+- Hub discovery: 8 single/16 plans, 14 paired/28 plans, 14 paired rejections,
+  3 archive rejections, listeners unchanged.
+
+```powershell
+# Interactive host: http://127.0.0.1:5103/.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider NEAR -Federated
+
+# Bounded SDK/HTTP verification and cleanup.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider NEAR -Federated -VerifyOnly
+```
+
+Historical unresolved writes remain untouched and their gate open. Next is the
+all-provider MVP inventory/queue; deep parity remains deferred.
 
 No public-network, full-parity or universal HyperDrive claim is made.
 Return to [current status](CURRENT_STATUS.md); resources are tracked in

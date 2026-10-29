@@ -1391,3 +1391,23 @@ physical rows, retaining Mongo and Polkadot copies. Add `-VerifyOnly` for bounde
 SDK/HTTP acceptance. The original three encrypted records are reused without
 signing. This is a retained local Substrate-chain profile, not public Polkadot,
 full parity or a shared snapshot. [Evidence and limits](POLKADOT_CQL_MVP.md).
+
+## NEAR bounded identity profile
+
+`NEAROASIS` compiles captured ID equality/membership, AND/OR and constants into up
+to 100 native contract-key reads intersected with the trusted authority catalogue.
+Load/save/query share the canonical key builder. The existing SDK reader owns
+context-bound decryption; the adapter validates identities/access, hides deleted
+records and publishes the complete bounded page or an error. Cancellation reaches
+and terminates its owned SDK worker. Unsupported metadata/order/graph expressions
+reject before I/O. Reads can observe different blocks.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider NEAR -Federated
+```
+
+Open http://127.0.0.1:5103/. All/subset presets return five/four physical rows,
+retaining Mongo and NEAR provenance. Add `-VerifyOnly` for bounded SDK/HTTP checks.
+The read-only source reuses original encrypted test records and the retained key;
+no signing or reseeding. Native history issues remain separate open gates. This
+local-chain MVP is not full parity or mainnet acceptance. [Guide](NEAR_CQL_MVP.md).

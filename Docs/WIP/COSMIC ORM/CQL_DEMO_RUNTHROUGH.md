@@ -110,3 +110,20 @@ the retained local Substrate chain. It is not a public Polkadot-network demo.
 
 Add `-VerifyOnly` for bounded SDK/HTTP acceptance without an interactive host.
 See [current verification and limitations](POLKADOT_CQL_MVP.md).
+
+## NEAR + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider NEAR -Federated
+```
+
+Open http://127.0.0.1:5103/. Show the explicit MongoDB/NEAR scope and C# membership
+query. **Query all records** returns five physical rows; **Query two-record subset**
+returns four. Compare IDs and provider labels to show that source copies are retained.
+
+This preset reuses three existing encrypted synthetic `TestHolon` records on the
+retained local NEAR chain. No signing or source writes are needed. It demonstrates
+bounded ID selection over an authorized catalogue, not arbitrary metadata predicates,
+public NEAR or a distributed snapshot. Stop the demo to validate and remove its
+owned Mongo fixture while keeping the original key/ledger/catalogue. Add
+`-VerifyOnly` for bounded SDK/HTTP acceptance. [Scope and evidence](NEAR_CQL_MVP.md).
