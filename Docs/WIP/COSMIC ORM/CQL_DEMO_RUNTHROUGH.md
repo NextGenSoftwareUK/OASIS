@@ -170,3 +170,11 @@ share HolonManager federation and preserve provider provenance. Reads observe
 separate moments. This is local Azurite, not hosted Azure; arbitrary blob discovery,
 content predicates and full provider parity remain outside this MVP.
 See [commands, tests and limits](AZURE_BLOB_CQL_MVP.md).
+
+## LocalFile + Mongo MVP
+
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider LocalFile -Federated`
+serves localhost5108. A bounded authorized ID query returns five physical rows;
+the two-ID subset returns four, preserving both provider copies. Native file reads,
+process restart reuse and C#/HTTP/browser are verified. Source files are plaintext;
+reads have separate observation times. [Tests, commands and limits](LOCALFILE_CQL_MVP.md).

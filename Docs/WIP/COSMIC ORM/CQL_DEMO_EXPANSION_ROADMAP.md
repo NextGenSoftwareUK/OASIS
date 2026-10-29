@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-Including Base and Avalanche, 20 identities now have scoped MVP evidence. Full production-provider parity remains open.
+Including Base and Avalanche, 21 identities now have scoped MVP evidence. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -40,7 +40,8 @@ sharing input compile errors are fixed. [Verification](DEVELOPMENT_SYNC_2026-10-
 2. Base and Avalanche MVPs are verified. Avalanche additionally needed an actual
    factory/encryption chain-identity fix and verified empty-original continuation;
    [proof](AVALANCHE_CQL_MVP.md). Azure Blob now also has native/restart and paired C#/HTTP/browser proof.
-   Next assess AWSS3OASIS admission and reusable local resources.
+   S3/TRON adapters and controls exist but native admission remains open. LocalFile
+   native/restart/paired proof is verified. Next inspect Aptos local admission/resources.
 3. Continue missing registered storage MVPs, then unregistered/source-only entries.
    Track actual implementation, registration and external blockers independently.
 4. After breadth, return to the strict [parity checklist](CQL_PARITY_CHECKLIST.md)

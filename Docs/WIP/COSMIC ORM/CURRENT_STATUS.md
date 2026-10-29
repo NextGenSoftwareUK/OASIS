@@ -8,19 +8,20 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: TRON native-source admission**, then native/restart and paired/browser proof.
-TRON's bounded CQL adapter passes7 controls; shared ID compiler also passes S3's
-7 controls plus encrypted SDK regression1. [TRON scope/next step](TRON_CQL_MVP.md).
-S3 native/restart/paired fixtures compile but remain unexecuted; local launch was
-policy-rejected. [S3 exact gate](AWS_S3_CQL_MVP.md). Both inventory rows remain red.
-Azure Blob native/reuse and SDK/HTTP/browser5/4 are verified; source unchanged,
-owned services stopped and temporary Mongo data cleaned. [Proof](AZURE_BLOB_CQL_MVP.md).
+**Next: inspect Aptos admission and retained local resources**, then bounded native
+query and Mongo-paired proof. LocalFile native/restart/SDK/HTTP/browser5/4 is now
+verified; all owned listeners stopped and temporary Mongo fixture removed.
+[LocalFile proof](LOCALFILE_CQL_MVP.md). TRON controls pass7, but original source/fence
+files were absent at checked locations; do not bypass historical admission guards.
+[TRON gate](TRON_CQL_MVP.md). S3 native/paired fixtures prepared; local launch remains
+policy-gated. [S3 gate](AWS_S3_CQL_MVP.md). Both remain red; continue other breadth work.
 
 ## Scoped demo proofs
 
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| LocalFile + Mongo | Native files/restart/paired5/4; plaintext scope. [Guide](LOCALFILE_CQL_MVP.md). |
 | Oracle + Mongo | Native/SDK/HTTP/browser5/4. [Scope](CQL_ORACLE_DEMO_ADMISSION.md). |
 | Azure Cosmos + Mongo | Emulator5/4 only; hosted pending, no free subscription. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
 | IPFS/SOLID/ActivityPub + Mongo | Native3/2 and paired 5/4; arbitrary content predicates open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
@@ -34,7 +35,7 @@ owned services stopped and temporary Mongo data cleaned. [Proof](AZURE_BLOB_CQL_
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 20 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 21 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 
