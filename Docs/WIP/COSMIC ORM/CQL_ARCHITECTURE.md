@@ -471,3 +471,12 @@ two-ID subset4, with provenance. Native/restart/C#/HTTP/browser are verified on 
 same dedicated encrypted source. Original deployment/Storage stays untouched; signed
 preparations persist. No hosted/finality/snapshot or arbitrary content-query claim.
 [Commands, evidence and limits](SUI_CQL_MVP.md).
+
+## Redis + Mongo MVP
+
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Redis -Federated` serves localhost5111.
+Full query5/subset4 physical rows preserve provider copies. Native encrypted DB11,
+exact ciphertext restart, C#/HTTP/browser and lifecycle cleanup are verified.
+Original data/key persists; other Redis databases stay untouched. Direct demo
+registration does not certify BootLoader registration or aliases. Bounded ID-query
+scope only, no distributed snapshot. [Tests and commands](REDIS_CQL_MVP.md).

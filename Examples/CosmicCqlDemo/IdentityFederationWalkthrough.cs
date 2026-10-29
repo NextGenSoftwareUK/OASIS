@@ -80,6 +80,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.LocalFileOASIS => "LocalFile",
         ProviderType.AptosOASIS => "Aptos",
         ProviderType.SuiOASIS => "Sui",
+        ProviderType.RedisOASIS => "Redis",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
