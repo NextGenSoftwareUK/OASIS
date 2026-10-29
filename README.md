@@ -327,6 +327,10 @@ git clone https://github.com/NextGenSoftwareUK/OASIS.git
 # Navigate to the project
 cd OASIS
 
+# Contributors: enable the repository's git hooks once per clone
+# (a pre-push check that Railway's dependency pins match the submodule pointers)
+git config core.hooksPath .githooks
+
 # Start the development environment
 ./Start-Development.bat
 ```

@@ -1,5 +1,39 @@
 # Development integration — 28 October 2026
 
+## 29 October compatibility checkpoint
+
+Merged parent Development `c8a381dd2` and Core Development `0240771` into the
+existing task worktree. Core merge `aa47e48ad78c0ea72e7a6c9337cb2acda52b6eba`
+preserves the task's routing/replica-head audit work and incoming avatar attachment
+visibility plus encrypted saved native-import connections. The merge conflict was
+limited to the Core gitlink/dependency pin; both now select the Core merge. Incoming
+STAR ODK pin `35896e846fca6994a6749c220ba8b081ed6c3297` is fetched/checked out in
+the existing clean submodule, with its manifest pin preserved. No new worktree.
+
+DNA/Core build both targets; full Core4462/4462 and DNA19/19 tests pass. Shared,
+SQLite, Mongo, source Neo driver/Neo, Cosmos, Oracle, Dynamo/AWS, IPFS, SOLID,
+ActivityPub, Solana, BootLoader, WEB4 and its unit-test consumer build with bounded
+workers and existing caches. Shipping GraphQL schema1/1passes. These are build/
+controlled compatibility results, not fresh native certification for every provider.
+No native runtime/data fixture was started, no restore/install performed.
+
+Incoming API docs, Postman collection, DNA sync tooling, encrypted connection and
+visibility tests, pre-push hook and CI pin synchronizer are preserved. Parent hook
+is enabled via core.hooksPath=.githooks. During merge, sync the staged gitlinks with
+`python Scripts/sync_railway_dependency_manifest.py --source index`; the default
+reads HEAD and must instead run after the new parent commit exists. Verify the
+manifest against committed gitlinks after committing. No hook bypass used.
+
+The V2 old-lineage rollout gate is still open: this task branch is not automatically
+merged into Development. Next feature is physical-source-bound original-receipt
+proof for migration; target observations alone cannot authorize a cutover.
+
+- `TestResults/DevelopmentSyncCurrent/core-2026-10-29.trx`: 4462passed; SHA256 `8FFAA0403F01239C02F662DFF0DEBC6E3408E9AE09E9CFE9BDFD200510AEAA08`.
+- `TestResults/DevelopmentSyncCurrent/dna-2026-10-29.trx`: 19passed; SHA256 `3ECDFD4CAB7513DAFB94587F89C0206C1F1F3B08463A92CF9DCC60C6E6A8575F`.
+- `TestResults/DevelopmentSyncCurrent/graphql-2026-10-29.trx`: 1passed; SHA256 `D13980737352550819082075D85A17410B7C8F47CEB269D0B4E1D36DE34A2533`.
+
+---
+
 ## Latest sandbox/DNA integration
 
 Upstream parent583bb5aa7/Core0d5e1e2 merged into task:Core mergec194d536 and parent merge d8c2db83a. Native route/snapshot implementation preserved. DNA/Core build both frameworks;affected provider readers,Shared,BootLoader andWEB4 build. DNA19/Core4411tests pass. Missing DNA.UnitTests assets recreated from local NuGet/runtime caches only,no downloads.

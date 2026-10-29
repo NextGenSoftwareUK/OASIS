@@ -17,6 +17,9 @@ Welcome to the WEB4 OASIS API documentation. This API provides the foundational 
 - [Keys API](Keys-API.md) - Cryptographic key management (`/api/keys`)
 - [Karma API](Karma-API.md) - Reputation and karma tracking (`/api/karma`)
 - [Data API](Data-API.md) - Data storage and management (`/api/data`)
+- [Native Data API](Native-Data-API.md) - Import data from your own databases, with saved connections (`/api/native-data`)
+- [Sandbox API](Sandbox-API.md) - The public sandbox: demo avatars, provider outages, demo data (`/api/sandbox`)
+- [CQL API](CQL-API.md) - Bounded JSON queries across providers (`/api/data/query-cql`)
 - [Wallet API](Wallet-API.md) - Multi-chain wallet operations (`/api/wallet`)
 - [NFT API](NFT-API.md) - NFT minting and management (`/api/nft`)
 
