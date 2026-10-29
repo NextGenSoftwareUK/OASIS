@@ -16,11 +16,14 @@ public partial class HolonRepository
     public Task<OASISResult<HolonMigrationFenceObservation>> CancelHolonMigrationFenceAsync(HolonMigrationFenceRequest request, Guid ownerToken, CancellationToken token = default)
         => Fence(request, SqliteHolonMigrationFence.Action.Cancel, ownerToken, token);
 
+    public Task<OASISResult<HolonMigrationFenceObservation>> BeginHolonMigrationMutationAsync(HolonMigrationMutationStartRequest request, CancellationToken token = default)
+        => Fence(request.Fence, SqliteHolonMigrationFence.Action.BeginMutation, request.OwnerToken, token, request.MutationDigest);
+
     private Task<OASISResult<HolonMigrationFenceObservation>> Fence(HolonMigrationFenceRequest request,
-        SqliteHolonMigrationFence.Action action, Guid owner, CancellationToken token)
+        SqliteHolonMigrationFence.Action action, Guid owner, CancellationToken token, string mutationDigest = null)
     {
         token.ThrowIfCancellationRequested();
-        try { return Task.FromResult(SqliteHolonMigrationFence.Execute(_dbContext.Database.GetDbConnection().ConnectionString, request, action, owner, token)); }
+        try { return Task.FromResult(SqliteHolonMigrationFence.Execute(_dbContext.Database.GetDbConnection().ConnectionString, request, action, owner, token, mutationDigest)); }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
         catch (Exception cause) { return Task.FromResult(new OASISResult<HolonMigrationFenceObservation> { IsError = true,
             ErrorCount = 1, ErrorCode = "COSMIC_MIGRATION_FENCE_NOT_READY", Message = "The native repository is unavailable.", Exception = cause }); }

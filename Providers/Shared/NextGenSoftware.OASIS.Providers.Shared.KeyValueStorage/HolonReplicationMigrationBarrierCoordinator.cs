@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
-public enum HolonMigrationBarrierObservationState { Unobserved, Absent, Held, Cancelled, Unknown }
+public enum HolonMigrationBarrierObservationState { Unobserved, Absent, Held, Cancelled, Unknown, MutationStarted }
 
 /// <summary>Host-selected provider for one exact physical store. Native operations
 /// still verify that binding; this declaration cannot override native identity.</summary>
@@ -98,7 +98,7 @@ public static partial class HolonReplicationMigrationBarrierCoordinator
             }
             var known = observation.Result;
             if (known == null || known.Request.Fingerprint != scopes[index].Fingerprint
-                || (acquiring && known.State != HolonMigrationFenceState.Held))
+                || (acquiring && known.State is not (HolonMigrationFenceState.Held or HolonMigrationFenceState.MutationStarted)))
             {
                 progress[index] = progress[index] with { State = HolonMigrationBarrierObservationState.Unknown };
                 Fail("COSMIC_MIGRATION_BARRIER_OBSERVATION_INVALID", "The native observation does not prove this exact scope.");
@@ -107,7 +107,12 @@ public static partial class HolonReplicationMigrationBarrierCoordinator
             progress[index] = progress[index] with { State = known.State switch {
                 HolonMigrationFenceState.Held => HolonMigrationBarrierObservationState.Held,
                 HolonMigrationFenceState.Cancelled => HolonMigrationBarrierObservationState.Cancelled,
+                HolonMigrationFenceState.MutationStarted => HolonMigrationBarrierObservationState.MutationStarted,
                 _ => HolonMigrationBarrierObservationState.Absent } };
+            if (known.State == HolonMigrationFenceState.MutationStarted)
+            {
+                Fail("COSMIC_MIGRATION_MUTATION_RECOVERY_REQUIRED", "The mutation phase has started; ordinary barrier acquisition cannot resume cutover."); return false;
+            }
             if (known.State == HolonMigrationFenceState.Cancelled)
             {
                 Fail("COSMIC_MIGRATION_BARRIER_TERMINAL", "A cancelled migration identity cannot acquire more barriers."); return false;
