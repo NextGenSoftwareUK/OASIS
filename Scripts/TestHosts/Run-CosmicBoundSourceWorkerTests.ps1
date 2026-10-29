@@ -1,5 +1,6 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage)
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget)
+if ($ExhaustDeliveryBudget) { $ActiveDeliveryOutage = $true }
 if ($ActiveDeliveryOutage -and $ReconcileActiveOutage) { throw 'Choose fresh proof or original-outcome reconciliation.' }
 if ($ActiveDeliveryOutage -or $ReconcileActiveOutage) { $FullDestinationOutage = $true }
 $ErrorActionPreference = 'Stop'
@@ -93,11 +94,12 @@ try {
             Get-Content -LiteralPath (Join-Path $work 'worker-offline-reconcile-active.log') -Tail 4
         }
         elseif ($ActiveDeliveryOutage) {
-            $env:OASIS_OFFLINE_REPLICATION_PHASE = 'active'
+            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } else { 'active' }
+            $env:OASIS_OFFLINE_REPLICATION_PHASE = $scenario
             $testProcess = Start-Process dotnet -ArgumentList @('test',$project,'--no-build','--no-restore','/m:2','/nr:false',
                 '--filter','FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped',
-                '--logger','trx;LogFileName=worker-offline-active.trx','--results-directory',$work) -WorkingDirectory $taskRoot -WindowStyle Hidden -PassThru `
-                -RedirectStandardOutput (Join-Path $work 'worker-offline-active.log') -RedirectStandardError (Join-Path $work 'worker-offline-active.stderr.log')
+                '--logger',"trx;LogFileName=worker-offline-$scenario.trx",'--results-directory',$work) -WorkingDirectory $taskRoot -WindowStyle Hidden -PassThru `
+                -RedirectStandardOutput (Join-Path $work "worker-offline-$scenario.log") -RedirectStandardError (Join-Path $work "worker-offline-$scenario.stderr.log")
             $stopped = $false; $restarted = $false
             $deadline = [DateTime]::UtcNow.AddMinutes(3)
             while (!$testProcess.HasExited) {
@@ -136,12 +138,12 @@ try {
             }
             $testProcess.WaitForExit()
             if ($testProcess.ExitCode -ne 0 -or !$stopped -or !$restarted) { throw 'Active outage proof failed; preserve original fixture.' }
-            [xml]$report = Get-Content -LiteralPath (Join-Path $work 'worker-offline-active.trx') -Raw
+            [xml]$report = Get-Content -LiteralPath (Join-Path $work "worker-offline-$scenario.trx") -Raw
             $counts = $report.TestRun.ResultSummary.Counters
             if (!$counts -or [int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) { throw 'Exactly one unskipped active-outage proof required.' }
             if (Test-Path -LiteralPath $journal) { throw 'Active outage fixture cleanup incomplete.' }
             foreach ($signal in 'stopped','restarted') { Remove-Item -LiteralPath (Join-Path $work ('worker-offline-'+$signal)) }
-            Get-Content -LiteralPath (Join-Path $work 'worker-offline-active.log') -Tail 4
+            Get-Content -LiteralPath (Join-Path $work "worker-offline-$scenario.log") -Tail 4
         }
         elseif ($FullDestinationOutage) {
             function Test-OfflinePhase([string]$phase) {
