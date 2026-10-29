@@ -83,7 +83,7 @@ public static class HolonReplicationMigrationAudit
         foreach (var head in page.Heads)
         {
             if (head.Sequence <= 0 || head.OperationId == Guid.Empty || head.AttemptCount < 0
-                || previous != null && StringComparer.Ordinal.Compare(head.TargetId, previous) <= 0
+                || previous != null && HolonReplicationRoutePage.CompareTargetIds(head.TargetId, previous) <= 0
                 || page.Heads.Count > pageSize)
                 return Error("COSMIC_MIGRATION_AUDIT_INVALID_PAGE", "The source returned an invalid or out-of-bound route page.");
             if (head.NativeRoute != null && head.NativeRoute.SourceStorage.BindingFingerprint != expectedSource.BindingFingerprint)

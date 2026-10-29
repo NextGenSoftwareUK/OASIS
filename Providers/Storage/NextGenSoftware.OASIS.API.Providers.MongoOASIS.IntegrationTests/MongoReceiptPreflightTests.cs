@@ -69,7 +69,7 @@ public partial class MongoStorageIdentityTests
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
                     boundSource.Result, sourceBinding.Result, create.Write.OperationId, "target");
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
-                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);
 
                 var before = await Snapshot();
                 var matched = await Observe(create);
@@ -83,7 +83,7 @@ public partial class MongoStorageIdentityTests
                 Assert.False(updated.IsError, updated.Message + updated.Exception);
                 var second = updated.Result.Single(); await Apply(update, second);
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
-                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);
 
                 before = await Snapshot();
                 var stale = await Observe(create);

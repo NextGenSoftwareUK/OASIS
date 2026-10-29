@@ -11,26 +11,29 @@ public partial class Neo4jOASIS
         using var session = _driver.AsyncSession();
         try
         {
-            if (await HasHolonWriteSchemaAsync(session).ConfigureAwait(false)) return;
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_holon_id IF NOT EXISTS FOR (h:Holon) REQUIRE h.Id IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_receipt_operation IF NOT EXISTS FOR (r:CosmicWriteReceipt) REQUIRE r.OperationId IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_record_version_identity IF NOT EXISTS FOR (v:OasisRecordVersion) REQUIRE (v.Kind,v.RecordId,v.Version) IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_replica_head IF NOT EXISTS FOR (r:CosmicReplicaHead) REQUIRE r.HolonId IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_sequence_owner IF NOT EXISTS FOR (s:CosmicHolonOutboxSequence) REQUIRE s.Name IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_sequence IF NOT EXISTS FOR (s:CosmicHolonOutbox) REQUIRE s.Sequence IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_operation_target IF NOT EXISTS FOR (s:CosmicHolonOutbox) REQUIRE (s.OperationId,s.TargetId) IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_destination_binding IF NOT EXISTS FOR (d:CosmicDestinationBinding) REQUIRE d.Key IS UNIQUE").ConfigureAwait(false))
-                .ConsumeAsync().ConfigureAwait(false);
-            // IF NOT EXISTS can encounter an existing name. Verify the actual guarantee by shape.
             if (!await HasHolonWriteSchemaAsync(session).ConfigureAwait(false))
-                throw new InvalidDataException("Neo4j requires native holon, receipt, replica-head, historical-version and primary-outbox identity constraints before activation.");
+            {
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_holon_id IF NOT EXISTS FOR (h:Holon) REQUIRE h.Id IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_receipt_operation IF NOT EXISTS FOR (r:CosmicWriteReceipt) REQUIRE r.OperationId IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_record_version_identity IF NOT EXISTS FOR (v:OasisRecordVersion) REQUIRE (v.Kind,v.RecordId,v.Version) IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_replica_head IF NOT EXISTS FOR (r:CosmicReplicaHead) REQUIRE r.HolonId IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_sequence_owner IF NOT EXISTS FOR (s:CosmicHolonOutboxSequence) REQUIRE s.Name IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_sequence IF NOT EXISTS FOR (s:CosmicHolonOutbox) REQUIRE s.Sequence IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_outbox_operation_target IF NOT EXISTS FOR (s:CosmicHolonOutbox) REQUIRE (s.OperationId,s.TargetId) IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                await (await session.RunAsync("CREATE CONSTRAINT oasis_cosmic_destination_binding IF NOT EXISTS FOR (d:CosmicDestinationBinding) REQUIRE d.Key IS UNIQUE").ConfigureAwait(false))
+                    .ConsumeAsync().ConfigureAwait(false);
+                // IF NOT EXISTS can encounter an existing name. Verify the actual guarantee by shape.
+                if (!await HasHolonWriteSchemaAsync(session).ConfigureAwait(false))
+                    throw new InvalidDataException("Neo4j requires native holon, receipt, replica-head, historical-version and primary-outbox identity constraints before activation.");
+            }
+            await EnsureOutboxTargetOrderingIndexAsync(session).ConfigureAwait(false);
         }
         catch (ClientException cause)
         {

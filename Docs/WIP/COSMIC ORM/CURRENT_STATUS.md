@@ -21,11 +21,11 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - Reproduced/fixed false matches when current business content changed but revision tokens did not. All three V2 readers now validate the actual current body against the protected content. [Exact proof and limitations](V2_LINEAGE_MIGRATION.md).
 - No migration writes, adoption/rebind, state clearing or operator authorization are enabled. Older type-only V2 heads/obligations remain a deployment gate.
 
-Complete-operation inventory now implemented on all3native providers: Core4462/Shared1404/GraphQL1, native SQLite2/Mongo1/Neo2 and preserved-failure reconciliation1 pass. Completed/later obligations and hidden lease changes are retained in redacted fingerprints. Neo exact-operation Unicode cursor fixed using its existing native range index; original failure reconciled without replay. [Scope](V2_LINEAGE_MIGRATION.md).
+Complete-operation inventory now implemented on all3native providers: Core4462/Shared1404/GraphQL1, native SQLite2/Mongo1/Neo2 and preserved-failure reconciliation1 pass. Completed/later obligations and hidden lease changes are retained in redacted fingerprints. Neo exact-operation Unicode cursor fixed using its existing native range index; original failure reconciled without replay. The global route-head reader is now fixed too: Neo625/Shared1405/Core4462/GraphQL1 and native Neo2/SQLite2/Mongo1 pass; activation verifies the required target-order index. [Scope](V2_LINEAGE_MIGRATION.md).
 
 ## Exact next step
 
-1. Fix the related existing global Neo route-head Unicode cursor/index-order gap; complete source-wide lineage inventory/quiescence scope.
+1. Complete source-wide lineage inventory/quiescence scope and bind all affected original obligations/receipts into the operator preview.
 2. Implement an immutable, authorized operator preview bound to complete inventory, original receipts, exact targets, old/new lineage, revisions, policy and obligations.
 3. Complete remaining ordered-pair and concurrent-change acceptance alongside preview validation; current native cases are scoped, not all-pair certification.
 4. Implement per-store compare-and-swap and durable idempotent migration receipts, then interrupted-cutover recovery and old-obligation disposition.
@@ -55,7 +55,7 @@ Three-database save demos cover dirty/no-op ownership, generated IDs, concurrenc
 
 ## Git, resources and commands
 
-- Parent Development c8a381dd2/Core0240771 integrated into task; current Core7a04aff. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
+- Parent Development c8a381dd2/Core0240771 integrated into task; current Core5baaab3. Core4462/DNA19/GraphQL1 and priority-provider/WEB4 compatibility builds pass. [Integration scope](DEVELOPMENT_SYNC_2026-10-28.md).
 - Last outgoing Development batch: parent858edd828/Corebd86a37. Later work remains on the pushed task branch; no entire-branch deployment while the lineage gate is open.
 - Commit named files only; Core push/remote verification first, then matching parent gitlink + deployment manifest. Fetch before scoped daily integration; never force push.
 - Use one build lease and `/m:2 /nr:false /p:UseSharedCompilation=false`; reuse SDK10.0.401/cache/services. No new install/restore for these milestones.

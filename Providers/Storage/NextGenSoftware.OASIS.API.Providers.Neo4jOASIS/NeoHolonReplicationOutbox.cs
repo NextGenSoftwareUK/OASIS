@@ -117,8 +117,13 @@ public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationOperati
     public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize=64,
         string afterTargetId=null,CancellationToken cancellationToken=default)
         =>Execute(async tx=>{
-            var rows=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox) WHERE o.DeliveryState<>'Completed' "
-                +"AND ($after IS NULL OR o.TargetId > $after) WITH o.TargetId AS target,min(o.Sequence) AS first "
+            // Match cursor admission to the native target index's Unicode order;
+            // the pinned engine's scalar comparison has different semantics.
+            var selection=afterTargetId==null
+                ? "MATCH (o:CosmicHolonOutbox) WHERE o.DeliveryState<>'Completed' "
+                : "MATCH (o:CosmicHolonOutbox) USING INDEX o:CosmicHolonOutbox(TargetId) "
+                    +"WHERE o.TargetId>$after AND o.DeliveryState<>'Completed' ";
+            var rows=await(await tx.RunAsync(selection+"WITH o.TargetId AS target,min(o.Sequence) AS first "
                 +"MATCH (o:CosmicHolonOutbox {Sequence:first}) RETURN o ORDER BY target LIMIT $limit",
                 new{after=afterTargetId,limit=pageSize+1}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
             var heads=rows.Select(record=>{

@@ -106,7 +106,7 @@ public partial class Neo4jNativeAvatarTests
                     boundSource.Result, expected, operation, "target", HolonReplicaHeadReadConsistency.ReadCommittedValidated);
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, expected,
                     operation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true,
-                    consistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+                    consistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated, migrationSource: provider);
 
                 var matched = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
                 Assert.IsFalse(matched.IsError, matched.Message + matched.Exception);
