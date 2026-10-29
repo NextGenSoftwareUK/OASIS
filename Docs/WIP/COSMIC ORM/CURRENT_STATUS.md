@@ -26,8 +26,8 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 
 ## Exact next step
 
-1. Arbitrum V2 local MVP verified: native3/2 query1/1 through linked shipping BootLoader factory, controls7/7 plus Polygon7/7 regressions, Mongo-paired C#/HTTP1/1 and actual browser5/4. Launcher `-Provider Arbitrum -Federated` (5099). Both owned services stopped; temporary Mongo DB cleaned; original chain/key/seeds retained. [Arbitrum proof](ARBITRUM_CQL_MVP.md).
-2. Google Firestore CQL adapter builds; initial controls7/7 pass (no native acceptance yet). Cached emulator JAR/Java exist, old worktree checkpoint absent. Next: one fixed owned CQL project with persistent LocalState manifest/checkpoint; prove native3/2 and Mongo-paired5/4 C#/HTTP/browser, preserving historical originals. [Firestore stage](FIRESTORE_CQL_MVP.md). Then Cosmos blockchain, Polkadot, NEAR and other suitable existing providers before deeper parity. Hosted Azure stays pending by user instruction. Arbitrum V2 uses Web3Core; legacy custom-adapter gaps are documentation-only.
+1. Google Firestore local MVP verified: controls7/7, native3/2/absent query1/1 with unchanged source revisions, immutable-checkpoint restart/reuse1/1, Mongo-paired C#/HTTP1/1 and actual browser5/4. Launcher `-Provider Google -Federated` (5100). Both owned services stopped; temporary Mongo DB cleaned; original Firestore seed/checkpoint retained under LocalState. No hosted Google claim. [Proof](FIRESTORE_CQL_MVP.md).
+2. Next: Cosmos blockchain (distinct from Azure Cosmos DB), then Polkadot, NEAR and other suitable existing providers before deeper parity. Each needs bounded native filtered multi-record queries + Mongo-paired C#/HTTP/browser MVP. Reuse retained runtimes/state; no historical resets. Hosted Azure stays pending by user instruction. Arbitrum V2 uses Web3Core; legacy custom-adapter gaps are documentation-only.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
@@ -48,6 +48,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 | Cosmos + Mongo | Emulator C#/HTTP/browser 5/4. Hosted Azure pending by user instruction: no free subscription/auth; do not provision or repeat signup requests. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
 | IPFS/SOLID/ActivityPub + Mongo | Native 3/2 bounded-key queries, paired SDK/HTTP/browser 5/4. Arbitrary content queries remain open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
 | Solana + Mongo | Retained local validator + explicit SQLite index, C#/HTTP/browser. No hosted-chain/reseed claim. Original missing historical chunk has no known backup; preserve retained state. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). |
+| Google Firestore + Mongo | Retained emulator: native3/2/absent1/1 and checkpoint restart/reuse, controls7/7, paired C#/HTTP1/1 and actual browser5/4. No hosted Google claim. [Guide](FIRESTORE_CQL_MVP.md). |
 | Arbitrum V2 + Mongo | Shipping BootLoader V2/Web3Core on local chain31338: native3/2 acceptance1/1, controls7/7, paired C#/HTTP1/1 and actual browser5/4. No hosted rollup/mainnet claim. [Guide](ARBITRUM_CQL_MVP.md). |
 | Polygon + Mongo | Concrete Polygon/Web3Core on local chain31338: native3/2 acceptance1/1, controls7/7, paired C#/HTTP1/1 and actual browser5/4. No mainnet claim. [Guide](POLYGON_CQL_MVP.md). |
 | Ethereum + Mongo | Local EVM chain31338 native3/2 acceptance1/1, controls12/12, paired C#/HTTP1/1 and browser5/4 verified. Retained chain/seed reused; no mainnet claim. [Guide](ETHEREUM_CQL_MVP.md). |
