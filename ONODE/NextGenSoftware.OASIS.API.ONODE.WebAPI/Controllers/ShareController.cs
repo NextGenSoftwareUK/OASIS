@@ -148,10 +148,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// What each avatar may do with a holon, set by anyone with Manage on it (the creator always has it) or a Wizard.
-        /// Body: <c>{"grants":{"&lt;avatarId&gt;":["read","write","delete","addChildren","manage"]}}</c>.
-        /// An empty list removes that avatar; avatars not listed are unchanged; an empty "grants" object marks the
-        /// holon as restricted (creating children under it then needs addChildren).
+        /// Who may do what with a holon, as a whole and field by field. Needs Manage on the holon (the creator always has it)
+        /// or a Wizard. A grantee is an avatar id, a group id or <c>"public"</c>.
+        /// Body: <c>{"grants":{"&lt;grantee&gt;":["read","write"]},"inherit":{"&lt;grantee&gt;":["read"]},
+        /// "fields":{"&lt;grantee&gt;":{"metadata.username":["read"],"name":["read","write"]}}}</c>.
+        /// An empty list removes that grantee (or that field); anything not listed is unchanged. An empty body marks the
+        /// holon restricted (creating children under it then needs addChildren). Permission names: read, write, delete,
+        /// addChildren, manage; fields accept read, write, delete only. Field names: name, description, a property such as
+        /// username, metadata.&lt;key&gt;, metadata.* or *.
         /// </summary>
         [Authorize]
         [HttpPost("permissions/{holonId:guid}")]
@@ -159,15 +163,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var changes = new Dictionary<Guid, HolonPermission>();
-                foreach (var grant in request?.Grants ?? new Dictionary<string, string[]>())
+                var bad = (string message) => new OASISResult<bool> { IsError = true, ErrorCount = 1,
+                    ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = message };
+
+                Dictionary<string, HolonPermission> Map(Dictionary<string, string[]> source, out string error)
                 {
-                    if (!Guid.TryParse(grant.Key, out var avatarId) || !HolonPermissions.TryParse(grant.Value, out var flags))
-                        return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
-                            Message = $"Invalid grant for '{grant.Key}'. Use an avatar id and any of read, write, delete, addChildren, manage." };
-                    changes[avatarId] = flags;
+                    error = null;
+                    var map = new Dictionary<string, HolonPermission>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var entry in source ?? new Dictionary<string, string[]>())
+                    {
+                        if (!HolonPermissions.TryParse(entry.Value, out var flags))
+                        { error = $"Invalid permission names for '{entry.Key}'. Use read, write, delete, addChildren, manage."; return null; }
+                        map[entry.Key] = flags;
+                    }
+                    return map;
                 }
-                return await HolonAccess.SetPermissionsAsync(HolonManager, holonId, changes, Avatar);
+
+                var grants = Map(request?.Grants, out var error);
+                if (error != null) return bad(error);
+                var inherit = Map(request?.Inherit, out error);
+                if (error != null) return bad(error);
+                var fields = new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>(StringComparer.OrdinalIgnoreCase);
+                foreach (var grantee in request?.Fields ?? new Dictionary<string, Dictionary<string, string[]>>())
+                {
+                    var perField = Map(grantee.Value, out error);
+                    if (error != null) return bad(error);
+                    fields[grantee.Key] = perField;
+                }
+
+                return await HolonAccess.SetPermissionsAsync(HolonManager, holonId,
+                    new HolonAccess.PermissionChange { Grants = grants, Inherit = inherit, Fields = fields }, Avatar);
             }
             catch (Exception exception)
             {
@@ -176,12 +201,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-        /// <summary>The stored permission grants for a holon. Visible to the creator, anyone with Manage, or a Wizard.</summary>
+        /// <summary>The stored permissions of a holon (grants, inherit, fields). Visible to the creator, anyone with Manage, or a Wizard.</summary>
         [Authorize]
         [HttpGet("permissions/{holonId:guid}")]
-        public async Task<OASISResult<Dictionary<string, string[]>>> GetPermissions(Guid holonId)
+        public async Task<OASISResult<Dictionary<string, object>>> GetPermissions(Guid holonId)
         {
-            var result = new OASISResult<Dictionary<string, string[]>>();
+            var result = new OASISResult<Dictionary<string, object>>();
             try
             {
                 var loaded = await HolonManager.LoadHolonAsync(holonId, loadChildren: false);
@@ -191,19 +216,82 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return result;
                 }
                 if (Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && !HolonPermissions.Allows(loaded.Result, AvatarId, HolonPermission.Manage, includePublic: false))
+                    && !await HolonManager.AllowsAsync(loaded.Result, AvatarId, HolonPermission.Manage))
                 {
                     OASISErrorHandling.HandleError(ref result, "Unauthorized. Only the creator, or an avatar granted Manage, can see who has access.");
                     return result;
                 }
-                result.Result = HolonAccess.GetPermissions(loaded.Result)
-                    .ToDictionary(g => g.Key.ToString("D"), g => HolonPermissions.NamesOf(g.Value).ToArray());
+                var set = HolonAccess.GetPermissions(loaded.Result);
+                string[] Names(HolonPermission p) => HolonPermissions.NamesOf(p).ToArray();
+                result.Result = new Dictionary<string, object>
+                {
+                    ["grants"] = set.Grants.ToDictionary(g => g.Key, g => Names(g.Value)),
+                    ["inherit"] = set.Inherit.ToDictionary(g => g.Key, g => Names(g.Value)),
+                    ["fields"] = set.Fields.ToDictionary(g => g.Key, g => (object)g.Value.ToDictionary(f => f.Key, f => Names(f.Value))),
+                };
                 return result;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Unable to read permissions. Reason: {ex.Message}", ex);
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// Creates a group (or role). Grant permissions to the group's id like an avatar's, and change who is in it to change
+        /// everyone's access at once. The creator owns the group and its membership.
+        /// Body: <c>{"name":"Speech therapists","members":["&lt;avatarId&gt;"]}</c>. Returns the group holon (use its id as a grantee).
+        /// </summary>
+        [Authorize]
+        [HttpPost("groups")]
+        public async Task<OASISResult<IHolon>> CreateGroup([FromBody] CreateGroupRequest request)
+        {
+            try
+            {
+                var members = new List<Guid>();
+                foreach (var m in request?.Members ?? new List<string>())
+                {
+                    if (!Guid.TryParse(m, out var id))
+                        return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_INPUT_INVALID",
+                            Message = $"'{m}' is not an avatar id." };
+                    members.Add(id);
+                }
+                return await HolonAccess.CreateGroupAsync(HolonManager, request?.Name, members, Avatar);
+            }
+            catch (Exception exception)
+            {
+                return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_FAILED",
+                    Message = "The group could not be created.", Exception = exception };
+            }
+        }
+
+        /// <summary>Adds and removes members of a group. Body: <c>{"add":["&lt;avatarId&gt;"],"remove":["&lt;avatarId&gt;"]}</c>. Needs Manage on the group.</summary>
+        [Authorize]
+        [HttpPost("groups/{groupId:guid}/members")]
+        public async Task<OASISResult<bool>> SetGroupMembers(Guid groupId, [FromBody] GroupMembersRequest request)
+        {
+            try
+            {
+                bool Parse(List<string> source, out List<Guid> ids)
+                {
+                    ids = new List<Guid>();
+                    foreach (var m in source ?? new List<string>())
+                    {
+                        if (!Guid.TryParse(m, out var id)) return false;
+                        ids.Add(id);
+                    }
+                    return true;
+                }
+                if (!Parse(request?.Add, out var add) || !Parse(request?.Remove, out var remove))
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_INPUT_INVALID",
+                        Message = "Every member must be an avatar id." };
+                return await HolonAccess.SetGroupMembersAsync(HolonManager, groupId, add, remove, Avatar);
+            }
+            catch (Exception exception)
+            {
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_GROUP_FAILED",
+                    Message = "Group membership could not be changed.", Exception = exception };
             }
         }
 
@@ -249,9 +337,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
     }
-    /// <summary>Body of <c>POST api/share/permissions/{holonId}</c>: avatar id to permission names.</summary>
+    /// <summary>Body of <c>POST api/share/permissions/{holonId}</c>. Grantee (avatar id, group id or "public") to permission names.</summary>
     public class SetPermissionsRequest
     {
         public Dictionary<string, string[]> Grants { get; set; } = new Dictionary<string, string[]>();
+        public Dictionary<string, string[]> Inherit { get; set; } = new Dictionary<string, string[]>();
+        /// <summary>Grantee to field name to permission names (read, write, delete).</summary>
+        public Dictionary<string, Dictionary<string, string[]>> Fields { get; set; } = new Dictionary<string, Dictionary<string, string[]>>();
+    }
+
+    public class CreateGroupRequest
+    {
+        public string Name { get; set; }
+        public List<string> Members { get; set; } = new List<string>();
+    }
+
+    public class GroupMembersRequest
+    {
+        public List<string> Add { get; set; } = new List<string>();
+        public List<string> Remove { get; set; } = new List<string>();
     }
 }
