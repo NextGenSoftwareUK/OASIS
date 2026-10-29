@@ -8,8 +8,9 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Upstash retained free scratch resource/native admission**; adapter/control17
-pass; hosted/paired remain red ([scope](UPSTASH_CQL_MVP.md)). Honor recorded expiry.
+**Next: Upstash Mongo-paired SDK/HTTP/browser demo**; control17/hosted-native1/repeat1
+pass; original free scratch source retained, paired remains red ([scope](UPSTASH_CQL_MVP.md)).
+Honor resource expiry2026-10-31; no reseed/reallocation on missing original.
 DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,
 owned processes stopped and temporary fixture removed ([scope](DUCKDB_CQL_MVP.md)).
 SQL Server control9/native/restart/SDK/HTTP/browser5/4 pass; original LocalDB source
