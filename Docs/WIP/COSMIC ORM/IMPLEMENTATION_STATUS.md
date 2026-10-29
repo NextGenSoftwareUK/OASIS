@@ -5,6 +5,11 @@ Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next ste
 
 ## Current migration checkpoint
 
+Read-only immutable preview implemented: Shared1453/1453, native SQLite2/Mongo1/Neo2.
+All observed lineage routes/states retained, exact receipt scope checked; no partial
+review on failed evidence. Historical replica/payload proofs, replacement admission,
+fences and migration execution remain explicit open gates. CURRENT_STATUS owns next steps.
+
 Migration-specific host authorization now implemented: exact immutable scope,
 time-bounded grants, deny by default, separate from replication ownership.
 Shared1430/1430 pass; complete preview generation/native fences/execution remain open.

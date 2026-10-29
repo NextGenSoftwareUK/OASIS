@@ -1,0 +1,231 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
+
+[TestClass]
+public class HolonReplicationMigrationPreviewTests
+{
+    public class SourceProbe : DispatchProxy
+    {
+        public readonly List<HolonReplicationLineageReadRequest> Requests = new();
+        public Func<HolonReplicationLineageReadRequest, OASISResult<HolonReplicationLineagePage>> Read;
+        protected override object Invoke(MethodInfo method, object[] args)
+        {
+            Assert.AreEqual("ReadLineageObligationsAsync", method.Name, "Review may not claim, mutate, initialize or replay.");
+            var request = (HolonReplicationLineageReadRequest)args[0]; Requests.Add(request);
+            return Task.FromResult(Read(request));
+        }
+    }
+
+    private sealed class Fixture
+    {
+        public readonly CosmicStorageIdentity Source = new(ProviderType.SQLLiteDBOASIS, new string('A',64), Guid.NewGuid());
+        public readonly CosmicStorageIdentity Target = new(ProviderType.MongoDBOASIS, new string('B',64), Guid.NewGuid());
+        public readonly IHolonReplicationLineageInventoryOutbox Native = DispatchProxy.Create<IHolonReplicationLineageInventoryOutbox, SourceProbe>();
+        public SourceProbe Probe => (SourceProbe)Native;
+        public readonly List<HolonReplicationOperationObligation> Rows = new();
+        public readonly Dictionary<Guid, HolonReplicationReceiptPreflightReport> Receipts = new();
+        public readonly List<Guid> ReceiptReads = new();
+        public Func<HolonReplicationOperationObligation, OASISResult<HolonReplicationReceiptPreflightReport>> Receipt;
+        public HolonReplicationRouteBinding Replacement => new(Source, Target, "new-route-policy");
+
+        public Fixture()
+        {
+            Add(1, "selected", HolonDeliveryState.Completed);
+            Add(2, "other", HolonDeliveryState.Pending, Rows[0].OperationId, Rows[0].ActorId);
+            Add(3, "selected", HolonDeliveryState.Pending);
+            Probe.Read = request => {
+                var upper = request.ThroughSequence ?? Rows.Max(r => r.Sequence);
+                var eligible = Rows.Where(r => r.Sequence > request.AfterSequence && r.Sequence <= upper).ToArray();
+                return new(new HolonReplicationLineagePage(request, upper, eligible.Take(request.PageSize),
+                    eligible.Length > request.PageSize, request.RequiredConsistency));
+            };
+            Receipt = row => new(Receipts[row.OperationId]);
+        }
+
+        public void Add(long sequence, string targetId, HolonDeliveryState state, Guid? operation = null, Guid? actor = null)
+        {
+            var op = operation ?? Guid.NewGuid(); var owner = actor ?? Guid.NewGuid();
+            Rows.Add(HolonReplicationOperationObservation.Capture(new HolonDeliveryInspection(sequence, op, targetId, state,
+                state == HolonDeliveryState.Pending ? 0 : 1, null, null, null), "legacy-source", Source.Authority,
+                owner, new string('C',64), "secret-lease", "secret-worker", 10, 0, state == HolonDeliveryState.Completed ? 1 : 0, null));
+            if (!Receipts.ContainsKey(op)) Receipts.Add(op, Report(op, owner));
+        }
+
+        public HolonReplicationReceiptPreflightReport Report(Guid operation, Guid actor, string fault = null)
+        {
+            var source = fault == "source-store" ? new CosmicStorageIdentity(Source.Authority, Source.EndpointFingerprint, Guid.NewGuid()) : Source;
+            var target = fault == "target-store" ? new CosmicStorageIdentity(Target.Authority, Target.EndpointFingerprint, Guid.NewGuid()) : Target;
+            var row = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid(), Name = "private-business-value" };
+            CosmicConcurrency.SetProviderRevisionId(row, Source.Authority, Guid.NewGuid());
+            var records = new List<IHolon> { row };
+            if (fault == "partial")
+            {
+                var second = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+                CosmicConcurrency.SetProviderRevisionId(second, Source.Authority, Guid.NewGuid()); records.Add(second);
+            }
+            var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(
+                fault == "operation" ? Guid.NewGuid() : operation, fault == "actor" ? Guid.NewGuid() : actor,
+                Source.Authority, records.Select(r => new HolonWriteCondition(r.Id, null)),
+                new HolonReplicationEnrollment(fault == "lineage" ? "other-lineage" : "legacy-source", new[] { "selected", "other" })),
+                ConditionalHolonOperation.Save, records, saveChildren: false);
+            var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(request, source, target, new[] { row.Id });
+            var evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, records);
+            var outcome = new ConditionalHolonWriteOutcome(request.Write.OperationId, request.Write.ActorId, Source.Authority,
+                request.Operation, ConditionalHolonReceiptState.Committed, null, evidence);
+            var head = new HolonReplicaHeadEvidence(request.Write.ReplicationEnrollment.SourceId, Source.Authority,
+                row.VersionId, row.PreviousVersionId, row.Version, Guid.NewGuid(), false, new string('D',64),
+                fault == "conflict" ? new string('E',64) : evidence.Records[0].PortableContentDigest);
+            var result = HolonReplicationReceiptPreflight.Compare(evidenceRequest, outcome,
+                new HolonReplicaHeadReadResult(target, new[] { new HolonReplicaHeadObservation(row.Id, true, head) }));
+            Assert.IsFalse(result.IsError, result.Message); return result.Result;
+        }
+
+        public Task<OASISResult<HolonReplicationMigrationPreview>> Read(int max = 10, CancellationToken token = default)
+            => HolonReplicationMigrationPreviewReader.ReadAsync(Native, Source, "legacy-source", "selected", Target, Replacement,
+                (row, cancellation) => { ReceiptReads.Add(row.OperationId); return Task.FromResult(Receipt(row)); },
+                maxObligations: max, pageSize: 1, cancellationToken: token);
+    }
+
+    [TestMethod]
+    public async Task CompleteWindowRetainsOtherRoutesCompletedRowsAndExactReviewBinding()
+    {
+        var f = new Fixture(); var result = await f.Read();
+        Assert.IsFalse(result.IsError, result.Message + result.Exception);
+        var preview = result.Result;
+        Assert.AreEqual(3, preview.Obligations.Count); Assert.AreEqual(2, preview.Receipts.Count);
+        Assert.AreEqual(3L, preview.ThroughSequence);
+        Assert.IsTrue(preview.Obligations.Any(r => r.State == HolonDeliveryState.Completed));
+        Assert.IsTrue(preview.Obligations.Any(r => r.TargetId == "other"));
+        Assert.AreEqual(3, f.Probe.Requests.Count);
+        Assert.IsNull(f.Probe.Requests[0].ThroughSequence);
+        Assert.IsTrue(f.Probe.Requests.Skip(1).All(r => r.ThroughSequence == 3));
+        CollectionAssert.AreEquivalent(new[] { f.Rows[0].OperationId, f.Rows[2].OperationId }, f.ReceiptReads);
+        Assert.IsTrue(preview.Findings.Contains(HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified));
+        Assert.IsTrue(preview.Findings.Contains(HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired));
+        var json = JsonSerializer.Serialize(preview);
+        Assert.IsFalse(json.Contains("private-business-value")); Assert.IsFalse(json.Contains("secret-lease"));
+        var context = preview.AuthorizationContext(Guid.NewGuid(), Guid.NewGuid(), "admin");
+        Assert.AreEqual(preview.PreviewDigest, context.PreviewDigest);
+        Assert.AreEqual(preview.PreviewDigest, (await f.Read()).Result.PreviewDigest);
+    }
+
+    [TestMethod]
+    public async Task LaterAppendsAreExcludedAndFreshReviewChangesDigest()
+    {
+        var f = new Fixture(); var nativeRead = f.Probe.Read;
+        f.Probe.Read = request => {
+            var result = nativeRead(request);
+            if (!request.ThroughSequence.HasValue) f.Add(f.Rows.Max(r => r.Sequence) + 1, "selected", HolonDeliveryState.Pending);
+            return result;
+        };
+        var first = await f.Read(); var second = await f.Read();
+        Assert.IsFalse(first.IsError); Assert.IsFalse(second.IsError);
+        Assert.AreEqual(3, first.Result.Obligations.Count); Assert.AreEqual(4, second.Result.Obligations.Count);
+        Assert.AreNotEqual(first.Result.PreviewDigest, second.Result.PreviewDigest);
+    }
+
+    [DataTestMethod]
+    [DataRow("operation")] [DataRow("actor")] [DataRow("source-store")]
+    [DataRow("target-store")] [DataRow("lineage")]
+    public async Task ReceiptCannotSubstituteAnotherOperationActorStoreOrLineage(string fault)
+    {
+        var f = new Fixture(); f.Receipt = row => new(f.Report(row.OperationId, row.ActorId, fault));
+        var result = await f.Read();
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_RECEIPT_SCOPE_MISMATCH", result.ErrorCode);
+    }
+
+    [DataTestMethod]
+    [DataRow("partial", HolonReplicationMigrationFinding.IncompleteOriginalGraph)]
+    [DataRow("conflict", HolonReplicationMigrationFinding.TargetDoesNotMatchOriginalReceipt)]
+    public async Task IncompleteOrConflictingEvidenceRemainsAnExplicitReviewFinding(string fault, HolonReplicationMigrationFinding finding)
+    {
+        var f = new Fixture(); f.Receipt = row => new(f.Report(row.OperationId, row.ActorId, fault));
+        var result = await f.Read(); Assert.IsFalse(result.IsError, result.Message + result.Exception);
+        Assert.IsTrue(result.Result.Findings.Contains(finding));
+    }
+
+    [DataTestMethod]
+    [DataRow("limit")] [DataRow("inventory-error")] [DataRow("receipt-error")]
+    [DataRow("duplicate")] [DataRow("changed-actor")] [DataRow("absent")]
+    public async Task IncompleteInventoryOrUnavailableEvidenceNeverProducesPartialPreview(string fault)
+    {
+        var f = new Fixture(); var cause = new InvalidOperationException("native-failure");
+        if (fault == "inventory-error") f.Probe.Read = _ => new() { IsError = true, ErrorCode = "NATIVE_FAILURE", Exception = cause };
+        if (fault == "receipt-error") f.Receipt = _ => new() { IsError = true, ErrorCode = "NATIVE_FAILURE", Exception = cause };
+        if (fault is "duplicate" or "changed-actor") f.Add(4, "selected", HolonDeliveryState.Pending,
+            f.Rows[0].OperationId, fault == "duplicate" ? f.Rows[0].ActorId : Guid.NewGuid());
+        if (fault == "absent") f.Rows.RemoveAll(r => r.TargetId == "selected");
+        var result = await f.Read(fault == "limit" ? 2 : 10);
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.IsFalse(result.IsSaved);
+        if (fault.EndsWith("error", StringComparison.Ordinal))
+        { Assert.AreEqual("NATIVE_FAILURE", result.ErrorCode); Assert.AreSame(cause, result.Exception); }
+        if (fault != "receipt-error") Assert.AreEqual(0, f.ReceiptReads.Count);
+    }
+
+    [TestMethod]
+    public async Task ActiveDeliveryChangesPreviewAndRemainsAReviewFinding()
+    {
+        var f = new Fixture(); var first = await f.Read(); var prior = f.Rows[2];
+        f.Rows[2] = HolonReplicationOperationObservation.Capture(new HolonDeliveryInspection(prior.Sequence,
+            prior.OperationId, prior.TargetId, HolonDeliveryState.InFlight, 1, null, null, null), prior.SourceId,
+            prior.SourceAuthority, prior.ActorId, prior.PayloadDigest, "new-hidden-claim", "worker", 20, 0, 0, null);
+        var active = await f.Read(); Assert.IsFalse(active.IsError);
+        Assert.AreNotEqual(first.Result.PreviewDigest, active.Result.PreviewDigest);
+        Assert.IsTrue(active.Result.Findings.Contains(HolonReplicationMigrationFinding.DeliveryInFlight));
+    }
+
+    [DataTestMethod]
+    [DataRow("window")] [DataRow("store")] [DataRow("lineage")] [DataRow("consistency")]
+    [DataRow("backtrack")]
+    public async Task CrossPageSubstitutionCannotProduceAReview(string fault)
+    {
+        var f = new Fixture(); var native = f.Probe.Read;
+        f.Probe.Read = request => {
+            if (request.AfterSequence == 0) return native(request);
+            var source = fault == "store" ? new CosmicStorageIdentity(f.Source.Authority, f.Source.EndpointFingerprint, Guid.NewGuid()) : f.Source;
+            var changed = new HolonReplicationLineageReadRequest(source, fault == "lineage" ? "other" : request.SourceId,
+                request.PageSize, fault == "backtrack" ? 0 : request.AfterSequence,
+                fault == "window" ? request.ThroughSequence + 1 : request.ThroughSequence,
+                fault == "consistency" ? HolonReplicaHeadReadConsistency.ReadCommittedValidated : request.RequiredConsistency);
+            if (fault == "lineage") return new(new HolonReplicationLineagePage(changed, changed.ThroughSequence.Value,
+                Array.Empty<HolonReplicationOperationObligation>(), false, changed.RequiredConsistency));
+            return native(changed);
+        };
+        var result = await f.Read(); Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_INVENTORY_SCOPE_MISMATCH", result.ErrorCode);
+        Assert.AreEqual(0, f.ReceiptReads.Count);
+    }
+
+    [TestMethod]
+    public async Task CancellationAfterReceiptReadCannotPublishPartialReview()
+    {
+        var f = new Fixture(); using var cancel = new CancellationTokenSource();
+        f.Receipt = row => { cancel.Cancel(); return new(f.Receipts[row.OperationId]); };
+        var result = await f.Read(token: cancel.Token);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_CANCELLED", result.ErrorCode);
+        Assert.IsNull(result.Result); Assert.AreEqual(1, f.ReceiptReads.Count);
+    }
+
+    [TestMethod]
+    public async Task CancellationStopsBeforeAnyNativeObservation()
+    {
+        var f = new Fixture(); using var cancel = new CancellationTokenSource(); cancel.Cancel();
+        var result = await f.Read(token: cancel.Token);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_CANCELLED", result.ErrorCode);
+        Assert.AreEqual(0, f.Probe.Requests.Count); Assert.AreEqual(0, f.ReceiptReads.Count);
+    }
+}

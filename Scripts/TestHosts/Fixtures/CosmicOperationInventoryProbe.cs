@@ -92,6 +92,36 @@ public static class CosmicOperationInventoryProbe
 
 public static class CosmicLineageInventoryProbe
 {
+    public static async Task VerifyPreviewAsync(IHolonReplicationRouteInventoryOutbox outbox,
+        CosmicStorageIdentity source, CosmicStorageIdentity originalTarget, string sourceId,
+        Guid operation, int originalCount,
+        Func<Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationReceiptPreflightReport>>> readReceipt,
+        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+    {
+        // Proposed replacement identity is not contacted or admitted here. The
+        // same-authority Mongo fixture needs a distinct-authority proposal only.
+        var candidate = originalTarget.Authority == source.Authority
+            ? new CosmicStorageIdentity(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
+                new string('F', 64), "preview-only-not-contacted") : originalTarget;
+        var route = new NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding(source, candidate, "preview-only-policy");
+        async Task<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationPreview> Read()
+        {
+            var result = await NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationPreviewReader.ReadAsync(
+                (IHolonReplicationLineageInventoryOutbox)outbox, source, sourceId, "target", originalTarget, route,
+                (row, token) => row.OperationId == operation ? readReceipt() : throw new InvalidOperationException("Unexpected fixture operation."),
+                maxObligations: originalCount, pageSize: 1, sourceConsistency: consistency);
+            if (result.IsError || result.Result == null) throw new InvalidOperationException(result.Message, result.Exception);
+            return result.Result;
+        }
+        var preview = await Read();
+        if (preview.Obligations.Count != originalCount || preview.Receipts.Count != 1
+            || preview.Obligations.All(row => row.State != HolonDeliveryState.Completed)
+            || preview.PreviewDigest != (await Read()).PreviewDigest
+            || !preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired)
+            || !preview.Findings.Contains(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified))
+            throw new InvalidOperationException("Native preview omitted evidence, changed without writes, or concealed unresolved execution gates.");
+    }
+
     public static async Task VerifyWindowAsync(IHolonReplicationRouteInventoryOutbox outbox, CosmicStorageIdentity source,
         string sourceId, Guid originalOperation, int originalCount, Guid? appendedOperation = null, Func<Task> append = null,
         HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)

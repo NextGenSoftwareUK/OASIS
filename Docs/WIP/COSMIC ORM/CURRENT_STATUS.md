@@ -19,21 +19,22 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 - NativeSnapshot is the target default. Neo targets require explicit ReadCommittedValidated; source and target reads are never a global snapshot.
 - Retained Core4462/GraphQL1 compatibility; latest Shared1392/Neo619 controls pass. Native SQLite -> Mongo2, Neo/SQLite content/race3 and Mongo graph/head/receipt lifecycle2 pass.
 - Reproduced/fixed false matches when current business content changed but revision tokens did not. All three V2 readers now validate the actual current body against the protected content. [Exact proof and limitations](V2_LINEAGE_MIGRATION.md).
-- No migration writes, adoption/rebind, state clearing or operator authorization are enabled. Older type-only V2 heads/obligations remain a deployment gate.
+- No migration writes, adoption/rebind or state clearing are enabled. Separate host-owned operator authorization is implemented; no migration HTTP endpoint is enabled. Older type-only V2 heads/obligations remain a deployment gate.
 
 Complete-operation inventory now implemented on all3native providers: Core4462/Shared1404/GraphQL1, native SQLite2/Mongo1/Neo2 and preserved-failure reconciliation1 pass. Completed/later obligations and hidden lease changes are retained in redacted fingerprints. Neo exact-operation Unicode cursor fixed using its existing native range index; original failure reconciled without replay. The global route-head reader is now fixed too: Neo625/Shared1405/Core4462/GraphQL1 and native Neo2/SQLite2/Mongo1 pass; activation verifies the required target-order index. [Scope](V2_LINEAGE_MIGRATION.md).
 
-Source-wide lineage inventory now passes Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2. A later save is excluded from the captured window and visible in a new scan on all three sources. Earlier row state changes remain possible; authorization, fences and execution are still open.
+Source-wide lineage inventory now passes Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2. A later save is excluded from the captured window and visible in a new scan on all three sources. Earlier row state changes remain possible; fences and execution are still open.
 
-Separate exact operator authorization now implemented in Shared (1430 tests pass). Empty host policy denies all; time-limited grants bind operator, stores, lineage, policies and reviewed preview digest. No execution endpoint or complete preview generator is enabled.
+Separate exact operator authorization now implemented in Shared (1430 tests pass). Empty host policy denies all; time-limited grants bind operator, stores, lineage, policies and reviewed preview digest. The read-only preview generator is now implemented; execution stays disabled.
+
+Immutable preview now passes Shared1453/1453 plus native SQLite2/Mongo1/Neo2. It retains every observed route/state and binds selected-route receipt evidence to operator review. Missing original replica receipts, payload-to-receipt proof, replacement admission and native fences remain explicit findings. No partial preview on failed evidence.
 
 ## Exact next step
 
-1. Implement the immutable evidence preview generator and connect the separate operator policy, using the completed source-wide sequence-window inventory and exact original receipt/target evidence. A captured upper sequence is not a write fence or proof of quiescence.
-2. Bind the preview to the operator policy, exact physical stores, old/new lineage, complete obligations, revisions and content. Revalidate under native fences before any mutation.
-3. Complete remaining ordered-pair and concurrent-change acceptance alongside preview validation; current native cases are scoped, not all-pair certification.
-4. Implement per-store compare-and-swap and durable idempotent migration receipts, then interrupted-cutover recovery and old-obligation disposition.
-5. Finish remaining provider-pair outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.
+1. Implement read-only original replica-receipt evidence and verify original frozen payload/source-receipt binding; incorporate proofs into the immutable preview.
+2. Validate replacement-target evidence and reauthorize the exact preview before mutation; implement native source/target write and delivery fences. A sequence window is not quiescence.
+3. Implement per-store CAS, durable idempotent migration receipts, interrupted-cutover recovery and old-obligation disposition without rewriting historical evidence.
+4. Complete remaining ordered-pair/concurrent-change/outage/cold-start acceptance, then resume broader priority-provider ORM/CQL parity.
 
 ## HyperDrive verification already retained
 

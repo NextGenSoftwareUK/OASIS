@@ -1,0 +1,194 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+
+namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+public enum HolonReplicationMigrationFinding
+{
+    DeliveryInFlight, IncompleteOriginalGraph, TargetDoesNotMatchOriginalReceipt,
+    OriginalReplicaReceiptsUnverified, OriginalPayloadReceiptBindingUnverified,
+    NativeWriteAndDeliveryFencesRequired, ReplacementTargetEvidenceUnverified
+}
+
+/// <summary>Immutable review evidence for one route within a captured lineage
+/// window. Other routes are retained so review cannot silently omit obligations.
+/// This is neither a quiescent snapshot nor an executable migration plan.</summary>
+public sealed class HolonReplicationMigrationPreview
+{
+    public string Format => "cosmic-lineage-migration-preview-v1";
+    public CosmicStorageIdentity SourceStorage { get; }
+    public CosmicStorageIdentity OriginalTargetStorage { get; }
+    public string OriginalSourceId { get; }
+    public string OriginalTargetId { get; }
+    public HolonReplicationRouteBinding ReplacementRoute { get; }
+    public long ThroughSequence { get; }
+    public HolonReplicaHeadReadConsistency SourceConsistency { get; }
+    public IReadOnlyList<HolonReplicationOperationObligation> Obligations { get; }
+    public IReadOnlyList<HolonReplicationReceiptPreflightReport> Receipts { get; }
+    public IReadOnlyList<HolonReplicationMigrationFinding> Findings { get; }
+    public string PreviewDigest { get; }
+
+    internal HolonReplicationMigrationPreview(CosmicStorageIdentity source, CosmicStorageIdentity target,
+        string sourceId, string targetId, HolonReplicationRouteBinding replacement, long through,
+        HolonReplicaHeadReadConsistency consistency, IEnumerable<HolonReplicationOperationObligation> rows,
+        IEnumerable<HolonReplicationReceiptPreflightReport> receipts)
+    {
+        SourceStorage = source; OriginalTargetStorage = target;
+        OriginalSourceId = sourceId; OriginalTargetId = targetId; ReplacementRoute = replacement;
+        ThroughSequence = through; SourceConsistency = consistency;
+        Obligations = Array.AsReadOnly(rows.ToArray()); Receipts = Array.AsReadOnly(receipts.ToArray());
+        var findings = new List<HolonReplicationMigrationFinding>();
+        if (Obligations.Any(r => r.TargetId == targetId && r.State == HolonDeliveryState.InFlight))
+            findings.Add(HolonReplicationMigrationFinding.DeliveryInFlight);
+        if (Receipts.Any(r => !r.IsCompleteOriginalGraph)) findings.Add(HolonReplicationMigrationFinding.IncompleteOriginalGraph);
+        if (Receipts.Any(r => r.Records.Any(c => c.Kind != HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt)))
+            findings.Add(HolonReplicationMigrationFinding.TargetDoesNotMatchOriginalReceipt);
+        // A matching latest head never substitutes for the original replica receipt.
+        findings.Add(HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified);
+        findings.Add(HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified);
+        findings.Add(HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired);
+        findings.Add(HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified);
+        Findings = Array.AsReadOnly(findings.ToArray());
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(new { Format,
+            source = source.BindingFingerprint, target = target.BindingFingerprint,
+            OriginalSourceId, OriginalTargetId, replacementSource = replacement.SourceId,
+            replacementTarget = replacement.TargetId, replacementPolicy = replacement.PolicyBinding,
+            ThroughSequence, SourceConsistency, Obligations,
+            receipts = Receipts.Select(r => r.ObservationDigest).ToArray(), Findings });
+        PreviewDigest = Convert.ToHexString(SHA256.HashData(bytes));
+    }
+
+    /// <summary>The host derives operatorId from authentication. Admission is a
+    /// separate check; unresolved findings cannot be bypassed by obtaining a grant.</summary>
+    public HolonReplicationMigrationAuthorizationContext AuthorizationContext(
+        Guid migrationId, Guid operatorId, string administrativePolicyBinding)
+        => new(migrationId, operatorId, SourceStorage, OriginalTargetStorage, OriginalSourceId,
+            OriginalTargetId, ReplacementRoute, PreviewDigest, administrativePolicyBinding);
+}
+
+public static class HolonReplicationMigrationPreviewReader
+{
+    /// <summary>Collect every obligation in a bounded source window, then read the
+    /// original receipt evidence once per selected-route operation. The callback
+    /// is host-owned and uses unchanged historical intents; it must not replay them.
+    /// No writes, claims, binding discovery or automatic provider fallback occur.</summary>
+    public static async Task<OASISResult<HolonReplicationMigrationPreview>> ReadAsync(
+        IHolonReplicationLineageInventoryOutbox source, CosmicStorageIdentity expectedSource,
+        string originalSourceId, string originalTargetId, CosmicStorageIdentity originalTarget,
+        HolonReplicationRouteBinding replacementRoute,
+        Func<HolonReplicationOperationObligation, CancellationToken, Task<OASISResult<HolonReplicationReceiptPreflightReport>>> readOriginalReceipt,
+        int maxObligations = 4096, int pageSize = 64,
+        HolonReplicaHeadReadConsistency sourceConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new OASISResult<HolonReplicationMigrationPreview>();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (source == null || expectedSource == null || originalTarget == null || replacementRoute == null
+                || readOriginalReceipt == null || maxObligations < 1 || maxObligations > 65536
+                || replacementRoute.SourceStorage.BindingFingerprint != expectedSource.BindingFingerprint)
+                return Error(result, "COSMIC_MIGRATION_PREVIEW_OPTIONS_INVALID", "Explicit providers, physical route and bounded evidence scope are required.");
+            HolonReplicationMigrationAuthorizationContext.ValidateToken(originalSourceId);
+            HolonReplicationMigrationAuthorizationContext.ValidateToken(originalTargetId);
+            _ = new HolonReplicationLineageReadRequest(expectedSource, originalSourceId, pageSize,
+                requiredConsistency: sourceConsistency);
+            var rows = new List<HolonReplicationOperationObligation>();
+            long after = 0; long? through = null;
+            HolonReplicaHeadReadConsistency? actualConsistency = null;
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var request = new HolonReplicationLineageReadRequest(expectedSource, originalSourceId,
+                    Math.Min(pageSize, maxObligations - rows.Count), after, through, sourceConsistency);
+                var read = await source.ReadLineageObligationsAsync(request, cancellationToken).ConfigureAwait(false);
+                Observe(result, read);
+                if (read == null || read.IsError || read.Result == null)
+                    return Error(result, read?.ErrorCode ?? "COSMIC_MIGRATION_PREVIEW_INVENTORY_UNVERIFIED", "Complete source inventory could not be verified.", read?.Exception);
+                var page = read.Result;
+                if (page.SourceStorageFingerprint != expectedSource.BindingFingerprint || page.SourceId != originalSourceId
+                    || through.HasValue && page.ThroughSequence != through.Value || page.ThroughSequence < after
+                    || page.Obligations.Count > request.PageSize
+                    || actualConsistency.HasValue && actualConsistency != page.Consistency
+                    || sourceConsistency == HolonReplicaHeadReadConsistency.NativeSnapshot && page.Consistency != sourceConsistency)
+                    return Error(result, "COSMIC_MIGRATION_PREVIEW_INVENTORY_SCOPE_MISMATCH", "The source changed its scope, window or consistency.");
+                through = page.ThroughSequence; actualConsistency = page.Consistency;
+                foreach (var row in page.Obligations)
+                {
+                    if (row.Sequence <= after || row.Sequence > through || row.SourceId != originalSourceId
+                        || row.SourceAuthority != expectedSource.Authority
+                        || row.NativeRoute != null && row.NativeRoute.SourceStorage.BindingFingerprint != expectedSource.BindingFingerprint)
+                        return Error(result, "COSMIC_MIGRATION_PREVIEW_INVENTORY_SCOPE_MISMATCH", "The native sequence or physical source changed.");
+                    rows.Add(row); after = row.Sequence;
+                }
+                if (!page.NextAfterSequence.HasValue) break;
+                if (page.Obligations.Count != request.PageSize || page.NextAfterSequence != after)
+                    return Error(result, "COSMIC_MIGRATION_PREVIEW_INVENTORY_SCOPE_MISMATCH", "The native continuation does not follow its complete page.");
+                if (rows.Count >= maxObligations)
+                    return Error(result, "COSMIC_MIGRATION_PREVIEW_LIMIT_EXCEEDED", "The explicit review bound was reached; no partial preview is returned.");
+            }
+            // Even a native page may be internally valid while a cross-page change
+            // produces inconsistent actor/payload observations for one operation.
+            if (rows.GroupBy(r => r.OperationId).Any(g => g.Select(r => (r.ActorId, r.PayloadDigest)).Distinct().Count() != 1)
+                || rows.GroupBy(r => (r.OperationId, r.TargetId)).Any(g => g.Count() != 1))
+                return Error(result, "COSMIC_MIGRATION_PREVIEW_OPERATION_CHANGED", "An original operation changed across inventory pages.");
+            var selected = rows.Where(r => r.TargetId == originalTargetId).ToArray();
+            if (selected.Length == 0)
+                return Error(result, "COSMIC_MIGRATION_PREVIEW_ROUTE_ABSENT", "The captured window contains no obligations for the exact selected route.");
+            if (selected.Any(r => r.NativeRoute != null && r.NativeRoute.TargetStorage.BindingFingerprint != originalTarget.BindingFingerprint))
+                return Error(result, "COSMIC_MIGRATION_PREVIEW_TARGET_SCOPE_MISMATCH", "An original route identifies another physical target.");
+            var receipts = new List<HolonReplicationReceiptPreflightReport>();
+            foreach (var row in selected)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var read = await readOriginalReceipt(row, cancellationToken).ConfigureAwait(false);
+                Observe(result, read);
+                if (read == null || read.IsError || read.Result == null)
+                    return Error(result, read?.ErrorCode ?? "COSMIC_MIGRATION_PREVIEW_RECEIPT_UNVERIFIED", "An original receipt could not be verified.", read?.Exception);
+                var receipt = read.Result;
+                if (receipt.OperationId != row.OperationId || receipt.ActorId != row.ActorId
+                    || receipt.OriginalSourceId != originalSourceId || receipt.SourceAuthority != expectedSource.Authority
+                    || receipt.TargetAuthority != originalTarget.Authority
+                    || receipt.SourceStorageFingerprint != expectedSource.BindingFingerprint
+                    || receipt.TargetStorageFingerprint != originalTarget.BindingFingerprint)
+                    return Error(result, "COSMIC_MIGRATION_PREVIEW_RECEIPT_SCOPE_MISMATCH", "Receipt evidence differs from the original operation, actor or physical route.");
+                receipts.Add(receipt);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            result.Result = new(expectedSource, originalTarget, originalSourceId, originalTargetId, replacementRoute,
+                through.Value, actualConsistency.Value, rows, receipts);
+            result.IsLoaded = true;
+            return result;
+        }
+        catch (Exception cause)
+        {
+            return Error(result, cause is OperationCanceledException ? "COSMIC_MIGRATION_PREVIEW_CANCELLED" : "COSMIC_MIGRATION_PREVIEW_UNVERIFIED",
+                "The complete review preview could not be verified; no migration was performed.", cause);
+        }
+    }
+
+    private static void Observe<T>(OASISResult<HolonReplicationMigrationPreview> result, OASISResult<T> read)
+    {
+        if (read == null) return;
+        result.IsWarning |= read.IsWarning; result.WarningCount += read.WarningCount;
+        result.InnerMessages.AddRange(read.InnerMessages);
+        if (read.Exception != null) result.Exception = result.Exception == null ? read.Exception : new AggregateException(result.Exception, read.Exception);
+    }
+    private static OASISResult<HolonReplicationMigrationPreview> Error(OASISResult<HolonReplicationMigrationPreview> result,
+        string code, string message, Exception cause = null)
+    {
+        result.Result = null; result.IsLoaded = false; result.IsError = true; result.ErrorCount = Math.Max(1, result.ErrorCount);
+        result.ErrorCode = code; result.Message = message;
+        if (cause != null && result.Exception != cause)
+            result.Exception = result.Exception == null ? cause : new AggregateException(result.Exception, cause);
+        return result;
+    }
+}
