@@ -66,14 +66,14 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency", "Use the explicit process-owning runner.");
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency" or "reconcile-consistency", "Use the explicit process-owning runner.");
         var exhaust = phase == "exhaust";
         var routingProof = phase == "routing";
-        var consistencyProof = phase == "consistency";
+        var consistencyProof = phase is "consistency" or "reconcile-consistency";
         var cleanupUnwritten = phase == "cleanup-unwritten";
-        var activeOutage = phase == "active" || exhaust || routingProof || consistencyProof;
+        var activeOutage = phase == "active" || exhaust || routingProof || phase == "consistency";
         var reconcileActive = phase == "reconcile-active";
-        var reconcileRouting = phase == "reconcile-routing";
+        var reconcileRouting = phase is "reconcile-routing" or "reconcile-consistency";
         var seeding = phase == "seed" || activeOutage;
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !File.Exists(Path.Combine(root.FullName, "Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1"))) root = root.Parent;
@@ -221,6 +221,54 @@ public partial class NativeHostedReplicaRestartTests
                         "Read confirmation cannot create a replica or substitute its empty answer.");
                 }
                 registry.IsAutoLoadBalanceEnabled = false;
+
+                // The request's Mongo authority deliberately differs from the node's SQLite
+                // default. A successful empty SQLite read cannot prove the Mongo record absent.
+                // Use a separate node registry so switching defaults does not deactivate the
+                // main fixture's Mongo receiver, which must remain alive across the outage.
+                var preferredRegistry = new ProviderManager(null, dna) {
+                    IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
+                preferredRegistry.RegisterProvider(sqlite);
+                preferredRegistry.RegisterProvider(mongo);
+                Assert.IsFalse(preferredRegistry.SetAndActivateCurrentStorageProvider(sqlite).IsError);
+                Assert.IsFalse(preferredRegistry.SetAndReplaceAutoFailOverListForProviders(new[] {
+                    new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),
+                    new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError);
+                foreach (var mode in new[] { "sync", "async", "explicit" })
+                {
+                    var router = new OASISHyperDrive(preferredRegistry);
+                    var request = new StorageOperationRequest {
+                        Operation = "LoadHolon", HolonId = intent.WitnessId,
+                        AvatarId = intent.Actor, PreferredProvider = ProviderType.MongoDBOASIS
+                    };
+                    var read = mode == "sync" ? router.RouteRequest<IHolon>(request)
+                        : mode == "async" ? await router.RouteRequestAsync<IHolon>(request)
+                        : await router.FailoverRequestAsync<IHolon>(request);
+                    Assert.AreEqual(unavailable, read.IsError, read.Message + read.Exception);
+                    if (unavailable)
+                    {
+                        Assert.IsNull(read.Result);
+                        Assert.IsNotNull(read.Exception, "The preferred native authority's outage must survive an alternate miss.");
+                        var diagnostic = router.LastFailoverDiagnostic;
+                        Assert.IsNotNull(diagnostic);
+                        Assert.IsFalse(diagnostic.Succeeded);
+                        Assert.AreEqual(ProviderType.MongoDBOASIS, diagnostic.SelectedProvider);
+                        Assert.AreEqual(2, diagnostic.Attempts.Count, "Do not retry the known failed authority for confirmation.");
+                        Assert.AreEqual(ProviderType.MongoDBOASIS, diagnostic.Attempts[0].Provider);
+                        Assert.AreEqual(ProviderType.SQLLiteDBOASIS, diagnostic.Attempts[1].Provider);
+                        Assert.IsFalse(diagnostic.Attempts[0].Succeeded);
+                        Assert.IsTrue(diagnostic.Attempts[1].Succeeded);
+                        Assert.IsTrue(read.MetaData.ContainsKey("hyperDriveFailoverDiagnostic"));
+                    }
+                    else
+                    {
+                        Assert.AreEqual(intent.WitnessId, read.Result.Id);
+                        Assert.AreEqual("primary-only record", read.Result.Name);
+                        Assert.AreEqual(intent.Actor, read.Result.CreatedByAvatarId);
+                    }
+                    Assert.IsNull((await sqlite.LoadHolonAsync(intent.WitnessId, loadChildren: false)).Result);
+                }
+                Assert.IsTrue(mongo.IsProviderActivated, "Read routing must preserve the main fixture's active receiver.");
             }
 
             async Task SaveAt(int index)
@@ -256,8 +304,11 @@ public partial class NativeHostedReplicaRestartTests
                     Assert.AreEqual(HolonDeliveryState.Pending, original.Result.State);
                     Assert.AreEqual(reconcileActive && index == 0 ? 1 : 0, original.Result.AttemptCount);
                 }
-                Assert.AreEqual(0L, await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWriteReceipt")
-                    .CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty), "No original target commit can be silently replayed.");
+                var existingReceipts = await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicWriteReceipt")
+                    .Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+                var expectedExisting = consistencyProof ? new[] { intent.WitnessOperation.ToString("D") } : Array.Empty<string>();
+                CollectionAssert.AreEquivalent(expectedExisting, existingReceipts.Select(row => row["_id"].AsString).ToArray(),
+                    "Only the journaled primary witness may already be committed; no replication replay is permitted.");
             }
             if (activeOutage)
             {
@@ -366,7 +417,11 @@ public partial class NativeHostedReplicaRestartTests
 
             Assert.AreEqual(intent.TargetFingerprint, (await HolonReplicationRouteBinding.CapturePinnedAsync(mongo)).BindingFingerprint);
             foreach (var id in intent.Ids) Assert.IsNull((await mongo.LoadHolonAsync(id, loadChildren: false)).Result);
-            if (consistencyProof) await VerifyPrimaryWitness(unavailable: false);
+            if (consistencyProof)
+            {
+                Assert.IsFalse(registry.SetAndActivateCurrentStorageProvider(mongo).IsError);
+                await VerifyPrimaryWitness(unavailable: false);
+            }
             if (exhaust)
             {
                 var blockedBefore = await outbox.InspectAsync(intent.FirstSequence);
