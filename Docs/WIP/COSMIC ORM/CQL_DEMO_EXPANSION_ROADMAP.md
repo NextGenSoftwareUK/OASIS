@@ -138,3 +138,5 @@ Databases hub native launch is restored after exact archived fixture reconciliat
 Polygon stage: shared Web3Core adapter controls7/7 and native3/2 query1/1 pass using the existing runtime/chain. Mongo-paired C#/HTTP1/1 and actual browser5/4 are now verified; [scope](POLYGON_CQL_MVP.md). Arbitrum V2 is next: BootLoader selects ArbitrumOASIS_Web3Core; custom legacy adapter gaps are documentation-only.
 
 Arbitrum V2 MVP now verified: linked BootLoader factory, native3/2 acceptance1/1, authority controls7/7 (+Polygon7/7 regression), paired C#/HTTP1/1 and actual browser5/4. Existing runtime/chain reused; source state retained and Mongo fixture cleaned. Google Firestore is next. [Scope](ARBITRUM_CQL_MVP.md).
+
+Google Firestore stage: bounded native document-key CQL implementation builds and initial controls7/7 pass. Native emulator/paired/browser proof remains next; cached runtime exists, missing historical checkpoint is not recreated. [Exact next step](FIRESTORE_CQL_MVP.md).
