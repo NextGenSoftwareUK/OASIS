@@ -70,24 +70,42 @@ Authorization: Bearer YOUR_TOKEN
 
 ## Holon permissions
 
-Owners can grant each avatar any of `read`, `write`, `delete`, `addChildren` and `manage` on a single holon. Needs
-`manage` on the holon (the creator always has it).
+Owners decide, per holon and per field, who may `read`, `write`, `delete`, create children under (`addChildren`) and
+change access to (`manage`) it. A grantee is an avatar id, a group id, or `public`. Needs `manage` on the holon (the
+creator always has it).
 
 ```http
 POST /api/share/permissions/{holonId}
 Authorization: Bearer YOUR_TOKEN
 Content-Type: application/json
 
-{ "grants": { "<avatarId>": ["read", "write"], "<otherAvatarId>": [] } }
+{
+  "grants":  { "<grantee>": ["read", "write"], "<other>": [] },
+  "inherit": { "<grantee>": ["read"] },
+  "fields":  { "public": { "metadata.username": ["read"] } }
+}
 ```
 
-An avatar listed with names gets exactly those permissions; an empty list removes its access; avatars not listed are
-unchanged.
+`grants` apply to this holon, `inherit` to it and everything below it, `fields` to single fields (`name`, `description`,
+a property, `metadata.<key>`, `metadata.*`, `*`; read, write, delete only). A list of names sets exactly those; an empty
+list removes; anything not listed is unchanged.
 
 ```http
 GET /api/share/permissions/{holonId}
-Authorization: Bearer YOUR_TOKEN
 ```
 
-Returns the stored grants as `{ "<avatarId>": ["read", ...] }`. Full model, enforcement and error codes:
-[Holon Permissions](../../HOLON_PERMISSIONS.md).
+Returns the stored `grants`, `inherit` and `fields`.
+
+### Groups
+
+```http
+POST /api/share/groups
+{ "name": "Speech therapists", "members": ["<avatarId>"] }
+
+POST /api/share/groups/{groupId}/members
+{ "add": ["<avatarId>"], "remove": ["<avatarId>"] }
+```
+
+Grant to the group's id like an avatar's; changing the members changes everyone's access at once.
+
+Full model, enforcement and error codes: [Holon Permissions](../../HOLON_PERMISSIONS.md).
