@@ -382,3 +382,7 @@ Arbitrum acceptance links the shipping EvmProviderFactory and asserts the V2 Web
 ### Firestore native-key adapter
 
 FirestoreCqlCompiler intersects captured ID algebra with the exact trusted Google catalogue. GoogleCloud.Cql.cs fetches only selected native document references using GetAllSnapshotsAsync, validates ordered complete acknowledgements, reuses shipping DecodeHolon and publishes only a complete admitted page. The teaching host reuses HolonManager federation. A hash-bound immutable native emulator checkpoint preserves one seed across runs under LocalState. [Scope](FIRESTORE_CQL_MVP.md).
+
+### Cosmos blockchain key selection
+
+CosmosCqlCompiler intersects captured ID selection with trusted authority records. CosmosBlockChainOASIS.Cql.cs uses the shared canonical RecordKey builder, shipping private-storage backend and canonical decoder. Selected native gets do not enumerate the source; visibility/paging follow complete validation. The teaching host calls the generic HolonManager federation walkthrough for both C# and HTTP. The original native contract/seed are separately owned and every initial physical submission was verified/journaled before broadcast. [Scope](COSMOS_BLOCKCHAIN_CQL_MVP.md).
