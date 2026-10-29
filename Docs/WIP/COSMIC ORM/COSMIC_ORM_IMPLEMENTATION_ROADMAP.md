@@ -1,7 +1,7 @@
 # COSMIC ORM implementation roadmap
 
 User priority28October: first prove HyperDriveV2 replication, failover and load balancing; then resume COSMIC ORM/CQL parity across MongoDB, SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Prove these priority providers before broadening implementation to others. Existing Solana demos remain preserved. Hosted Azure remains explicitly deferred pending a genuinely free authenticated account.
-Latest user steering: MVP breadth first, depth afterward. Finish AWS, then Ethereum, Polygon, Arbitrum, Google, Cosmos blockchain, Polkadot, NEAR and other suitable existing popular providers. Prioritize useful native queries and Mongo-paired demo presets over advanced operators, deep migration or full parity.
+Latest user steering: MVP breadth across ALL providers first, depth afterward. Work through red identities in the all-provider inventory, with independent native queries and Mongo-paired presets; local/emulated scopes stay labelled. Hosted Azure remains pending by user instruction.
 Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective remains active; no completion claim.
 
 | Order | Work | Acceptance owner |
@@ -36,3 +36,5 @@ browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays r
 
 Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
 [scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.
+
+Valkey breadth milestone: native9.0.4/restart/paired/browser5/4 and hub repeat pass; [scope/evidence](VALKEY_CQL_MVP.md). Full ORM/cluster parity remains open.

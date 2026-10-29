@@ -277,3 +277,15 @@ Stop with the page button to remove verified temporary Mongo data and retire the
 volatile cache. Subsequent explicit warmup is not restart persistence; unknown
 pending outcomes refuse replay. Existing Linux Mongo/runtime/store are reused.
 [Scope, commands, tests and resource lifecycle](MEMCACHED_CQL_MVP.md).
+
+## Native Valkey + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Valkey -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` checks and tears down. Independently verified
+Valkey9.0.4 uses its retained encrypted source and the existing loopback Linux Mongo
+store. Shared C# ID-membership returns five physical rows, then four for the two-ID
+subset, preserving provider labels. Native tests cover missing/deleted records,
+paging, budgets and unchanged ciphertext across a clean server restart. Stop with
+the page button; Valkey source stays and verified temporary Mongo data is removed.
+Full LINQ, cluster behavior and distributed snapshots remain separate scopes.
+[Commands, evidence and lifecycle](VALKEY_CQL_MVP.md).
