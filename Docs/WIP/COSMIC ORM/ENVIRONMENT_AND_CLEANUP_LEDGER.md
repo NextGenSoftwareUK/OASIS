@@ -1573,3 +1573,11 @@ Owner COSMIC/CQL. Reuse MongoDB8.3.11 executable C:/Program Files/MongoDB/Server
 ### 29 October 2026 — PostgreSQL paired demo outcome
 
 One SDK/HTTP paired test passed20s/no skips, browser5/4 with explicit source labels verified; TRX hash 60D807085515EE6CD73A2F2BF4959B746A352CB572DC4CFADC413A52BE7A09F4. TestResults/PostgreSqlCqlCurrent/postgres-mongo-browser.jpg retained as disposable visual evidence (size unmeasured). Exact temporary Mongo database cosmic_cql_mongo_postgres_demo ownership/content/collections checked and dropped; mongo.pending.json and demo-ready.json removed by successful fixture. Runner67953 exited0, original PostgreSQL container exited and loopback27029/5112 listeners absent. Browser tab23 closed. Original source schema/seed/receipts/snapshot and shared Mongo store retained/reusable; no installed/downloaded new environment. Hub routing21paired profiles/42plans passed without changing listeners.
+
+### 29 October 2026 — SQL Server CQL resource inspection/control preparation
+
+Owner COSMIC/CQL. Existing C:/Program Files/Microsoft SQL Server/170/Tools/Binn/SqlLocalDB.exe and 170/LocalDB inspected/reused; version/size unmeasured, inherited installed runtime, retain. Automatic MSSQLLocalDB is not created; no local instance/database started or created yet. SQLWriter shared service running, untouched. Planned cached SQLServerDBOASIS producer/unit restore/build reuses C:/Users/david/.nuget/packages and worktree bin/obj; sizes unmeasured/regenerable. Logs/TRX TestResults/SqlServerCqlCurrent only. No new download/install; native acceptance still pending. Podman inventory read only, unrelated running neo4j-ancestor-scratch untouched.
+
+### 29 October 2026 — SQL Server CQL control outcome
+
+Cached producer/unit restore/build passed; nine controls passed127ms/no skips. TestResults/SqlServerCqlCurrent/sqlserver-cql-controls.trx SHA256 673C37F69FBBD64CB0AD96D55BCB54EFC5BB87335DB159AC5DB0993403AD6DB1. Existing project bin/obj and compact logs/TRX regenerated (sizes unmeasured, removable after builds stop; recreate using bounded cached build). No LocalDB instance/database created or started, no new runtime/install/download, no source data or credentials introduced. SQLServerDBOASIS native/demo admission remains red.
