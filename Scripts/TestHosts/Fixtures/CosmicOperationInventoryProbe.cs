@@ -133,13 +133,13 @@ public static class CosmicLineageInventoryProbe
         Func<Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationReceiptPreflightReport>>> readReceipt,
         HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
         Func<Task<NextGenSoftware.OASIS.Common.OASISResult<CommittedHolonReplicaReceiptEvidence>>> readReplicaReceipt = null,
-        ConditionalHolonWriteRequest originalWrite = null)
+        ConditionalHolonWriteRequest originalWrite = null, CosmicStorageIdentity replacementTarget = null)
     {
         // Proposed replacement identity is not contacted or admitted here. The
         // same-authority Mongo fixture needs a distinct-authority proposal only.
-        var candidate = originalTarget.Authority == source.Authority
+        var candidate = replacementTarget ?? (originalTarget.Authority == source.Authority
             ? new CosmicStorageIdentity(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLLiteDBOASIS,
-                new string('F', 64), "preview-only-not-contacted") : originalTarget;
+                new string('F', 64), "preview-only-not-contacted") : originalTarget);
         var route = new NextGenSoftware.OASIS.API.Core.Configuration.HolonReplicationRouteBinding(source, candidate, "preview-only-policy");
         async Task<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationPreview> Read()
         {

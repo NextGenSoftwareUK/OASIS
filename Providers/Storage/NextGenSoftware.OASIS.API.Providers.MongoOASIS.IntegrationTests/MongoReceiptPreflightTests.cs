@@ -82,6 +82,8 @@ public partial class MongoStorageIdentityTests
                     readReplicaReceipt: () => target.ReadCommittedHolonReplicaReceiptAsync(new(new CommittedHolonReplicaRequest(
                         create.Write.OperationId, enrollment.SourceId, ProviderType.MongoDBOASIS, actor, create.Operation,
                         new[] { first }, saveChildren: false), targetBinding.Result)), originalWrite: create);
+                await VerifyNativeThreeStoreBarrierRecovery(source, target, sourceBinding.Result, targetBinding.Result,
+                    boundSource.Result, create, enrollment, first, () => HolonReplicationReceiptPreflight.ReadAsync(source, target, Evidence(create)));
                 Assert.Equal(before, await Snapshot());
                 var edit = StoredRecordJson.Project<Holon>(first); edit.Name = "later-preflight-value";
                 var update = Original(edit, CosmicConcurrency.GetProviderRevisionId(first, ProviderType.MongoDBOASIS));
