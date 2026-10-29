@@ -44,3 +44,6 @@ Broader graph/multi-version/delete/provider-pair and deployed restart proof rema
 
 [Previous detailed milestone history](Archive/IMPLEMENTATION_STATUS_PRE_PREVIEW_V3_2026-10-29.md).
 [Implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) / [CQL roadmap](CQL_COMPLETION_ROADMAP.md).
+
+PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
+[scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.

@@ -1496,3 +1496,14 @@ exact ciphertext restart, C#/HTTP/browser and lifecycle cleanup are verified.
 Original data/key persists; other Redis databases stay untouched. Direct demo
 registration does not certify BootLoader registration or aliases. Bounded ID-query
 scope only, no distributed snapshot. [Tests and commands](REDIS_CQL_MVP.md).
+
+## PostgreSQL + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PostgreSQL -Federated`.
+Use `-ShowPlan` to inspect or `-VerifyOnly` for automated checks and teardown.
+The teaching preset returns five physical rows, then four for a two-ID selection,
+with provider labels. PostgreSQL uses one parameterized native SELECT over an
+explicit trusted UUID catalogue; unsupported content predicates reject. This is
+retained local canonical JSON, not application encryption or hosted certification.
+Stop using the page button; the original PostgreSQL source is preserved and only
+the verified temporary Mongo fixture is removed. [Full scope](POSTGRESQL_CQL_MVP.md).

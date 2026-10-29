@@ -1,4 +1,5 @@
-param()
+param([switch]$Federated,[switch]$Serve)
+if($Serve -and !$Federated){throw "Serve requires explicit federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state=Join-Path $root 'LocalState/COSMIC/PostgreSqlCql'
@@ -7,9 +8,13 @@ New-Item -ItemType Directory -Force -Path $state,$results | Out-Null
 $lease=[IO.File]::Open((Join-Path $state 'runner.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $oldConnection=$env:OASIS_POSTGRES_CQL_CONNECTION
 $oldState=$env:OASIS_POSTGRES_CQL_STATE
+$oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_POSTGRES_MONGO_SERVE
+$lifecycleMongo=@{Process=$null}
 $lifecycle=@{Started=$false;Passed=$false};$secret=$null
 try {
     if(Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')){throw 'Original setup is pending; inspect without replay.'}
+    if(Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json')){throw 'Original Mongo fixture unresolved.'}
+    if($Federated -and !(Test-Path -LiteralPath (Join-Path $state 'demo-seed.json'))){throw 'Original native source required before federation.'}
     $identity=(& wsl -d Ubuntu -u root -- podman inspect oasis-postgres | ConvertFrom-Json)[0]
     if($LASTEXITCODE -or $identity.Id -ne 'cee58d44cc44aace8863ca53ffa955deed78a710a9800b750a484bb478206a69' -or $identity.Image -ne '79bd7c99e923138f136f8009d6bffa66e21e9d4fda5c0c561b00fc9c90cfe537'){throw 'Exact retained PostgreSQL container/image required.'}
     $ports=@($identity.HostConfig.PortBindings.'5432/tcp')
@@ -17,6 +22,12 @@ try {
     if(@($identity.Mounts | Where-Object {$_.Type -eq 'volume' -and $_.Name -eq 'oasis-postgres-data' -and $_.Destination -eq '/var/lib/postgresql/data'}).Count -ne 1){throw 'Retained data volume required.'}
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC PostgreSQL CQL native' -Operation {
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests'
+        & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
+        if($LASTEXITCODE){throw 'Cached dependency restore failed.'}
+        if($Federated){
+            & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'mongo-build.log')
+            if($LASTEXITCODE){throw 'Mongo producer build failed.'}
+        }
         & dotnet build $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'native-build.log')
         if($LASTEXITCODE){throw 'Cached native consumer build failed.'}
         if($identity.State.Status -ne 'exited'){throw 'Require stopped retained container for exclusive native acceptance.'}
@@ -40,10 +51,35 @@ try {
         if($LASTEXITCODE){throw 'Native acceptance failed; preserve source/journals.'}
         [xml]$report=Get-Content -LiteralPath (Join-Path $results 'postgres-cql-native.trx') -Raw
         if([int]$report.TestRun.ResultSummary.Counters.passed -ne 1 -or [int]$report.TestRun.ResultSummary.Counters.total -ne 1){throw 'One passed native test without skips required.'}
+        if($Federated){
+            if(Get-NetTCPConnection -State Listen -LocalPort 27029,5112 -ErrorAction SilentlyContinue){throw 'Paired ports occupied; no process adoption.'}
+            $runtime='C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $data=Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if(!(Test-Path (Join-Path $data 'WiredTiger'))){throw 'Original Mongo store missing.'}
+            if(((& $runtime --version)-join ' ') -notmatch 'v8\.3\.11\b'){throw 'Pinned Mongo version differs.'}
+            $lifecycleMongo.Process=Start-Process $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $mongoReady=$false
+            for($i=0;$i -lt 40;$i++){
+                if($lifecycleMongo.Process.HasExited){throw 'Owned Mongo exited before readiness.'}
+                $listeners=Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if($listeners){if(@($listeners|Where-Object OwningProcess -ne $lifecycleMongo.Process.Id).Count){throw 'Mongo listener owner differs.'};$mongoReady=$true;break}
+                Start-Sleep -Milliseconds 500
+            }
+            if(!$mongoReady){throw 'Owned Mongo startup deadline exceeded.'}
+            $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+            $env:OASIS_POSTGRES_MONGO_SERVE=if($Serve){'1'}else{'0'}
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~PostgreSqlMongoCqlNativeTests --logger 'trx;LogFileName=postgres-mongo-federation.trx' --results-directory $results -v:q *> (Join-Path $results 'postgres-mongo-federation.log')
+            if($LASTEXITCODE){throw 'Paired PostgreSql CQL failed; preserve ownership journal.'}
+            [xml]$paired=Get-Content (Join-Path $results 'postgres-mongo-federation.trx')
+            if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one paired pass required.'}
+            if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Mongo fixture cleanup incomplete.'}
+            Get-Content (Join-Path $results 'postgres-mongo-federation.log') -Tail 4
+        }
         $lifecycle.Passed=$true
     }
 } finally {
-    $env:OASIS_POSTGRES_CQL_CONNECTION=$oldConnection;$env:OASIS_POSTGRES_CQL_STATE=$oldState;$secret=$null
+    $env:OASIS_POSTGRES_CQL_CONNECTION=$oldConnection;$env:OASIS_POSTGRES_CQL_STATE=$oldState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_POSTGRES_MONGO_SERVE=$oldServe;$secret=$null
+    if($lifecycleMongo.Process){if(!$lifecycleMongo.Process.HasExited){$lifecycleMongo.Process.Kill();if(!$lifecycleMongo.Process.WaitForExit(30000)){throw "Owned Mongo stop incomplete."}};$lifecycleMongo.Process.Dispose()}
     if($lifecycle.Started -and $lifecycle.Passed){& wsl -d Ubuntu -u root -- podman stop --time 20 oasis-postgres | Out-Null;if($LASTEXITCODE){throw 'Owned container stop failed.'}}
     $lease.Dispose()
 }

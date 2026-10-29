@@ -61,6 +61,7 @@ $pairedContracts=@(
     @{Provider='LocalFile';Runner='Run-CosmicLocalFileCqlNative.ps1';Port=5108},
     @{Provider='Sui';Runner='Run-CosmicSuiCqlNative.ps1';Port=5110},
     @{Provider='Redis';Runner='Run-CosmicRedisCqlNative.ps1';Port=5111},
+    @{Provider='PostgreSQL';Runner='Run-CosmicPostgreSqlCqlNative.ps1';Port=5112},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
     @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
     @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
@@ -115,7 +116,7 @@ try{& $hub -Provider CosmosChain -ShowPlan}catch{$denied=$true}
 if(!$denied){throw 'CosmosChain requires explicit paired scope.'}
 $pairedRejections++
 $oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
-foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Base'},@{Provider='Base';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Avalanche'},@{Provider='Avalanche';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='AzureBlob'},@{Provider='AzureBlob';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='LocalFile'},@{Provider='LocalFile';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Sui'},@{Provider='Sui';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Redis'},@{Provider='Redis';Federated=$true;ArchiveCompletedDemo=$true})) {
+foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Base'},@{Provider='Base';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Avalanche'},@{Provider='Avalanche';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='AzureBlob'},@{Provider='AzureBlob';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='LocalFile'},@{Provider='LocalFile';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Sui'},@{Provider='Sui';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Redis'},@{Provider='Redis';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='PostgreSQL'},@{Provider='PostgreSQL';Federated=$true;ArchiveCompletedDemo=$true})) {
     $denied=$false
     try { & $hub @arguments -ShowPlan } catch { $denied=$true }
     if (!$denied) { throw 'Polkadot requires explicit paired scope and preserved source state.' }
