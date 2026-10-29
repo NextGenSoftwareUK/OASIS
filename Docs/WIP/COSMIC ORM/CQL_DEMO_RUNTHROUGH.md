@@ -143,3 +143,20 @@ this does not demonstrate public Base or rollup finality. The trusted catalogue
 bounds native key selection; arbitrary metadata filters remain unsupported. Stop
 preserves the original native seed/key/ledger and removes the validated owned Mongo
 fixture. Add `-VerifyOnly` for bounded acceptance. [Scope](BASE_CQL_MVP.md).
+
+## Avalanche + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Avalanche -Federated
+```
+
+Open http://127.0.0.1:5105/. Show the explicit MongoDB/Avalanche scope and readable
+C# membership query. **Query all records** returns five physical rows; **Query
+two-record subset** returns four. Compare provider labels and duplicate IDs to show
+that source copies remain distinct.
+
+This uses the actual BootLoader Avalanche factory and encrypted Web3Core backend
+on local EVM chain31338. It does not demonstrate public Avalanche finality. The
+factory now binds the configured chain identity into encryption. Stop preserves
+the original contract/IDs/key/ledger and removes the validated Mongo fixture. Add
+`-VerifyOnly` for bounded acceptance. [Proof and recovery limits](AVALANCHE_CQL_MVP.md).

@@ -1429,3 +1429,25 @@ rows, preserving Mongo/Base copies. Add `-VerifyOnly` for bounded native/SDK/HTT
 verification. Original source records are reused after restart without new native
 writes. This is local chain31338, not public Base/finality/distributed-snapshot or
 full-parity acceptance. [Proof and limits](BASE_CQL_MVP.md).
+
+## Avalanche bounded identity profile
+
+AvalancheOASIS uses the common Web3Core query engine with its own admitted authority.
+ID equality/membership, AND/OR/constants and paging operate over up to100 trusted
+catalogue-intersected native keys. Metadata/order/graph operations outside this
+profile reject before I/O. Native selected reads use one observed block number.
+
+The original three-string constructor remains available and binds C-chain43114.
+An explicit chain overload supports configured networks; BootLoader propagates
+DNA ChainId as a positive decimal or hexadecimal value. Encryption requires this
+identity, so it is part of storage authentication rather than a display label.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Avalanche -Federated
+```
+
+The teaching host is http://127.0.0.1:5105/. All/subset return five/four physical
+rows with Mongo/Avalanche provenance. Add `-VerifyOnly` for bounded native/SDK/HTTP
+verification. The original encrypted source is reused without new source writes.
+This is local chain31338; public-network/finality/full-parity gates remain open.
+[Detailed proof and original-state continuation](AVALANCHE_CQL_MVP.md).

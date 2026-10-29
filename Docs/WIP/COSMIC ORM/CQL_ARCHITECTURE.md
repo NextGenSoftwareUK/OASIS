@@ -420,3 +420,18 @@ or legacy path was introduced. The central registration constructs the shipped
 Base Web3Core class; the native fixture uses that concrete class against a retained
 local EVM environment. The common HolonManager federation host preserves physical
 source copies for C# and HTTP/browser demos. [Scope and proof](BASE_CQL_MVP.md).
+
+## Avalanche factory and encryption identity
+
+The explicit Web3Core CQL authority allowlist now includes Avalanche. Its actual
+BootLoader factory parses configured positive chain IDs and passes them to the
+shipped provider; the original constructor delegates to the same initialization
+with C-chain43114. This fixes the native pre-write failure caused by an absent
+chain component in authenticated encryption. The existing query engine, private
+codec and HolonManager federation remain shared.
+
+A test-only, explicit continuation handled the original failed setup: runtime
+code/owner/empty native counters and unchanged original IDs were verified before
+a durable admission and first record writes. Production APIs gained no replay or
+migration endpoint. Normal demo reuse remains read-only for the source.
+[Scope and evidence](AVALANCHE_CQL_MVP.md).
