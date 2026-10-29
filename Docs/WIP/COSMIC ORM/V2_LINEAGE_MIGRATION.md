@@ -1061,3 +1061,78 @@ The production preview still retains `OriginalPayloadReceiptBindingUnverified`:
 next integrate these proofs per selected operation, bind them into its digest and
 compare their replica intent with historical receiver evidence. Native fencing,
 replacement admission, CAS/idempotent migration receipts and cutover remain open.
+
+
+## Preview v3 binds the source/queue/receiver evidence chain — 29 October 2026
+
+`HolonReplicationPayloadReceiptVerifier.ReadAsync` now orchestrates the host-only
+bound source read and pure equivalence validator. It rejects a receipt naming
+another physical source before the raw read, holds raw business transport only
+transiently, and returns only redacted proof. Native failures/cancellation yield
+no proof; native cleanup warnings and error causes/counts remain visible. Proof
+binds the explicitly requested source consistency; it is not a global snapshot.
+
+`HolonReplicationMigrationPreviewReader` now accepts an explicit host-owned
+`readPayloadReceiptProof` callback. It validates each proof against the exact
+operation/actor/sequence/target, physical source/target, observed payload/state
+checksums, original input fingerprint and source-receipt observation. When
+historical receiver evidence is supplied, its canonical original intent must
+equal the frozen transport's target-specific replica intent. A valid proof for
+another obligation or another state cannot substitute for this review.
+Strict source review refuses weaker proof unless explicitly opted in.
+
+Preview format is now `cosmic-lineage-migration-preview-v3`; `PayloadProofs` and
+all their redacted bindings enter the review fingerprint and therefore the
+operator authorization context. Existing v2 approvals must not be reused for a
+new v3 preview. Only complete per-operation proof coverage removes the generic
+`OriginalPayloadReceiptBindingUnverified` finding. No callback keeps the finding;
+missing/error evidence from a supplied callback rejects the whole review without
+publishing partial results. Receiver absence remains its own finding. Native
+fences and replacement admission remain independent mandatory execution gates.
+
+Host integration within the preview call:
+```csharp
+readPayloadReceiptProof: (obligation, receipt, token) =>
+    HolonReplicationPayloadReceiptVerifier.ReadAsync(
+        boundSourceOutbox,
+        capturedSourceIdentity,
+        obligation,
+        originalSourceIntents[obligation.OperationId],
+        receipt,
+        requiredSourceConsistency,
+        token)
+```
+
+Verification: 12new controls, full Shared1497/1497. They cover the complete chain,
+changed review fingerprints, stable repeated review, different obligation/state
+proof rejection, historical intent mismatch, explicit weak-source opt-in, missing
+or failed proof with no partial review, bound read scope/cancellation, preserved
+native error count/cause and cleanup warning. Existing review tests now use real
+canonical queued intent fingerprints rather than arbitrary synthetic hashes.
+
+Native SQLite2/Mongo1/Neo-source2 production preview cases include source payload
+proof AND historical receiver evidence. Both previously unverified evidence
+findings are cleared for the scoped complete create; native fence/replacement
+findings stay. Combined cases remain one original record/four obligations; the
+broader native graph/delete/race acceptance remains open. Direct native Neo
+receiver historical proofs are retained from their preceding four-case scope.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared | 1497/1497 | `TestResults/DevelopmentSyncCurrent/preview-payload-shared.trx` | `A7E65064DC84118E03C55A246CD7FDEBA2DC94692DC1F35A99E374A84AF499B6` |
+| SQLite source / Mongo receiver | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `1219807E0A2EF8EF79A396CB20CD80E7B3CA97DAC9C259586875F3CC900BCA66` |
+| Mongo source / Mongo receiver | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `AF484F8ECE0FBAC073317200B9A0CE10ACDC6AB5B780A8782A8411E640AD6F46` |
+| Neo source / SQLite receiver | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `646F3702B098A0D1854E8E5B19D89E7285D7EF91D3C2E8A08EF0B6438DD5B454` |
+
+Native batch79036 exited0; Neo attachment36716 joined/stopped. Exact pending
+journals/receiver DBs/sidecars absent; ports27029/17687 no listeners. Neo free
+before102104432640/after102063054848bytes. No new installation/download/restore/
+environment; reusable runtime/data/SDK/cache retained. Raw evidence stays TestResults.
+
+Next invariant: migration fences must cover affected V2 record writes and delivery
+through old AND new lineage IDs, plus existing in-flight or unknown outcomes.
+They must survive restart and cannot expire away an uncertain cutover. A route
+review must not silently become permission to interrupt an entire physical store.
+Revalidate exact preview/authorization and replacement identity/content under
+native fencing, then CAS durable per-store receipts and recover interrupted
+cutover/old obligation disposition. Migration execution is still disabled.

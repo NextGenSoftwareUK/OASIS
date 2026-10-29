@@ -4,18 +4,53 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 
 [TestClass]
 public class HolonReplicationPayloadReceiptProofTests
 {
+    public class PayloadProbe : DispatchProxy
+    {
+        public int Reads;
+        public OASISResult<string> Outcome;
+        protected override object Invoke(MethodInfo method, object[] args)
+        {
+            Assert.AreEqual("ReadFrozenPayloadAsync", method.Name, "Proof orchestration must never claim or replay.");
+            Reads++; return Task.FromResult(Outcome);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("matched")] [DataRow("error")] [DataRow("wrong-store")] [DataRow("cancelled")] [DataRow("cleanup-warning")]
+    public async Task BoundProofReaderPublishesOnlyRedactedExactEvidenceAndRetainsNativeFailures(string mode)
+    {
+        var f = new Fixture(); var native = DispatchProxy.Create<IHolonReplicationPayloadAuditOutbox, PayloadProbe>();
+        var probe = (PayloadProbe)native; var cause = new InvalidOperationException("native-proof-read-cause");
+        probe.Outcome = mode == "error" ? new() { IsError = true, ErrorCode = "NATIVE_PAYLOAD_REJECTED", ErrorCount = 3, Exception = cause }
+            : new(f.Payload) { IsWarning = mode == "cleanup-warning", WarningCount = mode == "cleanup-warning" ? 1 : 0,
+                Exception = mode == "cleanup-warning" ? cause : null };
+        using var cancel = new CancellationTokenSource(); if (mode == "cancelled") cancel.Cancel();
+        var expected = mode == "wrong-store" ? new CosmicStorageIdentity(f.Source.Authority, f.Source.EndpointFingerprint, Guid.NewGuid()) : f.Source;
+        var result = await HolonReplicationPayloadReceiptVerifier.ReadAsync(native, expected, f.Row, f.Original, f.Receipt, cancellationToken: cancel.Token);
+        Assert.AreEqual(mode is "error" or "wrong-store" or "cancelled", result.IsError);
+        Assert.AreEqual(mode is "wrong-store" or "cancelled" ? 0 : 1, probe.Reads);
+        if (result.IsError) Assert.IsNull(result.Result);
+        else { Assert.IsNotNull(result.Result); Assert.IsFalse(JsonSerializer.Serialize(result.Result).Contains("private-root-value")); }
+        if (mode == "error") { Assert.AreEqual("NATIVE_PAYLOAD_REJECTED", result.ErrorCode); Assert.AreEqual(3, result.ErrorCount); Assert.AreSame(cause, result.Exception); }
+        if (mode == "cleanup-warning") { Assert.IsTrue(result.IsWarning); Assert.AreSame(cause, result.Exception); }
+    }
+
     private sealed class Fixture
     {
         public readonly CosmicStorageIdentity Source = new(ProviderType.SQLLiteDBOASIS, new string('A',64), Guid.NewGuid());

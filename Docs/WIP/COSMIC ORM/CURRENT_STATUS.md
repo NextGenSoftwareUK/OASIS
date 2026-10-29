@@ -13,34 +13,20 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 
 ## Current phase: safe V2 lineage migration
 
-- Three native providers now expose explicit physical-source receipt verification without rewriting historical intents.
-- Selected-record evidence binds original input, operation/actor, source/target identities, revisions and portable content; no business values returned.
-- Shared read-only preflight compares that evidence with protected target heads. Missing/untracked records, lineage/version/deletion/content conflicts and insufficient evidence are distinct.
-- NativeSnapshot is the target default. Neo targets require explicit ReadCommittedValidated; source and target reads are never a global snapshot.
-- Retained Core4462/GraphQL1 compatibility; latest Shared1392/Neo619 controls pass. Native SQLite -> Mongo2, Neo/SQLite content/race3 and Mongo graph/head/receipt lifecycle2 pass.
-- Reproduced/fixed false matches when current business content changed but revision tokens did not. All three V2 readers now validate the actual current body against the protected content. [Exact proof and limitations](V2_LINEAGE_MIGRATION.md).
-- No migration writes, adoption/rebind or state clearing are enabled. Separate host-owned operator authorization is implemented; no migration HTTP endpoint is enabled. Older type-only V2 heads/obligations remain a deployment gate.
-
-Complete-operation inventory now implemented on all3native providers: Core4462/Shared1404/GraphQL1, native SQLite2/Mongo1/Neo2 and preserved-failure reconciliation1 pass. Completed/later obligations and hidden lease changes are retained in redacted fingerprints. Neo exact-operation Unicode cursor fixed using its existing native range index; original failure reconciled without replay. The global route-head reader is now fixed too: Neo625/Shared1405/Core4462/GraphQL1 and native Neo2/SQLite2/Mongo1 pass; activation verifies the required target-order index. [Scope](V2_LINEAGE_MIGRATION.md).
-
-Source-wide lineage inventory now passes Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2. A later save is excluded from the captured window and visible in a new scan on all three sources. Earlier row state changes remain possible; fences and execution are still open.
-
-Separate exact operator authorization now implemented in Shared (1430 tests pass). Empty host policy denies all; time-limited grants bind operator, stores, lineage, policies and reviewed preview digest. The read-only preview generator is now implemented; execution stays disabled.
-
-Immutable preview now passes Shared1453/1453 plus native SQLite2/Mongo1/Neo2. It retains every observed route/state and binds selected-route receipt evidence to operator review. Missing original replica receipts, payload-to-receipt proof, replacement admission and native fences remain explicit findings. No partial preview on failed evidence.
-
-Historical replica-receipt contract and shared existing-validator projection now implemented; all three native receivers are implemented. SQLite2cases retained; latest Mongo2/Neo replica-group6 pass, including original proof after later changes. Shared1462 controls retained. Preview integration is now implemented in v2 below.
-
-Preview v2 now incorporates exact historical receiver evidence: Shared1473/1473 and native SQLite2/Mongo1/Neo-source2 pass. Committed/Absent/not-read remain distinct; scope and strict consistency enforced, evidence bound into review checksum. Payload/source equivalence, replacement admission and native fences remain open.
-
-Frozen payload readers and shared source-receipt equivalence verifier now implemented on all three sources. Shared1485/1485; native SQLite2/Mongo1/Neo2 prove original one-record transport/receipt/receiver intent and stale-lease rejection. Production preview proof integration and broad native graph/delete/race acceptance remain open.
+- Native SQLite/Mongo/Neo source and receiver reads verify exact physical bindings, original receipts, frozen payloads and current protected heads. Changed current bodies cannot pass on unchanged tokens alone.
+- Bounded source-wide inventory retains completed/later obligations; a sequence cutoff excludes later appends but does not freeze existing state or prove quiescence.
+- Preview v3 binds original source save -> frozen queued graph/revisions/content -> exact historical receiver intent, with explicit consistency and complete coverage checks. No partial result on failed evidence.
+- Separate host-owned, time-limited administrative grants bind the exact operator, stores, route, policy and reviewed preview digest. Owning a record grants no migration permission.
+- Latest Shared1497/1497; native SQLite2/Mongo1/Neo-source2 pass combined production preview cases. Native creates cover one record/four obligations; unit graph proof covers two records. Broader native graph/delete/race scope remains open.
+- Missing proof and receiver absence remain findings. Replacement admission, native fences, CAS/idempotent receipts and cutover remain red. No migration writes/state clearing or HTTP execution endpoint enabled.
+- Older type-only V2 heads/obligations remain a deployment gate. [Evidence, commands and limits](V2_LINEAGE_MIGRATION.md).
 
 ## Exact next step
 
-1. Bind validated payload/source-receipt proofs into the production preview; compare exact scope and replica intent with historical receiver evidence. Preserve missing proofs as findings. Complete native graph/delete/race gaps alongside integration.
-2. Validate replacement-target evidence and reauthorize the exact preview before mutation; implement native source/target write and delivery fences. A sequence window is not quiescence.
-3. Implement per-store CAS, durable idempotent migration receipts, interrupted-cutover recovery and old-obligation disposition without rewriting historical evidence.
-4. Complete remaining ordered-pair/concurrent-change/outage/cold-start acceptance, then resume broader priority-provider ORM/CQL parity.
+1. Implement native record-scoped migration fences across affected V2 writes/delivery, old/new lineages and existing in-flight/unknown outcomes; retain fences through restart. Reauthorize the exact v3 preview before mutation.
+2. Validate replacement physical identity/content under fences; compare-and-swap exact graph/head/receipt/obligation observations with durable per-store migration receipts.
+3. Implement idempotent cutover/recovery and old-obligation disposition without changing historical evidence; expand native graph/delete/race and ordered-pair acceptance alongside it.
+4. Complete remaining outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.
 
 ## HyperDrive verification already retained
 
