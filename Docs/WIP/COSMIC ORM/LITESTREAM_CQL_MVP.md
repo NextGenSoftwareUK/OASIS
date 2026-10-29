@@ -156,12 +156,36 @@ replaying the live probe, recreating the replica or restoring over the original
 recovered file. Final-source runner rerun passes with freshness/count checks for
 one passed test and zero skips per scope. Original Linux/Windows evidence retained.
 
+## Paired fixture prepared — remains red
+
+LitestreamMongoCqlNativeTests.cs compiles with the shared teaching host/walkthrough.
+It requires Linux, `/var/tmp/oasis-litestream-cql`, successful native replication
+receipt and no pending outcome. The planned SDK/HTTP/browser fixture uses three
+owned Mongo records, explicit source labels, invalid-request/inactive-provider
+checks, and verified temporary database cleanup. No paired execution yet.
+
+WSL reports NAT; Windows Mongo's127.0.0.1 service is not shared with Linux loopback.
+No bindings, firewall or host networking settings were changed. No Linux Mongo
+binary was found in retained runtime/mongodb-memory-server caches. A single native
+Linux loopback service is technically required for this Linux provider fixture;
+it will be reused for other Linux demos, not recreated per run.
+
 ## Exact next step
 
-Add Mongo-paired C#/HTTP/browser teaching coverage over the admitted Linux provider
-source with explicit platform provenance. Reuse the original Linux source/identity
-and native .NET runner; preserve Windows failure/source/pending. Validate/drop only
-the owned temporary Mongo fixture. Linux local-file replication/restore is verified;
-Windows, remote/PITR/crash recovery and full ORM acceptance remain separate gates.
+Admit official MongoDB Community8.3.13 Ubuntu2404 x86_64 runtime once, then run on
+Linux loopback27039 with a fixed reusable store and replica set cosmicLinuxDemoRs.
+The vendor [download catalogue](https://downloads.mongodb.org/current.json) identifies
+archive `https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-ubuntu2404-8.3.13.tgz`,
+SHA256 `a55780ed9bb5410ae5ea8e8c5b882cb1cd9389da689c417d6265929ad28a1f7f`.
+No runtime/service/data has been allocated yet; record measured resources before
+acquisition and remove the verified installation archive afterward. Extract only
+needed daemon/runtime files, no global service installation or Windows-store copy.
+
+Use the retained Linux source, .NET runtime and portable runner. Paired database
+`cosmic_cql_mongo_litestream_demo` is disposable only after identity/collection
+verification; original source/replica remains retained. Serve loopback5116 for
+browser proof. Native8.3.13 Ubuntu compatibility, replica initialization, SDK/HTTP
+and browser must pass before this demo is green. Windows sidecar failure and
+remote/PITR/crash recovery stay separate gates.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
