@@ -34,11 +34,29 @@ public class LitestreamReplicationTests
         { JsonSerializer.Serialize(file, new { marker }); file.Flush(true); }
         await using var connection = new SqliteConnection("Data Source=" + Path.Combine(state, "source.db") + ";Pooling=false");
         await connection.OpenAsync();
+        var inheritedPath = Path.Combine(state, "inherited-replication-probe.json");
+        await using (var check = connection.CreateCommand())
+        {
+            if (File.Exists(inheritedPath))
+            {
+                using var inherited = JsonDocument.Parse(await File.ReadAllTextAsync(inheritedPath));
+                check.CommandText = "SELECT marker FROM cosmic_cql_replication_probe";
+                await using var reader = await check.ExecuteReaderAsync();
+                Assert.IsTrue(await reader.ReadAsync());
+                Assert.AreEqual(inherited.RootElement.GetProperty("marker").GetString(), reader.GetString(0));
+                Assert.IsFalse(await reader.ReadAsync(), "Only the admitted inherited probe may exist.");
+            }
+            else
+            {
+                check.CommandText = "SELECT count(*) FROM sqlite_master WHERE name='cosmic_cql_replication_probe'";
+                Assert.AreEqual(0L, (long)(await check.ExecuteScalarAsync())!, "Never adopt unowned probe state.");
+            }
+        }
         await using (var transaction = await connection.BeginTransactionAsync())
         {
             await using var command = connection.CreateCommand();
             command.Transaction = (SqliteTransaction)transaction;
-            command.CommandText = "CREATE TABLE cosmic_cql_replication_probe(marker TEXT PRIMARY KEY); INSERT INTO cosmic_cql_replication_probe(marker) VALUES($marker)";
+            command.CommandText = "CREATE TABLE IF NOT EXISTS cosmic_cql_replication_probe(marker TEXT PRIMARY KEY); INSERT INTO cosmic_cql_replication_probe(marker) VALUES($marker)";
             command.Parameters.AddWithValue("$marker", marker);
             await command.ExecuteNonQueryAsync();
             await transaction.CommitAsync();
@@ -74,8 +92,18 @@ public class LitestreamReplicationTests
         CollectionAssert.AreEqual(JsonSerializer.Deserialize<string[]>(await File.ReadAllTextAsync(Path.Combine(state, "source-snapshot.json")))!, rows.ToArray());
         await using (var command = native.CreateCommand())
         {
-            command.CommandText = "SELECT marker FROM cosmic_cql_replication_probe";
-            Assert.AreEqual(probe.RootElement.GetProperty("marker").GetString(), (string)(await command.ExecuteScalarAsync())!);
+            command.CommandText = "SELECT marker FROM cosmic_cql_replication_probe ORDER BY marker";
+            await using var reader = await command.ExecuteReaderAsync();
+            var observedMarkers = new List<string>();
+            while (await reader.ReadAsync()) observedMarkers.Add(reader.GetString(0));
+            var expectedMarkers = new List<string> { probe.RootElement.GetProperty("marker").GetString()! };
+            var inheritedPath = Path.Combine(state, "inherited-replication-probe.json");
+            if (File.Exists(inheritedPath))
+            {
+                using var inherited = JsonDocument.Parse(await File.ReadAllTextAsync(inheritedPath));
+                expectedMarkers.Add(inherited.RootElement.GetProperty("marker").GetString()!);
+            }
+            CollectionAssert.AreEquivalent(expectedMarkers, observedMarkers, "Preserve inherited and new probe identities.");
         }
         // Query through the shipping adapter, against the restored native file.
         // Tables are already verified; activation must not manufacture source data.

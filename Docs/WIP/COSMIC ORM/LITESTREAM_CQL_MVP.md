@@ -1,7 +1,7 @@
 # Litestream CQL MVP admission
 
-Updated29 October2026. **Native SQLite/reopen pass; sidecar replication/restore and paired demo
-acceptance remain red.** Local SQLite queries alone cannot certify Litestream.
+Updated29 October2026. **Linux native/live replication/restore CQL verified; Mongo-paired demo pending.**
+Windows sidecar failure remains a separate red platform outcome.
 
 ## Implemented scope
 
@@ -122,14 +122,46 @@ seven existing test methods; no Linux source or native execution proof yet.
 - Discovery evidence: `TestResults/LitestreamCqlCurrent/linux-test-discovery.log`.
 - Discovery SHA256: `5DA733C1748603AFBB4A8006A77398D0BE06B5C177368FA5A14DB054A6C09636`.
 
+## Actual supported-Linux verification
+
+SQLite online backup imported the original complete schema/rows to native WSL
+storage without reseeding. Original actor/holon identities,4JSON/tombstone hashes,
+4save receipts and inherited Windows probe are preserved. Full source/backup SQL
+dumps matched. Import backup SHA256:
+`3b0b7bdf02a6caa3f82fb4c7f833e33a73a7a61bfe911754257391af58995320`.
+
+The actual compiled provider passes native selection/paging/budget/tombstone tests
+under Linux. The pinned actual sidecar creates an initial native LTX replica; the
+.NET child test validates the inherited marker and commits a distinct probe while
+replication is running, then observes a subsequent native LTX object. Daemon exit
+and native restore both succeed without directory-sync/errors. Restored4holon
+hashes, both probe markers and shipping-adapter CQL3/2 pass. No global snapshot,
+remote storage, abrupt-crash, PITR or Windows durability claim follows.
+
+- Admission: `Scripts/TestHosts/import-cosmic-litestream-linux.py` (one-time backup;
+  refuses existing admission), preserving failed Windows state.
+- Runner: `Scripts/TestHosts/run-cosmic-litestream-linux.py` under existing Ubuntu.
+- Native source/replica/restore/journals: `/var/tmp/oasis-litestream-cql`,172,398bytes.
+- Native1passed/no skips: `TestResults/LitestreamCqlCurrent/litestream-linux-native.trx`.
+- Native SHA256: `F64D8E0777CF24002D9D4130C19D3A48553BA747347D56EC57580358B0FC5D2B`.
+- Live probe1passed1s/no skips: `TestResults/LitestreamCqlCurrent/litestream-linux-probe.trx`.
+- Probe SHA256: `B9D6A3C3C18EDF6CA65DA429510FEB29BD428D532EC08EFE5C653362043E4775`.
+- Restored CQL1passed/no skips: `TestResults/LitestreamCqlCurrent/litestream-linux-restore.trx`.
+- Restore SHA256: `06C94A3D8DDCF37A5E67C7796A3CFFCB4334C019BA7B975DE0C986DFC7642DF8`.
+- Native logs: `linux-replication.log`, `linux-restore.log`, `linux-restore-test.log`
+  under the same TestResults folder. No daemon remains running.
+
+A successful receipt allows subsequent native/source/restored checks without
+replaying the live probe, recreating the replica or restoring over the original
+recovered file. Final-source runner rerun passes with freshness/count checks for
+one passed test and zero skips per scope. Original Linux/Windows evidence retained.
+
 ## Exact next step
 
-Admit one fixed native Linux source at `/var/tmp/oasis-litestream-cql` via a verified
-SQLite backup of the original provider-created source. Preserve actor/holon IDs,
-original hashes/tombstone and inherited Windows probe; never reseed or mutate the
-preserved failed Windows replica. Run the actual compiled provider's native tests
-using the portable runner and admitted Linux runtime, then a separately journalled
-live Linux probe/replication/restore. Preserve all unknown outcomes. Windows failure
-remains red; Linux/paired/remote/PITR/crash recovery are not yet certified.
+Add Mongo-paired C#/HTTP/browser teaching coverage over the admitted Linux provider
+source with explicit platform provenance. Reuse the original Linux source/identity
+and native .NET runner; preserve Windows failure/source/pending. Validate/drop only
+the owned temporary Mongo fixture. Linux local-file replication/restore is verified;
+Windows, remote/PITR/crash recovery and full ORM acceptance remain separate gates.
 
 [Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
