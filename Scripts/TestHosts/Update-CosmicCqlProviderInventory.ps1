@@ -58,7 +58,7 @@ if (!$integrated) {
 } else {
     $report.Add("Fetched Development $incoming is integrated. See [integration verification](DEVELOPMENT_SYNC_2026-10-29.md). Outgoing Development deployment remains a separate scoped batch.")
 }
-$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. S3 compiler/SDK controls and native/paired fixtures are prepared; local native launch is policy-gated. TRON compiler controls pass but original source/fence recovery remains open. LocalFile native/restart/paired proof is verified. Aptos native/restart source and saved-state proofs now pass; paired SDK/HTTP/browser is verified; hub enrollment/routing check is automatic-review gated. Sui native/restart/SDK/HTTP/browser and hub proof now passes, preserving original Storage/history; next Hedera/Hashgraph admission and reusable native resources. Hosted Azure Cosmos remains pending.')
+$report.Add('1. Azure Blob native/restart and Mongo-paired SDK/HTTP/browser MVP verified. S3 compiler/SDK controls and native/paired fixtures are prepared; local native launch is policy-gated. TRON compiler controls pass but original source/fence recovery remains open. LocalFile native/restart/paired proof is verified. Aptos native/restart source and saved-state proofs now pass; paired SDK/HTTP/browser is verified; hub enrollment/routing check is automatic-review gated. Sui native/restart/SDK/HTTP/browser and hub proof now passes, preserving original Storage/history; Hedera8 controls and exact public runtime/owner audit pass; next reconcile native source/query admission and historical evidence. Hosted Azure Cosmos remains pending.')
 $report.Add('2. Review the remaining registered storage providers first, then source-only/unregistered identities. Optimism has a Web3Core class but its observed central case is commented out: registration is a separate gap, not inherited readiness.')
 $report.Add('')
 $report.Add('| Provider identity | Scoped MVP | Source project evidence | Central registration / next gate |')
@@ -73,6 +73,8 @@ foreach ($name in $names) {
     } elseif ($name -eq 'AWSS3OASIS') {
         $status = '❌ [Controls pass; native/paired pending](AWS_S3_CQL_MVP.md)'
 
+    } elseif ($name -eq 'HashgraphOASIS') {
+        $status = '❌ [Controls/public runtime audit pass; native/paired pending](HEDERA_CQL_MVP.md)'
     } elseif ($name -eq 'AptosOASIS') {
         $status = '❌ [Native/restart/paired/browser pass; hub enrollment pending](APTOS_CQL_MVP.md)'
     } elseif ($name -eq 'TRONOASIS') {

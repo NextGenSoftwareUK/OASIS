@@ -7,6 +7,9 @@
 # from a Windows checkout/local Railway upload.
 *.sh text eol=lf
 Docker/*.env text eol=lf
+# Solidity metadata hashes include exact source bytes. Keep the shared deployed
+# storage contract reproducible across Windows and Linux verification/builds.
+Providers/Shared/Contracts/OASISKeyValueStore.sol text eol=lf
 ###############################################################################
 # Set default behavior for command prompt diff.
 #
