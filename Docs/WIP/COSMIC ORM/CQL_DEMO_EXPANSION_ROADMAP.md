@@ -57,3 +57,6 @@ PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 p
 
 SQL Server breadth milestone: control9/native/restart/paired and browser5/4 pass;
 [scope and evidence](SQLSERVER_CQL_MVP.md). Wider parity stays deferred.
+
+DuckDB breadth milestone: control14/native/reopen/paired and browser5/4 pass;
+[scope and evidence](DUCKDB_CQL_MVP.md). Wider parity remains deferred.
