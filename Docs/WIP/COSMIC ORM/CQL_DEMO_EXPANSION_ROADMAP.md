@@ -140,3 +140,5 @@ Polygon stage: shared Web3Core adapter controls7/7 and native3/2 query1/1 pass u
 Arbitrum V2 MVP now verified: linked BootLoader factory, native3/2 acceptance1/1, authority controls7/7 (+Polygon7/7 regression), paired C#/HTTP1/1 and actual browser5/4. Existing runtime/chain reused; source state retained and Mongo fixture cleaned. Google Firestore is next. [Scope](ARBITRUM_CQL_MVP.md).
 
 Google Firestore stage: bounded native document-key CQL implementation builds and initial controls7/7 pass. Native3/2/absent1/1, checkpoint restart1/1, paired C#/HTTP1/1 and actual browser5/4 now verified; Cosmos blockchain is next; cached runtime exists, missing historical checkpoint is not recreated. [Exact next step](FIRESTORE_CQL_MVP.md).
+
+Cosmos blockchain stage: native-key CQL adapter builds and controls14/14 pass, including actual encrypted-wrapper execution over controlled transport. Native-chain/paired/browser proof remains next. Retained wasmd container is exited; SDK dependencies and old evidence are missing in this worktree and must be reconciled without resetting historical state. [Exact next step](COSMOS_BLOCKCHAIN_CQL_MVP.md).
