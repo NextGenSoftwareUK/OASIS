@@ -37,7 +37,7 @@ Set-Location $root
         if($LASTEXITCODE){throw 'Native routing verification failed; preserve original outcome.'}
         [xml]$report=Get-Content -LiteralPath (Join-Path $work 'mongo-destination-catalogue.trx') -Raw
         $counts=$report.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 5 -or [int]$counts.passed -ne 5 -or [int]$counts.notExecuted -ne 0){throw 'Exactly five unskipped native scenarios are required.'}
+        if([int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0){throw 'Exactly six unskipped native scenarios are required.'}
         if(Test-Path 'LocalState/COSMIC/OwnedRoutingCurrent/mongo-destination.pending.json'){throw 'Fixture cleanup incomplete.'}
         Get-Content (Join-Path $work 'mongo-destination-catalogue.log') -Tail 5
         Get-FileHash (Join-Path $work 'mongo-destination-catalogue.trx')

@@ -337,3 +337,31 @@ for this network-failure classification; the actual worker behavior was correct.
 | `TestResults/OwnedRoutingCurrent/worker-offline-offline.trx` | 1pass | `81738BE7361502A7070B680F868AFC87A8AA50B47792E980475E052DF5F3A327` |
 | `TestResults/OwnedRoutingCurrent/worker-offline-deliver.trx` | 1pass | `ECDDA6B1AC8FC298A595AE56B3BE81827D1B5D045D1E6E3AE862067BBF9F374F` |
 | `TestResults/OwnedRoutingCurrent/worker-offline-active-first-failure.trx` | 1diagnostic-assertion failure | `652A246525AE3FC611DD7A5B14EE696DF08BBF478D1E8CC5C800BC805EC7E221` |
+
+## Concurrent first destination proposals
+
+Mongo/SQLite/Neo now each have a native case using two independent activated
+clients, a synchronized invocation gate, distinct source operations/holons and two
+different physical destination proposals for the same authority. Exactly one write
+commits. Its establishment operation/fingerprint is retained, while the loser has
+no graph row, receipt or outbox obligation. Replaying the winning exact intent
+through the other client remains idempotent; retrying the losing destination
+explicitly returns the rebind-required error. Only one approval is stored.
+
+Mongo6/6 and SQLite6/6 catalogue scenarios pass; Neo2/2 passes (lifecycle plus
+race). The tests synchronize client invocation, not a forced pause after both
+internal catalogue reads; no deterministic internal interleaving is claimed. SQLite
+also uses different operation actors. Native uniqueness and transaction ownership
+remain the production invariant; no production code change was required here.
+
+All owned fixture journals/files and native service listeners are gone after
+verified teardown. Existing reusable runtimes/graph/replica data remain. Next gates
+are native retry exhaustion/other-pair outage scope and audited operator/V2 lineage
+repair, followed by separate failover/load-balancing acceptance. These cases do
+not certify the nine-provider programme or migration tooling.
+
+| Evidence | Passed | SHA-256 |
+|---|---:|---|
+| `TestResults/OwnedRoutingCurrent/mongo-destination-catalogue.trx` | 6 | `1F0B92CAD8B7D85422BD8B42BD976591E3E85BE4D338EC60549E10200F4E98A4` |
+| `TestResults/OwnedRoutingCurrent/sqlite-first-approval.trx` | 6 | `A4AE825621D17FDD038CA5BB2871D0F3FE84E9107CEADEBDDECAD78F54A5A3CA` |
+| `TestResults/Neo4jCurrent/neo4j-destination-catalogue-current.trx` | 2 | `03FBF3CDDB9D49C35425469F045191C5892721CCBB60A5AF84E49D477BC2865E` |

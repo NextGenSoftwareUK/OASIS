@@ -12,8 +12,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class Neo4jNativeAvatarTests
 {
-    [TestMethod]
-    public async Task NativeNeoDestinationCatalogueOwnsMeaningAcrossRestartAndRollback()
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeNeoDestinationCatalogueOwnsMeaningAcrossRestartAndRollback(bool concurrentFirst)
     {
         const string uri = "bolt://127.0.0.1:17687";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -50,7 +52,7 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse(existing.IsError, existing.Message);
                 Assert.IsNull(existing.Result, "Preserve another owner's existing destination; no implicit rebind.");
             }
-            await File.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { actor, ids, operations, source = source.BindingFingerprint }));
+            await File.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { actor, ids, operations, concurrentFirst, source = source.BindingFingerprint }));
             ConditionalHolonWriteRequest Request(int i) => new(new ConditionalHolonWrite(operations[i], actor,
                 ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(ids[i], null) }), ConditionalHolonOperation.Save,
                 new[] { new Holon { Id = ids[i], Name = "owned-destination-" + i } }, saveChildren: false);
@@ -58,6 +60,57 @@ public partial class Neo4jNativeAvatarTests
                 "MATCH (n:" + label + ") WHERE n.OperationId IN $ops RETURN count(n) AS count",
                 new { ops = operations.Select(op => op.ToString("D")).ToArray() })).SingleAsync())["count"].As<long>();
             var initial = Enrol(Route(oracle));
+            if (concurrentFirst)
+            {
+                var independent = new Provider(uri, "neo4j", "oasis-local-test-only");
+                try
+                {
+                    Assert.IsFalse((await independent.ActivateProviderAsync()).IsError);
+                    var peerSource = await independent.CaptureStorageIdentityAsync();
+                    Assert.IsFalse(peerSource.IsError, peerSource.Message);
+                    Assert.AreEqual(source.BindingFingerprint, peerSource.Result.BindingFingerprint);
+                    var competing = new CosmicStorageIdentity(oracle.Authority, oracle.EndpointFingerprint, Guid.NewGuid());
+                    var proposals = new[] { initial, Enrol(Route(competing)) };
+                    var clients = new[] { provider, independent };
+                    var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var arrivals = 0;
+                    var tasks = Enumerable.Range(0, 2).Select(index => Task.Run(async () => {
+                        if (Interlocked.Increment(ref arrivals) == 2) ready.TrySetResult();
+                        await gate.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                        return await clients[index].ExecuteReplicatingHolonWriteAsync(Request(index), proposals[index]);
+                    })).ToArray();
+                    await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    gate.SetResult();
+                    var outcomes = await Task.WhenAll(tasks);
+                    var winners = Enumerable.Range(0, 2).Where(index => !outcomes[index].IsError && outcomes[index].IsSaved).ToArray();
+                    Assert.AreEqual(1, winners.Length, string.Join(";", outcomes.Select(result => result.ErrorCode + ":" + result.Message)));
+                    var winner = winners.Single();
+                    var loser = 1 - winner;
+                    Assert.IsTrue(outcomes[loser].IsError);
+                    Assert.IsFalse(outcomes[loser].IsSaved);
+                    CollectionAssert.Contains(new[] { HolonDestinationRebindRequiredException.Code, "COSMIC_CONCURRENT_WRITE" }, outcomes[loser].ErrorCode);
+                    var winningApproval = await catalogue.ReadDestinationBindingAsync(oracle.Authority);
+                    Assert.IsFalse(winningApproval.IsError, winningApproval.Message);
+                    Assert.AreEqual(operations[winner], winningApproval.Result.EstablishedOperationId);
+                    Assert.AreEqual(proposals[winner].NativeRoutes.Single().TargetStorage.BindingFingerprint, winningApproval.Result.Route.TargetStorage.BindingFingerprint);
+                    Assert.IsFalse((await clients[loser].ExecuteReplicatingHolonWriteAsync(Request(winner), proposals[winner])).IsError);
+                    Assert.AreEqual(HolonDestinationRebindRequiredException.Code,
+                        (await clients[loser].ExecuteReplicatingHolonWriteAsync(Request(loser), proposals[loser])).ErrorCode);
+                    Assert.AreEqual(1L, await Count("CosmicWriteReceipt"));
+                    Assert.AreEqual(1L, await Count("CosmicHolonOutbox"));
+                    var ownRows = await (await inspect.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids RETURN h.Id AS id",
+                        new { ids = ids.Select(id => id.ToString("D")).ToArray() })).ToListAsync();
+                    Assert.AreEqual(1, ownRows.Count);
+                    Assert.AreEqual(ids[winner].ToString("D"), ownRows.Single()["id"].As<string>());
+                    var approvals = await (await inspect.RunAsync("MATCH (d:CosmicDestinationBinding) WHERE d.EstablishedOperationId IN $ops RETURN count(d) AS count",
+                        new { ops = operations.Select(op => op.ToString("D")).ToArray() })).SingleAsync();
+                    Assert.AreEqual(1L, approvals["count"].As<long>());
+                }
+                finally { Assert.IsFalse((await independent.DeActivateProviderAsync()).IsError); }
+                complete = true;
+                return;
+            }
             var saved = await provider.ExecuteReplicatingHolonWriteAsync(Request(0), initial);
             Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
             Assert.AreEqual(operations[0], (await catalogue.ReadDestinationBindingAsync(oracle.Authority)).Result.EstablishedOperationId);
