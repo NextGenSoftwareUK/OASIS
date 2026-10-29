@@ -104,7 +104,7 @@ public class NearPreparedLifecycleTests
         foreach(var attempt in attempts)await Observe(attempt);Assert.AreEqual(4,expectedCiphertexts.Count);
         var keys=parentHashes.Select(hash=>"wallet-transaction:test.near:"+hash).ToArray();CollectionAssert.AreEquivalent(keys,expectedCiphertexts.Keys.ToArray());
         var sdk=typeof(NEAROASIS).GetField("_sdk",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;var type=sdk.GetType();
-        async Task<object> Snapshot(string key){var task=(Task)type.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
+        async Task<object> Snapshot(string key){var task=(Task)type.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key,CancellationToken.None})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
         string? Field(object snapshot,string name)=>(string?)snapshot.GetType().GetProperty(name)!.GetValue(snapshot);
         var hashes=new Dictionary<string,string>();foreach(var key in keys){var snapshot=await Snapshot(key);Assert.AreEqual(expectedCiphertexts[key],Field(snapshot,"Ciphertext"));Assert.IsFalse(Field(snapshot,"Ciphertext")!.Contains("test.near"));hashes[key]=Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(expectedCiphertexts[key])));}
         foreach(var key in keys){

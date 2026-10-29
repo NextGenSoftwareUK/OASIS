@@ -29,8 +29,8 @@ public class NearPreparedStorageTests
         var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
         var prepared=(IPreparedNativeStorageProvider)provider;
         var sdk=typeof(NEAROASIS).GetField("_sdk",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;var serviceType=sdk.GetType();
-        Task<string> Get(string key)=>(Task<string>)serviceType.GetMethod("GetAsync")!.Invoke(sdk,new object[]{key})!;
-        async Task<object> Snapshot(string key){var task=(Task)serviceType.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
+        Task<string> Get(string key)=>(Task<string>)serviceType.GetMethod("GetAsync")!.Invoke(sdk,new object[]{key,CancellationToken.None})!;
+        async Task<object> Snapshot(string key){var task=(Task)serviceType.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key,CancellationToken.None})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
         string? Field(object snapshot,string name)=>(string?)snapshot.GetType().GetProperty(name)!.GetValue(snapshot);
         Task<string> Write(object observed,string json,string? archive=null,string? archived=null)=>(Task<string>)serviceType.GetMethod("PutRecordCheckedAsync")!.Invoke(sdk,new object?[]{observed,json,archive,archived})!;
         var id=Guid.Parse("5f4785d8-944e-4275-a4be-c26e00000001");var key="holon:"+id;
@@ -129,7 +129,7 @@ public class NearPreparedStorageTests
         var provider=new NEAROASIS(Required("NEAROASIS_RPCENDPOINT"),"oasis-near-local","oasis-near-local","test.near","test.near",Required("NEAROASIS_PRIVATEKEY"));
         var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
         var sdk=typeof(NEAROASIS).GetField("_sdk",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;var type=sdk.GetType();
-        async Task<object> Snapshot(string key){var task=(Task)type.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
+        async Task<object> Snapshot(string key){var task=(Task)type.GetMethod("ReadSnapshotAsync")!.Invoke(sdk,new object[]{key,CancellationToken.None})!;await task;return task.GetType().GetProperty("Result")!.GetValue(task)!;}
         string? Field(object snapshot,string name)=>(string?)snapshot.GetType().GetProperty(name)!.GetValue(snapshot);
         var hashes=new Dictionary<string,string>();
         for(var i=0;i<keys.Length;i++){
