@@ -101,7 +101,7 @@ Button only. Jobs: plan, nuget, nuget-publish, edge-runtime-validation, edge-run
 | Gated Railway release `railway-staged-release.yml` | button, after workflow_run | Freeze candidate, deploy to staging, approval, promote to production | Keep |
 | Submodule Sync | Monday 07:00, button | Moves pointers to branch tips and opens a PR | Keep |
 | Build WEB4 image `build-web4-image.yml` | button | Builds and pushes the WEB4 Docker image | Keep, if Railway uses the image |
-| Publish — ONODE Manager Binaries `release-onode-manager.yml` (339 lines) | push (filter not summarised), button | Tests, builds Windows, macOS, Linux installers, creates release | Keep, check the push filter |
+| Publish — ONODE Manager Binaries `release-onode-manager.yml` | callable only | Tests, builds Windows, macOS, Linux installers, creates release; run by Global release (`onode_manager`) | Done: button and tag trigger removed |
 | Build and publish standalone Edge Runtime, Build OGEngineClient profiles | callable only | Helpers that Global release calls | Keep (hidden from the form) |
 
 ## 4. Recent activity (last 200 runs, `gh`)
