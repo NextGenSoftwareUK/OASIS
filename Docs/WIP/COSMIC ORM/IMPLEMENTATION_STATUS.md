@@ -14,7 +14,8 @@ records without adoption or writes; exact consistency and held owners remain che
 
 SQLite native mutation-start marker passes2/2, including old-schema preservation, restart,
 immutable intent, cancellation/downgrade protection and start/cancel race. Core4462/DNA19/
-GraphQL1 pass. Mongo/Neo mutation-start support and cross-store admission remain open.
+GraphQL1 retained. Mongo2/2 and Neo2/2 now verify native mutation-start as well; Neo625
+controls pass. Cross-store preparation/admission and partial/unknown start recovery remain open.
 
 No migration data mutation, automatic compensation or HTTP executor is enabled.
 Next: durable native started/uncertain phases, exact CAS and idempotent migration receipts,

@@ -55,15 +55,19 @@ internal static class NeoHolonMigrationFence
         var original = HolonMigrationFenceRequest.ReadCanonical(Text("RequestJson"), request.ExpectedStorage);
         if (Text("MigrationId") != original.MigrationId.ToString("D") || Text("RequestHash") != original.Fingerprint
             || !Guid.TryParseExact(Text("OwnerToken"), "D", out var owner) || owner == Guid.Empty
-            || Text("FenceState") is not ("Held" or "Cancelled")) throw new InvalidDataException("Native fence receipt integrity is invalid.");
+            || Text("FenceState") is not ("Held" or "Cancelled" or "MutationStarted")) throw new InvalidDataException("Native fence receipt integrity is invalid.");
         if (original.Fingerprint != request.Fingerprint)
             throw new NeoMigrationFenceException("COSMIC_MIGRATION_FENCE_SCOPE_MISMATCH", "The migration identity belongs to another exact operator or review scope.");
-        return new(request, owner, Text("FenceState") == "Held" ? HolonMigrationFenceState.Held : HolonMigrationFenceState.Cancelled);
+        var state = Text("FenceState");
+        var phase = state == "Held" ? HolonMigrationFenceState.Held : state == "Cancelled" ? HolonMigrationFenceState.Cancelled : HolonMigrationFenceState.MutationStarted;
+        var digest = node.Properties.TryGetValue("MutationDigest", out var value) ? value as string
+            ?? throw new InvalidDataException("Native mutation intent is not canonical.") : null;
+        return new(request, owner, phase, digest);
     }
 
-    internal enum Action { Acquire, Read, Cancel }
+    internal enum Action { Acquire, Read, Cancel, BeginMutation }
     internal static async Task<(HolonMigrationFenceObservation Result, bool Changed)> ApplyAsync(IAsyncTransaction tx,
-        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token)
+        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token, string mutationDigest = null)
     {
         await RequireSchemaAsync(tx).ConfigureAwait(false); token.ThrowIfCancellationRequested();
         var claim = Guid.NewGuid().ToString("D"); INode node;
@@ -94,7 +98,7 @@ internal static class NeoHolonMigrationFence
         {
             if (current.State == HolonMigrationFenceState.Cancelled)
                 throw new NeoMigrationFenceException("COSMIC_MIGRATION_FENCE_TERMINAL", "A cancelled migration identity cannot be reacquired.");
-            if (current.State == HolonMigrationFenceState.Held) return (current, false);
+            if (current.State is HolonMigrationFenceState.Held or HolonMigrationFenceState.MutationStarted) return (current, false);
             foreach (var id in request.HolonIds)
             {
                 var gate = await LockRecordAsync(tx, id, token).ConfigureAwait(false);
@@ -109,9 +113,35 @@ internal static class NeoHolonMigrationFence
                 new { id = request.MigrationId.ToString("D"), claim, json = request.CanonicalJson, hash = request.Fingerprint, owner = owner.ToString("D") }).ConfigureAwait(false)).ConsumeAsync().ConfigureAwait(false);
             return (new(request, owner, HolonMigrationFenceState.Held), true);
         }
+        if (action == Action.BeginMutation)
+        {
+            _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest);
+            if (current.State == HolonMigrationFenceState.Absent || current.OwnerToken != owner)
+                throw new NeoMigrationFenceException("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", "Only the exact held native owner may record mutation start.");
+            if (current.State == HolonMigrationFenceState.Cancelled)
+                throw new NeoMigrationFenceException("COSMIC_MIGRATION_FENCE_TERMINAL", "A cancelled migration identity cannot begin mutation.");
+            if (current.State == HolonMigrationFenceState.MutationStarted)
+            {
+                if (current.MutationDigest != mutationDigest) throw new NeoMigrationFenceException("COSMIC_MIGRATION_MUTATION_INTENT_REUSED", "The durable mutation intent cannot be replaced.");
+                return (current, false);
+            }
+            foreach (var id in request.HolonIds)
+            {
+                var gate = await LockRecordAsync(tx, id, token).ConfigureAwait(false);
+                if (gate["FenceId"].As<string>() != request.MigrationId.ToString("D") || gate["FenceHash"].As<string>() != request.Fingerprint)
+                    throw new InvalidDataException("Native record membership differs from the held mutation scope.");
+            }
+            var changed = await (await tx.RunAsync("MATCH (f:CosmicMigrationFence {MigrationId:$id,OwnerToken:$owner,RequestHash:$hash,FenceState:'Held'}) "
+                + "WHERE f.MutationDigest IS NULL SET f.FenceState='MutationStarted',f.MutationDigest=$digest RETURN count(f) AS count",
+                new { id = request.MigrationId.ToString("D"), owner = owner.ToString("D"), hash = request.Fingerprint, digest = mutationDigest }).ConfigureAwait(false)).SingleAsync().ConfigureAwait(false);
+            if (changed["count"].As<long>() != 1) throw new InvalidDataException("Native phase compare-and-swap did not acknowledge the original owner.");
+            return (new(request, owner, HolonMigrationFenceState.MutationStarted, mutationDigest), true);
+        }
         if (current.State == HolonMigrationFenceState.Absent || current.OwnerToken != owner)
             throw new NeoMigrationFenceException("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", "Only the exact pre-mutation fence owner may cancel it.");
         if (current.State == HolonMigrationFenceState.Cancelled) return (current, false);
+        if (current.State == HolonMigrationFenceState.MutationStarted)
+            throw new NeoMigrationFenceException("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", "Started or uncertain mutation cannot use pre-mutation cancellation.");
         foreach (var id in request.HolonIds)
         {
             var gate = await LockRecordAsync(tx, id, token).ConfigureAwait(false);

@@ -17,7 +17,7 @@ internal sealed class MongoMigrationFenceException(string code, string message) 
 
 internal static class MongoHolonMigrationFence
 {
-    internal enum Action { Acquire, Read, Cancel }
+    internal enum Action { Acquire, Read, Cancel, BeginMutation }
     internal const string Gates = "CosmicMigrationRecordGate", Receipts = "CosmicMigrationFence";
     private const string SchemaId = "cosmic-migration-record-gate-schema-v1";
     private static void ValidateSchema(BsonDocument marker)
@@ -79,18 +79,21 @@ internal static class MongoHolonMigrationFence
         if (row == null) return new(expected, Guid.Empty, HolonMigrationFenceState.Absent);
         if (!row.TryGetValue("RequestJson", out var json) || !json.IsString || !row.TryGetValue("RequestHash", out var hash) || !hash.IsString
             || !row.TryGetValue("OwnerToken", out var owner) || !owner.IsString || !Guid.TryParseExact(owner.AsString, "D", out var token) || token == Guid.Empty
-            || !row.TryGetValue("FenceState", out var state) || !state.IsString || state.AsString is not ("Held" or "Cancelled"))
+            || !row.TryGetValue("FenceState", out var state) || !state.IsString || state.AsString is not ("Held" or "Cancelled" or "MutationStarted"))
             throw new InvalidDataException("Native migration fence receipt is invalid.");
         var original = HolonMigrationFenceRequest.ReadCanonical(json.AsString, expected.ExpectedStorage);
         if (row["_id"] != original.MigrationId.ToString("D") || original.Fingerprint != hash.AsString)
             throw new InvalidDataException("Native migration fence receipt integrity differs.");
         if (original.Fingerprint != expected.Fingerprint)
             throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_SCOPE_MISMATCH", "The migration identity belongs to another exact operator or review scope.");
-        return new(expected, token, state.AsString == "Held" ? HolonMigrationFenceState.Held : HolonMigrationFenceState.Cancelled);
+        var digest = row.GetValue("MutationDigest", BsonNull.Value);
+        if (!digest.IsBsonNull && !digest.IsString) throw new InvalidDataException("Native mutation intent is not canonical.");
+        var phase = state.AsString == "Held" ? HolonMigrationFenceState.Held : state.AsString == "Cancelled" ? HolonMigrationFenceState.Cancelled : HolonMigrationFenceState.MutationStarted;
+        return new(expected, token, phase, digest.IsBsonNull ? null : digest.AsString);
     }
 
     internal static async Task<OASISResult<HolonMigrationFenceObservation>> ExecuteAsync(IMongoDatabase database,
-        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token)
+        HolonMigrationFenceRequest request, Action action, Guid owner, CancellationToken token, string mutationDigest = null)
     {
         token.ThrowIfCancellationRequested();
         IClientSessionHandle session = null; OASISResult<HolonMigrationFenceObservation> result = null;
@@ -99,8 +102,9 @@ internal static class MongoHolonMigrationFence
         try
         {
             if (database == null || request == null || request.ExpectedStorage.Authority != Core.Enums.ProviderType.MongoDBOASIS
-                || action == Action.Cancel && owner == Guid.Empty)
+                || action is Action.Cancel or Action.BeginMutation && owner == Guid.Empty)
                 throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_OPTIONS_INVALID", "An exact activated Mongo fence scope and owner are required.");
+            if (action == Action.BeginMutation) _ = new HolonMigrationMutationStartRequest(request, owner, mutationDigest);
             session = await database.Client.StartSessionAsync(cancellationToken: token).ConfigureAwait(false);
             session.StartTransaction(new TransactionOptions(readConcern: ReadConcern.Snapshot, writeConcern: WriteConcern.WMajority.With(journal: true)));
             await HolonRepository.ValidateReplicaStorageBindingAsync(database, session, request.ExpectedStorage, token,
@@ -114,7 +118,7 @@ internal static class MongoHolonMigrationFence
                 throw new InvalidDataException("Native record ownership exists without its fence receipt.");
             bool changed = false;
             if (action == Action.Read) result = new(stored) { IsLoaded = true };
-            else if (action == Action.Acquire && stored.State == HolonMigrationFenceState.Held) result = new(stored) { IsLoaded = true };
+            else if (action == Action.Acquire && stored.State is (HolonMigrationFenceState.Held or HolonMigrationFenceState.MutationStarted)) result = new(stored) { IsLoaded = true };
             else if (action == Action.Acquire)
             {
                 if (stored.State == HolonMigrationFenceState.Cancelled)
@@ -134,10 +138,38 @@ internal static class MongoHolonMigrationFence
                     { "RequestJson", request.CanonicalJson }, { "RequestHash", request.Fingerprint }, { "OwnerToken", owner.ToString("D") }, { "FenceState", "Held" } }, cancellationToken: token).ConfigureAwait(false);
                 result = new(new(request, owner, HolonMigrationFenceState.Held)) { IsSaved = true }; changed = true;
             }
+            else if (action == Action.BeginMutation)
+            {
+                if (stored.State == HolonMigrationFenceState.Absent || stored.OwnerToken != owner)
+                    throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", "Only the exact held native owner may record mutation start.");
+                if (stored.State == HolonMigrationFenceState.Cancelled)
+                    throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_TERMINAL", "A cancelled migration identity cannot begin mutation.");
+                if (stored.State == HolonMigrationFenceState.MutationStarted)
+                {
+                    if (stored.MutationDigest != mutationDigest) throw new MongoMigrationFenceException("COSMIC_MIGRATION_MUTATION_INTENT_REUSED", "The durable mutation intent cannot be replaced.");
+                    result = new(stored) { IsLoaded = true };
+                }
+                else
+                {
+                    foreach (var id in request.HolonIds)
+                    {
+                        var gate = await TouchAsync(database, session, id, token).ConfigureAwait(false);
+                        if (gate["FenceId"].AsString != request.MigrationId.ToString("D") || gate["FenceHash"].AsString != request.Fingerprint)
+                            throw new InvalidDataException("Native record membership differs from the held mutation scope.");
+                    }
+                    var started = await receipts.UpdateOneAsync(session, new BsonDocument { { "_id", request.MigrationId.ToString("D") },
+                        { "OwnerToken", owner.ToString("D") }, { "RequestHash", request.Fingerprint }, { "FenceState", "Held" }, { "MutationDigest", BsonNull.Value } },
+                        new BsonDocument("$set", new BsonDocument { { "FenceState", "MutationStarted" }, { "MutationDigest", mutationDigest } }), cancellationToken: token).ConfigureAwait(false);
+                    if (started.MatchedCount != 1) throw new InvalidDataException("Native phase compare-and-swap did not acknowledge the original owner.");
+                    result = new(new(request, owner, HolonMigrationFenceState.MutationStarted, mutationDigest)) { IsSaved = true }; changed = true;
+                }
+            }
             else
             {
                 if (stored.State == HolonMigrationFenceState.Absent || stored.OwnerToken != owner)
                     throw new MongoMigrationFenceException("COSMIC_MIGRATION_FENCE_OWNER_MISMATCH", "Only the exact pre-mutation fence owner may cancel it.");
+                if (stored.State == HolonMigrationFenceState.MutationStarted)
+                    throw new MongoMigrationFenceException("COSMIC_MIGRATION_MUTATION_ALREADY_STARTED", "Started or uncertain mutation cannot use pre-mutation cancellation.");
                 result = new(new(request, owner, HolonMigrationFenceState.Cancelled)) { IsLoaded = stored.State == HolonMigrationFenceState.Cancelled };
                 if (stored.State == HolonMigrationFenceState.Held)
                 {
