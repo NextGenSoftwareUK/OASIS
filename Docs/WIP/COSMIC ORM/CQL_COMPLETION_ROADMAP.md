@@ -17,3 +17,6 @@ Historical parity checkpoint (deferred, not the active work queue):
 All milestones update CURRENT_STATUS and the cleanup ledger. Raw evidence belongs in worktree TestResults; retain result counts/hashes/paths in reports. Use bounded builds and one producer/consumer lease. Push Core first, verify remotely, then parent gitlink/manifest; integrate Development in the agreed daily batches.
 
 [Earlier roadmap history](Archive/CQL_COMPLETION_ROADMAP_before_entity_selected_sqlite_2026-10-28.md).
+
+PostgreSQL breadth milestone: control8/native1/restart1/paired1 and browser5/4 pass;
+[scope and retained evidence](POSTGRESQL_CQL_MVP.md). Full parity remains open.

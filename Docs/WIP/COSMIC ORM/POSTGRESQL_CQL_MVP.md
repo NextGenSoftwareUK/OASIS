@@ -1,6 +1,6 @@
 # PostgreSQL CQL MVP admission
 
-Updated 29 October 2026. **Native/restart verified; paired demo admission remains red.**
+Updated 29 October 2026. **Scoped native/restart and Mongo-paired C#/HTTP/browser MVP verified.**
 
 The adapter uses the existing PostgreSQL storage connection and canonical record
 reader. A single parameterized SELECT applies authorized UUID selection and native
@@ -43,12 +43,44 @@ but cleanup did not receive the flags. The runner now uses one shared lifecycle
 object. The exact owned container was stopped, the restart proof passed, and final
 container state was verified `exited`. No source/schema was reset.
 
+## Mongo-paired teaching preset
+
+The C# walkthrough, HTTP endpoints and browser all returned five physical rows
+(three PostgreSQL plus two Mongo copies), then four for the two-ID subset.
+Provider provenance remains explicit; duplicates are preserved. Forged actor and
+unknown preset reject; an inactive PostgreSQL target returns unavailable without
+partial rows. The temporary three-record Mongo fixture was verified and dropped.
+
+- Test: `PostgreSqlMongoCqlNativeTests.cs` in PostgreSQLOASIS.IntegrationTests.
+- Evidence: `TestResults/PostgreSqlCqlCurrent/postgres-mongo-federation.trx`.
+- Result: one passed, zero failed/skipped, 20 seconds.
+- SHA256: `60D807085515EE6CD73A2F2BF4959B746A352CB572DC4CFADC413A52BE7A09F4`.
+- Browser evidence: `TestResults/PostgreSqlCqlCurrent/postgres-mongo-browser.jpg`.
+- Final state: runner exit0, PostgreSQL exited, owned Mongo/HTTP listeners absent,
+  fixture journal removed, original source retained.
+- Launcher check: 8 single/16 plans, 21 paired/42 plans, 28 paired rejections,
+  3 archive rejections; listeners unchanged.
+
+```powershell
+# Inspect the ready preset without launching services.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PostgreSQL -Federated -ShowPlan
+
+# Run C# and HTTP checks, then keep the browser demo available on loopback5112.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PostgreSQL -Federated
+
+# Automated verification with owned service teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PostgreSQL -Federated -VerifyOnly
+```
+
+Use the page's stop button to complete owned fixture cleanup. Persistent source is
+read-only on subsequent runs. This proves bounded identity filtering/native paging,
+not arbitrary content predicates, managed cloud products, aliases, production
+registration or full PostgreSQL LINQ parity.
+
 ## Exact next step
 
-Add the Mongo-paired C#/HTTP/browser preset with provider provenance, failure
-controls and validated owned fixture cleanup. Keep the original schema, seed,
-receipts and snapshot; reuse them read-only. Admission stays red until the paired
-proof is complete.
+Continue missing provider MVPs from the all-provider inventory. PostgreSQL's wider
+parity and alias admission remain red; do not harden this green scope absent a bug.
 
 ## Programme priority
 
