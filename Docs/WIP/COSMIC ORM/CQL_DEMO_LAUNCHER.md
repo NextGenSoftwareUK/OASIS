@@ -22,6 +22,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 
 | Provider argument | URL | Matching native participation | ArchiveCompletedDemo |
 |---|---|---|---|
+| Google | http://127.0.0.1:5100/ | Mongo2/retained Firestore emulator3, then2/2 | Omit; immutable seed/checkpoint, temporary Mongo fixture |
 | Arbitrum | http://127.0.0.1:5099/ | Mongo2/shipping Arbitrum V2 adapter3, then2/2 on local EVM | Omit; retained chain/seed, temporary Mongo fixture |
 | Polygon | http://127.0.0.1:5098/ | Mongo2/concrete Polygon adapter3, then2/2 on retained local EVM | Omit; retained chain/seed, temporary Mongo fixture |
 | Ethereum | http://127.0.0.1:5097/ | Mongo2/local Ethereum3, then2/2 | Omit; retained local chain/seed, temporary Mongo fixture |
@@ -35,7 +36,7 @@ Hosted Azure remains unavailable until free-account setup; local Cosmos is label
 
 Use `-Federated` for every row. Actor, source scopes and readable catalogues are
 server-owned. The Solana host uses independent bounded ingestion; no chain write.
-Oracle, AWS, Ethereum, Polygon and Arbitrum are exposed through paired presets only. Plain Solana (schema2), SQLite
+Oracle, AWS, Ethereum, Polygon, Arbitrum and Google are exposed through paired presets only. Plain Solana (schema2), SQLite
 and the Databases group do not accept this new flag; the group retains its existing
 federation walkthrough. Unsupported combinations reject before starting services.
 Protocol `-Federated` already selects the multi-record mode; `-MultiRecord` is optional.
@@ -54,7 +55,7 @@ keeps acceptance bounded; `-ShowPlan` is read-only and starts no services.
 ## Verification scope
 
 `Scripts/TestHosts/Test-CosmicCqlDemoHubRouting.ps1` checks8individual profiles,
-16lifecycle plans,10paired profiles/20plans,8unsupported-pair rejections and3existing
+16lifecycle plans,11paired profiles/22plans,9unsupported-pair rejections and3existing
 archive rejections. Native/demo listeners remain unchanged during discovery.
 Raw report:TestResults/ProtocolCqlCurrent/database-hub-routing.json.
 Discovery proves routing only; native provider proof remains in each linked report
@@ -96,3 +97,5 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated
 Open http://127.0.0.1:5098/ after startup. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. Concrete PolygonOASIS uses its existing Web3Core contract/encrypted records on local chain31338; this is not Polygon mainnet. All/subset yield5/4 physical rows, with both provider copies preserved. [Scope and evidence](POLYGON_CQL_MVP.md).
 
 Arbitrum V2 uses `-Provider Arbitrum -Federated` (5099), with the same5/4 teaching flow. BootLoader selects the Web3Core variant inV2; no legacy/hosted/rollup/mainnet claim. [Scope](ARBITRUM_CQL_MVP.md).
+
+Google Firestore uses `-Provider Google -Federated` (5100), or add `-VerifyOnly` for bounded checks. Reuses the exact immutable local checkpoint, produces5/4 physical rows and labels emulator scope explicitly. No hosted Google claim. [Guide](FIRESTORE_CQL_MVP.md).

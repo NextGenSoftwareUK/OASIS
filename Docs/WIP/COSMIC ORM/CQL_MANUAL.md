@@ -1361,3 +1361,9 @@ Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polygon -Federated` (l
 The shipping V2 factory selects ArbitrumOASIS_Web3Core, which shares the Polygon Web3Core CQL implementation while retaining Arbitrum-specific authority and encrypted-record context. At most100 catalogue-intersected IDs compile to native key reads at one observed block number. Metadata/order/graph and full parity are deferred.
 
 Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated` (5099), or add `-VerifyOnly`. Mongo-paired all/subset yield5/4 physical rows. This is local EVM acceptance, not hosted Arbitrum/rollup/finality/distributed-snapshot proof. [Guide](ARBITRUM_CQL_MVP.md).
+
+## Google Firestore bounded identity profile
+
+GoogleCloudOASIS uses a native ordered document-snapshot batch for up to100 captured catalogue-intersected IDs. ID equality/membership, AND/OR/constants and paging are admitted; unsupported metadata/order/graph expressions reject before I/O. Shipping canonical/history decoding, identity/access/visibility checks and response/result budgets precede publication. A source failure returns no partial rows.
+
+Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated` (5100), or add `-VerifyOnly`. All/subset yield5/4 physical rows across retained local Firestore and Mongo, preserving copies/provenance. This does not prove hosted Google or distributed snapshot behaviour. [Scope and evidence](FIRESTORE_CQL_MVP.md).
