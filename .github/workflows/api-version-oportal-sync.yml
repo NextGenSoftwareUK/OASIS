@@ -1,0 +1,41 @@
+name: Sync OPORTAL-JS with API versions
+# When an API version or release history changes on Development, bring the OPORTAL-JS Postman collections and portal links
+# (branch dev) to the same version. Fails if the OASIS repo itself is out of sync, which needs a fix here first.
+on:
+  push:
+    branches: [Development, master]
+    paths:
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs'
+      - '**/*RELEASE HISTORY.md'
+      - 'Docs/API/*-RELEASE-HISTORY.md'
+      - 'Scripts/api_version_sync.py'
+  workflow_dispatch:
+concurrency: api-version-oportal-sync
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: OASIS
+      - uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: dev
+          path: OPORTAL-JS
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Propagate versions
+        run: python3 OASIS/Scripts/api_version_sync.py --sync
+      - name: OASIS must already be in sync
+        run: git -C OASIS diff --exit-code
+      - name: Commit and push OPORTAL-JS
+        working-directory: OPORTAL-JS
+        run: |
+          git add -A postman assets source
+          if git diff --cached --quiet; then echo "OPORTAL-JS already in sync"; exit 0; fi
+          git config user.name "oasis-release-bot"
+          git config user.email "noreply@github.com"
+          git commit -m "Postman collections and portal links follow the API versions (OASIS ${GITHUB_SHA::7})"
+          git push origin HEAD:dev
+      - name: Verify
+        run: python3 OASIS/Scripts/api_version_sync.py --check

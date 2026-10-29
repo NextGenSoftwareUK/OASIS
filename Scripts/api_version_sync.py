@@ -116,7 +116,7 @@ def sync():
             write(p, t)
 
 
-def apply(api, version):
+def apply(api, version, notes):
     const, hist, _ = APIS[api]
     write(BOOT, const_re(const).sub(rf"\g<1>{version}\g<3>", read(BOOT)))
     for h in hist:
@@ -125,7 +125,7 @@ def apply(api, version):
         text = read(p)
         if f"## {version} (" not in text:
             eol = "\r\n" if "\r\n" in text else "\n"
-            write(p, text.rstrip() + f"{eol}{eol}{'-' * 124}{eol}## {version} ({date.today():%d/%m/%y}){eol}{eol}- TODO: describe this release.{eol}")
+            write(p, text.rstrip() + f"{eol}{eol}{'-' * 124}{eol}## {version} ({date.today():%d/%m/%y}){eol}{eol}- {notes}{eol}")
 
 
 if __name__ == "__main__":
@@ -134,11 +134,13 @@ if __name__ == "__main__":
     g.add_argument("--check", action="store_true")
     g.add_argument("--sync", action="store_true")
     g.add_argument("--apply", nargs=2, metavar=("WEBn", "X.Y.Z"))
+    ap.add_argument("--notes", default="TODO: describe this release.", help="release-history text for --apply")
     a = ap.parse_args()
     if a.apply:
         api, ver = a.apply[0].upper(), a.apply[1]
         if api not in APIS or not re.fullmatch(VER, ver): sys.exit("usage: --apply WEB4..WEB10 X.Y.Z")
-        apply(api, ver)
+        if tuple(map(int, ver.split("."))) <= tuple(map(int, versions()[api].split("."))): sys.exit(f"{api} is already {versions()[api]}; the new version must be higher")
+        apply(api, ver, a.notes)
     if a.sync or a.apply: sync()
     bad = problems()
     for n in dict.fromkeys(notes): print("note:", n)
