@@ -157,7 +157,7 @@ With `advance_api_versions` ticked, an API with no commits to its code since its
 
 ### Preview, publish and safety
 
-With `publish` off, the run plans, builds and validates but publishes nothing; the plan and release notes are kept as run artifacts. With `publish` on, publishing only happens after the build jobs have passed, using the plan produced in that run.
+With `publish` off, the run plans, builds and validates but publishes nothing; the plan and release notes are kept as run artifacts. The run's summary page shows the version table, the version decision for each component with its reason, the release notes, and, when `advance_api_versions` is ticked, the exact version and release-history changes that would be written for the APIs (WEB5 and WEB6 are shown through their public copies in `Docs/API`). With `publish` on, publishing only happens after the build jobs have passed, using the plan produced in that run.
 
 ## GitHub Actions run
 
