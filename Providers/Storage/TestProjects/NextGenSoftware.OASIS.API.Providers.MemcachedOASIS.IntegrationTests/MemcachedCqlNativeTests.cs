@@ -44,6 +44,21 @@ public class MemcachedCqlNativeTests
         return new(BinaryPrimitives.ReadUInt64BigEndian(header.AsSpan(16)), Convert.ToHexString(SHA256.HashData(body.AsSpan(offset))));
     }
 
+    internal static async Task AssertActiveGenerationUnchanged(string state)
+    {
+        using var snapshot = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "active-generation-cql.json")));
+        var keys = snapshot.RootElement.GetProperty("keys").EnumerateArray().Select(value => value.GetString()!).ToArray();
+        var expected = snapshot.RootElement.GetProperty("before").EnumerateArray().ToArray();
+        Assert.AreEqual(5, keys.Length);
+        for (var i = 0; i < keys.Length; i++)
+        {
+            var observed = await Inspect(keys[i]);
+            Assert.IsNotNull(observed, "Original active cache generation must remain present.");
+            Assert.AreEqual(expected[i].GetProperty("Cas").GetUInt64(), observed.Cas);
+            Assert.AreEqual(expected[i].GetProperty("Hash").GetString(), observed.Hash);
+        }
+    }
+
     [TestMethod]
     public async Task NativeVolatileGenerationFiltersWithoutChangingBytesOrCas()
     {
