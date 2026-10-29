@@ -16,6 +16,10 @@ on:
         description: Required exact exclusion count; mismatches stop before packing or upload
         type: number
         default: 0
+      advance_api_versions:
+        description: Advance WEB4-WEB10 API versions with this release, update their release histories, runtime tie, docs, and the OPORTAL-JS Postman collections and links, and commit them
+        type: boolean
+        default: false
       nuget_plan_only:
         description: Review NuGet plan without packing or publishing packages
         type: boolean
@@ -138,8 +142,8 @@ jobs:
           python -B Scripts/test_release_dependency_freshness.py
           python -B Scripts/validate_release_dependency_freshness.py
           python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-      - name: Verify WEB4-WEB10 API versions are in sync
-        run: python -B Scripts/api_version_sync.py --check
+      - name: Bring WEB4-WEB10 API versions into sync
+        run: python -B Scripts/api_version_sync.py --sync
       - name: Verify NuGet version-selection invariants
         shell: pwsh
         run: ./Scripts/Test-NuGetVersionSelection.ps1
@@ -152,10 +156,19 @@ jobs:
           git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
           git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
           git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - name: Checkout OPORTAL-JS (Postman collections and portal links)
+        if: inputs.advance_api_versions
+        uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/OPORTAL-JS
+          ref: dev
+          path: OPORTAL-JS
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Generate and validate release plan
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          OASIS_OPORTAL_DIR: ${{ github.workspace }}/OPORTAL-JS
         run: >-
           ./Scripts/Invoke-OASISGlobalRelease.ps1
           -Operation Plan
@@ -181,6 +194,34 @@ jobs:
           -VersionMode '${{ inputs.version_mode }}'
           -ManualVersion '${{ inputs.manual_version }}'
           -AllowBlockedPlan $${{ !inputs.publish }}
+          -AdvanceWeb4ToWeb6ApiVersions $${{ inputs.advance_api_versions }}
+          -AdvanceWeb7ToWeb10ApiVersions $${{ inputs.advance_api_versions }}
+      - name: Commit API version changes
+        if: inputs.advance_api_versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global user.name oasis-release-bot
+          git config --global user.email noreply@github.com
+          for pair in "STAR ODK:STAR_ODK_COMMIT" "WEB6:OASIS_WEB6_COMMIT"; do
+            dir="${pair%%:*}"; pin="${pair##*:}"
+            if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+              git -C "$dir" add -A
+              git -C "$dir" commit -m "API release history (global release ${GITHUB_RUN_ID})"
+              git -C "$dir" push origin HEAD:main
+              sed -i "s/^$pin=.*/$pin=$(git -C "$dir" rev-parse HEAD)/" Docker/oasis-dependency-versions.env
+            fi
+          done
+          git add -- 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs' Docker/oasis-dependency-versions.env Docs/API Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md Scripts/Test-OASISGlobalRelease.ps1 'STAR ODK' WEB6 ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI WEB7 WEB8 WEB9 WEB10
+          if ! git diff --cached --quiet; then
+            git commit -m "Advance API versions (global release ${GITHUB_RUN_ID})"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          git -C OPORTAL-JS add -A postman assets source
+          if ! git -C OPORTAL-JS diff --cached --quiet; then
+            git -C OPORTAL-JS commit -m "Postman collections and portal links follow the API versions (global release ${GITHUB_RUN_ID})"
+            git -C OPORTAL-JS push origin HEAD:dev
+          fi
       - id: versions
         name: Export planned versions
         shell: pwsh

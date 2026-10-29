@@ -19,7 +19,7 @@ Resume from **files in git**, not from chat history. Read:
 | Topic | Doc / entry point |
 |--------|-------------------|
 | **Root cause vs hacks / fallbacks** (policy for agents) | `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` |
-| **API versions WEB4-WEB10** (constants, history, Postman, docs; `api_version_sync.py`) | `Docs/Devs/API_VERSIONING.md` |
+| **API versions WEB4-WEB10** (one `advance_api_versions` switch in the global release) | `Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md` |
 | **Long-running agent work** (one worktree per agent, model/effort, cost) | `Docs/Devs/AGENT_Long_Running_Work_Guide.md` |
 | STAR CLI shell / `--non-interactive` / `--json` | `Docs/Devs/STAR_CLI_NonInteractive.md` |
 | STAR CLI hub (users & devs, Light/templating, STARNET, AI/MCP) | `Docs/Devs/STAR_CLI_Comprehensive_Guide.md` |

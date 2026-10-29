@@ -8,11 +8,10 @@ startup log read the constants at runtime, so they need no edit.
 
   py -3 Scripts/api_version_sync.py --check                 fail if anything disagrees with the constants
   py -3 Scripts/api_version_sync.py --sync                  propagate the constants to the runtime tie, release docs, Postman, portal
-  py -3 Scripts/api_version_sync.py --apply WEB5 3.3.0      set a constant (and history stub if missing), then --sync
 
 The sibling OPORTAL-JS repo (../OPORTAL-JS, or OASIS_OPORTAL_DIR) holds the Postman collections and portal pages; if it is absent
 that part is reported and skipped. Release-history files inside submodules that are not checked out are reported and skipped.
-See Docs/Devs/API_VERSIONING.md.
+Run by Scripts/Invoke-OASISGlobalRelease.ps1 (see Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md); you never run it by hand.
 """
 import argparse, os, re, sys
 from datetime import date
@@ -101,6 +100,9 @@ def sync():
     v = versions()
     write(BOOT, const_re("OASISRuntimeVersion").sub(rf"\g<1>{v['WEB4']}\g<3>", read(BOOT)))
     write(RELEASE_DOC, DOC_RE.sub(docs_sentence(v), read(RELEASE_DOC)))
+    for api, (_, hist, _) in APIS.items():  # a release history without the current version gets an entry, so nothing needs a manual fix
+        for h in hist:
+            if (ROOT / h).is_file(): add_history_entry(ROOT / h, v[api], f"Version aligned to {v[api]}; no changes were recorded for this release.")
     if not portal_ok(): return
     for api, (const, _, prefix) in APIS.items():
         want = OPORTAL / POSTMAN_DIR / f"{prefix}{v[api]}.postman_collection.json"
@@ -116,34 +118,26 @@ def sync():
             write(p, t)
 
 
-def apply(api, version, notes):
-    const, hist, _ = APIS[api]
-    write(BOOT, const_re(const).sub(rf"\g<1>{version}\g<3>", read(BOOT)))
-    for h in hist:
-        p = ROOT / h
-        if not p.is_file(): sys.exit(f"{h} not present; check out the submodule before applying {api}")
-        text = read(p)
-        if f"## {version} (" not in text:
-            eol = "\r\n" if "\r\n" in text else "\n"
-            write(p, text.rstrip() + f"{eol}{eol}{'-' * 124}{eol}## {version} ({date.today():%d/%m/%y}){eol}{eol}- {notes}{eol}")
+def add_history_entry(path, version, notes):
+    text = read(path)
+    if f"## {version} (" in text: return
+    eol = "\r\n" if "\r\n" in text else "\n"
+    write(path, text.rstrip() + f"{eol}{eol}{'-' * 124}{eol}## {version} ({date.today():%d/%m/%y}){eol}{eol}- {notes}{eol}")
 
 
-if __name__ == "__main__":
+def main():
     ap = argparse.ArgumentParser()
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--check", action="store_true")
     g.add_argument("--sync", action="store_true")
-    g.add_argument("--apply", nargs=2, metavar=("WEBn", "X.Y.Z"))
-    ap.add_argument("--notes", default="TODO: describe this release.", help="release-history text for --apply")
     a = ap.parse_args()
-    if a.apply:
-        api, ver = a.apply[0].upper(), a.apply[1]
-        if api not in APIS or not re.fullmatch(VER, ver): sys.exit("usage: --apply WEB4..WEB10 X.Y.Z")
-        if tuple(map(int, ver.split("."))) <= tuple(map(int, versions()[api].split("."))): sys.exit(f"{api} is already {versions()[api]}; the new version must be higher")
-        apply(api, ver, a.notes)
-    if a.sync or a.apply: sync()
+    if a.sync: sync()
     bad = problems()
     for n in dict.fromkeys(notes): print("note:", n)
     for b in bad: print("OUT OF SYNC:", b)
     print(", ".join(f"{k} {x}" for k, x in versions().items()), "- all in sync" if not bad else "- fix the above")
     sys.exit(1 if bad else 0)
+
+
+if __name__ == "__main__":
+    main()

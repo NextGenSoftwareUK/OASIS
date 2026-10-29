@@ -68,7 +68,7 @@ try {
     }
     # Versions are read from OASISBootLoader.cs and compared with every place they are written down; nothing is hardcoded here.
     & python (Join-Path $PSScriptRoot 'api_version_sync.py') --check
-    if ($LASTEXITCODE -ne 0) { throw 'API versions are out of sync; run Scripts/api_version_sync.py --sync (see Docs/Devs/API_VERSIONING.md).' }
+    if ($LASTEXITCODE -ne 0) { throw 'API versions are out of sync; run Scripts/api_version_sync.py --sync (see Docs/Devs/GLOBAL_RELEASE_AUTOMATION.md).' }
     Write-Host "Global release automation tests passed for $($plan.packages.Count) packages."
 
     $publicHistories = @(
