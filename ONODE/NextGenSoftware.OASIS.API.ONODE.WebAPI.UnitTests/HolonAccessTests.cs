@@ -114,5 +114,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
             result.IsError.Should().BeTrue();
             result.Message.Should().Contain("At least one valid avatar id");
         }
+        [Fact]
+        public void CanRead_HonoursPerHolonPermissionGrants()
+        {
+            var holon = new Holon { CreatedByAvatarId = Owner };
+            holon.MetaData[HolonPermissions.MetadataKey] = HolonPermissions.Encode(
+                new Dictionary<Guid, HolonPermission> { [Friend] = HolonPermission.Read | HolonPermission.Write }).Result;
+
+            HolonAccess.CanRead(holon, Friend).Should().BeTrue();
+            HolonAccess.CanRead(holon, Stranger).Should().BeFalse();
+            HolonAccess.GetPermissions(holon)[Friend].Should().Be(HolonPermission.Read | HolonPermission.Write);
+        }
+
+        [Fact]
+        public async Task SetPermissionsAsync_RejectsAnonymousCaller_BeforeTouchingStorage()
+        {
+            var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
+                new Dictionary<Guid, HolonPermission> { [Friend] = HolonPermission.Read }, caller: null);
+
+            result.IsError.Should().BeTrue();
+            result.Message.Should().Contain("Unauthorized");
+        }
+
+        [Fact]
+        public async Task SetPermissionsAsync_RejectsEmptyAvatarId_BeforeTouchingStorage()
+        {
+            var caller = new Mock<IAvatar>();
+            caller.SetupGet(a => a.Id).Returns(Owner);
+
+            var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
+                new Dictionary<Guid, HolonPermission> { [Guid.Empty] = HolonPermission.Read }, caller.Object);
+
+            result.IsError.Should().BeTrue();
+            result.ErrorCode.Should().Be("COSMIC_PERMISSIONS_INPUT_INVALID");
+        }
     }
 }

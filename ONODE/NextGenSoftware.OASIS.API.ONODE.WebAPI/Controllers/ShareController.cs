@@ -147,6 +147,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>
+        /// What each avatar may do with a holon, set by anyone with Manage on it (the creator always has it) or a Wizard.
+        /// Body: <c>{"grants":{"&lt;avatarId&gt;":["read","write","delete","addChildren","manage"]}}</c>.
+        /// An empty list removes that avatar; avatars not listed are unchanged; an empty "grants" object marks the
+        /// holon as restricted (creating children under it then needs addChildren).
+        /// </summary>
+        [Authorize]
+        [HttpPost("permissions/{holonId:guid}")]
+        public async Task<OASISResult<bool>> SetPermissions(Guid holonId, [FromBody] SetPermissionsRequest request)
+        {
+            try
+            {
+                var changes = new Dictionary<Guid, HolonPermission>();
+                foreach (var grant in request?.Grants ?? new Dictionary<string, string[]>())
+                {
+                    if (!Guid.TryParse(grant.Key, out var avatarId) || !HolonPermissions.TryParse(grant.Value, out var flags))
+                        return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
+                            Message = $"Invalid grant for '{grant.Key}'. Use an avatar id and any of read, write, delete, addChildren, manage." };
+                    changes[avatarId] = flags;
+                }
+                return await HolonAccess.SetPermissionsAsync(HolonManager, holonId, changes, Avatar);
+            }
+            catch (Exception exception)
+            {
+                return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_FAILED",
+                    Message = "Permissions could not be changed.", Exception = exception };
+            }
+        }
+
+        /// <summary>The stored permission grants for a holon. Visible to the creator, anyone with Manage, or a Wizard.</summary>
+        [Authorize]
+        [HttpGet("permissions/{holonId:guid}")]
+        public async Task<OASISResult<Dictionary<string, string[]>>> GetPermissions(Guid holonId)
+        {
+            var result = new OASISResult<Dictionary<string, string[]>>();
+            try
+            {
+                var loaded = await HolonManager.LoadHolonAsync(holonId, loadChildren: false);
+                if (loaded == null || loaded.IsError || loaded.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Unable to load holon {holonId}. Reason: {loaded?.Message}");
+                    return result;
+                }
+                if (Avatar?.AvatarType?.Value != AvatarType.Wizard
+                    && !HolonPermissions.Allows(loaded.Result, AvatarId, HolonPermission.Manage, includePublic: false))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Unauthorized. Only the creator, or an avatar granted Manage, can see who has access.");
+                    return result;
+                }
+                result.Result = HolonAccess.GetPermissions(loaded.Result)
+                    .ToDictionary(g => g.Key.ToString("D"), g => HolonPermissions.NamesOf(g.Value).ToArray());
+                return result;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unable to read permissions. Reason: {ex.Message}", ex);
+                return result;
+            }
+        }
+
         private Task<OASISResult<bool>> ShareHolonInternalAsync(Guid holonId, IEnumerable<Guid> avatarIds) =>
             HolonAccess.ShareAsync(HolonManager, holonId, avatarIds, Avatar);
 
@@ -188,5 +248,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return result;
             }
         }
+    }
+    /// <summary>Body of <c>POST api/share/permissions/{holonId}</c>: avatar id to permission names.</summary>
+    public class SetPermissionsRequest
+    {
+        public Dictionary<string, string[]> Grants { get; set; } = new Dictionary<string, string[]>();
     }
 }
