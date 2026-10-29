@@ -48,7 +48,7 @@ public partial class CosmosBlockChainOASIS : ICosmicQueryStorageProvider
                 // CosmJS contract gets. It decrypts/authenticates the exact key;
                 // never list the store or substitute a plaintext/local source.
                 cancellationToken.ThrowIfCancellationRequested();
-                var json = await Backend.GetAsync(KeyPrefix + "holon/" + id.ToString("D"), cancellationToken).ConfigureAwait(false);
+                var json = await Backend.GetAsync(RecordKey("holon", id), cancellationToken).ConfigureAwait(false);
                 if (json == null) continue;
                 payloadBytes = checked(payloadBytes + Encoding.UTF8.GetByteCount(json));
                 if (payloadBytes > 4 * 1024 * 1024)

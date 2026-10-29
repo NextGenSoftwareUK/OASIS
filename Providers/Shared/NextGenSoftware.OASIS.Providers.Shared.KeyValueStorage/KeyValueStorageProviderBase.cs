@@ -46,7 +46,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         #region Keys
 
-        private string RecordKey(string kind,Guid id)
+        protected string RecordKey(string kind,Guid id)
         {
             if(id==Guid.Empty)throw new ArgumentException("A nonempty OASIS record identity is required.",nameof(id));
             return $"{KeyPrefix}{kind}/{id:N}";
