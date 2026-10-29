@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -30,6 +30,7 @@ if($Federated){
         'NEAR' {'Run-CosmicNearCqlNative.ps1'}
         'Base' {'Run-CosmicEthereumCqlNative.ps1'}
         'Avalanche' {'Run-CosmicEthereumCqlNative.ps1'}
+        'AzureBlob' {'Run-CosmicAzureBlobCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
@@ -46,6 +47,7 @@ if($Federated){
         'NEAR' {'http://127.0.0.1:5103/'}
         'Base' {'http://127.0.0.1:5104/'}
         'Avalanche' {'http://127.0.0.1:5105/'}
+        'AzureBlob' {'http://127.0.0.1:5106/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
@@ -62,6 +64,7 @@ if($Federated){
         'NEAR' {'Mongo + retained local NEAR chain:5rows/4subset; original encrypted source, no signing/mainnet/snapshot claim'}
         'Base' {'Mongo + Base Web3Core on local EVM chain31338:5rows/4subset; no Base public-network/rollup/finality claim'}
         'Avalanche' {'Mongo + Avalanche Web3Core on local EVM chain31338:5rows/4subset; no public Avalanche/finality claim'}
+        'AzureBlob' {'Mongo + Azure Blob via retained Azurite:5rows/4subset; no hosted Azure or distributed snapshot claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -82,6 +85,7 @@ if($Federated){
         'NEAR' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Base' { & $path -Provider Base -Federated -Serve:(!$VerifyOnly) }
         'Avalanche' { & $path -Provider Avalanche -Federated -Serve:(!$VerifyOnly) }
+        'AzureBlob' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }

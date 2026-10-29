@@ -1451,3 +1451,13 @@ rows with Mongo/Avalanche provenance. Add `-VerifyOnly` for bounded native/SDK/H
 verification. The original encrypted source is reused without new source writes.
 This is local chain31338; public-network/finality/full-parity gates remain open.
 [Detailed proof and original-state continuation](AVALANCHE_CQL_MVP.md).
+
+## Azure Blob + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider AzureBlob -Federated`.
+The retained Azurite source supplies three records and Mongo two copies: full query
+returns five physical rows; the two-ID subset returns four. C#, HTTP and browser
+share HolonManager federation and preserve provider provenance. Reads observe
+separate moments. This is local Azurite, not hosted Azure; arbitrary blob discovery,
+content predicates and full provider parity remain outside this MVP.
+See [commands, tests and limits](AZURE_BLOB_CQL_MVP.md).
