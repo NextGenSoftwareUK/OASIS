@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         /// One flag per recipient so "shared with me" is an exact-match metadata lookup, since
         /// <see cref="SharedAvatarIdsMetaKey"/> holds a list and metadata queries match whole values.
         /// </summary>
-        public static string SharedWithIndexKey(Guid avatarId) => $"SHARED_WITH_{avatarId:N}";
+        public static string SharedWithIndexKey(Guid avatarId) => HolonReadIndex.KeyFor(avatarId);
 
         public const string SharedWithIndexValue = "true";
 
@@ -110,70 +110,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
         }
 
         /// <summary>
-        /// A change to a holon's permissions. For each section, a grantee (avatar id, group id or "public") maps to the
-        /// permissions it should have afterwards; <see cref="HolonPermission.None"/> removes it. Grantees not listed keep
-        /// what they have. Field permissions are read, write and delete only.
-        /// </summary>
-        public sealed class PermissionChange
-        {
-            public IReadOnlyDictionary<string, HolonPermission> Grants { get; set; }
-            public IReadOnlyDictionary<string, HolonPermission> Inherit { get; set; }
-            public IReadOnlyDictionary<string, IReadOnlyDictionary<string, HolonPermission>> Fields { get; set; }
-        }
-
-        /// <summary>
         /// Changes who may do what with the holon, as a whole and field by field. Only an avatar with
         /// <see cref="HolonPermission.Manage"/> (the creator always has it) or a Wizard may. An empty change marks the holon
         /// as restricted: creating children under it then needs AddChildren.
         /// </summary>
         public static Task<OASISResult<bool>> SetPermissionsAsync(
-            HolonManager holonManager, Guid holonId, PermissionChange change, IAvatar caller,
+            HolonManager holonManager, Guid holonId, HolonPermissionChange change, IAvatar caller,
             CosmicWriteOptions writeOptions = null)
         {
-            var invalid = ValidateChange(change);
+            var invalid = change == null ? "A permission change is required." : change.Validate();
             if (holonId == Guid.Empty || invalid != null)
                 return Task.FromResult(new OASISResult<bool> { IsError = true, ErrorCount = 1,
                     ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
-                    Message = invalid ?? "A nonempty holon id is required." });
+                    Message = holonId == Guid.Empty ? "A nonempty holon id is required." : invalid });
 
             return ChangeAccessAsync(holonManager, holonId, caller, writeOptions, holon =>
             {
-                var current = HolonPermissionSet.Read(holon);
-                if (current.IsError)
-                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                        ErrorCode = current.ErrorCode, Message = current.Message, Exception = current.Exception };
-                var next = current.Result.With(b =>
-                {
-                    foreach (var g in change.Grants ?? new Dictionary<string, HolonPermission>()) b.SetGrant(g.Key, g.Value);
-                    foreach (var g in change.Inherit ?? new Dictionary<string, HolonPermission>()) b.SetInherit(g.Key, g.Value);
-                    foreach (var g in change.Fields ?? new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>())
-                        foreach (var f in g.Value) b.SetField(g.Key, f.Key, f.Value);
-                    return b;
-                });
-                var encoded = next.Encode();
-                if (encoded.IsError)
-                    return new OASISResult<bool> { IsError = true, ErrorCount = 1,
-                        ErrorCode = encoded.ErrorCode, Message = encoded.Message };
-                holon.MetaData ??= new Dictionary<string, object>();
-                holon.MetaData[HolonPermissions.MetadataKey] = encoded.Result;
-                RebuildReadIndex(holon);
-                return null;
+                var applied = change.ApplyTo(holon);
+                return applied.IsError ? applied : null;
             }, $"Permissions updated on holon {holonId}.");
-        }
-
-        private static string ValidateChange(PermissionChange change)
-        {
-            if (change == null) return "A permission change is required.";
-            foreach (var key in (change.Grants?.Keys ?? Enumerable.Empty<string>()).Concat(change.Inherit?.Keys ?? Enumerable.Empty<string>())
-                         .Concat(change.Fields?.Keys ?? Enumerable.Empty<string>()))
-                if (!HolonPermissionSet.IsGrantee(key)) return $"'{key}' is not an avatar id, group id or 'public'.";
-            foreach (var field in change.Fields?.Values.SelectMany(v => v) ?? Enumerable.Empty<KeyValuePair<string, HolonPermission>>())
-            {
-                if (!HolonPermissionSet.IsFieldName(field.Key)) return $"'{field.Key}' is not a valid field name.";
-                if ((field.Value & ~HolonPermissionSet.FieldPermissions) != HolonPermission.None)
-                    return $"Field '{field.Key}' can only be given read, write or delete.";
-            }
-            return null;
         }
 
         /// <summary>
@@ -221,29 +176,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers
             }, $"Group {groupId} membership updated.");
         }
 
-        /// <summary>
-        /// Rebuilds the "shared with" lookup flags from what the holon actually grants (the older recipient list and every
-        /// whole-holon read grant, including groups and public), so CQL can find readable holons with an exact-match
-        /// predicate. The flags are hints: reads still re-check the stored grants.
-        /// </summary>
-        public static void RebuildReadIndex(IHolon holon)
-        {
-            holon.MetaData ??= new Dictionary<string, object>();
-            foreach (var key in holon.MetaData.Keys.Where(IsReadIndexKey).ToArray()) holon.MetaData.Remove(key);
-            foreach (var id in GetSharedAvatarIds(holon)) holon.MetaData[SharedWithIndexKey(id)] = SharedWithIndexValue;
-            foreach (var grant in GetPermissions(holon).Grants.Where(g => g.Value.HasFlag(HolonPermission.Read)))
-            {
-                if (HolonPermissionSet.TryGrantee(grant.Key, out var id)) holon.MetaData[SharedWithIndexKey(id)] = SharedWithIndexValue;
-                else holon.MetaData[SharedWithPublicKey] = SharedWithIndexValue;
-            }
-        }
+        /// <summary>Rebuilds the "shared with" lookup flags from what the holon grants (see <see cref="HolonReadIndex"/>).</summary>
+        public static void RebuildReadIndex(IHolon holon) => HolonReadIndex.Rebuild(holon);
 
         /// <summary>The index flag for a holon granted to everyone.</summary>
-        public const string SharedWithPublicKey = "SHARED_WITH_public";
-
-        private static bool IsReadIndexKey(string key) =>
-            key == SharedWithPublicKey
-            || (key.StartsWith("SHARED_WITH_", StringComparison.Ordinal) && Guid.TryParseExact(key.Substring("SHARED_WITH_".Length), "N", out _));
+        public const string SharedWithPublicKey = HolonReadIndex.PublicKey;
 
         /// <summary>
         /// The one load, check, change, conditional-save path for anything that changes who may access a holon.
