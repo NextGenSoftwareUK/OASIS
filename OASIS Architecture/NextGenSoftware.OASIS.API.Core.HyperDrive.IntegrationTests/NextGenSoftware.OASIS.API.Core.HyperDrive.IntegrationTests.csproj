@@ -35,4 +35,5 @@
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../../Scripts/TestHosts/Fixtures/CosmicOperationInventoryProbe.cs" Link="Fixtures/CosmicOperationInventoryProbe.cs" /></ItemGroup>
 </Project>

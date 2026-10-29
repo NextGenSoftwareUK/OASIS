@@ -38,7 +38,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             var captured = await provider.CaptureStorageIdentityAsync(); Assert.IsFalse(captured.IsError);
             var expected = captured.Result;
-            var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, new[] { "target" }, bindOriginal ? expected : null);
+            var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, new[] { "target", "target-b", "\uE000", "\U0001F600" }, bindOriginal ? expected : null);
             var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, actor,
                 ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
@@ -56,7 +56,7 @@ public partial class Neo4jNativeAvatarTests
             {
                 var rows = await (await inspection.RunAsync(
                     "MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN labels(n) AS labels, properties(n) AS values ORDER BY labels(n)[0]", arguments)).ToListAsync();
-                Assert.AreEqual(3, rows.Count);
+                Assert.AreEqual(2 + enrollment.TargetIds.Count, rows.Count);
                 return JsonSerializer.Serialize(rows.Select(row => new { labels = row["labels"], values = row["values"] }));
             }
             var before = await Snapshot();
@@ -100,6 +100,14 @@ public partial class Neo4jNativeAvatarTests
                 var applied = await replica.ApplyBoundCommittedHolonReplicaAsync(new CommittedHolonReplicaRequest(
                     operation, enrollment.SourceId, ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: false), targetBinding.Result);
                 Assert.IsFalse(applied.IsError, applied.Message + applied.Exception);
+                var boundSource = provider.GetBoundHolonReplicationOutbox(expected);
+                Assert.IsFalse(boundSource.IsError, boundSource.Message + boundSource.Exception);
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
+                    boundSource.Result, expected, operation, "target", HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, expected,
+                    operation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true,
+                    consistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated);
+
                 var matched = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
                 Assert.IsFalse(matched.IsError, matched.Message + matched.Exception);
                 Assert.AreEqual(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Result.Records[0].Kind);

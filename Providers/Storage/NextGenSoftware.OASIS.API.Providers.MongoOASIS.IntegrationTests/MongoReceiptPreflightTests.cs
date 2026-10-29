@@ -27,7 +27,7 @@ public partial class MongoStorageIdentityTests
                 var sourceBinding = await source.CaptureStorageIdentityAsync(); Assert.False(sourceBinding.IsError);
                 var targetBinding = await target.CaptureStorageIdentityAsync(); Assert.False(targetBinding.IsError);
                 var actor = Guid.NewGuid();
-                var enrollment = new HolonReplicationEnrollment("owned-preflight-lineage", new[] { "target" });
+                var enrollment = new HolonReplicationEnrollment("owned-preflight-lineage", new[] { "target", "target-b", "\uE000", "\U0001F600" });
                 var input = new Holon { Id = Guid.NewGuid(), Name = "original-preflight-value" };
                 ConditionalHolonWriteRequest Original(IHolon row, Guid? expected, ConditionalHolonOperation operation = ConditionalHolonOperation.Save)
                     => new(new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.MongoDBOASIS,
@@ -64,6 +64,13 @@ public partial class MongoStorageIdentityTests
                 var missing = await Observe(create);
                 Assert.Equal(HolonReplicationReceiptComparisonKind.MissingReplicaHead, missing.Records[0].Kind);
                 await Apply(create, first);
+                var boundSource = source.GetBoundHolonReplicationOutbox(sourceBinding.Result);
+                Assert.False(boundSource.IsError, boundSource.Message + boundSource.Exception);
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
+                    boundSource.Result, sourceBinding.Result, create.Write.OperationId, "target");
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
+                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+
                 var before = await Snapshot();
                 var matched = await Observe(create);
                 Assert.Equal(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Records[0].Kind);
@@ -75,6 +82,9 @@ public partial class MongoStorageIdentityTests
                 var updated = await source.ExecuteReplicatingHolonWriteAsync(update, enrollment);
                 Assert.False(updated.IsError, updated.Message + updated.Exception);
                 var second = updated.Result.Single(); await Apply(update, second);
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
+                    create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true);
+
                 before = await Snapshot();
                 var stale = await Observe(create);
                 Assert.Equal(HolonReplicationReceiptComparisonKind.LogicalVersionConflict, stale.Records[0].Kind);
