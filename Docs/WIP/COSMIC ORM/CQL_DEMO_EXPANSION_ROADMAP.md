@@ -60,3 +60,6 @@ SQL Server breadth milestone: control9/native/restart/paired and browser5/4 pass
 
 DuckDB breadth milestone: control14/native/reopen/paired and browser5/4 pass;
 [scope and evidence](DUCKDB_CQL_MVP.md). Wider parity remains deferred.
+
+Upstash hosted breadth milestone: control17/native/repeat/paired/browser5/4 pass;
+[scope and expiry](UPSTASH_CQL_MVP.md). Existing free scratch expires October31.

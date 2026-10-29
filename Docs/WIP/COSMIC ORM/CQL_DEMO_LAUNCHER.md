@@ -184,3 +184,16 @@ tombstone filtering and paging over its retained local file. Canonical JSON is
 plaintext; this does not certify MotherDuck or full LINQ parity. Stop with the page
 button; original embedded source stays and only verified temporary Mongo data is
 removed. [Full scope and evidence](DUCKDB_CQL_MVP.md).
+
+## Hosted Upstash + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Upstash -Federated`.
+Use `-ShowPlan` for a non-launching preview or `-VerifyOnly` for checks/teardown.
+The C# ID-membership example queries hosted Upstash and local Mongo, preserving
+provider-labelled copies: five physical rows, four in the two-ID subset. Upstash
+uses native bounded MGET, then pages the live bounded result. Source JSON is
+plaintext; multi-command save atomicity/full LINQ parity are not certified.
+The retained free scratch expires2026-10-31T21:15:49.3541451Z; expired admission or
+missing source must be reconciled, never silently replaced. Stop with the page
+button; only the verified temporary Mongo fixture is removed.
+[Tests, commands and full scope](UPSTASH_CQL_MVP.md).
