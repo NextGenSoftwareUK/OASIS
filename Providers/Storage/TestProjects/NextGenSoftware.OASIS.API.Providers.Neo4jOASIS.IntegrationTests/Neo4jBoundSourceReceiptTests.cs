@@ -31,6 +31,7 @@ public partial class Neo4jNativeAvatarTests
         using var inspection = driver.AsyncSession();
         var input = new Holon { Id = Guid.NewGuid(), Name = "private-neo-original-receipt" };
         var operation = Guid.NewGuid(); var appendOperation = Guid.NewGuid(); var migration = Guid.NewGuid();
+        var planFolder = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/barrier-plans");
         var actor = Guid.NewGuid();
         var arguments = new { id = input.Id.ToString("D"), operation = operation.ToString("D") };
         try
@@ -44,7 +45,7 @@ public partial class Neo4jNativeAvatarTests
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, actor, source = expected, bindOriginal, targetPath });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, migration, planFolder, actor, source = expected, bindOriginal, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
@@ -134,7 +135,9 @@ public partial class Neo4jNativeAvatarTests
                     new[] { new HolonReplicationMigrationGrant(context, DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(5)) });
                 var participants = new[] { new HolonMigrationBarrierParticipant(expected, provider),
                     new HolonMigrationBarrierParticipant(targetBinding.Result, replica) };
-                var held = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(reviewedPreview, context, policy, participants);
+                var durablePlan = HolonReplicationMigrationBarrierPlan.Create(reviewedPreview, context);
+                var held = await HolonReplicationMigrationBarrierCoordinator.AcquirePersistedAsync(durablePlan,
+                    new FileHolonMigrationBarrierPlanStore(planFolder), policy, participants);
                 Assert.IsFalse(held.IsError, held.Message + held.Exception);
                 Assert.IsTrue(held.Result.AllBarriersHeld); Assert.AreEqual(2, held.Result.Stores.Count);
                 var barredSource = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
@@ -151,14 +154,16 @@ public partial class Neo4jNativeAvatarTests
                     {
                         Assert.IsFalse((await recoveredSource.ActivateProviderAsync()).IsError);
                         Assert.IsFalse((await recoveredTarget.ActivateProviderAsync()).IsError);
-                        var resumed = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(reviewedPreview, context, policy,
+                        var resumed = await HolonReplicationMigrationBarrierCoordinator.ResumePersistedAsync(context,
+                            new FileHolonMigrationBarrierPlanStore(planFolder), policy,
                             new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) });
                         Assert.IsFalse(resumed.IsError, resumed.Message + resumed.Exception); Assert.IsTrue(resumed.Result.AllBarriersHeld);
                         Assert.IsFalse(resumed.IsSaved, "Recovery must read original native receipts rather than acquire again.");
                         foreach (var participant in new[] { new HolonMigrationBarrierParticipant(expected, recoveredSource), new HolonMigrationBarrierParticipant(targetBinding.Result, recoveredTarget) })
                         {
-                            var scope = new HolonMigrationFenceRequest(migration, actor, participant.Storage, reviewedPreview.PreviewDigest,
-                                context.ContextDigest, new[] { input.Id });
+                            var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
+                            Assert.IsFalse(retainedPlan.IsError);
+                            var scope = retainedPlan.Result.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint == participant.Storage.BindingFingerprint);
                             var observation = await participant.Provider.ReadHolonMigrationFenceAsync(scope);
                             Assert.IsFalse(observation.IsError, observation.Message + observation.Exception);
                             var released = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observation.Result.OwnerToken);
@@ -217,6 +222,11 @@ public partial class Neo4jNativeAvatarTests
             var fenceRemaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicMigrationFence AND n.MigrationId=$migration) OR (n:CosmicMigrationRecordGate AND n.HolonId=$id) RETURN count(n) AS count",
                 new { migration = migration.ToString("D"), arguments.id })).SingleAsync();
             Assert.AreEqual(0L, fenceRemaining["count"].As<long>());
+            foreach (var suffix in new[] { "", ".pending", ".lock" })
+            {
+                var ownedPlanPath = Path.Combine(planFolder, migration.ToString("D") + ".barrier-plan.json" + suffix);
+                if (File.Exists(ownedPlanPath)) File.Delete(ownedPlanPath);
+            }
             File.Delete(journal);
         }
         finally { Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError); }

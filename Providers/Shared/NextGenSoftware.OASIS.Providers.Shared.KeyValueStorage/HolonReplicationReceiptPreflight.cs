@@ -63,6 +63,7 @@ public sealed class HolonReplicationReceiptPreflightReport
     public HolonReplicaHeadReadConsistency RequiredTargetConsistency { get; }
     public IReadOnlyList<HolonReplicationReceiptComparison> Records { get; }
     public string ObservationDigest { get; }
+    internal string DigestMaterial { get; }
     internal HolonReplicationReceiptPreflightReport(ConditionalHolonReceiptEvidence evidence, string sourceId,
         HolonReplicaHeadReadResult target, HolonReplicaHeadReadConsistency requiredConsistency)
     {
@@ -79,6 +80,7 @@ public sealed class HolonReplicationReceiptPreflightReport
             OperationId, ActorId, Operation, OriginalSourceId, SourceAuthority, TargetAuthority,
             SourceStorageFingerprint, TargetStorageFingerprint, OriginalSelectedRecordCount,
             RequiredTargetConsistency, TargetConsistency, Records });
+        DigestMaterial = material;
         ObservationDigest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(material)));
     }
 }

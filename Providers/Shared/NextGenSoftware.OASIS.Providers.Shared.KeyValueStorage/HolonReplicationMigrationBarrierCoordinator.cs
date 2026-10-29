@@ -38,15 +38,26 @@ public sealed class HolonMigrationBarrierProgress
 /// per-store journal: a new invocation reads all stores before acquiring any absent
 /// scope. No automatic retry, compensation, expiry, data mutation or HTTP execution.
 /// Cancellation/failure preserves held and unknown outcomes for explicit recovery.</summary>
-public static class HolonReplicationMigrationBarrierCoordinator
+public static partial class HolonReplicationMigrationBarrierCoordinator
 {
-    public static async Task<OASISResult<HolonMigrationBarrierProgress>> AcquireAsync(
+    public static Task<OASISResult<HolonMigrationBarrierProgress>> AcquireAsync(
         HolonReplicationMigrationPreview preview, HolonReplicationMigrationAuthorizationContext context,
         IHolonReplicationMigrationAuthorizationPolicy policy, IEnumerable<HolonMigrationBarrierParticipant> participants,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(preview); ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(policy); ArgumentNullException.ThrowIfNull(participants);
+        try { return AcquireAsync(HolonReplicationMigrationBarrierPlan.Create(preview, context), policy, participants, cancellationToken); }
+        catch (HolonMigrationBarrierPlanException error)
+        {
+            return Task.FromResult(new OASISResult<HolonMigrationBarrierProgress> { IsError = true, ErrorCount = 1,
+                ErrorCode = error.Code, Message = error.Message, Exception = error, Result = new(context, Array.Empty<HolonMigrationBarrierStoreProgress>()) });
+        }
+    }
+    public static async Task<OASISResult<HolonMigrationBarrierProgress>> AcquireAsync(
+        HolonReplicationMigrationBarrierPlan plan, IHolonReplicationMigrationAuthorizationPolicy policy,
+        IEnumerable<HolonMigrationBarrierParticipant> participants, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(plan); ArgumentNullException.ThrowIfNull(policy); ArgumentNullException.ThrowIfNull(participants);
+        var context = plan.Context;
         var result = new OASISResult<HolonMigrationBarrierProgress>();
         var progress = new List<HolonMigrationBarrierStoreProgress>();
         OASISResult<HolonMigrationBarrierProgress> Fail(string code, string message, Exception cause = null)
@@ -54,25 +65,15 @@ public static class HolonReplicationMigrationBarrierCoordinator
             result.IsError = true; result.ErrorCount = 1; result.ErrorCode = code; result.Message = message; result.Exception = cause ?? result.Exception;
             result.Result = new(context, progress); return result;
         }
-        var expectedContext = preview.AuthorizationContext(context.MigrationId, context.OperatorId, context.AuthorizationPolicyBinding);
-        if (context.ContextDigest != expectedContext.ContextDigest || policy.BindingIdentity != context.AuthorizationPolicyBinding)
-            return Fail("COSMIC_MIGRATION_BARRIER_SCOPE_MISMATCH", "The host grant must describe this exact reviewed preview.");
-        if (preview.Findings.Any(f => f is not (HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired
-            or HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified or HolonReplicationMigrationFinding.DeliveryInFlight)))
-            return Fail("COSMIC_MIGRATION_BARRIER_PREVIEW_UNVERIFIED", "Original graph, transport and historical receiver proof are required before barrier acquisition.");
-        var ids = preview.Receipts.SelectMany(r => r.Records).Select(r => r.Original.HolonId).Distinct().ToArray();
-        if (ids.Length == 0 || ids.Length > 4096)
-            return Fail("COSMIC_MIGRATION_BARRIER_SCOPE_INVALID", "A complete bounded original graph is required.");
-        var stores = new[] { context.SourceStorage, context.OriginalTargetStorage, context.ReplacementRoute.TargetStorage }
-            .GroupBy(s => s.BindingFingerprint, StringComparer.Ordinal).Select(g => g.First())
-            .OrderBy(s => s.BindingFingerprint, StringComparer.Ordinal).ToArray();
+        if (policy.BindingIdentity != context.AuthorizationPolicyBinding)
+            return Fail("COSMIC_MIGRATION_BARRIER_SCOPE_MISMATCH", "The host policy must describe this exact reviewed context.");
+        var scopes = plan.Scopes.ToArray();
+        var stores = scopes.Select(s => s.ExpectedStorage).ToArray();
         var owners = participants.Take(4).ToArray();
         if (owners.Length != stores.Length || owners.Any(p => p?.Storage == null || p.Provider == null)
             || owners.Select(p => p.Storage.BindingFingerprint).Distinct(StringComparer.Ordinal).Count() != owners.Length
             || stores.Any(s => !owners.Any(p => p.Storage.BindingFingerprint == s.BindingFingerprint)))
             return Fail("COSMIC_MIGRATION_BARRIER_CAPABILITY_REQUIRED", "Supply one explicit native barrier provider for every distinct physical participant.");
-        var scopes = stores.Select(s => new HolonMigrationFenceRequest(context.MigrationId, context.OperatorId,
-            s, preview.PreviewDigest, context.ContextDigest, ids)).ToArray();
         progress.AddRange(scopes.Select(s => new HolonMigrationBarrierStoreProgress(s.ExpectedStorage.BindingFingerprint,
             s.Fingerprint, HolonMigrationBarrierObservationState.Unobserved)));
         var active = -1;

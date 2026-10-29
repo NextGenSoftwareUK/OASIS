@@ -44,11 +44,12 @@ public partial class MongoStorageIdentityTests
         var folder = Path.Combine(root.FullName, "LocalState/COSMIC/OwnedRoutingCurrent");
         var database = Path.Combine(folder, "mongo-barrier-target.db");
         var journal = Path.Combine(folder, "mongo-barrier-coordinator.pending.json");
+        var planFolder = Path.Combine(folder, "barrier-plans");
         Assert.False(File.Exists(database)); Assert.False(File.Exists(journal));
         var migration = Guid.NewGuid(); var blockedReplacementOperation = Guid.NewGuid(); var actor = original.Write.ActorId;
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(file, new { migration, blockedReplacementOperation, actor, database, operation = original.Write.OperationId,
+            await JsonSerializer.SerializeAsync(file, new { migration, blockedReplacementOperation, actor, database, planFolder, operation = original.Write.OperationId,
                 holon = acknowledged.Id, sourceBinding, targetBinding }); file.Flush(true);
         }
         using (var replacement = new Sqlite($"Data Source={database};Pooling=False"))
@@ -70,7 +71,9 @@ public partial class MongoStorageIdentityTests
                 new HolonMigrationBarrierParticipant(targetBinding, target), new HolonMigrationBarrierParticipant(replacementBinding.Result, replacement) }
                 .OrderBy(p => p.Storage.BindingFingerprint, StringComparer.Ordinal).ToArray();
             participants[2] = participants[2] with { Provider = new LostBarrierAcknowledgement(participants[2].Provider) };
-            var partial = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(preview, context, policy, participants);
+            var planStore = new FileHolonMigrationBarrierPlanStore(planFolder);
+            var plan = HolonReplicationMigrationBarrierPlan.Create(preview, context);
+            var partial = await HolonReplicationMigrationBarrierCoordinator.AcquirePersistedAsync(plan, planStore, policy, participants);
             Assert.True(partial.IsError); Assert.Equal("OWNED_NATIVE_ACKNOWLEDGEMENT_LOST", partial.ErrorCode);
             Assert.Equal(new[] { HolonMigrationBarrierObservationState.Held, HolonMigrationBarrierObservationState.Held,
                 HolonMigrationBarrierObservationState.Unknown }, partial.Result.Stores.Select(s => s.State));
@@ -84,7 +87,8 @@ public partial class MongoStorageIdentityTests
                 Assert.False((await reopenedReplacement.ActivateProviderAsync()).IsError);
                 var recoveredParticipants = new[] { new HolonMigrationBarrierParticipant(sourceBinding, reopenedSource),
                     new HolonMigrationBarrierParticipant(targetBinding, reopenedTarget), new HolonMigrationBarrierParticipant(replacementBinding.Result, reopenedReplacement) };
-                var recovered = await HolonReplicationMigrationBarrierCoordinator.AcquireAsync(preview, context, policy, recoveredParticipants);
+                var recovered = await HolonReplicationMigrationBarrierCoordinator.ResumePersistedAsync(context,
+                    new FileHolonMigrationBarrierPlanStore(planFolder), policy, recoveredParticipants);
                 Assert.False(recovered.IsError, recovered.Message + recovered.Exception); Assert.True(recovered.Result.AllBarriersHeld);
                 Assert.Equal(3, recovered.Result.Stores.Count); Assert.False(recovered.IsSaved);
                 var deniedSource = await reopenedSource.ExecuteReplicatingHolonWriteAsync(original, enrollment);
@@ -101,8 +105,9 @@ public partial class MongoStorageIdentityTests
                 // No migration data has been changed: explicit exact-owner pre-mutation cancellation is valid.
                 foreach (var participant in recoveredParticipants)
                 {
-                    var scope = new HolonMigrationFenceRequest(migration, actor, participant.Storage, preview.PreviewDigest,
-                        context.ContextDigest, new[] { acknowledged.Id });
+                    var retainedPlan = await new FileHolonMigrationBarrierPlanStore(planFolder).ReadAsync(context);
+                    Assert.False(retainedPlan.IsError);
+                    var scope = retainedPlan.Result.Scopes.Single(s => s.ExpectedStorage.BindingFingerprint == participant.Storage.BindingFingerprint);
                     var observation = await participant.Provider.ReadHolonMigrationFenceAsync(scope); Assert.False(observation.IsError);
                     var cancelled = await participant.Provider.CancelHolonMigrationFenceAsync(scope, observation.Result.OwnerToken);
                     Assert.False(cancelled.IsError, cancelled.Message + cancelled.Exception);
@@ -116,6 +121,11 @@ public partial class MongoStorageIdentityTests
             }
         }
         foreach (var path in new[] { database, database + "-wal", database + "-shm" }) if (File.Exists(path)) File.Delete(path);
+        foreach (var suffix in new[] { "", ".pending", ".lock" })
+        {
+            var ownedPlanPath = Path.Combine(planFolder, migration.ToString("D") + ".barrier-plan.json" + suffix);
+            if (File.Exists(ownedPlanPath)) File.Delete(ownedPlanPath);
+        }
         File.Delete(journal);
         // RunOwned retains or drops both exact Mongo fixture databases after this returns.
     }
