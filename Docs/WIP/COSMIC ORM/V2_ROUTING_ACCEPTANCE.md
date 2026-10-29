@@ -23,7 +23,7 @@ is mutation of the shared configured list.
 | Gate | Current evidence / remaining work |
 |---|---|
 | Request/avatar/node precedence | Concurrent controlled sync/async router execution2/2 proves request-over-avatar, avatar failover list overnode and peer opt-out without node mutation. |
-| Subscription/capability candidate filtering | Native Mongo/SQLite42strategy reads prove Gold/Free filtering through3entry points; other-provider/native denial scope remains open. |
+| Subscription/capability candidate filtering | Native Mongo/SQLite and Neo/SQLite each prove42strategy reads with Gold/Free filtering through3entry points; native admission-denial scope remains open. |
 | Temporary read failure and failover | Native Mongo process-down -> SQLite reads pass sync/async/explicit with ordered diagnostics; other providers/consistency boundaries remain open. |
 | Unknown mutation outcome | Existing recovery/cancellation suites; never infer permission for a second mutation from a timeout. |
 | Empty replica response | Core8917a52 propagates failed primary confirmation and includes explicit loadbalance entry;12controls plus native primary-only Mongo witness/emptySQLite proof pass. Preferred-provider/explicit-failover native proof also passes; see latest milestone below. |
@@ -189,3 +189,33 @@ The fixed raw report path below supersedes its earlier regenerated report;
 previous hashes above describe the earlier milestone, not the current file.
 
 - `TestResults/OwnedRoutingCurrent/worker-offline-routing.trx`: 1passed/0failed/0skipped; SHA256 `221371B17F41B8EAB525D3CC99090D5B4A4B031E7F1A7E559DA89748AF60C790`.
+
+## Native Neo4j/SQLite strategy and sandbox fault acceptance
+
+Run under one build lease:
+`Run-ReusableNeo4jTests.ps1 -CosmicNativeRouting`.
+The retained pinned Neo4j runtime is reused; direct native producers, WEB4 and
+consumer are rebuilt with bounded workers and Core/Shared/source-driver hash guards.
+The existing durable hosted-restart fixture now has a separate named routing case,
+pre-journals its Holon ID, and preserves all original replication/restart checks.
+
+Native scenario1/1 passes in6seconds. It proves42real reads (seven strategies,
+three entry points, Gold/Free); diagnostics admit Neo+SQLite under Gold, SQLite
+only under Free, and every selected store supplies the expected ID/name/owner and
+native provider key. The configured list stays unchanged.
+
+After enabling the shipped sandbox fault gate for the fixture actor only, three
+sync/async/explicit-failover reads return the actual SQLite replica with exactly
+two ordered attempts: Neo HYPERDRIVE_PROVIDER_OFFLINE then SQLite success. A peer
+still reads the native Neo record with no failover. Refusals count exactly3 and
+the actor fault is restored in finally. This proves scoped refusal/routing, not
+Neo process outage or privacy/ACL enforcement; both clients intentionally read the
+same fixture record. Hosted delivery/restart and target revision idempotence are
+also verified by the reused fixture. Native denial, process outage and other
+priority-provider boundaries remain open.
+
+The runner removed only journaled test-owned Neo records/receipts/outbox/approval,
+disposed/deleted its SQLite files and pending journal, stopped the retained
+container and joined the owned WSL attachment. Shared graph and sequence survive.
+
+- `TestResults/Neo4jCurrent/neo4j-native-routing-current.trx`: 1passed/0failed/0skipped; SHA256 `28B77CB6FA9849E7A32E0BF5C2A9C8D8B5C3350CC499A4E43C473C3FDD2D0DD2`.
