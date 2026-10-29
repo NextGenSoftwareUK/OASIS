@@ -1769,3 +1769,84 @@ Valkey runtime admitted9.0.4 daemon SHA2562cad3c3f3d307ff1dd5d5762c7ecc5f719cf8c
 Valkey native and clean-restart tests1+1 passed with no skips, no source rewrites on restart; native product INFO valkey_version9.0.4 verified. Original encrypted source4records (3live/1soft-deleted), indexes/history and native DUMP hashes retained under /var/tmp/oasis-valkey-cql/data and source-snapshot.json; protected storage-key/native-password files0600, never log contents. Runner pending retired only after proof and both owned processes exited0; preserve prewrite failure and original unwritten IDs. Next pair reuses Linux Mongo8.3.13 /var/tmp/oasis-cosmic-mongo/data at127.0.0.1:27039, standalone Valkey16389 and browser5118; fixture cosmic_cql_mongo_valkey_demo3synthetic records journalled before writes, must verify exact contents before dropping. No new runtime/environment. Logs/TRX/screenshots TestResults/ValKeyCqlCurrent; source and keys never disposable.
 
 Final Valkey milestone reconciliation: own runner sessions15241,51350,75926 exited0; first browser proof5/4 and corrected interactive launcher repeat/subset/stop verified, tabs29/30 closed. Failed launcher40821 exited1 at browser-only port reservation, before Mongo startup; both native/restart tests already passed and PID terminal/SIGTERM0, no source mutation. Explicit audit TestResults/ValKeyCqlCurrent/resolve-verified-stop.py retained /var/tmp/oasis-valkey-cql/browser-port-preflight-failure.json, then retired runner/pid pending without replay. Fixed interactive-only TCP reservation uses SO_REUSEADDR to distinguish live listeners from normal TIME_WAIT. Actual corrected VerifyOnly and interactive runs passed. Source9,624B, reusable Valkey runtime3,967,034B measured via du -sb. Native16389/Mongo27039/browser5118 have no listeners, no active/pending/ready files; source/keys/acks/history retained, original Mongo fixture verified dropped. Both exact pinned Valkey downloads absent after verified removal; recreate only runtime from pinned packages, never recreate original source/key/IDs. Raw evidence remains in TestResults/ValKeyCqlCurrent; Windows provider/test bin/obj outputs are regenerable active-task build cache (size unmeasured), future cleanup via existing worktree targets after builds stop. C: free87,331,741,696B after builds/tests vs87,388,344,320B before. Ledger/guide capture exact scoped results/hashes; no raw evidence committed.
+
+## 2026-10-29 — KeyDB breadth admission (COSMIC task, work/cosmic-cql)
+
+Reused C:/Source/OASIS-cosmic, existing .NET SDK/shared NuGet cache and encrypted Redis transport specialization. No installed KeyDB runtime found on Ubuntu PATH, apt policy, /var/tmp/oasis-runtimes or Windows OASIS tools; no known ledger entry. Query official KeyDB distribution metadata first; native version/package/dependencies unresolved, no installation/download yet. Bounded provider/control restore/build outputs under existing KeyDB bin/obj (size unmeasured), TestResults/KeyDbCqlCurrent compact logs/TRX are owned/regenerable after process exit. Cached restore only, no recursive sibling restore. C: free87,330,967,552B before action. Native certification remains red until independent proof.
+
+KeyDB controls8/8 pass. Official download.keydb.dev package index timed out (bounded25s request); GitHub release has no prebuilt assets. Existing rootless/rootful Podman images contain no KeyDB; do not duplicate them. Reuse installed Ubuntu g++15.2.0/make/OpenSSL3.5.5 headers/pkg-config to build official6.3.4 source commit7e7e5e57d25fe246a8201f0acf5e7363c0bf1e14 (GitHub release/tag verified). Planned archive /var/tmp/oasis-runtimes/.downloads/keydb-7e7e5e57d25fe246a8201f0acf5e7363c0bf1e14.tar.gz; version/hash/size measured on download; source/build disposable /var/tmp/oasis-keydb-build-6.3.4, reusable daemon/CLI/license /var/tmp/oasis-runtimes/keydb-6.3.4. Bounded make-j2, standard MALLOC=libc BUILD_TLS=yes ENABLE_FLASH=no, no global installation/service and no vendor patch planned. Preserve unknown build outcome and remove exact owned source/archive only after runtime admission. WSL free884GiB/RAM~9.8GiB before action.
+
+Official KeyDB source archive downloaded5,946,301B SHA25608e6dc019bbf7b5b46f2b6879ad87f34db801302c3f37a51f53436abee840ac6. First bounded native build exited2 for missing uuid/uuid.h, before runtime admission; exact owned source/build35,073,294B preserved. Existing libuuid1 2.41.3-3ubuntu2.2 is usable; only uuid-dev2.41.3-3ubuntu2.2 missing,49,148B official package,134KiB installed, no upgrades/dependency additions in apt simulation. Install that single reusable header/development package; preserve existing libraries. Resume original build explicitly after verifying every original source file against pinned archive, no overlay/vendor patches. Log appended at TestResults/KeyDbCqlCurrent/native-runtime-build.log.
+
+The resumed vendor build exited2 at missing curl/curl.h. Existing libcurl4t64 8.18.0-1ubuntu2.8 reused; standard libcurl4-openssl-dev install requires the following shared reusable development dependencies (official Ubuntu packages, no runtime/provider source changes). Exact package identities below; sizes currently unmeasured, active/reusable for native builds, owned install by COSMIC task. Query file paths with dpkg-query -L <package>; do not remove shared dependencies automatically. Safe future removal requires ownership/use review; recreation uses pinned official apt packages. Plan/evidence TestResults/KeyDbCqlCurrent/curl-dev-plan.log, no credentials.
+
+| Planned package resource | Version | Lifecycle |
+|---|---|---|
+| Ubuntu:comerr-dev | 2.1-1.47.2-3ubuntu4 | New/reusable development dependency |
+| Ubuntu:libgssrpc4t64 | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:libkadm5clnt-mit12 | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:libkdb5-10t64 | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:libkadm5srv-mit12 | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:krb5-multidev | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:libbrotli-dev | 1.2.0-3ubuntu0.1 | New/reusable development dependency |
+| Ubuntu:libidn2-dev | 2.3.8-4build1 | New/reusable development dependency |
+| Ubuntu:libkrb5-dev | 1.22.1-2ubuntu4.1 | New/reusable development dependency |
+| Ubuntu:libldap-dev | 2.6.10+dfsg-1ubuntu5 | New/reusable development dependency |
+| Ubuntu:libnghttp2-dev | 1.68.0-2ubuntu0.2 | New/reusable development dependency |
+| Ubuntu:libpsl-dev | 0.21.2-1.1build2 | New/reusable development dependency |
+| Ubuntu:libgmpxx4ldbl | 2:6.3.0+dfsg-5ubuntu2 | New/reusable development dependency |
+| Ubuntu:libgmp-dev | 2:6.3.0+dfsg-5ubuntu2 | New/reusable development dependency |
+| Ubuntu:libunbound8 | 1.24.2-1ubuntu2.4 | New/reusable development dependency |
+| Ubuntu:libgnutls-dane0t64 | 3.8.12-2ubuntu1.1 | New/reusable development dependency |
+| Ubuntu:libgnutls-openssl27t64 | 3.8.12-2ubuntu1.1 | New/reusable development dependency |
+| Ubuntu:libp11-kit-dev | 0.26.2-2 | New/reusable development dependency |
+| Ubuntu:libtasn1-6-dev | 4.21.0-2 | New/reusable development dependency |
+| Ubuntu:nettle-dev | 3.10.2-1 | New/reusable development dependency |
+| Ubuntu:libgnutls28-dev | 3.8.12-2ubuntu1.1 | New/reusable development dependency |
+| Ubuntu:zlib1g-dev | 1:1.3.dfsg+really1.3.1-1ubuntu3.2 | New/reusable development dependency |
+| Ubuntu:librtmp-dev | 2.4+20151223.gitfa8646d.1-3 | New/reusable development dependency |
+| Ubuntu:libssh2-1-dev | 1.11.1-1ubuntu0.26.04.4 | New/reusable development dependency |
+| Ubuntu:libzstd-dev | 1.5.7+dfsg-3 | New/reusable development dependency |
+| Ubuntu:libcurl4-openssl-dev | 8.18.0-1ubuntu2.8 | New/reusable development dependency |
+
+KeyDB official source build succeeded unchanged with GCC15.2.0, TLSyes/libc/FLASHno; daemon SHA256309fe740e931ab61f4cdcc2ccb22359fca8241959ce1600224cb170dde821e29, CLI SHA256a03a3410f7849acac0e9cd49abae77b8a2f2542b6c5ee67490e6a2cfcb4e5260, native --version6.3.4. Runtime /var/tmp/oasis-runtimes/keydb-6.3.4 24,406,090B retained reusable. Original disposable source/build121,750,538B and verified archive5,946,301B removed only after completed build/admission; both exact paths confirmed absent. No vendor patches or new compiler installation. Planned native original source/key/receipts /var/tmp/oasis-keydb-cql (size unmeasured), loopback16390/db0/AOFalways; synthetic3live/1deleted. Reuse Linux Mongo store27039 for paired fixture cosmic_cql_mongo_keydb_demo, journal/validate/drop only exact owned data. Browser5119. State/keys must be retained and never reset/reseed on unknown outcome; logs/TRX/screenshots only TestResults/KeyDbCqlCurrent.
+
+KeyDB native/restart initial tests1+1 passed, original encrypted source retained. First paired launcher preflight93182 exited1 before service startup because it incorrectly required Valkey-style appendonlydir. KeyDB6 uses the configured single appendonly.aof; actual native file retained, with source snapshot and write receipts. Corrected the KeyDB-specific persistence admission to require that exact file, no reset/reseed/alternate reader. No pending intent or active process was created by the rejected preflight; original native source unchanged.
+
+Actual development package installation reconciliation (all27planned packages installed; no upgrades). Reusable shared native build dependencies, COSMIC-owned additions; exact registered file lists via dpkg-query -L. Installed sizes from dpkg metadata; not exclusive disk consumption.
+
+| Resource | Installed version | Installed KiB |
+|---|---|---|
+| Ubuntu:comerr-dev:amd64 | 2.1-1.47.2-3ubuntu4 | 157 |
+| Ubuntu:krb5-multidev:amd64 | 1.22.1-2ubuntu4.1 | 824 |
+| Ubuntu:libbrotli-dev:amd64 | 1.2.0-3ubuntu0.1 | 1026 |
+| Ubuntu:libcurl4-openssl-dev:amd64 | 8.18.0-1ubuntu2.8 | 2247 |
+| Ubuntu:libgmp-dev:amd64 | 2:6.3.0+dfsg-5ubuntu2 | 1600 |
+| Ubuntu:libgmpxx4ldbl:amd64 | 2:6.3.0+dfsg-5ubuntu2 | 54 |
+| Ubuntu:libgnutls-dane0t64:amd64 | 3.8.12-2ubuntu1.1 | 106 |
+| Ubuntu:libgnutls-openssl27t64:amd64 | 3.8.12-2ubuntu1.1 | 116 |
+| Ubuntu:libgnutls28-dev:amd64 | 3.8.12-2ubuntu1.1 | 5093 |
+| Ubuntu:libgssrpc4t64:amd64 | 1.22.1-2ubuntu4.1 | 208 |
+| Ubuntu:libidn2-dev:amd64 | 2.3.8-4build1 | 341 |
+| Ubuntu:libkadm5clnt-mit12:amd64 | 1.22.1-2ubuntu4.1 | 171 |
+| Ubuntu:libkadm5srv-mit12:amd64 | 1.22.1-2ubuntu4.1 | 200 |
+| Ubuntu:libkdb5-10t64:amd64 | 1.22.1-2ubuntu4.1 | 156 |
+| Ubuntu:libkrb5-dev:amd64 | 1.22.1-2ubuntu4.1 | 148 |
+| Ubuntu:libldap-dev:amd64 | 2.6.10+dfsg-1ubuntu5 | 1613 |
+| Ubuntu:libnghttp2-dev:amd64 | 1.68.0-2ubuntu0.2 | 588 |
+| Ubuntu:libp11-kit-dev:amd64 | 0.26.2-2 | 220 |
+| Ubuntu:libpsl-dev:amd64 | 0.21.2-1.1build2 | 213 |
+| Ubuntu:librtmp-dev:amd64 | 2.4+20151223.gitfa8646d.1-3 | 230 |
+| Ubuntu:libssh2-1-dev:amd64 | 1.11.1-1ubuntu0.26.04.4 | 1116 |
+| Ubuntu:libtasn1-6-dev:amd64 | 4.21.0-2 | 275 |
+| Ubuntu:libunbound8:amd64 | 1.24.2-1ubuntu2.4 | 1135 |
+| Ubuntu:libzstd-dev:amd64 | 1.5.7+dfsg-3 | 1297 |
+| Ubuntu:nettle-dev:amd64 | 3.10.2-1 | 3180 |
+| Ubuntu:uuid-dev:amd64 | 2.41.3-3ubuntu2.2 | 134 |
+| Ubuntu:zlib1g-dev:amd64 | 1:1.3.dfsg+really1.3.1-1ubuntu3.2 | 1324 |
+
+Total registered installed size: 23772KiB. Keep reusable; removal requires shared-use review, no broad autoremove. Raw manifest TestResults/KeyDbCqlCurrent/installed-development-packages.json is disposable evidence.
+
+Cleanup planned after compiler/install processes terminated: remove only package archives downloaded for the27listed new development packages, under exact /var/cache/apt/archives, after package/version, apt download log ownership and official-index SHA256 checks. Hold apt/dpkg frontend cache locks; preserve every other archive and all installed reusable files. Audit/recreation record TestResults/KeyDbCqlCurrent/removed-package-archives.json, script remove-owned-package-archives.py; no broad apt clean/autoremove.
+
+Final KeyDB reconciliation: original native/restart and paired SDK/HTTP/browser5/4 pass, all zero skips; corrected interactive hub4315 exited0, automated hub repeat79652 exited0. Plan-only28paired/56plans,8single/16plans,42paired rejections/3archive rejections pass without listener changes. Own native16390/Mongo27039/browser5119 stopped, no active/pending/ready state; original source/keys/acks/snapshot7,755B retained, exact temporary Mongo fixture verified removed. Runtime24,406,090B retained reusable. Owned source/build121,750,538B + pinned source archive5,946,301B +27owned package archives6,859,064B removed with completed-process/identity/hash/path checks; installed27development packages remain reusable23,772KiB. Other package caches/images/volumes untouched. Raw compact logs/TRX/browser screenshot in TestResults/KeyDbCqlCurrent, regeneration via hub; native source/key must not be regenerated. Compiler/test bin/obj remain active-task regenerable cache (size unmeasured). C: free87,114,670,080B after work vs87,330,967,552B before; WSL VHD physical allocation may retain freed logical blocks, so exact file removals do not imply immediate equivalent C: recovery. Podman rootless/rootful inventories were read only to check for reusable KeyDB images; no container/image/volume created or pulled.
