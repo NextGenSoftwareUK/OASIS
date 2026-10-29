@@ -1089,3 +1089,15 @@ Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated
 Open http://127.0.0.1:5100/. Show **Query all records** (Firestore3 + Mongo2), then **Query two-record subset** (2+2). Copies retain both provider labels. This uses the retained local Firestore emulator and native document-key batch reads, not hosted Google Cloud.
 
 The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures `source.Where(row => selectedIds.Contains(row.Id))`, intersects server-owned catalogues and executes through `HolonManager.ExecuteFederationQueryAsync`. HTTP uses that exact walkthrough. Unsupported metadata/order/graph expressions reject before native execution. Add `-VerifyOnly` for bounded native/SDK/HTTP checks. Stop the demo to remove its verified temporary Mongo fixture; Firestore's original seed/checkpoint remain intact. [Scope](../../Docs/WIP/COSMIC%20ORM/FIRESTORE_CQL_MVP.md).
+
+## Cosmos blockchain + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated
+```
+
+Open http://127.0.0.1:5101/. Show **Query all records** (Cosmos3 + Mongo2), then **Query two-record subset** (2+2); copies keep their source labels. This is Cosmos **blockchain**, not Azure Cosmos DB. It reads encrypted records from the retained local chain, not Cosmos Hub/mainnet.
+
+The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures ID membership, intersects server-owned catalogues, plans explicit providers/capabilities and calls `HolonManager.ExecuteFederationQueryAsync`. HTTP executes that exact walkthrough. Native keys come from the shipping storage layer; encryption/signing details stay inside the provider. Unsupported metadata/order/graph shapes reject before native query execution.
+
+Add `-VerifyOnly` for bounded checks. Shutdown cleans only the verified temporary Mongo fixture and stops owned services; the native contract, encryption key, original signed receipts and seed remain reusable. [Scope and evidence](../../Docs/WIP/COSMIC%20ORM/COSMOS_BLOCKCHAIN_CQL_MVP.md).

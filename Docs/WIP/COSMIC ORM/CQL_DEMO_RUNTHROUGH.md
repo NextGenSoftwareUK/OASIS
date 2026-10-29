@@ -84,3 +84,7 @@ Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated`, 
 ## Google Firestore + Mongo
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated`, then open http://127.0.0.1:5100/. Show explicit Google/Mongo scope and the C# ID-membership query; run all5/subset4 and inspect source-labelled copies. Explain that Firestore is a retained local emulator checkpoint, not hosted Google Cloud. Stop the host to clean the owned Mongo fixture while preserving the original Firestore seed/checkpoint. [Scope](FIRESTORE_CQL_MVP.md).
+
+## Cosmos blockchain + Mongo
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated`, then open http://127.0.0.1:5101/. Show explicit Cosmos blockchain/Mongo scope and the C# ID-membership query. All5/subset4 retain both source copies. Explain that records are encrypted on the retained local Cosmos chain, separate from Azure Cosmos DB and not mainnet. Stop the host to clean the owned Mongo fixture while preserving the original contract/key/seed/receipts. [Scope](COSMOS_BLOCKCHAIN_CQL_MVP.md).

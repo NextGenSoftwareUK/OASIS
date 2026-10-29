@@ -1,6 +1,6 @@
 # Cosmos blockchain CQL MVP
 
-Updated 29 October 2026. Native encrypted three-record/two-record query and restart reuse verified; Mongo-paired demo is not ready. This is distinct from Azure Cosmos DB.
+Updated 29 October 2026. Local native + Mongo-paired C#/HTTP/browser MVP verified. Mainnet and full parity remain unverified. This is distinct from Azure Cosmos DB.
 
 ## Implemented and verified
 
@@ -14,8 +14,7 @@ Activation is separate from query execution: the existing private-storage activa
 
 ## Exact next step
 
-1. Add Mongo-paired5/4 C#/HTTP/browser and the launcher preset using the existing generic HolonManager walkthrough. Reuse the exact retained CQL contract, key and three IDs; do not instantiate or save again.
-2. Verify provider provenance, failed-source no-partial publication and scoped Mongo cleanup. Then Polkadot and NEAR MVPs before deeper parity. Hosted Azure stays pending by user instruction; legacy gaps are documentation-only.
+Continue Polkadot, then NEAR MVPs before deeper parity. Hosted Azure stays pending by user instruction; legacy gaps are documentation-only.
 
 ## Runtime evidence
 
@@ -50,3 +49,20 @@ Original failed proof is retained as `TestResults/CosmosCqlCurrent/cosmos-cql-na
 Final evidence `TestResults/CosmosCqlCurrent/cosmos-cql-native.trx`; controlled14/14 pass after the SaveHolon fixture correction. The node was stopped with SIGINT and the container is exited. Podman subsequently killed only the remaining sleep-infinity container process after its10s stop timeout; the ledger process had already exited. Failure preservation/explicit original-PID continuation are test-runner modes, not alternate production reads.
 
 Native setup/report remains local-chain proof, not Cosmos Hub/mainnet, finality, query snapshot, arbitrary metadata/order/graph or full parity acceptance.
+
+## Mongo-paired preset
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated
+
+# Bounded native + SDK/HTTP verification:
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated -VerifyOnly
+```
+
+Open http://127.0.0.1:5101/ after startup. This selects Cosmos **blockchain**, not Azure Cosmos DB. All returns Cosmos3 + Mongo2 =5 physical rows; subset returns2 +2 =4. IDs retain copies from both sources. Actor/catalogues are server-owned and HTTP accepts named presets only.
+
+Paired SDK/HTTP acceptance1/1 passes with provider provenance, unrelated-row exclusion, forged actor/unknown preset rejection and source deactivation503 with no partial Mongo result. Evidence `TestResults/CosmosCqlCurrent/cosmos-mongo-federation.trx`. Both paths execute the generic C# walkthrough through HolonManager; there is no separate HTTP query engine.
+
+The original contract/key/three records/four signed submissions are reused; paired reads do not instantiate or save on-chain. The temporary Mongo DB is absent before setup, journaled before writes and validated by exact contents/actor/name/schema marker before removal. Read failure preserves unexpected state/journals. No mainnet, finality, shared snapshot, arbitrary metadata/order/graph or full ORM/HyperDrive parity claim.
+
+Actual browser buttons verified all5/subset4 and CosmosBlockChainOASIS/MongoDBOASIS labels. Screenshot `TestResults/CosmosCqlCurrent/cosmos-mongo-browser.jpg`; final interactive1/1 duration1m56s includes UI verification/shutdown, not query latency. Original seed SHA256D981416656A1ABC862D033D8E5C0FCB62BF11026ECE24605314CFB0B368F5B66 and exactly four prepared/acknowledged submissions remain unchanged. Owned native/Mongo services stopped; exact temporary Mongo DB validated/dropped; pending/ready markers removed. Native ledger process stopped with SIGINT before Podman terminated the remaining idle container process. Routing12paired profiles/24plans,10pair rejections,8single/16plans passes with unchanged listeners.

@@ -1367,3 +1367,9 @@ Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Arbitrum -Federated` (
 GoogleCloudOASIS uses a native ordered document-snapshot batch for up to100 captured catalogue-intersected IDs. ID equality/membership, AND/OR/constants and paging are admitted; unsupported metadata/order/graph expressions reject before I/O. Shipping canonical/history decoding, identity/access/visibility checks and response/result budgets precede publication. A source failure returns no partial rows.
 
 Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated` (5100), or add `-VerifyOnly`. All/subset yield5/4 physical rows across retained local Firestore and Mongo, preserving copies/provenance. This does not prove hosted Google or distributed snapshot behaviour. [Scope and evidence](FIRESTORE_CQL_MVP.md).
+
+## Cosmos blockchain bounded identity profile
+
+CosmosBlockChainOASIS compiles catalogue-intersected ID equality/membership/Boolean selection into at most100 native contract-key reads through the shipping encrypted backend. The canonical key builder owns key formatting. Unsupported metadata/order/graph shapes reject before I/O; transport/authentication/identity errors fail the whole query without partial rows. Reads may observe different blocks.
+
+Use `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated` (5101), or add `-VerifyOnly`. All/subset yield5/4 physical rows across retained local Cosmos blockchain and Mongo. Original native records are reused, with no demo read submissions. This is separate from Azure Cosmos DB and does not prove Cosmos Hub/mainnet/finality/distributed snapshot behaviour. [Guide](COSMOS_BLOCKCHAIN_CQL_MVP.md).
