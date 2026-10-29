@@ -301,3 +301,32 @@ Evidence: worktree `TestResults/DevelopmentSyncCurrent/bound-source-{core,neo,sq
 - TestResults/DevelopmentSyncCurrent/bound-source-core.trx SHA256 756C6BF18EC3F29BB874F7C799F3CED97A7606F613DCEDB980DBC2E89306C668.
 - TestResults/DevelopmentSyncCurrent/bound-source-neo.trx SHA256 38B120421A67ACD39698E9DBB5B1024FBCAF4EE43658DC1F362E426C38693E90.
 - TestResults/DevelopmentSyncCurrent/bound-source-sqlite.trx SHA256 EC875469CAF8F8A254217014FD8A467500C065C09220AF4325BBA805BB4D11EE.
+
+## Native source-bound receipt verification (29 October)
+
+Mongo2/2 native cases cover historical type-only and already-bound original intents.
+Both verify absent/committed states, keep the original enrollment unchanged, reject
+wrong source identities/cancellation, and preserve receipt/outbox bytes. The bound
+lookup uses the activated repository even if the public Database descriptor is
+cleared. Dropping/recreating the actual Holon collection while retaining the old
+receipt rejects the old physical source; the lookup does not repair a missing
+collection. Run `Scripts/TestHosts/Run-CosmicMongoDestinationTests.ps1 -SourceReceipt`.
+
+Neo2/2 native cases cover the same historical/bound intent distinction, wrong
+source and foreign actor rejection, redaction, unchanged graph/receipt/queue and
+receipt recovery after provider close/reopen. Run
+`Scripts/TestHosts/Run-ReusableNeo4jTests.ps1 -CosmicSourceReceipt` inside the standard
+provider build lease. This proves read-committed receipt lookup, not process-crash
+recovery, native database replacement or snapshot isolation.
+
+Existing Mongo data and Neo container reused; successful exact fixtures removed,
+private Mongo databases verified absent, pending journals removed, both services
+stopped and Neo attachment joined. An initial Neo pre-service build check correctly
+rejected a stale Shared copy; the runner now builds its normal consumers before
+running this new cohort. No stale DLL bypass, new runtime or environment used.
+
+This closes the new receipt-read capability's three-database native gate. It does
+not authorize migration: selected-record lineage/content comparison, concurrent
+change checks, preview authorization, atomic migration receipts and cutover remain red.
+- TestResults/OwnedRoutingCurrent/mongo-bound-source-receipt.trx SHA256 173E1788BCF47E0C5A50E1E72981167AB33471BE2341B73121A85F440B3BE033.
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 D90E4F353CF2E1947F13C44E897EB4295AB5377243D2DD559EC8FCFD9064ECCA.
