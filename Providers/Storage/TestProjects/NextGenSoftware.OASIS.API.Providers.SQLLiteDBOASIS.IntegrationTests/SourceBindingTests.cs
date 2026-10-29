@@ -3,6 +3,7 @@ using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
@@ -63,6 +64,11 @@ public partial class SQLLiteDBOASISIntegrationTests
                 using var observer=new SqliteConnection($"Data Source={copy};Pooling=False");await observer.OpenAsync();
                 using var version=observer.CreateCommand();version.CommandText="PRAGMA data_version";
                 var before=Convert.ToInt64(await version.ExecuteScalarAsync());
+                var compared = await HolonReplicationReceiptPreflight.ReadAsync(original, copied,
+                    new ConditionalHolonReceiptEvidenceRequest(request, identity.Result, copiedIdentity.Result, new[] { request.Roots.Single().Id }));
+                compared.IsError.Should().BeFalse(compared.Message + compared.Exception);
+                compared.Result.Records.Single().Kind.Should().Be(HolonReplicationReceiptComparisonKind.UntrackedCurrentRecord);
+                compared.IsSaved.Should().BeFalse();
                 if (bindOriginal)
                 {
                     var replay=await copied.ExecuteReplicatingHolonWriteAsync(request,enrollment);
