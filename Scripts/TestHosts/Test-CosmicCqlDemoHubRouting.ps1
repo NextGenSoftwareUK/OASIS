@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -53,6 +53,7 @@ $pairedContracts=@(
     @{Provider='Arbitrum';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5099},
     @{Provider='Google';Runner='Run-CosmicFirestoreCqlNative.ps1';Port=5100},
     @{Provider='CosmosChain';Runner='Run-CosmicCosmosCqlNative.ps1';Port=5101},
+    @{Provider='Polkadot';Runner='Run-CosmicPolkadotCqlNative.ps1';Port=5102},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
     @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
     @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
@@ -107,6 +108,12 @@ try{& $hub -Provider CosmosChain -ShowPlan}catch{$denied=$true}
 if(!$denied){throw 'CosmosChain requires explicit paired scope.'}
 $pairedRejections++
 $oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
+foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true})) {
+    $denied=$false
+    try { & $hub @arguments -ShowPlan } catch { $denied=$true }
+    if (!$denied) { throw 'Polkadot requires explicit paired scope and preserved source state.' }
+    $pairedRejections++
+}
 if(!$oracleArchive.Federated){throw 'Archive option must not lose explicit paired scope.'}
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
@@ -114,4 +121,4 @@ $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 @{profiles=$contracts.Count;plans=@($verified);pairedProfiles=$pairedContracts.Count;pairedPlans=@($paired);pairedRejections=$pairedRejections;archiveRejections=3;listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS:8single profiles/16plans,12paired profiles/24plans,10paired rejections,3archive rejections; listeners unchanged.'
+Write-Output "PASS:$($contracts.Count) single profiles/$(@($verified).Count) plans,$($pairedContracts.Count) paired profiles/$(@($paired).Count) plans,$pairedRejections paired rejections,3 archive rejections; listeners unchanged."

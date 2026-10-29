@@ -88,3 +88,25 @@ Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Google -Federated`, th
 ## Cosmos blockchain + Mongo
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CosmosChain -Federated`, then open http://127.0.0.1:5101/. Show explicit Cosmos blockchain/Mongo scope and the C# ID-membership query. All5/subset4 retain both source copies. Explain that records are encrypted on the retained local Cosmos chain, separate from Azure Cosmos DB and not mainnet. Stop the host to clean the owned Mongo fixture while preserving the original contract/key/seed/receipts. [Scope](COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+## Polkadot + Mongo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Polkadot -Federated
+```
+
+Open http://127.0.0.1:5102/. This preset reuses the encrypted three-record seed on
+the retained local Substrate chain. It is not a public Polkadot-network demo.
+
+1. Show the explicit MongoDB/Polkadot scope and the displayed C# query.
+2. Select **Query all records**: expect five physical results,
+   including two Mongo copies and three native Polkadot records.
+3. Select **Query two-record subset**: expect four physical results, two per
+   provider. Provider labels identify the source of each copy.
+4. Explain that this MVP filters a bounded, trusted ID catalogue. Arbitrary
+   metadata predicates and a shared cross-provider snapshot are not promised.
+5. Stop the demo. Its owned Mongo fixture is removed after validation; the native
+   seed, key, signed preparations and ledger remain reusable.
+
+Add `-VerifyOnly` for bounded SDK/HTTP acceptance without an interactive host.
+See [current verification and limitations](POLKADOT_CQL_MVP.md).
