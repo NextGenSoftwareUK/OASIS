@@ -1,6 +1,6 @@
 # PostgreSQL CQL MVP admission
 
-Updated 29 October 2026. **Native/demo admission remains red.**
+Updated 29 October 2026. **Native/restart verified; paired demo admission remains red.**
 
 The adapter uses the existing PostgreSQL storage connection and canonical record
 reader. A single parameterized SELECT applies authorized UUID selection and native
@@ -22,14 +22,33 @@ capability isolation. Producer and consumer builds passed using cached dependenc
 - Evidence: `TestResults/PostgreSqlCqlCurrent/postgres-cql-controls.trx`.
 - SHA256: `4A1612248B969CC449F47763B9B7A37EB145FB7A392F17996452632AFE89CFEC`.
 
+## Native and restart proof
+
+The retained PostgreSQL service passed the native test twice (one test, zero failures
+or skips per run): initial 751 ms, restart 324 ms. Three acknowledged saves in the
+dedicated schema survived service restart with identical JSON hashes and native
+`xmin` row versions. Selection returned three/two/zero rows; native paging returned
+the expected UUID; a one-row result budget rejected without partial results.
+
+- Fixture: `PostgreSqlCqlNativeTests.cs` in PostgreSQLOASIS.IntegrationTests.
+- Initial evidence: `TestResults/PostgreSqlCqlCurrent/postgres-cql-initial.trx`.
+- Initial SHA256: `1E68F21F658CFB3382F2225FC7A6DCF9673F8A099A516C954AEFE30F9A80EBBA`.
+- Restart evidence: `TestResults/PostgreSqlCqlCurrent/postgres-cql-native.trx`.
+- Restart SHA256: `72EFD2A2CE3293EB41FE64B041C137182A2059834DF4C0E40333D1BB06872521`.
+- Persistent seed SHA256: `9B5BEFAA86549FAC075191C9418182E81F9013500A9612F938584AFD55B2A33F`.
+- Runner: `Scripts/TestHosts/Run-CosmicPostgreSqlCqlNative.ps1`.
+
+The first run exposed a runner ownership-flag scope bug: native verification passed,
+but cleanup did not receive the flags. The runner now uses one shared lifecycle
+object. The exact owned container was stopped, the restart proof passed, and final
+container state was verified `exited`. No source/schema was reset.
+
 ## Exact next step
 
-Reuse the retained `oasis-postgres` container and protected local configuration.
-Admit a dedicated `cosmic_cql` schema only after checking original source/pending
-state. Verify three saved records, a filtered two-record query, missing IDs, paging,
-result-budget rejection and unchanged native records across query/restart. Then add
-one Mongo-paired C#/HTTP/browser preset with explicit provider provenance and owned
-fixture cleanup. Do not recreate a missing original source or claim green from controls.
+Add the Mongo-paired C#/HTTP/browser preset with provider provenance, failure
+controls and validated owned fixture cleanup. Keep the original schema, seed,
+receipts and snapshot; reuse them read-only. Admission stays red until the paired
+proof is complete.
 
 ## Programme priority
 

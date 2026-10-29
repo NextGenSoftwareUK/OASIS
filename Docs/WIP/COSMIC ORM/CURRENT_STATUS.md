@@ -8,8 +8,9 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: PostgreSQL native source/restart and paired demo**; adapter/control8 pass
-([scope](POSTGRESQL_CQL_MVP.md)), native acceptance remains red. Continue available
+**Next: PostgreSQL Mongo-paired SDK/HTTP/browser demo**; control8 and native/restart
+1+1 pass ([scope](POSTGRESQL_CQL_MVP.md)); paired acceptance remains red. Container
+is stopped; original schema/seed/receipts/snapshot retained. Continue available
 local breadth while paid/external gates remain pending. Redis native3/2/missing,
 exact ciphertext restart, SDK/HTTP/browser5/4 and launcher routing pass; dedicated
 DB11/source/keys retained, temporary Mongo fixture removed and services stopped.
