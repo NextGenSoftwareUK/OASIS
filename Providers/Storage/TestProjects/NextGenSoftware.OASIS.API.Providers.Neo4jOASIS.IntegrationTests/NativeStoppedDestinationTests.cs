@@ -66,13 +66,14 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency" or "reconcile-consistency" or "default-budget", "Use the explicit process-owning runner.");
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency" or "reconcile-consistency" or "default-budget" or "head-audit", "Use the explicit process-owning runner.");
+        var headAudit = phase == "head-audit";
         var defaultBudget = phase == "default-budget";
         var exhaust = phase == "exhaust" || defaultBudget;
         var routingProof = phase == "routing";
         var consistencyProof = phase is "consistency" or "reconcile-consistency";
         var cleanupUnwritten = phase == "cleanup-unwritten";
-        var activeOutage = phase == "active" || exhaust || routingProof || phase == "consistency";
+        var activeOutage = headAudit || phase == "active" || exhaust || routingProof || phase == "consistency";
         var reconcileActive = phase == "reconcile-active";
         var reconcileRouting = phase is "reconcile-routing" or "reconcile-consistency";
         var seeding = phase == "seed" || activeOutage;
@@ -584,6 +585,9 @@ public partial class NativeHostedReplicaRestartTests
                 dna.OASIS.SubscriptionConfig.PlanType = "Gold";
             }
             var db = client.GetDatabase(database);
+            if (headAudit)
+                await VerifyMongoReplicaHeadAudit(mongo, await HolonReplicationRouteBinding.CapturePinnedAsync(mongo),
+                    source, db, (await sqlite.LoadHolonAsync(intent.Ids[0], loadChildren: false)).Result);
             var rows = await db.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
             var expectedIds = consistencyProof ? intent.Ids.Append(intent.WitnessId) : intent.Ids.AsEnumerable();
             CollectionAssert.AreEquivalent(expectedIds.Select(id => id.ToString("D")).ToArray(), rows.Select(row => row["HolonId"].AsString).ToArray());
