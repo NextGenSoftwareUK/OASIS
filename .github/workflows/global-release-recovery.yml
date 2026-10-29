@@ -13,7 +13,6 @@ on:
         options:
           - Review NuGet plan only
           - Resume partly published NuGet batch
-          - Rebuild existing STAR version
       publish:
         description: Publish after all builds pass (ignored by Review NuGet plan only)
         type: boolean
@@ -35,10 +34,6 @@ on:
         description: Resume mode - exact number of excluded IDs; a mismatch stops before packing or upload
         type: number
         default: 0
-      star_existing_version:
-        description: Rebuild mode - existing STAR X.Y.Z release to rebuild in place
-        type: string
-        default: ''
 
 permissions:
   contents: write
@@ -56,12 +51,10 @@ jobs:
       publish: false
       nuget_plan_only: true
       nuget_packages: true
-      nuget_package_scope: All
       oasis_runtime: false
       star_runtime: false
       edge_runtime: false
       ogengine_client: false
-      edge_unity: false
       native_endpoint: false
       mcp_server: false
       optional_components: none
@@ -76,34 +69,12 @@ jobs:
     with:
       publish: ${{ inputs.publish }}
       nuget_packages: true
-      nuget_package_scope: All
       excluded_nuget_ids: ${{ inputs.excluded_nuget_ids }}
       expected_excluded_nuget_count: ${{ inputs.expected_excluded_nuget_count }}
       oasis_runtime: false
       star_runtime: false
       edge_runtime: false
       ogengine_client: false
-      edge_unity: false
-      native_endpoint: false
-      mcp_server: false
-      optional_components: none
-      advance_api_versions: false
-      version_mode: ${{ inputs.version_mode }}
-      manual_version: ${{ inputs.manual_version }}
-
-  rebuild-star-version:
-    if: inputs.mode == 'Rebuild existing STAR version'
-    uses: ./.github/workflows/global-release.yml
-    secrets: inherit
-    with:
-      publish: ${{ inputs.publish }}
-      star_runtime: true
-      star_existing_version: ${{ inputs.star_existing_version }}
-      nuget_packages: false
-      oasis_runtime: false
-      edge_runtime: false
-      ogengine_client: false
-      edge_unity: false
       native_endpoint: false
       mcp_server: false
       optional_components: none
