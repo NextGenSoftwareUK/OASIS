@@ -15,6 +15,10 @@ authorized migration execution and cutover remain red. CURRENT_STATUS owns next 
 Read-only receipt/target comparison report now passes Shared1380 and native
 Mongo1/SQLite2/Neo2 scoped cases; remaining pairs/races and mutation authorization/
 CAS/cutover stay red. The report is an observation, not migration permission.
+Current-body false-match bug reproduced/fixed in all three V2 audit readers:
+Shared1392/Neo619 controls; native SQLite->Mongo2, Neo/SQLite content/race3 and Mongo
+lifecycle2 pass. Tokens alone no longer certify a changed current body. Legacy
+save paths unchanged. Authorized preview/CAS/cutover and full pair acceptance stay red.
 Older sections below retain their milestone-specific scope, not current open/closed authority.
 
 ## Latest snapshot-first worker milestone

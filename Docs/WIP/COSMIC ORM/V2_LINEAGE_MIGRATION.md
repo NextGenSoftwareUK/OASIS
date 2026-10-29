@@ -482,3 +482,51 @@ cutover, crash recovery and pending-obligation disposition remain red.
 - TestResults/DevelopmentSyncCurrent/receipt-preflight-graphql.trx SHA256 2028834FD6AC0B440FAED98027FBD2885634B96834F18B5904A8FB3E5E357F9D.
 - TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 1A10509DB7D9E702D1B8B6B40A1C18322049B5C5745D452EE166F51896ADC5D3.
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 69F325FAD72E656BB4B7E64A7BF463196A899CD5FFDADA6B974423D7FB01394C.
+
+## Current-body divergence bug fixed (29 October)
+
+A native SQLite -> Mongo witness reproduced a false MatchesOriginalReceipt result:
+the target Holon.Name changed while its logical/provider revisions and protected
+head remained unchanged. The previous reader projected only revision fields, so
+comparison certified the old protected snapshot without checking the current body.
+The preserved characterization report records the explicit BUG WITNESS; that
+characterization assertion was replaced by rejection assertions in shipping tests.
+
+Root fix: `HolonReplicaHeadRecord.ValidateCurrent` now verifies current identity,
+logical/previous versions, target-owned revision and portable business/audit content
+against the checksum-validated protected head. Hard-deleted heads require no live
+record. All three V2 audit readers use this one validator. Native keys and target-local
+provider metadata retain their existing allowed local-observation semantics.
+
+Mongo streams complete native bodies one at a time (batch size1), hydrates through
+the native mapper and retains only redacted heads/identity membership. SQLite uses
+an untracked mapper context attached to the exact existing read-only connection
+and snapshot transaction; it does not consult the writer context or initialize
+schema. Neo verifies its parsed current snapshot within the existing explicit
+read-committed audit scope. No legacy save code was changed, no repair/replay occurs.
+
+Verification: Shared1392 (12new current-body controls) and Neo619 controls pass.
+Native SQLite -> Mongo2 proves matching copies, hard-delete and rejection of a
+native body edit that leaves the token unchanged. Neo content/race3 comprises two
+Neo -> SQLite historical/bound cases with SQLite native body edits rejected, plus
+one SQLite -> Neo case: strict read refused, explicit weak read matched, then an
+independent target edit between source and target reads rejected without repair.
+The Neo race edits both the valid stored snapshot and its Name lookup projection,
+leaving its revision untouched. Native Mongo graph/receipt/head lifecycle2 regression
+also passes, including live/hard-deleted audit observations. No skipped cases.
+
+Commands: Mongo runner `-SqlitePreflight` and `-ReplicaLifecycle`; Neo runner
+`-CosmicPreflightRace` under the build lease. Tests reuse fixed journaled datasets;
+all successful exact fixture data is removed and services stopped afterward.
+
+This closes this reproduced current-body false-match bug. It does not prove every
+ordered source/target pair or all internal read interleavings. Observation reports
+remain unsigned read-only evidence, never authorization to rebind a replica.
+Next: immutable authorized operator preview, then per-store CAS/migration receipts
+and interrupted-cutover recovery, with remaining pair/race acceptance still open.
+- TestResults/OwnedRoutingCurrent/sqlite-mongo-content-drift-witness.trx SHA256 7156998895DE3F34350A9E93297934255CE221907D3B1E844A0382FFD0FF116C.
+- TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx SHA256 02A60577C3B50FABE250BA4FA80BCD0160D982D59B1195214063A38EDDD49F30.
+- TestResults/Neo4jCurrent/neo4j-receipt-preflight-content-race.trx SHA256 A836AC98D860685F35762236E70B7D721D14C39DDF43A45EF2BC30D6B22D1EDD.
+- TestResults/OwnedRoutingCurrent/mongo-replica-lifecycle.trx SHA256 BB02F1D1779781E14FCD8DCA2D5992A858A8A1D6AC5AE0A4DF297D9E8FFC9D55.
+- TestResults/DevelopmentSyncCurrent/current-content-shared.trx SHA256 FC289C80414D50E7A23E66059B63DCEA87C2DA309B8905BB9CD283327FD5076C.
+- TestResults/DevelopmentSyncCurrent/current-content-neo-controls.trx SHA256 A6B92D59F60248AB5342B67AA8730D4408F32ADB62CC98B7B619EF68E94F2D3F.

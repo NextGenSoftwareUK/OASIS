@@ -35,4 +35,23 @@ public sealed class HolonReplicaHeadRecord
             CommittedHolonReplicaPlan.PortableContentDigest(stored, targetAuthority));
         return new(stored, evidence);
     }
+    /// <summary>Verify the actual current native body, not just its revision token.
+    /// Native keys and target-local metadata use the existing portable comparison rules.</summary>
+    public static void ValidateCurrent(Guid id, ProviderType targetAuthority, IHolon current, HolonReplicaHeadEvidence head)
+    {
+        ArgumentNullException.ThrowIfNull(head);
+        CosmicConcurrency.ValidateAuthority(targetAuthority);
+        if (head.HardDeleted)
+        {
+            if (current != null) throw new InvalidDataException("A protected hard-deleted replica still has a current native record.");
+            return;
+        }
+        if (current == null || current.Id != id || current.Version != head.Version || current.VersionId != head.VersionId
+            || current.PreviousVersionId != head.PreviousVersionId
+            || CosmicConcurrency.GetProviderRevisionId(current, targetAuthority) != head.ProviderRevisionId
+            || head.PortableContentDigest == null
+            || CommittedHolonReplicaPlan.PortableContentDigest(current, targetAuthority) != head.PortableContentDigest)
+            throw new InvalidDataException("The current native record and protected replica content diverge.");
+    }
+
 }

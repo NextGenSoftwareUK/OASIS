@@ -58,10 +58,9 @@ public partial class Neo4jOASIS : IHolonReplicaHeadAuditStorageProvider
                         throw new InvalidDataException("The native replica head or current identity is not unique.");
                     var head = heads.Count == 0 ? null : ReadProtectedReplicaHead(heads[0], id).Evidence;
                     var current = records.Count == 0 ? null : ReadHolonNode(records[0]);
-                    if (head != null && (head.HardDeleted ? current != null : current == null
-                        || current.Version != head.Version || current.VersionId != head.VersionId
-                        || CosmicConcurrency.GetProviderRevisionId(current,HeadAuditProviderType.Neo4jOASIS) != head.ProviderRevisionId))
-                        throw new InvalidDataException("The current native record and protected replica head diverge.");
+                    if (head != null)
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicaHeadRecord.ValidateCurrent(
+                            id, HeadAuditProviderType.Neo4jOASIS, current, head);
                     observed.Add(id,new(id,current != null,head));
                 }
                 if (observed.Count != request.HolonIds.Count)

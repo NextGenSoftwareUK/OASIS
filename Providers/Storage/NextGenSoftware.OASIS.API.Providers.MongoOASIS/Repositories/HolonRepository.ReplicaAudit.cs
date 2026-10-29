@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NativeHolon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
@@ -52,25 +53,29 @@ public partial class HolonRepository
                 }
             }
             var currentFilter = new BsonDocument("HolonId", new BsonDocument("$in", ids));
-            var projection = new BsonDocument { { "HolonId", 1 }, { "Version", 1 }, { "VersionId", 1 }, { "ProviderRevisionId", 1 } };
-            var current = await database.GetCollection<BsonDocument>(MongoDbContext.HolonCollectionName)
-                .Find(session, currentFilter).Project<BsonDocument>(projection).Limit(257).ToListAsync(token).ConfigureAwait(false);
-            var records = new Dictionary<Guid, NativeHolon>();
-            foreach (var body in current)
+            var currentIds = new HashSet<Guid>();
+            // Hydrate and verify one complete current body at a time. Retain only
+            // redacted heads/identity membership, not hundreds of business graphs.
+            using (var cursor = await database.GetCollection<BsonDocument>(MongoDbContext.HolonCollectionName)
+                .FindAsync(session, currentFilter, new FindOptions<BsonDocument> { BatchSize = 1, Limit = 257 }, token).ConfigureAwait(false))
             {
-                var row = BsonSerializer.Deserialize<NativeHolon>(body);
-                if (!request.HolonIds.Contains(row.HolonId) || records.ContainsKey(row.HolonId) || records.Count >= request.HolonIds.Count)
-                    throw new InvalidDataException("The current native record identity set is invalid.");
-                records.Add(row.HolonId, row);
+                while (await cursor.MoveNextAsync(token).ConfigureAwait(false))
+                foreach (var body in cursor.Current)
+                {
+                    var row = BsonSerializer.Deserialize<NativeHolon>(body);
+                    if (!request.HolonIds.Contains(row.HolonId) || !currentIds.Add(row.HolonId) || currentIds.Count > request.HolonIds.Count)
+                        throw new InvalidDataException("The current native record identity set is invalid.");
+                    if (heads.TryGetValue(row.HolonId, out var head))
+                        HolonReplicaHeadRecord.ValidateCurrent(row.HolonId, ProviderType.MongoDBOASIS,
+                            Helpers.DataHelper.ConvertMongoEntityToOASISHolon(row, mapChildren: false), head);
+                }
             }
             var observed = new List<HolonReplicaHeadObservation>();
             foreach (var id in request.HolonIds)
             {
                 heads.TryGetValue(id, out var head);
-                var exists = records.TryGetValue(id, out var row);
-                if (head != null && (head.HardDeleted ? exists : !exists || row.Version != head.Version
-                    || row.VersionId != head.VersionId || row.ProviderRevisionId != head.ProviderRevisionId))
-                    throw new InvalidDataException("The current native record and protected replica head diverge.");
+                var exists = currentIds.Contains(id);
+                if (!exists && head != null) HolonReplicaHeadRecord.ValidateCurrent(id, ProviderType.MongoDBOASIS, null, head);
                 observed.Add(new(id, exists, head));
             }
             token.ThrowIfCancellationRequested();

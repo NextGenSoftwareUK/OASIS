@@ -107,6 +107,18 @@ public partial class Neo4jNativeAvatarTests
                 Assert.IsFalse(matched.IsSaved);
                 Assert.AreEqual(matched.Result.ObservationDigest,
                     (await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest)).Result.ObservationDigest);
+                using var native = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={targetPath};Pooling=False");
+                await native.OpenAsync();
+                using var edit = native.CreateCommand();
+                edit.CommandText = "UPDATE Holon SET Name=$name WHERE Id=$id";
+                edit.Parameters.AddWithValue("$name", "independent-sqlite-edit");
+                edit.Parameters.AddWithValue("$id", input.Id.ToString("D"));
+                Assert.AreEqual(1, await edit.ExecuteNonQueryAsync());
+                var changed = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
+                Assert.IsTrue(changed.IsError, "An unchanged revision cannot certify changed current SQLite content.");
+                Assert.IsNull(changed.Result);
+                Assert.AreEqual("COSMIC_REPLICA_HEAD_AUDIT_UNVERIFIED", changed.ErrorCode);
+
             }
             foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })
                 if (File.Exists(path)) File.Delete(path);

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -36,6 +38,11 @@ public partial class HolonRepository
                 return Task.FromResult(new OASISResult<HolonReplicaHeadReadResult> {
                     IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_HEAD_AUDIT_STORAGE_MISMATCH",
                     Message = "The native replica does not match the expected physical binding." });
+            // A separate read-only mapper context must use this exact connection
+            // and transaction; never read current content through the writer context.
+            using var mapper = new DataContext(settings.ToString());
+            mapper.Database.SetDbConnection(connection, contextOwnsConnection: false);
+            mapper.Database.UseTransaction(transaction);
             var rows = new List<HolonReplicaHeadObservation>();
             foreach (var id in request.HolonIds)
             {
@@ -56,21 +63,12 @@ public partial class HolonRepository
                         if (reader.Read()) throw new InvalidDataException("Replica head identity is not unique.");
                     }
                 }
-                bool exists;
-                using (var current = connection.CreateCommand())
-                {
-                    current.Transaction = transaction;
-                    current.CommandText = "SELECT Version,VersionId,ProviderRevisionId FROM Holon WHERE Id=$id";
-                    current.Parameters.AddWithValue("$id", id.ToString("D"));
-                    using var reader = current.ExecuteReader();
-                    exists = reader.Read();
-                    if (head != null && (head.HardDeleted ? exists : !exists
-                        || reader.GetInt32(0) != head.Version
-                        || !Guid.TryParse(reader.GetString(1), out var version) || version != head.VersionId
-                        || reader.IsDBNull(2) || !Guid.TryParse(reader.GetString(2), out var revision) || revision != head.ProviderRevisionId))
-                        throw new InvalidDataException("The current native record and protected replica head diverge.");
-                    if (exists && reader.Read()) throw new InvalidDataException("Current record identity is not unique.");
-                }
+                var key = id.ToString("D");
+                var current = mapper.Holons.AsNoTracking().Where(row => row.Id == key).Take(2).ToList();
+                if (current.Count > 1) throw new InvalidDataException("Current record identity is not unique.");
+                var exists = current.Count == 1;
+                if (head != null) HolonReplicaHeadRecord.ValidateCurrent(id, ProviderType.SQLLiteDBOASIS,
+                    exists ? GetHolonFromEntity(current[0]) : null, head);
                 rows.Add(new(id, exists, head));
             }
             token.ThrowIfCancellationRequested();
