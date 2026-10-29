@@ -89,3 +89,58 @@ public static class CosmicOperationInventoryProbe
         if (finished.IsError || !finished.Result) throw new InvalidOperationException("Acknowledged fixture delivery could not be completed.", finished.Exception);
     }
 }
+
+public static class CosmicLineageInventoryProbe
+{
+    public static async Task VerifyWindowAsync(IHolonReplicationRouteInventoryOutbox outbox, CosmicStorageIdentity source,
+        string sourceId, Guid originalOperation, int originalCount, Guid? appendedOperation = null, Func<Task> append = null,
+        HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+    {
+        var reader = outbox as IHolonReplicationLineageInventoryOutbox
+            ?? throw new InvalidOperationException("Source-wide lineage inventory capability is required.");
+        if (consistency == HolonReplicaHeadReadConsistency.ReadCommittedValidated)
+        {
+            var strict = await reader.ReadLineageObligationsAsync(new(source, sourceId));
+            if (!strict.IsError || strict.ErrorCode != "COSMIC_LINEAGE_INVENTORY_CONSISTENCY_UNSUPPORTED")
+                throw new InvalidOperationException("A weak source cannot silently satisfy strict lineage reads.");
+        }
+        var first = await reader.ReadLineageObligationsAsync(new(source, sourceId, 1, requiredConsistency: consistency));
+        if (first.IsError || first.Result == null || first.Result.Obligations.Count != 1)
+            throw new InvalidOperationException(first.Message, first.Exception);
+        var through = first.Result.ThroughSequence;
+        if (append != null) await append();
+        async Task<List<HolonReplicationOperationObligation>> Remaining(HolonReplicationLineagePage start)
+        {
+            var rows = new List<HolonReplicationOperationObligation>(start.Obligations); var cursor = start.NextAfterSequence; var pages = 0;
+            while (cursor.HasValue)
+            {
+                var next = await reader.ReadLineageObligationsAsync(new(source, sourceId, 1, cursor.Value, start.ThroughSequence, consistency));
+                if (next.IsError || next.Result == null || next.Result.ThroughSequence != start.ThroughSequence || next.IsSaved)
+                    throw new InvalidOperationException("Lineage pagination changed its captured scope.", next.Exception);
+                rows.AddRange(next.Result.Obligations); cursor = next.Result.NextAfterSequence;
+                if (++pages > 4096) throw new InvalidOperationException("Lineage fixture exceeded its explicit read budget.");
+            }
+            return rows;
+        }
+        var captured = await Remaining(first.Result);
+        if (captured.Count != originalCount || captured.Any(row => row.OperationId != originalOperation || row.Sequence > through)
+            || !captured.Any(row => row.State == HolonDeliveryState.Completed))
+            throw new InvalidOperationException("A captured window omitted original work or included a later append.");
+        var fresh = await reader.ReadLineageObligationsAsync(new(source, sourceId, 1, requiredConsistency: consistency));
+        if (fresh.IsError || fresh.Result == null) throw new InvalidOperationException(fresh.Message, fresh.Exception);
+        var current = await Remaining(fresh.Result);
+        if (append != null && (current.Count != originalCount * 2 || fresh.Result.ThroughSequence <= through
+            || !current.Any(row => row.OperationId == appendedOperation)))
+            throw new InvalidOperationException("A new window must observe the later original operation.");
+        var absent = await reader.ReadLineageObligationsAsync(new(source, "unknown-" + Guid.NewGuid(), requiredConsistency: consistency));
+        if (absent.IsError || absent.Result.Obligations.Count != 0 || absent.Result.ThroughSequence != 0)
+            throw new InvalidOperationException("Unknown lineage must remain an explicit empty observation.");
+        var wrong = new CosmicStorageIdentity(source.Authority, source.EndpointFingerprint, Guid.NewGuid());
+        var rejected = await reader.ReadLineageObligationsAsync(new(wrong, sourceId, requiredConsistency: consistency));
+        if (!rejected.IsError || rejected.Result != null) throw new InvalidOperationException("Wrong lineage source binding must be rejected.");
+        using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+        try { await reader.ReadLineageObligationsAsync(new(source, sourceId, requiredConsistency: consistency), cancelled.Token); }
+        catch (OperationCanceledException) { return; }
+        throw new InvalidOperationException("Cancelled lineage inventory accessed native state.");
+    }
+}

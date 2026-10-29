@@ -79,8 +79,13 @@ public partial class MongoStorageIdentityTests
                 Assert.Equal(before, await Snapshot());
                 var edit = StoredRecordJson.Project<Holon>(first); edit.Name = "later-preflight-value";
                 var update = Original(edit, CosmicConcurrency.GetProviderRevisionId(first, ProviderType.MongoDBOASIS));
-                var updated = await source.ExecuteReplicatingHolonWriteAsync(update, enrollment);
-                Assert.False(updated.IsError, updated.Message + updated.Exception);
+                NextGenSoftware.OASIS.Common.OASISResult<System.Collections.Generic.IEnumerable<IHolon>> updated = null!;
+                await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyWindowAsync(boundSource.Result, sourceBinding.Result,
+                    enrollment.SourceId, create.Write.OperationId, enrollment.TargetIds.Count, update.Write.OperationId, async () =>
+                    {
+                        updated = await source.ExecuteReplicatingHolonWriteAsync(update, enrollment);
+                        Assert.False(updated.IsError, updated.Message + updated.Exception);
+                    });
                 var second = updated.Result.Single(); await Apply(update, second);
                 await CosmicNativeAcceptance.CosmicOperationInventoryProbe.VerifyAsync(boundSource.Result, sourceBinding.Result,
                     create.Write.OperationId, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true, migrationSource: source);

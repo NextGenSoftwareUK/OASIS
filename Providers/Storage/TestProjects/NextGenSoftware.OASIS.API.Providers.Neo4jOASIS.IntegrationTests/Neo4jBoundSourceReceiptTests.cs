@@ -30,7 +30,7 @@ public partial class Neo4jNativeAvatarTests
         using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var inspection = driver.AsyncSession();
         var input = new Holon { Id = Guid.NewGuid(), Name = "private-neo-original-receipt" };
-        var operation = Guid.NewGuid();
+        var operation = Guid.NewGuid(); var appendOperation = Guid.NewGuid();
         var actor = Guid.NewGuid();
         var arguments = new { id = input.Id.ToString("D"), operation = operation.ToString("D") };
         try
@@ -44,7 +44,7 @@ public partial class Neo4jNativeAvatarTests
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, actor, source = expected, bindOriginal, targetPath });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, appendOperation, actor, source = expected, bindOriginal, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
@@ -108,6 +108,18 @@ public partial class Neo4jNativeAvatarTests
                     operation, enrollment.SourceId, actor, enrollment.TargetIds, requireCompleted: true,
                     consistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated, migrationSource: provider);
 
+                await CosmicNativeAcceptance.CosmicLineageInventoryProbe.VerifyWindowAsync(boundSource.Result, expected,
+                    enrollment.SourceId, operation, enrollment.TargetIds.Count, appendOperation, async () =>
+                    {
+                        var prior = saved.Result.Single();
+                        var edit = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(prior);
+                        edit.Name = "later-lineage-operation";
+                        var update = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(appendOperation, actor, ProviderType.Neo4jOASIS,
+                            new[] { new HolonWriteCondition(input.Id, CosmicConcurrency.GetProviderRevisionId(prior, ProviderType.Neo4jOASIS)) }, enrollment),
+                            ConditionalHolonOperation.Save, new[] { edit }, saveChildren: false);
+                        var appended = await provider.ExecuteReplicatingHolonWriteAsync(update, enrollment);
+                        Assert.IsFalse(appended.IsError, appended.Message + appended.Exception);
+                    }, HolonReplicaHeadReadConsistency.ReadCommittedValidated);
                 var matched = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
                 Assert.IsFalse(matched.IsError, matched.Message + matched.Exception);
                 Assert.AreEqual(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Result.Records[0].Kind);
@@ -131,8 +143,8 @@ public partial class Neo4jNativeAvatarTests
             foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })
                 if (File.Exists(path)) File.Delete(path);
             await (await inspection.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", arguments)).ConsumeAsync();
-            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation DETACH DELETE n", arguments)).ConsumeAsync();
-            var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN count(n) AS count", arguments)).SingleAsync();
+            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations DETACH DELETE n", new { operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).ConsumeAsync();
+            var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId IN $operations) RETURN count(n) AS count", new { arguments.id, operations = new[] { operation.ToString("D"), appendOperation.ToString("D") } })).SingleAsync();
             Assert.AreEqual(0L, remaining["count"].As<long>());
             File.Delete(journal);
         }

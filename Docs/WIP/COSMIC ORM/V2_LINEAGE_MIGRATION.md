@@ -658,3 +658,21 @@ CAS/migration receipts and interrupted-cutover recovery. V1 remains documentatio
 - TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx SHA256 6560DAE50032E921051B7EFC5726397AD7187F81DB8E180C237957FB12C9E9EB.
 - TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 6E8F96829F5C1638F1E549C6ED268FB5AA032F9681C98E84DEBDA3BDF5649964.
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 93E1B313D058C3DA7C4B114AA46BFC7C685B92BFB320735866EA21E962AF3EB7.
+
+
+## Source-wide sequence windows — 29 October 2026
+
+Implemented `IHolonReplicationLineageInventoryOutbox` on SQLite, MongoDB and Neo4j. The first bounded page captures the upper sequence for one exact physical source and lineage; continuation retains that boundary. Completed obligations remain visible. Shared operation observation validation and fingerprints are reused. Native tests append a legitimate second source operation between pages: the captured scan excludes it, while a fresh scan includes it. Neo requires explicit read-committed opt-in; no global snapshot is claimed.
+
+This is read-only evidence. It does not freeze earlier states, acquire a write/delivery fence, authorize a migration, or prove original replica receipts. Next: an immutable authorized preview and native revalidation/fences, then durable idempotent cutover and old-obligation disposition.
+
+| Check | Passed | Evidence path (worktree relative) | SHA256 |
+|---|---|---|---|
+| Core | 4462/4462 | `TestResults/DevelopmentSyncCurrent/lineage-inventory-core.trx` | `5AFA42F84587E15EA41CA1A9AF477AFED50631370D702F48B6DC31C56A787FC8` |
+| Shared | 1416/1416 | `TestResults/DevelopmentSyncCurrent/lineage-inventory-shared.trx` | `390A5B3CAA3161FF7814BE1438C727B0EAE68A5C23A2B6B50B76B715EB6BBAA8` |
+| GraphQL | 1/1 | `TestResults/DevelopmentSyncCurrent/lineage-inventory-graphql.trx` | `36D85395548034528169A1FD2B147A694010EF3EBFCCB1D94042A1BC030D047E` |
+| SQLite | 2/2 | `TestResults/OwnedRoutingCurrent/sqlite-mongo-receipt-preflight.trx` | `4101551779C9D2525F1A10770D008D828D051E8A82E56C0F458E1902E47D80C3` |
+| Mongo | 1/1 | `TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx` | `3034ED5AC7160CD1EA65BFBD748B4D1C736BBD52A784D0A6D32A9AAE92171D76` |
+| Neo | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `7BF13776AADFC91FC1D5D6315062AE9AA306919BC51BFE5434811281BC7B062C` |
+
+Owned fixture journals and temporary receiver files are absent; native fixture cleanup verified, Mongo/Neo ports have no listeners. Reusable runtime/data resources retained.

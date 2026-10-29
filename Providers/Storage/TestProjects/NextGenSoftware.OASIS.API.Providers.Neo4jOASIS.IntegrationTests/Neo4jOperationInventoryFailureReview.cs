@@ -28,6 +28,9 @@ public partial class Neo4jNativeAvatarTests
         using var record = JsonDocument.Parse(await File.ReadAllTextAsync(journal)); var data = record.RootElement;
         Assert.IsFalse(data.GetProperty("bindOriginal").GetBoolean());
         var id = data.GetProperty("id").GetGuid(); var operation = data.GetProperty("operation").GetGuid(); var actor = data.GetProperty("actor").GetGuid();
+        Assert.AreEqual(Guid.Parse("a1a25186-2252-4430-beca-00159fd3703f"), id);
+        Assert.AreEqual(Guid.Parse("5298b7cd-04dd-47ae-9bfc-1741c4067486"), operation);
+        Assert.AreEqual(Guid.Parse("d34ed8d8-55d3-47a1-a092-248a4a5e7ed3"), actor);
         var recordedSource = data.GetProperty("source");
         var expected = new CosmicStorageIdentity(ProviderType.Neo4jOASIS, recordedSource.GetProperty("EndpointFingerprint").GetString()!, recordedSource.GetProperty("StoreId").GetString()!);
         Assert.AreEqual(recordedSource.GetProperty("BindingFingerprint").GetString(), expected.BindingFingerprint);

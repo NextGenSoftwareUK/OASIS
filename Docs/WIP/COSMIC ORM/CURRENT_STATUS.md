@@ -23,10 +23,12 @@ Updated 29 October 2026. Full programme remains incomplete. Start here after com
 
 Complete-operation inventory now implemented on all3native providers: Core4462/Shared1404/GraphQL1, native SQLite2/Mongo1/Neo2 and preserved-failure reconciliation1 pass. Completed/later obligations and hidden lease changes are retained in redacted fingerprints. Neo exact-operation Unicode cursor fixed using its existing native range index; original failure reconciled without replay. The global route-head reader is now fixed too: Neo625/Shared1405/Core4462/GraphQL1 and native Neo2/SQLite2/Mongo1 pass; activation verifies the required target-order index. [Scope](V2_LINEAGE_MIGRATION.md).
 
+Source-wide lineage inventory now passes Core4462/Shared1416/GraphQL1 and native SQLite2/Mongo1/Neo2. A later save is excluded from the captured window and visible in a new scan on all three sources. Earlier row state changes remain possible; authorization, fences and execution are still open.
+
 ## Exact next step
 
-1. Complete source-wide lineage inventory/quiescence scope and bind all affected original obligations/receipts into the operator preview.
-2. Implement an immutable, authorized operator preview bound to complete inventory, original receipts, exact targets, old/new lineage, revisions, policy and obligations.
+1. Implement the authorized immutable operator preview, using the completed source-wide sequence-window inventory and exact original receipt/target evidence. A captured upper sequence is not a write fence or proof of quiescence.
+2. Bind the preview to the operator policy, exact physical stores, old/new lineage, complete obligations, revisions and content. Revalidate under native fences before any mutation.
 3. Complete remaining ordered-pair and concurrent-change acceptance alongside preview validation; current native cases are scoped, not all-pair certification.
 4. Implement per-store compare-and-swap and durable idempotent migration receipts, then interrupted-cutover recovery and old-obligation disposition.
 5. Finish remaining provider-pair outage/cold-start acceptance before resuming broader priority-provider ORM/CQL parity.

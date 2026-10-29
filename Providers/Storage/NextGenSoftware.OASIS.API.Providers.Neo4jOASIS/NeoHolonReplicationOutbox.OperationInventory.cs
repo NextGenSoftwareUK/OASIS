@@ -35,17 +35,19 @@ public sealed partial class NeoHolonReplicationOutbox
             var records = await (await tx.RunAsync(query,
                 new { operation = request.OperationId.ToString("D"), after = request.AfterTargetId, limit = request.PageSize + 1 })
                 .ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
-            var rows = records.Select(record =>
-            {
-                var row = record["o"].As<Neo4j.Driver.INode>(); var state = ValidateRow(row); var binding = ValidatePayload(row, state.Operation);
-                var inspection = new HolonDeliveryInspection(Long(row, "Sequence"), state.Operation, Text(row, "TargetId"),
-                    state.State, state.Attempts, Text(row, "LastErrorCode"), null, state.Evidence, binding);
-                return HolonReplicationOperationObservation.Capture(inspection, Text(row, "SourceId"), ProviderType.Neo4jOASIS,
-                    Guid.Parse(Text(row, "ActorId")), Text(row, "PayloadDigest"), Text(row, "LeaseToken"), Text(row, "LeaseWorkerId"),
-                    Ticks(row, "LeaseUntilUtcTicks"), Ticks(row, "NextAttemptUtcTicks"), Ticks(row, "CompletedAtUtcTicks"), Text(row, "RecoveryEvidenceDigest"));
-            }).ToArray();
+            var rows = records.Select(record => ReadOperationObservation(record["o"].As<Neo4j.Driver.INode>())).ToArray();
             return (new OASISResult<HolonReplicationOperationPage>(new(request, rows.Take(request.PageSize),
                 rows.Length > request.PageSize, HolonReplicaHeadReadConsistency.ReadCommittedValidated)) { IsLoaded = true }, false);
         }, () => { }, cancellationToken);
     }
+    private static HolonReplicationOperationObligation ReadOperationObservation(Neo4j.Driver.INode row)
+    {
+        var state = ValidateRow(row); var binding = ValidatePayload(row, state.Operation);
+        var inspection = new HolonDeliveryInspection(Long(row, "Sequence"), state.Operation, Text(row, "TargetId"),
+            state.State, state.Attempts, Text(row, "LastErrorCode"), null, state.Evidence, binding);
+        return HolonReplicationOperationObservation.Capture(inspection, Text(row, "SourceId"), ProviderType.Neo4jOASIS,
+            Guid.Parse(Text(row, "ActorId")), Text(row, "PayloadDigest"), Text(row, "LeaseToken"), Text(row, "LeaseWorkerId"),
+            Ticks(row, "LeaseUntilUtcTicks"), Ticks(row, "NextAttemptUtcTicks"), Ticks(row, "CompletedAtUtcTicks"), Text(row, "RecoveryEvidenceDigest"));
+    }
+
 }

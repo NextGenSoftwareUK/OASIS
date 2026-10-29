@@ -36,14 +36,19 @@ public sealed partial class SqliteHolonReplicationOutbox
             while (reader.Read())
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var state = ReadCurrentInspection(reader, true).Result;
-                rows.Add(HolonReplicationOperationObservation.Capture(state, reader.GetString(11), ProviderType.SQLLiteDBOASIS,
-                    Guid.Parse(reader.GetString(13)), reader.GetString(10), reader.IsDBNull(17) ? null : reader.GetString(17),
-                    reader.IsDBNull(18) ? null : reader.GetString(18), reader.GetInt64(14), reader.GetInt64(15), reader.GetInt64(16),
-                    reader.IsDBNull(8) ? null : reader.GetString(8)));
+                rows.Add(ReadOperationObservation(reader));
             }
             return new OASISResult<HolonReplicationOperationPage>(new(request, rows.Take(request.PageSize),
                 rows.Count > request.PageSize, HolonReplicaHeadReadConsistency.NativeSnapshot)) { IsLoaded = true };
         }, cancellationToken);
     }
+    private static HolonReplicationOperationObligation ReadOperationObservation(SqliteDataReader reader)
+    {
+        var state = ReadCurrentInspection(reader, true).Result;
+        return HolonReplicationOperationObservation.Capture(state, reader.GetString(11), ProviderType.SQLLiteDBOASIS,
+            Guid.Parse(reader.GetString(13)), reader.GetString(10), reader.IsDBNull(17) ? null : reader.GetString(17),
+            reader.IsDBNull(18) ? null : reader.GetString(18), reader.GetInt64(14), reader.GetInt64(15), reader.GetInt64(16),
+            reader.IsDBNull(8) ? null : reader.GetString(8));
+    }
+
 }

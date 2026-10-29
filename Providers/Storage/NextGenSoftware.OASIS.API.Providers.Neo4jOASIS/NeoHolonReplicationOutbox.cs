@@ -16,7 +16,7 @@ using INode=Neo4j.Driver.INode;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 /// <summary>Fenced delivery over an existing enrolled graph database. The caller retains driver ownership.</summary>
-public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationOperationInventoryOutbox, IHolonReplicationDestinationCatalogue
+public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationLineageInventoryOutbox, IHolonReplicationDestinationCatalogue
 {
     private readonly IDriver _driver;
     private readonly CosmicStorageIdentity _expectedSource;

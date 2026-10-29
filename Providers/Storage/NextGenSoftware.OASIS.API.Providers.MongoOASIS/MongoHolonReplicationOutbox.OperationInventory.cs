@@ -33,16 +33,21 @@ public sealed partial class MongoHolonReplicationOutbox
             foreach (var row in cursor.Current)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var state = ValidateRow(row); var binding = ValidatePayload(row, state.Operation);
-                var inspection = new HolonDeliveryInspection(row["Sequence"].AsInt64, state.Operation, row["TargetId"].AsString,
-                    state.State, state.Attempts, NullableString(row, "LastErrorCode"), null, state.Evidence, binding);
-                rows.Add(HolonReplicationOperationObservation.Capture(inspection, row["SourceId"].AsString, ProviderType.MongoDBOASIS,
-                    Guid.Parse(row["ActorId"].AsString), row["PayloadDigest"].AsString, NullableString(row, "LeaseToken"),
-                    NullableString(row, "LeaseWorkerId"), Ticks(row, "LeaseUntilUtcTicks"), Ticks(row, "NextAttemptUtcTicks"),
-                    Ticks(row, "CompletedAtUtcTicks"), NullableString(row, "RecoveryEvidenceDigest")));
+                rows.Add(ReadOperationObservation(row));
             }
             return new OASISResult<HolonReplicationOperationPage>(new(request, rows.Take(request.PageSize),
                 rows.Count > request.PageSize, HolonReplicaHeadReadConsistency.NativeSnapshot)) { IsLoaded = true };
         }, cancellationToken);
     }
+    private static HolonReplicationOperationObligation ReadOperationObservation(BsonDocument row)
+    {
+        var state = ValidateRow(row); var binding = ValidatePayload(row, state.Operation);
+        var inspection = new HolonDeliveryInspection(row["Sequence"].AsInt64, state.Operation, row["TargetId"].AsString,
+            state.State, state.Attempts, NullableString(row, "LastErrorCode"), null, state.Evidence, binding);
+        return HolonReplicationOperationObservation.Capture(inspection, row["SourceId"].AsString, ProviderType.MongoDBOASIS,
+            Guid.Parse(row["ActorId"].AsString), row["PayloadDigest"].AsString, NullableString(row, "LeaseToken"),
+            NullableString(row, "LeaseWorkerId"), Ticks(row, "LeaseUntilUtcTicks"), Ticks(row, "NextAttemptUtcTicks"),
+            Ticks(row, "CompletedAtUtcTicks"), NullableString(row, "RecoveryEvidenceDigest"));
+    }
+
 }
