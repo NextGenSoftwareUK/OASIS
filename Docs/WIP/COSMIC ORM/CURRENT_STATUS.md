@@ -27,7 +27,7 @@ Native mutation-start capability passes SQLite2/2, Mongo2/2 and Neo2/2. Exact pr
 ## Exact next step
 
 1. Cosmos blockchain local MVP verified: controls14/14, native3/2 query1/1 plus full restart/reuse1/1, Mongo-paired C#/HTTP1/1 and actual browser5/4. Launcher `-Provider CosmosChain -Federated` (5101), distinct from Azure Cosmos DB. Original contract/key/seed and four signed preparations/acks retained unchanged. Owned services stopped; temporary Mongo DB cleaned. [Proof](COSMOS_BLOCKCHAIN_CQL_MVP.md).
-2. Next: Polkadot, then NEAR and other suitable existing providers before deeper parity. Inspect/reuse retained runtime, native state and dependencies; one bounded native filtered query + Mongo-paired C#/HTTP/browser MVP per provider. No historical resets. Hosted Azure stays pending by user instruction; legacy HyperDrive gaps are documentation-only.
+2. Polkadot adapter now builds and passes 7/7 controlled tests (`TestResults/PolkadotCqlCurrent/polkadot-cql-controls.trx`). Native service and paired demo are not yet verified. Next: reuse retained Polkadot runtime/contract, prove native selection, then add Mongo-paired demos. NEAR and other suitable existing providers follow before deeper parity. Inspect/reuse retained runtime, native state and dependencies; one bounded native filtered query + Mongo-paired C#/HTTP/browser MVP per provider. No historical resets. Hosted Azure stays pending by user instruction; legacy HyperDrive gaps are documentation-only.
 3. Park deeper migration work: SQLite and Mongo matching-replica adoption now have scoped native proofs; Neo adoption, empty-target transfer, source/outbox CAS, final decision and interrupted cutover remain red. No global cutover/100% claim.
 
 ## HyperDrive verification already retained
