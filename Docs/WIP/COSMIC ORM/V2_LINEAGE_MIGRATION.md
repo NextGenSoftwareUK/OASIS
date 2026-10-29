@@ -1355,3 +1355,14 @@ Evidence:
 - TestResults/DevelopmentSyncCurrent/barrier-plan.trx SHA256 BE16B0798457E7B515239B5B159EE74AE883A87F65A4CCDAC9F46FC454CED8F0
 - TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 83B8E637BD08B255A9AF81C01C3A8FCDBFEA1452AB70532ACE35FE7BBAF9AC60
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 9773A17DB0A018F4DE31DC2F231C47924BB6C2B4509154EED37DDD4F0FD4C06F
+
+## Abrupt coordinator process exit and fresh-process recovery, 29 October 2026
+
+Neo source-receipt parent cases2/2 now persist original plan plus separate credential-free host approval/route configuration before launching a child coordinator. Child-only acceptance is explicitly gated and runs in a separate test class, outside ordinary native avatar selection. First process reads the plan and acquires the first native scope, flushes a commit boundary then kills itself before coordinator acknowledgement; no managed compensation/finally executes. Parent requires abnormal termination plus the exact migration/context boundary. Second independent process reconstructs native bindings/current original grant from retained host configuration, loads hash-verified original plan without any preview object, observes exactly1 Held/1 Absent and acquires exactly1 missing scope. Its selected child case must pass1/1, with distinct process ids verified. Parent subsequently reads both held barriers, verifies replay rejection/history and cancels only before any migration data mutation.
+
+This proves one actual coordinator process-crash boundary over two stores, not WEB4 deployment restart, remote network loss, database/server restart, power loss, every store ordering or cutover recovery. Parent2/2 passes in15s; last retained recovery child1/1. Crash child run is intentionally aborted (not a passing test case); parent assertions classify its actual exit/boundary. Child outputs use fixed TestResults paths and are overwritten per parent data case; the parent TRX proves both cases. Exact context/boundary/plan fixture files were removed only after successful native cancellation/cleanup. No new runtime/environment/install/restore.
+
+Evidence:
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 31F6791198F146440CEE241128C32E8D586E51B78A27EB3DEC543F0D45AFB294
+- TestResults/Neo4jCurrent/barrier-acquire-crash-child.log SHA256 8271D9D9BBB789A82BCAC79A02B5D5144C4773FD3B9D55B5AA1EB1BDF3C146AC
+- TestResults/Neo4jCurrent/barrier-resume-child.trx SHA256 8B0370253F19307F5621871DB74BA552BE086922B085400ECC3833F7DC87311E
