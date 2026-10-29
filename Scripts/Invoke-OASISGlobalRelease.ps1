@@ -164,7 +164,7 @@ function Get-ReleaseLabelOverride([string]$Repository, $Commits) {
     return $null
 }
 
-function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$TagPrefixes, [string]$GitRoot = $repoRoot) {
+function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$TagPrefixes, [string]$GitRoot = $repoRoot, [string]$SinceCommit = '') {
     $current = [version]$Baseline
     if ($VersionMode -eq 'Manual') {
         if ($ManualVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'Manual mode requires a stable X.Y.Z ManualVersion.' }
@@ -181,7 +181,7 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
         }
         $previous = @($tags | Sort-Object Version -Descending | Select-Object -First 1)
         if ($previous.Count -and $previous[0].Version -gt $current) { $current = $previous[0].Version }
-        $range = if ($previous.Count) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
+        $range = if ($SinceCommit) { "$SinceCommit..HEAD" } elseif ($previous.Count) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
         $commits = @(& git -C $GitRoot log $range --no-merges --format='%H%x09%s' -- @Paths | ForEach-Object { $parts=$_ -split "`t",2; if($parts.Count -eq 2 -and $parts[1] -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)'){[pscustomobject]@{Sha=$parts[0];Subject=$parts[1]}} })
         $subjects = @($commits.Subject)
         if ($subjects.Count -eq 0) {
@@ -208,9 +208,12 @@ function Get-RequestedVersion([string]$Baseline, [string[]]$Paths, [string[]]$Ta
     return $proposed
 }
 
-# An API has changed when commits touch its paths after the commit that last wrote its release history (its release point; needs no tags).
+# An API's release point is the commit that last wrote its release history (the APIs are deployed from Railway and have no release tags).
+function Get-ApiReleasePoint([string]$HistoryPath, [string]$GitRoot = $repoRoot) { return (& git -C $GitRoot log -1 --format=%H -- $HistoryPath) }
+
+# An API has changed when commits touch its paths after its release point.
 function Test-ApiChangedSinceRelease([string]$HistoryPath, [string[]]$Paths, [string]$GitRoot = $repoRoot) {
-    $releasePoint = (& git -C $GitRoot log -1 --format=%H -- $HistoryPath)
+    $releasePoint = Get-ApiReleasePoint $HistoryPath $GitRoot
     $range = if ($releasePoint) { "$releasePoint..HEAD" } else { 'HEAD' }
     $subjects = @(& git -C $GitRoot log $range --no-merges --format='%s' -- @Paths | Where-Object { $_ -notmatch '^(Merge |Promote |chore: bump submodule|chore: update submodule)' })
     return $subjects.Count -gt 0
@@ -451,7 +454,7 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
             $versionDecisions.Add([pscustomobject]@{ scope=($history.Paths -join ', '); current=$Versions[$history.Key]; proposed=$Versions[$history.Key]; bump='None'; reason="$($history.Name) has no changes since its last release; version kept." })
             continue
         }
-        $updates[$history.Key] = Get-RequestedVersion $Versions[$history.Key] $history.Paths $history.Prefixes $history.GitRoot
+        $updates[$history.Key] = Get-RequestedVersion $Versions[$history.Key] $history.Paths $history.Prefixes $history.GitRoot (Get-ApiReleasePoint (Join-Path $repoRoot $history.Path) $history.GitRoot)
     }
     foreach ($entry in $updates.GetEnumerator()) {
         $pattern = "(?m)(public static string $($entry.Key) \{ get; set; \} = `")\d+\.\d+\.\d+(`";)"
@@ -471,7 +474,8 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
             }
         }
         $previous = @($previousTags | Sort-Object Version -Descending | Select-Object -First 1)
-        $range = if ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
+        $releasePoint = Get-ApiReleasePoint $path $history.GitRoot
+        $range = if ($releasePoint) { "$releasePoint..HEAD" } elseif ($previous.Count -gt 0) { "$($previous[0].Tag)..HEAD" } else { 'HEAD' }
         $logArgs = @('-C', $history.GitRoot, 'log', $range, '--no-merges', '--format=%H%x09%s', '--') + $history.Paths
         $seenSubjects = @{}
         $changes = @(& git @logArgs | ForEach-Object {
@@ -486,7 +490,7 @@ function Set-Web4ToWeb6VersionsAndHistory($Versions) {
         if ($ReleaseNotes) { $changes = @("- $ReleaseNotes") + $changes }
         if ($changes.Count -eq 0) { $changes = @('- No API-path changes were detected after the previous release tag; this version records the validated coordinated API source graph.') }
         $changeText = $changes -join "`n"
-        $changelog = if ($previous.Count -gt 0) { "https://github.com/$($history.Repository)/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
+        $changelog = if ($releasePoint) { "https://github.com/$($history.Repository)/compare/$releasePoint...HEAD" } elseif ($previous.Count -gt 0) { "https://github.com/$($history.Repository)/compare/$($previous[0].Tag)...HEAD" } else { 'Initial API release; the list above is the complete version changelog.' }
         $entry = "`n----------------------------------------------------------------------------------------------------------------------------`n## $($history.Version) ($date)`n`n$($history.Intro)`n`n### What's new in $($history.Version)`n`n$changeText`n`n### Full changelog`n`n$changelog`n`n- Published by the automated OASIS global release process after CI validation.`n"
         # Release histories are chronological documents: oldest at the top, newest at the bottom.
         $updated = $existing.TrimEnd() + "`n" + $entry
