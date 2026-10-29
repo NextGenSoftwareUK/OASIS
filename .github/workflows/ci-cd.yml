@@ -403,6 +403,48 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      - name: Verify CQL on the existing S3-compatible service
+        if: matrix.backend.name == 'MinIO'
+        working-directory: OASIS
+        env:
+          OASIS_S3_CQL_NATIVE: '1'
+          OASIS_S3_CQL_ENDPOINT: http://127.0.0.1:9000
+          OASIS_S3_CQL_BUCKET: cosmic-cql-s3
+          OASIS_S3_CQL_STATE: LocalState/COSMIC/S3Cql
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+        run: |
+          # Reuse this job's service and separately masked key. The source is
+          # retained across the restart, then retired with this disposable job.
+          export OASIS_S3_CQL_STORAGE_KEY="$OASIS_MINIO_CONFORMANCE_STORAGE_KEY"
+          dotnet test Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests \
+            --configuration Release --no-restore /m:2 /nr:false /p:UseSharedCompilation=false \
+            --filter FullyQualifiedName~AwsS3CqlNativeTests \
+            --logger 'trx;LogFileName=s3-cql-initial.trx' --results-directory TestResults/AwsS3CqlCurrent
+          docker restart --time 15 oasis-backend
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:9000/minio/health/ready > /dev/null; then
+              break
+            fi
+            if [ "$i" -eq 60 ]; then exit 1; fi
+            sleep 1
+          done
+          dotnet test Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests \
+            --configuration Release --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false \
+            --filter FullyQualifiedName~AwsS3CqlNativeTests \
+            --logger 'trx;LogFileName=s3-cql-restart.trx' --results-directory TestResults/AwsS3CqlCurrent
+
+      - name: Preserve S3 CQL summaries and test results
+        if: always() && matrix.backend.name == 'MinIO'
+        uses: actions/upload-artifact@v7
+        with:
+          name: s3-cql-native
+          path: |
+            OASIS/TestResults/AwsS3CqlCurrent/*.trx
+            OASIS/LocalState/COSMIC/S3Cql/demo-seed*.json
+          retention-days: 7
+          if-no-files-found: warn
+
       - name: Backend logs on failure
         if: failure()
         run: docker logs oasis-backend || true
