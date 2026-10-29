@@ -4,6 +4,7 @@ using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Provider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -23,6 +24,8 @@ public partial class Neo4jNativeAvatarTests
         var journal = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/source-receipt.pending.json");
         Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
         Assert.IsFalse(File.Exists(journal), "Unfinished original outcomes require reconciliation.");
+        var targetPath = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/source-receipt-target.db");
+        Assert.IsFalse(File.Exists(targetPath), "Preserve any unfinished replica fixture.");
         var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
         using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
         using var inspection = driver.AsyncSession();
@@ -41,7 +44,7 @@ public partial class Neo4jNativeAvatarTests
                 ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
             using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
-                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, actor, source = expected, bindOriginal });
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, actor, source = expected, bindOriginal, targetPath });
                 file.Flush(true);
             }
             var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
@@ -84,6 +87,29 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse(reconstructed.IsError, reconstructed.Message + reconstructed.Exception);
             Assert.AreEqual(ConditionalHolonReceiptState.Committed, reconstructed.Result.ReceiptState);
             Assert.AreEqual(before, await Snapshot());
+            // Actual Neo source -> independent SQLite receiver. Source receipt is
+            // immutable; the target observation uses its native snapshot reader.
+            using (var replica = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={targetPath};Pooling=False"))
+            {
+                Assert.IsFalse((await replica.ActivateProviderAsync()).IsError);
+                var targetBinding = await replica.CaptureStorageIdentityAsync(); Assert.IsFalse(targetBinding.IsError);
+                var preflightRequest = new ConditionalHolonReceiptEvidenceRequest(request, expected, targetBinding.Result, new[] { input.Id });
+                var missing = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
+                Assert.IsFalse(missing.IsError, missing.Message + missing.Exception);
+                Assert.AreEqual(HolonReplicationReceiptComparisonKind.MissingReplicaHead, missing.Result.Records[0].Kind);
+                var applied = await replica.ApplyBoundCommittedHolonReplicaAsync(new CommittedHolonReplicaRequest(
+                    operation, enrollment.SourceId, ProviderType.Neo4jOASIS, actor, request.Operation, saved.Result, saveChildren: false), targetBinding.Result);
+                Assert.IsFalse(applied.IsError, applied.Message + applied.Exception);
+                var matched = await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest);
+                Assert.IsFalse(matched.IsError, matched.Message + matched.Exception);
+                Assert.AreEqual(HolonReplicationReceiptComparisonKind.MatchesOriginalReceipt, matched.Result.Records[0].Kind);
+                Assert.AreEqual(HolonReplicaHeadReadConsistency.NativeSnapshot, matched.Result.TargetConsistency);
+                Assert.IsFalse(matched.IsSaved);
+                Assert.AreEqual(matched.Result.ObservationDigest,
+                    (await HolonReplicationReceiptPreflight.ReadAsync(provider, replica, preflightRequest)).Result.ObservationDigest);
+            }
+            foreach (var path in new[] { targetPath, targetPath + "-wal", targetPath + "-shm" })
+                if (File.Exists(path)) File.Delete(path);
             await (await inspection.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", arguments)).ConsumeAsync();
             await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation DETACH DELETE n", arguments)).ConsumeAsync();
             var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN count(n) AS count", arguments)).SingleAsync();

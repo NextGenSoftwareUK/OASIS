@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$SourceReceipt,[switch]$ReplicaLifecycle,[switch]$InspectReplicaLifecycleFailure,[switch]$ReconcileReplicaLifecycleFailure)
+param([switch]$MigrationPreflight,[switch]$SourceReceipt,[switch]$ReplicaLifecycle,[switch]$InspectReplicaLifecycleFailure,[switch]$ReconcileReplicaLifecycleFailure)
 if($PSBoundParameters.Count -gt 1){throw 'Choose one explicit mode.'}
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -17,10 +17,10 @@ Set-Location $root
     $project='Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
     New-Item -ItemType Directory -Force -Path $work | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $root 'TestResults/SubscriptionUsageCurrent') | Out-Null
-    $filter=if($SourceReceipt){'FullyQualifiedName~BoundOriginalReceiptRequiresActualNativeSourceWithoutRewritingIntent'}elseif($ReconcileReplicaLifecycleFailure){'FullyQualifiedName~ReconcileInspectedReplicaLifecycleSetupFailureWithoutReplayingWrites'}elseif($InspectReplicaLifecycleFailure){'FullyQualifiedName~InspectOriginalReplicaLifecycleFailureWithoutMutatingStores'}elseif($ReplicaLifecycle){'FullyQualifiedName~NativeCommittedReplicasBindSourceLineageGraphHeadAndReceipt'}else{'FullyQualifiedName~MongoDestinationCatalogueRetainsNativeMeaningAtomically'}
-    $reportName=if($SourceReceipt){'mongo-bound-source-receipt.trx'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.trx'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.trx'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.trx'}else{'mongo-destination-catalogue.trx'}
-    $logName=if($SourceReceipt){'mongo-bound-source-receipt.log'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.log'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.log'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.log'}else{'mongo-destination-catalogue.log'}
-    $expectedCount=if($SourceReceipt){2}elseif($ReconcileReplicaLifecycleFailure){1}elseif($InspectReplicaLifecycleFailure){1}elseif($ReplicaLifecycle){2}else{6}
+    $filter=if($MigrationPreflight){'FullyQualifiedName~NativeReceiptPreflightClassifiesMissingCurrentLaterAndHardDeletedReplicaWithoutMutation'}elseif($SourceReceipt){'FullyQualifiedName~BoundOriginalReceiptRequiresActualNativeSourceWithoutRewritingIntent'}elseif($ReconcileReplicaLifecycleFailure){'FullyQualifiedName~ReconcileInspectedReplicaLifecycleSetupFailureWithoutReplayingWrites'}elseif($InspectReplicaLifecycleFailure){'FullyQualifiedName~InspectOriginalReplicaLifecycleFailureWithoutMutatingStores'}elseif($ReplicaLifecycle){'FullyQualifiedName~NativeCommittedReplicasBindSourceLineageGraphHeadAndReceipt'}else{'FullyQualifiedName~MongoDestinationCatalogueRetainsNativeMeaningAtomically'}
+    $reportName=if($MigrationPreflight){'mongo-receipt-preflight.trx'}elseif($SourceReceipt){'mongo-bound-source-receipt.trx'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.trx'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.trx'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.trx'}else{'mongo-destination-catalogue.trx'}
+    $logName=if($MigrationPreflight){'mongo-receipt-preflight.log'}elseif($SourceReceipt){'mongo-bound-source-receipt.log'}elseif($ReconcileReplicaLifecycleFailure){'mongo-replica-lifecycle-reconciliation.log'}elseif($InspectReplicaLifecycleFailure){'mongo-replica-lifecycle-inspection.log'}elseif($ReplicaLifecycle){'mongo-replica-lifecycle.log'}else{'mongo-destination-catalogue.log'}
+    $expectedCount=if($MigrationPreflight){1}elseif($SourceReceipt){2}elseif($ReconcileReplicaLifecycleFailure){1}elseif($InspectReplicaLifecycleFailure){1}elseif($ReplicaLifecycle){2}else{6}
     foreach($producer in @(
         'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj',
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',

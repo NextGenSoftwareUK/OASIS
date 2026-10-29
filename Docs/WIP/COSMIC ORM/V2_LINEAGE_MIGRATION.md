@@ -398,3 +398,87 @@ mismatch classifications, then native pairs. Guarded execution remains red.
 - TestResults/DevelopmentSyncCurrent/receipt-evidence-graphql.trx SHA256 9CB37B9E2262714D1CC88642BB83BABFE649F611DB8B3F1D13BC88281DC20F89.
 - TestResults/OwnedRoutingCurrent/mongo-bound-source-receipt.trx SHA256 B84B95F97D737AFD768F9E69F5E007518A99714FD71FC4C1BC383399EF13AE48.
 - TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 D6D7CE81A849F17348ACF7A103BAECB386F3CE473BD207B90EA352E3DD7D3B76.
+
+## Read-only source/target comparison report (29 October)
+
+`HolonReplicationReceiptPreflight.ReadAsync` verifies the original bound receipt
+before contacting the explicitly bound target-head reader. `Compare` validates
+separately obtained observations through the same rules. Neither method captures
+identities, claims work, writes data, retries a save or grants migration permission.
+
+```csharp
+var request = new ConditionalHolonReceiptEvidenceRequest(
+    original,
+    expectedSource,
+    expectedTarget,
+    selectedHolonIds);
+
+var comparison = await HolonReplicationReceiptPreflight.ReadAsync(
+    source,
+    target,
+    request,
+    cancellationToken: cancellationToken);
+
+if (comparison.IsError)
+    throw new InvalidOperationException(comparison.Message, comparison.Exception);
+
+foreach (var row in comparison.Result.Records)
+    Console.WriteLine($"{row.Original.HolonId}: {row.Kind}");
+
+Console.WriteLine(comparison.Result.IsCompleteOriginalGraph);
+Console.WriteLine(comparison.Result.ObservationDigest);
+```
+
+The target defaults to NativeSnapshot. A Neo target requires explicit
+`targetConsistency: HolonReplicaHeadReadConsistency.ReadCommittedValidated`;
+a weaker result cannot satisfy a strict request. A Neo source retains its
+read-committed immutable-receipt observation, independently of target consistency.
+The two reads do not form a global snapshot.
+
+Rows distinguish MatchesOriginalReceipt, MissingReplicaHead, UntrackedCurrentRecord,
+SourceLineageConflict, LogicalVersionConflict, DeletionConflict, ContentConflict and
+PortableContentEvidenceMissing. A local record without a protected head is never
+inferred to be a replica. Provider revision equality across different stores is
+not required; each native reader verifies its own protected revision.
+
+Wrong operation/actor/store/identity scope, absent receipt or insufficient consistency
+returns an error without partial rows. A mismatch in verified content/lineage instead
+returns an explicit comparison row. Original source lineage must come from the
+original replication enrollment. Old evidence without an original-input binding is
+insufficient. The source projection now binds the unchanged supplied input using
+`ConditionalHolonPlan`'s existing canonical fingerprint; this observation binding is
+separate from the native persisted SQLite receipt hash. Changing the original input
+or its enrollment after observation invalidates the evidence.
+
+The versioned redacted report includes source/target authorities and physical
+fingerprints, operation/actor, original input fingerprint, original graph count,
+requested/actual target consistency, ordered records and an observation checksum.
+The checksum binds observed target revisions even when portable content is equal.
+It is reproducible from the documented ordered report fields, not a signature or
+operator authorization. A subset explicitly reports IsCompleteOriginalGraph=false.
+Source/target revisions and obligations must still be rechecked atomically at cutover.
+
+Verified: Core4462, Shared1380 (20new preflight controls), shipping GraphQL1;
+SQLite2 native copied-file preflights classify untracked current records without
+changing the copy's data version. Mongo1 native cohort proves missing -> matching ->
+newer-version conflict -> matching later receipt -> matching hard-delete, with
+unchanged source/target graph/head/receipt/queue snapshots during reads. Neo2 native
+cohorts (historical/already-bound intents) prove actual Neo -> separate SQLite
+receiver missing/matching states and stable observation checksums. No skipped cases.
+Native cohorts preceded the final report-only serialization field layout; final
+serialization/digest binding is covered by the Shared controls. These do not certify
+all ordered provider pairs, concurrent mutation windows or migration execution.
+
+Commands: existing Mongo runner `-MigrationPreflight`, Neo runner
+`-CosmicSourceReceipt` under the provider build lease, and the selected SQLite
+`CopiedSourceReceiptCannotVerifyOrReplayOriginalBoundOperation` cohort.
+
+Next: remaining native SQLite/Mongo/Neo pair/race/hard-delete comparisons, then an
+immutable authorized operator preview and per-store CAS/migration receipts. Quiescent
+cutover, crash recovery and pending-obligation disposition remain red.
+- TestResults/DevelopmentSyncCurrent/receipt-preflight-core.trx SHA256 B746B07BB98CABDC0FC74C511E6E1692B8D8A1BD20B7DF7FAF1D1060F7B97FB1.
+- TestResults/DevelopmentSyncCurrent/receipt-preflight-shared.trx SHA256 FDE4197BA683062AEF16F04E3635FA34F231645FC0E68C1DA3A9AA3A2A3112B1.
+- TestResults/DevelopmentSyncCurrent/receipt-preflight-sqlite.trx SHA256 EB17AEB2BC4E92220E1E382EC4D808DDE3AFE7B4ADB4ED624BC3DBD86AE040EE.
+- TestResults/DevelopmentSyncCurrent/receipt-preflight-graphql.trx SHA256 2028834FD6AC0B440FAED98027FBD2885634B96834F18B5904A8FB3E5E357F9D.
+- TestResults/OwnedRoutingCurrent/mongo-receipt-preflight.trx SHA256 1A10509DB7D9E702D1B8B6B40A1C18322049B5C5745D452EE166F51896ADC5D3.
+- TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx SHA256 69F325FAD72E656BB4B7E64A7BF463196A899CD5FFDADA6B974423D7FB01394C.

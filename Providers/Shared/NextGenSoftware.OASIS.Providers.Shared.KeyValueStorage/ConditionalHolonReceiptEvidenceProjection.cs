@@ -27,6 +27,13 @@ public static class ConditionalHolonReceiptEvidenceProjection
             return new ConditionalHolonReceiptRecordEvidence(id, record.VersionId, record.PreviousVersionId,
                 record.Version, revision.Value, request.Original.Operation == ConditionalHolonOperation.HardDelete,
                 CommittedHolonReplicaPlan.PortableContentDigest(record, request.ComparisonTarget.Authority));
-        }));
+        }), RequestFingerprint(request.Original));
     }
+
+    // Bind the supplied original input using the existing common intent owner.
+    // This observation fingerprint does not replace SQLite's native receipt hash.
+    internal static string RequestFingerprint(ConditionalHolonWriteRequest original)
+        => (original.Write.ReplicationEnrollment == null
+            ? ConditionalHolonPlan.Create(original, original.Write.Authority)
+            : ConditionalHolonPlan.CreateReplicating(original, original.Write.Authority, original.Write.ReplicationEnrollment)).Fingerprint;
 }
