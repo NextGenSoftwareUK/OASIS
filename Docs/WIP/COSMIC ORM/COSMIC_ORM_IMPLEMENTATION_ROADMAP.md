@@ -33,3 +33,6 @@ Upstash hosted breadth milestone: control17/native/repeat/paired/browser5/4 pass
 
 Litestream Linux breadth milestone: native/live file replication/restore/paired and
 browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays red.
+
+Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
+[scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.

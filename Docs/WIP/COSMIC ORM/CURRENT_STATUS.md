@@ -8,8 +8,9 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Memcached Mongo-paired SDK/HTTP/browser demo in an active volatile generation**.
-Control15/native generations pass3/2/miss/tombstone/paging/CAS; owned daemon stopped. [Contract/proof](MEMCACHED_CQL_MVP.md).
+**Next: inspect Valkey implementation/native resources**, with independent admission.
+Memcached native/paired SDK/HTTP/browser5/4/CAS pass; owned services stopped and
+volatile generation retired. [Commands/proof/lifecycle](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/SDK/HTTP/browser5/4 and launcher pass;
 owned services stopped, fixture removed, source/replicas retained. Windows failure
 stays separate. [Scope/resources/commands](LITESTREAM_CQL_MVP.md).
@@ -39,11 +40,10 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| Memcached + Mongo | Volatile native/SDK/HTTP/browser5/4, values/CAS preserved; no persistence. [Guide](MEMCACHED_CQL_MVP.md). |
 | Litestream + Mongo | Linux live file replication/restore + SDK/HTTP/browser5/4; Windows fsync red. [Guide](LITESTREAM_CQL_MVP.md). |
 | Upstash + Mongo | Hosted free scratch native/repeat/SDK/HTTP/browser5/4; expires Oct31. [Guide](UPSTASH_CQL_MVP.md). |
-| DuckDB + Mongo | Embedded native/reopen/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](DUCKDB_CQL_MVP.md). |
-| SQL Server + Mongo | LocalDB native/restart/SDK/HTTP/browser5/4; JSON, direct registration. [Guide](SQLSERVER_CQL_MVP.md). |
-| PostgreSQL + Mongo | Native/restart/SDK/HTTP/browser5/4; canonical JSON, direct registration. [Guide](POSTGRESQL_CQL_MVP.md). |
+| PostgreSQL / SQL Server / DuckDB + Mongo | Native/reopen and SDK/HTTP/browser5/4; [PostgreSQL](POSTGRESQL_CQL_MVP.md), [SQL Server](SQLSERVER_CQL_MVP.md), [DuckDB](DUCKDB_CQL_MVP.md). |
 | Redis + Mongo | Encrypted DB11/native/restart/paired5/4, direct registration only. [Guide](REDIS_CQL_MVP.md). |
 | Sui + Mongo | Dedicated encrypted native/restart/paired5/4, original Storage preserved. [Guide](SUI_CQL_MVP.md). |
 | LocalFile + Mongo | Native files/restart/paired5/4; plaintext scope. [Guide](LOCALFILE_CQL_MVP.md). |
@@ -60,7 +60,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 28 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 29 scoped MVP
 proof links, 33 active central cases, 11 extra project names requiring classification.
 Green means only linked scope; it does not establish full provider/production parity.
 

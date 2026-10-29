@@ -1,4 +1,6 @@
 """Native volatile-cache proof with explicit process-generation admission/retirement."""
+import argparse
+import sys
 import fcntl
 import hashlib
 import json
@@ -9,6 +11,15 @@ import subprocess
 import time
 import uuid
 import xml.etree.ElementTree as ET
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--federated", action="store_true")
+parser.add_argument("--serve", action="store_true")
+options = parser.parse_args()
+if options.serve and not options.federated:
+    raise RuntimeError("Serve requires explicit federation")
+sys.dont_write_bytecode = True
+from cosmic_linux_mongo_service import owned_linux_mongo
 
 ROOT = Path("/mnt/c/Source/OASIS-cosmic")
 STATE = Path("/var/tmp/oasis-memcached-cql")
@@ -81,6 +92,25 @@ with (STATE / "runner.lock").open("a") as lock:
             assert count["passed"] == count["total"] == "1" and count["notExecuted"] == "0"
             assert stats()["curr_items"] == "5", "Only four records plus owned index may exist"
             assert (STATE / "active-generation-cql.json").is_file()
+            if options.federated:
+                if (STATE / "mongo.pending.json").exists():
+                    raise RuntimeError("Original Mongo fixture pending; preserve without replay")
+                with socket.socket() as reservation:
+                    reservation.bind(("127.0.0.1", 5117))
+                with owned_linux_mongo(RESULTS) as mongo_env:
+                    env.update(mongo_env, OASIS_MEMCACHED_MONGO_SERVE="1" if options.serve else "0")
+                    for name, filename in [("LinuxMongoDemoEnvironmentTests", "mongo-init"), ("MemcachedMongoCqlNativeTests", "memcached-mongo-federation")]:
+                        started = time.time()
+                        with (RESULTS / (filename + ".log")).open("w") as log:
+                            subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), "--TestCaseFilter:FullyQualifiedName~" + name,
+                                            "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=" + filename + ".trx"],
+                                           env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+                        report = RESULTS / (filename + ".trx")
+                        assert report.stat().st_mtime >= started
+                        count = ET.parse(report).find(".//{*}Counters").attrib
+                        assert count["passed"] == count["total"] == "1" and count["notExecuted"] == "0"
+                    assert not (STATE / "mongo.pending.json").exists(), "Owned Mongo fixture cleanup incomplete"
+                assert stats()["curr_items"] == "5", "Pair must preserve only admitted native cache items"
             passed = True
         finally:
             if process.poll() is None:
@@ -96,4 +126,4 @@ with (STATE / "runner.lock").open("a") as lock:
             os.replace(STATE / "active-generation-cql.json", STATE / "last-generation-cql.json")
             os.replace(STATE / "active-process.json", STATE / "last-process.json")
             pending.unlink()
-print("PASS: native cache3/2/missing/tombstone/paging/budget/CAS; owned volatile generation retired cleanly")
+print("PASS: native cache and requested paired proofs; owned Mongo stopped and volatile generation retired cleanly")
