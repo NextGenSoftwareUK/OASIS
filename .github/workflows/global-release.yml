@@ -295,6 +295,12 @@ jobs:
           foreach ($property in $plan.releaseVersions.PSObject.Properties) { "| $($property.Name) | $($plan.components.($property.Name) -eq $true) | $($property.Value) |" >> $env:GITHUB_STEP_SUMMARY }
           if (@($plan.versionDecisions).Count) { "`n### Version decisions" >> $env:GITHUB_STEP_SUMMARY; foreach ($decision in $plan.versionDecisions) { "- **$($decision.bump)**: ``$($decision.current)`` → ``$($decision.proposed)`` for $($decision.scope). $($decision.reason)" >> $env:GITHUB_STEP_SUMMARY } }
           if (@($plan.blockers).Count) { "`n### Publication blockers" >> $env:GITHUB_STEP_SUMMARY; foreach ($blocker in $plan.blockers) { "- $blocker" >> $env:GITHUB_STEP_SUMMARY } }
+          if ('${{ inputs.advance_api_versions }}' -eq 'true') {
+            "`n### API versions and release histories that would be written" >> $env:GITHUB_STEP_SUMMARY
+            $apiChanges = @(git diff --no-color -U0 -- '*OASISBootLoader.cs' '*API RELEASE HISTORY.md' 'Docs/API/*RELEASE-HISTORY.md')
+            if ($apiChanges.Count) { '```diff' >> $env:GITHUB_STEP_SUMMARY; $apiChanges >> $env:GITHUB_STEP_SUMMARY; '```' >> $env:GITHUB_STEP_SUMMARY }
+            else { 'No API has changed since its last release, so no version or history would be written.' >> $env:GITHUB_STEP_SUMMARY }
+          }
           foreach ($note in Get-ChildItem artifacts/global-release/release-notes -Filter '*.md') { "`n---`n" >> $env:GITHUB_STEP_SUMMARY; Get-Content $note.FullName >> $env:GITHUB_STEP_SUMMARY }
       - uses: actions/upload-artifact@v7
         with:
