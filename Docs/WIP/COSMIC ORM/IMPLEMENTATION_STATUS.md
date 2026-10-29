@@ -16,7 +16,8 @@ Acquire-only shared coordinator: Shared1516/1516 (10 new controls), exact review
 and current administrator grant, complete native read-before-acquire, deduplicated physical
 stores, partial/unknown receipt recovery and redacted progress. Native Neo+SQLite2/2 proves held replay protection and fresh-provider recovery; Mongo-preflight1/1 adds three native stores and controlled lost-ack recovery;
 persisted original evidence now passes Shared1529/1529 plus both native fixtures.
-Full host-process restart/crash timing and real transport loss remain open; no cutover or compensation enabled.
+Actual coordinator process kill after first native commit and fresh-process recovery pass Neo+SQLite2/2.
+Deployed WEB4/server/power restart, other boundaries and real transport loss remain open; no cutover or compensation enabled.
 
 Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
 Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.
