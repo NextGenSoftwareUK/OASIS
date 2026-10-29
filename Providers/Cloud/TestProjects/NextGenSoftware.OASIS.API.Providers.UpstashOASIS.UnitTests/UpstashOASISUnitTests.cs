@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeUpstashOASIS()
         {
-            Assert.AreEqual(ProviderType.UpstashOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.UpstashOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -41,11 +41,9 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldIdentifyStorage()
         {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual(ProviderCategory.StorageLocalAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]
