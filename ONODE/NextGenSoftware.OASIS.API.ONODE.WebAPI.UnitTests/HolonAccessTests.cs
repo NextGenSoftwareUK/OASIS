@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         public async Task SetPermissionsAsync_RejectsAnonymousCaller_BeforeTouchingStorage()
         {
             var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
-                new HolonAccess.PermissionChange { Grants = new Dictionary<string, HolonPermission> { [K(Friend)] = HolonPermission.Read } }, caller: null);
+                new HolonPermissionChange { Grants = new Dictionary<string, HolonPermission> { [K(Friend)] = HolonPermission.Read } }, caller: null);
 
             result.IsError.Should().BeTrue();
             result.Message.Should().Contain("Unauthorized");
@@ -183,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
             caller.SetupGet(a => a.Id).Returns(Owner);
 
             var result = await HolonAccess.SetPermissionsAsync(null, Guid.NewGuid(),
-                new HolonAccess.PermissionChange { Grants = new Dictionary<string, HolonPermission> { [grantee] = HolonPermission.Read } }, caller.Object);
+                new HolonPermissionChange { Grants = new Dictionary<string, HolonPermission> { [grantee] = HolonPermission.Read } }, caller.Object);
 
             result.ErrorCode.Should().Be("COSMIC_PERMISSIONS_INPUT_INVALID");
         }
@@ -193,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         {
             var caller = new Mock<IAvatar>();
             caller.SetupGet(a => a.Id).Returns(Owner);
-            var change = new HolonAccess.PermissionChange
+            var change = new HolonPermissionChange
             {
                 Fields = new Dictionary<string, IReadOnlyDictionary<string, HolonPermission>>
                 {

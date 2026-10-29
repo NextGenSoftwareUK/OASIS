@@ -82,12 +82,14 @@ Content-Type: application/json
 {
   "grants":  { "<grantee>": ["read", "write"], "<other>": [] },
   "inherit": { "<grantee>": ["read"] },
-  "fields":  { "public": { "metadata.username": ["read"] } }
+  "fields":  { "public": { "metadata.username": ["read"] } },
+  "inheritFields": { "<grantee>": { "metadata.note": ["read"] } }
 }
 ```
 
 `grants` apply to this holon, `inherit` to it and everything below it, `fields` to single fields (`name`, `description`,
-a property, `metadata.<key>`, `metadata.*`, `*`; read, write, delete only). A list of names sets exactly those; an empty
+a property, `metadata.<key>`, `metadata.*`, `*`; read, write, delete only), `inheritFields` to those fields on
+everything below too. A list of names sets exactly those; an empty
 list removes; anything not listed is unchanged.
 
 ```http
@@ -109,3 +111,9 @@ POST /api/share/groups/{groupId}/members
 Grant to the group's id like an avatar's; changing the members changes everyone's access at once.
 
 Full model, enforcement and error codes: [Holon Permissions](../../HOLON_PERMISSIONS.md).
+
+### Avatar sharing
+
+Avatars are private; you choose what to share. `POST /api/avatar/sharing/avatar` (or `/detail` for profile details) takes
+the same body, for example `{ "fields": { "public": { "username": ["read"] } } }` to share only your username with
+everyone. `GET /api/avatar/sharing/{avatar|detail}` shows what is shared. Passwords and tokens can never be shared.

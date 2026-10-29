@@ -1,6 +1,6 @@
 # Holon permissions
 
-*Added 29 October 2026, extended the same day with fields, groups and inheritance.*
+*Added 29 October 2026, extended the same day with fields, groups, inheritance and avatar sharing.*
 
 Users own their data. Every holon has an owner, and the owner decides, holon by holon and **field by field**, who can see
 it, change it, delete it, build under it, or change those decisions. Access is closed by default: with nothing granted
@@ -43,7 +43,8 @@ Stored on the holon, in its metadata under `OASIS_PERMISSIONS`:
 {
   "grants":  { "<avatar|group|public>": ["read", "write"] },
   "inherit": { "<avatar|group|public>": ["read"] },
-  "fields":  { "<avatar|group|public>": { "metadata.username": ["read"], "name": ["read", "write"] } }
+  "fields":  { "<avatar|group|public>": { "metadata.username": ["read"], "name": ["read", "write"] } },
+  "inheritFields": { "<avatar|group|public>": { "metadata.note": ["read"] } }
 }
 ```
 
@@ -53,6 +54,8 @@ Stored on the holon, in its metadata under `OASIS_PERMISSIONS`:
   anyone the owner: it gives exactly the permissions listed.
 * **fields**: permissions on single fields only. Field names are `name`, `description`, any property of the holon type
   (for example `username`), `metadata.<key>`, `metadata.*` (every metadata key) or `*`.
+* **inheritFields**: the same field permissions, also applying to every holon below this one. Use it to share one kind of
+  field across a whole tree (for example `metadata.note` on everything inside a folder) without giving whole-holon access.
 
 A flat `{"<grantee>":["read"]}` value, written by the first version, is read as `grants`. A value that cannot be parsed
 grants nothing, and changes to that holon's access fail until it is repaired.
@@ -85,7 +88,11 @@ exactly as to an avatar. To change who has access you change the group, not ever
 gain everything granted to it; remove them and it all goes at once.
 
 The group's own permissions decide who may change its membership. A role is just a group with a role-like name
-("Head of School at Lincoln High"). Groups cannot contain groups.
+("Head of School at Lincoln High").
+
+**Groups can contain groups.** A group's member list may hold avatar ids and other group ids, so "all staff" can be made of
+"each school's staff". Membership is transitive (up to 8 levels and 64 groups per person), and a loop (two groups that
+contain each other) is harmless: each group is counted once.
 
 ## What is enforced where
 
@@ -116,7 +123,8 @@ All need `manage` on the holon (the creator always has it) unless stated.
 {
   "grants":  { "<grantee>": ["read", "write"], "<other>": [] },
   "inherit": { "<grantee>": ["read"] },
-  "fields":  { "public": { "metadata.username": ["read"] }, "<grantee>": { "name": ["read", "write"] } }
+  "fields":  { "public": { "metadata.username": ["read"] }, "<grantee>": { "name": ["read", "write"] } },
+  "inheritFields": { "<grantee>": { "metadata.note": ["read"] } }
 }
 ```
 
@@ -126,7 +134,7 @@ same stale-write protection as sharing: a concurrent change is a conflict, never
 
 ### Read permissions: `GET api/share/permissions/{holonId}`
 
-Returns `{ "grants": {...}, "inherit": {...}, "fields": {...} }`.
+Returns `{ "grants": {...}, "inherit": {...}, "fields": {...}, "inheritFields": {...} }`.
 
 ### Groups
 
@@ -137,7 +145,8 @@ Returns `{ "grants": {...}, "inherit": {...}, "fields": {...} }`.
 ### JavaScript client
 
 `@oasisomniverse/web4-api` 2.0.17 and later: `oasis.share.setPermissions`, `getPermissions`, `createGroup`,
-`setGroupMembers`, each taking `{ holonId | groupId, ...body }`.
+`setGroupMembers`, each taking `{ holonId | groupId, ...body }`, and `oasis.avatar.setSharing` / `getSharing`
+(see "Avatars").
 
 ### C#
 
@@ -181,34 +190,63 @@ needs a provider that supports metadata-exists tests.
 
 ## Avatars
 
-An avatar and its detail are holons stored separately. They carry the same `OASIS_PERMISSIONS` metadata and the same
-rules apply to anything that loads them through the holon manager. The avatar-specific read endpoints
-(`api/avatar/get-by-id`, `get-by-username`, `get-avatar-detail-by-*`, portraits and the list endpoints) have **not** been
-moved onto the projection yet; see "Not done yet".
+An avatar record is kept in its own storage and is not a holon in the type system (it derives from the same base, so it
+carries the same metadata and fields). The same permission rules apply to it, with two differences: an avatar has no
+parent, and credentials (password hash, tokens, refresh tokens) can **never** be shared, even with a `*` grant.
+
+Avatars are private by default: only the person themselves (and a Wizard) can read an avatar. To share, the person chooses
+what and with whom:
+
+* `POST api/avatar/sharing/avatar` shares fields of the avatar itself (`username`, `firstName`, `email`...).
+* `POST api/avatar/sharing/detail` shares fields of the profile details.
+* `GET api/avatar/sharing/{avatar|detail}` shows what is currently shared.
+
+The body is the same as `POST api/share/permissions`. To share only a username with everyone, as a public profile page
+would show:
+
+```json
+{ "fields": { "public": { "username": ["read"] } } }
+```
+
+Anyone else who then calls `get-by-id`, `get-by-username`, `get-by-email` or `get-avatar-detail-by-*` gets a copy of the
+avatar holding the username and nothing else. A person who has shared nothing, and an avatar that does not exist, both
+answer "Unauthorized", so the response does not reveal who is registered. Wizards can set sharing on someone's behalf with
+`?avatarId=`. List endpoints (`get-all-*`) remain Wizard-only; portraits and UMA JSON remain owner-or-Wizard.
+
+Code: `AvatarManager.ViewAsAsync` (read), `SetSharingAsync` / `GetSharingAsync` (write) in
+`AvatarManager-Access.cs`, used by `AvatarProfileController`.
 
 ## How PIPER uses it
 
 PIPER keeps districts, schools, staff and students under the System Administrator's avatar. Before this change only the SA
 could read them, which is why a signed-in SLP got "Your account is not linked to an administrator yet". piper-server sets
-permissions in one place (`api/_access.js`): the SA has everything; staff assigned to a student's school can read and
-write the student; staff can read their schools and districts; staff can read colleagues who share a school. It applies
-them on create, on SA saves and when staff change, and the SA's **Reapply access** button (Staff Management) sets them
-again for every record.
+access in one place (`api/_access.js`) using **groups**: one for all staff, one per school, one per district. Records are
+granted to groups: the SA has everything; a student is read and write for its school's staff group; a school or district is
+read for its staff group; a staff record is read for that person and the staff groups of their schools.
 
-## Not done yet
+Adding, moving or removing staff therefore edits group membership (and the one staff record), not every record. The group
+ids are kept in a `PIPER_ACCESS` record under the SA, readable by all staff. The SA's **Reapply access** button creates
+anything missing and sets everything again. If OASIS cannot provide groups (an older server), PIPER falls back to granting
+each staff member individually, which is the same access with more bookkeeping.
 
-* **Avatar read endpoints** need the projection applied so a person can share only a username on their public profile.
-  The stored model already supports it. About 30 endpoints return avatars; they should go through one shared helper.
-* **Field-level grants through CQL** and **inherited grants through CQL** (see above).
-* **PIPER on groups**: PIPER still grants staff one by one. Moving it to a group per school means a staff change edits one
-  group instead of rewriting every record's grants.
-* **Group nesting** and **inherited field grants**.
-* The permission rules run after the provider returns rows (as the creator and public rules always have); only the
-  CQL shared-read rule is a native predicate.
+## Limits and what is not done
+
+* **CQL does not follow inherited grants.** CQL's descendant operator looks downward from a holon ("has a descendant
+  matching"); an inherited grant needs the opposite ("has an ancestor granting this"). Supporting it natively means a new
+  operator in every provider's query translator. Use the regular load endpoints, which follow inheritance, or grant
+  directly on the holons a query must return.
+* **CQL does not serve field-limited grants**, because a CQL row is a whole holon. Field-limited readers use the load
+  endpoints, which project.
+* **Joins and projection composition** check access with only an id, a public flag and a creator, so they cannot see a
+  grant stored in metadata. They keep the owner/public rule.
+* **Avatar portraits and UMA JSON** are separate records and stay owner-or-Wizard.
+* The rules run after the provider returns rows (as the creator and public rules always have); only the CQL shared-read
+  rule is a native predicate.
 
 ## Tests
 
 Core: `HolonPermissionsTests` (grants, format, groups, inheritance, fields, projection, diffs),
 `CosmicOwnedSavePermissionTests` (write, delete, add-children, field writes, "a writer cannot change access"),
-`CosmicSharedReadAccessTests`, `HolonVisibilityGraphTests`. API helper: `HolonAccessTests`. piper-server:
+`CosmicSharedReadAccessTests`, `HolonVisibilityGraphTests` (nested groups, inherited fields and avatar projection are in
+`HolonPermissionsTests`). API helper: `HolonAccessTests`. piper-server:
 `tests/access.test.js`. JavaScript package: the `share.setPermissions` request test.
