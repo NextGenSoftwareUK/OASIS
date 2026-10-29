@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,10 +39,14 @@ public class HolonReplicationMigrationPreviewTests
         public SourceProbe Probe => (SourceProbe)Native;
         public readonly List<HolonReplicationOperationObligation> Rows = new();
         public readonly Dictionary<Guid, HolonReplicationReceiptPreflightReport> Receipts = new();
+        public readonly Dictionary<Guid, ConditionalHolonWriteRequest> Originals = new();
+        public readonly Dictionary<Guid, string> Payloads = new();
         public readonly List<Guid> ReceiptReads = new();
         public Func<HolonReplicationOperationObligation, OASISResult<HolonReplicationReceiptPreflightReport>> Receipt;
         public Func<HolonReplicationOperationObligation, OASISResult<CommittedHolonReplicaReceiptEvidence>> ReplicaReceipt;
         public HolonReplicaHeadReadConsistency ReplicaConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot;
+        public HolonReplicaHeadReadConsistency SourceConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot;
+        public Func<HolonReplicationOperationObligation, HolonReplicationReceiptPreflightReport, OASISResult<HolonReplicationPayloadReceiptProof>> PayloadProof;
         public HolonReplicationRouteBinding Replacement => new(Source, Target, "new-route-policy");
 
         public Fixture()
@@ -60,10 +66,10 @@ public class HolonReplicationMigrationPreviewTests
         public void Add(long sequence, string targetId, HolonDeliveryState state, Guid? operation = null, Guid? actor = null)
         {
             var op = operation ?? Guid.NewGuid(); var owner = actor ?? Guid.NewGuid();
+            if (!Receipts.ContainsKey(op)) Receipts.Add(op, Report(op, owner));
             Rows.Add(HolonReplicationOperationObservation.Capture(new HolonDeliveryInspection(sequence, op, targetId, state,
                 state == HolonDeliveryState.Pending ? 0 : 1, null, null, null), "legacy-source", Source.Authority,
-                owner, new string('C',64), "secret-lease", "secret-worker", 10, 0, state == HolonDeliveryState.Completed ? 1 : 0, null));
-            if (!Receipts.ContainsKey(op)) Receipts.Add(op, Report(op, owner));
+                owner, Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Payloads[op]))), "secret-lease", "secret-worker", 10, 0, state == HolonDeliveryState.Completed ? 1 : 0, null));
         }
 
         public HolonReplicationReceiptPreflightReport Report(Guid operation, Guid actor, string fault = null)
@@ -83,6 +89,9 @@ public class HolonReplicationMigrationPreviewTests
                 Source.Authority, records.Select(r => new HolonWriteCondition(r.Id, null)),
                 new HolonReplicationEnrollment(fault == "lineage" ? "other-lineage" : "legacy-source", new[] { "selected", "other" })),
                 ConditionalHolonOperation.Save, records, saveChildren: false);
+            Originals[operation] = request;
+            Payloads[operation] = CommittedHolonReplicaPayload.Capture(new(request.Write.OperationId, request.Write.ReplicationEnrollment.SourceId,
+                Source.Authority, request.Write.ActorId, request.Operation, records, saveChildren: false));
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(request, source, target, new[] { row.Id });
             var evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, records);
             var outcome = new ConditionalHolonWriteOutcome(request.Write.OperationId, request.Write.ActorId, Source.Authority,
@@ -98,9 +107,14 @@ public class HolonReplicationMigrationPreviewTests
         public Task<OASISResult<HolonReplicationMigrationPreview>> Read(int max = 10, CancellationToken token = default)
             => HolonReplicationMigrationPreviewReader.ReadAsync(Native, Source, "legacy-source", "selected", Target, Replacement,
                 (row, cancellation) => { ReceiptReads.Add(row.OperationId); return Task.FromResult(Receipt(row)); },
-                maxObligations: max, pageSize: 1, cancellationToken: token,
+                maxObligations: max, pageSize: 1, cancellationToken: token, sourceConsistency: SourceConsistency,
                 readOriginalReplicaReceipt: ReplicaReceipt == null ? null : (row, cancellation) => Task.FromResult(ReplicaReceipt(row)),
-                replicaReceiptConsistency: ReplicaConsistency);
+                replicaReceiptConsistency: ReplicaConsistency,
+                readPayloadReceiptProof: PayloadProof == null ? null : (row, receipt, cancellation) => Task.FromResult(PayloadProof(row, receipt)));
+
+        public HolonReplicationPayloadReceiptProof Proof(HolonReplicationOperationObligation row, HolonReplicationReceiptPreflightReport receipt,
+            HolonReplicaHeadReadConsistency consistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+            => HolonReplicationPayloadReceiptVerifier.Verify(Payloads[row.OperationId], row, Originals[row.OperationId], receipt, consistency);
 
         public CommittedHolonReplicaReceiptEvidence Delivered(HolonReplicationOperationObligation row, string fault = null)
         {
@@ -113,9 +127,73 @@ public class HolonReplicationMigrationPreviewTests
                 new[] { new Holon { Id = Guid.NewGuid() } }, saveChildren: false);
             var consistency = fault == "weak" ? HolonReplicaHeadReadConsistency.ReadCommittedValidated : HolonReplicaHeadReadConsistency.NativeSnapshot;
             var request = new CommittedHolonReplicaReceiptReadRequest(transport, target, consistency);
-            return new(request, new string('A',64), fault == "absent" ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed,
+            var intent = fault == "intent" ? new string('F',64)
+                : CommittedHolonReplicaPlan.Create(CommittedHolonReplicaPayload.Read(Payloads[row.OperationId]), Target.Authority).Fingerprint;
+            return new(request, intent, fault == "absent" ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed,
                 fault == "absent" ? null : new string(fault == "changed-digest" ? 'C' : 'B',64), fault == "graph" ? 2 : 1, consistency);
         }
+    }
+
+    [TestMethod]
+    public async Task CompleteSourcePayloadAndHistoricalReceiverChainIsBoundIntoReview()
+    {
+        var f = new Fixture(); f.ReplicaReceipt = row => new(f.Delivered(row));
+        var withoutProof = await f.Read();
+        f.PayloadProof = (row, receipt) => new(f.Proof(row, receipt));
+        var result = await f.Read(); Assert.IsFalse(result.IsError, result.Message + result.Exception);
+        Assert.AreEqual(2, result.Result.PayloadProofs.Count);
+        Assert.IsFalse(result.Result.Findings.Contains(HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified));
+        Assert.IsFalse(result.Result.Findings.Contains(HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified));
+        Assert.IsTrue(result.Result.Findings.Contains(HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired));
+        Assert.IsTrue(result.Result.Findings.Contains(HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified));
+        Assert.AreNotEqual(withoutProof.Result.PreviewDigest, result.Result.PreviewDigest);
+        Assert.AreEqual(result.Result.PreviewDigest, (await f.Read()).Result.PreviewDigest);
+        Assert.IsFalse(JsonSerializer.Serialize(result.Result).Contains("private-business-value"));
+    }
+
+    [DataTestMethod]
+    [DataRow("state")] [DataRow("target")]
+    public async Task GenuineProofForAnotherObservedObligationCannotBeSubstituted(string change)
+    {
+        var f = new Fixture(); f.PayloadProof = (row, receipt) => {
+            var alternate = HolonReplicationOperationObservation.Capture(new HolonDeliveryInspection(row.Sequence, row.OperationId,
+                change == "target" ? "other" : row.TargetId, row.State, row.AttemptCount, null, null, null),
+                row.SourceId, row.SourceAuthority, row.ActorId, row.PayloadDigest, "different-lease", "secret-worker", 10, 0,
+                row.State == HolonDeliveryState.Completed ? 1 : 0, null);
+            return new(f.Proof(alternate, receipt));
+        };
+        var result = await f.Read(); Assert.IsNull(result.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_PAYLOAD_PROOF_SCOPE_MISMATCH", result.ErrorCode);
+    }
+
+    [TestMethod]
+    public async Task SourcePayloadAndHistoricalReceiverMustBindTheSameCanonicalIntent()
+    {
+        var f = new Fixture(); f.PayloadProof = (row, receipt) => new(f.Proof(row, receipt));
+        f.ReplicaReceipt = row => new(f.Delivered(row, "intent"));
+        var result = await f.Read(); Assert.IsNull(result.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_PAYLOAD_REPLICA_INTENT_MISMATCH", result.ErrorCode);
+    }
+
+    [TestMethod]
+    public async Task WeakerSourceProofRequiresExplicitSourceReviewOptIn()
+    {
+        var f = new Fixture(); f.PayloadProof = (row, receipt) => new(f.Proof(row, receipt, HolonReplicaHeadReadConsistency.ReadCommittedValidated));
+        var rejected = await f.Read(); Assert.IsNull(rejected.Result);
+        Assert.AreEqual("COSMIC_MIGRATION_PREVIEW_PAYLOAD_PROOF_CONSISTENCY_UNSUPPORTED", rejected.ErrorCode);
+        f.SourceConsistency = HolonReplicaHeadReadConsistency.ReadCommittedValidated;
+        Assert.IsFalse((await f.Read()).IsError);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task MissingOrFailedPayloadProofNeverPublishesPartialReview(bool nativeError)
+    {
+        var f = new Fixture(); var count = 0; var cause = new InvalidOperationException("native-payload-proof-failure");
+        f.PayloadProof = (row, receipt) => ++count == 1 ? new(f.Proof(row, receipt))
+            : nativeError ? new() { IsError = true, ErrorCode = "NATIVE_PAYLOAD_UNVERIFIED", Exception = cause } : null;
+        var result = await f.Read(); Assert.IsNull(result.Result); Assert.IsTrue(result.IsError);
+        if (nativeError) { Assert.AreEqual("NATIVE_PAYLOAD_UNVERIFIED", result.ErrorCode); Assert.AreSame(cause, result.Exception); }
     }
 
     [TestMethod]

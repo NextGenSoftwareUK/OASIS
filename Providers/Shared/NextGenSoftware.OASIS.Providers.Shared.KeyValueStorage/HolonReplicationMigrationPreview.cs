@@ -24,7 +24,7 @@ public enum HolonReplicationMigrationFinding
 /// This is neither a quiescent snapshot nor an executable migration plan.</summary>
 public sealed class HolonReplicationMigrationPreview
 {
-    public string Format => "cosmic-lineage-migration-preview-v2";
+    public string Format => "cosmic-lineage-migration-preview-v3";
     public CosmicStorageIdentity SourceStorage { get; }
     public CosmicStorageIdentity OriginalTargetStorage { get; }
     public string OriginalSourceId { get; }
@@ -36,6 +36,7 @@ public sealed class HolonReplicationMigrationPreview
     public IReadOnlyList<HolonReplicationOperationObligation> Obligations { get; }
     public IReadOnlyList<HolonReplicationReceiptPreflightReport> Receipts { get; }
     public IReadOnlyList<CommittedHolonReplicaReceiptEvidence> ReplicaReceipts { get; }
+    public IReadOnlyList<HolonReplicationPayloadReceiptProof> PayloadProofs { get; }
     public IReadOnlyList<HolonReplicationMigrationFinding> Findings { get; }
     public string PreviewDigest { get; }
 
@@ -44,7 +45,8 @@ public sealed class HolonReplicationMigrationPreview
         HolonReplicaHeadReadConsistency consistency, IEnumerable<HolonReplicationOperationObligation> rows,
         IEnumerable<HolonReplicationReceiptPreflightReport> receipts,
         IEnumerable<CommittedHolonReplicaReceiptEvidence> replicaReceipts,
-        HolonReplicaHeadReadConsistency requiredReplicaReceiptConsistency)
+        HolonReplicaHeadReadConsistency requiredReplicaReceiptConsistency,
+        IEnumerable<HolonReplicationPayloadReceiptProof> payloadProofs)
     {
         SourceStorage = source; OriginalTargetStorage = target;
         OriginalSourceId = sourceId; OriginalTargetId = targetId; ReplacementRoute = replacement;
@@ -52,6 +54,7 @@ public sealed class HolonReplicationMigrationPreview
         RequiredReplicaReceiptConsistency = requiredReplicaReceiptConsistency;
         Obligations = Array.AsReadOnly(rows.ToArray()); Receipts = Array.AsReadOnly(receipts.ToArray());
         ReplicaReceipts = Array.AsReadOnly(replicaReceipts.ToArray());
+        PayloadProofs = Array.AsReadOnly(payloadProofs.ToArray());
         var findings = new List<HolonReplicationMigrationFinding>();
         if (Obligations.Any(r => r.TargetId == targetId && r.State == HolonDeliveryState.InFlight))
             findings.Add(HolonReplicationMigrationFinding.DeliveryInFlight);
@@ -63,7 +66,8 @@ public sealed class HolonReplicationMigrationPreview
             findings.Add(HolonReplicationMigrationFinding.OriginalReplicaReceiptsUnverified);
         if (ReplicaReceipts.Any(r => r.ReceiptState == ConditionalHolonReceiptState.Absent))
             findings.Add(HolonReplicationMigrationFinding.OriginalReplicaReceiptAbsent);
-        findings.Add(HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified);
+        if (PayloadProofs.Count != Receipts.Count)
+            findings.Add(HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified);
         findings.Add(HolonReplicationMigrationFinding.NativeWriteAndDeliveryFencesRequired);
         findings.Add(HolonReplicationMigrationFinding.ReplacementTargetEvidenceUnverified);
         Findings = Array.AsReadOnly(findings.ToArray());
@@ -72,7 +76,7 @@ public sealed class HolonReplicationMigrationPreview
             OriginalSourceId, OriginalTargetId, replacementSource = replacement.SourceId,
             replacementTarget = replacement.TargetId, replacementPolicy = replacement.PolicyBinding,
             ThroughSequence, SourceConsistency, RequiredReplicaReceiptConsistency, Obligations,
-            receipts = Receipts.Select(r => r.ObservationDigest).ToArray(), ReplicaReceipts, Findings });
+            receipts = Receipts.Select(r => r.ObservationDigest).ToArray(), ReplicaReceipts, PayloadProofs, Findings });
         PreviewDigest = Convert.ToHexString(SHA256.HashData(bytes));
     }
 
@@ -99,7 +103,9 @@ public static class HolonReplicationMigrationPreviewReader
         HolonReplicaHeadReadConsistency sourceConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
         CancellationToken cancellationToken = default,
         Func<HolonReplicationOperationObligation, CancellationToken, Task<OASISResult<CommittedHolonReplicaReceiptEvidence>>> readOriginalReplicaReceipt = null,
-        HolonReplicaHeadReadConsistency replicaReceiptConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
+        HolonReplicaHeadReadConsistency replicaReceiptConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
+        Func<HolonReplicationOperationObligation, HolonReplicationReceiptPreflightReport, CancellationToken,
+            Task<OASISResult<HolonReplicationPayloadReceiptProof>>> readPayloadReceiptProof = null)
     {
         var result = new OASISResult<HolonReplicationMigrationPreview>();
         try
@@ -160,6 +166,7 @@ public static class HolonReplicationMigrationPreviewReader
                 return Error(result, "COSMIC_MIGRATION_PREVIEW_TARGET_SCOPE_MISMATCH", "An original route identifies another physical target.");
             var receipts = new List<HolonReplicationReceiptPreflightReport>();
             var replicaReceipts = new List<CommittedHolonReplicaReceiptEvidence>();
+            var payloadProofs = new List<HolonReplicationPayloadReceiptProof>();
             foreach (var row in selected)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -196,10 +203,30 @@ public static class HolonReplicationMigrationPreviewReader
                             "Historical receiver evidence differs from the selected original operation, actor, lineage, graph or physical target.");
                     replicaReceipts.Add(evidence);
                 }
+                if (readPayloadReceiptProof != null)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var verified = await readPayloadReceiptProof(row, receipt, cancellationToken).ConfigureAwait(false);
+                    Observe(result, verified);
+                    if (verified == null || verified.IsError || verified.Result == null)
+                        return Error(result, verified?.ErrorCode ?? "COSMIC_MIGRATION_PREVIEW_PAYLOAD_PROOF_UNVERIFIED",
+                            "Frozen source transport equivalence could not be verified.", verified?.Exception);
+                    var proof = verified.Result;
+                    if (proof.OperationId != row.OperationId || proof.ActorId != row.ActorId || proof.Sequence != row.Sequence
+                        || proof.TargetId != row.TargetId || proof.PayloadDigest != row.PayloadDigest || proof.StateDigest != row.StateDigest
+                        || proof.SourceStorageFingerprint != expectedSource.BindingFingerprint || proof.TargetStorageFingerprint != originalTarget.BindingFingerprint
+                        || proof.OriginalRequestFingerprint != receipt.OriginalRequestFingerprint || proof.SourceReceiptObservationDigest != receipt.ObservationDigest)
+                        return Error(result, "COSMIC_MIGRATION_PREVIEW_PAYLOAD_PROOF_SCOPE_MISMATCH", "Payload proof differs from the exact observed source obligation or receipt.");
+                    if (sourceConsistency == HolonReplicaHeadReadConsistency.NativeSnapshot && proof.RequiredSourceConsistency != sourceConsistency)
+                        return Error(result, "COSMIC_MIGRATION_PREVIEW_PAYLOAD_PROOF_CONSISTENCY_UNSUPPORTED", "Payload proof does not meet the explicitly required source consistency.");
+                    if (readOriginalReplicaReceipt != null && proof.ReplicaIntentFingerprint != replicaReceipts[replicaReceipts.Count - 1].OriginalRequestFingerprint)
+                        return Error(result, "COSMIC_MIGRATION_PREVIEW_PAYLOAD_REPLICA_INTENT_MISMATCH", "The queued transport is not the original historical receiver intent.");
+                    payloadProofs.Add(proof);
+                }
             }
             cancellationToken.ThrowIfCancellationRequested();
             result.Result = new(expectedSource, originalTarget, originalSourceId, originalTargetId, replacementRoute,
-                through.Value, actualConsistency.Value, rows, receipts, replicaReceipts, replicaReceiptConsistency);
+                through.Value, actualConsistency.Value, rows, receipts, replicaReceipts, replicaReceiptConsistency, payloadProofs);
             result.IsLoaded = true;
             return result;
         }

@@ -4,8 +4,11 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
@@ -25,23 +28,73 @@ public sealed class HolonReplicationPayloadReceiptProof
     public string OriginalRequestFingerprint { get; }
     public string SourceReceiptObservationDigest { get; }
     public string ReplicaIntentFingerprint { get; }
+    public HolonReplicaHeadReadConsistency RequiredSourceConsistency { get; }
     public string ProofDigest { get; }
     internal HolonReplicationPayloadReceiptProof(HolonReplicationOperationObligation row,
-        HolonReplicationReceiptPreflightReport receipt, string replicaIntent)
+        HolonReplicationReceiptPreflightReport receipt, string replicaIntent, HolonReplicaHeadReadConsistency requiredSourceConsistency)
     {
         OperationId = row.OperationId; ActorId = row.ActorId; Sequence = row.Sequence; TargetId = row.TargetId;
         SourceStorageFingerprint = receipt.SourceStorageFingerprint; TargetStorageFingerprint = receipt.TargetStorageFingerprint;
         PayloadDigest = row.PayloadDigest; StateDigest = row.StateDigest;
         OriginalRequestFingerprint = receipt.OriginalRequestFingerprint;
         SourceReceiptObservationDigest = receipt.ObservationDigest; ReplicaIntentFingerprint = replicaIntent;
+        RequiredSourceConsistency = requiredSourceConsistency;
         ProofDigest = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new {
             Format, OperationId, ActorId, Sequence, TargetId, SourceStorageFingerprint, TargetStorageFingerprint,
-            PayloadDigest, StateDigest, OriginalRequestFingerprint, SourceReceiptObservationDigest, ReplicaIntentFingerprint })));
+            PayloadDigest, StateDigest, OriginalRequestFingerprint, SourceReceiptObservationDigest, ReplicaIntentFingerprint, RequiredSourceConsistency })));
     }
 }
 
 public static class HolonReplicationPayloadReceiptVerifier
 {
+    /// <summary>Read exact bound source bytes transiently, then return only proof.
+    /// No raw graph is retained in the result, and no mutation is performed.</summary>
+    public static async Task<OASISResult<HolonReplicationPayloadReceiptProof>> ReadAsync(
+        IHolonReplicationPayloadAuditOutbox source, CosmicStorageIdentity expectedSource,
+        HolonReplicationOperationObligation row, ConditionalHolonWriteRequest original,
+        HolonReplicationReceiptPreflightReport receipt,
+        HolonReplicaHeadReadConsistency requiredConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new OASISResult<HolonReplicationPayloadReceiptProof>();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (source == null || expectedSource == null || row == null || original == null || receipt == null
+                || receipt.SourceStorageFingerprint != expectedSource.BindingFingerprint || row.SourceAuthority != expectedSource.Authority)
+                return Failure(result, "COSMIC_PAYLOAD_RECEIPT_PROOF_OPTIONS_INVALID", "An exact physical source and verified original receipt scope are required.");
+            var read = await source.ReadFrozenPayloadAsync(expectedSource, row, requiredConsistency, cancellationToken).ConfigureAwait(false);
+            if (read != null)
+            {
+                result.IsWarning = read.IsWarning; result.WarningCount = read.WarningCount;
+                result.Exception = read.Exception; result.InnerMessages.AddRange(read.InnerMessages);
+            }
+            if (read == null || read.IsError || read.Result == null)
+            {
+                result.ErrorCount = read?.ErrorCount ?? 1;
+                return Failure(result, read?.ErrorCode ?? "COSMIC_PAYLOAD_RECEIPT_PROOF_UNVERIFIED", "The exact frozen source transport could not be verified.");
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            result.Result = Verify(read.Result, row, original, receipt, requiredConsistency);
+            cancellationToken.ThrowIfCancellationRequested(); result.IsLoaded = true;
+            return result;
+        }
+        catch (Exception cause)
+        {
+            return Failure(result, cause is OperationCanceledException ? "COSMIC_PAYLOAD_RECEIPT_PROOF_CANCELLED" : "COSMIC_PAYLOAD_RECEIPT_PROOF_UNVERIFIED",
+                "Frozen source transport does not have verified original receipt equivalence.", cause);
+        }
+    }
+
+    private static OASISResult<HolonReplicationPayloadReceiptProof> Failure(OASISResult<HolonReplicationPayloadReceiptProof> result,
+        string code, string message, Exception cause = null)
+    {
+        result.Result = null; result.IsLoaded = false; result.IsError = true; result.ErrorCount = Math.Max(1, result.ErrorCount);
+        result.ErrorCode = code; result.Message = message;
+        if (cause != null && result.Exception != cause) result.Exception = result.Exception == null ? cause : new AggregateException(result.Exception, cause);
+        return result;
+    }
+
     /// <summary>All native frozen-payload readers share this exact observation CAS
     /// check. A changed lease/state invalidates the read; no claim/reset is used.</summary>
     public static void ValidateObservation(HolonReplicationOperationObligation expected, HolonReplicationOperationObligation actual)
@@ -53,9 +106,11 @@ public static class HolonReplicationPayloadReceiptVerifier
     }
 
     public static HolonReplicationPayloadReceiptProof Verify(string frozenPayload, HolonReplicationOperationObligation row,
-        ConditionalHolonWriteRequest original, HolonReplicationReceiptPreflightReport receipt)
+        ConditionalHolonWriteRequest original, HolonReplicationReceiptPreflightReport receipt,
+        HolonReplicaHeadReadConsistency requiredSourceConsistency = HolonReplicaHeadReadConsistency.NativeSnapshot)
     {
         ArgumentNullException.ThrowIfNull(row); ArgumentNullException.ThrowIfNull(original); ArgumentNullException.ThrowIfNull(receipt);
+        if (!Enum.IsDefined(typeof(HolonReplicaHeadReadConsistency), requiredSourceConsistency)) throw new ArgumentOutOfRangeException(nameof(requiredSourceConsistency));
         var enrollment = original.Write.ReplicationEnrollment;
         var primary = ConditionalHolonPlan.CreateReplicating(original, original.Write.Authority, enrollment);
         if (enrollment == null || !enrollment.TargetIds.Contains(row.TargetId)
@@ -94,6 +149,6 @@ public static class HolonReplicationPayloadReceiptVerifier
                 || CommittedHolonReplicaPlan.PortableContentDigest(record, receipt.TargetAuthority) != committed.PortableContentDigest)
                 throw new InvalidDataException("Frozen transport topology, content or committed logical/source revisions differ from the original receipt.");
         }
-        return new(row, receipt, replica.Fingerprint);
+        return new(row, receipt, replica.Fingerprint, requiredSourceConsistency);
     }
 }

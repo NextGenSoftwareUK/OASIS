@@ -147,13 +147,19 @@ public static class CosmicLineageInventoryProbe
                 (IHolonReplicationLineageInventoryOutbox)outbox, source, sourceId, "target", originalTarget, route,
                 (row, token) => row.OperationId == operation ? readReceipt() : throw new InvalidOperationException("Unexpected fixture operation."),
                 maxObligations: originalCount, pageSize: 1, sourceConsistency: consistency,
-                readOriginalReplicaReceipt: readReplicaReceipt == null ? null : (row, token) => readReplicaReceipt());
+                readOriginalReplicaReceipt: readReplicaReceipt == null ? null : (row, token) => readReplicaReceipt(),
+                readPayloadReceiptProof: originalWrite == null ? null : (row, receipt, token) =>
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationPayloadReceiptVerifier.ReadAsync(
+                        (IHolonReplicationPayloadAuditOutbox)outbox, source, row, originalWrite, receipt, consistency, token));
             if (result.IsError || result.Result == null) throw new InvalidOperationException(result.Message, result.Exception);
             return result.Result;
         }
         var preview = await Read();
         if (originalWrite != null)
         {
+            if (preview.PayloadProofs.Count != 1 || preview.Findings.Contains(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationMigrationFinding.OriginalPayloadReceiptBindingUnverified))
+                throw new InvalidOperationException("Production preview omitted verified frozen source/receipt equivalence.");
             var reader = (IHolonReplicationPayloadAuditOutbox)outbox;
             var row = preview.Obligations.Single(r => r.OperationId == operation && r.TargetId == "target");
             if (consistency == HolonReplicaHeadReadConsistency.ReadCommittedValidated)
