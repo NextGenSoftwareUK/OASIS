@@ -29,10 +29,11 @@ public partial class Neo4jNativeAvatarTests
         var record = new Holon { Id = Guid.NewGuid(), Name = "owned-neo-migration-barrier" };
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "owned-neo-unrelated" };
         var migration = Guid.NewGuid(); var competing = Guid.NewGuid();
+        var target = "owned-fence-target-" + operation; var source = "owned-fence-source-" + operation;
         var blockedOperations = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
-            await JsonSerializer.SerializeAsync(file, new { actor, operation, unrelatedOperation, migration, competing, blockedOperations, ids = new[] { record.Id, unrelated.Id } });
+            await JsonSerializer.SerializeAsync(file, new { actor, operation, unrelatedOperation, migration, competing, source, target, blockedOperations, ids = new[] { record.Id, unrelated.Id } });
             file.Flush(true);
         }
         try
@@ -40,10 +41,11 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             Assert.IsFalse((await other.ActivateProviderAsync()).IsError);
             var binding = await provider.CaptureStorageIdentityAsync(); Assert.IsFalse(binding.IsError, binding.Message);
+            var enrollment = new HolonReplicationEnrollment(source, new[] { target }, binding.Result);
             var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, actor,
-                ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(record.Id, null) }),
+                ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(record.Id, null) }, enrollment),
                 ConditionalHolonOperation.Save, new[] { record }, saveChildren: false);
-            var saved = await provider.ExecuteConditionalHolonWriteAsync(request);
+            var saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
             var fence = new HolonMigrationFenceRequest(migration, actor, binding.Result, new string('A', 64), new string('B', 64), new[] { record.Id });
             // Independent drivers contend on the same native fence identity.
@@ -65,7 +67,7 @@ public partial class Neo4jNativeAvatarTests
             var observed = await provider.ReadHolonMigrationFenceAsync(fence);
             Assert.IsFalse(observed.IsError, observed.Message + observed.Exception);
             Assert.AreEqual(held.Result.OwnerToken, observed.Result.OwnerToken);
-            var replay = await other.ExecuteConditionalHolonWriteAsync(request);
+            var replay = await other.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsTrue(replay.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", replay.ErrorCode);
             // New updates and both delete modes must use the same admission gate.
             var committed = saved.Result.Single();
@@ -79,6 +81,21 @@ public partial class Neo4jNativeAvatarTests
                 var refused = await other.ExecuteConditionalHolonWriteAsync(blocked);
                 Assert.IsTrue(refused.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", refused.ErrorCode);
             }
+            // Claim admission must roll back before touching attempt/lease state.
+            using var observerDriver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+            using var observer = observerDriver.AsyncSession();
+            async Task<string> QueueState()
+            {
+                var row = await (await observer.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$operation}) RETURN properties(o) AS values",
+                    new { operation = operation.ToString("D") })).SingleAsync();
+                return JsonSerializer.Serialize(row["values"]);
+            }
+            var beforeClaim = await QueueState();
+            var outbox = other.GetBoundHolonReplicationOutbox(binding.Result);
+            Assert.IsFalse(outbox.IsError, outbox.Message);
+            var deniedClaim = await outbox.Result.ClaimNextAsync(target, "owned-fence-worker", TimeSpan.FromSeconds(30));
+            Assert.IsTrue(deniedClaim.IsError); Assert.AreEqual("COSMIC_MIGRATION_RECORD_FENCED", deniedClaim.ErrorCode);
+            Assert.AreEqual(beforeClaim, await QueueState(), "Rejected claims cannot consume an attempt or lease.");
             var historical = await other.ReadBoundConditionalHolonWriteOutcomeAsync(request, binding.Result);
             Assert.IsFalse(historical.IsError, historical.Message + historical.Exception);
             Assert.AreEqual(ConditionalHolonReceiptState.Committed, historical.Result.ReceiptState);
@@ -97,8 +114,12 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(HolonMigrationFenceState.Cancelled, cancelled.Result.State);
             var terminal = await other.AcquireHolonMigrationFenceAsync(fence);
             Assert.IsTrue(terminal.IsError); Assert.AreEqual("COSMIC_MIGRATION_FENCE_TERMINAL", terminal.ErrorCode);
-            var resumed = await other.ExecuteConditionalHolonWriteAsync(request);
+            var resumed = await other.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsFalse(resumed.IsError, resumed.Message + resumed.Exception);
+            var admittedClaim = await outbox.Result.ClaimNextAsync(target, "owned-fence-worker", TimeSpan.FromSeconds(30));
+            Assert.IsFalse(admittedClaim.IsError, admittedClaim.Message + admittedClaim.Exception);
+            Assert.IsNotNull(admittedClaim.Result);
+            // No delivery is sent: remove this exact known fixture claim with its owned queue below.
             // Delete only this journal's exact fixture identities. Global schema survives.
             using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
             using var session = driver.AsyncSession();
