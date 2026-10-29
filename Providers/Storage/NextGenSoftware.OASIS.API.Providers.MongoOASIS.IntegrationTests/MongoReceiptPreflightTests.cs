@@ -15,6 +15,38 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public partial class MongoStorageIdentityTests
 {
+    [Fact]
+    public async Task NativeThreeStorePreparedMutationRecoversLostAcknowledgementWithoutCutover()
+    {
+        await RunOwned(async (client, source, _) =>
+        {
+            var target = new Provider(Uri, Second);
+            try
+            {
+                Assert.False((await target.ActivateProviderAsync()).IsError);
+                var sourceBinding = await source.CaptureStorageIdentityAsync(); Assert.False(sourceBinding.IsError);
+                var targetBinding = await target.CaptureStorageIdentityAsync(); Assert.False(targetBinding.IsError);
+                var actor = Guid.NewGuid(); var input = new Holon { Id = Guid.NewGuid(), Name = "owned-single-route-mutation" };
+                var enrollment = new HolonReplicationEnrollment("owned-single-route-mutation", new[] { "target" });
+                var write = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(), actor,
+                    ProviderType.MongoDBOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
+                    ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
+                var saved = await source.ExecuteReplicatingHolonWriteAsync(write, enrollment);
+                Assert.False(saved.IsError, saved.Message + saved.Exception); var acknowledged = Assert.Single(saved.Result);
+                var applied = await target.ApplyBoundCommittedHolonReplicaAsync(new(write.Write.OperationId,
+                    enrollment.SourceId, ProviderType.MongoDBOASIS, actor, write.Operation, new[] { acknowledged }, saveChildren: false), targetBinding.Result);
+                Assert.False(applied.IsError, applied.Message + applied.Exception);
+                var outbox = source.GetBoundHolonReplicationOutbox(sourceBinding.Result); Assert.False(outbox.IsError);
+                await CosmicNativeAcceptance.CosmicOperationInventoryProbe.CompleteAlreadyAppliedTargetAsync(
+                    outbox.Result, sourceBinding.Result, write.Write.OperationId, "target");
+                await VerifyNativeThreeStoreBarrierRecovery(source, target, sourceBinding.Result, targetBinding.Result,
+                    outbox.Result, write, enrollment, acknowledged, () => HolonReplicationReceiptPreflight.ReadAsync(source, target,
+                        new(write, sourceBinding.Result, targetBinding.Result, new[] { input.Id })), false);
+            }
+            finally { Assert.False((await target.DeActivateProviderAsync()).IsError); }
+        });
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
