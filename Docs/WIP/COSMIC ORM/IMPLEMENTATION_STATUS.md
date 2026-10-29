@@ -1,7 +1,16 @@
 # COSMIC ORM implementation status
 
-Updated28October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next steps;
+Updated29October2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery/next steps;
 [checklist](CQL_PARITY_CHECKLIST.md) owns per-database acceptance. Full programme incomplete.
+
+## Current migration checkpoint
+
+[Lineage migration](V2_LINEAGE_MIGRATION.md): explicit physical-source receipt
+verification implemented for historical type-only and already-bound intents.
+Core4462/Neo619 controls; native SQLite2/Mongo2/Neo2 pass. Existing receipt validators
+remain the owners; no replay or intent rewriting. Selected-record preflight,
+authorized migration execution and cutover remain red. CURRENT_STATUS owns next steps.
+Older sections below retain their milestone-specific scope, not current open/closed authority.
 
 ## Latest snapshot-first worker milestone
 

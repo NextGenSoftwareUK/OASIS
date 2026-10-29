@@ -1,0 +1,88 @@
+using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo4j.Driver;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using Provider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS;
+
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
+
+public partial class Neo4jNativeAvatarTests
+{
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeBoundOriginalReceiptPreservesHistoricalIntentAndQueue(bool bindOriginal)
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !File.Exists(Path.Combine(root.FullName, "Scripts/TestHosts/Run-ReusableNeo4jTests.ps1"))) root = root.Parent;
+        Assert.IsNotNull(root);
+        var journal = Path.Combine(root.FullName, "LocalState/COSMIC/Neo4jCurrent/source-receipt.pending.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
+        Assert.IsFalse(File.Exists(journal), "Unfinished original outcomes require reconciliation.");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        using var driver = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = driver.AsyncSession();
+        var input = new Holon { Id = Guid.NewGuid(), Name = "private-neo-original-receipt" };
+        var operation = Guid.NewGuid();
+        var actor = Guid.NewGuid();
+        var arguments = new { id = input.Id.ToString("D"), operation = operation.ToString("D") };
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var captured = await provider.CaptureStorageIdentityAsync(); Assert.IsFalse(captured.IsError);
+            var expected = captured.Result;
+            var enrollment = new HolonReplicationEnrollment("owned-source-receipt-" + operation, new[] { "target" }, bindOriginal ? expected : null);
+            var request = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, actor,
+                ProviderType.Neo4jOASIS, new[] { new HolonWriteCondition(input.Id, null) }, enrollment),
+                ConditionalHolonOperation.Save, new[] { input }, saveChildren: false);
+            using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(file, new { id = input.Id, operation, actor, source = expected, bindOriginal });
+                file.Flush(true);
+            }
+            var absent = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
+            Assert.IsFalse(absent.IsError, absent.Message + absent.Exception);
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+            var saved = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            Assert.IsFalse(saved.IsError, saved.Message + saved.Exception);
+            async Task<string> Snapshot()
+            {
+                var rows = await (await inspection.RunAsync(
+                    "MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN labels(n) AS labels, properties(n) AS values ORDER BY labels(n)[0]", arguments)).ToListAsync();
+                Assert.AreEqual(3, rows.Count);
+                return JsonSerializer.Serialize(rows.Select(row => new { labels = row["labels"], values = row["values"] }));
+            }
+            var before = await Snapshot();
+            var verified = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
+            Assert.IsFalse(verified.IsError, verified.Message + verified.Exception);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, verified.Result.ReceiptState);
+            Assert.IsFalse(verified.IsSaved);
+            Assert.AreSame(bindOriginal ? expected : null, request.Write.ReplicationEnrollment.SourceStorageIdentity);
+            Assert.IsFalse(JsonSerializer.Serialize(verified.Result).Contains(input.Name, StringComparison.Ordinal));
+            var wrong = new CosmicStorageIdentity(expected.Authority, expected.EndpointFingerprint, Guid.NewGuid());
+            var rejected = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, wrong);
+            Assert.IsTrue(rejected.IsError); Assert.IsNull(rejected.Result);
+            var foreign = new ConditionalHolonWriteRequest(new ConditionalHolonWrite(operation, Guid.NewGuid(),
+                ProviderType.Neo4jOASIS, request.Write.Conditions, enrollment), request.Operation, request.Roots, saveChildren: false);
+            var foreignOutcome = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(foreign, expected);
+            Assert.IsTrue(foreignOutcome.IsError); Assert.IsNull(foreignOutcome.Result);
+            Assert.AreEqual(before, await Snapshot(), "Evidence reads must not alter graph, receipt or pending queue.");
+            Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var reconstructed = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, expected);
+            Assert.IsFalse(reconstructed.IsError, reconstructed.Message + reconstructed.Exception);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, reconstructed.Result.ReceiptState);
+            Assert.AreEqual(before, await Snapshot());
+            await (await inspection.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", arguments)).ConsumeAsync();
+            await (await inspection.RunAsync("MATCH (n) WHERE (n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation DETACH DELETE n", arguments)).ConsumeAsync();
+            var remaining = await (await inspection.RunAsync("MATCH (n) WHERE (n:Holon AND n.Id=$id) OR ((n:CosmicWriteReceipt OR n:CosmicHolonOutbox) AND n.OperationId=$operation) RETURN count(n) AS count", arguments)).SingleAsync();
+            Assert.AreEqual(0L, remaining["count"].As<long>());
+            File.Delete(journal);
+        }
+        finally { Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError); }
+    }
+}
