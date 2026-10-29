@@ -66,8 +66,9 @@ public partial class NativeHostedReplicaRestartTests
         const string database = "cosmic_stopped_destination_fixture";
         Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var phase = Environment.GetEnvironmentVariable("OASIS_OFFLINE_REPLICATION_PHASE");
-        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency" or "reconcile-consistency", "Use the explicit process-owning runner.");
-        var exhaust = phase == "exhaust";
+        Assert.IsTrue(phase is "seed" or "offline" or "deliver" or "active" or "reconcile-active" or "exhaust" or "routing" or "cleanup-unwritten" or "reconcile-routing" or "consistency" or "reconcile-consistency" or "default-budget", "Use the explicit process-owning runner.");
+        var defaultBudget = phase == "default-budget";
+        var exhaust = phase == "exhaust" || defaultBudget;
         var routingProof = phase == "routing";
         var consistencyProof = phase is "consistency" or "reconcile-consistency";
         var cleanupUnwritten = phase == "cleanup-unwritten";
@@ -373,19 +374,63 @@ public partial class NativeHostedReplicaRestartTests
                     var receiver = new CommittedHolonReplicaTarget(intent.TargetId, mongo, ProviderType.MongoDBOASIS,
                         binding.SourceId, ProviderType.SQLLiteDBOASIS, new Policy(), "native-exhaustion-fixture-v1",
                         new Guid("e1d13ed7-2146-4f40-a799-c2bbbfd9113f"), binding.PolicyBinding, binding.TargetStorage);
-                    var dispatcher = new HolonOutboxDispatcher(outbox, new[] { receiver }, "native-budget-one", maximumAttempts: 1);
-                    var attempted = await dispatcher.DispatchOnceAsync(intent.TargetId);
-                    Assert.IsFalse(attempted.IsError, attempted.Message + attempted.Exception);
-                    Assert.AreEqual(1, attempted.Result.ClaimedCount);
-                    Assert.AreEqual(1, attempted.Result.ReconciliationCount);
-                    Assert.AreEqual(0, attempted.Result.CompletedCount);
+                    // Omit maximumAttempts and clock for the shipping ten-attempt/system-clock
+                    // proof. The separate one-attempt configuration gate remains unchanged.
+                    var dispatcher = defaultBudget
+                        ? new HolonOutboxDispatcher(outbox, new[] { receiver }, "native-default-budget")
+                        : new HolonOutboxDispatcher(outbox, new[] { receiver }, "native-budget-one", maximumAttempts: 1);
+                    using var retryDeadline = new CancellationTokenSource(TimeSpan.FromMinutes(13));
+                    for (var attempt = 1; attempt <= (defaultBudget ? 10 : 1); attempt++)
+                    {
+                        var started = DateTime.UtcNow;
+                        var attempted = await dispatcher.DispatchOnceAsync(intent.TargetId, cancellationToken: retryDeadline.Token);
+                        var finished = DateTime.UtcNow;
+                        Assert.IsFalse(attempted.IsError, attempted.Message + attempted.Exception);
+                        Assert.AreEqual(1, attempted.Result.ClaimedCount);
+                        Assert.AreEqual(defaultBudget && attempt < 10 ? 0 : 1, attempted.Result.ReconciliationCount);
+                        Assert.AreEqual(defaultBudget && attempt < 10 ? 1 : 0, attempted.Result.DeferredCount);
+                        Assert.AreEqual(0, attempted.Result.CompletedCount);
+                        var head = await outbox.InspectAsync(intent.FirstSequence);
+                        Assert.IsFalse(head.IsError, head.Message);
+                        Assert.AreEqual(attempt, head.Result.AttemptCount);
+                        var later = await outbox.InspectAsync(intent.FirstSequence + 1);
+                        Assert.AreEqual(HolonDeliveryState.Pending, later.Result.State);
+                        Assert.AreEqual(0, later.Result.AttemptCount, "Later operations never overtake the retrying head.");
+                        await File.WriteAllTextAsync(Path.Combine(root.FullName, "TestResults/OwnedRoutingCurrent/default-budget-progress.json"),
+                            JsonSerializer.Serialize(new { attempt, state = head.Result.State.ToString(), atUtc = finished }), retryDeadline.Token);
+                        if (!defaultBudget || attempt == 10) continue;
+
+                        // Observe the exact persisted native due time; never edit it or the clock.
+                        long dueTicks;
+                        using (var native = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={file};Pooling=False"))
+                        {
+                            await native.OpenAsync(retryDeadline.Token);
+                            using var query = native.CreateCommand();
+                            query.CommandText = "SELECT NextAttemptUtcTicks FROM CosmicHolonOutbox WHERE Sequence=$sequence";
+                            query.Parameters.AddWithValue("$sequence", intent.FirstSequence);
+                            dueTicks = (long)await query.ExecuteScalarAsync(retryDeadline.Token);
+                        }
+                        var delay = TimeSpan.FromSeconds(Math.Min(300, Math.Pow(2, attempt - 1)));
+                        Assert.IsTrue(dueTicks >= started.Add(delay).Ticks && dueTicks <= finished.Add(delay).Ticks,
+                            "Native retry time must preserve the shipping exponential delay.");
+                        // For waits longer than the 1s observation overhead, prove a premature
+                        // dispatch cannot claim the head or advance the later operation.
+                        if (dueTicks - DateTime.UtcNow.Ticks > TimeSpan.FromMilliseconds(100).Ticks)
+                        {
+                            var premature = await dispatcher.DispatchOnceAsync(intent.TargetId, cancellationToken: retryDeadline.Token);
+                            Assert.IsFalse(premature.IsError, premature.Message);
+                            Assert.AreEqual(0, premature.Result.ClaimedCount);
+                        }
+                        var remaining = new DateTime(dueTicks, DateTimeKind.Utc) - DateTime.UtcNow;
+                        if (remaining > TimeSpan.Zero) await Task.Delay(remaining + TimeSpan.FromMilliseconds(25), retryDeadline.Token);
+                    }
                 }
                 else await Pass(outage: true);
                 var deferred = await outbox.InspectAsync(intent.FirstSequence);
                 Assert.IsFalse(deferred.IsError, deferred.Message);
                 Assert.AreEqual(exhaust ? HolonDeliveryState.ReconciliationRequired : HolonDeliveryState.Pending, deferred.Result.State,
                     "A known pre-commit failure retries only within its explicit attempt budget.");
-                Assert.AreEqual(1, deferred.Result.AttemptCount);
+                Assert.AreEqual(defaultBudget ? 10 : 1, deferred.Result.AttemptCount);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(deferred.Result.ErrorCode));
                 if (exhaust)
                 {
@@ -430,7 +475,7 @@ public partial class NativeHostedReplicaRestartTests
                 var blockedAfter = await outbox.InspectAsync(intent.FirstSequence);
                 Assert.IsFalse(blockedAfter.IsError, blockedAfter.Message);
                 Assert.AreEqual(HolonDeliveryState.ReconciliationRequired, blockedAfter.Result.State);
-                Assert.AreEqual(1, blockedAfter.Result.AttemptCount);
+                Assert.AreEqual(defaultBudget ? 10 : 1, blockedAfter.Result.AttemptCount);
                 Assert.AreEqual(blockedBefore.Result.ErrorCode, blockedAfter.Result.ErrorCode);
                 Assert.AreEqual(blockedBefore.Result.Message, blockedAfter.Result.Message);
                 var later = await outbox.InspectAsync(intent.FirstSequence + 1);

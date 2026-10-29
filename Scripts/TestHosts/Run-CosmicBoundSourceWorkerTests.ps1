@@ -1,5 +1,9 @@
 #Requires -Version 7.0
-param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof,[switch]$ReconcilePrimaryConsistencyFailure)
+param([switch]$FullDestinationOutage,[switch]$ActiveDeliveryOutage,[switch]$ReconcileActiveOutage,[switch]$ExhaustDeliveryBudget,[switch]$NativeRoutingProof,[switch]$ReconcileUnwrittenRoutingFixture,[switch]$ReconcileRoutingReadFailure,[switch]$NativePrimaryConsistencyProof,[switch]$ReconcilePrimaryConsistencyFailure,[switch]$DefaultDeliveryBudget)
+if ($DefaultDeliveryBudget) {
+    if ($PSBoundParameters.Count -ne 1) { throw 'Default-budget proof is exclusive.' }
+    $ExhaustDeliveryBudget = $true
+}
 if ($ReconcileUnwrittenRoutingFixture -and ($ActiveDeliveryOutage -or $ReconcileActiveOutage -or $ExhaustDeliveryBudget -or $NativeRoutingProof -or $ReconcileRoutingReadFailure -or $NativePrimaryConsistencyProof)) { throw 'Unwritten fixture reconciliation is exclusive.' }
 if ($ReconcileUnwrittenRoutingFixture -or $ReconcileRoutingReadFailure) { $FullDestinationOutage = $true }
 if ($ReconcileActiveOutage -and $ReconcileRoutingReadFailure) { throw 'Choose the exact reviewed outcome.' }
@@ -135,14 +139,14 @@ try {
             Get-Content -LiteralPath (Join-Path $work "worker-offline-$recoveryPhase.log") -Tail 4
         }
         elseif ($ActiveDeliveryOutage) {
-            $scenario = if ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } elseif ($NativePrimaryConsistencyProof) { 'consistency' } else { 'active' }
+            $scenario = if ($DefaultDeliveryBudget) { 'default-budget' } elseif ($ExhaustDeliveryBudget) { 'exhaust' } elseif ($NativeRoutingProof) { 'routing' } elseif ($NativePrimaryConsistencyProof) { 'consistency' } else { 'active' }
             $env:OASIS_OFFLINE_REPLICATION_PHASE = $scenario
             $testProcess = Start-Process dotnet -ArgumentList @('test',$project,'--no-build','--no-restore','/m:2','/nr:false',
                 '--filter','FullyQualifiedName~ShippingWorkerPersistsNewSaveWhileMongoDestinationProcessIsStopped',
                 '--logger',"trx;LogFileName=worker-offline-$scenario.trx",'--results-directory',$work) -WorkingDirectory $taskRoot -WindowStyle Hidden -PassThru `
                 -RedirectStandardOutput (Join-Path $work "worker-offline-$scenario.log") -RedirectStandardError (Join-Path $work "worker-offline-$scenario.stderr.log")
             $stopped = $false; $restarted = $false
-            $deadline = [DateTime]::UtcNow.AddMinutes(3)
+            $deadline = [DateTime]::UtcNow.AddMinutes($(if ($DefaultDeliveryBudget) { 15 } else { 3 }))
             while (!$testProcess.HasExited) {
                 if ([DateTime]::UtcNow -gt $deadline) { throw 'Active outage test deadline exceeded; preserve native fixture.' }
                 $journal = Join-Path $state 'worker-offline.pending.json'
