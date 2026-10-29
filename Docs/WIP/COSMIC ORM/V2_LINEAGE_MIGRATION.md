@@ -798,3 +798,72 @@ original frozen payload against its original source receipt. Feed those proofs
 into preview findings; then implement native write/delivery fencing and CAS with
 durable migration receipts. Do not interpret sequence windows as quiescence or
 current-head matches as historical delivery receipts.
+
+
+## Historical replica receipt capability — SQLite first, 29 October 2026
+
+Core adds the optional `ICommittedHolonReplicaReceiptStorageProvider` capability.
+A request carries the unchanged original committed transport, exact physical
+receiver and explicit required consistency. The redacted outcome binds original
+operation/actor/source/operation kind, receiver fingerprint, canonical original
+intent fingerprint, full selected-record count, observation consistency and
+verified acknowledgement checksum. Receipt absence is explicit and never grants
+permission to replay, cancel, reset or migrate an obligation.
+
+Shared `CommittedHolonReplicaReceiptProjection` uses the existing
+`CommittedHolonReplicaPlan` and `ConditionalHolonReceipt.Read` owners. It validates
+all selected graph identities/topology, committed logical content/audit/lineage,
+target-owned revision and existing receipt checksum. Review is bounded to1–256
+selected records. A changed original intent, partial receipt, wrong native
+fingerprint, tampered checksum or forged acknowledgement returns no proof.
+Existing fingerprint semantics are preserved; this does not change stored
+historical bytes or add a second acknowledgement validator.
+
+SQLite is the first native implementation: a separate existing-file read-only
+connection and deferred snapshot validate physical identity and read the exact
+original receipt in the same scope. It never reads today's business record/head,
+initializes identity/schema or executes the original mutation. Missing stores,
+wrong bindings and unverifiable receipts return explicit errors.
+
+```csharp
+// originalTransport must be the actual historical committed transport,
+// not a new request made from today's destination record.
+var observed = await receiver.ReadCommittedHolonReplicaReceiptAsync(
+    new CommittedHolonReplicaReceiptReadRequest(
+        originalTransport,
+        capturedReceiverIdentity),
+    cancellationToken);
+
+if (observed.IsError)
+    throw new InvalidOperationException(observed.Message);
+
+Console.WriteLine(observed.Result.ReceiptState);
+// Committed proves that exact canonical historical delivery, not current content.
+// Absent does not prove rejection or permit replay.
+```
+
+Native Neo-source/SQLite-receiver cases verify Absent before delivery, Committed
+after delivery, wrong physical-store rejection, and the same original receipt
+checksum after a later source save and an independent current-target edit. The
+current-head reader correctly rejects that changed current body while the
+historical receipt remains verifiable. No write replay is used for observation.
+Full Shared1462/1462 (9new controls), native2/2 pass; Core declared-target and
+Shared/SQLite/provider-runner builds pass. An initially omitted repository
+interface declaration and test codec-overload mismatch were fixed before native
+execution; no failed/unknown database mutation resulted from those build errors.
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared | 1462/1462 | `TestResults/DevelopmentSyncCurrent/replica-receipt-shared.trx` | `EEF060046D3D2BD68562BE965ABA7760E74EFBAB0B20254C85C6D5C0B8CEC7B7` |
+| Neo source / SQLite historical receiver | 2/2 | `TestResults/Neo4jCurrent/neo4j-bound-source-receipt.trx` | `57851E8DCEF8A73EB4D5CF2A05F2FB0F431D74F5100641D80E8B7A19FAF0E02F` |
+
+Native runner48843 exited0; Neo attachment53244 stopped/joined. Exact SQLite
+receiver DB/sidecars and pending journal absent; port17687 has no listener.
+Reusable Neo runtime/container and schema retained. No new download, restore,
+installation or environment. Logs/raw evidence remain TestResults.
+
+Mongo and Neo receiver implementations are still open. The immutable preview
+still declares original replica receipts unverified until this capability is
+connected for every selected operation/target and its returned scope is checked.
+Original payload-to-source-receipt binding, replacement admission, native fences,
+CAS/idempotent migration receipts and cutover also remain open.
