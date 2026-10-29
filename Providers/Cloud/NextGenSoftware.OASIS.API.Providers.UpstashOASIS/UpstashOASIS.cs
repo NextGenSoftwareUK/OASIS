@@ -308,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
                 await SetAsync($"holon:{id}", Ser(holon));
                 await SAddAsync("holons:all", id);
                 if (holon.ParentHolonId != Guid.Empty) await SAddAsync($"holons:parent:{holon.ParentHolonId}", id);
-                result.Result = holon; result.IsError = false; result.Message = $"UpstashOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"UpstashOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"UpstashOASIS: {ex.Message}"); }
             return result;
