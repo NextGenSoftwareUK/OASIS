@@ -5,6 +5,10 @@ The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance
 
 ## Current milestone
 
+First SQLite native record barrier: Shared1506/1506 and native2 race/restart cases pass.
+Affected V2 saves/deletes/replica replay/new claims are blocked durably; unrelated records
+remain writable. Mongo/Neo and paired migration admission/quiescence remain open.
+
 Preview v3 binds source receipt, exact frozen transport and historical receiver intent.
 Shared1497/1497 and native SQLite2/Mongo1/Neo-source2 pass scoped combined reviews.
 Physical bindings, graph membership/content/revisions, obligation state and explicit

@@ -1136,3 +1136,93 @@ review must not silently become permission to interrupt an entire physical store
 Revalidate exact preview/authorization and replacement identity/content under
 native fencing, then CAS durable per-store receipts and recover interrupted
 cutover/old obligation disposition. Migration execution is still disabled.
+
+
+## First native record barrier — SQLite, 29 October 2026
+
+Core adds `IHolonMigrationFenceStorageProvider` and canonical bounded requests
+(1–4096 exact distinct record IDs). Scope binds migration/operator, physical
+store, reviewed preview and administrative context digests. Input order does not
+change scope meaning; mutable caller lists cannot alter it. Native observations
+distinguish Absent/Held/Cancelled. Owner tokens are trusted-host operational
+values: do not publish or log them. Storage primitives do not authenticate or
+authorize the operator; a host coordinator must admit the exact preview first.
+No coordinator/HTTP execution endpoint is enabled by this checkpoint.
+
+SQLite creates `CosmicMigrationFence` through its existing activation schema
+owner and an explicit EF migration. Downgrade refuses any retained fence history.
+Each acquisition runs in BEGIN IMMEDIATE with physical identity validation and
+canonical receipt verification. Identical repeated acquisition returns the same
+owner; overlapping scopes from separate provider instances cannot both win.
+The table stores the exact request/checksum, owner and terminal state durably.
+There is no automatic expiry. Cancellation requires the exact scope/owner and
+is idempotent; a cancelled migration ID cannot be reacquired. Cancelled audit
+metadata is retained. This cancellation protocol is PRE-MIGRATION-MUTATION only;
+no data-mutation transition exists yet. The future executor must atomically add
+its started/uncertain phase before enabling mutation and bar this cancellation
+path from releasing started cutover.
+
+The common SQLite V2 atomic write path checks held record scopes under the same
+native writer transaction before receipt replay or business mutation. This covers
+owned save, soft/hard delete and committed replica apply/replay. Outbox claim
+admission checks the selected frozen graph under its writer transaction before
+lease/attempt updates. It uses record IDs, independent of old/new source lineage
+strings. Unrelated record writes remain admitted. Historical receipt reads stay
+available while fenced, so operators can establish actual delivery outcomes.
+Activation/lifecycle errors return explicit results; uncertain native fence commit
+is marked reconciliation-required and must be read by its exact original request.
+A known outcome remains known with cleanup warning if scope disposal fails.
+
+Held DOES NOT mean quiescent: prior in-flight/unknown delivery is not stopped by
+source acquisition alone. Existing lease renew/finish remains possible; paired
+target fences plus receipt/state reconciliation and CAS are still required.
+The primitive does not claim coverage for direct SQL, legacy/unconditional APIs,
+Mongo/Neo or other providers. Legacy gaps remain documentation-only by instruction;
+host cutover must account for clients outside the V2 admission path.
+
+Native two-case verification includes separate-instance concurrent acquisition
+(exactly one owner and an absent loser), overlapping scope rejection, idempotent
+owner recovery, ownership-preserving restart, inactive-provider rejection, old/new
+lineage save rejection, soft/hard delete rejection, replica receipt replay rejection,
+blocked pending claim, allowed unrelated save and historical receipt read, wrong
+cancellation owner rejection, durable cancellation and post-cancel normal admission.
+No remote delivery occurs in these SQLite-only protocol fixtures. Source/receiver
+records are separately selected records, not native child-graph acceptance.
+Shared1506/1506 adds nine canonical scope/state controls. Mongo/Neo barriers,
+paired authorization, child graph/race breadth, fault/uncertain commit acceptance,
+cutover, replacement admission and long-history performance remain open.
+
+Run the fixed owned fixture (one build lease, no restore/new runtime):
+```powershell
+Scripts/TestHosts/Run-CosmicSqliteMigrationFenceTests.ps1
+```
+
+| Check | Passed | Worktree-relative evidence | SHA256 |
+|---|---|---|---|
+| Shared contract/regressions | 1506/1506 | `TestResults/DevelopmentSyncCurrent/native-fence-shared.trx` | `D73F3B0D18917AE8B8216A5204CB40546E4AA9D3EC8AE678328E082BEF6DCAB9` |
+| SQLite native barrier/race/restart | 2/2 | `TestResults/DevelopmentSyncCurrent/native-fence-sqlite.trx` | `802399A42CFA0EE223767A9288EE3242ED9D962FAC8C027BADB2326043BCB282` |
+
+The initial fixture reached final post-cancellation claim release, but omitted
+Retry's required future time. It failed on that fixture assertion; the second
+case correctly refused retained state. Read-only inspection verified the original
+journal, one Cancelled fence, three unchanged version1 records/receipts and one
+owned InFlight claim with valid frozen checksum. Fixture code made no remote
+call. After runner19754 stopped, exact isolated DB/sidecars/journal were removed
+without replay, and the fixture was corrected to supply an explicit future retry.
+Preserved review `TestResults/DevelopmentSyncCurrent/native-fence-initial-outcome-review.json`
+SHA256 `6BA83843E7A534B89E9BF398B3030988CA020E85E77537BD766AAAB3CE6710DF`; initial failure TRX
+`TestResults/DevelopmentSyncCurrent/native-fence-sqlite-initial-failure.trx`
+SHA256 `C1508C73B905434FFD01A34C42CDD4D658EC89BECC7346D95E988F940DCDD1DF`. No production fence defect was inferred from that test error.
+
+Final native61723/26183 and Shared63652 verification scopes exited0; exact fixed
+`LocalState/COSMIC/MigrationFenceCurrent/fence.db`/sidecars/pending.json absent.
+Last native free102084452352bytes. No network service, install/download/restore
+or new environment used; reusable SDK/cache retained. Raw evidence remains
+worktree TestResults; required summaries/hashes remain in this report.
+
+Next: implement equivalent Mongo/Neo barriers and native cross-store paired
+admission/recovery. Derive scope from the exact authorized preview, never widen
+one route's grant to whole-store interruption. Account for existing in-flight
+outcomes, replacement identity/content, native CAS and restart-safe phase receipts
+before any lineage mutation. Advance source native revision on cutover to reject
+outstanding pre-cutover conditional writes rather than allowing stale routing.
