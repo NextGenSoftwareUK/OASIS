@@ -8,11 +8,11 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Sui dedicated native source admission on its retained chain.** Adapter7
-controls pass. Actual encrypted source discovery found0 live holons; the required3
-assertion failed, so original source is untouched and no native CQL pass claimed.
-Create a separate demo package/Storage object, not another network or a replacement
-for original history. [Sui exact next step](SUI_CQL_MVP.md).
+**Next: Sui Mongo-paired C#/HTTP/browser5/4** on its admitted dedicated source.
+Native3/2/missing and full restart pass1/1 each; package18 Move tests and7 controls
+pass. Two signed publication and three signed source preparations are preserved.
+Original empty Storage/deployment remains untouched; same chain reused, owned nodes
+stopped. [Sui proof/exact next](SUI_CQL_MVP.md). Inventory remains red until pairing.
 Aptos native/restart/paired/browser5/4 is verified; main-hub enrollment remains
 review-gated. [Direct commands/gate](APTOS_CQL_MVP.md). All owned nodes are stopped.
 LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
