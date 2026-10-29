@@ -8,10 +8,12 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Hedera/Hashgraph admission and reusable native resources**, continuing
-registered red storage providers. Sui native/restart/SDK/HTTP/browser5/4 and launcher
-routing now pass; original Storage and all5 signed preparations preserved. Owned
-node/Mongo stopped, exact fixture cleaned. [Sui proof/commands](SUI_CQL_MVP.md).
+**Next: Hedera/Hashgraph native consensus/source admission.**8 CQL/source controls
+pass; free mirror audit verifies exact retained contract runtime/owner. Fixed actual
+WindowsCRLF Solidity metadata drift with a specific LF checkout rule/build check.
+No consensus queries/transactions submitted. Original deployment journal is absent;
+reconcile history and bounded testnet paid-query policy before native reads.
+[Hedera proof/exact next](HEDERA_CQL_MVP.md). Sui full local demo remains verified.
 Aptos native/restart/paired/browser5/4 is verified; main-hub enrollment remains
 review-gated. [Direct commands/gate](APTOS_CQL_MVP.md). All owned nodes are stopped.
 LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
