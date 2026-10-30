@@ -2189,3 +2189,9 @@ CouchDB outcome initial unit build exposed stale nonexistent GetProviderVersion 
 Reuse existing shared identity compiler/project, .NET/NuGet/bin/obj. Cached restore source only `C:/Users/david/.nuget/packages`. No native service/database/download/port. Test HTTP doubles only; logs/TRX `C:/Source/OASIS-cosmic/TestResults/CouchDbCqlCurrent`, disposable/regenerable after completed processes; build outputs reusable, sizes unmeasured. Adapter tests pending before native inventory.
 
 CouchDB CQL outcome18admission/prior +15execution =33passed/0failed/skipped. HTTP handlers use controlled4MiB synthetic payload/cancellation only; no sockets/real database/native data/download. Owned build/tests completed. Existing shared compiler/API unchanged; cached restore/bin/obj reused, sizes unmeasured. Raw TRX/logs regenerable/disposable in recorded TestResults. Native runtime/source inventory remains next after save ownership checks.
+
+### CouchDB save ownership controls — 30 October 2026
+
+Reuse .NET/NuGet/bin/obj; controlled HTTP acknowledgement/rejection fixtures only, no native requests/socket/service/data/download. Raw logs/TRX `TestResults/CouchDbCqlCurrent` disposable/regenerable after tests; sizes unmeasured. Caller staging/native ack/count invariants under test; shared/Core APIs unchanged. Root unrelated logs retained/excluded.
+
+CouchDB save ownership outcome8repro failed; fullfixed41passed including detached wire Id/key/native revision assertions. Controlled HTTP only, no native data/ports/downloads. Rootful WSL Podman image inventory read-only: no CouchDB match; shared cached images untouched, raw listing under TestResults/CouchDbCqlCurrent/runtime-image-inventory.log. Cfree after85,719,629,824B; pagefile measured separately in tool, no attribution of entire change to this task. Existing bin/obj/runtime reusable (unmeasured), owned build/test completed, reports regenerable/disposable. Native environment inventory continues.
