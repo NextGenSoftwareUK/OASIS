@@ -395,3 +395,14 @@ encrypted contract/records on local EVM31338. CQL through HolonManager returns
 5physical rows or4subset with provider copies preserved. Direct construction only;
 central registration/public network behavior/migration and shared snapshots remain
 unverified. Page shutdown cleans temporary Mongo data and retains original source.
+
+## Linea V2 + Mongo MVP
+
+[Verified scope and examples](LINEA_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Linea -Federated`
+(add `-VerifyOnly` for bounded verification). Shipping Linea V2 reads retained
+encrypted records on local EVM31338 through HolonManager:5physical rows or4subset,
+with provider provenance. Browser port5129; shutdown verifies temporary Mongo
+fixture cleanup and preserves original source. Direct construction only; public
+Linea network/finality/bridging, central registration and distributed snapshots
+remain unverified.

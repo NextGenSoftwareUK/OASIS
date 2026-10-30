@@ -60,7 +60,8 @@ public static class IdentityFederationApiHost
             or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OptimismOASIS
             or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.RootstockOASIS
             or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BNBChainOASIS
-            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.FantomOASIS)
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.FantomOASIS
+            or NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LineaOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and local EVM chain31338 through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep reusable " + IdentityFederationWalkthrough.DisplayName(secondary) + " seed)", StringComparison.Ordinal);
