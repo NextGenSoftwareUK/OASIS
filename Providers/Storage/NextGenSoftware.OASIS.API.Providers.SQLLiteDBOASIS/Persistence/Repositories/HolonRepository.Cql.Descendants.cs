@@ -36,6 +36,32 @@ public partial class HolonRepository
             return child.Translate(secured.Result.Predicates.Single());
         }
 
+        /// <summary>
+        /// "Any ancestor within the bound satisfies the predicate": the parent chain, one level per recursion, stopping as soon
+        /// an ancestor matches. The depth bound ends every walk, so a loop in the data is harmless, and a parent that is not a
+        /// stored holon (an avatar, a missing row) simply ends it. The ancestor need not be readable by the caller: the right
+        /// comes from the flag the predicate tests.
+        /// </summary>
+        private string TranslateAncestor(CosmicQueryAnyAncestor ancestor)
+        {
+            var suffix = Parameters.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var walk = "u" + suffix;
+            var up = new CqlSqlTranslator("a" + suffix, Parameters, _access, _relationshipDepth + 1);
+            var upId = "lower(" + up.CanonicalColumn("Id") + ")";
+            var upParent = "lower(coalesce(" + up.CanonicalColumn("ParentHolonId") + ",''))";
+            var rootParent = "lower(coalesce(" + CanonicalColumn("ParentHolonId") + ",''))";
+            var empty = Bind(System.Guid.Empty.ToString("D"));
+            var maximumDepth = Bind(ancestor.Traversal.MaximumDepth);
+            var matched = "COALESCE((" + up.Translate(ancestor.Predicate) + "),0)<>0";
+            return "(WITH RECURSIVE " + walk + "(parent,depth,matched) AS ("
+                + "SELECT " + upParent + ",1," + matched + " FROM Holon AS \"" + up._table + "\" WHERE " + upId + "=" + rootParent
+                + " AND " + rootParent + "<>" + empty + " UNION ALL "
+                + "SELECT " + upParent + "," + walk + ".depth+1," + matched + " FROM " + walk
+                + " JOIN Holon AS \"" + up._table + "\" ON " + upId + "=" + walk + ".parent"
+                + " WHERE " + walk + ".matched=0 AND " + walk + ".depth<" + maximumDepth + " AND " + walk + ".parent<>" + empty + ") "
+                + "SELECT coalesce(max(matched),0) FROM " + walk + ")";
+        }
+
         private string TranslateDescendant(CosmicQueryAnyDescendant descendant)
         {
             HasTraversal = true;

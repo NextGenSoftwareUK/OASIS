@@ -83,6 +83,7 @@ See `Docs/Devs/HOLON_PERMISSIONS.md`.
 - [ ] **Publish `@oasisomniverse/web4-api` 2.0.17** (`npm login` then `npm run publish-all`). It adds `share.setPermissions` and `share.getPermissions`. piper-server does not need it yet (it calls the endpoint directly), but other apps will.
 - [ ] **Sign in as the SA, open Staff Management and press Reapply access** once. It sets permissions on every existing district, school, staff and student record. A toast says how many were updated.
 - [ ] Sign in as an SLP (e.g. david@piperspeech.com) and check the dashboard loads their students with no "not linked" error.
+- [ ] Note: CQL queries now include what owners shared (and inherited reads on Mongo, SQLite and Neo4j) by default once this deploys. To turn it off, set `OASIS.Cql.SharedReads` to `false` in the DNA (`InheritedReads` turns off just the inherited part).
 
 ---
 
