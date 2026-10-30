@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import os
+import uuid
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,6 +82,45 @@ class HostedDemoProtocolTests(unittest.TestCase):
         self.assertIs(nested, demo.unwrap({'result': nested}))
         normal = {'isError': False, 'result': {'rows': []}}
         self.assertIs(normal, demo.unwrap(normal))
+
+    @unittest.skipUnless(os.name == 'nt', 'Existing Windows DPAPI environment required')
+    def test_protected_session_round_trip_is_separate_from_redacted_journal_and_never_overwrites(self):
+        identity = str(uuid.uuid4())
+        with patch.object(demo, 'STATE', self.folder):
+            demo.store_session(identity, 'owned-test-token-not-a-real-bearer')
+            encrypted = (self.folder / ('session-' + identity + '.dpapi')).read_bytes()
+            self.assertNotIn(b'owned-test-token', encrypted)
+            self.assertEqual('owned-test-token-not-a-real-bearer', demo.load_session({'id': identity}))
+            with self.assertRaises(FileExistsError):
+                demo.store_session(identity, 'replacement-forbidden')
+            self.assertEqual(encrypted, (self.folder / ('session-' + identity + '.dpapi')).read_bytes())
+            with self.assertRaisesRegex(RuntimeError, 'Protected session operation failed'):
+                demo.protected_token(b'invalid-encrypted-test-data', decrypt=True)
+
+    def test_resume_requires_original_acknowledgements_and_protected_identity_before_any_hosted_call(self):
+        owner = {'label': 'owner', 'id': str(uuid.uuid4())}
+        records = [{'id': str(uuid.uuid4())} for _ in range(3)]
+        original = {'pending': None, 'completed': False, 'avatars': [owner], 'records': records,
+                    'acknowledgements': [{'id': row['id'], 'path': 'data/save-holon'} for row in records]}
+        journal = self.folder / 'fixture.json'
+        demo.write(journal, original)
+        with patch.object(demo, 'STATE', self.folder), patch.object(demo, 'load_session', return_value='memory-only-token') as load:
+            resumed, token = demo.resume_fixture(journal)
+            self.assertEqual(original, resumed)
+            self.assertEqual('memory-only-token', token)
+            load.assert_called_once_with(owner)
+            for invalid in [{**original, 'pending': {'mutation': True}}, {**original, 'completed': True},
+                            {**original, 'acknowledgements': []}, {**original, 'records': records[:2]}]:
+                demo.write(journal, invalid)
+                with self.assertRaises(RuntimeError):
+                    demo.resume_fixture(journal)
+        demo.write(journal, original)
+        with patch.object(demo, 'STATE', self.folder), patch.object(demo.subprocess, 'check_output') as hosted, \
+                patch('sys.argv', ['verify', '--resume', '--deployment', str(uuid.uuid4()), '--commit', 'a' * 40]):
+            with self.assertRaisesRegex(RuntimeError, 'Original protected session is unavailable'):
+                demo.main()
+            hosted.assert_not_called()
+        self.assertEqual(original, json.loads(journal.read_text()))
 
 
 if __name__ == '__main__':
