@@ -116,8 +116,8 @@ envelope validation/window ownership remain unchanged. No managed business scan.
 Oracle JSON_EXISTS requires a literal JSON path. Each member is JSON-quoted and
 the resulting SQL string literal is escaped; predicate values use separate
 PASSING VARCHAR2 binds. Explicit object checks on every metadata parent and a
-string-type check on the leaf are intended to prevent array unwrapping and
-numeric/null coercion. ERROR ON ERROR retains actual native failures rather than
+string-type check on the leaf prevent array unwrapping and numeric/null coercion
+in the15 native synthetic cases below; persisted-source acceptance remains open. ERROR ON ERROR retains actual native failures rather than
 silently returning a nonmatch. Contains uses the literal has substring operator.
 
 Bounds:512 total identity/text parameters; text values and complete encoded JSON
@@ -130,12 +130,12 @@ Unicode, arrays, keys, text/trailing spaces and limits still need actual proof.
 Provider/unit builds pass;13 query controls pass/no skips. They cover preserved
 identity snapshots/empty catalogues, frozen text bindings, authority conjunction,
 key literal containment, empty-string intent and explicit unsupported/bound cases.
-Evidence TestResults/OracleCurrent/content-controls.trx; SHA256 308cce8b335674cebe47669ce0b8fec34eab522f38f21abf530a81c156d84062.
+Evidence TestResults/OracleCurrent/content-controls.trx; SHA256 b086e2d7476c3c3888d79a5fd536d294f9cdb4cbff53cf536075bd049900e667.
 These are compiler proofs; native content and paired/browser/sandbox remain red.
 
 Exact next: reuse the retained Oracle container/image/volume/11521 and existing
-native runner. First verify JSON_EXISTS/PASSING syntax and type/empty semantics
-read-only, then use an explicitly journalled owned content fixture for positive/
+native runner. Read-only syntax/type/empty admission now passes; next use an
+explicitly journalled owned saved-holon fixture for positive/
 negative Name/Description/metadata, nested/numeric-looking keys, arrays, missing/
 null/wrong type, literal wildcards/quotes/Unicode, AND/OR and authority exclusion.
 Preserve historical pending/recovery evidence and never replay uncertain writes.
@@ -146,3 +146,32 @@ References used for the candidate design:
 - [Oracle PASSING type/NULL semantics](https://docs.oracle.com/en/database/oracle/oracle-database/26/adjsn/passing-clause-sql-functions-and-conditions.html).
 Native proof on the retained pinned runtime is required; documentation from a
 newer release alone does not certify that runtime's behavior.
+
+## Read-only SQL/JSON runtime admission verified
+
+The retained pinned Oracle image passed15 compiled-predicate cases using bound
+synthetic JSON rows from DUAL. No OASIS table reads/writes, provider activation,
+index initialization, DDL/DML or seeded fixture occurred. The source substitution
+keeps production predicate text and OracleCqlStatement.BindParameters unchanged;
+the provider now delegates to that same binding owner. Connection/parameter types
+are real Oracle.ManagedDataAccess execution, not an emulated evaluator.
+
+Cases: Name equality, Description Contains, empty equality, null-versus-empty,
+empty Contains, array leaf exclusion, metadata equality, numeric type exclusion,
+array parent exclusion, nested-array exclusion, numeric-looking object key versus
+array step, quoted/apostrophe metadata key, trailing-space distinction and a
+4000byte string. All15 pass in one native test420ms/no skips.13 compiler controls
+also pass after the binding-owner extraction.
+
+```powershell
+Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-oracle-json-probe -Operation {
+    Scripts/TestHosts/Run-ReusableOracleTests.ps1 -CqlContentProbe
+}
+```
+
+This is runtime expression/binding admission. It does not validate persisted
+canonical holons/history/native columns or the manager/federated API path. Those
+content cells remain red until a saved-source fixture and paired demo prove them.
+Final Oracle state exited143/no OOM; no new environment, download, restore or data.
+Evidence TestResults/OracleCurrent/oracle-cql-content-probe.trx; SHA256 4ab94f7941d7b57faf04c9bb6ce40dec22036489a8bfa161e7f245c7740adaaa.
+New test: OracleCqlContentProbeTests.cs in OracleDBOASIS.IntegrationTests.
