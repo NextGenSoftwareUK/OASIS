@@ -77,3 +77,34 @@ results. The separate Web4Site checkout was inspected only; no branch switch,
 frontend edit, deployment, account, environment or new resource was created here.
 
 [Current status](CURRENT_STATUS.md) / [content-query roadmap](CONTENT_QUERY_DEMO_ROADMAP.md).
+
+## CQL tab implementation — 30 October 2026
+
+Existing `C:/Source/Web4Site` on `work/cosmic-cql` now contains the first working
+CQL client: editable bounded JSON, three core provider selectors, seven presets
+(browse, name, description, metadata, AND/OR, count and named federation), actual
+response/provenance display, operation identity, cancellation and session clearing.
+No other provider is represented as hosted/enrolled merely because its local demo passed.
+
+Client controls: 11 Node tests pass, including stale-session response suppression,
+stored HTML rendered as text, cancellation without retry, UTF8 request bounds and
+mandatory idempotency keys. `node --test cql-playground.test.cjs` in Web4Site.
+These controls do not prove native query execution.
+
+Real browser -> existing dev WEB4: demo authentication succeeds; row query returns
+HTTP503 `CQL_ADMISSION_REQUIRED`. No fake rows, alternate endpoint or bypass added.
+This remains **red for a successful public CQL demo**. Evidence is regenerable in
+`C:/Source/OASIS-cosmic/TestResults/Web4SandboxCqlCurrent`.
+
+Exact next step: inspect deployment enrollment for `PREPARED_STORAGE_ADMISSION_JSON`
+and `SUBSCRIPTION_USAGE_ENABLED`, retaining the existing local reservation authority,
+Mongo usage outbox and settlement worker. Enroll exact row/scalar/federation paths
+with explicit operator tariffs and sufficient bounded provider-attempt reservations;
+do not copy illustrative commercial rates or disable admission. Then rerun real
+browser queries with owned records on Mongo/SQLite/Neo4j before expanding the selector.
+The route rejects before provider lookup, so this failure is not proof of a native
+provider defect. Hosted configuration and successful query verification remain open.
+
+Evidence `TestResults/Web4SandboxCqlCurrent/node-tests.log`: 1088 bytes, SHA256 `9929f2fd78fab982e1c0a20fc143c361a5356d1ca1706e0f18072645c33b402a`.
+
+Evidence `TestResults/Web4SandboxCqlCurrent/browser.png`: 204979 bytes, SHA256 `3ac4a4a5c3181914d1707b5ed827694a8f3075b6b7f66b2742e22396a77e02db`.
