@@ -1,4 +1,6 @@
 """Own a reusable JWT-authenticated PostgREST data-plane fixture on retained PostgreSQL."""
+import argparse
+import sys
 import base64
 import fcntl
 import hashlib
@@ -16,6 +18,13 @@ import urllib.request
 import uuid
 import xml.etree.ElementTree as ET
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+if options.serve and not options.federated: raise RuntimeError('Serve requires federation')
+sys.dont_write_bytecode = True
+from cosmic_linux_mongo_service import owned_linux_mongo
 ROOT = Path('/mnt/c/Source/OASIS-cosmic')
 STATE = Path('/var/tmp/oasis-supabase-cql')
 RESULTS = ROOT / 'TestResults/SupabaseCqlCurrent'
@@ -81,11 +90,12 @@ def source_hash():
     assert sum(v['is_deleted'] for v in rows) == 1
     return hashlib.sha256(json.dumps(rows, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
-def report(name, seed):
+def report(name, seed, test="SupabaseNativeCqlTests", extra=None):
     env = dict(os.environ, DOTNET_ROOT='/var/tmp/oasis-runtimes/dotnet-10.0.12', COSMIC_SUPABASE_ROOT=str(STATE), COSMIC_SUPABASE_SEED='1' if seed else '0')
+    env.update(extra or {})
     started = time.time()
     with (RESULTS / (name + '.log')).open('w') as output:
-        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), '--TestCaseFilter:FullyQualifiedName~SupabaseNativeCqlTests',
+        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), '--TestCaseFilter:FullyQualifiedName~' + test,
                         '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=' + name + '.trx'],
                        env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
     path = RESULTS / (name + '.trx')
@@ -96,7 +106,7 @@ def report(name, seed):
 
 with (STATE / 'runner.lock').open('a') as lock:
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    if list(STATE.glob('*.pending')) or (STATE / 'active-process.json').exists():
+    if list(STATE.glob('*.pending')) or (STATE / 'mongo.pending.json').exists() or (STATE / 'active-process.json').exists():
         raise RuntimeError('Unresolved original outcome; preserve without replay')
     with socket.socket() as check:
         assert check.connect_ex(('127.0.0.1', 18091)) != 0
@@ -159,6 +169,22 @@ with (STATE / 'runner.lock').open('a') as lock:
                         except urllib.error.HTTPError as error: assert error.code == 401
                         else: raise RuntimeError('Unauthenticated/invalid JWT unexpectedly admitted')
                     proofs.append(report('native' if iteration == 0 else 'restart', fresh and iteration == 0))
+                    if iteration == 1 and options.federated:
+                        # Launch/stop the reused Mongo as its original data owner,
+                        # avoiding root-owned files in another user's retained store.
+                        owner = Path('/var/tmp/oasis-cosmic-mongo/data').stat().st_uid
+                        assert owner != 0
+                        os.setresuid(owner, owner, 0)
+                        try:
+                            with owned_linux_mongo(RESULTS) as mongo_env:
+                                os.setresuid(0, 0, 0)
+                                try:
+                                    proofs.append(report('mongo-init', False, 'LinuxMongoDemoEnvironmentTests', mongo_env))
+                                    pair_env = dict(mongo_env, COSMIC_SUPABASE_MONGO_SERVE='1' if options.serve else '0')
+                                    proofs.append(report('mongo-federation', False, 'SupabaseMongoCqlNativeTests', pair_env))
+                                    assert not (STATE / 'mongo.pending.json').exists()
+                                finally: os.setresuid(owner, owner, 0)
+                        finally: os.setresuid(0, 0, 0)
                     digest = source_hash()
                     if fresh and iteration == 0:
                         durable(STATE / 'native-baseline.json', {'sha256': digest, 'records': 4, 'live': 3, 'deleted': 1})
