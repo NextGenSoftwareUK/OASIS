@@ -4,9 +4,13 @@ import argparse, sys, fcntl, hashlib, json, os, pwd, socket, subprocess, time
 import xml.etree.ElementTree as ET
 
 sys.dont_write_bytecode = True
+from cosmic_linux_mongo_service import owned_linux_mongo
 parser = argparse.ArgumentParser()
 parser.add_argument('--resume-original-prewrite', action='store_true')
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
 options = parser.parse_args()
+assert not options.serve or options.federated
 ROOT = Path(__file__).resolve().parents[2]
 STATE = Path('/var/tmp/oasis-scylladb-cql')
 RESULTS = ROOT/'TestResults/ScyllaDbCqlCurrent'
@@ -76,6 +80,24 @@ def main():
                     assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
                     proofs.append({'phase': phase, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
                 report(phase, extra={'OASIS_SCYLLADB_RESUME_PREWRITE': '1'} if options.resume_original_prewrite and phase == 'native-first' else {})
+
+                if phase == 'native-restart' and options.federated:
+                    owner = Path('/var/tmp/oasis-cosmic-mongo/data').stat().st_uid
+                    assert owner != 0
+                    os.setresuid(owner, owner, 0)
+                    try:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            os.setresuid(0, 0, 0)
+                            try:
+                                report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
+                                report('mongo-federation', 'ScyllaDBMongoCqlNativeTests',
+                                    {**mongo_env, 'COSMIC_SCYLLADB_MONGO_SERVE': '1' if options.serve else '0'})
+                                assert not (STATE/'mongo.pending.json').exists()
+                            finally:
+                                os.setresuid(owner, owner, 0)
+                    finally:
+                        os.setresuid(0, 0, 0)
+                    report('native-postpair')
 
             finally:
                 command('stop', '--time', '30', NAME)
