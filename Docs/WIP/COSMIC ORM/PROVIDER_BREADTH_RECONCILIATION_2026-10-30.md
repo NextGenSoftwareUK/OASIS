@@ -14,15 +14,11 @@ Recovery entry: CURRENT_STATUS.md. Full goal remains incomplete.
 
 Hosted Mongo/SQLite/Neo4j35-step acceptance and original replication blocker repair remain verified at their documented deployment. Oracle content pairing and protocol multi-record IPFS/SOLID/ActivityPub +Mongo scopes pass locally. Solana browser9queries and mixed Mongo2/empty0 pass. AWS DynamoDB Local, Ethereum, Polygon, Arbitrum, Google Firestore emulator, Cosmos blockchain, Polkadot and NEAR have current scoped C#/HTTP/browser proofs and published local catalogue entries. These do not certify hosted clouds/mainnets, general metadata/text on ID-only profiles, full HyperDrive semantics or EF parity.
 
-## Next red gate: S3 compatible native acceptance
+## Subsequent narrow gates closed
 
-Preserved AWS_S3_CQL_MVP.md explicitly leaves native/restart/paired acceptance red. Compiler/SDK controls and fixtures exist; no suitable native seed/key/store/container was created. Cached MinIO image3d5ffffec36e6efdda5ed906939f1b4d0976f03fc33d1ea31ddcc67833089691/digestd8cfccee3f7bf0182d89c223b2ff53b94c9a88237bc0dd5733dd49fa0f4dab4c is recorded.
+S3-compatible local acceptance now passes controls/native/restart/Mongo/browser; see [AWS_S3_CQL_MVP.md](AWS_S3_CQL_MVP.md). Its catalogue card is published. TRON now passes native restart/missing/read-preservation and Mongo SDK/HTTP/browser all5/subset4; see [TRON_CQL_MVP.md](TRON_CQL_MVP.md). Its local runtime persistence bug was fixed at the mining/shutdown boundary; historical unknown submissions remain unresolved and are not replayed. These narrow scopes do not certify full provider implementation or increase the preserved historical inventory's full-parity claims.
 
-An earlier combined preparation/launch command was rejected by automatic approval review with only “blocked by policy.” Do not blindly replay it or claim native support. Inspect existing CI/local acceptance and exact current resources first; prepare a bounded loopback-only reusable environment/fixture with explicit ownership and cleanup, using no billable AWS calls. If no safer authorized execution is possible, report that review rejection and proceed with other red work. No need to rerun already green62 provider scopes.
-
-S3-compatible local proof must remain labelled compatible-service proof, never hosted AWS. Required acceptance: native selected3/subset2; retained restart; Mongo paired SDK/HTTP/browser5/4 with provenance; invalid/forged requests and source failure; exact temporary fixture teardown; ledger/update/docs/source/push.
-
-## Recovery commands
+Next inspect the preserved inventory for the next red native/catalogue gate, retain prior green scopes and port only required task dependencies. Read the preserved inventory with:
 
 ```powershell
 git show "f89cf0085e3110daf33fa886d7dc585783b61c2c:Docs/WIP/COSMIC ORM/CQL_ALL_PROVIDER_MVP_INVENTORY.md"

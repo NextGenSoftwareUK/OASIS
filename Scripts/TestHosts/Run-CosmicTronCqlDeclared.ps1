@@ -1,6 +1,8 @@
 #Requires -Version 7.5
 [CmdletBinding()]
-param([switch]$RepairAcknowledgedLostRecord)
+param([switch]$RepairAcknowledgedLostRecord,[switch]$Federated,[switch]$Serve)
+if($Serve -and !$Federated){throw 'Serve requires explicit federation.'}
+if($Federated -and $RepairAcknowledgedLostRecord){throw 'Repair and federation are separate operations.'}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $state=Join-Path $root 'LocalState/COSMIC/TronCqlDeclared'
@@ -24,9 +26,9 @@ try {
             }
             return $item
         }
-        $names=@('OASIS_TRON_CQL_DECLARED','OASIS_TRON_CQL_STATE','OASIS_TRON_CQL_STORAGE_KEY','OASIS_TRON_CQL_BYTECODE','OASIS_TRON_CQL_REPAIR')
+        $names=@('OASIS_TRON_CQL_DECLARED','OASIS_TRON_CQL_STATE','OASIS_TRON_CQL_STORAGE_KEY','OASIS_TRON_CQL_BYTECODE','OASIS_TRON_CQL_REPAIR','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_TRON_MONGO_SERVE')
         $prior=@{};foreach($variable in $names){$prior[$variable]=[Environment]::GetEnvironmentVariable($variable)}
-        $started=$false;$mining=$false
+        $started=$false;$mining=$false;$ownedMongo=$null
         $miningHelper=((Join-Path $PSScriptRoot 'set-owned-tron-mining.sh').Replace('\','/'))
         $miningPath=((& wsl -d Ubuntu -- wslpath -a $miningHelper)-join '').Trim()
         if($LASTEXITCODE){throw 'Cannot resolve owned mining helper.'}
@@ -41,17 +43,27 @@ try {
             if(Test-Path (Join-Path $state 'source.pending.json')){throw 'Reconcile original declared setup; never replay/reseed.'}
             if((InspectOwned).State.Status -ne 'exited'){throw 'Retained node in use; do not adopt it.'}
             if(Get-NetTCPConnection -State Listen -LocalPort 9090,50051,50052 -ErrorAction SilentlyContinue){throw 'Native endpoint occupied.'}
-            $report=Join-Path $results $(if($RepairAcknowledgedLostRecord){'tron-declared-repair.trx'}else{'tron-declared-native.trx'})
+            $report=Join-Path $results $(if($Federated){'tron-mongo-federation.trx'}elseif($RepairAcknowledgedLostRecord){'tron-declared-repair.trx'}else{'tron-declared-native.trx'})
             if(Test-Path $report){
                 [xml]$old=Get-Content $report -Raw
                 if($old.TestRun.ResultSummary.Counters.total -ne '1' -or $old.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Preserve failed/incomplete native report.'}
                 if(!(Test-Path (Join-Path $state 'demo-seed.json'))){throw 'Completed source manifest required before re-verification.'}
                 $archive=Join-Path $results 'Archive';New-Item -ItemType Directory -Path $archive -Force | Out-Null
-                $target=Join-Path $archive ((Get-FileHash $report).Hash+'-tron-declared-native.trx')
+                $target=Join-Path $archive ((Get-FileHash $report).Hash+'-'+[IO.Path]::GetFileName($report))
                 if(Test-Path $target){throw 'Preserve existing native archive.'}
                 Move-Item -LiteralPath $report -Destination $target
             }
             $project=Join-Path $root 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests.csproj'
+            if($Federated){
+                if(!(Test-Path (Join-Path $state 'demo-seed.json')) -or (Test-Path (Join-Path $state 'mongo.pending.json'))){throw 'Existing source and no unfinished Mongo fixture required.'}
+                $assets=Join-Path (Split-Path $project) 'obj/project.assets.json'
+                if((Get-Content $assets -Raw) -notmatch 'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS'){
+                    & dotnet restore $project --source C:/Users/david/.nuget/packages /m:2 /nr:false /p:NuGetAudit=false -v:q
+                    if($LASTEXITCODE){throw 'Offline paired restore failed.'}
+                }
+                & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+                if($LASTEXITCODE){throw 'Mongo producer build failed.'}
+            }
             & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
             if($LASTEXITCODE){throw 'Declared fixture build failed before node startup.'}
             & node (Join-Path $PSScriptRoot 'compile-cosmic-tron-cql.cjs')
@@ -97,13 +109,36 @@ try {
             if(!$ready){throw 'Retained-node readiness deadline exceeded; no restart.'}
             & wsl -d Ubuntu -u root -- bash $miningPath start
             if($LASTEXITCODE){throw 'Owned interval mining failed.'};$mining=$true
-            $selectedTest=if($RepairAcknowledgedLostRecord){$env:OASIS_TRON_CQL_REPAIR='repair-last-acknowledged-synthetic-record';'ExplicitRepairOfAcknowledgedSyntheticRecordLostAtShutdown'}else{'DeclaredLocalSourceUsesJournaledWritesAndNativeCqlReads'}
+            if($Federated){
+            $mongoRuntime = 'C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe'
+            $mongoData = Join-Path $root 'LocalState/COSMIC/mongo-data'
+            if (!(Test-Path (Join-Path $mongoData 'WiredTiger'))) { throw 'Retained Mongo environment missing; no reset.' }
+            if (Get-NetTCPConnection -State Listen -LocalPort 27029,5108 -ErrorAction SilentlyContinue) { throw 'Paired demo port occupied.' }
+            if (((& $mongoRuntime --version) -join ' ') -notmatch 'v8\.3\.11\b') { throw 'Pinned Mongo runtime differs.' }
+            $ownedMongo = Start-Process $mongoRuntime -ArgumentList @('--dbpath',$mongoData,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $results 'mongo-service.log'),'--logappend') -WindowStyle Hidden -PassThru
+            $mongoReady = $false
+            for ($i=0;$i -lt 40;$i++) {
+                if ($ownedMongo.HasExited) { throw 'Owned Mongo exited during startup.' }
+                $listeners = Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+                if ($listeners) {
+                    if (@($listeners | Where-Object OwningProcess -ne $ownedMongo.Id).Count) { throw 'Mongo listener owner differs.' }
+                    $mongoReady = $true; break
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            if (!$mongoReady) { throw 'Owned Mongo startup deadline exceeded.' }
+            $env:OASIS_MONGO_REPLICA_SET_CONNECTION = 'mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+            $env:OASIS_TRON_MONGO_SERVE = if ($Serve) { '1' } else { '0' }
+            }
+            $selectedTest=if($Federated){'TronMongoCqlNativeTests'}elseif($RepairAcknowledgedLostRecord){$env:OASIS_TRON_CQL_REPAIR='repair-last-acknowledged-synthetic-record';'ExplicitRepairOfAcknowledgedSyntheticRecordLostAtShutdown'}else{'DeclaredLocalSourceUsesJournaledWritesAndNativeCqlReads'}
             if(Test-Path $report){throw 'Preserve existing native report before rerun.'}
             & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~$selectedTest" --logger "trx;LogFileName=$([IO.Path]::GetFileName($report))" --results-directory $results -v:q
             if($LASTEXITCODE){throw 'Declared source native test failed; preserve all outcomes.'}
             [xml]$proof=Get-Content $report -Raw
             if($proof.TestRun.ResultSummary.Counters.total -ne '1' -or $proof.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one passing native schedule required.'}
+            if($Federated -and (Test-Path (Join-Path $state 'mongo.pending.json'))){throw 'Mongo fixture cleanup incomplete.'}
         } finally {
+          try {
             foreach($variable in $names){[Environment]::SetEnvironmentVariable($variable,$prior[$variable])}
             if($started -and (InspectOwned).State.Status -eq 'running') {
                 if($mining){
@@ -120,6 +155,12 @@ try {
                 $now=if(Test-Path $entry.Key){(Get-FileHash $entry.Key).Hash}else{$null}
                 if($now -ne $entry.Value){throw 'Historical fence observation changed; preserve and reconcile.'}
             }
+          } finally {
+            if($ownedMongo){
+                if(!$ownedMongo.HasExited){$ownedMongo.Kill();if(!$ownedMongo.WaitForExit(30000)){throw 'Owned Mongo teardown incomplete.'}}
+                $ownedMongo.Dispose()
+            }
+          }
         }
     }
 } finally {$lease.Dispose()}

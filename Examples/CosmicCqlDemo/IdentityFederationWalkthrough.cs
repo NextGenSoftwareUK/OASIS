@@ -84,6 +84,7 @@ public static class IdentityFederationWalkthrough
 
     internal static string DisplayName(ICosmicQueryStorageProvider provider) => provider.QueryProviderType switch
     {
+        ProviderType.TRONOASIS => "TRON",
         ProviderType.OracleDBOASIS => "Oracle",
         ProviderType.AWSOASIS => "AWS DynamoDB",
         ProviderType.EthereumOASIS => "Ethereum",

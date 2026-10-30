@@ -706,3 +706,23 @@ writes are needed. Production identity/billing and full parity remain open.
 MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
 retained-fixture preflight; it does not reset data. See
 [required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).
+
+
+### TRON + Mongo native query demo
+
+Run from the COSMIC worktree:
+
+```powershell
+./Scripts/TestHosts/Run-CosmicTronCqlDeclared.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5108/ after the runner is ready. Choose **Query all records**
+for three encrypted TRON holons plus two Mongo copies, or **Query two-record
+subset** for two from each source. Both use the same C# membership predicate,
+explicit provider scope and trusted per-source authorization through HolonManager.
+Physical copies keep their provider labels; this does not promise one shared snapshot.
+
+TRON stays read-only. The stop button verifies and removes the exact temporary
+Mongo fixture, then stops owned services while retaining the original TRON source,
+key and ledger. This uses local TRE, not a public chain. Metadata/text/order/full
+parity remain separate work. [Native proof and limits](../../Docs/WIP/COSMIC%20ORM/TRON_CQL_MVP.md).
