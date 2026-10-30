@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EvmProviderFactory.cs" Link="Production/EvmProviderFactory.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />

@@ -26,9 +26,9 @@ public class EvmMongoCqlNativeTests
         
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         var name = Environment.GetEnvironmentVariable("OASIS_EVM_CQL_PROVIDER");
-        Assert.IsTrue(name is "Ethereum" or "Polygon", "The runner must explicitly select an enrolled provider.");
-        var authority = name == "Polygon" ? ProviderType.PolygonOASIS : ProviderType.EthereumOASIS;
-        var port = name == "Polygon" ? 5098 : 5097;
+        Assert.IsTrue(name is "Ethereum" or "Polygon" or "Arbitrum", "The runner must explicitly select an enrolled provider.");
+        var authority = name switch { "Polygon" => ProviderType.PolygonOASIS, "Arbitrum" => ProviderType.ArbitrumOASIS, _ => ProviderType.EthereumOASIS };
+        var port = name switch { "Polygon" => 5098, "Arbitrum" => 5099, _ => 5097 };
         var database = "cosmic_cql_mongo_" + name.ToLowerInvariant() + "_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Environment.GetEnvironmentVariable("OASIS_EVM_CQL_STATE")!;
@@ -49,9 +49,12 @@ public class EvmMongoCqlNativeTests
         // the same CQL federation walkthrough; no provider-specific HTTP engine.
         const string devKey = "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d";
         var contract = seed.RootElement.GetProperty("Contract").GetString()!;
-        OASISStorageProviderBase secondary = name == "Polygon"
-            ? new NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS("http://127.0.0.1:18547", devKey, contract, 31338)
-            : new EthereumOASIS("http://127.0.0.1:18547", devKey, 31338, contract);
+        OASISStorageProviderBase secondary = name switch
+        {
+            "Polygon" => new NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS("http://127.0.0.1:18547", devKey, contract, 31338),
+            "Arbitrum" => EvmCqlDemoProviders.CreateArbitrum("http://127.0.0.1:18547", devKey, contract),
+            _ => new EthereumOASIS("http://127.0.0.1:18547", devKey, 31338, contract)
+        };
         var queryAdapter = (ICosmicQueryStorageProvider)secondary;
         var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(mongoUri, database) { IsVersionControlEnabled = false };
         try
