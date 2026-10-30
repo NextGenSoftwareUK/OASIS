@@ -1,7 +1,7 @@
 # CQL completion roadmap
 
 Pinecone:58save/index/CQL controls pass; native free hosted proof pending. [Scope](PINECONE_CQL_MVP.md).
-LanceDB:19Arrow save controls pass; table admission/query transport next, native stays red. [Audit](LANCEDB_CQL_MVP.md).
+LanceDB:35Arrow save/table admission controls pass; query transport/CQL next, native stays red. [Audit](LANCEDB_CQL_MVP.md).
 
 Chroma:50controls/native/restart/Mongo-paired C#/HTTP/browser5/4/hub pass. [Scope](CHROMA_CQL_MVP.md).
 Milvus:50controls pass; upstream embedded-client shutdown gate remains red. [Cause](MILVUS_CQL_MVP.md).

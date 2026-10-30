@@ -69,6 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 foreach (var t in new[] { CollAvatars, CollAvatarDetails, CollHolons })
@@ -78,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"LanceDBOASIS: ActivateProviderAsync failed: {ex.Message}");
             }
             return result;
@@ -541,22 +543,6 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
 
         private StringContent Json(object o)
             => new StringContent(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
-
-        private async Task EnsureTableAsync(string table)
-        {
-            // Seed row establishes the schema; already-exists is not an error.
-            var seed = new Dictionary<string, object>
-            {
-                { "id", "__schema__" },
-                { "doc", "{}" },
-                { "username", "" },
-                { "email", "" },
-                { "parent_holon_id", "" },
-                { "vector", new[] { 0.0f } }
-            };
-            await _http.PostAsync($"{_baseUrl}/v1/table/{table}/create/",
-                Json(new { data = new[] { seed }, mode = "create" }));
-        }
 
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {

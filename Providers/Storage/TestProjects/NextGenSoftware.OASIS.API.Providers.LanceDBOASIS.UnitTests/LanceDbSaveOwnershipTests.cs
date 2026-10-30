@@ -59,6 +59,8 @@ public class LanceDbSaveOwnershipTests
             Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("ProviderUniqueStorageKey").GetProperty("LanceDBOASIS").GetString());
             var vector = (FixedSizeListArray)batch.Column(5);
             Assert.AreEqual(1, ((FixedSizeListType)vector.Data.DataType).ListSize);
+            Assert.AreEqual("item", ((FixedSizeListType)vector.Data.DataType).ValueField.Name);
+            Assert.IsTrue(((FixedSizeListType)vector.Data.DataType).ValueField.IsNullable);
             Assert.AreEqual(1.0f, ((FloatArray)vector.Values).GetValue(0));
             Assert.IsNull(await reader.ReadNextRecordBatchAsync(token));
             if (mode == "disconnect") throw new HttpRequestException("Unknown write outcome");
