@@ -8,13 +8,13 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect Garnet implementation/native resources for independent admission.**
+**Next: Garnet empty-checkpoint ABI probe, then explicit failed-fixture disposition.**
+Garnet controls8/lifecycle6 pass; native IO dependencies/layout corrected. Original
+uncheckpointed fixture was lost on harness teardown; preserve receipts, no reseed.
+Native/restart/paired remain red. [Exact gate/commands](GARNET_CQL_MVP.md).
 Dragonfly2.0.2 controls8/native snapshot/restart/paired/browser5/4 and hub pass; source
 retained, services stopped and Mongo fixture removed. [Scope](DRAGONFLY_CQL_MVP.md).
-KeyDB6.3.4 native/restart/paired/browser/hub pass. [Scope](KEYDB_CQL_MVP.md).
-Valkey9.0.4 native/restart/paired/browser/hub pass. [Scope](VALKEY_CQL_MVP.md).
-Memcached native/paired SDK/HTTP/browser5/4/CAS pass; owned services stopped and
-volatile generation retired. [Commands/proof/lifecycle](MEMCACHED_CQL_MVP.md).
+Memcached native/paired/CAS pass; volatile generation retired. [Scope](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/paired/browser/hub pass; original source
 retained, owned services stopped; Windows fsync stays red. [Scope](LITESTREAM_CQL_MVP.md).
 Upstash hosted/native/repeat/paired pass; free scratch expires2026-10-31, no reseed. [Scope](UPSTASH_CQL_MVP.md).
