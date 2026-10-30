@@ -163,10 +163,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var change = request?.ToChange(out var error);
+                if (request == null)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = "A request body is required." };
+                var change = request.ToChange(out var error);
                 if (change == null || error != null)
                     return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID",
-                        Message = error ?? "A request body is required." };
+                        Message = error ?? "Invalid permission request." };
                 return await HolonAccess.SetPermissionsAsync(HolonManager, holonId, change, Avatar);
             }
             catch (Exception exception)

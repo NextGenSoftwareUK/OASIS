@@ -72,3 +72,27 @@ naming the setting.
 | `MaximumSessionsPerDay` | `1000` | Demo avatars the whole sandbox may create per 24 hours |
 
 The old `OASIS_SANDBOX` and `OASIS_SANDBOX_RETENTION_MINUTES` environment variables are no longer read.
+
+## Free subscriptions for the CQL playground
+
+When exact CQL row/scalar/federation admission routes are configured, session
+creation also awaits a free subscription from the existing billing authority before
+returning a bearer. Its expiry is the avatar creation time plus configured sandbox
+retention, with BSON millisecond precision. Issuance cannot replace an existing
+account or extend a demo lifetime. $0 query tariffs still require quotas, measured
+provider attempts, reviewed accounting opening state and durable settlement.
+
+The existing cleanup service retires only marked expired free subscription records,
+up to its configured batch (maximum1000), preserving activation/retirement audits and
+all usage history. Unresolved reservations/recovery keep the record; paid, customer-
+linked and pay-as-you-go records are excluded. New reservations are denied after
+expiry even if cleanup is delayed. Native candidate selection excludes pending work
+before limiting the retirement page, to prevent starvation; it has a15second command
+deadline and no disk spill. Deferred counts are bounded samples.
+
+This optional lifecycle is inactive when CQL admission is absent. Disabling it pauses
+retirement; it does not extend existing expiry dates or erase records. Existing
+avatar/holon cleanup continues independently. Re-enabling resumes subscription
+retirement. No TTL index or deletion of accounting audit/operation records is used.
+Hosted rollout and existing accounting opening state must be verified separately.
+See [current verification and deployment gates](../WIP/COSMIC%20ORM/SANDBOX_CQL_ADMISSION.md).
