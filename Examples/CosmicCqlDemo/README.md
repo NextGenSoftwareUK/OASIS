@@ -1105,3 +1105,7 @@ Open http://127.0.0.1:5101/. Show **Query all records** (Cosmos3 + Mongo2), then
 The same [C# walkthrough](IdentityFederationWalkthrough.cs) captures ID membership, intersects server-owned catalogues, plans explicit providers/capabilities and calls `HolonManager.ExecuteFederationQueryAsync`. HTTP executes that exact walkthrough. Native keys come from the shipping storage layer; encryption/signing details stay inside the provider. Unsupported metadata/order/graph shapes reject before native query execution.
 
 Add `-VerifyOnly` for bounded checks. Shutdown cleans only the verified temporary Mongo fixture and stops owned services; the native contract, encryption key, original signed receipts and seed remain reusable. [Scope and evidence](../../Docs/WIP/COSMIC%20ORM/COSMOS_BLOCKCHAIN_CQL_MVP.md).
+
+Weaviate + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Weaviate -Federated -Serve`,
+then http://127.0.0.1:5146/. Native TLS/gRPC, all5/subset4 and source provenance;
+[limits and verified scope](../../Docs/WIP/COSMIC%20ORM/WEAVIATE_CQL_MVP.md).

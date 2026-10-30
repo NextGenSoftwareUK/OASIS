@@ -113,6 +113,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.ClickHouseOASIS => "ClickHouse",
         ProviderType.InfluxDBOASIS => "InfluxDB",
         ProviderType.QdrantOASIS => "Qdrant",
+        ProviderType.WeaviateOASIS => "Weaviate",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",

@@ -866,3 +866,7 @@ retrieval over the vector database, not embedding generation, similarity search,
 atomic CAS, history or a shared distributed snapshot. Stop with the page button so
 the runner checks/removes only its temporary Mongo fixture and retains the original
 Qdrant source. [Proof/prerequisites](QDRANT_CQL_MVP.md).
+
+Weaviate scoped MVP (30Oct): authenticated TLS native gRPC query, restart preservation,
+Mongo-paired C#/HTTP/browser5/4 verified; 38 controls pass. Explicit ID catalogue only.
+[Scope, commands and remaining gaps](WEAVIATE_CQL_MVP.md).

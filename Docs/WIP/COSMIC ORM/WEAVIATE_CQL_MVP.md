@@ -1,7 +1,7 @@
-# Weaviate CQL MVP — controls verified; native/paired demo pending
+# Weaviate CQL MVP — native, restart and federated demo verified
 
-Updated 30 October 2026. Inventory remains red. New query path uses official GA
-Weaviate.Client1.2.0 over gRPC; native execution has not yet been verified.
+Updated 30 October 2026. Scoped MVP verified using official Weaviate.Client1.2.0
+over gRPC against authenticated TLS Weaviate1.39.8 with GraphQL disabled.
 
 ## Why gRPC
 
@@ -30,8 +30,8 @@ Weaviate.Client.WeaviateClient for the same authority:
 The original constructor remains available for existing REST use. Missing gRPC
 configuration returns CQL_PROVIDER_CONFIGURATION_REQUIRED for nonempty native reads;
 no host/port guessing, implicit second connection path or GraphQL fallback. Both
-clients remain caller-owned. Unary gRPC response buffering/message-size configuration
-and actual SDK property mapping require native verification; decoded budget alone
+clients remain caller-owned. Native SDK UUID/string/bool mapping and advertised4MiB message configuration pass.
+Unary gRPC adversarial response buffering remains unverified; decoded budget alone
 does not certify wire-byte or preallocation bounds.
 
 SaveHolon stages ID/copied provider keys/JSON until native single-object REST batch
@@ -67,15 +67,36 @@ NativeIO is injected; SDK live transport/mapping are not certified by these test
 Raw TestResults/WeaviateCqlCurrent/controls.trx SHA256
 `efa487b35efb76b931f805719ea9c4145990f3f022ef2151fed64bb3448fd227`.
 
-## Exact next step and remaining gaps
+## Native and paired proof / running the demo
 
-No cached Weaviate image found. Select one official free supported release; create
-one authenticated retained environment with GraphQL disabled. Verify explicit SDK
-REST/gRPC endpoint/auth/TLS/deadline/message-size configuration and canonical property
-mapping. Preserve native node/schema/source identities, original3records/receipts/
-JSON/native timestamps across restart; prove actual native upsert/update semantics,
-native3/filter2/missing0/page1/budget. Then Mongo-paired C#/HTTP/browser5/4 and hub.
-No original-ID replay, reset, replacement baseline or new environment per run.
+One retained TLS/API-key environment: `/var/tmp/oasis-weaviate-cql`, native REST18080,
+gRPC15051, official1.39.8 image pinned in the environment helper. No global trust
+change. Original node/source inode/schema, three object IDs/JSON/native timestamps
+survive actual restart. Initial creates plus one acknowledged update verified.
+Native3/filter2/missing0/page1/budget and GraphQL-disabled rejection pass.
+
+Five fresh integration phases pass (1 each, zero failed/skipped): native-first,
+native-restart, Mongo initialization, federation and native-postpair. Federation
+checks C#/HTTP5/4, provider provenance, excluded data, forged actor/unknown preset,
+inactive-provider error without partial results and fixture ownership cleanup.
+Browser buttons independently returned5/all and4/subset on port5146. UI stop led
+to runner exit0, temporary Mongo fixture removal, native post-pair preservation
+and both owned services stopped. Retained source380,339B logical; no reseeding.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Weaviate -Federated -Serve
+# Or the dedicated native runner:
+Scripts/TestHosts/Run-CosmicWeaviateLinuxDemo.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5146/ once ready; use the stop button to finish verification.
+[Native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/WeaviateCqlNativeTests.cs),
+[paired proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/WeaviateMongoCqlNativeTests.cs).
+Raw evidence: `TestResults/WeaviateCqlCurrent/` (regenerable; never committed).
+Latest federation TRX SHA256 `da9a39f921968ef1576a0545a5b7f2f41f80e58d97503af8c5ea6d570cd1464a`;
+post-pair `da0754476469d15ffaed1bc1d4af98d7605ec0c87a99e97466d9f8cc273db2c7`.
+
+## Remaining gaps
 
 Full generic load/search migration, history/children/replication/migrations/atomic
 conditional writes/unknown-write recovery remain open. No hosted, similarity,

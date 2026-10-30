@@ -1,6 +1,6 @@
 # COSMIC ORM implementation status
 
-Weaviate: gRPC bounded CQL/native batch save ownership implemented, 38 controls pass; native/paired proof remains red. [Scope](WEAVIATE_CQL_MVP.md).
+Weaviate: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](WEAVIATE_CQL_MVP.md).
 Qdrant: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](QDRANT_CQL_MVP.md).
 InfluxDB: 34 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](INFLUXDB_CQL_MVP.md).
 ClickHouse: 28 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](CLICKHOUSE_CQL_MVP.md).
@@ -75,3 +75,4 @@ KeyDB breadth milestone: controls8/native6.3.4/restart/paired/browser5/4 and hub
 Dragonfly breadth milestone: controls8/native completed snapshot/restart/paired/browser5/4 and hub pass; [scope/evidence](DRAGONFLY_CQL_MVP.md). AOF/crash/cluster/full parity remain separate.
 
 Garnet: controls8/lifecycle6/empty-checkpoint1 and explicitly admitted generation2 native/restart/paired/browser5/4/hub repeat pass; original failed fixture/loss remain separate, unchanged/refused. [Scope/evidence](GARNET_CQL_MVP.md).
+
