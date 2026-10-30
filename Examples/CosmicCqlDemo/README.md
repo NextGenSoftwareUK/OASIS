@@ -1113,3 +1113,7 @@ then http://127.0.0.1:5146/. Native TLS/gRPC, all5/subset4 and source provenance
 Meilisearch + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Meilisearch -Federated -Serve`,
 then http://127.0.0.1:5147/. Native HTTPS key queries, all5/subset4 and provenance.
 [Verified scope](../../Docs/WIP/COSMIC%20ORM/MEILISEARCH_CQL_MVP.md).
+
+Typesense + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Typesense -Federated -Serve`,
+then http://127.0.0.1:5148/. Native exact-ID filters, all5/subset4 and provenance.
+[Verified scope and native timestamp limitation](../../Docs/WIP/COSMIC%20ORM/TYPESENSE_CQL_MVP.md).
