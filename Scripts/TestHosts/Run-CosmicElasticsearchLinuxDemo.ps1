@@ -1,4 +1,5 @@
-param()
+param([switch]$Federated,[switch]$Serve)
+if($Serve -and !$Federated){throw "Serve requires federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/ElasticsearchCqlCurrent'
@@ -14,6 +15,8 @@ $results=Join-Path $root 'TestResults/ElasticsearchCqlCurrent'
     $scriptPath=(Join-Path $root 'Scripts/TestHosts/run-cosmic-elasticsearch-linux.py').Replace('\','/')
     $linuxPath=(& wsl -d Ubuntu -- wslpath -u $scriptPath).Trim()
     if($LASTEXITCODE){throw 'Worktree path resolution failed.'}
-    & wsl -d Ubuntu -u root -- python3 $linuxPath
+    if($Serve){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated --serve }
+    elseif($Federated){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated }
+    else{ & wsl -d Ubuntu -u root -- python3 $linuxPath }
     if($LASTEXITCODE){throw 'Native/restart verification incomplete; preserve original journals.'}
 }
