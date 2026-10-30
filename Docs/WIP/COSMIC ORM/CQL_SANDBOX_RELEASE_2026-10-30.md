@@ -85,3 +85,42 @@ Next: observe this exact deployment to terminal status, then actual hosted sessi
 query and isolation checks. Static Web4Site publication still pending live proof.
 
 Task reconciliation finished: parent work/cosmic-cql includes published Development ancestry and release audit notes; Core4607d7c source equals prior task7e9cd72. Bounded Core/Mongo/SQLite/Neo/WEB4 producer restoration succeeded, no restore/download. Scoped Development is still parentdfceb1392/Core432c613; broader task APIs were not swept into deployment. Next check exact live deploymentefd2c5c1, last observedBUILDING.
+
+## Hosted execution follow-up — stage-limit root cause
+
+Exact deploymentefd2c5c1 reached SUCCESS/parentdfceb1392. New session
+sandbox-82eb0daa /e4e0facc-ed47-4820-83f6-fae0b69d6726 succeeds and has1free
+subscription. CQL now passes admission but its row query returned503CQL_QUERY_FAILED;
+retain operation610b294d-b037-980a-5b73-eb33fab22a6d and key
+ af6ff26f-2fbf-4451-b5ec-1e1ee13c5863; no automatic retry/replay.
+
+Read-only source metadata showed618sampled Holon rows, string IDs/schema1, valid
+membership guard. QueryPlanner-only explain of the production inherited-access
+template proved the cause:56stages, native7749501, hosted maximum50. No business
+rows returned or data changed. This is a hosted resource-limit bug, not damaged data.
+
+Fix: advance ancestor flags/frontier and remove the temporary lookup field in the
+same native $set stage via $$REMOVE. Full16level walk and visibility semantics are
+preserved;56becomes40stages. No lowered depth, inherited-policy disable or fallback.
+Regression fails beforefix(observed56),2controls pass after,3native ancestor tests
+pass/0skip including all16levels/17th exclusion, cycles/missing parents and cleanup.
+Hosted queryPlanner accepts the fixed40stage template, zero mutation commands.
+This is not yet a successfully executed hosted CQL query: deploy the focused fix next.
+
+Native runner Scripts/TestHosts/run-mongo-cql-ancestor-linux.py reuses the same owned
+Mongo8.3.13/27039 and .NET runtime. Fixed cosmic_cql_ancestor_tests namespace starts
+absent, owner marker checked before removal; fixture removed and native shutdown0.
+Broader Task2nd-deployment candidate must include only this translator/test fix and
+needed runner, preserving the scoped Core432c613 pin on Development.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-query-smoke.json`: 939B, SHA256 `9fde7ebfd0ce0ecbce29586d81365cff06d1d57e798cba7df8fb9cc782f21c99`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-inherited-plan-before.json`: 1787B, SHA256 `901ffe0d6cb34e65c4a6f9eff862e6ed909bd388299629fa901181410f2f8509`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-stage-regression-before.trx`: 3508B, SHA256 `9c1112562dafe6c4b9aeda18fa8d57dbcda89bb88123a026cb24d1ac2d9eb531`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-stage-controls.trx`: 4171B, SHA256 `d578247c88ab5d1274338cfccbbf77da4aa05e2c06081a945a7571b994c374a9`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-ancestor-native.trx`: 5596B, SHA256 `320d719d18695511c4848534d6a3c887bee8e6fcea1fe13fdfeb2a0646ac858d`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-accounting-readiness.json`: 1653B, SHA256 `9132ea5372b6cbd04ddecbd4fe68e88d6e820c531bdf7187802d1d29d78b594a`.

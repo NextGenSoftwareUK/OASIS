@@ -21,7 +21,7 @@ public sealed class MongoCqlAncestorTests
         var access = CosmicQueryReadAccess.OwnerPublicOrShared(Actor, new[] { Group }, inherited);
         Assert.IsFalse(access.IsError, access.Message);
         var query = CosmicQuery<Holon>.Create().WithReadAccess(access.Result).Result;
-        return new MongoCqlTranslator().CompileExecution(query, 1000);
+        return new MongoCqlTranslator().CompileExecution(query.OrderBy(holon => holon.Name).Result, 1000);
     }
 
     [TestMethod]
@@ -30,6 +30,7 @@ public sealed class MongoCqlAncestorTests
         var pipeline = Compile(inherited: true).Pipeline;
 
         Assert.AreEqual(16, pipeline.Count(stage => stage.Contains("$lookup")));
+        Assert.IsTrue(pipeline.Length <= 50, $"Inherited access must retain all16levels within hosted Mongo's50stage ceiling; observed{pipeline.Length}.");
         Assert.IsTrue(pipeline.Where(stage => stage.Contains("$lookup")).All(stage => stage["$lookup"]["from"] == "Holon"));
         Assert.IsTrue(pipeline.Any(stage => stage.Contains("$unset") && stage["$unset"].IsBsonArray && stage["$unset"].AsBsonArray.Contains("_anc0")));
         // The temporary fields never reach the caller, and the filter comes after the walk.
@@ -63,10 +64,16 @@ public sealed class MongoCqlAncestorTests
         if (string.IsNullOrEmpty(uri)) Assert.Inconclusive($"Set {NativeUri} to a throwaway mongod to run the native check.");
 
         var client = new MongoClient(uri);
-        var databaseName = "oasis_cql_ancestor_" + Guid.NewGuid().ToString("N");
+        const string databaseName = "cosmic_cql_ancestor_tests";
+        const string owner = "cosmic-cql-ancestor-tests-v1";
+        var database = client.GetDatabase(databaseName);
+        bool owned = false;
         try
         {
-            var holons = client.GetDatabase(databaseName).GetCollection<BsonDocument>("Holon");
+            Assert.AreEqual(0, database.ListCollectionNames().ToList().Count, "Never adopt/reset an existing namespace.");
+            database.GetCollection<BsonDocument>("cosmic_test_owner").InsertOne(new BsonDocument("_id", owner));
+            owned = true;
+            var holons = database.GetCollection<BsonDocument>("Holon");
             var expected = new HashSet<string>();
             var all = new List<BsonDocument>();
             Guid Add(Guid? parent, bool visible, bool isPublic = false, Guid? creator = null, params string[] flags)
@@ -121,6 +128,12 @@ public sealed class MongoCqlAncestorTests
             CollectionAssert.AreEquivalent(expected.OrderBy(x => x).ToList(), ids.OrderBy(x => x).ToList());
             Assert.IsFalse(found.Any(row => row.Names.Any(name => name.StartsWith("_anc"))), "Temporary fields leaked into the result.");
         }
-        finally { client.DropDatabase(databaseName); }
+        finally {
+            if (owned) {
+                var marker = database.GetCollection<BsonDocument>("cosmic_test_owner").Find(FilterDefinition<BsonDocument>.Empty).ToList();
+                Assert.AreEqual(1, marker.Count); Assert.AreEqual(owner, marker.Single()["_id"].AsString);
+                client.DropDatabase(databaseName);
+            }
+        }
     }
 }
