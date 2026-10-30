@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-39 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
+40 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -81,3 +81,5 @@ Optimism V2 local encrypted native/restart/paired/browser/hub scope verified: [p
 Rootstock shipping-factory local native/restart/paired/browser/hub scope verified: [proof](ROOTSTOCK_CQL_MVP.md). Next BNB Chain authority/chain/native audit on reused EVM resources.
 
 BNB V2 local native/restart/paired/browser/hub scope verified: [proof](BNB_CHAIN_CQL_MVP.md). Next Fantom authority/chain/native audit; keep public-network/registration distinctions.
+
+Fantom V2 local native/restart/paired/browser/hub scope verified: [proof](FANTOM_CQL_MVP.md). Next Linea authority/chain/native audit, reusing retained EVM resources.

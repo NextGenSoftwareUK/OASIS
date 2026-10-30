@@ -1,6 +1,6 @@
-# Fantom V2 CQL MVP — native verified, paired pending
+# Fantom V2 CQL MVP — native and Mongo-paired verified
 
-Updated 29 October 2026. Fantom remains red in the all-provider demo inventory.
+Updated 29 October 2026. The green inventory row certifies only the local EVM/direct-construction scope below.
 
 ## Reproduced root causes and fixes
 
@@ -47,17 +47,41 @@ chain/key retained. Owned18547node flushed/stopped through stdin, no listener.
 
 Evidence:
 - `TestResults/FantomCqlCurrent/fantom-native-first.trx` SHA256 `9921aaf773a4962b09ac50fca5887beb85b919b31c4b079afa0496297ba2f3a9`.
-- `TestResults/EthereumCqlCurrent/fantom-cql-native.trx` SHA256 `c5d4982de7d5303e6c1f89fb8d440a18d8cf3a1267741272ae96356cce8808bb`.
+- `TestResults/EthereumCqlCurrent/fantom-cql-native.trx` SHA256 `3310f69566a8ecc20b316b3b7dba88795ce56adf3cfaa73227cf702ec4896603`.
 - Original native-record-hashes manifest SHA256 `659abb25f185298c7e0982cb021a728d60221b872c2ac92e5f52bad5fee65e75`.
 
 ```powershell
 Scripts/TestHosts/Run-CosmicEthereumCqlNative.ps1 -Provider Fantom
 ```
 
-## Exact next step and remaining gates
+## Mongo-paired teaching preset
 
-Reuse this original source for Mongo-paired C#/HTTP/browser5/4 and hub. Keep demo
-inventory red until that proof passes. Central registration remains commented,
+[Executable C#/HTTP example/test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/EvmMongoCqlNativeTests.cs)
+selects Fantom V2/original contract and runs the shared membership walkthrough
+through HolonManager. All: Fantom3+Mongo2 = **5physical rows**; subset2+2 = **4**,
+preserving provider copies and excluding an unrelated Mongo record. Forged actor/
+unknown preset reject400; inactive secondary returns503 without rows.
+Bounded hub and actual hub/browser each pass native1/paired1; browser tab41 verifies
+both query presets/provenance and controlled shutdown. Hub routing:8single/16plans,
+37paired/74plans,60paired rejection,3archive rejection; listeners unchanged.
+Exact temporary `cosmic_cql_mongo_fantom_demo`3records verified/dropped, pending/
+ready removed. Original contract/IDs/key retained. Owned18547node flushed/stopped,
+Mongo27029/host5128 stopped, no listeners. No shared snapshot claim.
+
+Latest `TestResults/EthereumCqlCurrent/fantom-mongo-federation.trx` SHA256:
+`bfc6df8e2612b7772626779dc4e235d65aaacc1476ba8050877e5ef1e0f5c475`.
+Screenshot `TestResults/FantomCqlCurrent/browser.jpg` is disposable proof.
+
+```powershell
+# Interactive; stop with the page button.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Fantom -Federated
+# Bounded native/C#/HTTP proof and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Fantom -Federated -VerifyOnly
+```
+
+## Remaining gates
+
+Central registration remains commented,
 so direct construction must remain labelled. Public network availability/
 consensus/finality/bridging/gas or migration to other networks is not certified
 by this local EVM proof. Central DNA/factory routing, full graph/history/
