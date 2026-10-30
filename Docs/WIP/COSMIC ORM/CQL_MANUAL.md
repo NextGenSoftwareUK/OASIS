@@ -1737,3 +1737,13 @@ records and Mongo copies pass through shared HolonManager:5physical rows, or4for
 the two-ID subset. Browser5133 shows provider provenance. Shutdown cleans the
 owned Mongo fixture and preserves original native records. Plaintext envelopes,
 bounded identity filters and independent reads; broader parity remains open.
+
+## ArangoDB + Mongo MVP
+
+[Verified scope and evidence](ARANGODB_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ArangoDB -Federated`
+(add `-VerifyOnly` for bounded acceptance). Retained authenticated native ArangoDB
+records and Mongo copies pass through shared HolonManager:5physical rows, or4for
+the two-ID subset. Browser5134shows provider provenance. Shutdown cleans the owned
+Mongo fixture and preserves original records/revisions. Plaintext JSON and bounded
+identity queries; broader predicates, graph/history/CAS and full parity stay open.
