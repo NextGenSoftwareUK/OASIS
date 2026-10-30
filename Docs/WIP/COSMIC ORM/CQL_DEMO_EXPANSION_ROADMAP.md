@@ -89,5 +89,5 @@ Linea and Scroll local native/restart/paired/browser/hub MVP verified; [Linea](L
 Monad local native/restart/paired/browser/hub MVP verified: [proof](MONAD_CQL_MVP.md). Next Abstract runtime/chain/query audit; zkSync original checkpoint retained/native reload gate stays red.
 
 30 October: CouchDB native/restart/Mongo-paired C#/HTTP/browser5/4 and hub pass.
-All226 provider identities remain in MVP breadth scope;44 linked scoped proofs.
-Next red audit: SurrealDB. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).
+All226 provider identities remain in MVP breadth scope;45 linked scoped proofs.
+SurrealDB native/restart/paired/browser5/4 now pass. Next red audit: Dgraph. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).

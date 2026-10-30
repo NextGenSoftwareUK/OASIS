@@ -101,6 +101,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.PocketBaseOASIS => "PocketBase",
         ProviderType.SupabaseOASIS => "Supabase",
         ProviderType.CouchDBOASIS => "CouchDB",
+        ProviderType.SurrealDBOASIS => "SurrealDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",

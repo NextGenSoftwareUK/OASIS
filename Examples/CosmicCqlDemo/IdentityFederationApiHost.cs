@@ -155,6 +155,10 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained authenticated native CouchDB through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original CouchDB source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SurrealDBOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native SurrealDB through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original SurrealDB source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SupabaseOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained local PostgREST data plane for Supabase through HolonManager.", StringComparison.Ordinal)

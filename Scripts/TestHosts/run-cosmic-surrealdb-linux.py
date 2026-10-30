@@ -1,6 +1,7 @@
 """Reuse one original authenticated loopback SurrealKV store across native restarts."""
 from pathlib import Path
-import fcntl, hashlib, json, os, secrets, signal, socket, subprocess, time
+import argparse, fcntl, hashlib, json, os, secrets, signal, socket, subprocess, time
+from cosmic_linux_mongo_service import owned_linux_mongo
 import urllib.error, urllib.request
 import xml.etree.ElementTree as ET
 
@@ -20,6 +21,11 @@ def durable(path, value):
         file.flush(); os.fsync(file.fileno())
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--federated", action="store_true")
+    parser.add_argument("--serve", action="store_true")
+    options = parser.parse_args()
+    assert not options.serve or options.federated
     assert os.geteuid() != 0, 'Use the existing non-root runtime owner'
     assert hashlib.sha256(RUNTIME.read_bytes()).hexdigest() == HASH
     if not STATE.exists():
@@ -55,16 +61,27 @@ def main():
                                 if response.status == 200: break
                         except (ConnectionError, urllib.error.URLError): time.sleep(.25)
                     else: raise RuntimeError('Native readiness deadline')
-                    test_env = {**os.environ, 'DOTNET_ROOT': str(Path(DOTNET).parent), 'COSMIC_SURREALDB_ROOT': str(STATE)}
-                    started = time.time()
-                    with (RESULTS / (phase + '.log')).open('w') as test_log:
-                        subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~SurrealDbNativeCqlTests',
-                            '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=' + phase + '.trx'],
-                            env=test_env, cwd=RESULTS, stdout=test_log, stderr=subprocess.STDOUT, check=True)
-                    trx = RESULTS / (phase + '.trx'); assert trx.stat().st_mtime >= started
-                    counts = ET.parse(trx).find('.//{*}Counters').attrib
-                    assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
-                    proofs.append({'phase': phase, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
+                    def report(name, test_class='SurrealDbNativeCqlTests', extra=None):
+                        test_env = {**os.environ, 'DOTNET_ROOT': str(Path(DOTNET).parent), 'COSMIC_SURREALDB_ROOT': str(STATE)}
+                        test_env.update(extra or {})
+                        started = time.time()
+                        with (RESULTS / (name + '.log')).open('w') as test_log:
+                            subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~' + test_class,
+                                '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=' + name + '.trx'],
+                                env=test_env, cwd=RESULTS, stdout=test_log, stderr=subprocess.STDOUT, check=True)
+                        trx = RESULTS / (name + '.trx'); assert trx.stat().st_mtime >= started
+                        counts = ET.parse(trx).find('.//{*}Counters').attrib
+                        assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
+                        proofs.append({'phase': name, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
+                    report(phase)
+                    if phase == 'native-restart' and options.federated:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
+                            report('mongo-federation', 'SurrealDBMongoCqlNativeTests',
+                                {**mongo_env, 'COSMIC_SURREALDB_MONGO_SERVE': '1' if options.serve else '0'})
+                            assert not (STATE / 'mongo.pending.json').exists(), 'Mongo fixture cleanup unresolved'
+                        report('native-postpair')
+
                 finally:
                     if node.poll() is None: node.send_signal(signal.SIGINT)
                     assert node.wait(timeout=30) == 0, 'Owned shutdown incomplete; preserve source'
