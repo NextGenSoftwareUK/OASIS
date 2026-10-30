@@ -2881,3 +2881,46 @@ package/runtime/service/dataset. TestResults/MilvusCqlCurrent/cql-controls.trx/l
 and bin/obj unmeasured/disposable afterexit, regenerate with sameboundedlease.
 Native queryHTTP injected, sourceverified2.6.4consistencyfield; no nativeenvironment
 allocated or durability acceptance claimed. SharedSDK/NuGet caches retained.
+
+### Milvus native allocation planned — 2026-10-30 / COSMIC
+No Milvus runtime/image/source exists in checked rootPodman or /var/tmp/oasis-runtimes;
+shared MinIO image exists but nativeembedded-etcd/localstorage needs no MinIO process
+or new dependencies. Reuse Ubuntu/rootPodman/Python/OpenSSL/.NET runtimes. Pull
+official docker.io/milvusdb/milvus:v2.6.26 once (active2.6family matches inspected
+RESTcontract); digest/size afterpull. One freeOSS retainedsource
+/var/tmp/oasis-milvus-cql and container oasis-milvus-cql; nativeTLS19531,2CPU/4GiB
+cap (standalone allcomponents need more than search-only services), log2MiB.
+Embeddedetcd/RocksMQ/localstorage, no duplicated externalDB/cloudsubscription.
+PrivateCA/rootcredential/config/identities/receipts retained protected.
+C:71,737,786,368B beforepull; sizes unmeasured. Logs/TRX TestResults/MilvusCqlCurrent;
+stopservice after acceptance; preserve unknown outcomes/no reseed/replay.
+
+Milvus official2.6.26 image pull completedonce: digest
+sha256:e6066d0afc4eeab69b7c9269e49be2b9ae54c740a21c05f230c4e5743c646ee3,
+imageID42a136cd8ee294bf880feb0a8caa92214cba8b6b5613f86848d93dc712659eec,
+969,614,562B expanded; retainreusable/noarchive. Nativehelper nowcreates only
+one localstorage/embeddedetcd/RocksMQ source,128MiBembeddedmetadataquota, UID1000,
+2CPU/4GiB/GOMAXPROCS2/OMP2. NativeTLS/rootcredential fromprotectedconfig, management
+port/unauthetcd unexposed, no globaltrust changes. Capture embeddedcluster/member
+identity beforebusinesswrites and acrossrestart. Source/configsizes unmeasured.
+
+Milvus preexec failure126: vendor milvus binary deniedUID1000 execution; native
+process neverran and data directory verified empty. Originalcontainer/image/
+state/dataEmpty receipt preserved, initial creationack renamedunstarted-container.
+Exact owned exitedcontainer removed (no volumes/source deletion); recreated once
+with vendorroot user and sameimage/source/config/credentials. This is explicit
+preexec setupcorrection, not environmentreset/reseed/nativewrite replay. NewID
+recorded separately; futurehelper usesvendorroot fromoutset. No other resources
+removed. Reconciliation script/log in TestResults/MilvusCqlCurrent regenerable.
+
+Milvus native startup checkpoint: vendorroot container enteredbinary/embeddedetcd
+then contextcanceled Session.Init/mixCoord panic, exit134/noOOM. Original source
+and environment.pending preserved; no demo seed/collectioncreate attempted.
+Native firstcluster hex cdf818194e3a8c32/member8e9e05c52164694d recorded fromstartup
+log; preserve duringdiagnosis. Source144,815,277B logical, largest etdcWAL64,000,000B
++temporaryWAL64,000,000B+backend16,801,792B. Containerwritablelayer12,270B (no large
+coreartifact), originalimage969,614,562B reusable. C:70,562,672,640B aftersetup.
+Serviceauthoritatively exited; no activeport/process dependency. Lifecycle:
+preserved failure/unknown startup, no deletion of native metadata/keys/config.
+Future stophelper preserves failed exitedstate rather than issuingstop againstit.
+Currentacceptance remainsred; diagnose same source before restarting/provisioning.
