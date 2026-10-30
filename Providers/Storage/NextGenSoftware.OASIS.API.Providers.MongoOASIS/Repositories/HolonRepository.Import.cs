@@ -68,6 +68,10 @@ public partial class HolonRepository
                     // committed fence write makes a stale snapshot conflict before mutation.
                     await TouchOperationFenceAsync(session, conditional.Plan.OperationId, cancellation).ConfigureAwait(false);
                 }
+                // Snapshot absence is not a predicate lock. Every graph mutation
+                // touches the same persistent per-holon fence, including hard deletes.
+                // A baseline must establish absence before any other mutation won it.
+                await FenceReplicaInitializationAsync(session, entries.Select(row=>row.HolonId), replica?.IsInitialBaseline==true, cancellation).ConfigureAwait(false);
                 var staged=new List<(BsonDocument Body,bool New)>();
                 var bodies=new Dictionary<Guid,BsonDocument>();
                 var observations=new Dictionary<Guid,BsonDocument>();
@@ -184,7 +188,8 @@ public partial class HolonRepository
                     await WritePrimaryHolonObligationsAsync(session,edit,conditional.ActorId,replicationPayload,now,cancellation).ConfigureAwait(false);
                 if(conditional!=null)
                     await receipts.InsertOneAsync(session,new BsonDocument { {"_id",conditional.Plan.OperationId.ToString("D")},
-                        {"Fingerprint",conditional.Plan.Fingerprint},{"ResultJson",receiptJson},{"CommittedAtUtc",now} },cancellationToken:cancellation).ConfigureAwait(false);
+                        {"Fingerprint",conditional.Plan.Fingerprint},{"ResultJson",receiptJson},{"CommittedAtUtc",now},
+                        {"HolonIds",new BsonArray(entries.Select(row=>row.HolonId.ToString("D")))} },cancellationToken:cancellation).ConfigureAwait(false);
                 // Capture identity before dispatch; cleanup must not erase the original commit evidence.
                 sessionId=session.ServerSession.Id.ToJson();
                 transactionNumber=session.WrappedCoreSession.CurrentTransaction.TransactionNumber;
@@ -201,6 +206,7 @@ public partial class HolonRepository
                 else if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 else if(cause is MongoConditionalIntentException) result.ErrorCode="COSMIC_OPERATION_ID_REUSED";
                 else if(cause is MongoReplicaConflictException) result.ErrorCode="COSMIC_REPLICA_LINEAGE_CONFLICT";
+                else if(cause is MongoReplicaBaselineAdmissionException) result.ErrorCode="COSMIC_REPLICA_BASELINE_RECONCILIATION_REQUIRED";
                 else if(cause is MongoReplicaHeadException) result.ErrorCode="COSMIC_REPLICA_HEAD_INVALID";
                 else if(cause is MongoConditionalReceiptException) result.ErrorCode="COSMIC_RECEIPT_INVALID";
                 else if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;

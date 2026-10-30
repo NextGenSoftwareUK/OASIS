@@ -38,7 +38,12 @@ No additional Development push is covered by the already-used extra-batch approv
 
 - Core task branch 05f6a2c adds a separate trusted initialization capability; existing interfaces unchanged. Shared plan uses a distinct fingerprint domain. SQLite implements atomic initial-baseline installation with current/head/history/receipt absence fences and exact replay; ordinary sequential delivery unchanged.
 - 31 native SQLite initialization/replica/outbox cases and 67 shared replica controls pass, zero skipped. Seven new native and four new shared cases. Core both targets, Shared, SQLite and test projects build without restore. Owned source/target fixtures removed after disposal; no hosted mutation.
-- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Mongo/Neo native primitives and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: equivalent Mongo/Neo initialization with native absence/receipt fences, then fenced coordinator/recovery.
+- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Neo native primitive, Mongo historical-membership migration and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: equivalent Neo initialization, audited Mongo receipt-membership migration, then authorized enrollment and fenced recovery/resume.
+
+## Mongo native baseline milestone
+
+- Same trusted capability/shared plan now implemented on Mongo. Persistent per-holon fences serialize all atomic graph mutations, including hard deletes; baseline requires absence. Receipts carry HolonIds; unknown historical membership refuses initialization with an explicit reconciliation code. Positive replay remains read-only.
+- Two native sync/async scenario runs pass (version-4 graph, restart/replay, version-5 delivery, competing initializers, independent child/hard-delete protection, unknown receipt rejection). Eight shipping native billing lifecycle controls pass. Four producer/consumer builds pass without restore. Exact owned DBs removed and Mongo stopped; no hosted mutation. See baseline/recovery doc for V2 scope and historical migration limits.
 
 ## Broader plan preserved
 
