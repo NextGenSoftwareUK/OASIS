@@ -57,9 +57,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
         public SupabaseOASIS(string supabaseUrl, string apiKey)
             : this(supabaseUrl, apiKey, new HttpClient()) { }
 
-        public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient)
+        public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath = "/rest/v1")
         {
-            _baseUrl = supabaseUrl.TrimEnd('/') + "/rest/v1";
+            // Hosted Supabase uses /rest/v1; a directly hosted PostgREST service
+            // explicitly selects an empty path. Never guess or retry another route.
+            if (restApiPath == null || restApiPath.Length > 0 && (!restApiPath.StartsWith("/") || restApiPath.Contains("?") || restApiPath.Contains("#")))
+                throw new ArgumentException("Supply a REST path or an explicit empty path.", nameof(restApiPath));
+            _baseUrl = supabaseUrl.TrimEnd('/') + restApiPath.TrimEnd('/');
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _http.DefaultRequestHeaders.Add("apikey", apiKey);
             _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
@@ -517,10 +521,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id);
-                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No holon found with ID '{id}'."); return result; }
-                await _http.PatchAsync($"{_baseUrl}/oasis_holons?id=eq.{id}", JsonContent(new { is_deleted = true }));
-                result.Result = loaded.Result; result.IsError = false; result.Message = $"SupabaseOASIS: Holon '{id}' soft-deleted.";
+                var loaded = await LoadHolonAsync(id, loadChildren: false);
+                if (loaded.IsError || loaded.Result == null) return loaded;
+                // A soft delete is one canonical acknowledged write. Keep the
+                // payload and native deletion projection in agreement, with the
+                // same uncertain-outcome contract as every other holon save.
+                loaded.Result.DeletedDate = DateTime.UtcNow;
+                return await SaveHolonAsync(loaded.Result, saveChildren: false);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

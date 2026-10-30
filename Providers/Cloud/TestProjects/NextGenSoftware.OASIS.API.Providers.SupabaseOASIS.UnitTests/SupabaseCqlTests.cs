@@ -191,6 +191,37 @@ public class SupabaseCqlTests
         Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
     }
 
+    [DataTestMethod][DataRow(true)][DataRow(false)]
+    public async Task SoftDeleteUsesTheCanonicalAcknowledgedWrite(bool rejectWrite)
+    {
+        using var reply = new Reply((request, body) => request.Method == HttpMethod.Get
+            ? Response(Rows(Row(One)), "0-0/1")
+            : rejectWrite ? Response("{}", status: HttpStatusCode.ServiceUnavailable) : Response("[" + body + "]"));
+        using var http = new HttpClient(reply);
+        var provider = new SupabaseOASIS("https://synthetic.invalid", "synthetic", http);
+        var result = await provider.DeleteHolonAsync(One);
+        Assert.AreEqual(rejectWrite, result.IsError);
+        if (rejectWrite) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
+        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+        using var row = JsonDocument.Parse(reply.Mutation!);
+        Assert.IsTrue(row.RootElement.GetProperty("is_deleted").GetBoolean());
+        using var canonical = JsonDocument.Parse(row.RootElement.GetProperty("data_json").GetString()!);
+        Assert.AreNotEqual(DateTime.MinValue, canonical.RootElement.GetProperty("deletedDate").GetDateTime());
+    }
+
+    [DataTestMethod][DataRow("/rest/v1", "/rest/v1/oasis_holons")][DataRow("", "/oasis_holons")]
+    public async Task RestPathIsExplicitAndNeverProbed(string path, string expected)
+    {
+        using var reply = new Reply((request, _) => {
+            Assert.AreEqual(expected, request.RequestUri!.AbsolutePath);
+            return Response("[]", "*/0");
+        });
+        using var http = new HttpClient(reply);
+        var provider = new SupabaseOASIS("https://synthetic.invalid", "synthetic", http, restApiPath: path);
+        Assert.IsFalse((await provider.LoadAllHolonsAsync(loadChildren: false)).IsError);
+        Assert.AreEqual(1, reply.Reads.Count);
+    }
+
     private sealed class ExactHolon : Holon { public decimal ExactAmount { get; set; } }
     [TestMethod]
     public async Task ExactAcknowledgementPublishesIdAndDerivedPayloadWithoutLosingPrecision()
