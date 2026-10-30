@@ -114,3 +114,14 @@ Next: publish this correction, observe its exact deployment and execute live que
 - `TestResults/Web4SandboxCqlCurrent/hosted-inherited-plan-before.json`: 1787B, SHA256 `901ffe0d6cb34e65c4a6f9eff862e6ed909bd388299629fa901181410f2f8509`.
 
 - `TestResults/Web4SandboxCqlCurrent/hosted-accounting-readiness.json`: 1653B, SHA256 `9132ea5372b6cbd04ddecbd4fe68e88d6e820c531bdf7187802d1d29d78b594a`.
+
+## Second deployment is live work, not yet verified
+
+Focused correction89a960111aed1b1f7dc301d2b34a645a3e8dd7b7 pushed to Development
+and integration branch. Exact Railway deploymente88fbed5-5147-49a2-8915-93bb5b0684d0
+is BUILDING for that commit. No duplicate/redeploy requested. Core remains432c613.
+Keep this existing worktree on the integration branch with matching scoped outputs
+until terminal/live query verification; broader task branch e155c0b2c is preserved.
+Next observe e88fbed5 only, then fresh logical hosted session/query checks (do not
+replay the failed original operation). Static CQL frontend is still on Web4Site task
+branch; publish only after successful hosted proof. Full programme remains incomplete.
