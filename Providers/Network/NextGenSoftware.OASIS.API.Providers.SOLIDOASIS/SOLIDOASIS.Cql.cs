@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -22,7 +23,11 @@ public partial class SOLIDOASIS : ICosmicQueryStorageProvider
     private static readonly CosmicQueryCapabilities RecordCapabilities=
         CosmicQueryCapabilities.ForStringMetadataPointLookup(CqlRecordIdKey,36);
     public ProviderType QueryProviderType=>Core.Enums.ProviderType.SOLIDOASIS;
-    public CosmicQueryCapabilities QueryCapabilities=>RecordCapabilities;
+    private static readonly CosmicQueryCapabilities RecordKeySetCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(CqlRecordIdKey,36,8);
+    /// <summary>Explicit bounded LDP resource-set execution; no container scan or SPARQL claim.</summary>
+    public bool EnableCqlRecordKeySets { get; init; }
+    public CosmicQueryCapabilities QueryCapabilities => EnableCqlRecordKeySets ? RecordKeySetCapabilities : RecordCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults=100,CancellationToken cancellationToken=default) where T:IHolon
@@ -34,6 +39,8 @@ public partial class SOLIDOASIS : ICosmicQueryStorageProvider
                 return CqlFailure("CQL_QUERY_LIMIT","The result budget must be between one and 10,000.");
             var admitted=QueryCapabilities.AdmitPlan(plan);
             if(admitted.IsError)return CqlFailure(admitted.ErrorCode,admitted.Message);
+            if(QueryCapabilities.StringKeySetLookup?.IsKeySetQuery(plan.Query)==true)
+                return await ExecuteCqlRecordKeySetAsync(plan,maximumResults,cancellationToken);
             var key=QueryCapabilities.StringPointLookup.SelectKey(plan.Query).Result;
             if(!Guid.TryParseExact(key,"D",out var id)||id==Guid.Empty||id.ToString("D")!=key)
                 return CqlFailure("CQL_INVALID_SOURCE_KEY","A canonical lowercase nonempty record GUID is required.");
@@ -43,6 +50,15 @@ public partial class SOLIDOASIS : ICosmicQueryStorageProvider
             RequirePrivateStorage();
             if(plan.Query.Offset>0||plan.Query.Limit==0)return CqlRows();
 
+            return await ReadCqlRecordAsync(key,id,plan.Query.ReadAccess,cancellationToken);
+        }
+        catch(OperationCanceledException error){return CqlFailure("CQL_QUERY_CANCELLED","The SOLID query was cancelled.",error);}
+        catch(Exception error){return CqlFailure("CQL_QUERY_FAILED","The SOLID query failed; no partial rows returned.",error);}
+    }
+
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ReadCqlRecordAsync(
+        string key, Guid id, CosmicQueryReadAccess access, CancellationToken cancellationToken)
+    {
             // One canonical resource GET. Never enumerate the Pod or substitute an index.
             var resource=_privateRecords.Resource<IHolon>(id);
             using var request=new HttpRequestMessage(HttpMethod.Get,resource);
@@ -62,7 +78,7 @@ public partial class SOLIDOASIS : ICosmicQueryStorageProvider
             }
             var holon=_privateRecords.Decode<IHolon>(new UTF8Encoding(false,true).GetString(body.ToArray()),id);
             cancellationToken.ThrowIfCancellationRequested();
-            if(holon.IsDeleted||(plan.Query.ReadAccess!=null&&!plan.Query.ReadAccess.CanRead(holon)))return CqlRows();
+            if(holon.IsDeleted||(access!=null&&!access.CanRead(holon)))return CqlRows();
             holon.Children=Array.Empty<IHolon>();
             holon.ProviderUniqueStorageKey??=new Dictionary<ProviderType,string>();
             holon.ProviderUniqueStorageKey[QueryProviderType]=key;
@@ -72,9 +88,39 @@ public partial class SOLIDOASIS : ICosmicQueryStorageProvider
             if(response.Headers.ETag!=null)holon.MetaData["SolidSourceETag"]=response.Headers.ETag.ToString();
             else holon.MetaData.Remove("SolidSourceETag");
             return CqlRows(holon);
+    }
+
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCqlRecordKeySetAsync<T>(
+        CosmicQueryPlan<T> plan, int maximumResults, CancellationToken token) where T:IHolon
+    {
+        var keys=QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query).Result;
+        var ids=new List<Guid>();
+        foreach(var key in keys)
+        {
+            if(!Guid.TryParseExact(key,"D",out var id)||id==Guid.Empty||id.ToString("D")!=key)
+                return CqlFailure("CQL_INVALID_SOURCE_KEY","Every selected resource requires a canonical lowercase nonempty GUID.");
+            ids.Add(id);
         }
-        catch(OperationCanceledException error){return CqlFailure("CQL_QUERY_CANCELLED","The SOLID query was cancelled.",error);}
-        catch(Exception error){return CqlFailure("CQL_QUERY_FAILED","The SOLID query failed; no partial rows returned.",error);}
+        token.ThrowIfCancellationRequested();
+        ObjectDisposedException.ThrowIf(_disposed,this);
+        if(!_isActivated)return CqlFailure("CQL_PROVIDER_INACTIVE","Activate the configured SOLID provider before querying.");
+        RequirePrivateStorage();
+
+        // LDP exposes individual encrypted resources, not a batch API. This explicitly
+        // enrolled strategy resolves only the captured bounded resource set, never a Pod
+        // enumeration, endpoint fallback, or local replacement store.
+        var visible=new List<IHolon>();
+        for(var index=0;index<keys.Count;index++)
+        {
+            token.ThrowIfCancellationRequested();
+            var record=await ReadCqlRecordAsync(keys[index],ids[index],plan.Query.ReadAccess,token);
+            if(record.IsError)return record;
+            visible.AddRange(record.Result);
+        }
+        var rows=visible.Skip(plan.Query.Offset).Take(plan.Query.Limit??visible.Count).ToArray();
+        if(rows.Length>maximumResults)return CqlFailure("CQL_QUERY_LIMIT","The complete resource-set page exceeds its result budget.");
+        token.ThrowIfCancellationRequested();
+        return CqlRows(rows);
     }
 
     private static OASISResult<IReadOnlyList<IHolon>> CqlRows(params IHolon[] rows)

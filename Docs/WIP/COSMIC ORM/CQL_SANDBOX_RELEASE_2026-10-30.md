@@ -316,3 +316,17 @@ Actual browser catalogue selectionmetadata opens separate native page and automa
 Core task0d41300885f3a59e5d3638bf46dcb708950787e9 cherry-picks only native key-set descriptor/capability (two files), source/submodule push remote verified and parentmanifest/gitlink advanced together. No broad routing merge.23shared controls pass/no skips, protocol-keyset-controls.trx SHA2562015234C9F30E5E7278D3BA6180E1CFFBF12C84CB485D635B84909B8FD8A9559.17IPFS controls pass/no skips, ipfs-keyset-controls.trx SHA25669E12450D5E36E1910C3D195026FD11238DBE5D11F19CF9C7EE8A4A1E3BF8DE3. Native1/1pass/no skips, ipfs-cql-keyset-native.trx SHA256586C7798D538362A39604C8FB4A1FEE4CF70203FEBB40EE5149D7AF2B3A2FDD3. Selected3encrypted IPFS rows/2subset, exact source identity/visibility/full-result validation, SDK/HTTP and Mongo pairing5/4physical copies verified. Fresh native-mongo-IPFSOASIS-federation.json131bytes confirms3IPFS+2Mongo and exactcleanup.
 
 Initial consumer build found unused node-default BootLoader resolver pulled through production-service wildcard; fixture already supplies explicit resolver/read policy, so node-default composition is now excluded alongside existing CqlV1Providers exclusion. Real shipping query/controller owners still exercised; no provider behavior weakened. Existing Kubo/repo/key reused, exact owned catalogue records/Mongo DB removed, closurecomplete/pendingjournalsabsent, runner37796exit0/portsclosed. No new runtime/download/restore/environment or Development deploy. SOLID next.
+
+
+## SOLID bounded multi-record demo verified (30 October)
+
+31 controlled tests and one real retained SOLID Pod + Mongo scenario passed, zero failures/skips. Three selected SOLID records and two Mongo records yielded five federated copies; unselected Mongo records were excluded. SDK and teaching HTTP acceptance share the bounded key-set contract. This is explicit resource-key membership, not arbitrary Pod scans or general text predicates. The opt-in factory flag defaults to false.
+
+All three owned SOLID records were conditionally deleted and absence verified; completion journal is LocalState/COSMIC/SolidCurrent/cql-keyset-complete.json. The owned Mongo fixture was removed, no pending journal remains, and ports13000/27029 are closed. Retained identity, Pod volume and reusable Mongo data remain protected for reuse. No installs, downloads or restores.
+
+Evidence (regenerable under worktree TestResults):
+- SolidCurrent/solid-keyset-controls.trx:31 passed; SHA25602C82B1D2E4F69B3A14DACC65AF67235D49ECD8D19682C9CA9A4CEC2331F11A4.
+- SolidCurrent/solid-cql-keyset-native.trx:1 passed; SHA256B135523E8719F2CE0B2924D09B9B896AD272AAE3AAD9B106BB285DD381890F58.
+- DemoBreadthCurrent/native-mongo-SOLIDOASIS-federation.json:5 total/3 SOLID/2 Mongo; exactCleanupVerified=true.
+
+Next: ActivityPub multi-record acceptance, then catalogue enrollment. Hosted SOLID and unrestricted content queries remain unproved.
