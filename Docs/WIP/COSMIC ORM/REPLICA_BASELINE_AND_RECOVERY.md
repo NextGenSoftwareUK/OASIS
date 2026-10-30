@@ -96,3 +96,11 @@ WEB4 now recognizes --cosmic-repair-baseline followed by the protected reviewed 
 Example inside the deployed dev service: dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/request.json . Never generate a replacement request after a submitted/unknown outcome. The command is intentionally scoped to Mongo-to-SQLite for this reproduced demo blocker; broader operator tooling remains deferred.
 
 Run Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 after the bounded producer/consumer builds. One real native command case passes/no skips; source versions1-3 were never enrolled, held4 initialized and source-completed, replay unchanged, then ordinary5 delivered. Exact source DB/SQLite/journal fixtures removed after ownership/absence checks.71 HTTP/schema/admission controls also pass. Hosted execution remains pending.
+
+## Hosted demo outcome (latest)
+
+Deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b / parent51f3c4c3a is live/healthy. Exact reviewed source sequences6/version4 and8/version17 were initialized on an absent SQLite target through the deployed shell host and durably source-completed with original failure evidence retained. Ordinary worker delivered later records; original six target obligations nowCompleted/no SQLite head. Actual original SQLite3 identities/names/owners/version1 independently verified. A new protected-session cohort passed35 HTTP acceptance steps across Mongo/SQLite/Neo, including CQL/federation/isolation. Exact hashes/identities in release/current status.
+
+Source actor is the enrolled operation ActorId, not necessarily the immutable record creator. Initial sequence8 request used the creator and was denied before journal/submission; corrected review retained the same initialization operation and frozen payload. Probe labels fixed; real Mongo-to-SQLite regression now uses differing writer/creator and verifies denied mismatch/no journal, valid repair/creator preserved and normal next delivery. No source-business-write replay, queue reset or lineage relaxation.
+
+This establishes the demonstrated Mongo-source/SQLite-target recovery route. General SQLite/Neo source recovery, other route/operator tooling and atomic future-write enrollment/cutover remain incomplete; X10 parent rows stay red.
