@@ -18,9 +18,9 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 - Concurrent live configuration correction removed that route. Current six-route live profile matches the corrected template: three query routes plus save/batch/delete; 21 zero-price tariffs, quota/measurement guards retained.
 - Template/startup regression correction is task-branch work for the next normal integration batch. Ten profile controls pass; red-before and green-after evidence in TestResults/Web4SandboxCqlCurrent/profile-startup-{before,after}.trx.
 
-## Exact next step
+## Verified replication diagnosis and exact next step
 
-Prove the point-load routing invariant before changing code: DataController.Load configures V2 request routing but calls its default HolonManager without passing the selected provider or creating the request context used by Save. Inspect request resolution and add a focused regression if confirmed. Reconcile retained source/outbox evidence before attributing the timeout to replication. Do not reseed or replay writes to work around it.
+Read-only live probe proves all three retained records exist in Mongo with the correct owner. Their three Neo4j obligations are Completed (one attempt each); all three SQLite obligations remain Pending (zero attempts). SQLite queue head sequence 6 / operation 79a05552-1bf3-4e26-a763-88c0e48b14a9 is ReconciliationRequired with COSMIC_REPLICA_LINEAGE_CONFLICT. Ordered delivery correctly holds newer writes behind it. Next: inspect the earlier source/target lineage and reconcile through the specified recovery contract; never skip/reset the barrier or replay acknowledged writes. Separately, DataController.Load uses the older request-routing path: prove provider pinning with a focused regression before changing it. The earlier hypothesis that load had a RequestRoutingPolicy was incorrect: only write-intent requests currently take that scoped path. Destination contents/CQL acceptance remain unproved.
 
 No additional Development push is covered by the already-used extra-batch approval. Frontend main remains unpublished pending hosted acceptance.
 
