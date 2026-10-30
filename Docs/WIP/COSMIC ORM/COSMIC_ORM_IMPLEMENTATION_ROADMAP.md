@@ -1,6 +1,6 @@
 # COSMIC ORM implementation roadmap
 
-InfluxDB: bounded Flux CQL/save ownership implemented, 34 controls pass; native/paired proof remains red. [Scope](INFLUXDB_CQL_MVP.md).
+InfluxDB: 34 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](INFLUXDB_CQL_MVP.md).
 ClickHouse: 28 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](CLICKHOUSE_CQL_MVP.md).
 Couchbase: 31 controls + native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Proof](COUCHBASE_CQL_MVP.md).
 User priority28October: first prove HyperDriveV2 replication, failover and load balancing; then resume COSMIC ORM/CQL parity across MongoDB, SQLite, Neo4j, IPFS, Azure Cosmos, AWS, Oracle, SOLID and ActivityPub. Prove these priority providers before broadening implementation to others. Existing Solana demos remain preserved. Hosted Azure remains explicitly deferred pending a genuinely free authenticated account.
