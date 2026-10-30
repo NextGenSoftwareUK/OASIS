@@ -23,20 +23,30 @@ public sealed class Neo4jReplicaReconciliationException(Guid operationId,string 
     public string OriginalTransactionId=>string.Empty;
 }
 
-public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider
+public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
 {
     private sealed class NeoReplicaConflictException(IEnumerable<Guid> ids)
         :InvalidOperationException("Replica source lineage, local revision or enrollment differs for: "+string.Join(",",ids));
+    private sealed class NeoReplicaBaselineAdmissionException(string message,Exception cause=null):IOException(message,cause);
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         =>ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
     public async Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CancellationToken cancellationToken=default)
+        =>await ApplyReplicaAsync(request,false,cancellationToken).ConfigureAwait(false);
+    public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
+        =>InitializeCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
+    public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CancellationToken cancellationToken=default)=>ApplyReplicaAsync(request,true,cancellationToken);
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(CommittedHolonReplicaRequest request,bool initialize,
+        CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var plan=CommittedHolonReplicaPlan.Create(request,ReplicaProviderType.Neo4jOASIS);
+            var plan=initialize ? CommittedHolonReplicaPlan.CreateInitialBaseline(request,ReplicaProviderType.Neo4jOASIS)
+                :CommittedHolonReplicaPlan.Create(request,ReplicaProviderType.Neo4jOASIS);
             return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
                 new NeoAtomicHolonWrite(plan,request.ActorId,cancellationToken)).ConfigureAwait(false);
         }
@@ -52,6 +62,11 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider
         Dictionary<Guid,Holon> observed,NeoAtomicHolonWrite write,CommittedHolonReplicaPlan plan,bool archive)
     {
         var previous=new Dictionary<Guid,Holon>();var conflicts=new List<Guid>();
+        if(plan.IsInitialBaseline)
+        {
+            if(observed.Values.Any(value=>value!=null))throw new NeoReplicaConflictException(observed.Where(pair=>pair.Value!=null).Select(pair=>pair.Key));
+            await VerifyInitialReplicaAbsenceAsync(transaction,submitted.Select(row=>row.Id).ToHashSet(),write.Cancellation).ConfigureAwait(false);
+        }
         foreach(var item in submitted.OrderBy(item=>item.Id))
         {
             write.Cancellation.ThrowIfCancellationRequested();
@@ -62,9 +77,10 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider
             var created=head.Properties.TryGetValue("__cosmicClaim",out var claim) && (string)claim==write.Claim;
             if(created)
             {
-                if(current!=null || item.Version!=1 || item.PreviousVersionId!=Guid.Empty)conflicts.Add(item.Id);
+                if(current!=null || !plan.IsInitialBaseline && (item.Version!=1 || item.PreviousVersionId!=Guid.Empty))conflicts.Add(item.Id);
                 previous.Add(item.Id,null);continue;
             }
+            if(plan.IsInitialBaseline){conflicts.Add(item.Id);continue;}
             var fields=head.Properties;
             if(!fields.TryGetValue("SnapshotJson",out var json) || json is not string snapshot
                 || !fields.TryGetValue("SnapshotDigest",out var digest) || digest is not string checksum
@@ -103,6 +119,31 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider
             plan.ValidateAcknowledgedRecord(record);
         }
         return submitted;
+    }
+
+    private static async Task VerifyInitialReplicaAbsenceAsync(IAsyncTransaction transaction,HashSet<Guid> ids,CancellationToken token)
+    {
+        // PrepareConditionalHolonsAsync already holds each selected Holon node's
+        // native lock (including new placeholders). Related V2 writers cannot pass it.
+        var history=await(await transaction.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Holon'}) WHERE v.RecordId IN $ids RETURN count(v) AS count",
+            new{ids=ids.Select(id=>id.ToString("D")).ToArray()}).ConfigureAwait(false)).SingleAsync().ConfigureAwait(false);
+        if(history["count"].As<long>()!=0)throw new NeoReplicaConflictException(ids);
+
+        // Explicit bounded receipt audit; no APOC dependency, metadata inference,
+        // unrestricted query fallback, mutation or automatic receipt migration.
+        var cursor=await transaction.RunAsync("MATCH (r:CosmicWriteReceipt) WHERE r.ResultJson IS NOT NULL RETURN r.ResultJson AS json LIMIT 10001").ConfigureAwait(false);
+        var count=0;
+        while(await cursor.FetchAsync().ConfigureAwait(false))
+        {
+            token.ThrowIfCancellationRequested();
+            if(++count>10000)throw new NeoReplicaBaselineAdmissionException("Initialization requires an explicit receipt audit beyond 10000 acknowledgements.");
+            IReadOnlyList<IHolon> roots;
+            try{roots=ConditionalHolonReceipt.Read(cursor.Current["json"].As<string>());}
+            catch(Exception cause)when(cause is InvalidDataException or ArgumentException or InvalidCastException)
+            {throw new NeoReplicaBaselineAdmissionException("A retained acknowledgement cannot establish target absence.",cause);}
+            var graph=HolonGraphWritePlan.Create(roots,true,true,0,0);
+            if(graph.Nodes.Any(node=>ids.Contains(node.Snapshot.Id)))throw new NeoReplicaConflictException(ids);
+        }
     }
 
     private static async Task WriteCommittedReplicaHeadsAsync(IAsyncTransaction transaction,CommittedHolonReplicaPlan plan,IEnumerable<IHolon> records)
