@@ -144,3 +144,41 @@ inventory proof enrollment. Full conditional-write/graph/history/parity stays re
 Evidence `TestResults/CouchDbCqlCurrent/native-first.trx`, SHA256 `9fa5dba03a1c66953ae54517ef3f93cc52e9aad2f7508fac970ebd1161343299`.
 
 Evidence `TestResults/CouchDbCqlCurrent/native-restart.trx`, SHA256 `3e53c686bff74424b58098e38f76246779cf72682c88d8407f43a7d26a5522b3`.
+
+## Mongo-paired C#, HTTP and browser MVP verified — 30 October 2026
+
+This section supersedes the pending paired step above. The same three original
+CouchDB records survived both process restart and paired use unchanged. C# and
+HTTP return five physical rows (CouchDB3 + Mongo2), or four for the two-ID subset
+(CouchDB2 + Mongo2), preserving provider provenance. Browser confirmed both counts
+and the explicit retained-source shutdown. Screenshot capture was unavailable;
+accessibility results verified the actual visible responses. No snapshot claim.
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CouchDB -Federated`;
+add `-VerifyOnly` for bounded verification. Browser host is loopback5132. Example:
+
+```csharp
+// Select a bounded catalogue of trusted holon identities for each provider.
+var selected = source.Where(row => selectedIds.Contains(row.Id));
+
+// Execute the prepared Mongo + CouchDB plan through the shared manager.
+// The result retains each physical copy and its provider provenance.
+var result = await manager.ExecuteFederationQueryAsync(plan, adapters);
+```
+
+The linked integration test `CouchDbMongoCqlNativeTests.cs` exercises the real
+manager/adapters and HTTP host, rejects forged actors/unknown presets, and returns
+503 without rows when CouchDB is inactive. Native-postpair rechecks original
+hashes/revisions/update_seq. Both bounded and interactive runs passed all five
+one-test phases (native-first, native-restart, mongo-init, mongo-federation,
+native-postpair). Hub routing:8single/16plans,41paired/82plans,68paired and3archive
+rejections; listeners unchanged. Exact disposable Mongo fixture was removed;
+original CouchDB source231,082B retained, both owned services stopped, runner exit0.
+No new downloads. Full CAS/graph/history/replication parity remains open.
+
+Current evidence: `TestResults/CouchDbCqlCurrent/browser-run.log`, containing all
+five report hashes; paired TRX SHA256
+`e8e1aebb008eeb12a2c1787f9c29f05f17771a493955989d07e790920a249cc2`.
+Native-postpair TRX SHA256
+`7f2cde173acb9d0b42d46b7375590899891faf8bef95d5eb37f6916c9d705be2`.
+Raw reports remain regenerable in TestResults, outside documentation.
