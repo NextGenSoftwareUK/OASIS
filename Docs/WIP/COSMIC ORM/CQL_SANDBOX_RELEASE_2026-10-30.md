@@ -83,3 +83,34 @@ Observed GitHub runs41085351582 CI/CD queued,41085351698 ONET/ONODE in progress,
 41085351542 subscription protocol in progress; external workflow-managed resources.
 Next: observe this exact deployment to terminal status, then actual hosted session,
 query and isolation checks. Static Web4Site publication still pending live proof.
+
+## Focused hosted Mongo stage-limit correction
+
+First deploymentefd2c5c1 is SUCCESS. A new demo session gets1free subscription;
+hosted CQL passes admission but row execution failed at the native stage limit.
+Operation610b294d-b037-980a-5b73-eb33fab22a6d retained; no request replay.
+Read-only metadata confirms valid membership/string IDs/schema1; hosted queryPlanner
+rejects inherited template56stages with native7749501 (maximum50).
+
+Focused fix preserves all16ancestor levels and permission semantics, removes each
+temporary lookup field in the same $set that advances flags/frontier ($$REMOVE),
+and reduces56to40stages. The failing regression proves the old56stage shape;
+new2controls+3native pass/0skip, including16th/17th boundary, actor/group/public
+inheritance, cycles, missing parents and no temporary-field leakage. Source-task
+read-only hosted planner accepts40stages; not a hosted execution success claim.
+
+Scoped candidate changes only translator, ancestor regression/owned fixture and
+its reusable native runner, plus this audit. Core pin remains432c613, other prior
+release code unchanged. Scoped Core/Mongo/SQLite/Neo/WEB4 producers built; native
+fixed fixture removed/owned Mongo stopped0. No restore/download/new environment.
+Broader task e155c0b2c keeps diagnostic tooling/complete roadmap; no unrelated
+provider changes swept into this second verified deployment batch.
+Next: publish this correction, observe its exact deployment and execute live queries.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-stage-release-controls.trx`: 4171B, SHA256 `0f28591b945dd503c2bf013f0eb50a6e08205839a257e61343fa1e879ccc5dc2`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-ancestor-native.trx`: 5596B, SHA256 `5e5ec36dbaf64f059f4db52b00ecae8b1a4ba25fd19e78f760b643cac0741205`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-inherited-plan-before.json`: 1787B, SHA256 `901ffe0d6cb34e65c4a6f9eff862e6ed909bd388299629fa901181410f2f8509`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-accounting-readiness.json`: 1653B, SHA256 `9132ea5372b6cbd04ddecbd4fe68e88d6e820c531bdf7187802d1d29d78b594a`.
