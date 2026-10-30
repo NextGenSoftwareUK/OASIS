@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
         public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
+        public CqlSettings Cql { get; set; } = new CqlSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
         
         // HyperDrive mode switch: "Legacy" or "OASISHyperDrive2"
@@ -110,6 +111,23 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ConnectionEncryptionKey { get; set; } = "";
         /// <summary>Most connections one avatar may save.</summary>
         public int MaximumSavedConnectionsPerAvatar { get; set; } = 10;
+    }
+
+    /// <summary>How CQL queries apply what holon owners have chosen to share (see Docs/Devs/HOLON_PERMISSIONS.md).</summary>
+    public class CqlSettings
+    {
+        /// <summary>
+        /// Queries also return holons whose owner granted the caller (or a group they are in, or everyone) read. Off: queries
+        /// return only the caller's own and public holons, as before.
+        /// </summary>
+        public bool SharedReads { get; set; } = true;
+        /// <summary>
+        /// Also return holons below one that granted read to everything beneath it. Used only on a provider that can walk up
+        /// the parent chain natively (MongoDBOASIS, SQLLiteDBOASIS and Neo4jOASIS); other providers keep the plain shared rule.
+        /// </summary>
+        public bool InheritedReads { get; set; } = true;
+        /// <summary>Seconds a caller's group list is reused between queries; group membership changes take effect within this time.</summary>
+        public int GroupCacheSeconds { get; set; } = 15;
     }
 
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>

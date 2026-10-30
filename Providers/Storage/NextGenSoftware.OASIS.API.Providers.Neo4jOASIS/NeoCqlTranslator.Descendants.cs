@@ -12,6 +12,27 @@ internal sealed partial class NeoCqlTranslator
     internal readonly List<string> TraversalCycles = new();
     internal readonly List<string> TraversalLimits = new();
 
+    /// <summary>
+    /// "Any ancestor within the bound satisfies the predicate", as one inline boolean: a quantified path up the HAS_CHILD edges
+    /// (each relationship is used once per path, so a loop cannot run on), then the predicate on that ancestor's projection.
+    /// It needs none of the traversal clause plumbing because it never errors on size: the depth bound is the whole contract.
+    /// The ancestor need not be readable by the caller; the right comes from the flag the predicate tests.
+    /// </summary>
+    private string TranslateAncestor(CosmicQueryAnyAncestor ancestor)
+    {
+        var suffix = Parameters.Count.ToString(CultureInfo.InvariantCulture);
+        var hopChild = "upChild" + suffix;
+        var hopParent = "upParent" + suffix;
+        var candidate = "ancestor" + suffix;
+        var candidateProjection = "ancestorProjection" + suffix;
+        var depth = ancestor.Traversal.MaximumDepth.ToString(CultureInfo.InvariantCulture);
+        var inner = new NeoCqlTranslator(candidate, candidateProjection, Parameters, _access, _relationshipDepth + 1);
+        var matched = inner.Translate(ancestor.Predicate);
+        return "EXISTS { MATCH (" + _node + ") ((" + hopChild + ":Holon)<-[:HAS_CHILD]-(" + hopParent + ":Holon)){1," + depth + "}(" + candidate + ":Holon) "
+            + "MATCH (" + candidate + ")-[" + candidateProjection + ":HAS_CQL_PROJECTION]->(" + candidate + ") "
+            + "WHERE coalesce((" + matched + "),false) }";
+    }
+
     private string TranslateDescendant(CosmicQueryAnyDescendant descendant)
     {
         var suffix = Parameters.Count.ToString(CultureInfo.InvariantCulture);
