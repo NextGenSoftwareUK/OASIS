@@ -5,16 +5,18 @@ Updated30October2026 UTC. Scoped sandbox release candidate; full programme remai
 ## Work and priority
 
 - Work/build/test C:/Source/OASIS-cosmic; parent/Core currently work/cosmic-cql-sandbox-integration. Broader work/cosmic-cql preserved.
-- Full ORM/CQL roadmap remains active/incomplete. Eight-provider demo breadth precedes remaining EF/NHibernate depth.
+- Full ORM/CQL roadmap remains active/incomplete. Sandbox rollout precedes depth; broader all-provider plan is retained on work/cosmic-cql.
 - Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
 - HyperDriveV2 implementation only; document legacy gaps. Large POCO/migrations tooling stays deferred.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
 
 ## Immediate next step
 
-[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): Core52, WEB4controls25,
-native7pass. Existing hosted opening guard ready (read-only); publish scoped pins,
-explicit free profile staged/read-back verified. Exact Railway build efd2c5c1-288b-4b58-8b8c-bee0f1690003 is BUILDING for Developmentdfceb1392; observe it, no duplicate deploy. Hosted queries pending.
+[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): first deploymentSUCCESS,
+free sessions work. Hosted Mongo stage limit found (56>50); focused fix40stages,
+all16levels preserved,2controls+3native pass, hosted queryPlanner accepts40.
+Publish focused correction next; actual hosted row/scalar/federation/isolation pending.
+Core pin432c613; broader task/diagnostics e155c0b2c preserved, frontend not published.
 
 ## Latest verified milestone
 
