@@ -87,3 +87,7 @@ Fantom V2 local native/restart/paired/browser/hub scope verified: [proof](FANTOM
 Linea and Scroll local native/restart/paired/browser/hub MVP verified; [Linea](LINEA_CQL_MVP.md), [Scroll](SCROLL_CQL_MVP.md). Next zkSync runtime compatibility/chain/query audit before choosing native environment.
 
 Monad local native/restart/paired/browser/hub MVP verified: [proof](MONAD_CQL_MVP.md). Next Abstract runtime/chain/query audit; zkSync original checkpoint retained/native reload gate stays red.
+
+30 October: CouchDB native/restart/Mongo-paired C#/HTTP/browser5/4 and hub pass.
+All226 provider identities remain in MVP breadth scope;44 linked scoped proofs.
+Next red audit: SurrealDB. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).

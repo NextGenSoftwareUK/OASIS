@@ -1,7 +1,13 @@
 """Run native CouchDB acceptance twice against one retained container/source."""
 from pathlib import Path
-import base64, fcntl, hashlib, json, os, pwd, socket, subprocess, time, urllib.error, urllib.request
+import argparse, sys, base64, fcntl, hashlib, json, os, pwd, socket, subprocess, time, urllib.error, urllib.request
 import xml.etree.ElementTree as ET
+parser=argparse.ArgumentParser()
+parser.add_argument('--federated',action='store_true');parser.add_argument('--serve',action='store_true')
+options=parser.parse_args()
+if options.serve and not options.federated:raise RuntimeError('Serve requires explicit federation')
+sys.dont_write_bytecode=True
+from cosmic_linux_mongo_service import owned_linux_mongo
 ROOT=Path('/mnt/c/Source/OASIS-cosmic')
 STATE=Path('/var/tmp/oasis-couchdb-cql')
 RESULTS=ROOT/'TestResults/CouchDbCqlCurrent'
@@ -47,16 +53,34 @@ def main():
                     except (ConnectionError,urllib.error.URLError):time.sleep(.25)
                 else:raise RuntimeError('Native readiness deadline')
                 assert get('/')['uuid']==json.loads((STATE/'environment.json').read_text())['observations'][0]['uuid']
-                env={**os.environ,'DOTNET_ROOT':'/var/tmp/oasis-runtimes/dotnet-10.0.12','COSMIC_COUCHDB_ROOT':str(STATE)}
-                started=time.time()
-                with (RESULTS/(phase+'.log')).open('w') as log:
-                    subprocess.run([DOTNET,VSTEST,str(DLL),'--TestCaseFilter:FullyQualifiedName~CouchDbNativeCqlTests',
-                        '--ResultsDirectory:'+str(RESULTS),'--Logger:trx;LogFileName='+phase+'.trx'],
-                        env=env,cwd=RESULTS,preexec_fn=demote,stdout=log,stderr=subprocess.STDOUT,check=True)
-                trx=RESULTS/(phase+'.trx');assert trx.stat().st_mtime>=started
-                counts=ET.parse(trx).find('.//{*}Counters').attrib
-                assert counts['passed']==counts['total']=='1' and counts['notExecuted']=='0'
-                proofs.append({'phase':phase,'passed':1,'sha256':hashlib.sha256(trx.read_bytes()).hexdigest()})
+                def report(name,filter_name='CouchDbNativeCqlTests',extra=None):
+                    env={**os.environ,'DOTNET_ROOT':'/var/tmp/oasis-runtimes/dotnet-10.0.12','COSMIC_COUCHDB_ROOT':str(STATE)}
+                    env.update(extra or {})
+                    started=time.time()
+                    with (RESULTS/(name+'.log')).open('w') as log:
+                        subprocess.run([DOTNET,VSTEST,str(DLL),'--TestCaseFilter:FullyQualifiedName~'+filter_name,
+                            '--ResultsDirectory:'+str(RESULTS),'--Logger:trx;LogFileName='+name+'.trx'],
+                            env=env,cwd=RESULTS,preexec_fn=demote,stdout=log,stderr=subprocess.STDOUT,check=True)
+                    trx=RESULTS/(name+'.trx');assert trx.stat().st_mtime>=started
+                    counts=ET.parse(trx).find('.//{*}Counters').attrib
+                    assert counts['passed']==counts['total']=='1' and counts['notExecuted']=='0'
+                    proofs.append({'phase':name,'passed':1,'sha256':hashlib.sha256(trx.read_bytes()).hexdigest()})
+                report(phase)
+                if phase=='native-restart' and options.federated:
+                    owner=Path('/var/tmp/oasis-cosmic-mongo/data').stat().st_uid
+                    assert owner!=0
+                    os.setresuid(owner,owner,0)
+                    try:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            os.setresuid(0,0,0)
+                            try:
+                                report('mongo-init','LinuxMongoDemoEnvironmentTests',mongo_env)
+                                report('mongo-federation','CouchDBMongoCqlNativeTests',
+                                    {**mongo_env,'COSMIC_COUCHDB_MONGO_SERVE':'1' if options.serve else '0'})
+                                assert not (STATE/'mongo.pending.json').exists(),'Mongo fixture cleanup incomplete'
+                            finally:os.setresuid(owner,owner,0)
+                    finally:os.setresuid(0,0,0)
+                    report('native-postpair')
             finally:
                 command('stop','--time','20','oasis-couchdb-cql')
                 status=inspect()['State'];assert not status['Running'] and status['ExitCode']==0,'Owned teardown incomplete'
