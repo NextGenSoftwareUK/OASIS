@@ -22,7 +22,7 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
     // A product opts in explicitly; changing a provider enum cannot inherit certification.
     protected virtual ProviderType NativeBoundedQueryAuthority => Core.Enums.ProviderType.PostgreSQLOASIS;
     public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == NativeBoundedQueryAuthority
-        ? PostgreSqlCqlCompiler.Capabilities : UnsupportedAliasCapabilities;
+        ? PostgreSqlCqlCompiler.CapabilitiesFor(NativeBoundedQueryAuthority) : UnsupportedAliasCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -39,8 +39,9 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
-            var selection = BoundedIdentityCqlCompiler.Compile(plan.Query, QueryProviderType, NativeBoundedQueryAuthority);
+            var selection = PostgreSqlCqlCompiler.CompileNative(plan.Query, QueryProviderType, NativeBoundedQueryAuthority);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
+            await using var command = selection.Result;
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated)
                 return Error("CQL_PROVIDER_INACTIVE", "Activate the configured PostgreSQL provider before querying.");
@@ -49,12 +50,7 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
             // canonical JSON materialization. No managed predicate/source scan.
             await using var connection = new Npgsql.NpgsqlConnection(_connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = new Npgsql.NpgsqlCommand(
-                "SELECT id,data_json,is_deleted FROM oasis_holons WHERE id=ANY(@ids) AND is_deleted=FALSE " +
-                "ORDER BY id::text COLLATE \"C\" LIMIT @take OFFSET @skip", connection);
-            command.Parameters.AddWithValue("ids", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Uuid, selection.Result.ToArray());
-            command.Parameters.AddWithValue("take", plan.Query.Limit ?? selection.Result.Count);
-            command.Parameters.AddWithValue("skip", plan.Query.Offset);
+            command.Connection = connection;
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var rows = new List<IHolon>();
             var payloadBytes = 0;
