@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OptimismOASIS/NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
     <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EvmProviderFactory.cs" Link="Production/EvmProviderFactory.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
