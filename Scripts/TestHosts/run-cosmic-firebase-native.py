@@ -1,4 +1,6 @@
 """Verify original RTDB emulator fixture/export restore without replaying unresolved writes."""
+import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import msvcrt
@@ -12,6 +14,11 @@ import urllib.request
 import uuid
 import xml.etree.ElementTree as ET
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+if options.serve and not options.federated: raise RuntimeError('Serve requires federation')
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / 'LocalState/COSMIC/FirebaseCql'
 RESULTS = ROOT / 'TestResults/FirebaseCqlCurrent'
@@ -45,11 +52,12 @@ def verify_source(value):
     assert all(key == row['id'] for key, row in records.items())
     assert sum(row.get('deletedDate', '0001-01-01T00:00:00') != '0001-01-01T00:00:00' for row in records.values()) == 1
 
-def report(name, seed):
+def report(name, seed, test="FirebaseNativeCqlTests", extra=None):
     env = dict(os.environ, COSMIC_FIREBASE_ROOT=str(STATE), COSMIC_FIREBASE_SEED='1' if seed else '0')
+    env.update(extra or {})
     started = time.time()
     with (RESULTS / (name + '.log')).open('w') as output:
-        subprocess.run(['dotnet', 'test', str(PROJECT), '--no-build', '--no-restore', '--filter', 'FullyQualifiedName~FirebaseNativeCqlTests',
+        subprocess.run(['dotnet', 'test', str(PROJECT), '--no-build', '--no-restore', '--filter', 'FullyQualifiedName~' + test,
                         '--results-directory', str(RESULTS), '--logger', 'trx;LogFileName=' + name + '.trx',
                         '/m:2', '/nr:false', '/p:UseSharedCompilation=false'], env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
     path = RESULTS / (name + '.trx')
@@ -58,9 +66,36 @@ def report(name, seed):
     assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
+@contextmanager
+def owned_windows_mongo():
+    daemon = Path('C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe')
+    data = ROOT / 'LocalState/COSMIC/mongo-data'
+    assert (data / 'WiredTiger').is_file()
+    assert hashlib.sha256(daemon.read_bytes()).hexdigest() == 'fb5035767717c9d00ca1eada0a63be28a1758c6108dc614cd95c41465a98aabe'
+    with socket.socket() as port: assert port.connect_ex(('127.0.0.1', 27029)) != 0
+    path = RESULTS / 'mongo-service.log'
+    path.write_text('')
+    with (RESULTS / 'mongo-console.log').open('w') as output:
+        process = subprocess.Popen([str(daemon), '--dbpath', str(data), '--bind_ip', '127.0.0.1', '--port', '27029',
+                                    '--replSet', 'oasisRecoveryRs', '--wiredTigerCacheSizeGB', '0.25', '--oplogSize', '32',
+                                    '--logpath', str(path), '--logappend'], stdout=output, stderr=subprocess.STDOUT,
+                                   creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            deadline = time.monotonic() + 40
+            while True:
+                if process.poll() is not None: raise RuntimeError('Owned Mongo exited before primary readiness')
+                if 'Transition to primary complete' in path.read_text(errors='strict'): break
+                if time.monotonic() >= deadline: raise RuntimeError('Mongo primary readiness deadline; no restart')
+                time.sleep(.2)
+            yield dict(OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000',
+                       COSMIC_FIREBASE_MONGO_SERVE='1' if options.serve else '0')
+        finally:
+            if process.poll() is None:
+                process.terminate(); process.wait(timeout=30)
+
 with (STATE / 'runner.lock').open('a+b') as lock:
     lock.seek(0); msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-    if list(STATE.glob('*.pending')) or (STATE / 'active-process.json').exists():
+    if list(STATE.glob('*.pending')) or (STATE / 'mongo.pending.json').exists() or (STATE / 'active-process.json').exists():
         raise RuntimeError('Unresolved original outcome; preserve live source and inspect without replay')
     with socket.socket() as port: assert port.connect_ex(('127.0.0.1', 19091)) != 0
     fresh = not (STATE / 'identity.json').exists()
@@ -101,6 +136,10 @@ with (STATE / 'runner.lock').open('a+b') as lock:
                     (STATE / 'restore.pending').unlink()
                 else: durable(STATE / 'seed.pending', {'records': 4})
                 proofs.append(report('native' if iteration == 0 else 'restart', fresh and iteration == 0))
+                if iteration == 1 and options.federated:
+                    with owned_windows_mongo() as mongo_env:
+                        proofs.append(report('mongo-federation', False, 'FirebaseMongoCqlNativeTests', mongo_env))
+                        assert not (STATE / 'mongo.pending.json').exists()
                 observed = request(); verify_source(observed)
                 source_hash = digest(observed)
                 if fresh and iteration == 0:

@@ -1,6 +1,6 @@
-# Firebase Realtime Database CQL MVP — native verified, paired pending
+# Firebase Realtime Database CQL MVP — native and Mongo-paired verified
 
-Updated 29 October 2026. Native and explicit emulator checkpoint restore pass; paired/browser remain red.
+Updated 29 October 2026. Native/checkpoint restore and Mongo-paired C#/HTTP/browser pass in the scope below.
 Firebase Realtime Database is distinct from the already-proved Firestore adapter.
 
 ## Implemented query controls
@@ -75,8 +75,8 @@ Complete original source hash stayed
 `6222b4436a54a485f172e2d34413a248c0ed67c7e8b738dc20271c0101fea343`.
 
 Evidence under `TestResults/FirebaseCqlCurrent`:
-- `native.trx`: `78cff8acda7b2a6cd0eb1708078cdc81acc41c945af07795ef798d57c28d2d39`.
-- `restart.trx`: `2898a0f896fe8e927576e6458a2726f68d66eb0b9978e69340c341a22699b5d3`.
+- `native.trx`: `ac13fd7aab3d2fbf7acc2f05e179dff5c8dc0904de2fdca0ff406ff513c5fd05`.
+- `restart.trx`: `87e13647b9654b1fa6df5e0a172ac453c344bb5d668d0a295ad4a0d6d57af08d`.
 
 After leased bounded provider/integration builds:
 ```powershell
@@ -87,9 +87,34 @@ A failed uncheckpointed volatile source is preserved live with its PID receipt.
 Successful sources stop only after exact checkpoint verification (Windows process
 termination; no clean native disk-flush claim). No19091listener remains.
 
-## Exact next step
+## Mongo-paired teaching preset
 
-Reuse this original fixture/checkpoint for one Mongo-paired C#/HTTP/browser preset.
-Do not count Firebase demo-ready until paired/browser checks pass. Hosted Firebase
+[Executable C#/HTTP example/test](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests/FirebaseMongoCqlNativeTests.cs)
+uses the shared commented federation walkthrough and teaching host. HolonManager
+dispatches a bounded native Firebase key-query union plus native Mongo selection.
+All: Firebase3+Mongo2 = **5physical rows**; subset2+2 = **4**, preserving copies and
+provenance while excluding an unrelated third Mongo record. This is not a snapshot.
+Forged actor/unknown preset reject400; inactive Firebase rejects503 without rows.
+Direct and hub/browser runs pass native1/export-restore1/paired1; browser tab37
+verified both buttons/provenance and controlled shutdown. Hub routing controls:
+8single/16plans,33paired/66plans,52paired rejection,3archive rejection; listeners
+unchanged. Exact temporary Mongo database `cosmic_cql_mongo_firebase_demo`3records
+verified/dropped. Original Firebase checkpoint/hash/IDs preserved unchanged.
+Owned emulator19091/Mongo27029/browser5124 stopped; no clean disk-flush claim.
+
+Latest paired TRX `TestResults/FirebaseCqlCurrent/mongo-federation.trx` SHA256:
+`33c1649bad7f4acf0ae2791df9c60bec26ca8e248501b04b5ebcdf79c9f29482`.
+Visual proof `TestResults/FirebaseCqlCurrent/browser.jpg` is disposable.
+
+```powershell
+# Interactive; stop with the page button.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Firebase -Federated
+# Bounded native/export-restore/C#/HTTP proof and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Firebase -Federated -VerifyOnly
+```
+
+## Remaining gaps
+
+Hosted Firebase
 credentials/rules, atomic conditional concurrency, full numeric range, arrays,
 child/history and broader graph/storage conformance remain separate open gates.
