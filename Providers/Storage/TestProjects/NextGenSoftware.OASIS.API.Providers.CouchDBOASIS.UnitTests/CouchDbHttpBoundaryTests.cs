@@ -20,7 +20,7 @@ public class CouchDbHttpBoundaryTests
             if(request.Method==HttpMethod.Get) return Task.FromResult(new HttpResponseMessage(ReadStatus){Content=new StringContent(ReadBody)});
             if(request.RequestUri!.AbsolutePath.EndsWith("/_index")) return Task.FromResult(new HttpResponseMessage(FailIndex?HttpStatusCode.InternalServerError:HttpStatusCode.Created){Content=new StringContent("{}")});
             if(request.RequestUri.AbsolutePath.Count(c=>c=='/')>1)DocumentWrites++;
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Created){Content=new StringContent("{\"ok\":true,\"rev\":\"1-a\"}",Encoding.UTF8,"application/json")});
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Created){Content=new StringContent(System.Text.Json.JsonSerializer.Serialize(new{ok=true,id=request.RequestUri.Segments.Last(),rev="1-a"}),Encoding.UTF8,"application/json")});
         }
     }
     private static CouchDBOASIS Provider(Handler handler)
