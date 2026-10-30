@@ -69,15 +69,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
-                var resp = await _http.GetAsync($"{_host}/describe_index_stats");
-                resp.EnsureSuccessStatusCode();
+                await ValidateIndexAsync();
                 IsProviderActivated = true;
                 result.Result = true;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"PineconeOASIS: ActivateProviderAsync failed: {ex.Message}");
             }
             return result;
@@ -588,8 +589,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
         private async Task<List<T>> QueryAsync<T>(string ns, object? filter, int topK) where T : class
         {
             object body = filter == null
-                ? new { vector = new[] { 0.0f }, topK, includeMetadata = true, @namespace = ns }
-                : (object)new { vector = new[] { 0.0f }, topK, filter, includeMetadata = true, @namespace = ns };
+                ? new { vector = new[] { 1.0f }, topK, includeMetadata = true, @namespace = ns }
+                : (object)new { vector = new[] { 1.0f }, topK, filter, includeMetadata = true, @namespace = ns };
 
             var resp = await _http.PostAsync($"{_host}/query", Json(body));
             resp.EnsureSuccessStatusCode();
