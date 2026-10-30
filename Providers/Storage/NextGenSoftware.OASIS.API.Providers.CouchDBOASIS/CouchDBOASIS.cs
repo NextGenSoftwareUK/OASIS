@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
     /// POST /{db}/_find   → Mango query for searching
     /// GET /{db}/_all_docs?include_docs=true → list all
     /// </summary>
-    public class CouchDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class CouchDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
