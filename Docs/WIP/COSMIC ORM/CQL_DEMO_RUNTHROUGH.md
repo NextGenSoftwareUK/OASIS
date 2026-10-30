@@ -520,3 +520,14 @@ freeBasiclicense, original records and restart verification. C#/HTTP/browser sho
 Browser5140; stop through the demo control for exact Mongo cleanup/native retention.
 Bounded identity selection only; full-text translation/replication/parity remain open.
 [Commands, scope, tests and hashes](ELASTICSEARCH_CQL_MVP.md).
+
+
+## OpenSearch + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider OpenSearch -Federated`
+(add `-VerifyOnly` for bounded checks). Independent OpenSearch3.9.0 uses authenticated
+HTTPS/securityplugin/customcerts, original rawHolon records and restart verification.
+C#/HTTP/browser show5physical rows then4for the2-ID subset with provider provenance.
+Browser5141; stop through the demo control to check exactMongo cleanup/native retention.
+Bounded identity selection only; full-text translation/replication/parity remain open.
+[Commands, scope, tests and hashes](OPENSEARCH_CQL_MVP.md).
