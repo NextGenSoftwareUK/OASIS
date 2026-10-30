@@ -1,6 +1,6 @@
 # Chroma CQL MVP — in progress
 
-30 October 2026. Inventory remains red; native/CQL/paired acceptance is pending.
+30 October 2026. Inventory remains red; native/paired acceptance is pending.
 
 ## Verified save ownership
 
@@ -23,16 +23,14 @@ These are injected-HTTP controls, not native database certification.
 
 ## Next acceptance
 
-1. Audit pinned native Chroma collection/record schema and upsert HTTP contract;
-   activation must verify the selected collection/schema and clear stale state.
-2. Provision one free retained native source (no existing Chroma image/source found);
+1. Provision one free retained native source (no existing Chroma image/source found);
    verify schema, multiple original records, filtered query and restart without reseeding.
-3. Add Mongo-paired C#/HTTP/browser profile, clear comments and teaching examples.
+2. Add Mongo-paired C#/HTTP/browser profile, clear comments and teaching examples.
 
 ## Remaining gaps
 
-Collection resolution currently creates/caches collections with minimal schema
-validation; activation failure may retain stale activation. Generic read helpers
+Collection resolution is now read-only and validates the explicit schema;
+pre-existing unmarked collections require deliberate audit/migration. Generic read helpers
 can hide HTTP errors as missing data; list bounds/response-ID ownership and
 malformed JSON need admission checks. Shared upserts lack request/response bounds
 and runtime serialization on other write paths. Avatar saves still need caller
@@ -68,3 +66,27 @@ SHA256 `91191B86039335EED8696F846FA6EABBA7A23CB05D2F19B266CFC94BAF192567`.
 and [response tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.UnitTests/ChromaNativeQueryTests.cs).
 Cache-only restores/bounded provider build pass. Real native/paired acceptance
 remains red; no hub or inventory green change.
+
+## Explicit collection admission — 30 October 2026
+
+Pinned official [Chroma1.5.9 collection model](https://github.com/chroma-core/chroma/blob/1.5.9/rust/types/src/collection.rs)
+provides UUID/name/tenant/database/metadata/dimension. Resolve each of
+`oasis_avatars`, `oasis_avatar_details`, `oasis_holons` by native GET-by-name;
+no create/upsert/get_or_create during activation or collection resolution.
+Require canonical nonempty UUID, exact configured name/tenant/database and explicit
+metadata `cosmic_storage_schema="chroma-doc-v1"`, `cosmic_embedding_dimension=1`.
+Native dimension may be null for an empty collection or1 after its first embedding;
+other dimensions reject. This declares the provider's existing one-scalar embedding
+contract; it does not certify arbitrary native index/schema settings.
+
+A15second deadline/256KiB streamed schema bound apply. Activation clears cached
+IDs and active state before fresh validation, clearing partial cache on failure.
+Provision these collections deliberately with the above metadata; do not simply
+relabel existing incompatible data. Existing unmarked collections are refused and
+require an explicit audit/migration. No automatic destructive replacement.
+
+**50 passed,0 failed,0 skipped**, including12 new schema/admission tests.
+[Schema tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.UnitTests/ChromaSchemaTests.cs).
+Evidence: `C:/Source/OASIS-cosmic/TestResults/ChromaCqlCurrent/schema-controls.trx`.
+SHA256 `FE1D2FCC2364F7CC6AE19B80B0483DCDE20C6796A5A18CC62984914849D25D9E`.
+Native startup/schema/restart and Mongo-paired demos remain next; inventory stays red.

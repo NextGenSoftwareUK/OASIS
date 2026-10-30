@@ -67,6 +67,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
+            _collectionIds.Clear();
             try
             {
                 foreach (var c in new[] { CollAvatars, CollAvatarDetails, CollHolons })
@@ -76,6 +78,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             }
             catch (Exception ex)
             {
+                _collectionIds.Clear();
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: ActivateProviderAsync failed: {ex.Message}");
             }
             return result;
@@ -549,20 +553,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             if (response.IsSuccessStatusCode) return;
             var body = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException($"Chroma returned {(int)response.StatusCode} ({response.ReasonPhrase}): {body}");
-        }
-
-        private async Task<string> ResolveCollectionIdAsync(string name)
-        {
-            if (_collectionIds.TryGetValue(name, out var cached)) return cached;
-
-            var resp = await _http.PostAsync(CollectionsUrl,
-                Json(new { name, get_or_create = true }));
-            await EnsureSuccessAsync(resp);
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            var id = doc.RootElement.GetProperty("id").GetString()!;
-            _collectionIds[name] = id;
-            return id;
         }
 
         private static Dictionary<string, object> ToMetadata<T>(T obj, string id)

@@ -18,8 +18,8 @@ public class ChromaNativeQueryTests
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
-            if (request.RequestUri!.AbsolutePath.EndsWith("/collections"))
-                return Task.FromResult(Json(new { id = Collection }));
+            if (request.Method == HttpMethod.Get)
+                return Task.FromResult(Json(new { id = "3bbf531e-0f7d-4e8a-9306-c901ae2c7880", name = request.RequestUri!.Segments.Last(), tenant = "default_tenant", database = "default_database", dimension = (int?)null, metadata = new { cosmic_storage_schema = "chroma-doc-v1", cosmic_embedding_dimension = 1 } }));
             Queries++;
             return Query(request, token);
         }
