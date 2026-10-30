@@ -181,3 +181,9 @@ All8 scoped builds pass against merged pins,36API/schema/metadata controls+8nati
 - deploy-recheck-api-controls.trx: SHA256 a646f0d3d9782f0f39a7beec7cb3378336694cc2f669be437a3a47e3a6fecaa8.
 - lifecycle-native.trx: SHA256 338ca73e327d0c96d02daa99b62c380ad71f43401cf7ee852272c3a4b2d2fd9b.
 - mongo-ancestor-native.trx: SHA256 1ff525bfea6af1026b7986d58cd1a3fc4b4dc3310aafdaf59bab294d9c3d85f7.
+
+## Approved batch published; exact deployment pending
+
+Normal fast-forward publication succeeded: CoreDevelopment39b45711925ee284786897ac24bd721bec351c5e verified before parentDevelopment e6c09bfda14735582f71191a2748147f7c38d317. Manifest/gitlinks match, concurrent fb2d21b66/ONODE6b5d9d0 and0fa13ea retained; broader task f89cf0085/69bb8a4 excluded. Exact WEB4 Railway deploymentfcaea4cc-2161-422d-921d-b1b3170d5c20 QUEUED, prior concurrent84f65537 BUILDING. No manual redeploy/cancel/force push. Profilev2 readback was staged before this batch.
+
+GitHub same-source runs: ONET/ONODE41108126068 in progress; subscription protocol41108125876 in progress; CI41108125849/edge41108125774/MCP41108125921 queued; dependency-pin sync41108125799 success. These are observations, not completed deployment proof. Preserve exact handles and wait for terminal state; only the candidate source's live results may establish hosted acceptance. This checkpoint is task-branch-only; do not trigger another Development build just to publish progress docs.
