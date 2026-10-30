@@ -18,8 +18,8 @@ Receipt root fix Corefdca0ed binds IDs to the admitted operation; regression fai
 This fix is pushed on the integration branch, not Development/deployed. Prior uncertain operation evidence is preserved; never replay providers to settle it.
 Free profile v2 now explicitly enrolls canonical save/batch/delete/recovery with21 operation tariffs;10 startup/real-authority controls pass. Frontend write keys/uncertain identities:4 regressions+11 CQL tests pass, pushed c17e5f7. Neither candidate is deployed.
 Mongo now prunes root-local filters before ancestor traversal while retaining the complete final access predicate; failing-before/passing-after regression,189 CQL controls and4 native ancestor cases pass. Hosted timeout resolution remains unproved.
-Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Hosted verifier now requires an exact deployment/SHA and fits19 owner calls;6 offline protocol tests pass. Preserve/reconcile the existing pending journal before any new fixture run.
-Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json records the rejected save; do not reset/reseed it. Frontend remains unpublished. No third daily Development deployment has been triggered.
+Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Hosted verifier now requires an exact deployment/SHA and fits19 owner calls;6 offline protocol tests pass. Original save reconciliation is complete: exact deployed guard/source and7 boundary tests prove rejection before manager acquisition; original bytes retained in LocalState archive.
+Original fixture retained under LocalState/COSMIC/HostedSandboxCqlCurrent/Archive with its reconciliation manifest; no save replay. Previously executed unsettled queries remain separate/unresolved. Frontend unpublished; no third daily Development deployment.
 
 ## Latest verified milestone
 
@@ -36,8 +36,8 @@ Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json record
 ## Exact next work
 
 1. Three-database hub is restored: pinned fixture reconciliation passed; 14 persistent archive/journal files total207492bytes, original/local SQLite preserved. Fresh native demo passes681SDK queries,138walkthrough HTTP requests,30save checks,526settled operations/608provider attempts; exact fixture cleanup and service teardown pass. See CQL_DATABASE_DEMO_HUB.md.
-2. CosmosDB teaching page/hub native, interactive HTTP and actual browser rendering/clicks are verified:rows/projection/LongCount each200; code23.4px line height at13px font, no page horizontal overflow; clean teardown. Eight launcher profiles/16discovery plans pass. Same arbitrary query across all eight providers is not verified; IPFS/SOLID/ActivityPub remain point profiles.
-3. Exact next: implement reselection after entity-selected stages, preserving retained columns, source identity/order and native proof-before-DTO; then integrate element/cardinality/numeric terminals and combined graph sources. Q01f stays red. All3 combined stage implementations now have the same23-case native proof; Neo keeps ProviderDefault restrictions and rejects unsupported snapshot scope.
+2. Broader work/cosmic-cql branch records62/226 scoped demos, including Oracle and IPFS/SOLID/ActivityPub multi-record native/Mongo-paired/browser proofs. Those changes are not all in this scoped shipping branch. Arbitrary content filters remain open on protocol providers; hosted Azure remains explicitly pending/free-only. Recover broader priorities using git show work/cosmic-cql:Docs/WIP/COSMIC\ ORM/CONTENT_QUERY_DEMO_ROADMAP.md (quote the complete ref/path).
+3. LINQ parity depth is paused by user instruction. After hosted sandbox acceptance, continue approved content queries across10providers (Mongo/SQLite/Neo4j/PostgreSQL/SQLServer/Oracle/CosmosDB/DynamoDB/Elasticsearch/Solr), then remaining breadth. Preserve broad source/proofs on work/cosmic-cql; no full-parity claim.
 4. Indexed other aggregates/selected stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity remain open. Create genuinely missing environments as authorized, reusing suitable resources first.
 
 ## Other verified scope and remaining limits
