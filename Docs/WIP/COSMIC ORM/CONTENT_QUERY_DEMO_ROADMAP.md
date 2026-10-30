@@ -12,7 +12,7 @@ roadmaps remain active; deferred work is not cancelled.
 | SQLite | Existing richer CQL; reuse proving tests and work only missing rows. |
 | Neo4j | Existing richer CQL; reuse proving tests and work only missing rows. |
 | PostgreSQL | Name/Description equality+Contains, metadata equality/AND/OR and UUID paging:16controls+17native queries/restart pass. Content paired C#/HTTP/browser4presets2/4/4/2 verified; deployed sandbox remains red. [Proof](POSTGRESQL_CQL_MVP.md#native-and-restart-acceptance). |
-| SQL Server | Extend the verified scoped native/Mongo-paired demo. |
+| SQL Server | Native content compiler/adapter builds;17 controls pass. Full-length JSON strings and ordinal text semantics specified. Native content/restart/paired/browser/sandbox remain red. [Scope](SQLSERVER_CQL_MVP.md#content-query-candidate-exact-semantics). |
 | Oracle | Extend the existing admitted native/Mongo-paired demo. |
 | Azure Cosmos DB | Emulator initially; hosted Azure remains pending/free-only. |
 | AWS DynamoDB | DynamoDB Local initially; hosted coverage must be proved separately. |

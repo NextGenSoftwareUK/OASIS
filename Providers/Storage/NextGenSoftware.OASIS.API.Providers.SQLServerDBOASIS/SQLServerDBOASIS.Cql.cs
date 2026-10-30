@@ -37,33 +37,23 @@ public partial class SQLServerDBOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
-            var selection = SqlServerCqlCompiler.Compile(plan.Query, QueryProviderType);
+            var selection = SqlServerCqlCompiler.CompileNative(plan.Query, QueryProviderType);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
+            await using var command = selection.Result.Command;
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated)
                 return Error("CQL_PROVIDER_INACTIVE", "Activate the configured SQL Server provider before querying.");
 
             // SQL Server FETCH requires a positive count. A logical empty page
             // is returned after activation/selection admission without database I/O.
-            if (plan.Query.Limit == 0 || selection.Result.Count == 0)
+            if (plan.Query.Limit == 0 || selection.Result.SourceCount == 0)
                 return new(Array.AsReadOnly(Array.Empty<IHolon>())) { IsLoaded = true, LoadedCount = 0 };
 
             // One parameterized native SELECT applies selection/paging before
             // canonical JSON materialization. No managed predicate/source scan.
             await using var connection = new Microsoft.Data.SqlClient.SqlConnection(_connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            var names = selection.Result.Select((id, index) => "@id" + index).ToArray();
-            // The compiler supplies at most 100 UUIDs; only generated parameter
-            // names enter SQL. Empty catalogues have already returned above.
-            var predicate = "Id IN (" + string.Join(",", names) + ")";
-            command.CommandText = "SELECT Id,DataJson,IsDeleted FROM OASISHolons WHERE " + predicate +
-                " AND IsDeleted=0 ORDER BY CONVERT(char(36),Id) COLLATE Latin1_General_100_BIN2 " +
-                "OFFSET @skip ROWS FETCH NEXT @take ROWS ONLY";
-            for (var i = 0; i < names.Length; i++)
-                command.Parameters.Add(names[i], System.Data.SqlDbType.UniqueIdentifier).Value = selection.Result[i];
-            command.Parameters.Add("@take", System.Data.SqlDbType.Int).Value = plan.Query.Limit ?? selection.Result.Count;
-            command.Parameters.Add("@skip", System.Data.SqlDbType.Int).Value = plan.Query.Offset;
+            command.Connection = connection;
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var rows = new List<IHolon>();
             var payloadBytes = 0;

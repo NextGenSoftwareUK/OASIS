@@ -1,6 +1,6 @@
 # SQL Server CQL MVP admission
 
-Updated 29 October 2026. **Scoped native/restart and Mongo-paired C#/HTTP/browser MVP verified.**
+Updated30October2026. **Identity-only native/restart/paired demo verified; content compiler candidate awaits native proof.**
 
 ## Implemented scope
 
@@ -8,8 +8,8 @@ The adapter binds the shared bounded identity compiler to SQLServerDBOASIS. It
 admits an explicit authoritative catalogue of at most 100 UUIDs, then uses one
 parameterized native SELECT with OFFSET/FETCH. UUID text ordering uses a binary
 collation. Empty logical selections return without opening a connection, after
-capability/cancellation/activation checks. Unsupported content predicates, child
-traversal and arbitrary ordering reject instead of scanning. A 4 MiB aggregate
+capability/cancellation/activation checks. The new content candidate is described
+below; child traversal and arbitrary ordering still reject instead of scanning. A 4 MiB aggregate
 decoded response budget is checked after string allocation; no pre-allocation bound
 is claimed. Errors publish no partial page. Native isolation follows database
 configuration; federation observes providers separately.
@@ -96,3 +96,38 @@ Continue the next red provider MVP from the all-provider inventory. Preserve thi
 source and reuse it; no further hardening of the green scope absent a reproduced bug.
 
 All-provider [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
+
+## Content-query candidate: exact semantics
+
+The one native SELECT now compiles Name/Description equality and Contains,
+string metadata equality, nested object paths and AND/OR inside the trusted
+catalogue of at most100IDs. No unrestricted read or managed predicate scan.
+Business OR remains inside the catalogue guard. Compatible aliases stay denied.
+
+OPENJSON reads NVARCHAR(MAX) string values, avoiding JSON_VALUE's4000-character
+limit. Shared CQL literal capture remains bounded to4096 UTF16 units. Canonical
+record property names follow this provider's camelCase serializer; dictionary
+keys retain exact spelling. Every metadata parent must be a JSON object, and
+only a final string value matches; missing/null/non-string/array paths do not
+satisfy string equality. Keys and values are parameters, never SQL fragments.
+
+Equality uses Latin1_General_100_BIN2 plus DATALENGTH on both operands, preserving
+ordinal trailing-space distinctions which SQL equality alone pads away. Contains
+uses CHARINDEX under the same binary collation, with percent/underscore literal
+rather than LIKE wildcard behavior. NUL rejects. Native whitespace/Unicode,
+long-string, nested-key and authority semantics still require proving below.
+
+Producer and unit builds pass using cached dependencies.17 controls pass/no skips:
+9 retained identity/lifecycle controls plus8 new parameterization, object/type,
+authority, unsupported-shape,4001-character equality and shared capture-bound checks.
+Evidence TestResults/SqlServerCqlCurrent/content-controls.trx; SHA256 670103f8b003c9664f8ef291ceda851ddb490ff2de3e48e3aef8733294843c75.
+This is compiler proof, not native content acceptance or production readiness.
+
+Exact next: reuse LocalDB17.0.4025.3/CosmicCql with its original cosmic_cql_demo
+unchanged. Create one small explicitly owned content database/dataset within the
+existing instance (provider tables use the database's default schema), recording
+paths/ACKs before writes. Verify native positives/negatives, literal wildcards,
+Unicode and trailing spaces,4001-character values, nested/missing/null/type/array
+keys, authority exclusion and deterministic paging; then restart and compare
+source hashes/timestamps. Content federation/C#/HTTP/browser/sandbox stay red
+until separately proved. Do not harden existing green identity scopes.
