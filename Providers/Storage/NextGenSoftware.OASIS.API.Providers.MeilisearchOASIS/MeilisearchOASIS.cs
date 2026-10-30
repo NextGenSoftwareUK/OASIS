@@ -29,7 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
     ///   host   — Meilisearch host URL, e.g. "http://localhost:7700"
     ///   apiKey — optional master/API key
     /// </summary>
-    public class MeilisearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class MeilisearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -51,10 +51,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         private const string IdxDetails = "oasis_avatar_details";
         private const string IdxHolons = "oasis_holons";
 
-        public MeilisearchOASIS(string host, string? apiKey = null)
+        public MeilisearchOASIS(string host, string? apiKey = null) : this(new HttpClient(), host, apiKey) { }
+
+        // Supply a dedicated client; it remains caller-owned.
+        public MeilisearchOASIS(HttpClient client, string host, string? apiKey = null)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             ProviderName = "MeilisearchOASIS";
@@ -66,25 +69,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        private async Task EnsureIndexAsync(string index)
-        {
-            var body = new { uid = index, primaryKey = "id" };
-            var resp = await _http.PostAsync($"{_host}/indexes", Json(body));
-            // 201 = created, 409 = already exists — both acceptable
-        }
-
         private async Task<T?> GetDocAsync<T>(string index, string id)
         {
             var resp = await _http.GetAsync($"{_host}/indexes/{index}/documents/{id}");
             if (!resp.IsSuccessStatusCode) return default;
             var json = await resp.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(json, _jsonOpts);
-        }
-
-        private async Task UpsertDocAsync(string index, object doc)
-        {
-            var content = new StringContent($"[{Ser(doc)}]", Encoding.UTF8, "application/json");
-            await _http.PutAsync($"{_host}/indexes/{index}/documents", content);
         }
 
         private async Task<List<T>> GetAllDocsAsync<T>(string index)
@@ -107,6 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureIndexAsync(IdxAvatars);
                 await EnsureIndexAsync(IdxDetails);
                 await EnsureIndexAsync(IdxHolons);
@@ -300,11 +291,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(holon), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{holon.Id}\"").RootElement;
-                await UpsertDocAsync(IdxHolons, doc);
-                result.Result = holon; result.IsError = false; result.Message = $"MeilisearchOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("Meilisearch historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.MeilisearchOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(IdxHolons, payload);
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MeilisearchOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -314,9 +315,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"MeilisearchOASIS: Saved {saved.Count} holons."; return result;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
