@@ -620,3 +620,13 @@ the runner verifies temporary Mongo cleanup and preserves the original source.
 JWT-authenticated PostgREST16.5/PostgreSQL, with retained plaintext JSON. Hosted
 Supabase gateway/Auth and distributed snapshots remain unverified. Page shutdown
 verifies temporary Mongo cleanup and preserves the original REST source.
+
+## Firebase Realtime Database + Mongo MVP
+
+[Verified scope, commands and C# example](FIREBASE_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Firebase -Federated`
+(add `-VerifyOnly` for bounded verification). Native indexed key-equality union
+plus Mongo yields5physical rows or4subset, preserving source provenance. This
+uses cached RTDB4.11.2 emulator and original export/import checkpoint, distinct
+from Firestore. No hosted-auth, distributed-snapshot or crashdurability claim.
+Page shutdown verifies temporary Mongo cleanup and retains the original fixture.
