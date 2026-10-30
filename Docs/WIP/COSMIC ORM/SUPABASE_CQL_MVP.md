@@ -1,6 +1,6 @@
-# Supabase CQL MVP — native REST verified, paired pending
+# Supabase CQL MVP — native REST and Mongo-paired demo verified
 
-Updated 29 October 2026. Supabase remains red in the provider inventory.
+Updated 29 October 2026. The green inventory row certifies only the local REST data-plane scope below.
 
 ## Implemented and verified controls
 
@@ -68,8 +68,8 @@ refuse replay. Source/IDs/acknowledgements retained outside disposable TestResul
 Native services stopped after successful tests; no18091/15432listener remains.
 
 Evidence under `TestResults/SupabaseCqlCurrent`:
-- `native.trx` SHA256 `8e7ad310516d3baf5bfad59d66fececd1ff1644824a7c24e067c3b3a425aa282`.
-- `restart.trx` SHA256 `1abc89beeff0a76c757b5845cd421c74b9ee57dccfe4afab7233a39cc66f432c`.
+- `native.trx` SHA256 `8dab5be97cc14b5ff0f143967aee6bfb137668020e68608544a0b591c22eb0b0`.
+- `restart.trx` SHA256 `ee81a94a3c61e08c5f92223b92c3c71d6b6096a238d2d09ab6d213979f626714`.
 
 After building the integration project with the required lease/worker flags:
 ```powershell
@@ -78,10 +78,36 @@ wsl -d Ubuntu -u root -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/ru
 Runner reuses the original database/role/token/source and refuses occupied ports,
 active container adoption, incomplete setup or unresolved writes; no reset path.
 
-## Exact next step and remaining gaps
+## Mongo-paired demo
 
-Reuse this original REST/PostgreSQL source for Mongo-paired C#/HTTP/browser
-preset using the shared teaching host. Keep the demo inventory red until it passes.
+[Executable C#/HTTP example/test](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseMongoCqlNativeTests.cs)
+uses the shared commented membership walkthrough and teaching host. HolonManager
+executes native REST and Mongo reads. All: Supabase3 + Mongo2 = **5physical rows**;
+subset2+2 = **4**, preserving provenance and excluding an unrelated Mongo record.
+Forged actor/unknown preset reject400; inactive secondary rejects503 without rows.
+Direct run and actual hub/browser run each pass native1/restart1/Mongo bootstrap1/
+paired1. Browser tab36 verifies5/4/provider copies and controlled shutdown.
+Hub controls:8single/16plans,32paired/64plans,50paired rejections,3archive
+rejections; listeners unchanged. Original SQL payload hash remains unchanged.
+Exact disposable `cosmic_cql_mongo_supabase_demo` database3records verified/dropped.
+Owned PostgreSQL15432/REST18091/Mongo27039/browser5123 stopped; source retained.
+
+Latest `TestResults/SupabaseCqlCurrent/mongo-federation.trx` SHA256:
+`4900d605ec67fe8e21e08c6aff5e568eb4a01a470a9d030b76439478bf14a824`.
+Visual proof `TestResults/SupabaseCqlCurrent/browser.jpg` is disposable.
+First paired run stopped before fixture creation because effective-only UID
+switching failed process ownership verification. Real/effective UID now match
+Mongo data owner1000; saved-root access is used only for private Supabase tests.
+Shared Mongo helper verification was preserved; no root-owned data files created.
+
+```powershell
+# Interactive, then stop using the page button.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Supabase -Federated
+# Bounded native/restart/C#/HTTP verification and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Supabase -Federated -VerifyOnly
+```
+
+## Remaining gaps
 Atomic cross-client conditional writes, general child/depth/history semantics,
 avatar/detail ownership, bulk atomicity, full query parity and central registration
 are not certified. Hosted row-policy/group/auth/gateway configuration needs
