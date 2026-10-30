@@ -1646,3 +1646,13 @@ plus Mongo yields5physical rows or4subset, preserving source provenance. This
 uses cached RTDB4.11.2 emulator and original export/import checkpoint, distinct
 from Firestore. No hosted-auth, distributed-snapshot or crashdurability claim.
 Page shutdown verifies temporary Mongo cleanup and retains the original fixture.
+
+## Optimism V2 + Mongo MVP
+
+[Verified scope, commands and C# example](OPTIMISM_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Optimism -Federated`
+(add `-VerifyOnly` for bounded verification). One native membership query returns
+5physical rows or4subset through HolonManager, preserving provider copies. This
+uses the actual V2 provider and encrypted original contract on retained local
+EVM31338. Direct construction only; public OP Stack/finality and central registration
+are not certified. Page shutdown cleans the temporary Mongo fixture and retains source.
