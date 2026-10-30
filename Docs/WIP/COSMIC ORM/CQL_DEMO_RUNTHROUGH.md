@@ -498,3 +498,14 @@ then4for the two-ID subset with provider provenance. Browser5138; stop through
 the demo control to check fixture cleanup and preserve native source. Native
 transport is local plaintext; no TLS/hosted/replication/full-parity claim.
 [Commands, tests and hashes](CASSANDRA_CQL_MVP.md).
+
+
+## ScyllaDB + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ScyllaDB -Federated`
+(add `-VerifyOnly` for bounded checks). Native ScyllaDB2026.3.4 uses authenticated
+original records, tablet-compatible schema and real restart verification. C#/HTTP/
+browser show5physical rows then4for the2-ID subset, retaining provider provenance.
+Browser5139; stop through the demo control to verify exact Mongo cleanup and keep
+native source. Local plaintext transport, no hosted/TLS/replication/full-parity claim.
+[Commands, tests, scope and hashes](SCYLLADB_CQL_MVP.md).

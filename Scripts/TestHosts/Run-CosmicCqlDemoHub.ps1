@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','Firebase')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Firebase')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -60,6 +60,7 @@ if($Federated){
         'CockroachDB' {'Run-CosmicCockroachDbLinuxDemo.ps1'}
         'TimescaleDB' {'Run-CosmicTimescaleDbLinuxDemo.ps1'}
         'Cassandra' {'Run-CosmicCassandraLinuxDemo.ps1'}
+        'ScyllaDB' {'Run-CosmicScyllaDbLinuxDemo.ps1'}
         'Firebase' {'Run-CosmicFirebaseCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
@@ -107,6 +108,7 @@ if($Federated){
         'CockroachDB' {'http://127.0.0.1:5136/'}
         'TimescaleDB' {'http://127.0.0.1:5137/'}
         'Cassandra' {'http://127.0.0.1:5138/'}
+        'ScyllaDB' {'http://127.0.0.1:5139/'}
         'Firebase' {'http://127.0.0.1:5124/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
@@ -154,6 +156,7 @@ if($Federated){
         'CockroachDB' {'Mongo + retained authenticated CockroachDB26.2.9:5rows/4subset, original source/restart; plaintext JSON, no production concurrency or distributed snapshot claim'}
         'TimescaleDB' {'Mongo + retained authenticated TimescaleDB2.31.0/PG17:5rows/4subset, original source/restart; plaintext JSON, no production concurrency or distributed snapshot claim'}
         'Cassandra' {'Mongo + retained authenticated Cassandra4.1.12:5rows/4subset, original source/restart; plaintext JSON, no production concurrency or distributed snapshot claim'}
+        'ScyllaDB' {'Mongo + retained authenticated ScyllaDB2026.3.4:5rows/4subset, original source/restart; plaintext JSON, no production concurrency or distributed snapshot claim'}
         'Firebase' {'Mongo + Firebase Realtime Database4.11.2 emulator:5rows/4subset, bounded native key-query union; original export restore, no disk/crash or hosted-auth claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
@@ -205,6 +208,7 @@ if($Federated){
         'CockroachDB' { & $path -Federated -Serve:(!$VerifyOnly) }
         'TimescaleDB' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Cassandra' { & $path -Federated -Serve:(!$VerifyOnly) }
+        'ScyllaDB' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Firebase' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
