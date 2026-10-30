@@ -84,3 +84,26 @@ later transport failure, ambiguity and result budget. No native demo proof link 
 Evidence `TestResults/ArweaveCqlCurrent/query-owner-protocol.log`, SHA256 `51c7c9890def4e2d6fa955f428b05e9dbd7a3b4383836c020c98864b015f58e4`.
 
 Evidence `TestResults/ArweaveCqlCurrent/cql-execution.trx`, SHA256 `cc0fb4b1334db48b8c6596bf7cd04dcc49b60ed4afcccbd79caf5c6367a1c717`.
+
+## Native environment preparation — 30 October 2026
+
+Reused Node24.19.0 and existing npm cache. Locked official arweave2.1.0 SDK restored
+with scripts disabled:7packages/1,502,062B under source SdkBridge/node_modules.
+Pinned community ArLocal1.1.66 gateway runtime restored with scripts disabled at
+`LocalState/COSMIC/ArweaveRuntime`:554packages,147,619,139B before required native
+binding. One pinned git dependency avsc/Irys commit a730cc8018b79e114b6a3381bbb57760a24c6cef;
+no moving branch resolution. Registry/lock integrity retained in ignored local lock.
+Only sqlite3 5.1.7's N-API prebuild downloader was then invoked; no compiler fallback
+or broad lifecycle scripts. Driver1,892,864B SHA256
+F806F89DC41DDE00CA7124DC1E649BDC9B08FF2EFF5C891B764F3E5AEFA9548C imports successfully.
+
+[ArLocal](https://github.com/textury/arlocal) is an archived community gateway-like
+local test server with persistent mode, not an Arweave public-network node. Its
+pinned source starts an unspecified-host listener; no gateway has been started.
+Provide explicit loopback binding before activation. No wallet, native transaction,
+fixture database or business data created yet. Native/paired acceptance still red.
+
+Development835653f31/Coreb60796d fetched on30October. Exact next: integrate inbound
+Development with task Core and matching manifest; verify scoped changes, then
+address gateway listener/startup and native fixture admission. Preserve all task
+work and do not deploy the unverified full task programme to Development.
