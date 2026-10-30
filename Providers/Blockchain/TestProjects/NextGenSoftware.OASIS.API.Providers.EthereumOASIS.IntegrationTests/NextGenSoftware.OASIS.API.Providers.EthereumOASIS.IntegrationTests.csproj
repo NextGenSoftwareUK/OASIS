@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.FantomOASIS/NextGenSoftware.OASIS.API.Providers.FantomOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.RootstockOASIS/NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OptimismOASIS/NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
