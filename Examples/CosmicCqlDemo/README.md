@@ -14,6 +14,7 @@ interactive provider host at a time from `C:/Source/OASIS-cosmic`.
 | Couchbase | Free local Community8.0.2 + Mongo: native/restart/C#/HTTP/browser five/four rows with provider provenance. `Run-CosmicCqlDemoHub.ps1 -Provider Couchbase -Federated` (5142); bounded identity queries only. |
 | ClickHouse | Free local ClickHouse26.8.36.3 HTTPS + Mongo: native/restart/C#/HTTP/browser five/four rows with provider provenance. `Run-CosmicCqlDemoHub.ps1 -Provider ClickHouse -Federated` (5143); bounded identity queries, analytical FINAL merge semantics. |
 | InfluxDB | Free local OSS2.7.12 HTTPS + Mongo: native/restart/C#/HTTP/browser five/four rows with provenance. `Run-CosmicCqlDemoHub.ps1 -Provider InfluxDB -Federated` (5144); bounded identity queries, future-head and tied-head controls. |
+| Qdrant | Free local1.16.3 HTTPS + Mongo: native/restart/C#/HTTP/browser five/four rows with provenance. `Run-CosmicCqlDemoHub.ps1 -Provider Qdrant -Federated` (5145); bounded ID retrieval, not vector similarity. |
 | Oracle | Local Oracle plus Mongo: five records and a four-record subset through C#, HTTP and browser. No hosted OCI claim. |
 | Azure Cosmos DB | Retained local emulator, not hosted Azure: interactive native rows, projection and LongCount; SDK/HTTP cardinality and controlled-identity receipts. |
 | Solana | Local-validator declared-range data read through the explicit SQLite index: rows, projection and cardinality. SolanaMetadata adds selected encryption-exempt metadata, exact Int64 and nullable values. This is not recovery of the missing original ledger data. |

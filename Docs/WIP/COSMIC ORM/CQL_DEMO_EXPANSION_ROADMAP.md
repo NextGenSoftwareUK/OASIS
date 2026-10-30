@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-56 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
+57 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -96,3 +96,5 @@ Couchbase Community native/restart/paired/browser/hub MVP verified: [scope](COUC
 ClickHouse native/restart/paired/browser/hub MVP verified: [scope](CLICKHOUSE_CQL_MVP.md). Next InfluxDB capability/native-source audit.
 
 InfluxDB2 native/restart/paired/browser/hub MVP verified: [scope](INFLUXDB_CQL_MVP.md). Next Qdrant capability/native-source audit.
+
+Qdrant native/restart/paired/browser/hub MVP verified: [scope](QDRANT_CQL_MVP.md). Next Weaviate capability/native-source audit.
