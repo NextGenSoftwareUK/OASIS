@@ -1,5 +1,6 @@
 """Run the shipping sandbox billing lifecycle against the retained owned Mongo replica set."""
 from pathlib import Path
+import argparse
 import hashlib
 import json
 import os
@@ -17,6 +18,9 @@ DLL = ROOT / 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/bin/Debug/n
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--receipt-only', action='store_true')
+    options = parser.parse_args()
     assert os.geteuid() != 0, 'Use the existing Mongo source owner, not root.'
     assert (DOTNET_ROOT / 'dotnet').is_file() and VSTEST.is_file() and DLL.is_file()
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -25,7 +29,7 @@ def main():
         with (RESULTS / 'lifecycle-native.log').open('w') as log:
             process = subprocess.Popen([
                 str(DOTNET_ROOT / 'dotnet'), str(VSTEST), str(DLL),
-                '--TestCaseFilter:FullyQualifiedName~SandboxSubscriptionNativeTests',
+                '--TestCaseFilter:FullyQualifiedName~' + ('IndependentPreparedOperationsSettleWithDistinctPhysicalReceipts' if options.receipt_only else 'SandboxSubscriptionNativeTests'),
                 '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=lifecycle-native.trx'
             ], cwd=RESULTS, env={**os.environ, **environment, 'DOTNET_ROOT': str(DOTNET_ROOT)},
                 stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
@@ -38,7 +42,7 @@ def main():
         report = RESULTS / 'lifecycle-native.trx'
         assert report.stat().st_mtime >= started
         counts = ET.parse(report).find('.//{*}Counters').attrib
-        assert counts['passed'] == '7' and counts['failed'] == '0' and counts['notExecuted'] == '0'
+        assert counts['passed'] == ('1' if options.receipt_only else '8') and counts['failed'] == '0' and counts['notExecuted'] == '0'
         print(json.dumps({'counts': counts, 'sha256': hashlib.sha256(report.read_bytes()).hexdigest()}), flush=True)
     print('Owned Mongo stopped; every exact owned disposable test database was removed by its fixture.', flush=True)
 

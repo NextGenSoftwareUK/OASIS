@@ -12,11 +12,12 @@ Updated30October2026 UTC. Scoped sandbox release candidate; full programme remai
 
 ## Immediate next step
 
-[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): first deploymentSUCCESS,
-free sessions work. Hosted Mongo stage limit found (56>50); focused fix40stages,
-all16levels preserved,2controls+3native pass, hosted queryPlanner accepts40.
-Correction89a960111 published; exact Railway e88fbed5-5147-49a2-8915-93bb5b0684d0 BUILDING. Observe it only, then hosted rows/scalars/federation/isolation.
-Core pin432c613; broader task/diagnostics e155c0b2c preserved, frontend not published.
+[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): deployed correction89a960111/e88fbed5 is SUCCESS; Mongo pipeline40stages preserves16levels.
+Hosted checks exposed two further blockers: CQL-only admission does not enroll canonical writes, and reused physical receipt IDs prevented independent requests settling.
+Receipt root fix Corefdca0ed binds IDs to the admitted operation; regression failed before, passes after; all8 native billing lifecycle tests pass with no skips.
+This fix is pushed on the integration branch, not Development/deployed. Prior uncertain operation evidence is preserved; never replay providers to settle it.
+Next: explicitly test/enroll zero-fee canonical writes; diagnose reproduced Mongo scalar timeout; then rerun filtered rows/scalars/federation/isolation before publishing frontend.
+Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json records the rejected save; do not reset/reseed it. Frontend remains unpublished.
 
 ## Latest verified milestone
 
