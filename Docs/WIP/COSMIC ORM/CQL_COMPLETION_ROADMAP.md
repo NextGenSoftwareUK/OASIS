@@ -1,5 +1,8 @@
 # CQL completion roadmap
 
+Chroma:12save-ownership controls pass; CQL/native/preset next. [Scope](CHROMA_CQL_MVP.md).
+Milvus:50controls pass; upstream embedded-client shutdown gate remains red. [Cause](MILVUS_CQL_MVP.md).
+
 Solr:48controls/native/restart/paired/browser5/4 pass; bounded canonical RealTimeGet. [Scope](SOLR_CQL_MVP.md).
 Typesense:38controls/native/restart/paired/browser5/4 pass; native created_at volatile. [Scope](TYPESENSE_CQL_MVP.md).
 Meilisearch:39controls/native/restart/paired/browser5/4 pass; bounded ID scope. [Proof](MEILISEARCH_CQL_MVP.md).
