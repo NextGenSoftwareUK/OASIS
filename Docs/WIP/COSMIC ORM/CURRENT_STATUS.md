@@ -14,7 +14,7 @@ Updated30October2026 UTC. Scoped sandbox release candidate; full programme remai
 
 [Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): Core52, WEB4controls25,
 native7pass. Existing hosted opening guard ready (read-only); publish scoped pins,
-configure explicit free profile and verify actual deployment/queries. Not deployed yet.
+explicit free profile staged/read-back verified. Exact Railway build efd2c5c1-288b-4b58-8b8c-bee0f1690003 is BUILDING for Developmentdfceb1392; observe it, no duplicate deploy. Hosted queries pending.
 
 ## Latest verified milestone
 
