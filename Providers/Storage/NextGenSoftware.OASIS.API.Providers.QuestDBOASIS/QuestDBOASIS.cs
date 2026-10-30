@@ -90,34 +90,6 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         private static void TextParameter(DbCommand command, string name, string value)
             => command.Parameters.Add(new NpgsqlParameter(name, NpgsqlDbType.Varchar) { Value = value });
 
-        private async Task EnsureTablesAsync()
-        {
-            using var conn = await OpenConnectionAsync();
-            foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
-            {
-                using var cmd = Command(conn,
-                    $"CREATE TABLE IF NOT EXISTS {table} (id SYMBOL, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id);");
-                await cmd.ExecuteNonQueryAsync();
-
-                // QuestDB applies DDL asynchronously. Activation is complete only
-                // when subsequent connections can address every provider table.
-                var readyAt = DateTime.UtcNow.AddSeconds(10);
-                while (true)
-                {
-                    try
-                    {
-                        using var readiness = Command(conn, $"SELECT count(*) FROM {table};");
-                        await readiness.ExecuteScalarAsync();
-                        break;
-                    }
-                    catch (PostgresException) when (DateTime.UtcNow < readyAt)
-                    {
-                        await Task.Delay(100);
-                    }
-                }
-            }
-        }
-
         private async Task UpsertAsync(string table, string id, object obj)
         {
             var json = Ser(obj);
@@ -171,6 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 await EnsureTablesAsync();

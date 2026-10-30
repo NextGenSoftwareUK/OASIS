@@ -1,4 +1,4 @@
-# QuestDB CQL MVP — save ownership implemented, native pending
+# QuestDB CQL MVP — save/schema implemented, native pending
 
 30October2026. Inventory remains red. No native storage/runtime allocated.
 
@@ -31,18 +31,17 @@ by PostgreSQL provider) replaces uncached8.0.3; no package/runtime download.
 
 ## Next
 
-1. Validate explicitly provisioned QuestDB schema, WAL/dedup keys and actual table
-   readiness. Remove implicit creation/broad PostgresException polling from activation.
-2. Implement bounded native multi-record CQL with capability admission, response
+1. Implement bounded native multi-record CQL with capability admission, response
    identity checks, stable paging and explicit read-consistency limits.
-3. Create/reuse one free retained native environment; verify original record/update
+2. Create/reuse one free retained native environment; verify original record/update
    behavior, JSON precision/schema and restart without reseeding.
-4. Add Mongo-paired C#/HTTP/browser preset and original-source postpair checks.
+3. Add Mongo-paired C#/HTTP/browser preset and original-source postpair checks.
 
 ## Native audit and remaining gaps
 
-- Existing activation creates tables and retries arbitrary PostgresException; it
-  lacks schema/dedup admission and stale-active clearing. Still an open root gap.
+- Activation is now read-only and verifies metadata/schema as described below.
+  This does not certify pre-existing row uniqueness or correctness of native writes;
+  enabling native DEDUP on old data does not repair earlier duplicates.
 - Schema uses `(id SYMBOL,data VARCHAR,ts TIMESTAMP)` with designated ts, DAY WAL
   DEDUP(ts,id), always epoch timestamp. This can co-locate all current holons in one
   old partition; retention/scale/history placement needs design, not a time-series
@@ -67,3 +66,37 @@ no native account/service or dataset created. Continue from the next schema/CQL
 steps and retain62/226 scoped-demo coverage until independent native/pair proof.
 
 [Current status](CURRENT_STATUS.md) / [ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Explicit table/WAL/dedup admission
+
+**36passed/0failed/0skipped**, including20 schema tests and prior16 controls.
+Activation clears its active flag before fresh checks, opens one owned connection,
+and reads only `tables()` and `table_columns()` metadata for the three explicit
+provider tables. It no longer creates storage or retries PostgresException.
+All three tables require positive native IDs, exact names, designated ts, DAY
+partitioning, WAL+DEDUP enabled, disabled TTL and no materialized view. Require
+exact id:SYMBOL,data:VARCHAR,ts:TIMESTAMP order/types, ts designated, and only
+id/ts as upsert keys. Missing/duplicate/extra metadata or transport failure rejects.
+No schema-altering remediation or replacement source is attempted.
+
+Metadata lookup binds table name as a VARCHAR parameter; table_columns receives
+only the fixed private provider table constants. Up to2table rows/4column rows
+are read to detect overflows, with15second metadata deadline plus command timeout.
+Opening has its own15second deadline. Readers/connections are disposed on failure.
+
+[Official metadata contract](https://questdb.com/docs/query/functions/meta)
+and [dedup configuration rules](https://questdb.com/docs/concepts/deduplication/)
+define these checks. Explicitly provision matching tables before activation; e.g.
+`CREATE TABLE oasis_holons (id SYMBOL,data VARCHAR,ts TIMESTAMP) TIMESTAMP(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts,id);`
+and corresponding avatar/avatar-detail tables. Audit existing data before enabling
+DEDUP; activation does not repair historical duplicates or alter their timestamps.
+Future query paths must independently reject duplicates/wrong timestamp lineage.
+
+[Schema tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.UnitTests/QuestDbSchemaTests.cs)
+prove all3metadata/schema pairs execute, invalid configuration rejects, transport
+errors do not poll, and failed reactivation clears prior state. These remain injected
+ADO controls, not a real QuestDB certification.
+Evidence `C:/Source/OASIS-cosmic/TestResults/QuestDbCqlCurrent/schema-controls.trx`,
+SHA2569C310665B52B18D3AC2C0E2E71149D20386D0DF42D8C3A33670FD8256D8136DD.
+Bounded leased build/tests pass, no dependency restore/download needed. No native
+service/source/dataset was created; inventory stays red and62/226coverage unchanged.
