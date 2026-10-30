@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-Including Base and Avalanche, 23 identities now have scoped MVP evidence. Full production-provider parity remains open.
+34 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -69,3 +69,5 @@ browser5/4 pass; [scope/resources](LITESTREAM_CQL_MVP.md). Windows fsync stays r
 
 Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS pass;
 [scope/lifecycle](MEMCACHED_CQL_MVP.md). Wider atomicity/durability remain open.
+
+PocketBase native/restart/paired/browser/hub scope is verified: [proof](POCKETBASE_CQL_MVP.md). Next reconcile fetched Development before Supabase resource/storage inspection.

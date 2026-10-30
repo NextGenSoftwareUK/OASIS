@@ -91,6 +91,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.KeyDBOASIS => "KeyDB",
         ProviderType.DragonflyOASIS => "Dragonfly",
         ProviderType.GarnetOASIS => "Garnet",
+        ProviderType.PocketBaseOASIS => "PocketBase",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",
         ProviderType.PolkadotOASIS => "Polkadot",
