@@ -2849,3 +2849,17 @@ all non-logsource. C:71,792,939,008B aftercollection (no spacegain claimed).
 Logs regenerate onnext native start; collectedlogs/manifest/screenshot153,777B/
 TRX/buildoutputs disposable afterexit. Nativeimage444,036,427B and source/keys/
 coreconfig/indexes/receipts reusable/retain. Browser64 closed afterverification.
+
+### Milvus saveownership controls planned — 2026-10-30 / COSMIC
+Reuse existingtaskworktree/Windows.NETSDK10.0.401/NuGet cache; no environment/
+runtime/service/database allocation. Cache-only producer/unit restores and bounded
+build/test lease. Generatedbin/obj in existingMilvus projects, compactlogs/TRX
+TestResults/MilvusCqlCurrent (sizes unmeasured), disposable afterprocess exit;
+regenerate with same commands. Retain sharedSDK/cache; nativeproof remains red.
+
+Milvus savecontrols outcome:19pass/0fail/0skip, cachedproducer/unit restores and
+boundedbuilds pass. No newdependency/runtime/service/dataset. Existing invalid
+GetProviderVersion test compile failure corrected to actualcategorycontract; no
+API shim/fakeversion. NativeHTTP injected. Generatedbin/obj/logs/TRX unmeasured/
+disposable afterexit, regenerate via same lease/boundedcommands. Sharedcache
+retained; nativeenvironment notallocated.
