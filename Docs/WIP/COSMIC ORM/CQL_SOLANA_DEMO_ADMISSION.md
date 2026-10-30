@@ -226,3 +226,14 @@ fresh live source head/anchors. No new seed/submission. This is index-snapshot
 cardinality, not independent rereads of each counted transaction. HTTP cardinality now passes in the27request schema2 gate. The separate schema3
 metadata gate adds explicit queryable metadata and passes42requests; see
 [CQL_INDEXED_METADATA.md](CQL_INDEXED_METADATA.md).
+
+
+## Browser acceptance verified — 30 October
+
+Retained Agave4.3.0/genesis and schema3 index/acknowledged seed reused. One live native schedule passed with submittedNewSeed=false/sourceWrites=0. All nine browser buttons completed HTTP200/settled: rows1, selected rows1, Count1, LongCount"1", Anytrue, empty Count0, nested metadata rows1, metadata count"1", selected metadata rows1. Each completed response was captured after query buttons were re-enabled. Projection preserves amount"9007199254740993" and missing=null, with actual Solana receipt, declared coverage/checkpoint/finalized head and explicit SQLite execution provider.
+
+Evidence under TestResults/SolanaCurrent (raw files not committed): browser-query-proof.json SHA2561B26C4B13F2A8D335FE73315E7F4AE3264BD2D83B82B1BC70DA32292F650F15E; browser-selected-metadata.png SHA256772C589BAFDA629FC1B6FB42329B31B362B58C038F70261D712BE8B1E3287408; solana-indexed-metadata-native.trx SHA256A267AEF5E0549B0D5164BEDBA8DCEBA9B9EE881C47602958E73C6EE2761B39DE. Previous completed reports hash-archived by runner.
+
+Command: wrap Run-ReusableSolanaTests.ps1 -IndexedMetadataDemo -ServeIndexedDemo -ArchiveCompletedDemo once in Invoke-WithProviderBuildLease.ps1. Native host5089. POST/demo/shutdown returned202; runner exited0, validator process and18899/5089 listeners absent. Original seed/index/keys/ledger retained. Free bytes66961833984before/66858381312after. No runtime/install/download/restore/new ledger/funding/source write.
+
+This closes browser rendering/click acceptance for this local declared-range demo. It does not close original-history recovery, hosted-chain identity/settlement, full parity or Mongo+Solana federation. Next reconcile the latter's preserved implementation/current proof and catalogue entry.
