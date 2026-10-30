@@ -17,23 +17,37 @@ Firebase Realtime Database is distinct from the already-proved Firestore adapter
 - Activation checks one reserved empty-GUID node instead of the SDK-only connected
   status path; provider activated state follows successful activation/deactivation.
 
-Provider/unit cached restores and bounded builds pass. **34 non-native tests pass**,
+Provider/unit cached restores and bounded builds pass. **49 non-native tests pass**,
 zero failed/skipped. Explicit native storage conformance cases were excluded;
 this count does not certify them. [CQL tests](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests/FirebaseCqlTests.cs).
 Evidence: `C:/Source/OASIS-cosmic/TestResults/FirebaseCqlCurrent/firebase-controls.trx`.
-SHA256 `9bb5f71613add91d3fdab098f049a13505cc13bde37dd699982cef53fa866206`.
+SHA256 `becc537dcc8b11e05e00e9d296e4c0b011c3c063f19b354aa025fc3219f62a44`.
 [Native REST query semantics](https://firebase.google.com/docs/database/rest/retrieve-data).
 
 ## Exact next step
 
-Fix canonical holon save ownership/acknowledgement and soft deletion, with focused
-tests. Existing save mutates caller ID/key before dispatch and lacks saved flags;
-soft deletion ignores PATCH acknowledgement and writes a derived isDeleted flag
-rather than the canonical DeletedDate. Common point/list reads also need a single
-key/payload identity invariant. Avatar/detail and full child/history parity remain
-separate gaps. No native scope or global precision guarantee is claimed.
+Canonical holon ownership/read/delete controls now pass:
+- Freeze runtime-derived payload/proposed ID/key before dispatch; publish caller
+  identity/key/saved count only after exact native acknowledgement. Failed/unknown
+  dispatched results carry `INativeMutationReconciliationRequired`; no replay.
+- One key/payload reader validates point/list/parent/CQL identities. Soft delete
+  writes canonical DeletedDate through the same acknowledged save, not a patch
+  of the derived IsDeleted flag. Avatar/detail ownership remains separate.
+- RTDB removes null/empty nodes. The declared wire projection removes them before
+  dispatch without changing the caller; acknowledgement is checked against that
+  projection. No alternate storage envelope or acknowledgement repair path.
+- Values outside the supported JSON numeric roundtrip range fail before dispatch
+  with FIREBASE_REPRESENTATION_UNSUPPORTED. This rejects unsafe large integers and
+  high-precision decimals instead of certifying a lossy save. Full generic numeric
+  range, arrays/graph/default-value roundtrips require broader native acceptance.
+- Write acknowledgement uses strict UTF8 and4MiB streamed boundary; overflow is an
+  uncertain dispatched write, not success. Manager still owns tracked baselines.
 
-Then reuse the cached RTDB emulator4.11.2 JAR at
+[Ownership tests](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests/FirebaseOwnershipTests.cs).
+Native storage conformance and emulator verification remain outstanding. These
+synthetic tests do not establish durable Firebase behavior or full graph parity.
+
+Next reuse the cached RTDB emulator4.11.2 JAR at
 `C:/Users/david/.cache/firebase/emulators/firebase-database-emulator-v4.11.2.jar`
 (34,495,935B; historical owner/provenance not yet independently admitted).
 Inspect reusable Java/runtime/config/state first. Do not download an emulator or
