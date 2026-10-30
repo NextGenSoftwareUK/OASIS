@@ -1907,3 +1907,16 @@ trusted key catalogues, native multi-ID get, source provenance and original JSON
 collection values preserved across restart. Loopback plaintext local scope;
 no vector similarity/general predicates/distributed snapshot/full parity claim.
 [Chroma scope, examples and evidence](CHROMA_CQL_MVP.md).
+
+## WEB4 sandbox CQL playground and free admission
+
+The sandbox page now has bounded editable JSON presets for the three core
+providers, including name/description/metadata, AND/OR, count and federation.
+Successful hosted execution remains pending the [host admission gates](SANDBOX_CQL_ADMISSION.md).
+The explicit free configuration is `Scripts/Sandbox/cql-free-admission.json`:
+`api.request` is the supported meter; free service tariffs still require measured
+attempts, durable usage authorization and quota enforcement. Federation reserves
+up to three attempts; leaf/scalar routes reserve one. Do not deploy the profile
+before integrating the startup fix or initialize an unknown accounting ledger.
+Demo avatars also need an owned free subscription lifecycle; route enrollment
+alone does not grant a subscription or establish accounting opening state.
