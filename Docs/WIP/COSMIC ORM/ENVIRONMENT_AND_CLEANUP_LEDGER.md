@@ -2784,3 +2784,68 @@ boundedbuilds pass. No newpackage/runtime/service/dataset. SDK10.0.401 andshared
 NuGet caches reused/retained. NativeHTTP injected, no nativeenvironment allocated.
 Generated bin/obj/logs/TRX unmeasured/disposable afterexit; regenerate via same
 lease/boundedcommands. No other resources removed or source/credentials touched.
+
+### Solr native allocation planned — 2026-10-30 / COSMIC
+No Solr image/runtime/source found in rootPodman or /var/tmp/oasis-runtimes. Reuse
+Ubuntu/rootPodman/Python/OpenSSL and taskworktree. Pull official
+`docker.io/library/solr:10.1.0-slim` once; digest/size recorded afterpull. FreeOSS
+latest active27Octrelease. One retainedsource `/var/tmp/oasis-solr-cql`, container
+`oasis-solr-cql`, nativeTLS18983,2CPU/2GiB/512MiBheap/log2MiB. Explicit standalone
+threecores and canonical schema; no ZooKeeper/environment duplicate. Protected
+credentials/privateCA/security/schema/sourceIDs retained. C:72,418,676,736B before
+pull; sizes unmeasured. Log/TRX evidence TestResults/SolrCqlCurrent, noDocs rawlogs.
+Retainsource/keys/receipts for restart, stopnative service afterverification.
+
+Official Solr10.1.0-slim pull completedonce: digest
+`sha256:0586be344eeb1eb5682e0bd1260001e004219ed3bd788d6e0d3620502c057f1c`,
+imageID `86975efef3b366376a29ad27083bcf34e34104a4b376fb009d2735184f75e060`,
+444,036,427B expanded; retain reusable, noarchive. Image mounted read-only to
+inspect nativeconfig/scripts then unmounted (one failed scriptpath read reconciled
+by sameimage exactunmount). Newhelper copies official_default config and SolrXML
+into one retainedsource, explicitunique per-core schema IDs, UID8983, nativeBasic
+salted doubleSHA256 credentials/TLS PKCS12. Keystorepassword/envfile protected;
+no globaltrust changes. Native logs in source/data/logs bounded by service lifecycle
+and Podmanstdout2MiB; compactacceptance logs underTestResults. Sizes unmeasured.
+
+Solr initialnative TLS/auth/version starts, but cores failed beforebusinesswrites:
+stock_default AddSchemaFields processor requires text_general absent from canonical
+schema. Rootfix uses explicit minimalSolrconfig with ClassicIndexSchemaFactory/
+updateLog/RTG, no inferencechain. Same originalcontainer/source/coreIDs/credentials
+retained; originaldefaultconfig files preserved with hashes beforeinplacerepair.
+Java completed Jetty/CoreContainer shutdown hooks retain SIGTERM143/noOOM/noError;
+verifier nowchecks that exact nativeexit. Explicit uninitialized repair script in
+TestResults checks originalpendingreceipt/no seed then repeats emptyacceptance and
+restart; no core recreation/credentialchange/userwrite/reseed. Originalfailurelog
+retained. Helperfuturecreation writes correctconfig fromoutset.
+
+Solr repaired originalemptycore native/restart acceptance passed, TLS/auth denial/
+10.1.0/std/threeunique schemaIDs and zero records; stopped143/noOOM/noError.
+Source570,902B logical; C:71,846,907,904B afterallocation. Nativeintegration now
+reuses same source/schemaIDs, Linux.NET10.0.12/portableVSTest18.11.0 and processscoped
+privateCA. Planned3originalcreates+1replacement with nativeversion/payload/schema
+baseline/receipts retained outsideTestResults. Cache-only producer/integration
+restore/build and compactTestResults/SolrCqlCurrent evidence; no newruntime.
+
+Solr nativefirst/restart2fresh phases passed (1each/0skip), source672,103B logical
+including ownedservice logs. Original3payloads/nativeInt64versions/fullschema same
+across actualrestart; obsoletefield removed afteracknowledged replacement.
+Pairedrunplanned reuses LinuxMongo8.3.13/27039/retaineddata, temporaryowned DB
+cosmic_cql_mongo_solr_demo with absencecheck/journal/validatedcleanup. TeachingHTTP5149,
+fixedTestResults/SolrCqlCurrent logs/TRX/screenshot. No newruntime/package/datacopies.
+
+Solr finalrunner65716terminal0:5fresh phases each1pass/0skip, browser64all5/subset4.
+OwnedMongo fixture validated/dropped, journalcleared; native stopped143/noOOM/noError
+and sharedMongo stopped. Source757,744B logical including16ownednative logfiles.
+Beforecleanup C:71,793,569,792B. Planned exact stoppedservice-log collection from
+/var/tmp/oasis-solr-cql/data/logs into fixed TestResults/SolrCqlCurrent/native-service-logs:
+verify originalcontainer/image/stoppedstate, literalresolvedlogdir, UID8983 regular
+knownlogfilenames, copy+SHA256 verify beforeunlink. Preserve allcore/index/config/
+keys/seed/receipts/baseline. Native logs regenerate nextstart; compactevidence retained.
+
+Solr logcollection completed:16files/247,574B SHA256verified underfixed
+TestResults/SolrCqlCurrent/native-service-logs, originals unlinked onlyaftercopied
+and originalservice verifiedstopped; remaining source510,170B logical. Preserved
+all non-logsource. C:71,792,939,008B aftercollection (no spacegain claimed).
+Logs regenerate onnext native start; collectedlogs/manifest/screenshot153,777B/
+TRX/buildoutputs disposable afterexit. Nativeimage444,036,427B and source/keys/
+coreconfig/indexes/receipts reusable/retain. Browser64 closed afterverification.

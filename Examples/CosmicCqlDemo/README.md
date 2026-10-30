@@ -1117,3 +1117,7 @@ then http://127.0.0.1:5147/. Native HTTPS key queries, all5/subset4 and provenan
 Typesense + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Typesense -Federated -Serve`,
 then http://127.0.0.1:5148/. Native exact-ID filters, all5/subset4 and provenance.
 [Verified scope and native timestamp limitation](../../Docs/WIP/COSMIC%20ORM/TYPESENSE_CQL_MVP.md).
+
+Solr + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solr -Federated -Serve`,
+then http://127.0.0.1:5149/. Native RealTimeGet, all5/subset4 and provenance.
+[Verified schema and scope](../../Docs/WIP/COSMIC%20ORM/SOLR_CQL_MVP.md).
