@@ -11,6 +11,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader;
 // Constructor/configuration wiring only: no activation, deployment or network I/O.
 internal static class EvmProviderFactory
 {
+    internal static IOASISStorageProvider CreateRootstock(RootstockOASISProviderSettings settings,string overrideConnectionString)
+    {
+        if(settings==null) throw new ArgumentNullException(nameof(settings));
+        if(settings.ChainId<=0) throw new ArgumentOutOfRangeException(nameof(settings.ChainId));
+        return new NextGenSoftware.OASIS.API.Providers.RootstockOASIS.RootstockOASIS(
+            overrideConnectionString??settings.ConnectionString,settings.ChainPrivateKey,settings.ContractAddress,settings.ChainId);
+    }
+
     internal static IOASISStorageProvider CreateAvalanche(AvalancheOASISProviderSettings settings,string overrideConnectionString)
     {
         if(settings==null) throw new ArgumentNullException(nameof(settings));

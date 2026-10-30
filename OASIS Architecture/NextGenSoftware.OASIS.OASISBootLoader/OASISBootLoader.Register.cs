@@ -270,10 +270,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         case ProviderType.RootstockOASIS:
                             {
-                                RootstockOASIS RootstockOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress);
+                                var RootstockOASIS = EvmProviderFactory.CreateRootstock(
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS,overrideConnectionString);
                                 RootstockOASIS.OnStorageProviderError += RootstockOASIS_StorageProviderError;
                                 result.Result = RootstockOASIS;
                             }
