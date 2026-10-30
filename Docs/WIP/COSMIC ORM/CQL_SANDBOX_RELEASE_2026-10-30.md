@@ -172,3 +172,12 @@ Scoped fresh evidence in TestResults/Web4SandboxCqlCurrent:
 - deploy-api-controls.trx: SHA256 d56058fca4545f28fd5c99e654d46eb28ef7d3e7cf5ca227fec679fa6829f397.
 - lifecycle-native.trx: SHA256 470db1000150bcc5452f8b7d01df155369247d19f00d2893ffd61fd38a6ec0a8.
 - mongo-ancestor-native.trx: SHA256 998d2dfd8b18ba40dc78400749b9b912d2684cd1dd2b1326ed2318d0c07f5443.
+
+## Concurrent Development changes preserved before publication
+
+Initial normal Core push rejected after another contributor advanced Development. Fetched/preserved Core0fa13ea typed floating-metadata hydration and parentfb2d21b66/ONODE6b5d9d0 quest/hotspot contracts/tests. No force/reset; scoped Core merge39b4571 and parent66d8a79e8 retain all concurrent work while excluding broader provider changes. ONODE GitHub Development6b5d9d0 verified with ls-remote; same clean local submodule checked out exactly for consumer builds.
+
+All8 scoped builds pass against merged pins,36API/schema/metadata controls+8native billing+4native ancestors pass/no skips. Exact owned native fixtures removed and Mongo stopped. Existing Railway concurrent deployment84f65537/fb2d21b66 is not this fix candidate and does not prove receipt fix delivery. Public profilev2 remains staged; publish one approved consolidated source batch, then observe its exact handle.
+- deploy-recheck-api-controls.trx: SHA256 a646f0d3d9782f0f39a7beec7cb3378336694cc2f669be437a3a47e3a6fecaa8.
+- lifecycle-native.trx: SHA256 338ca73e327d0c96d02daa99b62c380ad71f43401cf7ee852272c3a4b2d2fd9b.
+- mongo-ancestor-native.trx: SHA256 1ff525bfea6af1026b7986d58cd1a3fc4b4dc3310aafdaf59bab294d9c3d85f7.
