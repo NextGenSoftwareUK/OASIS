@@ -1,4 +1,6 @@
 """Admit/reuse one PocketBase source; never replay unresolved initialization or writes."""
+import argparse
+import sys
 import fcntl
 import hashlib
 import json
@@ -13,6 +15,14 @@ import urllib.request
 import uuid
 import xml.etree.ElementTree as ET
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+if options.serve and not options.federated:
+    raise RuntimeError('Serve requires explicit federation')
+sys.dont_write_bytecode = True
+from cosmic_linux_mongo_service import owned_linux_mongo
 ROOT = Path('/mnt/c/Source/OASIS-cosmic')
 STATE = Path('/var/tmp/oasis-pocketbase-cql')
 RESULTS = ROOT / 'TestResults/PocketBaseCqlCurrent'
@@ -49,11 +59,12 @@ def baseline():
     # Exact immutable data_json/projections/native IDs, excluding changing auth state.
     return hashlib.sha256(json.dumps(page['items'], sort_keys=True, separators=(',', ':')).encode()).hexdigest()
 
-def report(name, seed):
+def report(name, seed, test="PocketBaseNativeCqlTests", extra=None):
     env = dict(os.environ, DOTNET_ROOT='/var/tmp/oasis-runtimes/dotnet-10.0.12', COSMIC_POCKETBASE_ROOT=str(STATE), COSMIC_POCKETBASE_SEED='1' if seed else '0')
+    env.update(extra or {})
     started = time.time()
     with (RESULTS / (name + '.log')).open('w') as output:
-        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), '--TestCaseFilter:FullyQualifiedName~PocketBaseNativeCqlTests',
+        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), '--TestCaseFilter:FullyQualifiedName~' + test,
                         '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=' + name + '.trx'],
                        env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
     path = RESULTS / (name + '.trx')
@@ -64,7 +75,7 @@ def report(name, seed):
 
 with (STATE / 'runner.lock').open('a') as lock:
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    if list(STATE.glob('*.pending')) or (STATE / 'active-process.json').exists():
+    if list(STATE.glob('*.pending')) or (STATE / 'mongo.pending.json').exists() or (STATE / 'active-process.json').exists():
         raise RuntimeError('Unresolved original outcome; preserve and inspect without replay')
     with socket.socket() as check:
         assert check.connect_ex(('127.0.0.1', 18090)) != 0, 'Port belongs to an existing service'
@@ -107,6 +118,12 @@ with (STATE / 'runner.lock').open('a') as lock:
                 if not fresh or iteration > 0:
                     assert baseline() == json.loads((STATE / 'native-baseline.json').read_text())['sha256']
                 proofs.append(report('native' if iteration == 0 else 'restart', fresh and iteration == 0))
+                if iteration == 1 and options.federated:
+                    with owned_linux_mongo(RESULTS) as mongo_env:
+                        proofs.append(report('mongo-init', False, 'LinuxMongoDemoEnvironmentTests', mongo_env))
+                        pair_env = dict(mongo_env, COSMIC_POCKETBASE_MONGO_SERVE='1' if options.serve else '0')
+                        proofs.append(report('mongo-federation', False, 'PocketBaseMongoCqlNativeTests', pair_env))
+                        assert not (STATE / 'mongo.pending.json').exists()
                 digest = baseline()
                 if fresh and iteration == 0:
                     durable(STATE / 'native-baseline.json', {'sha256': digest, 'records': 4, 'live': 3, 'deleted': 1})

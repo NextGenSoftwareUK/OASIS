@@ -1,7 +1,6 @@
 # PocketBase CQL MVP â€” native verified, paired demo pending
 
-Updated 29 October 2026. Native service and restart are verified. Mongo-federated demo remains **unverified**.
-This provider is not included in the green demo count.
+Updated 29 October 2026. Native service, restart and Mongo-paired C#/HTTP/browser demo are verified in the scope below.
 
 ## Implemented and tested
 
@@ -42,8 +41,8 @@ The service exited zero after owned SIGINT on each run. No active service remain
 Exact native rows/projections/payload hash before and after restart:
 `9b37b1f59edcab41fe0a26a834a3c5cf56e9c8907fda17d09340b19b5ecca771`.
 Latest TRX hashes:
-- native: `ac006c4e2d74ebb87b99313b7b702edda1848fff2bf7c9ffd71935298133605d`
-- restart: `3b8d3018721e5e090258a509a6d4ad273eb2d26bed80d9583e56c6b82545f550`
+- native: `0ae540abd0d456fff4055a3ad716e3b85d1014e2828a242762958f440601d522`
+- restart: `2316f3176010356e645e065d8f6e1208b2f7783fde6131794ef9325c962cb06b`
 
 Evidence: `TestResults/PocketBaseCqlCurrent/{native,restart}.trx`.
 [Test source](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests/PocketBaseNativeCqlTests.cs).
@@ -57,9 +56,31 @@ wsl -d Ubuntu -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/prepare-co
 wsl -d Ubuntu -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/run-cosmic-pocketbase-linux.py
 ```
 
-## Exact next step and remaining gaps
+## Mongo-paired teaching preset
 
-Reuse this original service/source for one Mongo-paired C#/HTTP/browser preset.
-Do not increment the scoped demo count until the paired preset is verified.
+[Executable example/test](../../../Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests/PocketBaseMongoCqlNativeTests.cs)
+uses the shared commented `IdentityFederationWalkthrough` and `IdentityFederationApiHost`.
+HolonManager dispatches bounded native membership queries to both real providers.
+All: PocketBase3 + Mongo2 = **5 physical rows**. Subset:2+2 = **4**.
+Copies retain provenance; an unrelated third Mongo record is excluded.
+Forged actor/unknown preset return400; inactive PocketBase returns503 without rows.
+Native1/restart1/Mongo bootstrap1/paired1 passed on direct, browser and hub runs.
+Browser tab35 verified both query buttons and controlled shutdown.
+Evidence: `TestResults/PocketBaseCqlCurrent/{native,restart,mongo-init,mongo-federation}.trx`
+and `browser.jpg`. Latest paired SHA256:
+`0eeff5e1370ce13bf4864e50c62957735575f1b69057a2302ef5c393c52d7807`.
+Hub routing:8single/16plans,31paired/62plans,48paired rejections,3archive rejections;
+listeners unchanged. Owned18090/27039/5122 services stopped. Exact temporary Mongo
+`cosmic_cql_mongo_pocketbase_demo` database3records verified and dropped.
+Original PocketBase four records/IDs/acknowledgements/payload hash unchanged.
+
+```powershell
+# Interactive; stop through the browser button.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PocketBase -Federated
+# Bounded verification with teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PocketBase -Federated -VerifyOnly
+```
+
+## Remaining gaps
 
 Storage currently uses plaintext canonical JSON. Upsert is read-then-write, not atomic conditional concurrency. Child-depth/history and atomic concurrency remain unverified; avatar/detail save ownership is not certified by the holon tests. No automatic retries, hosted availability, full parity or central-factory claim.
