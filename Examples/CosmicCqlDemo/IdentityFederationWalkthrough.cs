@@ -104,6 +104,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.SurrealDBOASIS => "SurrealDB",
         ProviderType.ArangoDBOASIS => "ArangoDB",
         ProviderType.RavenDBOASIS => "RavenDB",
+        ProviderType.CockroachDBOASIS => "CockroachDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",

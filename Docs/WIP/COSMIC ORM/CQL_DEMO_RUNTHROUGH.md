@@ -466,3 +466,13 @@ RavenDB and Mongo copies query through shared HolonManager:5physical rows or4for
 the two-ID subset. Browser5135shows source provenance. Shutdown cleans only the
 owned Mongo fixture and preserves original records/change vectors. Plaintext JSON
 envelopes and bounded identity predicates; full graph/history/CAS parity stays open.
+
+## CockroachDB + Mongo MVP
+
+[Verified native scope and evidence](COCKROACHDB_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CockroachDB -Federated`
+(add `-VerifyOnly` for bounded checks). Secured native CockroachDB and Mongo copies
+query through shared HolonManager:5physical rows or4for the two-ID subset, source
+provenance visible on browser5136. Shutdown verifies temporary Mongo cleanup and
+preserves original rows/MVCC timestamps. No PostgreSQL-server substitution; single
+node internal development scope, broader predicates/CAS/distributed parity open.

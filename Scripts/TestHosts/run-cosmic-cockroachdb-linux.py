@@ -1,7 +1,10 @@
 """Verify original native SQL/CQL records across two owned secured process starts."""
 from pathlib import Path
-import csv, fcntl, hashlib, io, json, os, re, signal, socket, subprocess, time
+import argparse, sys, csv, fcntl, hashlib, io, json, os, re, signal, socket, subprocess, time
 import xml.etree.ElementTree as ET
+
+sys.dont_write_bytecode=True
+from cosmic_linux_mongo_service import owned_linux_mongo
 
 ROOT=Path(__file__).resolve().parents[2]
 STATE=Path('/var/tmp/oasis-cockroachdb-cql')
@@ -20,6 +23,9 @@ def one(statement):
     return rows[1][0]
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument("--federated",action="store_true");parser.add_argument("--serve",action="store_true")
+    options=parser.parse_args();assert not options.serve or options.federated
     assert os.getuid()!=0 and STATE.stat().st_uid==os.getuid()
     assert hashlib.sha256(RUNTIME.read_bytes()).hexdigest()==HASH
     assert not list(STATE.glob('*.pending.json')),'Reconcile original pending outcome, never replay'
@@ -49,16 +55,28 @@ def main():
                     ids=re.findall(r'^clusterID:\s+([0-9a-f-]+)',Path(log.name).read_text(),re.MULTILINE)
                     assert ids==[original['clusterId']]
                     assert one("SELECT oid::STRING FROM pg_database WHERE datname='oasis'")==original['databaseId']
-                    started=time.time()
-                    with (RESULTS/(phase+'.log')).open('w') as output:
-                        subprocess.run([DOTNET,VSTEST,str(DLL),'--TestCaseFilter:FullyQualifiedName~CockroachDbCqlNativeTests',
-                            '--ResultsDirectory:'+str(RESULTS),'--Logger:trx;LogFileName='+phase+'.trx'],
-                            env={**os.environ,'DOTNET_ROOT':str(Path(DOTNET).parent),'OASIS_COCKROACH_CQL_CONNECTION':connection,
-                                'OASIS_COCKROACH_CQL_STATE':str(STATE)},cwd=RESULTS,stdout=output,stderr=subprocess.STDOUT,check=True)
-                    report=RESULTS/(phase+'.trx');assert report.stat().st_mtime>=started
-                    counts=ET.parse(report).find('.//{*}Counters').attrib
-                    assert counts['total']==counts['passed']=='1' and counts['notExecuted']=='0'
-                    proofs.append({'phase':phase,'passed':1,'sha256':hashlib.sha256(report.read_bytes()).hexdigest()})
+                    def report(name,test_class='CockroachDbCqlNativeTests',extra=None):
+                        env={**os.environ,'DOTNET_ROOT':str(Path(DOTNET).parent),'OASIS_COCKROACH_CQL_CONNECTION':connection,
+                            'OASIS_COCKROACH_CQL_STATE':str(STATE)}
+                        env.update(extra or {})
+                        started=time.time()
+                        with (RESULTS/(name+'.log')).open('w') as output:
+                            subprocess.run([DOTNET,VSTEST,str(DLL),'--TestCaseFilter:FullyQualifiedName~'+test_class,
+                                '--ResultsDirectory:'+str(RESULTS),'--Logger:trx;LogFileName='+name+'.trx'],
+                                env=env,cwd=RESULTS,stdout=output,stderr=subprocess.STDOUT,check=True)
+                        trx=RESULTS/(name+'.trx');assert trx.stat().st_mtime>=started
+                        counts=ET.parse(trx).find('.//{*}Counters').attrib
+                        assert counts['total']==counts['passed']=='1' and counts['notExecuted']=='0'
+                        proofs.append({'phase':name,'passed':1,'sha256':hashlib.sha256(trx.read_bytes()).hexdigest()})
+                    report(phase)
+                    if phase=='native-restart' and options.federated:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            report('mongo-init','LinuxMongoDemoEnvironmentTests',mongo_env)
+                            report('mongo-federation','CockroachDBMongoCqlNativeTests',
+                                {**mongo_env,'COSMIC_COCKROACHDB_MONGO_SERVE':'1' if options.serve else '0'})
+                            assert not (STATE/'mongo.pending.json').exists(),'Mongo cleanup unresolved'
+                        report('native-postpair')
+
                 finally:
                     if node.poll() is None:node.send_signal(signal.SIGTERM)
                     assert node.wait(timeout=45)==0,'Owned shutdown incomplete; retain source'
