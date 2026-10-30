@@ -62,7 +62,9 @@ public class GarnetCqlNativeTests
     {
         Assert.IsTrue(OperatingSystem.IsLinux());
         var state = Environment.GetEnvironmentVariable("OASIS_GARNET_CQL_STATE")!;
-        Assert.AreEqual("/var/tmp/oasis-garnet-cql", state);
+        Assert.AreEqual("2", Environment.GetEnvironmentVariable("OASIS_GARNET_FIXTURE_GENERATION"));
+        Assert.AreEqual("/var/tmp/oasis-garnet-cql/generations/2", state);
+        Assert.IsTrue(File.Exists(Path.Combine(state, "fixture-admission.json")));
         Assert.IsTrue(File.Exists(Path.Combine(state, "active-process.json")), "Explicit owned native runner required.");
         using var sourceLease = new FileStream(Path.Combine(state, "source.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var manifest = Path.Combine(state, "demo-seed.json");
@@ -76,7 +78,7 @@ public class GarnetCqlNativeTests
         if (!File.Exists(manifest))
         {
             Assert.AreEqual(0L, await native.GetServer("127.0.0.1", 16392).DatabaseSizeAsync(0));
-            seed = new(Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray(), Guid.NewGuid());
+            seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(Path.Combine(state, "admitted-seed.json")))!;
             using (var intent = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
             { JsonSerializer.Serialize(intent, seed); intent.Flush(true); }
             var active = await provider.ActivateProviderAsync();
