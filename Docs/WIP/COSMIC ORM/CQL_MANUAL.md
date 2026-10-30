@@ -1592,3 +1592,15 @@ labels. Missing/deleted records, paging, budgets and HTTP errors are verified.
 Stop with the page button; original KeyDB data remains, verified temporary Mongo
 fixture is removed and services stop. Full LINQ/cluster/distributed snapshots stay
 separate scopes. [Commands, tests and lifecycle](KEYDB_CQL_MVP.md).
+
+## Native Dragonfly + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Dragonfly -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` checks and tears down. Pinned Dragonfly2.0.2
+uses retained encrypted source and a completed native RDB snapshot; all original
+record/index bytes survive a clean process restart. Native shutdown saves again,
+so snapshot file metadata changes are separately tracked. The shared C# membership
+query returns five physical rows, then four for the two-ID subset, preserving
+provider labels. Stop with the page button; services stop, original source remains,
+and verified temporary Mongo data is removed. This scope does not certify AOF,
+crash durability, clusters or general LINQ. [Commands/evidence](DRAGONFLY_CQL_MVP.md).
