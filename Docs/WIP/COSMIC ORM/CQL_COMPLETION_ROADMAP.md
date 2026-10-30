@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-ClickHouse: bounded CQL/save ownership implemented, 28 controls pass; native/paired proof remains red. [Scope](CLICKHOUSE_CQL_MVP.md).
+ClickHouse: 28 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](CLICKHOUSE_CQL_MVP.md).
 Couchbase: 31 controls + native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Proof](COUCHBASE_CQL_MVP.md).
 [Current status](CURRENT_STATUS.md) owns the next action; [checklist](CQL_PARITY_CHECKLIST.md) owns per-provider acceptance. Full original scope remains active.
 

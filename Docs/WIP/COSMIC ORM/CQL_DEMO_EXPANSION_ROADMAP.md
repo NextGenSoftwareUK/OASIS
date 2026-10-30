@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-54 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
+55 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -92,3 +92,5 @@ All226 provider identities remain in MVP breadth scope;53 linked scoped proofs.
 SurrealDB native/restart/paired/browser5/4 now pass. ArangoDB native/restart/paired/browser5/4 now pass. RavenDB secured native/restart/paired/browser5/4 now pass. CockroachDB secured native/restart/paired/browser5/4 now pass. TimescaleDB secured native/restart/paired/browser5/4 now pass. Cassandra authenticated native/restart/paired/browser5/4 now pass. ScyllaDB authenticated native/restart/paired/browser5/4 now pass. Elasticsearch secured native/restart/paired/browser5/4 now pass. OpenSearch secured native/restart/paired/browser5/4 now pass. Next red provider: Couchbase. Dgraph has no exact current source/identity. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).
 
 Couchbase Community native/restart/paired/browser/hub MVP verified: [scope](COUCHBASE_CQL_MVP.md). Next ClickHouse capability/native-source audit.
+
+ClickHouse native/restart/paired/browser/hub MVP verified: [scope](CLICKHOUSE_CQL_MVP.md). Next InfluxDB capability/native-source audit.
