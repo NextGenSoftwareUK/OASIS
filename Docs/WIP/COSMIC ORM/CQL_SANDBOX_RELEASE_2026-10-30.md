@@ -342,3 +342,10 @@ Owned Mongo fixture cleanup verified, pending journal absent, ports27029/5088 cl
 - TestResults/DemoBreadthCurrent/native-mongo-mastodon.trx:1 passed; SHA256D5E7C338DF6A01FE3FB60B5D28E05ED9B6A82F2C55B05CB772995CE81E0FA1A6.
 
 Reproduce: pwsh Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -ArchiveCompletedDemo. Next: accurate catalogue enrollment of all three verified protocol profiles; full parity remains deferred.
+
+
+## Protocol catalogue published (30 October)
+
+Web4Site feature/main a5cc53b3ec16fbdb345871433f16cdb174d59803, production deployment7450130226 success. Public CQL Playground section5 now lists separate IPFS/SOLID/ActivityPub +Mongo commands and fixed loopback5088 launch link. Bounds/local environment/identity isolation/teardown limits are explicit; hosted selector remains three databases.17 client controls pass. Actual browser catalogue -> ActivityPub native page -> federation button returned5copies/Mongo2/ActivityPub3. Native runner exited0 after POST/demo/shutdown, exact owned Mongo cleanup verified and pending journal absent. Static preview5151 owned process also stopped; no downloads/install/restore.
+
+Screenshots under TestResults/Web4SandboxCqlCurrent: protocol-catalogue-public.png (282677bytes, SHA256E21031710B084F659B33DCC501AAFDACF17841850977F632C2EE4380C83E4A4D), protocol-catalogue-native-result.png (195577bytes, SHA256EFBED69B0F951B7058CD1DA48A6972DF2995479224DF2E443BA3C130FA5811D8). No raw evidence committed. Public catalogue confirmation does not imply hosted protocol integration or full parity. Next Solana browser admission.
