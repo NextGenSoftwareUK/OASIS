@@ -594,3 +594,7 @@ Qdrant source. [Proof/prerequisites](QDRANT_CQL_MVP.md).
 
 Weaviate + Mongo is verified: all5/subset4 with provenance, retained TLS/gRPC source
 and restart checks. [Commands and scope](WEAVIATE_CQL_MVP.md).
+
+Meilisearch + Mongo scoped MVP:39controls/native/restart/C#/HTTP/browser5/4 pass.
+Native HTTPS key fetch and terminal native write tasks; explicit ID predicates.
+[Commands, proof and remaining gaps](MEILISEARCH_CQL_MVP.md).

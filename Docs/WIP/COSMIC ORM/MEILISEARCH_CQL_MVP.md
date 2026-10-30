@@ -1,6 +1,6 @@
-# Meilisearch CQL MVP — controls pass; native demo pending
+# Meilisearch CQL MVP — native/restart/paired demo verified
 
-Updated 30 October 2026. Inventory stays red until native/restart/paired/browser proof.
+Updated 30 October 2026. Scoped native/restart/Mongo-paired C#/HTTP/browser proof passes.
 
 ## Root cause and implemented boundary
 
@@ -48,13 +48,44 @@ Cached restore and bounded provider/unit builds pass. Raw evidence is regenerabl
 `TestResults/MeilisearchCqlCurrent/controls.trx`, SHA256
 `a703a5f28a0ebfa137a15f32cb377e280ac3faa3ace0d9d6131cea41eedf3fe3`.
 
-## Exact next step / gaps
+## Native, restart and federated acceptance
 
-Inspect existing runtimes/images before selecting an official free supported native
-release. Create one retained authenticated environment only if missing, inventory
-before allocation. Verify native index/source/task receipts, original3records plus
-one full replacement/removal, native3/filter2/missing0/page1/budget, actualrestart
-preservation, then Mongo-paired C#/HTTP/browser5/4 and hub enrollment.
+Official free1.56.0 image pinned to digest
+`sha256:3a2dda1ade2280eecb9b777fbe4e27dc82b458e4e335929884481b3850e7cd03`.
+Retained source `/var/tmp/oasis-meilisearch-cql`, native HTTPS17700 with private CA
+and API-key authentication, production mode, telemetry disabled. No global trust
+change. Container/image/mount/source inode/version verified before use.
+
+Native3/filter2/missing0/page1/budget pass, plus three original creates and one
+full replacement removing an obsolete field. Actual same-store signalstop/reopen
+preserves document JSON, native index timestamps and all7completed task receipts.
+Five fresh phases each1pass/0skip: native-first/restart, Mongo initialization,
+federation and native-postpair. Paired C#/HTTP verify source provenance, excluded
+row, forged actor/unknown preset, inactive-provider error without partial results.
+Browser all5/subset4 independently verified at5147. Stop button finished runner0;
+owned Mongo fixture removed and both services stopped. Source770,176B retained.
+
+Initial environment verifier expected exit0, but native1.56.0 deliberately disables
+Actix signal handling; SIGTERM produces143. Original empty-source receipt and
+failure observation were retained, then exact source restarted without allocation,
+credential changes or task replay. This verifies signalstop/reopen, not graceful
+shutdown or general crash recovery. [Pinned native signal code](https://github.com/meilisearch/meilisearch/blob/v1.56.0/crates/meilisearch/src/main.rs#L178).
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Meilisearch -Federated -Serve
+# Dedicated runner:
+Scripts/TestHosts/Run-CosmicMeilisearchLinuxDemo.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5147/ once ready; use the stop button for verified teardown.
+[Native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests/MeilisearchCqlNativeTests.cs),
+[paired proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests/MeilisearchMongoCqlNativeTests.cs).
+Raw evidence remains `TestResults/MeilisearchCqlCurrent/` (regenerable/uncommitted).
+Federation TRX SHA256 `5eca9d2358105da1bb771f6f00a9e65af97b2af8153179f00a60fd632f5523b1`;
+postpair `e65b27499c58e65dd5574b554e8bcbeda2bb16dac3fd5d3e3ba28d9c199a03b5`.
+Hub56paired/112plans/98paired rejections pass without changing listeners.
+
+## Remaining gaps
 
 Generic load helpers still turn HTTP errors into missing/empty data and cap1000;
 legacy search field/filter settings, delete acknowledgements and avatar ownership
