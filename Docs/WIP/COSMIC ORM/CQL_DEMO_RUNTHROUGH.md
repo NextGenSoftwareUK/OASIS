@@ -385,3 +385,13 @@ encrypted contract/records on local EVM31338. CQL through HolonManager returns
 5physical rows or4subset with source copies preserved. Direct construction only;
 central registration/public BNB consensus/bridging/finality and shared snapshots
 remain unverified. Page shutdown cleans temporary Mongo data and retains source.
+
+## Fantom V2 + Mongo MVP
+
+[Verified scope, commands and C# example](FANTOM_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Fantom -Federated`
+(add `-VerifyOnly` for bounded verification). Shipping Fantom V2 uses retained
+encrypted contract/records on local EVM31338. CQL through HolonManager returns
+5physical rows or4subset with provider copies preserved. Direct construction only;
+central registration/public network behavior/migration and shared snapshots remain
+unverified. Page shutdown cleans temporary Mongo data and retains original source.
