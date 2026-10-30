@@ -32,11 +32,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
     /// Delete:  POST {host}/vectors/delete   {{ ids, namespace }}
     /// Auth:    Api-Key header
     /// </summary>
-    public class PineconeOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class PineconeOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical holon writes are unsupported and explicitly rejected.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -48,14 +47,23 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
         private const string CollHolons = "holons";
 
         public PineconeOASIS(string indexHost, string apiKey)
+            : this(new HttpClient(), indexHost, apiKey)
         {
+        }
+
+        /// <summary>The caller owns this dedicated HTTP client and its credentials.</summary>
+        public PineconeOASIS(HttpClient http, string indexHost, string apiKey)
+        {
+            _http = http ?? throw new ArgumentNullException(nameof(http));
             _host = indexHost.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.PineconeOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            ProviderName = "PineconeOASIS";
+            ProviderDescription = "Pinecone vector-index document storage.";
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _http.DefaultRequestHeaders.Add("Api-Key", apiKey);
+            _http.DefaultRequestHeaders.Add("X-Pinecone-API-Version", "2026-07");
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -435,13 +443,31 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Pinecone historical holon writes are not implemented.");
+
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.PineconeOASIS] = id.ToString("D");
+
+                // Stage identity in the wire document; HolonManager owns tracking acceptance.
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType())!.AsObject();
+                payload["Id"] = id;
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await UpsertDocAsync(CollHolons, id.ToString("D"), payload);
+
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PineconeOASIS] = id.ToString("D");
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"PineconeOASIS: SaveHolonAsync failed: {ex.Message}");
             }
             return result;
@@ -454,19 +480,23 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            try
+            var errors = new List<string>();
+            foreach (var holon in holons)
             {
-                foreach (var h in holons)
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
                 {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
                 }
-                result.Result = saved;
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"PineconeOASIS: SaveHolonsAsync failed: {ex.Message}");
-            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
@@ -545,17 +575,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PineconeOASIS
             if (!vectors.TryGetProperty(id, out var vec)) return null;
             if (!vec.TryGetProperty("metadata", out var meta)) return null;
             return FromMetadata<T>(meta);
-        }
-
-        private async Task UpsertDocAsync<T>(string ns, string id, T obj)
-        {
-            var body = new
-            {
-                vectors = new[] { new { id, values = new[] { 0.0f }, metadata = ToMetadata(obj, id) } },
-                @namespace = ns
-            };
-            var resp = await _http.PostAsync($"{_host}/vectors/upsert", Json(body));
-            resp.EnsureSuccessStatusCode();
         }
 
         private async Task DeleteDocAsync(string ns, string id)
