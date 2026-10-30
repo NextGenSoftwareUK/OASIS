@@ -15,7 +15,7 @@ Updated30October2026 UTC. Scoped sandbox release candidate; full programme remai
 [Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): first deploymentSUCCESS,
 free sessions work. Hosted Mongo stage limit found (56>50); focused fix40stages,
 all16levels preserved,2controls+3native pass, hosted queryPlanner accepts40.
-Publish focused correction next; actual hosted row/scalar/federation/isolation pending.
+Correction89a960111 published; exact Railway e88fbed5-5147-49a2-8915-93bb5b0684d0 BUILDING. Observe it only, then hosted rows/scalars/federation/isolation.
 Core pin432c613; broader task/diagnostics e155c0b2c preserved, frontend not published.
 
 ## Latest verified milestone
