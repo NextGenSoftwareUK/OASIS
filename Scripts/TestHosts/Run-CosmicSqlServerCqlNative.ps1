@@ -1,5 +1,4 @@
 param([switch]$Federated,[switch]$Serve,[switch]$Content)
-if($Content -and ($Federated -or $Serve)){throw "Native content scope must pass before content federation enrollment."}
 if($Serve -and !$Federated){throw "Serve requires explicit federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -12,11 +11,13 @@ $instance='CosmicCql'
 $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server Local DB/Instances/CosmicCql'
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC SQL Server native CQL' -Operation {
     $lease=[IO.File]::Open((Join-Path $state 'runner.lock'),'OpenOrCreate','ReadWrite','None')
+    $oldContent=$env:OASIS_SQLSERVER_CQL_CONTENT
     $priorConnection=$env:OASIS_SQLSERVER_CQL_CONNECTION;$priorState=$env:OASIS_SQLSERVER_CQL_STATE
     $oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_SQLSERVER_MONGO_SERVE
     $mongo=$null
     $started=$false;$passed=$false
     try {
+        if($Content -and (Test-Path (Join-Path $state 'mongo-content.pending.json'))){throw 'Content Mongo fixture unresolved.'}
         if($Content -and (Test-Path (Join-Path $state 'content-long-seed.pending.json'))){throw 'Content extension unresolved; preserve without replay.'}
         if($Content -and (Test-Path (Join-Path $state 'content-seed.pending.json'))){throw 'Content setup unresolved; preserve without replay.'}
         if(Test-Path (Join-Path $state 'demo-seed.pending.json')){throw 'Source setup unresolved; do not replay.'}
@@ -55,6 +56,7 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
         if($LASTEXITCODE){throw 'Owned LocalDB start failed.'}
         $env:OASIS_SQLSERVER_CQL_CONNECTION='Server=(localdb)\CosmicCql;Database=cosmic_cql_demo;Integrated Security=true;Encrypt=false;Pooling=false;Connect Timeout=10'
         $env:OASIS_SQLSERVER_CQL_STATE=$state
+        $env:OASIS_SQLSERVER_CQL_CONTENT=if($Content){'1'}else{'0'}
         $nativeFilter=if($Content){'FullyQualifiedName~SqlServerCqlContentNativeTests'}else{'FullyQualifiedName~SqlServerCqlNativeTests'}
         $nativeReport=if($Content){'sqlserver-content-native.trx'}else{'sqlserver-cql-native.trx'}
         $nativeLog=if($Content){'content-native.log'}else{'native.log'}
@@ -79,16 +81,19 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
             if(!$mongoReady){throw 'Owned Mongo startup deadline exceeded.'}
             $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
             $env:OASIS_SQLSERVER_MONGO_SERVE=if($Serve){'1'}else{'0'}
-            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~SqlServerMongoCqlNativeTests --logger 'trx;LogFileName=sqlserver-mongo-federation.trx' --results-directory $results -v:q *> (Join-Path $results 'sqlserver-mongo-federation.log')
+            $pairedReport=if($Content){'sqlserver-content-mongo-federation.trx'}else{'sqlserver-mongo-federation.trx'}
+            $pairedLog=if($Content){'sqlserver-content-mongo-federation.log'}else{'sqlserver-mongo-federation.log'}
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~SqlServerMongoCqlNativeTests --logger "trx;LogFileName=$pairedReport" --results-directory $results -v:q *> (Join-Path $results $pairedLog)
             if($LASTEXITCODE){throw 'Paired SqlServer CQL failed; preserve ownership journal.'}
-            [xml]$paired=Get-Content (Join-Path $results 'sqlserver-mongo-federation.trx')
+            [xml]$paired=Get-Content (Join-Path $results $pairedReport)
             if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one paired pass required.'}
-            if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Mongo fixture cleanup incomplete.'}
-            Get-Content (Join-Path $results 'sqlserver-mongo-federation.log') -Tail 4
+            $mongoJournal=if($Content){'mongo-content.pending.json'}else{'mongo.pending.json'}
+            if(Test-Path (Join-Path $state $mongoJournal)){throw 'Mongo fixture cleanup incomplete.'}
+            Get-Content (Join-Path $results $pairedLog) -Tail 4
         }
         $passed=$true
     } finally {
-        $env:OASIS_SQLSERVER_CQL_CONNECTION=$priorConnection;$env:OASIS_SQLSERVER_CQL_STATE=$priorState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_SQLSERVER_MONGO_SERVE=$oldServe
+        $env:OASIS_SQLSERVER_CQL_CONTENT=$oldContent;$env:OASIS_SQLSERVER_CQL_CONNECTION=$priorConnection;$env:OASIS_SQLSERVER_CQL_STATE=$priorState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_SQLSERVER_MONGO_SERVE=$oldServe
         if($mongo){if(!$mongo.HasExited){$mongo.Kill();if(!$mongo.WaitForExit(30000)){throw "Owned Mongo teardown incomplete."}};$mongo.Dispose()}
         try {if($started -and $passed){& $tool stop $instance *> (Join-Path $results 'instance-stop.log');if($LASTEXITCODE){throw 'Owned instance stop failed.'}}}
         finally {$lease.Dispose()}

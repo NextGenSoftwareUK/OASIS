@@ -1,6 +1,6 @@
 # SQL Server CQL MVP admission
 
-Updated30October2026. **Identity demo and native/restart content queries verified; content federation/browser/sandbox remain open.**
+Updated30October2026. **Identity demo and native/restart content queries verified; local content C#/HTTP/browser federation verified; deployed sandbox remains open.**
 
 ## Implemented scope
 
@@ -148,7 +148,7 @@ queries/restart. No pending setup remains; no replay/reset/reseed.
 | Native string metadata equality/nested object keys | ✅ missing/null/type/array exclusion and long values |
 | Native AND/OR, authority containment, UUID paging | ✅23-query fixture |
 | Source restart preservation | ✅ original3 + content4 + extension2 unchanged |
-| Content C#/HTTP/browser federation | ❌ next scope; existing ID5/4 proof stays separate |
+| Content C#/HTTP/browser federation | ✅ four presets2/4/4/2 with both provider labels; ID5/4 also passes |
 | Deployed sandbox/tenant auth/admission | ❌ not implied by loopback/source-catalogue tests |
 
 Proving test: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests/SqlServerCqlContentNativeTests.cs.
@@ -167,7 +167,46 @@ content-source_log.ldf, each8388608bytes (16MiB total). Same user-private instan
 no new environment/runtime. LocalDB final stateStopped. Retain attached database
 files and source journals; never delete files to clean an attached database.
 
-Exact next: add the four Mongo-paired content presets through the shared CQL
-walkthrough and HTTP/browser teaching host, with explicit provenance and owned
-fixture cleanup. Then address deployed sandbox tenant authorization/admission.
-Do not harden completed native/identity scopes without a reproduced bug.
+### Mongo-paired content teaching preset
+
+Four native CQL presets now pass in C#, HTTP and an actual browser:
+
+| Preset | Selection | SQL Server + Mongo copies |
+|---|---|---|
+| name | Name == Espresso | 2 (1+1) |
+| description | Description.Contains(coffee) | 4 (2+2) |
+| metadata | category == coffee | 4 (2+2) |
+| combined | (Name == Espresso OR Tea) AND category == coffee | 2 (1+1) |
+
+The shared ContentFederationPresets.cs provides spaced/commented C# expressions;
+IdentityFederationWalkthrough.RunQueryAsync supplies the same planner/manager
+execution owner for SDK/HTTP/browser. Trusted catalogues remain server-owned;
+forged actor/unknown preset reject and a failed source produces no partial rows.
+The original identity5/4 presets remain available and pass alongside content.
+No cached replacement, managed source filtering or arbitrary provider expansion.
+
+```powershell
+# Automated native and paired SDK/HTTP checks, with owned teardown:
+Scripts/TestHosts/Run-CosmicSqlServerCqlNative.ps1 -Content -Federated
+
+# Same checks, then browser page on http://127.0.0.1:5113/:
+Scripts/TestHosts/Run-CosmicSqlServerCqlNative.ps1 -Content -Federated -Serve
+```
+
+Use the stop button to complete cleanup. The general demo hub still launches its
+existing ID preset; use -Content above for these new buttons. Actual browser
+clicks returned2/4/4/2 and equal provider contributions. Final runner59097 exit0,
+LocalDBStopped,27029/5113 listeners absent; exact temporary
+cosmic_cql_mongo_sqlserver_content_demo dropped after ownership/content checks,
+its journal and ready marker removed. Six retained content rows/ACKs/snapshots
+and original SQL Server source remain unchanged/preserved.
+
+Evidence under TestResults/SqlServerCqlCurrent:
+- sqlserver-content-mongo-federation.trx: SHA256 262bcb5c4e49305f39b99d4c7b8939e00dc36350593844d4cc6ebb834c07fbf3.
+- sqlserver-content-browser.json: SHA256 f5cb8d5c1d579f26f996ce3275865aaa7271a7abfa0e427c263d19bd0d552d33.
+- sqlserver-content-browser.png: SHA256 2684b8d463ef9ce66f8137a1cc263823aaa1ace9a149abf3536cd05c0b4c6150.
+
+Exact next: deployed WEB4 sandbox requires real tenant authorization, provider
+registration/admission and UI enrollment. These bounded controlled-identity
+loopback proofs do not imply hosted authentication/usage, Azure SQL, unrestricted
+catalogues, HyperDrive replication correctness or full SQL Server LINQ parity.
