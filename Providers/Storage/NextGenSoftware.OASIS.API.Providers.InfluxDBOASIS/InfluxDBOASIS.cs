@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
     ///   org    — organisation name or ID
     ///   bucket — bucket name (will be created if it does not exist)
     /// </summary>
-    public class InfluxDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class InfluxDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _url;
         private readonly string _token;
@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
         {
             var filter = tagFilter != null ? $"|> filter(fn: (r) => {tagFilter})" : "";
             return $@"
-from(bucket: ""{bucket}"")
+from(bucket: ""{EscapeFlux(bucket)}"")
   |> range(start: -100y)
   |> filter(fn: (r) => r._measurement == ""{measurement}"")
   {filter}
@@ -107,6 +107,7 @@ from(bucket: ""{bucket}"")
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 // Ensure bucket exists; create if absent
@@ -119,6 +120,7 @@ from(bucket: ""{bucket}"")
                     if (org == null) throw new Exception($"InfluxDB: Organisation '{_org}' not found.");
                     await buckets.CreateBucketAsync(_bucket, new BucketRetentionRules(), org.Id);
                 }
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = $"InfluxDBOASIS activated — bucket '{_bucket}' ready.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
@@ -127,7 +129,7 @@ from(bucket: ""{bucket}"")
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        { _client?.Dispose(); _client = null; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "InfluxDBOASIS deactivated." }); }
+        { IsProviderActivated = false; _client?.Dispose(); _client = null; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "InfluxDBOASIS deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -167,7 +169,7 @@ from(bucket: ""{bucket}"")
             return Des<Avatar>(Field(rec, "data_json"));
         }
 
-        private static string EscapeFlux(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
+        private static string EscapeFlux(string s) => InfluxDBCqlCompiler.FluxStringLiteral(s)[1..^1];
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
@@ -298,18 +300,23 @@ from(bucket: ""{bucket}"")
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.InfluxDBOASIS] = holon.Id.ToString();
-                var point = PointData.Measurement("oasis_holons")
-                    .Tag("id", holon.Id.ToString())
-                    .Tag("parent_holon_id", holon.ParentHolonId.ToString())
-                    .Tag("holon_type", ((int)holon.HolonType).ToString())
-                    .Field("is_deleted", holon.IsDeleted)
-                    .Field("data_json", Ser(holon))
-                    .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
-                await WritePointAsync(point);
-                result.Result = holon; result.IsError = false; result.Message = $"InfluxDBOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("InfluxDB historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await PersistHolonAsync(id, holon.ParentHolonId, ((int)holon.HolonType).ToString(System.Globalization.CultureInfo.InvariantCulture), holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -320,9 +327,24 @@ from(bucket: ""{bucket}"")
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"InfluxDBOASIS: {saved.Count} holon(s) saved.";
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
