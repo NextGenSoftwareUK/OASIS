@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -86,4 +87,36 @@ public class HostedHolonWriteEndpointTests
         Assert.Equal(expectedCode, result.ErrorCode);
         Assert.Equal(0, acquisitions);
     }
+    [Fact]
+    public async Task ConfiguredHostRejectsUnadmittedSaveBeforeManagerAcquisition()
+    {
+        // Reproduce the hosted demo's CQL-only profile: configuring admission does
+        // not authorize a save which never entered its prepared execution owner.
+        var profile = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "cql-free-admission.json")))!;
+        var routes = profile["routes"]!.AsArray();
+        foreach (var route in routes.Where(route => !route!["path"]!.GetValue<string>()
+            .StartsWith("/api/data/query-cql", StringComparison.Ordinal)).ToArray()) routes.Remove(route);
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> {
+                ["PREPARED_STORAGE_ADMISSION_JSON"] = profile.ToJsonString()
+            }).Build();
+        var registrations = new ServiceCollection();
+        NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission
+            .AddConfiguredStorageAdmission(registrations, configuration, true, _ => null);
+        using var services = registrations.BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
+        context.Items["Avatar"] = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.NewGuid() };
+        context.Request.Method = "POST";
+        context.Request.Path = "/api/data/save-holon";
+        var acquisitions = 0;
+        var result = await HostedHolonWriteEndpoint.SaveAsync(context, HyperDriveModes.V2,
+            new SaveHolonRequest { OperationId = Guid.NewGuid(), ProviderType = "MongoDBOASIS",
+                SaveChildren = false, Holon = new Holon { Name = "Espresso" } },
+            () => { acquisitions++; throw new InvalidOperationException("Provider path must not be reached"); });
+        Assert.Equal("COSMIC_WRITE_ADMISSION_REQUIRED", result.ErrorCode);
+        Assert.Equal(System.Net.HttpStatusCode.ServiceUnavailable, HolonWriteEndpoint.Status(result));
+        Assert.Equal(0, acquisitions);
+    }
+
 }

@@ -9,10 +9,14 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 public class SandboxCqlAdmissionTests
 {
     [Theory]
-    [InlineData("", 1)]
-    [InlineData("/scalar", 1)]
-    [InlineData("/federation", 3)]
-    public async Task ShippedFreeProfilePassesStartupAndRealAuthorityMeterValidation(string suffix, int attempts)
+    [InlineData("POST", "/api/data/query-cql", 1)]
+    [InlineData("POST", "/api/data/query-cql/scalar", 1)]
+    [InlineData("POST", "/api/data/query-cql/federation", 3)]
+    [InlineData("POST", "/api/data/save-holon", 512)]
+    [InlineData("POST", "/api/data/save-holons", 512)]
+    [InlineData("DELETE", "/api/data/delete-holon", 512)]
+    [InlineData("POST", "/api/data/recover-conditional-operation", 2)]
+    public async Task ShippedFreeProfilePassesStartupAndRealAuthorityMeterValidation(string method, string path, int attempts)
     {
         // Read the deployable file rather than a separately maintained test copy.
         var json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "cql-free-admission.json"));
@@ -22,8 +26,8 @@ public class SandboxCqlAdmissionTests
         var services = new ServiceCollection();
         var select = services.AddConfiguredStorageAdmission(configuration, true, _ => null);
         var context = new DefaultHttpContext();
-        context.Request.Method = "POST";
-        context.Request.Path = "/api/data/query-cql" + suffix;
+        context.Request.Method = method;
+        context.Request.Path = path;
         var policy = select(context);
         Assert.NotNull(policy);
         Assert.Equal(attempts, policy.MaximumProviderAttempts);
@@ -41,7 +45,7 @@ public class SandboxCqlAdmissionTests
         var decision = await authority.AuthorizeUsageAsync(Guid.NewGuid().ToString("D"), 0,
             new UsageAuthorizationRequest {
                 OperationId = Guid.NewGuid().ToString("D"), ConsumingService = "WEB4",
-                Endpoint = "POST " + context.Request.Path, MeterCategory = policy.MeterCategory,
+                Endpoint = method + " " + context.Request.Path, MeterCategory = policy.MeterCategory,
                 RequestedUnits = policy.ReservedUnits, EstimatedCostUsd = policy.EstimatedCostUsd,
                 RequestFingerprint = new string('a', 64)
             }, CancellationToken.None);
@@ -50,4 +54,23 @@ public class SandboxCqlAdmissionTests
         context.Request.Path = "/api/data/query-cql/projection";
         Assert.Null(select(context)); // This profile does not silently enroll other routes.
     }
+    [Theory]
+    [InlineData("MongoDBOASIS")]
+    [InlineData("SQLLiteDBOASIS")]
+    [InlineData("Neo4jOASIS")]
+    public void MissingWriteTariffFailsStartupRatherThanLeavingAnUnmeteredWrite(string provider)
+    {
+        var profile = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "cql-free-admission.json")))!;
+        var tariffs = profile["storageTariffs"]!.AsArray();
+        var missing = tariffs.Single(row => row!["provider"]!.GetValue<string>() == provider &&
+            row["operation"]!.GetValue<string>() == "SaveHolon");
+        tariffs.Remove(missing);
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            ["PREPARED_STORAGE_ADMISSION_JSON"] = profile.ToJsonString()
+        }).Build();
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection()
+            .AddConfiguredStorageAdmission(configuration, true, _ => null));
+    }
+
 }

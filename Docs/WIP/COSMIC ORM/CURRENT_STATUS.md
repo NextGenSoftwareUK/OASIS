@@ -1,99 +1,59 @@
 # Current COSMIC ORM / CQL status
 
-Updated 30 October 2026. Full programme remains incomplete. Read this first after compaction.
+Updated30October2026 UTC. Full programme remains incomplete. Read this first after compaction.
 
-## Current phase and exact next step
-MVP breadth first across **all providers**, then deepen. Work only on red rows;
-no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
-issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
+## Working state
 
-**Immediate next: [hosted sandbox CQL root fix](CQL_SANDBOX_RELEASE_2026-10-30.md#hosted-execution-follow-up--stage-limit-root-cause). Deploymentdfceb1392SUCCESS/free sessions work. Hosted Mongo rejected inherited query56stages>50; fixed to40with full16level permissions preserved. Regression red-before/2controls+3native pass; hosted planner accepts40. Publish focused translator fix with scoped Core432c613, then verify actual hosted rows/scalars/federation/isolation. No query replay; frontend publication pending.**
-**Next: [approved10-provider content-query demo set](CONTENT_QUERY_DEMO_ROADMAP.md): name/description, metadata equality and AND/OR plus [WEB4 sandbox integration](SANDBOX_PROVIDER_DEMO_ROADMAP.md). QuestDB65controls/native1+restart1 pass; paired deferred for this priority; [LanceDB67save/table/Arrow/CQL controls pass](LANCEDB_CQL_MVP.md), free remote native admission pending; [Pinecone58save/index/CQL controls pass](PINECONE_CQL_MVP.md), free hosted native admission pending. [LanceDB protocol audit](LANCEDB_CQL_MVP.md). [Chroma50controls/native/restart/paired/browser5/4 pass](CHROMA_CQL_MVP.md). Milvus2.6.26 TLS startup fixed; upstream embedded-client shutdown defect established, same source/pending retained. [50controls pass; native red](MILVUS_CQL_MVP.md). Solr [48controls/native/restart/paired/browser5/4 pass](SOLR_CQL_MVP.md). Typesense [38controls/native/restart/paired/browser5/4 pass; native timestamp gap](TYPESENSE_CQL_MVP.md). Meilisearch [39controls/native/restart/paired/browser5/4 pass](MEILISEARCH_CQL_MVP.md). Weaviate [38controls/native/restart/paired/browser5/4 pass](WEAVIATE_CQL_MVP.md). Qdrant [38controls/native/restart/paired/browser5/4 pass](QDRANT_CQL_MVP.md). InfluxDB2 [34controls/native/restart/paired/browser5/4 pass](INFLUXDB_CQL_MVP.md). ClickHouse [28controls/native/restart/paired/browser5/4 pass](CLICKHOUSE_CQL_MVP.md). Couchbase [31controls/native/restart/paired/browser5/4 pass](COUCHBASE_CQL_MVP.md). OpenSearch [40controls/native/restart/paired/browser5/4 pass](OPENSEARCH_CQL_MVP.md). Elasticsearch [32controls/native/restart/paired/browser5/4 pass](ELASTICSEARCH_CQL_MVP.md). ScyllaDB [23controls/native/restart/paired/browser5/4 pass](SCYLLADB_CQL_MVP.md). Cassandra [23controls/native/restart/paired/browser5/4 pass](CASSANDRA_CQL_MVP.md). TimescaleDB [native/restart/paired/browser5/4 verified](TIMESCALEDB_CQL_MVP.md).**
-Firebase50controls/native/export-restore/paired/browser5/4/hub pass [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
-Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
-services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
-[Scope and initial loss](GARNET_CQL_MVP.md).
-Dragonfly2.0.2 controls8/native snapshot/restart/paired/browser5/4 and hub pass; source
-retained, services stopped and Mongo fixture removed. [Scope](DRAGONFLY_CQL_MVP.md).
-Litestream Linux native/live LTX/restore/paired/browser/hub pass; original source
-retained, owned services stopped; Windows fsync stays red. [Scope](LITESTREAM_CQL_MVP.md).
-Upstash hosted/native/repeat/paired pass; free scratch expires2026-10-31, no reseed. [Scope](UPSTASH_CQL_MVP.md).
-DuckDB control14/native/reopen/SDK/HTTP/browser5/4 pass; original source retained,
-owned processes stopped and temporary fixture removed ([scope](DUCKDB_CQL_MVP.md)).
-SQL Server control9/native/restart/SDK/HTTP/browser5/4 pass; original LocalDB source
-retained, owned services stopped and Mongo fixture removed ([scope](SQLSERVER_CQL_MVP.md)). PostgreSQL control8, native/restart
-1+1 and Mongo-paired C#/HTTP/browser5/4 pass ([scope](POSTGRESQL_CQL_MVP.md)).
-Owned services are stopped and temporary Mongo data removed; source retained.
-Redis native3/2/missing, ciphertext restart, SDK/HTTP/browser5/4 and launcher pass;
-DB11/source/keys retained, temporary Mongo fixture removed and services stopped.
-[Redis proof/commands](REDIS_CQL_MVP.md). Aliases/central registration are not certified.
-Hedera controls/public runtime audit pass; existing routed-read funding guard is
-not met by indexed testnet balance. No paid queries/key export performed; retain
-historical admission guards. [Hedera gate](HEDERA_CQL_MVP.md). Sui full demo verified.
-Aptos native/restart/paired/browser5/4 is verified; main-hub enrollment remains
-review-gated. [Direct commands/gate](APTOS_CQL_MVP.md). All owned nodes are stopped.
-LocalFile native/restart/SDK/HTTP/browser5/4 is verified and stopped/cleaned.
-[Proof](LOCALFILE_CQL_MVP.md). TRON original source/fence recovery and S3 local launch
-policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL_MVP.md).
-## Scoped demo proofs
-| Provider scope | Current proof |
-|---|---|
-| Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
-| Garnet generation2 + Mongo | Explicit new source/checkpoint/restart/SDK/HTTP/browser5/4; original loss separate. [Guide](GARNET_CQL_MVP.md). |
-| Dragonfly / KeyDB / Valkey + Mongo | Independent encrypted native/restart/SDK/HTTP/browser5/4. [Dragonfly snapshot scope](DRAGONFLY_CQL_MVP.md), [KeyDB](KEYDB_CQL_MVP.md), [Valkey](VALKEY_CQL_MVP.md). |
-| Memcached + Mongo | Volatile native/SDK/HTTP/browser5/4, values/CAS preserved; no persistence. [Guide](MEMCACHED_CQL_MVP.md). |
-| Litestream + Mongo | Linux live file replication/restore + SDK/HTTP/browser5/4; Windows fsync red. [Guide](LITESTREAM_CQL_MVP.md). |
-| Upstash + Mongo | Hosted free scratch native/repeat/SDK/HTTP/browser5/4; expires Oct31. [Guide](UPSTASH_CQL_MVP.md). |
-| PostgreSQL / SQL Server / DuckDB + Mongo | Native/reopen and SDK/HTTP/browser5/4; [PostgreSQL](POSTGRESQL_CQL_MVP.md), [SQL Server](SQLSERVER_CQL_MVP.md), [DuckDB](DUCKDB_CQL_MVP.md). |
-| Redis + Mongo | Encrypted DB11/native/restart/paired5/4, direct registration only. [Guide](REDIS_CQL_MVP.md). |
-| Sui + Mongo | Dedicated encrypted native/restart/paired5/4, original Storage preserved. [Guide](SUI_CQL_MVP.md). |
-| LocalFile + Mongo | Native files/restart/paired5/4; plaintext scope. [Guide](LOCALFILE_CQL_MVP.md). |
-| Oracle + Mongo | Native/SDK/HTTP/browser5/4. [Scope](CQL_ORACLE_DEMO_ADMISSION.md). |
-| Azure Cosmos + Mongo | Emulator5/4 only; hosted pending, no free subscription. [Gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md). |
-| IPFS/SOLID/ActivityPub + Mongo | Native3/2 and paired 5/4; arbitrary content predicates open. [Scope](CQL_PROTOCOL_MULTI_RECORD.md). |
-| Solana + Mongo | Retained validator/index and SDK/HTTP/browser. Preserve missing-history gate. [Proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). |
-| AWS + Mongo | DynamoDB Local native3/2/paired 5/4. [Guide](AWS_CQL_MVP.md). |
-| Ethereum/Polygon/Arbitrum/Base + Mongo | Local EVM31338 native3/2/paired 5/4. No public-chain/finality claim. [Ethereum](ETHEREUM_CQL_MVP.md), [Polygon](POLYGON_CQL_MVP.md), [Arbitrum](ARBITRUM_CQL_MVP.md), [Base](BASE_CQL_MVP.md). |
-| Google Firestore + Mongo | Emulator native/restart/paired 5/4. [Guide](FIRESTORE_CQL_MVP.md). |
-| Cosmos blockchain + Mongo | Native encrypted contract/restart/paired 5/4. Original four signed writes retained. [Guide](COSMOS_BLOCKCHAIN_CQL_MVP.md). |
-| Polkadot + Mongo | Native encrypted contract/restart/paired 5/4. Original three signed writes retained. [Guide](POLKADOT_CQL_MVP.md). |
-| NEAR + Mongo | Original encrypted records/restart/paired 5/4; historical write gate remains open. [Guide](NEAR_CQL_MVP.md). |
-| Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
-| Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
+- Backend work/build/test only C:/Source/OASIS-cosmic, branch work/cosmic-cql.
+- Existing frontend C:/Source/Web4Site, work/cosmic-cql c17e5f7; main unpublished.
+- Scoped fixes are rejoining the broader task branch; Core69bb8a4 includes receipt fixfdca0ed.
+- Development remains parent89a960111/Core432c613; Railway deploymente88fbed5 SUCCESS.
+- Two Development batches already published today. Next deploy must batch verified changes.
+- Unknown root `logs` remains untouched. No new worktrees/environments/installations.
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 62 scoped MVP
-proof links, 33 active central cases, 11 extra project names; linked scopes only, no full-parity claim.
+## Priority and exact next step
 
-## Deferred correctness and parity gates
+1. Finish/reverify merged producer outputs before further execution: current bin/obj were built against scoped Corefdca0ed, not yet the broader Core69bb8a4.
+2. Next verified deployment batch must carry receipt ownership fix, root-filter optimization and free write profilev2 together. Preserve current remote settings/concurrent changes.
+3. Verify hosted Mongo/SQLite/Neo4j save/replication/rows/LongCount/federation/isolation, then publish the CQL tab. Hosted timeout resolution remains unproved.
+4. Continue [approved10-provider content queries](CONTENT_QUERY_DEMO_ROADMAP.md) and [sandbox coverage](SANDBOX_PROVIDER_DEMO_ROADMAP.md): Mongo, SQLite, Neo4j, PostgreSQL, SQLServer, Oracle, CosmosDB, DynamoDB, Elasticsearch, Solr.
+5. Then extend remaining demo providers. Hosted Azure stays pending/free-only by user instruction. No paid subscription/account creation.
 
-- Save ownership/change tracking, concurrency and committed deltas have scoped proofs;
-  see the strict [parity checklist](CQL_PARITY_CHECKLIST.md) and implementation roadmap.
-- Effective avatar routing, failure isolation, native strategy reads, durable route
-  descriptors/outbox and selected delivery failures have retained proofs; no universal
-  uptime claim. [Routing](V2_ROUTING_ACCEPTANCE.md), [routes](DURABLE_ROUTE_DESCRIPTORS.md).
-- SQLite/Mongo matching-lineage adoption and selected coordinator/crash scopes pass.
-  Neo adoption, empty-target transfer, historical admission, source/outbox CAS,
-  durable final decision/cutover and broader crash recovery remain red. No global
-  cutover enabled. [Detailed gates](V2_LINEAGE_MIGRATION.md).
-- Deep LINQ All/element/numeric terminals, POCO mapping, migrations and broader
-  child/history/provider parity remain deferred for breadth. Keep original acceptance.
+LINQ parity depth (All/element/numeric after entity selection), POCO mapping and migrations tooling are paused/deferred. Work only on red checklist cells; no green/cursor hardening without a reproduced bug. HyperDriveV2 only; legacy issues documentation-only.
 
-## Workspace, integration and resource rules
+## Latest verified fixes before branch rejoin
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
-- Developmentdfceb1392 integrated; Core4607d7c preserves full task source (tree identical7e9cd72). Core4552,
-  WEB4schema/policy4 and affected builds/pins pass. [Proof](DEVELOPMENT_SYNC_2026-10-30.md).
-- Verify task remote before integration (GitHub500 incident30Oct14:22). Development deployment is a
-  separate verified scoped batch; never sweep deferred work into deployment to sync.
-- Named git adds only; one build lease/batch, /m:2 /nr:false /p:UseSharedCompilation=false.
-- Reuse cached SDKs/services. Persistent identities/stores/keys/journals stay under
-  LocalState/COSMIC or their retained protected location; logs/TRX only TestResults.
-- Preserve unknown outcomes; never replay/reseed/reset. Record all resources and
-  exact teardown in [the ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Free-only services.
+- Hosted stage limit:56to40stages, full16ancestor levels preserved; deployed89a960111.
+- Physical receipt IDs reused across independent operations: Corefdca0ed binds IDs to admitted operation; regression failed before/passes after;8 native billing lifecycle cases pass/no skips. Old executed unsettled-query receipts remain immutable/unresolved; never replay provider execution to settle them.
+- Free profilev2 explicitly enrolls canonical save/batch/delete/recovery with21 storage tariffs and3 query tariffs. Quota/measurement guards remain;10 actual-profile controls pass. Candidate not deployed.
+- Mongo root-local filters now precede ancestor lookup; full access predicate stays after the walk.189 CQL controls+4 native ancestor cases pass, including16th admitted/17th denied and row/count agreement. Hosted latency still pending.
+- Frontend ORM/Failover sends explicit request keys and preserves uncertain identities;4 helper+11 CQL client tests pass. No automatic write replay.
+- Hosted verifier requires exact deployment/SHA, fits19 admitted owner calls and preserves durable intents;6 offline protocol tests pass. Those tests do not prove live acceptance.
+- Original save56eaea32 was definitively rejected before manager acquisition: exact deployed source compared,7 boundary controls pass. Original bytes and reconciliation retained under LocalState/COSMIC/HostedSandboxCqlCurrent/Archive; no replay/reset. A new declared fixture may be created only against corrected deployment.
+- [Scoped release evidence and hashes](CQL_SANDBOX_RELEASE_2026-10-30.md). Logs/TRX remain in TestResults/Web4SandboxCqlCurrent.
+
+## Broader programme scope retained
+
+- Prior task branch records62/226 scoped demos; this is demo coverage, not full ORM/CQL parity or hosted production readiness.
+- Mongo/SQLite/Neo4j initial investor rows green. Q01f/full parity remain red; [strict checklist](CQL_PARITY_CHECKLIST.md).
+- Oracle native/SDK/HTTP/browser/Mongo-paired proof: [scope](CQL_ORACLE_DEMO_ADMISSION.md).
+- Azure Cosmos emulator proofs only; [hosted free gate](CQL_HOSTED_AZURE_FREE_ADMISSION.md).
+- IPFS/SOLID/ActivityPub multi-record native and Mongo-paired proofs: [scope](CQL_PROTOCOL_MULTI_RECORD.md). Arbitrary content predicates remain open.
+- Solana retained validator/index/SDK/HTTP/browser: [proof](CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md). Original missing-history recovery stays red; no reset/replay.
+- AWS DynamoDB Local: [scope](AWS_CQL_MVP.md). Hosted cloud coverage must be proved separately.
+- Other scoped native/restart/Mongo-paired/browser proofs and remaining provider gates are preserved in [previous checkpoint](Archive/CURRENT_STATUS_before_sandbox_rejoin_2026-10-30.md).
+- Full correctness/replication/history/migration/placement/save-deltas and EF/NHibernate parity remain governed by [roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md), [CQL roadmap](CQL_COMPLETION_ROADMAP.md) and checklist; never infer100% from passing subsets.
+
+## Resources and key commands
+
+[Single resource/cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records paths/versions/ownership/cleanup. Reuse pinned SDKs/caches and existing owned provider sources; no repeated environments. Persistent keys/data/receipts/journals stay under LocalState or their retained source directories, never disposable TestResults.
 
 ```powershell
-Scripts/TestHosts/Update-CosmicCqlProviderInventory.ps1
+git status --short
+git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' status --short
+python Scripts/Sandbox/test_hosted_cql_demo.py
+# Only after exact corrected deployment and prior-intent reconciliation:
+python Scripts/Sandbox/Verify-HostedCqlDemo.py --deployment <uuid> --commit <full-sha>
 ```
 
-[Manual](CQL_MANUAL.md) / [architecture](CQL_ARCHITECTURE.md) / [launcher](CQL_DEMO_LAUNCHER.md)
-/ [previous detailed status](Archive/CURRENT_STATUS_PRE_AZURE_BLOB_NATIVE_2026-10-29.md).
+Use the provider-build lease, /m:2 /nr:false /p:UseSharedCompilation=false; no dependency restores without inspecting existing resources. Test output only in this worktree's TestResults. Commit named owned files, push Core/verify ls-remote before parent gitlink+manifest; validate HEAD with Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Batch Development once/twice daily; task branch pushes do not imply deployment.

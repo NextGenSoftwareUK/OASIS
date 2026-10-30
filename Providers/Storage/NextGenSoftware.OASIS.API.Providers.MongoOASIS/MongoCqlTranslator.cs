@@ -10,8 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 internal sealed partial class MongoCqlTranslator
 {
     private int nodes;
-    private BsonDocument CompileRootPredicates<T>(CosmicQuery<T> query) where T:Core.Interfaces.IHolon
-        => CompileRootPredicatesCore(query, false);
+    private BsonDocument CompileRootPredicates<T>(CosmicQuery<T> query, BsonArray localPredicates) where T:Core.Interfaces.IHolon
+        => CompileRootPredicatesCore(query, false, localPredicates);
 
     private static bool HasRelationships(CosmicQueryPredicate predicate)
         => CosmicScalarCapabilities.HasAllChildren(new[] { predicate }) || CosmicScalarCapabilities.HasAllDescendants(new[] { predicate });
@@ -21,12 +21,27 @@ internal sealed partial class MongoCqlTranslator
             : predicate is CosmicQueryAnyDescendant descendant ? HasRelationships(descendant.Predicate)
             : HasRelationships(predicate);
 
-    private BsonDocument CompileRootPredicatesCore<T>(CosmicQuery<T> query, bool omitRelationships) where T:Core.Interfaces.IHolon
+    // Only expressions whose complete meaning is local to the root may move.
+    // In particular, never split an OR/NOT containing a relationship or access walk.
+    private static bool IsRootLocal(CosmicQueryPredicate predicate) => predicate switch
+    {
+        CosmicQueryLogical logical => IsRootLocal(logical.Left) && IsRootLocal(logical.Right),
+        CosmicQueryNot not => IsRootLocal(not.Operand),
+        CosmicQueryBoolean or CosmicQueryFieldComparison or CosmicQueryMetadataTest or
+            CosmicQueryComparison or CosmicQueryMembership or CosmicQueryStringMatch => true,
+        _ => false
+    };
+
+    private BsonDocument CompileRootPredicatesCore<T>(CosmicQuery<T> query, bool omitRelationships, BsonArray localPredicates = null) where T:Core.Interfaces.IHolon
     {
         var admitted=MongoCqlContract.Capabilities.Admit(query);
         if(admitted.IsError)throw new NotSupportedException(admitted.Message);
         var predicates=query.Predicates.Where(predicate=>predicate is not CosmicQueryAnyChild && predicate is not CosmicQueryAnyDescendant
-            && (!omitRelationships || !HasRelationships(predicate))).Select(predicate=>Translate(predicate,0)).ToArray();
+            && (!omitRelationships || !HasRelationships(predicate))).Select(predicate=> {
+                var translated = Translate(predicate,0);
+                if (localPredicates != null && IsRootLocal(predicate)) localPredicates.Add(translated);
+                return translated;
+            }).ToArray();
         var expression=predicates.Length==0?Literal(true):Op("$and",predicates);
         var filter=new BsonDocument("$expr",expression);
         var pending=new Stack<(BsonValue Value,int Depth)>();pending.Push((filter,0));
