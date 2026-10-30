@@ -1,6 +1,6 @@
-# Milvus CQL MVP — save ownership controls pass; query/demo pending
+# Milvus CQL MVP — bounded query controls pass; native demo pending
 
-Updated30October2026. Inventory remains red. No CQL/native/paired demo claim yet.
+Updated30October2026. Inventory remains red. Bounded CQL controls pass; native/paired demo remains unverified.
 
 ## Root causes fixed in the save boundary
 
@@ -59,10 +59,29 @@ TestResults/MilvusCqlCurrent/schema-save-controls.trx SHA256
 [Schema tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests/MilvusSchemaTests.cs).
 [Native describe contract](https://milvus.io/api-reference/restful/v2.6.x/v2/Collection%20(v2)/Describe.md).
 
-2. Bind shared bounded identitycompiler and one native multikey operation. Verify
-   actual REST version supports selected consistency; older Get APIs may ignore
-   consistencyLevel. No unsupported parameter or stale-read acceptance claim.
-3. Inspect caches before nativeallocation. Reuse suitable runtime/service or create
+Bounded CQL now binds the shared identitycompiler: trusted completecatalogue
+<=100GUIDs, identityBoolean/equality/membership, stablepaging. One native
+entities/query sends exact id-in-JSONlist, outputFields id/doc, selectedcount+1,
+offset0 and consistencyLevel=Strong; Request-Timeout15 and linked15sdeadline.
+No vector similarity, fullscan, per-key read loop or hidden content predicates.
+Emptycatalogue avoids I/O. Nativecode/array/count/duplicate/foreign/native-vs-payload
+identity/read authority checked beforepublication; canonical doc bytebound65535
+and envelope4MiB enforced. Deletedpayloads excluded; stable key order beforepaging.
+Failures/cancellation/resultbudgets publish no partialrows; unsupportedmetadata/
+order/children/history reject through capability admission.
+
+50totaltests pass (28prior +9compiler/admission +13queryboundary). NativeHTTP is
+injected; nativeSDK/runtime/consistency/durability are not certified by controls.
+[Query tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests/MilvusNativeQueryTests.cs),
+[compiler tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests/MilvusCqlTests.cs).
+Fresh raw evidence TestResults/MilvusCqlCurrent/cql-controls.trx SHA256
+`1944eb45642960424617b1321ff6216dad1b644dcc13eab44a0b540152c0ab4f`.
+The2.6RESTQuery documentation omits consistencyLevel, but pinned2.6.4 server code
+explicitly maps it into the native QueryRequest. This is a source-verified request
+contract, with nativebehavior acceptance still pending; no olderGet assumption.
+[Query handler source](https://github.com/milvus-io/milvus/blob/v2.6.4/internal/distributed/proxy/httpserver/handler_v2.go#L765).
+
+Next: Inspect caches before nativeallocation. Reuse suitable runtime/service or create
    one inventoried free authenticated retained source if missing. Verify original
    records/nativecollectionIDs/receipts/payload across restart, then Mongo-paired
    C#/HTTP/browser5/4 and hub. Never replay/reseed/reset/rebaseline unknownoutcomes.

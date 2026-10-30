@@ -2868,3 +2868,16 @@ Milvus schema extension reused sameSDK/cache/buildoutputs, no download/restore/
 service/database.28tests pass afterboundedproducer/unitbuilds underonelease.
 Additional schema-save-controls.trx/log in fixed TestResults/MilvusCqlCurrent
 (unmeasured/regenerable/disposable afterexit); sharedruntime/cache retained.
+
+### Milvus CQL controls planned — 2026-10-30 / COSMIC
+Reuse same taskworktree/SDK10.0.401/NuGet cache and Milvus bin/obj; cache-only
+restore for addedexistingShared.KeyValueStorage projectreference. Oneboundedbuild
+lease; compactlogs/TRX TestResults/MilvusCqlCurrent unmeasured/disposable afterexit.
+No nativeenvironment/runtime/service/dataset allocation or package download.
+
+Milvus CQL controls outcome:50pass/0fail/0skip; cache-only producer/unit restores
+and boundedbuilds pass with existingShared.KeyValueStorage reference. No new
+package/runtime/service/dataset. TestResults/MilvusCqlCurrent/cql-controls.trx/log
+and bin/obj unmeasured/disposable afterexit, regenerate with sameboundedlease.
+Native queryHTTP injected, sourceverified2.6.4consistencyfield; no nativeenvironment
+allocated or durability acceptance claimed. SharedSDK/NuGet caches retained.
