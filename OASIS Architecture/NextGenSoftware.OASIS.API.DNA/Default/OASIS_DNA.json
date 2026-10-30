@@ -581,6 +581,11 @@
       "ConnectionEncryptionKey": "",
       "MaximumSavedConnectionsPerAvatar": 10
     },
+    "Cql": {
+      "SharedReads": true,
+      "InheritedReads": true,
+      "GroupCacheSeconds": 15
+    },
     "Sandbox": {
       "Enabled": false,
       "Providers": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS",

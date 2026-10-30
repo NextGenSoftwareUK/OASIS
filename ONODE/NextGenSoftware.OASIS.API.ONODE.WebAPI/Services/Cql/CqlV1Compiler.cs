@@ -192,7 +192,7 @@ public static partial class CqlV1Compiler
         // Mandatory access restriction enters the SAME native plan before filters, ordering
         // and paging. Shared-index metadata cannot grant access; Wizard does not bypass this.
         var query = CosmicQuery<Holon>.Create(provider.HasValue ? CosmicQueryScope.Named(provider.Value).Result : CosmicQueryScope.CurrentDefault);
-        if (bindAccess) query = Add(query, actor, access);
+        if (bindAccess) query = Add(query, actor, access, provider);
         if(graphDescription!=null)
         {
             var graph=graphDescription;
@@ -281,28 +281,26 @@ public static partial class CqlV1Compiler
     }
 
     /// <summary>
-    /// Opt-in: when set, plain CQL queries also return holons whose owner granted the actor (or a group they are in, or
-    /// everyone) whole-holon read, found natively through the "shared with" index. The host returns the actor's group ids.
-    /// Left null, queries keep the owner/public rule. Joins and projection composition always use owner/public.
+    /// What a caller sees by default: their own and public holons, and (when the host provides this) holons their owner shared
+    /// with them, a group they are in, or everyone. Null keeps the plain owner/public rule. Set once at start-up.
     /// </summary>
-    public static Func<Guid, System.Collections.Generic.IEnumerable<Guid>> SharedReadGroups { get; set; }
+    public static ICqlSharedReads SharedReads { get; set; }
 
-    /// <summary>
-    /// With <see cref="SharedReadGroups"/> set, also return holons below one that granted read to everything beneath it
-    /// (the <c>inherit</c> section). Needs a provider that declares ancestor support (MongoDBOASIS today); others reject the
-    /// query. Off by default.
-    /// </summary>
-    public static bool SharedReadIncludesInherited { get; set; }
+    internal static NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess> DefaultReadAccess(Guid actor, ProviderType? provider)
+        =>DefaultReadAccess(actor,provider,SharedReads);
 
-    internal static NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess> DefaultReadAccess(Guid actor)
+    internal static NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess> DefaultReadAccess(Guid actor, ProviderType? provider,
+        ICqlSharedReads shared)
     {
-        var groups=SharedReadGroups;
-        return groups==null?CosmicQueryReadAccess.OwnerOrPublic(actor):CosmicQueryReadAccess.OwnerPublicOrShared(actor,groups(actor),SharedReadIncludesInherited);
+        if(shared==null||!shared.SharedReads)return CosmicQueryReadAccess.OwnerOrPublic(actor);
+        // Inherited reads need the provider to walk up the parent chain natively; one that cannot keeps the plain shared rule.
+        var inherited=shared.InheritedReads&&shared.ProviderWalksAncestors(provider);
+        return CosmicQueryReadAccess.OwnerPublicOrShared(actor,shared.GroupsOf(actor),inherited);
     }
 
-    private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor,CosmicQueryReadAccess trusted)
+    private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor,CosmicQueryReadAccess trusted,ProviderType? provider=null)
     {
-        var access=trusted==null?DefaultReadAccess(actor):new NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess>(trusted);
+        var access=trusted==null?DefaultReadAccess(actor,provider):new NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess>(trusted);
         if(access.IsError)throw new ArgumentException(access.Message);
         var secured = query.WithReadAccess(access.Result);
         if (secured.IsError) throw new ArgumentException(secured.Message);
@@ -388,3 +386,20 @@ public static partial class CqlV1Compiler
         return Expression.MakeBinary(node, path, literal);
     }
 }
+
+/// <summary>
+/// The host's answer to "what has been shared with this caller": whether shared reads are on, the caller's groups, and
+/// whether the provider about to run the query can walk up the parent chain natively.
+/// </summary>
+public interface ICqlSharedReads
+{
+    /// <summary>Queries also return holons shared with the caller, their groups, or everyone.</summary>
+    bool SharedReads { get; }
+    /// <summary>Also return holons below one that granted read to everything beneath it, where the provider can.</summary>
+    bool InheritedReads { get; }
+    /// <summary>The groups the caller belongs to, including groups of groups. A failed lookup returns none (shares less, never more).</summary>
+    System.Collections.Generic.IReadOnlyCollection<Guid> GroupsOf(Guid actor);
+    /// <summary>The provider (null: the current default) declares native ancestor support.</summary>
+    bool ProviderWalksAncestors(ProviderType? provider);
+}
+
