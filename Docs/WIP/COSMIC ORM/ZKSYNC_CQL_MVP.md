@@ -36,10 +36,32 @@ missing file initially refused before startup. No source was lost: environment
 remains empty and no deployments/writes occurred. Logs under
 `TestResults/ZkSyncCqlCurrent/startup-summary.log` and `startup.log`.
 
-Exact next: establish and verify the pinned runtime's explicit checkpoint/export
-and load semantics before any fixture writes, then journal encrypted three-record
-fixture/filter-to-two/restart and Mongo-paired C#/HTTP/browser5/4. Preserve original
-source after first write; never replace this native gate with Ganache success.
+## Reproduced native checkpoint gate
+
+`Scripts/TestHosts/Test-CosmicZkSyncCheckpoint.py` journalled three synthetic mined
+blocks (no business writes), exported original `anvil_dumpState(true)` and retained
+`/var/tmp/oasis-zksync-cql/checkpoint.hex`371,240B plus acknowledgement94B.
+The exact decoded gzip `checkpoint.bin`185,619B is retained for CLI-load evidence.
+Total retained environment556,953B. Original pending intent is resolved; no fixture
+contract/records exist. Export/hash succeeded; restart acceptance **fails**.
+
+Both `anvil_loadState` into a separately started interpreter node and CLI
+`--load-state checkpoint.bin --evm-interpreter` reject `LoadingStateOverExistingState`.
+Pinned upstream root cause: [CLI startup](https://github.com/matter-labs/anvil-zksync/blob/v0.6.11/crates/cli/src/main.rs)
+executes the interpreter-enabling transaction before loading state;
+[the loader](https://github.com/matter-labs/anvil-zksync/blob/v0.6.11/crates/core/src/node/inner/in_memory_inner.rs)
+rejects `storage.blocks.len() > 1`. This is not evidence of corrupted source.
+Immediate shutdown also did not produce the promised dump; explicit RPC export did.
+Do not switch off interpreter checks, load over nonempty state, reset/reseed, or
+claim Ganache proves native zkSync recovery.
+
+Test command: `wsl -d Ubuntu -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/Test-CosmicZkSyncCheckpoint.py`.
+It reuses and verifies the existing checkpoint, never replays the initial probe.
+Current nonzero result is the reproduced upstream startup-order gate. Evidence:
+`TestResults/ZkSyncCqlCurrent/checkpoint-summary.log` and `checkpoint-reload.log`.
+All owned processes exited;18548 has no listener. Next zkSync step requires a
+verified upstream startup-order correction compatible with interpreter checkpoints.
+The native/paired MVP remains red; continue breadth with Monad's provider audit.
 
 Public network/sequencer/finality/bridging, central registration and full parity
 remain unverified. No MVP proof link yet.
