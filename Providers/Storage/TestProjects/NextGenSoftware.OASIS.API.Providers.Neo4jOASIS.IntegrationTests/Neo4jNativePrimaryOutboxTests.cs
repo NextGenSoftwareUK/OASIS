@@ -61,6 +61,14 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(saved.Result.Single().VersionId,frozen.Roots.Single().VersionId);
             Assert.AreEqual(child.Id,frozen.Roots.Single().Children.Single().Id);
             Assert.AreEqual("Pending",first["DeliveryState"].As<string>());
+            var sourceReader=(IHolonReplicationObligationReader)provider.GetHolonReplicationOutbox().Result;
+            var beforeInspection=OasisJson.Serialize(first.Properties.OrderBy(pair=>pair.Key,StringComparer.Ordinal).ToDictionary(pair=>pair.Key,pair=>pair.Value));
+            var inspected=await sourceReader.ReadObligationAsync(first["Sequence"].As<long>());
+            Assert.IsFalse(inspected.IsError,inspected.Message+inspected.Exception);Assert.AreEqual(json,inspected.Result.PayloadJson);
+            Assert.AreEqual(operation,inspected.Result.Inspection.OperationId);
+            var unchanged=(await(await inspection.RunAsync("MATCH (o:CosmicHolonOutbox {Sequence:$sequence}) RETURN o",new{sequence=first["Sequence"].As<long>()})).SingleAsync())["o"].As<INode>();
+            Assert.AreEqual(beforeInspection,OasisJson.Serialize(unchanged.Properties.OrderBy(pair=>pair.Key,StringComparer.Ordinal).ToDictionary(pair=>pair.Key,pair=>pair.Value)));
+            Assert.IsNull((await sourceReader.ReadObligationAsync(long.MaxValue)).Result);
             await provider.DeActivateProviderAsync();provider=new Provider(uri,"neo4j","oasis-local-test-only");
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
             var replay=await Write(new HolonReplicationEnrollment(source,new[]{targetA,targetB}));
