@@ -1,5 +1,4 @@
 param([switch]$Federated,[switch]$Serve,[switch]$Content)
-if($Content -and ($Federated -or $Serve)){throw "Content native proof is separate from the existing identity federation preset."}
 if($Serve -and !$Federated){throw "Serve requires explicit federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -7,12 +6,14 @@ $state=Join-Path $root 'LocalState/COSMIC/PostgreSqlCql'
 $results=Join-Path $root 'TestResults/PostgreSqlCqlCurrent'
 New-Item -ItemType Directory -Force -Path $state,$results | Out-Null
 $lease=[IO.File]::Open((Join-Path $state 'runner.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$oldContent=$env:OASIS_POSTGRES_CQL_CONTENT
 $oldConnection=$env:OASIS_POSTGRES_CQL_CONNECTION
 $oldState=$env:OASIS_POSTGRES_CQL_STATE
 $oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_POSTGRES_MONGO_SERVE
 $lifecycleMongo=@{Process=$null}
 $lifecycle=@{Started=$false;Passed=$false};$secret=$null
 try {
+    if($Content -and (Test-Path -LiteralPath (Join-Path $state 'mongo-content.pending.json'))){throw 'Content Mongo fixture unresolved.'}
     if($Content -and (Test-Path -LiteralPath (Join-Path $state 'content-seed.pending.json'))){throw 'Content setup pending; preserve without replay.'}
     if(Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')){throw 'Original setup is pending; inspect without replay.'}
     if(Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json')){throw 'Original Mongo fixture unresolved.'}
@@ -53,6 +54,7 @@ try {
         if([string]::IsNullOrWhiteSpace($secret)){throw 'Protected test credential required.'}
         $env:OASIS_POSTGRES_CQL_CONNECTION="Host=127.0.0.1;Port=15432;Database=oasis_provider_test;Username=oasis_test;Password=$secret;Search Path=cosmic_cql,pg_catalog;Timeout=10;Command Timeout=15;Pooling=false"
         $env:OASIS_POSTGRES_CQL_STATE=$state
+        $env:OASIS_POSTGRES_CQL_CONTENT=if($Content){'1'}else{'0'}
         $nativeFilter=if($Content){'FullyQualifiedName~PostgreSqlCqlContentNativeTests'}else{'FullyQualifiedName~PostgreSqlCqlNativeTests'}
         $nativeReport=if($Content){'postgres-content-native.trx'}else{'postgres-cql-native.trx'}
         $nativeLog=if($Content){'content-native.log'}else{'native.log'}
@@ -77,17 +79,20 @@ try {
             if(!$mongoReady){throw 'Owned Mongo startup deadline exceeded.'}
             $env:OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
             $env:OASIS_POSTGRES_MONGO_SERVE=if($Serve){'1'}else{'0'}
-            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~PostgreSqlMongoCqlNativeTests --logger 'trx;LogFileName=postgres-mongo-federation.trx' --results-directory $results -v:q *> (Join-Path $results 'postgres-mongo-federation.log')
+            $pairedReport=if($Content){'postgres-content-mongo-federation.trx'}else{'postgres-mongo-federation.trx'}
+            $pairedLog=if($Content){'postgres-content-mongo-federation.log'}else{'postgres-mongo-federation.log'}
+            & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~PostgreSqlMongoCqlNativeTests --logger "trx;LogFileName=$pairedReport" --results-directory $results -v:q *> (Join-Path $results $pairedLog)
             if($LASTEXITCODE){throw 'Paired PostgreSql CQL failed; preserve ownership journal.'}
-            [xml]$paired=Get-Content (Join-Path $results 'postgres-mongo-federation.trx')
+            [xml]$paired=Get-Content (Join-Path $results $pairedReport)
             if($paired.TestRun.ResultSummary.Counters.total -ne '1' -or $paired.TestRun.ResultSummary.Counters.passed -ne '1'){throw 'Exactly one paired pass required.'}
-            if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Mongo fixture cleanup incomplete.'}
-            Get-Content (Join-Path $results 'postgres-mongo-federation.log') -Tail 4
+            $mongoJournal=if($Content){'mongo-content.pending.json'}else{'mongo.pending.json'}
+            if(Test-Path (Join-Path $state $mongoJournal)){throw 'Mongo fixture cleanup incomplete.'}
+            Get-Content (Join-Path $results $pairedLog) -Tail 4
         }
         $lifecycle.Passed=$true
     }
 } finally {
-    $env:OASIS_POSTGRES_CQL_CONNECTION=$oldConnection;$env:OASIS_POSTGRES_CQL_STATE=$oldState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_POSTGRES_MONGO_SERVE=$oldServe;$secret=$null
+    $env:OASIS_POSTGRES_CQL_CONTENT=$oldContent;$env:OASIS_POSTGRES_CQL_CONNECTION=$oldConnection;$env:OASIS_POSTGRES_CQL_STATE=$oldState;$env:OASIS_MONGO_REPLICA_SET_CONNECTION=$oldMongo;$env:OASIS_POSTGRES_MONGO_SERVE=$oldServe;$secret=$null
     if($lifecycleMongo.Process){if(!$lifecycleMongo.Process.HasExited){$lifecycleMongo.Process.Kill();if(!$lifecycleMongo.Process.WaitForExit(30000)){throw "Owned Mongo stop incomplete."}};$lifecycleMongo.Process.Dispose()}
     if($lifecycle.Started -and $lifecycle.Passed){& wsl -d Ubuntu -u root -- podman stop --time 20 oasis-postgres | Out-Null;if($LASTEXITCODE){throw 'Owned container stop failed.'}}
     $lease.Dispose()

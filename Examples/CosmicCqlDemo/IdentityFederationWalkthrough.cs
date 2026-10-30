@@ -21,15 +21,31 @@ public static class IdentityFederationWalkthrough
         TextWriter output,
         CancellationToken cancellationToken = default)
     {
-        if (mongo.QueryProviderType != ProviderType.MongoDBOASIS ||
-            secondary.QueryProviderType is ProviderType.MongoDBOASIS or ProviderType.Default or ProviderType.None or ProviderType.All)
-            throw new ArgumentException("Supply activated Mongo and one distinct concrete provider, in that order.");
-
         // 1. Freeze the user's selection. Both native sources receive the same
         // Contains predicate. These are canonical holon IDs, not storage addresses.
         var ids = selectedIds.ToArray();
         var scope = Require(CosmicQueryScope.Named(mongo.QueryProviderType, secondary.QueryProviderType));
         var source = Require(CosmicQuery<Holon>.Create(scope).Where(row => ids.Contains(row.Id)));
+
+        return await RunQueryAsync(manager, mongo, secondary, source,
+            readableMongoIds, readableSecondaryIds, actor, output, cancellationToken);
+    }
+
+    /// <summary>Execute a captured content or identity query through the same native owners.</summary>
+    public static async Task<CosmicFederationResult> RunQueryAsync(
+        HolonManager manager,
+        ICosmicQueryStorageProvider mongo,
+        ICosmicQueryStorageProvider secondary,
+        CosmicQuery<Holon> source,
+        IEnumerable<Guid> readableMongoIds,
+        IEnumerable<Guid> readableSecondaryIds,
+        Guid actor,
+        TextWriter output,
+        CancellationToken cancellationToken = default)
+    {
+        if (mongo.QueryProviderType != ProviderType.MongoDBOASIS ||
+            secondary.QueryProviderType is ProviderType.MongoDBOASIS or ProviderType.Default or ProviderType.None or ProviderType.All)
+            throw new ArgumentException("Supply activated Mongo and one distinct concrete provider, in that order.");
 
         // 2. Authorization belongs to each source. Obtain these catalogues from
         // trusted application policy, never from IDs submitted in an HTTP request.
@@ -55,7 +71,7 @@ public static class IdentityFederationWalkthrough
         // operation: no cached or other-provider rows replace its contribution.
         var result = Require(await manager.ExecuteFederationQueryAsync(plan, adapters, cancellationToken));
 
-        await output.WriteLineAsync($"\n=== CQL: Mongo + {DisplayName(secondary)} identity membership ===\n");
+        await output.WriteLineAsync($"\n=== CQL: Mongo + {DisplayName(secondary)} native query ===\n");
         await output.WriteLineAsync($"Physical rows observed: {result.ObservedInputRows}\n");
         foreach (var row in result.Rows)
         {

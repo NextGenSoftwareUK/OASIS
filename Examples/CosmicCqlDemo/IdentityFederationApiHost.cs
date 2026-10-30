@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace CosmicCqlDemo;
@@ -26,7 +28,8 @@ public static class IdentityFederationApiHost
         IEnumerable<Guid> selectedIds,
         IEnumerable<Guid> readableMongoIds,
         IEnumerable<Guid> readableSecondaryIds,
-        string address = "http://127.0.0.1:5090")
+        string address = "http://127.0.0.1:5090",
+        IReadOnlyDictionary<string, CosmicQuery<Holon>> contentPresets = null)
     {
         var uri = new Uri(address);
         if (uri.Scheme != "http" || uri.Host != "127.0.0.1")
@@ -34,6 +37,7 @@ public static class IdentityFederationApiHost
 
         // Capture trusted fixture/catalogues once. Browser input selects only a
         // named preset and cannot grant access, choose a provider or change actor.
+        var content = contentPresets?.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
         var ids = selectedIds.ToArray();
         var mongoIds = readableMongoIds.ToArray();
         var secondaryIds = readableSecondaryIds.ToArray();
@@ -235,6 +239,14 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained Realtime Database emulator checkpoint for Firebase through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Firebase checkpoint)", StringComparison.Ordinal);
+        if (content != null)
+        {
+            page = page.Replace("<button id=\"subset\">Query two-record subset</button>",
+                "<button id=\"subset\">Query two-record subset</button>" + ContentButtons, StringComparison.Ordinal);
+            page = page.Replace("document.getElementById('subset').onclick = () => query('subset');",
+                "document.getElementById('subset').onclick = () => query('subset');" +
+                "\n['name','description','metadata','combined'].forEach(preset => document.getElementById(preset).onclick = () => query(preset));", StringComparison.Ordinal);
+        }
         app.MapGet("/", () => Results.Content(page, "text/html"));
         app.MapPost("/api/cql/federation", async (IdentityFederationRequest request, CancellationToken cancellation) =>
         {
@@ -244,14 +256,19 @@ public static class IdentityFederationApiHost
                 "subset" => ids.Take(2).ToArray(),
                 _ => null
             };
-            if (selection == null) return Results.BadRequest(new { code = "DEMO_PRESET_REQUIRED" });
+            CosmicQuery<Holon> contentSource = null;
+            if (selection == null && (content == null || !content.TryGetValue(request.Preset, out contentSource)))
+                return Results.BadRequest(new { code = "DEMO_PRESET_REQUIRED" });
 
             try
             {
                 // The same C# walkthrough used by the SDK acceptance executes the
                 // native providers; no HTTP-specific query engine or local scan.
-                var result = await IdentityFederationWalkthrough.RunAsync(
-                    manager, mongo, secondary, selection, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation);
+                var result = contentSource != null
+                    ? await IdentityFederationWalkthrough.RunQueryAsync(manager, mongo, secondary,
+                        contentSource, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation)
+                    : await IdentityFederationWalkthrough.RunAsync(manager, mongo, secondary,
+                        selection, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation);
                 return Results.Ok(new
                 {
                     count = result.Rows.Count,
@@ -280,6 +297,29 @@ public static class IdentityFederationApiHost
         });
         return app;
     }
+
+    private const string ContentButtons = """
+        <h3>Filter native content on both providers</h3>
+        <p>Each button runs the same CQL predicate on both sources. Copies stay visible.</p>
+        <pre><code>// Exact name (2 copies of Espresso)
+        source.Where(h =&gt; h.Name == "Espresso");
+
+        // Description text (4 coffee copies)
+        source.Where(h =&gt; h.Description.Contains("coffee"));
+
+        // String metadata (4 coffee copies)
+        source.Where(h =&gt;
+            CosmicQueryMetadata.Value&lt;string&gt;(h, "category") == "coffee");
+
+        // AND / OR: Espresso matches; Tea is excluded by category.
+        source.Where(h =&gt;
+            (h.Name == "Espresso" || h.Name == "Tea") &amp;&amp;
+            CosmicQueryMetadata.Value&lt;string&gt;(h, "category") == "coffee");</code></pre>
+        <button id="name">Exact name</button>
+        <button id="description">Description Contains</button>
+        <button id="metadata">Metadata equality</button>
+        <button id="combined">AND / OR</button>
+        """;
 
     private const string Page = """
         <!doctype html>

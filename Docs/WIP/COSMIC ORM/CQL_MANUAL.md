@@ -1503,10 +1503,23 @@ Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PostgreSQL -Federated`
 Use `-ShowPlan` to inspect or `-VerifyOnly` for automated checks and teardown.
 The teaching preset returns five physical rows, then four for a two-ID selection,
 with provider labels. PostgreSQL uses one parameterized native SELECT over an
-explicit trusted UUID catalogue; unsupported content predicates reject. This is
+explicit trusted UUID catalogue. The separate content demo below adds native filters. This is
 retained local canonical JSON, not application encryption or hosted certification.
 Stop using the page button; the original PostgreSQL source is preserved and only
 the verified temporary Mongo fixture is removed. [Full scope](POSTGRESQL_CQL_MVP.md).
+
+For native name, description, metadata and AND/OR examples, run:
+
+```powershell
+Scripts/TestHosts/Run-CosmicPostgreSqlCqlNative.ps1 -Content -Federated -Serve
+```
+
+Open http://127.0.0.1:5112/. Four clearly spaced/commented presets return2/4/4/2
+physical rows across PostgreSQL and Mongo; both copies keep provider labels.
+The same C# source drives HTTP/browser execution. The trusted per-provider
+catalogues stay in the host. Native17-query/restart and paired C#/HTTP/browser
+proofs pass; deployed WEB4 sandbox registration/auth/admission remains separate.
+Use the page stop button for verified temporary fixture cleanup; retain source.
 
 ## SQL Server + Mongo MVP
 

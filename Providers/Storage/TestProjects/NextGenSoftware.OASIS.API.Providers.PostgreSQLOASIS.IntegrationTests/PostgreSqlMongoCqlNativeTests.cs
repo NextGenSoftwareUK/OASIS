@@ -23,26 +23,32 @@ public class PostgreSqlMongoCqlNativeTests
     {
         
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
-        const string database = "cosmic_cql_mongo_postgres_demo";
+        var contentDemo = Environment.GetEnvironmentVariable("OASIS_POSTGRES_CQL_CONTENT") == "1";
+        var database = contentDemo ? "cosmic_cql_mongo_postgres_content_demo" : "cosmic_cql_mongo_postgres_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Environment.GetEnvironmentVariable("OASIS_POSTGRES_CQL_STATE")!;
-        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "demo-seed.json")));
-        var postgresIds = seed.RootElement.GetProperty("Ids").EnumerateArray().Select(v => v.GetGuid()).ToArray();
+        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, contentDemo ? "content-seed.json" : "demo-seed.json")));
+        var postgresIds = seed.RootElement.GetProperty("Ids").EnumerateArray().Select(v => v.GetGuid()).Take(3).ToArray();
         var actor = seed.RootElement.GetProperty("Actor").GetGuid();
         using var sourceLease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         Assert.IsFalse(File.Exists(Path.Combine(state, "demo-seed.pending.json")));
         Assert.IsTrue(File.Exists(Path.Combine(state, "source-snapshot.json")));
-        var journal = Path.Combine(state, "mongo.pending.json");
+        var journal = Path.Combine(state, contentDemo ? "mongo-content.pending.json" : "mongo.pending.json");
         Assert.IsFalse(File.Exists(journal), "Preserve unfinished Mongo fixture.");
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync()) Assert.IsFalse((await names.ToListAsync()).Contains(database));
         var records = postgresIds.Take(2).Append(Guid.NewGuid()).Select((id,index) => new Holon {
-            Id = id, Name = "COSMIC owned PostgreSql Mongo copy " + index, CreatedByAvatarId = actor
+            Id = id, Name = contentDemo ? new[] { "Espresso", "Latte", "Hidden coffee" }[index] : "COSMIC owned PostgreSql Mongo copy " + index,
+            Description = contentDemo ? "coffee" : "", MetaData = new Dictionary<string, object> { ["category"] = "coffee" }, CreatedByAvatarId = actor
         }).ToArray();
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         { await JsonSerializer.SerializeAsync(file, new { database, actor, ids = records.Select(r => r.Id) }); file.Flush(true); }
 
-        var postgres = new PostgreSQLOASIS(Environment.GetEnvironmentVariable("OASIS_POSTGRES_CQL_CONNECTION")!);
+        var connection = new Npgsql.NpgsqlConnectionStringBuilder(Environment.GetEnvironmentVariable("OASIS_POSTGRES_CQL_CONNECTION")!);
+        if (contentDemo) connection.SearchPath = "cosmic_cql_content,pg_catalog";
+        var postgres = new PostgreSQLOASIS(connection.ConnectionString);
+        var mongoReadable = (contentDemo ? records.Take(2) : records).Select(record => record.Id).ToArray();
+        var contentPresets = contentDemo ? CosmicCqlDemo.ContentFederationPresets.Create(ProviderType.PostgreSQLOASIS) : null;
         var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(mongoUri, database) { IsVersionControlEnabled = false };
         try
         {
@@ -64,15 +70,26 @@ public class PostgreSqlMongoCqlNativeTests
             foreach (var selection in new[] { postgresIds, postgresIds.Take(2).ToArray() })
             {
                 var result = await CosmicCqlDemo.IdentityFederationWalkthrough.RunAsync(manager, mongo, postgres,
-                    selection, records.Select(r => r.Id), postgresIds, actor, TextWriter.Null);
+                    selection, mongoReadable, postgresIds, actor, TextWriter.Null);
                 Assert.AreEqual(selection.Length + 2, result.Rows.Count);
                 Assert.AreEqual(selection.Length + 2, result.ObservedInputRows);
                 Assert.AreEqual(selection.Length, result.Rows.Count(r => r.Selected.Provider == ProviderType.PostgreSQLOASIS));
                 Assert.AreEqual(2, result.Rows.Count(r => r.Selected.Provider == ProviderType.MongoDBOASIS));
                 Assert.IsFalse(result.Rows.Any(r => r.Selected.Row.Id == records[2].Id));
             }
+            if (contentPresets != null)
+                foreach (var preset in contentPresets)
+                {
+                    var result = await CosmicCqlDemo.IdentityFederationWalkthrough.RunQueryAsync(manager, mongo, postgres,
+                        preset.Value, mongoReadable, postgresIds, actor, TextWriter.Null);
+                    var expected = preset.Key is "name" or "combined" ? 2 : 4;
+                    Assert.AreEqual(expected, result.Rows.Count);
+                    Assert.AreEqual(expected / 2, result.Rows.Count(row => row.Selected.Provider == ProviderType.PostgreSQLOASIS));
+                    Assert.AreEqual(expected / 2, result.Rows.Count(row => row.Selected.Provider == ProviderType.MongoDBOASIS));
+                    Assert.IsFalse(result.Rows.Any(row => row.Selected.Row.Id == records[2].Id));
+                }
             await using (var app = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, postgres, actor,
-                postgresIds, records.Select(r => r.Id), postgresIds, "http://127.0.0.1:0"))
+                postgresIds, mongoReadable, postgresIds, "http://127.0.0.1:0", contentPresets))
             {
                 await app.StartAsync();
                 try
@@ -97,6 +114,17 @@ public class PostgreSqlMongoCqlNativeTests
                         Assert.AreEqual(expected, body.RootElement.GetProperty("observedPhysicalRows").GetInt32());
                         Assert.AreEqual(expected - 2, body.RootElement.GetProperty("rows").EnumerateArray().Count(r => r.GetProperty("provider").GetString() == "PostgreSQLOASIS"));
                     }
+                    if (contentPresets != null)
+                        foreach (var preset in contentPresets.Keys)
+                        {
+                            using var response = await http.PostAsJsonAsync("/api/cql/federation", new { preset });
+                            Assert.IsTrue(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+                            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                            var expected = preset is "name" or "combined" ? 2 : 4;
+                            Assert.AreEqual(expected, body.RootElement.GetProperty("count").GetInt32());
+                            Assert.AreEqual(expected / 2, body.RootElement.GetProperty("rows").EnumerateArray()
+                                .Count(row => row.GetProperty("provider").GetString() == "PostgreSQLOASIS"));
+                        }
                     Assert.IsFalse((await postgres.DeActivateProviderAsync()).IsError);
                     using var failed = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "all" });
                     Assert.AreEqual(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
@@ -108,7 +136,7 @@ public class PostgreSqlMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_POSTGRES_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, postgres, actor,
-                    postgresIds, records.Select(r => r.Id), postgresIds, "http://127.0.0.1:5112");
+                    postgresIds, mongoReadable, postgresIds, "http://127.0.0.1:5112", contentPresets);
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
                 await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5112/", providers = new[] { "MongoDBOASIS", "PostgreSQLOASIS" } }));
