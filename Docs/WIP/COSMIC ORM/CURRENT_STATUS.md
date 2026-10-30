@@ -2,88 +2,51 @@
 
 Updated 30 October 2026 UTC. Full programme remains incomplete.
 
-## Current phase: MVP demo only
+## Current phase: hosted three-database MVP verified; continue demo breadth
 
-- Worktree: C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql-sandbox-integration.
-- Verified demo repair batch pushed to Development: parent51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3; Coreff670ec65eb2d6e98ec0858af146eba704752b20; ONODE6b5d9d0 preserved. Manifest/gitlinks and remote pushes verified.
-- Railway WEB4 deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b for exact repair commit is BUILDING (queue slot acquired). Prior active deploymentca0c6055-2ab7-4517-b790-40431aa4e7d5 serves olde6c09bf. Do not start a replacement build or claim repair live.
-- Eight builds, 36 API/schema/metadata controls, eight real native billing lifecycle cases and four native ancestor cases passed. Owned fixtures removed; Mongo stopped.
-- Hosted verifier acknowledged all three demo saves with accounting operation IDs. Subsequent point-read observations timed out after 45 seconds; CQL acceptance stages did not run. Do not call the hosted demo verified.
-- Preserve LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json and its three write acknowledgements. No pending mutation; never replay those writes. Original JWT is unavailable. Verifier now protects future sessions with Windows DPAPI and supports --resume for three fully acknowledged saves;8 offline controls pass. This cannot recover the old token.
-- Evidence: TestResults/Web4SandboxCqlCurrent/hosted-demo-verification.json and LocalState/COSMIC/HostedSandboxCqlCurrent/read-diagnostic.json. Read shapes alone do not establish which replication copies exist.
+- Worktree C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql-sandbox-integration. Never build/write in the original C:/Source/OASIS checkout.
+- Development parent51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3 / Coreff670ec65eb2d6e98ec0858af146eba704752b20; ONODE6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved. Pins/gitlinks/remote pushes verified.
+- Exact Railway WEB4 deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b SUCCESS, health200, running process commit/deployment checked. One consolidated repair batch; no replacement build.
+- Hosted acceptance35/35 HTTP steps, no failures:3 acknowledged saves;9 exact point reads;5 CQL forms per provider (name, description, metadata AND/OR, paging, count); Mongo/SQLite/Neo federation6 physical coffee copies;3 cross-user isolation checks. Two free-plan/pay-as-you-go-disabled sessions.
+- Evidence TestResults/Web4SandboxCqlCurrent/hosted-demo-verification.json SHA2563B3D58D8754395F2EDB1A29015D52651B1294155FCB97517FBBC6B8900DC2DEA. This proves this demo flow, not full EF parity or all failure/placement semantics.
 
-## Configuration correction
+## Hosted replication blocker repaired
 
-- The previous profile incorrectly enrolled operation recovery without an application-authorized recovery policy; the real startup guard rejected it. No guard was weakened.
-- Concurrent live configuration correction removed that route. Current six-route live profile matches the corrected template: three query routes plus save/batch/delete; 21 zero-price tariffs, quota/measurement guards retained.
-- Template/startup regression correction is task-branch work for the next normal integration batch. Ten profile controls pass; red-before and green-after evidence in TestResults/Web4SandboxCqlCurrent/profile-startup-{before,after}.trx.
+- Mongo queue sequences6/version4 and8/version17 were missing initial SQLite enrollment. Native read-only inspection proved no target current/head/history/matching receipt for either root.
+- Both explicit trusted baseline applications succeeded and durably source-completed, preserving original failure evidence. Ordinary worker drained subsequent obligations; original cohort has3 SQLite +3 Neo Completed obligations and no unfinished SQLite head. Actual original SQLite3 identities/names/owners/version1 checked.
+- Root6:874fe30b-7702-4905-9e5b-ffa93a8621f8; initd1779b77-77bb-4dd4-b558-65985ae62db0. Root8:715eb09e-ce75-4ab3-9f4e-e76c0493281a; initb1c16263-bec5-4bc7-9c7d-5b05ec8da7ee. Never reset/skip queues or replay business saves.
+- Remote protected requests/journals /data/COSMIC/ReplicaRepair/request.json and request-8-reviewed.json (+.application.json/.lock) remain required recovery evidence. Local matching requests under LocalState/COSMIC/HostedReplicaRepairCurrent. Original denied request-8.json preserved separately.
+- Root8 review initially confused record creator with queued writer. Policy denied before journal/submission. Diagnostic now reports payload ActorId separately from CreatedByAvatarId; native regression with differing creator/writer passes. Corrected request retained the SAME initialization operation, no new write identity.
+- Retained-copy/repair evidence TestResults/Web4SandboxCqlCurrent/hosted-retained-copy-verification.json SHA25647B157DE38B3BB1FAD2F17F47FD5DEE2C5838D3D64F63D40CEDDF942C03C8789.
 
-## Verified replication diagnosis and exact next step
+## Verified repair components
 
-Read-only live probe proves all three retained records exist in Mongo with the correct owner. Their three Neo4j obligations are Completed (one attempt each); all three SQLite obligations remain Pending (zero attempts). SQLite queue head sequence 6 / operation 79a05552-1bf3-4e26-a763-88c0e48b14a9 is ReconciliationRequired with COSMIC_REPLICA_LINEAGE_CONFLICT. Ordered delivery correctly holds newer writes behind it. Hosted next: inspect the earlier source/target lineage before an authorized recovery; never skip/reset the barrier or replay acknowledged writes. The blocked holon is 874fe30b-7702-4905-9e5b-ffa93a8621f8 at version 4; five retained SQLite entries through sequence 6 contain only that version for this holon, with no predecessor enrollments. Investigate explicit enrollment/bootstrap and actual destination lineage before recovery. Subsequent bounded SSH inspection succeeded using the registered task identity. API process1 has /data/OASISSQLLiteDB.db open. Read-only native queries (normalized GUIDs) found zero current rows, replica heads, archived revisions and matching receipt JSON for the blocked holon. Evidence: TestResults/Web4SandboxCqlCurrent/hosted-sqlite-lineage-inspection.json, SHA256 F20AEA3AE71C7C938FF07455539DED2F807ED3A27FB494CC0108D76DADE28F9D. This supports missing initial enrollment; it is not atomic baseline admission or permission to skip/retry the held entry. Next hosted step: deploy the verified shell-only command batch, apply the retained exact hosted repair request, and verify queued demo delivery plus point-load/CQL acceptance. Keep implementation limited to this reproduced blocker. No hosted data changed. Exact request retained at LocalState/COSMIC/HostedReplicaRepairCurrent/request.json (SHA2563E2C691C3578239C0A9DE2A6524D881AB19C396E927B264AB0A51F479C25AD58). Metadata staging now succeeded: /data/COSMIC/ReplicaRepair/request.json,632bytes,0600, exact matching SHA; new parent directories0700. After exact deployment succeeds, resolve current SSH instance, verify/reuse this same protected request, run shell-only command, then recheck deliveries. Oracle pairing stays deferred until this demo blocker is repaired.
+- Initial baseline primitives on SQLite/Mongo/Neo: native absence/history/receipt fences, atomic graph/receipt, separate fingerprint domain, exact replay and sequential-next-version protection. Mongo receipt-membership migration implemented/tested; Neo receipt audit bounded10000.
+- Authorized source preparation and read-only target outcome inspection implemented; durable metadata journal before submission, exact receipt recovery after lost response, current policy reauthorization and no resubmission after absent uncertain outcome.
+- Mongo source completion compares original operation/payload/attempt/head atomically, preserves original failure evidence and records exact initialization acknowledgement. Shell-only sandbox command --cosmic-repair-baseline uses configured Mongo-to-SQLite route; no public repair endpoint.
+-23 shared controls +8 Mongo native cases +1 real Mongo-to-SQLite command scenario pass/no skips.71 API/schema/admission controls pass. Latest command regression TRX SHA2564C35B531535ED2D4768E8EC44815437AA0C25BE64D0EF772526EF0C1781DD33A. Owned native fixtures removed/services stopped.
+- Point-load explicit-provider routing and durable worker barrier diagnostics are included in deployed batch. Legacy HyperDrive untouched.
 
-User explicitly reaffirmed fixing the actual demo blocker. One consolidated verified repair deployment is building; frontend main remains unpublished pending hosted acceptance.
+## Fixture and credential ownership
 
-## Point-load routing fix verified on task branch
+- Current LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json completed=true/pending=null,3 acknowledged records; SHA25668DCBBADB22F5CE3359DE4BE6B256599161307306FB35838C984F6ACE86699B7. Preserve current records/session credentials for demo; do not blindly rerun/reseed.
+- Current sessions500d722c-335e-4c0c-86da-d6c05325ad7e and a50e51b1-220b-43c5-983e-145761a52bcd use separate630-byte Windows DPAPI files in the same protected state folder. No bearer in journals/docs/logs. Eight offline verifier controls pass.
+- Old fixture archived intact at LocalState/COSMIC/HostedSandboxCqlCurrent/Archive/initial-without-session/fixture.json, completed=false: writes/delivery reconciled, owner JWT lost before protected-session support. Original3 private records/9 copies retained for later authorized teardown; never impersonate/replay old owner.
+- Required evidence/resources and lifecycle in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Remote SSH key cosmic-cql-demo-inspection still registered/reusable, not removed; exact paths/fingerprint in ledger. Unknown root logs untouched. No new installs/downloads/restores/environments.
 
-- Reproduced explicit Mongo point-load executing through a manager pinned to SQLite. Red-before regression retained. V2 LoadHolonRequest now captures request routing and uses its isolated manager for loading and permission projection, binding the observed policy to the response. All child/depth options are forwarded unchanged; selected-provider failures do not fall through to the default when failover is OFF.
-- Shipping WEB4 and API test projects build without restore. Seventy HTTP/concurrency/delete/admission/schema controls pass, zero skipped (includes two new point-load cases). No Core/Shared public API change; legacy engine untouched. This fix is committed on the task branch only; deployment still pending the normal integration batch.
+## Next demo work
 
-## Replication worker diagnostic fix
+1. Oracle Mongo-paired content C#/HTTP/browser preset. Native Oracle content already proved; finish the shared teaching host/presets before deeper translation/parity.
+2. Verify/publish current Web4Site CQL tab against this now-verified API. Existing frontend work/cosmic-cql c17e5f7 is pushed; main remains unpublished.
+3. Continue approved provider breadth/content/sandbox plan. Hosted Azure pending/free-only/no subscription; do not create paid resources. Deep LINQ/POCO/migrations remain deferred.
+4. Broader failure-injection/failover/load-balancing and gap-free future enrollment remain explicit acceptance gaps; this demo flow is not universal HyperDrive completion.
 
-- WEB4 previously treated a durable reconciliation head like idle work. It now reports source/target, sequence, operation and error code, then leaves the barrier untouched without activating the receiver. One focused strict-outbox test passes; no payload/error text is logged. This exposes the failure; it does not repair lineage or establish destination readiness.
-- X10a/X10b explicitly track missing late-baseline installation and authorized repair/resume; both remain red on all three stores. Earlier roadmap instructions to resume deep LINQ were stale and are corrected to the current breadth-first priority.
+## Branch recovery and key commands
 
-## Explicit baseline implementation milestone
-
-- Core task branch 05f6a2c adds a separate trusted initialization capability; existing interfaces unchanged. Shared plan uses a distinct fingerprint domain. SQLite implements atomic initial-baseline installation with current/head/history/receipt absence fences and exact replay; ordinary sequential delivery unchanged.
-- 31 native SQLite initialization/replica/outbox cases and 67 shared replica controls pass, zero skipped. Seven new native and four new shared cases. Core both targets, Shared, SQLite and test projects build without restore. Owned source/target fixtures removed after disposal; no hosted mutation.
-- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Mongo operator/migration composition, larger-store Neo admission and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Current direction: fix only demonstrated demo blockers and continue provider breadth. Do not expand generic application/recovery or parity features ahead of the MVP. Deferred requirements are recorded in AFTER_DEMO_BACKLOG.md; hosted conflict still needs actual target inspection and verified resolution. Mongo native audited receipt migration is implemented/tested; hosted application is still pending. Native baseline primitives exist on SQLite/Mongo/Neo, but their end-to-end acceptance stays red.
-
-## Mongo native baseline milestone
-
-- Same trusted capability/shared plan now implemented on Mongo. Persistent per-holon fences serialize all atomic graph mutations, including hard deletes; baseline requires absence. Receipts carry HolonIds; unknown historical membership refuses initialization with an explicit reconciliation code. Positive replay remains read-only.
-- Two native sync/async scenario runs pass (version-4 graph, restart/replay, version-5 delivery, competing initializers, independent child/hard-delete protection, unknown receipt rejection). Eight shipping native billing lifecycle controls pass. Four producer/consumer builds pass without restore. Exact owned DBs removed and Mongo stopped; no hosted mutation. See baseline/recovery doc for V2 scope and historical migration limits.
-
-## Neo4j native baseline milestone
-
-- Same capability/shared plan now implemented using selected-node locks, archived-revision checks and streamed canonical receipt validation (max 10000; larger/unknown audits require reconciliation). No APOC/plugin added, implicit baseline, old-receipt mutation or HTTP grant.
-- Ten native cases pass/zero skips: four new sync/async x history cases plus six existing sequential/SQLite-target compatibility controls. Reopen/replay, version-5 delivery, competing clients, independent child/hard-delete and unknown-receipt rejection verified. Native nodes/history/receipts and source files removed; persistent ownership journal cleaned=true. Owned container/attached process stopped.
-
-## Mongo audited migration milestone
-
-- Explicit batches1–128 bind configured-store hash, operator, receipt hashes/member IDs and stable migration ID. Native transaction preserves original receipt bodies/fingerprints and commits membership metadata with a durable integrity-bound acknowledgement; stale batches roll back wholly.
-- Four native scenarios pass/zero skips (two migrations plus two baseline scenarios): byte preservation, wrong-store/forged intent, stale rollback, reopened replay, concurrent submissions, cancellation, corrupt ack refusal and continued hard-delete protection. Ownership/job intents persisted before writes; exact fixture DBs removed and Mongo stopped. No hosted migration.
-
-## Authorized source preparation milestone
-
-- Core6b8c519 adds a separate trusted immutable-obligation reader on all three native outboxes; redacted inspection unchanged. Shared preparation requires explicit source-read and exact-baseline approval, freezes host route/operator/policy/source digest, verifies current held lineage head and rejects unresolved native execution. Metadata-only output, no private payload/target call/source state change.
-- 84 shared controls, three native SQLite cases (one actual held-delivery preparation), six native Mongo cases and two native Neo outbox cases pass/no skips. Core both targets and producer/consumer builds pass; owned fixtures/daemons/container stopped. Core task branch pushed/verified; parent gitlink/manifest advance together. No hosted change.
-
-## MVP scope and parked work
-
-- User reaffirmed demo-only priority. [After-demo backlog](AFTER_DEMO_BACKLOG.md) preserves unfinished recovery/coordinator, cutover, parity, mapping/migrations, full ORM and production-depth requirements. Nothing is silently dropped or marked complete.
-- Read-only target initialization receipt inspection is now tested on SQLite/Mongo/Neo: exact original baseline plan, absent is not permission to retry, committed evidence from immutable receipt, no graph values exported. SQLite2/Mongo6/Neo10 cases pass, including corruption/domain rejection and old receipt after later versions. This checkpoint closes existing work; no further recovery expansion planned without a demonstrated demo need.
-
-## Demo repair: held Mongo source completion
-
-- Concrete trusted Mongo capability now completes only the reviewed held head against an exact committed initialization receipt, original payload/operation/attempt and baseline fingerprint. Native transaction preserves original failure/evidence and records exact initialization acknowledgement; exact replay is read-only. No unauthenticated endpoint or generic queue reset.
-- Seven native cases pass/no skips, including actual late version4 enrollment, target baseline, stale-attempt/absent-receipt rejection, immutable replay and normal subsequent version5 delivery. Durable application now passes23 shared controls and8 native Mongo cases: flushed redacted intent before submission, exact receipt recovery after lost responses, policy reauthorization before source completion, and no resubmission on absent outcome. Actual Mongo-to-SQLite shell-command proof now passes (including exact replay, payload mismatch refusal and subsequent normal version5 delivery);71 API/schema/admission controls pass. Hosted repair remains next; demo stays unverified until live acceptance passes. No hosted mutation.
-
-## Broader plan preserved
-
-- Parent work/cosmic-cql f89cf0085 / Core 69bb8a4 preserved and pushed; newer provider changes excluded from this deployment.
-- PostgreSQL: 16 controls, 17 native/restart queries, four paired SDK/HTTP/browser presets verified.
-- SQL Server: 17 controls, 23 native/restart queries, four paired SDK/HTTP/browser presets verified.
-- Oracle: 13 controls, 15 read-only native probes, 21 saved-holon queries/restart verified; Mongo-paired content/browser/sandbox still pending.
-- Next breadth after hosted acceptance: Oracle pairing, then approved ten-provider content/sandbox plan. Hosted Azure remains pending/free-only.
-- LINQ depth, POCO/migrations deferred. Work only on red checklist cells unless a reproducible bug exists. HyperDrive V2 only; document legacy issues.
-- Frontend C:/Source/Web4Site work/cosmic-cql c17e5f7: four request-helper and 11 CQL tests pass; main unpublished.
-
-## Commands and recovery
-
-- Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 with /m:2 /nr:false /p:UseSharedCompilation=false; reuse existing caches, no restore unless necessary.
-- Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
-- Do not blindly rerun Verify-HostedCqlDemo.py: its persistent fixture correctly prevents reseeding acknowledged writes.
-- Logs/TRX only under this worktree's TestResults; persistent identities/source/ACK journals under LocalState. Unknown root logs untouched.
-- [Release report](CQL_SANDBOX_RELEASE_2026-10-30.md), [strict checklist](CQL_PARITY_CHECKLIST.md), [roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
+- Next exact step: inspect broad Oracle helpers/tests via git show; reconcile broad/scoped branches deliberately (previous parent merge has provider/doc conflicts), then add Oracle content pairing. Preserve the successful hosted repair and current status.
+- PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart verified; paired content/browser still pending.
+- Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
+- Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.
+- Logs/TRX only worktree TestResults; persistent credentials/intent/ACK journals only protected LocalState or retained remote volume, never TestResults/Docs.
+- Recovery links: [strict checklist](CQL_PARITY_CHECKLIST.md), [baseline/recovery contract](REPLICA_BASELINE_AND_RECOVERY.md), [release evidence](CQL_SANDBOX_RELEASE_2026-10-30.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
