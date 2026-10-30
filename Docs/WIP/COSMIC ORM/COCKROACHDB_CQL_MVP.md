@@ -1,6 +1,6 @@
 # CockroachDB CQL MVP — native/restart verified
 
-Updated30October2026. Secured native/restart pass; paired/browser acceptance remains red.
+Updated30October2026. Secured native/restart/Mongo-paired/browser scoped MVP verified.
 
 ## Shared implementation and explicit authority
 
@@ -119,3 +119,43 @@ seed/snapshot pair before any network/write action; it cannot silently create a
 missing source or bless an orphan/replacement baseline. Final1+1recheck passes
 with the original rows, source logical1,077,138,658B. The earlier allocated-size
 measurement above is from initial acceptance; native housekeeping changes size.
+
+## Mongo-paired C#/HTTP/browser MVP verified
+
+This supersedes pending paired steps above. Shared HolonManager V2 and native
+adapters return5physical rows (CockroachDB3 + Mongo2), or4for a two-ID subset(2+2),
+with source provenance and unrelated Mongo data excluded. Bounded identity/native
+selection only; no arbitrary content, distributed snapshot or replication claim.
+
+```powershell
+# Interactive teaching preset; stop from page to retain original source.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CockroachDB -Federated
+
+# Bounded native/restart/C#/HTTP/post-pair acceptance and owned cleanup.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CockroachDB -Federated -VerifyOnly
+```
+
+Browser5136verified both visible JSON responses/provenance and retained-source
+shutdown. Screenshot capture unavailable; no screenshot proof claimed.
+`CockroachDbMongoCqlNativeTests.cs` in the provider integration project exercises
+actual shared C# and HTTP flows, forged-actor/unknown-preset400 and inactive-provider
+503without rows. Both bounded and interactive runs pass5one-test phases. Native
+post-pair rechecks original row count/JSON hashes/MVCC timestamps, all unchanged.
+
+Hub routing:8single/16plans,45paired/90plans,76paired and3archive rejections,
+listeners unchanged. Exact temporary Mongo fixture verified/dropped, pending/ready
+cleared, both owned services stopped0. Original native source1,090,438,424B logical
+retained; native housekeeping changes physical size while record hashes stay fixed.
+No new downloads or source reset. Full parity gates above remain open.
+
+Current evidence under TestResults/CockroachDbCqlCurrent:
+
+| Report | Passed | SHA256 |
+|---|---:|---|
+| mongo-federation-bounded.trx |1|d12768aa4a8356ba8fcddc5ee557fe0a6968d7354393c51049c0441598e144fe|
+| mongo-federation.trx |1|3cd82d89157d1609b0a7ee08a13abe3d302ca15ef352a34f77024f57ebdbca67|
+| native-postpair.trx |1|fe5c2bad7157d9f5b20b1aa71ff0ef51b3a9a110953b1ebfb008afda36c883a2|
+
+Final browser-run.log contains all5phase hashes. Earlier native-first/restart
+hashes above are original admission evidence, not refreshed current TRX files.
+Do not deepen this green demo scope without a reproduced bug; next TimescaleDB.
