@@ -134,6 +134,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             using var response = await _http.GetAsync(NodeUrl(path));
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
+            if (typeof(T) == typeof(Holon))
+                return (T?)(object?)ParseFirebaseHolon(Guid.Parse(path[(path.LastIndexOf('/') + 1)..]), json);
             return Deserialize<T>(json);
         }
 
@@ -161,6 +163,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             // shapes and missing bodies are protocol errors, not empty results.
             if (node == null) return new List<T>();
             if (node is not JsonObject obj) throw new JsonException("Firebase collection must be a JSON object or null.");
+            if (typeof(T) == typeof(Holon))
+                return obj.Select(pair => Guid.TryParseExact(pair.Key, "D", out var id)
+                    ? (T)(object)(ParseFirebaseHolon(id, pair.Value?.ToJsonString() ?? "null")
+                        ?? throw new JsonException("Firebase collection record cannot be null."))
+                    : throw new JsonException("Firebase collection holon key must be a canonical GUID.")).ToList();
             return obj.Select(kvp => kvp.Value is JsonObject value
                 ? Deserialize<T>(value.ToJsonString()) ?? throw new JsonException("Firebase collection record cannot be null.")
                 : throw new JsonException("Firebase collection record must be an object.")).ToList();
@@ -414,14 +421,40 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null)
-                    holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = holon.Id.ToString();
-                await PutAsync($"/oasis_holons/{holon.Id}", holon);
-                result.Result = holon; result.IsError = false; result.Message = $"FirebaseOASIS: Holon '{holon.Name}' saved.";
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var projection = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                projection["id"] = id;
+                if (projection["providerUniqueStorageKey"] is not JsonObject keys)
+                {
+                    keys = new JsonObject();
+                    projection["providerUniqueStorageKey"] = keys;
+                }
+                keys["FirebaseOASIS"] = id.ToString("D");
+                NativeProjection(projection);
+                using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl($"/oasis_holons/{id:D}"))
+                { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+                try
+                {
+                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var text = await ReadFirebaseAcknowledgement(response);
+                    var acknowledged = JsonNode.Parse(text);
+                    if (!JsonNode.DeepEquals(projection, acknowledged) || ParseFirebaseHolon(id, text) == null)
+                        throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed canonical holon.");
+                }
+                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                result.Message = $"FirebaseOASIS: Holon '{holon.Name}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                if (ex is FirebaseRepresentationException) result.ErrorCode = "FIREBASE_REPRESENTATION_UNSUPPORTED";
+                OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving holon '{holon?.Name}': {ex.Message}");
+            }
             return result;
         }
 
@@ -524,10 +557,10 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holon = await GetAsync<Holon>($"/oasis_holons/{id}");
-                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No holon found with ID '{id}'."); return result; }
-                await PatchAsync($"/oasis_holons/{id}", new { isDeleted = true });
-                result.Result = holon; result.IsError = false; result.Message = $"FirebaseOASIS: Holon '{id}' soft-deleted.";
+                var loaded = await LoadHolonAsync(id, loadChildren: false);
+                if (loaded.IsError || loaded.Result == null) return loaded;
+                loaded.Result.DeletedDate = DateTime.UtcNow;
+                return await SaveHolonAsync(loaded.Result, saveChildren: false);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
