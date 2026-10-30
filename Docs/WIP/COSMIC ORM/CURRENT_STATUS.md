@@ -7,7 +7,7 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: integrate fetched Development835653f31/Coreb60796d, then Arweave loopback/native admission; [runtime prepared](ARWEAVE_CQL_MVP.md).**
+**Next: Arweave loopback/native admission; [daily integration4552Core/4WEB4 pass](DEVELOPMENT_SYNC_2026-10-30.md).**
 Firebase50controls/native/export-restore/paired/browser5/4/hub pass [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
@@ -81,8 +81,8 @@ proof links, 33 active central cases, 11 extra project names; linked scopes only
 ## Workspace, integration and resource rules
 
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
-- Developmentbe7dc506a integrated; merged Core0b69338 pushed/remote-verified. Core4542,
-  Mongo ancestor2, WEB4schema/admission8 and WEB4 build pass. [Proof](DEVELOPMENT_SYNC_2026-10-29.md).
+- Development835653f31 integrated; merged Cored9f5ec1 pushed/remote-verified. Core4552,
+  WEB4schema/policy4 and affected builds/pins pass. [Proof](DEVELOPMENT_SYNC_2026-10-30.md).
 - Later task work is pushed to the task branch. Outgoing Development deployment is a
   separate verified scoped batch; never sweep deferred work into deployment to sync.
 - Named git adds only; one build lease/batch, /m:2 /nr:false /p:UseSharedCompilation=false.
