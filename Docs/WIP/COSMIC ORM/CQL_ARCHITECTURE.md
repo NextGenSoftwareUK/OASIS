@@ -821,3 +821,18 @@ restart. Local authenticated plaintext loopback scope; no hosted, TLS, condition
 CAS write, distributed snapshot or full EF parity claim. Stop with the page button
 so the runner verifies/removes only its temporary Mongo fixture and preserves the
 original Couchbase source. [Proof and prerequisites](COUCHBASE_CQL_MVP.md).
+
+## ClickHouse + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ClickHouse -Federated`
+(add `-VerifyOnly` for bounded checks). Free local ClickHouse26.8.36.3 uses authenticated
+HTTPS/private CA. Native restart preserves JSON, UUIDs and exact UInt64 versions.
+Browser5143 shows five physical rows or four for the subset, with source labels.
+The spaced/commented C# example is `Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`,
+executed by HolonManager; HTTP POST `/api/cql/federation` accepts presets `all`/`subset`.
+Only bounded identity equality/membership/Boolean selection/paging is admitted;
+other predicates reject. FINAL uses analytical ReplacingMergeTree semantics, including
+its existing millisecond-version tie risk; it is not atomic CAS, history or a shared
+snapshot. No hosted/full-parity claim. Stop with the page button so the runner checks
+and removes its temporary Mongo fixture while retaining the original ClickHouse
+source. [Proof and prerequisites](CLICKHOUSE_CQL_MVP.md).

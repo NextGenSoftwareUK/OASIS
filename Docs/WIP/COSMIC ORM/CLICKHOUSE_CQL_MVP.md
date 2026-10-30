@@ -1,6 +1,6 @@
-# ClickHouse CQL MVP — controls verified; native and paired demo pending
+# ClickHouse CQL MVP — controls/native/restart/paired/browser verified
 
-Updated 30 October 2026. Inventory remains red. No native-server proof yet.
+Updated 30 October 2026. Green means the bounded identity demo scope only.
 
 ## Implemented scope
 
@@ -49,14 +49,47 @@ Stale GetProviderVersion test removed rather than inventing a shipping API.
 
 ## Exact next step
 
-No cached native ClickHouse image found. Select one official free local release,
-journal runtime/source/authentication and retain original server/database/table
-identities before business writes. Verify actual schema/parameter transport/native
-3/filter2/missing0/page1/budget and original JSON/UInt64 version across real restart.
-Never replay unknown writes or replace a baseline. Then Mongo-paired C#/HTTP/browser
-5/4 and launcher tests; keep the inventory red until complete scoped proof.
+Continue red providers, next InfluxDB capability/native-source audit. Preserve this
+scope's acceptance; no green hardening without a reproduced bug.
+
+## Native and Mongo-paired proof
+
+Official free open-source ClickHouse26.8.36.3 on authenticated HTTPS/private CA,
+loopback18443. Original serverUUID a0075f10-54e2-4d09-babf-a54889fe062a, database/table
+UUIDs, actor/3IDs, JSON hashes and exact native UInt64 versions survive actual restart.
+Native3/filter2/missing0/page1/budget and typed parameter transport/schema provisioning
+pass. No SDK/runtime/TLS bypass. Private source /var/tmp/oasis-clickhouse-cql retained;
+18,509,680B logical after interactive verification. Own node stopped0/noOOM/noError.
+
+Launch `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ClickHouse -Federated`
+from the task worktree; add `-VerifyOnly` for bounded checks. Browser5143. The C#
+example `Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs` uses HolonManager's
+actual executor and explicit per-provider read catalogues. HTTP/browser all returns
+ClickHouse3+Mongo2=5physicalrows; subset2+2=4. Copies retain provider provenance.
+Forged actor/unknown preset400 and inactive provider503/no partial rows pass.
+
+Bounded and interactive runners each passed five phases: native-first,
+native-restart, mongo-init, mongo-federation and native-postpair. Browser all5/subset4
+verified. Hub8single/16plans,52paired/104plans,90pairedrejections,3archive pass,
+listeners unchanged. Exact temporary cosmic_cql_mongo_clickhouse_demo verified/dropped,
+pending/ready cleared, native/Mongo/demo services stopped; original source preserved.
+Raw interactive evidence in TestResults/ClickHouseCqlCurrent (not committed):
+- native-first.trx SHA256 `b3388f7db6c046d1419ffd3fb9c7f8ef3727e4fddda1d024600abe9886710953`
+- native-restart.trx SHA256 `f1742cfdba7206fd907cc1472567319c6e9f79ce65b60c8c84f3a52fcb177460`
+- mongo-init.trx SHA256 `bb27410f7f8056037f1d2b4124cc2e8cfe05b1453ce70bac059b64c53aacd13a`
+- mongo-federation.trx SHA256 `1d7027f800c069074055ef9650eae3956e33b6ba7a2ec168fece0b3cc0c24a28`
+- native-postpair.trx SHA256 `a4ba2ed26b3ca0da8545028b7fda8e80d61ebcf0248bee7716dd6bc875990ae6`
+Browser screenshot browser.jpg160,150B, runner86934terminal0. Native state and
+credentials are retained outside TestResults; only logs/TRX/images are regenerable.
 
 Current ReplacingMergeTree versions default to server milliseconds, so concurrent
 writes can tie; broader source CAS/history/transaction/replication/child/migration
 semantics remain open. This bounded demo is not full EF/NHibernate parity.
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+Environment creation refuses existing state. Its first executable check followed an
+absolute image symlink into the host, before any native/config/credential creation.
+Image-relative resolution fixes it; explicit original-intent readback resumed only
+that pre-config stage. No source/container replacement, native mutation replay or
+baseline replacement. Vendor image/private CA/config/credentials are reused.
+[Official installation](https://clickhouse.com/docs/install/docker).
