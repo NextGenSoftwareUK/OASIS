@@ -1,4 +1,27 @@
 # COSMIC CQL demo
+## Oracle + Mongo content demo
+
+From `C:/Source/OASIS-cosmic`, reuse the retained native Oracle and Mongo services:
+
+```powershell
+pwsh -File Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1 -Content -Serve -ArchiveCompletedDemo
+```
+
+Open `http://127.0.0.1:5090/`. The runner owns the build lease; do not wrap it in another lease. It verifies the retained source, runs bounded acceptance, then serves the page. Stop with the page button or POST `/demo/shutdown` to verify cleanup of the owned Mongo fixture and stop the owned processes. The four Oracle source records are retained unchanged.
+
+| Button / preset | Predicate | Physical copies |
+|---|---|---|
+| Exact name / `name` | `Name == "Espresso"` | 2 |
+| Description Contains / `description` | `Description.Contains("coffee")` | 4 |
+| Metadata equality / `metadata` | string `category == "coffee"` | 4 |
+| AND / OR / `combined` | `(Espresso OR Tea) AND category == coffee` | 2 |
+
+The C# examples are in [ContentFederationPresets.cs](ContentFederationPresets.cs). [IdentityFederationWalkthrough.cs](IdentityFederationWalkthrough.cs) passes each captured query through HolonManager with separate trusted source catalogues; [IdentityFederationApiHost.cs](IdentityFederationApiHost.cs) provides the same named HTTP/browser presets. Browser input cannot change actor, providers or authorization catalogues.
+
+Oracle supports the bounded native identity/content profile: name/description equality and Contains, nested string-metadata equality, AND/OR and paging within a complete authorized catalogue (128 rows, 512 binds). Other scalar/order/graph operations require explicit capability admission; this is not full Oracle EF parity or hosted OCI acceptance. Both source copies remain visible, and reads may observe different moments.
+
+Verified:13 compiler controls;21 retained Oracle queries;4 paired C# +4 HTTP presets;2 rejected request shapes;4 real browser button checks. [Current evidence and remaining work](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md).
+
 ## Unified demo launcher
 
 `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SQLite` opens the existing coffee

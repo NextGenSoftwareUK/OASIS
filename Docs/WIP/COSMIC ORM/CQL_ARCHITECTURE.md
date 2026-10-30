@@ -242,3 +242,9 @@ source entities as an intermediate query engine.
 
 Combined graph sources, reselection and element/cardinality/numeric terminals
 following this selection remain unintegrated. Q01f stays red.
+
+## Oracle content profile and shared teaching host
+
+Oracle now implements `ICosmicQueryStorageProvider` through its native `OracleCqlCompiler`/`OracleCql` owner. HolonManager retains provider-scope, capability and separate authoritative-record catalogue admission. Oracle binds RAW identities and text values, applies native `JSON_EXISTS` predicates with explicit object/string guards, validates canonical envelopes/native projections and publishes only the bounded page. Arbitrary predicates are not evaluated over an unrestricted managed scan. The complete admitted source is capped at128 rows and512 parameters.
+
+`ContentFederationPresets` captures the same four name/description/metadata/combined predicates for Mongo and Oracle. `IdentityFederationWalkthrough.RunQueryAsync` uses the existing complete-source federation owner and independent trusted catalogues, preserving physical-copy provenance and moving-read semantics. The loopback HTTP/browser host accepts named presets only; it grants no production authentication or access. The paired proof reuses retained Oracle data, checks source hashes/timestamps after all queries and removes only its initially absent, explicitly owned Mongo fixture. No Core routing-protocol merge was needed for this scoped addition.

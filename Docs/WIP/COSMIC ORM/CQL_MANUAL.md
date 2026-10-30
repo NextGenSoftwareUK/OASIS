@@ -1135,3 +1135,42 @@ streamed before selected-input and stage proofs. The reader validates source
 proofs before accepting the selected packet; shared validation still precedes
 DTO constructors. Neo4j retains its ProviderDefault consistency restrictions;
 this read transaction does not establish ProviderSnapshot support.
+
+## Oracle + Mongo: native content examples (30 October 2026)
+
+The reusable local demo runs four captured CQL predicates on both native stores through HolonManager, preserving provider provenance. Launch from the task worktree with:
+
+```powershell
+pwsh -File Scripts/TestHosts/Run-ReusableOracleMongoTests.ps1 -Content -Serve -ArchiveCompletedDemo
+```
+
+Open `http://127.0.0.1:5090/`. The runner owns its build lease and retained service lifetime; do not nest leases. Stop through `/demo/shutdown` or the page button. Its temporary Mongo fixture is removed after exact ownership checks; the four retained Oracle records remain unchanged.
+
+```csharp
+// Both adapters must already be activated for the trusted configured stores.
+// Obtain readable ID catalogues from application policy, not HTTP input.
+var presets = ContentFederationPresets.Create(ProviderType.OracleDBOASIS);
+
+// This captures string metadata equality on an explicit Mongo + Oracle scope.
+// Each provider translates its predicate natively before the bounded page.
+var result = await IdentityFederationWalkthrough.RunQueryAsync(
+    manager,
+    mongo,
+    oracle,
+    presets["metadata"],
+    readableMongoIds,
+    readableOracleIds,
+    actorId,
+    Console.Out);
+```
+
+| Preset | CQL expression | Expected physical rows |
+|---|---|---|
+| `name` | `h.Name == "Espresso"` | 2:one per provider |
+| `description` | `h.Description.Contains("coffee")` | 4:two per provider |
+| `metadata` | `CosmicQueryMetadata.Value<string>(h, "category") == "coffee"` | 4:two per provider |
+| `combined` | `(h.Name == "Espresso" || h.Name == "Tea") && category == "coffee"` | 2:one per provider |
+
+HTTP uses `POST /api/cql/federation` with `{"preset":"metadata"}` on this loopback teaching host. Unknown fields/presets are rejected; a submitted actor cannot grant access. This local endpoint is distinct from the authenticated deployed WEB4 API. The actual shared C# implementations are in `Examples/CosmicCqlDemo/ContentFederationPresets.cs`, `IdentityFederationWalkthrough.cs` and `IdentityFederationApiHost.cs`.
+
+Oracle's profile admits identity membership/equality, name/description equality/Contains, nested string-metadata equality, AND/OR and bounded paging over at most128 authorized rows/512 native parameters. Case-sensitive strings, literal wildcard characters and object/string type guards are covered by native tests. Unsupported ordering/numeric/null/graph features are explicitly rejected. Moving provider reads do not establish a shared distributed snapshot. Native local proof does not establish hosted OCI acceptance.
