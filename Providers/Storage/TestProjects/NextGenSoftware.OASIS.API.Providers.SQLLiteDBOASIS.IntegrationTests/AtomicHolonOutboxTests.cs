@@ -110,6 +110,15 @@ public partial class SQLLiteDBOASISIntegrationTests
             reader.Read().Should().BeFalse();
         }
         payloads.Distinct().Should().HaveCount(1);
+        var sourceReader=(IHolonReplicationObligationReader)provider.GetHolonReplicationOutbox().Result;
+        query.CommandText="SELECT DeliveryState || ':' || AttemptCount || ':' || LeaseToken FROM CosmicHolonOutbox WHERE Sequence=1";
+        var beforeRead=(string)query.ExecuteScalar()!;
+        var observed=await sourceReader.ReadObligationAsync(1);
+        observed.IsError.Should().BeFalse(observed.Message+observed.Exception);
+        observed.Result.PayloadJson.Should().Be(payloads[0]);observed.Result.Inspection.OperationId.Should().Be(request.Write.OperationId);
+        observed.Result.Inspection.State.Should().Be(HolonDeliveryState.Pending);
+        ((string)query.ExecuteScalar()!).Should().Be(beforeRead,"inspection must not claim or mutate the delivery");
+        (await sourceReader.ReadObligationAsync(long.MaxValue)).Result.Should().BeNull();
         var replay=await provider.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("owned-source",new[]{"target-a","target-b"}));
         replay.IsError.Should().BeFalse(replay.Message+replay.Exception);replay.Result.Single().VersionId.Should().Be(committed.VersionId);
         query.CommandText="SELECT COUNT(*) FROM CosmicHolonOutbox";Convert.ToInt64(query.ExecuteScalar()).Should().Be(2);

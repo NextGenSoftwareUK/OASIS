@@ -23,9 +23,12 @@ public sealed partial class CosmicConditionalWriteTests
     [InlineData(false)] [InlineData(true)]
     public async Task NativePrimaryOutboxCommitsGraphReceiptAndEveryFrozenTargetTogether(bool synchronous)
     {
-        const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        var linux=Environment.GetEnvironmentVariable("OASIS_COSMIC_LINUX_MONGO_STATE")=="/var/tmp/oasis-cosmic-mongo";
+        var uri=linux ? "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000"
+            :"mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri,Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var workspace=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../.."));
+        Directory.CreateDirectory(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent"));
         using var lease=File.Open(Path.Combine(workspace,"TestResults/SubscriptionUsageCurrent/cosmic-conditional-environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         const string name="cosmic_primary_outbox_fixture";
         var client=new MongoClient(uri);using var names=await client.ListDatabaseNamesAsync();Assert.DoesNotContain(name,await names.ToListAsync());
@@ -54,6 +57,14 @@ public sealed partial class CosmicConditionalWriteTests
             var frozen=await obligations.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("TargetId",1)).ToListAsync();Assert.Equal(2,frozen.Count);
             Assert.Equal("target-a",frozen[0]["TargetId"].AsString);Assert.Equal("target-b",frozen[1]["TargetId"].AsString);
             Assert.Equal(frozen[0]["PayloadJson"],frozen[1]["PayloadJson"]);
+            var sourceReader=(IHolonReplicationObligationReader)first.GetHolonReplicationOutbox().Result;
+            var inspection=await sourceReader.ReadObligationAsync(frozen[0]["Sequence"].AsInt64);
+            Assert.False(inspection.IsError,inspection.Message+inspection.Exception);
+            Assert.Equal(frozen[0]["PayloadJson"].AsString,inspection.Result.PayloadJson);
+            Assert.Equal(create.Write.OperationId,inspection.Result.Inspection.OperationId);
+            var afterRead=await obligations.Find(FilterDefinition<BsonDocument>.Empty).Sort(new BsonDocument("TargetId",1)).ToListAsync();
+            Assert.Equal(frozen[0].ToBson(),afterRead[0].ToBson());Assert.Equal(frozen[1].ToBson(),afterRead[1].ToBson());
+            Assert.Null((await sourceReader.ReadObligationAsync(long.MaxValue)).Result);
             foreach(var obligation in frozen)
             {
                 Assert.Equal(obligation["TargetId"].AsString=="target-a" ? 1L:2L,obligation["Sequence"].AsInt64);Assert.Equal("Pending",obligation["DeliveryState"].AsString);

@@ -9,9 +9,18 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public sealed partial class SqliteHolonReplicationOutbox
+public sealed partial class SqliteHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private const string InspectionColumns="Sequence,OperationId,TargetId,DeliveryState,AttemptCount,LastErrorCode,LastErrorMessage,RecoveryEvidenceJson,RecoveryEvidenceDigest,PayloadJson,PayloadDigest,SourceId,SourceAuthority,ActorId,LeaseUntilUtcTicks,NextAttemptUtcTicks,CompletedAtUtcTicks,LeaseToken,LeaseWorkerId";
+    public Task<OASISResult<HolonReplicationObligation>> ReadObligationAsync(long sequence,CancellationToken cancellationToken=default)
+        =>Execute(()=>{
+            if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
+            using var connection=Open();using var query=connection.CreateCommand();
+            query.CommandText="SELECT "+InspectionColumns+" FROM CosmicHolonOutbox WHERE Sequence=$id";query.Parameters.AddWithValue("$id",sequence);
+            using var reader=query.ExecuteReader();var inspected=ReadInspection(reader,true);
+            return inspected.Result==null ? new OASISResult<HolonReplicationObligation>{Message=inspected.Message}
+                :new OASISResult<HolonReplicationObligation>(new(inspected.Result,reader.GetString(9),reader.GetString(10)));
+        },cancellationToken);
     public Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
         =>Execute(()=>{
             if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));

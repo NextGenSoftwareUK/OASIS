@@ -4,11 +4,53 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public partial class SQLLiteDBOASISIntegrationTests
 {
+    [Fact]
+    public async Task NativePreparationFromHeldObligationVerifiesAuthorizedSourceWithoutInitializingOrResuming()
+    {
+        await WithVersionFourSource(async (source,committed,actor)=>
+        {
+            using var target=new SQLLiteDBOASIS(TestConnectionString);Assert.False((await target.ActivateProviderAsync()).IsError);
+            var original=Guid.NewGuid();var initialization=Guid.NewGuid();
+            var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(original,actor,ProviderType.SQLLiteDBOASIS,
+                new[]{committed}.Concat(committed.Children).Select(row=>new HolonWriteCondition(row.Id,CosmicConcurrency.GetProviderRevisionId(row,ProviderType.SQLLiteDBOASIS)))),
+                ConditionalHolonOperation.Save,new[]{committed});
+            var saved=await source.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment("prepared-source",new[]{"prepared-target"}));
+            Assert.False(saved.IsError,saved.Message+saved.Exception);
+            var outbox=(IHolonReplicationObligationReader)source.GetHolonReplicationOutbox().Result;
+            var dispatcher=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget("prepared-target",target,ProviderType.SQLLiteDBOASIS,"prepared-source",ProviderType.SQLLiteDBOASIS)},"owned-preparation-worker");
+            var delivered=await dispatcher.DispatchOnceAsync("prepared-target");
+            Assert.False(delivered.IsError,delivered.Message+delivered.Exception);Assert.Equal(1,delivered.Result.ReconciliationCount);
+            var before=(await outbox.PeekNextAsync("prepared-target")).Result;
+            Assert.Equal(HolonDeliveryState.ReconciliationRequired,before.State);
+            var prepare=new HolonReplicaInitializationPreparation("owned-preparation",Guid.NewGuid(),"prepared-source","owned-source-file",ProviderType.SQLLiteDBOASIS,
+                outbox,"prepared-target","owned-target-file",ProviderType.SQLLiteDBOASIS,new OwnedPreparationPolicy(actor,committed.Id));
+            var denied=await prepare.PrepareAsync(Guid.NewGuid(),before.Sequence,initialization);
+            Assert.Equal("COSMIC_REPLICA_INITIALIZATION_DENIED",denied.ErrorCode);
+            var approved=await prepare.PrepareAsync(actor,before.Sequence,initialization);
+            Assert.False(approved.IsError,approved.Message+approved.Exception);Assert.Equal(original,approved.Result.SourceOperationId);
+            Assert.Equal(initialization,approved.Result.InitializationOperationId);Assert.Equal(committed.Id,Assert.Single(approved.Result.RootIds));
+            Assert.Equal(0,ReplicaCount("Holon","Id",committed.Id));
+            var after=(await outbox.PeekNextAsync("prepared-target")).Result;
+            Assert.Equal(before.Sequence,after.Sequence);Assert.Equal(before.State,after.State);Assert.Equal(before.AttemptCount,after.AttemptCount);
+        });
+    }
+
+    private sealed class OwnedPreparationPolicy(Guid actor,Guid root) : IHolonReplicaInitializationPolicy
+    {
+        public string BindingIdentity=>"owned-sqlite-preparation-v1";
+        public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
+            =>Task.FromResult(new OASISResult<bool>(context.OperatorId==actor && context.SourceId=="prepared-source" && context.TargetId=="prepared-target"
+                && context.SourceStoreIdentity=="owned-source-file" && context.TargetEndpointIdentity=="owned-target-file"
+                && (context.Stage==HolonReplicaInitializationAuthorizationStage.ReadHeldSource || context.Mutation.Roots.Single().Id==root)));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

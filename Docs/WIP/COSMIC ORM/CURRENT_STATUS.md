@@ -38,7 +38,7 @@ No additional Development push is covered by the already-used extra-batch approv
 
 - Core task branch 05f6a2c adds a separate trusted initialization capability; existing interfaces unchanged. Shared plan uses a distinct fingerprint domain. SQLite implements atomic initial-baseline installation with current/head/history/receipt absence fences and exact replay; ordinary sequential delivery unchanged.
 - 31 native SQLite initialization/replica/outbox cases and 67 shared replica controls pass, zero skipped. Seven new native and four new shared cases. Core both targets, Shared, SQLite and test projects build without restore. Owned source/target fixtures removed after disposal; no hosted mutation.
-- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Mongo operator/migration composition, larger-store Neo admission and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: authorized enrollment/source verification and fenced recovery/resume. Mongo native audited receipt migration is implemented/tested; hosted application is still pending. Native baseline primitives exist on SQLite/Mongo/Neo, but their end-to-end acceptance stays red.
+- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Mongo operator/migration composition, larger-store Neo admission and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: durable reviewed-intent/target-application phase, target-receipt recovery and fenced source completion/resume; authorized read-only source preparation now exists. Mongo native audited receipt migration is implemented/tested; hosted application is still pending. Native baseline primitives exist on SQLite/Mongo/Neo, but their end-to-end acceptance stays red.
 
 ## Mongo native baseline milestone
 
@@ -54,6 +54,11 @@ No additional Development push is covered by the already-used extra-batch approv
 
 - Explicit batches1–128 bind configured-store hash, operator, receipt hashes/member IDs and stable migration ID. Native transaction preserves original receipt bodies/fingerprints and commits membership metadata with a durable integrity-bound acknowledgement; stale batches roll back wholly.
 - Four native scenarios pass/zero skips (two migrations plus two baseline scenarios): byte preservation, wrong-store/forged intent, stale rollback, reopened replay, concurrent submissions, cancellation, corrupt ack refusal and continued hard-delete protection. Ownership/job intents persisted before writes; exact fixture DBs removed and Mongo stopped. No hosted migration.
+
+## Authorized source preparation milestone
+
+- Core6b8c519 adds a separate trusted immutable-obligation reader on all three native outboxes; redacted inspection unchanged. Shared preparation requires explicit source-read and exact-baseline approval, freezes host route/operator/policy/source digest, verifies current held lineage head and rejects unresolved native execution. Metadata-only output, no private payload/target call/source state change.
+- 84 shared controls, three native SQLite cases (one actual held-delivery preparation), six native Mongo cases and two native Neo outbox cases pass/no skips. Core both targets and producer/consumer builds pass; owned fixtures/daemons/container stopped. Core task branch pushed/verified; parent gitlink/manifest advance together. No hosted change.
 
 ## Broader plan preserved
 

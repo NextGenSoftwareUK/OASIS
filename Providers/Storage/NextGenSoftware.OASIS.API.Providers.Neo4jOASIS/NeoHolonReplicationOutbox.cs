@@ -15,7 +15,7 @@ using INode=Neo4j.Driver.INode;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 /// <summary>Fenced delivery over an existing enrolled graph database. The caller retains driver ownership.</summary>
-public sealed class NeoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
+public sealed class NeoHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private readonly IDriver _driver;
     private const string Now="(datetime.realtime().epochMillis * 10000 + 621355968000000000)";
@@ -82,6 +82,17 @@ public sealed class NeoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
                 || outcome==HolonDeliveryOutcome.ReconciliationRequired && retry.HasValue)
                 throw new ArgumentException("Delivery outcome, diagnostics and recovery evidence disagree.");
         },token);
+
+    public Task<OASISResult<HolonReplicationObligation>> ReadObligationAsync(long sequence,CancellationToken cancellationToken=default)
+        =>Execute(async tx=>{
+            var rows=await(await tx.RunAsync("MATCH (o:CosmicHolonOutbox {Sequence:$sequence}) RETURN o",new{sequence}).ConfigureAwait(false)).ToListAsync().ConfigureAwait(false);
+            if(rows.Count==0)return (new OASISResult<HolonReplicationObligation>{Message="No delivery obligation exists at this sequence."},false);
+            if(rows.Count!=1)throw new InvalidDataException("Outbox sequence is ambiguous.");
+            var row=rows[0]["o"].As<INode>();var state=ValidateRow(row);ValidatePayload(row,state.Operation);
+            var inspection=new HolonDeliveryInspection(sequence,state.Operation,Text(row,"TargetId"),state.State,state.Attempts,
+                Text(row,"LastErrorCode"),Text(row,"LastErrorMessage"),state.Evidence);
+            return (new OASISResult<HolonReplicationObligation>(new(inspection,Text(row,"PayloadJson"),Text(row,"PayloadDigest"))),false);
+        },()=>{if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));},cancellationToken);
 
     public Task<OASISResult<HolonDeliveryInspection>> InspectAsync(long sequence,CancellationToken cancellationToken=default)
         =>Execute(async tx=>{

@@ -15,10 +15,26 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>Consumes the enrolled Mongo queue. Native session/transaction ownership and server UTC fence mutations.</summary>
-public sealed class MongoHolonReplicationOutbox : IHolonReplicationReadinessOutbox
+public sealed class MongoHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private readonly IMongoClient _client;
     private readonly IMongoCollection<BsonDocument> _rows;
+    public async Task<OASISResult<HolonReplicationObligation>> ReadObligationAsync(long sequence,CancellationToken cancellationToken=default)
+    {
+        try
+        {
+            if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
+            var row=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority)
+                .Find(new BsonDocument("Sequence",sequence)).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            if(row==null)return new(){Message="No delivery obligation exists at this sequence."};
+            var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+            var inspection=new HolonDeliveryInspection(sequence,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
+                NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence);
+            return new(new(inspection,row["PayloadJson"].AsString,row["PayloadDigest"].AsString));
+        }
+        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
+        catch(Exception cause){return Failure<HolonReplicationObligation>(cause);}
+    }
     public MongoHolonReplicationOutbox(MongoDbContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
