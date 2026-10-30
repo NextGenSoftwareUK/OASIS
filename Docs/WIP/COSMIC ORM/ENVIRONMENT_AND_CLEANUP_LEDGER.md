@@ -2183,3 +2183,9 @@ Arweave signed fixture attempt automatic-review rejected before execution; reaso
 Owner COSMIC/CQL. Reuse worktree/.NET/NuGet outputs, cached restore only `C:/Users/david/.nuget/packages`. Controlled HttpMessageHandler fixtures use no sockets/backend/service/data. Raw logs/TRX `C:/Source/OASIS-cosmic/TestResults/CouchDbCqlCurrent`, reusable bin/obj (sizes unmeasured); regenerate/dispose only after completed processes. No downloads/native runtime/wallet/ports. Root unrelated/unverified logs file retained.
 
 CouchDB outcome initial unit build exposed stale nonexistent GetProviderVersion test; removed invalid test, actual11tests8failed/3passed, fixedfull11passed. HTTP fixture only/no sockets/backend; owned builds/tests completed. Cached dependencies/bin/obj retained (sizes unmeasured), no downloads/native data/service/port created. Raw logs/TRX regenerable in recorded TestResults. Root unrelated logs retained.
+
+### CouchDB bounded CQL controls — 30 October 2026
+
+Reuse existing shared identity compiler/project, .NET/NuGet/bin/obj. Cached restore source only `C:/Users/david/.nuget/packages`. No native service/database/download/port. Test HTTP doubles only; logs/TRX `C:/Source/OASIS-cosmic/TestResults/CouchDbCqlCurrent`, disposable/regenerable after completed processes; build outputs reusable, sizes unmeasured. Adapter tests pending before native inventory.
+
+CouchDB CQL outcome18admission/prior +15execution =33passed/0failed/skipped. HTTP handlers use controlled4MiB synthetic payload/cancellation only; no sockets/real database/native data/download. Owned build/tests completed. Existing shared compiler/API unchanged; cached restore/bin/obj reused, sizes unmeasured. Raw TRX/logs regenerable/disposable in recorded TestResults. Native runtime/source inventory remains next after save ownership checks.
