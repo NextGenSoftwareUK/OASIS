@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-36 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
+37 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -75,3 +75,5 @@ PocketBase native/restart/paired/browser/hub scope is verified: [proof](POCKETBA
 Supabase native REST/PostgreSQL/JWT/restart/paired/browser/hub verified in its [local data-plane scope](SUPABASE_CQL_MVP.md); hosted gateway/Auth separate. Next Firebase Realtime Database source/query/runtime audit.
 
 Firebase RTDB native/export-restore/paired/browser/hub scope verified: [proof](FIREBASE_CQL_MVP.md). Next Optimism authority/native-source admission, preserving EVM source/keys and registration gaps.
+
+Optimism V2 local encrypted native/restart/paired/browser/hub scope verified: [proof](OPTIMISM_CQL_MVP.md). Next Rootstock authority/chain/native audit; retain public-network/registration distinctions.

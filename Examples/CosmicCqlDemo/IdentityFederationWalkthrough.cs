@@ -75,6 +75,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.ArbitrumOASIS => "Arbitrum",
         ProviderType.BaseOASIS => "Base",
         ProviderType.AvalancheOASIS => "Avalanche",
+        ProviderType.OptimismOASIS => "Optimism",
         ProviderType.AzureStorageOASIS => "Azure Blob",
         ProviderType.AWSS3OASIS => "AWS S3",
         ProviderType.LocalFileOASIS => "LocalFile",
