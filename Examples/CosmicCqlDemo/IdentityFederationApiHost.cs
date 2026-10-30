@@ -271,6 +271,7 @@ public static class IdentityFederationApiHost
                         selection, mongoIds, secondaryIds, actor, TextWriter.Null, cancellation);
                 return Results.Ok(new
                 {
+                    preset = request.Preset,
                     count = result.Rows.Count,
                     observedPhysicalRows = result.ObservedInputRows,
                     consistency = "MovingProviderReads",
@@ -384,6 +385,13 @@ public static class IdentityFederationApiHost
             await fetch('/demo/shutdown', {method:'POST'});
             result.textContent = 'Demo stopping; the runner verifies fixture cleanup.';
           };
+          // A catalogue link can start a read-only example, never shutdown or
+          // change the trusted actor/provider scope captured by this native host.
+          const initialPreset = new URLSearchParams(window.location.search).get('preset');
+          if (['all', 'subset', 'name', 'description', 'metadata', 'combined'].includes(initialPreset)) {
+            const button = document.getElementById(initialPreset);
+            if (button) button.click();
+          }
         </script>
         </body></html>
         """;

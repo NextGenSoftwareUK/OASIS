@@ -99,6 +99,7 @@ public partial class OracleCqlContentNativeTests
                     using var response = await http.PostAsJsonAsync("/api/cql/federation", new { preset });
                     Assert.IsTrue(response.IsSuccessStatusCode);
                     using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    Assert.AreEqual(preset, body.RootElement.GetProperty("preset").GetString());
                     Assert.AreEqual(expected[preset], body.RootElement.GetProperty("count").GetInt32());
                     var copies = body.RootElement.GetProperty("rows").EnumerateArray().ToArray();
                     foreach (var provider in new[] { "MongoDBOASIS", "OracleDBOASIS" })
