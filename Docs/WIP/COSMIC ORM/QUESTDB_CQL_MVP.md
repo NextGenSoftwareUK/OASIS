@@ -141,3 +141,40 @@ Cache-only restores/bounded leased builds pass; no new dependency download or
 native environment. Generic lookup/deletion/history gaps above remain separate.
 Next is the retained native source and original-data restart/pair/browser proof;
 inventory remains red,62/226demo coverage unchanged.
+
+## Retained native QuestDB10.1.0 checkpoint
+
+Official free image pinned to
+`sha256:6f733a142ee7ca8623d65135b46ed6cf78aac1e9ab15d1493ad7df837721e2e4`,
+image IDe29d6aca1d1e92cd43f311088a9c2e9f6fd4a40858996e3c80f0b0b4f27e18de,
+312,060,883B expanded. Source `/var/tmp/oasis-questdb-cql`, container
+`oasis-questdb-cql`, authenticated loopback HTTP19000/PG18812,2CPU/2GiB,
+JVM128..512MiB and fixed workers. Local plaintext scope; no hosted/TLS claim.
+Initial native HTTP unauthenticated SQL access rejects. Credentials/receipts
+retained privately outside TestResults; source/table IDs6/7/8 survived restart.
+
+Native first1+restart1 tests pass/0failed/0skipped. Actual PG driver validates
+schema and65-control implementation:3original rows+1replacement, original JSON/
+exact decimal metadata/native epoch timestamps/table IDs preserved, obsolete
+field removed, all3/subset2/missing0, stable paging and explicit budget rejection.
+A test-only documented WAL transaction-applied observer waits for visibility;
+no writes are replayed and no production immediate-read guarantee is implied.
+[Native test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests/QuestDbCqlNativeTests.cs).
+Evidence under `C:/Source/OASIS-cosmic/TestResults/QuestDbCqlCurrent/`:
+- native-first.trx SHA256855e79c8b1a4e44c928443c58fd2e063840bddb198080f82435106de42f4ed65
+- native-restart.trx SHA256f0c60b8e3d98d0bd6796a231d900bf74cda0598b00f6d7328ec02b231bff36bf
+
+First stop verifier expected0; native Java SIGTERM returned143 with fresh HTTP/PG
+closed, engineSTOPPED and QuestDB-is-shutdown markers. Corrected helper accepts
+0/143 only when those current-start completion markers exist and no deferred/
+failed lifecycle shutdown is reported. Original receipt/observation retained;
+no source recreation, reseed or DDL replay. Native process code143 is distinct
+from successful test runner exit0.
+
+Source14,306,019B retained; no pending intents. Native service stopped/exit143,
+no OOM; ports19000/18812 closed. Native runner reuses Linux .NET10.0.12 and cached
+portable testplatform18.11.0, Windows cached integration restore/bounded build.
+Mongo-paired/browser acceptance remains open, now deferred behind the approved
+[10-provider content-query set](CONTENT_QUERY_DEMO_ROADMAP.md). Inventory stays red,
+62/226scoped demos unchanged. GitHub publication recovered through538bf51d6 before
+this checkpoint; earlier server-error incident is historical.
