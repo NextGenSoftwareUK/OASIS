@@ -86,3 +86,33 @@ Native image inventory: no CouchDB image found in current rootful WSL Podman cac
 other suitable runtimes still need inspection before download. No service started.
 
 Evidence `TestResults/CouchDbCqlCurrent/save-fixed.trx`, SHA256 `d846d541714a721b42b9016b69c33a0761fcab49392b6b8950a6cf22d7d55f7b`.
+
+## Retained native environment — 30 October 2026
+
+No suitable Windows/WSL/rootful/rootless cache resource found. Reused existing
+rootful Podman and downloaded official Apache CouchDB3.5.1 Linuxamd64 once:
+`docker.io/apache/couchdb@sha256:701bf53dd95b8742cd4120fb8f5aea8f14c0d8a77cfa807e86caaa537f822ee1`.
+Image ID df2aa2a1f3b5c7b5b8ecd51132941c204a0f1da91219c3280a83feb6260c7e11,
+size281,148,524B. Retain/reuse, no per-run image or source recreation.
+
+`Create-CosmicCouchDbEnvironment.py` created one authenticated single-node source:
+`/var/tmp/oasis-couchdb-cql`, container oasis-couchdb-cql ID
+1379f2e07bac0974b29a2801d508d1007f039b47239955f9254bc5c3f801a4b0.
+Only loopback15984 published;2CPU/512MiB/256PIDs, bounded Erlang schedulers.
+Private credentials file0600 owned by existing user1000; config/data private and
+owned by container5984. No secrets in reports, arguments or committed files.
+Original setup intent/container acknowledgement/environment manifest retained;
+creator refuses an existing environment instead of resetting it.
+
+Authenticated native first/restart checks pass version3.5.1 and identical server
+UUID3297b77519b62c5593f1c85449e8ea4b. Anonymous database listing401. Only _replicator
+and _users system databases; no business holons. Both owned starts stopped with
+exit0; no running gateway. Retained source/config/credentials total43,245B at setup.
+This is environment admission, not native record/CQL/replication proof.
+
+Next: reuse this container/source and existing Linux.NET10/portableVSTest to verify
+journalled original holon saves, native3/filter2/hash/sequence stability and actual
+process restart, then Mongo-paired C#/HTTP/browser5/4. Never recreate credentials
+or source if missing/unknown acknowledgement. [Official image/setup](https://docs.couchdb.org/en/stable/install/docker.html).
+
+Environment evidence `TestResults/CouchDbCqlCurrent/native-environment-summary.log`, SHA256 `5dc64980357b1bbbecc7773ea66c545adc0938a055efebefa4b09b9479427c62`.
