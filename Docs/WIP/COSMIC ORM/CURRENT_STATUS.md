@@ -1,14 +1,20 @@
 # Current COSMIC ORM / CQL status
 
-Updated28October2026 UTC. Read this first after compaction; update each milestone.
+Updated30October2026 UTC. Scoped sandbox release candidate; full programme remains incomplete.
 
 ## Work and priority
 
-- Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
+- Work/build/test C:/Source/OASIS-cosmic; parent/Core currently work/cosmic-cql-sandbox-integration. Broader work/cosmic-cql preserved.
 - Full ORM/CQL roadmap remains active/incomplete. Eight-provider demo breadth precedes remaining EF/NHibernate depth.
 - Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
 - HyperDriveV2 implementation only; document legacy gaps. Large POCO/migrations tooling stays deferred.
 - [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
+
+## Immediate next step
+
+[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): Core52, WEB4controls25,
+native7pass. Existing hosted opening guard ready (read-only); publish scoped pins,
+configure explicit free profile and verify actual deployment/queries. Not deployed yet.
 
 ## Latest verified milestone
 

@@ -21,8 +21,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
     {
         private static readonly TimeSpan BootPoll = TimeSpan.FromSeconds(5);
         private readonly ILogger<SandboxCleanupHostedService> _logger;
+        private readonly SandboxSubscriptionLifecycle _subscriptions;
 
-        public SandboxCleanupHostedService(ILogger<SandboxCleanupHostedService> logger) => _logger = logger;
+        public SandboxCleanupHostedService(ILogger<SandboxCleanupHostedService> logger, SandboxSubscriptionLifecycle subscriptions)
+        { _logger = logger; _subscriptions = subscriptions; }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -47,6 +49,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Sandbox
                                 report.AvatarsRemoved, report.HolonsRemoved, report.AvatarsKept);
                         foreach (var failure in report.Failures)
                             _logger.LogWarning("Sandbox cleanup: {Failure}", failure);
+                        var billing = await _subscriptions.SweepAsync(
+                            SandboxOptions.AtLeastOne(SandboxOptions.Current.MaximumAvatarsRemovedPerSweep,
+                                nameof(SandboxOptions.Current.MaximumAvatarsRemovedPerSweep)), stoppingToken);
+                        if (billing.Removed + billing.Deferred > 0)
+                            _logger.LogInformation("Sandbox subscription cleanup: retired {Removed}; {Deferred} retained for unresolved usage or changed ownership.",
+                                billing.Removed, billing.Deferred);
                     }
                     catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
                     catch (Exception exception) { _logger.LogError(exception, "Sandbox cleanup pass failed."); }
