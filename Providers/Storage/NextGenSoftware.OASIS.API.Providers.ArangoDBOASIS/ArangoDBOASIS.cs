@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text.Json.Nodes;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -26,13 +29,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
     /// Collections: avatars, avatar_details, holons
     ///
     /// Document key = GUID string (_key field).
-    /// Upsert:  PUT  /_db/oasis/_api/document/{collection}/{key}?overwriteMode=replace
+    /// Upsert:  POST /_db/oasis/_api/document/{collection}?overwriteMode=replace
     /// Get:     GET  /_db/oasis/_api/document/{collection}/{key}
     /// Delete:  DELETE /_db/oasis/_api/document/{collection}/{key}
     /// AQL search: POST /_db/oasis/_api/cursor
     ///   body: {"query":"FOR d IN collection FILTER d.field == @val LIMIT 1 RETURN d","bindVars":{"val":"..."}}
     /// </summary>
-    public class ArangoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ArangoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -75,42 +78,69 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
 
         private async Task EnsureDbAndCollectionsAsync()
         {
-            // Create DB if not exists
-            await _http.PostAsync($"{_baseUrl}/_api/database", Json(new { name = Db }));
+            async Task Create(string url, object body)
+            {
+                using var response = await _http.PostAsync(url, Json(body));
+                using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                // Only the documented duplicate-name response admits an existing resource.
+                if (response.StatusCode == HttpStatusCode.Conflict &&
+                    payload.RootElement.TryGetProperty("errorNum", out var number) && number.GetInt32() == 1207)
+                    return;
+                response.EnsureSuccessStatusCode();
+                if (payload.RootElement.TryGetProperty("error", out var error) && error.ValueKind != JsonValueKind.False)
+                    throw new InvalidDataException("Native resource creation reported an error.");
+            }
+            await Create($"{_baseUrl}/_api/database", new { name = Db });
             foreach (var col in new[] { ColAvatars, ColDetails, ColHolons })
-                await _http.PostAsync(ApiUrl("/_api/collection"), Json(new { name = col, type = 2 }));
+                await Create(ApiUrl("/_api/collection"), new { name = col, type = 2 });
         }
 
         private async Task<T?> GetDocAsync<T>(string collection, string key)
         {
-            var resp = await _http.GetAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}"));
-            if (!resp.IsSuccessStatusCode) return default;
-            return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOpts);
+            using var response = await _http.GetAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}"));
+            var payload = await response.Content.ReadAsStringAsync();
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                using var missing = JsonDocument.Parse(payload);
+                if (missing.RootElement.TryGetProperty("errorNum", out var number) && number.GetInt32() == 1202)
+                    return default;
+            }
+            response.EnsureSuccessStatusCode();
+            return JsonSerializer.Deserialize<T>(payload, _jsonOpts);
         }
 
-        private async Task UpsertDocAsync(string collection, string key, object obj)
+        private async Task<string> UpsertDocAsync(string collection, string key, object obj)
         {
-            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(obj), _jsonOpts)!;
-            var mutable = new Dictionary<string, object>();
-            foreach (var kv in dict) mutable[kv.Key] = kv.Value;
-            mutable["_key"] = key;
-            await _http.PutAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}?overwriteMode=replace"), Json(mutable));
+            var payload = JsonSerializer.SerializeToNode(obj, obj.GetType(), _jsonOpts)!.AsObject();
+            payload["_key"] = key;
+            using var response = await _http.PostAsync(ApiUrl($"/_api/document/{collection}?overwriteMode=replace&waitForSync=true"), Json(payload));
+            response.EnsureSuccessStatusCode();
+            using var receipt = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var native = receipt.RootElement;
+            if (native.TryGetProperty("error", out var error) && error.ValueKind != JsonValueKind.False ||
+                !native.TryGetProperty("_key", out var nativeKey) || nativeKey.GetString() != key ||
+                !native.TryGetProperty("_id", out var nativeId) || nativeId.GetString() != collection + "/" + key ||
+                !native.TryGetProperty("_rev", out var revision) || revision.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(revision.GetString()))
+                throw new InvalidDataException("ArangoDB did not acknowledge the selected native identity/revision.");
+            return revision.GetString()!;
         }
 
         private async Task DeleteDocAsync(string collection, string key)
         {
-            await _http.DeleteAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}"));
+            using var response = await _http.DeleteAsync(ApiUrl($"/_api/document/{collection}/{Uri.EscapeDataString(key)}"));
+            response.EnsureSuccessStatusCode();
         }
 
         private async Task<List<T>> AqlQueryAsync<T>(string aql, Dictionary<string, object> bindVars)
         {
             var body = new { query = aql, bindVars };
-            var resp = await _http.PostAsync(ApiUrl("/_api/cursor"), Json(body));
+            using var resp = await _http.PostAsync(ApiUrl("/_api/cursor"), Json(body));
             var list = new List<T>();
-            if (!resp.IsSuccessStatusCode) return list;
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("result", out var result)) return list;
+            if (!doc.RootElement.TryGetProperty("result", out var result) || result.ValueKind != JsonValueKind.Array)
+                throw new InvalidDataException("ArangoDB query returned no result array.");
             foreach (var el in result.EnumerateArray())
             {
                 var item = JsonSerializer.Deserialize<T>(el.GetRawText(), _jsonOpts);
@@ -124,6 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureDbAndCollectionsAsync();
                 IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "ArangoDBOASIS activated.";
             }
@@ -293,9 +324,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(ColHolons, holon.Id.ToString(), holon);
-                result.Result = holon; result.IsError = false; result.Message = $"ArangoDBOASIS: Holon '{holon.Name}' saved.";
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                if (IsVersionControlEnabled) throw new NotSupportedException("Version-control mode has no verified native save policy.");
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.ArangoDBOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                var revision = await UpsertDocAsync(ColHolons, id.ToString("D"), payload);
+                // Publish caller identity only after a validated native acknowledgement.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ArangoDBOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.MetaData["ArangoDB.Revision"] = revision;
+
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ArangoDBOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -304,7 +352,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); } result.Result = saved; result.IsError = false; result.Message = $"ArangoDBOASIS: Saved {saved.Count} holons."; return result; }
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count != 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count != 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
+        }
+
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
