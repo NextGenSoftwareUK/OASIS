@@ -2123,3 +2123,9 @@ Monad paired outcome bounded1/interactive1 pass, browserAX5/4 verified; screensh
 Owner COSMIC/CQL. Reuse task worktree/cached .NET/NuGet/bin/obj (sizes unmeasured); restore only from `C:/Users/david/.nuget/packages`. Evidence/logs `C:/Source/OASIS-cosmic/TestResults/AbstractCqlCurrent` disposable/regenerable after processes complete. No new runtime/download/service/fixture data. Native compatibility audit reuses pinned zkSync source findings; no native network or restart claim from controls.
 
 Abstract controls outcome: actual repro3failed/5passed; fixed11/family138passed. Build/test processes complete; no native ports/data/contracts/download/install created. Cached outputs reusable (size unmeasured); raw evidence disposable/regenerable. Official interpreter documentation supports runtime dependency distinction; pinned zkSync checkpoint failure is not labelled Abstract-specific native failure. Continue breadth Arweave; no duplicate environment.
+
+### Arweave read-boundary controls — 29 October 2026
+
+Owner COSMIC/CQL. Reuse existing Node/.NET/NuGet/provider outputs; no Arweave SDK restore/native environment/download yet. Cached NuGet source `C:/Users/david/.nuget/packages`. Test protocol fixture `read-boundary.cjs` copied to unit bin by build; no network/wallet/DB or persistent dataset. Regenerable output/logs `C:/Source/OASIS-cosmic/TestResults/ArweaveCqlCurrent` and project bin/obj (unmeasured), disposable after completed tests/builds. Tests prove SDK-wrapper error propagation only, not native Arweave.
+
+Arweave read-boundary outcome repro5failed/1passed; fixed full11passed. Owned Node fixture children/build/tests completed. No native Arweave service, SDK restore, download/wallet/source created. Reused Node/.NET/NuGet/bin/obj; raw reports disposable/regenerable under recorded TestResults. No port dependency. Native runtime/cache inventory remains next.
