@@ -18,7 +18,7 @@ public partial class PineconeOASIS
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{_host}/vectors/upsert")
         {
-            Content = Json(new { vectors = new[] { new { id, values = new[] { 0.0f }, metadata } }, @namespace = ns })
+            Content = Json(new { vectors = new[] { new { id, values = new[] { 1.0f }, metadata } }, @namespace = ns })
         };
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
         if (response.StatusCode != HttpStatusCode.OK)

@@ -51,6 +51,7 @@ public class PineconeSaveOwnershipTests
             Assert.AreEqual(1234567890.123456789012345678m, payload.RootElement.GetProperty("MetaData").GetProperty("precision").GetDecimal());
             Assert.AreEqual(id.ToString("D"), payload.RootElement.GetProperty("ProviderUniqueStorageKey").GetProperty("PineconeOASIS").GetString());
             if (mode == "disconnect") throw new HttpRequestException("Unknown write outcome");
+            Assert.AreEqual(1.0f, wire.RootElement.GetProperty("vectors")[0].GetProperty("values")[0].GetSingle(), "Unit placeholder is valid for cosine as well as dot/euclidean.");
             Assert.AreEqual("2026-07", request.Headers.GetValues("X-Pinecone-API-Version").Single());
             if (mode == "oversized") return Json(new { padding = new string('x', 65537) });
             if (mode == "missing") return Json(new { });
