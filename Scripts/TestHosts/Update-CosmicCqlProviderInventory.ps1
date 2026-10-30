@@ -80,6 +80,8 @@ foreach ($name in $names) {
         $status = '❌ [Native/restart/paired/browser pass; hub enrollment pending](APTOS_CQL_MVP.md)'
 
 
+    } elseif ($name -eq 'CockroachDBOASIS') {
+        $status = '❌ [12 controls/10 family checks; native/paired pending](COCKROACHDB_CQL_MVP.md)'
     } elseif ($name -eq 'TRONOASIS') {
         $status = '❌ [Controls pass; source/native/paired pending](TRON_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }

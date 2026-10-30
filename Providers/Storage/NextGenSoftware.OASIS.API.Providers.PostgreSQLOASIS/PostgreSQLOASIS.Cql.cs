@@ -19,7 +19,9 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAliasCapabilities = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());
-    public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == Core.Enums.ProviderType.PostgreSQLOASIS
+    // A product opts in explicitly; changing a provider enum cannot inherit certification.
+    protected virtual ProviderType NativeBoundedQueryAuthority => Core.Enums.ProviderType.PostgreSQLOASIS;
+    public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == NativeBoundedQueryAuthority
         ? PostgreSqlCqlCompiler.Capabilities : UnsupportedAliasCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
@@ -37,7 +39,7 @@ public partial class PostgreSQLOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
-            var selection = PostgreSqlCqlCompiler.Compile(plan.Query, QueryProviderType);
+            var selection = BoundedIdentityCqlCompiler.Compile(plan.Query, QueryProviderType, NativeBoundedQueryAuthority);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated)
