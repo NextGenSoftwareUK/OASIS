@@ -37,7 +37,7 @@ public sealed class OracleCqlTests
     }
 
     [DataTestMethod]
-    [DataRow("name")] [DataRow("metadata")] [DataRow("ordering")] [DataRow("graph")]
+    [DataRow("ordering")] [DataRow("graph")]
     public void UnenrolledBusinessFeaturesRejectBeforeSqlDispatch(string feature)
     {
         var query=Query(new[]{Guid.NewGuid()});
@@ -64,4 +64,71 @@ public sealed class OracleCqlTests
         result=await provider.ExecuteCosmicQueryAsync(plan.Result,cancellationToken:cancel.Token);
         Assert.AreEqual("CQL_QUERY_CANCELLED",result.ErrorCode);Assert.IsNull(result.Result);
     }
+    [TestMethod]
+    public void ContentValuesAreCapturedBindsInsideTheOriginalAuthorityGuard()
+    {
+        var allowed=Guid.NewGuid();var forbidden=Guid.NewGuid();
+        var text="coffee%_' OR 1=1 --";
+        var query=Query(new[]{allowed}).Where(h=>(h.Id==forbidden||h.Description.Contains(text))&&
+            CosmicQueryMetadata.Value<string>(h,"category")==text).Result;
+        text="changed after capture";
+        var result=OracleCqlCompiler.Compile(query);
+        Assert.IsFalse(result.IsError,result.Message);
+        Assert.AreEqual(2,result.Result.TextValues.Count);
+        Assert.AreEqual("coffee%_' OR 1=1 --",result.Result.TextValues[0]);
+        Assert.IsFalse(result.Result.Sql.Contains("coffee%_"));
+        StringAssert.Contains(result.Result.Sql,"JSON_EXISTS(DATA_JSON");
+        StringAssert.Contains(result.Result.Sql,"PASSING :cqltext");
+        StringAssert.Contains(result.Result.Sql,"ERROR ON ERROR");
+        StringAssert.Contains(result.Result.Sql,".type() == \"object\"");
+        StringAssert.Contains(result.Result.Sql,".type() == \"string\"");
+        CollectionAssert.AreEqual(new[]{allowed,forbidden},result.Result.Values.ToArray());
+        Assert.ThrowsException<NotSupportedException>(()=>((IList<string>)result.Result.TextValues)[0]="replacement");
+    }
+
+    [TestMethod]
+    public void MetadataKeyEncodingCannotEscapeTheOracleSqlLiteral()
+    {
+        var key="category'\"; DROP TABLE OASIS_HOLONS;--";
+        var query=Query(new[]{Guid.NewGuid()}).Where(h=>CosmicQueryMetadata.Value<string>(h,key)=="coffee").Result;
+        var result=OracleCqlCompiler.Compile(query);
+        Assert.IsFalse(result.IsError,result.Message);
+        var outsideLiterals=System.Text.RegularExpressions.Regex.Replace(result.Result.Sql,@"'(?:''|[^'])*'","''");
+        Assert.IsFalse(outsideLiterals.Contains("DROP TABLE"));
+        Assert.AreEqual("coffee",result.Result.TextValues.Single());
+    }
+
+    [TestMethod]
+    public void EmptyStringRetainsItsJsonStringIntent()
+    {
+        var result=OracleCqlCompiler.Compile(Query(new[]{Guid.NewGuid()}).Where(h=>h.Name=="").Result);
+        Assert.IsFalse(result.IsError,result.Message);
+        Assert.AreEqual("",result.Result.TextValues.Single());
+        StringAssert.Contains(result.Result.Sql,".type() == \"string\"");
+    }
+
+    [DataTestMethod]
+    [DataRow("starts")]
+    [DataRow("numeric")]
+    [DataRow("null")]
+    [DataRow("nul")]
+    [DataRow("utf8-bound")]
+    public void UnprovedContentSemanticsRejectBeforeNativeDispatch(string feature)
+    {
+        var query=Query(new[]{Guid.NewGuid()});
+        var oversized=new string('\u20ac',1334); //4002UTF8 bytes, within the shared character limit.
+        var capture=feature switch {
+            "starts"=>query.Where(h=>h.Name.StartsWith("C",StringComparison.Ordinal)),
+            "numeric"=>query.Where(h=>CosmicQueryMetadata.Value<int>(h,"score")>1),
+            "null"=>query.Where(h=>h.Name==null),
+            "nul"=>query.Where(h=>h.Name=="invalid\0value"),
+            _=>query.Where(h=>h.Name==oversized)
+        };
+        Assert.IsFalse(capture.IsError,capture.Message);
+        var compiled=OracleCqlCompiler.Compile(capture.Result);
+        Assert.IsTrue(compiled.IsError);
+        Assert.AreEqual("CQL_CAPABILITY_UNSUPPORTED",compiled.ErrorCode);
+        Assert.IsNull(compiled.Result);
+    }
+
 }
