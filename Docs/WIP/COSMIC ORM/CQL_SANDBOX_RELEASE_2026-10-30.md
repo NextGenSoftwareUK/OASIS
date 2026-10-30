@@ -276,3 +276,7 @@ Owned native fixtures removed and services/container stopped (Neo attached proce
 ### Demo repair: Mongo held-head completion
 
 Seven native cases pass/no skips; TestResults/Web4SandboxCqlCurrent/mongo-replica-initialization.trx SHA256 02C0CFC10EDD1815BCD76ACA7A4FDA9E87B332BB4DDEDBACC417A93E683E3B4D. Core both-target, Shared, Mongo and integration-test builds pass without restore. Actual late version4 baseline/source completion followed by ordinary version5 delivery; stale attempt and absent/wrong receipt refusal, preserved original evidence and byte-identical completion replay verified. Owned fixed test DBs removed and Linux Mongo stopped. Trusted application/journal composition and hosted execution remain incomplete.
+
+### Durable demo repair application
+
+23 shared controls pass/no skips, TestResults/Web4SandboxCqlCurrent/replica-application.trx SHA256 3ADCBD0AF34B7F27C7A1031F10C9A38A6632570A01D49E8F3C701F70973CF162. Eight native Mongo cases pass/no skips, mongo-replica-initialization.trx SHA256 CFD4C2EAC14319E7A919427EBA1AC621708B1E924C0BF5EFDE7FA157A85AC758. The first shared run exposed in-memory Guid versus persisted JSON string token comparison; canonical serialized intent comparison fixes the actual journal invariant. Three failed mock journals preserved separately under TestResults/ReplicaInitializationApplicationCurrent/SerializationFailure; no real unknown write was replayed. Builds pass without restore. No hosted mutation; Mongo-to-SQLite operator host/route proof remains next.
