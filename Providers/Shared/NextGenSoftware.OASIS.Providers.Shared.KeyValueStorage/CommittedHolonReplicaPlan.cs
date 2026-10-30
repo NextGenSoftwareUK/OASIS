@@ -25,18 +25,23 @@ public sealed class CommittedHolonReplicaPlan : IAtomicHolonWritePlan
     public ConditionalHolonOperation Operation {get;}
     public string SourceId {get;}
     public ProviderType SourceAuthority {get;}
+    public bool IsInitialBaseline {get;}
     private readonly IReadOnlyDictionary<Guid,string> _content;
 
-    private CommittedHolonReplicaPlan(CommittedHolonReplicaRequest request,ProviderType authority,Action<IHolon> validateSource=null)
+    private CommittedHolonReplicaPlan(CommittedHolonReplicaRequest request,ProviderType authority,Action<IHolon> validateSource=null,bool initialBaseline=false)
     {
         ArgumentNullException.ThrowIfNull(request);CosmicConcurrency.ValidateAuthority(authority);
         OperationId=request.OperationId;Authority=authority;Operation=request.Operation;
         SourceId=request.SourceId;SourceAuthority=request.SourceAuthority;
+        IsInitialBaseline=initialBaseline;
+        if(initialBaseline && (request.ActorId==Guid.Empty || Operation!=ConditionalHolonOperation.Save))
+            throw new ArgumentException("Replica initialization requires an identified actor and a committed save snapshot.");
         var graph=HolonGraphWritePlan.Create(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,validateSource);
         var content=new Dictionary<Guid,string>();var edges=new Dictionary<Guid,IReadOnlyList<Guid>>();
         foreach(var node in graph.Nodes)
         {
             var row=node.Snapshot;
+            if(initialBaseline && row.IsDeleted)throw new ArgumentException("Replica initialization cannot resurrect a tombstone.");
             if(node.Source.Id==Guid.Empty || row.Version<1 || row.VersionId==Guid.Empty
                 || (row.Version==1 ? row.PreviousVersionId!=Guid.Empty : row.PreviousVersionId==Guid.Empty || row.PreviousVersionId==row.VersionId))
                 throw new ArgumentException("Replica content requires committed identities and coherent logical lineage.");
@@ -52,7 +57,7 @@ public sealed class CommittedHolonReplicaPlan : IAtomicHolonWritePlan
         var rootSources=new HashSet<IHolon>(graph.Roots,ReferenceEqualityComparer.Instance);
         RootIds=Array.AsReadOnly(Nodes.Where(node=>rootSources.Contains(node.Source)).Select(node=>node.Snapshot.Id).ToArray());
         ChildIds=new ReadOnlyDictionary<Guid,IReadOnlyList<Guid>>(edges);_content=new ReadOnlyDictionary<Guid,string>(content);
-        var intent=new JObject{["format"]=1,["kind"]="committed-holon-replica",["source"]=SourceId,
+        var intent=new JObject{["format"]=1,["kind"]=initialBaseline ? "committed-holon-replica-initial-baseline":"committed-holon-replica",["source"]=SourceId,
             ["sourceAuthority"]=SourceAuthority.ToString(),["targetAuthority"]=Authority.ToString(),["actor"]=request.ActorId,
             ["operation"]=Operation.ToString(),["roots"]=new JArray(RootIds),["saveChildren"]=request.SaveChildren,
             ["recursive"]=request.Recursive,["depth"]=request.MaxChildDepth,
@@ -61,6 +66,8 @@ public sealed class CommittedHolonReplicaPlan : IAtomicHolonWritePlan
         Fingerprint=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Canonical(intent).ToString(Formatting.None))));
     }
     public static CommittedHolonReplicaPlan Create(CommittedHolonReplicaRequest request,ProviderType authority)=>new(request,authority);
+    public static CommittedHolonReplicaPlan CreateInitialBaseline(CommittedHolonReplicaRequest request,ProviderType authority,Action<IHolon> validateSource=null)
+        =>new(request,authority,validateSource,true);
     public static CommittedHolonReplicaPlan Create(CommittedHolonReplicaRequest request,ProviderType authority,Action<IHolon> validateSource)=>new(request,authority,validateSource);
     public void ValidateAcknowledgedRecord(IHolon record)
     {
