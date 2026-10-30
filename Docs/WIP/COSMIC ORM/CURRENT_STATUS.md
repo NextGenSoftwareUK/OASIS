@@ -38,12 +38,17 @@ No additional Development push is covered by the already-used extra-batch approv
 
 - Core task branch 05f6a2c adds a separate trusted initialization capability; existing interfaces unchanged. Shared plan uses a distinct fingerprint domain. SQLite implements atomic initial-baseline installation with current/head/history/receipt absence fences and exact replay; ordinary sequential delivery unchanged.
 - 31 native SQLite initialization/replica/outbox cases and 67 shared replica controls pass, zero skipped. Seven new native and four new shared cases. Core both targets, Shared, SQLite and test projects build without restore. Owned source/target fixtures removed after disposal; no hosted mutation.
-- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Neo native primitive, Mongo historical-membership migration and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: equivalent Neo initialization, audited Mongo receipt-membership migration, then authorized enrollment and fenced recovery/resume.
+- Exact implementation/remaining contract: [baseline and recovery](REPLICA_BASELINE_AND_RECOVERY.md). X10a remains red: Mongo historical-membership migration, larger-store Neo admission and authorized coordinator still needed. X10b repair/resume remains red; hosted queue unchanged. Next implementation: audited Mongo receipt-membership migration, then authorized enrollment/source verification and fenced recovery/resume. Native baseline primitives exist on SQLite/Mongo/Neo, but their end-to-end acceptance stays red.
 
 ## Mongo native baseline milestone
 
 - Same trusted capability/shared plan now implemented on Mongo. Persistent per-holon fences serialize all atomic graph mutations, including hard deletes; baseline requires absence. Receipts carry HolonIds; unknown historical membership refuses initialization with an explicit reconciliation code. Positive replay remains read-only.
 - Two native sync/async scenario runs pass (version-4 graph, restart/replay, version-5 delivery, competing initializers, independent child/hard-delete protection, unknown receipt rejection). Eight shipping native billing lifecycle controls pass. Four producer/consumer builds pass without restore. Exact owned DBs removed and Mongo stopped; no hosted mutation. See baseline/recovery doc for V2 scope and historical migration limits.
+
+## Neo4j native baseline milestone
+
+- Same capability/shared plan now implemented using selected-node locks, archived-revision checks and streamed canonical receipt validation (max 10000; larger/unknown audits require reconciliation). No APOC/plugin added, implicit baseline, old-receipt mutation or HTTP grant.
+- Ten native cases pass/zero skips: four new sync/async x history cases plus six existing sequential/SQLite-target compatibility controls. Reopen/replay, version-5 delivery, competing clients, independent child/hard-delete and unknown-receipt rejection verified. Native nodes/history/receipts and source files removed; persistent ownership journal cleaned=true. Owned container/attached process stopped.
 
 ## Broader plan preserved
 
