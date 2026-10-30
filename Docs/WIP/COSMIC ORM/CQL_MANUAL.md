@@ -1180,3 +1180,30 @@ Oracle's profile admits identity membership/equality, name/description equality/
 Open https://web4.oasisomniverse.one/web4-sandbox.html and choose CQL Playground, section4. Start the reusable local Oracle+Mongo runner using the displayed command, select one of four examples, then OPEN LOCAL QUERY. Only a fixed loopback URL and supported preset name are passed; no hosted bearer, actor or JSON editor body is forwarded. The native page automatically runs the chosen read and echoes its preset in the response. URL startup is limited to all/subset/name/description/metadata/combined; shutdown cannot be auto-invoked through the preset parameter. Oracle is deliberately labelled local; the hosted provider selector remains Mongo/SQLite/Neo. This integration does not establish hosted OCI access.
 
 Verified actual browser path: CQL tab -> Metadata equality -> /?preset=metadata ->4physical rows (Mongo2/Oracle2).17client controls pass; public client bytes match tested source. See CURRENT_STATUS/release report for exact commits and evidence. Stop the local native page after the demo to complete owned fixture teardown.
+
+## IPFS multi-record native selection
+
+The explicit IPFS CID-key-set profile selects several existing encrypted records by their native source keys:
+
+```csharp
+var provider = new IPFSOASIS(dna, dnaPath)
+{
+    EnableCqlCidKeySets = true
+};
+
+// Activate the configured original repository/key first. These CIDs come from
+// trusted source records; a projected OASIS ID is not an IPFS record address.
+var rows = await NativeKeySetWalkthrough.RunAsync(
+    manager, provider, selectedRecordCids, actorId, Console.Out);
+```
+
+The shared walkthrough captures `selectedRecordCids.Contains(CosmicQueryMetadata.Value<string>(row, "IPFSRecordCid"))` on an explicit provider scope. It binds owner/public visibility and delegates native reads through HolonManager/LINQ. The adapter validates all selected CIDs before I/O, captures one authenticated immutable catalogue, reads only selected record envelopes and checks complete selected results before publishing a page. At most8 unique CIDs are admitted. Ordinary point equality remains a distinct supported shape; arbitrary field predicates, ordering or graph traversal are rejected before native I/O.
+
+Reuse the original environment; do not nest a build lease around this runner:
+
+```powershell
+pwsh -File Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider IPFS -ArchiveCompletedDemo
+# Add -Serve for the same native multi-record + Mongo teaching page on5088.
+```
+
+Verified native fixture:3 encrypted records, selected2-row subset, SDK/HTTP and Mongo-paired federation5rows (3IPFS+2Mongo); subset4rows. Unknown keys/forged actor inputs are rejected by the teaching host. Owned Mongo records and IPFS catalogue membership are cleaned after exact ownership checks, services stopped, original repository/key preserved. Immutable IPFS blocks/retained archive remain; cleanup is not universal erasure. This is selected-key filtering, not generic IPFS metadata/name/content search or hosted WEB4 accounting certification.
