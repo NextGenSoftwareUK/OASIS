@@ -11,6 +11,31 @@ This is not an outgoing Development deployment or all-provider acceptance.
 - Pre-push hook reconciliation preserves the working Python version check and
   fail-closed validation, while also admitting the upstream `py` launcher.
 
+## Latest inbound ancestor-access integration
+
+Incoming parent `be7dc506a`, Core `44624d133a3c6eba01e616df28e7276e619d182f`.
+Merged Core `0b69338c52728029370c2ee0ddc88aeceebba034` is pushed and independently
+remote-verified. Parent gitlink and deployment manifest use that exact SHA.
+Both permission/ancestor changes and the verified task demos are preserved.
+Only the gitlink and pin conflicted; resolved to the actual merged Core.
+
+- Core producer/full suite: **4542 passed**, zero failed/skipped.
+- Mongo producer/tests build: pass; ancestor compiler controls **2 passed**.
+- WEB4 and its test project build: pass.
+- GraphQL shipping schema/sharing input/CQL required-policy hosting: **8 passed**.
+- Evidence: `TestResults/DevelopmentSyncCurrent/ancestor-*.log` and TRX below.
+
+- ancestor-core.trx SHA256 `cfae4e1ffc43f3c3499ddaa283026bb940ff18b23d0db920fc0e1a3a4a20540c`.
+- ancestor-mongo.trx SHA256 `cefc7982cf74dbf4fa74a60c17c6235331ba7f1c299ebb6f19e09f62faf76010`.
+- ancestor-web4-admission.trx SHA256 `227e2e54af0da90a93e7120ca1bfdb26d041f2a53c7595af0f724c30aa27dfc4`.
+
+No native source was mutated/reseeded and no dependencies downloaded. The optional
+new native Mongo ancestor test was not run here; controls are not a new native
+ancestor/durability certification. No outgoing Development deployment occurred.
+Next: Supabase canonical storage/query audit and native resource admission.
+
+## Earlier synchronization evidence
+
 ## Reproduced integration issue and fix
 
 The incoming avatar/holon sharing endpoints failed WEB4 compilation with two

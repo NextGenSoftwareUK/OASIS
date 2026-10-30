@@ -204,11 +204,64 @@ internal sealed partial class MongoCqlTranslator
                 comparison=Op("$and",Op("$ne",Type(left),Literal("null")),Op("$ne",Type(right),Literal("null")),comparison);
             return Choose(valid,comparison,Literal(false));
         },"cqlright"),"cqlleft");
+    // An "any ancestor satisfies" test cannot be one expression: it walks up the parent chain with a lookup per level.
+    // Translate() refers to a field that AddAncestorStages() computes before the match; a query shape that does not add those
+    // stages sees a missing field, which is false, so the rule fails closed (it never admits more).
+    private readonly Dictionary<CosmicQueryAnyAncestor,string> ancestorFields=new();
+
+    private string AncestorField(CosmicQueryAnyAncestor node)
+    {
+        if(!ancestorFields.TryGetValue(node,out var name)){name="_anc"+ancestorFields.Count;ancestorFields[node]=name;}
+        return name;
+    }
+
+    /// <summary>
+    /// Adds, per ancestor condition, stages that walk up ParentHolonId one bounded level at a time and leave a boolean in the
+    /// condition's field. The matched ancestor need not be readable by the caller: the right comes from its flag.
+    /// </summary>
+    private bool AddAncestorStages(List<BsonDocument> pipeline)
+    {
+        if(ancestorFields.Count==0)return false;
+        long stageCount=pipeline.Count+2L;
+        foreach(var pair in ancestorFields)
+        {
+            stageCount+=1L+3L*pair.Key.Traversal.MaximumDepth;
+            if(stageCount>1000)throw new MongoCqlLimitException();
+        }
+        var empty=Guid.Empty.ToString("D");
+        BsonValue Id(string field)=>new BsonDocument("$toLower",new BsonDocument("$ifNull",new BsonArray {"$"+field,empty}));
+        foreach(var pair in ancestorFields.ToArray())
+        {
+            var field=pair.Value;var next=field+"Next";var up=field+"Up";
+            var predicate=Translate(pair.Key.Predicate,0);
+            pipeline.Add(new("$set",new BsonDocument {{field,Literal(false)},{next,Id("ParentHolonId")}}));
+            for(var level=0;level<pair.Key.Traversal.MaximumDepth;level++)
+            {
+                // Once matched, stop looking: point at nothing.
+                var pointer=Choose("$"+field,Literal(empty),"$"+next);
+                pipeline.Add(new("$lookup",new BsonDocument {
+                    {"from","Holon"},{"let",new BsonDocument("p",pointer)},
+                    {"pipeline",new BsonArray {
+                        new BsonDocument("$match",new BsonDocument("$expr",Op("$and",Op("$ne","$$p",Literal(empty)),Op("$eq",Id("HolonId"),"$$p")))),
+                        new BsonDocument("$limit",1),
+                        new BsonDocument("$project",new BsonDocument {{"_id",0},{"matched",predicate},{"parent",Id("ParentHolonId")}})}},
+                    {"as",up}}));
+                BsonValue Pluck(string name)=>new BsonDocument("$map",new BsonDocument {{"input","$"+up},{"as","a"},{"in","$$a."+name}});
+                pipeline.Add(new("$set",new BsonDocument {
+                    {field,Op("$or","$"+field,new BsonDocument("$anyElementTrue",new BsonArray {Pluck("matched")}))},
+                    {next,Op("$ifNull",new BsonDocument("$arrayElemAt",new BsonArray {Pluck("parent"),0}),Literal(empty))}}));
+                pipeline.Add(new("$unset",up));
+            }
+        }
+        return true;
+    }
+
     private BsonValue Translate(CosmicQueryPredicate predicate,int depth)
     {
         if(++nodes>2048||depth>64)throw new MongoCqlLimitException();
         switch(predicate)
         {
+            case CosmicQueryAnyAncestor ancestor:return "$"+AncestorField(ancestor);
             case CosmicQueryFieldComparison fields:return FieldComparison(fields);
             case CosmicQueryBoolean boolean:return Literal(boolean.Value);
             case CosmicQueryLogical logical:return Op(logical.IsAnd?"$and":"$or",Translate(logical.Left,depth+1),Translate(logical.Right,depth+1));

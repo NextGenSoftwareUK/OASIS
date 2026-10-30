@@ -287,10 +287,17 @@ public static partial class CqlV1Compiler
     /// </summary>
     public static Func<Guid, System.Collections.Generic.IEnumerable<Guid>> SharedReadGroups { get; set; }
 
+    /// <summary>
+    /// With <see cref="SharedReadGroups"/> set, also return holons below one that granted read to everything beneath it
+    /// (the <c>inherit</c> section). Needs a provider that declares ancestor support (MongoDBOASIS today); others reject the
+    /// query. Off by default.
+    /// </summary>
+    public static bool SharedReadIncludesInherited { get; set; }
+
     internal static NextGenSoftware.OASIS.Common.OASISResult<CosmicQueryReadAccess> DefaultReadAccess(Guid actor)
     {
         var groups=SharedReadGroups;
-        return groups==null?CosmicQueryReadAccess.OwnerOrPublic(actor):CosmicQueryReadAccess.OwnerPublicOrShared(actor,groups(actor));
+        return groups==null?CosmicQueryReadAccess.OwnerOrPublic(actor):CosmicQueryReadAccess.OwnerPublicOrShared(actor,groups(actor),SharedReadIncludesInherited);
     }
 
     private static CosmicQuery<Holon> Add(CosmicQuery<Holon> query, Guid actor,CosmicQueryReadAccess trusted)
