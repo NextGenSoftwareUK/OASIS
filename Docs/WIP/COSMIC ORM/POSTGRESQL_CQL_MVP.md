@@ -1,12 +1,12 @@
 # PostgreSQL CQL MVP admission
 
-Updated 29 October 2026. **Scoped native/restart and Mongo-paired C#/HTTP/browser MVP verified.**
+Updated30October2026. **Identity-only native/restart and Mongo-paired MVP verified; new content-query candidate awaits native proof.**
 
-The adapter uses the existing PostgreSQL storage connection and canonical record
-reader. A single parameterized SELECT applies authorized UUID selection and native
-paging. The bounded catalogue supports at most 100 identities; unsupported content
-predicates, ordering and child traversal reject before native execution. The decoded
-response has a 4 MiB aggregate budget; this is not a pre-allocation bound.
+The adapter uses the existing PostgreSQL connection and canonical record reader.
+One parameterized SELECT applies the server-authorized catalogue (at most100IDs),
+native business predicates and UUID paging before materialization. The original
+identity-only proof remains separate from new content-query acceptance. Decoded
+response budget remains4MiB; it is not a pre-allocation bound.
 
 PostgreSQL-compatible aliases retain their own identities and do not inherit this
 capability admission. PostgreSQL storage is canonical JSON; no application encryption
@@ -77,10 +77,41 @@ read-only on subsequent runs. This proves bounded identity filtering/native pagi
 not arbitrary content predicates, managed cloud products, aliases, production
 registration or full PostgreSQL LINQ parity.
 
-## Exact next step
+## Content-query candidate: semantics and remaining proof
 
-Continue missing provider MVPs from the all-provider inventory. PostgreSQL's wider
-parity and alias admission remain red; do not harden this green scope absent a bug.
+The single native compiler now admits Name/Description equality and Contains,
+string metadata equality (including nested object paths), Boolean constants, Id
+equality/membership and AND/OR. All values/JSON path segments are parameters.
+Native predicates run before the existing UUID order/Skip/Take; there is no
+managed filtering or unrestricted collection read. A business OR cannot enlarge
+the complete server-authorized catalogue.
+
+Text is case-sensitive, with PostgreSQL C collation for equality. Contains uses
+strpos, so percent/underscore/backslash are literal characters rather than LIKE
+wildcards. Metadata must traverse objects and finish at a JSON string; missing,
+null, non-string and array-parent paths do not match a string equality. Keys are
+case-sensitive, including numeric-looking object keys. NUL inputs reject. Native
+Unicode/escaping behavior still requires the cases below before green admission.
+
+Name/metadata ordering, numeric metadata, null predicates, StartsWith/EndsWith,
+NOT, graph queries and arbitrary-source authorization remain unsupported. Aliases
+which explicitly opted into their earlier native identity scope retain only that
+scope; none inherits PostgreSQL content capability certification. The existing
+Compile helper remains an identity-algebra API; provider execution uses the one
+CompileNative command owner, without fallback dispatch.
+
+Producer/unit builds pass.16 controls pass/no skips:8 retained plus8 content,
+parameter ownership, authority containment and rejection cases. Evidence:
+TestResults/PostgreSqlCqlCurrent/content-controls.trx; SHA256 895972ac28790ac99bd1bb34e2565282ef4e285de8f5bc573dd4d9d5ee9a35d8.
+These controls do not prove native SQL/JSON semantics, persistence or browser use.
+
+Exact next: reuse the retained PostgreSQL container/volume; preserve original
+cosmic_cql rows/snapshots. Add a small explicitly owned content fixture covering
+positive/negative Name/Description/metadata, nested/missing/null/wrong-type keys,
+numeric-looking keys versus arrays, literal wildcard/quotes/Unicode, AND/OR,
+authority exclusion and deterministic native paging. Then update Mongo-paired
+C#/HTTP/browser examples and sandbox capability enrollment. Content cells remain
+red until each scope has its proving evidence.
 
 ## Programme priority
 

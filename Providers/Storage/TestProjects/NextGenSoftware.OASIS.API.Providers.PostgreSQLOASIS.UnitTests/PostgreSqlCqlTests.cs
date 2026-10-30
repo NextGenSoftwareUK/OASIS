@@ -85,4 +85,76 @@ public class PostgreSqlCqlTests
         Assert.IsTrue(plan.IsError, "An unadmitted alias cannot expose PostgreSQL query capabilities.");
     }
 
+    [TestMethod]
+    public void NativeContentPredicatesKeepValuesAndJsonPathsOutOfSqlText()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var text = "coffee%_' OR TRUE --";
+        var key = "category}'; DROP TABLE oasis_holons;--";
+        var query = Query(ids).Where(h => (h.Name == text || h.Description.Contains(text)) &&
+            CosmicQueryMetadata.Value<string>(h, key) == text).Result.Skip(1).Result.Take(1).Result;
+        var compiled = PostgreSqlCqlCompiler.CompileNative(query, ProviderType.PostgreSQLOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        using var command = compiled.Result;
+        StringAssert.Contains(command.CommandText, "id=ANY(@ids)");
+        StringAssert.Contains(command.CommandText, "strpos(");
+        StringAssert.Contains(command.CommandText, "jsonb_typeof(");
+        Assert.IsFalse(command.CommandText.Contains(text));
+        Assert.IsFalse(command.CommandText.Contains(key));
+        CollectionAssert.AreEquivalent(ids, (Guid[])command.Parameters["ids"].Value);
+        Assert.AreEqual(1, command.Parameters["skip"].Value);
+        Assert.AreEqual(1, command.Parameters["take"].Value);
+        Assert.IsTrue(command.Parameters.Cast<Npgsql.NpgsqlParameter>().Any(parameter =>
+            parameter.Value is string[] path && path.SequenceEqual(new[] { "MetaData", key })));
+        Assert.AreEqual(3, command.Parameters.Cast<Npgsql.NpgsqlParameter>().Count(parameter => Equals(parameter.Value, text)));
+    }
+
+    [DataTestMethod]
+    [DataRow("numeric")]
+    [DataRow("starts-with")]
+    [DataRow("order")]
+    [DataRow("null")]
+    [DataRow("nul-value")]
+    public void ContentAdmissionRejectsUnprovedSemanticsBeforeOpeningAConnection(string shape)
+    {
+        var query = Query(new[] { Guid.NewGuid() });
+        query = shape switch {
+            "numeric" => query.Where(h => CosmicQueryMetadata.Value<int>(h, "score") > 1).Result,
+            "starts-with" => query.Where(h => h.Name.StartsWith("C")).Result,
+            "order" => query.OrderBy(h => h.Name).Result,
+            "null" => query.Where(h => h.Name == null).Result,
+            _ => query.Where(h => h.Name == "invalid\0value").Result
+        };
+        var compiled = PostgreSqlCqlCompiler.CompileNative(query, ProviderType.PostgreSQLOASIS);
+        Assert.IsTrue(compiled.IsError);
+        Assert.IsNull(compiled.Result);
+    }
+
+    [TestMethod]
+    public void ContentCannotEscapeItsAuthorityThroughABusinessOr()
+    {
+        var allowed = Guid.NewGuid();
+        var forbidden = Guid.NewGuid();
+        var query = Query(new[] { allowed }).Where(h => h.Id == forbidden || h.Name.Contains("coffee")).Result;
+        var compiled = PostgreSqlCqlCompiler.CompileNative(query, ProviderType.PostgreSQLOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        using var command = compiled.Result;
+        CollectionAssert.AreEqual(new[] { allowed }, (Guid[])command.Parameters["ids"].Value);
+        StringAssert.Contains(command.CommandText, "AND (");
+        StringAssert.Contains(command.CommandText, " OR ");
+    }
+
+    [TestMethod]
+    public void CompatibleProductsDoNotInheritNewContentCapabilities()
+    {
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.TimescaleDBOASIS).Result)
+            .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(Guid.NewGuid(), ProviderType.TimescaleDBOASIS,
+                new[] { Guid.NewGuid() }).Result).Result;
+        var compiled = PostgreSqlCqlCompiler.CompileNative(query, ProviderType.TimescaleDBOASIS, ProviderType.TimescaleDBOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        compiled.Result.Dispose();
+        Assert.IsTrue(PostgreSqlCqlCompiler.CompileNative(query.Where(h => h.Name == "coffee").Result,
+            ProviderType.TimescaleDBOASIS, ProviderType.TimescaleDBOASIS).IsError);
+    }
+
 }
