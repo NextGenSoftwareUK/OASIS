@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json.Nodes;
+using Raven.Client.Documents.Operations;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -32,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
     ///   serverUrls — one or more RavenDB server URLs (e.g. ["http://localhost:8080"])
     ///   database   — RavenDB database name (e.g. "oasis")
     /// </summary>
-    public class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string[] _serverUrls;
         private readonly string _database;
@@ -55,12 +58,26 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
+        private readonly object _storeGate = new object();
+
         private IDocumentStore GetStore()
         {
-            if (_store != null) return _store;
-            _store = new DocumentStore { Urls = _serverUrls, Database = _database };
-            _store.Initialize();
-            return _store;
+            lock (_storeGate)
+            {
+                if (_store != null) return _store;
+                var store = new DocumentStore { Urls = _serverUrls, Database = _database };
+                try
+                {
+                    store.Initialize();
+                    _store = store;
+                    return store;
+                }
+                catch
+                {
+                    store.Dispose();
+                    throw;
+                }
+            }
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
@@ -99,7 +116,14 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            try { GetStore(); result.Result = true; result.IsError = false; result.Message = "RavenDBOASIS activated."; }
+            try
+            {
+                IsProviderActivated = false;
+                await GetStore().Maintenance.SendAsync(new GetStatisticsOperation());
+                IsProviderActivated = true;
+                result.Result = true;
+                result.Message = "RavenDBOASIS activated.";
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error activating — {ex.Message}"); }
             return await Task.FromResult(result);
         }
@@ -108,7 +132,12 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _store?.Dispose(); _store = null;
+            lock (_storeGate)
+            {
+                IsProviderActivated = false;
+                _store?.Dispose();
+                _store = null;
+            }
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "RavenDBOASIS deactivated." });
         }
 
@@ -336,17 +365,38 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.RavenDBOASIS] = holon.Id.ToString();
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.RavenDBOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
                 using var session = GetStore().OpenAsyncSession();
-                var docId = $"OasisHolons/{holon.Id}";
+                var docId = $"OasisHolons/{id:D}";
                 var existing = await session.LoadAsync<HolonDoc>(docId);
-                var rec = new HolonDoc { Id = docId, ParentHolonId = holon.ParentHolonId.ToString(), HolonType = (int)holon.HolonType, IsDeleted = holon.IsDeleted, DataJson = Ser(holon) };
-                if (existing != null) { existing.ParentHolonId = rec.ParentHolonId; existing.HolonType = rec.HolonType; existing.IsDeleted = rec.IsDeleted; existing.DataJson = rec.DataJson; }
-                else { await session.StoreAsync(rec, docId); }
+                var record = existing ?? new HolonDoc { Id = docId };
+                record.ParentHolonId = holon.ParentHolonId.ToString();
+                record.HolonType = (int)holon.HolonType;
+                record.IsDeleted = holon.IsDeleted;
+                record.DataJson = payload.ToJsonString(_jsonOpts);
+                if (existing == null) await session.StoreAsync(record, docId);
                 await session.SaveChangesAsync();
-                result.Result = holon; result.IsError = false; result.Message = $"RavenDBOASIS: Holon '{holon.Name}' saved.";
+                var changeVector = session.Advanced.GetChangeVectorFor(record);
+                if (record.Id != docId || string.IsNullOrWhiteSpace(changeVector))
+                    throw new InvalidDataException("RavenDB did not acknowledge the staged document identity/change vector.");
+
+                // Caller identity and provider key publish only after native acknowledgement.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.RavenDBOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.MetaData["RavenDB.ChangeVector"] = changeVector;
+
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -358,8 +408,23 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"RavenDBOASIS: {saved.Count} holon(s) saved.";
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+
             return result;
         }
 
