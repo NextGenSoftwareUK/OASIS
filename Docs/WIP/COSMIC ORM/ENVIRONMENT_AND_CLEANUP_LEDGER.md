@@ -395,51 +395,51 @@ Newindexedrows test puts hidden/tombstonednames before visible names;2genuinefai
 
 Indexedrow milestone30SQLite/56Corepass/0skip;2genuinebeforefails capturedtombstonewindowrootcause. Indexprojection/SQLintegritycode reused existingMicrosoft.Data.Sqlite/ASTtranslator, no nativequeryscope expansion. Own C:/Source/OASIS-cosmic/TestResults/CosmicChainQuery and CosmicChainIndexStore directories verifiedemptyafterallnonpooledconnectionsdisposed; memoryonlytestkeys. RawTRX/logs retained TestResults/ProtocolCqlCurrent, hashes in CQL_INDEXED_SQL_ROWS.md. No restore/download/runtime/environment/nativechainwrite; generatedbin/obj retained/unmeasured. Core2cea870e57de914822f911e63424e17846e684f4 pushed/lsremoteverified, parentgitlink/Dockerpinadvancejointly.
 
-### 27 October 2026 ï¿½ shared indexed row contract follow-up
+### 27 October 2026 — shared indexed row contract follow-up
 
 - Owner: cosmic-cql, worktree C:/Source/OASIS-cosmic; reused installed .NET SDK/NuGet cache and existing Core/SQLite projects/outputs (versions inherited from existing project assets; no restore/download planned). Sizes unmeasured.
 - Reuse fixed TestResults/ProtocolCqlCurrent for compact build logs/TRX; owned disposable test DB remains TestResults/CosmicChainQuery/index.db with exact cleanup after connections close. No service/port dependencies. Retain compact evidence until reconciled; outputs regenerable with bounded leased builds/tests. Shared runtime/cache retained. Outcome pending.
 
 - Outcome: both Core target builds/SQLite build passed;62Core and30SQLite tests passed, no skips. Initial SQLite test compile referenced an internal helper; corrected to reference-identity assertion and reran successfully. No restores/downloads/services. Exact TestResults/CosmicChainQuery directory empty after owned fixture teardown. Compact logs/TRX retained under fixed ProtocolCqlCurrent; build outputs/cache active/reusable. Free disk before111,406,632,960B; post-build size unmeasured.
 
-### 27 October 2026 ï¿½ shared indexed SDK execution owner
+### 27 October 2026 — shared indexed SDK execution owner
 
 - Owner cosmic-cql; reused C:/Source/OASIS-cosmic Core/SQLite projects, installed .NET SDK and existing NuGet assets/cache, no restore/download/new environment. Sizes unmeasured; no service/port dependencies. Fixed TestResults/ProtocolCqlCurrent logs/TRX and existing bin/obj builds disposable/regenerable after test processes stop; runtime/cache reusable. Existing guarded TestResults/CosmicChainQuery/index.db fixture exact teardown retained. Outcome pending.
 
 - Outcome: both Core targets and SQLite built;76Core/30SQLite checks passed, zero skips. No restores/downloads/new runtime/services. Fixed evidence names index-executor-{core,sqlite}.trx and build/test logs retained under ProtocolCqlCurrent; regenerate with same bounded leased project builds/tests filtered CosmicChain/SqliteCosmicChainIndex. TestResults/CosmicChainQuery verified0files after fixture teardown. Post-build C: free111,423,098,880B (no pre-build measurement this batch). bin/obj/cache reusable; compact evidence retained pending task completion.
 
-### 27 October 2026 ï¿½ typed indexed manager execution
+### 27 October 2026 — typed indexed manager execution
 
 - Owner cosmic-cql; reuse C:/Source/OASIS-cosmic existing Core/SQLite projects, installed .NET SDK/cache/assets. No restore/download/runtime/service/environment creation. Fixed TestResults/ProtocolCqlCurrent/index-typed-* logs/TRX plus existing bin/obj reused; sizes unmeasured, no port dependencies. Retain compact evidence until task reconciliation; builds regenerable with bounded leased builds/tests; owned fixed DB exact teardown unchanged. Outcome pending.
 
 - Outcome: both Core targets and SQLite built;130combined chain/typed Core checks and30SQLite checks passed, zero skips. Exact owned TestResults/CosmicChainQuery verifiedempty after nonpooled DB teardown. No installs/restores/downloads/services. Fixed index-typed-{core,sqlite}.trx/logs retained with hashes in indexed report; builds/cache reused. C: free after111,420,690,432B; no batch pre-measurement. Artifacts regenerable with leased bounded project builds/tests, Core filter CosmicChain|CosmicTypedQueryTests and SQLite SqliteCosmicChainIndex; shared SDK/cache retained.
 
-### 27 October 2026 ï¿½ indexed LINQ adapter
+### 27 October 2026 — indexed LINQ adapter
 
 - Owner cosmic-cql; existing worktree/Core/SQLite/.NET SDK/NuGet assets reused without restore/download/install/new service. Fixed TestResults/ProtocolCqlCurrent/index-linq-* logs/TRX plus inherited bin/obj outputs, unmeasured sizes; no ports. Guarded fixed SQLite test fixture remains owned/disposable with exact teardown. Retain compact evidence, regenerate outputs with bounded leased builds/tests; outcome pending.
 
 - Outcome: both Core targets/SQLite build passed;179Core/31SQLite checks, zero skips. No restores/downloads/services or new environment. TestResults/CosmicChainQuery verified0files; owned DB torn down. Evidence fixed index-linq-{core,sqlite}.trx and build/test logs retained, hashes in indexed report; reusable bin/obj/cache retained. C: free after111,419,052,032B, no pre-batch measurement. Regenerate with bounded leased Core/SQLite project builds/tests, Core filter CosmicChain|CosmicLinq|CosmicTypedQueryTests and SQLite SqliteCosmicChainIndex.
 
-### 27 October 2026 ï¿½ indexed physical-attempt scope
+### 27 October 2026 — indexed physical-attempt scope
 
 - Owner cosmic-cql; reuse worktree Core/.NET SDK/NuGet assets/cache, no restore/download/install/service/environment creation. Fixed TestResults/ProtocolCqlCurrent/index-attempt-* logs/TRX and existing bin/obj build outputs, sizes unmeasured; no ports. Retain compact evidence until task reconciliation; regenerate with bounded leased Core build/test. No datasets introduced. Outcome pending.
 
 - Outcome: both Core targets/SQLite/Solana builds passed;94Core/31SQLite/782Solana unit checks, zero skips. Solana project/test outputs reused existing SDK/cache/Shared/SQLite dependencies; no restore/download/native validator/service/new environment. Controlled RPC fixtures and guarded fixed TestResults/CosmicChainIngestion/index.db reused by three integration-shaped unit cases; owned database teardown stays exact. CosmicChainQuery verifiedempty; inspect CosmicChainIngestion at reconciliation. Compact fixed index-attempt-{core,sqlite,solana}.trx/logs retained, hashes in indexed report. C: free after111,415,156,736B, no pre-batch measurement; build/cache reusable. Regenerate with leased bounded project builds/tests, Core CosmicChain, SQLite SqliteCosmicChainIndex, full Solana unit project.
 - Reconciliation: TestResults/CosmicChainIngestion also verified0files after the completed suite; no owned DB files remain in either fixed chain test directory.
 
-### 27 October 2026 ï¿½ durable indexed physical-read accounting
+### 27 October 2026 — durable indexed physical-read accounting
 
 - Owner cosmic-cql; existing Core/.NET SDK/NuGet assets/cache reused, no restores/downloads/services/environments. Fixed TestResults/ProtocolCqlCurrent/index-billing-* logs/TRX and existing bin/obj, sizes unmeasured; no ports/datasets planned. Retain compact evidence; regenerate bounded leased builds/tests. Outcome pending.
 
 - Outcome: both Core targets and SQLite/Solana provider builds passed;333Core admission/accounting regressions (including127focused),31SQLite,789fullSolana tests (including7newwired actualSQL/canonicaldecoder/controlledRPC/outbox cases), zero skips. Reused projects/cache without restore/download/install; no native ledger/process/port/source write. Seven wired cases used guarded fixed TestResults/CosmicChainIngestion/index.db; that directory and CosmicChainQuery verified0files after completed suites. Fixed index-billing-{core,regression,sqlite,solana,wired}.trx/logs retained, hashes in billing report; bin/obj/cache reusable. Free C: after111,421,583,360B, no pre-batch measurement. Regenerate with same bounded leased project builds and Core Admission|Tariff|Prepared|CqlCompositionAccounting|CosmicChain filter, SQLite SqliteCosmicChainIndex and fullSolana project; temporary fixture DBs exact-clean themselves.
 
-### 27 October 2026 ï¿½ frozen WEB4 indexed preparation
+### 27 October 2026 — frozen WEB4 indexed preparation
 
 - Owner cosmic-cql; reused existing Core test project linking actual WEB4 compiler/preparation sources, .NET SDK/NuGet assets/cache/bin/obj. No restore/download/install/services/ports/environment creation. Fixed TestResults/ProtocolCqlCurrent/index-web4-preparation-* logs/TRX, sizes unmeasured. Retain compact evidence pending reconciliation; regenerate bounded leased Core tests. Outcome pending.
 
 - Outcome:118focused and511combined linked-production-source chain/WEB4/compiler checks passed, zero skips. No query/source/index I/O or disposable datasets created; no SDK/cache restore/download/service/environment. Fixed index-web4-preparation-{core,regression}.trx/logs retained with hashes in preparation report; bin/obj/cache reusable. Free C: after111,424,012,288B, no pre-batch measurement. Regenerate via bounded leased Core test project, filter CosmicChain|CqlV1Web4Tests|CqlUtcDateWireTests. FullONODE host build/HTTP acceptance not certified in this batch.
 
-### 27 October 2026 ï¿½ indexed HTTP execution
+### 27 October 2026 — indexed HTTP execution
 
 - Owner cosmic-cql; existing Core/WEB4 linked-source tests/.NET SDK/NuGet cache/outputs reused without restore/download/install. Fixed TestResults/ProtocolCqlCurrent/index-http-* logs/TRX; sizes unmeasured. Planned bounded loopback Kestrel listener uses dynamic127.0.0.1 port, owned and stopped in test finally; controlled identity/outbox/transports, no remote/native source writes. No new persistent environment/dataset. Retain compact evidence; outputs regenerable via bounded leased builds/tests. Outcome pending.
 - Consumer verification: reused Cosmos/ActivityPub/IPFS/SOLID integration-test projects and their existing bin/obj/cache; four controller-consumer builds passed. Neo4j consumer obj/project.assets.json and shipping WEB4 obj/bin are missing (cleanup/history provenance uncertain). Before regeneration C: free111,409,889,280B. Reuse SDK C:/Program Files/dotnet/sdk/10.0.401 and C:/Users/david/.nuget/packages (size unmeasured); regenerate only current-worktree project assets/build outputs, cache-only source first. Exact targets: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/{obj,bin} and ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/{obj,bin}. No new DB/service/port. Retain compact restore/build logs under TestResults/ProtocolCqlCurrent; outputs regenerable and disposable after processes stop, shared package cache reusable.
