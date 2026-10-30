@@ -2924,3 +2924,13 @@ Serviceauthoritatively exited; no activeport/process dependency. Lifecycle:
 preserved failure/unknown startup, no deletion of native metadata/keys/config.
 Future stophelper preserves failed exitedstate rather than issuingstop againstit.
 Currentacceptance remainsred; diagnose same source before restarting/provisioning.
+
+Milvus diagnostic restart planned: same failedcontainer/source/etcdcluster, no
+collection/seed writes. Preserve protected originaluser.yaml before changing only
+loglevel warn->info to expose startupcause; verify exited134/sameimage/receipt and
+environmentpending. Reuse fixed TestResults/MilvusCqlCurrent diagnosticlog; no new
+resource/download. Preserve nativefailure if terminal, do not reset/replay.
+
+Diagnostic restart outcome: same container/source exited134/noOOM, no seed or collection. Original config preserved at /var/tmp/oasis-milvus-cql/config/user.before-diagnostics.yaml (private). Pinned native listener_manager.go rejects TLS with shared HTTP/gRPC port. Correct only proxy.port=19532 and proxy.http.port=19530 on retained source; same published19531, credentials, TLS and embedded metadata. No download/new environment. Observe readiness, preserve failure if any; stop owned service after observation.
+
+Outcome: corrected distinct TLS listeners pass native authenticated empty query and unauthenticated rejection. Original cluster14841639068965178418/member10276657743932975437 verified. Initial receipt retained; stop exits134/noOOM in native CloseEtcdClient after component teardown. Service stopped, restart not attempted, pending retained, no demo seed. Source current size unmeasured; no resources deleted or downloaded. TestResults/MilvusCqlCurrent/accept-retained-startup.py is disposable observation code, not persistent evidence.
