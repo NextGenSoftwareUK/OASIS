@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Threading;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -27,15 +29,14 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
     /// Upsert:  WAL deduplication uses the stable (ts, id) key required by QuestDB.
     ///          A native QuestDB timestamp expression avoids PostgreSQL timezone semantics.
     /// </summary>
-    public class QuestDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class QuestDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical holon writes are unsupported and explicitly rejected.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
-        private readonly string _connectionString;
+        private readonly Func<DbConnection> _connectionFactory;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -48,29 +49,54 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
         private static T? Des<T>(string? s) => s == null ? default : JsonSerializer.Deserialize<T>(s, _jsonOpts);
 
         public QuestDBOASIS(string connectionString = "Host=localhost;Port=8812;Database=qdb;Username=admin;Password=quest")
+            : this(() => new NpgsqlConnection(connectionString))
         {
-            _connectionString = connectionString;
+        }
+
+        /// <summary>The factory returns a fresh provider-owned connection per operation.</summary>
+        public QuestDBOASIS(Func<DbConnection> connectionFactory)
+        {
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             ProviderName = "QuestDBOASIS";
             ProviderDescription = "QuestDB provider (high-performance time-series database via PostgreSQL wire protocol)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QuestDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private NpgsqlConnection OpenConnection()
+        private async Task<DbConnection> OpenConnectionAsync()
         {
-            var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-            return conn;
+            var connection = _connectionFactory();
+            try
+            {
+                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                await connection.OpenAsync(deadline.Token);
+                return connection;
+            }
+            catch
+            {
+                await connection.DisposeAsync();
+                throw;
+            }
         }
+
+        private static DbCommand Command(DbConnection connection, string sql)
+        {
+            var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.CommandTimeout = 15;
+            return command;
+        }
+
+        private static void TextParameter(DbCommand command, string name, string value)
+            => command.Parameters.Add(new NpgsqlParameter(name, NpgsqlDbType.Varchar) { Value = value });
 
         private async Task EnsureTablesAsync()
         {
-            using var conn = OpenConnection();
+            using var conn = await OpenConnectionAsync();
             foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
             {
-                using var cmd = new NpgsqlCommand(
-                    $"CREATE TABLE IF NOT EXISTS {table} (id SYMBOL, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id);",
-                    conn);
+                using var cmd = Command(conn,
+                    $"CREATE TABLE IF NOT EXISTS {table} (id SYMBOL, data VARCHAR, ts TIMESTAMP) timestamp(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id);");
                 await cmd.ExecuteNonQueryAsync();
 
                 // QuestDB applies DDL asynchronously. Activation is complete only
@@ -80,7 +106,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
                 {
                     try
                     {
-                        using var readiness = new NpgsqlCommand($"SELECT count(*) FROM {table};", conn);
+                        using var readiness = Command(conn, $"SELECT count(*) FROM {table};");
                         await readiness.ExecuteScalarAsync();
                         break;
                     }
@@ -94,22 +120,25 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 
         private async Task UpsertAsync(string table, string id, object obj)
         {
-            using var conn = OpenConnection();
+            var json = Ser(obj);
+            if (Encoding.UTF8.GetByteCount(json) > 1024 * 1024)
+                throw new System.IO.InvalidDataException("QuestDB document exceeds the1MiB adapter budget.");
+            using var conn = await OpenConnectionAsync();
             // QuestDB WAL DEDUP: a stable timestamp and id form the table's upsert key.
-            using var cmd = new NpgsqlCommand(
+            using var cmd = Command(conn,
                 $"INSERT INTO {table} (id, data, ts) VALUES (@id, @data, " +
-                "to_timestamp('1970-01-01T00:00:00.000000Z', 'yyyy-MM-ddTHH:mm:ss.SSSUUUZ'));",
-                conn);
-            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
-            cmd.Parameters.AddWithValue("data", NpgsqlDbType.Varchar, Ser(obj));
-            await cmd.ExecuteNonQueryAsync();
+                "to_timestamp('1970-01-01T00:00:00.000000Z', 'yyyy-MM-ddTHH:mm:ss.SSSUUUZ'));");
+            TextParameter(cmd, "id", id);
+            TextParameter(cmd, "data", json);
+            if (await cmd.ExecuteNonQueryAsync() != 1)
+                throw new System.IO.InvalidDataException("QuestDB must acknowledge exactly one inserted row.");
         }
 
         private async Task<T?> GetByIdAsync<T>(string table, string id)
         {
-            using var conn = OpenConnection();
-            using var cmd = new NpgsqlCommand($"SELECT data FROM {table} WHERE id = @id LIMIT 1;", conn);
-            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
+            using var conn = await OpenConnectionAsync();
+            using var cmd = Command(conn, $"SELECT data FROM {table} WHERE id = @id LIMIT 1;");
+            TextParameter(cmd, "id", id);
             using var reader = await cmd.ExecuteReaderAsync();
             if (!reader.Read()) return default;
             return Des<T>(reader.GetString(0));
@@ -117,10 +146,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 
         private async Task<List<T>> QueryAsync<T>(string table, string? whereClause = null, string? paramName = null, string? paramValue = null)
         {
-            using var conn = OpenConnection();
+            using var conn = await OpenConnectionAsync();
             var sql = $"SELECT data FROM {table}" + (whereClause != null ? $" WHERE {whereClause}" : "") + " LIMIT 1000;";
-            using var cmd = new NpgsqlCommand(sql, conn);
-            if (paramName != null && paramValue != null) cmd.Parameters.AddWithValue(paramName, NpgsqlDbType.Varchar, paramValue);
+            using var cmd = Command(conn, sql);
+            if (paramName != null && paramValue != null) TextParameter(cmd, paramName, paramValue);
             using var reader = await cmd.ExecuteReaderAsync();
             var list = new List<T>();
             while (reader.Read())
@@ -133,9 +162,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
 
         private async Task DeleteByIdAsync(string table, string id)
         {
-            using var conn = OpenConnection();
-            using var cmd = new NpgsqlCommand($"DELETE FROM {table} WHERE id = @id;", conn);
-            cmd.Parameters.AddWithValue("id", NpgsqlDbType.Varchar, id);
+            using var conn = await OpenConnectionAsync();
+            using var cmd = Command(conn, $"DELETE FROM {table} WHERE id = @id;");
+            TextParameter(cmd, "id", id);
             await cmd.ExecuteNonQueryAsync();
         }
 
@@ -313,19 +342,65 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await UpsertAsync("oasis_holons", holon.Id.ToString(), holon);
-                result.Result = holon; result.IsError = false; result.Message = $"QuestDBOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("QuestDB historical holon writes are not implemented.");
+
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.QuestDBOASIS] = id.ToString("D");
+
+                // Stage identity in the wire document; HolonManager owns tracking acceptance.
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await UpsertAsync("oasis_holons", id.ToString("D"), payload);
+
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.QuestDBOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"QuestDBOASIS: SaveHolonAsync failed: {ex.Message}");
+            }
             return result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); } result.Result = saved; result.IsError = false; result.Message = $"QuestDBOASIS: Saved {saved.Count} holons."; return result; }
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
+        }
+
+        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
