@@ -25,15 +25,16 @@ Evidence `TestResults/CouchDbCqlCurrent/http-fixed.trx`, SHA256
   source/restart and paired demonstration remain unverified.
 - Current upsert fetches current _rev rather than asserting caller's observed token;
   cross-client optimistic concurrency and atomic conditional writes not certified.
-- Save mutates a missing caller ID before acknowledgement and does not publish saved
-  counts/receipt; batch ignores individual errors and continueOnError semantics.
-- Save response body id/rev/ok validation and native record identity need proofs.
+- Holon save ownership/receipt and batch continuation root fixes now have controls
+  below; avatar and wider graph/history save behavior remain open.
+- Save response id/rev/ok validation and staged native identity pass controlled HTTP
+  proofs below; live CouchDB acceptance remains open.
 - Existing Mango searches truncate at1000; full-store metadata filtering isn't CQL.
 - Child depth/recursive/version/type params are not fully implemented; defer large
   parity depth but keep red acceptance explicit.
 - Native environment/cache/source not yet inventoried; no CouchDB downloaded or run.
 
-Next verify save acknowledgement ownership before fixture writes, then inventory/reuse free native
+Next inventory/reuse free native
 CouchDB and journal source IDs before native3/filter2/restart/Mongo-paired5/4 proof.
 No public hosting, production concurrency, replication or complete parity claim.
 Arweave's separate automatic-review gate remains documented; do not bypass it.
@@ -61,3 +62,27 @@ real token propagation to an in-flight HTTP handler and version-mode denial.
 No live CouchDB or sockets involved; native acceptance remains red.
 
 Evidence `TestResults/CouchDbCqlCurrent/cql-execution.trx`, SHA256 `4846fbb763afafd336862776e35d32f113bda875a3d061d9fe8fd91a4bbdd950`.
+
+## Holon save ownership and native receipt controls
+
+Eight new tests initially8failed. Full fixed41passed/0failed/0skipped. Missing holon
+IDs are generated locally and staged into detached wire JSON, together with canonical
+provider storage key; caller identity/key remain unchanged until successful receipt.
+Runtime concrete fields serialize into the document without mutating caller state.
+Native ok=true/id matching staged key/nonempty rev are required. Invalid/failed
+receipts preserve caller state and require outcome reconciliation before retry;
+no silent retry introduced. Result IsSaved/SavedCount/native revision metadata
+publish only after acknowledgement; manager owns clean-state flags.
+
+Batch honors continueOnError (stop or continue), exposes partial acknowledged count
+and errors instead of dropping failed writes. Tests cover delayed publication,
+rejection, wrong identity/empty revision/false ok/malformed receipt, failed/continued
+batches, canonical staged Id/provider key and revision receipt. Shared Upsert receipt
+validation also applies to its existing callers; avatar caller staging remains open.
+This does not implement cross-client CAS: fresh _rev fetch still differs from an
+expected caller token. Keep atomic conditional-write parity red.
+
+Native image inventory: no CouchDB image found in current rootful WSL Podman cache;
+other suitable runtimes still need inspection before download. No service started.
+
+Evidence `TestResults/CouchDbCqlCurrent/save-fixed.trx`, SHA256 `d846d541714a721b42b9016b69c33a0761fcab49392b6b8950a6cf22d7d55f7b`.

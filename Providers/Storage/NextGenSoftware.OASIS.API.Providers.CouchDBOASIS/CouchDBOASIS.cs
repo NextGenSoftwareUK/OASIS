@@ -437,10 +437,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(DbHolons, holon.Id.ToString(), holon);
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var revision = await UpsertDocAsync(DbHolons, id.ToString("D"), holon);
+                // Publish caller identity/key only after a validated native receipt.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.CouchDBOASIS] = id.ToString("D");
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.MetaData["CouchDB.Revision"] = revision;
             }
             catch (Exception ex)
             {
@@ -461,9 +468,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
                 foreach (var h in holons)
                 {
                     var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    if (r.IsError)
+                    {
+                        result.IsError = true;
+                        result.ErrorCount += Math.Max(1, r.ErrorCount);
+                        result.Message += r.Message + Environment.NewLine;
+                        if (!continueOnError) break;
+                    }
+                    else if (r.IsSaved) saved.Add(r.Result);
+                    else throw new System.IO.InvalidDataException("CouchDB save returned no acknowledgement.");
                 }
                 result.Result = saved;
+                result.IsSaved = saved.Count > 0;
+                result.SavedCount = saved.Count;
             }
             catch (Exception ex)
             {
@@ -551,7 +568,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
             return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
-        private async Task UpsertDocAsync<T>(string db, string id, T obj)
+        private async Task<string> UpsertDocAsync<T>(string db, string id, T obj)
         {
             // Fetch current _rev (required for update)
             string rev = null;
@@ -569,16 +586,32 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchDBOASIS
 
             // Serialize obj and inject _id and _rev
             var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
-                JsonSerializer.Serialize(obj));
+                JsonSerializer.Serialize(obj, obj.GetType()));
+            if (obj is IHolon source)
+            {
+                // Detached wire staging also preserves provider identity on reload.
+                dict[nameof(IHolon.Id)] = JsonSerializer.SerializeToElement(Guid.Parse(id));
+                var keys = source.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType, string>() :
+                    new Dictionary<ProviderType, string>(source.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.CouchDBOASIS] = id;
+                dict[nameof(IHolon.ProviderUniqueStorageKey)] = JsonSerializer.SerializeToElement(keys);
+            }
             dict["_id"] = JsonSerializer.SerializeToElement(id);
             if (rev != null)
                 dict["_rev"] = JsonSerializer.SerializeToElement(rev);
 
             var body = JsonSerializer.Serialize(dict);
-            var resp = await _http.PutAsync(
+            using var resp = await _http.PutAsync(
                 $"{_baseUrl}/{db}/{Uri.EscapeDataString(id)}",
                 new StringContent(body, Encoding.UTF8, "application/json"));
             resp.EnsureSuccessStatusCode();
+            using var receipt = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+            var ack = receipt.RootElement;
+            if (!ack.TryGetProperty("ok", out var ok) || ok.ValueKind != JsonValueKind.True ||
+                !ack.TryGetProperty("id", out var nativeId) || nativeId.ValueKind != JsonValueKind.String || nativeId.GetString() != id ||
+                !ack.TryGetProperty("rev", out var nativeRev) || nativeRev.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(nativeRev.GetString()))
+                throw new System.IO.InvalidDataException("CouchDB write receipt is malformed or differs from the staged identity; reconcile unknown outcomes before retrying.");
+            return nativeRev.GetString();
         }
 
         private async Task HardDeleteDocAsync(string db, string id)
