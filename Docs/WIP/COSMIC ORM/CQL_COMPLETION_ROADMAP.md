@@ -1,5 +1,6 @@
 # CQL completion roadmap
 
+Typesense:38controls/native/restart/paired/browser5/4 pass; native created_at volatile. [Scope](TYPESENSE_CQL_MVP.md).
 Meilisearch:39controls/native/restart/paired/browser5/4 pass; bounded ID scope. [Proof](MEILISEARCH_CQL_MVP.md).
 Weaviate: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](WEAVIATE_CQL_MVP.md).
 Qdrant: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](QDRANT_CQL_MVP.md).

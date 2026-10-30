@@ -1,6 +1,6 @@
-# Typesense CQL MVP — controls verified; native demo pending
+# Typesense CQL MVP — native/restart/paired demo verified
 
-Updated30October2026. Inventory remains red until native/restart/paired/browser proof.
+Updated30October2026. Scoped native/restart/Mongo-paired C#/HTTP/browser proof passes.
 
 ## Root causes fixed
 
@@ -48,14 +48,51 @@ These inject nativeHTTP; actual deployed Typesense behavior remains unverified.
 Raw evidence `TestResults/TypesenseCqlCurrent/controls.trx` SHA256
 `5b01bd881966e1a502cc3e18313864a9c252460893f4391a2b843df344c5ebc2`.
 
-## Exact next step / gaps
+## Native and federated acceptance
 
-Inspect caches/images before choosing official supported free native Typesense.
-Reuse if present; otherwise inventory one authenticated retained source before
-allocation. Verify collection/native source identities, original3records and one
-replacement/removedfield, native3/filter2/missing0/page1/budget and same-source
-restart preservation. Then Mongo-paired C#/HTTP/browser5/4 and hub enrollment.
-No reset/reseed/replay/replacementbaseline on unexpected outcomes.
+Official free30.2 image pinned to digest
+`sha256:b405d4443bdb9254fab4792b7fd9ee95d969f3b5485975917a3a3f84274eba27`.
+Retained source `/var/tmp/oasis-typesense-cql`, native TLS18108/private CA/APIkey,
+container/image/mount/source inode and stable native metadata-store identity checked.
+No global trust change. Native3/filter2/missing0/page1/budget and one full replacement
+removing obsolete field pass. Actual restart preserves original3document hashes.
+
+Typesense rebuilds its derived RocksDB index from retained Raft history on startup
+without a snapshot; derived db ID changes. Stable meta ID remains
+`02ecc411-42a2-40e4-a772-dcae4065af6a`. Native collection created_at is also regenerated
+by time(nullptr) during replay: **native created_at immutability remains a gap**.
+Original full-schema baseline was retained, never replaced. Exact original schema
+preimage was recovered by varying only created_at over the actual seed-intent to
+first-write-ack interval (<=15s), matching original SHA256
+`76475e18bcb9e36853f5d1f656172994b4464a3be4a9cb0b560e8c1fd6c36533`.
+Original1793363442 vs observed1793363570; all other schema properties and document
+hashes matched. Protected source-schema.json retains that exact original evidence.
+Tests require this original hash/preimage and compare all properties except the
+proven volatile created_at. Original identity/hash failures remain documented.
+[Native derived-index replay](https://github.com/typesense/typesense/blob/v30.2/src/raft_server.cpp#L105),
+[native collection clock](https://github.com/typesense/typesense/blob/v30.2/src/collection_manager.cpp#L1693).
+
+Five fresh phases each1pass/0skip: native-first/restart, Mongo init, federation and
+native-postpair. C#/HTTP assert provenance, excludedrecord, forgedactor/unknownpreset,
+inactiveprovider error/no partial. Browser all5/subset4 independently verified on5148.
+Stopbutton completed runner0, ownedMongo fixture removed and bothservices stopped0.
+Native source209,141B logical retained; originalseed/receipts/baseline unchanged.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Typesense -Federated -Serve
+# Dedicated runner:
+Scripts/TestHosts/Run-CosmicTypesenseLinuxDemo.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5148/ once ready; use stopbutton for verified teardown.
+[Native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseCqlNativeTests.cs),
+[paired proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseMongoCqlNativeTests.cs).
+Raw regenerable evidence `TestResults/TypesenseCqlCurrent/`; federation TRX SHA256
+`847c771158a253ff5ae4a3352dc2b7b4bd60bd5d198d17961e45fb47ce57341c`, postpair
+`828f0232d1424d459634241344fd48c520c195d4af02a211717fcc3a991cac2b`.
+Hub57paired/114plans/100paired rejections pass; listeners unchanged.
+
+## Remaining gaps
 
 Generic load/search still map HTTP errors to missing/empty and impose250rowcap;
 delete acknowledgement, avatar ownership, broad child/history/atomicconditional

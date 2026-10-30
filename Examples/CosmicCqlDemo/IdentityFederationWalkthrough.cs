@@ -115,6 +115,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.QdrantOASIS => "Qdrant",
         ProviderType.WeaviateOASIS => "Weaviate",
         ProviderType.MeilisearchOASIS => "Meilisearch",
+        ProviderType.TypesenseOASIS => "Typesense",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
