@@ -111,6 +111,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.OpenSearchOASIS => "OpenSearch",
         ProviderType.CouchbaseOASIS => "Couchbase",
         ProviderType.ClickHouseOASIS => "ClickHouse",
+        ProviderType.InfluxDBOASIS => "InfluxDB",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
