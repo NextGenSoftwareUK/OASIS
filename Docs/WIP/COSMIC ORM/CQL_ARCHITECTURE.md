@@ -836,3 +836,18 @@ its existing millisecond-version tie risk; it is not atomic CAS, history or a sh
 snapshot. No hosted/full-parity claim. Stop with the page button so the runner checks
 and removes its temporary Mongo fixture while retaining the original ClickHouse
 source. [Proof and prerequisites](CLICKHOUSE_CQL_MVP.md).
+
+## InfluxDB + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider InfluxDB -Federated`
+(add `-VerifyOnly` for bounded checks). Free local OSS2.7.12 uses authenticated HTTPS
+and a private CA. Original points/JSON/timestamps survive native restart. Browser5144
+shows five physical result rows or four for the subset, with provider labels.
+The spaced/commented C# example is `Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`,
+executed by HolonManager; HTTP POST `/api/cql/federation` accepts presets `all`/`subset`.
+Only bounded identity equality/membership/Boolean selection/paging is admitted.
+Native controls prove UTF8 literals, future-head visibility and tied-head rejection;
+this is not atomic CAS/history/full parity or a shared distributed snapshot. Six
+retained source points include controls; three logical records are admitted by the
+presets. Stop with the page button so the runner checks/removes only its temporary
+Mongo fixture and preserves the original InfluxDB source. [Proof/prerequisites](INFLUXDB_CQL_MVP.md).
