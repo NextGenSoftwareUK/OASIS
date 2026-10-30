@@ -3,12 +3,12 @@
 Updated 29 October 2026. Full programme remains incomplete. Read this first after compaction.
 
 ## Current phase and exact next step
-
 MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: inspect PocketBase native resources and canonical REST storage/query shape.**
+**Next: admit a reusable PocketBase native service, then native/restart/Mongo demo.**
+PocketBase build/41 controls pass; native/paired red. [Scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
 [Scope and initial loss](GARNET_CQL_MVP.md).
