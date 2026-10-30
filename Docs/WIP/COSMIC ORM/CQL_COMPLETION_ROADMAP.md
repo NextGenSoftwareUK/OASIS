@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-QuestDB:36save/schema controls pass; bounded CQL and native row/timestamp validation next. [Scope](QUESTDB_CQL_MVP.md).
+QuestDB:65save/schema/CQL controls pass; retained native SQL/restart proof next. [Scope](QUESTDB_CQL_MVP.md).
 
 Pinecone:58save/index/CQL controls pass; native free hosted proof pending. [Scope](PINECONE_CQL_MVP.md).
 LanceDB:67save/table/Arrow/CQL controls pass; free remote native/pair proof stays red. Next QuestDB breadth audit. [Audit](LANCEDB_CQL_MVP.md).

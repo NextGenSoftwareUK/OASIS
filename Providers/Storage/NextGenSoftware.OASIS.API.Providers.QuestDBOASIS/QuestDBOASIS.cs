@@ -63,12 +63,13 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private async Task<DbConnection> OpenConnectionAsync()
+        private async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken = default)
         {
             var connection = _connectionFactory();
             try
             {
-                using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                deadline.CancelAfter(TimeSpan.FromSeconds(15));
                 await connection.OpenAsync(deadline.Token);
                 return connection;
             }
