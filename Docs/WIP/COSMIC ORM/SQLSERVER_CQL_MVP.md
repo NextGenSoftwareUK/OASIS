@@ -1,6 +1,6 @@
 # SQL Server CQL MVP admission
 
-Updated30October2026. **Identity-only native/restart/paired demo verified; content compiler candidate awaits native proof.**
+Updated30October2026. **Identity demo and native/restart content queries verified; content federation/browser/sandbox remain open.**
 
 ## Implemented scope
 
@@ -97,7 +97,7 @@ source and reuse it; no further hardening of the green scope absent a reproduced
 
 All-provider [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) / [status](CURRENT_STATUS.md).
 
-## Content-query candidate: exact semantics
+## Content-query semantics and native proof
 
 The one native SELECT now compiles Name/Description equality and Contains,
 string metadata equality, nested object paths and AND/OR inside the trusted
@@ -115,19 +115,59 @@ Equality uses Latin1_General_100_BIN2 plus DATALENGTH on both operands, preservi
 ordinal trailing-space distinctions which SQL equality alone pads away. Contains
 uses CHARINDEX under the same binary collation, with percent/underscore literal
 rather than LIKE wildcard behavior. NUL rejects. Native whitespace/Unicode,
-long-string, nested-key and authority semantics still require proving below.
+long-string, nested-key and authority semantics are proved by the23 cases below.
 
 Producer and unit builds pass using cached dependencies.17 controls pass/no skips:
 9 retained identity/lifecycle controls plus8 new parameterization, object/type,
 authority, unsupported-shape,4001-character equality and shared capture-bound checks.
 Evidence TestResults/SqlServerCqlCurrent/content-controls.trx; SHA256 670103f8b003c9664f8ef291ceda851ddb490ff2de3e48e3aef8733294843c75.
-This is compiler proof, not native content acceptance or production readiness.
+These compiler checks are supplemented by native evidence below; neither
+establishes deployed sandbox/hosted-service readiness.
 
-Exact next: reuse LocalDB17.0.4025.3/CosmicCql with its original cosmic_cql_demo
-unchanged. Create one small explicitly owned content database/dataset within the
-existing instance (provider tables use the database's default schema), recording
-paths/ACKs before writes. Verify native positives/negatives, literal wildcards,
-Unicode and trailing spaces,4001-character values, nested/missing/null/type/array
-keys, authority exclusion and deterministic paging; then restart and compare
-source hashes/timestamps. Content federation/C#/HTTP/browser/sandbox stay red
-until separately proved. Do not harden existing green identity scopes.
+### Native content and restart acceptance
+
+One native test with23 queries passes initially626ms and after instance restart573ms;
+no failures/skips. The fixture includes the17 common PostgreSQL content cases plus
+trailing-space distinctions for names/metadata values/keys, metadata key case,
+and separate4001/4002-character string equality cases. Missing/null/non-string
+and array-parent metadata do not match. Numeric-looking object keys do match.
+Literal percent/underscore/quote/Unicode values, authority exclusion through OR
+and deterministic native UUID paging all pass.
+
+Existing cosmic_cql_demo3records remain unchanged. New cosmic_cql_content retains
+four original content records plus two separately acknowledged long-value records.
+The first run exposed a fixture omission (long fields absent), not an established
+query-engine failure. Its evidence is preserved; no original source was rewritten.
+An explicit append-only2row extension has its own pending/seed/ACKs. Original4row
+and extended6row JSON/timestamp snapshots are both retained and unchanged across
+queries/restart. No pending setup remains; no replay/reset/reseed.
+
+| Scope | Acceptance |
+|---|---|
+| Native Name/Description equality + Contains | ✅ positive/negative/case/trailing/wildcards/Unicode |
+| Native string metadata equality/nested object keys | ✅ missing/null/type/array exclusion and long values |
+| Native AND/OR, authority containment, UUID paging | ✅23-query fixture |
+| Source restart preservation | ✅ original3 + content4 + extension2 unchanged |
+| Content C#/HTTP/browser federation | ❌ next scope; existing ID5/4 proof stays separate |
+| Deployed sandbox/tenant auth/admission | ❌ not implied by loopback/source-catalogue tests |
+
+Proving test: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests/SqlServerCqlContentNativeTests.cs.
+Evidence under TestResults/SqlServerCqlCurrent:
+- sqlserver-content-before-long-fixture.trx: SHA256 eef72b1b1e50bb3fce5ccbb9ad5810ec2f1384352a9081e31bf4b707de526516.
+- sqlserver-content-initial.trx: SHA256 13f98894b4b23ce536909747268025be8142291573b9bd032134ab6e02d88023.
+- sqlserver-content-native.trx: SHA256 1c56d93505e957ccef955d5a4f9bde7150ea3eec6b691a195be2604fd919f44d.
+
+```powershell
+# Reuses the owned instance and pinned runtime, no restore/install/download.
+Scripts/TestHosts/Run-CosmicSqlServerCqlNative.ps1 -Content
+```
+
+Content source files remain LocalState/COSMIC/SqlServerCql/content-source.mdf and
+content-source_log.ldf, each8388608bytes (16MiB total). Same user-private instance;
+no new environment/runtime. LocalDB final stateStopped. Retain attached database
+files and source journals; never delete files to clean an attached database.
+
+Exact next: add the four Mongo-paired content presets through the shared CQL
+walkthrough and HTTP/browser teaching host, with explicit provenance and owned
+fixture cleanup. Then address deployed sandbox tenant authorization/admission.
+Do not harden completed native/identity scopes without a reproduced bug.

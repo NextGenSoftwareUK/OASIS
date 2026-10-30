@@ -1,4 +1,5 @@
-param([switch]$Federated,[switch]$Serve)
+param([switch]$Federated,[switch]$Serve,[switch]$Content)
+if($Content -and ($Federated -or $Serve)){throw "Native content scope must pass before content federation enrollment."}
 if($Serve -and !$Federated){throw "Serve requires explicit federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -16,6 +17,8 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
     $mongo=$null
     $started=$false;$passed=$false
     try {
+        if($Content -and (Test-Path (Join-Path $state 'content-long-seed.pending.json'))){throw 'Content extension unresolved; preserve without replay.'}
+        if($Content -and (Test-Path (Join-Path $state 'content-seed.pending.json'))){throw 'Content setup unresolved; preserve without replay.'}
         if(Test-Path (Join-Path $state 'demo-seed.pending.json')){throw 'Source setup unresolved; do not replay.'}
         if(Test-Path (Join-Path $state 'mongo.pending.json')){throw 'Original Mongo fixture unresolved.'}
         if($Federated -and !(Test-Path (Join-Path $state 'demo-seed.json'))){throw 'Original source must be admitted first.'}
@@ -35,8 +38,12 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
         $info=(& $tool info $instance)-join "`n"
         if($LASTEXITCODE -or $info -notmatch 'State:\s+Stopped'){throw 'Expected stopped owned instance; no process adoption.'}
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests'
+        if($Content){
+            if(!(Test-Path (Join-Path $project 'obj/project.assets.json'))){throw 'Existing integration assets required; inspect caches before restoring.'}
+        } else {
         & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
         if($LASTEXITCODE){throw 'Cached restore failed.'}
+        }
         if($Federated){
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'mongo-build.log')
             if($LASTEXITCODE){throw 'Mongo producer failed.'}
@@ -48,9 +55,12 @@ $instanceDirectory=Join-Path $env:LOCALAPPDATA 'Microsoft/Microsoft SQL Server L
         if($LASTEXITCODE){throw 'Owned LocalDB start failed.'}
         $env:OASIS_SQLSERVER_CQL_CONNECTION='Server=(localdb)\CosmicCql;Database=cosmic_cql_demo;Integrated Security=true;Encrypt=false;Pooling=false;Connect Timeout=10'
         $env:OASIS_SQLSERVER_CQL_STATE=$state
-        & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~SqlServerCqlNativeTests --results-directory $results --logger 'trx;LogFileName=sqlserver-cql-native.trx' *> (Join-Path $results 'native.log')
+        $nativeFilter=if($Content){'FullyQualifiedName~SqlServerCqlContentNativeTests'}else{'FullyQualifiedName~SqlServerCqlNativeTests'}
+        $nativeReport=if($Content){'sqlserver-content-native.trx'}else{'sqlserver-cql-native.trx'}
+        $nativeLog=if($Content){'content-native.log'}else{'native.log'}
+        & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter $nativeFilter --results-directory $results --logger "trx;LogFileName=$nativeReport" *> (Join-Path $results $nativeLog)
         if($LASTEXITCODE){throw 'Native acceptance failed; retain original source/journals.'}
-        [xml]$report=Get-Content (Join-Path $results 'sqlserver-cql-native.trx') -Raw
+        [xml]$report=Get-Content (Join-Path $results $nativeReport) -Raw
         if($report.TestRun.ResultSummary.Counters.passed -ne '1' -or $report.TestRun.ResultSummary.Counters.total -ne '1'){throw 'One native pass without skips required.'}
         if($Federated){
             if(Get-NetTCPConnection -State Listen -LocalPort 27029,5113 -ErrorAction SilentlyContinue){throw 'Paired ports occupied; no process adoption.'}
