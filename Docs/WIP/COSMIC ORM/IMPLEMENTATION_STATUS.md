@@ -1,5 +1,6 @@
 # COSMIC ORM implementation status
 
+Weaviate: gRPC bounded CQL/native batch save ownership implemented, 38 controls pass; native/paired proof remains red. [Scope](WEAVIATE_CQL_MVP.md).
 Qdrant: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](QDRANT_CQL_MVP.md).
 InfluxDB: 34 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](INFLUXDB_CQL_MVP.md).
 ClickHouse: 28 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](CLICKHOUSE_CQL_MVP.md).
