@@ -49,3 +49,13 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 
+
+## Canonical storage and CQL admission
+
+Activation now requires explicitly provisioned cores/collections with the canonical
+Solr storage schema. Complete entity JSON lives in stored/unindexed `data_json`;
+point, search and CQL readers use that same format. Existing raw Solr documents
+require an explicit migration; activation never guesses or mutates deployment mode.
+Holon saves publish identity only after a matching hard-commit/version receipt.
+Bounded CQL RealTimeGet supports admitted ID selections; native demo verification
+is still pending. See [schema, controls and gaps](../../../Docs/WIP/COSMIC%20ORM/SOLR_CQL_MVP.md).

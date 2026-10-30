@@ -23,19 +23,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
     /// OASIS provider for Apache Solr — enterprise search platform via Solr JSON API.
     ///
     /// Collections: oasis_avatars, oasis_avatar_details, oasis_holons
-    /// Upsert:  POST {base}/solr/{collection}/update/json/docs?commitWithin=1000
-    ///            body: [{ "id": guid, ...fields }]
+    /// Upsert:  POST {base}/solr/{collection}/update/json/docs?commit=true&amp;versions=true
+    ///            body: [{ "id": guid, "data_json": canonicalJson, ...typedProjections }]
+    /// Activation requires explicitly provisioned canonical cores/collections.
     /// Get:     GET  {base}/solr/{collection}/get?id={id}
     /// Delete:  POST {base}/solr/{collection}/update?commit=true
     ///            body: {"delete":{"id":"..."}}
     /// Search:  GET  {base}/solr/{collection}/query?q=field:"value"&wt=json&rows=1
     /// List:    GET  {base}/solr/{collection}/query?q=*:*&wt=json&rows=1000
     /// </summary>
-    public class SolrOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SolrOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical Holon writes and CQL reject when enabled; no revision history is stored.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -56,10 +56,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        public SolrOASIS(string host = "http://localhost:8983", string? username = null, string? password = null)
+        public SolrOASIS(string host = "http://localhost:8983", string? username = null, string? password = null) : this(new HttpClient(), host, username, password) { }
+
+        // Dedicated client remains caller-owned. Collections/cores must be provisioned explicitly.
+        public SolrOASIS(HttpClient client, string host, string? username = null, string? password = null)
         {
             _baseUrl = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (username != null && password != null)
             {
@@ -72,27 +75,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private async Task EnsureCollectionAsync(string collection)
-        {
-            // Create collection via Collections API; ignore if already exists
-            await _http.GetAsync($"{_baseUrl}/solr/admin/collections?action=CREATE&name={collection}&numShards=1&replicationFactor=1&wt=json");
-        }
-
         private async Task<T?> GetDocAsync<T>(string collection, string id)
         {
-            var resp = await _http.GetAsync($"{_baseUrl}/solr/{collection}/get?id={Uri.EscapeDataString(id)}&wt=json");
-            if (!resp.IsSuccessStatusCode) return default;
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("doc", out var docEl) || docEl.ValueKind == JsonValueKind.Null) return default;
-            return JsonSerializer.Deserialize<T>(docEl.GetRawText(), _jsonOpts);
-        }
-
-        private async Task UpsertDocAsync(string collection, object obj)
-        {
-            var arr = $"[{Ser(obj)}]";
-            await _http.PostAsync($"{_baseUrl}/solr/{collection}/update/json/docs?commitWithin=1000",
-                new StringContent(arr, Encoding.UTF8, "application/json"));
+            using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{_baseUrl}/solr/{collection}/get?id={Uri.EscapeDataString(id)}&wt=json&omitHeader=false");
+            using var response = await _http.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,deadline.Token);
+            response.EnsureSuccessStatusCode();
+            using var document = await ReadNativeResponseAsync(response,4*1024*1024,deadline.Token);
+            ValidateNativeStatus(document.RootElement);
+            var row = document.RootElement.GetProperty("doc");
+            if (row.ValueKind == JsonValueKind.Null) return default;
+            if (row.GetProperty("id").GetString() != id) throw new System.IO.InvalidDataException("Native point read returned another identity.");
+            return DecodeDocument<T>(row);
         }
 
         private async Task DeleteDocAsync(string collection, string id)
@@ -103,31 +98,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
 
         private async Task<List<T>> SearchAsync<T>(string collection, string query, int rows = 1)
         {
-            var resp = await _http.GetAsync($"{_baseUrl}/solr/{collection}/query?q={Uri.EscapeDataString(query)}&wt=json&rows={rows}");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
-            return ParseDocs<T>(await resp.Content.ReadAsStringAsync());
-        }
-
-        private static List<T> ParseDocs<T>(string json)
-        {
+            using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{_baseUrl}/solr/{collection}/query?q={Uri.EscapeDataString(query)}&wt=json&rows={rows}&omitHeader=false&shards.tolerant=false");
+            using var response = await _http.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,deadline.Token);
+            response.EnsureSuccessStatusCode();
+            using var document = await ReadNativeResponseAsync(response,4*1024*1024,deadline.Token);
+            ValidateNativeStatus(document.RootElement);
             var list = new List<T>();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("response", out var resp) || !resp.TryGetProperty("docs", out var docs)) return list;
-            foreach (var d in docs.EnumerateArray())
+            foreach (var row in document.RootElement.GetProperty("response").GetProperty("docs").EnumerateArray())
             {
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
+                var item = DecodeDocument<T>(row);
                 if (item != null) list.Add(item);
             }
             return list;
-        }
-
-        private static Dictionary<string, object> ToSolrDoc(object obj, string id)
-        {
-            var dict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(obj), _jsonOpts)!;
-            var result = new Dictionary<string, object>();
-            foreach (var kv in dict) result[kv.Key] = kv.Value;
-            result["id"] = id;
-            return result;
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -135,6 +119,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureCollectionAsync(ColAvatars);
                 await EnsureCollectionAsync(ColDetails);
                 await EnsureCollectionAsync(ColHolons);
@@ -306,9 +291,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(ColHolons, ToSolrDoc(holon, holon.Id.ToString()));
-                result.Result = holon; result.IsError = false; result.Message = $"SolrOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("Solr historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.SolrOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(ColHolons, ToSolrDoc(payload, id.ToString("D")));
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolrOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -317,7 +314,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); } result.Result = saved; result.IsError = false; result.Message = $"SolrOASIS: Saved {saved.Count} holons."; return result; }
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
+        }
+
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
