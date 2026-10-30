@@ -183,6 +183,10 @@ public static class IdentityFederationApiHost
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained authenticated native Elasticsearch through HolonManager.", StringComparison.Ordinal)
                 .Replace("Stop demo and clean fixtures", "Stop demo (keep original Elasticsearch source)", StringComparison.Ordinal);
+        if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.OpenSearchOASIS)
+            page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
+                "Read synthetic holons from MongoDB and retained authenticated native OpenSearch through HolonManager.", StringComparison.Ordinal)
+                .Replace("Stop demo and clean fixtures", "Stop demo (keep original OpenSearch source)", StringComparison.Ordinal);
         if (secondary.QueryProviderType == NextGenSoftware.OASIS.API.Core.Enums.ProviderType.ScyllaDBOASIS)
             page = page.Replace("Read synthetic holons from two native databases through HolonManager.",
                 "Read synthetic holons from MongoDB and retained authenticated native ScyllaDB through HolonManager.", StringComparison.Ordinal)
