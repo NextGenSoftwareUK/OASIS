@@ -762,3 +762,14 @@ then four for the two-ID subset, retaining each provider's provenance. Browser
 port5137. Stop through the demo control to verify cleanup and retain native source.
 This is bounded identity filtering; hypertables/time-series aggregates and full
 ORM parity remain open. [Commands, tests and hashes](TIMESCALEDB_CQL_MVP.md).
+
+
+## Cassandra + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Cassandra -Federated`
+(add `-VerifyOnly` for bounded checks). Authenticated native Cassandra4.1.12 uses
+original records and real restart checks. C#/HTTP/browser show5physical rows,
+then4for the two-ID subset with provider provenance. Browser5138; stop through
+the demo control to check fixture cleanup and preserve native source. Native
+transport is local plaintext; no TLS/hosted/replication/full-parity claim.
+[Commands, tests and hashes](CASSANDRA_CQL_MVP.md).

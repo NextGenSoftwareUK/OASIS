@@ -106,6 +106,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.RavenDBOASIS => "RavenDB",
         ProviderType.CockroachDBOASIS => "CockroachDB",
         ProviderType.TimescaleDBOASIS => "TimescaleDB",
+        ProviderType.CassandraOASIS => "Cassandra",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",
         ProviderType.CosmosBlockChainOASIS => "Cosmos blockchain",

@@ -1,4 +1,4 @@
-param()
+param([switch]$Federated,[switch]$Serve)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/CassandraCqlCurrent'
@@ -14,6 +14,9 @@ $results=Join-Path $root 'TestResults/CassandraCqlCurrent'
     $scriptPath=(Join-Path $root 'Scripts/TestHosts/run-cosmic-cassandra-linux.py').Replace('\','/')
     $linuxPath=(& wsl -d Ubuntu -- wslpath -u $scriptPath).Trim()
     if($LASTEXITCODE){throw 'Worktree path resolution failed.'}
-    & wsl -d Ubuntu -u root -- python3 $linuxPath
+    if($Serve -and !$Federated){throw "Serve requires explicit federation."}
+    if($Serve){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated --serve }
+    elseif($Federated){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated }
+    else{ & wsl -d Ubuntu -u root -- python3 $linuxPath }
     if($LASTEXITCODE){throw 'Native/restart verification incomplete; preserve original journals.'}
 }

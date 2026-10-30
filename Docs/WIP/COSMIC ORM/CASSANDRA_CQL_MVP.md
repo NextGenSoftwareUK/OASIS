@@ -1,6 +1,6 @@
-# Cassandra CQL MVP — native/restart verified; paired demo pending
+# Cassandra CQL MVP — native/restart/Mongo-paired demo verified
 
-Updated 30 October 2026. This provider is still red in the demo inventory.
+Updated 30 October 2026. Scoped native/C#/HTTP/browser demo acceptance passes; full parity remains open.
 
 ## Implemented
 
@@ -38,9 +38,7 @@ original cluster/schema/actor/IDs were recorded before acknowledged writes. Save
 publish only after native write completion, IsSaved/SavedCount count acknowledgements,
 and batches stop or continue as requested. Failed writes preserve caller identity.
 HolonManager retains tracking acceptance ownership. Native3/filter2/missing0/page1, budget rejection and JSON/write-time preservation
-across an actual restart pass. Next: one Mongo-paired C#/HTTP/browser5/4 preset
-and hub registration. Do not mark native acceptance green
-from these no-backend controls. Original source/runtime/container are retained and the node is stopped.
+across an actual restart pass. Mongo-paired C#/HTTP/browser5/4 and hub registration also pass. Native acceptance has separate real-server evidence below. Original source/runtime/container are retained and the node is stopped.
 
 TLS configuration, arbitrary predicates, graph/children, conditional writes,
 replication/history/migration and EF/NHibernate parity remain unverified/open.
@@ -76,3 +74,36 @@ checks (retained environment required). Setup script refuses an existing source;
 do not rerun it or replace seeds to recover test failures.
 Proving native fixture: CassandraCqlNativeTests.cs in the integration project.
 [Official image/configuration](https://hub.docker.com/_/cassandra).
+
+
+## Mongo-paired teaching preset
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Cassandra -Federated
+# Add -VerifyOnly for bounded native/restart/C#/HTTP checks.
+```
+
+Browser http://127.0.0.1:5138 shows5physical rows (Cassandra3+Mongo2), then4
+for the two-ID subset, preserving each provider copy/provenance and excluding Tea.
+C#/HTTP tests also reject forged/unknown presets and return503/no partial rows
+when the native provider is inactive. This is bounded identity filtering, not
+arbitrary content predicates, cross-provider snapshot or HyperDrive replication.
+
+Bounded and interactive runs each passed five phases/one test each. Interactive
+shutdown verified originalJSON/write timestamps, exact temporary Mongo database
+cosmic_cql_mongo_cassandra_demo removal, cleared journals/ready file and stopped
+native19042/Mongo27039/demo5138. Original source34,005,057B logical retained;
+JVM stop143 validated, runner terminal0. Screenshot TestResults/CassandraCqlCurrent/
+browser.jpg50,041B; UI5/4 checked before stop. An early browser open preceded
+readiness and refused connection; opening the ready service succeeded, no restart.
+Hub checks8single/16plans,47paired/94plans,80paired and3archive rejections pass;
+listeners unchanged. No other provider's native acceptance is inferred.
+
+Current interactive TRX hashes under TestResults/CassandraCqlCurrent:
+- native-first: `a523300f65864598942b7bb4f6dd0989d6e64e35325142b26826c3b341642328`
+- native-restart: `e757681223041b9c425714f540b430bff9c3ec4eb49faae8efb8ca530a71a411`
+- mongo-init: `5e3bb2735e90a9f40735dc0cd171cd0af07240f0f3d716456acfe48ed15d21f6`
+- mongo-federation: `f85d6aad2e630d279deb67c785b389d343d0a7b9ecd38a7d85fb3b568486c996`
+- native-postpair: `1239f011c834bb7c405180e3ee0a762f71c61615cb89875a32b48ae59c90c1ad`
+
+Next red provider: ScyllaDB; deepen green Cassandra only for a reproduced bug.
