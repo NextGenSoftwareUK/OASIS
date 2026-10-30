@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Threading;
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
 using SurrealDb.Net.Models.Auth;
@@ -39,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
     ///   ns        — SurrealDB namespace (e.g. "oasis")
     ///   db        — SurrealDB database (e.g. "oasis")
     /// </summary>
-    public class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _endpoint;
         private readonly string _username;
@@ -67,12 +68,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private async Task<SurrealDbClient> GetClientAsync()
+        private async Task<SurrealDbClient> GetClientAsync(CancellationToken cancellationToken = default)
         {
             var client = new SurrealDbClient(_endpoint);
-            await client.SignIn(new RootAuth { Username = _username, Password = _password });
-            await client.Use(_ns, _db);
-            return client;
+            try
+            {
+                await client.SignIn(new RootAuth { Username = _username, Password = _password }, cancellationToken);
+                await client.Use(_ns, _db, cancellationToken);
+                return client;
+            }
+            catch
+            {
+                await client.DisposeAsync();
+                throw;
+            }
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
@@ -112,8 +121,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                // Just verify connection works
+                // Activation state belongs to the acknowledged configured connection.
+                IsProviderActivated = false;
                 await using var client = await GetClientAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "SurrealDBOASIS activated — connected to SurrealDB.";
             }
@@ -122,7 +133,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SurrealDBOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "SurrealDBOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
