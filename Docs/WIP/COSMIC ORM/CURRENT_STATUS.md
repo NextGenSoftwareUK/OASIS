@@ -2,7 +2,7 @@
 
 Updated 30 October 2026 UTC. Full programme remains incomplete.
 
-## Current phase: hosted three-database MVP verified; continue demo breadth
+## Current phase: hosted three-database MVP + local Oracle content demo verified
 
 - Worktree C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql-sandbox-integration. Never build/write in the original C:/Source/OASIS checkout.
 - Development parent51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3 / Coreff670ec65eb2d6e98ec0858af146eba704752b20; ONODE6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved. Pins/gitlinks/remote pushes verified.
@@ -36,7 +36,7 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 
 ## Next demo work
 
-1. Oracle Mongo-paired content C#/HTTP/browser preset. Native Oracle content already proved; finish the shared teaching host/presets before deeper translation/parity.
+1. Oracle content pairing now verified:13 compiler controls,21 retained native queries,4 C# +4 HTTP +4 browser presets,2 rejected request shapes. Name/description/metadata/AND-OR counts2/4/4/2; source unchanged, owned Mongo fixture cleaned. Run-ReusableOracleMongoTests.ps1 -Content -Serve -ArchiveCompletedDemo serves5090.
 2. Verify/publish current Web4Site CQL tab against this now-verified API. Existing frontend work/cosmic-cql c17e5f7 is pushed; main remains unpublished.
 3. Continue approved provider breadth/content/sandbox plan. Hosted Azure pending/free-only/no subscription; do not create paid resources. Deep LINQ/POCO/migrations remain deferred.
 4. Broader failure-injection/failover/load-balancing and gap-free future enrollment remain explicit acceptance gaps; this demo flow is not universal HyperDrive completion.
@@ -44,8 +44,8 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 ## Branch recovery and key commands
 
 - Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
-- Next exact step: inspect broad Oracle helpers/tests via git show; reconcile broad/scoped branches deliberately (previous parent merge has provider/doc conflicts), then add Oracle content pairing. Preserve the successful hosted repair and current status.
-- PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart verified; paired content/browser still pending.
+- Next exact step: add the verified Oracle preset to the existing C:/Source/Web4Site CQL tab/demo catalogue, then verify/publish that browser surface against the deployed API. Scoped Oracle/helpers were ported without broad Core/routing changes; preserve successful hosted repair and current status.
+- PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart plus4paired SDK/HTTP/browser content presets verified locally; hosted OCI still unproved.
 - Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
 - Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.
 - Logs/TRX only worktree TestResults; persistent credentials/intent/ACK journals only protected LocalState or retained remote volume, never TestResults/Docs.
