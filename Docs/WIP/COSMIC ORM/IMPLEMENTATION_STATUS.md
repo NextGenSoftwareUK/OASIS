@@ -1,5 +1,6 @@
 # COSMIC ORM implementation status
 
+ClickHouse: bounded CQL/save ownership implemented, 28 controls pass; native/paired proof remains red. [Scope](CLICKHOUSE_CQL_MVP.md).
 Couchbase: 31 controls + native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Proof](COUCHBASE_CQL_MVP.md).
 Updated 29 October 2026. [CURRENT_STATUS](CURRENT_STATUS.md) owns recovery and the exact next step.
 The [parity checklist](CQL_PARITY_CHECKLIST.md) owns feature/provider acceptance. Programme incomplete.
