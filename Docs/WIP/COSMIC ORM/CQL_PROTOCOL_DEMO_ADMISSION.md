@@ -205,3 +205,17 @@ Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point 
 ##30October scoped follow-up
 
 IPFS multi-CID +Mongo profile is now native-verified on the scoped branch (23shared/17IPFS controls +one real Kubo scenario, selected3/2 and federated5/4). Existing point/native storage green scopes were not rerun wholesale. SOLID and ActivityPub preserved key-set implementations still require scoped port/current native proof before updated catalogue enrollment. Use CURRENT_STATUS as the recovery entry.
+
+
+## SOLID bounded multi-record demo verified (30 October)
+
+31 controlled tests and one real retained SOLID Pod + Mongo scenario passed, zero failures/skips. Three selected SOLID records and two Mongo records yielded five federated copies; unselected Mongo records were excluded. SDK and teaching HTTP acceptance share the bounded key-set contract. This is explicit resource-key membership, not arbitrary Pod scans or general text predicates. The opt-in factory flag defaults to false.
+
+All three owned SOLID records were conditionally deleted and absence verified; completion journal is LocalState/COSMIC/SolidCurrent/cql-keyset-complete.json. The owned Mongo fixture was removed, no pending journal remains, and ports13000/27029 are closed. Retained identity, Pod volume and reusable Mongo data remain protected for reuse. No installs, downloads or restores.
+
+Evidence (regenerable under worktree TestResults):
+- SolidCurrent/solid-keyset-controls.trx:31 passed; SHA25602C82B1D2E4F69B3A14DACC65AF67235D49ECD8D19682C9CA9A4CEC2331F11A4.
+- SolidCurrent/solid-cql-keyset-native.trx:1 passed; SHA256B135523E8719F2CE0B2924D09B9B896AD272AAE3AAD9B106BB285DD381890F58.
+- DemoBreadthCurrent/native-mongo-SOLIDOASIS-federation.json:5 total/3 SOLID/2 Mongo; exactCleanupVerified=true.
+
+Next: ActivityPub multi-record acceptance, then catalogue enrollment. Hosted SOLID and unrestricted content queries remain unproved.

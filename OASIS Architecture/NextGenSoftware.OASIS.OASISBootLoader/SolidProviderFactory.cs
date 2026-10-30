@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader;
 
 internal static class SolidProviderFactory
 {
-    internal static SOLIDOASIS Create(SolidOASISProviderSettings settings,string overrideConnectionString=null)
+    internal static SOLIDOASIS Create(SolidOASISProviderSettings settings,string overrideConnectionString=null,bool enableCqlRecordKeySets=false)
     {
         ArgumentNullException.ThrowIfNull(settings);
         if(!Uri.TryCreate(settings.PodRoot,UriKind.Absolute,out var root))
@@ -39,7 +39,7 @@ internal static class SolidProviderFactory
         HttpMessageHandler handler=null;
         try{
             handler=dpop?new SolidDpopClientCredentialsHandler(root,tokenEndpoint,settings.ClientId,secret):new HttpClientHandler();
-            return new SOLIDOASIS(root.AbsoluteUri,token,key,handler){IsVersionControlEnabled=settings.IsVersionControlEnabled,NativeImportContainers=settings.NativeImportContainers};
+            return new SOLIDOASIS(root.AbsoluteUri,token,key,handler){IsVersionControlEnabled=settings.IsVersionControlEnabled,EnableCqlRecordKeySets=enableCqlRecordKeySets,NativeImportContainers=settings.NativeImportContainers};
         }catch{handler?.Dispose();throw;}
         finally{CryptographicOperations.ZeroMemory(key);}
     }

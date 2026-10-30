@@ -14,8 +14,9 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/ProtocolPointApiHost.cs" Link="Demo/ProtocolPointApiHost.cs" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
+    <!-- Explicit fixture providers/read policy replace node-default BootLoader composition. -->
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
-             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs" Link="Production/Cql/%(Filename)%(Extension)" />
+             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs" Link="Production/Cql/%(Filename)%(Extension)" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/Cql*.cs" Link="Production/Models/%(Filename)%(Extension)" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
     <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />
@@ -48,6 +49,11 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/NativeProtocolMongoAcceptance.cs" Link="TestSupport/NativeProtocolMongoAcceptance.cs" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
+  </ItemGroup>
 </Project>
 
 
