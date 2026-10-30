@@ -1,6 +1,6 @@
-# OpenSearch CQL MVP — native/restart verified; paired demo pending
+# OpenSearch CQL MVP — native/restart/Mongo-paired demo verified
 
-Updated 30 October 2026. Inventory remains red until Mongo-paired/browser acceptance.
+Updated 30 October 2026. Scoped native/C#/HTTP/browser acceptance passes; full parity remains open.
 
 ## Implemented and verified without backend
 
@@ -53,7 +53,7 @@ expanded1,701,454,398B. One retained native source now verified. Reuse this imag
 
 Original secured3.9.0 distribution, native3/filter2/missing0/page1/budget and
 rawHolon JSON/nativeversion/indexUUID preservation across actual restart now pass.
-Next: Mongo-paired C#/HTTP/browser5/4 and hub routing. Elasticsearch proof cannot
+Mongo-paired C#/HTTP/browser5/4 and hub routing also pass. Elasticsearch proof cannot
 certify this backend. No hosted/signup/trial/purchase.
 
 Avatar caller-state ownership, older unrestricted point/search/delete helpers,
@@ -102,3 +102,36 @@ Scripts/TestHosts/Run-CosmicOpenSearchLinuxDemo.ps1
 
 [Security YAML documentation](https://docs.opensearch.org/latest/security/configuration/yaml/)
 / [TLS configuration](https://docs.opensearch.org/latest/security/configuration/tls/).
+
+
+## Mongo-paired teaching preset
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider OpenSearch -Federated
+# Add -VerifyOnly for bounded native/restart/C#/HTTP checks.
+```
+
+Browser http://127.0.0.1:5141 shows5physical rows (native3+Mongo2), then4for the
+2-ID subset, keeping provider copies/provenance and excluding Tea. C#/HTTP also
+reject forged/unknown presets and return503/no partial rows for inactive native
+provider. Native backend remains authenticatedHTTPS; teachingHTTP is loopbackonly.
+Bounded identity selection, no full-text translation/cross-provider snapshot/
+HyperDrive replication/full-parity claim. Shared examples live in Examples/
+CosmicCqlDemo/IdentityFederationWalkthrough.cs and IdentityFederationApiHost.cs;
+OpenSearchMongoCqlNativeTests.cs proves C#/HTTP usage.
+
+Bounded/interactive runners each5phases/one test passed. Browser5/4 verified,
+screenshot TestResults/OpenSearchCqlCurrent/browser.jpg50,394B. Stopbutton/UIshutdown
+checked, originalrunner27946terminal0, native rawJSON/version/indexUUID preserved.
+Originalsource2,825,369B logical retained; exact cosmic_cql_mongo_opensearch_demo
+checked/dropped, pending/ready cleared, own19201/Mongo27039/demo5141stopped
+(JVM143/noOOM/noError). Browser55closed. Hub8single/16plans,50paired/100plans,
+86paired and3archive rejections pass; listeners unchanged. No newdownloads/environments.
+Current interactiveTRX hashes under TestResults/OpenSearchCqlCurrent:
+- native-first: `1ec76c02bacea562b1167a1741159b2b0132261821ab077c2adbafb5ac5d82c7`
+- native-restart: `b127a8f5c53e7e9dd5d8d94d952b357ad6b3c3f037220c65d7754ce22c1c91d0`
+- mongo-init: `0822d3912db88b2c806e915ac21084c48821eaf8d67407fde219b2b30efae50c`
+- mongo-federation: `1de641914c720b7cb38d2a27652dc1882cc7acd3f0de706fffba56804d652ffb`
+- native-postpair: `bc5c483514c81019ceae59e367c23495b3e7a993c34af6bfed72632f2e2cd021`
+
+Next red provider: Couchbase; continue breadth before deeper parity.
