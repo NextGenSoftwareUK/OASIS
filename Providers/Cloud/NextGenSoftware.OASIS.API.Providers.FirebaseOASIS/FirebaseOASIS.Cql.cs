@@ -74,7 +74,7 @@ public partial class FirebaseOASIS : ICosmicQueryStorageProvider
                 var record = records[0];
                 if (record.Name != id.ToString("D") || record.Value.ValueKind != JsonValueKind.Object)
                     throw new InvalidDataException("Firebase key equality returned a foreign or malformed row.");
-                var row = Deserialize<Holon>(record.Value.GetRawText());
+                var row = ParseFirebaseHolon(id, record.Value.GetRawText());
                 if (row == null || row.Id != id || !plan.Query.ReadAccess.CanRead(row))
                     throw new InvalidDataException("Firebase key/payload identity or authorization mismatch.");
                 if (row.IsDeleted) continue;
