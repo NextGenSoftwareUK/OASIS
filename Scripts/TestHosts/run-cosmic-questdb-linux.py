@@ -1,0 +1,63 @@
+"""Verify original QuestDb CQL records across restart; reuse the retained source."""
+from pathlib import Path
+import argparse, fcntl, hashlib, json, os, pwd, runpy, subprocess, time
+import xml.etree.ElementTree as ET
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+assert not options.serve and not options.federated, "Paired preset is not enrolled yet"
+
+ROOT = Path(__file__).resolve().parents[2]
+STATE = Path('/var/tmp/oasis-questdb-cql')
+RESULTS = ROOT/'TestResults/QuestDbCqlCurrent'
+DOTNET = '/var/tmp/oasis-runtimes/dotnet-10.0.12/dotnet'
+VSTEST = '/mnt/c/Users/david/.nuget/packages/microsoft.testplatform.portable/18.11.0/tools/net8.0/vstest.console.dll'
+DLL = ROOT/'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests.dll'
+OWNER = pwd.getpwnam('dellams').pw_uid
+setup = runpy.run_path(str(ROOT/'Scripts/TestHosts/Create-CosmicQuestDbEnvironment.py'))
+
+
+def demote():
+    os.setgroups([])
+    os.setgid(OWNER)
+    os.setuid(OWNER)
+
+
+def main():
+    assert os.geteuid() == 0
+    environment = json.loads((STATE/'environment.json').read_text())
+    receipt = json.loads((STATE/'container.ack.json').read_text())
+    assert not list(STATE.glob('*.pending.json')), 'Preserve unknown outcomes; never replay'
+    with (STATE/'runner.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        for phase in ['native-first', 'native-restart']:
+            container = json.loads(setup['command']('inspect', setup['NAME']))[0]
+            assert container['Id'] == receipt['id'] and container['Image'] == receipt['imageId'] == setup['IMAGE_ID']
+            assert not container['State']['Running'] and container['State']['ExitCode'] in [0,143]
+            assert container['HostConfig']['PortBindings'] == {'9000/tcp': [{'HostIp': '127.0.0.1', 'HostPort': '19000'}], '8812/tcp': [{'HostIp': '127.0.0.1', 'HostPort': '18812'}]}
+            assert any(m['Source'] == str(STATE/'data') and m['Destination'] == '/var/lib/questdb' for m in container['Mounts'])
+            assert (STATE/'data').stat().st_ino == environment['sourceDirectoryInode']
+            setup['command']('start', setup['NAME'])
+            try:
+                setup['ready']()
+                assert setup['snapshot']() == json.loads((STATE/'initial.ack.json').read_text())['schema']
+                def report(label, test="QuestDbCqlNativeTests", extra=None):
+                    started = time.time()
+                    with (RESULTS/(label+'.log')).open('w') as log:
+                        subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~'+test,
+                            '--ResultsDirectory:'+str(RESULTS), '--Logger:trx;LogFileName='+label+'.trx'], cwd=RESULTS,
+                            env={**os.environ, 'DOTNET_ROOT': '/var/tmp/oasis-runtimes/dotnet-10.0.12', 'OASIS_QUESTDB_CQL_STATE': str(STATE), **(extra or {})},
+                            preexec_fn=demote, stdout=log, stderr=subprocess.STDOUT, check=True)
+                    trx = RESULTS/(label+'.trx')
+                    assert trx.stat().st_mtime >= started
+                    counts = ET.parse(trx).find('.//{*}Counters').attrib
+                    assert counts['passed'] == '1' and counts['failed'] == '0' and counts['notExecuted'] == '0'
+                    print(json.dumps({'phase': label, 'counts': counts, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()}), flush=True)
+                report(phase)
+            finally:
+                setup['stop']()
+
+
+if __name__ == '__main__':
+    main()
