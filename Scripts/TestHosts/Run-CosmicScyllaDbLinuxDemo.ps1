@@ -1,4 +1,6 @@
-param([switch]$ResumeOriginalPrewrite)
+param([switch]$ResumeOriginalPrewrite,[switch]$Federated,[switch]$Serve)
+if($Serve -and !$Federated){throw "Serve requires federation."}
+if($ResumeOriginalPrewrite -and $Federated){throw "Reconcile native prewrite before federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/ScyllaDbCqlCurrent'
@@ -15,6 +17,8 @@ $results=Join-Path $root 'TestResults/ScyllaDbCqlCurrent'
     $linuxPath=(& wsl -d Ubuntu -- wslpath -u $scriptPath).Trim()
     if($LASTEXITCODE){throw 'Worktree path resolution failed.'}
     if($ResumeOriginalPrewrite){ & wsl -d Ubuntu -u root -- python3 $linuxPath --resume-original-prewrite }
+    elseif($Serve){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated --serve }
+    elseif($Federated){ & wsl -d Ubuntu -u root -- python3 $linuxPath --federated }
     else{ & wsl -d Ubuntu -u root -- python3 $linuxPath }
     if($LASTEXITCODE){throw 'Native/restart verification incomplete; preserve original journals.'}
 }

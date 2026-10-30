@@ -1,6 +1,6 @@
-# ScyllaDB CQL MVP — native/restart verified; paired demo pending
+# ScyllaDB CQL MVP — native/restart/Mongo-paired demo verified
 
-Updated 30 October 2026. Inventory remains red until Mongo-paired/browser acceptance.
+Updated 30 October 2026. Scoped native/C#/HTTP/browser acceptance passes; full parity remains open.
 
 ## Implemented and verified
 
@@ -69,11 +69,47 @@ Run `Scripts/TestHosts/Run-CosmicScyllaDbLinuxDemo.ps1` for bounded native/resta
 Setup refuses existing source. Recovery switches are explicit narrow readback
 workflows; never delete pending intents, reset/reseed or replace baselines.
 
-Next: one Mongo-paired C#/HTTP/browser5/4 preset and hub routing, original native
-rows/write timestamps checked before/after and exact disposable Mongo cleanup.
+Mongo-paired C#/HTTP/browser5/4 and hub routing pass; original native rows/write
+timestamps checked before/after, exact disposable Mongo fixture verified/dropped.
 IsVersionControlEnabled currently has no save/history behaviour. Avatar ownership,
 graph/children/CAS/history/replication/migrations/metadata depth/full parity remain
 open. No Scylla acceptance inferred from Cassandra's separate proof.
 [Official Docker guide](https://docs.scylladb.com/manual/stable/getting-started/install-scylla/run-in-docker.html),
 [superuser bootstrap](https://docs.scylladb.com/manual/stable/operating-scylla/security/create-superuser.html).
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+
+## Mongo-paired demo
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ScyllaDB -Federated
+# Add -VerifyOnly for bounded native/restart/C#/HTTP checks.
+```
+
+Browser http://127.0.0.1:5139 shows5physical rows (native3+Mongo2), then4for the
+2-ID subset; provider copies/provenance retained, Tea excluded. Forged/unknown
+HTTP presets reject; native inactive produces503/no partial rows. No distributed
+snapshot/replication/full-parity claim. Shared code lives in Examples/CosmicCqlDemo/
+IdentityFederationWalkthrough.cs and IdentityFederationApiHost.cs; integration
+fixture ScyllaDbMongoCqlNativeTests.cs exercises C# and HTTP.
+
+Both bounded and interactive runners passed5phases/one test each. Browser5/4
+verified, screenshot TestResults/ScyllaDbCqlCurrent/browser.jpg49,809B. Tab closed
+at turn boundary; original live runner stopped through the same HTTP demo endpoint.
+Final native JSON/writetime preserved, original source11,108,511B logical retained;
+exact cosmic_cql_mongo_scylladb_demo dropped, pending/ready cleared, own19043/Mongo27039/
+demo5139stopped0, original runner67700terminal0. Hub8single/16plans,48paired/96plans,
+82paired and3archive rejections pass, listeners unchanged.
+
+Earlier bounded pair recorded21m54s elapsed with unknown cause. Repeat timestamps
+show native+Mongo activation, C# and HTTP including deactivate/reactivate complete
+in1.36s, browser ready1.45s after start; later wait was interactive. No performance
+SLA inferred and no further green hardening without a reproduced bug.
+Current interactive TRX hashes under TestResults/ScyllaDbCqlCurrent:
+- native-first: `bcf6a4f9d3e717c3695ab4e88dbc65af1a4c03e5c15138b993d52f3c2bebd524`
+- native-restart: `0f23b38d9dfc3db875b47976ffdf9bb98fe676b413552fa6ae99c9a81ad7dcc7`
+- mongo-init: `b3323ed1e422f09b51370a60d53339152da4c2cf595e006e99a1719f4e4bf54c`
+- mongo-federation: `78cb01ee65a6de03b1b039eb65f9349534cab5a730bbffb8ad9b70f38ae18761`
+- native-postpair: `4676bd242a2bbe6bd1e2ca3447a6903658a815aa61d993e75d5a456bde08bfad`
+
+Next red provider: Elasticsearch; continue breadth before deeper parity.
