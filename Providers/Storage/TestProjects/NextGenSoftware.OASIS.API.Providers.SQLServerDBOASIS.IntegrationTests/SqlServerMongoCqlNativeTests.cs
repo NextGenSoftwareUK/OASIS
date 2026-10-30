@@ -23,26 +23,32 @@ public class SqlServerMongoCqlNativeTests
     {
         
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
-        const string database = "cosmic_cql_mongo_sqlserver_demo";
+        var contentDemo = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CQL_CONTENT") == "1";
+        var database = contentDemo ? "cosmic_cql_mongo_sqlserver_content_demo" : "cosmic_cql_mongo_sqlserver_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CQL_STATE")!;
-        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, "demo-seed.json")));
-        var sqlserverIds = seed.RootElement.GetProperty("Ids").EnumerateArray().Select(v => v.GetGuid()).ToArray();
+        using var seed = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(state, contentDemo ? "content-seed.json" : "demo-seed.json")));
+        var sqlserverIds = seed.RootElement.GetProperty("Ids").EnumerateArray().Select(v => v.GetGuid()).Take(3).ToArray();
         var actor = seed.RootElement.GetProperty("Actor").GetGuid();
         using var sourceLease = new FileStream(Path.Combine(state, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         Assert.IsFalse(File.Exists(Path.Combine(state, "demo-seed.pending.json")));
         Assert.IsTrue(File.Exists(Path.Combine(state, "source-snapshot.json")));
-        var journal = Path.Combine(state, "mongo.pending.json");
+        var journal = Path.Combine(state, contentDemo ? "mongo-content.pending.json" : "mongo.pending.json");
         Assert.IsFalse(File.Exists(journal), "Preserve unfinished Mongo fixture.");
         var client = new MongoClient(mongoUri);
         using (var names = await client.ListDatabaseNamesAsync()) Assert.IsFalse((await names.ToListAsync()).Contains(database));
         var records = sqlserverIds.Take(2).Append(Guid.NewGuid()).Select((id,index) => new Holon {
-            Id = id, Name = "COSMIC owned SqlServer Mongo copy " + index, CreatedByAvatarId = actor
+            Id = id, Name = contentDemo ? new[] { "Espresso", "Latte", "Hidden coffee" }[index] : "COSMIC owned SqlServer Mongo copy " + index,
+            Description = contentDemo ? "coffee" : "", MetaData = new Dictionary<string, object> { ["category"] = "coffee" }, CreatedByAvatarId = actor
         }).ToArray();
         using (var file = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         { await JsonSerializer.SerializeAsync(file, new { database, actor, ids = records.Select(r => r.Id) }); file.Flush(true); }
 
-        var sqlserver = new SQLServerDBOASIS(Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CQL_CONNECTION")!);
+        var connection = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CQL_CONNECTION")!);
+        if (contentDemo) connection.InitialCatalog = "cosmic_cql_content";
+        var sqlserver = new SQLServerDBOASIS(connection.ConnectionString);
+        var mongoReadable = (contentDemo ? records.Take(2) : records).Select(record => record.Id).ToArray();
+        var contentPresets = contentDemo ? CosmicCqlDemo.ContentFederationPresets.Create(ProviderType.SQLServerDBOASIS) : null;
         var mongo = new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS(mongoUri, database) { IsVersionControlEnabled = false };
         try
         {
@@ -64,15 +70,26 @@ public class SqlServerMongoCqlNativeTests
             foreach (var selection in new[] { sqlserverIds, sqlserverIds.Take(2).ToArray() })
             {
                 var result = await CosmicCqlDemo.IdentityFederationWalkthrough.RunAsync(manager, mongo, sqlserver,
-                    selection, records.Select(r => r.Id), sqlserverIds, actor, TextWriter.Null);
+                    selection, mongoReadable, sqlserverIds, actor, TextWriter.Null);
                 Assert.AreEqual(selection.Length + 2, result.Rows.Count);
                 Assert.AreEqual(selection.Length + 2, result.ObservedInputRows);
                 Assert.AreEqual(selection.Length, result.Rows.Count(r => r.Selected.Provider == ProviderType.SQLServerDBOASIS));
                 Assert.AreEqual(2, result.Rows.Count(r => r.Selected.Provider == ProviderType.MongoDBOASIS));
                 Assert.IsFalse(result.Rows.Any(r => r.Selected.Row.Id == records[2].Id));
             }
+            if (contentPresets != null)
+                foreach (var preset in contentPresets)
+                {
+                    var result = await CosmicCqlDemo.IdentityFederationWalkthrough.RunQueryAsync(manager, mongo, sqlserver,
+                        preset.Value, mongoReadable, sqlserverIds, actor, TextWriter.Null);
+                    var expected = preset.Key is "name" or "combined" ? 2 : 4;
+                    Assert.AreEqual(expected, result.Rows.Count);
+                    Assert.AreEqual(expected / 2, result.Rows.Count(row => row.Selected.Provider == ProviderType.SQLServerDBOASIS));
+                    Assert.AreEqual(expected / 2, result.Rows.Count(row => row.Selected.Provider == ProviderType.MongoDBOASIS));
+                    Assert.IsFalse(result.Rows.Any(row => row.Selected.Row.Id == records[2].Id));
+                }
             await using (var app = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, sqlserver, actor,
-                sqlserverIds, records.Select(r => r.Id), sqlserverIds, "http://127.0.0.1:0"))
+                sqlserverIds, mongoReadable, sqlserverIds, "http://127.0.0.1:0", contentPresets))
             {
                 await app.StartAsync();
                 try
@@ -97,6 +114,17 @@ public class SqlServerMongoCqlNativeTests
                         Assert.AreEqual(expected, body.RootElement.GetProperty("observedPhysicalRows").GetInt32());
                         Assert.AreEqual(expected - 2, body.RootElement.GetProperty("rows").EnumerateArray().Count(r => r.GetProperty("provider").GetString() == "SQLServerDBOASIS"));
                     }
+                    if (contentPresets != null)
+                        foreach (var preset in contentPresets.Keys)
+                        {
+                            using var response = await http.PostAsJsonAsync("/api/cql/federation", new { preset });
+                            Assert.IsTrue(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+                            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                            var expected = preset is "name" or "combined" ? 2 : 4;
+                            Assert.AreEqual(expected, body.RootElement.GetProperty("count").GetInt32());
+                            Assert.AreEqual(expected / 2, body.RootElement.GetProperty("rows").EnumerateArray()
+                                .Count(row => row.GetProperty("provider").GetString() == "SQLServerDBOASIS"));
+                        }
                     Assert.IsFalse((await sqlserver.DeActivateProviderAsync()).IsError);
                     using var failed = await http.PostAsJsonAsync("/api/cql/federation", new { preset = "all" });
                     Assert.AreEqual(HttpStatusCode.ServiceUnavailable, failed.StatusCode);
@@ -108,7 +136,7 @@ public class SqlServerMongoCqlNativeTests
             if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_MONGO_SERVE") == "1")
             {
                 await using var interactive = CosmicCqlDemo.IdentityFederationApiHost.Build(manager, mongo, sqlserver, actor,
-                    sqlserverIds, records.Select(r => r.Id), sqlserverIds, "http://127.0.0.1:5113");
+                    sqlserverIds, mongoReadable, sqlserverIds, "http://127.0.0.1:5113", contentPresets);
                 await interactive.StartAsync();
                 var ready = Path.Combine(state, "demo-ready.json");
                 await File.WriteAllTextAsync(ready, JsonSerializer.Serialize(new { url = "http://127.0.0.1:5113/", providers = new[] { "MongoDBOASIS", "SQLServerDBOASIS" } }));
