@@ -27,11 +27,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
     ///
     /// Uses Chroma's tenant/database-scoped v2 collection and record endpoints.
     /// </summary>
-    public class ChromaOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class ChromaOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical writes are unsupported and explicitly rejected for holon saves.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -46,14 +45,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         private const string CollHolons = "oasis_holons";
 
         public ChromaOASIS(string baseUrl = "http://localhost:8000", string tenant = "default_tenant", string database = "default_database")
+            : this(new HttpClient(), baseUrl, tenant, database)
         {
+        }
+
+        /// <summary>The caller owns the dedicated client and any configured authentication.</summary>
+        public ChromaOASIS(HttpClient http, string baseUrl = "http://localhost:8000", string tenant = "default_tenant", string database = "default_database")
+        {
+            _http = http ?? throw new ArgumentNullException(nameof(http));
             _baseUrl = baseUrl.TrimEnd('/');
             _tenant = tenant;
             _database = database;
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ChromaOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            ProviderName = "ChromaOASIS";
+            ProviderDescription = "Chroma tenant/database-scoped document storage.";
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
@@ -435,13 +442,31 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Chroma historical holon writes are not implemented.");
+
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.ChromaOASIS] = id.ToString("D");
+
+                // Stage identity in the wire document; HolonManager owns tracking acceptance.
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType())!.AsObject();
+                payload["Id"] = id;
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await UpsertDocAsync(CollHolons, id.ToString("D"), payload);
+
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ChromaOASIS] = id.ToString("D");
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: SaveHolonAsync failed: {ex.Message}");
             }
             return result;
@@ -454,19 +479,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ChromaOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            try
+            var errors = new List<string>();
+            foreach (var holon in holons)
             {
-                foreach (var h in holons)
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
                 {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
                 }
-                result.Result = saved;
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"ChromaOASIS: SaveHolonsAsync failed: {ex.Message}");
-            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 

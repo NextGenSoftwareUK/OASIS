@@ -133,3 +133,15 @@ The strict stop check correctly rejects it: restart acceptance remains incomplet
 environment.pending remains, and no full-demo/inventory green is claimed.
 Next: inspect pinned embedded-client close ownership and prove safe restart on
 the same source. Preserve the failure; do not accept134 as clean shutdown.
+
+### Upstream shutdown cause established
+
+Pinned [Milvus CloseEtcdClient](https://github.com/milvus-io/milvus/blob/v2.6.26/internal/util/dependency/kv/kv_client_handler.go#L32-L39)
+panics on any close error. Its embedded client is an in-process adapter with no
+network connection, created by [etcd v3client.New](https://github.com/etcd-io/etcd/blob/v3.5.23/server/etcdserver/api/v3client/v3client.go#L30-L51).
+[etcd Client.Close](https://github.com/etcd-io/etcd/blob/v3.5.23/client/v3/client.go#L142-L153)
+cancels its context and returns that cancellation when conn is nil. This matches
+the native shutdown stack at kv_client_handler.go:38 after component teardown.
+This is a pinned upstream embedded-client shutdown defect, not proof of clean
+shutdown. No image substitution, native patch build, reset or acceptance relaxation.
+Milvus stays red; continue Chroma breadth while preserving original source/receipt.
