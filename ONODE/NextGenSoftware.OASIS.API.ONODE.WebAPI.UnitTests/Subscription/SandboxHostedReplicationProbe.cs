@@ -50,8 +50,46 @@ public sealed class SandboxHostedReplicationProbe
                     { "DeliveryState", new BsonDocument("$ne", "Completed") } })
                 .Sort(new BsonDocument("Sequence", 1))
                 .Project(new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "OperationId", 1 },
-                    { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 } })
+                    { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 }, { "PayloadJson", 1 } })
                 .Limit(1).SingleOrDefaultAsync(deadline.Token);
+            var headNodes = new List<object>();
+            var headIds = new List<string>();
+            if (sqliteHead != null)
+            {
+                using var payload = JsonDocument.Parse(sqliteHead["PayloadJson"].AsString);
+                var nodes = payload.RootElement.GetProperty("Nodes");
+                Assert.True(nodes.GetArrayLength() <= 100);
+                foreach (var node in nodes.EnumerateArray())
+                {
+                    using var record = JsonDocument.Parse(node.GetProperty("RecordJson").GetString()!);
+                    var identity = record.RootElement.GetProperty("Id").GetGuid().ToString("D");
+                    headIds.Add(identity);
+                    headNodes.Add(new { id = identity, version = record.RootElement.GetProperty("Version").GetInt32(),
+                        versionId = record.RootElement.GetProperty("VersionId").GetGuid(),
+                        previousVersionId = record.RootElement.GetProperty("PreviousVersionId").GetGuid() });
+                }
+            }
+            var preceding = sqliteHead == null ? new List<BsonDocument>() :
+                await database.GetCollection<BsonDocument>("CosmicHolonOutbox")
+                    .Find(new BsonDocument { { "TargetId", "hyperdrive-target:SQLLiteDBOASIS" },
+                        { "Sequence", new BsonDocument("$lte", sqliteHead["Sequence"]) } })
+                    .Sort(new BsonDocument("Sequence", 1)).Limit(101)
+                    .Project(new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "PayloadJson", 1 }, { "DeliveryState", 1 } })
+                    .ToListAsync(deadline.Token);
+            Assert.True(preceding.Count <= 100, "Earlier queue inspection exceeds this bounded probe's scope.");
+            var earlierVersions = new List<object>();
+            foreach (var entry in preceding)
+            {
+                using var payload = JsonDocument.Parse(entry["PayloadJson"].AsString);
+                foreach (var node in payload.RootElement.GetProperty("Nodes").EnumerateArray())
+                {
+                    using var record = JsonDocument.Parse(node.GetProperty("RecordJson").GetString()!);
+                    var identity = record.RootElement.GetProperty("Id").GetGuid().ToString("D");
+                    if (headIds.Contains(identity))
+                        earlierVersions.Add(new { sequence = entry["Sequence"].ToInt64(), id = identity,
+                            version = record.RootElement.GetProperty("Version").GetInt32(), state = entry["DeliveryState"].AsString });
+                }
+            }
             var allowed = new[] { "find", "getMore", "killCursors", "hello", "isMaster", "ismaster", "saslStart", "saslContinue", "endSessions" };
             Assert.All(commands.Keys, name => Assert.Contains(name, allowed));
             var report = new
@@ -66,7 +104,9 @@ public sealed class SandboxHostedReplicationProbe
                 sqliteQueueHead = sqliteHead == null ? null : new { sequence = sqliteHead["Sequence"].ToInt64(),
                     operationId = sqliteHead["OperationId"].AsString, state = sqliteHead["DeliveryState"].AsString,
                     attempts = sqliteHead["AttemptCount"].ToInt32(),
-                    errorCode = sqliteHead["LastErrorCode"].IsBsonNull ? null : sqliteHead["LastErrorCode"].AsString },
+                    errorCode = sqliteHead["LastErrorCode"].IsBsonNull ? null : sqliteHead["LastErrorCode"].AsString,
+                    nodes = headNodes },
+                precedingSqliteEntriesInspected = preceding.Count, sameHolonEarlierVersions = earlierVersions,
                 scope = "Source/outbox observation only; does not prove destination contents or query acceptance."
             };
             await File.WriteAllTextAsync(Path.Combine(root, "TestResults/Web4SandboxCqlCurrent/hosted-replication-readiness.json"),
