@@ -83,7 +83,7 @@ proof links, 33 active central cases, 11 extra project names; linked scopes only
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
 - Development835653f31 integrated; merged Cored9f5ec1 pushed/remote-verified. Core4552,
   WEB4schema/policy4 and affected builds/pins pass. [Proof](DEVELOPMENT_SYNC_2026-10-30.md).
-- Later task work is pushed to the task branch. Outgoing Development deployment is a
+- Task branch pushed through c4b4a0bc0;4fe8db7e3 publication pending GitHub500. Development deployment is a
   separate verified scoped batch; never sweep deferred work into deployment to sync.
 - Named git adds only; one build lease/batch, /m:2 /nr:false /p:UseSharedCompilation=false.
 - Reuse cached SDKs/services. Persistent identities/stores/keys/journals stay under

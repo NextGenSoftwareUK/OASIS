@@ -100,3 +100,8 @@ Evidence `C:/Source/OASIS-cosmic/TestResults/QuestDbCqlCurrent/schema-controls.t
 SHA2569C310665B52B18D3AC2C0E2E71149D20386D0DF42D8C3A33670FD8256D8136DD.
 Bounded leased build/tests pass, no dependency restore/download needed. No native
 service/source/dataset was created; inventory stays red and62/226coverage unchanged.
+
+Publication checkpoint: implementation commit4fe8db7e3 is local; GitHub rejected
+two push attempts with internal server error30Oct14:22UTC. Remote task ref verified
+still c4b4a0bc0 after first failure. Preserve local commit, retry normal publication
+with a later verified batch; no force push or source rollback.
