@@ -1,6 +1,6 @@
-# Rootstock V2 CQL MVP — native verified, paired pending
+# Rootstock V2 CQL MVP — native and Mongo-paired verified
 
-Updated 29 October 2026. Rootstock remains red in the all-provider demo inventory.
+Updated 29 October 2026. The green inventory row certifies only the local EVM/shipping-factory scope below.
 
 ## Root causes and fixes
 
@@ -52,17 +52,41 @@ Shared chain/key retained. Owned18547node flushed/stopped through stdin, no list
 
 Evidence:
 - `TestResults/RootstockCqlCurrent/rootstock-native-first.trx` SHA256 `a2f909b21ff3bff8603dc251053397ff6e3d2c89bb6357f575ab85c16d85032c`.
-- `TestResults/EthereumCqlCurrent/rootstock-cql-native.trx` SHA256 `de8bdd71af122e2d338ce7b86acd2a8e34b86921194e4f04c223adf4b77e652d`.
+- `TestResults/EthereumCqlCurrent/rootstock-cql-native.trx` SHA256 `e61da8ebfe211920237be99b7a7e956e1fcd285011de95ff8f36ad3278142f68`.
 - Original native-record-hashes manifest SHA256 `63cab327e5cba58d977bc2cc118dbc1eaa8b6bd393e0ef127f0984f93fd3dc83`.
 
 ```powershell
 Scripts/TestHosts/Run-CosmicEthereumCqlNative.ps1 -Provider Rootstock
 ```
 
-## Exact next step and remaining gates
+## Mongo-paired teaching preset
 
-Reuse this original source for Mongo-paired C#/HTTP/browser5/4 and hub. Keep the
-all-provider demo inventory red until paired/browser proof passes.
+[Executable C#/HTTP example/test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/EvmMongoCqlNativeTests.cs)
+selects the actual Rootstock factory/authority and original contract. Shared CQL
+membership walkthrough runs through HolonManager. All: Rootstock3+Mongo2 =
+**5physical rows**; subset2+2 = **4**, retaining provider copies and excluding an
+unrelated Mongo record. Forged actor/unknown preset reject400; inactive Rootstock
+returns503 without rows. No shared snapshot claim.
+Bounded hub and actual hub/browser each pass native1/paired1; browser tab39 verifies
+both presets/provenance and controlled shutdown. Hub routing:8single/16plans,
+35paired/70plans,56paired rejection,3archive rejection; listeners unchanged.
+Exact temporary `cosmic_cql_mongo_rootstock_demo`3records verified/dropped; pending/
+ready markers removed. Original contract/IDs/key retained; owned18547node flushed/
+stopped, Mongo27029/host5126 stopped and no listeners remain.
+
+Latest `TestResults/EthereumCqlCurrent/rootstock-mongo-federation.trx` SHA256:
+`f6aa2edc815e73267026f11b0297634c36a49688b2399f5f8b42ab05c17de10f`.
+Screenshot `TestResults/RootstockCqlCurrent/browser.jpg` is disposable proof.
+
+```powershell
+# Interactive; stop through the page button.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Rootstock -Federated
+# Bounded native/C#/HTTP verification and teardown.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Rootstock -Federated -VerifyOnly
+```
+
+## Remaining gates
+
 Example local test DNA fields: ConnectionString `http://127.0.0.1:18547`, ChainId
 `31338`, plus the existing configured test key and compatible Web3Core contract.
 Do not substitute that identity for public Rootstock in production.

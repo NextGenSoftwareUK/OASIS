@@ -365,3 +365,13 @@ Page shutdown verifies temporary Mongo cleanup and retains the original fixture.
 uses the actual V2 provider and encrypted original contract on retained local
 EVM31338. Direct construction only; public OP Stack/finality and central registration
 are not certified. Page shutdown cleans the temporary Mongo fixture and retains source.
+
+## Rootstock V2 + Mongo MVP
+
+[Verified scope, commands and C# example](ROOTSTOCK_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Rootstock -Federated`
+(add `-VerifyOnly` for bounded verification). The shipping Rootstock factory uses
+explicit local chain31338 and retained encrypted contract/records. CQL through
+HolonManager returns5physical rows or4subset with provider copies preserved.
+Public Rootstock/Bitcoin anchoring/finality and shared snapshots are unverified.
+Page shutdown cleans temporary Mongo data and retains the original native source.
