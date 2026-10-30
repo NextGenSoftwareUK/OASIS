@@ -2129,3 +2129,9 @@ Abstract controls outcome: actual repro3failed/5passed; fixed11/family138passed.
 Owner COSMIC/CQL. Reuse existing Node/.NET/NuGet/provider outputs; no Arweave SDK restore/native environment/download yet. Cached NuGet source `C:/Users/david/.nuget/packages`. Test protocol fixture `read-boundary.cjs` copied to unit bin by build; no network/wallet/DB or persistent dataset. Regenerable output/logs `C:/Source/OASIS-cosmic/TestResults/ArweaveCqlCurrent` and project bin/obj (unmeasured), disposable after completed tests/builds. Tests prove SDK-wrapper error propagation only, not native Arweave.
 
 Arweave read-boundary outcome repro5failed/1passed; fixed full11passed. Owned Node fixture children/build/tests completed. No native Arweave service, SDK restore, download/wallet/source created. Reused Node/.NET/NuGet/bin/obj; raw reports disposable/regenerable under recorded TestResults. No port dependency. Native runtime/cache inventory remains next.
+
+### Arweave GraphQL protocol tests — 29 October 2026
+
+Owner COSMIC/CQL. Reuse existing Node built-in test runner (no npm install/SDK download), .NET/NuGet/bin/obj. New shipping `SdkBridge/query.mjs`, protocol fixtures in unit source; build copies module into existing bin/publish via csproj. Raw logs `C:/Source/OASIS-cosmic/TestResults/ArweaveCqlCurrent/query-protocol.log` and build/test TRX (size unmeasured), disposable/regenerable. No service/ports/wallet/database/environment created.
+
+Arweave GraphQL outcome19Node protocol/11.NET regression pass; bridge syntax and built query.mjs hash match source. Owned processes completed, no services/ports/data/wallet/new downloads. Module retained in reusable build outputs (size unmeasured); regenerable raw logs/TRX remain in TestResults. Native SDK/runtime inventory and CQL adapter next.
