@@ -22,9 +22,34 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 internal sealed class MongoReplicaConflictException(IEnumerable<Guid> ids)
     : InvalidOperationException("Replica source lineage, local revision or enrollment differs for: " + string.Join(",", ids));
 internal sealed class MongoReplicaHeadException(string message, Exception cause = null) : IOException(message, cause);
+internal sealed class MongoReplicaBaselineAdmissionException(string message) : IOException(message);
 
 public partial class HolonRepository
 {
+    private async Task FenceReplicaInitializationAsync(IClientSessionHandle session, IEnumerable<Guid> ids, bool initialize, CancellationToken token)
+    {
+        var fences=_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicHolonLineageFence");
+        foreach(var id in ids.OrderBy(value=>value))
+        {
+            var previous=await fences.FindOneAndUpdateAsync(session,new BsonDocument("_id",id.ToString("D")),
+                new BsonDocument("$inc",new BsonDocument("Generation",1L)),
+                new FindOneAndUpdateOptions<BsonDocument>{IsUpsert=true,ReturnDocument=ReturnDocument.Before},token).ConfigureAwait(false);
+            if(initialize && previous!=null)throw new MongoReplicaConflictException(new[]{id});
+        }
+        if(!initialize)return;
+        var receipts=_dbContext.MongoDB.GetCollection<BsonDocument>("CosmicWriteReceipt");
+        // Historical receipts without explicit membership cannot establish absence.
+        // An explicit audited migration is required; never guess or silently adopt them.
+        if(await receipts.Find(session,new BsonDocument("$or",new BsonArray {
+            new BsonDocument("HolonIds",new BsonDocument("$not",new BsonDocument("$type","array"))),
+            new BsonDocument("HolonIds",new BsonDocument("$size",0)),
+            new BsonDocument("HolonIds",new BsonDocument("$elemMatch",new BsonDocument("$not",new BsonDocument("$type","string"))))
+        })).Limit(1).AnyAsync(token).ConfigureAwait(false))
+            throw new MongoReplicaBaselineAdmissionException("Retained receipts require a verified holon-membership migration before initialization.");
+        if(await receipts.Find(session,new BsonDocument("HolonIds",new BsonDocument("$in",new BsonArray(ids.Select(id=>id.ToString("D"))))))
+            .Limit(1).AnyAsync(token).ConfigureAwait(false))throw new MongoReplicaConflictException(ids);
+    }
+
     private async Task PrepareCommittedReplicaEntitiesAsync(IClientSessionHandle session, List<NativeHolon> entries,
         IReadOnlyDictionary<Guid, BsonDocument> observations, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
@@ -37,9 +62,10 @@ public partial class HolonRepository
                 .SingleOrDefaultAsync(cancellation).ConfigureAwait(false);
             if (head == null)
             {
-                if (current != null || row.Version != 1 || row.PreviousVersionId != Guid.Empty) conflicts.Add(row.HolonId);
+                if (current != null || !plan.IsInitialBaseline && (row.Version != 1 || row.PreviousVersionId != Guid.Empty)) conflicts.Add(row.HolonId);
                 previous.Add(row.HolonId, null); continue;
             }
+            if(plan.IsInitialBaseline){conflicts.Add(row.HolonId);continue;}
             Holon stored; Guid revision; bool hardDeleted; string sourceId; string sourceKind;
             try
             {
