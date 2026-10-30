@@ -37,14 +37,14 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 ## Next demo work
 
 1. Oracle content pairing now verified:13 compiler controls,21 retained native queries,4 C# +4 HTTP +4 browser presets,2 rejected request shapes. Name/description/metadata/AND-OR counts2/4/4/2; source unchanged, owned Mongo fixture cleaned. Run-ReusableOracleMongoTests.ps1 -Content -Serve -ArchiveCompletedDemo serves5090.
-2. Verify/publish current Web4Site CQL tab against this now-verified API. Existing frontend work/cosmic-cql c17e5f7 is pushed; main remains unpublished.
+2. Web4Site CQL tab now published: feature0810238/main dd90f1d. Public https://web4.oasisomniverse.one/web4-sandbox.html has Oracle local catalogue; production deployment7449727369 success/client SHA matches.17client controls and catalogue->native metadata result4copies verified; hosted Oracle remains unconnected.
 3. Continue approved provider breadth/content/sandbox plan. Hosted Azure pending/free-only/no subscription; do not create paid resources. Deep LINQ/POCO/migrations remain deferred.
 4. Broader failure-injection/failover/load-balancing and gap-free future enrollment remain explicit acceptance gaps; this demo flow is not universal HyperDrive completion.
 
 ## Branch recovery and key commands
 
 - Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
-- Next exact step: add the verified Oracle preset to the existing C:/Source/Web4Site CQL tab/demo catalogue, then verify/publish that browser surface against the deployed API. Scoped Oracle/helpers were ported without broad Core/routing changes; preserve successful hosted repair and current status.
+- Next exact step: inspect preserved IPFS/SOLID/ActivityPub native multi-record/filter demo scopes/resources, port only missing demo pieces and add accurate presets to the existing CQL catalogue. Oracle catalogue publication is complete; broader provider/routing changes remain isolated.
 - PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart plus4paired SDK/HTTP/browser content presets verified locally; hosted OCI still unproved.
 - Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
 - Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.
