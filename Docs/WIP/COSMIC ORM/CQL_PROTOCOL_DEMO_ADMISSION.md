@@ -201,3 +201,7 @@ index designs and the remaining common-demo/production acceptance gates.
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
 
 Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
+
+##30October scoped follow-up
+
+IPFS multi-CID +Mongo profile is now native-verified on the scoped branch (23shared/17IPFS controls +one real Kubo scenario, selected3/2 and federated5/4). Existing point/native storage green scopes were not rerun wholesale. SOLID and ActivityPub preserved key-set implementations still require scoped port/current native proof before updated catalogue enrollment. Use CURRENT_STATUS as the recovery entry.

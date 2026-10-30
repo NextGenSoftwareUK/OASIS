@@ -1,6 +1,6 @@
 # IPFS demo admission
 
-27 October 2026. Source audit/preflight only; CQL remains unenrolled.
+Updated30 October2026. Native point and explicitly enrolled bounded multi-CID profiles are verified locally; arbitrary-query parity remains open.
 
 Current: fresh reusable offline IPFS environment created under explicit user
 instruction; original configuration absence is historical, not a current blocker.
@@ -254,3 +254,7 @@ WEB4 explicit row-profile/compiler/readtariff enrollment now passes721 affected 
 Native real-controller Kestrel/WEB4 row-and-receipt gate now passes1/1, with sixrequests, exactonequeryreceipt and real backend source. Identity/outbox controlled, productionJWT/durablesettlement/interactivehosting stillopen. Exactfixtures cleaned, listeners/services stopped. [Evidence](CQL_PROTOCOL_DEMO_ADMISSION.md#native-web4-row--receipt-acceptance-milestone).
 
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
+
+## Current scoped multi-record proof
+
+23 shared capability controls +17IPFS query controls pass. Real pinned Kubo0.43.1 test passes selected3encrypted records, two-record subset, exact key/ID/visibility and complete-result-before-page rules, shared SDK/HTTP teaching host, and Mongo pairing5/4physical copies. Source key membership is explicitly enabled; no general catalogue scan/text filtering enrolled. Current owned fixture closure phasecomplete, Mongo journalabsent/database removed and both daemons stopped. Original repository/key/immutable archive retained. Exact hashes/resources in release report/current ledger; broader hosted/provider acceptance remains separate.
