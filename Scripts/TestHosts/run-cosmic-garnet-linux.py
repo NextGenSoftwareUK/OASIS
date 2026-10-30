@@ -14,12 +14,19 @@ import time
 import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--fixture-generation", type=int, choices=[2])
+parser.add_argument("--federated", action="store_true")
+parser.add_argument("--serve", action="store_true")
 options = parser.parse_args()
+if options.serve and not options.federated or options.federated and options.fixture_generation != 2:
+    raise RuntimeError("Paired/interactive preset requires explicitly admitted generation2 and federation")
 sys.dont_write_bytecode = True
 from garnet_fixture_lifecycle import stop_owned_garnet
+from cosmic_linux_mongo_service import owned_linux_mongo
 
 ROOT = Path("/mnt/c/Source/OASIS-cosmic")
-STATE = Path("/var/tmp/oasis-garnet-cql")
+ORIGINAL = Path("/var/tmp/oasis-garnet-cql")
+STATE = ORIGINAL / "generations/2" if options.fixture_generation == 2 else ORIGINAL
 RESULTS = ROOT / "TestResults/GarnetCqlCurrent"
 RUNTIME = Path("/var/tmp/oasis-runtimes/garnet-2.2.5")
 DAEMON = RUNTIME / "net10.0/GarnetServer"
@@ -29,7 +36,8 @@ RUNNER = "/mnt/c/Users/david/.nuget/packages/microsoft.testplatform.portable/18.
 ASSEMBLY = ROOT / "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests.dll"
 assert hashlib.sha256(DAEMON.read_bytes()).hexdigest() == DIGEST
 assert not DAEMON.is_symlink()
-STATE.mkdir(exist_ok=True, mode=0o700)
+assert (ORIGINAL / "store.json").is_file(), "Original failed fixture evidence must remain; never recreate it"
+assert STATE.is_dir(), "Explicit fixture admission is required"
 RESULTS.mkdir(exist_ok=True, parents=True)
 
 def durable(path, record):
@@ -67,39 +75,36 @@ with (STATE / "runner.lock").open("a") as lease:
         if (STATE / name).exists():
             raise RuntimeError("Unresolved original outcome: " + name + "; inspect without replay/reseed")
     store = STATE / "store.json"
-    if not store.exists():
-        assert set(p.name for p in STATE.iterdir()) == {"runner.lock"}, "Never adopt an unknown source directory"
-        durable(STATE / "runtime-setup.pending.json", dict(runtimeSha256=DIGEST, port=16392))
-        data = STATE / "data"
-        data.mkdir(mode=0o700)
-        private_file(STATE / "native-password", secrets.token_hex(32))
-        private_file(STATE / "storage-key", secrets.token_hex(32))
-        config = json.dumps(dict(Port=16392, Address="127.0.0.1", LogMemorySize="32m", PageSize="512k",
-                                 IndexMemorySize="1m", DisableObjects=True, DisablePubSub=True,
-                                 AuthenticationMode="Password", Password=(STATE / "native-password").read_text(),
-                                 EnableLua=True, LuaTransactionMode=True, Recover=True, FailOnRecoveryError=True,
-                                 EnableStorageTier=False, CheckpointDir=str(data / "checkpoints")), indent=2)
-        private_file(STATE / "garnet.conf", config)
-        durable(store, dict(runtimeSha256=DIGEST, port=16392, database=0, data=str(data),
-                            files={name: hashlib.sha256((STATE / name).read_bytes()).hexdigest()
-                                   for name in ["garnet.conf", "native-password", "storage-key"]}))
-        (STATE / "runtime-setup.pending.json").unlink()
+    if options.fixture_generation == 2:
+        record = json.loads((STATE / "fixture-admission.json").read_text())
+        original = {str(path.relative_to(ORIGINAL)): hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in ORIGINAL.rglob("*") if path.is_file() and path.relative_to(ORIGINAL).parts[0] != "generations"}
+        assert record["generation"] == 2 and record["runtimeSha256"] == DIGEST
+        assert record["originalFiles"] == original, "Original failed source changed; preserve without replay"
+        assert record["seedSha256"] == hashlib.sha256((STATE / "admitted-seed.json").read_bytes()).hexdigest()
     admitted = json.loads(store.read_text())
     assert admitted["runtimeSha256"] == DIGEST and admitted["port"] == 16392 and admitted["database"] == 0
     assert admitted["data"] == str(STATE / "data") and (STATE / "data").is_dir()
     for name, digest in admitted["files"].items():
         assert hashlib.sha256((STATE / name).read_bytes()).hexdigest() == digest
         assert (STATE / name).stat().st_mode & 0o077 == 0
+    credential_root = Path(admitted.get("credentialRoot", str(ORIGINAL)))
+    assert credential_root == ORIGINAL
+    for name, digest in admitted.get("credentialFiles", {}).items():
+        assert name in ["native-password", "storage-key"]
+        assert hashlib.sha256((credential_root / name).read_bytes()).hexdigest() == digest
+        assert (credential_root / name).stat().st_mode & 0o077 == 0
     if (STATE / "demo-seed.json").exists():
         assert (STATE / "checkpoint.json").is_file() and (STATE / "source-snapshot.json").exists(), "Original native checkpoint/source missing; never recreate"
         admitted_files = json.loads((STATE / "last-checkpoint-files.json").read_text())
         assert checkpoint_files() == admitted_files, "Original native checkpoint files changed; preserve without replay"
     env = os.environ.copy()
-    env.update(DOTNET_ROOT=str(Path(DOTNET).parent), OASIS_GARNET_CQL_STATE=str(STATE),
-               OASIS_GARNET_NATIVE_PASSWORD=(STATE / "native-password").read_text(),
-               OASIS_GARNET_STORAGE_ENCRYPTION_KEY=base64.b64encode(bytes.fromhex((STATE / "storage-key").read_text())).decode("ascii"))
+    env.update(DOTNET_ROOT=str(Path(DOTNET).parent), OASIS_GARNET_CQL_STATE=str(STATE), OASIS_GARNET_FIXTURE_GENERATION=str(options.fixture_generation or 1),
+               OASIS_GARNET_NATIVE_PASSWORD=(credential_root / "native-password").read_text(),
+               OASIS_GARNET_STORAGE_ENCRYPTION_KEY=base64.b64encode(bytes.fromhex((credential_root / "storage-key").read_text())).decode("ascii"))
     durable(STATE / "runner.pending.json", dict(runtimeSha256=DIGEST, source=str(STATE), stage="native then clean restart"))
     results = {}
+    exit_codes = {}
     for stage in ["native", "restart"]:
         with socket.socket() as reservation:
             reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -121,9 +126,20 @@ with (STATE / "runner.lock").open("a") as lease:
                     if time.monotonic() > deadline:
                         raise RuntimeError("Owned Garnet readiness deadline exceeded")
                     time.sleep(0.1)
-                results[stage] = report("GarnetCqlNativeTests.NativeEncryptedGarnet", "garnet-cql-" + stage, env)
+                results[stage] = report("GarnetCqlNativeTests.NativeEncryptedGarnet", ("garnet-g2-cql-" if options.fixture_generation == 2 else "garnet-cql-") + stage, env)
+                if stage == "restart" and options.federated:
+                    if options.serve:
+                        with socket.socket() as port:
+                            port.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                            port.bind(("127.0.0.1", 5121))
+                    with owned_linux_mongo(RESULTS) as mongo_env:
+                        pair_env = dict(env, **mongo_env, OASIS_GARNET_MONGO_SERVE="1" if options.serve else "0")
+                        results["mongo-init"] = report("LinuxMongoDemoEnvironmentTests", "garnet-g2-mongo-init", pair_env)
+                        results["federation"] = report("GarnetMongoCqlNativeTests", "garnet-g2-mongo-federation", pair_env)
+                        assert not (STATE / "mongo.pending.json").exists()
             finally:
                 stop_owned_garnet(STATE, process)
+            exit_codes[stage] = process.returncode
             assert (STATE / "checkpoint.json").is_file()
             temporary = STATE / "last-checkpoint-files.complete.json"
             durable(temporary, checkpoint_files())
@@ -131,7 +147,7 @@ with (STATE / "runner.lock").open("a") as lease:
             (STATE / "active-process.json").unlink()
     # No write replay or source replacement occurred during the restart.
     with (STATE / "last-verification.json").open("w") as receipt:
-        json.dump(dict(runtimeSha256=DIGEST, reports=results, stoppedCleanly=True), receipt, indent=2)
+        json.dump(dict(runtimeSha256=DIGEST, reports=results, stoppedAfterCheckpoint=True, nativeExitCodes=exit_codes), receipt, indent=2)
         receipt.flush(); os.fsync(receipt.fileno())
     (STATE / "runner.pending.json").unlink()
 print("PASS: independently identified native Garnet, encrypted queries and checkpoint restart; original source retained")

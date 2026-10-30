@@ -8,13 +8,12 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Garnet empty-checkpoint ABI probe, then explicit failed-fixture disposition.**
-Garnet controls8/lifecycle6 pass; native IO dependencies/layout corrected. Original
-uncheckpointed fixture was lost on harness teardown; preserve receipts, no reseed.
-Native/restart/paired remain red. [Exact gate/commands](GARNET_CQL_MVP.md).
+**Next: inspect PocketBase native resources and canonical REST storage/query shape.**
+Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
+services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
+[Scope and initial loss](GARNET_CQL_MVP.md).
 Dragonfly2.0.2 controls8/native snapshot/restart/paired/browser5/4 and hub pass; source
 retained, services stopped and Mongo fixture removed. [Scope](DRAGONFLY_CQL_MVP.md).
-Memcached native/paired/CAS pass; volatile generation retired. [Scope](MEMCACHED_CQL_MVP.md).
 Litestream Linux native/live LTX/restore/paired/browser/hub pass; original source
 retained, owned services stopped; Windows fsync stays red. [Scope](LITESTREAM_CQL_MVP.md).
 Upstash hosted/native/repeat/paired pass; free scratch expires2026-10-31, no reseed. [Scope](UPSTASH_CQL_MVP.md).
@@ -40,6 +39,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Provider scope | Current proof |
 |---|---|
 | Mongo/SQLite/Neo4j | Initial investor rows green; full parity remains open. [Checklist](CQL_PARITY_CHECKLIST.md). |
+| Garnet generation2 + Mongo | Explicit new source/checkpoint/restart/SDK/HTTP/browser5/4; original loss separate. [Guide](GARNET_CQL_MVP.md). |
 | Dragonfly / KeyDB / Valkey + Mongo | Independent encrypted native/restart/SDK/HTTP/browser5/4. [Dragonfly snapshot scope](DRAGONFLY_CQL_MVP.md), [KeyDB](KEYDB_CQL_MVP.md), [Valkey](VALKEY_CQL_MVP.md). |
 | Memcached + Mongo | Volatile native/SDK/HTTP/browser5/4, values/CAS preserved; no persistence. [Guide](MEMCACHED_CQL_MVP.md). |
 | Litestream + Mongo | Linux live file replication/restore + SDK/HTTP/browser5/4; Windows fsync red. [Guide](LITESTREAM_CQL_MVP.md). |
@@ -61,7 +61,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 32 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 33 scoped MVP
 proof links, 33 active central cases, 11 extra project names; linked scopes only, no full-parity claim.
 
 ## Deferred correctness and parity gates

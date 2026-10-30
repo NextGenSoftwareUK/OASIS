@@ -313,3 +313,15 @@ query returns five physical rows, then four for the two-ID subset, preserving
 provider labels. Stop with the page button; services stop, original source remains,
 and verified temporary Mongo data is removed. This scope does not certify AOF,
 crash durability, clusters or general LINQ. [Commands/evidence](DRAGONFLY_CQL_MVP.md).
+
+## Native Garnet + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Garnet -Federated`.
+`-ShowPlan` previews; `-VerifyOnly` checks and tears down. The explicitly admitted
+second synthetic fixture uses the existing Garnet2.2.5 runtime and completed native
+checkpoint/restart proof. Shared C# ID-membership returns five physical rows, then
+four for the two-ID subset, preserving provider labels. Stop retains the source,
+removes verified temporary Mongo data and stops services. The initial failed fixture
+and its loss remain documented separately; no original writes were replayed. Full
+LINQ/AOF/crash/cluster/HyperDrive acceptance remains separate.
+[Commands, evidence and fixture history](GARNET_CQL_MVP.md).
