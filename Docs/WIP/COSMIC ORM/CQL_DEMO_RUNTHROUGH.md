@@ -426,3 +426,13 @@ encrypted records on local EVM31338 through HolonManager:5physical rows or4subse
 with provider provenance. Browser5131; shutdown verifies temporary Mongo fixture
 cleanup and retains original source. Public Monad consensus/parallel execution,
 central registration and distributed snapshots remain unverified.
+
+## CouchDB + Mongo MVP
+
+[Verified scope, examples and limits](COUCHDB_CQL_MVP.md). Launch
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider CouchDB -Federated`
+(add `-VerifyOnly` for bounded verification). The shared HolonManager executes
+bounded native identity queries: original CouchDB3 + Mongo2 =5physical rows;
+two-ID subset =4. Browser5132 displays provider provenance. Shutdown verifies
+Mongo fixture cleanup and retains original CouchDB records. Plaintext CouchDB
+scope; cross-client CAS, distributed snapshots and full parity remain unverified.
