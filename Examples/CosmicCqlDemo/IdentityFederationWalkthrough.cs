@@ -109,6 +109,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.CassandraOASIS => "Cassandra",
         ProviderType.ElasticsearchOASIS => "Elasticsearch",
         ProviderType.OpenSearchOASIS => "OpenSearch",
+        ProviderType.CouchbaseOASIS => "Couchbase",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",

@@ -1,6 +1,6 @@
-# Couchbase CQL MVP — controls/native/restart verified; paired demo pending
+# Couchbase CQL MVP — controls/native/restart/paired/browser verified
 
-Updated 30 October 2026. Inventory remains red until Mongo-paired demo proof.
+Updated 30 October 2026. Green means the bounded identity demo scope only.
 
 ## Implemented
 
@@ -49,7 +49,7 @@ removed rather than adding a fake API. No real backend used by these controls.
 
 ## Exact next step
 
-Mongo-paired C#/HTTP/browser5/4 and hub routing, reusing the original source below.
+Continue red providers, next ClickHouse audit; do not deepen this green demo scope.
 No schema/identity replacement, seed replay or replacement baseline.
 
 ## Native proof and retained environment
@@ -58,7 +58,7 @@ Official free Community8.0.2-5503 (no Enterprise/trial), original cluster
 8c927880b18838e9224c996be8d552da/node ns_1@127.0.0.1/bucket
 ba639725706cd9cbd5635411816a03a2 retained. Native services kv/n1ql/index;
 authenticated plaintext host-loopback8091/8093/11210, no hosted/TLS claim.
-Original source /var/tmp/oasis-couchbase-cql20,021,382B logical, container
+Original source /var/tmp/oasis-couchbase-cql28,780,007B logical, container
 oasis-couchbase-cql stopped0/noOOM/noError. Privatecredentials, actor/3IDs,
 write acknowledgements/exactunsignedCAS, JSONhash baseline and native data retained.
 31controls plus1native/1actual-restart pass. Native3/filter2/missing0/page1/budget
@@ -85,3 +85,29 @@ legacy unrestricted lookup serializer/error paths require separate native audit;
 new CQL does not silently reuse them. Legacy HyperDrive issues documentation only.
 [Collection API documentation](https://docs.couchbase.com/sdk-api/couchbase-net-client/api/Couchbase.Management.Collections.ICouchbaseCollectionManager.html).
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Mongo-paired demo proof
+
+Launch `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Couchbase -Federated`
+from the task worktree; add `-VerifyOnly` for bounded checks. Browser port5142.
+C# example: `Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs` uses
+HolonManager's actual federation executor and explicit per-provider read catalogues.
+HTTP/browser all = Couchbase3 + Mongo2 =5physicalrows; subset =2+2=4.
+Copies retain provider provenance. Forged actor/unknown preset400 and inactive
+provider503/no partial rows pass. This is native bounded key selection, not general
+SQL++ predicate translation or a shared distributed snapshot.
+
+Bounded and interactive runners each passed five phases: native-first,
+native-restart, mongo-init, mongo-federation and native-postpair. Browser all5/subset4
+verified. Hub8single/16plans,51paired/102plans,88pairedrejections,3archive pass,
+listeners unchanged. Original Couchbase source/JSON/CAS preserved; exact temporary
+cosmic_cql_mongo_couchbase_demo verified/dropped, pending/ready cleared, own
+Couchbase/Mongo/demo services stopped; nativeexit0/noOOM/noError.
+Raw interactive evidence in TestResults/CouchbaseCqlCurrent (not committed):
+- native-first.trx SHA256 `f143dee4b5f069aba9788ec9f69465dea137a3cb7d1c62be5ed58bc78cab22bd`
+- native-restart.trx SHA256 `6f623c3fd106677e78dec29428401a444d4bd1600fc923cc624bfc8de6559495`
+- mongo-init.trx SHA256 `368f80369da1769cdcbd7ef4d7bcb621156f7f0a42a92007070f6d7f78a8d63c`
+- mongo-federation.trx SHA256 `42a6cfb2be97005e8528ed42db31f87376dada9f6aefa701e5e075bf2ed1c36f`
+- native-postpair.trx SHA256 `ceffb1e36ecaec4929c47fb415d65ef80076e3da723f74a86a8b52eae3e1b408`
+Browser screenshot browser.jpg159,147B, runner80686terminal0; native records are
+retained outside TestResults. No full EF/history/children/conditional-write claim.
