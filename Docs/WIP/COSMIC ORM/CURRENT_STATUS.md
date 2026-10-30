@@ -7,8 +7,8 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: reuse cached Firebase RTDB emulator; native retained-source/restart/paired proof.**
-Firebase49controls/ownership pass; native red [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
+**Next: Firebase RTDB retained checkpoint + Mongo C#/HTTP/browser demo.**
+Firebase50controls/native/export-restore/reuse pass; paired red [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
 [Scope and initial loss](GARNET_CQL_MVP.md).

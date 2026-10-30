@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         private readonly HttpClient _http;
         private readonly string _baseUrl;
         private readonly string? _authToken;
+        private readonly string? _databaseNamespace;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -52,10 +53,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public FirebaseOASIS(string databaseUrl, string? authToken = null)
             : this(databaseUrl, authToken, new HttpClient()) { }
 
-        public FirebaseOASIS(string databaseUrl, string? authToken, HttpClient httpClient)
+        public FirebaseOASIS(string databaseUrl, string? authToken, HttpClient httpClient, string? databaseNamespace = null)
         {
             _baseUrl = databaseUrl.TrimEnd('/');
             _authToken = authToken;
+            _databaseNamespace = databaseNamespace;
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             ProviderName = "FirebaseOASIS";
             ProviderDescription = "Google Firebase Realtime Database provider (REST API, JSON documents)";
@@ -105,6 +107,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             string url = $"{_baseUrl}{path}.json";
             if (!string.IsNullOrEmpty(_authToken))
                 url += $"?auth={Uri.EscapeDataString(_authToken)}";
+            if (!string.IsNullOrEmpty(_databaseNamespace))
+                url += (url.Contains("?") ? "&" : "?") + "ns=" + Uri.EscapeDataString(_databaseNamespace);
             return url;
         }
 
@@ -113,6 +117,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             string url = $"{_baseUrl}/{collection}.json?orderBy={Uri.EscapeDataString(JsonSerializer.Serialize(field))}&equalTo={Uri.EscapeDataString(JsonSerializer.Serialize(value))}";
             if (!string.IsNullOrEmpty(_authToken))
                 url += $"&auth={Uri.EscapeDataString(_authToken)}";
+            if (!string.IsNullOrEmpty(_databaseNamespace))
+                url += (url.Contains("?") ? "&" : "?") + "ns=" + Uri.EscapeDataString(_databaseNamespace);
             return url;
         }
 
