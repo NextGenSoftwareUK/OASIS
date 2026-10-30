@@ -199,8 +199,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
             string hostUri = "https://rpc.ftm.tools",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(250)) { }
+
+        public FantomOASIS(string hostUri, string chainPrivateKey, string contractAddress, System.Numerics.BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "FantomOASIS";
             ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
