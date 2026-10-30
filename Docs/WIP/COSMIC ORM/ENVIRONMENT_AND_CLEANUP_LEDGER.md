@@ -2213,3 +2213,34 @@ CouchDB native result initial1/restart1 pass: actual three original plaintext ho
 Reuse retained CouchDB container/source15984 and Linux Mongo8.3.13/data replica cosmicLinuxDemoRs27039, existing Linux.NET/ASP.NET10.0.12/portableVSTest18.11.0, no downloads. Exact disposable Mongo database `cosmic_cql_mongo_couchdb_demo`, journal `/var/tmp/oasis-couchdb-cql/mongo.pending.json` before writes; verify exact contents/owner before drop, preserve unresolved outcome. Interactive teaching host5132. Native Couch source untouched/rechecked before and after pair. Raw reports only TestResults/CouchDbCqlCurrent, size pending. Own service processes only, no unknown service adoption.
 
 CouchDB paired outcome30Oct: bounded and interactive five phases each1pass; original source231,082B retained, hashes/revisions/update_seq unchanged. Mongo fixture cosmic_cql_mongo_couchdb_demo verified and dropped; pending/ready journals cleared by successful runner, both owned services stopped, exit0. Reused runtimes/caches only, no downloads. TestResults/CouchDbCqlCurrent logs/TRX and cached integration bin/obj sizes unmeasured; disposable/regenerable after teardown. Screenshot capture unavailable; no screenshot artifact claimed. Retain original protected CouchDB source/config/credentials/container/image and shared Mongo store until explicit retirement; source cleanup policy above still applies.
+
+### SurrealDB provider audit and SDK admission — 30 October 2026
+
+COSMIC/CQL task, C:/Source/OASIS-cosmic work/cosmic-cql. Existing provider pins SurrealDb.Net1.0.0 but no installed package directory/cache/runtime match found in the task inventory or Windows command lookup. No SurrealDB native environment created. Planned NuGet restore into existing shared C:/Users/david/.nuget/packages, pinned1.0.0 and required transitive dependencies only; reused .NET10/build outputs and MSTest cache. Purpose: compile existing shipping SDK calls before native CQL work. Size unmeasured until restore; reusable package cache, bin/obj regenerable after owned builds stop. Logs/TestResults/SurrealDbCqlCurrent disposable after successful verification. No credentials or business data. Cfree75,004,047,360B before restore; no attribution of unrelated disk changes. Recreate from exact project package pins, no duplicate runtime/install.
+
+SurrealDB admission outcome: pinned SDK restored, provider/tests build and15controls pass; no native environment, data or service created. Initial nonrecursive test restore omitted provider assets, explicit cached provider restore succeeded. Shared package entries below are referenced by provider assets and have30Oct directory timestamps; SDK was absent before this task and restored now, other same-day provenance may be inherited/concurrent and is explicitly uncertain. Exact package path is C:/Users/david/.nuget/packages/<lowercase identity/version>; reusable shared cache, do not delete by timestamp. Size measured recursively in bytes. Retain until shared-cache retirement; recreate from pinned assets/project restore. No process/port dependency. bin/obj/TestResults reused/generated, sizes unmeasured, regenerable after builds stop.
+
+| Identity/version | Bytes | Lifecycle |
+|---|---:|---|
+| ConcurrentHashSet/1.3.0 | 143150 | reusable; same-day inherited/restored provenance uncertain |
+| Dahomey.Cbor/1.26.3 | 1044751 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.AspNetCore.JsonPatch.SystemTextJson/10.0.7 | 266714 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Configuration/10.0.7 | 724273 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Configuration.Abstractions/10.0.7 | 536264 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Configuration.Binder/10.0.7 | 1294158 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.DependencyInjection/10.0.7 | 1250013 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.DependencyInjection.Abstractions/10.0.7 | 1984876 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Diagnostics/10.0.7 | 516509 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Diagnostics.Abstractions/10.0.7 | 613050 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Http/10.0.7 | 1597816 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Logging/10.0.7 | 901517 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Logging.Abstractions/10.0.7 | 2860863 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Options/10.0.7 | 2277135 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Options.ConfigurationExtensions/10.0.7 | 504735 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Extensions.Primitives/10.0.7 | 998824 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.IO.RecyclableMemoryStream/3.0.1 | 707161 | reusable; same-day inherited/restored provenance uncertain |
+| Microsoft.Spatial/7.22.0 | 2017532 | reusable; same-day inherited/restored provenance uncertain |
+| Semver/3.0.0 | 868575 | reusable; same-day inherited/restored provenance uncertain |
+| SurrealDb.Net/1.0.0 | 3245015 | reusable; restored |
+| System.Reactive/6.0.0 | 22603311 | reusable; same-day inherited/restored provenance uncertain |
+| Websocket.Client/5.3.0 | 631015 | reusable; same-day inherited/restored provenance uncertain |
