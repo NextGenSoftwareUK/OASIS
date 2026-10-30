@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-Chroma:50save/CQL/schema controls pass; native environment/restart and paired preset next. [Scope](CHROMA_CQL_MVP.md).
+Chroma:50controls/native1+restart1 pass; Mongo-paired preset/browser next. [Scope](CHROMA_CQL_MVP.md).
 Milvus:50controls pass; upstream embedded-client shutdown gate remains red. [Cause](MILVUS_CQL_MVP.md).
 
 Solr:48controls/native/restart/paired/browser5/4 pass; bounded canonical RealTimeGet. [Scope](SOLR_CQL_MVP.md).

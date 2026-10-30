@@ -1,6 +1,6 @@
 # Chroma CQL MVP — in progress
 
-30 October 2026. Inventory remains red; native/paired acceptance is pending.
+30 October 2026. Inventory remains red; native/restart pass; Mongo-paired acceptance is pending.
 
 ## Verified save ownership
 
@@ -23,9 +23,8 @@ These are injected-HTTP controls, not native database certification.
 
 ## Next acceptance
 
-1. Provision one free retained native source (no existing Chroma image/source found);
-   verify schema, multiple original records, filtered query and restart without reseeding.
-2. Add Mongo-paired C#/HTTP/browser profile, clear comments and teaching examples.
+1. Add Mongo-paired C#/HTTP/browser profile with clear comments and teaching examples.
+2. Verify its federated query, browser view and demo-hub preset before marking green.
 
 ## Remaining gaps
 
@@ -90,3 +89,44 @@ require an explicit audit/migration. No automatic destructive replacement.
 Evidence: `C:/Source/OASIS-cosmic/TestResults/ChromaCqlCurrent/schema-controls.trx`.
 SHA256 `FE1D2FCC2364F7CC6AE19B80B0483DCDE20C6796A5A18CC62984914849D25D9E`.
 Native startup/schema/restart and Mongo-paired demos remain next; inventory stays red.
+
+## Native original-source verification
+
+Official free Chroma1.5.9 linuxamd64 image pinned to
+`sha256:abcce7c335e2dab9f11ef629296f7309b09cb19ae4b34da32ac7e34ff5773140`;
+image IDa221f3391b5eabc5b0b293b65958a28f10d7015be67e4d8cc33a5e4e60e6f3ca,
+642,494,577B expanded. One retained source `/var/tmp/oasis-chroma-cql`, container
+`oasis-chroma-cql`, host loopback18002->8000,2CPU/2GiB. Plaintext/no-auth local
+scope only, no public/cloud/security certification. No telemetry configured.
+Native `/version` returns1.0.0, hard-coded in the pinned Rust frontend; exact image
+digest verifies release identity. Initial mistaken version assertion stopped0
+before collection creation; same source/identity resumed, never replaced.
+
+Original three collection UUIDs and descriptions survive restart exactly:
+- avatars04a2abe4-a436-4c1a-a756-d95b3d7e2ebf
+- holons30519c99-a701-4ab0-a254-3d4b70364257
+- avatar details817552a3-084b-4e3d-8d11-b453392c390f
+
+[Native test](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests/ChromaCqlNativeTests.cs)
+passes1first+1restart/0failed/0skipped: original3records+1deliberate replacement,
+obsolete derived field removed from stored document, all3/filtered2/missing0,
+stable paging/current updated head/budget rejection, exact original stored JSON
+hashes and complete collection values retained. No reseed/replay or new baseline.
+
+First test exposed unordered schema `keys`/`metadata` serialization. Recovered
+exact original schema preimage by enumerating48order-only permutations; its SHA256
+matches retained original E20DA21BE200677B6FF46542DA78AB3760CEBC0A71BC86546396070FC1F1AF24.
+Original baseline remains unchanged. Test now verifies that original preimage hash
+and compares all schema values with object-property order canonicalized; array order
+and document bytes remain exact. This is a test representation correction.
+
+Evidence under `C:/Source/OASIS-cosmic/TestResults/ChromaCqlCurrent/`:
+- native-first.trx SHA25616a0d0ababb0ef60ce727242b1158305408eed4281122591d1de61abf1649178
+- native-restart.trx SHA256bcea39cdb67ed977041e986888fa1d0ed25e02f7933e7494ca24f2b71d85d4d1
+
+Source311,674B retained with seed, original receipts/schema/baseline; no pending
+intent, owned service stopped with native exit0. Rerun with
+`wsl -u root -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/run-cosmic-chroma-linux.py`
+after the bounded leased integration build. Environment creation helper refuses
+existing source; never rerun it to replace this fixture. Mongo-paired proof remains
+next, so inventory/hub count stays unchanged at61 scoped provider proofs.
