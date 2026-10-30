@@ -751,3 +751,14 @@ query through shared HolonManager:5physical rows or4for the two-ID subset, sourc
 provenance visible on browser5136. Shutdown verifies temporary Mongo cleanup and
 preserves original rows/MVCC timestamps. No PostgreSQL-server substitution; single
 node internal development scope, broader predicates/CAS/distributed parity open.
+
+
+## TimescaleDB + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider TimescaleDB -Federated`
+(add `-VerifyOnly` for bounded checks). Native TimescaleDB2.31.0/PG17.11 uses TLS,
+original records and restart checks. C#/HTTP/browser return five physical rows,
+then four for the two-ID subset, retaining each provider's provenance. Browser
+port5137. Stop through the demo control to verify cleanup and retain native source.
+This is bounded identity filtering; hypertables/time-series aggregates and full
+ORM parity remain open. [Commands, tests and hashes](TIMESCALEDB_CQL_MVP.md).
