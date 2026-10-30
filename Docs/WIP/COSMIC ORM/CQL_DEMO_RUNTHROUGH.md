@@ -591,3 +591,6 @@ retrieval over the vector database, not embedding generation, similarity search,
 atomic CAS, history or a shared distributed snapshot. Stop with the page button so
 the runner checks/removes only its temporary Mongo fixture and retains the original
 Qdrant source. [Proof/prerequisites](QDRANT_CQL_MVP.md).
+
+Weaviate + Mongo is verified: all5/subset4 with provenance, retained TLS/gRPC source
+and restart checks. [Commands and scope](WEAVIATE_CQL_MVP.md).

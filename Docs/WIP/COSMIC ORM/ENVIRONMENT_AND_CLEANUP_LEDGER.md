@@ -2623,3 +2623,18 @@ services stopped, no pending outcome journal. Retain source/keys/receipts; never
 reset. Browser tabs60/61 temporary; screenshot `TestResults/WeaviateCqlCurrent/browser.jpg`
 (size unmeasured), logs/TRX/build outputs there disposable/regenerable with same runner.
 No other resources removed. SDK/cache retained reusable; full inventory above applies.
+
+### Meilisearch controls planned — 2026-10-30 / COSMIC
+Reuse existing Windows .NET10/NuGet cache and task worktree. Provider/test bin/obj
+and compact logs/TRX will be under the existing Meilisearch project and
+`TestResults/MeilisearchCqlCurrent/` (sizes unmeasured). Cache-only restore first;
+no runtime, container or database allocation authorized by this entry. Existing
+74,265,329,664B C: free observed before work. Owned build outputs disposable after
+build/test exit; regenerate with documented bounded lease command. SDK/cache shared,
+retain. Native environment selection is a later separately inventoried step.
+
+Meilisearch controls outcome: cache-only producer/test restores and bounded builds
+completed;39passed/0failed/0skipped. No new package/runtime/service/database. Existing
+.NET SDK10.0.401 reused; logs/TRX/build output regenerate as above, retain shared
+caches. Initial missing producer assets and wrong relative Shared project path fixed
+before passing build; no alternate DLL copies. Output sizes unmeasured.

@@ -75,4 +75,3 @@ KeyDB breadth milestone: controls8/native6.3.4/restart/paired/browser5/4 and hub
 Dragonfly breadth milestone: controls8/native completed snapshot/restart/paired/browser5/4 and hub pass; [scope/evidence](DRAGONFLY_CQL_MVP.md). AOF/crash/cluster/full parity remain separate.
 
 Garnet: controls8/lifecycle6/empty-checkpoint1 and explicitly admitted generation2 native/restart/paired/browser5/4/hub repeat pass; original failed fixture/loss remain separate, unchanged/refused. [Scope/evidence](GARNET_CQL_MVP.md).
-
