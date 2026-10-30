@@ -45,7 +45,7 @@ internal static class SqliteCqlContract
         metadata=metadata.Select(m=>new CosmicQueryMetadataCapability(m.ValueType,m.Comparisons.ToArray(),m.StringOperations.ToArray(),
             m.SupportsMembership,m.SupportsMixedNumericComparison,supportsOrdering:true)).ToArray();
         MetadataTypes = new ReadOnlyDictionary<Type, CosmicQueryMetadataCapability>(metadata.ToDictionary(m => m.ValueType));
-        Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
+        Capabilities = new CosmicQueryCapabilities(CosmicQueryFeatures.AncestorExists | CosmicQueryFeatures.And | CosmicQueryFeatures.Or | CosmicQueryFeatures.Not |
             CosmicQueryFeatures.Metadata | CosmicQueryFeatures.StringContains | CosmicQueryFeatures.StringStartsWith | CosmicQueryFeatures.StringEndsWith | CosmicQueryFeatures.NullLiteral | CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.MetadataExists | CosmicQueryFeatures.MetadataNull | CosmicQueryFeatures.Membership | CosmicQueryFeatures.MixedNumericComparison | CosmicQueryFeatures.FieldComparison | CosmicQueryFeatures.Ordering | CosmicQueryFeatures.Paging | CosmicQueryFeatures.TailPaging | CosmicQueryFeatures.GraphExpansion|CosmicQueryFeatures.GraphReadAccess|CosmicQueryFeatures.ChildExists|CosmicQueryFeatures.GraphSnapshot|CosmicQueryFeatures.DescendantExists | CosmicQueryFeatures.SourceRelationshipComposition | CosmicQueryFeatures.PostWindowElementPredicate, fields.Values.ToArray(), metadata,
             new CosmicQueryTraversalCapability(32,10000));
     }
