@@ -25,7 +25,7 @@ def main():
         with (RESULTS / "mongo-replica-initialization.log").open("w") as log:
             process = subprocess.Popen([
                 str(DOTNET_ROOT / "dotnet"), str(VSTEST), str(DLL),
-                "--TestCaseFilter:FullyQualifiedName~MongoReplicaInitializationTests|FullyQualifiedName~MongoReceiptMembershipMigrationTests",
+                "--TestCaseFilter:FullyQualifiedName~MongoReplicaInitializationTests|FullyQualifiedName~MongoReceiptMembershipMigrationTests|FullyQualifiedName~NativePrimaryOutboxCommitsGraphReceiptAndEveryFrozenTargetTogether",
                 "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=mongo-replica-initialization.trx"
             ], cwd=RESULTS, env={**os.environ, **environment, "DOTNET_ROOT": str(DOTNET_ROOT)},
                 stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
@@ -38,7 +38,7 @@ def main():
         report = RESULTS / "mongo-replica-initialization.trx"
         assert report.stat().st_mtime >= started
         counts = ET.parse(report).find(".//{*}Counters").attrib
-        assert counts["passed"] == "4" and counts["failed"] == "0" and counts["notExecuted"] == "0"
+        assert counts["passed"] == "6" and counts["failed"] == "0" and counts["notExecuted"] == "0"
         print(json.dumps({"counts": counts, "sha256": hashlib.sha256(report.read_bytes()).hexdigest()}), flush=True)
     print("Owned Mongo stopped; exact source/target fixture databases removed by their checked owner markers.", flush=True)
 
