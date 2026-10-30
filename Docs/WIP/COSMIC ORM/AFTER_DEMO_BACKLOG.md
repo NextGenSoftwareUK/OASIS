@@ -6,8 +6,8 @@ Current priority: fix reproducible demo blockers and deliver provider breadth/pr
 
 | Later work | Current evidence / remaining acceptance |
 |---|---|
-| Durable initialization application coordinator | Native baseline, read-only source preparation and target-receipt inspection exist; durable intent, single submission, interrupted-call recovery and operator/API composition remain. |
-| Fenced source reconciliation and queue completion | Require exact authoritative source/target evidence and atomic source-state comparison; never skip/reset a held entry or replay acknowledged writes. Hosted SQLite conflict remains a demo blocker to inspect, not permission to bypass this requirement. |
+| Durable initialization application coordinator | Native baseline, durable one-obligation application, interrupted-call receipt recovery and Mongo-to-SQLite shell host now implemented/tested. Hosted execution remains a demo gate; broader provider/operator/API composition remains deferred. |
+| Fenced source reconciliation and queue completion | Mongo source completion is implemented/tested against exact original source and target evidence, with atomic comparison and retained failure history. Hosted SQLite conflict still awaits the queued deployment/application; broader source-provider repair tooling remains deferred. Never skip/reset a held entry or replay acknowledged writes. |
 | Atomic late enrollment / future-write cutover | Baseline primitives do not certify gap-free enrollment while new source writes race capture. |
 | Large-store baseline/migration operations | Neo receipt audit currently bounded at 10000; Mongo migration batches1–128. Scaling, operator tooling and full operational acceptance remain. |
 | Deep LINQ / EF / NHibernate parity | Resume red checklist rows, especially All/element/numeric terminals after entity-selected stages, reselection and graph composition. Keep green scopes/cursors frozen absent a reproduced bug. |
