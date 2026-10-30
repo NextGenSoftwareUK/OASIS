@@ -362,9 +362,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (!TryTarget(target, out var detail))
                     return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = "target must be 'avatar' or 'detail'." };
-                var change = request?.ToChange(out var error);
+                if (request == null)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = "A request body is required." };
+                var change = request.ToChange(out var error);
                 if (change == null || error != null)
-                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = error ?? "A request body is required." };
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_PERMISSIONS_INPUT_INVALID", Message = error ?? "Invalid permission request." };
                 return await AvatarManager.SetSharingAsync(avatarId ?? Avatar.Id, detail, change, Avatar);
             }
             catch (Exception exception)

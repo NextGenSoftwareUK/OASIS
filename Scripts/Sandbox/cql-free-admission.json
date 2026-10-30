@@ -1,0 +1,69 @@
+{
+  "nativeProviders": [],
+  "ordinaryProviders": [
+    "MongoDBOASIS",
+    "SQLLiteDBOASIS",
+    "Neo4jOASIS"
+  ],
+  "queryTariffs": [
+    {
+      "provider": "MongoDBOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-cql-free-v1"
+    },
+    {
+      "provider": "SQLLiteDBOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-cql-free-v1"
+    },
+    {
+      "provider": "Neo4jOASIS",
+      "costUsd": 0,
+      "catalogueVersion": "sandbox-cql-free-v1"
+    }
+  ],
+  "routes": [
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-cql-free-v1",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 1,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql/scalar",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-cql-free-v1",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 1,
+        "maximumNativeFeeCostUsd": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql/federation",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-cql-free-v1",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 3,
+        "maximumNativeFeeCostUsd": 0
+      }
+    }
+  ]
+}

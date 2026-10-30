@@ -26,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool OveragePaymentBlocked { get; set; }
         public DateTime? CurrentPeriodStart { get; set; }
         public DateTime? CurrentPeriodEnd { get; set; }
+        /// <summary>Set only by the sandbox issuer. No TTL: unresolved operations and audit history must survive expiry.</summary>
+        public DateTime? SandboxExpiresAtUtc { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
