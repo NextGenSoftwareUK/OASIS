@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Text.Json.Nodes;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -33,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
     ///   baseUrl   — e.g. "https://myapp.pockethost.io" or "http://localhost:8090"
     ///   adminEmail, adminPassword — superuser credentials for the Admin API
     /// </summary>
-    public class PocketBaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class PocketBaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly HttpClient _http;
         private readonly string _baseUrl;
@@ -88,15 +90,22 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 await EnsureAuthAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "PocketBaseOASIS activated — authenticated with PocketBase admin API.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error activating provider — {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error activating provider — {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "PocketBaseOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            _adminToken = null;
+            _http.DefaultRequestHeaders.Remove("Authorization");
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "PocketBaseOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -115,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             [JsonRequired, JsonPropertyName("totalItems")] public int TotalItems { get; set; }
             [JsonRequired, JsonPropertyName("totalPages")] public int TotalPages { get; set; }
         }
-        private class PbRecord { [JsonPropertyName("id")] public string Id { get; set; } = ""; [JsonPropertyName("data_json")] public string? DataJson { get; set; } [JsonPropertyName("is_deleted")] public bool IsDeleted { get; set; } }
+        private class PbRecord { [JsonPropertyName("oasis_id")] public string OasisId { get; set; } = ""; [JsonPropertyName("id")] public string Id { get; set; } = ""; [JsonPropertyName("data_json")] public string? DataJson { get; set; } [JsonPropertyName("is_deleted")] public bool IsDeleted { get; set; } }
 
         private async Task<PbRecord?> GetFirstAsync(string collection, string filter)
         {
@@ -123,7 +132,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var url = $"{_baseUrl}/api/collections/{collection}/records?filter={Uri.EscapeDataString(filter)}&perPage=1&page=1&sort=id&skipTotal=false";
             using var response = await _http.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            return ReadPage(await response.Content.ReadAsStringAsync(), 1).Items!.FirstOrDefault();
+            var page = ReadPage(await response.Content.ReadAsStringAsync(), 1);
+            if (page.TotalItems > 1) throw new InvalidDataException("PocketBase singular lookup is ambiguous.");
+            return page.Items!.SingleOrDefault();
         }
 
         private async Task<List<PbRecord>> GetAllAsync(string collection, string? filter = null)
@@ -164,14 +175,29 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         private async Task UpsertAsync(string collection, string oasisId, object row)
         {
             await EnsureAuthAsync();
-            // Check if record exists by oasis_id field
             var existing = await GetFirstAsync(collection, $"oasis_id='{oasisId}'");
-            HttpResponseMessage response;
-            if (existing != null)
-                response = await _http.PatchAsync($"{_baseUrl}/api/collections/{collection}/records/{existing.Id}", JsonContent(row));
-            else
-                response = await _http.PostAsync($"{_baseUrl}/api/collections/{collection}/records", JsonContent(row));
-            if (!response.IsSuccessStatusCode) throw new Exception($"PocketBase upsert failed: {await response.Content.ReadAsStringAsync()}");
+            if (existing != null && existing.OasisId != oasisId)
+                throw new InvalidDataException("PocketBase lookup returned another logical identity.");
+            var expected = JsonSerializer.SerializeToElement(row, _jsonOpts);
+            try
+            {
+                using var response = existing != null
+                    ? await _http.PatchAsync($"{_baseUrl}/api/collections/{collection}/records/{existing.Id}", JsonContent(row))
+                    : await _http.PostAsync($"{_baseUrl}/api/collections/{collection}/records", JsonContent(row));
+                response.EnsureSuccessStatusCode();
+                var acknowledged = Deserialize<PbRecord>(await response.Content.ReadAsStringAsync());
+                if (acknowledged == null || string.IsNullOrWhiteSpace(acknowledged.Id)
+                    || acknowledged.OasisId != oasisId || existing != null && acknowledged.Id != existing.Id
+                    || acknowledged.DataJson != expected.GetProperty("data_json").GetString()
+                    || expected.TryGetProperty("is_deleted", out var deleted) && acknowledged.IsDeleted != deleted.GetBoolean())
+                    throw new InvalidDataException("PocketBase omitted the exact canonical write acknowledgement.");
+            }
+            catch (Exception cause)
+            {
+                // A response/transport failure after dispatch does not prove absence
+                // of a committed write. Preserve the proposed identity for reconciliation.
+                throw new PocketBaseMutationReconciliationException(oasisId, existing == null ? "POST" : "PATCH", cause);
+            }
         }
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -401,14 +427,25 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = holon.Id.ToString();
-                var row = new { oasis_id = holon.Id.ToString(), parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(), holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = Serialize(holon) };
-                await UpsertAsync("oasis_holons", holon.Id.ToString(), row);
-                result.Result = holon; result.IsError = false; result.Message = $"PocketBaseOASIS: Holon '{holon.Name}' saved.";
+                ArgumentNullException.ThrowIfNull(holon);
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                // Serialize a detached projection using the same canonical codec.
+                // Failed/uncertain writes cannot publish a new ID or provider key.
+                var canonical = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                canonical["id"] = id.ToString("D");
+                var keys = canonical["providerUniqueStorageKey"]?.AsObject() ?? new JsonObject();
+                keys["PocketBaseOASIS"] = id.ToString("D");
+                canonical["providerUniqueStorageKey"] = keys;
+                var row = new { oasis_id = id.ToString("D"), parent_holon_id = holon.ParentHolonId == Guid.Empty ? "" : holon.ParentHolonId.ToString(),
+                    holon_type = (int)holon.HolonType, is_deleted = holon.IsDeleted, data_json = canonical.ToJsonString(_jsonOpts) };
+                await UpsertAsync("oasis_holons", id.ToString("D"), row);
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                result.Message = $"PocketBaseOASIS: Holon '{holon.Name}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving holon '{holon?.Name}': {ex.Message}"); }
             return result;
         }
 
@@ -429,7 +466,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
-        private Holon? ParseHolon(PbRecord? rec) => rec == null || rec.IsDeleted ? null : (rec.DataJson != null ? Deserialize<Holon>(rec.DataJson) : null);
+        private Holon? ParseHolon(PbRecord? rec)
+        {
+            if (rec == null || rec.IsDeleted) return null;
+            if (string.IsNullOrWhiteSpace(rec.DataJson)) throw new InvalidDataException("PocketBase omitted its canonical holon payload.");
+            var holon = Deserialize<Holon>(rec.DataJson);
+            if (holon == null || holon.Id == Guid.Empty || rec.OasisId != holon.Id.ToString("D") || holon.IsDeleted)
+                throw new InvalidDataException("PocketBase native identity/deletion projection differs from its canonical holon.");
+            return holon;
+        }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -464,7 +509,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 string? filter = type == HolonType.All ? "is_deleted=false" : $"is_deleted=false&&holon_type={((int)type)}";
                 var recs = await GetAllAsync("oasis_holons", filter);
-                var holons = recs.Where(r => r.DataJson != null).Select(r => Deserialize<Holon>(r.DataJson!)).Where(h => h != null).Cast<IHolon>().ToList();
+                var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all holons: {ex.Message}"); }
@@ -481,7 +526,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 string filter = type == HolonType.All ? $"parent_holon_id='{id}'&&is_deleted=false" : $"parent_holon_id='{id}'&&is_deleted=false&&holon_type={(int)type}";
                 var recs = await GetAllAsync("oasis_holons", filter);
-                var holons = recs.Where(r => r.DataJson != null).Select(r => Deserialize<Holon>(r.DataJson!)).Where(h => h != null).Cast<IHolon>().ToList();
+                var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
