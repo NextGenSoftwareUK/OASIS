@@ -1666,3 +1666,13 @@ explicit local chain31338 and retained encrypted contract/records. CQL through
 HolonManager returns5physical rows or4subset with provider copies preserved.
 Public Rootstock/Bitcoin anchoring/finality and shared snapshots are unverified.
 Page shutdown cleans temporary Mongo data and retains the original native source.
+
+## BNB Chain V2 + Mongo MVP
+
+[Verified scope, commands and C# example](BNB_CHAIN_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider BNBChain -Federated`
+(add `-VerifyOnly` for bounded verification). The shipping V2 provider uses retained
+encrypted contract/records on local EVM31338. CQL through HolonManager returns
+5physical rows or4subset with source copies preserved. Direct construction only;
+central registration/public BNB consensus/bridging/finality and shared snapshots
+remain unverified. Page shutdown cleans temporary Mongo data and retains source.
