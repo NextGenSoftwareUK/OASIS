@@ -17,7 +17,8 @@ Hosted checks exposed two further blockers: CQL-only admission does not enroll c
 Receipt root fix Corefdca0ed binds IDs to the admitted operation; regression failed before, passes after; all8 native billing lifecycle tests pass with no skips.
 This fix is pushed on the integration branch, not Development/deployed. Prior uncertain operation evidence is preserved; never replay providers to settle it.
 Free profile v2 now explicitly enrolls canonical save/batch/delete/recovery with21 operation tariffs;10 startup/real-authority controls pass. Frontend write keys/uncertain identities:4 regressions+11 CQL tests pass, pushed c17e5f7. Neither candidate is deployed.
-Next: diagnose reproduced Mongo scalar timeout; integrate verified fixes in the next deployment batch; rerun filtered rows/scalars/federation/isolation before publishing frontend.
+Mongo now prunes root-local filters before ancestor traversal while retaining the complete final access predicate; failing-before/passing-after regression,189 CQL controls and4 native ancestor cases pass. Hosted timeout resolution remains unproved.
+Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Preserve the existing uncertain-operation journal; do not rerun the incomplete fixture verifier.
 Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json records the rejected save; do not reset/reseed it. Frontend remains unpublished.
 
 ## Latest verified milestone

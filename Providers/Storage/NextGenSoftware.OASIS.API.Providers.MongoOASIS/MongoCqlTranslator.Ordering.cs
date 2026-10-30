@@ -63,8 +63,13 @@ internal sealed partial class MongoCqlTranslator
             traverses = true; // The existing envelope owner protects errors outside paging.
             return composed;
         }
-        var rootFilter=CompileRootPredicates(query); // also registers any ancestor conditions
+        var localPredicates = new BsonArray();
+        var rootFilter=CompileRootPredicates(query, localPredicates); // also registers any ancestor conditions
         var pipeline=new List<BsonDocument>();
+        // Reduce candidate roots before the expensive inherited walk, but retain the
+        // full original predicate after it. Foreign ancestors remain unfiltered.
+        if (ancestorFields.Count != 0 && localPredicates.Count != 0)
+            pipeline.Add(new("$match", new BsonDocument("$expr", new BsonDocument("$and", localPredicates))));
         if(AddAncestorStages(pipeline))
         {
             pipeline.Add(new("$match",rootFilter));

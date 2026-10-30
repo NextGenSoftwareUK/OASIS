@@ -45,6 +45,26 @@ public sealed class MongoCqlAncestorTests
         Assert.AreEqual(0, Compile(inherited: false).Pipeline.Count(stage => stage.Contains("$lookup")));
     }
 
+    [TestMethod]
+    public void LocalFiltersRunBeforeInheritedWalkWithoutPushingItsAccessDisjunction()
+    {
+        var access = CosmicQueryReadAccess.OwnerPublicOrShared(Actor, new[] { Group }, true).Result;
+        var query = CosmicQuery<Holon>.Create().WithReadAccess(access).Result
+            .Where(holon => holon.Name == "Coffee" || holon.Name == "Tea").Result;
+        foreach (var pipeline in new[] { new MongoCqlTranslator().CompileExecution(query, 1000).Pipeline,
+            new MongoCqlTranslator().CompileCount(query).Pipeline })
+        {
+            Assert.IsTrue(pipeline[0].Contains("$match"), "Filter candidate roots before any ancestor lookup.");
+            var early = pipeline[0].ToJson();
+            StringAssert.Contains(early, "Coffee");
+            StringAssert.Contains(early, "Tea");
+            Assert.IsFalse(early.Contains("_anc"), "The inherited access OR must remain after the walk.");
+            Assert.AreEqual(16, pipeline.Count(stage => stage.Contains("$lookup")));
+            Assert.IsTrue(pipeline.Length <= 50);
+            Assert.IsTrue(pipeline.Skip(1).Any(stage => stage.Contains("$match") && stage.ToJson().Contains("_anc")));
+        }
+    }
+
     private static BsonDocument Doc(Guid id, Guid? parent = null, Guid? creator = null, bool isPublic = false, params string[] flags)
     {
         var meta = new BsonDocument();
@@ -110,6 +130,8 @@ public sealed class MongoCqlAncestorTests
             var parent = Add(null, true, flags: Inherit(Actor));
             for (var level = 1; level <= 20; level++) parent = Add(parent, level <= 16);
 
+            var boundaryIds = all.TakeLast(5).Select(row => Guid.Parse(row["HolonId"].AsString)).ToArray();
+
             // a parent that does not exist ends the walk quietly
             Add(Guid.NewGuid(), false);
             // a loop terminates, and the flagged half of it is visible
@@ -127,6 +149,19 @@ public sealed class MongoCqlAncestorTests
 
             CollectionAssert.AreEquivalent(expected.OrderBy(x => x).ToList(), ids.OrderBy(x => x).ToList());
             Assert.IsFalse(found.Any(row => row.Names.Any(name => name.StartsWith("_anc"))), "Temporary fields leaked into the result.");
+
+            // Root narrowing must not narrow the foreign collection: the selected16th
+            // descendant still needs ancestors which do not match the caller's Id filter.
+            foreach (var id in boundaryIds.Append(Guid.NewGuid()))
+            {
+                var access = CosmicQueryReadAccess.OwnerPublicOrShared(Actor, new[] { Group }, true).Result;
+                var query = CosmicQuery<Holon>.Create().WithReadAccess(access).Result.Where(holon => holon.Id == id).Result;
+                var rows = holons.Aggregate<BsonDocument>(new MongoCqlTranslator().CompileExecution(query, 1000).Pipeline).ToList();
+                var count = holons.Aggregate<BsonDocument>(new MongoCqlTranslator().CompileCount(query).Pipeline).ToList();
+                var wanted = expected.Contains(id.ToString("D")) ? 1 : 0;
+                Assert.AreEqual(wanted, rows.Count);
+                Assert.AreEqual((long)wanted, count.Count == 0 ? 0L : count.Single()["count"].ToInt64());
+            }
         }
         finally {
             if (owned) {
