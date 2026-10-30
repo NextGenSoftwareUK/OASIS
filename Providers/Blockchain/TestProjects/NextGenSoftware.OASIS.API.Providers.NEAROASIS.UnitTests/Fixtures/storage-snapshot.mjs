@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+import {readFileSync,writeFileSync} from 'node:fs';
 // Controlled IPC response only; no SDK, chain or storage.
 const input=JSON.parse(readFileSync(0,'utf8'));
 if(input.operation==='probe')process.stdout.write(JSON.stringify({ok:true,result:{}}));
@@ -11,8 +11,13 @@ else if(input.operation==='entries'){
   }
 }
 else if(input.operation==='get'){
+  if(process.env.OASIS_NEAR_CQL_TEST_PID){
+    writeFileSync(process.env.OASIS_NEAR_CQL_TEST_PID,String(process.pid));
+    setInterval(()=>{},1000);
+  }else{
   const result=JSON.parse(process.env.OASIS_NEAR_SNAPSHOT_FIXTURE_RESPONSE);
   process.stdout.write(JSON.stringify({ok:true,result}));
+  }
 }else if(input.operation==='putRecordChecked'){
   // Controlled envelope only, never dispatches an SDK/native write.
   process.stdout.write(process.env.OASIS_NEAR_CHECKED_FIXTURE_ENVELOPE);
