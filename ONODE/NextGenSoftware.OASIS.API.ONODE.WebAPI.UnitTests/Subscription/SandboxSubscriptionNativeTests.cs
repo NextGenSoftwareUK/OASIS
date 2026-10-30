@@ -146,6 +146,56 @@ public class SandboxSubscriptionNativeTests : IAsyncLifetime
     }
 
     [SandboxSubscriptionNativeFact]
+    public async Task IndependentPreparedOperationsSettleWithDistinctPhysicalReceipts()
+    {
+        clock.Now = DateTimeOffset.FromUnixTimeMilliseconds(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()).UtcDateTime;
+        var user = Guid.NewGuid().ToString("D");
+        await ledger.CreateSandboxSubscriptionAsync(user, clock.Now, clock.Now.AddHours(24), default);
+        var uri = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")!;
+        var outbox = new MongoUsageOutboxStore(uri, Database);
+        await outbox.InitializeAsync(default);
+        var http = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+        http.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[] {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, user)
+        }, "controlled-native-test"));
+        var subscriptions = new SubscriptionService(Microsoft.Extensions.Logging.Abstractions.NullLogger<SubscriptionService>.Instance, ledger, ledger);
+        var authority = new LocalUsageReservationAuthority(subscriptions, ledger,
+            new Microsoft.AspNetCore.Http.HttpContextAccessor { HttpContext = http }, (_, _) => Task.FromResult(0));
+        var executor = new Web4UsageExecution(authority, outbox, new Web4UsageLedgerOptions {
+            Service = "WEB4", MongoConnectionString = uri, Database = Database
+        });
+        var policy = new UsageEndpointPolicy {
+            MeterCategory = "api.request", ReservedUnits = 1, RequiresProviderMeasurement = true,
+            MaximumProviderAttempts = 1, MaximumNativeFeeCostUsd = 0, EstimatedCostUsd = 0,
+            PricingCatalogueVersion = "sandbox-test-free-v1"
+        };
+        var type = NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS;
+        var provider = new Moq.Mock<NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider>();
+        provider.SetupGet(value => value.ProviderType).Returns(new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(type));
+        var factory = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(), new[] { type },
+            new[] { new StorageQueryTariff(type, 0, policy.PricingCatalogueVersion) });
+        var method = typeof(PreparedStorageExecution).GetMethod("ExecuteQueryAsync",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.MakeGenericMethod(typeof(int));
+        var receipts = new List<string>();
+        for (var index = 0; index < 2; index++) {
+            var handle = await executor.BeginAsync("controlled-bearer", user, "independent-key-" + index,
+                new string((char)('a' + index), 64), "POST /api/data/query-cql", policy);
+            var prepared = await factory.CreateAsync(http, handle, default);
+            Func<Task<NextGenSoftware.OASIS.Common.OASISResult<int>>> read = () => Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<int> { Result = 1 });
+            var result = await (Task<NextGenSoftware.OASIS.Common.OASISResult<int>>)method.Invoke(prepared, new object[] { provider.Object, read })!;
+            Assert.False(result.IsError);
+            await handle.CompleteAsync("succeeded");
+            var queued = await outbox.GetAsync(handle.OperationId, default);
+            var receipt = Assert.Single(queued.Receipts);
+            Assert.InRange(receipt.ClientRequestId.Length, 1, 128);
+            receipts.Add(receipt.ProviderRequestId);
+            Assert.True((await authority.SettleUsageAsync(queued.Settlement)).Settled);
+        }
+        Assert.Equal(2, receipts.Distinct().Count());
+        Assert.Equal(2L, await database.GetCollection<BsonDocument>("subscription_usage_receipts").CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+    }
+
+    [SandboxSubscriptionNativeFact]
     public async Task UnreviewedOpeningStateCannotBeBypassedByDemoIssuance()
     {
         var guarded = new MongoSubscriptionUsageRepository(client, Database, clock, initializeEmptyLedger: false);
