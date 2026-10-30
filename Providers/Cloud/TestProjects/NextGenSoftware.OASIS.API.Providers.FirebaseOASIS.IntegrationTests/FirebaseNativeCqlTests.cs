@@ -14,7 +14,7 @@ public class FirebaseNativeCqlTests
     public async Task OriginalNativeRecordsAnswerFilteredQueriesAndSurviveRestart()
     {
         var root = Environment.GetEnvironmentVariable("COSMIC_FIREBASE_ROOT");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(root), "Use run-cosmic-firebase-linux.py; never seed an arbitrary service.");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(root), "Use run-cosmic-firebase-native.py; never seed an arbitrary service.");
         using var config = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root!, "identity.json")));
         var ids = config.RootElement.GetProperty("ids").EnumerateArray().Select(v => v.GetGuid()).ToArray();
         var actor = config.RootElement.GetProperty("actor").GetGuid();
