@@ -81,6 +81,8 @@ foreach ($name in $names) {
 
 
 
+    } elseif ($name -eq 'TimescaleDBOASIS') {
+        $status = '❌ [12 controls/pinned OSS runtime; native/paired pending](TIMESCALEDB_CQL_MVP.md)'
     } elseif ($name -eq 'TRONOASIS') {
         $status = '❌ [Controls pass; source/native/paired pending](TRON_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }

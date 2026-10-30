@@ -7,7 +7,7 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: TimescaleDB source/runtime/query audit. [CockroachDB secured native/restart/paired/browser5/4 and12controls/10family checks pass](COCKROACHDB_CQL_MVP.md).**
+**Next: TimescaleDB secured native extension/schema/CQL/restart; [12controls pass; pinned OSS image cached](TIMESCALEDB_CQL_MVP.md).**
 Firebase50controls/native/export-restore/paired/browser5/4/hub pass [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
