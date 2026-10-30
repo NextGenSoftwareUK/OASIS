@@ -40,3 +40,5 @@ Memcached breadth milestone: native volatile generations/paired/browser5/4/CAS p
 Valkey breadth milestone: native9.0.4/restart/paired/browser5/4 and hub repeat pass; [scope/evidence](VALKEY_CQL_MVP.md). Full ORM/cluster parity remains open.
 
 KeyDB breadth milestone: controls8/native6.3.4/restart/paired/browser5/4 and hub pass; [scope/evidence](KEYDB_CQL_MVP.md). Full parity/cluster/registration remain separate.
+
+Dragonfly breadth milestone: controls8/native completed snapshot/restart/paired/browser5/4 and hub pass; [scope/evidence](DRAGONFLY_CQL_MVP.md). AOF/crash/cluster/full parity remain separate.

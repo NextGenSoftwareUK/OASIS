@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -42,6 +42,7 @@ if($Federated){
         'Memcached' {'Run-CosmicMemcachedLinuxDemo.ps1'}
         'Valkey' {'Run-CosmicValKeyLinuxDemo.ps1'}
         'KeyDB' {'Run-CosmicKeyDbLinuxDemo.ps1'}
+        'Dragonfly' {'Run-CosmicDragonflyLinuxDemo.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
         default {'Run-ReusableProtocolMongoTests.ps1'}
     }
@@ -70,6 +71,7 @@ if($Federated){
         'Memcached' {'http://127.0.0.1:5117/'}
         'Valkey' {'http://127.0.0.1:5118/'}
         'KeyDB' {'http://127.0.0.1:5119/'}
+        'Dragonfly' {'http://127.0.0.1:5120/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
         default {'http://127.0.0.1:5088/'}
     }
@@ -98,6 +100,7 @@ if($Federated){
         'Memcached' {'Mongo + explicitly initialized volatile Linux Memcached generation:5rows/4subset; native CAS/values unchanged by queries, no cache persistence or distributed snapshot claim'}
         'Valkey' {'Mongo + retained native Valkey9.0.4 encrypted source:5rows/4subset; clean restart/ciphertext preservation verified, no cluster or distributed snapshot claim'}
         'KeyDB' {'Mongo + independently built native KeyDB6.3.4 encrypted source:5rows/4subset; clean restart/ciphertext preservation verified, no cluster or distributed snapshot claim'}
+        'Dragonfly' {'Mongo + native Dragonfly2.0.2 encrypted source:5rows/4subset; completed RDB snapshot/restart proof, no AOF/crash/cluster or distributed snapshot claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
         default {"Mongo + $Provider bounded native membership:5rows/4subset; per-provider provenance"}
     }
@@ -130,6 +133,7 @@ if($Federated){
         'Memcached' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Valkey' { & $path -Federated -Serve:(!$VerifyOnly) }
         'KeyDB' { & $path -Federated -Serve:(!$VerifyOnly) }
+        'Dragonfly' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         'SolanaMetadata' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
         default { & $path -Provider $Provider -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }
