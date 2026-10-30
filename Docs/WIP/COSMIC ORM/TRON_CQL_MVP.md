@@ -23,3 +23,14 @@ Inspect existing independent-fixture/SDK/deployment code and exact retained publ
 Before native mutation: prove source separation, journal exact signed preparation before broadcast, preserve unknown outcomes without retry, ensure local-only resource/fee bounds and exact ownership/teardown. Then prove selected3/subset2/missing, unchanged encrypted objects and restart, Mongo SDK/HTTP/browser5/4, rejection/failure behavior and exact temporary cleanup. Keep native inventory red until evidence actually exists.
 
 Full ORM/HyperDrive/history/finality/mainnet parity remains open. Resource ledger retains audit/lifecycle. No install/download/restore/new environment/native mutation this milestone.
+
+
+## Separate-source fixture preparation (30 October)
+
+TronCqlDeclaredSourceTests.cs now compiles against shipping SDK/provider/CQL APIs. No native execution occurred. It requires explicit local source admission bound to the exact retained container/genesis, originalRecovery=false, separately supplied persistent encryption key and an independently owned state folder. It refuses pending setup and existing preparations without a completed source manifest. Deployment and storage operations reuse CreatePreparedNativeTransfers, whose callback flushes each signed preparation before the existing single broadcast. Acknowledgements and final manifest are durable before setup closure; queries never request signing material and must preserve every preparation hash.
+
+Source inspection corrected an earlier provenance assumption: existing original test code contains reproducible public local-fixture signer/encryption derivation. This is not recovery of private user credentials or of the missing contract/operation manifest. The historical unknown transaction/fence remains unresolved and untouched.
+
+Initial build stopped because integration-consumer obj/project.assets.json was absent. Restored that project from the existing local NuGet cache only; current fixture build succeeds0errors/2warnings. Logs TestResults/TronCqlCurrent/declared-source-build.log(initial) and declared-source-build-current.log(success). No download/install/newchain/key/source/native mutation. This is preparation, not native certification.
+
+Next implement the exact owned-node/source-admission runner: persist a separately declared context before startup, validate stopped container/image/memory/ports and retained ledger, use existing retained-ledger launcher without initialization/reset, keep original-provenance observations separate from old fences, create one protected reusable demo key, compile shipping contract from cached compiler, run the explicitly selected new fixture, preserve all uncertain outcomes and verify graceful shutdown. Then prove restart/missing/unchanged source and Mongo SDK/HTTP/browser acceptance before any catalogue enrollment.
