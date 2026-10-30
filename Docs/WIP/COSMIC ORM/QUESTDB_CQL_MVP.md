@@ -1,4 +1,4 @@
-# QuestDB CQL MVP — save/schema implemented, native pending
+# QuestDB CQL MVP — bounded implementation, native pending
 
 30October2026. Inventory remains red. No native storage/runtime allocated.
 
@@ -31,11 +31,9 @@ by PostgreSQL provider) replaces uncached8.0.3; no package/runtime download.
 
 ## Next
 
-1. Implement bounded native multi-record CQL with capability admission, response
-   identity checks, stable paging and explicit read-consistency limits.
-2. Create/reuse one free retained native environment; verify original record/update
+1. Create/reuse one free retained native environment; verify original record/update
    behavior, JSON precision/schema and restart without reseeding.
-3. Add Mongo-paired C#/HTTP/browser preset and original-source postpair checks.
+2. Add Mongo-paired C#/HTTP/browser preset and original-source postpair checks.
 
 ## Native audit and remaining gaps
 
@@ -105,3 +103,41 @@ Publication checkpoint: implementation commit4fe8db7e3 is local; GitHub rejected
 two push attempts with internal server error30Oct14:22UTC. Remote task ref verified
 still c4b4a0bc0 after first failure. Preserve local commit, retry normal publication
 with a later verified batch; no force push or source rollback.
+
+## Bounded CQL implementation
+
+**65passed/0failed/0skipped**: prior36save/schema controls,9compiler/adapter cases,
+20query/empty-catalogue cases. Single native parameterized SELECT over the trusted
+complete catalogue<=100GUIDs, with LIMIT selected+1 and no managed full-table scan.
+Capability admission only permits captured identity equality/membership/Boolean
+selection and stable admitted-key paging. Unsupported names/metadata/order/graphs
+reject. Empty catalogue/pre-cancellation open no connection; inactive/history
+reject explicitly.
+
+Projection is `id,cast(ts AS LONG) AS cosmic_ts,data`. The raw Int64 timestamp must
+be0(epoch), avoiding driver timezone conversion and refusing mixed timestamp
+lineages. Native IDs must be canonical, unique and selected, JSON payload IDs must
+match, and read authority is rechecked before publication. Missing/deleted rows
+are omitted; duplicate/foreign/overflow/null/projection/transport failures return
+no partial rows. Metadata admission alone does not guarantee old row uniqueness.
+
+Data is consumed through sequential TextReader with strict incremental UTF8
+encoding:1MiB per document/4MiB aggregate, preserving surrogate pairs split across
+4096character chunks. Final page/result budget is checked separately. A linked
+15second query deadline covers async opening, command/reader and text processing;
+connections/readers are disposed on failure. These row/document limits do not
+promise a fixed database scan cost or a distributed snapshot.
+
+[Official temporal conversion semantics](https://questdb.com/docs/query/sql/alter-table-change-column-type/)
+confirm TIMESTAMP numeric values are microseconds since epoch; real SQL/PG driver
+acceptance remains a native gate. [Compiler tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.UnitTests/QuestDbCqlTests.cs)
+and [query tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.UnitTests/QuestDbNativeQueryTests.cs)
+check bound parameters, native row/timestamp ownership, exact decimal JSON,
+UTF8-versus-character budgets and split-surrogate handling, aggregate/row/result
+limits, cancellation and connection disposal.
+Evidence `C:/Source/OASIS-cosmic/TestResults/QuestDbCqlCurrent/cql-controls.trx`,
+SHA25615AB13B1EADA1DBC0047B1235A7C7D6B01F57097E666D455F5F79577E1FD3FA5.
+Cache-only restores/bounded leased builds pass; no new dependency download or
+native environment. Generic lookup/deletion/history gaps above remain separate.
+Next is the retained native source and original-data restart/pair/browser proof;
+inventory remains red,62/226demo coverage unchanged.
