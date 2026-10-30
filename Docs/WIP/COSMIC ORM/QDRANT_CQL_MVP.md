@@ -1,6 +1,6 @@
-# Qdrant CQL MVP — controls verified; native/paired demo pending
+# Qdrant CQL MVP — controls/native/restart/paired/browser verified
 
-Updated 30 October 2026. Inventory remains red. No native-server acceptance yet.
+Updated 30 October 2026. Green means the bounded identity demo scope only.
 
 ## Implemented scope
 
@@ -15,7 +15,7 @@ before JSON parsing, strict HTTP/status/result/identity/payload/authority valida
 Missing records may be omitted by native retrieval; foreign/duplicate/corrupt rows
 fail without partial results. Stable catalogue order precedes paging; complete-page
 budget failure returns no partial rows. Read consistency remains moving native reads,
-not a distributed snapshot. Native protocol/collection compatibility is still pending.
+not a distributed snapshot. Native protocol/collection compatibility passes on the retained server.
 
 SaveHolon stages ID/copied provider keys/JSON until native PUT?wait=true returns
 status=ok plus result.status=completed and an exact UInt64 operation_id. Zero is valid;
@@ -59,12 +59,41 @@ Raw TestResults/QdrantCqlCurrent/controls.trx SHA256
 
 ## Exact next step and remaining gaps
 
-No cached native Qdrant image found. Select one official free release; journal one
-authenticated local environment/source and preserve native node/collection identity
-before business writes. Verify schema/protocol/operation receipts, native3/filter2/
-missing0/page1/budget and original JSON/native point state across actual restart.
-Then Mongo-paired C#/HTTP/browser5/4 and hub tests. Never replay unknown writes,
-reseed source IDs or replace a baseline. Keep inventory red until complete proof.
+Continue red providers, next Weaviate capability/native-source audit. Preserve this
+acceptance; no green hardening without a reproduced bug.
+
+## Native and Mongo-paired proof
+
+Official free Qdrant1.16.3 runs authenticated HTTPS/private CA on loopback16333,
+standalone mode. Native persisted raft peer8294379389961945 was recorded exactly
+before business writes. Original source inode/container/image/mount/peer are checked
+on every phase. Three original GUID points, payload JSON,128-dimensional placeholder
+zero vectors and native collection config hash survive actual restart unchanged.
+Native3/filter2/missing0/page1/budget/schema/completed-write receipt checks pass.
+
+Launch `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Qdrant -Federated`
+from the task worktree; add `-VerifyOnly` for bounded checks. Browser5145. The C#
+example `Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs` uses HolonManager's
+actual executor and explicit per-provider read catalogues. HTTP/browser all returns
+Qdrant3+Mongo2=5physical result rows; subset2+2=4. Copies retain provider provenance.
+Forged actor/unknown preset400 and inactive provider503/no partial rows pass.
+
+Bounded and interactive runners each passed five phases: native-first,
+native-restart, mongo-init, mongo-federation and native-postpair. Browser all5/subset4
+verified. Hub8single/16plans,54paired/108plans,94pairedrejections,3archive pass,
+listeners unchanged. Exact temporary cosmic_cql_mongo_qdrant_demo verified/dropped,
+pending/ready cleared; own native/Mongo/demo services stopped, nativeexit0/noOOM/noError.
+Original source /var/tmp/oasis-qdrant-cql482,560,525B logical,667,648B allocated (sparse
+native files) retained with privateCA/TLSkey/APIkey/raft state/actor3IDs/write receipts/
+baseline/collections. No payload/native config/point/vector rewrites during verification.
+Raw interactive evidence in TestResults/QdrantCqlCurrent (not committed):
+- native-first.trx SHA256 `a8892eb6ab80a155622f24958991e70c2be1849314beaa00acd546f97dce1126`
+- native-restart.trx SHA256 `0c041a9094072c298fd6d5f7c28c9c47d35ee5557f7750bc383bd9882386680a`
+- mongo-init.trx SHA256 `cbab61c900f2af7490e75bfe2825b8307bb506cfc4b2cd1fd9951dab51e4dda5`
+- mongo-federation.trx SHA256 `8bb20f21cbf7009d04a2dd3456565e0a00e7b47db9282b48e67ce7175116f4c4`
+- native-postpair.trx SHA256 `256529c33ed947d9c7b618400db6b3d1f397349554ed74babd5a404e58316b0f`
+Browser screenshot browser.jpg155,879B, runner44627terminal0. Native source and
+credentials stay outside TestResults; raw logs/TRX/images are regenerable.
 
 Atomic conditional writes, history, children, migration, replication and unknown-write
 recovery remain open. Older generic GET/POST/lookup/search/delete error/size semantics
