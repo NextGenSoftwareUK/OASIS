@@ -108,7 +108,7 @@ Development with task Core and matching manifest; verify scoped changes, then
 address gateway listener/startup and native fixture admission. Preserve all task
 work and do not deploy the unverified full task programme to Development.
 
-## Loopback gateway lifecycle verified — 30 October 2026
+## Initial empty gateway lifecycle — superseded by nonempty proof below
 
 `Prepare-CosmicArweaveRuntime.cjs` verifies exact ArLocal1.1.66 vendor source then
 repairs its native listener and stop method: explicit127.0.0.1 binding, awaited
@@ -124,7 +124,7 @@ read-only lifecycle against the same source. Native SQLite quick_check passes;
 all five table counts and73,728B database hash match after restart:
 f643b26168fd56546aa825318589fc94f575d07f5b6b6cef290fae04525b70c9.
 One genesis block, zero transactions/chunks/tags/wallets. Both owned processes exited0;
-no listener remains. This is empty-gateway persistence proof, **not** record durability
+no listener remains. This proves empty-schema equivalence only, **not** data persistence or record durability
 or native CQL/paired acceptance. No public Arweave permanence/consensus claim.
 
 Next: journal original local-only wallet/record identities, verify acknowledged saves
@@ -150,3 +150,27 @@ no wallet or business transaction has been created yet. Root untracked `logs` fi
 is preserved/excluded, provenance unverified; no unrelated cleanup performed.
 
 Evidence `TestResults/ArweaveCqlCurrent/save-fixed.trx`, SHA256 `f1788cd5b99b990e033622591bceaf39e48250a91c6a46c4eb4c713a99fb2fbf`.
+
+## Nonempty persistence root fix and proof — 30 October 2026
+
+Before signed business writes, source audit found initialize.down(persist=true)
+drops native tables. The original awaited-stop repair inherited that wrong predicate;
+empty restart merely recreated identical tables/hash and could not detect it.
+That earlier test is not nonempty persistence evidence. No business data was lost.
+
+The exact-source runtime repair now skips table teardown in persistent mode and
+awaits connection closure. Known revision1 migrates explicitly to revision2; unknown
+vendor/patch hashes refuse. Current patched app.js SHA256
+459bb94c457609406c1104e46ca95e76dc5b8987548aa70b04a6ac79368a5856.
+No reset/reseed, alternate runtime or swallowed error was introduced.
+
+The lifecycle test now journals one synthetic local probe wallet and mints12345
+local test units once. It verifies that exact original balance on every reuse,
+after real gateway shutdown and process restart. One wallet/five native table counts
+and SQLite73,728B hash match across restart:
+a2c23d4be97e1a293bbdbe2d56fb10fc56229f63636dad2b46cc82334c3cc70b.
+Original probe/ack/data retained under LocalState/COSMIC/ArweaveCql; pending absent.
+Both owned gateway processes exited0; no18549listener. Probe has no signing key,
+real funds, business transactions or credentials. Signed-record CQL remains unproven.
+
+Nonempty lifecycle evidence `TestResults/ArweaveCqlCurrent/gateway-retained-probe-summary.log`, SHA256 `51edd625abefe8b4d49588fd23870226200885127c7814261d4f63e30d9e2b18`.
