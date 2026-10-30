@@ -11,6 +11,29 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class CommittedHolonReplicaPlanTests
 {
+    [TestMethod]
+    public void ExplicitBaselineHasItsOwnReceiptDomainAndPreservesCommittedVersion()
+    {
+        var row=Record();row.Version=4;row.PreviousVersionId=Guid.NewGuid();
+        var request=Request(row,Guid.NewGuid());
+        var baseline=CommittedHolonReplicaPlan.CreateInitialBaseline(request,ProviderType.Neo4jOASIS);
+        Assert.IsTrue(baseline.IsInitialBaseline);
+        Assert.AreEqual(4,baseline.Nodes[0].Snapshot.Version);
+        Assert.AreNotEqual(CommittedHolonReplicaPlan.Create(request,ProviderType.Neo4jOASIS).Fingerprint,baseline.Fingerprint);
+    }
+
+    [DataTestMethod]
+    [DataRow("actor")] [DataRow("tombstone")] [DataRow("delete")]
+    public void BaselineRejectsUnidentifiedActorsAndTombstonesBeforeIo(string invalid)
+    {
+        var row=Record();row.Version=4;row.PreviousVersionId=Guid.NewGuid();
+        if(invalid is "tombstone" or "delete"){row.IsActive=false;row.DeletedDate=DateTime.UtcNow;row.DeletedByAvatarId=row.CreatedByAvatarId;}
+        var request=new CommittedHolonReplicaRequest(Guid.NewGuid(),"owned-primary",ProviderType.SQLLiteDBOASIS,
+            invalid=="actor" ? Guid.Empty:row.CreatedByAvatarId,
+            invalid=="delete" ? ConditionalHolonOperation.SoftDelete:ConditionalHolonOperation.Save,new[]{row},saveChildren:false);
+        Assert.ThrowsException<ArgumentException>(()=>CommittedHolonReplicaPlan.CreateInitialBaseline(request,ProviderType.Neo4jOASIS));
+    }
+
     private static Holon Record()
     {
         var record=new Holon{Id=Guid.NewGuid(),Name="committed",Version=1,VersionId=Guid.NewGuid(),

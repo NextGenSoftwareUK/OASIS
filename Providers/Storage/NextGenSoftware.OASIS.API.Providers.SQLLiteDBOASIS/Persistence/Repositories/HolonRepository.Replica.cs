@@ -25,10 +25,21 @@ public partial class HolonRepository
         =>request==null ? ConditionalError("COSMIC_REPLICA_WRITE_INVALID","A committed replica request is required.")
             :ExecuteAtomicHolonWrite(null,request,token);
 
+    public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,CancellationToken token)
+        =>request==null ? ConditionalError("COSMIC_REPLICA_WRITE_INVALID","A committed source snapshot is required.")
+            :ExecuteAtomicHolonWrite(null,request,token,initialReplicaBaseline:true);
+
     private void PrepareReplicaModels(SqliteConnection connection,SqliteTransaction native,PreparedGraph graph,
         Dictionary<string,HolonModel> persisted,CommittedHolonReplicaPlan plan)
     {
         var prior=new Dictionary<string,IHolon>();var conflicts=new List<string>();
+        if(plan.IsInitialBaseline)
+        {
+            using var formats=connection.CreateCommand();formats.Transaction=native;
+            formats.CommandText="SELECT 1 FROM CosmicWriteReceipt WHERE CASE WHEN json_type(ResultJson,'$.graph')='text' "
+                +"THEN json_type(json_extract(ResultJson,'$.graph'),'$.nodes') ELSE json_type(ResultJson,'$.nodes') END IS NOT 'array' LIMIT 1";
+            if(formats.ExecuteScalar()!=null)throw new InvalidDataException("Unrecognized retained receipts cannot establish replica target absence.");
+        }
         foreach(var model in graph.Models)
         {
             persisted.TryGetValue(model.Id,out var current);
@@ -38,9 +49,22 @@ public partial class HolonRepository
             using var reader=command.ExecuteReader();
             if(!reader.Read())
             {
-                if(current!=null || model.Version!=1 || model.PreviousVersionId!=Guid.Empty)conflicts.Add(model.Id);
+                if(plan.IsInitialBaseline)
+                {
+                    reader.Close();
+                    using var previous=connection.CreateCommand();previous.Transaction=native;
+                    // Writer reservation already held. Absence of a live row alone
+                    // is insufficient: a deleted independent record still has lineage.
+                    previous.CommandText="SELECT 1 FROM CosmicHolonRevision WHERE HolonId=$id UNION ALL "
+                        +"SELECT 1 FROM CosmicWriteReceipt r,json_each(CASE WHEN json_type(r.ResultJson,'$.graph')='text' "
+                        +"THEN json_extract(r.ResultJson,'$.graph') ELSE r.ResultJson END,'$.nodes') n WHERE json_extract(n.value,'$.id')=$id LIMIT 1";
+                    previous.Parameters.AddWithValue("$id",model.Id);
+                    if(current!=null || previous.ExecuteScalar()!=null)conflicts.Add(model.Id);
+                }
+                else if(current!=null || model.Version!=1 || model.PreviousVersionId!=Guid.Empty)conflicts.Add(model.Id);
                 prior.Add(model.Id,null);continue;
             }
+            if(plan.IsInitialBaseline){conflicts.Add(model.Id);continue;}
             var json=reader.GetString(2);
             if(reader.GetString(3)!=ReplicaSnapshotDigest(json))throw new InvalidDataException("Committed replica head checksum is invalid.");
             var stored=StoredRecordJson.DeserializeStored<Holon>(json);
