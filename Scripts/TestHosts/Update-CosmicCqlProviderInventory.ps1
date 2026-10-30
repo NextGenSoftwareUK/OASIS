@@ -80,7 +80,7 @@ foreach ($name in $names) {
         $status = '❌ [Native/restart/paired/browser pass; hub enrollment pending](APTOS_CQL_MVP.md)'
 
     } elseif ($name -eq 'RavenDBOASIS') {
-        $status = '❌ [19 controls pass; native/paired pending](RAVENDB_CQL_MVP.md)'
+        $status = '❌ [23 controls/certificate configuration pass; native/paired pending](RAVENDB_CQL_MVP.md)'
     } elseif ($name -eq 'TRONOASIS') {
         $status = '❌ [Controls pass; source/native/paired pending](TRON_CQL_MVP.md)'
     } else { $status = '❌ Not verified' }
