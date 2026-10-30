@@ -37,7 +37,7 @@ for phase in ['first','restart']:
     pending.unlink()
    else:
     assert json.loads(probe.read_text())=={'address':address,'balance':expected}
-   assert read_balance()==expected,'Original native wallet balance lost; never replace' 
+   assert read_balance()==expected,'Original native wallet balance lost; never replace'
   finally:
    if p.poll() is None:p.stdin.write('stop\n');p.stdin.flush()
    p.wait(timeout=30)

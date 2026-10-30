@@ -174,3 +174,15 @@ Both owned gateway processes exited0; no18549listener. Probe has no signing key,
 real funds, business transactions or credentials. Signed-record CQL remains unproven.
 
 Nonempty lifecycle evidence `TestResults/ArweaveCqlCurrent/gateway-retained-probe-summary.log`, SHA256 `51edd625abefe8b4d49588fd23870226200885127c7814261d4f63e30d9e2b18`.
+
+## Signed native fixture automatic-review gate — 30 October 2026
+
+Automatic approval review rejected the command to create/build the signed native
+fixture, stating only `blocked by policy` (no more specific reason supplied).
+The command did not execute: ArweaveCqlNativeTests.cs is absent, no ProtectedData
+package/reference changes, signing wallet, mint or business records were created.
+Do not retry the same blocked action through another shell/tool or split commands.
+Existing runtime/probe/database are preserved; gateway remains stopped. This is a
+review gate, not evidence of an Arweave provider/native transaction failure.
+Native signed-record/restart/paired acceptance stays red. Continue breadth with
+CouchDB source/query correctness audit; no full-programme blocker declared.
