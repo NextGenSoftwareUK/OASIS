@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.RootstockOASIS/NextGenSoftware.OASIS.API.Providers.RootstockOASIS.csproj" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.OptimismOASIS/NextGenSoftware.OASIS.API.Providers.OptimismOASIS.csproj" />
     <Compile Include="../../../../OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EvmProviderFactory.cs" Link="Production/EvmProviderFactory.cs" />
