@@ -1867,3 +1867,18 @@ this is not atomic CAS/history/full parity or a shared distributed snapshot. Six
 retained source points include controls; three logical records are admitted by the
 presets. Stop with the page button so the runner checks/removes only its temporary
 Mongo fixture and preserves the original InfluxDB source. [Proof/prerequisites](INFLUXDB_CQL_MVP.md).
+
+## Qdrant + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Qdrant -Federated`
+(add `-VerifyOnly` for bounded checks). Free local Qdrant1.16.3 uses authenticated
+HTTPS/private CA. Original peer/JSON/zero vectors/native collection config survive
+restart. Browser5145 shows five physical result rows or four for the subset, with
+provider labels. The spaced/commented C# example is
+`Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`, executed by HolonManager;
+HTTP POST `/api/cql/federation` accepts presets `all`/`subset`. Only bounded identity
+equality/membership/Boolean selection/paging is admitted. This demonstrates payload
+retrieval over the vector database, not embedding generation, similarity search,
+atomic CAS, history or a shared distributed snapshot. Stop with the page button so
+the runner checks/removes only its temporary Mongo fixture and retains the original
+Qdrant source. [Proof/prerequisites](QDRANT_CQL_MVP.md).
