@@ -335,3 +335,13 @@ runs over retained native PocketBase0.40.6 and Mongo:5physical rows,4subset,
 provider provenance preserved. Source is plaintext JSON; no distributed snapshot
 or atomic conditional-write certification. Stop through the browser button;
 the runner verifies temporary Mongo cleanup and preserves the original source.
+
+## Supabase REST + Mongo MVP
+
+[Verified scope, commands and C# example](SUPABASE_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Supabase -Federated`
+(add `-VerifyOnly` for bounded verification). One CQL membership query returns
+5physical rows or4for the subset, retaining provider copies. This uses real
+JWT-authenticated PostgREST16.5/PostgreSQL, with retained plaintext JSON. Hosted
+Supabase gateway/Auth and distributed snapshots remain unverified. Page shutdown
+verifies temporary Mongo cleanup and preserves the original REST source.
