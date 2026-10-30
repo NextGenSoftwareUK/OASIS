@@ -1,36 +1,56 @@
-# TRON CQL — controls pass, native demo red
+# TRON CQL MVP â€” native restart verified; federation pending
 
-Updated30 October2026. Current branch now includes the generic TRONOASIS CQL adapter and shared bounded-identity compiler. Seven integration controls pass/no skips. No native CQL, restart, Mongo pairing or browser proof yet.
+Updated 30 October 2026. Task branch only; not published in the hosted demo.
 
-## Implemented scope
+## Verified scope
 
-Id equality/membership, constants/AND/OR and bounded paging, at most100 authorized keys. Shipping lifecycle-serialized encrypted backend/shared canonical RecordKey owns native reads and authenticated decode. Identity/read access checked, tombstones hidden, errors/cancellation discard partial rows. Unsupported metadata/content/order/graph queries fail before I/O. Separate reads do not imply a common-block snapshot;4MiB canonical payload budget is after SDK decoding.
+- Seven CQL controls pass. Bounded Id equality/membership, constants, AND/OR and paging; at most 100 explicitly authorized keys.
+- A separately declared local contract stores three synthetic holons through the shipping encrypted provider. Native selected-three/subset-two queries passed after deployment.
+- Restart exposed a real local-runtime persistence defect: the last acknowledged synthetic record and its transaction receipt disappeared; the first two records survived.
+- Fixed the runner's mining/shutdown boundary. TRE defaults to transaction-triggered mining; installed SnapshotManager bytecode flushes during a following session and does not flush the current session in shutdown(). The runner enables interval mining, then drains two empty blocks before graceful shutdown. No business transaction is replayed by the drain.
+- Explicit one-time maintenance restored only the demonstrated lost synthetic Tea record with a new signed operation and separate intent/preparation/ACK. Its exact source manifest, record and original transaction are checked; both sibling payloads remain unchanged. No automatic query/save repair exists.
+- After that shutdown/restart, the native test passed: three selected records, two-record subset, successful empty missing-record query, exact canonical payload preservation and unchanged hashes of every signed preparation. Reads cannot request signing material.
+- Container exited and 9090/50051/50052 listeners absent. Original seed manifest hash unchanged.
 
-Evidence: TestResults/TronCqlCurrent/tron-scoped-integration-controls.trx SHA25637D55A77115943633FDF9ECB48ED4F7DBC1643E9285088078371CB081C8E7DFB,7passed. Source/build/test writes only in OASIS-cosmic. No native process started or signing/storage key read by this audit.
+This is local TRE evidence. No mainnet/testnet, general metadata/text queries, cross-provider snapshot or full ORM/HyperDrive parity claim. Unsupported content/order/graph queries reject before I/O. Canonical responses have a 4 MiB budget after SDK decoding.
 
-## Original-source provenance audit
+## Run and source ownership
 
-- Existing stopped oasis-tron-tre container:ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12; imagebf3a2b631ff2a1834530f69fcb90508c40970203aa1240b692223308cc90cae0. Read-only inspection reports exited/no mounts. Container presence is not fixture usability.
-- Worktree TestResults/HyperDriveTron/pending-native-outcome.json absent; expected historical hash9A6B6E580DB63E5F20A91D9A345430FA72670CC041B278E3B44E00BD0FDEBAEE is documentary, not a recovered file.
-- Checked Windows LocalAppData/OASIS/provider-evidence/tron absent; scoped WSL /var/tmp/oasis-tron-evidence,/var/tmp/oasis-tron,/var/tmp/oasis-runtimes/tron absent. This is not an exhaustive machine-wide recovery claim.
-- Archived provider report records original unknown transactiondb05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb. Historical NotFound/empty receipt was explicitly not proof of non-submission. Its outcome remains unresolved; no replay/reset/fence fabrication/removal permitted.
-- Run-ReusableTronInspection.ps1 requires exact original fence hash before startup. Keep this guard; do not bypass it or substitute a newly generated fence.
+Normal reusable native verification:
 
-## Next bounded admission work
+```powershell
+./Scripts/TestHosts/Run-CosmicTronCqlDeclared.ps1
+```
 
-Inspect existing independent-fixture/SDK/deployment code and exact retained public contract/account identities without printing secrets. Original encrypted-record recovery requires the original key/provenance. If it cannot be recovered, define a separately declared owned synthetic source/contract/key/operation journal with explicit identities and preserve all original outcomes; never describe it as original recovery or select it automatically when old reads fail. Reuse suitable runtime/ledger, do not reset/recreate them. User has authorized missing demo environments, but no hosted/billable resource is authorized.
+The runner checks exact container/image, 3 GiB limits, loopback bindings, genesis and independent-source admission. It preserves failed reports and refuses unknown pending setup. Shipping Solidity is compiled using cached solc 0.8.26; nothing is downloaded. Builds use the provider lease and bounded workers.
 
-Before native mutation: prove source separation, journal exact signed preparation before broadcast, preserve unknown outcomes without retry, ensure local-only resource/fee bounds and exact ownership/teardown. Then prove selected3/subset2/missing, unchanged encrypted objects and restart, Mongo SDK/HTTP/browser5/4, rejection/failure behavior and exact temporary cleanup. Keep native inventory red until evidence actually exists.
+Persistent source: `LocalState/COSMIC/TronCqlDeclared` (16 files, 14,765 bytes at this checkpoint). Retain the original DPAPI key, manifest, four original signed preparations/ACKs, and three repair records. Never place them in cleanup-targeted TestResults.
 
-Full ORM/HyperDrive/history/finality/mainnet parity remains open. Resource ledger retains audit/lifecycle. No install/download/restore/new environment/native mutation this milestone.
+`-RepairAcknowledgedLostRecord` selects incident-specific one-time maintenance, not a demo preset. It refuses an existing repair intent and must not be repeated. It requires exact original manifest SHA256 `8265D4E7C4304E61DE78CCAFEC0273DC02F7D7AE2E9B45765D28DBBB8EDFC562`, absent affected record and absent original solidified receipt. The original lost transaction remains recorded; restoring the intended synthetic holon does not recover that transaction or its original timestamps.
 
+`set-owned-tron-mining.sh` uses existing WSL Python/nsenter inside only the exact container's network namespace; administrative port 8545 is not newly exposed. No new runtime/container/ledger was installed or created. The same retained ledger and container are reused.
 
-## Separate-source fixture preparation (30 October)
+## Compact evidence
 
-TronCqlDeclaredSourceTests.cs now compiles against shipping SDK/provider/CQL APIs. No native execution occurred. It requires explicit local source admission bound to the exact retained container/genesis, originalRecovery=false, separately supplied persistent encryption key and an independently owned state folder. It refuses pending setup and existing preparations without a completed source manifest. Deployment and storage operations reuse CreatePreparedNativeTransfers, whose callback flushes each signed preparation before the existing single broadcast. Acknowledgements and final manifest are durable before setup closure; queries never request signing material and must preserve every preparation hash.
+Paths below are under `TestResults/TronCqlCurrent/`; raw evidence is not committed to Docs.
 
-Source inspection corrected an earlier provenance assumption: existing original test code contains reproducible public local-fixture signer/encryption derivation. This is not recovery of private user credentials or of the missing contract/operation manifest. The historical unknown transaction/fence remains unresolved and untouched.
+| Evidence | Result | SHA256 |
+| --- | --- | --- |
+| `tron-scoped-integration-controls.trx` | 7 passed | `37D55A77115943633FDF9ECB48ED4F7DBC1643E9285088078371CB081C8E7DFB` |
+| `Archive/54CF44038FBCC1F993B811588D1B85773AE255541231F650AA095459E8FC6CA3-tron-declared-native.trx` | initial native schedule passed | filename hash |
+| `Archive/6D2C22E1350ADAF8F75C1AE11C46086D778224CBEE86E9CB11684A7D341305D2-restart-failed.trx` | restart failed; retained | filename hash |
+| `Archive/114CC152E1C7C83088B4ABF549A4E4E568BB84D4B25049D5C6B81AB04602C646-diagnostic-failed.trx` | two retained keys; last absent | filename hash |
+| `tron-declared-repair.trx` | explicit restoration: 1 passed | `80B963A188AAACD1FC86D62EE9706890095FFA7028CAAC860A87F4499560474F` |
+| `tron-declared-native.trx` | fixed restart/missing/unchanged reads: 1 passed | `6B227AF2BAC0EDF740984F8F887A9F4C27D9E1A049D67DC252EE3F4AAE68C059` |
 
-Initial build stopped because integration-consumer obj/project.assets.json was absent. Restored that project from the existing local NuGet cache only; current fixture build succeeds0errors/2warnings. Logs TestResults/TronCqlCurrent/declared-source-build.log(initial) and declared-source-build-current.log(success). No download/install/newchain/key/source/native mutation. This is preparation, not native certification.
+Read-only diagnostics: `receipt-inspection.log`, `mining-inspection.log`, `snapshot-bytecode.txt`, `tre-bytecode.txt`; run logs `declared-native-run.log`, `declared-native-restart.log`, `declared-native-diagnostic.log`, `declared-native-repair.log`, `declared-native-fixed-restart.log`. Inspection reused installed JDK 21.0.12.101; extracted small classes only, no full JAR copy. Upstream also discusses [snapshot flush versus shutdown persistence](https://github.com/tronprotocol/java-tron/issues/6610); the installed runtime inspection and restart test are the evidence for this local fix.
 
-Next implement the exact owned-node/source-admission runner: persist a separately declared context before startup, validate stopped container/image/memory/ports and retained ledger, use existing retained-ledger launcher without initialization/reset, keep original-provenance observations separate from old fences, create one protected reusable demo key, compile shipping contract from cached compiler, run the explicitly selected new fixture, preserve all uncertain outcomes and verify graceful shutdown. Then prove restart/missing/unchanged source and Mongo SDK/HTTP/browser acceptance before any catalogue enrollment.
+## Historical source remains unresolved
+
+Exact retained container: `ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12`; pinned TRE image digest `cbf2973095933e3ae3237767082e29add2f9b647d7a4aebdfb7a953c6e5656ba`. Genesis `0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f`.
+
+Older `TestResults/HyperDriveTron/pending-native-outcome.json` and `independent-prepared-native-pending.json` remain missing. Historical unknown transaction `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` is not recovered, replayed or declared absent. Existing public local test credential derivation does not recover missing contract/operation provenance. Keep `Run-ReusableTronInspection.ps1`'s original-fence guard unchanged. This independent contract is explicitly marked originalRecovery=false.
+
+## Next red demo gate
+
+Add Mongo pairing with one reusable local HTTP/browser preset, demonstrate five physical copies / four distinct identities, verify rejection/failure behavior and exact temporary Mongo cleanup, then publish its catalogue card. Keep this broader gate red until those proofs exist. Defer metadata/text/general ordering/full parity; see [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
