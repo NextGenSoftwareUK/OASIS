@@ -81,6 +81,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.FantomOASIS => "Fantom",
         ProviderType.LineaOASIS => "Linea",
         ProviderType.ScrollOASIS => "Scroll",
+        ProviderType.MonadOASIS => "Monad",
         ProviderType.AzureStorageOASIS => "Azure Blob",
         ProviderType.AWSS3OASIS => "AWS S3",
         ProviderType.LocalFileOASIS => "LocalFile",

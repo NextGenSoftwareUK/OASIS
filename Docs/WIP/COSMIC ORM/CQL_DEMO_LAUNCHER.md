@@ -362,3 +362,13 @@ encrypted records on local EVM31338 through HolonManager:5physical rows or4subse
 with provider provenance. Browser5130; shutdown verifies temporary Mongo fixture
 cleanup and preserves original source. Direct construction only; public Scroll
 network/finality/bridge, central registration and distributed snapshots unverified.
+
+## Monad V2 + Mongo MVP
+
+[Verified scope and examples](MONAD_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Monad -Federated`
+(add `-VerifyOnly` for bounded verification). Shipping Monad V2 reads retained
+encrypted records on local EVM31338 through HolonManager:5physical rows or4subset,
+with provider provenance. Browser5131; shutdown verifies temporary Mongo fixture
+cleanup and retains original source. Public Monad consensus/parallel execution,
+central registration and distributed snapshots remain unverified.
