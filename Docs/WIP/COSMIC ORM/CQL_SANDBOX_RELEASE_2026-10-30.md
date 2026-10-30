@@ -70,3 +70,16 @@ Cfree66,633,560,064B after candidate verification, outputs otherwise unmeasured.
 - `TestResults/Web4SandboxCqlCurrent/release-lifecycle-controls.trx`: 39716B, SHA256 `efb9a15ab5eb3e53daee37439e8ec825bfbc2f2acb0a2383e39eb3a0c3a26885`.
 
 - `TestResults/Web4SandboxCqlCurrent/lifecycle-native.trx`: 11944B, SHA256 `f4f661ae870818d10bd0ec57943cf727414cbdef4e7ac38613fa0c9bc33cd086`.
+
+## Published batch / verified live wait
+
+Core Development432c613 and parent Developmentdfceb139239283cba960d954a9c2fd881dbd2a2b
+pushed/ls-remote verified30Oct2026. Explicit free profile staged on existing dev
+WEB4 with --skip-deploys and exact canonical read-back. Native providers0, tariffs0,
+row/scalar/federation only, no ledger initialization or paid service created.
+Railway deploymentefd2c5c1-288b-4b58-8b8c-bee0f1690003 is BUILDING for this exact
+parent commit (created15:56:47UTC). Do not start a duplicate deployment or infer success.
+Observed GitHub runs41085351582 CI/CD queued,41085351698 ONET/ONODE in progress,
+41085351542 subscription protocol in progress; external workflow-managed resources.
+Next: observe this exact deployment to terminal status, then actual hosted session,
+query and isolation checks. Static Web4Site publication still pending live proof.
