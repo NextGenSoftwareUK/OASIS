@@ -12,9 +12,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.UnitTests;
 public class QuestDbSaveOwnershipTests
 {
     private sealed class Coffee : Holon { public string Category { get; set; } = "coffee"; }
-    private sealed class Connection : DbConnection
+    internal sealed class Connection : DbConnection
     {
         public Func<DbCommand, CancellationToken, Task<int>> Execute = (_, _) => throw new InvalidOperationException();
+        public Func<DbCommand, CancellationToken, Task<DbDataReader>> Read = (_, _) => throw new InvalidOperationException();
         public bool FailOpen, Disposed;
         private ConnectionState state;
         public override string ConnectionString { get; set; } = "";
@@ -54,6 +55,7 @@ public class QuestDbSaveOwnershipTests
         public override Task<int> ExecuteNonQueryAsync(CancellationToken token) => owner.Execute(this, token);
         public override object? ExecuteScalar() => throw new NotSupportedException();
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior) => throw new NotSupportedException();
+        protected override Task<DbDataReader> ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken token) => owner.Read(this, token);
         protected override void Dispose(bool disposing) { if (disposing) parameterOwner.Dispose(); base.Dispose(disposing); }
     }
 
