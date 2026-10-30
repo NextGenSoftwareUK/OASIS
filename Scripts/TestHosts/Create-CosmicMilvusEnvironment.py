@@ -124,7 +124,8 @@ def main():
         'tls': {'serverPemPath': '/etc/cosmic/tls/node.crt', 'serverKeyPath': '/etc/cosmic/tls/node.key', 'caPemPath': '/etc/cosmic/ca.pem'},
         'mq': {'type': 'rocksmq'}, 'rocksmq': {'path': '/var/lib/milvus/rdb_data', 'lrucacheratio': .01},
         'localStorage': {'path': '/var/lib/milvus/data'},
-        'proxy': {'http': {'enabled': True, 'enableV1': False, 'enablePprof': False, 'enableWebUI': False}},
+        # Native TLS requires distinct HTTP/gRPC listeners; publish only HTTPS19530.
+        'proxy': {'port': 19532, 'http': {'port': 19530, 'enabled': True, 'enableV1': False, 'enablePprof': False, 'enableWebUI': False}},
         'rootCoord': {'dmlChannelNum': 4}, 'log': {'level': 'warn', 'file': {'rootPath': ''}}}
     (STATE/'config/user.yaml').write_text(json.dumps(config))
     (STATE/'config/embedEtcd.yaml').write_text(json.dumps({'listen-client-urls': 'http://127.0.0.1:2379',

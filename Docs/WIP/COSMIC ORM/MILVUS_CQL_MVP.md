@@ -118,3 +118,18 @@ verify TLS/auth/emptycatalogue/originalcluster identity and actualrestart before
 provisioning schema or seeding records. The environment helper currently fails
 acceptance; no native/paired demo proof. Raw logs remain
 TestResults/MilvusCqlCurrent/environment.log and environment-reconciled.log.
+
+### Retained TLS startup correction — 30 October 2026
+Pinned upstream `internal/distributed/proxy/listener_manager.go:95-99` rejects
+TLS when HTTP shares the gRPC listener. Configure proxy.port19532 and
+proxy.http.port19530; retain host19531, same container, source, CA and credentials.
+Authenticated native collections/list now returns code0/empty; unauthenticated
+access rejects. Embedded identity matches the original cluster/member exactly.
+No collections or demo records created. Initial authenticated identity receipt is
+retained as /var/tmp/oasis-milvus-cql/initial.ack.json.
+Shutdown then exposes a separate native panic: dependency/kv.CloseEtcdClient
+(kv_client_handler.go:38), after coordinators/nodes stop, exits134/noOOM.
+The strict stop check correctly rejects it: restart acceptance remains incomplete,
+environment.pending remains, and no full-demo/inventory green is claimed.
+Next: inspect pinned embedded-client close ownership and prove safe restart on
+the same source. Preserve the failure; do not accept134 as clean shutdown.
