@@ -1,7 +1,14 @@
 """Native CQL acceptance using the same original Community source across restart."""
 from pathlib import Path
-import fcntl, hashlib, json, os, pwd, runpy, socket, subprocess, time
+import argparse, fcntl, hashlib, json, os, pwd, runpy, socket, subprocess, sys, time
 import xml.etree.ElementTree as ET
+sys.dont_write_bytecode = True
+from cosmic_linux_mongo_service import owned_linux_mongo
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+assert not options.serve or options.federated
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = Path('/var/tmp/oasis-couchbase-cql')
@@ -61,18 +68,37 @@ def main():
                         break
                     assert time.monotonic() < deadline, 'Original bucket warmup deadline'
                     time.sleep(.5)
-                env = {**os.environ, 'DOTNET_ROOT': '/var/tmp/oasis-runtimes/dotnet-10.0.12',
-                    'OASIS_COUCHBASE_CQL_STATE': str(STATE)}
-                started = time.time()
-                with (RESULTS/(phase+'.log')).open('w') as log:
-                    subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~CouchbaseCqlNativeTests',
+                def report(phase, test='CouchbaseCqlNativeTests', extra=None):
+                    env = {**os.environ, 'DOTNET_ROOT': '/var/tmp/oasis-runtimes/dotnet-10.0.12',
+                        'OASIS_COUCHBASE_CQL_STATE': str(STATE), **(extra or {})}
+                    started = time.time()
+                    with (RESULTS/(phase+'.log')).open('w') as log:
+                        subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~'+test,
                         '--ResultsDirectory:'+str(RESULTS), '--Logger:trx;LogFileName='+phase+'.trx'],
                         cwd=RESULTS, env=env, preexec_fn=demote, stdout=log, stderr=subprocess.STDOUT, check=True)
-                trx = RESULTS/(phase+'.trx')
-                assert trx.stat().st_mtime >= started
-                counts = ET.parse(trx).find('.//{*}Counters').attrib
-                assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
-                proofs.append({'phase': phase, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
+                    trx = RESULTS/(phase+'.trx')
+                    assert trx.stat().st_mtime >= started
+                    counts = ET.parse(trx).find('.//{*}Counters').attrib
+                    assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
+                    proofs.append({'phase': phase, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
+                report(phase)
+                if phase == 'native-restart' and options.federated:
+                    owner = Path('/var/tmp/oasis-cosmic-mongo/data').stat().st_uid
+                    assert owner != 0
+                    os.setresuid(owner, owner, 0)
+                    try:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            os.setresuid(0, 0, 0)
+                            try:
+                                report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
+                                report('mongo-federation', 'CouchbaseMongoCqlNativeTests',
+                                    {**mongo_env, 'COSMIC_COUCHBASE_MONGO_SERVE': '1' if options.serve else '0'})
+                                assert not (STATE/'mongo.pending.json').exists()
+                            finally:
+                                os.setresuid(owner, owner, 0)
+                    finally:
+                        os.setresuid(0, 0, 0)
+                    report('native-postpair')
             finally:
                 setup['stop']()
                 assert not inspect()['State']['Running']

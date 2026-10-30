@@ -477,3 +477,18 @@ C#/HTTP/browser show5physical rows then4for the2-ID subset with provider provena
 Browser5141; stop through the demo control to check exactMongo cleanup/native retention.
 Bounded identity selection only; full-text translation/replication/parity remain open.
 [Commands, scope, tests and hashes](OPENSEARCH_CQL_MVP.md).
+
+## Couchbase + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Couchbase -Federated`
+(add `-VerifyOnly` for bounded checks). The free Community8.0.2 native server and
+Mongo return five physical rows, or four for the two-record subset. Browser5142
+shows provider provenance. The spaced/commented C# example is
+`Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs`, executed by HolonManager;
+HTTP uses POST `/api/cql/federation` with `{ "preset": "all" }` or `"subset"`.
+Only bounded identity equality/membership/Boolean selection/paging is admitted;
+other predicates are rejected. Original JSON/exact unsigned CAS survive native
+restart. Local authenticated plaintext loopback scope; no hosted, TLS, conditional
+CAS write, distributed snapshot or full EF parity claim. Stop with the page button
+so the runner verifies/removes only its temporary Mongo fixture and preserves the
+original Couchbase source. [Proof and prerequisites](COUCHBASE_CQL_MVP.md).
