@@ -2,7 +2,7 @@
 
 [Current status](CURRENT_STATUS.md) owns the exact next step; [checklist](CQL_PARITY_CHECKLIST.md) owns provider acceptance. Full scope remains active.
 
-1. Complete hosted MongoDB/SQLite/Neo4j acceptance. The deployed fix batch is healthy and three source saves succeeded; an older SQLite lineage barrier prevents convergence. Point-load provider-scope fix is tested on the task branch, awaiting scheduled integration.
+1. Hosted MongoDB/SQLite/Neo4j demo acceptance verified:35HTTP steps/no failures after two explicit baseline repairs. Preserve evidence/current fixtures; broader failure/cutover requirements remain separate red checklist scopes. Continue Oracle content pairing and browser publication next.
 2. Establish explicit late-replica baseline and authorized reconciliation acceptance (X10a/X10b). Never weaken receiver lineage or skip/delete retained obligations to obtain a green demo.
 3. Continue demo content-query breadth: Oracle Mongo-paired C#/HTTP/browser presets, followed by the approved provider list in CURRENT_STATUS. Each preset needs actual rows, provider provenance and tenant isolation; point reads alone are insufficient.
 4. Hosted Azure remains pending at the user's direction (free-only, no existing free subscription). Native emulator proof does not satisfy hosted acceptance.

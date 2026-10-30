@@ -35,11 +35,11 @@ public sealed class ReplicaBaselineRepairCommandTests
         var ownership=Path.Combine(state,"fixture.json");
         if(File.Exists(ownership))Assert.True(JsonDocument.Parse(await File.ReadAllTextAsync(ownership)).RootElement.GetProperty("cleaned").GetBoolean());
         var client=new MongoClient(uri);using(var names=await client.ListDatabaseNamesAsync())Assert.DoesNotContain(database,await names.ToListAsync());
-        var actor=Guid.NewGuid();var id=Guid.NewGuid();var initialization=Guid.NewGuid();var owner=Guid.NewGuid().ToString("D");
+        var actor=Guid.NewGuid();var creator=Guid.NewGuid();var id=Guid.NewGuid();var initialization=Guid.NewGuid();var owner=Guid.NewGuid().ToString("D");
         void Record(bool cleaned)
         {
             using(var file=new FileStream(ownership+".tmp",FileMode.CreateNew,FileAccess.Write,FileShare.None))
-            {JsonSerializer.Serialize(file,new{owner,database,targetPath,journal,actor,id,initialization,cleaned});file.Flush(true);}
+            {JsonSerializer.Serialize(file,new{owner,database,targetPath,journal,actor,creator,id,initialization,cleaned});file.Flush(true);}
             File.Move(ownership+".tmp",ownership,true);
         }
         Record(false);
@@ -57,7 +57,7 @@ public sealed class ReplicaBaselineRepairCommandTests
             IHolon current=new Holon{Id=id,Name="late demo baseline"};
             async Task Save(int version)
             {
-                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),actor,ProviderType.MongoDBOASIS,
+                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),version==1 ? creator:actor,ProviderType.MongoDBOASIS,
                     new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.MongoDBOASIS))}),
                     ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
                 var result=version<4 ? await source.ExecuteConditionalHolonWriteAsync(request)
@@ -83,6 +83,9 @@ public sealed class ReplicaBaselineRepairCommandTests
             {MongoDBOASIS=new MongoDBOASISProviderSettings{ConnectionString=uri,DBName=database},SQLLiteDBOASIS=new SQLLiteDBOASISSettings{ConnectionString=connection}}}};
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourcePayloadDigest=new string('0',64)},journal));
             Assert.Equal(HolonDeliveryState.ReconciliationRequired,(await outbox.InspectAsync(held.Sequence)).Result.State);
+            var wrongActor=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourceActorId=creator},journal);
+            Assert.Equal("COSMIC_REPLICA_INITIALIZATION_DENIED",wrongActor.ErrorCode);
+            Assert.False(File.Exists(journal),"A creator/writer mismatch must refuse before submission intent is published.");
             var repaired=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal);
             Assert.False(repaired.IsError,repaired.Message+repaired.Exception);Assert.True(repaired.Result);
             var acknowledged=await File.ReadAllBytesAsync(journal);
@@ -96,7 +99,8 @@ public sealed class ReplicaBaselineRepairCommandTests
                     ProviderType.SQLLiteDBOASIS,HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS),ProviderType.MongoDBOASIS)},"owned-command-test");
                 var next=await delivery.DispatchOnceAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS));
                 Assert.Equal(1,next.Result.CompletedCount);
-                Assert.Equal(5,(await target.LoadHolonAsync(id,loadChildren:false)).Result.Version);
+                var copied=(await target.LoadHolonAsync(id,loadChildren:false)).Result;
+                Assert.Equal(5,copied.Version);Assert.Equal(creator,copied.CreatedByAvatarId);
             }
             complete=true;
         }

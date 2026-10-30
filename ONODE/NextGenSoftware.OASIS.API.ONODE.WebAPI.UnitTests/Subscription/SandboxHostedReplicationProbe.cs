@@ -55,9 +55,11 @@ public sealed class SandboxHostedReplicationProbe
                 .Limit(1).SingleOrDefaultAsync(deadline.Token);
             var headNodes = new List<object>();
             var headIds = new List<string>();
+            Guid? sourceActorId = null;
             if (sqliteHead != null)
             {
                 using var payload = JsonDocument.Parse(sqliteHead["PayloadJson"].AsString);
+                sourceActorId = payload.RootElement.GetProperty("ActorId").GetGuid();
                 var nodes = payload.RootElement.GetProperty("Nodes");
                 Assert.True(nodes.GetArrayLength() <= 100);
                 foreach (var node in nodes.EnumerateArray())
@@ -65,7 +67,7 @@ public sealed class SandboxHostedReplicationProbe
                     using var record = JsonDocument.Parse(node.GetProperty("RecordJson").GetString()!);
                     var identity = record.RootElement.GetProperty("Id").GetGuid().ToString("D");
                     headIds.Add(identity);
-                    headNodes.Add(new { id = identity, sourceActorId = record.RootElement.GetProperty("CreatedByAvatarId").GetGuid(), version = record.RootElement.GetProperty("Version").GetInt32(),
+                    headNodes.Add(new { id = identity, createdByAvatarId = record.RootElement.GetProperty("CreatedByAvatarId").GetGuid(), version = record.RootElement.GetProperty("Version").GetInt32(),
                         versionId = record.RootElement.GetProperty("VersionId").GetGuid(),
                         previousVersionId = record.RootElement.GetProperty("PreviousVersionId").GetGuid() });
                 }
@@ -104,7 +106,7 @@ public sealed class SandboxHostedReplicationProbe
                 mutationCommands = 0, observedCommands = commands.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value),
                 sqliteQueueHead = sqliteHead == null ? null : new { sequence = sqliteHead["Sequence"].ToInt64(),
                     operationId = sqliteHead["OperationId"].AsString, state = sqliteHead["DeliveryState"].AsString,
-                    attempts = sqliteHead["AttemptCount"].ToInt32(), payloadDigest = sqliteHead["PayloadDigest"].AsString,
+                    attempts = sqliteHead["AttemptCount"].ToInt32(), sourceActorId, payloadDigest = sqliteHead["PayloadDigest"].AsString,
                     sourceStoreIdentity = ReplicaBaselineRepairCommand.StoreIdentity(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_URI")!,
                         Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE")!),
                     errorCode = sqliteHead["LastErrorCode"].IsBsonNull ? null : sqliteHead["LastErrorCode"].AsString,
