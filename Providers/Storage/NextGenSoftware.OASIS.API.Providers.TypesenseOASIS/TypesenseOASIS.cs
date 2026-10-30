@@ -29,11 +29,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
     ///   host   — Typesense host URL, e.g. "http://localhost:8108"
     ///   apiKey — Typesense API key (X-TYPESENSE-API-KEY header)
     /// </summary>
-    public class TypesenseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class TypesenseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical Holon writes and CQL are not implemented and reject when enabled.
+        /// This flag must not imply a historical revision was stored.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -51,10 +51,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         private const string ColDetails = "oasis_avatar_details";
         private const string ColHolons = "oasis_holons";
 
-        public TypesenseOASIS(string host, string apiKey)
+        public TypesenseOASIS(string host, string apiKey) : this(new HttpClient(), host, apiKey) { }
+
+        // Supply a dedicated caller-owned client.
+        public TypesenseOASIS(HttpClient client, string host, string apiKey)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Add("X-TYPESENSE-API-KEY", apiKey);
             ProviderName = "TypesenseOASIS";
             ProviderDescription = "Typesense provider (fast fuzzy-search engine via REST API)";
@@ -65,36 +68,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
-        private async Task EnsureCollectionAsync(string name)
-        {
-            // Check if collection exists
-            var resp = await _http.GetAsync($"{_host}/collections/{name}");
-            if (resp.IsSuccessStatusCode) return;
-
-            var schema = new
-            {
-                name,
-                fields = new object[]
-                {
-                    new { name = "id", type = "string" },
-                    new { name = ".*", type = "auto" }
-                }
-            };
-            await _http.PostAsync($"{_host}/collections", Json(schema));
-        }
-
         private async Task<T?> GetDocAsync<T>(string collection, string id)
         {
             var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
             if (!resp.IsSuccessStatusCode) return default;
             var json = await resp.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(json, _jsonOpts);
-        }
-
-        private async Task UpsertDocAsync(string collection, object doc)
-        {
-            var content = new StringContent(Ser(doc), Encoding.UTF8, "application/json");
-            await _http.PostAsync($"{_host}/collections/{collection}/documents?action=upsert", content);
         }
 
         private async Task<List<T>> SearchAllAsync<T>(string collection)
@@ -141,6 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureCollectionAsync(ColAvatars);
                 await EnsureCollectionAsync(ColDetails);
                 await EnsureCollectionAsync(ColHolons);
@@ -333,11 +313,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(holon), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{holon.Id}\"").RootElement;
-                await UpsertDocAsync(ColHolons, doc);
-                result.Result = holon; result.IsError = false; result.Message = $"TypesenseOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("Typesense historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(ColHolons, payload);
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -347,9 +337,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"TypesenseOASIS: Saved {saved.Count} holons."; return result;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
