@@ -3,6 +3,7 @@
 1. **[Current status — start here after compaction](CURRENT_STATUS.md)**
 
 - [Approved content-query demo expansion: first10providers, features and acceptance](CONTENT_QUERY_DEMO_ROADMAP.md)
+- [WEB4 sandbox integration for every provider demo](SANDBOX_PROVIDER_DEMO_ROADMAP.md)
 2. [Presenter run-through](CQL_DEMO_RUNTHROUGH.md) and [demo launcher](CQL_DEMO_LAUNCHER.md). [All-provider MVP expansion](CQL_DEMO_EXPANSION_ROADMAP.md) and [provider inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): active priority before full parity. [Solana next-provider admission](CQL_SOLANA_DEMO_ADMISSION.md) and [chain query contract](CQL_CHAIN_QUERY_CONTRACT.md). [fresh reusable environments](CQL_DEMO_ENVIRONMENTS.md), [IPFS admission](CQL_IPFS_DEMO_ADMISSION.md) and [protocol admission](CQL_PROTOCOL_DEMO_ADMISSION.md) and [verified Mastodon CQL point profile](CQL_ACTIVITYPUB_NATIVE_PROFILE.md).
 3. [CQL parity checklist](CQL_PARITY_CHECKLIST.md): one feature row, independent proof per database; red rows only.
 3. [CQL completion roadmap](CQL_COMPLETION_ROADMAP.md) and [COSMIC ORM roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).

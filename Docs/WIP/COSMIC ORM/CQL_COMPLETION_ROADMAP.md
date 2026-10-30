@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-**Current priority: [approved10-provider content-query demo set](CONTENT_QUERY_DEMO_ROADMAP.md)** — name/description, metadata equality and AND/OR; reuse green proofs and work missing rows only. Further ID-only breadth follows this set.
+**Current priority: [approved10-provider content-query demo set](CONTENT_QUERY_DEMO_ROADMAP.md)** — name/description, metadata equality and AND/OR; reuse green proofs and work missing rows only. [WEB4 sandbox coverage](SANDBOX_PROVIDER_DEMO_ROADMAP.md) is required for these and all existing/future provider demos. Further ID-only breadth follows this set.
 
 QuestDB:65controls/native first+restart pass; Mongo-paired/browser deferred behind content-query priority. [Scope](QUESTDB_CQL_MVP.md).
 

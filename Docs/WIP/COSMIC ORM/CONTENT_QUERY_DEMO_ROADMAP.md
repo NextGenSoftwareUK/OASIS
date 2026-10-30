@@ -51,7 +51,7 @@ explicit migration/provisioning policy; preserve existing sources and credential
    Reject unsupported shapes with explicit capability errors.
 3. Add targeted compiler/adapter tests, then native cases over several records
    with positive/negative selections, mixed predicates and stable paging.
-4. Verify C#/HTTP/browser examples with clear spacing/comments and provider
+4. Verify C#/HTTP/browser and [WEB4 sandbox integration](SANDBOX_PROVIDER_DEMO_ROADMAP.md) with clear spacing/comments and provider
    provenance. Preserve existing ID-query presets where useful.
 5. Link each completed feature to its proving test/demo in the existing checklist
    and provider report; do not mark an entire provider complete from one query.
@@ -70,3 +70,7 @@ an unmeasured planning estimate, not a delivery commitment. Establish a more use
 estimate after the initial capability audit and first native implementation.
 
 [Current status](CURRENT_STATUS.md) / [completion roadmap](CQL_COMPLETION_ROADMAP.md).
+
+WEB4 sandbox coverage is required for existing and future provider demos; local
+MVP proof remains separate from deployed sandbox proof. Follow the linked sandbox
+roadmap for API/UI/runtime configuration, visitor isolation and cleanup acceptance.
