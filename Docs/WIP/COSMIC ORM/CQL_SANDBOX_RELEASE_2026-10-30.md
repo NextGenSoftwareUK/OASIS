@@ -163,3 +163,12 @@ Six offline protocol tests pass via python Scripts/Sandbox/test_hosted_cql_demo.
 Retained operation56eaea32-a323-46c4-8f48-7120ca503de8/requesta7b65189-bb18-4325-9bcc-4489e09b98e1 received503 COSMIC_WRITE_ADMISSION_REQUIRED. At its exact deployed parent89a960111, that error is emitted before ConfigureOASISEngine/manager acquisition in DataController.Save and before any write dispatch. Those source blobs are unchanged in the tested candidate. Seven hosted-boundary controls pass, including a configured CQL-only profile rejecting an unadmitted save with zero manager acquisitions. Evidence rejected-save-controls.trx SHA256 f6f4f7824a1587256e6ac6c2950257b14a10dccceca5f7b1853c1987b8a809e6.
 
 The original fixture was moved byte-for-byte into LocalState/COSMIC/HostedSandboxCqlCurrent/Archive/fixture-admission-rejected-56eaea32-a323-46c4-8f48-7120ca503de8.json, SHA256 a980c6cb451d20ab5b29c44b79a4ef0e69b6528aa62bd78dea37e2384b0f6aa6; adjacent reconciliation manifest records disposition, deployed source hashes and test hash. No provider request repeated, no database reset/deletion, no acknowledged business save. A future corrected-deployment run can declare a new operation/fixture; never reuse the rejected operation as a successful save. This reconciliation does not resolve previously executed queries whose receipt settlement is pending.
+
+## Approved third daily batch admission
+
+Human explicitly approved one additional consolidated Development push today for the tested receipt/Mongo/write-admission fixes, excluding newer provider work. Broad task f89cf0085/Core69bb8a4 preserved/pushed; existing checkout switched to scoped47f7f2606/Corefdca0ed. Fetched both Development refs unchanged89a960111/Core432c613; use normal fast-forward pushes only. All7 scoped builds pass without restore;30API controls+8native billing lifecycle+4native ancestor cases pass/no skips, fixtures removed/owned Mongo stopped. Free profilev2 staged on existing dev WEB4 with --skip-deploys, exact prior-profile comparison/readback verified. No unrelated config/ledger reset/new environment. Source publication and hosted acceptance remain next.
+
+Scoped fresh evidence in TestResults/Web4SandboxCqlCurrent:
+- deploy-api-controls.trx: SHA256 d56058fca4545f28fd5c99e654d46eb28ef7d3e7cf5ca227fec679fa6829f397.
+- lifecycle-native.trx: SHA256 470db1000150bcc5452f8b7d01df155369247d19f00d2893ffd61fd38a6ec0a8.
+- mongo-ancestor-native.trx: SHA256 998d2dfd8b18ba40dc78400749b9b912d2684cd1dd2b1326ed2318d0c07f5443.
