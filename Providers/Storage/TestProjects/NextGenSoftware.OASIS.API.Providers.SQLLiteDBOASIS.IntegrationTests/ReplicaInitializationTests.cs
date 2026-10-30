@@ -62,6 +62,10 @@ public partial class SQLLiteDBOASISIntegrationTests
             Assert.False((await target.ActivateProviderAsync()).IsError);
             var baseline = ReplicaSnapshot(committed, actor);
             Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", (await target.ApplyCommittedHolonReplicaAsync(baseline)).ErrorCode);
+            var beforeInspection=System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath));
+            var absent=await target.ReadReplicaInitializationOutcomeAsync(baseline);
+            Assert.False(absent.IsError,absent.Message+absent.Exception);Assert.Equal(ConditionalHolonReceiptState.Absent,absent.Result.ReceiptState);
+            Assert.Null(absent.Result.ReceiptDigest);Assert.Equal(beforeInspection,System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath)));
 
             var installed = synchronous ? target.InitializeCommittedHolonReplica(baseline)
                 : await target.InitializeCommittedHolonReplicaAsync(baseline);
@@ -74,14 +78,22 @@ public partial class SQLLiteDBOASISIntegrationTests
             Assert.Single(original.Children);
             Assert.NotEqual(CosmicConcurrency.GetProviderRevisionId(committed, ProviderType.SQLLiteDBOASIS),
                 CosmicConcurrency.GetProviderRevisionId(original, ProviderType.SQLLiteDBOASIS));
+            beforeInspection=System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath));
+            var committedStatus=await target.ReadReplicaInitializationOutcomeAsync(baseline);
+            Assert.False(committedStatus.IsError,committedStatus.Message+committedStatus.Exception);
+            Assert.Equal(ConditionalHolonReceiptState.Committed,committedStatus.Result.ReceiptState);Assert.Equal(64,committedStatus.Result.ReceiptDigest.Length);
+            Assert.Equal(beforeInspection,System.Security.Cryptography.SHA256.HashData(await File.ReadAllBytesAsync(_databasePath)));
 
             var nextInput = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(committed);
             nextInput.Children = committed.Children.Select(child => (IHolon)NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<Holon>(child)).ToList();
             nextInput.Name = "source version five";
             var next = await CommitReplicaSource(source, nextInput, actor);
-            var delivered = await target.ApplyCommittedHolonReplicaAsync(ReplicaSnapshot(next, actor));
+            var ordinary=ReplicaSnapshot(next, actor);
+            var delivered = await target.ApplyCommittedHolonReplicaAsync(ordinary);
             Assert.False(delivered.IsError, delivered.Message + delivered.Exception);
             Assert.Equal(5, delivered.Result.Single().Version);
+            Assert.Equal("COSMIC_INITIALIZATION_STATUS_UNVERIFIED",(await target.ReadReplicaInitializationOutcomeAsync(ordinary)).ErrorCode);
+            Assert.Equal(committedStatus.Result.ReceiptDigest,(await target.ReadReplicaInitializationOutcomeAsync(baseline)).Result.ReceiptDigest);
 
             var replay = await target.InitializeCommittedHolonReplicaAsync(baseline);
             Assert.False(replay.IsError, replay.Message + replay.Exception);
@@ -89,6 +101,15 @@ public partial class SQLLiteDBOASISIntegrationTests
             Assert.Equal(4, replay.Result.Single().Version);
             Assert.Equal(5, (await target.LoadHolonAsync(committed.Id, false)).Result.Version);
             Assert.Equal("COSMIC_OPERATION_ID_REUSED", (await target.ApplyCommittedHolonReplicaAsync(baseline)).ErrorCode);
+            using(var control=new SqliteConnection(TestConnectionString))
+            {
+                control.Open();using var command=control.CreateCommand();
+                command.CommandText="SELECT ResultJson FROM CosmicWriteReceipt WHERE OperationId=$id";command.Parameters.AddWithValue("$id",baseline.OperationId.ToString("D"));
+                var valid=(string)command.ExecuteScalar()!;var damaged=valid.Replace("committed baseline","corrupt baseline");Assert.NotEqual(valid,damaged);
+                command.CommandText="UPDATE CosmicWriteReceipt SET ResultJson=$json WHERE OperationId=$id";command.Parameters.AddWithValue("$json",damaged);command.ExecuteNonQuery();
+                Assert.Equal("COSMIC_INITIALIZATION_STATUS_UNVERIFIED",(await target.ReadReplicaInitializationOutcomeAsync(baseline)).ErrorCode);
+                command.Parameters["$json"].Value=valid;command.ExecuteNonQuery();
+            }
         });
     }
 

@@ -30,3 +30,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [Three-database hub routing and retained-fixture preflight](CQL_DATABASE_DEMO_HUB.md): discovery verified; native launch pending reconciliation.
 
 - [Replica baseline and recovery: native implementation and remaining hosted gates](REPLICA_BASELINE_AND_RECOVERY.md).
+
+- [After-demo backlog: preserved deferred work](AFTER_DEMO_BACKLOG.md).
