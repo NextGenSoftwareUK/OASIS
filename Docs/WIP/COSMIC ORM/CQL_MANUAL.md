@@ -1532,6 +1532,18 @@ canonical JSON, not Azure SQL or full LINQ certification. Stop with the page but
 original SQL Server source is retained, verified temporary Mongo fixture removed.
 [Full scope, tests and evidence](SQLSERVER_CQL_MVP.md).
 
+For SQL Server name/description/metadata/AND/OR on both native sources:
+
+```powershell
+Scripts/TestHosts/Run-CosmicSqlServerCqlNative.ps1 -Content -Federated -Serve
+```
+
+Open http://127.0.0.1:5113/. The4content buttons return2/4/4/2 physical copies
+with provider labels; the same spaced/commented C# presets drive SDK/HTTP/browser.
+Native23-query/restart and paired C#/HTTP/browser proofs pass. Stop with the page
+button to verify temporary Mongo cleanup while retaining SQL Server sources.
+Deployed sandbox authorization/admission remains a separate gate.
+
 ## DuckDB + Mongo MVP
 
 Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider DuckDB -Federated`.
