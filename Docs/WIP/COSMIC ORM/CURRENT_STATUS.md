@@ -9,7 +9,7 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 - Railway WEB4 deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b for exact repair commit is QUEUED: Waiting for build slot. Prior active deploymentca0c6055-2ab7-4517-b790-40431aa4e7d5 serves olde6c09bf. Do not start a replacement build or claim repair live.
 - Eight builds, 36 API/schema/metadata controls, eight real native billing lifecycle cases and four native ancestor cases passed. Owned fixtures removed; Mongo stopped.
 - Hosted verifier acknowledged all three demo saves with accounting operation IDs. Subsequent point-read observations timed out after 45 seconds; CQL acceptance stages did not run. Do not call the hosted demo verified.
-- Preserve LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json and its three write acknowledgements. No pending mutation; never replay those writes. JWT was process-memory only and is no longer available.
+- Preserve LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json and its three write acknowledgements. No pending mutation; never replay those writes. Original JWT is unavailable. Verifier now protects future sessions with Windows DPAPI and supports --resume for three fully acknowledged saves;8 offline controls pass. This cannot recover the old token.
 - Evidence: TestResults/Web4SandboxCqlCurrent/hosted-demo-verification.json and LocalState/COSMIC/HostedSandboxCqlCurrent/read-diagnostic.json. Read shapes alone do not establish which replication copies exist.
 
 ## Configuration correction

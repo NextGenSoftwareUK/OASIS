@@ -11,12 +11,79 @@ import time
 import urllib.error
 import urllib.request
 import uuid
+import ctypes
+from ctypes import wintypes
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / 'LocalState/COSMIC/HostedSandboxCqlCurrent'
 RESULTS = ROOT / 'TestResults/Web4SandboxCqlCurrent'
 BASE = 'https://dev.api.web4.oasisomniverse.one/api/'
 PROVIDERS = ['MongoDBOASIS', 'SQLLiteDBOASIS', 'Neo4jOASIS']
+
+
+def protected_token(value, *, decrypt=False):
+    """Windows account/machine-bound DPAPI; no plaintext bearer in journals/logs."""
+    if os.name != 'nt':
+        raise RuntimeError('Use the existing Windows verification environment for protected sessions.')
+
+    class Blob(ctypes.Structure):
+        _fields_ = [('size', wintypes.DWORD), ('data', ctypes.POINTER(ctypes.c_ubyte))]
+
+    buffer = ctypes.create_string_buffer(value)
+    source = Blob(len(value), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_ubyte)))
+    result = Blob()
+    crypt = ctypes.WinDLL('crypt32', use_last_error=True)
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.LocalFree.argtypes = [ctypes.c_void_p]
+    kernel.LocalFree.restype = ctypes.c_void_p
+    if decrypt:
+        call = crypt.CryptUnprotectData
+        call.argtypes = [ctypes.POINTER(Blob), ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p,
+                         ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(Blob)]
+    else:
+        call = crypt.CryptProtectData
+        call.argtypes = [ctypes.POINTER(Blob), wintypes.LPCWSTR, ctypes.c_void_p, ctypes.c_void_p,
+                         ctypes.c_void_p, wintypes.DWORD, ctypes.POINTER(Blob)]
+    call.restype = wintypes.BOOL
+    if not call(ctypes.byref(source), None, None, None, None, 1, ctypes.byref(result)):
+        raise RuntimeError('Protected session operation failed; preserve the original fixture.')
+    try:
+        return ctypes.string_at(result.data, result.size)
+    finally:
+        kernel.LocalFree(ctypes.cast(result.data, ctypes.c_void_p))
+
+
+def store_session(identity, token):
+    path = STATE / ('session-' + str(uuid.UUID(identity)) + '.dpapi')
+    encrypted = protected_token(token.encode('utf-8'))
+    with path.open('xb') as stream:
+        stream.write(encrypted)
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def load_session(avatar):
+    path = STATE / ('session-' + str(uuid.UUID(avatar['id'])) + '.dpapi')
+    if not path.is_file():
+        raise RuntimeError('Original protected session is unavailable; never impersonate its owner or replay saves.')
+    return protected_token(path.read_bytes(), decrypt=True).decode('utf-8')
+
+
+def resume_fixture(path):
+    if not path.is_file() or path.with_suffix(path.suffix + '.new').exists():
+        raise RuntimeError('A complete original journal is required for resume.')
+    journal = json.loads(path.read_text(encoding='utf-8'))
+    if journal.get('pending') is not None or journal.get('completed'):
+        raise RuntimeError('Pending or completed fixtures must not be automatically replayed.')
+    records = journal.get('records', [])
+    acknowledgements = {item.get('id') for item in journal.get('acknowledgements', [])
+                        if item.get('path') == 'data/save-holon'}
+    if len(records) != 3 or len({item['id'] for item in records}) != 3 or any(item['id'] not in acknowledgements for item in records):
+        raise RuntimeError('Resume requires all three original acknowledged saves; no reseeding.')
+    owners = [avatar for avatar in journal.get('avatars', []) if avatar.get('label') == 'owner']
+    if len(owners) != 1:
+        raise RuntimeError('One original owner is required.')
+    return journal, load_session(owners[0])
 
 
 def write(path, value):
@@ -79,12 +146,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--deployment', required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument('--commit', required=True)
+    parser.add_argument('--resume', action='store_true', help='Read/query the original acknowledged cohort; never resave it.')
     options = parser.parse_args()
     if not re.fullmatch('[0-9a-f]{40}', options.commit):
         parser.error('--commit must be the exact full published SHA')
     deployment_id, commit = options.deployment, options.commit
     journal_path = STATE / 'fixture.json'
-    require_new_fixture(journal_path)  # Stop before even querying hosted state if an intent exists.
+    if options.resume:
+        journal, resumed_actor = resume_fixture(journal_path)
+    else:
+        require_new_fixture(journal_path)  # Stop before even querying hosted state if an intent exists.
     cli = shutil.which('railway.exe') or shutil.which('railway.cmd') or shutil.which('railway')
     assert cli, 'Reuse the installed Railway CLI; do not install another environment.'
     deployments = json.loads(subprocess.check_output([cli, 'deployment', 'list', '-p',
@@ -93,8 +164,9 @@ def main():
     assert deployment['status'] == 'SUCCESS' and deployment['meta']['commitHash'] == commit, 'Wait for the exact verified deployment; do not create a replacement.'
     STATE.mkdir(parents=True, exist_ok=True)
     RESULTS.mkdir(parents=True, exist_ok=True)
-    journal = {'deployment': deployment_id, 'commit': commit, 'createdUtc': dt.datetime.now(dt.timezone.utc).isoformat(),
-               'tag': uuid.uuid4().hex, 'avatars': [], 'records': [], 'acknowledgements': [], 'pending': None, 'completed': False}
+    if not options.resume:
+        journal = {'deployment': deployment_id, 'commit': commit, 'createdUtc': dt.datetime.now(dt.timezone.utc).isoformat(),
+                   'tag': uuid.uuid4().hex, 'avatars': [], 'records': [], 'acknowledgements': [], 'pending': None, 'completed': False}
     report = {'deployment': deployment_id, 'steps': [], 'failures': []}
     write(journal_path, journal)
 
@@ -130,6 +202,10 @@ def main():
             journal['pending']['response'] = recorded
             write(journal_path, journal)
             identity = acknowledged_identity(path, data)
+            if path == 'sandbox/session':
+                # Protect the token before clearing the session's pending intent.
+                # Tokens remain separate from redacted reports and fixture metadata.
+                store_session(identity, data['result']['jwtToken'])
             journal['acknowledgements'].append({**recorded, 'id': identity})
         journal['pending'] = None
         write(journal_path, journal)
@@ -150,10 +226,10 @@ def main():
         write(journal_path, journal)
         return token
 
-    actor = session('owner')
+    actor = resumed_actor if options.resume else session('owner')
     tag = journal['tag']
     fixture = [('Espresso', 'Strong coffee', 'coffee'), ('Flat White', 'Milky coffee', 'coffee'), ('Tea', 'Black tea', 'tea')]
-    for name, description, category in fixture:
+    for name, description, category in ([] if options.resume else fixture):
         intent = {'operationId': str(uuid.uuid4()), 'providerType': 'MongoDBOASIS', 'saveChildren': False,
             'autoLoadBalanceMode': 'OFF', 'autoFailOverMode': 'OFF', 'autoReplicationMode': 'ON',
             'waitForAutoReplicationResult': True, 'holon': {'name': name, 'description': description, 'isPublic': False,
@@ -208,7 +284,8 @@ def main():
     counts = {provider: sum(row['selected']['provider'] == provider for row in rows) for provider in PROVIDERS}
     if status != 200 or result.get('isError') or counts != {provider: 2 for provider in PROVIDERS}:
         report['failures'].append({'label': 'federation', 'status': status, 'errorCode': result.get('errorCode'), 'providerCounts': counts})
-    visitor = session('other-visitor')
+    previous_visitors = [avatar for avatar in journal['avatars'] if avatar['label'] == 'other-visitor']
+    visitor = load_session(previous_visitors[0]) if previous_visitors else session('other-visitor')
     for provider in PROVIDERS:
         check('visitor-isolation', visitor, provider, own, [])
     write(RESULTS / 'hosted-demo-verification.json', report)
