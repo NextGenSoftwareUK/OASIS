@@ -90,4 +90,4 @@ Monad local native/restart/paired/browser/hub MVP verified: [proof](MONAD_CQL_MV
 
 30 October: CouchDB native/restart/Mongo-paired C#/HTTP/browser5/4 and hub pass.
 All226 provider identities remain in MVP breadth scope;45 linked scoped proofs.
-SurrealDB native/restart/paired/browser5/4 now pass. Next red audit: Dgraph. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).
+SurrealDB native/restart/paired/browser5/4 now pass. Next red provider: ArangoDB (42controls pass; native/paired pending). Dgraph has no exact current source/identity. Deep parity remains deferred. [CouchDB scope](COUCHDB_CQL_MVP.md).
