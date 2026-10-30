@@ -35,15 +35,7 @@ public partial class OracleDBOASIS:ICosmicQueryStorageProvider
             if(!IsProviderActivated)return CqlError("CQL_PROVIDER_INACTIVE","Explicitly activate the configured Oracle provider before querying.");
             await using var connection=new OracleConnection(_connectionString);await connection.OpenAsync(cancellationToken);
             await using var command=CreateCommand(compiled.Result.Sql,connection);
-            for(var index=0;index<compiled.Result.Values.Count;index++)
-                command.Parameters.Add("cql"+index,OracleDbType.Raw,16).Value=compiled.Result.Values[index].ToByteArray();
-            for(var index=0;index<compiled.Result.TextValues.Count;index++)
-            {
-                // Oracle SQL NULL VARCHAR2 binds an empty JSON string in PASSING;
-                // bind other text as VARCHAR2 as well, never as a JSON null.
-                var value=compiled.Result.TextValues[index];
-                command.Parameters.Add("cqltext"+index,OracleDbType.Varchar2,4000).Value=value.Length==0?DBNull.Value:value;
-            }
+            compiled.Result.BindParameters(command);
             await using var reader=await command.ExecuteReaderAsync(cancellationToken);
             var rows=new List<IHolon>();var seen=new HashSet<Guid>();var characters=0;
             while(await reader.ReadAsync(cancellationToken))
