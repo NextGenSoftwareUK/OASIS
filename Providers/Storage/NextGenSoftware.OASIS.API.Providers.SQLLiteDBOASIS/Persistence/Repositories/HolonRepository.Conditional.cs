@@ -32,7 +32,7 @@ public partial class HolonRepository
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false)
     {
         var embedded=request?.Write.ReplicationEnrollment;
         if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)))
@@ -81,8 +81,11 @@ public partial class HolonRepository
         OASISResult<IEnumerable<IHolon>> ApplyInTransaction()
         {
             token.ThrowIfCancellationRequested();
-            if(replicaRequest!=null)replica=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.CommittedHolonReplicaPlan.Create(replicaRequest,Core.Enums.ProviderType.SQLLiteDBOASIS,
-                source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate));
+            if(replicaRequest!=null)replica=initialReplicaBaseline
+                ? CommittedHolonReplicaPlan.CreateInitialBaseline(replicaRequest,Core.Enums.ProviderType.SQLLiteDBOASIS,
+                    source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate))
+                : CommittedHolonReplicaPlan.Create(replicaRequest,Core.Enums.ProviderType.SQLLiteDBOASIS,
+                    source=>Context.DataContext.ValidateDeletionUtc(source.DeletedDate));
             if (request == null && replica == null) throw new ArgumentNullException(nameof(request));
             if (request != null && request.Write.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS)
                 return ConditionalError("COSMIC_AUTHORITY_MISMATCH", "The conditional request belongs to another provider authority.");

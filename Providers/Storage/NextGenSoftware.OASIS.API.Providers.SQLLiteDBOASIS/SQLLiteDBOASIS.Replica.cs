@@ -15,11 +15,17 @@ public sealed class SqliteReplicaReconciliationException(Guid operationId,string
     public string OriginalTransactionId=>string.Empty;
 }
 
-public partial class SQLLiteDBOASIS : ICommittedHolonReplicaStorageProvider
+public partial class SQLLiteDBOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
 {
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         =>_holonRepository.ApplyCommittedHolonReplica(request,CancellationToken.None);
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CancellationToken cancellationToken=default)
         =>Task.FromResult(_holonRepository.ApplyCommittedHolonReplica(request,cancellationToken));
+
+    public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
+        =>_holonRepository.InitializeCommittedHolonReplica(request,CancellationToken.None);
+    public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
+        CancellationToken cancellationToken=default)
+        =>Task.FromResult(_holonRepository.InitializeCommittedHolonReplica(request,cancellationToken));
 }
