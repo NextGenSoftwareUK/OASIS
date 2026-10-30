@@ -5,13 +5,13 @@ Updated30October2026 UTC. Full programme remains incomplete.
 ## Immediate phase: user-approved extra Development fix batch
 
 - Existing backend checkout C:/Source/OASIS-cosmic, parent/Core work/cosmic-cql-sandbox-integration.
-- Corefdca0ed, scoped parent47f7f2606 plus this checkpoint; broader parentwork/cosmic-cql f89cf0085/Core69bb8a4 preserved/pushed.
+- Core39b4571 merges concurrent0fa13ea with receipt fixfdca0ed; ONODE6b5d9d0 preserved; scoped parent66d8a79e8 plus this checkpoint; broader parentwork/cosmic-cql f89cf0085/Core69bb8a4 preserved/pushed.
 - Human approved one extra consolidated Development push today. Only receipt ownership, Mongo root-filter optimization, free write profilev2 and their tests/docs/scripts are included. New PostgreSQL/SQLServer/Oracle changes are excluded.
-- Both remote Development refs fetched/inspected: parent89a960111, Core432c613. Normal fast-forward pushes must reject any concurrent drift; never force.
-- All7 scoped producers/consumers rebuilt againstfdca0ed without restore.30API controls,8real native billing lifecycle and4native ancestor cases pass/no skips. Native owned fixtures removed/Mongo stopped.
+- Both remote Development refs fetched/inspected: parentfb2d21b66, Core0fa13ea. Normal fast-forward pushes must reject any concurrent drift; never force.
+- All8 scoped producers/consumers rebuilt against merged39b4571 without restore.36API/schema/metadata controls,8real native billing lifecycle and4native ancestor cases pass/no skips. Native owned fixtures removed/Mongo stopped.
 - Railway dev WEB4 PREPARED_STORAGE_ADMISSION_JSON v2 staged with --skip-deploys; oldv1/current expected profile compared first, exact canonical readback verified. No duplicate deployment or unrelated setting change.
 
-Exact next: push Corefdca0ed to Development, verify ls-remote; push this scoped parent/pin+manifest together, verify manifest and exact Railway deployment handle. Observe it to terminal, then run the hosted19-call fixture verifier against that exact SHA/deployment; reconcile failures without replay. Frontend main remains unpublished until real acceptance.
+Exact next: push Core39b4571 to Development, verify ls-remote; push this scoped parent/pin+manifest together, verify manifest and exact Railway deployment handle. Observe it to terminal, then run the hosted19-call fixture verifier against that exact SHA/deployment; reconcile failures without replay. Frontend main remains unpublished until real acceptance.
 
 ## Hosted verification and unresolved gates
 
