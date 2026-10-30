@@ -2055,3 +2055,9 @@ Reuse existing SDK/NuGet/Web3Core/EVM test environment, no nativeprocess/fixture
 ### Linea controls outcome — 29 October 2026
 
 Reused worktree, cached .NET/NuGet and build outputs; no installation, native service, database or contract created. Initial repro3failed/5passed; fixed family94passed. Exact evidence/build logs: `C:/Source/OASIS-cosmic/TestResults/LineaCqlCurrent` (size unmeasured), disposable after completed processes; regenerate using the integration project and Linea/EVM family filters. Shared provider/integration bin/obj remain reusable, size unmeasured. All owned build/test processes completed; no new port dependency. Original source/key resources unchanged.
+
+### Linea native admission planned — 29 October 2026
+
+Owner COSMIC/CQL; reuse Ganache7.9.2/solc0.8.26/ethers6.13.1 at `C:/Source/OASIS-cosmic/LocalState/COSMIC/EvmRuntime`, chain31338 original `LocalState/COSMIC/EvmCql/chain-data` and protected `storage-key.dpapi`. New logical contract fixture/intents/acknowledgements/hashes at `C:/Source/OASIS-cosmic/LocalState/COSMIC/EvmCql/Linea` (size pending); preserve original source and keys, no reset/replay on failure. Owned node18547 exists only during runner and must flush via stdin stop. Regenerable reports/logs under `TestResults/EthereumCqlCurrent` and `TestResults/LineaCqlCurrent`; inherited build bin/obj reusable. No downloads or duplicate chain/runtime. Exact measured outcome follows verification.
+
+Linea native outcome: initial1passed/restart1passed, three original encrypted records preserved, no pending journal. Retained `LocalState/COSMIC/EvmCql/Linea` metadata885B; do not delete or recreate. Existing shared chain/runtime/key retained, no downloads. Both owned node18547 processes flushed/exited, no listener remains. Reports in previously recorded TestResults paths are disposable/regenerable. C free before92,219,482,112B; after recorded by command below. Shared chain growth not separately measured.
