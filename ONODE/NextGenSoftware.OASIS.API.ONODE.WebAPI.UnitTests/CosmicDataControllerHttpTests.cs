@@ -341,7 +341,8 @@ public sealed partial class CosmicDataControllerHttpTests
 
     private static async Task WithHost(bool configuredAdmission,
         Func<HttpClient, Guid, Mock<IOASISStorageProvider>, Task> test, bool admitted = false,
-        Action<Mock<IUsageOutboxStore>>? configureOutbox = null)
+        Action<Mock<IUsageOutboxStore>>? configureOutbox = null,
+        Action<ProviderManager>? configureProviders = null)
     {
         var previousDna = Boot.OASISDNA;
         var globals = ProviderManager.Instance;
@@ -370,6 +371,7 @@ public sealed partial class CosmicDataControllerHttpTests
         provider.Setup(value => value.ActivateProvider()).Returns(new OASISResult<bool>(true));
         var providers = new ProviderManager(null, dna);
         providers.RegisterProvider(provider.Object);
+        configureProviders?.Invoke(providers);
         Assert.False(providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError);
         // This host owns an isolated SQLite provider, independently of the global
         // registry's default. Declare that affinity explicitly so a captured

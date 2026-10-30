@@ -288,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         protected bool ResetOASISSettings<T>(OASISRequest request, OASISConfigResult<T> result)
         {
-            // V2 graph writes own their registry; finishing one request cannot
+            // V2 scoped operations own their registry; finishing one request cannot
             // restore an older snapshot over another request's global update.
             if (result.RequestRoutingPolicy != null) return true;
             if (!request.SetGlobally)
@@ -321,9 +321,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private (OASISConfigResult<T>, ProviderType) ConfigureOASISEngineInternal<T>(OASISRequest request)
         {
             OASISConfigResult<T> result = new OASISConfigResult<T>();
-            var scopedWrite = request is Models.Data.IHolonWriteIntentRequest &&
+            var scopedRouting = (request is Models.Data.IHolonWriteIntentRequest || request is Models.Data.LoadHolonRequest) &&
                 OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
-            if (scopedWrite)
+            if (scopedRouting)
             {
                 request.AutoReplicationMode ??= "DEFAULT";
                 request.AutoFailOverMode ??= "DEFAULT";
@@ -353,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return (result, ProviderType.None);
             }
 
-            if (!string.IsNullOrEmpty(request.ProviderType) && !Enum.TryParse(typeof(ProviderType), request.ProviderType, scopedWrite, out providerTypeObject))
+            if (!string.IsNullOrEmpty(request.ProviderType) && !Enum.TryParse(typeof(ProviderType), request.ProviderType, scopedRouting, out providerTypeObject))
             {
                 result.Response = HttpResponseHelper.FormatResponse(new OASISResult<T>() { Message = $"The ProviderType {request.ProviderType} passed in is invalid. It must be one of the following types: {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}.", IsError = true }, HttpStatusCode.BadRequest);
                 return (result, ProviderType.None);
@@ -460,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             //result.AutoFailOverMode = request.AutoFailOverEnabled == "DEFAULT" ? AutoFailOverMode.UseGlobalDefaultInOASISDNA : autoFailOverEnabledTemp == true ? AutoFailOverMode.True : AutoFailOverMode.False;
             //result.AutoLoadBalanceMode = request.AutoLoadBalanceMode == "DEFAULT" ? AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA : AutoLoadBalanceModeTemp == true ? AutoLoadBalanceMode.True : AutoLoadBalanceMode.False;
 
-            if (scopedWrite)
+            if (scopedRouting)
             {
                 try
                 {
