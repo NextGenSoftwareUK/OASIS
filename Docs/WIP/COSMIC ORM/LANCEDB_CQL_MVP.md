@@ -1,11 +1,11 @@
-# LanceDB CQL MVP — Arrow writes/table admission implemented, native pending
+# LanceDB CQL MVP — bounded remote implementation, native pending
 
 30October2026. Inventory stays red; no native source/account/environment created.
 
 Existing provider explicitly targets LanceDB Cloud REST, not embedded OSS.
 Its original implementation sent JSON row envelopes to create/merge_insert and
 parsed query responses as JSON arrays. Merge writes are now corrected below;
-explicit table admission is also corrected below; query protocol correction remains. The [official remote client source](https://github.com/lancedb/lancedb/blob/4d7a64712f7fbe39bffaf110f3eb790943bd7874/rust/lancedb/src/remote/table.rs)
+explicit table admission and query Arrow decoding are also corrected below. The [official remote client source](https://github.com/lancedb/lancedb/blob/4d7a64712f7fbe39bffaf110f3eb790943bd7874/rust/lancedb/src/remote/table.rs)
 uses Arrow IPC upload/response contracts. Current provider wire behavior therefore
 needs protocol correction and proving tests before any native claim. Do not create
 a custom JSON server and label it native LanceDB, or silently switch Cloud to OSS.
@@ -17,15 +17,17 @@ Additional observed root gaps:
   activation is now read-only and schema-validated below. Existing sentinels need
   deliberate migration; none are deleted automatically.
 - Holon save identity/batch ownership is corrected below; other write paths still need review.
-- Native query errors become empty lists; all-documents uses placeholder-vector
-  similarity/topK1000, not a complete document scan.
-- Interpolated identity/metadata predicates are unescaped; capability admission,
-  response identity/Arrow schema checks and byte/time bounds are absent.
+- Original query errors became empty lists and all-documents used placeholder-vector
+  similarity/topK1000. Shared Arrow reader/bounded overflow checks now replace that
+  behavior; unrestricted generic listings are still limited to1000 rows.
+- Existing typed lookup literals are now escaped and unsupported lookup columns
+  reject; capability/response validation is implemented below. Broader predicates
+  and complete generic query/graph semantics remain open.
 - Runtime holon serialization, acknowledged save ownership, explicit table schemas,
   history/children/concurrency/replication/migration remain unverified.
 
-Next: correct remote query Arrow decoding with capability-aware
-CQL. Preserve the explicitly selected Cloud transport; do not substitute embedded OSS.
+Next: real admitted free remote storage verification and Mongo-paired demo.
+Preserve the explicitly selected Cloud transport; do not substitute embedded OSS.
 Native remote acceptance requires an admitted free endpoint/account. No LANCE-named
 environment variable found (names only); broader configuration discovery pending.
 Do not claim credentials are absent everywhere or allocate a paid service.
@@ -101,3 +103,44 @@ Evidence `C:/Source/OASIS-cosmic/TestResults/LanceDbCqlCurrent/schema-controls.t
 SHA25648C9A5EE3937A747A9CCBF8BBF02F730A1BD7A3DCC1F42938D5D748D3991E0B9.
 Bounded leased builds/tests pass, no restore/download required. Real remote native,
 query/CQL and Mongo-paired/browser proof remain open; inventory stays red.
+
+## Bounded Arrow reads and CQL
+
+**67passed/0failed/0skipped**: prior35 save/table tests,9 compiler/adapter cases,
+23 Arrow query/generic-lookup cases. Negotiated native query response is
+`application/vnd.apache.arrow.file`; JSON, stream/unknown media types and incomplete
+file framing reject. One shared reader serves CQL and existing typed lookups.
+Native HTTP errors are surfaced, not returned as empty lists. No vector similarity
+is injected into document queries. Explicit id/doc projection, prefilter=true,
+offset0 and k=maximumRows+1 detect overflow instead of silently truncating.
+Typed username/email/parent lookup columns are whitelisted and string literals
+escaped; generic listings explicitly fail beyond their1000-row adapter budget.
+
+Arrow reader checks every record batch: id/doc UTF8 projection, matching lengths,
+no nulls, canonical unique nonempty GUIDs, document<=1MiB, response<=4MiB encoded,
+row bounds and linked15second deadline. Empty projections are validated too.
+Existing holon loads verify native key versus deserialized payload ID. These are
+encoded/row/document budgets, not a universal expanded-heap bound for arbitrary
+malicious IPC/compression metadata; broader codec resource hardening remains open.
+
+CQL binds the shared bounded-identity algebra to exact LanceDB authority and a
+trusted complete catalogue<=100GUIDs. Captured identity Boolean/membership selection
+becomes a single native SQL ID predicate; stable admitted-key paging happens after
+missing/deleted omission. Native foreign/payload-mismatched rows fail the whole
+result. Unsupported names/metadata/order/graphs reject before native execution;
+empty catalogue causes no I/O. No history/general similarity/distributed snapshot
+capability or native certification is implied.
+
+[Compiler tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.UnitTests/LanceDbCqlTests.cs)
+and [actual Arrow-file tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.UnitTests/LanceDbNativeQueryTests.cs)
+cover multi-batch ordering, native overflow, duplicate/foreign IDs, payload mismatch,
+projection/type/null errors, bad HTTP/media, truncated files, byte/document/result
+budgets, cancellation, deleted/missing rows and typed-lookup SQL quoting/error paths.
+Evidence `C:/Source/OASIS-cosmic/TestResults/LanceDbCqlCurrent/cql-controls.trx`,
+SHA256ADEF7E2B9B90B2A22BE905AB47A726F270664BF21A4AE2F099D664D9B37439BC.
+Cache-only restores/bounded leased builds pass. Initial test compilation exposed an
+Arrow/System.Array name ambiguity, corrected explicitly; no runtime workaround.
+
+Native/free remote account configuration remains unadmitted. No hosted calls,
+local substitute, mock certification or new environment allocated. Inventory remains
+red; continue QuestDB breadth while retaining this native/pair/browser acceptance.
