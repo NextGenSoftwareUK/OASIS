@@ -104,4 +104,87 @@ public class SqlServerCqlTests
         Assert.AreEqual("CQL_PROVIDER_INACTIVE", inactive.ErrorCode);
     }
 
+    [TestMethod]
+    public void NativeContentUsesParameterizedObjectKeysAndOrdinalTextPredicates()
+    {
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        var text = "coffee%_' OR 1=1 --";
+        var key = "category]'; DROP TABLE OASISHolons;--";
+        var query = Query(ids).Where(h => (h.Name == text || h.Description.Contains(text)) &&
+            CosmicQueryMetadata.Value<string>(h, key) == text).Result.Skip(1).Result.Take(1).Result;
+        var compiled = SqlServerCqlCompiler.CompileNative(query, ProviderType.SQLServerDBOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        using var command = compiled.Result.Command;
+        Assert.AreEqual(2, compiled.Result.SourceCount);
+        Assert.IsFalse(command.CommandText.Contains(text));
+        Assert.IsFalse(command.CommandText.Contains(key));
+        StringAssert.Contains(command.CommandText, "OPENJSON");
+        StringAssert.Contains(command.CommandText, "[type]=5");
+        StringAssert.Contains(command.CommandText, "[type]=1");
+        StringAssert.Contains(command.CommandText, "CHARINDEX");
+        StringAssert.Contains(command.CommandText, "DATALENGTH");
+        StringAssert.Contains(command.CommandText, "Latin1_General_100_BIN2");
+        Assert.AreEqual(3, command.Parameters.Cast<Microsoft.Data.SqlClient.SqlParameter>().Count(parameter => Equals(parameter.Value, text)));
+        Assert.IsTrue(command.Parameters.Cast<Microsoft.Data.SqlClient.SqlParameter>().Any(parameter => Equals(parameter.Value, "metaData")));
+        Assert.IsTrue(command.Parameters.Cast<Microsoft.Data.SqlClient.SqlParameter>().Any(parameter => Equals(parameter.Value, key)));
+        CollectionAssert.AreEquivalent(ids, command.Parameters.Cast<Microsoft.Data.SqlClient.SqlParameter>()
+            .Where(parameter => parameter.ParameterName.StartsWith("@id")).Select(parameter => (Guid)parameter.Value).ToArray());
+    }
+
+    [DataTestMethod]
+    [DataRow("numeric")]
+    [DataRow("order")]
+    [DataRow("null")]
+    [DataRow("nul-value")]
+    public void UnprovedContentShapesRejectBeforeNativeExecution(string shape)
+    {
+        var query = Query(new[] { Guid.NewGuid() });
+        query = shape switch {
+            "numeric" => query.Where(h => CosmicQueryMetadata.Value<int>(h, "score") > 1).Result,
+            "order" => query.OrderBy(h => h.Name).Result,
+            "null" => query.Where(h => h.Name == null).Result,
+            _ => query.Where(h => h.Name == "invalid\0value").Result
+        };
+        var compiled = SqlServerCqlCompiler.CompileNative(query, ProviderType.SQLServerDBOASIS);
+        Assert.IsTrue(compiled.IsError);
+        Assert.IsNull(compiled.Result);
+    }
+
+    [TestMethod]
+    public void LongStringEqualityDoesNotUseJsonValueOrBoundedSqlParameters()
+    {
+        var value = new string('x', 4001);
+        var compiled = SqlServerCqlCompiler.CompileNative(Query(new[] { Guid.NewGuid() })
+            .Where(h => CosmicQueryMetadata.Value<string>(h, "long") == value).Result, ProviderType.SQLServerDBOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        using var command = compiled.Result.Command;
+        Assert.IsFalse(command.CommandText.Contains("JSON_VALUE"));
+        var literal = command.Parameters.Cast<Microsoft.Data.SqlClient.SqlParameter>().Single(parameter => Equals(parameter.Value, value));
+        Assert.AreEqual(-1, literal.Size);
+        Assert.AreEqual(System.Data.SqlDbType.NVarChar, literal.SqlDbType);
+    }
+
+    [TestMethod]
+    public void ContentOrDoesNotWidenTheServerCatalogue()
+    {
+        var allowed = Guid.NewGuid();
+        var forbidden = Guid.NewGuid();
+        var compiled = SqlServerCqlCompiler.CompileNative(Query(new[] { allowed })
+            .Where(h => h.Id == forbidden || h.Name.Contains("coffee")).Result, ProviderType.SQLServerDBOASIS);
+        Assert.IsFalse(compiled.IsError, compiled.Message);
+        using var command = compiled.Result.Command;
+        Assert.AreEqual(1, compiled.Result.SourceCount);
+        Assert.AreEqual(allowed, command.Parameters["@id0"].Value);
+        StringAssert.Contains(command.CommandText, "WHERE (Id IN (@id0)) AND IsDeleted=0 AND (");
+    }
+
+    [TestMethod]
+    public void OversizedNeedlesRejectAtTheSharedCaptureBoundary()
+    {
+        var needle = new string('x', CosmicQueryExpression.MaximumStringLength + 1);
+        var captured = Query(new[] { Guid.NewGuid() }).Where(h => h.Name.Contains(needle));
+        Assert.IsTrue(captured.IsError);
+        Assert.IsNull(captured.Result);
+    }
+
 }
