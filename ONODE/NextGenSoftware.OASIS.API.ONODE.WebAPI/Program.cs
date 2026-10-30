@@ -112,6 +112,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public static void Main(string[] args)
         {
+            // Explicit shell-only repair command. It never starts the HTTP host or
+            // grants repair through a public API route.
+            if (args.Length > 0 && args[0] == "--cosmic-repair-baseline")
+            {
+                Environment.ExitCode = Services.HyperDrive.ReplicaBaselineRepairCommand.RunAsync(args).GetAwaiter().GetResult();
+                return;
+            }
             try
             {
                 CreateHostBuilder(args).Build().Run();

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Events;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 
 /// <summary>Read-only reconciliation of the retained, acknowledged demo cohort; never creates providers or replays writes.</summary>
 public sealed class SandboxHostedReplicationProbe
@@ -50,7 +51,7 @@ public sealed class SandboxHostedReplicationProbe
                     { "DeliveryState", new BsonDocument("$ne", "Completed") } })
                 .Sort(new BsonDocument("Sequence", 1))
                 .Project(new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "OperationId", 1 },
-                    { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 }, { "PayloadJson", 1 } })
+                    { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 }, { "PayloadJson", 1 }, { "PayloadDigest", 1 } })
                 .Limit(1).SingleOrDefaultAsync(deadline.Token);
             var headNodes = new List<object>();
             var headIds = new List<string>();
@@ -64,7 +65,7 @@ public sealed class SandboxHostedReplicationProbe
                     using var record = JsonDocument.Parse(node.GetProperty("RecordJson").GetString()!);
                     var identity = record.RootElement.GetProperty("Id").GetGuid().ToString("D");
                     headIds.Add(identity);
-                    headNodes.Add(new { id = identity, version = record.RootElement.GetProperty("Version").GetInt32(),
+                    headNodes.Add(new { id = identity, sourceActorId = record.RootElement.GetProperty("CreatedByAvatarId").GetGuid(), version = record.RootElement.GetProperty("Version").GetInt32(),
                         versionId = record.RootElement.GetProperty("VersionId").GetGuid(),
                         previousVersionId = record.RootElement.GetProperty("PreviousVersionId").GetGuid() });
                 }
@@ -103,7 +104,9 @@ public sealed class SandboxHostedReplicationProbe
                 mutationCommands = 0, observedCommands = commands.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value),
                 sqliteQueueHead = sqliteHead == null ? null : new { sequence = sqliteHead["Sequence"].ToInt64(),
                     operationId = sqliteHead["OperationId"].AsString, state = sqliteHead["DeliveryState"].AsString,
-                    attempts = sqliteHead["AttemptCount"].ToInt32(),
+                    attempts = sqliteHead["AttemptCount"].ToInt32(), payloadDigest = sqliteHead["PayloadDigest"].AsString,
+                    sourceStoreIdentity = ReplicaBaselineRepairCommand.StoreIdentity(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_URI")!,
+                        Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE")!),
                     errorCode = sqliteHead["LastErrorCode"].IsBsonNull ? null : sqliteHead["LastErrorCode"].AsString,
                     nodes = headNodes },
                 precedingSqliteEntriesInspected = preceding.Count, sameHolonEarlierVersions = earlierVersions,
