@@ -19,8 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoBaselineCompletionTests
 {
-    [Fact]
-    public async Task ExactBaselineReceiptCompletesHeldHeadAndAllowsNextVersionWithoutReplay()
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ExactBaselineReceiptCompletesHeldHeadAndAllowsNextVersionWithoutReplay(bool durableApplication)
     {
         const string uri = "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(uri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
@@ -29,6 +30,9 @@ public sealed class MongoBaselineCompletionTests
         Directory.CreateDirectory(state);
         using var lease = File.Open(Path.Combine(state, "fixture.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var journal = Path.Combine(state, "fixture.json");
+        var applicationJournal = Path.Combine(state, "initialization.json");
+        foreach(var file in new[]{applicationJournal,applicationJournal+".lock",applicationJournal+".tmp"})
+            Assert.False(File.Exists(file),"Preserve prior application outcome: "+file);
         if (File.Exists(journal))
             Assert.True(JsonDocument.Parse(await File.ReadAllTextAsync(journal)).RootElement.GetProperty("cleaned").GetBoolean(), "Preserve unresolved original fixture.");
         var databases = new[] { "cosmic_baseline_completion_source", "cosmic_baseline_completion_target" };
@@ -82,16 +86,28 @@ public sealed class MongoBaselineCompletionTests
             var absent = (await target.ReadReplicaInitializationOutcomeAsync(baseline)).Result;
             Assert.True((await outbox.CompleteInitializedBaselineAsync(intent, absent)).IsError);
             Assert.Equal(HolonDeliveryState.ReconciliationRequired, (await outbox.InspectAsync(claim.Sequence)).Result.State);
-            Assert.False((await target.InitializeCommittedHolonReplicaAsync(baseline)).IsError);
+            if(durableApplication)
+            {
+                var application=new HolonReplicaInitializationApplication(preparation,target,outbox.CompleteInitializedBaselineAsync);
+                var applied=await application.ExecuteAsync(actor,claim.Sequence,initialization,applicationJournal);
+                Assert.False(applied.IsError,applied.Message+applied.Exception);Assert.True(applied.Result);
+                var acknowledged=await File.ReadAllBytesAsync(applicationJournal);
+                Assert.True((await application.ExecuteAsync(actor,claim.Sequence,initialization,applicationJournal)).Result);
+                Assert.Equal(acknowledged,await File.ReadAllBytesAsync(applicationJournal));
+            }
+            else Assert.False((await target.InitializeCommittedHolonReplicaAsync(baseline)).IsError);
             var receipt = (await target.ReadReplicaInitializationOutcomeAsync(baseline)).Result;
             var rows = client.GetDatabase(databases[0]).GetCollection<BsonDocument>("CosmicHolonOutbox");
             // A changed delivery attempt invalidates the reviewed source intent.
             // Alter only this owned fixture, then restore its exact observed count.
             var selected = new BsonDocument("Sequence", claim.Sequence);
-            await rows.UpdateOneAsync(selected, new BsonDocument("$set", new BsonDocument("AttemptCount", intent.AttemptCount + 1)));
-            Assert.True((await outbox.CompleteInitializedBaselineAsync(intent, receipt)).IsError);
-            Assert.Equal(HolonDeliveryState.ReconciliationRequired, (await outbox.InspectAsync(claim.Sequence)).Result.State);
-            await rows.UpdateOneAsync(selected, new BsonDocument("$set", new BsonDocument("AttemptCount", intent.AttemptCount)));
+            if(!durableApplication)
+            {
+                await rows.UpdateOneAsync(selected, new BsonDocument("$set", new BsonDocument("AttemptCount", intent.AttemptCount + 1)));
+                Assert.True((await outbox.CompleteInitializedBaselineAsync(intent, receipt)).IsError);
+                Assert.Equal(HolonDeliveryState.ReconciliationRequired, (await outbox.InspectAsync(claim.Sequence)).Result.State);
+                await rows.UpdateOneAsync(selected, new BsonDocument("$set", new BsonDocument("AttemptCount", intent.AttemptCount)));
+            }
             Assert.True((await outbox.CompleteInitializedBaselineAsync(intent, receipt)).Result);
             var beforeReplay = await rows.Find(new BsonDocument("Sequence", claim.Sequence)).SingleAsync();
             Assert.Equal("retained original failure", beforeReplay["LastErrorMessage"].AsString);
@@ -126,6 +142,8 @@ public sealed class MongoBaselineCompletionTests
                 }
                 using var names = await client.ListDatabaseNamesAsync();
                 Assert.Empty((await names.ToListAsync()).Intersect(databases)); Record(true);
+                foreach(var file in new[]{applicationJournal,applicationJournal+".lock",applicationJournal+".tmp"})
+                    if(File.Exists(file))File.Delete(file);
             }
         }
     }

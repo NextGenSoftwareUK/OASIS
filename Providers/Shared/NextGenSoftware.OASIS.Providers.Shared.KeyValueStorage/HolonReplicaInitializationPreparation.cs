@@ -91,7 +91,36 @@ public sealed class HolonReplicaInitializationPreparation
             sourceStoreIdentity,sourceAuthority.ToString(),targetId,targetEndpointIdentity,targetAuthority.ToString());
     }
 
-    public async Task<OASISResult<HolonReplicaInitializationIntent>> PrepareAsync(Guid operatorId,long sequence,Guid initializationOperationId,CancellationToken token=default)
+    public Task<OASISResult<HolonReplicaInitializationIntent>> PrepareAsync(Guid operatorId,long sequence,Guid initializationOperationId,CancellationToken token=default)
+        =>PrepareCoreAsync(operatorId,sequence,initializationOperationId,false,token);
+
+    internal Task<OASISResult<HolonReplicaInitializationIntent>> ReviewApplicationAsync(Guid operatorId,long sequence,Guid operation,bool recovering,CancellationToken token)
+        =>PrepareCoreAsync(operatorId,sequence,operation,recovering,token);
+
+    /// <summary>Reauthorize an already reviewed intent before application/recovery.
+    /// A completed source is admitted only for exact receipt/acknowledgement recovery;
+    /// it does not grant permission to initialize an unrelated target.</summary>
+    public async Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
+        HolonReplicaInitializationIntent intent,CancellationToken token=default)
+    {
+        ArgumentNullException.ThrowIfNull(intent);
+        OASISResult<CommittedHolonReplicaRequest> Failed(string code,string message,Exception cause=null)
+            =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
+        var reviewed=await PrepareCoreAsync(intent.OperatorId,intent.Sequence,intent.InitializationOperationId,true,token).ConfigureAwait(false);
+        if(reviewed.IsError)return Failed(reviewed.ErrorCode,reviewed.Message,reviewed.Exception);
+        if(reviewed.Result.Fingerprint!=intent.Fingerprint)
+            return Failed("COSMIC_REPLICA_INITIALIZATION_INTENT_CHANGED","The current authorized source differs from the durable reviewed intent.");
+        var source=await _source.ReadObligationAsync(intent.Sequence,token).ConfigureAwait(false);
+        if(source==null || source.IsError || source.IsWarning || source.Exception!=null || source.Result==null
+            || source.Result.PayloadDigest!=intent.SourcePayloadDigest
+            || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source.Result.PayloadJson)))!=intent.SourcePayloadDigest)
+            return Failed("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED","A second authoritative source read must match the reviewed frozen payload.",source?.Exception);
+        var original=CommittedHolonReplicaPayload.Read(source.Result.PayloadJson);
+        return new(new CommittedHolonReplicaRequest(intent.InitializationOperationId,original.SourceId,original.SourceAuthority,
+            original.ActorId,original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth));
+    }
+
+    private async Task<OASISResult<HolonReplicaInitializationIntent>> PrepareCoreAsync(Guid operatorId,long sequence,Guid initializationOperationId,bool allowCompleted,CancellationToken token)
     {
         try
         {
@@ -108,14 +137,16 @@ public sealed class HolonReplicaInitializationPreparation
             var frozen=observed.Result;var inspection=frozen.Inspection;
             var digest=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(frozen.PayloadJson)));
             if(inspection.Sequence!=sequence || inspection.TargetId!=_targetId || inspection.OperationId==Guid.Empty
-                || inspection.OperationId==initializationOperationId || inspection.State!=HolonDeliveryState.ReconciliationRequired
+                || inspection.OperationId==initializationOperationId || (inspection.State!=HolonDeliveryState.ReconciliationRequired
+                    && !(allowCompleted && inspection.State==HolonDeliveryState.Completed))
                 || inspection.AttemptCount<1 || inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
                 || inspection.RecoveryEvidence==null || inspection.RecoveryEvidence.RequiresNativeReconciliation || frozen.PayloadDigest!=digest)
                 return Error("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID","Only a bound lineage-conflict obligation without unresolved native execution is eligible.");
             var original=CommittedHolonReplicaPayload.Read(frozen.PayloadJson);
             if(original.OperationId!=inspection.OperationId || original.SourceId!=_sourceId || original.SourceAuthority!=_sourceAuthority || original.ActorId==Guid.Empty)
                 return Error("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID","The immutable payload does not belong to this source binding.");
-            var head=await _source.PeekNextAsync(_targetId,token).ConfigureAwait(false);
+            var head=inspection.State==HolonDeliveryState.Completed ? new OASISResult<HolonDeliveryInspection>(inspection)
+                :await _source.PeekNextAsync(_targetId,token).ConfigureAwait(false);
             if(head==null || head.IsError || head.IsWarning || head.Exception!=null || head.Result==null
                 || head.Result.Sequence!=sequence || head.Result.OperationId!=inspection.OperationId || head.Result.TargetId!=_targetId
                 || head.Result.State!=inspection.State || head.Result.AttemptCount!=inspection.AttemptCount || head.Result.ErrorCode!=inspection.ErrorCode
