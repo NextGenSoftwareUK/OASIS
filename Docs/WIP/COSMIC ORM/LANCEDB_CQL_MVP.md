@@ -1,11 +1,11 @@
-# LanceDB CQL MVP — Arrow writes implemented, native pending
+# LanceDB CQL MVP — Arrow writes/table admission implemented, native pending
 
 30October2026. Inventory stays red; no native source/account/environment created.
 
 Existing provider explicitly targets LanceDB Cloud REST, not embedded OSS.
 Its original implementation sent JSON row envelopes to create/merge_insert and
 parsed query responses as JSON arrays. Merge writes are now corrected below;
-creation and query protocol corrections remain. The [official remote client source](https://github.com/lancedb/lancedb/blob/4d7a64712f7fbe39bffaf110f3eb790943bd7874/rust/lancedb/src/remote/table.rs)
+explicit table admission is also corrected below; query protocol correction remains. The [official remote client source](https://github.com/lancedb/lancedb/blob/4d7a64712f7fbe39bffaf110f3eb790943bd7874/rust/lancedb/src/remote/table.rs)
 uses Arrow IPC upload/response contracts. Current provider wire behavior therefore
 needs protocol correction and proving tests before any native claim. Do not create
 a custom JSON server and label it native LanceDB, or silently switch Cloud to OSS.
@@ -13,8 +13,9 @@ The [Enterprise guide](https://docs.lancedb.com/enterprise/quickstart) distingui
 remote service endpoints from OSS storage-path access.
 
 Additional observed root gaps:
-- EnsureTableAsync ignores the HTTP response entirely and writes a `__schema__`
-  sentinel; activation can report success after a failed native request.
+- Original EnsureTableAsync ignored HTTP errors and wrote a `__schema__` sentinel;
+  activation is now read-only and schema-validated below. Existing sentinels need
+  deliberate migration; none are deleted automatically.
 - Holon save identity/batch ownership is corrected below; other write paths still need review.
 - Native query errors become empty lists; all-documents uses placeholder-vector
   similarity/topK1000, not a complete document scan.
@@ -23,7 +24,7 @@ Additional observed root gaps:
 - Runtime holon serialization, acknowledged save ownership, explicit table schemas,
   history/children/concurrency/replication/migration remain unverified.
 
-Next: correct remote table admission and query Arrow decoding with capability-aware
+Next: correct remote query Arrow decoding with capability-aware
 CQL. Preserve the explicitly selected Cloud transport; do not substitute embedded OSS.
 Native remote acceptance requires an admitted free endpoint/account. No LANCE-named
 environment variable found (names only); broader configuration discovery pending.
@@ -70,3 +71,33 @@ Existing .NET/Core/cache reused; subsequent test restore is cache-only. No nativ
 runtime, cloud account, table, credential or server allocated. Provider/unit builds
 bounded/leased and pass. Native/paired/browser/complete CQL remain red;62/226 demo
 coverage is unchanged.
+
+## Explicit native table admission
+
+Activation now POSTs `/v1/table/{table}/describe/` with `{"version":null}` for
+`oasis_avatars`, `oasis_avatar_details`, `oasis_holons`; all must be explicitly
+provisioned. No create requests, schema seed rows or replacement-table fallback.
+Fresh activation clears active state before validation and preserves exceptions.
+Require HTTP200/application-json, positive UInt64 version, schema<=256KiB and a
+15second deadline per table. These describe reads select current native heads;
+no snapshot or concurrency ownership is inferred from the returned versions.
+
+Canonical field order: id,doc,username,email,parent_holon_id as nonnullable string;
+vector as nonnullable fixed_size_list(length1), with nullable item:float child,
+matching the actual emitted Apache Arrow schema. Native JsonSchema's `string`,
+`float`, nested `fields` and `length` representation is validated, rather than
+using the JSON envelope the previous producer guessed. Incompatible primitive
+nesting, names/order/nullability/counts/vector lengths/types fail admission.
+
+[Pinned remote describe contract](https://github.com/lancedb/lancedb/blob/4d7a64712f7fbe39bffaf110f3eb790943bd7874/rust/lancedb/src/remote/table.rs)
+and [official Lance Arrow JSON representation](https://github.com/lancedb/lance/blob/main/rust/lance/src/arrow/json.rs)
+provide the wire types. No attempt to mutate a pre-existing incompatible schema;
+provision/migrate explicitly before activation. No local storage was created.
+
+**35passed/0failed/0skipped**, including16 new schema/activation tests and prior19
+save controls. Wire codec tests also verify item child name/nullability agree.
+[Admission tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.UnitTests/LanceDbSchemaTests.cs).
+Evidence `C:/Source/OASIS-cosmic/TestResults/LanceDbCqlCurrent/schema-controls.trx`,
+SHA25648C9A5EE3937A747A9CCBF8BBF02F730A1BD7A3DCC1F42938D5D748D3991E0B9.
+Bounded leased builds/tests pass, no restore/download required. Real remote native,
+query/CQL and Mongo-paired/browser proof remain open; inventory stays red.
