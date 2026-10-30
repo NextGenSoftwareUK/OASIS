@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -82,6 +83,80 @@ public sealed class HolonReplicaInitializationPreparationTests
         Guid.Parse("c0214c8d-f075-4d78-90c3-3c6a4b94a30c"),"source-v1","owned-mongo-store",ProviderType.MongoDBOASIS,source,
         "target-v1","owned-sqlite-store",ProviderType.SQLLiteDBOASIS,policy);
 
+    [DataTestMethod]
+    [DataRow("normal")] [DataRow("committed-response-lost")] [DataRow("submitted-no-receipt")]
+    [DataRow("source-response-lost")] [DataRow("policy-revoked")] [DataRow("journal-changed")]
+    public async Task DurableApplicationRecoversOriginalOutcomesWithoutBlindResubmission(string scenario)
+    {
+        var source=new Source();var policy=new Policy();var preparation=Prepare(source,policy);
+        var actor=Guid.NewGuid();var operation=Guid.NewGuid();var target=new ApplicationTarget(scenario);
+        var directory=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"));
+        Directory.CreateDirectory(directory);
+        var journal=Path.Combine(directory,scenario+".json");
+        foreach(var file in new[]{journal,journal+".tmp",journal+".lock"})Assert.IsFalse(File.Exists(file),"Preserve previous unknown application evidence: "+file);
+        var completions=0;var passed=false;
+        var application=new HolonReplicaInitializationApplication(preparation,target,(intent,outcome,token)=>
+        {
+            completions++;
+            var old=source.Observation;var i=old.Inspection;
+            source.Observation=new(new HolonDeliveryInspection(i.Sequence,i.OperationId,i.TargetId,HolonDeliveryState.Completed,
+                i.AttemptCount,i.ErrorCode,i.Message,i.RecoveryEvidence),old.PayloadJson,old.PayloadDigest);
+            if(scenario=="source-response-lost" && completions==1)throw new IOException("Lost source acknowledgement after commit.");
+            return Task.FromResult(new OASISResult<bool>(true));
+        });
+        try
+        {
+            var first=await application.ExecuteAsync(actor,6,operation,journal);
+            Assert.AreEqual(1,target.Writes);
+            Assert.AreEqual(scenario is "committed-response-lost" or "submitted-no-receipt" or "source-response-lost",first.IsError,first.Message+first.Exception);
+            if(scenario=="policy-revoked")policy.Deny="approval";
+            if(scenario=="journal-changed")await File.AppendAllTextAsync(journal,"garbage");
+            var before=await File.ReadAllTextAsync(journal);
+            var resumed=await application.ExecuteAsync(actor,6,operation,journal);
+            Assert.AreEqual(1,target.Writes,"Recovery must never blindly repeat submission.");
+            if(scenario is "submitted-no-receipt" or "policy-revoked" or "journal-changed")
+            {
+                Assert.IsTrue(resumed.IsError);Assert.AreEqual(before,await File.ReadAllTextAsync(journal));
+                if(scenario=="submitted-no-receipt")Assert.AreEqual(0,completions);
+            }
+            else
+            {
+                Assert.IsFalse(resumed.IsError,resumed.Message+resumed.Exception);
+                var final=await File.ReadAllTextAsync(journal);
+                StringAssert.Contains(final,"SourceCompleted");
+                Assert.IsFalse(final.Contains("private-source-value"));
+                if(scenario=="normal")Assert.AreEqual(before,final,"Acknowledged replay must leave the journal unchanged.");
+                var wrong=await application.ExecuteAsync(Guid.NewGuid(),6,operation,journal);
+                Assert.IsTrue(wrong.IsError);Assert.AreEqual(final,await File.ReadAllTextAsync(journal));
+            }
+            passed=true;
+        }
+        finally
+        {
+            if(passed)foreach(var file in new[]{journal,journal+".tmp",journal+".lock"})if(File.Exists(file))File.Delete(file);
+        }
+    }
+
+    private sealed class ApplicationTarget(string scenario) : ICommittedHolonReplicaInitializationRecoveryStorageProvider
+    {
+        public int Writes;private bool committed;
+        public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)=>throw new NotSupportedException();
+        public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
+        {
+            Writes++;
+            if(scenario=="submitted-no-receipt")return Task.FromResult(new OASISResult<IEnumerable<IHolon>>{IsError=true,Message="Unknown native result."});
+            committed=true;
+            if(scenario=="committed-response-lost")throw new IOException("Lost target acknowledgement after commit.");
+            return Task.FromResult(new OASISResult<IEnumerable<IHolon>>(request.Roots));
+        }
+        public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
+        {
+            var plan=CommittedHolonReplicaPlan.CreateInitialBaseline(request,ProviderType.SQLLiteDBOASIS);
+            return Task.FromResult(new OASISResult<HolonReplicaInitializationOutcome>(new(request.OperationId,ProviderType.SQLLiteDBOASIS,
+                committed ? ConditionalHolonReceiptState.Committed:ConditionalHolonReceiptState.Absent,plan.Fingerprint,committed ? new string('A',64):null)));
+        }
+    }
+
     private sealed class Policy : IHolonReplicaInitializationPolicy
     {
         public string BindingIdentity {get;private set;}="policy-v1";
@@ -100,7 +175,7 @@ public sealed class HolonReplicaInitializationPreparationTests
     private sealed class Source : IHolonReplicationObligationReader
     {
         public int Reads,Peeks,Mutations;public bool DifferentHead;
-        public HolonReplicationObligation Observation {get;}
+        public HolonReplicationObligation Observation {get;set;}
         public Source(string invalid=null)
         {
             var record=new Holon{Id=Guid.NewGuid(),Name="private-source-value",Version=4,VersionId=Guid.NewGuid(),PreviousVersionId=Guid.NewGuid(),

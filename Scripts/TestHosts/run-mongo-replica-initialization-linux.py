@@ -38,7 +38,7 @@ def main():
         report = RESULTS / "mongo-replica-initialization.trx"
         assert report.stat().st_mtime >= started
         counts = ET.parse(report).find(".//{*}Counters").attrib
-        assert counts["passed"] == "7" and counts["failed"] == "0" and counts["notExecuted"] == "0"
+        assert counts["passed"] == "8" and counts["failed"] == "0" and counts["notExecuted"] == "0"
         print(json.dumps({"counts": counts, "sha256": hashlib.sha256(report.read_bytes()).hexdigest()}), flush=True)
     print("Owned Mongo stopped; exact source/target fixture databases removed by their checked owner markers.", flush=True)
 
