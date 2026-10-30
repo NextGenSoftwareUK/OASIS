@@ -2771,3 +2771,16 @@ explicit native-replay observations, not source replacement or userwrite replay.
 Image1,045,541,138B retained reusable; no archives. Buildoutputs/TRX/logs/inspection
 scripts/screenshots underTestResults disposable afterexit, regenerate with runner;
 protectedsource evidence retained outsideTestResults. No other resources removed.
+
+### Solr controls planned — 2026-10-30 / COSMIC
+Reuse task worktree/Windows.NETSDK10.0.401/NuGet cache. Cache-only producer/unit
+restore/build under bounded lease; no new runtime/database/service. Generated
+bin/obj in existing Solr projects, compact logs/TRX TestResults/SolrCqlCurrent
+(sizes unmeasured), disposable after processesexit; regenerate with same commands.
+SharedSDK/cache retained; nativeenvironment requires separate inventory first.
+
+Solr controls outcome:48pass/0fail/0skip, cache-only producer/unit restores and
+boundedbuilds pass. No newpackage/runtime/service/dataset. SDK10.0.401 andshared
+NuGet caches reused/retained. NativeHTTP injected, no nativeenvironment allocated.
+Generated bin/obj/logs/TRX unmeasured/disposable afterexit; regenerate via same
+lease/boundedcommands. No other resources removed or source/credentials touched.
