@@ -83,3 +83,5 @@ Observed GitHub runs41085351582 CI/CD queued,41085351698 ONET/ONODE in progress,
 41085351542 subscription protocol in progress; external workflow-managed resources.
 Next: observe this exact deployment to terminal status, then actual hosted session,
 query and isolation checks. Static Web4Site publication still pending live proof.
+
+Task reconciliation finished: parent work/cosmic-cql includes published Development ancestry and release audit notes; Core4607d7c source equals prior task7e9cd72. Bounded Core/Mongo/SQLite/Neo/WEB4 producer restoration succeeded, no restore/download. Scoped Development is still parentdfceb1392/Core432c613; broader task APIs were not swept into deployment. Next check exact live deploymentefd2c5c1, last observedBUILDING.
