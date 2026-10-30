@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -34,6 +34,7 @@ if($Federated){
         'Rootstock' {'Run-CosmicEthereumCqlNative.ps1'}
         'BNBChain' {'Run-CosmicEthereumCqlNative.ps1'}
         'Fantom' {'Run-CosmicEthereumCqlNative.ps1'}
+        'Linea' {'Run-CosmicEthereumCqlNative.ps1'}
         'AzureBlob' {'Run-CosmicAzureBlobCqlNative.ps1'}
         'LocalFile' {'Run-CosmicLocalFileCqlNative.ps1'}
         'Sui' {'Run-CosmicSuiCqlNative.ps1'}
@@ -71,6 +72,7 @@ if($Federated){
         'Rootstock' {'http://127.0.0.1:5126/'}
         'BNBChain' {'http://127.0.0.1:5127/'}
         'Fantom' {'http://127.0.0.1:5128/'}
+        'Linea' {'http://127.0.0.1:5129/'}
         'AzureBlob' {'http://127.0.0.1:5106/'}
         'LocalFile' {'http://127.0.0.1:5108/'}
         'Sui' {'http://127.0.0.1:5110/'}
@@ -108,6 +110,7 @@ if($Federated){
         'Rootstock' {'Mongo + Rootstock shipping V2 factory on retained local EVM31338:5rows/4subset; no public Rootstock/Bitcoin anchoring/finality claim'}
         'BNBChain' {'Mongo + BNB V2 on retained local EVM31338:5rows/4subset; direct construction, no public BNB consensus/bridge/finality claim'}
         'Fantom' {'Mongo + Fantom V2 on retained local EVM31338:5rows/4subset; direct construction, no public Fantom consensus/bridge/finality or network migration claim'}
+        'Linea' {'Mongo + Linea V2 on retained local EVM31338:5rows/4subset; direct construction, no public Linea consensus/bridge/finality or network migration claim'}
         'AzureBlob' {'Mongo + Azure Blob via retained Azurite:5rows/4subset; no hosted Azure or distributed snapshot claim'}
         'LocalFile' {'Mongo + retained local files:5rows/4subset; no encryption or distributed snapshot claim'}
         'Sui' {'Mongo + retained local Sui encrypted source:5rows/4subset; no hosted chain or distributed snapshot claim'}
@@ -149,6 +152,7 @@ if($Federated){
         'Rootstock' { & $path -Provider Rootstock -Federated -Serve:(!$VerifyOnly) }
         'BNBChain' { & $path -Provider BNBChain -Federated -Serve:(!$VerifyOnly) }
         'Fantom' { & $path -Provider Fantom -Federated -Serve:(!$VerifyOnly) }
+        'Linea' { & $path -Provider Linea -Federated -Serve:(!$VerifyOnly) }
         'AzureBlob' { & $path -Federated -Serve:(!$VerifyOnly) }
         'LocalFile' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Sui' { & $path -Federated -Serve:(!$VerifyOnly) }
