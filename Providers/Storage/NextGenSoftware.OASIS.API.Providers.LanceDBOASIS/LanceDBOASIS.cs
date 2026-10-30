@@ -26,9 +26,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
     /// Each row carries id, doc (JSON blob), username, email, parent_holon_id and a
     /// 1-dim placeholder vector, so OASIS uses LanceDB as a document store.
     ///
-    /// Create:  POST {base}/v1/table/{table}/create/
-    /// Upsert:  POST {base}/v1/table/{table}/merge_insert/?on=id
-    /// Query:   POST {base}/v1/table/{table}/query/    {{ filter, k }}
+    /// Tables must be explicitly provisioned; activation validates native describe responses.
+    /// Upsert: POST merge_insert with Arrow IPC stream and URL merge controls.
+    /// Query: POST query with bounded filter/projection; decode negotiated Arrow IPC file.
     /// Delete:  POST {base}/v1/table/{table}/delete/   {{ predicate }}
     /// Auth:    x-api-key header
     /// </summary>
@@ -568,63 +568,45 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
             "Username" => "username",
             "Email" => "email",
             "ParentHolonId" => "parent_holon_id",
-            _ => field.ToLowerInvariant()
+            _ => throw new NotSupportedException("Unsupported LanceDB lookup field.")
         };
-
-        private static List<T> ParseRows<T>(JsonElement root) where T : class
-        {
-            var list = new List<T>();
-            var rows = root.ValueKind == JsonValueKind.Array
-                ? root
-                : root.TryGetProperty("data", out var d) ? d : default;
-            if (rows.ValueKind != JsonValueKind.Array) return list;
-
-            foreach (var el in rows.EnumerateArray())
-            {
-                if (!el.TryGetProperty("doc", out var docEl)) continue;
-                var raw = docEl.GetString();
-                if (string.IsNullOrEmpty(raw) || raw == "{}") continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                if (item != null) list.Add(item);
-            }
-            return list;
-        }
 
         private async Task<List<T>> QueryAsync<T>(string table, string? predicate, int k) where T : class
         {
-            object body = predicate == null
-                ? new { vector = new[] { 0.0f }, k, columns = new[] { "doc" } }
-                : (object)new { vector = new[] { 0.0f }, k, filter = predicate, columns = new[] { "doc" } };
-
-            var resp = await _http.PostAsync($"{_baseUrl}/v1/table/{table}/query/", Json(body));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            return ParseRows<T>(doc.RootElement);
+            var rows = await QueryArrowRowsAsync(table, predicate, k, default);
+            var result = new List<T>();
+            foreach (var row in rows)
+            {
+                var item = JsonSerializer.Deserialize<T>(row.Json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                if (item is not IHolon holon || holon.Id != row.Id)
+                    throw new System.IO.InvalidDataException("LanceDB payload identity differs from its native row.");
+                result.Add(item);
+            }
+            return result;
         }
 
         private async Task<T?> GetDocAsync<T>(string table, string id) where T : class
         {
-            var results = await QueryAsync<T>(table, $"id = '{id}'", 1);
+            var results = await QueryAsync<T>(table, $"id = '{id.Replace("'", "''")}'", 1);
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task DeleteDocAsync(string table, string id)
         {
             var resp = await _http.PostAsync($"{_baseUrl}/v1/table/{table}/delete/",
-                Json(new { predicate = $"id = '{id}'" }));
+                Json(new { predicate = $"id = '{id.Replace("'", "''")}'" }));
             if (resp.StatusCode != System.Net.HttpStatusCode.NotFound)
                 resp.EnsureSuccessStatusCode();
         }
 
         private async Task<T?> FindOneAsync<T>(string table, string field, string value) where T : class
         {
-            var results = await QueryAsync<T>(table, $"{FieldColumn(field)} = '{value}'", 1);
+            var results = await QueryAsync<T>(table, $"{FieldColumn(field)} = '{value.Replace("'", "''")}'", 1);
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task<List<T>> FindAllAsync<T>(string table, string field, string value) where T : class
-            => await QueryAsync<T>(table, $"{FieldColumn(field)} = '{value}'", 1000);
+            => await QueryAsync<T>(table, $"{FieldColumn(field)} = '{value.Replace("'", "''")}'", 1000);
 
         private async Task<List<T>> GetAllDocsAsync<T>(string table) where T : class
             => await QueryAsync<T>(table, null, 1000);
