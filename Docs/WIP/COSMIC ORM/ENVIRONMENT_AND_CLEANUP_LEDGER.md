@@ -2706,3 +2706,68 @@ Typesense controls outcome:38pass/0fail/0skip, provider/unit cached restores/bui
 pass. No new dependency/runtime/service/dataset. SDK10.0.401/NuGet existing caches
 reused; build outputs and compact logs/TRX unmeasured/regenerable, sharedcache retained.
 C:73,721,532,416B free during bounded verification. Nativeenvironment not yet allocated.
+
+### Typesense native allocation planned — 2026-10-30 / COSMIC
+No Typesense image/runtime/source found in rootPodman or /var/tmp/oasis-runtimes.
+Reuse Ubuntu/rootPodman/Python/OpenSSL/.NET10.0.12 and taskworktree. Pull official
+`docker.io/typesense/typesense:30.2` once, record digest/size afterpull. One freeOSS
+retained source `/var/tmp/oasis-typesense-cql`, nativecontainer `oasis-typesense-cql`,
+loopbackTLS18108,2CPU/2GiB/log2MiB. Private CA/APIkey/config remain protected under
+source; no secrets in reports. C:73,720,459,264B beforeallocation; sizes unmeasured.
+Nativeempty/restart identity/auth checks before3originalrecords. Retain source/
+keys/receipts/baseline; stopservice afterverification. Logs/TRX/screenshots in
+TestResults/TypesenseCqlCurrent disposable after processesexit. No repeatedsource.
+
+Official Typesense30.2 pull completedonce: digest
+`sha256:b405d4443bdb9254fab4792b7fd9ee95d969f3b5485975917a3a3f84274eba27`,
+imageID `f0a039399e56fece46120da49b83253d56c79bd6842add7879ef82ca38d9f9bf`,
+1,045,541,138B expanded. Reusable/retain, no separatearchive. Nativebinary
+/opt/typesense-server, privateCA/config envfile underretainedsource, UID1000,
+8requestthreads/2load/index workers; analyticsdisabled. No globaltrust changes.
+
+Typesense nativeintegration planned: reuse retainedsource/runtime and processscoped
+SSL_CERT_FILE privateCA, portableVSTest18.11.0/Linux.NET10.0.12; original3creates
+plus1replacement, persistent seed/receipts/baseline outsideTestResults. Native
+first/restart runs serialized by source lock and onebuildlease; logs/TRX/generated
+bin/obj unmeasured disposable afterexit. No new runtime/package/databasecopies.
+
+Typesense emptyTLS/auth/version/source restart passed, native exit0/noOOM/noError,
+retainedsource99,144B logical. Runner records native db/meta RocksDB IDENTITY files
+before firstbusinesswrite (requires no seed/pending and emptycollections), then
+compares everyphase; receipts retained with originalsource. No replacementbaseline.
+
+Typesense first nativebusiness test passed; restart guard found derived db/IDENTITY
+changed while meta/IDENTITY remained02ecc411-42a2-40e4-a772-dcae4065af6a. Native
+30.2 raft_server.cpp:start explicitly reloads derived db when no snapshot exists,
+then replays retained nativeRaft log. Originalcombinedidentity receipt retained,
+not overwritten. Verifier corrected to stable meta identity+originalcontainer/
+mount/inode plus native document/collection baseline; deriveddb generationchange
+recorded separately. Originalfailure remains in native-run.log; no manualwrite/
+reseed/reset/snapshotbaselinechange. Native service stopped0/noOOM/noError.
+Pairedrunplanned reuses LinuxMongo8.3.13/27039 and exacttemporarydatabase
+cosmic_cql_mongo_typesense_demo, absencecheck+journal+ownedvalidation beforedrop.
+TeachingHTTP5148 and TestResults/TypesenseCqlCurrent logs/TRX/screenshot regenerate.
+
+Typesense nativeinspection (same retainedservice, then stopped0) confirmed all3
+original documentSHA256 unchanged; only collection created_at differs. Pinned
+collection_manager.cpp:create_collection uses time(nullptr) during nativeRaft replay.
+Original schema preimage recovered exactly by varying only created_at over actual
+seedintent-to-firstack interval (<=15s); SHA256 matches originalbaseline
+76475E18BCB9E36853F5D1F656172994B4464A3BE4A9CB0B560E8C1FD6C36533,
+original1793363442 vs reopened1793363570. No sourcewrite or baseline replacement.
+Protected originalschema evidence retained as source-schema.json; originalbaseline/
+receipts unchanged. Nativecreated_at immutability remains a documentedgap. Test now
+checks exactoriginalhash/preimage, all documenthashes and fullschema equality except
+that proven volatilefield. Inspection/reconciliation scripts/logs under own
+TestResults/TypesenseCqlCurrent disposable/regenerable; no new packages/resources.
+
+Typesense final outcome: runner34428terminal0,5fresh phases each1pass/0skip;
+browser63all5/subset4, screenshot TestResults/TypesenseCqlCurrent/browser.jpg159,616B.
+Owned database cosmic_cql_mongo_typesense_demo validated/dropped and journal cleared;
+native and sharedLinuxMongo stopped0/noOOM/noError. Originalsource209,141B logical
+retained; source-schema.json exactoriginalhash, originalseed/documentbaseline/
+receipts/metaidentity unchanged. Deriveddb identity and collectioncreated_at are
+explicit native-replay observations, not source replacement or userwrite replay.
+Image1,045,541,138B retained reusable; no archives. Buildoutputs/TRX/logs/inspection
+scripts/screenshots underTestResults disposable afterexit, regenerate with runner;
+protectedsource evidence retained outsideTestResults. No other resources removed.

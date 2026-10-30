@@ -598,3 +598,8 @@ and restart checks. [Commands and scope](WEAVIATE_CQL_MVP.md).
 Meilisearch + Mongo scoped MVP:39controls/native/restart/C#/HTTP/browser5/4 pass.
 Native HTTPS key fetch and terminal native write tasks; explicit ID predicates.
 [Commands, proof and remaining gaps](MEILISEARCH_CQL_MVP.md).
+
+Typesense + Mongo scoped MVP:38controls/native/restart/C#/HTTP/browser5/4 pass.
+Explicit ID-filter queries preserve original document bytes. Native collection
+created_at changes during native replay; no timestamp-immutability claim.
+[Commands, proof and gaps](TYPESENSE_CQL_MVP.md).
