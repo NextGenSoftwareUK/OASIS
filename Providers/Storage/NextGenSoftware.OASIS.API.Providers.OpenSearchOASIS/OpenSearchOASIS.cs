@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
     /// Upsert: PUT /{index}/_doc/{id}
     /// Search: POST /{index}/_search with query.term or query.match
     /// </summary>
-    public class OpenSearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class OpenSearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -52,9 +52,13 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
         public OpenSearchOASIS(string host = "http://localhost:9200", string? username = null, string? password = null)
+            : this(new HttpClient(), host, username, password) { }
+
+        /// <summary>Use a dedicated caller-owned client, including its TLS/transport policy.</summary>
+        public OpenSearchOASIS(HttpClient client, string host, string? username = null, string? password = null)
         {
             _baseUrl = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             if (username != null && password != null)
             {
@@ -69,8 +73,18 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         private async Task EnsureIndexAsync(string index)
         {
-            var resp = await _http.PutAsync($"{_baseUrl}/{index}", Json(new { mappings = new { dynamic = "true" } }));
-            // 200 = updated, 400 = already exists — both fine
+            using var head = new HttpRequestMessage(HttpMethod.Head, $"{_baseUrl}/{index}");
+            using var existing = await _http.SendAsync(head);
+            if (existing.IsSuccessStatusCode) return;
+            if (existing.StatusCode != System.Net.HttpStatusCode.NotFound) existing.EnsureSuccessStatusCode();
+            using var content = Json(new { mappings = new { dynamic = true } });
+            using var response = await _http.PutAsync($"{_baseUrl}/{index}", content);
+            response.EnsureSuccessStatusCode();
+            using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            var ack = acknowledgement.RootElement;
+            if (!ack.GetProperty("acknowledged").GetBoolean() || !ack.GetProperty("shards_acknowledged").GetBoolean() ||
+                ack.GetProperty("index").GetString() != index)
+                throw new System.IO.InvalidDataException("Native index creation was not acknowledged.");
         }
 
         private async Task<T?> GetDocAsync<T>(string index, string id)
@@ -85,7 +99,17 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         private async Task UpsertDocAsync(string index, string id, object obj)
         {
-            await _http.PutAsync($"{_baseUrl}/{index}/_doc/{id}", Json(obj));
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/{index}/_doc/{id}") { Content = Json(obj) };
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            var ack = acknowledgement.RootElement;
+            if (ack.GetProperty("_index").GetString() != index || ack.GetProperty("_id").GetString() != id ||
+                ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
+                ack.GetProperty("_primary_term").GetInt64() < 1 || ack.GetProperty("result").GetString() is not ("created" or "updated") ||
+                ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
+                ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
+                throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
         }
 
         private async Task DeleteDocAsync(string index, string id)
@@ -127,6 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 await EnsureIndexAsync(IdxAvatars);
@@ -333,9 +358,26 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(IdxHolons, holon.Id.ToString(), holon);
-                result.Result = holon; result.IsError = false; result.Message = $"OpenSearchOASIS: Holon '{holon.Name}' saved.";
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                if (IsVersionControlEnabled)
+                    return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CAPABILITY_UNSUPPORTED", Message = "Version-control writes require a verified native history policy." };
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var key = id.ToString("D");
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.OpenSearchOASIS] = key;
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(IdxHolons, key, payload);
+                // Publish storage identity after acknowledgement; manager owns tracking acceptance.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.OpenSearchOASIS] = key;
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -344,7 +386,28 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); } result.Result = saved; result.IsError = false; result.Message = $"OpenSearchOASIS: Saved {saved.Count} holons."; return result; }
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>(); var errors = new List<string>();
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
+            return result;
+        }
+
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
