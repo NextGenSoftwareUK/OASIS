@@ -63,7 +63,14 @@ internal sealed partial class MongoCqlTranslator
             traverses = true; // The existing envelope owner protects errors outside paging.
             return composed;
         }
-        var pipeline=new List<BsonDocument>{new("$match",CompileRootPredicates(query))};
+        var rootFilter=CompileRootPredicates(query); // also registers any ancestor conditions
+        var pipeline=new List<BsonDocument>();
+        if(AddAncestorStages(pipeline))
+        {
+            pipeline.Add(new("$match",rootFilter));
+            pipeline.Add(new("$unset",new BsonArray(ancestorFields.Values.SelectMany(name=>new[]{name,name+"Next"}))));
+        }
+        else pipeline.Add(new("$match",rootFilter));
         AddChildExistence(pipeline,query);
         traverses=AddDescendantExistence(pipeline,query);
         return pipeline;
