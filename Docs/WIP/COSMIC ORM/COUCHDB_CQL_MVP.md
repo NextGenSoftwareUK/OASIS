@@ -1,6 +1,6 @@
 # CouchDB CQL MVP audit
 
-Updated30October2026. Bounded CQL/HTTP controls verified; native/paired demo red.
+Updated30October2026. Bounded CQL/native record/restart verified; paired demo red.
 
 ## Root fixes and evidence
 
@@ -116,3 +116,31 @@ process restart, then Mongo-paired C#/HTTP/browser5/4. Never recreate credential
 or source if missing/unknown acknowledgement. [Official image/setup](https://docs.couchdb.org/en/stable/install/docker.html).
 
 Environment evidence `TestResults/CouchDbCqlCurrent/native-environment-summary.log`, SHA256 `5dc64980357b1bbbecc7773ea66c545adc0938a055efebefa4b09b9479427c62`.
+
+## Original native records and process restart verified
+
+`CouchDbNativeCqlTests` runs on retained CouchDB3.5.1 through the shipping provider.
+Initial1/1 and process-restart1/1 pass. The original actor/threeGUIDs were journalled
+before writes; each validated native revision acknowledged separately. Baseline
+hashes persisted before completion; unresolved pending refuses replay/reseed.
+Same records load Espresso/Latte/Tea; explicit ID-membership selects Espresso/Latte,
+paging returns1. Native catalogue equals exactly the three original business IDs;
+design-index documents excluded only in fixture verification (not a CQL scan).
+Native payload hashes and acknowledged revisions match after restart; queries leave
+both hashes and CouchDB update_seq unchanged. Plaintext provider JSON scope only.
+
+One reused rootful container/source, Linux.NET10.0.12 and portableVSTest18.11.0;
+test child runs as existing user1000, credentials remain private/out of logs.
+No new runtime downloads. Original identity.json/three write acks/native-baseline
+retained under `/var/tmp/oasis-couchdb-cql`; total231,082B at verification. Pending
+absent; owned container stopped exit0 after both phases. No destructive cleanup.
+
+Run native tests after bounded build under one lease:
+`wsl -d Ubuntu -u root -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/run-cosmic-couchdb-linux.py`.
+Runner verifies exact container/image/loopback mount bindings before reuse; it never
+adopts a running service. Next Mongo-paired C#/HTTP/browser5/4 and hub preset before
+inventory proof enrollment. Full conditional-write/graph/history/parity stays red.
+
+Evidence `TestResults/CouchDbCqlCurrent/native-first.trx`, SHA256 `9fa5dba03a1c66953ae54517ef3f93cc52e9aad2f7508fac970ebd1161343299`.
+
+Evidence `TestResults/CouchDbCqlCurrent/native-restart.trx`, SHA256 `3e53c686bff74424b58098e38f76246779cf72682c88d8407f43a7d26a5522b3`.
