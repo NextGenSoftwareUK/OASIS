@@ -2694,3 +2694,15 @@ noError; shared LinuxMongo stopped by ownerhelper. No other data removed. Native
 image375,304,398B reusable/retained; source keys/taskreceipts/baseline retained. Logs/
 TRX/screenshots/buildoutputs disposable after exited processes, regenerate with
 dedicated runner. No further download/install. Temporary browser tab62 closed.
+
+### Typesense controls planned — 2026-10-30 / COSMIC
+Reuse existing task worktree, Windows.NETSDK10.0.401 and NuGet cache; no native
+service/runtime/database allocation yet. Cache-only provider/unit restore/build
+under one bounded lease. Generated bin/obj in Typesense provider/unit projects;
+compact logs/TRX `TestResults/TypesenseCqlCurrent/` (sizes unmeasured), disposable
+after process exits, regenerate via same bounded commands. Shared caches retained.
+
+Typesense controls outcome:38pass/0fail/0skip, provider/unit cached restores/builds
+pass. No new dependency/runtime/service/dataset. SDK10.0.401/NuGet existing caches
+reused; build outputs and compact logs/TRX unmeasured/regenerable, sharedcache retained.
+C:73,721,532,416B free during bounded verification. Nativeenvironment not yet allocated.
