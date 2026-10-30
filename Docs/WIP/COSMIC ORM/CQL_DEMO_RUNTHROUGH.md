@@ -456,3 +456,13 @@ records and Mongo copies pass through shared HolonManager:5physical rows, or4for
 the two-ID subset. Browser5134shows provider provenance. Shutdown cleans the owned
 Mongo fixture and preserves original records/revisions. Plaintext JSON and bounded
 identity queries; broader predicates, graph/history/CAS and full parity stay open.
+
+## RavenDB + Mongo MVP
+
+[Verified scope, certificates and evidence](RAVENDB_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider RavenDB -Federated`
+(add `-VerifyOnly` for bounded checks). Native client-certificate-authenticated
+RavenDB and Mongo copies query through shared HolonManager:5physical rows or4for
+the two-ID subset. Browser5135shows source provenance. Shutdown cleans only the
+owned Mongo fixture and preserves original records/change vectors. Plaintext JSON
+envelopes and bounded identity predicates; full graph/history/CAS parity stays open.
