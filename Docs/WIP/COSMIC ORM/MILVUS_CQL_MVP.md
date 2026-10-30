@@ -92,3 +92,29 @@ still map nativeerrors to missing/empty and query1000rowcap; fieldexpressionesca
 projectionlimit checks, deletes/softdelete errors, child/history/conditionalwrites/
 replication/migration/fullEFparity remain gaps. No hosted or durability certification.
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Native environment checkpoint — 30October2026
+
+Official2.6.26 image downloaded once and pinned to
+`sha256:e6066d0afc4eeab69b7c9269e49be2b9ae54c740a21c05f230c4e5743c646ee3`.
+No prior Milvus runtime/image found. Retainedsource `/var/tmp/oasis-milvus-cql`,
+container oasis-milvus-cql, loopback19531/nativeTLS, embeddedetcd/localstorage/
+RocksMQ,2CPU/4GiBcap. No externaletcd/MinIO instance or hosted subscription created.
+Protected rootcredential/CA/config/creationreceipts stay under source, never Docs.
+
+Initial UID1000 launch failed126 before native execution; source/data verifiedempty.
+Originalfailedcontainer receipt preserved, exitedcontainer removed and recreated
+once as vendorroot with same source/key/config/image. Milvus then started embedded
+etcd but panicked contextcanceled in Session.Init/mixCoord initialization and exited134.
+No OOM, no businessseed, no collectioncreate request. Failed source retained;
+no reset/reseed/replay attempted. Embeddedstartup log identifies originalcluster
+cdf818194e3a8c32/member8e9e05c52164694d; preserve identity during diagnosis.
+Currentnative source144,815,277B logical (mostly preallocated etdcWAL), image
+969,614,562B expanded, containerwritablelayer12,270B. Service confirmed exited.
+
+Exactnext: inspect pinned native startup/session lifecycle and config before any
+restart, retain original failure and pending intent. Diagnose on same source;
+verify TLS/auth/emptycatalogue/originalcluster identity and actualrestart before
+provisioning schema or seeding records. The environment helper currently fails
+acceptance; no native/paired demo proof. Raw logs remain
+TestResults/MilvusCqlCurrent/environment.log and environment-reconciled.log.
