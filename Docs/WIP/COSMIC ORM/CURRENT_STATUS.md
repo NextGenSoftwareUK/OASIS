@@ -1,13 +1,13 @@
 # Current COSMIC ORM / CQL status
 
-Updated 29 October 2026. Full programme remains incomplete. Read this first after compaction.
+Updated 30 October 2026. Full programme remains incomplete. Read this first after compaction.
 
 ## Current phase and exact next step
 MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: Arweave native SDK/gateway inventory and acceptance; [bounded CQL28/owner-protocol21 pass](ARWEAVE_CQL_MVP.md).**
+**Next: integrate fetched Development835653f31/Coreb60796d, then Arweave loopback/native admission; [runtime prepared](ARWEAVE_CQL_MVP.md).**
 Firebase50controls/native/export-restore/paired/browser5/4/hub pass [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
