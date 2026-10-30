@@ -33,7 +33,7 @@ public class NearOrdinaryStorageAcknowledgementTests
             using var file=new FileStream(pending,first?FileMode.CreateNew:FileMode.Create,FileAccess.Write,FileShare.None);
             file.Write(JsonSerializer.SerializeToUtf8Bytes(new{phase,key,receipts}));file.Flush(true);
         }
-        Task<string> Read()=>(Task<string>)type.GetMethod("GetAsync")!.Invoke(service,new object[]{key})!;
+        Task<string> Read()=>(Task<string>)type.GetMethod("GetAsync")!.Invoke(service,new object[]{key,CancellationToken.None})!;
         Task<JsonElement> Raw()=>(Task<JsonElement>)type.GetMethod("ViewAsync")!.Invoke(service,new object?[]{"get",new{key},null})!;
         async Task Observe(string hash) {
             using var response=await (Task<JsonDocument>)type.GetMethod("InvokeAsync",BindingFlags.Instance|BindingFlags.NonPublic)!

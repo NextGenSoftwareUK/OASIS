@@ -16,6 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <None Include="../NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests/Fixtures/storage-snapshot.mjs" Link="Fixtures/storage-snapshot.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj" />
   </ItemGroup>
 
