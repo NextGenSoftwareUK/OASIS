@@ -205,3 +205,13 @@ Six offline protocol tests pass via python Scripts/Sandbox/test_hosted_cql_demo.
 Retained operation56eaea32-a323-46c4-8f48-7120ca503de8/requesta7b65189-bb18-4325-9bcc-4489e09b98e1 received503 COSMIC_WRITE_ADMISSION_REQUIRED. At its exact deployed parent89a960111, that error is emitted before ConfigureOASISEngine/manager acquisition in DataController.Save and before any write dispatch. Those source blobs are unchanged in the tested candidate. Seven hosted-boundary controls pass, including a configured CQL-only profile rejecting an unadmitted save with zero manager acquisitions. Evidence rejected-save-controls.trx SHA256 f6f4f7824a1587256e6ac6c2950257b14a10dccceca5f7b1853c1987b8a809e6.
 
 The original fixture was moved byte-for-byte into LocalState/COSMIC/HostedSandboxCqlCurrent/Archive/fixture-admission-rejected-56eaea32-a323-46c4-8f48-7120ca503de8.json, SHA256 a980c6cb451d20ab5b29c44b79a4ef0e69b6528aa62bd78dea37e2384b0f6aa6; adjacent reconciliation manifest records disposition, deployed source hashes and test hash. No provider request repeated, no database reset/deletion, no acknowledged business save. A future corrected-deployment run can declare a new operation/fixture; never reuse the rejected operation as a successful save. This reconciliation does not resolve previously executed queries whose receipt settlement is pending.
+
+## Rejoin to the full task branch verified
+
+Scoped integration47f7f2606 rejoined full work/cosmic-cql in parent3ee4a5d9f; Core69bb8a4 merges the single receipt fix while preserving46 broader Core commits. Documentation histories retained; previous broad status archived, new CURRENT_STATUS59lines. All7 affected producer/WEB4/test projects build against merged Core without restore.30 API controls,189 Mongo CQL controls,8 native billing lifecycle cases and4 native ancestor cases pass/no skips;6 offline verifier protocol checks pass. Exact owned native fixture databases removed and Mongo stopped after each runner. No Development/hosted configuration/deployment change.
+
+Passing merged-tree evidence in TestResults/Web4SandboxCqlCurrent:
+- rejoin-api-controls.trx: 49831B; SHA256 4aab7ad384836953a7f3cc107b88b9cace7e57f5df02627ed0691de93b56109c.
+- rejoin-mongo-controls.trx: 282991B; SHA256 022b467c267cde0ffc12fa4fccd32b1efdd2c4c0fd8d9a8b20b404fdd8b109f7.
+- lifecycle-native.trx: 13417B; SHA256 2af3c17f44134bfd1ce8eb2cfe67dc8bcd804eaef6e2a2f0b70d220c7274319e.
+- mongo-ancestor-native.trx: 7148B; SHA256 9ca30c1a24c8f44c0bdd196cab7a064f9a2fe5c8497a942e6a9df82e22594ae7.
