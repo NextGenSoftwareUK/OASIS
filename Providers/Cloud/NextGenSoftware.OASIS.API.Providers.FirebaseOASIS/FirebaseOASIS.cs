@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
     ///   databaseUrl  — e.g. "https://my-project-default-rtdb.firebaseio.com"
     ///   authToken    — Firebase ID token or database secret (optional for public databases)
     /// </summary>
-    public class FirebaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class FirebaseOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly HttpClient _http;
         private readonly string _baseUrl;
@@ -70,15 +70,18 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                // Ping the database root to verify connectivity and credentials
-                var response = await _http.GetAsync(NodeUrl("/.info/connected"));
+                // The connected status node belongs to SDK transports. Probe one
+                // reserved empty identity through the actual REST contract instead.
+                using var response = await _http.GetAsync(NodeUrl("/oasis_holons/" + Guid.Empty.ToString("D")));
                 response.EnsureSuccessStatusCode();
+                IsProviderActivated = true;
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "FirebaseOASIS activated — connected to Firebase Realtime Database.";
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error activating provider — {ex.Message}");
             }
@@ -87,8 +90,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-            => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "FirebaseOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "FirebaseOASIS deactivated." });
+        }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
