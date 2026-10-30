@@ -1,6 +1,6 @@
 # PostgreSQL CQL MVP admission
 
-Updated30October2026. **Identity-only native/restart and Mongo-paired MVP verified; new content-query candidate awaits native proof.**
+Updated30October2026. **Identity MVP and native/restart content queries verified; content federation/HTTP/browser/sandbox remain open.**
 
 The adapter uses the existing PostgreSQL connection and canonical record reader.
 One parameterized SELECT applies the server-authorized catalogue (at most100IDs),
@@ -77,7 +77,7 @@ read-only on subsequent runs. This proves bounded identity filtering/native pagi
 not arbitrary content predicates, managed cloud products, aliases, production
 registration or full PostgreSQL LINQ parity.
 
-## Content-query candidate: semantics and remaining proof
+## Native content-query scope and remaining demo work
 
 The single native compiler now admits Name/Description equality and Contains,
 string metadata equality (including nested object paths), Boolean constants, Id
@@ -91,7 +91,8 @@ strpos, so percent/underscore/backslash are literal characters rather than LIKE
 wildcards. Metadata must traverse objects and finish at a JSON string; missing,
 null, non-string and array-parent paths do not match a string equality. Keys are
 case-sensitive, including numeric-looking object keys. NUL inputs reject. Native
-Unicode/escaping behavior still requires the cases below before green admission.
+quote/wildcard/Unicode values, nested object paths and array exclusion are proved
+by the17-query native fixture below.
 
 Name/metadata ordering, numeric metadata, null predicates, StartsWith/EndsWith,
 NOT, graph queries and arbitrary-source authorization remain unsupported. Aliases
@@ -103,15 +104,49 @@ CompileNative command owner, without fallback dispatch.
 Producer/unit builds pass.16 controls pass/no skips:8 retained plus8 content,
 parameter ownership, authority containment and rejection cases. Evidence:
 TestResults/PostgreSqlCqlCurrent/content-controls.trx; SHA256 895972ac28790ac99bd1bb34e2565282ef4e285de8f5bc573dd4d9d5ee9a35d8.
-These controls do not prove native SQL/JSON semantics, persistence or browser use.
+These controls are compiler proofs; native SQL/JSON and restart evidence follow.
+They do not establish content federation/browser/sandbox acceptance.
 
-Exact next: reuse the retained PostgreSQL container/volume; preserve original
-cosmic_cql rows/snapshots. Add a small explicitly owned content fixture covering
-positive/negative Name/Description/metadata, nested/missing/null/wrong-type keys,
-numeric-looking keys versus arrays, literal wildcard/quotes/Unicode, AND/OR,
-authority exclusion and deterministic native paging. Then update Mongo-paired
-C#/HTTP/browser examples and sandbox capability enrollment. Content cells remain
-red until each scope has its proving evidence.
+### Native and restart acceptance
+
+One native test containing17 query cases passed twice: initial991ms and after
+service restart499ms, no skips/failures. Four acknowledged records are retained
+in the separately owned cosmic_cql_content schema on the existing database.
+Three IDs are authorized; a fourth matching record remains excluded even through
+business OR. Original cosmic_cql rows remain unchanged. Content JSON hashes and
+xmin row versions match across both runs; source is never reseeded on repeat.
+
+| Feature | Native content proof |
+|---|---|
+| Name equality / Contains / case-sensitive negative | ✅ exact Espresso, ss, lowercase miss |
+| Description Contains | ✅ two coffees; literal percent/underscore/Unicode/quote |
+| String metadata equality | ✅ two coffee records; exact Unicode value |
+| Nested object keys | ✅ London matches two; numeric-looking object key works |
+| Missing/null/wrong-type/array parents | ✅ no string match; array indexing excluded |
+| AND/OR and authorization | ✅ mixed positives; matching unauthorized record excluded |
+| Native paging | ✅ stable UUID order, one selected coffee after Skip/Take |
+| Content federation / HTTP / browser / sandbox | ❌ next scope; earlier ID proofs do not promote it |
+
+Proving test: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/PostgreSqlCqlContentNativeTests.cs.
+Evidence under TestResults/PostgreSqlCqlCurrent:
+- postgres-content-initial.trx: SHA256 70bfc064953bb319f7daa7a62a9323cd211176abaefd64e119a59891acb8cab4.
+- postgres-content-native.trx: SHA256 c424c2cfe8ce0b0aeb9c68b3fc6a7e9c7b843590d501c0cb6729f24b8274f2fd.
+
+```powershell
+# Reuses the exact retained container/volume; no restore/download/install.
+Scripts/TestHosts/Run-CosmicPostgreSqlCqlNative.ps1 -Content
+```
+
+The runner requires original identity source, refuses pending content setup,
+checks container/image/port/volume, locks the source and stops the owned service
+on verified success. Content source/acknowledgements/snapshots stay under
+LocalState/COSMIC/PostgreSqlCql/content-*; logs/TRX stay disposable TestResults.
+Final container state was exited. No schema reset, source rewrite or new runtime.
+
+Exact next: update the Mongo-paired C#/HTTP/browser examples to use content
+queries, then add explicit sandbox capability/authorization enrollment. New content
+cells are green only for native scope; no unrestricted query, alias, cloud or full
+PostgreSQL LINQ-parity claim.
 
 ## Programme priority
 

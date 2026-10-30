@@ -1,4 +1,5 @@
-param([switch]$Federated,[switch]$Serve)
+param([switch]$Federated,[switch]$Serve,[switch]$Content)
+if($Content -and ($Federated -or $Serve)){throw "Content native proof is separate from the existing identity federation preset."}
 if($Serve -and !$Federated){throw "Serve requires explicit federation."}
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
@@ -12,6 +13,7 @@ $oldMongo=$env:OASIS_MONGO_REPLICA_SET_CONNECTION;$oldServe=$env:OASIS_POSTGRES_
 $lifecycleMongo=@{Process=$null}
 $lifecycle=@{Started=$false;Passed=$false};$secret=$null
 try {
+    if($Content -and (Test-Path -LiteralPath (Join-Path $state 'content-seed.pending.json'))){throw 'Content setup pending; preserve without replay.'}
     if(Test-Path -LiteralPath (Join-Path $state 'demo-seed.pending.json')){throw 'Original setup is pending; inspect without replay.'}
     if(Test-Path -LiteralPath (Join-Path $state 'mongo.pending.json')){throw 'Original Mongo fixture unresolved.'}
     if($Federated -and !(Test-Path -LiteralPath (Join-Path $state 'demo-seed.json'))){throw 'Original native source required before federation.'}
@@ -22,8 +24,12 @@ try {
     if(@($identity.Mounts | Where-Object {$_.Type -eq 'volume' -and $_.Name -eq 'oasis-postgres-data' -and $_.Destination -eq '/var/lib/postgresql/data'}).Count -ne 1){throw 'Retained data volume required.'}
     & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'COSMIC PostgreSQL CQL native' -Operation {
         $project=Join-Path $root 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests'
+        if($Content){
+            if(!(Test-Path -LiteralPath (Join-Path $project 'obj/project.assets.json'))){throw 'Existing integration assets required; inspect caches before restoring.'}
+        } else {
         & dotnet restore $project --source C:/Users/david/.nuget/packages /p:NuGetAudit=false /p:RestoreRecursive=false /m:2 /nr:false *> (Join-Path $results 'native-restore.log')
         if($LASTEXITCODE){throw 'Cached dependency restore failed.'}
+        }
         if($Federated){
             & dotnet build (Join-Path $root 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS') --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false *> (Join-Path $results 'mongo-build.log')
             if($LASTEXITCODE){throw 'Mongo producer build failed.'}
@@ -47,9 +53,12 @@ try {
         if([string]::IsNullOrWhiteSpace($secret)){throw 'Protected test credential required.'}
         $env:OASIS_POSTGRES_CQL_CONNECTION="Host=127.0.0.1;Port=15432;Database=oasis_provider_test;Username=oasis_test;Password=$secret;Search Path=cosmic_cql,pg_catalog;Timeout=10;Command Timeout=15;Pooling=false"
         $env:OASIS_POSTGRES_CQL_STATE=$state
-        & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~PostgreSqlCqlNativeTests' --results-directory $results --logger 'trx;LogFileName=postgres-cql-native.trx' *> (Join-Path $results 'native.log')
+        $nativeFilter=if($Content){'FullyQualifiedName~PostgreSqlCqlContentNativeTests'}else{'FullyQualifiedName~PostgreSqlCqlNativeTests'}
+        $nativeReport=if($Content){'postgres-content-native.trx'}else{'postgres-cql-native.trx'}
+        $nativeLog=if($Content){'content-native.log'}else{'native.log'}
+        & dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter $nativeFilter --results-directory $results --logger "trx;LogFileName=$nativeReport" *> (Join-Path $results $nativeLog)
         if($LASTEXITCODE){throw 'Native acceptance failed; preserve source/journals.'}
-        [xml]$report=Get-Content -LiteralPath (Join-Path $results 'postgres-cql-native.trx') -Raw
+        [xml]$report=Get-Content -LiteralPath (Join-Path $results $nativeReport) -Raw
         if([int]$report.TestRun.ResultSummary.Counters.passed -ne 1 -or [int]$report.TestRun.ResultSummary.Counters.total -ne 1){throw 'One passed native test without skips required.'}
         if($Federated){
             if(Get-NetTCPConnection -State Listen -LocalPort 27029,5112 -ErrorAction SilentlyContinue){throw 'Paired ports occupied; no process adoption.'}
