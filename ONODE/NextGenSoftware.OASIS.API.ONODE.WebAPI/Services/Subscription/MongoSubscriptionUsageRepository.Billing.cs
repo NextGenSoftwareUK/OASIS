@@ -18,6 +18,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private void InitializeBillingIndexes()
         {
             Subscriptions.Indexes.CreateMany(new[] {
+                new CreateIndexModel<SubscriptionRecord>(Builders<SubscriptionRecord>.IndexKeys.Ascending(x => x.SandboxExpiresAtUtc).Ascending(x => x.UserId),
+                    new CreateIndexOptions<SubscriptionRecord> { Name = "ix_sandbox_subscription_expiry",
+                        PartialFilterExpression = new BsonDocument("SandboxExpiresAtUtc", new BsonDocument("$type", "date")) }),
                 new CreateIndexModel<SubscriptionRecord>(Builders<SubscriptionRecord>.IndexKeys.Ascending(x => x.StripeSubscriptionId), new CreateIndexOptions<SubscriptionRecord> {
                     Name = "ux_stripe_subscription", Unique = true, PartialFilterExpression = new BsonDocument("StripeSubscriptionId", new BsonDocument("$type", "string")) }),
                 new CreateIndexModel<SubscriptionRecord>(Builders<SubscriptionRecord>.IndexKeys.Ascending(x => x.StripeCustomerId), new CreateIndexOptions<SubscriptionRecord> { Name = "ux_stripe_customer", Unique = true, PartialFilterExpression = new BsonDocument("StripeCustomerId", new BsonDocument("$type", "string")) })

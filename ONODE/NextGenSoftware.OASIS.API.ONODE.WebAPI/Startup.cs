@@ -427,6 +427,23 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.ISandboxSubscriptionStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton(provider => new Services.Sandbox.SandboxSubscriptionLifecycle(
+                () => provider.GetRequiredService<Services.Subscription.ISandboxSubscriptionStore>(),
+                () => {
+                    var routes = provider.GetService<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.StorageAdmissionRoutes>();
+                    foreach (var path in new[] { "/api/data/query-cql", "/api/data/query-cql/scalar", "/api/data/query-cql/federation" }) {
+                        var request = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+                        request.Request.Method = "POST"; request.Request.Path = path;
+                        if (routes?.Resolve(request) != null) return true;
+                    }
+                    return false;
+                },
+                () => new Services.Sandbox.SandboxSubscriptionPolicy(
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Enabled,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Current.DemoAvatarUsernamePrefix,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Current.DemoAvatarEmailDomain,
+                    NextGenSoftware.OASIS.API.Core.Managers.SandboxOptions.Retention)));
             services.AddSingleton<Services.Subscription.IDelegatedUsageGrantRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();
