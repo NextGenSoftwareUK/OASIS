@@ -73,8 +73,8 @@ Audit existing CQL/API capabilities for the approved10-provider content-query se
 and map the missing sandbox API/UI/runtime pieces. Implement the sandbox CQL
 playground/provider integration alongside that query work, then reconcile remaining
 existing demos. Keep unsupported providers visibly pending rather than fabricating
-results. The separate Web4Site checkout was inspected only; no branch switch,
-frontend edit, deployment, account, environment or new resource was created here.
+results. The CQL client is now implemented in the existing Web4Site checkout; see the
+[current host admission gates](SANDBOX_CQL_ADMISSION.md) and client milestone below.
 
 [Current status](CURRENT_STATUS.md) / [content-query roadmap](CONTENT_QUERY_DEMO_ROADMAP.md).
 
@@ -108,3 +108,5 @@ provider defect. Hosted configuration and successful query verification remain o
 Evidence `TestResults/Web4SandboxCqlCurrent/node-tests.log`: 1088 bytes, SHA256 `9929f2fd78fab982e1c0a20fc143c361a5356d1ca1706e0f18072645c33b402a`.
 
 Evidence `TestResults/Web4SandboxCqlCurrent/browser.png`: 204979 bytes, SHA256 `3ac4a4a5c3181914d1707b5ed827694a8f3075b6b7f66b2742e22396a77e02db`.
+
+Follow-up: [host admission root causes, tested free profile and remaining deployment/subscription gates](SANDBOX_CQL_ADMISSION.md).
