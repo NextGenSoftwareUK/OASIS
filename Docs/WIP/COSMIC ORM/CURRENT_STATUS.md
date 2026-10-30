@@ -11,7 +11,9 @@ Updated30October2026 UTC. Full programme remains incomplete.
 - All8 scoped producers/consumers rebuilt against merged39b4571 without restore.36API/schema/metadata controls,8real native billing lifecycle and4native ancestor cases pass/no skips. Native owned fixtures removed/Mongo stopped.
 - Railway dev WEB4 PREPARED_STORAGE_ADMISSION_JSON v2 staged with --skip-deploys; oldv1/current expected profile compared first, exact canonical readback verified. No duplicate deployment or unrelated setting change.
 
-Exact next: push Core39b4571 to Development, verify ls-remote; push this scoped parent/pin+manifest together, verify manifest and exact Railway deployment handle. Observe it to terminal, then run the hosted19-call fixture verifier against that exact SHA/deployment; reconcile failures without replay. Frontend main remains unpublished until real acceptance.
+Published: Development parent e6c09bfda14735582f71191a2748147f7c38d317/Core39b45711925ee284786897ac24bd721bec351c5e; both refs verified, manifest matches. Exact Railway WEB4 deployment fcaea4cc-2161-422d-921d-b1b3170d5c20 is QUEUED behind concurrent84f65537/fb2d21b66 BUILDING. Do not restart/cancel either based on elapsed time.
+
+Exact next: observe that same deployment to terminal. On SUCCESS, run python Scripts/Sandbox/Verify-HostedCqlDemo.py --deployment fcaea4cc-2161-422d-921d-b1b3170d5c20 --commit e6c09bfda14735582f71191a2748147f7c38d317. Stop/reconcile actual failures without replay. Frontend main remains unpublished until acceptance. No further Development push is authorized by this single extra-batch approval.
 
 ## Hosted verification and unresolved gates
 
