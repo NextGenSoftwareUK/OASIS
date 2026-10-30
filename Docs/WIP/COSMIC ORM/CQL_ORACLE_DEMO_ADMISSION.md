@@ -175,3 +175,44 @@ content cells remain red until a saved-source fixture and paired demo prove them
 Final Oracle state exited143/no OOM; no new environment, download, restore or data.
 Evidence TestResults/OracleCurrent/oracle-cql-content-probe.trx; SHA256 4ab94f7941d7b57faf04c9bb6ce40dec22036489a8bfa161e7f245c7740adaaa.
 New test: OracleCqlContentProbeTests.cs in OracleDBOASIS.IntegrationTests.
+
+## Saved-holon native content and restart verified
+
+The actual Oracle provider path now passes21 content queries over four real,
+acknowledged canonical holons, initially and after database stop/start (one test
+per run, no skips/failures). Tests include Name equality/Contains/case, Description
+Contains with literal percent/underscore/quote/Unicode, metadata equality/nesting,
+numeric-looking object keys versus arrays, missing/null/wrong-type exclusion,
+AND/OR, a matching fourth holon excluded by the trusted catalogue, stable native
+RAW-ID paging, empty Contains/equality, escaped metadata keys and a4000byte value
+which must not match a stored4001byte value with an extra space.
+
+This exercises provider dispatch, canonical/history/native-column validation,
+provider-key publication and the existing bounded window owner. All four source
+JSON hashes and native modified timestamps remain unchanged across queries and
+restart. Source seed/actor/IDs, four write acknowledgements and baseline are
+retained under LocalState/COSMIC/OracleContentCql; pending setup absent, no reseed.
+No schema/database/environment clone; only four owned rows in the existing store.
+
+Proving test: OracleCqlContentNativeTests.cs in OracleDBOASIS.IntegrationTests.
+Evidence under TestResults/OracleCurrent:
+- oracle-cql-content-initial.trx: SHA256 8cd58a2ce146c6ddd69839f4fb75a30596d1fd32f746cef49eaf60ec9091ca99.
+- oracle-cql-content-native.trx: SHA256 d2ecfe1ee04b069be03fc940aff130a036ba7b32c97043b3f5c59e2503bb3ccc.
+
+```powershell
+Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-oracle-content -Operation {
+    Scripts/TestHosts/Run-ReusableOracleTests.ps1 -CqlContent
+}
+```
+
+The runner preserves existing native reports: move a reviewed completed report
+into retained evidence before repeat; do not bypass its guard. The initial report
+is preserved byte-for-byte; an accidental duplicate copy was verified before its
+disposable original was removed. That guard stopped one restart attempt before
+test dispatch; the owned container was stopped, then the intended restart proof
+passed. No provider write was repeated. Oracle ends stopped143/no OOM.
+
+Native content scope is now verified. Content Mongo-paired C#/HTTP/browser and
+deployed sandbox authorization/admission remain red. The approved extra daily
+Development batch is the immediate priority; these new Oracle/provider changes
+are excluded from that scoped deployment.

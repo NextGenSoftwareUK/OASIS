@@ -8,16 +8,16 @@ Updated30October2026 UTC. Full programme remains incomplete. Read this first aft
 - Existing frontend C:/Source/Web4Site, work/cosmic-cql c17e5f7; main unpublished.
 - Scoped fixes rejoined the broader task branch in parent3ee4a5d9f; Core69bb8a4 includes receipt fixfdca0ed.
 - Development remains parent89a960111/Core432c613; Railway deploymente88fbed5 SUCCESS.
-- Two Development batches already published today. Next deploy must batch verified changes.
+- Two Development batches published today; user explicitly approved one extra consolidated fix batch. Exclude newer provider breadth work.
 - Unknown root `logs` remains untouched. No new worktrees/environments/installations.
 
 ## Priority and exact next step
 
 1. Rejoin verified: all7 affected projects build against broader Core69bb8a4;30 API controls,189 Mongo CQL controls,8 native lifecycle and4 native ancestor cases pass/no skips;6 offline verifier tests pass.
-2. Next verified deployment batch must carry receipt ownership fix, root-filter optimization and free write profilev2 together. Preserve current remote settings/concurrent changes.
+2. Immediate next: publish the user-approved extra scoped fix batch from work/cosmic-cql-sandbox-integration47f7f2606/Corefdca0ed (receipt ownership, Mongo root-filter and free profilev2). Both remotes fetched: Development still89a960111/Core432c613. Verify scoped outputs/pins; stage profilev2 without duplicate deploy; preserve concurrent remote changes.
 3. Verify hosted Mongo/SQLite/Neo4j save/replication/rows/LongCount/federation/isolation, then publish the CQL tab. Hosted timeout resolution remains unproved.
 4. Content breadth: PostgreSQL16controls+17native/restart and4paired SDK/HTTP/browser presets pass; SQLServer17controls+23native/restart and4paired presets pass. Services stopped/temporaryMongo removed. Deployed sandbox remains red for both (tenant authorization/admission).
-5. Exact next: Oracle saved-holon content fixture, then shared4preset Mongo pairing/browser.13compiler controls and15read-only native SQL/JSON/type/empty/binding cases pass; persisted-source and deployed content remain red. Reuse the retained Oracle source; preserve historical journals.
+5. Oracle now passes13controls,15read-only native cases and21saved-holon queries/restart; source4rows unchanged, owned container stopped. Content Mongo-paired/browser/sandbox remain red. Resume shared4preset pairing after the approved scoped deployment; retain source/history journals.
 6. Follow [approved10-provider content queries](CONTENT_QUERY_DEMO_ROADMAP.md)/[sandbox coverage](SANDBOX_PROVIDER_DEMO_ROADMAP.md). Existing green scopes remain frozen; remaining first-group providers follow Oracle.
 7. Then extend remaining demo providers. Hosted Azure stays pending/free-only by user instruction. No paid subscription/account creation.
 
