@@ -330,3 +330,15 @@ Evidence (regenerable under worktree TestResults):
 - DemoBreadthCurrent/native-mongo-SOLIDOASIS-federation.json:5 total/3 SOLID/2 Mongo; exactCleanupVerified=true.
 
 Next: ActivityPub multi-record acceptance, then catalogue enrollment. Hosted SOLID and unrestricted content queries remain unproved.
+
+
+## ActivityPub bounded multi-record demo verified (30 October)
+
+10 key-set controls and one live mastodon.social + Mongo scenario passed, no failures/skips. CQL metadata membership selects three existing public status IDs using one native batch request, validates the entire response and preserves canonical provenance; the teaching HTTP path also passes. Federation returns five copies (three public statuses +two owned Mongo rows), excluding an unselected Mongo row. No account/token/posting, no arbitrary timeline scan and no general text-query claim. Key-set support is explicitly opt-in.
+
+Owned Mongo fixture cleanup verified, pending journal absent, ports27029/5088 closed. Public statuses remain unchanged. TestResults/DemoBreadthCurrent/native-mongo-ActivityPubOASIS-federation.json records counts and exactCleanupVerified=true.
+
+- TestResults/DemoBreadthCurrent/activitypub-keyset-controls.trx:10 passed; SHA256FD8AEC12309DEA070B0DBC64E4FD095C6A37FB495A56E717CB32370E08A080AD.
+- TestResults/DemoBreadthCurrent/native-mongo-mastodon.trx:1 passed; SHA256D5E7C338DF6A01FE3FB60B5D28E05ED9B6A82F2C55B05CB772995CE81E0FA1A6.
+
+Reproduce: pwsh Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -ArchiveCompletedDemo. Next: accurate catalogue enrollment of all three verified protocol profiles; full parity remains deferred.
