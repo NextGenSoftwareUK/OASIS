@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
     /// OASIS provider for ScyllaDB — a high-performance Cassandra-compatible database.
     /// Uses the CassandraCSharpDriver which is fully wire-compatible with ScyllaDB.
     ///
-    /// Schema (keyspace: oasis, replication: SimpleStrategy):
+    /// Schema (keyspace: oasis, replication: NetworkTopologyStrategy):
     ///   oasis_avatars       — id uuid PK, username text, email text, is_deleted boolean, data_json text
     ///   oasis_avatar_details — id uuid PK, username text, email text, data_json text
     ///   oasis_holons        — id uuid PK, parent_holon_id uuid, holon_type int, is_deleted boolean, data_json text
@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         private void EnsureSchema()
         {
             var s = GetSession();
-            s.Execute($"CREATE KEYSPACE IF NOT EXISTS {_keyspace} WITH replication = {{'class':'SimpleStrategy','replication_factor':{_replication}}}");
+            s.Execute($"CREATE KEYSPACE IF NOT EXISTS {_keyspace} WITH replication = {{'class':'NetworkTopologyStrategy','replication_factor':{_replication}}}");
             s.Execute($"USE {_keyspace}");
             s.Execute($"CREATE TABLE IF NOT EXISTS {_keyspace}.oasis_avatars (id uuid PRIMARY KEY, username text, email text, is_deleted boolean, data_json text)");
             s.Execute($"CREATE INDEX IF NOT EXISTS ON {_keyspace}.oasis_avatars (username)");

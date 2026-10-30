@@ -23,7 +23,13 @@ public class ScyllaDbCqlNativeTests
         using var lease = new FileStream(Path.Combine(state, "source.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var manifest = Path.Combine(state, "demo-seed.json");
         var pending = Path.Combine(state, "demo-seed.pending.json");
-        Assert.IsFalse(File.Exists(pending), "Preserve uncertain setup; never replay.");
+        var resumePrewrite = File.Exists(pending) && Environment.GetEnvironmentVariable("OASIS_SCYLLADB_RESUME_PREWRITE") == "1";
+        Assert.IsTrue(!File.Exists(pending) || resumePrewrite, "Preserve uncertain setup; explicit prewrite readback required.");
+        if (resumePrewrite)
+        {
+            Assert.IsFalse(File.Exists(manifest));
+            Assert.AreEqual(0, Directory.GetFiles(state, "source-write-*.ack.json").Length);
+        }
         var baseline = Path.Combine(state, "source-snapshot.json");
         if (File.Exists(manifest))
             Assert.IsTrue(File.Exists(baseline), "Original snapshot missing; never bless replacement state.");
@@ -50,9 +56,19 @@ public class ScyllaDbCqlNativeTests
         if (!File.Exists(manifest))
         {
             Assert.AreEqual(0L, await Count("SELECT count(*) FROM system_schema.keyspaces WHERE keyspace_name='oasis'"), "Never adopt existing schema.");
-            seed = new Seed(Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray());
-            using (var intent = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
-            { JsonSerializer.Serialize(intent, seed); intent.Flush(true); }
+            if (resumePrewrite)
+            {
+                seed = JsonSerializer.Deserialize<Seed>(await File.ReadAllTextAsync(pending))!;
+                using var receipt = new FileStream(Path.Combine(state, "demo-seed.prewrite-resume.ack.json"), FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                JsonSerializer.Serialize(receipt, new { sourceIntentSha256 = Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(pending))), keyspaceAbsent = true, acknowledgedWrites = 0 });
+                receipt.Flush(true);
+            }
+            else
+            {
+                seed = new Seed(Guid.NewGuid(), Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray());
+                using var intent = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                JsonSerializer.Serialize(intent, seed); intent.Flush(true);
+            }
             var active = await provider.ActivateProviderAsync();
             Assert.IsFalse(active.IsError, active.Message);
             var names = new[] { "Espresso", "Latte", "Tea" };
@@ -73,6 +89,8 @@ public class ScyllaDbCqlNativeTests
             Assert.AreEqual(3L, await Count("SELECT count(*) FROM system_schema.tables WHERE keyspace_name='oasis'"), "Original tables required before activation.");
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
         }
+        var replication = (await native.ExecuteAsync(new SimpleStatement("SELECT replication FROM system_schema.keyspaces WHERE keyspace_name='oasis'"))).Single().GetValue<IDictionary<string, string>>("replication");
+        StringAssert.EndsWith(replication["class"], "NetworkTopologyStrategy");
         Assert.AreEqual(3, seed.Ids.Distinct().Count());
         async Task<string[]> Snapshot()
         {
