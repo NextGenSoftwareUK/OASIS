@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 /// <summary>Consumes the enrolled Mongo queue. Native session/transaction ownership and server UTC fence mutations.</summary>
-public sealed class MongoHolonReplicationOutbox : IHolonReplicationObligationReader
+public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private readonly IMongoClient _client;
     private readonly IMongoCollection<BsonDocument> _rows;

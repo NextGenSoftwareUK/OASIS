@@ -272,3 +272,7 @@ TestResults/Web4SandboxCqlCurrent/mongo-replica-initialization.trx SHA256 026B9E
 TestResults/Neo4jCurrent/neo4j-replica-initialization-current.trx SHA256 745B10A31DDAA64DA60D8F88625D1EBBB0414910FDDDDA5A5864EE9B0847FFB4
 
 Owned native fixtures removed and services/container stopped (Neo attached process23820). Parent pin/manifest advance with Core; work stays on task branch, no extra Development push. Current next work is actual demo blocker diagnosis/provider presets, not additional generic recovery design.
+
+### Demo repair: Mongo held-head completion
+
+Seven native cases pass/no skips; TestResults/Web4SandboxCqlCurrent/mongo-replica-initialization.trx SHA256 02C0CFC10EDD1815BCD76ACA7A4FDA9E87B332BB4DDEDBACC417A93E683E3B4D. Core both-target, Shared, Mongo and integration-test builds pass without restore. Actual late version4 baseline/source completion followed by ordinary version5 delivery; stale attempt and absent/wrong receipt refusal, preserved original evidence and byte-identical completion replay verified. Owned fixed test DBs removed and Linux Mongo stopped. Trusted application/journal composition and hosted execution remain incomplete.
