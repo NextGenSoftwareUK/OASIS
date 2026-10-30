@@ -10,7 +10,8 @@ OracleDBOASIS now implements ICosmicQueryStorageProvider. Its first explicit pro
 supports canonical Id equality/membership, Boolean/And/Or composition and a bounded
 post-selection window. A complete authoritative Oracle readable-ID catalogue is
 required from trusted host code; client-selected IDs alone must never become that
-catalogue. Owner/public/native JSON-field filtering is not enrolled yet.
+catalogue. Owner/public authorization remains unenrolled; new native JSON content
+filtering is a compiler candidate pending the native proof below.
 
 The native SQL owner binds GUIDs as named RAW16 parameters, intersecting the business
 predicate and captured authoritative catalogue in the same SELECT. No full-store
@@ -103,3 +104,45 @@ The earlier AF6DE716... browser proof remains preserved under its full hash in
 TestResults/OracleCurrent/Archive. ArchiveCompletedDemo admits only one complete
 unskipped pass after pending-fixture checks; failed/unknown outcomes never replay.
 Omit VerifyOnly for the interactive page. [Launcher guide](CQL_DEMO_LAUNCHER.md).
+
+## Content-query compiler candidate (30 October)
+
+The single native statement now admits Name/Description equality and Contains,
+string metadata equality on nested object paths and AND/OR. The original RAW16
+catalogue/business identity predicates remain in the same WHERE conjunction;
+content OR cannot replace authorization. Existing128row/512parameter and canonical
+envelope validation/window ownership remain unchanged. No managed business scan.
+
+Oracle JSON_EXISTS requires a literal JSON path. Each member is JSON-quoted and
+the resulting SQL string literal is escaped; predicate values use separate
+PASSING VARCHAR2 binds. Explicit object checks on every metadata parent and a
+string-type check on the leaf are intended to prevent array unwrapping and
+numeric/null coercion. ERROR ON ERROR retains actual native failures rather than
+silently returning a nonmatch. Contains uses the literal has substring operator.
+
+Bounds:512 total identity/text parameters; text values and complete encoded JSON
+paths each at most4000UTF8bytes; NUL rejects. Null/numeric metadata, prefix/suffix,
+NOT, ordering, child/graph and owner/public/inherited access remain unenrolled.
+Oracle documents SQL NULL VARCHAR2 in PASSING as an empty JSON string; the adapter
+uses that type for an empty captured string. Native empty/missing/null distinction,
+Unicode, arrays, keys, text/trailing spaces and limits still need actual proof.
+
+Provider/unit builds pass;13 query controls pass/no skips. They cover preserved
+identity snapshots/empty catalogues, frozen text bindings, authority conjunction,
+key literal containment, empty-string intent and explicit unsupported/bound cases.
+Evidence TestResults/OracleCurrent/content-controls.trx; SHA256 308cce8b335674cebe47669ce0b8fec34eab522f38f21abf530a81c156d84062.
+These are compiler proofs; native content and paired/browser/sandbox remain red.
+
+Exact next: reuse the retained Oracle container/image/volume/11521 and existing
+native runner. First verify JSON_EXISTS/PASSING syntax and type/empty semantics
+read-only, then use an explicitly journalled owned content fixture for positive/
+negative Name/Description/metadata, nested/numeric-looking keys, arrays, missing/
+null/wrong type, literal wildcards/quotes/Unicode, AND/OR and authority exclusion.
+Preserve historical pending/recovery evidence and never replay uncertain writes.
+Then use the common ContentFederationPresets for Mongo-paired SDK/HTTP/browser.
+
+References used for the candidate design:
+- [Oracle SQL/JSON filter syntax](https://docs.oracle.com/en/database/oracle/oracle-database/19/adjsn/json-path-expressions.html).
+- [Oracle PASSING type/NULL semantics](https://docs.oracle.com/en/database/oracle/oracle-database/26/adjsn/passing-clause-sql-functions-and-conditions.html).
+Native proof on the retained pinned runtime is required; documentation from a
+newer release alone does not certify that runtime's behavior.
