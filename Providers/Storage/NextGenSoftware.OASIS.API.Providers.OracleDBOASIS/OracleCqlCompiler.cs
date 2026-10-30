@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using Oracle.ManagedDataAccess.Client;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -23,6 +24,22 @@ public sealed class OracleCqlStatement
         Values=Array.AsReadOnly((Guid[])values.Clone());
         TextValues=Array.AsReadOnly((string[])textValues.Clone());
     }
+    /// <summary>Bind the captured statement through the same owner in execution and native probes.</summary>
+    public void BindParameters(OracleCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        if(!command.BindByName||command.Parameters.Count!=0)
+            throw new ArgumentException("A fresh command with explicit named binding is required.");
+        for(var index=0;index<Values.Count;index++)
+            command.Parameters.Add("cql"+index,OracleDbType.Raw,16).Value=Values[index].ToByteArray();
+        for(var index=0;index<TextValues.Count;index++)
+        {
+            // NULL VARCHAR2 denotes an empty JSON string in Oracle PASSING.
+            var value=TextValues[index];
+            command.Parameters.Add("cqltext"+index,OracleDbType.Varchar2,4000).Value=value.Length==0?DBNull.Value:value;
+        }
+    }
+
 }
 
 public static class OracleCqlCompiler
