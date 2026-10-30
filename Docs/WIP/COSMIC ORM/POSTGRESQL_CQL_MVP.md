@@ -1,6 +1,6 @@
 # PostgreSQL CQL MVP admission
 
-Updated30October2026. **Identity MVP and native/restart content queries verified; content federation/HTTP/browser/sandbox remain open.**
+Updated30October2026. **Identity MVP and native/restart content queries verified; local content federation/HTTP/browser verified; deployed sandbox remains open.**
 
 The adapter uses the existing PostgreSQL connection and canonical record reader.
 One parameterized SELECT applies the server-authorized catalogue (at most100IDs),
@@ -125,7 +125,8 @@ xmin row versions match across both runs; source is never reseeded on repeat.
 | Missing/null/wrong-type/array parents | ✅ no string match; array indexing excluded |
 | AND/OR and authorization | ✅ mixed positives; matching unauthorized record excluded |
 | Native paging | ✅ stable UUID order, one selected coffee after Skip/Take |
-| Content federation / HTTP / browser / sandbox | ❌ next scope; earlier ID proofs do not promote it |
+| Content federation / C# / HTTP / browser | ✅ four native presets,2/4/4/2 physical rows, both providers |
+| Deployed WEB4 sandbox | ❌ tenant authorization/admission/registration and UI enrollment remain |
 
 Proving test: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.IntegrationTests/PostgreSqlCqlContentNativeTests.cs.
 Evidence under TestResults/PostgreSqlCqlCurrent:
@@ -143,10 +144,52 @@ on verified success. Content source/acknowledgements/snapshots stay under
 LocalState/COSMIC/PostgreSqlCql/content-*; logs/TRX stay disposable TestResults.
 Final container state was exited. No schema reset, source rewrite or new runtime.
 
-Exact next: update the Mongo-paired C#/HTTP/browser examples to use content
-queries, then add explicit sandbox capability/authorization enrollment. New content
-cells are green only for native scope; no unrestricted query, alias, cloud or full
-PostgreSQL LINQ-parity claim.
+### Mongo-paired content teaching demo
+
+The retained content schema now pairs with a verified disposable three-record
+Mongo fixture. Four content presets run through the same captured CQL query,
+capability planner and HolonManager federation owner in C#, HTTP and browser:
+
+| Preset | Predicate | Physical rows (PostgreSQL + Mongo) |
+|---|---|---|
+| name | Name == Espresso | 2 (1+1) |
+| description | Description.Contains(coffee) | 4 (2+2) |
+| metadata | category == coffee | 4 (2+2) |
+| combined | (Name == Espresso OR Tea) AND category == coffee | 2 (1+1) |
+
+Every preset preserves provider copies/provenance and fails if a native source
+fails. Trusted per-source catalogues stay server-owned; request actor injection
+and unknown presets reject. The original ID-query5/4 presets remain available.
+C# source: Examples/CosmicCqlDemo/ContentFederationPresets.cs; the shared
+IdentityFederationWalkthrough.RunQueryAsync owns planning and execution for both
+identity and content examples. No separate HTTP query evaluator or managed scan.
+
+```powershell
+# Automated native and paired C#/HTTP checks, followed by owned teardown:
+Scripts/TestHosts/Run-CosmicPostgreSqlCqlNative.ps1 -Content -Federated
+
+# Same checks, then the teaching page at http://127.0.0.1:5112/:
+Scripts/TestHosts/Run-CosmicPostgreSqlCqlNative.ps1 -Content -Federated -Serve
+```
+
+Use the page stop button to finish cleanup. The general hub's existing PostgreSQL
+preset still launches the ID demo; use the explicit -Content command above for
+new content buttons. All4 browser buttons were clicked and returned2/4/4/2 with
+both native provider labels. Final runner exit0; PostgreSQL exited, Mongo/HTTP
+listeners absent, exact temporary database dropped and content journal removed.
+Original PostgreSQL source, content seed/ACKs and snapshots remain retained.
+
+Evidence under TestResults/PostgreSqlCqlCurrent:
+- postgres-content-mongo-federation.trx: SHA256 a167dd98c799344c4b2230d5788ecf20655b482dc481ab7bf6a5ad316a848a98.
+- postgres-content-browser.json: SHA256 ec1a92dfacb9a839a265312c589ca7c7d467159ad9f46f11295fef8d88ecaec9.
+- postgres-content-mongo-browser.png: SHA256 e739dfd452a85ac88bf4b3c8ec6817e0c6354e185fbff68309a46bd305f57545.
+- postgres-content-result-browser.png: SHA256 7e13d61a34cc11e7b21648cbdc989feae4ccb9c1588572462654e6b0133a4d6b.
+
+Exact next: deployed sandbox integration requires actual tenant authorization,
+provider/admission registration and UI enrollment. The native bounded catalogue
+must never be replaced by a client-provided ID list or all tenant rows. Until
+those gates pass, this is a loopback teaching host with a controlled identity,
+not a hosted WEB4 authentication/usage or full PostgreSQL-parity certification.
 
 ## Programme priority
 

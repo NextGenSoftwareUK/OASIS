@@ -11,7 +11,7 @@ roadmaps remain active; deferred work is not cancelled.
 | MongoDB | Existing richer CQL; reuse proving tests and work only missing rows. |
 | SQLite | Existing richer CQL; reuse proving tests and work only missing rows. |
 | Neo4j | Existing richer CQL; reuse proving tests and work only missing rows. |
-| PostgreSQL | Name/Description equality+Contains, metadata equality/AND/OR and UUID paging:16controls+17native queries/restart pass. Content paired/HTTP/browser/sandbox remain red. [Proof](POSTGRESQL_CQL_MVP.md#native-and-restart-acceptance). |
+| PostgreSQL | Name/Description equality+Contains, metadata equality/AND/OR and UUID paging:16controls+17native queries/restart pass. Content paired C#/HTTP/browser4presets2/4/4/2 verified; deployed sandbox remains red. [Proof](POSTGRESQL_CQL_MVP.md#native-and-restart-acceptance). |
 | SQL Server | Extend the verified scoped native/Mongo-paired demo. |
 | Oracle | Extend the existing admitted native/Mongo-paired demo. |
 | Azure Cosmos DB | Emulator initially; hosted Azure remains pending/free-only. |
