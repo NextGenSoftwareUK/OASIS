@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 [CmdletBinding()]
 param(
-    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Firebase')][string]$Provider='SQLite',
+    [ValidateSet('SQLite','IPFS','SOLID','ActivityPub','Solana','SolanaMetadata','Databases','CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Chroma','Firebase')][string]$Provider='SQLite',
     [switch]$VerifyOnly,
     [switch]$Federated,
     [switch]$MultiRecord,
@@ -12,11 +12,11 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 # Paired runners already own their build lease and fixture lifecycle. Dispatch
 # before the single-provider lease below, so no nested lease can be acquired.
-if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
+if($Provider -in @('Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Chroma','Firebase') -and !$Federated){throw 'This provider requires its explicit Mongo-paired teaching preset; specify -Federated.'}
 if($Federated){
-    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
+    if($Provider -notin @('CosmosDB','Oracle','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Chroma','Firebase','SolanaMetadata','IPFS','SOLID','ActivityPub')){throw 'This provider has no enrolled Mongo-paired preset.'}
     if($MultiRecord -and $Provider -notin @('IPFS','SOLID','ActivityPub')){throw 'MultiRecord is a protocol-only option.'}
-    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
+    if($Provider -in @('CosmosDB','AWS','Ethereum','Polygon','Arbitrum','Google','CosmosChain','Polkadot','NEAR','Base','Avalanche','Optimism','Rootstock','BNBChain','Fantom','Linea','Scroll','Monad','AzureBlob','LocalFile','Sui','Redis','PostgreSQL','SQLServer','DuckDB','Upstash','Litestream','Memcached','Valkey','KeyDB','Dragonfly','Garnet','PocketBase','Supabase','CouchDB','SurrealDB','ArangoDB','RavenDB','CockroachDB','TimescaleDB','Cassandra','ScyllaDB','Elasticsearch','OpenSearch','Couchbase','ClickHouse','InfluxDB','Qdrant','Weaviate','Meilisearch','Typesense','Solr','Chroma','Firebase') -and $ArchiveCompletedDemo){throw 'This paired source preserves its original seed and evidence; omit ArchiveCompletedDemo.'}
     $pairedRunner=switch($Provider){
         'CosmosDB' {'Run-ReusableCosmosCqlDemo.ps1'}
         'Oracle' {'Run-ReusableOracleMongoTests.ps1'}
@@ -70,6 +70,7 @@ if($Federated){
         'Meilisearch' {'Run-CosmicMeilisearchLinuxDemo.ps1'}
         'Typesense' {'Run-CosmicTypesenseLinuxDemo.ps1'}
         'Solr' {'Run-CosmicSolrLinuxDemo.ps1'}
+        'Chroma' {'Run-CosmicChromaLinuxDemo.ps1'}
         'ScyllaDB' {'Run-CosmicScyllaDbLinuxDemo.ps1'}
         'Firebase' {'Run-CosmicFirebaseCqlNative.ps1'}
         'SolanaMetadata' {'Run-ReusableSolanaMongoTests.ps1'}
@@ -128,6 +129,7 @@ if($Federated){
         'Meilisearch' {'http://127.0.0.1:5147/'}
         'Typesense' {'http://127.0.0.1:5148/'}
         'Solr' {'http://127.0.0.1:5149/'}
+        'Chroma' {'http://127.0.0.1:5150/'}
         'ScyllaDB' {'http://127.0.0.1:5139/'}
         'Firebase' {'http://127.0.0.1:5124/'}
         'SolanaMetadata' {'http://127.0.0.1:5091/'}
@@ -186,6 +188,7 @@ if($Federated){
         'Meilisearch' {'Mongo + retained authenticated Meilisearch1.56.0:5rows/4subset, native HTTPS key fetch and completed write tasks, original JSON/index timestamps/task receipts across restart; bounded IDs only, no similarity/atomic CAS/distributed snapshot claim'}
         'Typesense' {'Mongo + retained authenticated Typesense30.2:5rows/4subset, native HTTPS exact-key filtered search and acknowledged writes, original JSON/collection schema/native database identities across restart; bounded IDs only, no similarity/atomic CAS/distributed snapshot claim'}
         'Solr' {'Mongo + retained authenticated Solr10.1.0:5rows/4subset, native HTTPS real-time key retrieval and hard-committed canonical payloads, original JSON/native versions/schema across restart across restart; bounded IDs only, no similarity/atomic CAS/distributed snapshot claim'}
+        'Chroma' {'Mongo + retained local Chroma1.5.9:5rows/4subset, native multi-ID get and original JSON/collection schema across restart; loopback plaintext bounded IDs only, no similarity/atomic CAS/distributed snapshot claim'}
         'ScyllaDB' {'Mongo + retained authenticated ScyllaDB2026.3.4:5rows/4subset, original source/restart; plaintext JSON, no production concurrency or distributed snapshot claim'}
         'Firebase' {'Mongo + Firebase Realtime Database4.11.2 emulator:5rows/4subset, bounded native key-query union; original export restore, no disk/crash or hosted-auth claim'}
         'SolanaMetadata' {'Mongo native + retained Solana via explicit SQLite index:2matching/0empty with read assurance; no source writes'}
@@ -248,6 +251,7 @@ if($Federated){
         'Meilisearch' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Typesense' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Solr' { & $path -Federated -Serve:(!$VerifyOnly) }
+        'Chroma' { & $path -Federated -Serve:(!$VerifyOnly) }
         'ScyllaDB' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Firebase' { & $path -Federated -Serve:(!$VerifyOnly) }
         'Oracle' { & $path -ArchiveCompletedDemo:$ArchiveCompletedDemo -Serve:(!$VerifyOnly) }

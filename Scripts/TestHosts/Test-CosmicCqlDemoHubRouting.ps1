@@ -97,6 +97,8 @@ $pairedContracts=@(
     @{Provider='Meilisearch';Runner='Run-CosmicMeilisearchLinuxDemo.ps1';Port=5147},
     @{Provider='Typesense';Runner='Run-CosmicTypesenseLinuxDemo.ps1';Port=5148},
     @{Provider='Solr';Runner='Run-CosmicSolrLinuxDemo.ps1';Port=5149},
+    @{Provider='Chroma';Runner='Run-CosmicChromaLinuxDemo.ps1';Port=5150},
+    @{Provider='Chroma';Runner='Run-CosmicChromaLinuxDemo.ps1';Port=5150},
     @{Provider='ScyllaDB';Runner='Run-CosmicScyllaDbLinuxDemo.ps1';Port=5139},
     @{Provider='Firebase';Runner='Run-CosmicFirebaseCqlNative.ps1';Port=5124},
     @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},

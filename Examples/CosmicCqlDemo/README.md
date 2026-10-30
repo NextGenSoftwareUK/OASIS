@@ -1121,3 +1121,9 @@ then http://127.0.0.1:5148/. Native exact-ID filters, all5/subset4 and provenanc
 Solr + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solr -Federated -Serve`,
 then http://127.0.0.1:5149/. Native RealTimeGet, all5/subset4 and provenance.
 [Verified schema and scope](../../Docs/WIP/COSMIC%20ORM/SOLR_CQL_MVP.md).
+
+Chroma + Mongo: `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Chroma -Federated -Serve`,
+`http://127.0.0.1:5150/`. The commented shared C# walkthrough runs one explicit
+federated query; buttons show all5copies or a4copy subset with source provenance.
+Original Chroma records survive restart. Loopback plaintext/bounded IDs only.
+[Scope and full examples](../../Docs/WIP/COSMIC%20ORM/CHROMA_CQL_MVP.md).
