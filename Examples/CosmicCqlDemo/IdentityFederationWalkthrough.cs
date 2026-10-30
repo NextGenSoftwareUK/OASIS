@@ -80,6 +80,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.BNBChainOASIS => "BNBChain",
         ProviderType.FantomOASIS => "Fantom",
         ProviderType.LineaOASIS => "Linea",
+        ProviderType.ScrollOASIS => "Scroll",
         ProviderType.AzureStorageOASIS => "Azure Blob",
         ProviderType.AWSS3OASIS => "AWS S3",
         ProviderType.LocalFileOASIS => "LocalFile",

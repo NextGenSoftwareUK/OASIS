@@ -681,3 +681,13 @@ with provider provenance. Browser port5129; shutdown verifies temporary Mongo
 fixture cleanup and preserves original source. Direct construction only; public
 Linea network/finality/bridging, central registration and distributed snapshots
 remain unverified.
+
+## Scroll V2 + Mongo MVP
+
+[Verified scope and examples](SCROLL_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Scroll -Federated`
+(add `-VerifyOnly` for bounded verification). Shipping Scroll V2 reads retained
+encrypted records on local EVM31338 through HolonManager:5physical rows or4subset
+with provider provenance. Browser5130; shutdown verifies temporary Mongo fixture
+cleanup and preserves original source. Direct construction only; public Scroll
+network/finality/bridge, central registration and distributed snapshots unverified.
