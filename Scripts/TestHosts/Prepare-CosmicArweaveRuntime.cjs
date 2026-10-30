@@ -16,7 +16,18 @@ function prepare() {
     const recorded = JSON.parse(fs.readFileSync(manifest,'utf8'));
     if(recorded.original !== original || recorded.patched !== hash(bytes))
       throw new Error('ArLocal source differs from retained patch; preserve and reconcile.');
-    return recorded;
+    if (recorded.revision === 2) return recorded;
+    if (recorded.patched !== 'd7282066e53e8548b0e74c610df5b70200905d09ae5413e173262dcf0587c6aa')
+      throw new Error('Unknown prior persistence patch; reconcile without reset.');
+    const old = 'yield (0, initialize_1.down)(this.connection, this.persist);';
+    const text = bytes.toString('utf8');
+    if(text.split(old).length !== 2) throw new Error('Expected one native destructive-down call.');
+    const repaired = text.replace(old, 'if (!this.persist) yield (0, initialize_1.down)(this.connection, true);');
+    const updated = {...recorded,revision:2,patched:hash(Buffer.from(repaired)),
+      fixes:[...recorded.fixes,'persistent shutdown never drops native tables']};
+    fs.writeFileSync(source,repaired);
+    fs.writeFileSync(manifest,JSON.stringify(updated,null,2));
+    return updated;
   }
   if(hash(bytes) !== original) throw new Error('Unknown ArLocal source; no speculative patch.');
   let text = bytes.toString('utf8');
@@ -31,14 +42,14 @@ function prepare() {
             if (this.server && this.server.listening) {
                 yield new Promise((resolve, reject) => this.server.close(error => error ? reject(error) : resolve()));
             }
-            yield (0, initialize_1.down)(this.connection, this.persist);
+            if (!this.persist) yield (0, initialize_1.down)(this.connection, true);
             yield this.apollo.stop();
             yield this.connection.destroy();
         });
     }
 ` + text.slice(end);
-  const recorded = {version:'1.1.66',original,patched:hash(Buffer.from(text)),
-    fixes:['loopback-only listener','awaited native teardown with propagated errors']};
+  const recorded = {version:'1.1.66',revision:2,original,patched:hash(Buffer.from(text)),
+    fixes:['loopback-only listener','awaited native teardown with propagated errors','persistent shutdown never drops native tables']};
   fs.writeFileSync(source,text);
   fs.writeFileSync(manifest,JSON.stringify(recorded,null,2),{flag:'wx'});
   return recorded;
