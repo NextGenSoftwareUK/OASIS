@@ -32,11 +32,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
     /// Delete:  POST {base}/v1/table/{table}/delete/   {{ predicate }}
     /// Auth:    x-api-key header
     /// </summary>
-    public class LanceDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
+    public partial class LanceDBOASIS : OASISStorageProviderBase, IOASISDBStorageProvider
     {
         /// <summary>
-        /// When true this provider stores a new record per save and links to the previous
-        /// version (blockchain-style) instead of updating in place.
+        /// Historical holon writes are unsupported and explicitly rejected.
         /// </summary>
         public bool IsVersionControlEnabled { get; set; }
 
@@ -48,12 +47,20 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
         private const string CollHolons = "oasis_holons";
 
         public LanceDBOASIS(string baseUrl, string apiKey, string project)
+            : this(new HttpClient(), baseUrl, apiKey, project)
         {
+        }
+
+        /// <summary>The caller owns the dedicated HTTP client and its authentication.</summary>
+        public LanceDBOASIS(HttpClient http, string baseUrl, string apiKey, string project)
+        {
+            _http = http ?? throw new ArgumentNullException(nameof(http));
             _baseUrl = baseUrl.TrimEnd('/');
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LanceDBOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _http = new HttpClient();
+            ProviderName = "LanceDBOASIS";
+            ProviderDescription = "LanceDB remote Arrow document storage.";
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _http.DefaultRequestHeaders.Add("x-api-key", apiKey);
             _http.DefaultRequestHeaders.Add("x-lancedb-database", project);
@@ -436,13 +443,31 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
-                await UpsertDocAsync(CollHolons, holon.Id.ToString(), holon);
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("LanceDB historical holon writes are not implemented.");
+
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.LanceDBOASIS] = id.ToString("D");
+
+                // Stage identity in the wire document; HolonManager owns tracking acceptance.
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType())!.AsObject();
+                payload["Id"] = id;
+                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                await UpsertDocAsync(CollHolons, id.ToString("D"), payload);
+
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.LanceDBOASIS] = id.ToString("D");
                 result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"LanceDBOASIS: SaveHolonAsync failed: {ex.Message}");
             }
             return result;
@@ -455,19 +480,23 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            try
+            var errors = new List<string>();
+            foreach (var holon in holons)
             {
-                foreach (var h in holons)
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
                 {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError) saved.Add(r.Result);
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
                 }
-                result.Result = saved;
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"LanceDBOASIS: SaveHolonsAsync failed: {ex.Message}");
-            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
@@ -531,7 +560,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
 
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {
-            var json = JsonSerializer.Serialize(obj);
+            var json = JsonSerializer.Serialize(obj, obj!.GetType());
             var row = new Dictionary<string, object>
             {
                 { "id", id },
@@ -539,7 +568,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
                 { "username", "" },
                 { "email", "" },
                 { "parent_holon_id", "" },
-                { "vector", new[] { 0.0f } }
+                { "vector", new[] { 1.0f } }
             };
             using var d = JsonDocument.Parse(json);
             if (d.RootElement.TryGetProperty("Username", out var u) && u.ValueKind == JsonValueKind.String) row["username"] = u.GetString() ?? "";
@@ -592,13 +621,6 @@ namespace NextGenSoftware.OASIS.API.Providers.LanceDBOASIS
         {
             var results = await QueryAsync<T>(table, $"id = '{id}'", 1);
             return results.Count > 0 ? results[0] : null;
-        }
-
-        private async Task UpsertDocAsync<T>(string table, string id, T obj)
-        {
-            var resp = await _http.PostAsync($"{_baseUrl}/v1/table/{table}/merge_insert/?on=id",
-                Json(new { data = new[] { ToRow(obj, id) }, when_matched_update_all = true, when_not_matched_insert_all = true }));
-            resp.EnsureSuccessStatusCode();
         }
 
         private async Task DeleteDocAsync(string table, string id)
