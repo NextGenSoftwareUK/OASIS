@@ -41,9 +41,24 @@ Raw regenerable evidence TestResults/MilvusCqlCurrent/save-controls.trx SHA256
 
 ## Exact next step / remaining gaps
 
-1. Fix activation: existing create helper ignores both HTTP/nativecode and does
-   not validate existingcollection schema/index/loadstate or clear staleactiveflag.
-   Validate explicit storage schema and defaultconsistency; no replacement aftererrors.
+Activation now uses read-only describe admission for all3explicitly provisioned
+collections. It never creates/replaces after errors; staleactiveflag clears first.
+Required: exactname/positiveInt64collectionID, autoId=false/dynamic=false,
+Strong defaultconsistency, LoadStateLoaded, sixnonpartitionedfields with exact
+bounds: idVarChar64primary,docVarChar65535,username/emailVarChar512,parent_holon_id
+VarChar64,vectorFloatVector2; vector_idx/L2 index. Twozero vector components match
+that admitted schema. Previous dimension1 sources need explicit migration, never
+silent replacement. Schema256KiB/15s bound and nativecode checked. Native index
+implementation details beyond returned describe metadata still require acceptance.
+
+28totaltests nowpass (19save/provider +9schema). Includes HTTP/nativecode/bounds/
+dimension/consistency/load/autoID/index rejection, read-only operation/no creation,
+active-state publication and exactcollectionID above2^53. Fresh evidence
+TestResults/MilvusCqlCurrent/schema-save-controls.trx SHA256
+`b3393932a790007cecf4fff93135c22c184ba82c87b210b263f93e0a7c86aec7`.
+[Schema tests](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests/MilvusSchemaTests.cs).
+[Native describe contract](https://milvus.io/api-reference/restful/v2.6.x/v2/Collection%20(v2)/Describe.md).
+
 2. Bind shared bounded identitycompiler and one native multikey operation. Verify
    actual REST version supports selected consistency; older Get APIs may ignore
    consistencyLevel. No unsupported parameter or stale-read acceptance claim.

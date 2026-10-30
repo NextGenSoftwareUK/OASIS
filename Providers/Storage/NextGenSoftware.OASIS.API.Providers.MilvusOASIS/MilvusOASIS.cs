@@ -70,6 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 foreach (var c in new[] { CollAvatars, CollAvatarDetails, CollHolons })
                     await EnsureCollectionAsync(c);
                 IsProviderActivated = true;
@@ -527,33 +528,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private StringContent Json(object o)
             => new StringContent(JsonSerializer.Serialize(o), Encoding.UTF8, "application/json");
 
-        private async Task EnsureCollectionAsync(string collection)
-        {
-            var body = new
-            {
-                collectionName = collection,
-                schema = new
-                {
-                    autoID = false,
-                    fields = new object[]
-                    {
-                        new { fieldName = "id", dataType = "VarChar", isPrimary = true, elementTypeParams = new { max_length = 64 } },
-                        new { fieldName = "doc", dataType = "VarChar", elementTypeParams = new { max_length = 65535 } },
-                        new { fieldName = "username", dataType = "VarChar", elementTypeParams = new { max_length = 512 } },
-                        new { fieldName = "email", dataType = "VarChar", elementTypeParams = new { max_length = 512 } },
-                        new { fieldName = "parent_holon_id", dataType = "VarChar", elementTypeParams = new { max_length = 64 } },
-                        new { fieldName = "vector", dataType = "FloatVector", elementTypeParams = new { dim = 1 } }
-                    }
-                },
-                indexParams = new object[]
-                {
-                    new { fieldName = "vector", indexName = "vector_idx", metricType = "L2", indexType = "FLAT" }
-                }
-            };
-            // Already-exists is not an error — Milvus returns a non-zero code we ignore.
-            await _http.PostAsync($"{_baseUrl}/v2/vectordb/collections/create", Json(body));
-        }
-
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {
             var json = JsonSerializer.Serialize(obj, obj!.GetType());
@@ -566,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 { "username", "" },
                 { "email", "" },
                 { "parent_holon_id", "" },
-                { "vector", new[] { 0.0f } }
+                { "vector", new[] { 0.0f, 0.0f } }
             };
             using var d = JsonDocument.Parse(json);
             if (d.RootElement.TryGetProperty("Username", out var u) && u.ValueKind == JsonValueKind.String) row["username"] = u.GetString() ?? "";
