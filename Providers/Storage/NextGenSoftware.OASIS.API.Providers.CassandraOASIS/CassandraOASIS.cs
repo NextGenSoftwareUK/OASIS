@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
     ///   password      — optional CQL credentials
     ///   replication   — replication factor for keyspace creation (default 1)
     /// </summary>
-    public class CassandraOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class CassandraOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string[] _contactPoints;
         private readonly int _port;
@@ -59,6 +59,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
 
         public CassandraOASIS(string[] contactPoints, int port = 9042, string keyspace = "oasis", string? username = null, string? password = null, int replication = 1)
         {
+            // Keyspace identifiers are interpolated into schema statements, never values.
+            // Keep one canonical unquoted identifier contract at the constructor boundary.
+            if (string.IsNullOrEmpty(keyspace) || keyspace.Length > 48 ||
+                !((keyspace[0] >= 'a' && keyspace[0] <= 'z')) ||
+                keyspace.Any(c => !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')))
+                throw new ArgumentException("Use a lowercase Cassandra keyspace identifier, at most 48 characters.", nameof(keyspace));
+            if (replication < 1) throw new ArgumentOutOfRangeException(nameof(replication));
             _contactPoints = contactPoints;
             _port = port;
             _keyspace = keyspace;
@@ -105,7 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            try { GetSession(); result.Result = true; result.IsError = false; result.Message = "CassandraOASIS activated."; }
+            IsProviderActivated = false;
+            try { GetSession(); IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "CassandraOASIS activated."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
         }
@@ -114,6 +122,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            IsProviderActivated = false;
             _session?.Dispose(); _session = null;
             _cluster?.Dispose(); _cluster = null;
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "CassandraOASIS deactivated." });
