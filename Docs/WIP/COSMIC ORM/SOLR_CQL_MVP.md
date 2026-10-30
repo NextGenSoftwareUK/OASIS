@@ -1,6 +1,6 @@
-# Solr CQL MVP — controls verified; native demo pending
+# Solr CQL MVP — native/restart/paired demo verified
 
-Updated30October2026. Inventory remains red until native/restart/paired/browser proof.
+Updated30October2026. Scoped native/restart/Mongo-paired C#/HTTP/browser proof passes.
 
 ## Root causes and storage contract
 
@@ -62,19 +62,51 @@ Cached producer/unit restores and bounded builds pass; nativeHTTP is injected.
 Raw regenerable evidence TestResults/SolrCqlCurrent/controls.trx SHA256
 `82709e7fcb099c3d1f31b68a94d2d31d7ba3c88e32304dcbec8202b4fffc3636`.
 
-## Exact next step / remaining gaps
+## Native and federated acceptance
 
-Inspect existing caches/images/runtimes. Reuse a suitable native service, or inventory
-one official free authenticated retained source before allocation. Explicitly
-provision3cores/collections with schema above. Verify native source identities,
-original3records/versions, one replacement/removal, native3/filter2/missing0/page1/
-budget and actualrestart preservation. Then Mongo-paired C#/HTTP/browser5/4 andhub.
-No reset/reseed/unknown-outcome replay/replacement baseline.
+Official free10.1.0-slim image pinned to digest
+`sha256:0586be344eeb1eb5682e0bd1260001e004219ed3bd788d6e0d3620502c057f1c`.
+Retained source `/var/tmp/oasis-solr-cql`, user-managed standalone mode, native
+TLS18983/privateCA/Basic+role authorization,512MiBheap/2CPU/2GiB container. Explicit
+three cores have original unique schema IDs; container/image/mount/source inode
+and schema IDs verified before use. No global trust change or ZooKeeper duplicate.
+
+Native3/filter2/missing0/page1/budget and original3creates+1fullreplacement pass;
+obsoletepayloadfield removed. Actualrestart preserves canonical JSON/nativeInt64
+versions/fullschema. Five fresh phases each1pass/0skip: native-first/restart,
+Mongo init, federation and native-postpair. C#/HTTP prove provider provenance,
+excludedrecord, forgedactor/unknownpreset and inactiveprovider error/no partial.
+Browser all5/subset4 independently verified on5149. Stopbutton completed runner0;
+ownedMongo fixture removed and bothservices stopped. Retainedsource510,170B after
+collecting16owned stoppedservice logs (247,574B) into TestResults with hash checks.
+Keys/config/coreindexes/seed/receipts/baseline retained; no reseeding/replay.
+
+Initial cores failed because the copied_default configuration enabled schema
+inference requiring text_general. Before anybusinesswrite, same original config
+was repaired in place to explicit ClassicIndexSchemaFactory/updateLog/RTG handlers;
+original default files/hashes/failure retained. No replacement cores/source/keys.
+Native Java completes Jetty/CoreContainer shutdown hooks with SIGTERM143; verifier
+checks143/stopped-by-user/noOOM/noError. Runner success0 is separate from that exit.
+
+```powershell
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Solr -Federated -Serve
+# Dedicated runner:
+Scripts/TestHosts/Run-CosmicSolrLinuxDemo.ps1 -Federated -Serve
+```
+
+Open http://127.0.0.1:5149/ once ready; use stopbutton for verified teardown.
+[Native proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/SolrCqlNativeTests.cs),
+[paired proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/SolrMongoCqlNativeTests.cs).
+Raw regenerable evidence `TestResults/SolrCqlCurrent/`; federation TRX SHA256
+`bc9650c550fb9293f6b34b09ca0010142a927589195d4caef0a87dea3cdd8f92`, postpair
+`6edf5414fba1ba143ffa0bd479784a73b1f8231e325cf5d3a2e360f99b8a5e4e`.
+Hub58paired/116plans/102paired rejections pass; listeners unchanged.
+
+## Remaining gaps
 
 Legacy raw-data migration, generic1000rowlist cap/search escaping, avatar ownership,
 delete acknowledgements/softdelete error propagation, child/history/replication/
-conditionalwrites/migration/fullEFparity remain open. No native/hosted/SolrCloud
-cluster acceptance or distributedsnapshot claim from these injected controls.
+conditionalwrites/migration/fullEFparity remain open. No hosted/SolrCloud cluster/fullEFparity or distributedsnapshot certification.
 [RealTimeGet](https://solr.apache.org/guide/solr/9_5/configuration-guide/realtime-get.html),
 [version receipts](https://solr.apache.org/guide/solr/9_9/indexing-guide/partial-document-updates.html).
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).

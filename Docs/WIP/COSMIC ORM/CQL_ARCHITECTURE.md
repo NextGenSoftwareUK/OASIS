@@ -879,3 +879,7 @@ Typesense + Mongo scoped MVP:38controls/native/restart/C#/HTTP/browser5/4 pass.
 Explicit ID-filter queries preserve original document bytes. Native collection
 created_at changes during native replay; no timestamp-immutability claim.
 [Commands, proof and gaps](TYPESENSE_CQL_MVP.md).
+
+Solr + Mongo scoped MVP:48controls/native/restart/C#/HTTP/browser5/4 pass.
+Canonical stored JSON, hard-commit/version acknowledgements, bounded RealTimeGet.
+[Explicit schema, commands, proof and remaining gaps](SOLR_CQL_MVP.md).
