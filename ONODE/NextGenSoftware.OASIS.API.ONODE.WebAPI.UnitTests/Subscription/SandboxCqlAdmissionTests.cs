@@ -15,7 +15,6 @@ public class SandboxCqlAdmissionTests
     [InlineData("POST", "/api/data/save-holon", 512)]
     [InlineData("POST", "/api/data/save-holons", 512)]
     [InlineData("DELETE", "/api/data/delete-holon", 512)]
-    [InlineData("POST", "/api/data/recover-conditional-operation", 2)]
     public async Task ShippedFreeProfilePassesStartupAndRealAuthorityMeterValidation(string method, string path, int attempts)
     {
         // Read the deployable file rather than a separately maintained test copy.
@@ -71,6 +70,24 @@ public class SandboxCqlAdmissionTests
         }).Build();
         Assert.Throws<InvalidOperationException>(() => new ServiceCollection()
             .AddConfiguredStorageAdmission(configuration, true, _ => null));
+    }
+
+    [Fact]
+    public async Task ShippedDemoProfileStartsWithoutGrantingUnconfiguredOperationRecovery()
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> {
+            ["PREPARED_STORAGE_ADMISSION_JSON"] = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "cql-free-admission.json"))
+        }).Build();
+        var services = new ServiceCollection();
+        var select = services.AddConfiguredStorageAdmission(configuration, true, _ => null);
+        using var provider = services.BuildServiceProvider();
+        // Run the real startup composition guard, not just JSON/tariff validation.
+        await new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cosmic.CosmicRecoveryReadiness(provider)
+            .StartAsync(CancellationToken.None);
+        var request = new DefaultHttpContext();
+        request.Request.Method = "POST";
+        request.Request.Path = CosmicOperationRecoveryRoutes.Recover;
+        Assert.Null(select(request));
     }
 
 }
