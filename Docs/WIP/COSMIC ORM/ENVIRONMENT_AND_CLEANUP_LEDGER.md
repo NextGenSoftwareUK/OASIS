@@ -2863,3 +2863,8 @@ GetProviderVersion test compile failure corrected to actualcategorycontract; no
 API shim/fakeversion. NativeHTTP injected. Generatedbin/obj/logs/TRX unmeasured/
 disposable afterexit, regenerate via same lease/boundedcommands. Sharedcache
 retained; nativeenvironment notallocated.
+
+Milvus schema extension reused sameSDK/cache/buildoutputs, no download/restore/
+service/database.28tests pass afterboundedproducer/unitbuilds underonelease.
+Additional schema-save-controls.trx/log in fixed TestResults/MilvusCqlCurrent
+(unmeasured/regenerable/disposable afterexit); sharedruntime/cache retained.
