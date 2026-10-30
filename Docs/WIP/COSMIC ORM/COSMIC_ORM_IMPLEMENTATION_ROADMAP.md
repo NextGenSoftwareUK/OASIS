@@ -1,5 +1,6 @@
 # COSMIC ORM implementation roadmap
 
+Meilisearch:39controls/native/restart/paired/browser5/4 pass; bounded ID scope. [Proof](MEILISEARCH_CQL_MVP.md).
 Weaviate: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](WEAVIATE_CQL_MVP.md).
 Qdrant: 38 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](QDRANT_CQL_MVP.md).
 InfluxDB: 34 controls/native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Scope](INFLUXDB_CQL_MVP.md).
