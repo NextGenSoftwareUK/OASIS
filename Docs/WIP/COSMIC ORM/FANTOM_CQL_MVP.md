@@ -1,4 +1,4 @@
-# Fantom V2 CQL MVP — controls verified, native pending
+# Fantom V2 CQL MVP — native verified, paired pending
 
 Updated 29 October 2026. Fantom remains red in the all-provider demo inventory.
 
@@ -29,15 +29,36 @@ Evidence under `TestResults/FantomCqlCurrent`:
 - `fantom-repro.trx` SHA256 `26d3f2c12179763be5b22e1a3d9cd25810968d63bee3568b4130c1c113cd2490` (original failures retained).
 - `fantom-family-controls.trx` SHA256 `7ac95c04ba2bc2d29186d41e59398dbf003c80ec1402cd68332af81e55768ba9`.
 
+## Native local EVM proof
+
+Reused Ganache7.9.2/solc0.8.26/ethers6.13.1, original shared chain31338/18547 and
+existing DPAPI key. No new runtime/download/key/chain/environment. Shipping Fantom
+V2 constructor explicitly selects31338 for encryption. Original contract
+`0x2d8be6bf0baa74e0a907016679cae9190e80dd0a` stores3encrypted records; native membership
+filters to2. Queries preserve raw native-response hashes and account nonce. Full
+node restart reuses same contract/IDs/ciphertext without source writes:
+**native1/restart1 passed**, zero failed/skipped.
+
+[Native test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/FantomCqlNativeTests.cs).
+Original metadata `LocalState/COSMIC/EvmCql/Fantom`885B retains durable intent,
+deployment receipt/per-write acknowledgements/manifest/native hashbaseline.
+Pending outcomes refuse replay; missing original hashes refuse adoption. Shared
+chain/key retained. Owned18547node flushed/stopped through stdin, no listener.
+
+Evidence:
+- `TestResults/FantomCqlCurrent/fantom-native-first.trx` SHA256 `9921aaf773a4962b09ac50fca5887beb85b919b31c4b079afa0496297ba2f3a9`.
+- `TestResults/EthereumCqlCurrent/fantom-cql-native.trx` SHA256 `c5d4982de7d5303e6c1f89fb8d440a18d8cf3a1267741272ae96356cce8808bb`.
+- Original native-record-hashes manifest SHA256 `659abb25f185298c7e0982cb021a728d60221b872c2ac92e5f52bad5fee65e75`.
+
+```powershell
+Scripts/TestHosts/Run-CosmicEthereumCqlNative.ps1 -Provider Fantom
+```
+
 ## Exact next step and remaining gates
 
-Reuse retained Ganache7.9.2/solc0.8.26/ethers6.13.1, original shared chain31338 and
-DPAPI storage key. Journal one Fantom-specific original contract/actor/threeIDs,
-deployment receipt/write acknowledgements/native encrypted-response hashes.
-Verify native membership3to2, unchanged ciphertext hashes/nonce and restart reuse
-without source writes, then Mongo-paired C#/HTTP/browser5/4 and hub preset.
-Keep demo inventory red until the paired/browser proof passes.
-
-Public Fantom network availability/consensus/finality/bridging/gas or migration to
-other networks is not certified by this local scope. Central DNA/factory routing,
-full graph/history/conditional concurrency/placement/EF parity remain open.
+Reuse this original source for Mongo-paired C#/HTTP/browser5/4 and hub. Keep demo
+inventory red until that proof passes. Central registration remains commented,
+so direct construction must remain labelled. Public network availability/
+consensus/finality/bridging/gas or migration to other networks is not certified
+by this local EVM proof. Central DNA/factory routing, full graph/history/
+conditional concurrency/placement/EF parity remain open.
