@@ -125,6 +125,8 @@ internal sealed partial class NeoCqlTranslator
     {
         switch (predicate)
         {
+            case CosmicQueryAnyAncestor ancestor:
+                return TranslateAncestor(ancestor);
             case CosmicQueryAnyDescendant descendant:
                 HasRelationship = true;
                 return TranslateDescendant(descendant);

@@ -176,36 +176,53 @@ Take the `actor` from the authenticated identity, never from a request body.
 
 ## CQL (queries)
 
-CQL's default read rule is owner or public, unchanged. A second rule,
-`CosmicQueryReadAccess.OwnerPublicOrShared(actor, groupIds, includeInherited)`, also returns holons the owner granted
-**whole-holon read** to the actor, to a group they are in, or to everyone. The rule is native: it is expressed as
-exact-match metadata tests on `SHARED_WITH_<id>` lookup flags that the permission code keeps in step with the grants (so
-providers can use their indexes), and every returned row is re-checked against its stored grants. A flag on its own never
-grants access.
+CQL queries return what the caller owns, what is public, **and what owners have shared**: holons granted whole-holon read
+to the caller, to a group they are in, or to everyone, and (below) holons beneath one that granted read to everything under
+it. This is **on by default**. It is native: expressed as exact-match tests on `SHARED_WITH_<id>` and `INHERIT_WITH_<id>`
+lookup flags that the permission code keeps in step with the grants, so providers use their own indexes. Every returned row is
+also re-checked against its stored grants; a flag alone never grants access.
 
-It is opt-in: at host start-up set `CqlV1Compiler.SharedReadGroups` to a function returning the caller's group ids, and
-optionally `CqlV1Compiler.SharedReadIncludesInherited = true`.
+### Settings (`OASIS_DNA.json`, section `OASIS.Cql`)
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `SharedReads` | `true` | Include what was shared with the caller, their groups and everyone. `false`: only own and public holons, as before. |
+| `InheritedReads` | `true` | Also include holons below a holon that granted read to everything beneath it, on providers that can walk up the parent chain. |
+| `GroupCacheSeconds` | `15` | How long a caller's group list is reused. A membership change takes effect within this time; `0` looks it up on every query. |
+
+The host reads these on every query, so a change to the DNA applies without a restart. A failed group lookup shares less,
+never more (the caller's own, public and directly shared holons still come back).
+
+### Providers
+
+| Provider | Shared and group reads | Inherited reads | How |
+|---|---|---|---|
+| MongoDBOASIS | yes | yes | one bounded `$lookup` per level up `ParentHolonId` |
+| SQLLiteDBOASIS | yes | yes | a bounded recursive query up `ParentHolonId` |
+| Neo4jOASIS | yes | yes | an inline quantified path up the `HAS_CHILD` edges |
+| AzureCosmosDBOASIS | yes | **no** (shared rule without inheritance) | Cosmos SQL cannot recurse across documents and the provider declares no traversal at all |
+| IPFS, Solid, ActivityPub | no | no | they only support a single-key point lookup, so no general read rule runs on them |
+
+Where a provider cannot walk up, the host picks the plain shared rule for that provider automatically; the query is not
+rejected. Each walking provider was checked natively against the real database: Mongo (a throwaway mongod), SQLite (a local
+database file) and Neo4j (a throwaway container from the retained image). Each check builds trees granted to the caller, to
+their group and to everyone, someone else's tree, a 20-level chain (levels 1 to 16 below the grant are visible, 17 and
+beyond are not), a parent that is not a stored holon, and (Mongo) a loop; it asserts the returned set is exactly the
+expected one, and that without inheritance only the plain-rule holons come back.
 
 ### Inherited grants in CQL
 
-With `includeInherited`, a holon is also returned when it **sits below** a holon that granted the actor read on everything
-beneath it (the `inherit` section). The granting holon carries an `INHERIT_WITH_<id>` flag, and the query asks "does this
-holon, or any of its ancestors up to 16 levels, carry my flag?". That needs an upward operator, `CosmicQueryAnyAncestor`,
-the mirror image of the existing downward `CosmicQueryAnyDescendant`:
+A holon is returned when it, or any ancestor up to 16 levels up, carries an `INHERIT_WITH_<id>` flag for the caller, one of
+their groups, or `public`. That needs an upward operator, `CosmicQueryAnyAncestor`, the mirror image of the downward
+`CosmicQueryAnyDescendant`. A provider declares it with the `AncestorExists` capability and certified depth bounds; one that
+does not is never asked (see above), and a query built for it directly is rejected (`CQL_CAPABILITY_UNSUPPORTED`).
 
-* a provider declares it with the `AncestorExists` capability and certified depth bounds. One that does not **rejects the
-  query** (`CQL_CAPABILITY_UNSUPPORTED`) instead of quietly returning fewer rows;
-* **MongoDBOASIS implements it** natively: one bounded `$lookup` per level up `ParentHolonId`, leaving a boolean the filter
-  uses, with the temporary fields removed afterwards. A missing parent ends the walk, a loop is harmless (the depth is
-  fixed), and the ancestor does not have to be readable by the caller, because the right comes from its flag;
-* only the plain query shape adds those stages. Any other shape (grouped, scalar, joins, composition) sees no result for
-  the walk and so admits nothing extra: it can return less, never more;
-* the flags are only writable with Manage on the granting holon, like every other access flag;
-* the detached row check cannot see ancestors, so for rows with a parent in inherited mode it relies on that native
+* The matched ancestor does not have to be readable by the caller: the right comes from its flag, which only someone with
+  Manage on that holon can write.
+* Only the plain query shape adds the walk on Mongo. Any other shape there (grouped, scalar, joins, composition) admits
+  nothing extra: it can return less, never more.
+* The detached row check cannot see ancestors, so for rows with a parent in inherited mode it relies on the native
   predicate instead of re-deriving the grant.
-
-Other providers (Neo4j, SQLite, Postgres and the rest) do not implement the operator yet, so inherited CQL is available
-on Mongo only. Adding another provider means translating the same node and passing the same native test.
 
 ### What CQL still does not serve
 
@@ -258,18 +275,19 @@ each staff member individually, which is the same access with more bookkeeping.
 
 ## Limits and what is not done
 
-* **Inherited grants in CQL work on MongoDBOASIS only** (see above); other providers reject the query.
+* **Inherited grants in CQL are not available on Cosmos DB or the point-lookup network providers** (see the table above).
 * **CQL never serves field-limited grants** (a security boundary, explained above).
 * **Joins and projection composition** keep the owner/public rule.
 * **Avatar portraits and UMA JSON** are separate records and stay owner-or-Wizard.
-* The rules run after the provider returns rows (as the creator and public rules always have); only the CQL shared-read
-  rule is a native predicate.
+* The rules run after the provider returns rows (as the creator and public rules always have); the CQL shared-read rule is
+  the exception, evaluated natively.
 
 ## Tests
 
 Core: `HolonPermissionsTests` (grants, format, groups, inheritance, fields, projection, diffs),
 `CosmicOwnedSavePermissionTests` (write, delete, add-children, field writes, "a writer cannot change access"),
-`CosmicSharedReadAccessTests`, `CosmicAncestorAccessTests`, `HolonVisibilityGraphTests` (nested groups, inherited fields and avatar projection are in
+`CosmicSharedReadAccessTests`, `CosmicAncestorAccessTests`, `CqlSharedReadsTests` (the host policy and the per-provider choice), `HolonVisibilityGraphTests` (nested groups, inherited fields and avatar projection are in
 `HolonPermissionsTests`). API helper: `HolonAccessTests`. piper-server:
-`tests/access.test.js`. MongoDBOASIS: `MongoCqlAncestorTests` (pipeline shape, and a native check that runs when
-`OASIS_CQL_ANCESTOR_MONGO` points at a throwaway mongod). JavaScript package: the `share.setPermissions` request test.
+`tests/access.test.js`. Providers: `MongoCqlAncestorTests` (runs natively when `OASIS_CQL_ANCESTOR_MONGO` points at a throwaway mongod),
+`CosmicCqlAncestorTests` in the SQLite integration project (runs on its local database file), and `CqlAncestorAcceptanceTests`
+in the Neo4j project (runs when `OASIS_CQL_ANCESTOR_NEO4J` points at a throwaway Neo4j, password `oasis-local-test-only`). JavaScript package: the `share.setPermissions` request test.

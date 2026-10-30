@@ -439,6 +439,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             services.AddSingleton<Services.Cql.ICqlV1Providers, Services.Cql.CqlV1Providers>();
+            // What owners shared with a caller (and their groups) is part of every CQL query, per OASIS.Cql in the DNA.
+            Services.Cql.CqlV1Compiler.SharedReads = new Services.Cql.DnaCqlSharedReads();
             services.AddSingleton<Services.Cql.CqlV1ResourceFilter>();
             services.AddHostedService<Services.Cosmic.CosmicRecoveryReadiness>();
             var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
