@@ -23,7 +23,7 @@ SQLite/MongoDB/Neo4j and Oracle, IPFS, SOLID, ActivityPub, Solana, Azure Cosmos
 emulator, AWS DynamoDB Local, Ethereum, Polygon, Arbitrum V2, Google Firestore
 emulator, Cosmos blockchain, Polkadot and NEAR have linked scoped proofs.
 
-42 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
+43 identities now have linked scoped MVP evidence; see the generated inventory. Full production-provider parity remains open.
 See [CURRENT_STATUS](CURRENT_STATUS.md) and individual guides for exact counts,
 reused state, constraints and remaining gates. NEAR's historical interrupted writes
 remain unresolved; its demo is read-only. No universal uptime, mainnet, hosted-cloud,
@@ -85,3 +85,5 @@ BNB V2 local native/restart/paired/browser/hub scope verified: [proof](BNB_CHAIN
 Fantom V2 local native/restart/paired/browser/hub scope verified: [proof](FANTOM_CQL_MVP.md). Next Scroll authority/chain/native audit, reusing retained EVM resources.
 
 Linea and Scroll local native/restart/paired/browser/hub MVP verified; [Linea](LINEA_CQL_MVP.md), [Scroll](SCROLL_CQL_MVP.md). Next zkSync runtime compatibility/chain/query audit before choosing native environment.
+
+Monad local native/restart/paired/browser/hub MVP verified: [proof](MONAD_CQL_MVP.md). Next Abstract runtime/chain/query audit; zkSync original checkpoint retained/native reload gate stays red.

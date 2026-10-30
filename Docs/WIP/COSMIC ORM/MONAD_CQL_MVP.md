@@ -1,6 +1,6 @@
 # Monad CQL MVP admission
 
-Updated 29 October 2026. Controls and local native/restart verified; paired demo remains pending.
+Updated 29 October 2026. Local native/restart and Mongo-paired C#/HTTP/browser MVP verified.
 
 ## Root fixes and proof
 
@@ -30,10 +30,35 @@ Evidence `TestResults/MonadCqlCurrent/native-first.trx`, SHA256 `1c189377417fbe6
 
 Evidence `TestResults/MonadCqlCurrent/native-restart.trx`, SHA256 `1353fa03fff5c3a1831da844aedae65d4e8e809791470d2fefe02f7595b8e456`.
 
-## Exact next step
+## Ready Mongo-paired demo
 
-Verify Mongo-paired C#/HTTP/browser5/4 and hub preset using original Monad source.
-Scope is local EVM only; no public Monad parallel execution/consensus/finality or
-network proof inferred. Central registration absent in inspected active switch;
-DNA helper testnet endpoint is not runtime enrollment. Explicit chain ID must
-accompany non-mainnet construction. Full parity/replication remains open.
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Monad -Federated`.
+Add `-VerifyOnly` for bounded verification. Browser `http://127.0.0.1:5131/`:
+all records5physical rows (Monad3/Mongo2), subset4rows (Monad2/Mongo2).
+Shared `IdentityFederationWalkthrough` uses explicit named scopes, separate trusted
+catalogues and HolonManager; source copies retain provider provenance.
+
+```csharp
+// Select requested IDs inside each provider's authorized catalogue.
+source.Where(row => selectedIds.Contains(row.Id));
+
+// Execute native reads while retaining each source copy.
+await manager.ExecuteFederationQueryAsync(plan, adapters);
+```
+
+Bounded paired1/1 and interactive paired1/1 pass. HTTP rejects forged actor/unknown
+preset400 and inactive Monad503 without partial rows. Browser AX results5/4 verified;
+screenshot capture failed, no image proof retained. Shutdown verified exact temporary
+Mongo fixture ownership/contents and drop. Pending/ready absent; owned18547/27029/5131
+listeners stopped, tab44 closed; original885B Monad metadata/source/key retained.
+Mongo termination is not proof of clean native disk flush. Hub controls8single/16plans,
+40paired/80plans,66paired rejections,3archive rejections pass; listeners unchanged.
+
+Public Monad parallel execution/consensus/finality, central registration, distributed
+snapshots and full parity remain unverified. Helper DNA testnet endpoint is not
+runtime enrollment; explicit network ID required. Next Abstract runtime/chain/query
+audit, preserving zkSync's independently reproduced native checkpoint gate.
+
+Evidence `TestResults/MonadCqlCurrent/paired-bounded.trx`, SHA256 `403fee6dab555763eff5c5cb948e4e963e5ff1bb990722ffbf6b91be3a40719e`.
+
+Evidence `TestResults/EthereumCqlCurrent/monad-mongo-federation.trx`, SHA256 `78739a15aed32aa47c287d4863a73a9a9697e124477aba655cabad82671e1ec0`.
