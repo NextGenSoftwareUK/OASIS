@@ -23,6 +23,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [ApiController]
     public class SandboxController : OASISControllerBase
     {
+        private readonly Services.Sandbox.SandboxSubscriptionLifecycle subscriptions;
+
+        public SandboxController(Services.Sandbox.SandboxSubscriptionLifecycle subscriptions) => this.subscriptions = subscriptions;
         /// <summary>How long a provider stays offline before it restores itself, so a demo can never leave it down.</summary>
 
         /// <summary>The databases sandbox demo avatars use for failover, replication and load balancing.</summary>
@@ -79,6 +82,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (saveResult.IsError)
                 return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"Could not verify the sandbox avatar: {saveResult.Message}" });
+
+            // Do not release a demo bearer before its configured CQL entitlement is durably recorded.
+            // A failed issuance leaves the temporary avatar for the existing expiry sweep, with no token published.
+            await subscriptions.ProvisionAsync(avatar, HttpContext.RequestAborted);
 
             OASISResult<IAvatar> authResult = await Program.AvatarManager.AuthenticateAsync(username, password, HttpContext.Connection.RemoteIpAddress?.ToString());
 

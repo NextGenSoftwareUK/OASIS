@@ -3021,3 +3021,22 @@ Verified no listening5151 socket after teardown (TIME_WAIT only, PID0). Cfree670
 CQL sandbox admission30Oct2026: reused installed Railway CLI (railway.ps1 from existing Node/WinGet path), read-only explicit existing project712f50f6-3b7b-46d4-b229-44b49922f16b/dev/WEB4 OASIS API variable metadata and deployment statuses. No local project link, credential output, install, new service or config mutation. Usage enabled/admission absent; latest deployment65e8e281 failed, active success5bbdaf97 at23d56bae. Reuse .NET10/Core SubscriptionUsage cached outputs for reproduced federation startup rule fix; bounded lease/build/tests planned, fixed TestResults/Web4SandboxCqlCurrent admission-controls.trx/logs, output sizes unmeasured/regenerable after owned processes stop. No native service/data allocation or dependency download planned.
 
 CQL admission outcome30Oct2026: Core bounded build +52configured-admission tests and3WEB4 shipped-profile/real-authority meter controls pass/0skip. Core7e9cd721172a810ca9be6bac8e96516f045a28b2 pushed and ls-remote verified. Existing .NET10/cache/Core/WEB4 unit outputs reused, no restore/download/install/native service. Tests and fixed TestResults/Web4SandboxCqlCurrent logs/TRX regenerable after terminal handles12364/56223; no pending build process. Existing RailwayCLI read-only explicit devproject inspection, no link/config/deployment mutation. Fresh sandbox-038f1fe4 (avatar efc0b0df-83f0-4d1a-aa74-0f12b2939cec) created for authenticated subscription-readiness GET:0subscriptions, no business writes/subscription creation; avatar expiry owned by existing24hcleanup. Token discarded with Python process, none stored. subscription-readiness.json compact nonsensitive counts only, hashes in SANDBOX_CQL_ADMISSION.md. Cfree66,822,516,736B aftertests; output sizes otherwise unmeasured. Shared accounting source/keys/opening state untouched and unverified, never reset or declare empty. Reusable runtimes/source remain active/reusable; no disposable DB/source allocation.
+
+Sandbox subscription lifecycle30Oct2026 planned: reuse existing .NET10/cached Core/WEB4 unit outputs and fixed TestResults/Web4SandboxCqlCurrent, no install/download/restore. Native verification will reuse Mongo8.3.13 at /var/tmp/oasis-runtimes/mongodb-8.3.13/mongod (SHA6e449a554aca8ba29c91c6d640d47a6ed32c1856384925b707ca684c3743570c; exact helper digest authoritative), existing /var/tmp/oasis-cosmic-mongo/data /cosmicLinuxDemoRs:27039 via owned_linux_mongo; never reprovision. One disposable test database cosmic_cql_sandbox_subscription_tests, strict absent/ownership check before each test and drop only after exact ownership validation; no hosted accounting source touched. Existing Linux .NET10.0.12/testplatform18.11.0 reused, runner output fixed TestResults only. Sizes unmeasured until actual run; own processes stopped finally. Baseline initialization allowed solely in that validated new disposable test DB; no live opening-state mutation or signature bypass.
+
+Sandbox subscription outcome30Oct2026: shipping WEB4/units bounded cached builds pass,
+21control+7native tests pass/0skip. Reused owned Linux Mongo8.3.13/data/27039 and
+.NET10.0.12/portabletestplatform18.11.0 via existing helper; no install/restore/download.
+Single fixed cosmic_cql_sandbox_subscription_tests database created only after absent
+namespace check; all7fixtures dropped after exact owner-marker validation. Source
+/var/tmp/oasis-cosmic-mongo/data retained/reusable; helper verified native exit0.
+Initial native6 passed; subsequent7case run had one deliberately inserted fixture
+missing RequestFingerprint and correctly hit legacy guard. Corrected fixture,
+rerun7passed. Fixed lifecycle-native-fixturefailure logs/TRX retained disposable in
+TestResults/Web4SandboxCqlCurrent; required failure summary preserved in report.
+Latest hashes/counts retained in SANDBOX_CQL_ADMISSION.md. No live config/subscription/
+accounting initialization/paid interaction. Own build/test handles2919/74048 terminal;
+owned native runner terminal0, temporary process stopped. Cfree66,780,106,752B after
+verification; source and artifact sizes otherwise unmeasured. Regenerate logs/TRX
+with shipped runner after normal bounded build. Shared runtimes/data/cache retained;
+no user/source/credential cleanup or migration reset performed.
