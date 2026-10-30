@@ -7,7 +7,7 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: reconcile fetched Development, then inspect Supabase storage/native resources.**
+**Next: inspect Supabase canonical storage/query path and reusable native resources.**
 PocketBase41 controls/native/restart/SDK/HTTP/browser5/4/hub pass; source retained. [Scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
@@ -81,8 +81,8 @@ proof links, 33 active central cases, 11 extra project names; linked scopes only
 ## Workspace, integration and resource rules
 
 - Work/build/test only C:/Source/OASIS-cosmic; parent/Core branch work/cosmic-cql.
-- Development87df54630 integrated; merged Corec2b1627 pushed/remote-verified. Core4528,
-  Shared1599, WEB4schema/admission5 and WEB4 build pass. [Proof](DEVELOPMENT_SYNC_2026-10-29.md).
+- Developmentbe7dc506a integrated; merged Core0b69338 pushed/remote-verified. Core4542,
+  Mongo ancestor2, WEB4schema/admission8 and WEB4 build pass. [Proof](DEVELOPMENT_SYNC_2026-10-29.md).
 - Later task work is pushed to the task branch. Outgoing Development deployment is a
   separate verified scoped batch; never sweep deferred work into deployment to sync.
 - Named git adds only; one build lease/batch, /m:2 /nr:false /p:UseSharedCompilation=false.

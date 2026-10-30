@@ -177,16 +177,43 @@ Take the `actor` from the authenticated identity, never from a request body.
 ## CQL (queries)
 
 CQL's default read rule is owner or public, unchanged. A second rule,
-`CosmicQueryReadAccess.OwnerPublicOrShared(actor, groupIds)`, also returns holons the owner granted **whole-holon read**
-to the actor, to a group they are in, or to everyone. The rule is native: it is expressed as exact-match metadata tests on
-`SHARED_WITH_<id>` lookup flags that `HolonAccess` keeps in step with the grants (so providers can use their indexes),
-and every returned row is re-checked against its stored grants. A flag on its own never grants access.
+`CosmicQueryReadAccess.OwnerPublicOrShared(actor, groupIds, includeInherited)`, also returns holons the owner granted
+**whole-holon read** to the actor, to a group they are in, or to everyone. The rule is native: it is expressed as
+exact-match metadata tests on `SHARED_WITH_<id>` lookup flags that the permission code keeps in step with the grants (so
+providers can use their indexes), and every returned row is re-checked against its stored grants. A flag on its own never
+grants access.
 
-It is opt-in: set `CqlV1Compiler.SharedReadGroups` at host start-up to a function returning the caller's group ids.
-Limits: it serves whole-holon read only (field-limited readers use the regular load endpoints, which project), it does
-not follow inherited grants (they would need a flag copied to every descendant), and joins and projection composition,
-which only see an id, a public flag and a creator, keep the owner/public rule and do not return shared rows. It also
-needs a provider that supports metadata-exists tests.
+It is opt-in: at host start-up set `CqlV1Compiler.SharedReadGroups` to a function returning the caller's group ids, and
+optionally `CqlV1Compiler.SharedReadIncludesInherited = true`.
+
+### Inherited grants in CQL
+
+With `includeInherited`, a holon is also returned when it **sits below** a holon that granted the actor read on everything
+beneath it (the `inherit` section). The granting holon carries an `INHERIT_WITH_<id>` flag, and the query asks "does this
+holon, or any of its ancestors up to 16 levels, carry my flag?". That needs an upward operator, `CosmicQueryAnyAncestor`,
+the mirror image of the existing downward `CosmicQueryAnyDescendant`:
+
+* a provider declares it with the `AncestorExists` capability and certified depth bounds. One that does not **rejects the
+  query** (`CQL_CAPABILITY_UNSUPPORTED`) instead of quietly returning fewer rows;
+* **MongoDBOASIS implements it** natively: one bounded `$lookup` per level up `ParentHolonId`, leaving a boolean the filter
+  uses, with the temporary fields removed afterwards. A missing parent ends the walk, a loop is harmless (the depth is
+  fixed), and the ancestor does not have to be readable by the caller, because the right comes from its flag;
+* only the plain query shape adds those stages. Any other shape (grouped, scalar, joins, composition) sees no result for
+  the walk and so admits nothing extra: it can return less, never more;
+* the flags are only writable with Manage on the granting holon, like every other access flag;
+* the detached row check cannot see ancestors, so for rows with a parent in inherited mode it relies on that native
+  predicate instead of re-deriving the grant.
+
+Other providers (Neo4j, SQLite, Postgres and the rest) do not implement the operator yet, so inherited CQL is available
+on Mongo only. Adding another provider means translating the same node and passing the same native test.
+
+### What CQL still does not serve
+
+* **Field-limited grants.** A CQL query can filter, sort and aggregate on any field, so letting someone query a holon while
+  seeing only some of its fields would let them probe the rest (`where email == "x"`, or a count by prefix). Field-limited
+  readers use the regular load endpoints, which project the fields. This is deliberate, not a missing feature.
+* **Joins and projection composition** check access with only an id, a public flag and a creator, so they cannot see a grant
+  stored in metadata. They keep the owner/public rule.
 
 ## Avatars
 
@@ -231,14 +258,9 @@ each staff member individually, which is the same access with more bookkeeping.
 
 ## Limits and what is not done
 
-* **CQL does not follow inherited grants.** CQL's descendant operator looks downward from a holon ("has a descendant
-  matching"); an inherited grant needs the opposite ("has an ancestor granting this"). Supporting it natively means a new
-  operator in every provider's query translator. Use the regular load endpoints, which follow inheritance, or grant
-  directly on the holons a query must return.
-* **CQL does not serve field-limited grants**, because a CQL row is a whole holon. Field-limited readers use the load
-  endpoints, which project.
-* **Joins and projection composition** check access with only an id, a public flag and a creator, so they cannot see a
-  grant stored in metadata. They keep the owner/public rule.
+* **Inherited grants in CQL work on MongoDBOASIS only** (see above); other providers reject the query.
+* **CQL never serves field-limited grants** (a security boundary, explained above).
+* **Joins and projection composition** keep the owner/public rule.
 * **Avatar portraits and UMA JSON** are separate records and stay owner-or-Wizard.
 * The rules run after the provider returns rows (as the creator and public rules always have); only the CQL shared-read
   rule is a native predicate.
@@ -247,6 +269,7 @@ each staff member individually, which is the same access with more bookkeeping.
 
 Core: `HolonPermissionsTests` (grants, format, groups, inheritance, fields, projection, diffs),
 `CosmicOwnedSavePermissionTests` (write, delete, add-children, field writes, "a writer cannot change access"),
-`CosmicSharedReadAccessTests`, `HolonVisibilityGraphTests` (nested groups, inherited fields and avatar projection are in
+`CosmicSharedReadAccessTests`, `CosmicAncestorAccessTests`, `HolonVisibilityGraphTests` (nested groups, inherited fields and avatar projection are in
 `HolonPermissionsTests`). API helper: `HolonAccessTests`. piper-server:
-`tests/access.test.js`. JavaScript package: the `share.setPermissions` request test.
+`tests/access.test.js`. MongoDBOASIS: `MongoCqlAncestorTests` (pipeline shape, and a native check that runs when
+`OASIS_CQL_ANCESTOR_MONGO` points at a throwaway mongod). JavaScript package: the `share.setPermissions` request test.
