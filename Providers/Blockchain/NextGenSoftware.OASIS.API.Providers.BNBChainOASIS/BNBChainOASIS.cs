@@ -117,8 +117,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
             string hostUri = "https://bsc-dataseed.binance.org",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(56)) { }
+
+        public BNBChainOASIS(string hostUri, string chainPrivateKey, string contractAddress, System.Numerics.BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "BNBChainOASIS";
             ProviderDescription = "BNB Chain Provider - Binance Smart Chain EVM-compatible blockchain using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BNBChainOASIS);
