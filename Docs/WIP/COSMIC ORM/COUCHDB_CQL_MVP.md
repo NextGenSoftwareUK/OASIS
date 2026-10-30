@@ -1,6 +1,6 @@
 # CouchDB CQL MVP audit
 
-Updated30October2026. HTTP boundary controls verified; CQL/native/paired demo red.
+Updated30October2026. Bounded CQL/HTTP controls verified; native/paired demo red.
 
 ## Root fixes and evidence
 
@@ -21,8 +21,8 @@ Evidence `TestResults/CouchDbCqlCurrent/http-fixed.trx`, SHA256
 
 ## Gaps and exact next step
 
-- No CQL adapter/capability admission. Add bounded native identity selection using
-  shared compiler; reject unsupported shapes before I/O, no full-store managed scan.
+- Bounded CQL adapter and HTTP execution now verified by controls below; native
+  source/restart and paired demonstration remain unverified.
 - Current upsert fetches current _rev rather than asserting caller's observed token;
   cross-client optimistic concurrency and atomic conditional writes not certified.
 - Save mutates a missing caller ID before acknowledgement and does not publish saved
@@ -33,7 +33,31 @@ Evidence `TestResults/CouchDbCqlCurrent/http-fixed.trx`, SHA256
   parity depth but keep red acceptance explicit.
 - Native environment/cache/source not yet inventoried; no CouchDB downloaded or run.
 
-Next bounded CQL adapter/HTTP execution controls, then inventory/reuse free native
+Next verify save acknowledgement ownership before fixture writes, then inventory/reuse free native
 CouchDB and journal source IDs before native3/filter2/restart/Mongo-paired5/4 proof.
 No public hosting, production concurrency, replication or complete parity claim.
 Arweave's separate automatic-review gate remains documented; do not bypass it.
+
+## Bounded native-key CQL execution controls
+
+CouchDbCqlCompiler reuses the existing shared identity compiler, bound to CouchDB
+read authority and at most100selected keys. Each becomes GET of the canonical
+native document ID with conflicts=true. No _all_docs/_find scan or managed business
+predicate. GUID equality/membership/AND/OR/paging admitted; unsupported graph,
+business fields, metadata and ordering reject. Unverified IsVersionControlEnabled
+mode rejects before HTTP rather than silently serving another revision policy.
+
+HTTP streams enforce aggregate4MiB payload bound. Native _id/_rev and decoded
+holon Id/read authority checked; explicit native conflicts reject as ambiguous,
+404/deleted rows skip, children excluded. Paging after complete selection and whole
+page result budgets enforced. In-flight HTTP cancellation and later read errors
+publish no partial rows. Independent document reads; no database/federated snapshot.
+Existing plaintext JSON codec; no encryption/production concurrency claim added.
+
+Full33tests pass (18previous/admission +15execution). Execution controls prove
+three-record catalogue selecting only two native reads, paging, tombstones, wrong
+identity/revision, HTTP/malformed/later failure, native conflict,4MiB/result budgets,
+real token propagation to an in-flight HTTP handler and version-mode denial.
+No live CouchDB or sockets involved; native acceptance remains red.
+
+Evidence `TestResults/CouchDbCqlCurrent/cql-execution.trx`, SHA256 `4846fbb763afafd336862776e35d32f113bda875a3d061d9fe8fd91a4bbdd950`.
