@@ -76,16 +76,12 @@ public sealed class ArweaveService : IArweaveService
     public async Task<byte[]> GetTransactionDataAsync(string txId)
     {
         if (string.IsNullOrWhiteSpace(txId))
-            return null;
-        try
-        {
-            using var response = await InvokeAsync(new { operation = "get", gateway = _gatewayUrl, id = txId });
-            return Convert.FromBase64String(RequiredString(response.RootElement, "dataBase64"));
-        }
-        catch
-        {
-            return null;
-        }
+            throw new ArgumentException("An Arweave transaction identity is required.", nameof(txId));
+
+        // Transport/protocol failures must reach the provider's OASISResult boundary.
+        // Returning null here would misreport unavailable or corrupt data as absent.
+        using var response = await InvokeAsync(new { operation = "get", gateway = _gatewayUrl, id = txId });
+        return Convert.FromBase64String(RequiredString(response.RootElement, "dataBase64"));
     }
 
     public async Task<List<string>> QueryByTagsAsync(Dictionary<string, string> tags)
