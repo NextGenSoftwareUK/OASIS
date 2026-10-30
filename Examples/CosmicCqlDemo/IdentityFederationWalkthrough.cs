@@ -107,6 +107,7 @@ public static class IdentityFederationWalkthrough
         ProviderType.CockroachDBOASIS => "CockroachDB",
         ProviderType.TimescaleDBOASIS => "TimescaleDB",
         ProviderType.CassandraOASIS => "Cassandra",
+        ProviderType.ElasticsearchOASIS => "Elasticsearch",
         ProviderType.ScyllaDBOASIS => "ScyllaDB",
         ProviderType.FirebaseOASIS => "Firebase RTDB",
         ProviderType.GoogleCloudOASIS => "Google Firestore",

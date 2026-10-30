@@ -509,3 +509,14 @@ browser show5physical rows then4for the2-ID subset, retaining provider provenanc
 Browser5139; stop through the demo control to verify exact Mongo cleanup and keep
 native source. Local plaintext transport, no hosted/TLS/replication/full-parity claim.
 [Commands, tests, scope and hashes](SCYLLADB_CQL_MVP.md).
+
+
+## Elasticsearch + Mongo MVP
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Elasticsearch -Federated`
+(add `-VerifyOnly` for bounded checks). Elasticsearch9.5.5 uses authenticated HTTPS,
+freeBasiclicense, original records and restart verification. C#/HTTP/browser show
+5physical rows then4for the2-ID subset, retaining each provider copy/provenance.
+Browser5140; stop through the demo control for exact Mongo cleanup/native retention.
+Bounded identity selection only; full-text translation/replication/parity remain open.
+[Commands, scope, tests and hashes](ELASTICSEARCH_CQL_MVP.md).
