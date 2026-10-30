@@ -1,6 +1,6 @@
 # CQL completion roadmap
 
-Couchbase: 31 controls + native/restart pass; Mongo-paired demo remains red. [Proof](COUCHBASE_CQL_MVP.md).
+Couchbase: 31 controls + native/restart/paired/browser5/4 pass in the bounded identity demo scope. [Proof](COUCHBASE_CQL_MVP.md).
 [Current status](CURRENT_STATUS.md) owns the next action; [checklist](CQL_PARITY_CHECKLIST.md) owns per-provider acceptance. Full original scope remains active.
 
 1. **Current priority: MVP breadth across ALL providers**, using red inventory rows and independent native/query/preset proof. Entity-selected All/element/numeric depth stays paused; hosted Azure stays pending by user instruction. Preserve completed protocol/Solana scopes. [Current status](CURRENT_STATUS.md) owns the next action.
