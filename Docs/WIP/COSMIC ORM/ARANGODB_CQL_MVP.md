@@ -1,6 +1,6 @@
 # ArangoDB CQL MVP — native/restart verified
 
-Updated30October2026. Native/restart pass; paired/browser acceptance remains red. Dgraph was mistakenly named in the previous
+Updated30October2026. Native/restart/Mongo-paired/browser scoped MVP verified. Dgraph was mistakenly named in the previous
 queue; there is no exact Dgraph identity/source in the current226-provider inventory.
 
 ## Root fixes and supported CQL scope
@@ -111,3 +111,44 @@ environment admission after exact original identity checks, never resets data.
 Next: same original records in Mongo-paired C#/HTTP/browser5/4, then hub enrollment.
 Inventory stays red until that passes. Full CAS/graph/history/registration and
 replication gates above remain open. [Official image](https://hub.docker.com/_/arangodb).
+
+## Mongo-paired C#/HTTP/browser MVP verified
+
+This supersedes pending paired steps above. Shared HolonManager V2 and native
+adapters return5physical rows (ArangoDB3 + Mongo2), or4for a two-ID subset (2+2).
+Each physical copy retains its provider provenance; the unrelated Mongo record
+is excluded. These are bounded native identity predicates, not arbitrary property
+filters, HyperDrive replication acceptance or a distributed snapshot guarantee.
+
+```powershell
+# Interactive teaching preset. Stop from the page to preserve native source.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ArangoDB -Federated
+
+# Bounded native/restart/C#/HTTP/post-pair verification and owned cleanup.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider ArangoDB -Federated -VerifyOnly
+```
+
+Browser5134verified both visible JSON responses (5/4), source provenance and
+retained-source shutdown. Screenshot capture was unavailable; no image evidence
+claimed. `ArangoDbMongoCqlNativeTests.cs` exercises the shipping shared C# example
+and HTTP host, forged-actor/unknown-preset400 and inactive-provider503without rows.
+Both bounded and interactive runs pass5one-test phases. Native post-pair rechecks
+original hashes, write revisions and collection revision; all unchanged.
+
+Hub routing passes8single/16plans,43paired/86plans,72paired and3archive rejections,
+listeners unchanged. Exact temporary Mongo database verified/dropped, pending/ready
+cleared; both owned services stopped0. Native state324,540B retained; RocksDB
+physical housekeeping can change size while original logical hashes stay fixed.
+No new downloads or source reseeding. Full parity gates above remain open.
+
+Evidence under TestResults/ArangoDbCqlCurrent:
+
+| Report | Passed | SHA256 |
+|---|---:|---|
+| mongo-federation-bounded.trx |1|1c872d0e63eafad78a0b89b08e92ab66881e20359c579d2c19edbb32706d8593|
+| mongo-federation.trx |1|ecf1d2f2029c564820e165acf2adc4899319a8f1251746b0cb596dd26a6e2d90|
+| native-postpair.trx |1|338974c35a489dd4986ee9e1235dae83b86c2f654825a0eca1d75f2537bdd435|
+
+Final browser-run.log contains all5phase hashes. Earlier native hashes above refer
+to the original admission run, not refreshed current TRX files. Reports remain
+regenerable outside Docs. [Launcher](CQL_DEMO_LAUNCHER.md).
