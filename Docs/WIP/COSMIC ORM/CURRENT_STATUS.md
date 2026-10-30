@@ -7,7 +7,7 @@ MVP breadth first across **all providers**, then deepen. Work only on red rows;
 no green/federation-cursor hardening without a reproduced bug. Legacy HyperDrive
 issues are documentation-only. Hosted Azure Cosmos stays pending by user instruction.
 
-**Next: ArangoDB Mongo-paired/browser demo; [native/restart1+1 and42controls pass](ARANGODB_CQL_MVP.md).**
+**Next: RavenDB source/runtime/query audit. [ArangoDB native/restart/paired/browser5/4 and42controls pass](ARANGODB_CQL_MVP.md).**
 Firebase50controls/native/export-restore/paired/browser5/4/hub pass [scope](FIREBASE_CQL_MVP.md). Supabase REST paired verified. [Proof](SUPABASE_CQL_MVP.md). PocketBase paired verified [scope](POCKETBASE_CQL_MVP.md).
 Garnet generation2 native/restart/paired/browser5/4/hub repeat verified. Source2 retained,
 services stopped; controls8/lifecycle6/empty-ABI1 pass. Original failure stays separate.
@@ -61,7 +61,7 @@ policy gate remain open; both stay red. [TRON](TRON_CQL_MVP.md), [S3](AWS_S3_CQL
 | Azure Blob + Mongo | Azurite native/restart/paired5/4; no hosted Azure claim. [Guide](AZURE_BLOB_CQL_MVP.md). |
 | Avalanche + Mongo | Chain-identity/factory root fix; controls16/family37, native/restart/paired 5/4. Original empty-state continuation preserved contract/IDs. [Guide](AVALANCHE_CQL_MVP.md). |
 
-[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 45 scoped MVP
+[Inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md): 226 concrete identities, 46 scoped MVP
 proof links, 33 active central cases, 11 extra project names; linked scopes only, no full-parity claim.
 
 ## Deferred correctness and parity gates
