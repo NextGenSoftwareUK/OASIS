@@ -18,8 +18,8 @@ Receipt root fix Corefdca0ed binds IDs to the admitted operation; regression fai
 This fix is pushed on the integration branch, not Development/deployed. Prior uncertain operation evidence is preserved; never replay providers to settle it.
 Free profile v2 now explicitly enrolls canonical save/batch/delete/recovery with21 operation tariffs;10 startup/real-authority controls pass. Frontend write keys/uncertain identities:4 regressions+11 CQL tests pass, pushed c17e5f7. Neither candidate is deployed.
 Mongo now prunes root-local filters before ancestor traversal while retaining the complete final access predicate; failing-before/passing-after regression,189 CQL controls and4 native ancestor cases pass. Hosted timeout resolution remains unproved.
-Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Preserve the existing uncertain-operation journal; do not rerun the incomplete fixture verifier.
-Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json records the rejected save; do not reset/reseed it. Frontend remains unpublished.
+Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Hosted verifier now requires an exact deployment/SHA and fits19 owner calls;6 offline protocol tests pass. Preserve/reconcile the existing pending journal before any new fixture run.
+Persistent fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json records the rejected save; do not reset/reseed it. Frontend remains unpublished. No third daily Development deployment has been triggered.
 
 ## Latest verified milestone
 
