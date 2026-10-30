@@ -9,6 +9,14 @@ internal static class EvmCqlDemoProviders
 {
     // Exercise the actual shipping factory. The explicit local chain identity is
     // also part of the authenticated encryption context, not just a display label.
+    internal static OASISStorageProviderBase CreateRootstock(string rpc, string key, string contract)
+        => (OASISStorageProviderBase)EvmProviderFactory.CreateRootstock(
+            new RootstockOASISProviderSettings
+            {
+                ConnectionString = rpc, ChainPrivateKey = key,
+                ContractAddress = contract, ChainId = 31338
+            }, overrideConnectionString: null!);
+
     internal static OASISStorageProviderBase CreateAvalanche(string rpc, string key, string contract)
         => (OASISStorageProviderBase)EvmProviderFactory.CreateAvalanche(
             new AvalancheOASISProviderSettings
