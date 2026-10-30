@@ -9,11 +9,12 @@
 - Verification:2173 CQL shared tests and221 full SQLite provider tests pass; both Core target frameworks build. Native fixtures are process-owned in-memory SQLite, not retained user databases.
 - Mongo verification:220 CQL/compiler/admission tests and23 live projection cases (14 earlier +9 combined), exact fixture cleanup and service teardown pass.
 - Neo verification:151 CQL controls and23 native cases; companion SQLite runs the same23 cases. Canonical input proof and selected proof are streamed by one statement/read owner; fixture cleanup and container teardown pass.
-- Next: reselection after entity-selected stages. Combined graph sources, reselection and element/cardinality/numeric terminals after entity selection remain unsupported.
+- Current priority: hosted demo convergence and request routing, then content-query breadth. Deep entity-selected LINQ parity is paused; its remaining graph/reselection/terminal matrix stays red.
 - Eight-provider demo expansion remains ahead of large parity-only rows (POCO without IHolon/migrations tooling). Cosmos native/local browser verified; IPFS/SOLID/ActivityPub have point profiles, not general-query parity.
 - Solana schema3 selected-metadata SDK/HTTP and exact values verified; original ledger recovery remains blocked by missing historical root/chunk with no known backup. Do not reset/replay it.
+- Hosted source/outbox probe verifies three Mongo records and completed Neo delivery receipts; SQLite is blocked by an older version-4 lineage conflict. Explicit late enrollment/bootstrap and authorized reconciliation remain red (X10a/X10b). No destination/CQL acceptance claim.
 - Production hosted auth/durable settlement/scaling and broad cross-provider snapshots remain open; HyperDrive implementation work is V2 only, legacy gaps documented.
-- Source work only in C:/Source/OASIS-cosmic on work/cosmic-cql. Task commits pushed; Development integration stays batched once/twice daily.
+- Source work only in C:/Source/OASIS-cosmic. Current scoped branch work/cosmic-cql-sandbox-integration; broader work/cosmic-cql is preserved/pushed. Development e6c09bfda is deployed/healthy; subsequent point-load fix is task-branch-only. Integration stays batched once/twice daily.
 - Resources/evidence paths/hashes and safe lifecycle steps: [single ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Raw output stays in worktree TestResults.
 
 [Previous checkpoint](Archive/IMPLEMENTATION_STATUS_before_entity_selected_sqlite_2026-10-28.md) preserves history without establishing broader completeness.
