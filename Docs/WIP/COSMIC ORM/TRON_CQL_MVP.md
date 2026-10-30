@@ -1,6 +1,6 @@
-# TRON CQL MVP — native restart verified; federation pending
+# TRON CQL MVP — native restart and Mongo/browser verified
 
-Updated 30 October 2026. Task branch only; not published in the hosted demo.
+Updated 30 October 2026. Backend task branch; sandbox catalogue publication is tracked below. The native demo runs locally.
 
 ## Verified scope
 
@@ -20,6 +20,9 @@ Normal reusable native verification:
 
 ```powershell
 ./Scripts/TestHosts/Run-CosmicTronCqlDeclared.ps1
+
+# Start the paired HTTP/browser teaching demo, then open http://127.0.0.1:5108/.
+./Scripts/TestHosts/Run-CosmicTronCqlDeclared.ps1 -Federated -Serve
 ```
 
 The runner checks exact container/image, 3 GiB limits, loopback bindings, genesis and independent-source admission. It preserves failed reports and refuses unknown pending setup. Shipping Solidity is compiled using cached solc 0.8.26; nothing is downloaded. Builds use the provider lease and bounded workers.
@@ -51,6 +54,12 @@ Exact retained container: `ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcb
 
 Older `TestResults/HyperDriveTron/pending-native-outcome.json` and `independent-prepared-native-pending.json` remain missing. Historical unknown transaction `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` is not recovered, replayed or declared absent. Existing public local test credential derivation does not recover missing contract/operation provenance. Keep `Run-ReusableTronInspection.ps1`'s original-fence guard unchanged. This independent contract is explicitly marked originalRecovery=false.
 
-## Next red demo gate
+## Mongo federation and browser acceptance
 
-Add Mongo pairing with one reusable local HTTP/browser preset, demonstrate five physical copies / four distinct identities, verify rejection/failure behavior and exact temporary Mongo cleanup, then publish its catalogue card. Keep this broader gate red until those proofs exist. Defer metadata/text/general ordering/full parity; see [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+`TronMongoCqlNativeTests.NativeTronMongoFederationRunsSdkAndHttpWithProviderProvenance` passes one native schedule (33 seconds, no skips). It runs the shared C# walkthrough and HTTP host through HolonManager, verifies all-five/subset-four physical rows (three/two distinct selected identities), excludes the unrelated third Mongo record, rejects actor injection and unknown presets, and returns 503 without partial rows when TRON is inactive. Both browser buttons independently returned the same counts and source labels.
+
+Read-only TRON access has no signing resolver. All three canonical source payloads and every signed preparation hash are checked unchanged. Exact temporary database `cosmic_cql_mongo_tron_demo` is verified for owned records/collections, dropped, and confirmed absent before its intent is removed. The original TRON seed/key/ledger remain. Runner exit 0; container exited; 9090/50051/50052/27029/5108 listeners absent; pending/ready files absent; seed hash unchanged.
+
+Evidence `TestResults/TronCqlCurrent/tron-mongo-federation.trx`, SHA256 `0FAA79F2F76454CBB3193F2145F15119F1221520034B2F54D0EF694DE049938E`. Browser captures `tron-mongo-all.png` and `tron-mongo-subset.png`; runner log `tron-mongo-runner.log` in the same directory. The source lease, provider build lease, retained Mongo8.3.11 runtime/data and protected TRON source are reused. Consumer assets restored from local NuGet cache only.
+
+The local demo preset is ready. Sandbox CQL section13 is published on Web4Site main `836e4af2a249d67709307c19df90018d26ee7fb0`, production deployment `7451345916` success. Public browser verification confirmed the expanded command and fixed5108 link. Screenshot `TestResults/TronCqlCurrent/tron-catalogue-public.png`, SHA256 `E7FB0B056898C4565B3161683A5F860D71528545751AC99BFC44EBBFF50E70E9`. The catalogue is public; native services remain local and stopped. Metadata/text/general ordering, production authentication and full ORM/HyperDrive parity remain deferred red scopes; see [after-demo backlog](AFTER_DEMO_BACKLOG.md) and [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
