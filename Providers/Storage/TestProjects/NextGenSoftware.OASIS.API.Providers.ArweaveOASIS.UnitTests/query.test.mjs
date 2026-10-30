@@ -11,7 +11,7 @@ test('complete multiple pages preserve tags and advance cursor', async () => {
   const result=await queryTransactionIds({post:async (path,body)=>{requests.push({path,body});return pages.shift();}}, {'OASIS-Id':'captured'});
   assert.deepEqual(result,[id(1),id(2)]);
   assert.equal(requests[0].path,'graphql');
-  assert.deepEqual(requests[0].body.variables,{tags:[{name:'OASIS-Id',values:['captured']}],after:null});
+  assert.deepEqual(requests[0].body.variables,{tags:[{name:'OASIS-Id',values:['captured']}],after:null,owners:null});
   assert.equal(requests[1].body.variables.after,'cursor-1');
 });
 test('complete empty result is valid',async()=>assert.deepEqual(await queryTransactionIds(api(page([]))),[]));
@@ -33,4 +33,13 @@ test('bound exhaustion rejects without 101st request',async()=>{
 });
 test('invalid tag rejects before dispatch',async()=>{
  let calls=0;await assert.rejects(()=>queryTransactionIds({post:async()=>{calls++;}}, {'bad':null}));assert.equal(calls,0);
+});
+
+test('configured owner pins every native page',async()=>{
+ const owner=id(90), requests=[]; const pages=[page([edge(1)],true),page([edge(2)])];
+ await queryTransactionIds({post:async(_,body)=>{requests.push(body.variables);return pages.shift();}}, {},owner);
+ assert.deepEqual(requests.map(r=>r.owners),[[owner],[owner]]);
+});
+test('invalid owner rejects before dispatch',async()=>{
+ let calls=0;await assert.rejects(()=>queryTransactionIds({post:async()=>{calls++;}}, {},'bad'));assert.equal(calls,0);
 });

@@ -2135,3 +2135,9 @@ Arweave read-boundary outcome repro5failed/1passed; fixed full11passed. Owned No
 Owner COSMIC/CQL. Reuse existing Node built-in test runner (no npm install/SDK download), .NET/NuGet/bin/obj. New shipping `SdkBridge/query.mjs`, protocol fixtures in unit source; build copies module into existing bin/publish via csproj. Raw logs `C:/Source/OASIS-cosmic/TestResults/ArweaveCqlCurrent/query-protocol.log` and build/test TRX (size unmeasured), disposable/regenerable. No service/ports/wallet/database/environment created.
 
 Arweave GraphQL outcome19Node protocol/11.NET regression pass; bridge syntax and built query.mjs hash match source. Owned processes completed, no services/ports/data/wallet/new downloads. Module retained in reusable build outputs (size unmeasured); regenerable raw logs/TRX remain in TestResults. Native SDK/runtime inventory and CQL adapter next.
+
+### Arweave bounded CQL adapter controls planned — 29 October 2026
+
+Reuse shared KeyValueStorage identity compiler, existing .NET/NuGet/Node outputs. No new Core/Shared API or environment. Owner-pinned SDK query uses configured wallet locally in SDK bridge; no wallet sent to gateway. Tests use compiler/Node protocol only, no real wallet/native gateway. Restore cached project references only from existing NuGet cache. Logs/TRX `TestResults/ArweaveCqlCurrent`, disposable after completed tests; build outputs reusable, unmeasured. Native runtime inventory remains pending; no downloads.
+
+Arweave CQL outcome21Node owner/protocol and28.NET full unit tests pass; no real wallet/gateway/native data involved. Existing shared compiler project reused without public API changes; cached restore only, no npm download. Owned build/test processes complete, no ports. Regenerable raw reports in recorded TestResults paths. Scoped WSL /var/tmp/runtime search found no retained Arweave/ArLocal environment; Windows npm cache inventory still pending. No removal of shared resources.
