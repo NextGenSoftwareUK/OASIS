@@ -1,7 +1,6 @@
-# ArangoDB CQL MVP — controls verified, native demo pending
+# ArangoDB CQL MVP — native/restart verified
 
-Updated30October2026. This is an existing red provider identity; no native or
-paired/browser certification yet. Dgraph was mistakenly named in the previous
+Updated30October2026. Native/restart pass; paired/browser acceptance remains red. Dgraph was mistakenly named in the previous
 queue; there is no exact Dgraph identity/source in the current226-provider inventory.
 
 ## Root fixes and supported CQL scope
@@ -66,3 +65,49 @@ Legacy HyperDrive remains documentation-only.
 
 [Official document API](https://docs.arango.ai/arangodb/stable/develop/http-api/documents/)
 / [current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Original native records and actual process restart verified
+
+This supersedes the pending native step above. Official ArangoDB3.12.12 image
+pinned to Linuxamd64 digest
+`sha256:ddaeda57726a6ff42186a3fea205a848585c92fd54814b892193925338f9e25c`
+was cached once after existing-runtime/image inspection found no reusable server.
+One rootful WSL Podman container oasis-arangodb-cql maps127.0.0.1:18529to8529,
+with2CPU/2GiB/256PIDs. Private credentials/env0600; data/apps retained under
+`/var/tmp/oasis-arangodb-cql`. No public hosting, signup or payment.
+
+Native setup version3.12.12 and original SERVER.serverId214237195051418survive
+restart; protected anonymous access401, only_system database at setup. An initial
+setup check called the cluster-only server-ID endpoint and received500in single
+mode. The verifier was corrected to authoritative native data/SERVER.serverId;
+explicit resume validates pending intent/container/image/mount/exit state. The
+same container/data/credentials were preserved; no recreation or seed replay.
+
+`ArangoDbNativeCqlTests.cs` passes1initial +1actual process-restart. Original
+actor/three IDs were journalled before saves, with a native revision ack for each.
+Native3(Espresso/Latte/Tea), ID-membership2 and page1 pass through the shipping
+adapter. Exact native payload hashes and acknowledged revisions match restart;
+CQL changes neither hashes nor collection revision. Fixture-only AQL catalogue
+proves exactly the original3business IDs; CQL itself performs only key reads.
+Caller remains new/dirty until manager-owned publication. Plaintext JSON scope.
+
+Evidence under TestResults/ArangoDbCqlCurrent:
+
+| Report | Passed | SHA256 |
+|---|---:|---|
+| native-first.trx |1|994240932320fa334d6fb0d908da146e34f207ebd84baf8c24a2b4bdc509d7f6|
+| native-restart.trx |1|8c5670617458dcde0b01394d6c5d95ddc4f8e9fb43e99a65f1ccc39d3e76197f|
+
+Original source233,611B retained, seed pending absent; owned container stopped0
+after both phases. Image612,978,651B reusable; no repeated runtime downloads.
+Linux.NET10.0.12 and portableVSTest18.11.0 reused, test child runs existing user1000.
+No raw reports committed. Safe source cleanup requires explicit identity retirement.
+
+Run native tests after bounded integration build under one provider lease:
+`wsl -d Ubuntu -u root -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/run-cosmic-arangodb-linux.py`.
+Creator refuses existing source; its explicit --resume only completes unresolved
+environment admission after exact original identity checks, never resets data.
+
+Next: same original records in Mongo-paired C#/HTTP/browser5/4, then hub enrollment.
+Inventory stays red until that passes. Full CAS/graph/history/registration and
+replication gates above remain open. [Official image](https://hub.docker.com/_/arangodb).
