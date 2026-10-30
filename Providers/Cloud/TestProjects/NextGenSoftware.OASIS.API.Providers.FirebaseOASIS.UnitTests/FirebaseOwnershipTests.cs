@@ -57,6 +57,23 @@ public class FirebaseOwnershipTests
         if (fault == "http") Assert.AreEqual(HttpStatusCode.ServiceUnavailable, ((HttpRequestException)result.Exception.InnerException!).StatusCode);
     }
 
+    [TestMethod]
+    public async Task ExplicitNamespaceIsEncodedOnceOnBothReadAndWriteRoutes()
+    {
+        using var reply = new Reply((request, text) => {
+            var parts = request.RequestUri!.Query.TrimStart('?').Split('&').Select(value => value.Split('=', 2))
+                .ToDictionary(value => value[0], value => Uri.UnescapeDataString(value[1]));
+            Assert.AreEqual("cosmic demo&one", parts["ns"]);
+            Assert.AreEqual("synthetic+token", parts["auth"]);
+            return Response(request.Method == HttpMethod.Put ? text! : "null");
+        });
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", "synthetic+token", http, databaseNamespace: "cosmic demo&one");
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon { Id = Guid.Empty }, saveChildren: false)).IsError);
+        Assert.IsFalse((await provider.LoadAllHolonsAsync(loadChildren: false)).IsError);
+        Assert.AreEqual(2, reply.Sends);
+    }
+
     private sealed class TypedHolon : Holon
     {
         public decimal Amount { get; set; }
