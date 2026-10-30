@@ -1,7 +1,13 @@
 """Verify original Chroma CQL records across restart; reuse the retained source."""
 from pathlib import Path
-import fcntl, hashlib, json, os, pwd, runpy, subprocess, time
+import argparse, fcntl, hashlib, json, os, pwd, runpy, subprocess, time
 import xml.etree.ElementTree as ET
+from cosmic_linux_mongo_service import owned_linux_mongo
+parser = argparse.ArgumentParser()
+parser.add_argument('--federated', action='store_true')
+parser.add_argument('--serve', action='store_true')
+options = parser.parse_args()
+assert not options.serve or options.federated
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = Path('/var/tmp/oasis-chroma-cql')
@@ -36,17 +42,36 @@ def main():
             setup['command']('start', setup['NAME'])
             try:
                 setup['ready']()
-                started = time.time()
-                with (RESULTS/(phase+'.log')).open('w') as log:
-                    subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~ChromaCqlNativeTests',
-                        '--ResultsDirectory:'+str(RESULTS), '--Logger:trx;LogFileName='+phase+'.trx'], cwd=RESULTS,
-                        env={**os.environ, 'DOTNET_ROOT': '/var/tmp/oasis-runtimes/dotnet-10.0.12', 'OASIS_CHROMA_CQL_STATE': str(STATE)},
-                        preexec_fn=demote, stdout=log, stderr=subprocess.STDOUT, check=True)
-                trx = RESULTS/(phase+'.trx')
-                assert trx.stat().st_mtime >= started
-                counts = ET.parse(trx).find('.//{*}Counters').attrib
-                assert counts['passed'] == '1' and counts['failed'] == '0' and counts['notExecuted'] == '0'
-                print(json.dumps({'phase': phase, 'counts': counts, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()}), flush=True)
+                def report(label, test="ChromaCqlNativeTests", extra=None):
+                    started = time.time()
+                    with (RESULTS/(label+'.log')).open('w') as log:
+                        subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~'+test,
+                            '--ResultsDirectory:'+str(RESULTS), '--Logger:trx;LogFileName='+label+'.trx'], cwd=RESULTS,
+                            env={**os.environ, 'DOTNET_ROOT': '/var/tmp/oasis-runtimes/dotnet-10.0.12', 'OASIS_CHROMA_CQL_STATE': str(STATE), **(extra or {})},
+                            preexec_fn=demote, stdout=log, stderr=subprocess.STDOUT, check=True)
+                    trx = RESULTS/(label+'.trx')
+                    assert trx.stat().st_mtime >= started
+                    counts = ET.parse(trx).find('.//{*}Counters').attrib
+                    assert counts['passed'] == '1' and counts['failed'] == '0' and counts['notExecuted'] == '0'
+                    print(json.dumps({'phase': label, 'counts': counts, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()}), flush=True)
+                report(phase)
+                if phase == 'native-restart' and options.federated:
+                    owner = (Path('/var/tmp/oasis-cosmic-mongo/data')).stat().st_uid
+                    assert owner != 0
+                    os.setresuid(owner, owner, 0)
+                    try:
+                        with owned_linux_mongo(RESULTS) as mongo_env:
+                            os.setresuid(0, 0, 0)
+                            try:
+                                report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
+                                report('mongo-federation', 'ChromaMongoCqlNativeTests',
+                                    {**mongo_env, 'COSMIC_CHROMA_MONGO_SERVE': '1' if options.serve else '0'})
+                                assert not (STATE/'mongo.pending.json').exists()
+                            finally:
+                                os.setresuid(owner, owner, 0)
+                    finally:
+                        os.setresuid(0, 0, 0)
+                    report('native-postpair')
             finally:
                 setup['stop']()
 

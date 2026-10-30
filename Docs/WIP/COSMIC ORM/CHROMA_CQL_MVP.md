@@ -1,6 +1,6 @@
 # Chroma CQL MVP — in progress
 
-30 October 2026. Inventory remains red; native/restart pass; Mongo-paired acceptance is pending.
+30 October 2026. Inventory remains red; native/restart and Mongo-paired C#/HTTP/browser acceptance pass.
 
 ## Verified save ownership
 
@@ -23,8 +23,8 @@ These are injected-HTTP controls, not native database certification.
 
 ## Next acceptance
 
-1. Add Mongo-paired C#/HTTP/browser profile with clear comments and teaching examples.
-2. Verify its federated query, browser view and demo-hub preset before marking green.
+Scoped breadth milestone complete. Continue remaining red provider identities;
+full Chroma parity and the documented gaps stay open.
 
 ## Remaining gaps
 
@@ -130,3 +130,31 @@ intent, owned service stopped with native exit0. Rerun with
 after the bounded leased integration build. Environment creation helper refuses
 existing source; never rerun it to replace this fixture. Mongo-paired proof remains
 next, so inventory/hub count stays unchanged at61 scoped provider proofs.
+
+## Mongo-paired demo acceptance
+
+Run `Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Chroma -Federated -Serve`.
+Browser: `http://127.0.0.1:5150/`. Use `-VerifyOnly` instead of `-Serve` for the
+bounded automated verification. C# teaching code is shared in
+[IdentityFederationWalkthrough](../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs);
+[paired integration example](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests/ChromaMongoCqlNativeTests.cs)
+shows provider construction, explicit trusted catalogues and HolonManager execution.
+
+All=Chroma3+Mongo2=5 physical copies; subset=Chroma2+Mongo2=4. Matching IDs retain
+provider provenance. Native Chroma uses one bounded multi-ID get; Mongo executes
+its own native query. No distributed snapshot or general content filtering claim.
+SDK+HTTP tests reject forged actors/unknown presets and return503 without rows
+when Chroma is deactivated. Actual browser tab65 verified both buttons and closed
+after its owned stop action. Screenshot:
+`C:/Source/OASIS-cosmic/TestResults/ChromaCqlCurrent/browser.jpg` (49,628B).
+
+Native-first/restart/Mongo-init/federation/native-postpair each1pass/0failed/0skip.
+Final paired TRX SHA256453fa1a43ea05e413919a704896e689fae7e013b08b8c737dee922aa3f20c601;
+postpair SHA256f50c5ccbb2780e4239b4634924c11a40225d4a9b79fa9313b142f3b2bd668268.
+Files remain in worktree TestResults/ChromaCqlCurrent. Hub routing passes60paired
+profiles/120plans,102paired rejections; listeners unchanged.
+Temporary database `cosmic_cql_mongo_chroma_demo` was absent before the owned
+journal, verified after use and dropped; pending journal cleared. Original Chroma
+source311,674B/seed/schema/receipts unchanged; Chroma native exit0, Mongo and
+teaching server stopped, ports18002/27039/5150 not listening. Inventory now62/226
+linked scoped proofs. This milestone does not close full ORM/CQL parity.

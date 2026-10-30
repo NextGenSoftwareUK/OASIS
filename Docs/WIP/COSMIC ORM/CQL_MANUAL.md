@@ -1899,3 +1899,11 @@ created_at changes during native replay; no timestamp-immutability claim.
 Solr + Mongo scoped MVP:48controls/native/restart/C#/HTTP/browser5/4 pass.
 Canonical stored JSON, hard-commit/version acknowledgements, bounded RealTimeGet.
 [Explicit schema, commands, proof and remaining gaps](SOLR_CQL_MVP.md).
+
+Chroma + Mongo scoped MVP:50controls/native/restart/C#/HTTP/browser5/4 pass.
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider Chroma -Federated -Serve`
+opens teachingHTTP5150; `-VerifyOnly` runs bounded acceptance instead. Explicit
+trusted key catalogues, native multi-ID get, source provenance and original JSON/
+collection values preserved across restart. Loopback plaintext local scope;
+no vector similarity/general predicates/distributed snapshot/full parity claim.
+[Chroma scope, examples and evidence](CHROMA_CQL_MVP.md).

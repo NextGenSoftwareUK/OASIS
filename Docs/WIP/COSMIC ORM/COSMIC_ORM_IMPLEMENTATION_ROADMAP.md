@@ -1,5 +1,7 @@
 # COSMIC ORM implementation roadmap
 
+Chroma:50controls/native/restart/Mongo-paired C#/HTTP/browser5/4 verified; full parity remains open. [Scope](CHROMA_CQL_MVP.md).
+
 Solr:48controls/native/restart/paired/browser5/4 pass; bounded canonical RealTimeGet. [Scope](SOLR_CQL_MVP.md).
 Typesense:38controls/native/restart/paired/browser5/4 pass; native created_at volatile. [Scope](TYPESENSE_CQL_MVP.md).
 Meilisearch:39controls/native/restart/paired/browser5/4 pass; bounded ID scope. [Proof](MEILISEARCH_CQL_MVP.md).
