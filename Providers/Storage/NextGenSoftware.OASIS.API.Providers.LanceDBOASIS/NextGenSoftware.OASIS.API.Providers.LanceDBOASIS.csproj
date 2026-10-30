@@ -33,6 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Apache.Arrow" Version="23.0.0" />
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
