@@ -22,8 +22,8 @@ No native gateway/wallet was involved. Evidence
   native gateway/schema integration and CQL admission remain unverified.
 - GUID point load selects the first returned transaction without a specified
   revision policy; no deterministic historical/version conflict proof.
-- SaveHolon mutates the provider key after posting but does not publish IsSaved;
-  saved-state ownership/acknowledgement and unknown write outcomes need verification.
+- Save acknowledgement/count/failed-batch root fixes pass controls below;
+  native unknown outcomes and broader saved-state ownership remain unverified.
 - Existing graph/depth/history and tombstone rules need provider acceptance tests.
 - Native runtime/SDK cache, original wallet/source and free local gateway availability
   have not yet been inventoried; no installation or demo source created this step.
@@ -132,3 +132,21 @@ and multi-record CQL against actual owner-pinned gateway responses, restart, the
 Mongo-paired C#/HTTP/browser5/4. SDK2.1.0/native schema compatibility still unproven.
 
 Lifecycle evidence `TestResults/ArweaveCqlCurrent/gateway-smoke-summary.log`, SHA256 `adcb9841d7d39c25b89de8308b035a7900f97b2063c2ced2a5c5a25b80fd2f76`.
+
+## Save acknowledgement ownership root fixes — 30 October 2026
+
+Six controlled save tests initially4failed/2passed. Full fixed unit suite34passed.
+Upload requires a syntactically valid43character native transaction acknowledgement
+before IsSaved/SavedCount or caller provider key publication. Single saves count1;
+manager-owned clean-state flags remain untouched. Failure/malformed receipt leaves
+original key and saved flags unchanged; reconcile unknown write outcome, no retry.
+Batch counts acknowledged records and reports errors even with continueOnError=true;
+continue controls iteration rather than converting failed writes into success.
+Messages distinguish gateway transaction acceptance from confirmation/finality.
+
+Tests prove delayed acknowledgement, malformed/empty acknowledgement, rejected post,
+batch count and all-failed continueOnError. Native record admission remains next;
+no wallet or business transaction has been created yet. Root untracked `logs` file
+is preserved/excluded, provenance unverified; no unrelated cleanup performed.
+
+Evidence `TestResults/ArweaveCqlCurrent/save-fixed.trx`, SHA256 `f1788cd5b99b990e033622591bceaf39e48250a91c6a46c4eb4c713a99fb2fbf`.

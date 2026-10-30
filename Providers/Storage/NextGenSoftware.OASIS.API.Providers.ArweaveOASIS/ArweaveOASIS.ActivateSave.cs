@@ -156,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
                 var txId = await _arweaveService.PostTransactionAsync(data, contentType, tags);
 
-                if (string.IsNullOrEmpty(txId))
+                if (string.IsNullOrEmpty(txId) || !System.Text.RegularExpressions.Regex.IsMatch(txId, "^[A-Za-z0-9_-]{43}$"))
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to upload data to Arweave: empty transaction ID returned.");
                     return result;
@@ -203,14 +203,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
 
                 var txId = await _arweaveService.PostTransactionAsync(bytes, "application/json", tags);
 
-                if (string.IsNullOrEmpty(txId))
+                if (string.IsNullOrEmpty(txId) || !System.Text.RegularExpressions.Regex.IsMatch(txId, "^[A-Za-z0-9_-]{43}$"))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to upload JSON to Arweave: empty transaction ID returned.");
+                    OASISErrorHandling.HandleError(ref result, "Arweave post did not acknowledge a valid transaction identity; preserve the write outcome for reconciliation.");
                     return result;
                 }
 
                 result.Result = txId;
-                result.Message = $"JSON uploaded to Arweave permanently. TxId: {txId}";
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"Arweave accepted the JSON transaction. TxId: {txId}; confirmation/finality is separate.";
             }
             catch (Exception e)
             {
