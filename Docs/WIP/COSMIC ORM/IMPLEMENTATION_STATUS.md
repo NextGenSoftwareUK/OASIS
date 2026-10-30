@@ -68,3 +68,5 @@ Valkey breadth milestone: native9.0.4/restart/paired/browser5/4 and hub repeat p
 KeyDB breadth milestone: controls8/native6.3.4/restart/paired/browser5/4 and hub pass; [scope/evidence](KEYDB_CQL_MVP.md). Full parity/cluster/registration remain separate.
 
 Dragonfly breadth milestone: controls8/native completed snapshot/restart/paired/browser5/4 and hub pass; [scope/evidence](DRAGONFLY_CQL_MVP.md). AOF/crash/cluster/full parity remain separate.
+
+Garnet: controls8/lifecycle6/runtime admission pass; native checkpoint/source-loss/paired remain red. Native IO dependencies/layout and fixture teardown guard corrected; [gate and exact next work](GARNET_CQL_MVP.md).
