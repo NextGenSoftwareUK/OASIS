@@ -382,3 +382,13 @@ bounded native identity queries: original CouchDB3 + Mongo2 =5physical rows;
 two-ID subset =4. Browser5132 displays provider provenance. Shutdown verifies
 Mongo fixture cleanup and retains original CouchDB records. Plaintext CouchDB
 scope; cross-client CAS, distributed snapshots and full parity remain unverified.
+
+## SurrealDB + Mongo MVP
+
+[Verified scope and evidence](SURREALDB_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SurrealDB -Federated`
+(add `-VerifyOnly` for bounded acceptance). Retained authenticated native SurrealDB
+records and Mongo copies pass through shared HolonManager:5physical rows, or4for
+the two-ID subset. Browser5133 shows provider provenance. Shutdown cleans the
+owned Mongo fixture and preserves original native records. Plaintext envelopes,
+bounded identity filters and independent reads; broader parity remains open.

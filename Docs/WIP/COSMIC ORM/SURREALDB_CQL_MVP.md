@@ -1,6 +1,6 @@
 # SurrealDB CQL MVP — native/restart verified
 
-Updated 30 October 2026. Native/restart pass; paired/browser acceptance remains red.
+Updated 30 October 2026. Native/restart/Mongo-paired/browser scoped MVP verified.
 
 ## Implemented scope
 
@@ -95,3 +95,43 @@ SDK reference: [official .NET repository](https://github.com/surrealdb/surrealdb
 [pinned HTTP handshake source](https://github.com/surrealdb/surrealdb.net/blob/v1.0.0/SurrealDb.Net/Internals/SurrealDbEngine.Http.cs),
 [official server3.3.5](https://github.com/surrealdb/surrealdb/releases/tag/v3.3.5).
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Mongo-paired C#/HTTP/browser acceptance complete
+
+This supersedes the pending paired step above. Original native SurrealDB3.3.5
+records and Mongo copies are queried through shared HolonManager V2. All selects
+return5physical rows (SurrealDB3 + Mongo2); two-ID subset returns4 (2+2), with
+provider provenance and excluded unrelated Mongo data. Browser5133 verified both
+visible JSON responses and retained-source shutdown. Screenshot capture failed;
+no screenshot proof is claimed. This is identity-set selection, not arbitrary
+property predicates, a distributed snapshot or a replication acceptance test.
+
+```powershell
+# Interactive C# / HTTP / browser teaching preset; original source retained.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SurrealDB -Federated
+
+# Bounded native/restart/C#/HTTP/post-pair verification, then automatic cleanup.
+Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SurrealDB -Federated -VerifyOnly
+```
+
+The linked `SurrealDbMongoCqlNativeTests.cs` exercises the actual shared C# example
+and HTTP host, rejects forged actor/unknown preset400, and checks inactive native
+provider503without partial rows. Both bounded and interactive runs pass5one-test
+phases. Native post-pair hashes prove original records unchanged. Exact disposable
+Mongo fixture verified/dropped; pending/ready cleared, owned services stopped0.
+Retained state15,408B at final measurement; physical engine housekeeping can change
+store size while original native logical record hashes remain stable.
+
+Hub routing:8single/16plans,42paired/84plans,70paired rejections,3archive rejections;
+listeners unchanged. No native table scan in CQL, no new environment downloads.
+Current raw evidence under TestResults/SurrealDbCqlCurrent (regenerable):
+
+| Report | Passed | SHA256 |
+|---|---:|---|
+| mongo-federation-bounded.trx |1|f7853bdca817f23bdfe230ec7177e476abfd650e53fbe6838e13d1a65a9ef697|
+| mongo-federation.trx |1|97caa065f84fedcb3ffb64dd8d4a5452ba8250ab598a9fe73bc067c1279e1b31|
+| native-postpair.trx |1|6b401e13f1b6db38352e82347524f54f2f408969baf21224723fbfc87a40d369|
+
+The final browser-run.log summary contains all five phase hashes. Earlier native
+hashes above refer to the earlier original-admission run, not current refreshed
+TRX files. Full CAS/graph/history/registration/replication parity remains open.
