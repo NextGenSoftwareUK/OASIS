@@ -1,6 +1,6 @@
-# CockroachDB CQL MVP — controls verified, native acceptance pending
+# CockroachDB CQL MVP — native/restart verified
 
-Updated30October2026. Existing product identity; no native or paired demo claim yet.
+Updated30October2026. Secured native/restart pass; paired/browser acceptance remains red.
 
 ## Shared implementation and explicit authority
 
@@ -64,3 +64,58 @@ C#/HTTP/browser5/4 and hub enrollment. Inventory stays red until verified.
 CAS/graph/history/metadata depth, distributed retries, replication/migrations and
 full EF/NHibernate parity remain open. Preserve all existing provider acceptance.
 [Current status](CURRENT_STATUS.md) / [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+## Secured original native environment and CQL restart verified
+
+This supersedes the pending native steps above. One original source at
+`/var/tmp/oasis-cockroachdb-cql` retains vendor-generated CA/node/root-client
+certificates/private keys, node data, setup/database acknowledgements and original
+actor/three holon IDs/write receipts/snapshot. No unsafe internals, no insecure mode,
+no global trust changes or PostgreSQL-server substitution. SQL26259and HTTP18004
+listen only127.0.0.1. Runtime cache128MiB/SQLmemory128MiB. No-key single-node
+internal development scope only; public/distributed licensing not inferred.
+
+Original cluster83847e13-8e1f-4702-b6be-1137902cfc35and oasis database oid104survive
+process restart. Initial verifier used a restricted internal cluster-ID function
+(42501); its guard was left enabled. HTTPadmin identity requires separate session
+credentials (401), which were not minted. The final verifier uses the exact owned
+server startup's native cluster ID plus supported SQL database oid, both checked
+across restart. All phases reuse the same original data/certs. No setup replay/reset.
+
+`CockroachDbCqlNativeTests.cs` passes1initial +1actual process-restart through the
+shipping CockroachDB provider/Npgsql9.0.3 with strict VerifyFull/client-certificate
+configuration. Schema cosmic_cql and indexed provider tables created natively.
+Three original holons acknowledged once, metadata journal retained. Native3,
+ID-membership2, missing0, page1 and no-partial result-budget rejection pass.
+Original plaintext JSON hashes and native MVCC timestamps remain unchanged after
+reads/restart. Exact original row count3; no missing source recreated. Existing
+inherited C-collation/paging SQL succeeded on this pinned product, no dialect shim.
+
+Evidence under TestResults/CockroachDbCqlCurrent:
+
+| Report | Passed | SHA256 |
+|---|---:|---|
+| native-first.trx |1|e0cdd345dab13af503fa8cfad3d24bc8ac400649295aea70bb301522dc7c3721|
+| native-restart.trx |1|e857c0af73cf9f0701d8320445363d53c81413fe7db9313f086a8e12745e04af|
+
+Both owned starts stopped0; setup/seed pending absent. Source logical1,076,985,277B,
+allocated1,148,727,296B measured by du; retained native files are not disposable
+build output. Logs/TRX only worktree TestResults; runtime/certs/data retained.
+Cfree71,099,400,192B after native acceptance, no unrelated-change attribution.
+Reused Linux.NET10.0.12/portableVSTest18.11.0, no new download in record tests.
+
+Run after bounded integration build under one provider lease:
+`wsl -d Ubuntu -- python3 /mnt/c/Source/OASIS-cosmic/Scripts/TestHosts/run-cosmic-cockroachdb-linux.py`.
+Creator refuses existing source; explicit --resume only completes pre-database
+admission after original intent/certificate/runtime checks, never resets data.
+
+Next: same original rows in Mongo-paired C#/HTTP/browser5/4 and hub preset.
+Inventory remains red until that passes. Broader CAS/distributed retries/graph/
+history/metadata/replication gates above remain open. Source-loss recovery must
+never bless a replacement baseline or replay an unresolved original write.
+
+The CockroachDB fixture now requires an admitted environment and a matching
+seed/snapshot pair before any network/write action; it cannot silently create a
+missing source or bless an orphan/replacement baseline. Final1+1recheck passes
+with the original rows, source logical1,077,138,658B. The earlier allocated-size
+measurement above is from initial acceptance; native housekeeping changes size.
