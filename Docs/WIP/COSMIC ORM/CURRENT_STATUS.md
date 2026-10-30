@@ -1,77 +1,40 @@
 # Current COSMIC ORM / CQL status
 
-Updated30October2026 UTC. Scoped sandbox release candidate; full programme remains incomplete.
+Updated30October2026 UTC. Full programme remains incomplete.
 
-## Work and priority
+## Immediate phase: user-approved extra Development fix batch
 
-- Work/build/test C:/Source/OASIS-cosmic; parent/Core currently work/cosmic-cql-sandbox-integration. Broader work/cosmic-cql preserved.
-- Full ORM/CQL roadmap remains active/incomplete. Sandbox rollout precedes depth; broader all-provider plan is retained on work/cosmic-cql.
-- Work only on red checklist cells. Freeze green features/cursors unless a bug is reproduced.
-- HyperDriveV2 implementation only; document legacy gaps. Large POCO/migrations tooling stays deferred.
-- [Checklist](CQL_PARITY_CHECKLIST.md), [demo priorities](CQL_DEMO_EXPANSION_ROADMAP.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
+- Existing backend checkout C:/Source/OASIS-cosmic, parent/Core work/cosmic-cql-sandbox-integration.
+- Corefdca0ed, scoped parent47f7f2606 plus this checkpoint; broader parentwork/cosmic-cql f89cf0085/Core69bb8a4 preserved/pushed.
+- Human approved one extra consolidated Development push today. Only receipt ownership, Mongo root-filter optimization, free write profilev2 and their tests/docs/scripts are included. New PostgreSQL/SQLServer/Oracle changes are excluded.
+- Both remote Development refs fetched/inspected: parent89a960111, Core432c613. Normal fast-forward pushes must reject any concurrent drift; never force.
+- All7 scoped producers/consumers rebuilt againstfdca0ed without restore.30API controls,8real native billing lifecycle and4native ancestor cases pass/no skips. Native owned fixtures removed/Mongo stopped.
+- Railway dev WEB4 PREPARED_STORAGE_ADMISSION_JSON v2 staged with --skip-deploys; oldv1/current expected profile compared first, exact canonical readback verified. No duplicate deployment or unrelated setting change.
 
-## Immediate next step
+Exact next: push Corefdca0ed to Development, verify ls-remote; push this scoped parent/pin+manifest together, verify manifest and exact Railway deployment handle. Observe it to terminal, then run the hosted19-call fixture verifier against that exact SHA/deployment; reconcile failures without replay. Frontend main remains unpublished until real acceptance.
 
-[Scoped sandbox release](CQL_SANDBOX_RELEASE_2026-10-30.md): deployed correction89a960111/e88fbed5 is SUCCESS; Mongo pipeline40stages preserves16levels.
-Hosted checks exposed two further blockers: CQL-only admission does not enroll canonical writes, and reused physical receipt IDs prevented independent requests settling.
-Receipt root fix Corefdca0ed binds IDs to the admitted operation; regression failed before, passes after; all8 native billing lifecycle tests pass with no skips.
-This fix is pushed on the integration branch, not Development/deployed. Prior uncertain operation evidence is preserved; never replay providers to settle it.
-Free profile v2 now explicitly enrolls canonical save/batch/delete/recovery with21 operation tariffs;10 startup/real-authority controls pass. Frontend write keys/uncertain identities:4 regressions+11 CQL tests pass, pushed c17e5f7. Neither candidate is deployed.
-Mongo now prunes root-local filters before ancestor traversal while retaining the complete final access predicate; failing-before/passing-after regression,189 CQL controls and4 native ancestor cases pass. Hosted timeout resolution remains unproved.
-Next: integrate verified fixes in the next deployment batch; verify hosted timeout/filtered rows/scalars/federation/isolation, then publish frontend. Hosted verifier now requires an exact deployment/SHA and fits19 owner calls;6 offline protocol tests pass. Original save reconciliation is complete: exact deployed guard/source and7 boundary tests prove rejection before manager acquisition; original bytes retained in LocalState archive.
-Original fixture retained under LocalState/COSMIC/HostedSandboxCqlCurrent/Archive with its reconciliation manifest; no save replay. Previously executed unsettled queries remain separate/unresolved. Frontend unpublished; no third daily Development deployment.
+## Hosted verification and unresolved gates
 
-## Latest verified milestone
+- Current published89a960111/e88fbed5 deployment is SUCCESS. Its Mongo pipeline is40stages/full16levels, but new receipt/profile/root-filter fixes are not yet in that image.
+- Receipt collision fix binds physical request IDs to admitted operation. Existing executed unsettled-query receipts remain immutable/unresolved; never replay provider execution to settle them.
+- Free profilev2 enrolls canonical save/batch/delete/recovery across Mongo/SQLite/Neo4j, zero price/native fee with real quota/measurement guards. No paid/native-chain admission implied.
+- Mongo root-local filters precede ancestor walks; complete final access predicate retained. Hosted timeout resolution still needs actual execution.
+- Original save56eaea32 definitively rejected before manager acquisition. Original fixture and reconciliation retained in LocalState/COSMIC/HostedSandboxCqlCurrent/Archive; a new declared fixture can be created, no old-operation replay.
+- Hosted verifier requires exact deployment/SHA and persists mutation intents outside TestResults. Six offline protocol tests pass; this is not live acceptance.
+- Existing frontend C:/Source/Web4Site work/cosmic-cql c17e5f7 has four request-helper plus11CQL tests passing; main unpublished.
 
-- Q01f: native final entity-stage Select remains verified on all3 (14 cases/store).
-- New combined entity-selected contract preserves both immutable sequences, re-admits actual capabilities and validates all selected input cells before DTO construction. Flat execution rejects combined plans.
-- SQLite, MongoDB and Neo4j now execute selected Where/order/ThenBy/Skip/Take/Reverse after entity stages under their existing native read owners. Standard sync/async LINQ works, closure values rebind per read, original offsets are not replayed, source application constructors are not invoked.
-- Both Core targets build;2173 CQL tests and221 full SQLite provider tests pass. SQLite proof covers exact Int64, invalid cells hidden by Take(0), protected traversal and entity work limits. Mongo220/Neo151 CQL controls and23 native cases per database (14 prior +9 combined) now pass; no Q01f cell promoted.
-- Combined graph sources, reselection and element/cardinality/numeric terminals after entity selection remain unsupported. Earlier green scopes stay frozen.
-- Neo/SQLite evidence in TestResults/Neo4jCurrent: neo-entity-selected-unit.trx:ADEF3FD50AF8394691D7D085322ED2F4CADF89E94EC97405ACC64824BD83777F; neo-entity-projection-native.trx:AD4BB05BC55FC7106D35537BE8F32BF2A7CE1D311A7BA4D8292E55B2E03D398E; Neo JSON:2AC91B0F9409A877CC084103D5D318D9B5858E7F2100C57F8961B35BC702FC7A; SQLite JSON:898EEFACE177E922DB613431DE9F1506C24520B30BC37ADF6ABD4B02786641A2. Exact fixture cleanup/journal removal, stopped container and absent17687 verified.
-- Mongo evidence in TestResults/Neo4jCurrent: mongo-entity-selected-unit.trx:E3B631277F86D2D9AFF00BEBDF55C73A1F8622D2C9524A5CCA8247B8B3EB435B; mongo-entity-projection-native.trx:69C16B3B9F615F5EE782CA0ED7411D58FCF75A146AFC07F539160EDE329C1F86; JSON:AA04C90275F44D9E914AA01007D378F8BA2684F10EDEA2C46965859F30D67924. Exact fixture cleanup, journal removal and27029 listener teardown verified.
-- Evidence in TestResults/CoreCurrent: entity-selected-owner-core.trx:8B2D359FCEB9C1E74B780E345F3698EC7693F2C1E6AAA854F53723F3DD3694E9; entity-selected-sqlite-full.trx:629CCDA3A1E72922E36752B2CCB5125DC334C7C348D2BF61B6A6ADDE0ED38AC9.
-- See [manual](CQL_MANUAL.md#explicit-capture-of-selected-stages-after-entity-projection), [shared owner tests](../../../OASIS%20Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/CosmicEntitySelectedExecutionTests.cs), [SQLite proof](../../../Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.UnitTests/CqlEntitySelectedCompositionTests.cs).
+## Broader goal retained on work/cosmic-cql
 
-## Exact next work
+- MVP breadth/content queries first; LINQ depth, POCO/migrations tooling paused/deferred. Work only on red cells; no green/cursor hardening without a reproduced bug. HyperDriveV2 only; legacy gaps documentation-only.
+- PostgreSQL16controls+17native/restart and4paired SDK/HTTP/browser presets2/4/4/2 verified.
+- SQLServer17controls+23native/restart and4paired SDK/HTTP/browser presets2/4/4/2 verified.
+- Oracle13controls+15read-only native and21saved-holon queries/restart verified; content Mongo-paired/browser/sandbox still red. Four retained source records/ACKs unchanged; owned Oracle stopped.
+- Deployed sandbox tenant authorization/admission for these new providers remains red. Hosted Azure explicitly pending/free-only.
+- Resume broader task after the approved scoped deployment: Oracle content pairing, then remaining approved10-provider content/sandbox plan; full roadmap remains incomplete.
+- [Scoped release](CQL_SANDBOX_RELEASE_2026-10-30.md), [checklist](CQL_PARITY_CHECKLIST.md), [full roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md). Broader current roadmap/proofs remain on preserved task branch.
 
-1. Three-database hub is restored: pinned fixture reconciliation passed; 14 persistent archive/journal files total207492bytes, original/local SQLite preserved. Fresh native demo passes681SDK queries,138walkthrough HTTP requests,30save checks,526settled operations/608provider attempts; exact fixture cleanup and service teardown pass. See CQL_DATABASE_DEMO_HUB.md.
-2. Broader work/cosmic-cql branch records62/226 scoped demos, including Oracle and IPFS/SOLID/ActivityPub multi-record native/Mongo-paired/browser proofs. Those changes are not all in this scoped shipping branch. Arbitrary content filters remain open on protocol providers; hosted Azure remains explicitly pending/free-only. Recover broader priorities using git show work/cosmic-cql:Docs/WIP/COSMIC\ ORM/CONTENT_QUERY_DEMO_ROADMAP.md (quote the complete ref/path).
-3. LINQ parity depth is paused by user instruction. After hosted sandbox acceptance, continue approved content queries across10providers (Mongo/SQLite/Neo4j/PostgreSQL/SQLServer/Oracle/CosmosDB/DynamoDB/Elasticsearch/Solr), then remaining breadth. Preserve broad source/proofs on work/cosmic-cql; no full-parity claim.
-4. Indexed other aggregates/selected stages, hosted production auth/durable settlement, scaling and full ORM/EF/NHibernate parity remain open. Create genuinely missing environments as authorized, reusing suitable resources first.
+## Recovery/resources
 
-## Other verified scope and remaining limits
+[Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). All logs/TRX under worktree TestResults; persistent source/keys/ACKs/pending journals outside it. Reuse existing SDK/cache/services; no new worktree/env/install/restore. Unknown root logs untouched.
 
-- Three databases:12original investor-demo rows green; Q01a-e/Q23/Q23e/Q49a scoped green. Q01f and full EF/NHibernate parity remain red.
-- Cosmos DB:46controls/47native cases and5manager operations; controlled-identity HTTP rows/scalar/projection passed. Hosted cloud, numeric metadata, conditional lifecycle and production auth/billing remain open.
-- IPFS/SOLID:52native storage checks each;191/384CQL controls. Native manager/LINQ/sample/HTTP point profiles passed; richer general queries remain open.
-- ActivityPub:311provider controls/1964affected regressions; native public-status point manager/LINQ/sample/HTTP passed. No posting/federation or broad query claim.
-- Indexed ingestion session serializes compare-and-publish, advances only acknowledged cursors and stops on failure/uncertainty. Host uses5second bounded complete-range re-observation; incremental transport/production worker accounting/scaling remain open.
-- Production JWT, durable external outbox/authority settlement, hosted-chain acceptance and broad cross-provider snapshots are unverified.
-- Original Solana recovery remains red: no known backup and missing original root/chunk. Never reset/replay the original ledger or call a new declared-range fixture recovery.
-
-## Resources and recovery
-
-- [Single cleanup ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) owns resource paths/hashes/retention. Reuse SDK10.0.401/NuGet/cache/Agave4.3.0; no new installations in this milestone.
-- Persistent schema2 state:LocalState/COSMIC/SolanaCqlCurrent, coverage3073. Schema3:LocalState/COSMIC/SolanaMetadataCurrent, coverage3325, acknowledged recorda03306d4-649f-4871-8f27-8e13869b59a1/index86d676b6-c2c5-4c8f-98b2-a88e0fb8bb11.
-- Preserve keys, acknowledgements, uncertain/pending journals and retained WSL ledger. Schema3 index32768bytes/ack511bytes; no pending seed. Completed prior TRX/JSON evidence is hash-archived by the runner.
-- All logs/TRX/generated JS stay in worktree TestResults; owned disposable SQLite fixture is torn down. Build outputs are regenerable; source/keys are not cleanup targets.
-- Shipping dependency graph plans:TestResults/ProtocolCqlCurrent/index-http-web4-*.json (69projects/61in-worktree). Reuse8external sibling outputs read-only; never recursively rebuild outside this worktree.
-- [Earlier detailed checkpoint](Archive/CURRENT_STATUS_before_selected_metadata_live_2026-10-27.md).
-
-## Key commands
-
-```powershell
-git status --short
-git -C 'OASIS Architecture/NextGenSoftware.OASIS.API.Core' status --short
-& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ShowPlan
-& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -VerifyOnly -ArchiveCompletedDemo
-# Interactive alternative; stop via POST http://127.0.0.1:5089/demo/shutdown
-& Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider SolanaMetadata -ArchiveCompletedDemo
-```
-
-All builds use one provider-build lease and /m:2 /nr:false /p:UseSharedCompilation=false.
-Commit named owned files only. Core push/ls-remote first, then parent gitlink/manifest;
-validate with python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
-Fetch/inspect before daily integration; preserve concurrent changes. Batch verified
-Development pushes once/twice daily; task-branch push does not imply a dev merge.
+Build through provider lease with /m:2 /nr:false /p:UseSharedCompilation=false. Push/verify Core before parent gitlink+manifest. Validate HEAD with python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Do not merge/publish broader task work merely to synchronize branches.
