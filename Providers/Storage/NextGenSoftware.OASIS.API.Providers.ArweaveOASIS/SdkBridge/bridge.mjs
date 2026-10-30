@@ -50,6 +50,13 @@ try {
       write({ ok: true, dataBase64: Buffer.from(data).toString("base64") });
       break;
     }
+    case "queryOwned": {
+      if (!input.wallet) throw new Error("Configured wallet required for owner-pinned query.");
+      const owner = await arweave.wallets.jwkToAddress(input.wallet);
+      const ids = await queryTransactionIds(arweave.api, input.tags ?? {}, owner);
+      write({ ok: true, ids });
+      break;
+    }
     case "query": {
       const ids = await queryTransactionIds(arweave.api, input.tags ?? {});
       write({ ok: true, ids });

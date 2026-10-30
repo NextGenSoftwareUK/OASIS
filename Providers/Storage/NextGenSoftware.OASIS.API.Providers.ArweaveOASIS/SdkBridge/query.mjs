@@ -1,5 +1,6 @@
 // Complete a native tag query or reject it. Never publish partial success.
-export async function queryTransactionIds(api, tags = {}) {
+export async function queryTransactionIds(api, tags = {}, owner = null) {
+  if (owner !== null && (typeof owner !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(owner))) throw new Error('Invalid Arweave owner.');
   const filters = Object.entries(tags).map(([name, value]) => {
     if (!name.trim() || typeof value !== 'string') throw new Error('Invalid Arweave tag filter.');
     return { name, values: [value] };
@@ -9,12 +10,12 @@ export async function queryTransactionIds(api, tags = {}) {
   // Bounded protocol traversal. Exceeding the limit is an error, not truncation.
   for (let page = 0; page < 100; page++) {
     const response = await api.post('graphql', {
-      query: `query($tags: [TagFilter!], $after: String) {
-        transactions(tags: $tags, first: 100, after: $after, sort: HEIGHT_DESC) {
+      query: `query($tags: [TagFilter!], $after: String, $owners: [String!]) {
+        transactions(owners: $owners, tags: $tags, first: 100, after: $after, sort: HEIGHT_DESC) {
           pageInfo { hasNextPage } edges { cursor node { id } }
         }
       }`,
-      variables: { tags: filters, after }
+      variables: { tags: filters, after, owners: owner === null ? null : [owner] }
     });
     if (response?.status !== 200) throw new Error('Arweave GraphQL HTTP failure.');
     const body = response.data;
