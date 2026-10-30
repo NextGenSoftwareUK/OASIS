@@ -2638,3 +2638,59 @@ completed;39passed/0failed/0skipped. No new package/runtime/service/database. Ex
 .NET SDK10.0.401 reused; logs/TRX/build output regenerate as above, retain shared
 caches. Initial missing producer assets and wrong relative Shared project path fixed
 before passing build; no alternate DLL copies. Output sizes unmeasured.
+
+### Meilisearch native allocation planned — 2026-10-30 / COSMIC
+No existing Meilisearch image/runtime/source found in root Podman cache or
+`/var/tmp/oasis-runtimes`; source `/var/tmp/oasis-meilisearch-cql` absent. Reuse
+Ubuntu/root Podman/OpenSSL/Python/.NET10.0.12, shared pinned Mongo8.3.13 later.
+Download official `docker.io/getmeili/meilisearch:v1.56.0` once (latest official
+26Oct release); digest/size to record after pull. Free OSS, no hosted subscription.
+One retained source `/var/tmp/oasis-meilisearch-cql`, container `oasis-meilisearch-cql`,
+TLS loopback17700,2CPU/2GiB/log2MiB. Protected API key and private CA/config stay
+inside source; no secrets in reports. Initial/restart empty-store identity checks
+precede3originalrecords. C:74,203,635,712B free beforepull; sizes unmeasured.
+Retain source/key/receipts for restart proof; generated TestResults/MeilisearchCqlCurrent
+logs disposable after process exit. Native service stopped after acceptance;
+no removal/recreation without verifying ownership and preserving original data.
+
+Official Meilisearch1.56.0 pull completed once: digest
+`sha256:3a2dda1ade2280eecb9b777fbe4e27dc82b458e4e335929884481b3850e7cd03`,
+imageID `6698884e04b6221ec084ac4567761ffd1dc7672f152a15ee823d5f82981f5a87`,
+375,304,398B expanded. Reusable/retain; no archive retained. Source/native config
+creation now uses pinned digest, UID1000, private TLS and production API-key auth,
+telemetry off,512MiB indexing/2threads; no global trust changes.
+
+Meilisearch initialnative TLS/auth/version/emptyindex receipt succeeded; native
+SIGTERM stop143/noOOM/noError caused verifier expected0 failure beforebusiness data.
+Original source/container/key and initial.ack preserved. Official1.56.0 main.rs
+disables Actix signal handling (line181); this native signal exit is expected,
+not graceful-shutdown proof. Explicit original-empty restart reconciliation now
+checks exactcontainer/image/mount/initialreceipt/zeroindexes/zerotasks, never creates
+a replacement or replays writes. Initial failure observation retained separately.
+
+Meilisearch original empty-store restart reconciliation passed: same container/image/
+mount/version/source inode, zero tasks/indexes, auth rejection. Source170,870B
+logical, stopped143 as native signal contract. C:73,833,861,120B afterpull/setup.
+Native test planned now reuses this source and TLS config, Linux.NET10.0.12 and
+portableVSTest18.11.0; creates3originalrecords+1replacement and retains task receipts
+and source baseline outside TestResults. No new runtime/package download. Test
+build/restore/compactTRX in worktree TestResults/MeilisearchCqlCurrent regenerate
+with dedicated bounded lease runner. No cleanup of original source/keys/baseline.
+
+Meilisearch nativefirst/restart2fresh tests passed (1each/0skip), source770,176B
+logical. Original3records/onefullreplacement, removedobsoletefield, nativeindex
+timestamps and7completedtask receipts preserved across signalstop/reopen. Native
+service stopped143; first/restartTRX hashes in runlog (TestResults only). Planned
+paired run reuses LinuxMongo8.3.13 source/runtime27039; owned temporary database
+`cosmic_cql_mongo_meilisearch_demo` created only after absence check and journal,
+validated then dropped by fixture. TeachingHTTP5147; no native/provider resources
+recreated. Logs/TRX/screenshot disposable TestResults/MeilisearchCqlCurrent.
+
+Meilisearch paired/browser outcome: runner69305terminal0,5fresh phases each1pass/0skip.
+Browser62all5/subset4; screenshot TestResults/MeilisearchCqlCurrent/browser.jpg161,168B.
+Owned database cosmic_cql_mongo_meilisearch_demo verified/dropped by fixture, journal
+cleared. Native source770,176B logical retained unchanged, service native143/noOOM/
+noError; shared LinuxMongo stopped by ownerhelper. No other data removed. Native
+image375,304,398B reusable/retained; source keys/taskreceipts/baseline retained. Logs/
+TRX/screenshots/buildoutputs disposable after exited processes, regenerate with
+dedicated runner. No further download/install. Temporary browser tab62 closed.
