@@ -25,7 +25,7 @@ public class TronMongoCqlNativeTests
     [Fact]
     public async Task NativeTronMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
-        
+
         const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string database = "cosmic_cql_mongo_tron_demo";
         Assert.Equal(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
