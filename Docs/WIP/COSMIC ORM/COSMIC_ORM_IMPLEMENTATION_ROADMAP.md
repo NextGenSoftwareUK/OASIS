@@ -1,20 +1,17 @@
 # COSMIC ORM implementation roadmap
 
-User priority27October: [eight-provider demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md) takes precedence over unfinished parity-only depth. Original scope remains active.
+[Current status](CURRENT_STATUS.md) is the recovery entry point. Full goal remains active and incomplete.
 
-Current execution state: [CURRENT_STATUS](CURRENT_STATUS.md). Full objective remains active; no completion claim.
-
-| Order | Work | Acceptance owner |
+| Order | Work | Acceptance |
 |---|---|---|
-| 1 | Continue standard IQueryable/IQueryProvider integration | Q01 red; Q23/Q23e/Q49a and24 new C# demo examples now verified |
-| 2 | Continue remaining CQL red rows by scoped priority | Exact per-database tests; no green-feature/cursor hardening |
-| 3 | Reconcile remaining ORM correctness, child graph/parameter, history and replication requirements | Roadmap requirements preserved in historical plan; current source + proving tests |
-| 4 | Complete migration/placement/delta/history and operational acceptance still missing | Independent full-scope audit; do not infer success from focused tests |
-| 5 | Broader EF/NHibernate parity and final programme audit | Every declared requirement independently verified |
+| 1 | Restore hosted demo correctness on MongoDB/SQLite/Neo4j | Exact deployed source, acknowledged writes, verified destination copies, CQL rows/scalars/federation and tenant isolation |
+| 2 | Close late replica enrollment and fenced reconciliation gaps (X10a/X10b) | Explicit authorization/baseline proof; no independent target overwrite, lineage relaxation, skipped queue entry or blind write replay |
+| 3 | Continue content-query demo breadth and Mongo-paired presets | Oracle pairing next; priority providers per CURRENT_STATUS; hosted Azure stays pending/free-only |
+| 4 | Reconcile remaining ORM graph/parameter, tracking/save ownership, conditional concurrency, rollback/history/delta requirements | Exact native per-provider tests and full-scope audit; prior focused proofs do not imply completion |
+| 5 | Resume deferred LINQ/EF/NHibernate parity and broader providers | Red checklist cells only; deep entity-selected terminals, unrestricted POCO mapping and migrations tooling remain deferred |
 
-Investor-demo rows are already green. Large POCO-without-IHolon mapping and migrations tooling stay deferred until the demo/current priority set is complete.
+Original three-database query examples passed their declared local scopes; hosted acceptance is still red. No overall completion percentage is inferred from these examples.
 Only HyperDrive V2 receives implementation changes; legacy gaps are documentation-only.
-Keep change tracking, save ownership, concurrency, conditional writes, rollback/versioning and per-save deltas in the full objective; prior implementations do not replace final acceptance.
 
-[Feature checklist](CQL_PARITY_CHECKLIST.md) is the authoritative remaining feature inventory.
-[Full original roadmap and history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) preserves all earlier requirements and checkpoints.
+[Strict feature checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
+[Full original roadmap/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) preserves earlier requirements.

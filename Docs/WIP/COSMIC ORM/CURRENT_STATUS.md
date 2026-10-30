@@ -20,7 +20,7 @@ Updated 30 October 2026 UTC. Full programme remains incomplete.
 
 ## Verified replication diagnosis and exact next step
 
-Read-only live probe proves all three retained records exist in Mongo with the correct owner. Their three Neo4j obligations are Completed (one attempt each); all three SQLite obligations remain Pending (zero attempts). SQLite queue head sequence 6 / operation 79a05552-1bf3-4e26-a763-88c0e48b14a9 is ReconciliationRequired with COSMIC_REPLICA_LINEAGE_CONFLICT. Ordered delivery correctly holds newer writes behind it. Next: inspect the earlier source/target lineage and reconcile through the specified recovery contract; never skip/reset the barrier or replay acknowledged writes. The blocked holon is 874fe30b-7702-4905-9e5b-ffa93a8621f8 at version 4; five retained SQLite entries through sequence 6 contain only that version for this holon, with no predecessor enrollments. Investigate explicit enrollment/bootstrap and actual destination lineage before recovery. Railway SSH inspection could not start because no local SSH identity exists; no key was created. Destination contents/CQL acceptance remain unproved.
+Read-only live probe proves all three retained records exist in Mongo with the correct owner. Their three Neo4j obligations are Completed (one attempt each); all three SQLite obligations remain Pending (zero attempts). SQLite queue head sequence 6 / operation 79a05552-1bf3-4e26-a763-88c0e48b14a9 is ReconciliationRequired with COSMIC_REPLICA_LINEAGE_CONFLICT. Ordered delivery correctly holds newer writes behind it. Next: inspect the earlier source/target lineage and reconcile through the specified recovery contract; never skip/reset the barrier or replay acknowledged writes. The blocked holon is 874fe30b-7702-4905-9e5b-ffa93a8621f8 at version 4; five retained SQLite entries through sequence 6 contain only that version for this holon, with no predecessor enrollments. Investigate explicit enrollment/bootstrap and actual destination lineage before recovery. A temporary task-owned SSH identity was generated for target inspection, but registration failed and the explicit SSH attempt did not connect; no registered key remained. Exact owned process stopped and both key files removed after verification (ledger). Destination contents/CQL acceptance remain unproved.
 
 No additional Development push is covered by the already-used extra-batch approval. Frontend main remains unpublished pending hosted acceptance.
 
@@ -28,6 +28,11 @@ No additional Development push is covered by the already-used extra-batch approv
 
 - Reproduced explicit Mongo point-load executing through a manager pinned to SQLite. Red-before regression retained. V2 LoadHolonRequest now captures request routing and uses its isolated manager for loading and permission projection, binding the observed policy to the response. All child/depth options are forwarded unchanged; selected-provider failures do not fall through to the default when failover is OFF.
 - Shipping WEB4 and API test projects build without restore. Seventy HTTP/concurrency/delete/admission/schema controls pass, zero skipped (includes two new point-load cases). No Core/Shared public API change; legacy engine untouched. This fix is committed on the task branch only; deployment still pending the normal integration batch.
+
+## Replication worker diagnostic fix
+
+- WEB4 previously treated a durable reconciliation head like idle work. It now reports source/target, sequence, operation and error code, then leaves the barrier untouched without activating the receiver. One focused strict-outbox test passes; no payload/error text is logged. This exposes the failure; it does not repair lineage or establish destination readiness.
+- X10a/X10b explicitly track missing late-baseline installation and authorized repair/resume; both remain red on all three stores. Earlier roadmap instructions to resume deep LINQ were stale and are corrected to the current breadth-first priority.
 
 ## Broader plan preserved
 

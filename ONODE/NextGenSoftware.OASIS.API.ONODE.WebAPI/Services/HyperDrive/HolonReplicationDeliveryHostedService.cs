@@ -44,7 +44,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     if (OASISBootLoader.OASISBootLoader.IsOASISBooted &&
                         OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode == HyperDriveModes.V2)
                     {
-                        try { await DeliverAsync(stoppingToken); }
+                        try { await DeliverAsync(ProviderManager.Instance, stoppingToken); }
                         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
                         catch (Exception exception) { _logger.LogError(exception, "HyperDrive replication delivery pass failed."); }
                     }
@@ -55,9 +55,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             finally { HolonReplicationRoutes.EnrolledWriteCommitted -= OnCommitted; }
         }
 
-        private async Task DeliverAsync(CancellationToken cancellationToken)
+        internal async Task DeliverAsync(ProviderManager manager, CancellationToken cancellationToken)
         {
-            var manager = ProviderManager.Instance;
             var storage = manager.GetAllRegisteredProviders().OfType<IOASISStorageProvider>().ToList();
             foreach (var source in storage.Where(provider => provider is IHolonReplicationOutboxSource))
             {
@@ -79,6 +78,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     var pending = await outbox.Result.PeekNextAsync(targetId, cancellationToken);
                     if (pending.IsError || pending.Result == null)
                         continue;
+                    if (pending.Result.State == HolonDeliveryState.ReconciliationRequired)
+                    {
+                        // A durable ordering barrier is an operational failure, not an
+                        // empty queue. Do not activate the receiver or attempt another claim.
+                        _logger.LogWarning("Replication {Source} -> {Target} blocked at sequence {Sequence}, operation {OperationId}: {Code}.",
+                            sourceType, targetType, pending.Result.Sequence, pending.Result.OperationId, pending.Result.ErrorCode);
+                        continue;
+                    }
 
                     var receiver = manager.ResolveStorageProvider(targetType);
                     if (receiver.IsError || receiver.Result is not ICommittedHolonReplicaStorageProvider replicas)
