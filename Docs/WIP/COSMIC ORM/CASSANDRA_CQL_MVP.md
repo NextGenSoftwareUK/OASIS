@@ -23,20 +23,21 @@ No alias capability is inferred for ScyllaDB or Amazon Keyspaces.
 
 ## Proving controls
 
-18passed/0failed/0skipped across the complete unit project: metadata5, bounded
+23passed/0failed/0skipped across the complete unit project: save ownership/batch5, metadata5, bounded
 compiler/admission/lifecycle/budget controls and identifier rejection4.
 Proving file: Providers/Storage/TestProjects/
 NextGenSoftware.OASIS.API.Providers.CassandraOASIS.UnitTests/CassandraCqlTests.cs.
-Evidence TestResults/CassandraCqlCurrent/controls.trx SHA256 `ff6b62475daaf0d2490a33a3cdb9adaa791d5f811cf1f12f195221a4f7d5d5b0`.
+Evidence TestResults/CassandraCqlCurrent/controls.trx SHA256 `b78c691c3400393ae363cfbe661ba55c2489fc796500ea16c60c2f18b60139b3`.
 Provider/unit builds pass with bounded workers and cached project references.
 CassandraCSharpDriver3.21.0 was missing and restored from official NuGet once.
 
 ## Exact next step and remaining gates
 
 Create one retained authenticated local Apache Cassandra environment, recording
-original cluster/schema/actor/IDs before acknowledged writes. First fix and test
-SaveHolon acknowledgement ownership (currently mutates caller keys before storage
-acknowledgement and omits IsSaved/SavedCount). Verify native3/filter2/missing0/page1,
+original cluster/schema/actor/IDs before acknowledged writes. SaveHolon acknowledgement ownership is fixed and unit-tested: staged payload/ID/keys
+publish only after native write completion, IsSaved/SavedCount count acknowledgements,
+and batches stop or continue as requested. Failed writes preserve caller identity.
+HolonManager retains tracking acceptance ownership. Verify native3/filter2/missing0/page1,
 JSON/write-time preservation across an actual restart, then one Mongo-paired
 C#/HTTP/browser5/4 preset and hub registration. Do not mark native acceptance green
 from these no-backend controls. No native source/runtime/container exists yet.
