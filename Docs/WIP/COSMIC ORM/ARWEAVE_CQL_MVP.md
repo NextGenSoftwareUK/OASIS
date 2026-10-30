@@ -107,3 +107,28 @@ Development835653f31/Coreb60796d fetched on30October. Exact next: integrate inbo
 Development with task Core and matching manifest; verify scoped changes, then
 address gateway listener/startup and native fixture admission. Preserve all task
 work and do not deploy the unverified full task programme to Development.
+
+## Loopback gateway lifecycle verified — 30 October 2026
+
+`Prepare-CosmicArweaveRuntime.cjs` verifies exact ArLocal1.1.66 vendor source then
+repairs its native listener and stop method: explicit127.0.0.1 binding, awaited
+HTTP close/SQLite persistence/Apollo stop/Knex destroy, propagated failures. No
+monkeypatch/global hook, alternate startup path or suppressed teardown error. Patch
+manifest retained under LocalState runtime; unknown vendor hash refuses patching.
+Original app.js SHA256a3aefb60f5438c79949493b52b4b381661790849933160b82c4558a0cd1163b7;
+patched SHA256d7282066e53e8548b0e74c610df5b70200905d09ae5413e173262dcf0587c6aa.
+
+`cosmic-arweave-node.cjs` owns gateway18549/persist=true; stdin stop awaits its real
+teardown. `python Scripts/TestHosts/Test-CosmicArweaveGateway.py` passed first/restart
+read-only lifecycle against the same source. Native SQLite quick_check passes;
+all five table counts and73,728B database hash match after restart:
+f643b26168fd56546aa825318589fc94f575d07f5b6b6cef290fae04525b70c9.
+One genesis block, zero transactions/chunks/tags/wallets. Both owned processes exited0;
+no listener remains. This is empty-gateway persistence proof, **not** record durability
+or native CQL/paired acceptance. No public Arweave permanence/consensus claim.
+
+Next: journal original local-only wallet/record identities, verify acknowledged saves
+and multi-record CQL against actual owner-pinned gateway responses, restart, then
+Mongo-paired C#/HTTP/browser5/4. SDK2.1.0/native schema compatibility still unproven.
+
+Lifecycle evidence `TestResults/ArweaveCqlCurrent/gateway-smoke-summary.log`, SHA256 `adcb9841d7d39c25b89de8308b035a7900f97b2063c2ced2a5c5a25b80fd2f76`.
