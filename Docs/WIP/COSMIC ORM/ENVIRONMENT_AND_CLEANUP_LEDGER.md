@@ -2293,3 +2293,7 @@ RavenDB SDK admission outcome30Oct: pinned SDK restored once, provider/tests bui
 | Nito.AsyncEx.Coordination/5.1.2 | 488964 | inherited/restored same-day provenance uncertain |
 | Nito.Collections.Deque/1.1.1 | 160023 | inherited/restored same-day provenance uncertain |
 | RavenDB.Client/7.0.1 | 38691633 | restored |
+
+### RavenDB secured-native preparation — 30 October 2026
+
+COSMIC/CQL owner. Inspected Windows Raven.Server command, WSL /var/tmp/oasis-runtimes and /opt names and rootful Podman image cache: no reusable RavenDB server. No image/runtime/environment/server certificate/native DB created or downloaded in this step. Existing RavenDB.Client7.0.1/.NET10and bin/obj reused (sizes recorded above or unmeasured). Four certificate unit cases generate ephemeral RSA2048/self-signed X509 test objects in memory, disposed by test scopes; no persisted PFX/key/trust-store modification, no active port/process dependency after terminal tests. TestResults/RavenDbCqlCurrent controls23pass/build logs regenerative/disposable after processes stop. Official certificate/setup/licensing documentation read only; no hosted signup, paid license key or EULA acceptance action performed. Cfree73,579,638,784B at initial inspection, no install/build totalchange attribution. Native authentication/persistence still pending; use one retained source when created, journal identity and credentials outside TestResults.
