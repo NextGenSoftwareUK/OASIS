@@ -271,3 +271,13 @@ removes verified temporary Mongo data and stops services. The initial failed fix
 and its loss remain documented separately; no original writes were replayed. Full
 LINQ/AOF/crash/cluster/HyperDrive acceptance remains separate.
 [Commands, evidence and fixture history](GARNET_CQL_MVP.md).
+
+## PocketBase + Mongo MVP
+
+[Verified scope, commands and examples](POCKETBASE_CQL_MVP.md). Run
+`Scripts/TestHosts/Run-CosmicCqlDemoHub.ps1 -Provider PocketBase -Federated`
+(add `-VerifyOnly` for bounded verification). The shared C# membership query
+runs over retained native PocketBase0.40.6 and Mongo:5physical rows,4subset,
+provider provenance preserved. Source is plaintext JSON; no distributed snapshot
+or atomic conditional-write certification. Stop through the browser button;
+the runner verifies temporary Mongo cleanup and preserves the original source.
