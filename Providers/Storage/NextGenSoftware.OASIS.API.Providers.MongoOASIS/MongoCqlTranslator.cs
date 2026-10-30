@@ -225,7 +225,7 @@ internal sealed partial class MongoCqlTranslator
         long stageCount=pipeline.Count+2L;
         foreach(var pair in ancestorFields)
         {
-            stageCount+=1L+3L*pair.Key.Traversal.MaximumDepth;
+            stageCount+=1L+2L*pair.Key.Traversal.MaximumDepth;
             if(stageCount>1000)throw new MongoCqlLimitException();
         }
         var empty=Guid.Empty.ToString("D");
@@ -249,8 +249,10 @@ internal sealed partial class MongoCqlTranslator
                 BsonValue Pluck(string name)=>new BsonDocument("$map",new BsonDocument {{"input","$"+up},{"as","a"},{"in","$$a."+name}});
                 pipeline.Add(new("$set",new BsonDocument {
                     {field,Op("$or","$"+field,new BsonDocument("$anyElementTrue",new BsonArray {Pluck("matched")}))},
-                    {next,Op("$ifNull",new BsonDocument("$arrayElemAt",new BsonArray {Pluck("parent"),0}),Literal(empty))}}));
-                pipeline.Add(new("$unset",up));
+                    {next,Op("$ifNull",new BsonDocument("$arrayElemAt",new BsonArray {Pluck("parent"),0}),Literal(empty))},
+                    // All expressions observe the input document. Remove the temporary lookup
+                    // in this same stage, preserving the full walk within hosted stage limits.
+                    {up,"$$REMOVE"}}));
             }
         }
         return true;
