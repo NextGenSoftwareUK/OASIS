@@ -20,6 +20,7 @@ static catalogue links do not make a provider available on that host.
 | Public Google metadata, Ethereum/Polygon/Arbitrum balances | Native SDK, local HTTP/Mongo pairing/isolation and runnable C# demos verified; hosted enrollment/browser gates pending |
 | Polkadot block headers | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
 | Cosmos Hub validators | Native/local HTTP3/2, Mongo5/4/isolation and C# CLI verified; hosted/browser pending |
+| NEAR public account metadata | Native CQL and C# CLI3/2 verified; HTTP/Mongo, hosted/browser pending |
 | Azure Cosmos DB, Oracle | Emulator/local native proofs only; hosted setup deferred by David |
 
 These are scoped evidence statements; [CURRENT_STATUS](CURRENT_STATUS.md) owns
@@ -61,6 +62,7 @@ sorts or terminals are rejected rather than evaluated over an implicit scan.
 | Arbitrum balance state | ArbitrumAccountAddress | [Arbitrum](../../Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Cosmos Hub validators | CosmosValidatorAddress | [Cosmos](../../Devs/COSMOS_PUBLIC_METADATA_CQL_GUIDE.md) |
 | Polkadot block headers | PolkadotBlockHash | [Polkadot](../../Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md) |
+| NEAR account metadata | NearAccountId | [NEAR](../../Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md) |
 
 The new Google/EVM console modes reuse an existing nonsecret catalogue. Build the
 sample with the normal bounded provider lease, then run from your checkout:
@@ -72,7 +74,7 @@ dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
     --arbitrum-public LocalState/COSMIC/HostedArbitrumPublicSourceCurrent/source.json
 ```
 
-Use --google-public, --ethereum-public, --polygon-public, --cosmos-public or --polkadot-public with their own retained
+Use --google-public, --ethereum-public, --polygon-public, --cosmos-public, --polkadot-public or --near-public with their own retained
 source file for the other new profiles. Each guide supplies complete configuration,
 spaced code and exact scope limits. No new runtime/account/wallet is created by
 these commands. Local success is not hosted or browser acceptance.
