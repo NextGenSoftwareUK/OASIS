@@ -32,3 +32,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [Replica baseline and recovery: native implementation and remaining hosted gates](REPLICA_BASELINE_AND_RECOVERY.md).
 
 - [After-demo backlog: preserved deferred work](AFTER_DEMO_BACKLOG.md).
+
+- [Dragonfly retained encrypted snapshot/restart and Mongo demo](DRAGONFLY_CQL_MVP.md): current scoped acceptance, launch command and limits.
