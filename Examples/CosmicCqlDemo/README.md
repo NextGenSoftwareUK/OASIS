@@ -810,3 +810,7 @@ retained-fixture preflight; it does not reset data. See
 ### NEAR public account demo
 
 `--near-public <existing-source.json>` queries three configured public accounts, then a two-account subset through HolonManager/LINQ. [NearPublicWalkthrough.cs](NearPublicWalkthrough.cs) explains the steps with spacing and comments. Balances stay exact strings in yoctoNEAR and every account selection uses one reported final block. No transactions or Mongo records are written. The command has a deadline of 60 seconds based on the earlier slow endpoint run of 34 seconds; the retained catalogue now selects FastNear and its native test completes in about one second. [Source guide and remaining HTTP/hosted work](../../Docs/Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md).
+
+### Base, Avalanche and BNB Chain public balance demos
+
+Use `--base-public`, `--avalanche-public` or `--bnb-public` with the corresponding retained source file. Each spaced/commented walkthrough selects three public addresses and a two-address subset through the shared HolonManager/LINQ helper. All three published native walkthroughs and actual CLI commands passed3/2. No transactions or Mongo records are written. Exact commands, query keys, currency units and finality limits are in the [combined guide](../../Docs/Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md). HTTP/Mongo and hosted/browser acceptance remain pending.

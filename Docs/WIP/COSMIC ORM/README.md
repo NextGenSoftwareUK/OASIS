@@ -34,3 +34,5 @@ Persistent, irreproducible fixture state belongs in ignored LocalState/COSMIC an
 - [After-demo backlog: preserved deferred work](AFTER_DEMO_BACKLOG.md).
 
 Public read-profile guides: [S3](../../Devs/AWS_S3_PUBLIC_CQL_GUIDE.md), [Solana](../../Devs/SOLANA_PUBLIC_ACCOUNT_CQL_GUIDE.md), [Google](../../Devs/GOOGLE_PUBLIC_METADATA_CQL_GUIDE.md), [Ethereum](../../Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md), [Polygon](../../Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md), [Arbitrum](../../Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md), [Cosmos](../../Devs/COSMOS_PUBLIC_METADATA_CQL_GUIDE.md), [Polkadot](../../Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md), [NEAR](../../Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md). Guides describe contracts; CURRENT_STATUS distinguishes hosted and local proof.
+
+Next native/C# profiles (HTTP/hosted pending): [Base, Avalanche and BNB Chain guide](../../Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md), [proof and next steps](EVM_NEXT_THREE_SOURCE_STATUS.md).
