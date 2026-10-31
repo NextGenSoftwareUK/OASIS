@@ -11,8 +11,13 @@ public sealed class HostedMongoIdlePollingTests
     [Fact]
     public async Task EmptyQueuesDoNotAcquireOrRenewGlobalWriteLeases()
     {
-        // Deliberately loopback-only: this regression must never exercise the hosted Atlas database.
-        const string connection = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=3000";
+        // Loopback-only: this regression must never exercise the hosted Atlas database. The job's replica set is used when
+        // provided (a fixed node can be a secondary after an election and refuses writes); otherwise the local standalone.
+        string connection = Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION")
+            ?? "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=3000";
+        Assert.All(MongoUrl.Create(connection).Servers, server => Assert.True(
+            server.Host == "localhost" || System.Net.IPAddress.TryParse(server.Host, out var ip) && System.Net.IPAddress.IsLoopback(ip),
+            $"{server.Host} is not loopback"));
         string name = "hd_idle_" + Guid.NewGuid().ToString("N")[..20];
         var client = new MongoClient(connection);
         var database = client.GetDatabase(name);
