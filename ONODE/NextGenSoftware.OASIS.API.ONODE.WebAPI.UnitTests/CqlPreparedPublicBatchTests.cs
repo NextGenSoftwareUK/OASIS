@@ -45,6 +45,12 @@ public sealed class CqlPreparedPublicBatchTests
     public async Task ActualSeiCandidatePlansFourPresetsWithShippingCapabilities()
         => await CheckPreparedBatch(1);
 
+    // Validate the complete merged publisher output, including cross-provider
+    // resolution against the same shipping Mongo capabilities used by the API.
+    [PublicBatchReviewFact]
+    public async Task ActualSeventeenSourceCandidatePlansAllSixtyEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(17);
+
     private static async Task CheckPreparedBatch(int expected)
     {
         var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
