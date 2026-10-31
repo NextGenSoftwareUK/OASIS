@@ -1,6 +1,6 @@
 # Cosmos blockchain public-read readiness
 
-31 October 2026. Initial REST feasibility verified; CQL native acceptance is failing with endpoint HTTP502. HTTP/federation/browser acceptance remains incomplete.
+31 October 2026. Native CQL and C# console3/2 verified on explicitly selected KJNodes. HTTP/federation/hosted/browser acceptance remains incomplete.
 
 - Anonymous PublicNode REST returned HTTP403 before a body. No retry/fallback was performed.
 - Explicitly selected CryptoCrew REST endpoint from the Cosmos chain registry: `https://rest.cosmoshub-main.ccvalidators.com`.
@@ -12,7 +12,7 @@ Implemented task-only: `CosmosPublicValidatorMetadataSource` in the existing Cos
 
 Controlled protocol/query suite: **16 passed, zero skips**. Initial tests used a static array expression unsupported by the query expression compiler; changed the test to the documented captured local selection. Native CQL: **one failed, zero skips**, HTTP502 on latest block; independent Python probe also returned502. Earlier REST five-read success is historical, not current availability. No retry/fallback was added.
 
-Next: obtain current native3/2 acceptance on an explicitly selected functioning free endpoint, then HTTP+Mongo5/4/isolation and hosted integration. Preserve the current source owner if changing only the endpoint. Source representation design remains using a fixed configured address set, exact numeric strings, consistent pinned state, strict schema/identity guards and capability checks. Add negative protocol tests and real native3/2, then HTTP+Mongo5/4/isolation before hosted registration. Do not advertise Cosmos as live yet.
+Next: add HTTP+Mongo5/4/isolation and hosted integration; native3/2 is now verified on KJNodes. Preserve the current source owner if changing only the endpoint. Source representation design remains using a fixed configured address set, exact numeric strings, consistent pinned state, strict schema/identity guards and capability checks. Add negative protocol tests and real native3/2, then HTTP+Mongo5/4/isolation before hosted registration. Do not advertise Cosmos as live yet.
 
 Historical successful probe evidence (subsequent probe overwrote the regenerable file; hash below identifies the historical bytes): `TestResults/CosmosPublicSourceCandidateCurrent/readiness-cryptocrew.json`; SHA256 `cbe557f6e025f00841a211a5f9c9bde1bc740e386675c60c5dad14b9f4212026`. Raw responses are not retained in Docs. Recreate with `python Scripts/Sandbox/Probe-CosmosPublicReadiness.py --endpoint https://rest.cosmoshub-main.ccvalidators.com`; observations change with chain height.
 
@@ -24,7 +24,7 @@ Primary contracts: [staking query proto](https://github.com/cosmos/cosmos-sdk/bl
 
 - Current evidence `TestResults\CosmosPublicSourceCandidateCurrent\readiness-cryptocrew.json`: SHA256 `afa81ecc91aae991af460e7636dd7761ce345ac304648b3bcac7f80da923934e`, 297 B.
 
-## Preview C# walkthrough (native acceptance still red)
+## C# walkthrough (native local acceptance verified)
 
 The existing `Examples/CosmicCqlDemo` console now has a spaced, commented Cosmos walkthrough. It uses the same `NativeKeySetWalkthrough` → `CosmicLinq` → `HolonManager` pipeline as other key-set sources, not a separate query engine. It reads the existing source configuration and creates no synthetic records or database fixtures.
 
@@ -32,11 +32,11 @@ The existing `Examples/CosmicCqlDemo` console now has a spaced, commented Cosmos
 dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --cosmos-public LocalState/COSMIC/HostedCosmosPublicSourceCurrent/source.json
 ```
 
-The intended result is three validators, then a filtered two-validator selection. Current CryptoCrew native failure is preserved; do not use this preview as a verified investor demo yet. The native acceptance test now executes the published walkthrough source verbatim, so it will exercise manager/LINQ execution as well as the source when the endpoint is available.
+The intended result is three validators, then a filtered two-validator selection. The retained configuration now explicitly selects KJNodes. CryptoCrew failure evidence remains preserved. This local demo is verified; hosted/federation acceptance remains pending. The native acceptance test now executes the published walkthrough source verbatim, so it will exercise manager/LINQ execution as well as the source when the endpoint is available.
 
 Additional explicit endpoint checks: registry-listed Lava REST returned404, StakerHouse returned403. Neither was silently selected or written into the source catalogue. No endpoint fallback or retry added. Their bounded JSON failure summaries are in `TestResults/CosmosPublicSourceCandidateCurrent/readiness-{lava,stakerhouse}.json`.
 
-Preview validation: console build succeeded, **17 focused controls passed, zero skips**, including the published shared manager/LINQ walkthrough returning3/2 with stable IDs against controlled native responses. The newly linked full Cosmos native walkthrough has not passed live acceptance. Earlier native adapter failure remains the latest native evidence.
+Preview validation: console build succeeded, **17 focused controls passed, zero skips**, including the published shared manager/LINQ walkthrough returning3/2 with stable IDs against controlled native responses. Historical note: this was before the explicit KJNodes selection below; the full native walkthrough subsequently passed.
 
 - `TestResults/CosmosPublicSourceCandidateCurrent/console-controls.trx`: 27982 B; SHA256 `bfb6448ec5f31fb0c7bcc1606e9b2b5be7aefb2948799ec7e7cdc2ab9dd73037`.
 
@@ -45,3 +45,15 @@ Preview validation: console build succeeded, **17 focused controls passed, zero 
 - `TestResults/CosmosPublicSourceCandidateCurrent/readiness-stakerhouse.json`: 289 B; SHA256 `1aad73d35f51b545d317b49de5d41c84defd02d9f743363b4ca4d243085dcea9`.
 
 - `TestResults/CosmosPublicSourceCandidateCurrent/console-build.log`: 835023 B; SHA256 `1f6505de86cb1b502da322d8751fe60a4a16d730010219db8841f7b7f35d2c1b`.
+
+## Native acceptance milestone: KJNodes
+
+Explicitly selected registry-listed `https://cosmoshub.api.kjnodes.com/`. Bounded readiness passed5reads at state33667879. Only restUrl changed in the existing retained catalogue; the three addresses and stable mapping owner are unchanged. No fallback, retry, source writes or new environment.
+
+The published Cosmos walkthrough passed the **one native test, zero skips**, executing actual CQL through HolonManager/LINQ and returning3full/2filtered validators. The real `--cosmos-public` CLI also succeeded with3/2. Tokens remain exact decimal strings, state heights acknowledged per native response. This proves server-reported state consistency, not independent chain verification or hosted availability.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/readiness-kjnodes.json`: 1974 B; SHA256 `6269923a68e961ccfb081328cf6767b3f670cf1c5336bba1bb3475ab85806b51`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/console-native.trx`: 2872 B; SHA256 `6cbabbd6381cb3d12c9f5745bbb21e03bc9e39113e04d8c923c555b48920d48e`.
+
+- `TestResults/CosmosPublicSourceCandidateCurrent/console-native-cli.log`: 1229 B; SHA256 `9c61a83d551a096bcae26658deb08ca43bb1e5078e50b59aac13015a4ea4aa39`.

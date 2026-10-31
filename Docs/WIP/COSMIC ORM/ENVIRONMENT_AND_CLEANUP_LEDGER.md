@@ -1530,3 +1530,9 @@ Google WEB4 profile outcome: shipping API/test and provider/config builds succee
   - `C:/Source/OASIS-cosmic/Examples/CosmicCqlDemo/bin` current inherited/generated logical total 99866231 B/202 files; task-reusable, regenerable after builds stop. No attribution inferred for inherited files.
   - `C:/Source/OASIS-cosmic/Examples/CosmicCqlDemo/obj` current inherited/generated logical total 2147973 B/22 files; task-reusable, regenerable after builds stop. No attribution inferred for inherited files.
   - `C:/Source/OASIS-cosmic/TestResults/CosmosPublicSourceCandidateCurrent` current inherited/generated logical total 947735 B/15 files; task-reusable, regenerable after builds stop. No attribution inferred for inherited files.
+
+- 2026-10-31 Cosmos native follow-up: explicit registry-listed KJNodes endpoint probe using retained Python/stdlib, no runtime/service installation. Bounded output `TestResults/CosmosPublicSourceCandidateCurrent/readiness-kjnodes.json`, size pending; disposable/regenerable, retain summary before cleanup. No live configuration/identity changed.
+
+- KJNodes readiness passed5bounded reads; explicitly changed only retained Cosmos restUrl to `https://cosmoshub.api.kjnodes.com/`, same3addresses/stable owner. Source config beforeSHA256 a172564025472a1b86e4961cc99b84af6d8e20826e311f5cc48b35e86ebbca8a, afterSHA256 0efd424e425eb3704be3718c9ccd04dac41754fa0ef653576059a4023e532498, 366B. No endpoint fallback code or identity reset. Reuse existing built test output for published walkthrough native gate, no build/restore.
+
+- Cosmos outcome: existing no-build native walkthrough passed1/0skips; actual no-build CLI returned3/2. No DBs, ledgers, services, SDK installs or package restore. KJNodes readiness/console/TRX sizes+hashes in readiness report. Failed CryptoCrew/Lava/StakerHouse summaries preserved; source owner unchanged. Build/test processes completed; retained runtime/output reusable, logs regenerable.

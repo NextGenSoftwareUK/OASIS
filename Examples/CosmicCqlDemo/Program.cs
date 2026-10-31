@@ -5,8 +5,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-// Preview: Cosmos requires a functioning explicitly configured REST endpoint.
-// Protocol tests pass; native acceptance is tracked in COSMOS_PUBLIC_SOURCE_READINESS.
+// Cosmos reads configured validators at an explicitly pinned state height.
+// Native3/2 is verified; hosted/federation acceptance is tracked in WIP.
 if (args.Length == 2 && args[0] == "--cosmos-public")
 {
     using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
