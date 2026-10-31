@@ -61,11 +61,11 @@ public sealed class CosmicJoinAdmissionTests
         var store=new Mock<IUsageOutboxStore>(MockBehavior.Strict);
         store.Setup(value=>value.BeginProviderAttemptAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<UsageProviderAttempt>(),It.IsAny<CancellationToken>()))
             .Returns((string id,string owner,UsageProviderAttempt attempt,CancellationToken token)=>{
-                Assert.Equal(provider.ToString(),attempt.Provider);Assert.Equal("join-admission.route.1.non-native",attempt.ClientRequestId);
+                Assert.Equal(provider.ToString(),attempt.Provider);Assert.Equal(PreparedStorageReceiptIds.NonNative("join-admission", "join-admission"),attempt.ClientRequestId);
                 events.Add("attempt");return admitted.Task; });
         store.Setup(value=>value.AppendReceiptAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<UsageProviderReceipt>(),It.IsAny<CancellationToken>()))
             .Returns((string id,string owner,UsageProviderReceipt receipt,CancellationToken token)=>{
-                Assert.Equal(provider.ToString(),receipt.Provider);Assert.Equal("join-admission.route.1.non-native",receipt.ProviderRequestId);
+                Assert.Equal(provider.ToString(),receipt.Provider);Assert.Equal(PreparedStorageReceiptIds.NonNative("join-admission", "join-admission"),receipt.ProviderRequestId);
                 Assert.Equal(1,receipt.Units);Assert.Equal(0.001m,receipt.ActualCostUsd);
                 Assert.Equal("CQL-service-query-attempt-tariff",receipt.CostSource);events.Add("receipt");return Task.CompletedTask; });
         var join=Adapter(provider,()=>events.Add("native"));
