@@ -1,11 +1,13 @@
 # Explicit read-only protocol qualification; never CQL/hosted acceptance.
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll')][string]$Network)
+param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract')][string]$Network)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
 New-Item -ItemType Directory -Force -Path $results | Out-Null
 $descriptor=switch($Network){
+    'ZkSync' { @{endpoint='https://mainnet.era.zksync.io/';chainId='0x144'} }
+    'Abstract' { @{endpoint='https://api.mainnet.abs.xyz/';chainId='0xab5'} }
     'Linea' { @{endpoint='https://rpc.linea.build/';chainId='0xe708'} }
     'Scroll' { @{endpoint='https://rpc.scroll.io/';chainId='0x82750'} }
     'Rootstock' { @{endpoint='https://public-node.rsk.co/';chainId='0x1e'} }

@@ -824,3 +824,7 @@ Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ pa
 ### Linea and Scroll public balances
 
 Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console command above. Spaced/commented walkthroughs use HolonManager/LINQ, exact wei strings and RPC-reported finalized block hashes. Native3/2 and actualCLI pass; HTTP/Mongo/hosting remain pending. No wallet, transaction or database creation.
+
+### zkSync and Abstract public balances
+
+Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented C# walkthroughs use HolonManager/LINQ and return3/2records; actualCLI/native proofs pass. HTTP/Mongo/hosted remain pending. Stablecatalogue owners, exactwei strings, RPC-reported finalizedhash; no wallet, transaction or DBcreation.
