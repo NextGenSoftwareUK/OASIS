@@ -1,8 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Net;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 
@@ -88,6 +92,42 @@ public class SolidHostedSourceExportTests
                 Assert.ThrowsAny<Exception>(() => foreign.Decode<IHolon>(Encoding.UTF8.GetString(bytes), id));
             }
 
+            // Execute the published C# example against the actual exported
+            // encrypted envelopes. This controlled transport proves the demo's
+            // manager/planner/adapter path, not hosted Pod availability.
+            var transport = new ExportedResources(exported);
+            using var provider = new SOLIDOASIS("http://localhost:13000/", "", key, transport)
+            {
+                EnableCqlRecordKeySets = true
+            };
+            Assert.False((await provider.ActivateQuerySourceAsync(default)).IsError);
+
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            {
+                HyperDriveMode = HyperDriveModes.V2,
+                StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false }
+            } };
+            var registry = new ProviderManager(null, dna)
+            {
+                IsAutoFailOverEnabled = false,
+                IsAutoLoadBalanceEnabled = false,
+                IsAutoReplicationEnabled = false
+            };
+            var manager = new HolonManager(provider, dna, registry);
+            var actor = Guid.NewGuid();
+            var keys = expectedIds.Select(id => id.ToString("D")).ToArray();
+
+            foreach (var count in new[] { 3, 2 })
+            {
+                var rows = await CosmicCqlDemo.SolidPointWalkthrough.RunRecordSetAsync(
+                    manager, provider, keys.Take(count), actor, TextWriter.Null);
+
+                Assert.Equal(expectedIds.Take(count).OrderBy(id => id), rows.Select(row => row.Id).OrderBy(id => id));
+                Assert.All(rows, row => Assert.True(row.IsPublic));
+            }
+
+            Assert.Equal(keys.Concat(keys.Take(2)), transport.ReadKeys);
+
             // Acknowledge only after every exported envelope is decoded and checked.
             if (acknowledgement != null) await WriteNew(ackPath, acknowledgement);
         }
@@ -99,5 +139,32 @@ public class SolidHostedSourceExportTests
         await using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
         await JsonSerializer.SerializeAsync(stream, value);
         stream.Flush(flushToDisk: true);
+    }
+
+    private sealed class ExportedResources : HttpMessageHandler
+    {
+        private readonly Dictionary<string, string> bodies;
+        public List<string> ReadKeys { get; } = new();
+
+        public ExportedResources(IEnumerable<JsonElement> records) => bodies = records.ToDictionary(
+            record => record.GetProperty("id").GetString()!,
+            record => Encoding.UTF8.GetString(Convert.FromBase64String(record.GetProperty("turtleBase64").GetString()!)));
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            Assert.Equal(HttpMethod.Get, request.Method);
+            var uri = request.RequestUri!;
+            Assert.Equal("http://localhost:13000", uri.GetLeftPart(UriPartial.Authority));
+            if (uri.AbsolutePath == "/") return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+
+            Assert.StartsWith("/oasis/holons/", uri.AbsolutePath);
+            var key = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
+            ReadKeys.Add(key);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(bodies[key], Encoding.UTF8, "text/turtle")
+            });
+        }
     }
 }

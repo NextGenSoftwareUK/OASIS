@@ -481,3 +481,42 @@ the prior resource entry; it is not an active service or large disk allocation.
 Task branch has merged the latest Development CI changes085f6b705/4a5450012;
 manifest/gitlink validation passes. These preparation changes remain off deployed
 Development until final-image/configuration acceptance is ready.
+## 31 October — hosted SOLID configuration acknowledged and release prepared
+
+Existing service capacity observed without a plan/service change:580.294541312MB
+current memory,686.657896448MB maximum1h,8,192MB configured limit; /data volume
+136.809807872MB of5,000MB. Report solid-host-capacity-before.json under the fixed
+TestResults/HostedCqlIntegrationCurrent directory. This is observed headroom, not
+an ongoing capacity guarantee.
+
+Prepared/protected and then applied exactly six SOLID configuration values with
+skip-deploys. Every value had a durable intent before the CLI request and a separate
+full-map observation before ACK. OASIS_DNA_JSON adds only the deliberate new
+anonymous/public Pod scope and membership capability; admission adds query-only
+SOLID/explicit tariff; four examples cover3/2native rows and Mongo federation.
+The original encryption key is reused via protected configuration, never printed.
+Default writer/failover/replication settings and existing provider entries remain
+unchanged. Script: Scripts/Sandbox/Publish-HostedSolidConfiguration.py; snapshots,
+intents and ACKs retained under LocalState/COSMIC/HostedSourceRolloutCurrent.
+No configuration action itself triggered a deployment.
+
+Retained exact native bootstrap ACK alongside the public source export at
+HostedSolidSourceCurrent/native-bootstrap.acknowledged.json. Its hash and digest
+bind the native proof to the candidate bundle, not merely to readiness booleans.
+Confirmed candidate digest345a047e2c35e600ae629f56c661ac8a5fd1418af3cf823b307c7c118769237a.
+A stale/different source fails preparation; existing intents prevent apply replay.
+
+Full transitive WEB4 API build passed with0errors (existing2,566warnings), no
+restore, bounded workers/lease; log solid-release-api-build.log. Added spaced,
+commented SolidPointWalkthrough.RunRecordSetAsync for C#3/2selection through
+HolonManager/planner/actual adapter. Export control compiles and executes the
+published example over real retained encrypted envelopes using controlled GET
+transport, exactly5selected resource reads. Native CSS/N3 proof remains separate;
+this C# control is not a hosted network claim. Export control1passed/no skips;
+source ciphertext/identity unchanged. Added maintained SOLID_CQL_HOST_CONFIGURATION
+and linked C# and HTTP guidance from demo README/manual.
+
+Waited for the already-running shared deployment0196bd82-cf5a-4bf6-8c06-68c264a20db9
+at20a981f8d to reach SUCCESS before preparing the next deployment batch. That
+concurrent commit adds solution IpfsCore entries and updates route manifest;
+preserve it when integrating. Public SOLID/browser verification still pending.

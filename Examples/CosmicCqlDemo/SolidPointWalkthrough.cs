@@ -13,6 +13,50 @@ namespace CosmicCqlDemo;
 /// </summary>
 public static class SolidPointWalkthrough
 {
+    /// <summary>
+    /// Select several encrypted native resources with one CQL membership predicate.
+    /// EnableCqlRecordKeySets must be explicitly enabled on the configured adapter.
+    /// Use three keys for the full sample and two of those keys for the subset.
+    /// </summary>
+    public static async Task<IReadOnlyList<Holon>> RunRecordSetAsync(
+        HolonManager manager,
+        ICosmicQueryStorageProvider adapter,
+        IEnumerable<string> recordKeys,
+        Guid actor,
+        TextWriter output,
+        CancellationToken cancellationToken = default)
+    {
+        if (adapter.QueryProviderType != ProviderType.SOLIDOASIS)
+            throw new ArgumentException("Use an explicitly configured SOLID adapter.", nameof(adapter));
+
+        // Capture the selection before constructing a deferred query. Keys are
+        // canonical record GUIDs inside this Pod, not arbitrary resource URLs.
+        var keys = recordKeys.ToArray();
+        var scope = Require(CosmicQueryScope.Named(ProviderType.SOLIDOASIS));
+        var access = Require(CosmicQueryReadAccess.OwnerOrPublic(actor));
+
+        var source = Require(CosmicQuery<Holon>.Create(scope)
+            .WithReadAccess(access)
+            .Where(holon => keys.Contains(CosmicQueryMetadata.Value<string>(holon, "SolidRecordId"))));
+
+        // HolonManager and the shared CQL planner own execution and limits.
+        // Unsupported membership rejects before HTTP; this is not a Pod scan.
+        var query = Require(CosmicLinq.Create(manager, adapter, source, maximumResults: 8));
+        var rows = Require(await query.ToCosmicListAsync(cancellationToken));
+
+        await output.WriteLineAsync("\n=== CQL: SOLID encrypted resource selection ===\n");
+        await output.WriteLineAsync($"Selected keys: {keys.Length}; returned holons: {rows.Count}\n");
+
+        foreach (var row in rows)
+        {
+            await output.WriteLineAsync($"  Name: {row.Name}");
+            await output.WriteLineAsync($"  Description: {row.Description}");
+            await output.WriteLineAsync($"  Pod resource: {row.MetaData["SolidRecordResource"]}\n");
+        }
+
+        return rows;
+    }
+
     public static async Task<IReadOnlyList<Holon>> RunAsync(
         HolonManager manager,
         ICosmicQueryStorageProvider adapter,
