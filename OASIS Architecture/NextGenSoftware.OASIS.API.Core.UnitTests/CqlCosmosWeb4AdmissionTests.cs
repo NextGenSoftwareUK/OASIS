@@ -52,7 +52,7 @@ public class CqlCosmosWeb4AdmissionTests
     [InlineData("All")]
     [InlineData("Default")]
     [InlineData("None")]
-    [InlineData("SolanaOASIS")]
+    [InlineData("solanaoasis")]
     public void CloudReadEnrollmentDoesNotGrantOtherIdentities(string name)
         => Assert.Throws<ArgumentException>(() => CqlV1Compiler.RequestedProvider(name, includeCloudReadProfile: true));
 }

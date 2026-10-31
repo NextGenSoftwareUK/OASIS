@@ -39,6 +39,6 @@ public class CqlPodWeb4AdmissionTests
         Assert.Equal(7,StorageQueryTariff.Capture(rows,allowed).Length);
         Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(rows,allowed.Take(6)));
         Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(rows.Append(rows[0]),allowed));
-        Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(new[]{new StorageQueryTariff(ProviderType.SolanaOASIS,0.001m,"point-test")},new[]{ProviderType.SolanaOASIS}));
+        Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(new[]{new StorageQueryTariff(ProviderType.SolanaOASIS,0.001m,"point-test")},allowed));
     }
 }
