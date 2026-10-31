@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
     ///   restUrl — Upstash Redis REST URL, e.g. "https://abc.upstash.io"
     ///   token   — Upstash REST token
     /// </summary>
-    public class UpstashOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class UpstashOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _restUrl;
         private readonly HttpClient _http;
@@ -71,13 +71,18 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
 
         // ─── Upstash REST helpers ─────────────────────────────────────────────────
 
-        private async Task<JsonElement> ExecAsync(params object[] command)
+        private Task<JsonElement> ExecAsync(params object[] command)
+            => ExecAsync(System.Threading.CancellationToken.None, command);
+
+        private async Task<JsonElement> ExecAsync(System.Threading.CancellationToken cancellationToken, params object[] command)
         {
-            var content = new StringContent(Ser(command), Encoding.UTF8, "application/json");
-            var resp = await _http.PostAsync($"{_restUrl}/", content);
-            var raw = await resp.Content.ReadAsStringAsync();
+            using var content = new StringContent(Ser(command), Encoding.UTF8, "application/json");
+            using var resp = await _http.PostAsync($"{_restUrl}/", content, cancellationToken);
+            var raw = await resp.Content.ReadAsStringAsync(cancellationToken);
             if (!resp.IsSuccessStatusCode) throw new Exception($"Upstash → {(int)resp.StatusCode}: {raw}");
             using var doc = JsonDocument.Parse(raw);
+            if (doc.RootElement.TryGetProperty("error", out var error))
+                throw new InvalidOperationException("Upstash command failed: " + error.GetString());
             return doc.RootElement.Clone();
         }
 
@@ -109,15 +114,22 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
             try
             {
                 // Ping to verify connectivity
-                await ExecAsync("PING");
+                var ping = await ExecAsync("PING");
+                if (!ping.TryGetProperty("result", out var pong) || pong.ValueKind != JsonValueKind.String || pong.GetString() != "PONG")
+                    throw new InvalidOperationException("Upstash activation requires a PONG command result.");
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = "UpstashOASIS activated — Redis connection verified.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"UpstashOASIS: {ex.Message}"); }
+            catch (Exception ex) { IsProviderActivated = false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"UpstashOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "UpstashOASIS deactivated." });
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "UpstashOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -296,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
                 await SetAsync($"holon:{id}", Ser(holon));
                 await SAddAsync("holons:all", id);
                 if (holon.ParentHolonId != Guid.Empty) await SAddAsync($"holons:parent:{holon.ParentHolonId}", id);
-                result.Result = holon; result.IsError = false; result.Message = $"UpstashOASIS: Holon '{holon.Name}' saved.";
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"UpstashOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"UpstashOASIS: {ex.Message}"); }
             return result;
