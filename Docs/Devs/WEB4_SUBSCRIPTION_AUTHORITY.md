@@ -2,7 +2,7 @@
 
 WEB4 owns all subscription entitlements, quotas, budgets, usage reservations, settlement and billing-facing totals. WEB5–WEB10 use API Core's shared durable usage SDK. The compatibility `authorize-request` endpoint is retired (HTTP 410), and no consumer may fall back to it.
 
-The [complete protocol](WEB4_SUBSCRIPTION_USAGE_LEDGER.md) defines reserve → durable execution claim → start → provider execution → settle, with the sequence diagram, state machine, idempotency, concurrent transactions, immutable audit and recovery behavior. The [operations runbook](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) covers credentials, pricing, historical opening balances, all-service tests, reconciliation and rollout.
+The [complete protocol](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_LEDGER.md) defines reserve → durable execution claim → start → provider execution → settle, with the sequence diagram, state machine, idempotency, concurrent transactions, immutable audit and recovery behavior. The [operations runbook](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md) covers credentials, pricing, historical opening balances, all-service tests, reconciliation and rollout.
 
 ## Customer and service flow
 
@@ -76,4 +76,4 @@ Content-Type: application/json
 The prerequisite is a successful WEB4 decision response. Deploy the corrected
 ONODE WebAPI to development, verify this request, and only then resume the
 idempotent seeder; do not bypass the authority in WEB5 or the seed scripts.
-Use the [Subscription API](API%20Documentation/WEB4%20OASIS%20API/Subscription-API.md), [Postman collection](API%20Documentation/WEB4%20OASIS%20API/WEB4-Subscription-Usage.postman_collection.json), and [test commands/live release gates](WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Change deployed submodule gitlinks and `Docker/oasis-dependency-versions.env` together and run the required validators and all seven publishes.
+Use the [Subscription API](API%20Documentation/WEB4%20OASIS%20API/Subscription-API.md), [Postman collection](API%20Documentation/WEB4%20OASIS%20API/WEB4-Subscription-Usage.postman_collection.json), and [test commands/live release gates](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Change deployed submodule gitlinks and `Docker/oasis-dependency-versions.env` together and run the required validators and all seven publishes.

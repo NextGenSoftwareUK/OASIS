@@ -18,28 +18,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests
     public class ArweaveOASISIntegrationTests
     {
         private ArweaveOASIS _provider = null!;
-        private bool _live;
 
         [TestInitialize]
         public void Setup()
         {
             _provider = ArweaveOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
-        }
-
-        private void RequireLive()
-        {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live ArweaveOASIS backend configured - set the ARWEAVEOASIS_* environment variables to run this.");
+            var activation = _provider.ActivateProvider();
+            Assert.IsFalse(activation.IsError, activation.Message);
+            Assert.IsTrue(activation.Result);
         }
 
         [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -61,8 +52,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -83,8 +72,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests
         [TestMethod]
         public async Task SaveAndLoadHolon_RoundTrips()
         {
-            RequireLive();
-
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
 
             var saved = await _provider.SaveHolonAsync(holon);
@@ -100,8 +87,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests
         [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -121,9 +106,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAllAvatars_ReturnsAResult()
         {
-            RequireLive();
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
+        }
+
+        [TestMethod]
+        public async Task Activation_RejectsUnreachableGateway()
+        {
+            var provider = ArweaveOASISTestFactory.Create("http://127.0.0.1:1");
+            try
+            {
+                var result = await provider.ActivateProviderAsync();
+                Assert.IsTrue(result.IsError);
+                Assert.IsFalse(result.Result);
+                Assert.IsFalse(provider.IsProviderActivated);
+            }
+            finally
+            {
+                if (provider.IsProviderActivated)
+                    provider.DeActivateProvider();
+            }
         }
 
         [TestCleanup]

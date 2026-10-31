@@ -1,0 +1,9 @@
+{
+  "cachedSource": "C:/Users/david/.nuget/packages/neo4j.driver.signed/4.3.2/lib/net5.0/Neo4j.Driver.dll",
+  "package": "Neo4j.Driver.Signed",
+  "publicKeySha256": "97C3A47F03F35F1A1D7A663C00DC4593E5067CD762909B64AC15661CD320D2F1",
+  "privateKeyIncluded": false,
+  "sourceDllSha256": "27D1AE1380B2073633D1A5D933FF6C5F2741133F3029DE450123CB0017CC6BB9",
+  "version": "4.3.2",
+  "identity": "Neo4j.Driver, Version=4.3.2.2, Culture=neutral, PublicKeyToken=b646bc66d277ac07"
+}

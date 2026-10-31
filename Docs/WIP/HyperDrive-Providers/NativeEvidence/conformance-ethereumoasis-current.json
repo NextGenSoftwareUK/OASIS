@@ -1,0 +1,41 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "EthereumOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "3be72c9f-7dc0-4836-bfc4-8332b5c93c55",
+      "RootId": "ea68c84e-ff55-474e-9522-ec2f5554fdf8",
+      "ChildId": "aca4e201-d353-4ac9-a14d-088e7c003533",
+      "BatchIds": [
+        "9b7cac5c-9dff-4567-b396-4f371a3d2be9",
+        "7e150d19-4e3a-48ca-a724-da0eec29eb2c"
+      ],
+      "ImportId": "6cd96374-1d78-4a11-9cdc-0b5293b04ef2",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "EthereumOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "5f5678c1-6cc0-4312-95d6-e169848c9710",
+      "RootId": "0f5d932a-fc58-4c97-b966-763e13ac4cd9",
+      "ChildId": "24bd0956-2100-421e-9dbc-110db58e0d2e",
+      "BatchIds": [
+        "cba666ea-c811-493d-99a6-089d006e0f70",
+        "9f4b10b3-cf13-4993-bdda-30d39137277d"
+      ],
+      "ImportId": "e2845e41-c510-4020-9064-104b218b244c",
+      "Passed": [],
+      "CurrentCase": "configuration",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

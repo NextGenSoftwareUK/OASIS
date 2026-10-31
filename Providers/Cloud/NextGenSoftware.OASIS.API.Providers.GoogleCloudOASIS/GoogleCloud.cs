@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         private readonly bool _enableStorage;
         private readonly bool _enableFirestore;
         private readonly bool _enableBigQuery;
+        public bool IsVersionControlEnabled { get; set; } = false;
 
         public GoogleCloudOASIS(string projectId = null, string bucketName = null, string credentialsPath = null, 
                                string firestoreDatabaseId = null, string bigQueryDatasetId = null,
@@ -50,6 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             this.ProviderDescription = "GoogleCloudOASIS Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+            this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Cloud));
             
             _projectId = projectId ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "oasis-project";
             _bucketName = bucketName ?? Environment.GetEnvironmentVariable("GOOGLE_CLOUD_BUCKET") ?? "oasis-storage";
@@ -62,5 +65,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         public string GetProviderVersion() => "1.0.0";
+
+        private static Timestamp ToFirestoreTimestamp(DateTime value)
+        {
+            if (value == default)
+                value = DateTime.UnixEpoch;
+            else if (value.Kind == DateTimeKind.Local)
+                value = value.ToUniversalTime();
+            else if (value.Kind == DateTimeKind.Unspecified)
+                value = DateTime.SpecifyKind(value, DateTimeKind.Utc);
+
+            return Timestamp.FromDateTime(value);
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new SuiOASIS();
+            _provider = new SuiOASIS("http://127.0.0.1:1", "localnet");
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void UnreachableProviderMustNotActivate()
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
@@ -69,16 +69,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
             var result = _provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
         public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();
@@ -102,10 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests
         [TestCleanup]
         public void Cleanup()
         {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
+            _provider?.Dispose();
         }
     }
 }

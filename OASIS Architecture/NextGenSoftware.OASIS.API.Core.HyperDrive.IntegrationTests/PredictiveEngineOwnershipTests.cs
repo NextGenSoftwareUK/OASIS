@@ -1,0 +1,136 @@
+using System.Reflection;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using Xunit;
+using NextGenSoftware.OASIS.API.Core.Enums;
+
+public class PredictiveEngineOwnershipTests
+{
+    [Fact]
+    public void RoutersShareTheirManagersEngineButNotOtherManagersEngine()
+    {
+        var first = new ProviderManager(null, null);
+        var second = new ProviderManager(null, null);
+        var engine = PredictiveFailoverEngine.ForProviderManager(first);
+        Assert.Same(engine, PredictiveFailoverEngine.ForProviderManager(first));
+        Assert.NotSame(engine, PredictiveFailoverEngine.ForProviderManager(second));
+        var field = typeof(OASISHyperDrive).GetField("_failoverEngine", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        Assert.Same(engine, field.GetValue(new OASISHyperDrive(first)));
+        Assert.Same(engine, field.GetValue(new OASISHyperDrive(first)));
+        Assert.Same(PredictiveFailoverEngine.Instance,
+            PredictiveFailoverEngine.ForProviderManager(ProviderManager.Instance));
+    }
+
+    [Fact]
+    public void FailureSnapshotsAndInputDoNotExposeMutableEngineState()
+    {
+        var engine = PredictiveFailoverEngine.ForProviderManager(new ProviderManager(null, null));
+        var original = new FailureEvent { Timestamp = DateTime.UtcNow, Cause = "original", Description = "owned" };
+        engine.RecordFailureEvent(ProviderType.MongoDBOASIS, original);
+        original.Cause = "caller mutation";
+        var history = engine.GetFailureHistory();
+        history[ProviderType.MongoDBOASIS][0].Description = "snapshot mutation";
+        history[ProviderType.MongoDBOASIS].Clear();
+        var model = engine.GetFailureModel(ProviderType.MongoDBOASIS);
+        model.HistoricalFailures[0].Cause = "model mutation";
+        model.HistoricalFailures.Clear();
+        model.RiskFactors.Clear();
+        var fresh = engine.GetFailureHistory()[ProviderType.MongoDBOASIS];
+        Assert.Equal("original", Assert.Single(fresh).Cause);
+        Assert.Equal("owned", fresh[0].Description);
+        Assert.Single(engine.GetFailureModel(ProviderType.MongoDBOASIS).HistoricalFailures);
+        Assert.NotEmpty(engine.GetFailureModel(ProviderType.MongoDBOASIS).RiskFactors);
+    }
+
+    [Fact]
+    public async Task ConcurrentFailureRecordingAndSnapshotReadsRetainAllOwnedEvents()
+    {
+        var engine = PredictiveFailoverEngine.ForProviderManager(new ProviderManager(null, null));
+        var workers = Enumerable.Range(0, 4).Select(worker => Task.Run(() =>
+        {
+            for (var index = 0; index < 200; index++)
+            {
+                engine.RecordFailureEvent(ProviderType.MongoDBOASIS,
+                    new FailureEvent { Timestamp = DateTime.UtcNow, Cause = $"{worker}:{index}" });
+                foreach (var events in engine.GetFailureHistory().Values)
+                    events.Clear();
+                engine.GetFailureModel(ProviderType.MongoDBOASIS).RiskFactors.Clear();
+            }
+        }));
+        await Task.WhenAll(workers).WaitAsync(TimeSpan.FromSeconds(30));
+        var retained = engine.GetFailureHistory()[ProviderType.MongoDBOASIS];
+        Assert.Equal(800, retained.Count);
+        Assert.Equal(800, retained.Select(item => item.Cause).Distinct().Count());
+        Assert.Equal(800, engine.GetFailureModel(ProviderType.MongoDBOASIS).HistoricalFailures.Count);
+    }
+
+    [Fact]
+    public void PreventiveActionSnapshotsDoNotExposeInternalRecords()
+    {
+        var engine = PredictiveFailoverEngine.ForProviderManager(new ProviderManager(null, null));
+        typeof(PredictiveFailoverEngine).GetMethod("RecordPreventiveAction", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(engine, new object[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS });
+        var snapshot = engine.GetPreventiveActions();
+        snapshot[0].Success = false;
+        snapshot[0].ToProvider = ProviderType.Default;
+        snapshot.Clear();
+        var fresh = Assert.Single(engine.GetPreventiveActions());
+        Assert.True(fresh.Success);
+        Assert.Equal(ProviderType.SQLLiteDBOASIS, fresh.ToProvider);
+    }
+
+    [Fact]
+    public async Task RegistrationPublicationAndReturnedListsRemainIsolated()
+    {
+        var manager = new ProviderManager(null, null);
+        using var provider = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS("Data Source=:memory:");
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 32).Select(_ => Task.Run(() => manager.RegisterProvider(provider))));
+        Assert.Single(attempts.Where(added => added));
+        var providers = manager.GetAllRegisteredProviders();
+        providers.Clear();
+        var types = manager.GetAllRegisteredProviderTypes();
+        types[0].Value = ProviderType.Default;
+        types.Clear();
+        Assert.Same(provider, Assert.Single(manager.GetAllRegisteredProviders()));
+        Assert.Equal(ProviderType.SQLLiteDBOASIS, Assert.Single(manager.GetAllRegisteredProviderTypes()).Value);
+    }
+
+    [Fact]
+    public async Task PredictionEnumerationToleratesRegistrationPublication()
+    {
+        var manager = new ProviderManager(null, null);
+        using var provider = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS("Data Source=:memory:");
+        var engine = PredictiveFailoverEngine.ForProviderManager(manager);
+        using var start = new ManualResetEventSlim(false);
+        var writer = Task.Run(() =>
+        {
+            start.Wait();
+            for (var iteration = 0; iteration < 200; iteration++)
+            {
+                Assert.True(manager.RegisterProvider(provider));
+                Assert.True(manager.UnRegisterProvider(provider));
+            }
+        });
+        var reader = Task.Run(async () =>
+        {
+            start.Wait();
+            for (var iteration = 0; iteration < 200; iteration++)
+            {
+                foreach (var registered in manager.GetAllRegisteredProviders())
+                    Assert.Same(provider, registered);
+                var prediction = await engine.PredictAndPreventFailuresAsync();
+                Assert.All(prediction.Predictions, item => Assert.Equal(ProviderType.SQLLiteDBOASIS, item.ProviderType));
+            }
+        });
+        start.Set();
+        await Task.WhenAll(writer, reader).WaitAsync(TimeSpan.FromSeconds(30));
+        Assert.Empty(manager.GetAllRegisteredProviders());
+        Assert.Empty(manager.GetAllRegisteredProviderTypes());
+    }
+
+    [Fact]
+    public void NullManagerIsRejected()
+    {
+        Assert.Throws<ArgumentNullException>(() => PredictiveFailoverEngine.ForProviderManager(null!));
+    }
+}

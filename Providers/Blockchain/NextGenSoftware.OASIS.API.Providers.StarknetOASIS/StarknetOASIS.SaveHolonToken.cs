@@ -504,11 +504,17 @@ public sealed partial class StarknetOASIS
 
             // Get values from request properties (IBurnWeb3TokenRequest doesn't have MetaData)
             var tokenAddress = request.TokenAddress;
-            // Derive wallet address from private key (simplified - in production use proper key derivation)
-            // Derive wallet address from private key (simplified - in production use proper Starknet key derivation)
-            var fromAddress = !string.IsNullOrWhiteSpace(request.OwnerPrivateKey) 
-                ? DeriveStarknetAddressFromPrivateKey(request.OwnerPrivateKey) 
-                : "";
+            var fromAddress = "";
+            if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+            {
+                var derived = await GetAccountAddressAsync(request.OwnerPrivateKey);
+                if (derived.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, derived.Message, derived.Exception);
+                    return result;
+                }
+                fromAddress = derived.Result;
+            }
             // IBurnWeb3TokenRequest doesn't have Amount - use default or get from balance
             var amount = 0m; // Amount would need to be specified separately or retrieved from balance
 

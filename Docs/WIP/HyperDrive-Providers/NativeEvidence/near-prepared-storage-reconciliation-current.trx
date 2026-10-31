@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="73e6bd93-f855-4338-8e37-53ae8df37120" name="david@OASISOMEGA 2026-10-26 15:19:31" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T15:19:31.0269942-05:00" queuing="2026-10-26T15:19:31.0269943-05:00" start="2026-10-26T15:19:21.1776061-05:00" finish="2026-10-26T15:19:31.0301009-05:00" />
+  <TestSettings name="default" id="a3c3aee0-eceb-4571-99db-1e615fcd1242">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_15_19_31" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="3b79a86f-12ab-4924-9b29-c68afb7b420a" testId="0af115c0-517c-c44f-1f4f-285d493d9ffe" testName="ReconcileFiveKnownOriginalsAndCleanOnlyTheirExactOwnedCiphertexts" computerName="OASISOMEGA" duration="00:00:09.4000723" startTime="2026-10-26T15:19:21.5597801-05:00" endTime="2026-10-26T15:19:30.9696903-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b79a86f-12ab-4924-9b29-c68afb7b420a">
+      <Output>
+        <StdOut>NEAR_PREPARED_STORAGE_RECONCILED {"originals":["4FjsbJ678Nyk9FPq3Q1FZ8fLM2adC2ymRmZr8KPCTRKE","HRTWPXYUkdgbKREiRQma397MpAsRz64XaKBemzDMiCNi","9Zgr9bMn5jbFVT7ZAJgGFJk26MCBMkqFhFTbTWtQosuc","9fN1bu4YcD3CyLsohokfiXHFv1QEK5VSRJF5J7sHWJAD","AGzf7Azn8pYL7QJ9W7qJNCERrVoKJq3aF1fLUdMWBFPF","FwHX7KMvuaMD5u3HRTsiY8Cnq3U6gZy9y8DBCRAwZSSV","C1KLKr8dFi91vvdXdBDFcG3xgmeuz4Mv182F1D9PDJXg","7sPxE8U8A47Wm3hLMXxNuZvC99RjQUgpnreoP9hG8xdj"],"keys":["holon:5f4785d8-944e-4275-a4be-c26e00000001","history:holon:5f4785d8-944e-4275-a4be-c26e00000001:0000000001","history:holon:5f4785d8-944e-4275-a4be-c26e00000001:0000000002"]}</StdOut>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="ReconcileFiveKnownOriginalsAndCleanOnlyTheirExactOwnedCiphertexts" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.integrationtests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.integrationtests.dll" id="0af115c0-517c-c44f-1f4f-285d493d9ffe">
+      <TestCategory>
+        <TestCategoryItem TestCategory="RetainedSignedInspection" />
+      </TestCategory>
+      <Execution id="3b79a86f-12ab-4924-9b29-c68afb7b420a" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedStorageTests" name="ReconcileFiveKnownOriginalsAndCleanOnlyTheirExactOwnedCiphertexts" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="0af115c0-517c-c44f-1f4f-285d493d9ffe" executionId="3b79a86f-12ab-4924-9b29-c68afb7b420a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="1" executed="1" passed="1" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>

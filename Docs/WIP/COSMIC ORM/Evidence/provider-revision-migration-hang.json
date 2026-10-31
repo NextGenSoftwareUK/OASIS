@@ -1,0 +1,157 @@
+{
+  "fixture": "C:\\Source\\OASIS\\TestResults\\SQLiteCurrent\\integration-current.db",
+  "ownedTestHost": 47472,
+  "observed": {
+    "__EFMigrationsLock": [
+      [
+        1,
+        "2026-10-19 19:29:33.6448895+00:00"
+      ]
+    ],
+    "__EFMigrationsHistory": [
+      [
+        "20220619191507_InitialModelMig",
+        "10.0.9"
+      ],
+      [
+        "20250227000000_AddNftIdAndInventoryFieldsToAvatarInventory",
+        "10.0.9"
+      ],
+      [
+        "20260915000000_AddGeoNFTIdToAvatarInventory",
+        "10.0.9"
+      ],
+      [
+        "20261015000000_AddRecordVisibility",
+        "10.0.9"
+      ],
+      [
+        "20261015010000_AddRecordIdentity",
+        "10.0.9"
+      ],
+      [
+        "20261015020000_AddHeartRateSequence",
+        "10.0.9"
+      ],
+      [
+        "20261016000000_AddAvatarDetailTracking",
+        "10.0.9"
+      ],
+      [
+        "20261016010000_AddInventoryMedia",
+        "10.0.9"
+      ],
+      [
+        "20261016020000_AddInventoryPublishedPackage",
+        "10.0.9"
+      ],
+      [
+        "20261018000000_AddInventoryExtendedValue",
+        "10.0.9"
+      ],
+      [
+        "20261018000001_AddAvatarDetailParentIds",
+        "10.0.9"
+      ],
+      [
+        "20261018000002_AddAvatarDetailProviderLinks",
+        "10.0.9"
+      ],
+      [
+        "20261018000003_AddAvatarDetailAppearance",
+        "10.0.9"
+      ],
+      [
+        "20261018000004_AddAvatarDetailDimensionIds",
+        "10.0.9"
+      ],
+      [
+        "20261018000005_AddAvatarDetailCelestialIds",
+        "10.0.9"
+      ],
+      [
+        "20261019000001_OptionalGiftChakra",
+        "10.0.9"
+      ],
+      [
+        "20261019093321_ReconcileSqliteModel",
+        "10.0.9"
+      ],
+      [
+        "20261019191942_AddHolonProviderRevision",
+        "10.0.9"
+      ]
+    ],
+    "Holon": [
+      [
+        0
+      ]
+    ],
+    "Avatar": [
+      [
+        0
+      ]
+    ],
+    "AvatarDetail": [
+      [
+        "7ae1a1bf-4bba-42b4-98c4-00cae88c6856",
+        "migration-gift-owner"
+      ]
+    ],
+    "CosmicWriteReceipt": [
+      [
+        0
+      ]
+    ]
+  },
+  "confirmedDisposableTableCounts": {
+    "__EFMigrationsLock": 1,
+    "__EFMigrationsHistory": 18,
+    "Avatar": 0,
+    "Dimension": 0,
+    "GrandSuperStar": 0,
+    "GreatGrandSuperStar": 0,
+    "SuperStar": 0,
+    "Universe": 0,
+    "AvatarAchievements": 0,
+    "sqlite_sequence": 5,
+    "AvatarAttributes": 1,
+    "AvatarAura": 1,
+    "AvatarHumanDesign": 1,
+    "AvatarSkills": 1,
+    "AvatarSpells": 0,
+    "AvatarStats": 1,
+    "AvatarSuperPowers": 1,
+    "GeneKeys": 0,
+    "HeartRateEntry": 0,
+    "KarmaAkashicRecord": 0,
+    "ProviderPrivateKey": 0,
+    "ProviderPublicKey": 0,
+    "ProviderWalletAddress": 0,
+    "GalaxyCluster": 0,
+    "Crystal": 1,
+    "Galaxy": 0,
+    "Nebula": 0,
+    "Star": 0,
+    "SolarSystem": 0,
+    "Asteroid": 0,
+    "Comet": 0,
+    "Meteroid": 0,
+    "Planet": 0,
+    "Moon": 0,
+    "Holon": 0,
+    "MetaData": 0,
+    "ProviderMetaData": 0,
+    "AvatarGifts": 1,
+    "AvatarWalletStore": 0,
+    "RefreshTokens": 0,
+    "AvatarInventory": 0,
+    "AvatarDetail": 1,
+    "AvatarChakras": 7,
+    "ProviderKey": 0,
+    "CosmicWriteReceipt": 0
+  },
+  "allDependentRowsVerifiedForOwnedAvatar": "7ae1a1bf-4bba-42b4-98c4-00cae88c6856",
+  "sqliteSha256BeforeCleanup": "5fcd62a22230633f8bc8490c10f1199f7da2dfb9c0829169d70d52ff70ce779a",
+  "ownedHostConfirmedStopped": true
+}

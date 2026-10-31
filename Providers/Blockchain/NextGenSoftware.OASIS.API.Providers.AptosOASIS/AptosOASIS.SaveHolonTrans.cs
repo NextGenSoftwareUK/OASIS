@@ -34,8 +34,6 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using Solnet.Wallet;
-using Solnet.Wallet.Bip39;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using static NextGenSoftware.Utilities.KeyHelper;
 
@@ -54,60 +52,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return response;
                 }
 
-                // Save holon to Aptos blockchain using real Aptos RPC
-                var sequenceNumber = await GetSequenceNumber();
-                var request = new
-                {
-                    sender = APTOS_ACCOUNT_ADDRESS,
-                    sequence_number = sequenceNumber.ToString(),
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(10)).ToUnixTimeSeconds().ToString(),
-                    payload = new
-                    {
-                        type = "entry_function_payload",
-                        function = $"{APTOS_CONTRACT_ADDRESS}::oasis::save_holon",
-                        arguments = new object[]
-                        {
-                            holon.Id.ToString(),
-                            holon.Name ?? "",
-                            holon.Description ?? "",
-                            (int)holon.HolonType,
-                            holon.ParentHolonId.ToString(),
-                            holon.ParentOmniverseId.ToString(),
-                            holon.ParentMultiverseId.ToString(),
-                            holon.ParentUniverseId.ToString(),
-                            holon.ParentDimensionId.ToString(),
-                            holon.ParentGalaxyClusterId.ToString(),
-                            holon.ParentGalaxyId.ToString(),
-                            holon.ParentSolarSystemId.ToString(),
-                            holon.ParentPlanetId.ToString(),
-                            holon.ParentMoonId.ToString(),
-                            holon.ParentStarId.ToString(),
-                            holon.ParentZomeId.ToString(),
-                            holon.MetaData != null ? System.Text.Json.JsonSerializer.Serialize(holon.MetaData) : "",
-                            ((DateTimeOffset)holon.CreatedDate).ToUnixTimeSeconds(),
-                            ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds(),
-                            holon.IsActive
-                        },
-                        type_arguments = new object[0]
-                    }
-                };
+                if (holon.Id == Guid.Empty)
+                    holon.Id = Guid.NewGuid();
 
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/transactions", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = holon;
-                    response.IsError = false;
-                    response.Message = "Holon saved to Aptos blockchain successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Aptos: {httpResponse.StatusCode}");
-                }
+                await UpsertRecordAsync(HolonRecordType, holon.Id.ToString(), holon);
+                response.Result = holon;
+                response.IsError = false;
+                response.Message = "Holon committed to Aptos by a signed SDK transaction";
             }
             catch (Exception ex)
             {
@@ -170,28 +121,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
                     return result;
                 }
                 
-                // Delete holon using Aptos Move smart contract
-                var deletePayload = new
-                {
-                    type = "entry_function_payload",
-                    function = "0x1::oasis::delete_holon",
-                    type_arguments = new string[0],
-                    arguments = new[] { providerKey }
-                };
-                
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(deletePayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/transactions", content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    result.Result = loadResult.Result;
-                    result.Message = "Holon deleted successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to delete holon: {httpResponse.StatusCode}");
-                }
+                await DeleteRecordAsync(HolonRecordType, providerKey);
+                result.Result = loadResult.Result;
+                result.IsError = false;
+                result.Message = "Holon deleted by a signed Aptos SDK transaction";
             }
             catch (Exception ex)
             {
@@ -232,62 +165,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid id, int version = 0)
         {
-            // Query Aptos for holons created by this avatar
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Aptos provider is not activated");
-                    return response;
-                }
-
-                var request = new
-                {
-                    function = $"{APTOS_CONTRACT_ADDRESS}::oasis::get_holons_by_avatar",
-                    arguments = new object[] { id.ToString() },
-                    type_arguments = new object[0]
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(request);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync($"{APTOS_API_BASE_URL}/view", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var aptosResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (aptosResponse.TryGetProperty("0", out var holonsArray) && holonsArray.ValueKind == JsonValueKind.Array)
-                    {
-                        var holons = new List<IHolon>();
-                        foreach (var holonData in holonsArray.EnumerateArray())
-                        {
-                            var holon = ParseAptosToHolon(holonData);
-                            if (holon != null)
-                                holons.Add(holon);
-                        }
-                        
-                        response.Result = holons;
-                        response.IsError = false;
-                        response.Message = $"Exported {holons.Count} holons for avatar {id} from Aptos blockchain";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "No holons found for avatar on Aptos blockchain");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export data from Aptos: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error exporting data from Aptos: {ex.Message}");
-            }
-            return response;
+            var all = await LoadAllHolonsAsync(version: version);
+            if (!all.IsError)
+                all.Result = all.Result.Where(h => h.CreatedByAvatarId == id).ToList();
+            return all;
         }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid id, int version = 0) => ExportAllDataForAvatarByIdAsync(id, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string username, int version = 0)
@@ -328,231 +209,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var response = new OASISResult<ITransactionResponse>();
-
-            try
+            return SendTokenAsync(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest
             {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                var transactionPayload = new
-                {
-                    sender = fromWalletAddress,
-                    sequence_number = "0",
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds().ToString(),
-                    payload = new
-                    {
-                        type = "entry_function_payload",
-                        function = "0x1::coin::transfer",
-                        type_arguments = new[] { "0x1::aptos_coin::AptosCoin" },
-                        arguments = new[] { toWalletAddress, amount.ToString() }
-                    }
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync("/v1/transactions", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
-
-                    response.Result = new TransactionResponse
-                    {
-                        TransactionResult = $"Transaction sent successfully. Hash: {transactionResult.TransactionHash}"
-                    };
-                    response.IsError = false;
-                    response.Message = "Transaction sent successfully to Aptos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref response, $"Aptos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending transaction to Aptos: {ex.Message}");
-            }
-
-            return response;
-        }
-
-        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Aptos provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Implement real Aptos transaction
-                if (string.IsNullOrEmpty(_privateKey))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Private key not configured for Aptos transactions");
-                    return response;
-                }
-
-                try
-                {
-                    // Create transaction payload for Aptos
-                    var transactionPayload = new
-                    {
-                        type = "entry_function_payload",
-                        function = "0x1::coin::transfer",
-                        type_arguments = new[] { "0x1::aptos_coin::AptosCoin" },
-                        arguments = new[] { toAvatarId.ToString(), amount.ToString() }
-                    };
-
-                    // Submit REAL transaction to Aptos network
-                    var jsonContent = System.Text.Json.JsonSerializer.Serialize(transactionPayload);
-                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                    var httpResponse = await _httpClient.PostAsync("/v1/transactions", content);
-
-                    if (httpResponse.IsSuccessStatusCode)
-                    {
-                        var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                        var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
-
-                        response.Result = new TransactionResponse
-                        {
-                            TransactionResult = $"Transaction submitted successfully. Hash: {transactionResult.TransactionHash}, Version: {transactionResult.Version}"
-                        };
-                        response.IsError = false;
-                    }
-                    else
-                    {
-                        var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                        OASISErrorHandling.HandleError(ref response, $"Aptos transaction failed: {httpResponse.StatusCode} - {errorContent}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error creating Aptos transaction: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending Aptos transaction: {ex.Message}");
-            }
-
-            return response;
-        }
-
-
-        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string memo)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                // REAL Aptos implementation for sending transaction by avatar IDs
-                var task = SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, memo);
-                response = task.Result;
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending transaction by avatar IDs to Aptos: {ex.Message}");
-            }
-            return response;
-        }
-
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string memo)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                // REAL Aptos implementation for sending transaction by avatar IDs
-                var transactionPayload = new
-                {
-                    sender = $"0x{fromAvatarId.ToString("N")}",
-                    sequence_number = "0",
-                    max_gas_amount = "1000",
-                    gas_unit_price = "1",
-                    expiration_timestamp_secs = DateTimeOffset.UtcNow.AddMinutes(10).ToUnixTimeSeconds().ToString(),
-                    payload = new
-                    {
-                        type = "entry_function_payload",
-                        function = "0x1::coin::transfer",
-                        type_arguments = new[] { "0x1::aptos_coin::AptosCoin" },
-                        arguments = new[] { $"0x{toAvatarId.ToString("N")}", amount.ToString() }
-                    }
-                };
-
-                var jsonContent = System.Text.Json.JsonSerializer.Serialize(transactionPayload);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var httpResponse = await _httpClient.PostAsync("/v1/transactions", content);
-
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-                    var transactionResult = System.Text.Json.JsonSerializer.Deserialize<AptosTransactionResponse>(responseContent);
-
-                    response.Result = new TransactionResponse
-                    {
-                        TransactionResult = $"Transaction sent successfully. Hash: {transactionResult.TransactionHash}"
-                    };
-                    response.IsError = false;
-                    response.Message = "Transaction sent successfully to Aptos blockchain";
-                }
-                else
-                {
-                    var errorContent = await httpResponse.Content.ReadAsStringAsync();
-                    OASISErrorHandling.HandleError(ref response, $"Aptos API error: {httpResponse.StatusCode} - {errorContent}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending transaction to Aptos: {ex.Message}");
-            }
-            return response;
-        }
-
-        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromUsername, string toUsername, decimal amount)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                // REAL Aptos implementation for sending transaction by usernames
-                var task = SendTransactionByUsernameAsync(fromUsername, toUsername, amount);
-                response = task.Result;
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending transaction by usernames to Aptos: {ex.Message}");
-            }
-            return response;
+                FromWalletAddress = fromWalletAddress,
+                ToWalletAddress = toWalletAddress,
+                Amount = amount,
+                MemoText = memoText
+            });
         }
 
     }

@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="b9abce5d-5c3e-4db4-8882-513a3e8edb3f" name="david@OASISOMEGA 2026-10-26 15:13:00" runUser="OASISOMEGA\david" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-26T15:13:00.8405599-05:00" queuing="2026-10-26T15:13:00.8405600-05:00" start="2026-10-26T15:12:59.0043433-05:00" finish="2026-10-26T15:13:00.8435910-05:00" />
+  <TestSettings name="default" id="3777b1d5-3f15-445f-86a5-2b071c51545e">
+    <Deployment runDeploymentRoot="david_OASISOMEGA_2026-10-26_15_13_00" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="ec469015-480a-418a-8787-c523c19afaa6" testId="d050f1f3-c6c5-9a95-b53c-74c999d9a4b6" testName="PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission" computerName="OASISOMEGA" duration="00:00:01.3990998" startTime="2026-10-26T15:12:59.3831924-05:00" endTime="2026-10-26T15:13:00.7914326-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ec469015-480a-418a-8787-c523c19afaa6">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.AreEqual failed. Expected:&lt;1&gt;. Actual:&lt;0&gt;. Each planned operation must persist exactly one original</Message>
+          <StackTrace>   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedStorageTests.&lt;&gt;c__DisplayClass0_0.&lt;&lt;PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission&gt;g__Own|5&gt;d`1.MoveNext() in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\NearPreparedStorageTests.cs:line 49&#xD;
+   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedStorageTests.&lt;&gt;c__DisplayClass0_0.&lt;&lt;PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission&gt;g__Own|5&gt;d`1.MoveNext()&#xD;
+--- End of stack trace from previous location ---&#xD;
+   at NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedStorageTests.PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission() in C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\NearPreparedStorageTests.cs:line 52&#xD;
+</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission" storage="c:\source\oasis\providers\blockchain\testprojects\nextgensoftware.oasis.api.providers.nearoasis.integrationtests\bin\debug\net10.0\nextgensoftware.oasis.api.providers.nearoasis.integrationtests.dll" id="d050f1f3-c6c5-9a95-b53c-74c999d9a4b6">
+      <TestCategory>
+        <TestCategoryItem TestCategory="RetainedSignedInspection" />
+      </TestCategory>
+      <Execution id="ec469015-480a-418a-8787-c523c19afaa6" />
+      <TestMethod codeBase="C:\Source\OASIS\Providers\Blockchain\TestProjects\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests\bin\Debug\net10.0\NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.dll" adapterTypeName="executor://mstestadapter/v2" className="NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.NearPreparedStorageTests" name="PublicEncryptedHistoryAndConflictsPersistEveryOriginalBeforeSubmission" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d050f1f3-c6c5-9a95-b53c-74c999d9a4b6" executionId="ec469015-480a-418a-8787-c523c19afaa6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+  </ResultSummary>
+</TestRun>

@@ -1,0 +1,27 @@
+{
+  "genesisHash": "0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208",
+  "contractAddress": "0x6c8b9e8643c72ec5fc1f406e8cb1eb4d92d810c69a742d7af154b4b987b94c85",
+  "codeHash": "0xcf447d4a13ca5fbb7477a22d01d5b3ccb21df182e48bc01713e8a8cd56ec6686",
+  "tokenId": {
+    "U128": "18446744073709551617"
+  },
+  "preparedTransactionHash": "0xc64daee6b06b8e11850bbbe70d1f1949ae01edd25f33b941d3e0897d22201d5f",
+  "partialFeeUnits": "2956551415",
+  "gasLimit": {
+    "refTime": "2334841509",
+    "proofSize": "178223"
+  },
+  "storageDepositLimit": "500350000000",
+  "tamperedIntentsRejected": 7,
+  "signedPreparationVerified": true,
+  "submitted": false,
+  "tokenStillAbsent": true,
+  "publicMutationApiWired": false,
+  "feeCoverage": "estimate-and-execution-limits-not-total-fee-cap",
+  "sourceSha256": {
+    "psp34-contract-mutation.mjs": "922f1fbee2634150ab7553bfbbb993d8fd5deab079086dffed2d27bf504358f6",
+    "oasis-psp34-mutation-codec.mjs": "10b792ee3960e4b722efd7c1eea025166ae7a42039f19fc23f6bd3b39e18d335",
+    "psp34-contract-codec.mjs": "67662d7f8e518a08a2a1aa0df3b976667046ecdc18e3c1c233f0eea2d1bce2fb",
+    "test-local-psp34-preparation.mjs": "721348b1e3bd9fe6ddf0804064f3f1b9a6eb9e128be19fb81549b916d8c3d17e"
+  }
+}

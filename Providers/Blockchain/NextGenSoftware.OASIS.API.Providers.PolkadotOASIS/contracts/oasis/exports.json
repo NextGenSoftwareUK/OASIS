@@ -1,0 +1,4 @@
+[
+  { "name": "call", "export": "call", "root": true },
+  { "name": "deploy", "export": "deploy", "root": true }
+]

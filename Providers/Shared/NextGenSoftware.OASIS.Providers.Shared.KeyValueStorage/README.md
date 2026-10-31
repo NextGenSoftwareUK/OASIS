@@ -2,6 +2,10 @@
 
 Complete OASIS storage provider implementation (avatars, avatar details, holons, parent/child links, search, import/export) over any key-value or blob service. Used by the edge KV and blob storage providers. https://oasisomniverse.one
 
+## Native NFT request ownership
+
+`NftMintIntent.Capture(IMintWeb3NFTRequest)` returns an invocation-owned copy of the public request contract. Capture once before validation and the first await; use that copy for recipient lookup, metadata projection and signing. Metadata dictionaries (including comparer), tags and image/thumbnail bytes are copied; nulls and scalar defaults are preserved. The caller must not mutate during synchronous capture. The helper does not authorize spending, validate chain support, publish metadata or submit transactions. Cosmos and Sui mint cores use it; this is not automatic adoption by every provider. `NftMintIntentTests` enumerates inherited contract properties and checks nested mutation/null behavior.
+
 ## Installation
 
 ```sh
@@ -45,7 +49,7 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 

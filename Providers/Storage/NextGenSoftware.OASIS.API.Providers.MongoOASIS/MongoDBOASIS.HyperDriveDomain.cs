@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
@@ -136,8 +138,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             var collection = Database.MongoDB.GetCollection<Holon>("Holon");
             var filter = Builders<Holon>.Filter.Eq(x => x.HolonId, operation.EntityId);
-            Holon current = await collection.Find(session, filter).FirstOrDefaultAsync(cancellationToken)
-                .ConfigureAwait(false);
+            var raw=Database.MongoDB.GetCollection<BsonDocument>(collection.CollectionNamespace.CollectionName,collection.Settings);
+            var rendered=filter.Render(new RenderArgs<Holon>(collection.DocumentSerializer,collection.Settings.SerializerRegistry));
+            var observations=await raw.Find(session,rendered).Limit(2).ToListAsync(cancellationToken).ConfigureAwait(false);
+            if(observations.Count>1)return DomainError(result,OASISResultErrorCodes.AmbiguousIdentity,"Multiple native records share the domain identity.");
+            var observed=observations.SingleOrDefault();
+            Holon current=observed==null?null:BsonSerializer.Deserialize<Holon>(observed);
 
             if (operation.Kind == SyncOperationKind.Delete)
             {
@@ -149,8 +155,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 current.DeletedByAvatarId = operation.AvatarId.ToString("D");
                 current.PreviousVersionId = current.VersionId;
                 current.VersionId = operation.VersionId;
-                current.Version++;
-                var deleted = await collection.ReplaceOneAsync(session, filter, current,
+                current.Version=checked(current.Version+1);
+                var body=MongoNativeRecordWriter.PrepareHolonMutation(collection,current,observed);
+                var deleted = await raw.ReplaceOneAsync(session, rendered, body,
                     new ReplaceOptions { IsUpsert = false }, cancellationToken).ConfigureAwait(false);
                 if (!deleted.IsAcknowledged || deleted.MatchedCount != 1)
                     return DomainError(result, "HOSTED_DOMAIN_DELETE_NOT_COMMITTED",
@@ -207,12 +214,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     incoming.CreatedDate = current.CreatedDate;
                     incoming.CreatedByAvatarId = current.CreatedByAvatarId;
                     incoming.PreviousVersionId = current.VersionId;
-                    incoming.Version = current.Version + 1;
+                    incoming.Version = checked(current.Version + 1);
                     incoming.ProviderUniqueStorageKey = current.ProviderUniqueStorageKey;
                 }
                 incoming.ProviderUniqueStorageKey[
                     NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS] = incoming.Id;
-                var saved = await collection.ReplaceOneAsync(session, filter, incoming,
+                var body=MongoNativeRecordWriter.PrepareHolonMutation(collection,incoming,observed);
+                var saved = await raw.ReplaceOneAsync(session, rendered, body,
                     new ReplaceOptions { IsUpsert = current == null }, cancellationToken).ConfigureAwait(false);
                 if (!saved.IsAcknowledged)
                     return DomainError(result, "HOSTED_DOMAIN_SAVE_NOT_COMMITTED",

@@ -443,48 +443,6 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-    {
-        var result = new OASISResult<BridgeTransactionStatus>();
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(transactionHash))
-            {
-                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                return result;
-            }
-
-            var transactionReceipt = await _web3Client.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-
-            if (transactionReceipt == null)
-            {
-                result.Result = BridgeTransactionStatus.NotFound;
-                result.IsError = true;
-                result.Message = "Transaction not found.";
-            }
-            else if (transactionReceipt.Status.Value == 1)
-            {
-                result.Result = BridgeTransactionStatus.Completed;
-                result.IsError = false;
-            }
-            else
-            {
-                result.Result = BridgeTransactionStatus.Canceled;
-                result.IsError = true;
-                result.Message = "Transaction failed on chain.";
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting transaction status: {ex.Message}", ex);
-            result.Result = BridgeTransactionStatus.NotFound;
-        }
-        return result;
-    }
+public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        => NextGenSoftware.OASIS.Providers.Shared.Evm.EvmTransactionStatus.ReadAsync(transactionHash,()=>Task.FromResult(new OASISResult<Nethereum.Web3.Web3>{Result=_web3Client,IsError=!IsProviderActivated,Message="EVM provider must be activated before status observation."}),token);
 }

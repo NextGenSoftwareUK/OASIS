@@ -1,0 +1,96 @@
+bbe88a532 2026-10-19 05:00:11 -0500 Prevent silent truncation of cyclic Mongo metadata
+5bf5965ca 2026-10-19 04:58:22 -0500 Reject lossy Mongo metadata reads for unsupported BSON types
+74ee81936 2026-10-19 04:56:17 -0500 Preserve standard BSON UUID identities in Mongo metadata
+8ea35e904 2026-10-18 05:04:43 -0500 Preserve complete canonical inventory values in Mongo mapping
+465743035 2026-10-18 04:57:54 -0500 Detach Mongo inventory binaries and verify direct inventory fields live
+4fe300176 2026-10-18 04:54:56 -0500 Fix Mongo chakra interface projection and verify nested live data
+db8e4b458 2026-10-18 04:51:04 -0500 Fix Mongo avatar collection interface projections with native acceptance
+2b2960549 2026-10-18 04:44:57 -0500 fix(mongo): honor structured avatar profile interfaces
+eac138c75 2026-10-18 04:40:41 -0500 fix(mongo): map avatar skills through their interface contract
+ec0d4e37f 2026-10-17 06:07:09 -0500 fix(mongo): initialize serialization policies once before class mapping
+8616e4170 2026-10-16 17:38:28 -0500 Preserve linked avatar parents and version-independent search ancestry
+f77fdd042 2026-10-16 17:22:46 -0500 Apply shared metadata filtering to Mongo avatar and holon search results
+735443666 2026-10-16 17:13:08 -0500 Apply Mongo search parent scope consistently across all groups
+6b33401d0 2026-10-16 17:08:15 -0500 Implement extended Mongo comparisons and preserve BSON metadata date types
+8f56d356c 2026-10-16 17:02:09 -0500 Honor extended Mongo text masks using canonical shared search
+1aed9442a 2026-10-16 16:57:47 -0500 Honor Mongo provider key text-search flags with shared identifier matching
+89dddfd68 2026-10-16 16:53:39 -0500 Implement Mongo ID text search using shared credential-safe matching
+a3201c5ed 2026-10-16 16:40:10 -0500 Fix Mongo token lifecycle selection and terminal token validation
+ee276d003 2026-10-16 15:32:42 -0500 fix(storage): persist SQLite wallets and validate priority-store key lookups
+22310d218 2026-10-16 14:48:53 -0500 fix(mongo): honor numeric date defaults and native group type scopes
+f2c6873d9 2026-10-16 14:40:34 -0500 fix(mongo): support default text masks and literal typed avatar search
+5bf6fac86 2026-10-16 14:35:36 -0500 fix(mongo): publish activation state only after required initialization
+45ed442b4 2026-10-16 14:29:30 -0500 fix(mongo): validate searches and honor version and graph options
+e21cc2360 2026-10-16 08:45:00 -0500 Honor Mongo root-only saves without embedding excluded children
+1d054921e 2026-10-16 08:36:10 -0500 Validate Mongo graph depth before direct storage access
+1b9a3e09b 2026-10-16 08:33:42 -0500 Stage Mongo graph identities until native transaction acknowledgement
+c9cbc3e0a 2026-10-16 08:25:13 -0500 Correct Mongo generator acknowledgement and refresh native V2 evidence
+d7e4d45ee 2026-10-16 07:15:21 -0500 Fix MongoDB nearby queries to use canonical collection records
+fd821b0ec 2026-10-16 00:52:20 -0500 fix(mongo): preserve canonical inventory values during avatar transfer
+679e8a102 2026-10-16 00:48:16 -0500 fix(mongo): retain inventory package through real V2 replication
+bf34cf1e5 2026-10-15 21:42:02 -0500 fix(mongo): preserve custom inventory interface data in native V2 writes
+149aa01e6 2026-10-15 20:25:07 -0500 fix(storage): preserve creation origin through replication and edits
+9b0858425 2026-10-15 20:17:56 -0500 fix(storage): retain version and custom type identity across priority stores
+3e52c2830 2026-10-15 20:12:31 -0500 fix(storage): persist record visibility with private-default sqlite upgrade
+afd18ab1a 2026-10-15 20:01:25 -0500 fix(mongo): retain dimension values through v2 replication
+b7e25eb2f 2026-10-15 19:57:17 -0500 fix(mongo): persist missing avatar detail interface fields
+8bb578675 2026-10-15 19:53:01 -0500 fix(mongo): retain avatar metadata and version identity on reads
+aa96c6958 2026-10-15 19:45:10 -0500 fix(mongo): stop stale failover on avatar transaction conflicts
+23a0e1396 2026-10-15 19:35:46 -0500 Keep Mongo transaction write conflicts terminal instead of failing over
+002243785 2026-10-15 19:29:43 -0500 Stage Mongo atomic payloads before mutation and preserve causal commit evidence
+a4a87f16a 2026-10-15 19:16:40 -0500 Reject unsupported Mongo metadata before dispatch without null substitution
+70ca63b73 2026-10-15 19:08:21 -0500 Align Mongo scalar metadata matching with shared query semantics
+ad4b4a1da 2026-10-15 18:56:51 -0500 Reject invalid Mongo deletion keys and preserve V2 request validation errors
+fb56be937 2026-10-15 18:45:47 -0500 Prevent Mongo avatar deletion fallback on known absence and lifecycle conflicts
+eefaf4f7a 2026-10-15 18:35:35 -0500 Preserve unknown Mongo schema fields and reject concurrent additions
+18a602cc3 2026-10-15 18:30:18 -0500 Share native Mongo save safety with avatar and detail writes
+c392d8954 2026-10-15 18:22:28 -0500 Reject Mongo holon replacements after observed concurrent changes
+69328c04c 2026-10-15 18:19:26 -0500 Fence uncertain Mongo holon saves against replay and retain native causes
+d25167f66 2026-10-15 18:14:39 -0500 Use genuine sync and asynchronous Mongo search SDK reads
+848467ebc 2026-10-15 18:10:45 -0500 Honor all-type wildcard and parent filters in Mongo text search
+be6ac8743 2026-10-15 18:07:23 -0500 Prevent duplicate Mongo search hits from ANY metadata matches
+71838f825 2026-10-15 18:04:26 -0500 Fix Mongo collection graph reads and literal metadata queries
+9ef219c01 2026-10-15 17:53:36 -0500 Honor Mongo single-holon graph options using shared projection and native snapshots
+1511ed5ba 2026-10-15 17:45:25 -0500 Make Mongo holon reads bounded and non-mutating with truthful absence
+d0fb85d39 2026-10-15 17:41:20 -0500 Use acknowledged conditional Mongo holon deletes and prove no unsafe replay
+f6a84a75d 2026-10-15 02:07:52 -0500 Classify Mongo tombstone conflicts and refresh real V2 matrix
+fd69b53a5 2026-10-14 23:25:22 -0500 Apply exact committed Mongo avatar tombstones transactionally
+ba46d9ac7 2026-10-14 23:22:39 -0500 Preserve full Mongo deletion timestamps alongside queryable BSON dates
+3377b74a4 2026-10-14 23:18:14 -0500 Preserve committed Mongo avatar deletion lifecycle and evidence
+fe69a1382 2026-10-14 20:05:41 -0500 fix: persist Mongo bulk graphs in one transaction
+017c3ae06 2026-10-14 19:58:59 -0500 fix: commit Mongo single-root graph writes atomically
+61d7b5483 2026-10-14 01:08:32 -0500 fix: persist and load bounded SQLite graphs and propagate Mongo graph flags
+00ad10a81 2026-10-14 00:35:53 -0500 fix: preserve Mongo import creation audit on replacements
+f1411413f 2026-10-14 00:33:37 -0500 fix: transact Mongo imports and fence uncertain commit replay
+a45e6440f 2026-10-14 00:27:09 -0500 fix: publish Mongo holon native key in initial insert
+588024caf 2026-10-14 00:23:39 -0500 fix: route Mongo imports through canonical holon mapping
+22d82c253 2026-10-13 23:15:46 -0500 Implement Mongo standalone detail deletion and verify V2 replication
+929deb778 2026-10-13 23:02:22 -0500 Prevent ambiguous Mongo selector deletes and verify V2 no replay
+ac7e53336 2026-10-13 22:57:09 -0500 Classify Mongo detail ambiguity and verify terminal V2 routing
+575d1aa19 2026-10-13 22:47:38 -0500 Classify identity ambiguity and prevent cross-provider fallback
+c6f2f345b 2026-10-13 22:40:23 -0500 Reject ambiguous Mongo avatar queries and verify token parity
+74a0f283a 2026-10-13 22:36:44 -0500 Reject empty Mongo token selectors and verify provider parity
+f660416c1 2026-10-13 22:23:03 -0500 Fix Mongo avatar loaded flags and verify V2 token selectors
+842e5c2e9 2026-10-13 17:31:48 -0500 Preserve native Mongo avatar save preflight errors
+bede26dbb 2026-10-13 16:49:21 -0500 Preserve Mongo update rejection evidence and verify WEB4 consumer
+4b6717a40 2026-10-13 08:34:39 -0500 Retain real Mongo avatar creation rejection exceptions
+576824331 2026-10-13 08:31:43 -0500 Preserve avatar creation provider attribution in Mongo replicas
+0989c8f31 2026-10-13 08:29:24 -0500 Publish Mongo avatar provider keys atomically in initial insert
+a5a5c4c37 2026-10-13 08:24:01 -0500 Keep Mongo inactive when identity index validation fails
+46b6b4cb4 2026-10-13 08:21:29 -0500 Enforce unique Mongo current avatar and detail public identities
+a64b79143 2026-10-13 08:18:14 -0500 Honor requested versions in Mongo avatar token selectors
+4f4d3436d 2026-10-13 08:13:35 -0500 Filter Mongo avatar and detail lists by requested version
+98e3deb2a 2026-10-13 08:07:27 -0500 Honor Mongo avatar-detail selector versions and authoritative absence
+f737108d3 2026-10-13 08:04:41 -0500 Honor Mongo avatar versions for GUID username and email reads
+7709bdbd6 2026-10-13 08:02:05 -0500 Preserve Mongo avatar key-read exceptions and await async queries
+70d8ad311 2026-10-13 08:00:02 -0500 Load Mongo avatars by native provider key and requested version
+c2ace6779 2026-10-13 07:50:15 -0500 Resolve Mongo avatar deletion keys by native document identity
+a8effc74d 2026-10-13 07:48:33 -0500 Consolidate Mongo avatar deletion selectors on transactional identity
+ab620e2da 2026-10-13 07:44:49 -0500 Use transactional persisted identities for Mongo avatar deletion
+de229ac39 2026-10-13 07:39:28 -0500 Fence Mongo commit failures against cross-provider mutation replay
+fdc4ef414 2026-10-13 07:35:55 -0500 Bind Mongo avatar deletion writes to transaction sessions
+b98d5135b 2026-10-13 07:06:19 -0500 Fix and verify replicated avatar permanent deletion
+86366988d 2026-10-13 06:52:08 -0500 Honor explicit Mongo metadata query versions through repository filters
+fa102f8a5 2026-10-13 06:35:23 -0500 Fix Mongo detail identity updates and authoritative absence
+f0a47cb20 2026-10-13 06:31:27 -0500 Fix persisted-identity Mongo avatar updates exposed by real V2 tests
+ed6a928e4 2026-10-07 17:29:18 -0500 fix(mongo): accept equivalent public identity index

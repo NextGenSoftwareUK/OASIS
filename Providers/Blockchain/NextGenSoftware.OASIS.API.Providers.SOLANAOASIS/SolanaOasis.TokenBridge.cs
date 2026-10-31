@@ -162,16 +162,24 @@ public partial class SolanaOASIS
 
     public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
     {
-        return GetBalanceAsync(request).Result;
+        return GetBalanceAsync(request).GetAwaiter().GetResult();
     }
 
     public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
         OASISResult<double> result = new OASISResult<double>();
-        DateTimeOffset date = DateTimeOffset.UtcNow;
-
         try
         {
+            if(request==null || string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("A wallet address is required.");
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result,activation.Message,activation.Exception);
+                    result.ErrorCode=activation.ErrorCode;return result;
+                }
+            }
             OASISResult<decimal> solResult = await _solanaService.GetAccountBalanceAsync(request);
 
             if (solResult.IsError)
@@ -179,7 +187,7 @@ public partial class SolanaOASIS
                 OASISErrorHandling.HandleError(ref result,
                     solResult.Message,
                     solResult.Exception);
-
+                result.ErrorCode=solResult.ErrorCode;
                 return result;
             }
             else
@@ -187,7 +195,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, $"Unknown error occured: {e}");
+            OASISErrorHandling.HandleError(ref result, $"Solana balance read failed: {e.Message}", e);
         }
 
         return result;
@@ -195,7 +203,7 @@ public partial class SolanaOASIS
 
     public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
     {
-        return GetTransactionsAsync(request).Result;
+        return GetTransactionsAsync(request).GetAwaiter().GetResult();
     }
 
     public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
@@ -203,54 +211,44 @@ public partial class SolanaOASIS
         var result = new OASISResult<IList<IWalletTransaction>>();
         string errorMessage = "Error in GetTransactionsAsync method in SolanaOASIS. Reason: ";
 
-        //try
-        //{
-        //    if (!IsProviderActivated || _rpcClient == null)
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, "Solana provider is not activated");
-        //        return result;
-        //    }
-
-        //    if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-        //    {
-        //        OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-        //        return result;
-        //    }
-
-        //    var transactions = new List<IWalletTransaction>();
-        //    var publicKey = new PublicKey(request.WalletAddress);
-
-        //    // Get signatures for the account
-        //    var signaturesResult = await _rpcClient.GetSignaturesForAddressAsync(publicKey, limit: 10);
-        //    if (signaturesResult.WasSuccessful && signaturesResult.Result != null)
-        //    {
-        //        foreach (var signatureInfo in signaturesResult.Result)
-        //        {
-        //            // Get transaction details
-        //            var txResult = await _rpcClient.GetTransactionAsync(signatureInfo.Signature);
-        //            if (txResult.WasSuccessful && txResult.Result != null)
-        //            {
-        //                var tx = txResult.Result;
-        //                var walletTx = new WalletTransaction
-        //                {
-        //                    FromWalletAddress = tx.Transaction.Message.AccountKeys.FirstOrDefault()?.PublicKey ?? string.Empty,
-        //                    ToWalletAddress = tx.Transaction.Message.AccountKeys.Skip(1).FirstOrDefault()?.PublicKey ?? string.Empty,
-        //                    Amount = 0, // Would need to parse transaction instructions for actual amount
-        //                    Description = $"Block {tx.Slot}"
-        //                };
-        //                transactions.Add(walletTx);
-        //            }
-        //        }
-        //    }
-
-        //    result.Result = transactions;
-        //    result.IsError = false;
-        //    result.Message = $"Retrieved {transactions.Count} transactions.";
-        //}
-        //catch (Exception ex)
-        //{
-        //    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        //}
+        try
+        {
+            if(request==null || string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("Wallet address is required.");
+            if(request.FromBlock.HasValue && request.ToBlock.HasValue && request.FromBlock>request.ToBlock)
+                throw new ArgumentException("The inclusive slot range is reversed.");
+            var address=new PublicKey(request.WalletAddress);
+            if(address.KeyBytes.Length!=32) throw new ArgumentException("Invalid Solana wallet address.");
+            var transactions=new System.Collections.Generic.List<IWalletTransaction>();
+            var seen=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            string before=null;
+            while(true)
+            {
+                var page=await _rpcClient.GetSignaturesForAddressAsync(address.Key,1000,before,null,Solnet.Rpc.Types.Commitment.Finalized);
+                if(!page.WasSuccessful) throw new InvalidOperationException($"Solana history RPC failed: {page.Reason}");
+                if(page.Result==null) throw new InvalidDataException("Solana history RPC returned no result.");
+                bool belowRange=false;
+                foreach(var item in page.Result)
+                {
+                    if(string.IsNullOrWhiteSpace(item.Signature) || !seen.Add(item.Signature))
+                        throw new InvalidDataException("Solana history contains an empty or repeated signature.");
+                    if(request.FromBlock.HasValue && item.Slot<request.FromBlock.Value) {belowRange=true;continue;}
+                    if(request.ToBlock.HasValue && item.Slot>request.ToBlock.Value) continue;
+                    var summary=new WalletTransaction {
+                        NativeTransactionId=item.Signature,NativeOperation="account transaction (amount not decoded)",
+                        NativeExecutionResult=item.Error==null ? "succeeded":"failed",
+                        NativeError=item.Error==null ? null:JsonConvert.SerializeObject(item.Error),
+                        CreatedDate=item.BlockTime.HasValue ? DateTimeOffset.FromUnixTimeSeconds(checked((long)item.BlockTime.Value)).UtcDateTime:default,
+                        Description=$"Finalized Solana slot {item.Slot}; transfer amounts and counterparties are not decoded."
+                    };
+                    transactions.AddRange(await ReadNativeHistoryEffectsAsync(item,address.Key,summary));
+                }
+                if(page.Result.Count<1000 || belowRange) break;
+                before=page.Result[page.Result.Count-1].Signature;
+            }
+            result.Result=transactions;
+            result.Message=$"Retrieved {transactions.Count} finalized history rows; native SOL transfers decoded, other operations may remain undecoded.";
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,errorMessage+cause.Message,cause);}
         return result;
     }
 
@@ -288,7 +286,7 @@ public partial class SolanaOASIS
 
             result.Result = new KeyPairAndWallet()
             {
-                PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                PrivateKey = account.PrivateKey.Key,
                 PublicKey = account.PublicKey.Key,
                 WalletAddressLegacy = account.PublicKey.Key
             };
@@ -370,7 +368,7 @@ public partial class SolanaOASIS
 
             result.Result = (
                 PublicKey: account.PublicKey.Key,
-                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                PrivateKey: account.PrivateKey.Key,
                 SeedPhrase: mnemonic.ToString()
             );
             result.IsError = false;
@@ -410,7 +408,7 @@ public partial class SolanaOASIS
 
             result.Result = (
                 PublicKey: account.PublicKey.Key,
-                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes)
+                PrivateKey: account.PrivateKey.Key
             );
             result.IsError = false;
         }

@@ -46,7 +46,12 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 
+
+
+Storage implementation: this facade reuses the Redis SDK connection/conditional transport and canonical encrypted OASIS records, queries, graphs and optional history. The original constructor parameter/default (`configuration = "localhost:6379"`) and default soft deletion remain. Use the explicit `DeleteHolonSoft(..., false)` API for hard deletion. The shared implementation reports version 2.0.0; facade identity remains `KeyDBOASIS`. This is source consolidation, not native `KeyDBOASIS` certification.
+
+Configure `OASIS_KEYDB_STORAGE_ENCRYPTION_KEY` as canonical Base64 for a separately persisted 32-byte storage key, or use the constructor's key resolver. Keep that key with the data/backups; constructors never generate or replace it. Existing plaintext/legacy index layouts are refused, not converted or silently read. This is a storage-format change: do not point at existing data without a separately reviewed migration. Metadata/identity queries still use the shared implementation and opaque keyed indexes. Native product acceptance must verify the required conditional script/scan primitives and deployment configuration; a pass against Redis does not certify this product.

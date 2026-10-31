@@ -55,7 +55,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
-public sealed partial class BaseOASIS
+public sealed partial class BaseOASIS_Legacy
 {
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
     {

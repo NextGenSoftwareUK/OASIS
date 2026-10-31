@@ -1,0 +1,15 @@
+{
+  "StartedUtc": "2026-10-20T08:57:05.7263789Z",
+  "DurationSeconds": 5,
+  "LoopbackOnly": true,
+  "RealCommandHostedService": true,
+  "RealFanOutDispatcher": true,
+  "CommandPolls": 3,
+  "FanOutPolls": 3,
+  "IdleLeaseWrites": 0,
+  "LatencySamples": 3,
+  "MedianQueryMilliseconds": 1.4883,
+  "MaximumQueryMilliseconds": 4.4784,
+  "ExclusiveClaimRacePassed": true,
+  "Scope": "Idle scheduling and native claim exclusivity; no full command execution, replica-set capture or external replication"
+}

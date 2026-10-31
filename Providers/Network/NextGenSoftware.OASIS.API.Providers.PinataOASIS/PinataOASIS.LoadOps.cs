@@ -711,22 +711,32 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         private readonly string _apiKey;
         private readonly string _secretKey;
         private readonly string _jwt;
+        private readonly string _apiUrl;
+        private readonly string _gatewayUrl;
 
-        public PinataService(string apiKey, string secretKey, string jwt = null)
+        public PinataService(string apiKey, string secretKey, string jwt = null,
+            string apiUrl = "https://api.pinata.cloud", string gatewayUrl = "https://gateway.pinata.cloud")
         {
             _apiKey = apiKey;
             _secretKey = secretKey;
             _jwt = jwt;
+            _apiUrl = apiUrl.TrimEnd('/');
+            _gatewayUrl = gatewayUrl.TrimEnd('/');
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("pinata_api_key", _apiKey);
-            _httpClient.DefaultRequestHeaders.Add("pinata_secret_api_key", _secretKey);
+            if (!string.IsNullOrWhiteSpace(_jwt))
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwt);
+            else
+            {
+                _httpClient.DefaultRequestHeaders.Add("pinata_api_key", _apiKey);
+                _httpClient.DefaultRequestHeaders.Add("pinata_secret_api_key", _secretKey);
+            }
         }
 
         public async Task<List<PinataPin>> GetFilesAsync()
         {
             try
             {
-                var response = await _httpClient.GetAsync("https://api.pinata.cloud/data/pinList");
+                var response = await _httpClient.GetAsync($"{_apiUrl}/data/pinList");
                 var content = await response.Content.ReadAsStringAsync();
                 var pinList = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
                 return pinList?.Rows ?? new List<PinataPin>();
@@ -741,7 +751,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         {
             try
             {
-                var response = await _httpClient.GetAsync($"https://gateway.pinata.cloud/ipfs/{hash}");
+                var response = await _httpClient.GetAsync($"{_gatewayUrl}/ipfs/{hash}");
                 return await response.Content.ReadAsStringAsync();
             }
             catch
@@ -759,7 +769,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
                 formData.Add(fileContent, "file", System.IO.Path.GetFileName(filePath));
 
-                var response = await _httpClient.PostAsync("https://api.pinata.cloud/pinning/pinFileToIPFS", formData);
+                var response = await _httpClient.PostAsync($"{_apiUrl}/pinning/pinFileToIPFS", formData);
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<PinataPinResponse>(content);
             }
@@ -775,7 +785,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             {
                 var json = JsonConvert.SerializeObject(jsonObject);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("https://api.pinata.cloud/pinning/pinJSONToIPFS", content);
+                var response = await _httpClient.PostAsync($"{_apiUrl}/pinning/pinJSONToIPFS", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<PinataPinResponse>(responseContent);
             }
@@ -789,7 +799,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"https://api.pinata.cloud/pinning/unpin/{hash}");
+                var response = await _httpClient.DeleteAsync($"{_apiUrl}/pinning/unpin/{hash}");
                 return response.IsSuccessStatusCode;
             }
             catch

@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-27",
+  "scope": "Three cache-only buildsPASS; canonical2configurationFAIL191ms/0skips/0of52 checks. Original protected key/client/Pod files missing; no HTTP/auth/storage/serverstart/newidentity/ACL/key generation",
+  "testDependencyResolution": "Cache-only NU1603 visible: xunit2.5.3 missing, retained2.9.2 selected; runner2.5.3 missing, retained2.8.2 selected; no package-source pin change or networkdownload",
+  "freeBytes": 127416418304,
+  "assemblies": [
+    {
+      "sources": 794,
+      "name": "NextGenSoftware.OASIS.API.Core",
+      "sha256": "EA77172CAE913B8435488CABF1630B6050D66349D5C07FF6FCD08783D90232B6",
+      "pdbSha256": "7180C2899E20E26777E4215E1FEDF2F955BC3A9C6885E4D4D2892FB9597A5FDA"
+    },
+    {
+      "sources": 56,
+      "name": "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "sha256": "1238550B03FAE9D8E74176273C87E5880A838D7A3AE3756A461EA541FC935598",
+      "pdbSha256": "49C72D3A4B0455438A368586781D91847701BD186747638BBC3D5204E18A8D97"
+    },
+    {
+      "sources": 13,
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS",
+      "sha256": "06427CB90672FA0B9B08B12FB0A7E6A8C712F3F783A231E5CB571332678262B7",
+      "pdbSha256": "2B4C08AF45CC902DC774E3BED42BB38A01138E14531226A5180B49C0C694C2F0"
+    },
+    {
+      "sources": 10,
+      "name": "NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests",
+      "sha256": "8BC8E92A41DB36D910CB74240AAB23A1D184127E14ECF7D34005C3B8015E0448",
+      "pdbSha256": "A175155E2E0448494804F4BD30ECEC98A1C3A940814984E98D6346F4F376646D"
+    }
+  ],
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "EA77172CAE913B8435488CABF1630B6050D66349D5C07FF6FCD08783D90232B6",
+      "SourceDocuments": 794
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "1238550B03FAE9D8E74176273C87E5880A838D7A3AE3756A461EA541FC935598",
+      "SourceDocuments": 56
+    }
+  ],
+  "reusedOutputs": [
+    {
+      "path": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS",
+      "binBytes": 7570673,
+      "objBytes": 1065909
+    },
+    {
+      "path": "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests",
+      "binBytes": 50554553,
+      "objBytes": 1185614
+    }
+  ],
+  "trx": {
+    "rawBytes": 8406,
+    "gzipBytes": 1736,
+    "sha256": "154c974dfb98e18b59d1a24cbaf96f35cad481d8b186db0bb992678a4849bdd6",
+    "gzipSha256": "82c997e71c98abf08827caf86e3cdaad689942e544507e65fd3ea25f8633e9d7",
+    "rawRemovedAfterVerifiedCompression": true
+  },
+  "runtimeState": "Retained oasis-solid exited; not started by this run",
+  "metadataWorkPath": "C:/Source/OASIS/TestResults/SolidCurrent/environment.lock; originalprotectedfilesnotcreated"
+}

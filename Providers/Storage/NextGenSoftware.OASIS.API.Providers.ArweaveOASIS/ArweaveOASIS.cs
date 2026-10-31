@@ -27,6 +27,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
         private OASISDNA _OASISDNA;
         private string _OASISDNAPath;
         private IArweaveService _arweaveService;
+        private string _nodeExecutable;
+        private string _sdkBridgePath;
+        private bool _mineAfterPost;
 
         public ArweaveOASIS()
         {
@@ -55,6 +58,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ArweaveOASIS
         {
             _OASISDNA = OASISDNA;
             _OASISDNAPath = OASISDNAPath;
+            Init();
+        }
+
+        public ArweaveOASIS(string walletJson, string gatewayUrl, string sdkBridgePath, string nodeExecutable = "node", bool mineAfterPost = false)
+        {
+            _walletJson = walletJson;
+            _gatewayUrl = gatewayUrl;
+            _sdkBridgePath = sdkBridgePath;
+            _nodeExecutable = nodeExecutable;
+            _mineAfterPost = mineAfterPost;
             Init();
         }
     }

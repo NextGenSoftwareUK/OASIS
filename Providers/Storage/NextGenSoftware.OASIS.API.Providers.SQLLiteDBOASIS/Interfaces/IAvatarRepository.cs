@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
-    public interface IAvatarRepository
+    public interface IAvatarRepository : IAvatarTombstoneStorageProvider
     {
         OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true);
         OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true);

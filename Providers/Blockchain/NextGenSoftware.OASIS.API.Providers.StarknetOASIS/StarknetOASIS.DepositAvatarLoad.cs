@@ -132,45 +132,6 @@ public sealed partial class StarknetOASIS
         return result;
     }
 
-    private string GenerateSeedPhrase()
-    {
-        // Generate a deterministic seed phrase
-        // In production, use a proper BIP39 or similar mnemonic generation
-        var words = new[]
-        {
-            "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
-            "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid"
-        };
-
-        var random = new Random();
-        var seedWords = new List<string>();
-        for (int i = 0; i < 12; i++)
-        {
-            seedWords.Add(words[random.Next(words.Length)]);
-        }
-
-        return string.Join(" ", seedWords);
-    }
-
-    private (string PublicKey, string PrivateKey) DeriveKeysFromSeed(string seedPhrase)
-    {
-        // Derive keys from seed phrase
-        // In production, use proper cryptographic key derivation (e.g., BIP32/BIP44)
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var seedBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(seedPhrase));
-        
-        // Generate private key (64 hex chars = 32 bytes)
-        var privateKey = $"0x{BitConverter.ToString(seedBytes).Replace("-", "").ToLowerInvariant()}";
-        
-        // Derive public key from private key (simplified - in production use proper EC operations)
-        var publicKeyBytes = sha256.ComputeHash(seedBytes);
-        var publicKey = $"0x{BitConverter.ToString(publicKeyBytes).Replace("-", "").ToLowerInvariant()}";
-
-        return (publicKey, privateKey);
-    }
-
-
-
     public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
     {
         var result = new OASISResult<IEnumerable<IAvatar>>();

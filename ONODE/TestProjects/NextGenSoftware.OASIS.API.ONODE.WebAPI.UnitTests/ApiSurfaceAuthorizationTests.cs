@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         [InlineData(AvatarType.User, "AUTH_NOT_AUTHORIZED")]
         public async Task GraphQL_ProtectedField_NonWizard_IsRejected(AvatarType? caller, string code)
         {
-            var result = (IOperationResult)await ExecuteAsync("{ secret }", caller);
+            var result = (OperationResult)await ExecuteAsync("{ secret }", caller);
 
             result.Errors.Should().ContainSingle(e => e.Code == code);
             result.ToJson().Should().NotContain("\"secret\":\"secret\"");
@@ -58,18 +58,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         [Fact]
         public async Task GraphQL_ProtectedField_Wizard_IsAllowed()
         {
-            var result = (IOperationResult)await ExecuteAsync("{ secret }", AvatarType.Wizard);
+            var result = (OperationResult)await ExecuteAsync("{ secret }", AvatarType.Wizard);
 
-            result.Errors.Should().BeNullOrEmpty();
+            result.Errors.Should().BeNullOrEmpty(result.ToJson());
             result.ToJson().Should().Contain("\"secret\": \"secret\"");
         }
 
         [Fact]
         public async Task GraphQL_PublicField_Anonymous_IsAllowed()
         {
-            var result = (IOperationResult)await ExecuteAsync("{ authenticate }", caller: null);
+            var result = (OperationResult)await ExecuteAsync("{ authenticate }", caller: null);
 
-            result.Errors.Should().BeNullOrEmpty();
+            result.Errors.Should().BeNullOrEmpty(result.ToJson());
         }
 
         private sealed class TestCallContext : ServerCallContext

@@ -200,6 +200,8 @@ if ($Profile -eq 'HoloEnabled') {
 # Run serially because the shared multi-target Core project writes one XML documentation file.
 Invoke-DotNet @('test', $projects.DnaTests, '--configuration', $Configuration,
     '--logger', 'trx;LogFileName=dna.trx', '--results-directory', $artifactsPath, '--nologo')
+# Core's admitted-controller tests load the real compiled WEB4 controllers, so build that artifact first.
+Invoke-DotNet @('build', $projects.OnodeWebApi, '--configuration', $Configuration, '--nologo')
 Invoke-DotNet @('test', $projects.CoreTests, '--configuration', $Configuration,
     '--logger', 'trx;LogFileName=core-hyperdrive.trx',
     '--results-directory', $artifactsPath, '--nologo')

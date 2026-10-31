@@ -1,0 +1,227 @@
+[
+  {
+    "Time": "2026-10-20T05:59:12.216210725Z",
+    "Path": "/",
+    "Method": "GET",
+    "Status": 302,
+    "UserAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "Duration": 441,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T05:59:12.379978826Z",
+    "Path": "/swagger",
+    "Method": "GET",
+    "Status": 301,
+    "UserAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "Duration": 12,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T05:59:12.527909677Z",
+    "Path": "/swagger/index.html",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "Duration": 73,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T05:59:12.634007340Z",
+    "Path": "/swagger/favicon-32x32.png",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "Duration": 22,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:01.362614557Z",
+    "Path": "/api/avatar/authenticate",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 1860,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:02.729849050Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 904,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:10.131866933Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 718,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:16.124384922Z",
+    "Path": "/api/karma/get-positive-karma-weighting/Walking100Steps",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 144,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:16.817421589Z",
+    "Path": "/api/karma/get-karma-for-avatar/c0b43739-cc8e-48c3-9a6f-6a071a95170f",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 261,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:23.436264778Z",
+    "Path": "/api/karma/add-karma-to-avatar/c0b43739-cc8e-48c3-9a6f-6a071a95170f",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 6180,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:38:24.024235469Z",
+    "Path": "/api/karma/get-karma-for-avatar/c0b43739-cc8e-48c3-9a6f-6a071a95170f",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 184,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:39:42.876482493Z",
+    "Path": "/api/karma/get-level-thresholds",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 17,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:39:42.881125296Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 3,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:39:43.387389308Z",
+    "Path": "/api/nft/load-all-geo-nfts",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 15,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:39:43.442658592Z",
+    "Path": "/api/avatar/refresh-token",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "UnityPlayer/2022.3.62f3 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)",
+    "Duration": 105,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:41:39.780690430Z",
+    "Path": "/api/avatar/authenticate",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 816,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:41:40.976349515Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 722,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:41:45.863877914Z",
+    "Path": "/api/data/load-holons-by-metadata",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4463,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:41:51.114084662Z",
+    "Path": "/api/data/load-holons-by-metadata",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4405,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:41:56.385501248Z",
+    "Path": "/api/data/load-holons-by-metadata",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4394,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:42:01.603281666Z",
+    "Path": "/api/data/load-holons-by-metadata",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 4393,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:42:14.710195139Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 718,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:42:18.914912195Z",
+    "Path": "/api/avatar/set-active-quest",
+    "Method": "POST",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 3788,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:42:20.042246581Z",
+    "Path": "/api/avatar/get-logged-in-avatar-with-xp",
+    "Method": "GET",
+    "Status": 200,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 720,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  },
+  {
+    "Time": "2026-10-20T06:52:25.394207210Z",
+    "Path": "/api/hyperdrive/mode",
+    "Method": "GET",
+    "Status": 401,
+    "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-GB) PowerShell/7.6.5",
+    "Duration": 10,
+    "Deployment": "d5386d48-bd07-4ab3-83a7-0000132b07d4"
+  }
+]

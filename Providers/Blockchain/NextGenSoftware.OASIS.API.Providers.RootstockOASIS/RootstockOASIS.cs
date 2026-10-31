@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
 public sealed class RootstockOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     public RootstockOASIS(string hostUri, string chainPrivateKey, string contractAddress)
-        : base(hostUri, chainPrivateKey, contractAddress)
+        : base(hostUri, chainPrivateKey, contractAddress, 30)
     {
         this.ProviderName = "RootstockOASIS";
         this.ProviderDescription = "Rootstock Provider";

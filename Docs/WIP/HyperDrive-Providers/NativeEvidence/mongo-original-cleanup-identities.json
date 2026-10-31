@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-26",
+  "scope": "Exact original two avatar cleanup1PASS420ms, all-payloads-verified-before-dispatch and both namespaces proved empty; no DB drop",
+  "dependencies": [
+    {
+      "Dependency": "Core",
+      "SHA256": "3AE7D8A02212AF85DE6F1E493974CBE08DB232DC01255DE10DF08F97CF1315EF",
+      "SourceDocuments": 790
+    },
+    {
+      "Dependency": "Shared",
+      "SHA256": "3916D2C60C3C4643F8CC5A3EF35E53E7789DD22F31B478A54CA6D39EFC207BCC",
+      "SourceDocuments": 56
+    }
+  ],
+  "assemblies": [
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS",
+      "sha256": "B897B7FE43B255CDA526676D2533218249118EEC5753F70183C05489C28C6B78",
+      "pdbSha256": "70150D320B8674772E1718C24CC7011A22BF6387A77A07645A46083A8C392FDC",
+      "sources": 124
+    },
+    {
+      "name": "NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "sha256": "40F7C16624917F53EEA0767CC156DF3452C35DCFEF62C4545584B5898E91747A",
+      "pdbSha256": "DB7A3FE079F4AB6469E7B91213D388C9CF494438EDCFCF23532E63690619BDC2",
+      "sources": 6
+    }
+  ],
+  "freeBytes": 127590010880,
+  "reusedOutputs": [
+    {
+      "path": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage",
+      "binBytes": 7348284,
+      "objBytes": 1411601
+    },
+    {
+      "path": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS",
+      "binBytes": 8506056,
+      "objBytes": 2263445
+    },
+    {
+      "path": "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.IntegrationTests",
+      "binBytes": 47548857,
+      "objBytes": 1103191
+    }
+  ],
+  "trx": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/mongo-core-original-cleanup-current.trx.gz",
+    "rawBytes": 2829,
+    "rawSha256": "081dc687b80c190a5825706ea3c7e113bb7ed56b2ad6ec1bc91e1882380d0f31",
+    "gzipBytes": 1171,
+    "gzipSha256": "4dbe979c6dfd6a78e32357d4c6c113fb46ee38f785e0f9348cbd70010f02dd0c",
+    "rawRemovedAfterVerifiedCompression": true
+  },
+  "journal": {
+    "path": "Docs/WIP/HyperDrive-Providers/NativeEvidence/mongo-original-avatars-cleanup.complete.json",
+    "sha256": "ed5424600fbcb44624e81d6e86f2145355e52ea2677ecfcd4356cb41876ba648"
+  }
+}

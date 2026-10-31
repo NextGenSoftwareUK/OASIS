@@ -1,0 +1,79 @@
+{
+  "suite": "core-storage-v1",
+  "runs": [
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "RedisOASIS",
+      "Mode": "native",
+      "Synchronous": false,
+      "OwnerId": "2c9ef409-0379-4692-bce5-1e92e67faa05",
+      "RootId": "f1f4afc7-e5c6-43f2-bf3b-60efa7d418e5",
+      "ChildId": "a385e9ac-9844-436b-8592-7791f877c6cf",
+      "BatchIds": [
+        "0b7b9637-54cd-46f7-9e3d-70988b5ce68e",
+        "398337e0-bd5c-4834-b382-901edaa1021d"
+      ],
+      "ImportId": "98f9b550-efc5-4622-b0d6-43c56ae8a676",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "CurrentCase": "holon-delete-a385e9ac9844436b85927791f877c6cf",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    },
+    {
+      "SuiteVersion": "core-storage-v1",
+      "Provider": "RedisOASIS",
+      "Mode": "native",
+      "Synchronous": true,
+      "OwnerId": "cd9fd4e9-788d-4987-b2fa-ea84dff3cc9a",
+      "RootId": "a4376697-4662-419e-8783-821136dd34f0",
+      "ChildId": "e7f19904-1ed6-4167-8cb3-1c4c04f97ef0",
+      "BatchIds": [
+        "75982301-1119-4dc7-96c6-9633c31e0398",
+        "12f7448e-08fb-4b27-9349-91d3d556fcda"
+      ],
+      "ImportId": "5cb6793d-5e40-4272-a60d-e26d79867384",
+      "Passed": [
+        "activate",
+        "avatar-save",
+        "avatar-id",
+        "avatar-username",
+        "avatar-email",
+        "detail-save",
+        "detail-id",
+        "detail-username",
+        "detail-email",
+        "graph-save",
+        "holon-id",
+        "holon-update",
+        "holon-update-read",
+        "parent-query",
+        "metadata-query",
+        "batch-save-null-metadata",
+        "import",
+        "owner-export"
+      ],
+      "CurrentCase": "holon-delete-e7f199041ed641678cb31c4c04f97ef0",
+      "FailureType": "System.InvalidOperationException",
+      "Succeeded": false
+    }
+  ]
+}

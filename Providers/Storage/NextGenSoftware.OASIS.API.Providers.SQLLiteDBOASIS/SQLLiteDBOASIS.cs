@@ -18,7 +18,7 @@ using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 {
-    public partial class SQLLiteDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider, IOASISLocalStorageProvider, IOASISNETProvider, IOASISSuperStar
+    public partial class SQLLiteDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider, IOASISLocalStorageProvider, IOASISNETProvider, IOASISSuperStar, IDisposable
     {
         private readonly DataContext _appDataContext;
 
@@ -33,10 +33,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
+            _ownConnectionString = connectionString;
             _appDataContext = new DataContext(connectionString);
             _avatarDetailRepository = new AvatarDetailRepository(_appDataContext);
             _avatarRepository = new AvatarRepository(_appDataContext);
-            _holonRepository = new HolonRepository(_appDataContext);
+            _holonRepository = new HolonRepository(_appDataContext,()=>IsVersionControlEnabled);
+        }
+
+        public void Dispose()
+        {
+            IsProviderActivated = false;
+            _appDataContext.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

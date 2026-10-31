@@ -1,0 +1,17 @@
+{
+  "NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll": {
+    "consumerSha256": "280255993AE54D655302A31BB77DAE4BAB9231CA50EEB4F8C2D1E43B7937DA9E",
+    "sha256": "280255993AE54D655302A31BB77DAE4BAB9231CA50EEB4F8C2D1E43B7937DA9E",
+    "producer": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.dll"
+  },
+  "NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll": {
+    "consumerSha256": "4C48245A2D8E769932F5B7DBDF705A5D996C6504C226C5A80F913860FAEF5C19",
+    "sha256": "4C48245A2D8E769932F5B7DBDF705A5D996C6504C226C5A80F913860FAEF5C19",
+    "producer": "Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/bin/Debug/net10.0/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.dll"
+  },
+  "NextGenSoftware.OASIS.API.Core.dll": {
+    "consumerSha256": "DC914D569D9C90CA7EEA776D69D3CFC5649C9D801C15ADA5E37A1A2F79C5C84A",
+    "sha256": "DC914D569D9C90CA7EEA776D69D3CFC5649C9D801C15ADA5E37A1A2F79C5C84A",
+    "producer": "OASIS Architecture/NextGenSoftware.OASIS.API.Core/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Core.dll"
+  }
+}
