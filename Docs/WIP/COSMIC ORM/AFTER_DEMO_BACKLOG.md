@@ -44,3 +44,8 @@ Memcached demo integrated30 October:15controls/native1/Mongoidentity1/paired1 + 
 Valkey independent demo integrated30 October:8controls/native1/restart1/Mongoidentity1/paired1 + browser5/4; actualValkey9.0.4/sourceciphertext unchanged. Later: metadata/content/children/generalordering/conditionalwrites/history, clusterreplication/failover, publichosting/centralfactory/HyperDrive/full parity. No inherited Redis/otherfacade certification. See VALKEY_CQL_MVP.md/historyarchive.
 
 KeyDB independent demo integrated30 October:8controls/native1/restart1/Mongoidentity1/paired1 + browser5/4; actual6.3.4/pinnedbinary/process/sourceciphertext verified unchanged. Later: metadata/content/children/order/conditionalwrites/history, active replication/cluster/failover, publichosting/centralfactory/HyperDrive/full parity. No inherited Redis/Valkey certification. See KEYDB_CQL_MVP.md/historyarchive.
+
+
+### Dragonfly current demo integration (30 October 2026)
+
+Native identity/checkpoint/restart/MongoSDK/HTTP/browser ID-filter flow is verified (14 checks), not full parity. Return to general name/description/metadata predicates, graph/conditional/history semantics, central registration/hosted admission, cluster/active replication/failover and distributed snapshots. Native completed RDB/clean restart does not prove uncheckpointed-write recovery, AOF/per-save crash durability or PITR. Preserve original source and stop receipts. See DRAGONFLY_CQL_MVP.md; no new Redis/shared-executor hardening required.
