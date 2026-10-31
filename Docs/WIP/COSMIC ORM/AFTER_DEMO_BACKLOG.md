@@ -74,3 +74,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### CouchDB current integration (30 October 2026)
 
 46cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; savedpayloads/revisions/sourcefilesunchanged. Generalname/description/metadataqueries, graph/depth/history/versionmode, observed-tokenconditionalwrites, durableuncertainwritereconciliation, avatar/bulkatomicity/centralregistration and HyperDrive/replication/failover/loadbalancing/distributedsnapshots remainred. Currentupsertfetcheslatest_rev; exactsavedreceipt ownershipcontrols are not cross-clientCAS. PlaintextJSON; retainednativefixture3live, tombstone/errorbranches controlledHTTP only. See COUCHDB_CQL_MVP.md.
+
+
+### Couchbase current integration (30 October 2026)
+
+36cases/native3recordrestart/MongoSDK/HTTP/browser/postpair passed; originalJSON/CAS/cluster/bucketidentity preserved. Generalname/description/metadata/fullSQL++translation, SDKwirebytebounding, child/graph/history, observedtokenconditionalCAS/unknownwriterecovery, migrations/centralregistration/hostedCapella/TLS/mobilesync and HyperDrive/replication/failover/loadbalancing/distributedsnapshots remainred. ReceiptCASexactunsignedstring provesackprecision, not concurrency. Existinglegacylookup/avatarserializer/errorpaths needseparatenativeaudit; newCQLdoesnotfallbacktothem. See COUCHBASE_CQL_MVP.md.
