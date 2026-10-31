@@ -54,3 +54,8 @@ Native identity/checkpoint/restart/MongoSDK/HTTP/browser ID-filter flow is verif
 ### Garnet generation2 current demo integration (30 October 2026)
 
 Verified admittedgeneration2 nativecheckpoint/restart/SDK/HTTP/browser ID-filter scope only; originaluncheckpointedsource remains lost/unresolved with originalpendingreceiptsunchanged. No recoveryclaim. Return to generalname/description/metadataqueries, graph/conditional/history, centralregistration/externalatomicityadmission, AOF/crashdurability and HyperDrive/cluster/failover/distributedsnapshotacceptance. NativeLua+LuaTransactionMode profile does not certify arbitraryexternalconfigurations. See GARNET_CQL_MVP.md.
+
+
+### PocketBase current demo integration (30 October 2026)
+
+NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new businesswrites in retained-source run. Saveownership/acknowledgement faultcontrols are syntheticHTTP proof, not full nativeconditionalwritecertification. Return to name/description/metadataqueries, graph/history/conditionalwrites, centralregistration/hostedadmission, HyperDrivereplication/failover/loadbalancing and distributedsnapshots. PlaintextcanonicalJSON remains explicit. Preserveoriginaldatabase/password/identity/ACKs; serviceauthentication legitimatelychanges SQLitefiles, logicalrecordbaseline unchanged. See POCKETBASE_CQL_MVP.md.
