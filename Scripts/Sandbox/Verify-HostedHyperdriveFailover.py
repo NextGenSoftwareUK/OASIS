@@ -17,10 +17,10 @@ spec.loader.exec_module(flow)
 PROVIDERS = ["MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"]
 
 
-def raw_load(token, body):
-    request = urllib.request.Request(flow.BASE + "data/load-holon", method="POST",
+def raw_request(token, route, body):
+    request = urllib.request.Request(flow.BASE + route, method="POST",
         data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "Accept": "application/json",
-            "Authorization": "Bearer " + token, "Idempotency-Key": str(uuid.uuid4())})
+            "Authorization": "Bearer " + token, "Idempotency-Key": body.get("operationId") or str(uuid.uuid4())})
     try:
         response = urllib.request.urlopen(request, timeout=30)
     except urllib.error.HTTPError as error:
@@ -46,7 +46,7 @@ def main():
     if flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Existing avatar fault must not be overwritten or restored by this gate.")
     for provider in PROVIDERS:
-        status, baseline = raw_load(token, {"id": identity, "providerType": provider,
+        status, baseline = raw_request(token, "data/load-holon", {"id": identity, "providerType": provider,
             "autoFailOverMode": "OFF", "autoLoadBalanceMode": "OFF", "loadChildren": False})
         if status != 200 or baseline.get("isError") or baseline.get("result", {}).get("id") != identity:
             raise RuntimeError("Existing exact replica baseline unavailable; no fault sent.")
@@ -60,7 +60,7 @@ def main():
             fault = flow.call("sandbox/providers/" + provider + "/offline?seconds=30", token)
             flow.write_new(state / ("fault-" + provider + ".acknowledged.json"), json.dumps({"expires": fault["result"]}).encode())
             before = flow.call("sandbox/refusals", token, method="GET")["result"]
-            status, blocked = raw_load(token, {"id": identity, "providerType": provider,
+            status, blocked = raw_request(token, "data/load-holon", {"id": identity, "providerType": provider,
                 "autoFailOverMode": "OFF", "autoLoadBalanceMode": "OFF", "loadChildren": False})
             if not blocked.get("isError") or blocked.get("errorCode") != "HYPERDRIVE_PROVIDER_OFFLINE":
                 raise RuntimeError("Disabled failover must report the exact offline provider error.")
