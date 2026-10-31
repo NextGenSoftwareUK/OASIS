@@ -37,6 +37,8 @@ public static class NativeKeySetWalkthrough
             ProviderType.NEAROASIS => "NearAccountId",
             ProviderType.BaseOASIS => "BaseAccountAddress",
             ProviderType.OptimismOASIS => "OptimismAccountAddress",
+            ProviderType.LineaOASIS => "LineaAccountAddress",
+            ProviderType.ScrollOASIS => "ScrollAccountAddress",
             ProviderType.AvalancheOASIS => "AvalancheAccountAddress",
             ProviderType.BNBChainOASIS => "BNBChainAccountAddress",
             _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))

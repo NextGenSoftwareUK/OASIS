@@ -1695,3 +1695,14 @@ Optimism HTTP outcome:1Core/2API/3configuration/1nativeHTTPpass0skips; SDK2priva
 31October2026:derive eleven-source-public-{before,candidate}-variables.dpapi in existing LocalState/COSMIC/HostedSourceRolloutCurrent using original protectedsnapshot/stable11catalogues. Preserve10candidate unchanged. New public-only eleven-source-public-review.json and Optimism-only4preset export in TestResults/HostedCqlIntegrationCurrent; protectedsizes pending. Reuse Python/.NET/caches; no services/downloads/hostread/apply.
 
 Eleven-source outcome:protectedbefore67,094B/candidate95,094B retained; public44preset and focused4preset exports regenerable.1newplanner testpass0skips,3scopecontrolspass. C:78,408,478,720B free. No hostread/apply/services/download/newenvironment. Existing ten-sourceprotected files unchanged.
+
+### Rootstock protocol qualification
+31October2026:existing bounded PowerShell/.NET HTTP runner, official public-node.rsk.co endpoint; read-only chain/genesis/finalized/hashboundbalances, no keys/accounts/writes/download/newenvironment. TestResults/EvmBreadthReadinessCurrent/Rootstock.json regenerable,size pending. No catalogue/identity created before capability proof.
+
+Rootstock qualification failed at finalized-header HTTP400 after chain/genesis passed; preserve Rootstock.json, no fallback/latest downgrade/catalogue. Next explicit independent Linea/Scroll official endpoints rpc.linea.build and rpc.scroll.io, sameboundedreadonly runner/no writes/newenvironment. Separate TestResults/EvmBreadthReadinessCurrent/{Linea,Scroll}.json, regenerable.
+
+Linea/Scroll new stablecatalogues LocalState/COSMIC/Hosted{Linea,Scroll}PublicSourceCurrent/source.json createdonce, retainowners; publicconfig no credentials. Existingprojects/testhost/console reused with2references, no packages/download. Cacheonlyrestore then boundedleased tests, outputs EvmBreadthReadinessCurrent; nativeRPCreadonly,nodatabases. Sizes pending.
+
+Linea/Scroll outcome:38tests/0skips (36controlled+2nativepublishedsample),consolebuild/2actualCLI3/2pass. Rootstock qualificationfailed and retained; no identity/environmentcreated for it. Cacheonlyrestore succeeded,nodownload/install/database/service. Stablecatalogue sizes:
+- `LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json`: 280B,retainstableowner.
+- `LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json`: 279B,retainstableowner.

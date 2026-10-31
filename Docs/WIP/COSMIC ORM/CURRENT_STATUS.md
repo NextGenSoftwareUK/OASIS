@@ -12,6 +12,8 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 
 Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;1Core/2API/3configuration controls pass. Client preparation1test and website link passe8df3c4; optional eleven-source protected candidate now staged; actual4Optimism presets pass planner (1test/0skips),3application-scope controls pass. Next permitted matching release and hosted acceptance. Original ten-source batch preserved.
 
+Linea/Scroll native+publishedC#/actualCLI3/2 now pass (38tests/0skips); HTTP/Mongo next. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
+
 ## Working copies and release state
 
 - Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **ccc3edbcdcf5e86b10d0488949beb4700331d906** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
