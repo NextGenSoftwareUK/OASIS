@@ -280,3 +280,43 @@ Only deployment SDK correction is next; no source re-publication or Mongo saves.
 - ipfs-abi-artifact-proof.json SHA256 d67abea727760f7d6fdea19e88cbd968c5b98af8dce6ade64a7127b3f134b4c7.
 - ipfs-build-input-proof.json SHA256 a6eb706ce34179f30644d414ff037f29f2893a58f3908b2b5797461e70c1ca8a.
 - ipfs-server-state-before-sdk-fix.json SHA256 fd819dba1e442a94e97e2beb24a09e020d80df58c68bf8509344db0e448470a9.
+
+### Hosted IPFS acceptance — 31 October 2026
+
+Correction913b9d0bf (SDK patchf60758a1e plus preserved concurrent f0b72a55e
+provider-I/O manifest) deployed64bbc646-5d06-412a-a5bd-eb62ca9ae737 SUCCESS,
+image sha256:9410328bb615830561ebd001eb4ebb0e6c851ce68dea0f091b75239fb040ef2f.
+No configuration resubmission/source re-publication. Public frontend unchanged
+2b46ded: generic discovery/operation/preparation contracts needed no provider case.
+
+Fresh normal visitor sandbox-6998fcb9 reads native IPFS3records and2subset, exact
+original IDs/CIDs/names. Acknowledged2private Mongo snapshots, full federation5
+(IPFS3/Mongo2), subset4(IPFS2/Mongo2). Repeated preparation0saved/2existing.
+Independent sandbox-869466e8 sees3public IPFS rows only; exact foreign Mongo IDs0.
+SQLite and Neo4j each return2replicas with matching ID/name/description/version/
+owner/private flag/metadata. No user IPFS writes or manual replica repair.
+Five providers now have actual hosted query evidence; this is bounded CID lookup
+on an isolated offline Kubo node, not general IPFS search/public-network resilience
+or full ORM/provider parity. Original failed request/SDK reproduction retained.
+
+Owned tabs7/8closed. Tokens stayed in page memory. Demo avatars/private snapshots
+remain under normal sandbox expiry/cleanup; retained IPFS source remains product
+fixture. Post-correction SSH read-only probe timed out twice on port22, so physical
+peer/config/ACK persistence was not independently re-observed; do not claim that
+post-redeploy measurement. Before-state hashes and native repeat-bootstrap tests
+are retained. Public CQL source IDs/CIDs remain identical and native results prove
+actual hosted data access despite the unavailable SSH observation.
+
+- ipfs-live-acceptance.json (961B), SHA256 05179c2e6aa22f02a38f3e6f4708f9e2d6465be66197e8b7f0ae8a6b2700661c.
+- ipfs-live-three.json (2091B), SHA256 c6d00c2e9886a2a7e90b55b16284ec6e7460b252ed2729071da8b2b962d91945.
+- ipfs-live-two.json (1558B), SHA256 2264eb874a1c4134dc44a65fce1e5cd9db0d27455b807dfcb978f6247909cba8.
+- ipfs-live-preparation.json (257B), SHA256 718a85cad8543b4a5512807fdd31296fa4ae2e88e3fa12bbfa41edb5e7be12d9.
+- ipfs-live-repeat.json (148B), SHA256 ca272845d713bdc1d032e4171a9d710a1fb1f003c5952cfd4448b1f88b981832.
+- ipfs-live-mongo-five.json (9663B), SHA256 07c5a741ef1b6087cfab2b4b9e43b3d2c513d439fa38f499f822cbc4f5ca60fa.
+- ipfs-live-mongo-four.json (8179B), SHA256 12ae0ab71f8072fd9691e81798608eb117f5fff372902da7568ddfbf5809ed1d.
+- ipfs-live-other-visitor.json (5117B), SHA256 5d7000d9136e470a86f06f53df5a205e5d83e05c5076deb071cc684c09747be7.
+- ipfs-live-private-isolation.json (468B), SHA256 f25ce206d8d8e73e346dec10da030881b2cc2b1d90c3f56e7c12a18cad3bd171.
+- ipfs-live-sqlite-replicas.json (2263B), SHA256 f2e84970d9cc8a09938e2e8f39fc262e6d71b0d4631fb6a1910f1f47371eaff0.
+- ipfs-live-neo4j-replicas.json (2259B), SHA256 ad039b57030fb44d6059c6c98b2e9087d925f46c6055ae0fe06c33f2b2e7d38c.
+- ipfs-live-mongo-four.png (87513B), SHA256 2f7dfd93dde494cd66f6e1aee09bcf607d6cd993e82a51a04ca6b0a6ba997658.
+- ipfs-live-initial-failure.json (456B), SHA256 8eae5123e0e3bd2afec7fb7def0bccd922a289cc7b21069ae38f82a5a5282f39.
