@@ -217,3 +217,26 @@ and prove actual hosted leaf3/2and Mongo5/4/isolation in the existing generic UI
 - ipfs-host-source-summary.json SHA256 9aad480517eae883ae77d6140e61bb789196e35eb1b676d66260dc4e5d1d5a75.
 - ipfs-runtime-manifest.json SHA256 5fec6634543b1618b5d4198e3db2141c3a6da59995c7ffe10af70e9049883c10.
 - ipfs-host-resources.json SHA256 7971b34f94f39a7d21bd0bfbf8061d6caf6da8f2c85f77841575ea3e0ca21c45.
+
+### Owned hosted IPFS runtime — prepared release
+
+Pinned official multi-platform Kubo0.43.1stage in WEB4 Dockerfile, no Windows image
+or archive download. Explicit sandbox entrypoint uses authoritative DNA Sandbox.Enabled,
+not the obsolete environment flag (actual service has DNA true/env absent). Bootstrap
+captures a bounded canonical hash-checked encrypted CAR bundle, persists intent,
+initializes/imports once and refuses interrupted/changed state. Native health binds
+version and peer identity; process owner awaits readiness and owns termination of
+Kubo/API. RPC loopback5001 only, no gateway/swarm, offline mode disclosed.
+
+Ten Node controls pass/no skips, including real cached-runtime initialization/import,
+repeat identity/config/ACK preservation, interrupted-state rejection and explicit
+source migration rejection. The sole disposable native probe under
+TestResults/HostedIpfsBootstrapCurrent was removed only after assertions and awaited
+CLI completion; zero ports/daemon processes. Two new API configuration cases plus
+existing public/federation example controls pass (counts in TRX). Native source/key
+are unchanged. No remote bootstrap/configuration mutation yet; protected before and
+candidate variables stored under LocalState/COSMIC/HostedSourceRolloutCurrent.
+
+- ipfs-runtime-tests-final.log SHA256 f6e457073e69898b983f6f8aa9d0d0611a81352b453feb472349b0589f211ec0.
+- ipfs-runtime-native-proof.json SHA256 404f460092f729e04caae8ddbe3b7191a47fb9a6d0ea05fd66d70ac8e6302efc.
+- ipfs-hosted-examples.trx SHA256 f45e5eef5567e61939bf7a4749075b66fd11fb37c2c2f1d0b91ef0eb67e5411f.
