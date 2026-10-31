@@ -25,14 +25,16 @@ SOURCE_KEYS=("CQL_GCS_PUBLIC_SOURCE_JSON","CQL_ETHEREUM_PUBLIC_SOURCE_JSON",
     "CQL_AVALANCHE_PUBLIC_SOURCE_JSON","CQL_BNB_PUBLIC_SOURCE_JSON")
 APPLY_KEYS=SOURCE_KEYS+("PREPARED_STORAGE_ADMISSION_JSON","CQL_HOSTED_QUERY_EXAMPLES_JSON")
 
-def application_keys(before,after,include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False):
+def application_keys(before,after,include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     if include_linea_scroll and not include_optimism:raise ValueError("Explicit thirteen-source scope requires Optimism")
     if include_zksync_abstract and not (include_optimism and include_linea_scroll):raise ValueError("Explicit fifteen-source scope requires all earlier profiles")
     if include_monad and not (include_optimism and include_linea_scroll and include_zksync_abstract):raise ValueError("Explicit sixteen-source scope requires all earlier profiles")
+    if include_sei and not (include_optimism and include_linea_scroll and include_zksync_abstract and include_monad):raise ValueError("Explicit seventeen-source scope requires all earlier profiles")
     source_keys=SOURCE_KEYS+(("CQL_OPTIMISM_PUBLIC_SOURCE_JSON",) if include_optimism else ())
     if include_linea_scroll:source_keys+=("CQL_LINEA_PUBLIC_SOURCE_JSON","CQL_SCROLL_PUBLIC_SOURCE_JSON")
     if include_zksync_abstract:source_keys+=("CQL_ZKSYNC_PUBLIC_SOURCE_JSON","CQL_ABSTRACT_PUBLIC_SOURCE_JSON")
     if include_monad:source_keys+=("CQL_MONAD_PUBLIC_SOURCE_JSON",)
+    if include_sei:source_keys+=("CQL_SEI_PUBLIC_SOURCE_JSON",)
     apply_keys=source_keys+APPLY_KEYS[-2:]
     changed={key for key in before.keys()|after.keys() if before.get(key)!=after.get(key)}
     if changed!=set(apply_keys) or any(key not in after for key in before):
@@ -41,17 +43,17 @@ def application_keys(before,after,include_optimism=False,include_linea_scroll=Fa
         raise ValueError("Existing source enrollment requires reconciliation")
     return apply_keys
 
-def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False):
-    prefix="sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
+def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
+    prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
     configuration=load("Publish-HostedSolidConfiguration")
     before=configuration.protected_read(prefix+"-before-variables.dpapi")
     after=configuration.protected_read(prefix+"-candidate-variables.dpapi")
     # All intent, concurrency, exact-observation and no-replay semantics have
     # one owner in the existing publisher. This command never deploys.
-    configuration.apply_values(prefix,application_keys(before,after,include_optimism,include_linea_scroll,include_zksync_abstract,include_monad))
+    configuration.apply_values(prefix,application_keys(before,after,include_optimism,include_linea_scroll,include_zksync_abstract,include_monad,include_sei))
 
-def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False):
-    prefix="sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
+def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
+    prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
     configuration=load("Publish-HostedSolidConfiguration")
     seven=configuration.protected_read(OLD+"-candidate-variables.dpapi")
     sources={name:json.loads((ROOT/("LocalState/COSMIC/Hosted"+name+"PublicSourceCurrent/source.json")).read_text(encoding="utf-8-sig")) for name in ("Base","Avalanche","Bnb")}
@@ -73,6 +75,10 @@ def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstra
         if not (include_optimism and include_linea_scroll and include_zksync_abstract):raise ValueError("Explicit sixteen-source scope requires all earlier profiles")
         sources["Monad"]=json.loads((ROOT/"LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json").read_text(encoding="utf-8-sig"))
         after=load("Publish-HostedMonadPublicConfiguration").candidate(after,sources["Monad"])
+    if include_sei:
+        if not (include_optimism and include_linea_scroll and include_zksync_abstract and include_monad):raise ValueError("Explicit seventeen-source scope requires all earlier profiles")
+        sources["Sei"]=json.loads((ROOT/"LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json").read_text(encoding="utf-8-sig"))
+        after=load("Publish-HostedSeiPublicConfiguration").candidate(after,sources["Sei"])
     # Original host snapshot remains authoritative; this offline extension is
     # not a fresh observation and cannot authorize application.
     for suffix,value in (("before",configuration.protected_read(OLD+"-before-variables.dpapi")),("candidate",after)):
@@ -100,6 +106,9 @@ def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstra
     if include_monad:
         public["profiles"]["MonadOASIS"]=sources["Monad"]
         public["examples"]["MonadOASIS"]=examples["MonadOASIS"]
+    if include_sei:
+        public["profiles"]["SeiOASIS"]=sources["Sei"]
+        public["examples"]["SeiOASIS"]=examples["SeiOASIS"]
     path=ROOT/("TestResults/HostedCqlIntegrationCurrent/"+prefix+"-review.json")
     path.parent.mkdir(parents=True,exist_ok=True)
     path.write_text(json.dumps(public,indent=2)+"\n",encoding="utf-8")
@@ -115,6 +124,9 @@ def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstra
     if include_monad:
         focused={key:{"MonadOASIS":value["MonadOASIS"]} for key,value in public.items()}
         (path.parent/"monad-prepared-review.json").write_text(json.dumps(focused,indent=2)+"\n",encoding="utf-8")
+    if include_sei:
+        focused={key:{"SeiOASIS":value["SeiOASIS"]} for key,value in public.items()}
+        (path.parent/"sei-prepared-review.json").write_text(json.dumps(focused,indent=2)+"\n",encoding="utf-8")
     print("Offline protected candidate prepared: "+str(len(public["profiles"]))+"profiles; no host observation/application/deployment.")
 
 if __name__=="__main__":
@@ -123,9 +135,11 @@ if __name__=="__main__":
     elif sys.argv[1:]==["with-linea-scroll"]:main(True,True)
     elif sys.argv[1:]==["with-zksync-abstract"]:main(True,True,True)
     elif sys.argv[1:]==["with-monad"]:main(True,True,True,True)
+    elif sys.argv[1:]==["with-sei"]:main(True,True,True,True,True)
     elif sys.argv[1:]==["apply-reviewed"]:apply()
     elif sys.argv[1:]==["apply-reviewed-with-optimism"]:apply(True)
     elif sys.argv[1:]==["apply-reviewed-with-linea-scroll"]:apply(True,True)
     elif sys.argv[1:]==["apply-reviewed-with-zksync-abstract"]:apply(True,True,True)
     elif sys.argv[1:]==["apply-reviewed-with-monad"]:apply(True,True,True,True)
+    elif sys.argv[1:]==["apply-reviewed-with-sei"]:apply(True,True,True,True,True)
     else:raise SystemExit("Use no arguments for offline preparation; apply-reviewed only after matching release and publication timing are verified")

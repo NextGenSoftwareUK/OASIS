@@ -125,3 +125,9 @@ Sei chain0x531/genesis0xf9d3845df25b43b1c6926f3ceda6845c17f5624e12212fd8847d0ba0
 
 ### Sei HTTP/client milestone
 1Core/2API/3config/1nativeHTTP/1clienttests pass0skips; retainedsource acceptedbystrictbuilder. Native3/2,paired5/4,foreignprivate0/public3,9receipts; exactIDs/provider/visibilitychecked. SDK2privateMongocopies;originalintent/ACK retained,exactDBdrop/absenceverified,servicesstopped. Lazy CQL_SEI_PUBLIC_SOURCE_JSON/explicitexistingprojectref;27typeunsignedreadcatalogue,not27hosted.4presetbuildertestedonly,current16sourcecandidateunchanged. Evidence: EvmBreadthReadinessCurrent/sei-{core,api}.trx,sei-{configuration,retained-config}.log; SeiPublicSourceCandidateCurrent/sei-mongo-http.trx; HostedCqlIntegrationCurrent/sei-client-preparation.log. Hosted/billing/replica/browser remainopen.
+
+
+### Seventeen-source prepared review — 31 October 2026
+
+The optional seventeen-source candidate contains 68 presets and 19 application settings. The four actual Sei presets pass the shipping planner using shipping source/Mongo capabilities: 1 passed, 0 failed, 0 skipped. Application-scope controls: 7 passed. Earlier candidates are preserved. No hosted variables were applied, and no deployment or hosted acceptance is inferred. Evidence: `TestResults/HostedCqlIntegrationCurrent/sei-prepared-review.trx`; regenerate with the focused `ActualSeiCandidatePlansFourPresetsWithShippingCapabilities` test and retained public review.
+TRX SHA-256: `6dd472c7a76f2c8ec3f01d00bc09519a3662816ba584e7e4fe1693d858f7e9db`.
