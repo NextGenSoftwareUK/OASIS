@@ -8,7 +8,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes Google/Ethereum/Polygon/Arbitrum. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
-5. Independent next breadth work: resolve the Cosmos source endpoint502, then verify its implemented adapter natively ([17 controls pass; console builds; native is red](COSMOS_PUBLIC_SOURCE_READINESS.md)), then Polkadot/NEAR. No new node installation or download without inspecting existing resources. Keep red checklist scopes ahead of parity depth.
+5. Independent next breadth work: add Cosmos HTTP+Mongo federation ([17 controls, native CQL3/2 and console3/2 pass on KJNodes](COSMOS_PUBLIC_SOURCE_READINESS.md)), then Polkadot/NEAR. No new node installation or download without inspecting existing resources. Keep red checklist scopes ahead of parity depth.
 
 ## Working copies and release state
 
