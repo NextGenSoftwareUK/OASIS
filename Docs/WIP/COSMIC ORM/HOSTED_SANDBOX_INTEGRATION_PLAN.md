@@ -855,3 +855,7 @@ TRX SHA-256: `6dd472c7a76f2c8ec3f01d00bc09519a3662816ba584e7e4fe1693d858f7e9db`.
 
 ### Live failover acceptance gap — 31 October 2026
 The unfinished failover verifier previously accepted correct record content without proving that another provider served it. It now requires response-owned route metadata: requested/initial provider equals the faulted source, serving provider is a different enrolled replica, Auto strategy and success. Five controls pass, including all six directed routes and rejection of missing, same-provider, foreign-route, error and changed-record evidence. Command: `python -m unittest Scripts/Sandbox/test_hyperdrive_failover.py`. No new hosted failover pass, fault, account, save or session is claimed; original cohort is preserved.
+
+
+### Routing-v1 live failover attempt — 31 October 2026
+Added explicit routing-v1 selection, durable fixture reuse and independent-visitor setup to the unfinished gate. Eight controls pass, including expiry preventing visitor creation and retained journals preventing replay. Live execution stopped because the original routing owner session expired; no faults or saves were sent and no gate journal was created. One independent temporary foreign visitor had already been acknowledged during explicit setup; retained under the same state directory, not deleted/recreated. Setup now validates the owner before allocating a visitor. Original routing cohort remains preserved; a separately planned post-deployment cohort is needed. No failover pass claimed.

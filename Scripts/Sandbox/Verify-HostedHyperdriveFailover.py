@@ -1,4 +1,4 @@
-"""Bounded avatar-only fault/read gate using acknowledged Solana demo snapshots.
+"""Bounded avatar-only fault/read gate using an explicitly selected acknowledged cohort.
 
 No new accounts, saves, routing changes or source replay. Each fault has a durable
 intent and is restored in finally. Existing journals require review, not replay.
@@ -6,6 +6,7 @@ intent and is restored in finally. Existing journals require review, not replay.
 from pathlib import Path
 import importlib.util
 import json
+import argparse
 import urllib.error
 import urllib.request
 import uuid
@@ -53,16 +54,41 @@ def verify_failover_response(response, expected, requested):
 
 
 def main():
-    state = ROOT / "LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cohort", choices=["original-solana", "routing-v1"], default="original-solana")
+    parser.add_argument("--prepare-foreign", action="store_true",
+        help="Explicitly prepare only an independent temporary visitor; never creates a record or replaces the owner.")
+    options = parser.parse_args()
+    state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
+        if options.cohort == "original-solana" else "HostedHyperdriveRoutingCurrent")
+    if options.prepare_foreign:
+        if options.cohort != "routing-v1" or not (state / "routing-record.acknowledged.json").is_file():
+            raise RuntimeError("Independent visitor setup requires the acknowledged routing-v1 fixture.")
+        # Validate the retained owner before allocating an independent visitor.
+        flow.session(state, "owner", allow_create=False)
+        flow.session(state, "foreign")
+        print(json.dumps({"foreignVisitorPrepared": True, "newSaves": 0}))
+        return
     journal = state / "hyperdrive-failover.intent.json"
     if journal.exists():
         raise RuntimeError("Retained fault gate exists; review its outcome instead of replaying.")
-    proof = json.loads((ROOT / "TestResults/HostedCqlIntegrationCurrent/SolanaOASIS-client-http-flow.json").read_text())
     owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
-    token = flow.verification.protected_token((state / "owner.dpapi").read_bytes(), decrypt=True).decode()
-    foreign = flow.verification.protected_token((state / "foreign.dpapi").read_bytes(), decrypt=True).decode()
-    identity = proof["ids"][0]
-    expected = next(row for row in proof["mongoRows"] if row["id"] == identity)
+    _, token = flow.session(state, "owner", allow_create=False)
+    foreign_identity, foreign = flow.session(state, "foreign", allow_create=False)
+    if foreign_identity["id"] == owner:
+        raise RuntimeError("Foreign visitor must be independent of the acknowledged owner.")
+    if options.cohort == "routing-v1":
+        spec = importlib.util.spec_from_file_location("routing", Path(__file__).with_name("Verify-HostedHyperdriveLoadBalancing.py"))
+        routing = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(routing)
+        expected = routing.reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
+        identity = expected["id"]
+        ids = [identity]
+    else:
+        proof = json.loads((ROOT / "TestResults/HostedCqlIntegrationCurrent/SolanaOASIS-client-http-flow.json").read_text())
+        ids = proof["ids"]
+        identity = ids[0]
+        expected = next(row for row in proof["mongoRows"] if row["id"] == identity)
     if flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Existing avatar fault must not be overwritten or restored by this gate.")
     for provider in PROVIDERS:
@@ -73,7 +99,8 @@ def main():
     flow.write_new(journal, json.dumps({"owner": owner, "id": identity, "providers": PROVIDERS,
         "purpose": "bounded avatar-only read failover", "maximumFaultSeconds": 30}).encode())
     results = []
-    report = ROOT / "TestResults/HostedCqlIntegrationCurrent/hyperdrive-failover-http.json"
+    report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-failover-http.json"
+        if options.cohort == "original-solana" else "hyperdrive-failover-routing-v1-http.json")
     for provider in PROVIDERS:
         flow.write_new(state / ("fault-" + provider + ".intent.json"), json.dumps({"provider": provider, "seconds": 30}).encode())
         try:
@@ -94,7 +121,7 @@ def main():
             if flow.call("sandbox/faults", foreign, method="GET")["result"]:
                 raise RuntimeError("Fault leaked into the independent visitor scope.")
             isolated = flow.call("data/query-cql", foreign, {"provider": provider, "orderBy": "Id", "take": 2,
-                "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": proof["ids"]}]})
+                "filters": [{"field": "Id", "scalar": "Guid", "operator": "In", "value": ids}]})
             if isolated["result"]["rows"]:
                 raise RuntimeError("Independent visitor read foreign private records.")
             results.append({"provider": provider, "blockedCode": blocked["errorCode"],

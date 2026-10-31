@@ -3,6 +3,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("failover_gate", Path(__file__).with_name("Verify-HostedHyperdriveFailover.py"))
 gate = importlib.util.module_from_spec(spec)
@@ -55,6 +56,30 @@ class FailoverEvidenceTests(unittest.TestCase):
         response["isError"] = True
         with self.assertRaises(ValueError):
             gate.verify_failover_response(response, self.expected, "MongoDBOASIS")
+
+
+    def test_foreign_setup_cannot_touch_original_solana_cohort(self):
+        with patch("sys.argv", ["gate", "--prepare-foreign"]), patch.object(gate.flow, "session") as session:
+            with self.assertRaises(RuntimeError):
+                gate.main()
+            session.assert_not_called()
+
+    def test_expired_owner_prevents_foreign_visitor_creation(self):
+        with patch("sys.argv", ["gate", "--cohort", "routing-v1", "--prepare-foreign"]), \
+                patch.object(Path, "is_file", return_value=True), \
+                patch.object(gate.flow, "session", side_effect=RuntimeError("expired")) as session:
+            with self.assertRaises(RuntimeError):
+                gate.main()
+            session.assert_called_once_with(gate.ROOT / "LocalState/COSMIC/HostedHyperdriveRoutingCurrent", "owner", allow_create=False)
+
+    def test_existing_gate_journal_stops_before_any_session_or_fault(self):
+        with patch("sys.argv", ["gate", "--cohort", "routing-v1"]), \
+                patch.object(Path, "exists", return_value=True), \
+                patch.object(gate.flow, "session") as session, patch.object(gate.flow, "call") as request:
+            with self.assertRaises(RuntimeError):
+                gate.main()
+            session.assert_not_called()
+            request.assert_not_called()
 
 
 if __name__ == "__main__":
