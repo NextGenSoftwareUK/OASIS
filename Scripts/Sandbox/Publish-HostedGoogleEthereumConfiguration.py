@@ -19,13 +19,16 @@ def module(name, filename):
 google = module("google_public", "Publish-HostedGooglePublicConfiguration.py")
 ethereum = module("ethereum_public", "Publish-HostedEthereumPublicConfiguration.py")
 polygon = module("polygon_public", "Publish-HostedPolygonPublicConfiguration.py")
+arbitrum = module("arbitrum_public", "Publish-HostedArbitrumPublicConfiguration.py")
 configuration = google.configuration
 PREFIX = "google-ethereum-public"
 KEYS = ["CQL_GCS_PUBLIC_SOURCE_JSON", "CQL_ETHEREUM_PUBLIC_SOURCE_JSON",
         "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES_JSON"]
 
 
-def candidate(before, google_source, ethereum_source, polygon_source=None):
+def candidate(before, google_source, ethereum_source, polygon_source=None, arbitrum_source=None):
+    if arbitrum_source is not None and polygon_source is None:
+        raise ValueError("Joint Arbitrum rollout requires the explicit Polygon source too.")
     # Compose through each provider's strict validator. Independent candidates
     # from the same old host snapshot must never overwrite each other's lists.
     after = ethereum.candidate(google.candidate(before, google_source), ethereum_source)
@@ -33,14 +36,19 @@ def candidate(before, google_source, ethereum_source, polygon_source=None):
     if polygon_source is not None:
         after = polygon.candidate(after, polygon_source)
         expected_keys = KEYS + ["CQL_POLYGON_PUBLIC_SOURCE_JSON"]
+    if arbitrum_source is not None:
+        after = arbitrum.candidate(after, arbitrum_source)
+        expected_keys = expected_keys + ["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"]
     if {key for key in after if before.get(key) != after[key]} != set(expected_keys):
         raise ValueError("Exactly the selected source profiles and shared admission/examples may change.")
     return after
 
 
-def prepare(include_polygon=False):
+def prepare(include_polygon=False, include_arbitrum=False):
+    if include_arbitrum and not include_polygon:
+        raise ValueError("Explicit joint scope required.")
     state = configuration.STATE
-    prefix = PREFIX + ("-polygon" if include_polygon else "")
+    prefix = PREFIX + ("-polygon" if include_polygon else "") + ("-arbitrum" if include_arbitrum else "")
     snapshot = state / (prefix + "-before-variables.dpapi")
     before = configuration.variables()
     if snapshot.exists():
@@ -51,17 +59,23 @@ def prepare(include_polygon=False):
     folders = ["HostedGcsPublicSourceCurrent", "HostedEthereumPublicSourceCurrent"]
     if include_polygon:
         folders.append("HostedPolygonPublicSourceCurrent")
+    if include_arbitrum:
+        folders.append("HostedArbitrumPublicSourceCurrent")
     sources = [json.loads((ROOT / "LocalState/COSMIC" / folder / "source.json").read_text(encoding="utf-8-sig"))
         for folder in folders]
     after = candidate(before, *sources)
     configuration.write_new(state / (prefix + "-candidate-variables.dpapi"),
         configuration.verification.protected_token(configuration.compact(after).encode()))
-    print("Protected combined candidate prepared: " + ("five values/twelve presets" if include_polygon else "four values/eight presets") + "; no mutation/deployment.")
+    print("Protected combined candidate prepared: " + ("six values/sixteen presets" if include_arbitrum else "five values/twelve presets" if include_polygon else "four values/eight presets") + "; no mutation/deployment.")
 
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         prepare()
+    elif sys.argv[1:] == ["with-arbitrum"]:
+        prepare(include_polygon=True, include_arbitrum=True)
+    elif sys.argv[1:] == ["apply-with-arbitrum"]:
+        configuration.apply_values(PREFIX + "-polygon-arbitrum", KEYS + ["CQL_POLYGON_PUBLIC_SOURCE_JSON", "CQL_ARBITRUM_PUBLIC_SOURCE_JSON"])
     elif sys.argv[1:] == ["with-polygon"]:
         prepare(include_polygon=True)
     elif sys.argv[1:] == ["apply-with-polygon"]:
@@ -69,4 +83,4 @@ if __name__ == "__main__":
     elif sys.argv[1:] == ["apply"]:
         configuration.apply_values(PREFIX, KEYS)
     else:
-        raise SystemExit("Use no args/with-polygon to prepare, or apply/apply-with-polygon for the matching reviewed release.")
+        raise SystemExit("Use no args/with-polygon/with-arbitrum to prepare, or the matching explicit apply action.")

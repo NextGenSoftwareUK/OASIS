@@ -13,3 +13,5 @@
 Update CURRENT_STATUS and the resource ledger at milestones. Raw evidence goes only in worktree TestResults; persistent source/identity/ACK journals stay under LocalState. Use bounded builds and one producer/consumer lease, no repeated environments. Integrate verified Development batches once/twice daily.
 
 [Earlier roadmap history](Archive/CQL_COMPLETION_ROADMAP_before_entity_selected_sqlite_2026-10-28.md), [implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md), [demo expansion](CQL_DEMO_EXPANSION_ROADMAP.md).
+
+Deferred after demo: operation/representation-aware admission for public unsigned reads and canonical signed writes on the same provider. Current factory explicitly rejects overlapping roles; keep that fence until a designed/tested replacement exists. Details/evidence: [demo expansion roadmap](CQL_DEMO_EXPANSION_ROADMAP.md).
