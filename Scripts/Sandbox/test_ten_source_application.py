@@ -23,6 +23,15 @@ class ApplicationScopeTests(unittest.TestCase):
         del after["CQL_OPTIMISM_PUBLIC_SOURCE_JSON"]
         with self.assertRaises(ValueError):batch.application_keys(before,after,True)
 
+    def test_linea_scroll_require_complete_explicit_thirteen_source_scope(self):
+        before,after=self.fixture()
+        for name in ("OPTIMISM","LINEA","SCROLL"):after["CQL_"+name+"_PUBLIC_SOURCE_JSON"]="new"
+        self.assertEqual(len(batch.application_keys(before,after,True,True)),15)
+        with self.assertRaises(ValueError):batch.application_keys(before,after,True)
+        with self.assertRaises(ValueError):batch.application_keys(before,after,False,True)
+        del after["CQL_SCROLL_PUBLIC_SOURCE_JSON"]
+        with self.assertRaises(ValueError):batch.application_keys(before,after,True,True)
+
     def test_refuses_extra_missing_removed_and_existing_source_settings(self):
         for fault in ("extra","missing","removed","existing"):
             with self.subTest(fault=fault):

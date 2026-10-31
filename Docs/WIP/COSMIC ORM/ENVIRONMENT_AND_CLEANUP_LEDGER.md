@@ -1715,3 +1715,10 @@ Linea/Scroll HTTP outcome:2Core/4API/6config/2nativeHTTP/2clientpass0skips.2SDKp
 - `LocalState/COSMIC/ScrollMongoHttpCurrent`: 841B,retainintent/ACK/cleanup.
 
 Website8c54051pushed with2spacedCLI/guide/walkthroughlinks and2passingnewclienttests. Publicmain unchanged. No duplicatebuild/testenvironment;27029listenerabsence verified after bothnativegates. Rawclientlog HostedCqlIntegrationCurrent/linea-scroll-client-preparation.log regenerable.
+
+### Optional thirteen-source preparedbatch
+31October2026:derive thirteen-source-public-{before,candidate}-variables.dpapi using sameoriginalsnapshot/stable13catalogues. Preserve10/11files. Publiconly52preset/focused8presetexports TestResults/HostedCqlIntegrationCurrent; retainedprotectedfilesforreconciliation,sizepending. ReusePython/.NET/caches,noservices/download/hostread/apply.
+
+Thirteen-source outcome:protectedbefore67,094B/candidate99,990B retained; nohostread/application/service.4scopecontrols,6correctedbuildercontrols and1shipping8preset test pass0skips. Initialpreparationfailedbeforeprotectedoutput due copiedendpoint mismatch; fixedstrictbuilders to retainednativeendpoints. Publicexports regenerable:
+- `TestResults/HostedCqlIntegrationCurrent/thirteen-source-public-review.json`: 50796B.
+- `TestResults/HostedCqlIntegrationCurrent/linea-scroll-prepared-review.json`: 7692B.
