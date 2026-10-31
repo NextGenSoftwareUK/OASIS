@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
@@ -27,6 +28,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        // Browser clients must be able to retain the same operation identity that
+        // direct HTTP callers receive, including when the query outcome is uncertain.
+        internal static void ConfigureCorsPolicy(CorsPolicyBuilder policy)
+            => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+                .WithExposedHeaders("X-OASIS-Operation-Id");
+
         private string VERSION
         {
             get
@@ -688,10 +695,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            app.UseCors(x => x
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader());
+            app.UseCors(ConfigureCorsPolicy);
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);

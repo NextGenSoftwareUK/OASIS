@@ -1,5 +1,21 @@
 # Hosting a query-only CQL source
 
+## Try the live examples
+
+Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html), start a
+free demo session and select **CQL Playground**. Choose **ActivityPubOASIS**, then
+**Read three public Mastodon posts** or **Filter to two public Mastodon posts**
+and press **Run query**. The editor shows the actual JSON request, and the table
+shows the native provider and returned records. Public posts can change or disappear;
+the displayed count always comes from the real response.
+
+These public-source reads need no Mastodon account or local service. Your WEB4
+session stays with WEB4. The separate local teaching demos remain linked below
+the hosted controls. MongoDB, SQLite and Neo4j examples query your visible holons;
+save your own records in the COSMIC ORM tab before querying an empty account.
+
+## Configure a source
+
 `PREPARED_STORAGE_ADMISSION_JSON` supports an explicit `queryOnlyProviders` list.
 Use it for unsigned CQL read sources that must not become ordinary holon storage.
 Omitting it preserves existing admission behaviour.
