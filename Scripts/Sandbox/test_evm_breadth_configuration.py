@@ -17,9 +17,11 @@ class EvmBreadthCompositionTests(unittest.TestCase):
             ["GoogleCloudOASIS","EthereumOASIS","PolygonOASIS","ArbitrumOASIS","CosmosBlockChainOASIS","PolkadotOASIS","NEAROASIS"])}
         before["CQL_HOSTED_QUERY_EXAMPLES_JSON"]=json.dumps(earlier)
         original=copy.deepcopy(before)
-        after=base.publisher.candidate(before,first)
-        after=avalanche.publisher.candidate(after,avalanche.AvalancheConfigurationTests().fixture()[1])
-        after=bnb.publisher.candidate(after,bnb.BnbConfigurationTests().fixture()[1])
+        spec=importlib.util.spec_from_file_location("ten_batch",Path(__file__).with_name("Prepare-TenSourcePublicBatch.py"))
+        batch=importlib.util.module_from_spec(spec);spec.loader.exec_module(batch)
+        after=batch.candidate(before,{"Base":first,
+            "Avalanche":avalanche.AvalancheConfigurationTests().fixture()[1],
+            "Bnb":bnb.BnbConfigurationTests().fixture()[1]})
         self.assertEqual(before,original)
         self.assertEqual(after["OASIS_DNA_JSON"],before["OASIS_DNA_JSON"])
         examples=json.loads(after["CQL_HOSTED_QUERY_EXAMPLES_JSON"])
