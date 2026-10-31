@@ -5,7 +5,7 @@ Updated 31 October 2026. Programme incomplete. Priority: hosted demo breadth and
 ## Exact next steps
 
 1. Default-routing correction awaits the follow-up publication decision in [David list, Part F](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). The earlier approval was already used for Development57174def3/Core6bbd015; it is not approval for another push.
-2. After the matching correction deploys, run `python Scripts/Sandbox/Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Reuse the original owner, record and save ACK; reads only, no reseeding.
+2. The routing-v1 owner session is now verified expired. Preserve its owner, record and save ACK; do not rerun setup or replace that identity. After the matching correction deploys, explicitly plan a distinct bounded acceptance cohort before live balancing/failover checks.
 3. Integrate the separately tested public-read expansion with its matching Core, application and joint configuration in a permitted release batch. Then verify hosted native queries, Mongo presets, isolation, replicas and browser behavior.
 4. Finish SOLID, S3 and Solana browser acceptance when browser control recovers. IAB documentation retry still returns `Transport closed`; this is agent-owned work.
 
@@ -47,7 +47,7 @@ These are bounded unsigned public projections, not owned native persistence or i
 
 All six native directed repair routes, manager continuations and paused-baseline interleavings pass. Three application ACK-loss cases and three real loopback HTTP post-commit disconnect cases prove one mutation, original receipt recovery without resubmission and two ordinary replicas. Owned fixtures were cleaned after verification.
 
-The unfinished hosted failover gate now requires per-response proof of a different enrolled serving provider, in addition to exact record preservation; five acceptance controls pass (including all six directed routes). This is verifier coverage, not a new live pass.
+The unfinished hosted failover gate now requires per-response proof of a different enrolled serving provider, in addition to exact record preservation; eight acceptance controls pass (including all six directed routes and expiry/replay guards). This is verifier coverage, not a new live pass.
 
 Still red: hosted Default balancing; wider operator/late-enrollment/transport acceptance; primary-authority cutover; scale certification; full ORM acceptance reconciliation. Replica delivery is not migration of write authority. Mixed unsigned-read/signed-write representations retain the admission fence.
 
