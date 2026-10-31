@@ -46,7 +46,7 @@ public sealed class CqlV1DescendantExists
 public enum CqlV1Scalar { String, Integer, Boolean, Guid, DateTime, UInt64, Decimal, Double, Single }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Operator>))]
-public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull }
+public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Filter
@@ -56,6 +56,7 @@ public sealed class CqlV1Filter
     public string[]? MetadataPath { get; set; }
     public CqlV1Scalar Scalar { get; set; }
     public CqlV1Operator Operator { get; set; }
+    // In accepts an array of1–100 exact literals; other value operators accept one literal.
     public JsonElement Value { get; set; }
 }
 

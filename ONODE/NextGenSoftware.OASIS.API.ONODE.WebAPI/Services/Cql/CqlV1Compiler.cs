@@ -353,21 +353,17 @@ public static partial class CqlV1Compiler
             path = Expression.Property(parameter, property);
         }
 
-        object value;
-        var json = filter.Value;
-        if (path.Type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512) value = json.GetString();
-        else if (path.Type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False) value = json.GetBoolean();
-        else if (path.Type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
-        else if (path.Type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
-        else if (path.Type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
-        else if (path.Type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
-        else if (path.Type == typeof(float) && TrySingle(json, out var finiteSingle)) value = finiteSingle;
-        else if (path.Type == typeof(double) && TryDouble(json, out var finiteDouble)) value = finiteDouble;
-        else if (path.Type == typeof(decimal) && TryDecimal(json, out var exactDecimal)) value = exactDecimal;
-        else if (path.Type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
-        else throw new ArgumentException("Value must match the exact bounded scalar type.");
+        if (filter.Operator == CqlV1Operator.In)
+        {
+            if (filter.Value.ValueKind != JsonValueKind.Array || filter.Value.GetArrayLength() is < 1 or > 100)
+                throw new ArgumentException("In requires an array of1–100 exact bounded literals.");
+            var values = Expression.NewArrayInit(path.Type,
+                filter.Value.EnumerateArray().Select(json => Literal(json, path.Type)));
+            // One membership AST. Never expand this into point queries or in-memory filtering.
+            return Expression.Call(typeof(Enumerable), nameof(Enumerable.Contains), new[] { path.Type }, values, path);
+        }
 
-        var literal = Expression.Constant(value, path.Type);
+        var literal = Literal(filter.Value, path.Type);
         if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
@@ -384,6 +380,24 @@ public static partial class CqlV1Compiler
             _ => throw new ArgumentException("Unsupported filter operation.")
         };
         return Expression.MakeBinary(node, path, literal);
+    }
+
+    // Scalar comparisons and membership share the same precision/type boundary.
+    private static ConstantExpression Literal(JsonElement json, Type type)
+    {
+        object value;
+        if (type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512) value = json.GetString();
+        else if (type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False) value = json.GetBoolean();
+        else if (type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
+        else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
+        else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
+        else if (type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
+        else if (type == typeof(float) && TrySingle(json, out var finiteSingle)) value = finiteSingle;
+        else if (type == typeof(double) && TryDouble(json, out var finiteDouble)) value = finiteDouble;
+        else if (type == typeof(decimal) && TryDecimal(json, out var exactDecimal)) value = exactDecimal;
+        else if (type == typeof(DateTime) && TryUtcDate(json, out var utc)) value = utc;
+        else throw new ArgumentException("Value must match the exact bounded scalar type.");
+        return Expression.Constant(value, type);
     }
 }
 
