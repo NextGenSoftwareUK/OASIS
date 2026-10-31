@@ -10,6 +10,9 @@ FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733cee
 # Native IPFS runtime for explicitly configured sandbox sources. No host download.
 FROM ipfs/kubo:v0.43.1@sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101df18070fa7be48 AS provider_ipfs
 
+# Same immutable CSS 7.1.8 image already retained by the local SOLID environment.
+FROM solidproject/community-server@sha256:125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2 AS provider_solid
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -58,11 +61,14 @@ FROM base AS final
 WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
+COPY --from=provider_solid /community-server /opt/solid
 RUN node --version
 RUN ipfs version --enc=json
+RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
+COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production

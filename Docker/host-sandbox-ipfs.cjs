@@ -93,7 +93,7 @@ async function bootstrap({ bundle, directory, binary }) {
   return { repo, peerId: config.Identity.PeerID, nativeEnv: nativeEnvironment(repo) };
 }
 
-async function supervise({ launch = spawn, ready, signals = process, stopMilliseconds = 10000 }) {
+async function supervise({ launch = spawn, ready, services, signals = process, stopMilliseconds = 10000 }) {
   const children = [];
   let interrupted = false;
   let stop;
@@ -114,12 +114,19 @@ async function supervise({ launch = spawn, ready, signals = process, stopMillise
     return owned;
   }
   try {
-    const native = child('/usr/local/bin/ipfs', ['daemon', '--offline', '--migrate=false'], { stdio: 'inherit', env: ready.env });
-    health = ready.check(healthAbort.signal);
-    const started = await Promise.race([health.then(() => 'ready'), native.done.then(() => 'exit'), stopping.then(() => 'stop')]);
-    if (started !== 'ready') return interrupted ? 0 : 1;
+    const sources = services ?? [{ command: '/usr/local/bin/ipfs', args: ['daemon', '--offline', '--migrate=false'],
+      env: ready.env, check: ready.check }];
+    for (const source of sources) {
+      healthAbort.signal.throwIfAborted();
+      child(source.command, source.args, { stdio: 'inherit', env: source.env, cwd: source.cwd });
+      health = Promise.resolve(source.check(healthAbort.signal));
+      const started = await Promise.race([health.then(() => 'ready'),
+        ...children.map(owned => owned.done.then(() => 'exit')), stopping.then(() => 'stop')]);
+      if (started !== 'ready') return interrupted ? 0 : 1;
+    }
     const api = child('dotnet', ['NextGenSoftware.OASIS.API.ONODE.WebAPI.dll'], { stdio: 'inherit' });
-    const outcome = await Promise.race([api.done.then(code => ({ code })), native.done.then(() => ({ code: 1 })), stopping.then(() => ({ code: 0 }))]);
+    const outcome = await Promise.race([api.done.then(code => ({ code })),
+      ...children.filter(owned => owned !== api).map(owned => owned.done.then(() => ({ code: 1 }))), stopping.then(() => ({ code: 0 }))]);
     return outcome.code;
   } finally {
     healthAbort.abort();
@@ -166,9 +173,22 @@ function assertSandbox(text) {
 
 async function main() {
   assertSandbox(process.env.OASIS_DNA_JSON);
-  const bundle = captureBundle(process.env.OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON);
-  const native = await bootstrap({ bundle, directory: '/data/COSMIC/SandboxIPFS', binary: '/usr/local/bin/ipfs' });
-  return supervise({ ready: { env: native.nativeEnv, check: signal => waitForNative(signal, native.peerId) } });
+  const services = [];
+  if (process.env.OASIS_SANDBOX_IPFS === 'true') {
+    const bundle = captureBundle(process.env.OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON);
+    const native = await bootstrap({ bundle, directory: '/data/COSMIC/SandboxIPFS', binary: '/usr/local/bin/ipfs' });
+    services.push({ command: '/usr/local/bin/ipfs', args: ['daemon', '--offline', '--migrate=false'],
+      env: native.nativeEnv, check: signal => waitForNative(signal, native.peerId) });
+  }
+  if (process.env.OASIS_SANDBOX_SOLID === 'true') {
+    const solid = require('./host-sandbox-solid.cjs');
+    const { Parser } = require('/opt/solid/node_modules/n3');
+    const bundle = solid.captureBundle(process.env.OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON);
+    const native = await solid.prepare({ bundle, directory: '/data/COSMIC/SandboxSOLID' });
+    services.push({ ...native, check: signal => solid.verify(native, signal, Parser) });
+  }
+  if (!services.length) throw Error('No native sandbox source was explicitly enabled.');
+  return supervise({ services });
 }
 
 module.exports = { captureBundle, bootstrap, supervise, waitForNative, assertSandbox };

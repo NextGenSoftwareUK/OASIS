@@ -387,3 +387,55 @@ writes. Reference: https://app.unpkg.com/%40solid/community-server%407.1.8/files
 Next: package pinned CSS with deliberate lifecycle ownership, persist the native
 source on the existing volume, provision three public encrypted sample records
 for its exact URI, then enroll and verify public browser queries/federation.
+## 31 October — SOLID runtime packaging and retained encrypted source
+
+Implemented an opt-in CSS7.1.8 native runtime in the existing WEB4 image, pinned to
+the retained image digest125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2.
+No image was pulled/built locally and this batch is not deployed. CSS source was
+inspected read-only from the stopped cached image, with tar streams held only in
+memory. Its supported StaticFolderGenerator/root initializer creates the native
+source from a custom template. The template grants public Read only from initial
+creation; it never starts with the upstream unrestricted root ACL. CSS itself
+binds its configured port on container interfaces; the base URI is not a binding
+restriction. Only WEB4's configured public HTTP port should be exposed by hosting.
+
+Native setup persists intent before initialization, refuses unacknowledged state
+and changed bundles, and acknowledges only after native records and read-only
+permissions verify. Native RDF comparison uses CSS's shipped N3 parser rather
+than text formatting equality. IPFS and CSS share one process owner: API starts
+after both sources verify; either source exit stops the API and other native
+child; later startup work is cancelled and observed if an earlier source exits.
+Native children receive a minimal environment without WEB4 credentials or keys.
+The existing IPFS enabled configuration continues to select its original runtime;
+SOLID remains off until explicitly configured.
+
+Runtime checks14passed/0failed/0skipped, including existing real offline Kubo import
+and lifecycle checks because the shared process owner changed. SOLID boundary
+checks use controlled HTTP/parser/package inputs and are not a native CSS result.
+Evidence TestResults/HostedCqlIntegrationCurrent/solid-runtime-controls.log,
+SHA256 E6E9406AF1CFCA7905C74F0EE2686847851F21DF5B8597907C10F5DB520DCC7A.
+Node syntax and entrypoint shell syntax checks passed.
+
+Prepare-HostedSolidSource.ps1 now exports exactly3new public synthetic leaf records
+using the retained original protected encryption key, for http://localhost:13000/.
+The old private Pod/data are never read or mutated. Export intent precedes encoding;
+ACK follows decode/hash/owner/URI checks. A different Pod URI rejects each envelope.
+Export and repeat each passed1case with no skips. Source files total13,817B at
+LocalState/COSMIC/HostedSolidSourceCurrent; raw bundle never committed to docs.
+Bundle SHA256 CD2BB473EE916256582BE7A4947D675D594AA2EB302DB000312558BEB7DD9EDA;
+canonical runtime digest345a047e2c35e600ae629f56c661ac8a5fd1418af3cf823b307c7c118769237a.
+Repeat preserved bundle, export intent and ACK bytes. Evidence
+TestResults/HostedCqlIntegrationCurrent/solid-host-export-proof.json and
+solid-host-export.trx (repeat SHA25666A6CD43D7307B88569618305B230CB35322A5020C47E30B8CA884DBFAE84697).
+
+The first integration build reproduced an existing composition defect: wildcard
+linked API services included production-only DnaCqlSharedReads, requiring the full
+BootLoader and CqlV1Providers deliberately absent from the loopback host. Excluded
+that production composition alongside CqlV1Providers in this integration project;
+then consumer build/export passed. No substitute BootLoader or fallback added.
+
+Still required before live enrollment: native CSS startup/initialization against
+the retained export, actual N3 response and WAC permission checks, same-volume
+restart, memory/headroom observation, host config/admission/example publication,
+and public visitor query/federation/isolation/replication acceptance. Five hosted
+providers remain the current verified coverage.
