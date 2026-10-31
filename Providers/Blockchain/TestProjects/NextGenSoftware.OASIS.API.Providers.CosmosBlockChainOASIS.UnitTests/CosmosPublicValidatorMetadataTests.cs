@@ -96,6 +96,26 @@ public sealed class CosmosPublicValidatorMetadataTests
     }
 
     [TestMethod]
+    public async Task PublishedSharedWalkthroughExecutesThroughHolonManager()
+    {
+        using var client = new HttpClient(new Rest());
+        using var source = new CosmosPublicValidatorMetadataSource(client,
+            new Uri("https://example.invalid/"), "cosmoshub-4", Keys, Guid.NewGuid());
+        Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA {
+            OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2 } };
+        var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+        var manager = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(null, dna, registry);
+        using var output = new StringWriter();
+        var actor = Guid.NewGuid();
+        var full = await CosmicCqlDemo.NativeKeySetWalkthrough.RunAsync(manager, source, Keys, actor, output);
+        var subset = await CosmicCqlDemo.NativeKeySetWalkthrough.RunAsync(manager, source, Keys.Take(2), actor, output);
+        Assert.AreEqual(3, full.Count);
+        Assert.AreEqual(2, subset.Count);
+        CollectionAssert.AreEqual(full.Take(2).Select(row => row.Id).ToArray(), subset.Select(row => row.Id).ToArray());
+    }
+
+    [TestMethod]
     public void InvalidCatalogueAndSecretConfigurationFailBeforeNetwork()
     {
         using var client = new HttpClient(new Rest());
@@ -110,21 +130,10 @@ public sealed class CosmosPublicValidatorMetadataTests
     {
         string? path = Environment.GetEnvironmentVariable("COSMIC_COSMOS_PUBLIC_SOURCE");
         if (string.IsNullOrEmpty(path)) Assert.Inconclusive("Explicit retained source configuration required.");
-        using var source = CosmosPublicValidatorMetadataSource.FromJson(await File.ReadAllTextAsync(path!));
-        var activated = await source.ActivateQuerySourceAsync(default);
-        Assert.IsFalse(activated.IsError, activated.Exception?.ToString() ?? activated.Message);
-        foreach (int count in new[] { 3, 2 })
-        {
-            var keys = Keys.Take(count).ToArray();
-            var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.CosmosBlockChainOASIS).Result)
-                .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, CosmosPublicValidatorMetadataSource.AddressMetadata))).Result;
-            var plan = CosmicQueryPlanner.Plan(query, ProviderType.CosmosBlockChainOASIS,
-                new[] { new CosmicQueryTarget(ProviderType.CosmosBlockChainOASIS, source.QueryCapabilities) });
-            Assert.IsFalse(plan.IsError, plan.Message);
-            var result = await source.ExecuteCosmicQueryAsync(plan.Result);
-            Assert.IsFalse(result.IsError, result.Exception?.ToString());
-            Assert.AreEqual(count, result.Result.Count);
-            Assert.AreEqual(1, result.Result.Select(row => row.MetaData["CosmosStateHeight"]).Distinct().Count());
-        }
+        using var output = new StringWriter();
+        var result = await CosmicCqlDemo.CosmosPublicWalkthrough.RunAsync(path!, output);
+        Assert.AreEqual((3, 2), result);
+        StringAssert.Contains(output.ToString(), "Pinned state height:");
     }
 }
+

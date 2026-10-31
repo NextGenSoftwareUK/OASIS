@@ -18,7 +18,7 @@ LIMIT = 256 * 1024
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--endpoint", choices=[BASE, "https://rest.cosmoshub-main.ccvalidators.com"], default=BASE)
+    parser.add_argument("--endpoint", choices=[BASE, "https://rest.cosmoshub-main.ccvalidators.com", "https://cosmoshub.lava.build", "https://cosmoshub-rest.stakerhouse.com"], default=BASE)
     args = parser.parse_args()
     endpoint = args.endpoint
     opener = build_opener(NoRedirect())
@@ -73,7 +73,7 @@ def main():
         report.update(passed=True, addresses=addresses)
     except Exception as error:
         report.update(passed=False, errorType=type(error).__name__, error=str(error))
-    filename = "readiness-publicnode.json" if endpoint == BASE else "readiness-cryptocrew.json"
+    filename = {BASE: "readiness-publicnode.json", "https://rest.cosmoshub-main.ccvalidators.com": "readiness-cryptocrew.json", "https://cosmoshub.lava.build": "readiness-lava.json", "https://cosmoshub-rest.stakerhouse.com": "readiness-stakerhouse.json"}[endpoint]
     destination = Path(__file__).resolve().parents[2] / "TestResults/CosmosPublicSourceCandidateCurrent" / filename
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
