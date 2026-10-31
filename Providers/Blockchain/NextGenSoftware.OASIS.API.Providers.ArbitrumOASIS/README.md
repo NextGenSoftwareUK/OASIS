@@ -105,3 +105,7 @@ unsigned/query-only roles for the same provider. Publishers refuse that existing
 enrollment rather than replacing it. Mixed signed-write/public-read admission
 for one provider needs a separate operation/representation-aware contract; this
 demo does not certify that combination.
+
+Runnable C# and HTTP walkthrough: [public Arbitrum CQL guide](../../../Docs/Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md).
+The --arbitrum-public console command passes native3/2through HolonManager/LINQ;
+its native test compiles the published sample files. No wallet or writes.
