@@ -240,3 +240,43 @@ candidate variables stored under LocalState/COSMIC/HostedSourceRolloutCurrent.
 - ipfs-runtime-tests-final.log SHA256 f6e457073e69898b983f6f8aa9d0d0611a81352b453feb472349b0589f211ec0.
 - ipfs-runtime-native-proof.json SHA256 404f460092f729e04caae8ddbe3b7191a47fb9a6d0ea05fd66d70ac8e6302efc.
 - ipfs-hosted-examples.trx SHA256 f45e5eef5567e61939bf7a4749075b66fd11fb37c2c2f1d0b91ef0eb67e5411f.
+
+Hosted4543d364-5b9f-4a04-8b98-8f94a9dc4912 SUCCESS at1b1105ba4, image sha256:317536597c04b52b9dc26a3ee07390202dad115b0c03153fed70655b328663fc; protected six-variable update independently observed/ACK, existing source directory absent before bootstrap. Fresh browser sandbox-1b7b4523 discovers IPFS but valid3-CID query fails503 CQL_INVALID_SOURCE_KEY, operation32200696-507f-91a0-67d4-1bf391fb4618, requestf0e1b7ca-181f-4f6b-afcf-0b332467c3a1. No user save/preparation issued. Shipping APIUnit reproduces actual cause: Ipfs.Core0.55 expects SimpleBase.Base58.Bitcoin field from1.3.1, full API SolSharp4.0.0 selects5.6.4 property. Actual native-only tests had1.3.1 and missed shipping unification; original failing TRX ipfs-shipping-cid-reproduction.trx and browser ipfs-live-initial-failure.json retained. Next rebuild exact upstream core source against unified current dependency, no fallback parser/global downgrade/assembly swapping. Cached package has PDBs but no source; original NuGet nuspec and v0.55.0 tag agree commit07fbb4392cd57a8ba771d2e5c3279a15d5ffbeae. Existing library source not found in current vendored trees.
+
+
+### Shipping ABI correction — verified before deployment
+
+Vendored only exact67upstream src files +MIT license (306,860B), Git blob hashes
+verified at07fbb4392cd57a8ba771d2e5c3279a15d5ffbeae; archive89,333B memory-only,
+SHA25627adad4c262cd585b8b61bd51f03f770ebd74fc6ba126b97bcb179065d60b9a3.
+No new runtime/environment/clone. Cache-only restores use existing dependencies.
+Modern core target binds SimpleBase5.6.4; standard2.0 retains1.3.1target compatibility.
+Small Base16 API adaptations preserve canonical encodings via existing HexString
+codec/array contract; hex/base32/CIDv0/v1 vectors pass, including independent Kubo
+CIDv1 and Python RFC4648 outputs. No codec fallback/assembly rewrite/global downgrade.
+
+First source rebuild still failed shipping test because the caller restored the
+old NuGet core through transitive dependencies despite a library-private source
+reference. Explicit executable/test SDK composition in Directory.Build.targets
+now makes Ipfs.Core0.55a project in the real API graph. Patched file version records
+the new private binary; file-version change alone did not fix graph ownership and
+its failed evidence is preserved. Same DLL bytes in source/API/test/package.
+
+Full API build passes;28shipping API/schema +27provider/codec controls +1retained
+native source verification pass. Provider package169,159B embeds matching core/HTTP
+DLLs and upstream license, without old/unpublished SDK NuGet dependencies. Unused
+Ipfs.Engine removed (only a commented field referred to it); shared runtime
+references own dependencies for source and package. Complete/missing-core Docker
+context guards pass. LocalState excluded from local Docker context; it was already
+Git-ignored and absent from the remote build clone.
+
+Original deployed source/peer/config/ACK preserved before correction; native owned
+volume folder26,189B, image Kubo binary124,384,728B, volume free4,818,628,608B.
+Only deployment SDK correction is next; no source re-publication or Mongo saves.
+
+- ipfs-explicit-api.trx SHA256 f617c1e34ffdd5f32f1f24c2eeeebfcb74af485dce36c4e0ef76fb449b91d984.
+- ipfs-abi-provider-final.trx SHA256 425fc8e4da2951655fb1e2adb9d0a3d4a6c08530ca969fb3aa22f885f97b17d4.
+- ipfs-host-source.trx SHA256 29e457968a08e8fb664ad5d8ad8125f98b3e0bace1477211dfac3679c1bd0420.
+- ipfs-abi-artifact-proof.json SHA256 d67abea727760f7d6fdea19e88cbd968c5b98af8dce6ade64a7127b3f134b4c7.
+- ipfs-build-input-proof.json SHA256 a6eb706ce34179f30644d414ff037f29f2893a58f3908b2b5797461e70c1ca8a.
+- ipfs-server-state-before-sdk-fix.json SHA256 fd819dba1e442a94e97e2beb24a09e020d80df58c68bf8509344db0e448470a9.
