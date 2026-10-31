@@ -3,6 +3,9 @@ from pathlib import Path
 import importlib.util
 import json
 import sys
+import os
+import re
+import subprocess
 
 ROOT=Path(__file__).resolve().parents[2]
 PREFIX="ten-source-public"
@@ -43,6 +46,24 @@ def application_keys(before,after,include_optimism=False,include_linea_scroll=Fa
         raise ValueError("Existing source enrollment requires reconciliation")
     return apply_keys
 
+def require_matching_release(configuration):
+    """No configuration writes until this exact checked-out release is live."""
+    expected=os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
+    if not re.fullmatch("[0-9a-f]{40}", expected):
+        raise RuntimeError("Set the exact reviewed release SHA in COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT before application")
+    revision=subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    if revision.returncode or revision.stdout.strip()!=expected:
+        raise RuntimeError("Checked-out release differs from the reviewed deployment SHA; no configuration mutation")
+    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
+        "--limit", "1", "--json"], capture_output=True)
+    if observed.returncode:
+        raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
+    deployments=json.loads(observed.stdout)
+    if (not isinstance(deployments,list) or len(deployments)!=1
+            or deployments[0].get("status")!="SUCCESS"
+            or deployments[0].get("meta",{}).get("commitHash")!=expected):
+        raise RuntimeError("The exact checked-out release must be successfully deployed before configuration application")
+
 def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
     configuration=load("Publish-HostedSolidConfiguration")
@@ -50,7 +71,9 @@ def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstr
     after=configuration.protected_read(prefix+"-candidate-variables.dpapi")
     # All intent, concurrency, exact-observation and no-replay semantics have
     # one owner in the existing publisher. This command never deploys.
-    configuration.apply_values(prefix,application_keys(before,after,include_optimism,include_linea_scroll,include_zksync_abstract,include_monad,include_sei))
+    keys=application_keys(before,after,include_optimism,include_linea_scroll,include_zksync_abstract,include_monad,include_sei)
+    require_matching_release(configuration)
+    configuration.apply_values(prefix,keys)
 
 def main(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX
