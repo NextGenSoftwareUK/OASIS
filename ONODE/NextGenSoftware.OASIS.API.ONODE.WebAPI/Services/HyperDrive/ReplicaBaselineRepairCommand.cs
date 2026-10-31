@@ -36,8 +36,7 @@ internal static class ReplicaBaselineRepairCommand
             if(args.Length!=2 || Environment.GetEnvironmentVariable("OASIS_SANDBOX")!="true")
                 throw new InvalidOperationException("Explicit demo shell context required.");
             var path=Path.GetFullPath(args[1]);
-            var options=new JsonSerializerOptions{UnmappedMemberHandling=JsonUnmappedMemberHandling.Disallow};
-            var request=JsonSerializer.Deserialize<Request>(await System.IO.File.ReadAllTextAsync(path),options);
+            var request=await ReadReviewedRequestAsync(path);
             var dna=Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(Environment.GetEnvironmentVariable("OASIS_DNA_JSON")
                 ?? throw new InvalidOperationException("Configured DNA required."));
             var result=await ExecuteAsync(dna,request,path+".application.json");
@@ -51,6 +50,37 @@ internal static class ReplicaBaselineRepairCommand
             Console.Error.WriteLine("COSMIC_REPLICA_REPAIR_COMMAND_FAILED: preserve request/journal and inspect sanitized evidence.");
             return 1;
         }
+    }
+
+    /// <summary>One bounded, unambiguous reviewed intent. Duplicate properties
+    /// must not let a reader approve one identity while execution uses another.</summary>
+    internal static async Task<Request> ReadReviewedRequestAsync(string path)
+    {
+        const int maximumBytes=8192;
+        await using var stream=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read);
+        var bytes=new byte[maximumBytes+1];var length=0;
+        while(length<bytes.Length)
+        {
+            var read=await stream.ReadAsync(bytes.AsMemory(length,bytes.Length-length));
+            if(read==0)break;
+            length+=read;
+        }
+        if(length>maximumBytes)throw new InvalidDataException("Reviewed repair request exceeds its byte budget.");
+        return ParseReviewedRequest(bytes.AsMemory(0,length));
+    }
+
+    internal static Request ParseReviewedRequest(ReadOnlyMemory<byte> bytes)
+    {
+        if(bytes.Length>8192)throw new InvalidDataException("Reviewed repair request exceeds its byte budget.");
+        using var document=JsonDocument.Parse(bytes,new JsonDocumentOptions{MaxDepth=4});
+        if(document.RootElement.ValueKind!=JsonValueKind.Object)
+            throw new InvalidDataException("A reviewed repair object is required.");
+        var names=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+        foreach(var property in document.RootElement.EnumerateObject())
+            if(!names.Add(property.Name))throw new InvalidDataException("Duplicate reviewed repair field.");
+        return document.RootElement.Deserialize<Request>(new JsonSerializerOptions{
+            UnmappedMemberHandling=JsonUnmappedMemberHandling.Disallow})
+            ?? throw new InvalidDataException("A reviewed repair object is required.");
     }
 
     internal static string StoreIdentity(string uri,string database)
