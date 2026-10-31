@@ -12,7 +12,7 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 
 Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;1Core/2API/3configuration controls pass. Client preparation1test and website link passe8df3c4; optional eleven-source protected candidate now staged; actual4Optimism presets pass planner (1test/0skips),3application-scope controls pass. Next permitted matching release and hosted acceptance. Original ten-source batch preserved.
 
-Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links next. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
+Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;hostedbatch integration next. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
 
 ## Working copies and release state
 
