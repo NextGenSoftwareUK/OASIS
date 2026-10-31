@@ -100,6 +100,7 @@ if (process.argv[2] === '--read-snapshot') {
                 {encoding:'utf8',timeout:30000,maxBuffer:1024*1024});
             assert.equal(child.status,0,child.stderr);
             assert.deepEqual(JSON.parse(child.stdout.trim()),[...values,null]);
+            fs.unlinkSync(snapshot); // Reproducible public fixture; child has exited.
         });
     });
 }
