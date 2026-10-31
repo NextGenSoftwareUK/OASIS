@@ -15,7 +15,7 @@ using INode=Neo4j.Driver.INode;
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 /// <summary>Fenced delivery over an existing enrolled graph database. The caller retains driver ownership.</summary>
-public sealed class NeoHolonReplicationOutbox : IHolonReplicationObligationReader
+public sealed partial class NeoHolonReplicationOutbox : IHolonReplicationObligationReader
 {
     private readonly IDriver _driver;
     private const string Now="(datetime.realtime().epochMillis * 10000 + 621355968000000000)";
