@@ -5,8 +5,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-// NEAR's measured native activation/full/subset took 34 seconds. Allow a
-// bounded demo lifetime of 60 seconds, without retries or a substitute source.
+// NEAR uses an explicitly configured source and a bounded demo lifetime.
+// No retry or source substitution occurs if that endpoint is unavailable.
 if (args.Length == 2 && args[0] == "--near-public")
 {
     using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));

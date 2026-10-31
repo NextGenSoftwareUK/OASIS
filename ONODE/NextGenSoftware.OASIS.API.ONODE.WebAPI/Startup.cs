@@ -470,6 +470,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_SOLANA_PUBLIC_SOURCE_JSON"] is string solanaPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaPublicAccountMetadataSource.FromJson(solanaPublicSource)));
+            if (Configuration["CQL_NEAR_PUBLIC_SOURCE_JSON"] is string nearPublicSource)
+                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
+                    NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(nearPublicSource)));
             if (Configuration["CQL_POLKADOT_PUBLIC_SOURCE_JSON"] is string polkadotPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(polkadotPublicSource)));
