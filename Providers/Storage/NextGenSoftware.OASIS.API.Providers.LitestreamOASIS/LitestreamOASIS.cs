@@ -32,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
     /// Constructor parameters:
     ///   databasePath — path to the SQLite database file managed by Litestream, e.g. "/data/oasis.db"
     /// </summary>
-    public class LitestreamOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class LitestreamOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -261,8 +261,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS
                 cmd.Parameters.AddWithValue("@t", (int)holon.HolonType);
                 cmd.Parameters.AddWithValue("@del", holon.IsDeleted ? 1 : 0);
                 cmd.Parameters.AddWithValue("@data", Ser(holon));
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = holon; result.IsError = false; result.Message = $"LitestreamOASIS: Holon '{holon.Name}' saved.";
+                var affected = await cmd.ExecuteNonQueryAsync();
+                if (affected != 1) throw new InvalidOperationException("SQLite holon upsert must acknowledge exactly one row.");
+                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"LitestreamOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"LitestreamOASIS: Error saving holon: {ex.Message}"); }
             return result;
