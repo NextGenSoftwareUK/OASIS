@@ -1769,3 +1769,10 @@ Taskbranch resumed/Development57174def3merged in existingworktree; Corefb43eaa r
 Monad HTTPoutcome:1Core/2API/3config/1nativeHTTP/1clientpass0skips; retainedcatalogueaccepted.2SDKprivatecopies/9receipts,exactDBdrop/absenceverified,servicesstopped. Originalcohort 839B retained. No downloads/newenvironment/Neo. ExistingRailwayjob e107f7e5nowBUILDING exact57174def3; noextradevpush.
 
 Website354958epushed withMonadCLI/guide/walkthroughlink and1passingnewclienttest; publicmainunchanged.27029listenerabsenceverified. ReusedNode/worktree,noenvironment/download. ExistingapprovedRailwayjob observedBUILDING exact57174def3; noextradevpush.
+
+### Optional sixteen-source releasecandidate
+31October2026:derive sixteen-source-public-{before,candidate}-variables.dpapi fromsameoriginalsnapshot/stable16catalogues. Preservepriorcandidates. Public64preset/focused4Monadexport TestResults/HostedCqlIntegrationCurrent; protectedsizespending,retainreconciliation. ExistingPython/.NET/caches,boundedlease,nohostread/apply/service/download/newenvironment. ApprovedRailwayjob stillBUILDING.
+
+Sixteen-source outcome:protectedbefore67,094B/candidate107,366B retained;1new4presetplannertestpass0skips,6scopecontrolspass. ExistingapprovedRailwayjob stillBUILDING; nohostsettingschange/newdevpush/service/download/environment. Rawpublicexports regenerable:
+- `TestResults/HostedCqlIntegrationCurrent/sixteen-source-public-review.json`: 62301B.
+- `TestResults/HostedCqlIntegrationCurrent/monad-prepared-review.json`: 3860B.

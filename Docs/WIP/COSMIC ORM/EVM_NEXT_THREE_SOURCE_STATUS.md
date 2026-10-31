@@ -112,3 +112,6 @@ Sei evm-rpc.sei-apis.com chain0x531 passedidentity but qualificationrejects gene
 
 ### Monad HTTP/client milestone
 1Core/2API/3config/1actualnativeHTTP/1client tests pass0skips. Actualretainedsource accepted bystrictbuilder. Native3/2,paired5/4,foreignprivate0/public3,9receipts; exactIDs/provider/visibilitychecked. SDK2privateMongocopies; originalintent/ACK retained,exactDBdrop/absenceverified,servicesstopped. Lazy CQL_MONAD_PUBLIC_SOURCE_JSON,explicitexistingprojectref,26typeunsignedreadcatalogue(not26hosted). Builder4presetstestedonly;15sourceprotectedcandidateunchanged. Evidence: TestResults/EvmBreadthReadinessCurrent/monad-{core,api}.trx,monad-{configuration,retained-config}.log; MonadPublicSourceCandidateCurrent/monad-mongo-http.trx; HostedCqlIntegrationCurrent/monad-client-preparation.log. No hosted/billing/replica/browserproof.
+
+### Sixteen-source preparedbatch
+Optional16profiles/64presets preparedseparately; actual4newMonadpresets passshippingplanner1/0skips,6application-scopecontrolspass. Priorcandidates preserved; nohostobservation/application/deployment. Futurematchingrelease/hostedacceptance remainsopen, existingapprovedroutingimage stillBUILDING.
