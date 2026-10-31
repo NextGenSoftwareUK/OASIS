@@ -187,7 +187,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path release-assets | Out-Null
           $packages = @(Get-ChildItem holochain-client-csharp/nupkgs/*.nupkg)
           if (Test-Path nupkgs-libraries) { $packages += Get-ChildItem nupkgs-libraries/*.nupkg }
-          foreach ($p in $packages | Where-Object { $_.Name -like "*.$version.nupkg" -or $_.DirectoryName -like '*nupkgs-libraries*' }) {
+          # Every package this run built (the complete set as of this release), not only those versioned like the tag:
+          # a release often bumps some packages and not others (e.g. v4.5.1 = API 4.5.1 + Client 4.5.0).
+          foreach ($p in $packages) {
             Copy-Item $p.FullName release-assets/
             $dir = Join-Path $env:RUNNER_TEMP $p.BaseName
             Expand-Archive $p.FullName -DestinationPath $dir -Force
