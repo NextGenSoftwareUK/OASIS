@@ -58,3 +58,22 @@ required. Query tariffs currently accept the existing explicitly supported read
 profiles; this setting does not automatically enable every provider enum.
 
 See [ActivityPub host configuration](ACTIVITYPUB_HOST_CONFIGURATION.md).
+
+## Source enrollment and discovery
+
+The WEB4 host registers explicitly query-only sources in the background, without
+changing its default storage provider or failover/replication lists. It requires
+`ICosmicReadOnlyQueryActivation`: ordinary activation is not used as a substitute,
+because some providers provision storage during activation. Verification receives
+a linked30-second deadline; the host awaits the provider's owning request.
+
+Authenticated `GET /api/data/query-cql/providers` reports tariff-backed sources,
+availability, query-only status, native features and current federation support.
+Query-only sources remain unavailable until verification completes, even if an
+older registration has its active flag set. Failure reports a redacted source
+error; it never switches to another provider. A missing admission factory yields
+an empty catalogue, not implicit provider enrollment.
+
+Discovery is a readiness observation, not native-query/deployment acceptance or a
+grant to run every native feature through every HTTP operation. The ordinary
+three-provider federation contract remains explicit until separately expanded.

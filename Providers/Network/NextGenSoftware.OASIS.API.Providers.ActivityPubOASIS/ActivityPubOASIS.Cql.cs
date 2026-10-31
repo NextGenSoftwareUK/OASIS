@@ -15,7 +15,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 /// <summary>Native Mastodon status-point CQL only; no storage or general timeline-query claim.</summary>
-public partial class ActivityPubOASIS : ICosmicQueryStorageProvider
+public partial class ActivityPubOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
     public const string CqlStatusKey = "MastodonStatusId";
     private const int CqlMaximumStatusBytes = 1024 * 1024;

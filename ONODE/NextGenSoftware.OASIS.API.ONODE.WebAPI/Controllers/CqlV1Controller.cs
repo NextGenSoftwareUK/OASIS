@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -14,6 +15,16 @@ public sealed class CqlV1Controller : ControllerBase
 {
     private readonly ICqlV1Providers providers;
     public CqlV1Controller(ICqlV1Providers providers) => this.providers = providers;
+
+    [HttpGet("providers")]
+    public IActionResult Providers()
+    {
+        var catalogue = HttpContext.RequestServices.GetService<CqlHostedSources>();
+        if (catalogue == null)
+            return StatusCode(503, new NextGenSoftware.OASIS.Common.OASISResult<object>
+                { IsError = true, ErrorCode = "CQL_SOURCE_CATALOGUE_UNAVAILABLE" });
+        return Ok(new NextGenSoftware.OASIS.Common.OASISResult<object>(catalogue.Describe()));
+    }
 
     [HttpPost]
     [RequestSizeLimit(32768)]

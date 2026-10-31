@@ -37,3 +37,9 @@ verified. Do not grant private holon writes merely to enrol a public read source
 Native CQL publishes only verified public/unlisted statuses and enforces the
 adapter's documented query capabilities and budgets. No account, posting rights,
 full ActivityPub protocol coverage or universal ORM storage is implied.
+
+ActivityPub implements the host's explicit read-only activation contract using
+one `GET /api/v2/instance`. The response is bounded to1MiB; cancellation reaches
+the native request, and activated state is published only after validation.
+The existing activation API shares this owner. Hosted source verification never
+substitutes account creation, posting, collection provisioning or a local store.
