@@ -5,14 +5,14 @@ Updated 31 October 2026. Programme incomplete. Priority: working hosted demo bre
 ## Exact next steps
 
 1. Respect the pending extra Development-publication timing decision in [David's single list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Do not infer approval or ask again. Normal verified integration remains once/twice daily.
-2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes all ten new public-read profiles. Do not apply their staged configuration to that older application/Core revision.
+2. The frozen correctness batch is parent **79fe887e3 / Core6bbd015**. It excludes all newly staged public-read profiles. Do not apply their staged configuration to that older application/Core revision.
 3. After the matching routing-facts release, prepare the distinct routing fixture with `Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, then run `Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1`. Setup has not run live; no routing-v1 avatar/record exists. Original Solana owner session expired; preserve it without replacement/replay.
 4. Separately integrate the tested public-read profiles with their matching application/Core and joint configuration, then run hosted source/preparation/isolation/replica gates. Browser acceptance follows when IAB is available. Do not claim the local HTTP tests are hosted proof.
 5. Base/Avalanche/BNB native HTTP+Mongo gates pass:3/2native,5/4paired,isolation and9receipts each; original SDK cohorts cleaned exactly. Strict preset builders10controls and website links54client tests pass (frontend taskb6c6854;3new preparation contracts pass). Ten-source protected candidate now prepared offline; all40actual presets pass shipping-planner preflight. Read-only hosted reconciliation confirms snapshot still exact (12planned settings,no drift). Single12setting apply-reviewed entry point prepared (2scope tests),not executed. Next permitted matching rollout and live acceptance. [Three-source report](EVM_NEXT_THREE_SOURCE_STATUS.md).
 
 Independent next breadth: Optimism native/published C#/CLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;1Core/2API/3configuration controls pass. Client preparation1test and website link passe8df3c4; optional eleven-source protected candidate now staged; actual4Optimism presets pass planner (1test/0skips),3application-scope controls pass. Next permitted matching release and hosted acceptance. Original ten-source batch preserved.
 
-Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;hostedbatch integration next. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
+Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed8c54051;optional13source batch prepared with corrected retained-source endpoint validation,8newpresets pass shippingplanner (1test/0skips),4scopecontrols pass. Matching hostedrollout pending. Rootstock finalized-header qualificationHTTP400 remains red. Existing release candidates unchanged.
 
 ## Working copies and release state
 

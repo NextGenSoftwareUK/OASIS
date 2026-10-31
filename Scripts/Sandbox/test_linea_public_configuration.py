@@ -12,7 +12,7 @@ spec.loader.exec_module(publisher)
 
 class LineaConfigurationTests(unittest.TestCase):
     def fixture(self):
-        source = {"schema": 1, "rpcUrl": "https://mainnet.linea.io/", "chainId": "0xe708",
+        source = {"schema": 1, "rpcUrl": "https://rpc.linea.build/", "chainId": "0xe708",
             "addresses": ["0x" + format(value, "040x") for value in (1, 2, 3)],
             "sourceOwner": "00000000-0000-0000-0000-000000000123"}
         before = {"OASIS_DNA_JSON": json.dumps({"OASIS": {"Sandbox": {"Enabled": True},
