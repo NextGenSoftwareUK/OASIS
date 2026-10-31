@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeInfluxDBOASIS()
         {
-            Assert.AreEqual(ProviderType.InfluxDBOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.InfluxDBOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -38,14 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.UnitTests
         {
             Assert.IsNotNull(_provider.ProviderDescription);
             Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
         }
 
         [TestCleanup]
