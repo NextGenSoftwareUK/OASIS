@@ -8,6 +8,8 @@ Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox
 2. Next scheduled release batch: Core6bbd015 response-owned routing facts (552tests), frontendded5ab0 response trace (47tests), strict repair-request reader (13API/schema tests), and verified SQLite completion. Current deployed parent498e3fd7f/Core759b49a/Railway4dbe69d0 remains healthy. Then run live balancing with a distinctly journalled fresh fixture; the original Solana owner session expired. Preserve its keys/partial outcomes; never replay saves.
 3. Eight providers pass hosted HTTP query gates; five pass browser gates. SOLID/S3/Solana browser acceptance remains pending after David stopped controls with Escape; no further UI input. Hosted Azure/Oracle explicitly deferred, no signup/payment re-asks. Deep LINQ/POCO/migrations-tool parity stays paused. Work only red checklist scopes; freeze greens/cursors absent a reproduced bug. HyperDrive implementation is V2 only, legacy document-only.
 
+Frontend copy audit (31 October): task branch now describes all eight hosted query sources, links the pinned Solana C#/HTTP guide, and labels the historical indexed coffee demo unavailable because its ledger history is missing. 47client controls pass; this is not browser acceptance or a production publication.
+
 ## Working copies and release ownership
 
 - Work/build/test only **C:/Source/OASIS-cosmic**, parent **work/cosmic-cql-hosted-release**; Core **work/cosmic-cql-sandbox-integration**. Never mutate/build C:/Source/OASIS.
