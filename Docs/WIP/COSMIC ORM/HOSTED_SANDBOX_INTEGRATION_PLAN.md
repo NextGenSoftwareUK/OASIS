@@ -661,3 +661,9 @@ independent full-map observations/ACKs. No source account, bucket, native object
 signing credential or new paid service created. Await one combined code release
 before testing new demo allowance and AWS live. Concurrent Development073edc99f
 CI/docs/AGENTS release-snapshot updates must be preserved; no master promotion planned.
+
+## 31 October: S3 startup admission regression
+
+Railway833256b2-5008-47b7-9662-c4d60452e2e7 atd300e8254 reported SUCCESS, but runtime exited before API startup: StorageQueryTariff.Capture omitted AWSS3 and allowed at most7tariffs. Actual SOLID fixed-client session POST returned502; only owner.intent.json exists, no bearer/ACK. Preserve unknown creation intent; never replay. API readiness must be observed separately from platform deployment status.
+
+Core bf098a4fbaf8ec577459af1a53fa16bdc59c45ad explicitly adds S3, raises supported catalogue bound to8 and samples9to detect overflow. Permission, uniqueness, price/version checks retained; no generic provider enrollment or writable routes. Shipping test builds full8-provider PricedStorageAdmissionFactory and verifies absent permission/overflow/negative-price rejection. Full API and test consumer builds pass;30tests/no skips cover admission, discovery, demo allowance and GraphQL shipping schema. TestResults/HostedCqlIntegrationCurrent/s3-admission.trx SHA2566F8618D8B3E8102FDC14F121908CFF13ABAEBF43E1D0C4348AF54DAE3D9EC9EB. Core branch/Development pushes independently verified with ls-remote. Next parent pin rollout, then explicitly planned post-startup-fix SOLID cohort; original fixed-client and expired cohorts remain preserved.

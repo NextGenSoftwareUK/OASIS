@@ -4,6 +4,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using Source = NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AwsS3PublicMetadataSource;
 
@@ -11,6 +12,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public class CqlAwsS3PublicExamplesTests
 {
+    [Fact]
+    public void ShippingAdmissionAcceptsEightExplicitReadTariffsIncludingQueryOnlyS3()
+    {
+        // Regression: valid presets alone did not exercise host startup. The
+        // deployed eight-provider catalogue must pass the real admission owner.
+        var providers = new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS,
+            ProviderType.Neo4jOASIS, ProviderType.AzureCosmosDBOASIS, ProviderType.ActivityPubOASIS,
+            ProviderType.IPFSOASIS, ProviderType.SOLIDOASIS, ProviderType.AWSS3OASIS };
+        var tariffs = providers.Select(provider => new StorageQueryTariff(provider, 0, "sandbox-demo-free-v2")).ToArray();
+        var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
+            providers.Take(4), tariffs, null, providers.Skip(4));
+
+        Assert.Equal(providers, admission.QueryProviders);
+        Assert.Contains(ProviderType.AWSS3OASIS, admission.QueryOnlyProviders);
+
+        // Adding S3 to the supported set grants neither implicit permission nor
+        // permission to duplicate/overflow the bounded server catalogue.
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(), providers.Take(7), tariffs));
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(), providers, tariffs.Append(tariffs[0])));
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null,
+            Array.Empty<NativeStorageAdmissionBinding>(), providers,
+            new[] { new StorageQueryTariff(ProviderType.AWSS3OASIS, -1, "sandbox-demo-free-v2") }));
+    }
+
     [Fact]
     public void PublicMetadataPresetsUseActualSourceCapabilitiesAndKeepMongoDependencyExplicit()
     {
