@@ -64,3 +64,8 @@ NativeREST IDfilter/restart/MongoSDK/HTTP/browser verified,45cases; no new busin
 ### Supabase REST current demo integration (30 October 2026)
 
 40cases/nativePostgREST+PostgreSQLrestart/MongoSDK/HTTP/browser IDfilter scope verified, not hostedSupabase/Kong/APIkeygateway/Auth/storage/realtime/rowpolicy acceptance. Return to general name/description/metadataqueries, graph/depth/history, nativecross-clientconditionalwrites, avatar/detailownership/bulkatomicity, centralregistration and HyperDrive/failover/loadbalancing/distributedsnapshots. Save/deleteownershipfaultcontrols syntheticHTTP; retainedsource integrationdidnotissuebusinesswrites. PreserveoriginalDB/roles/JWT/password/ACK with sharedPostgresvolume; plaintextcanonicalJSON explicit. See SUPABASE_CQL_MVP.md.
+
+
+### Firebase RTDB current integration (30 October 2026)
+
+50nonnativecontrols+native/exportrestore/paired3 passed; fullFirebaseStorageConformanceTests excluded/unverified. IDselectionSDK/HTTP/browser5/4 verified overretainedexport; no nativepersistent/crashdurabilityclaim. Returnto hostedcredentials/rules, name/description/metadataqueries, fullnumeric/array/default/graphroundtrips, children/depth/history, nativeatomicconcurrency/avatar-detailownership/centralregistration and HyperDrive/failover/loadbalancing. Unsupportednumericroundtriprejectsbeforedispatch; thisdoesnotimplementfullprecisionrange. KeepdistinctfromFirestore. Preserveoriginalcheckpoint/IDs/ACK; no reseed/replay. See FIREBASE_CQL_MVP.md.
