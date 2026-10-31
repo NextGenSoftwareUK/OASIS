@@ -33,10 +33,11 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
     ///   host   — Weaviate host, e.g. "http://localhost:8080" or "https://xyz.weaviate.network"
     ///   apiKey — optional Weaviate API key (required for Weaviate Cloud)
     /// </summary>
-    public class WeaviateOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class WeaviateOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _host;
         private readonly HttpClient _http;
+        private readonly Weaviate.Client.WeaviateClient? _queryClient;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -46,14 +47,20 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         };
 
         public WeaviateOASIS(string host, string? apiKey = null)
+            : this(new HttpClient(), host, apiKey) { }
+
+        /// <summary>Explicit caller-owned REST/gRPC clients; no endpoint guessing or GraphQL fallback.</summary>
+        public WeaviateOASIS(HttpClient client, string host, string? apiKey = null,
+            Weaviate.Client.WeaviateClient? queryClient = null)
         {
+            _queryClient = queryClient;
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "WeaviateOASIS";
-            ProviderDescription = "Weaviate AI-native vector database provider (REST/GraphQL — semantic search over OASIS holons)";
+            ProviderDescription = "Weaviate AI-native vector database provider (REST payload storage; explicit gRPC client for bounded CQL)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.WeaviateOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
@@ -65,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         private async Task<JsonElement> WeaviateGetAsync(string path)
         {
-            var resp = await _http.GetAsync($"{_host}{path}");
+            using var resp = await _http.GetAsync($"{_host}{path}");
             var raw = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode && resp.StatusCode != System.Net.HttpStatusCode.NotFound)
                 throw new Exception($"Weaviate GET {path} → {(int)resp.StatusCode}: {raw}");
@@ -82,8 +89,8 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         private async Task<JsonElement> WeaviatePostAsync(string path, object body)
         {
-            var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
-            var resp = await _http.PostAsync($"{_host}{path}", content);
+            using var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
+            using var resp = await _http.PostAsync($"{_host}{path}", content);
             var raw = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode) throw new Exception($"Weaviate POST {path} → {(int)resp.StatusCode}: {raw}");
             using var doc = JsonDocument.Parse(raw);
@@ -92,43 +99,72 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         private async Task WeaviatePutAsync(string path, object body)
         {
-            var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
-            var resp = await _http.PutAsync($"{_host}{path}", content);
+            using var content = new StringContent(Ser(body), Encoding.UTF8, "application/json");
+            using var resp = await _http.PutAsync($"{_host}{path}", content);
             var raw = await resp.Content.ReadAsStringAsync();
             if (!resp.IsSuccessStatusCode) throw new Exception($"Weaviate PUT {path} → {(int)resp.StatusCode}: {raw}");
         }
 
         private async Task WeaviateDeleteAsync(string path)
         {
-            var resp = await _http.DeleteAsync($"{_host}{path}");
+            using var resp = await _http.DeleteAsync($"{_host}{path}");
             if (!resp.IsSuccessStatusCode && resp.StatusCode != System.Net.HttpStatusCode.NotFound)
                 throw new Exception($"Weaviate DELETE {path} → {(int)resp.StatusCode}");
         }
 
         // ─── Schema helpers ───────────────────────────────────────────────────────
 
-        private async Task EnsureClassAsync(string className, object[] properties)
+        private static void ValidateClassSchema(JsonElement schema, string name, object[] properties)
         {
-            var schema = await WeaviateGetAsync($"/v1/schema/{className}");
-            if (schema.TryGetProperty("class", out _)) return; // already exists
-            await WeaviatePostAsync("/v1/schema", new
+            if (schema.GetProperty("class").GetString() != name || schema.GetProperty("vectorizer").GetString() != "none")
+                throw new InvalidOperationException("Native class/vectorizer differs from configured payload storage.");
+            var actual = schema.GetProperty("properties").EnumerateArray().ToDictionary(p => p.GetProperty("name").GetString()!);
+            var expected = JsonSerializer.SerializeToElement(properties, _jsonOpts);
+            foreach (var property in expected.EnumerateArray())
             {
-                @class = className,
-                vectorizer = "none",
-                properties
-            });
+                var key = property.GetProperty("name").GetString()!;
+                if (!actual.TryGetValue(key, out var found) ||
+                    !property.GetProperty("dataType").EnumerateArray().Select(t => t.GetString())
+                        .SequenceEqual(found.GetProperty("dataType").EnumerateArray().Select(t => t.GetString())))
+                    throw new InvalidOperationException("Native class required property types differ from configured storage.");
+            }
         }
 
-        // ─── Object CRUD ──────────────────────────────────────────────────────────
+        private async Task EnsureClassAsync(string className, object[] properties)
+        {
+            using var response = await _http.GetAsync($"{_host}/v1/schema/{className}", HttpCompletionOption.ResponseHeadersRead);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{_host}/v1/schema") {
+                    Content = new StringContent(Ser(new { @class = className, vectorizer = "none", properties }), Encoding.UTF8, "application/json") };
+                using var created = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                created.EnsureSuccessStatusCode();
+                using var acknowledgement = await ReadNativeResponseAsync(created, 64 * 1024, default);
+                ValidateClassSchema(acknowledgement.RootElement, className, properties);
+                return;
+            }
+            response.EnsureSuccessStatusCode();
+            using var schema = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            ValidateClassSchema(schema.RootElement, className, properties);
+        }
 
+        // Native single-object batch upsert removes the GET/POST-or-PUT race.
         private async Task UpsertObjectAsync(string className, string id, Dictionary<string, object?> props)
         {
-            var body = new { @class = className, id, properties = props };
-            var existing = await GetObjectAsync(className, id);
-            if (existing == null)
-                await WeaviatePostAsync("/v1/objects", body);
-            else
-                await WeaviatePutAsync($"/v1/objects/{className}/{id}", body);
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_host}/v1/batch/objects?consistency_level=ALL") {
+                Content = new StringContent(Ser(new { objects = new[] { new { @class = className, id, properties = props } } }), Encoding.UTF8, "application/json") };
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            using var acknowledgement = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, default);
+            var results = acknowledgement.RootElement;
+            if (results.ValueKind != JsonValueKind.Array || results.GetArrayLength() != 1)
+                throw new InvalidOperationException("One native object acknowledgement required.");
+            var item = results[0];
+            var result = item.GetProperty("result");
+            if (item.GetProperty("class").GetString() != className || item.GetProperty("id").GetString() != id ||
+                result.GetProperty("status").GetString() != "SUCCESS" ||
+                result.TryGetProperty("errors", out var errors) && errors.ValueKind != JsonValueKind.Null)
+                throw new InvalidOperationException("Native object was not acknowledged successfully for the requested class/ID.");
         }
 
         private async Task<JsonElement?> GetObjectAsync(string className, string id)
@@ -173,6 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 var strProp = new Func<string, string, object>((name, desc) => new { name, dataType = new[] { "text" }, description = desc });
@@ -193,6 +230,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
                     strProp("parentHolonId", "Parent holon UUID"), intProp("holonType", "HolonType enum value"),
                     boolProp("isDeleted", "Soft-delete flag"), strProp("dataJson", "Full serialised holon")
                 });
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = "WeaviateOASIS activated — schema ready.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
@@ -200,7 +238,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "WeaviateOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync() { IsProviderActivated = false; return Task.FromResult(new OASISResult<bool> { Result = true }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -374,15 +412,23 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.WeaviateOASIS] = holon.Id.ToString();
-                await UpsertObjectAsync("OasisHolon", holon.Id.ToString(), new Dictionary<string, object?>
-                {
-                    ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
-                    ["isDeleted"] = holon.IsDeleted, ["dataJson"] = Ser(holon)
-                });
-                result.Result = holon; result.IsError = false; result.Message = $"WeaviateOASIS: Holon '{holon.Name}' saved.";
+                if (IsVersionControlEnabled) throw new NotSupportedException("Weaviate historical writes are not implemented.");
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.WeaviateOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString(_jsonOpts));
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.WeaviateOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
@@ -393,9 +439,24 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"WeaviateOASIS: {saved.Count} holon(s) saved.";
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
