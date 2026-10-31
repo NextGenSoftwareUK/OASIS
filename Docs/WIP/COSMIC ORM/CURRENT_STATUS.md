@@ -16,12 +16,12 @@ Linea/Scroll native+publishedC#/actualCLI3/2 and HTTP/Mongo3/2+5/4/isolation pas
 
 zkSync/Abstract native+publishedC#/CLI and HTTP3/2+Mongo5/4/isolation pass;2Core/4API/6config/2nativeHTTP/2client checks pass. Website links/client proofs pushed5aad1d1. Optional15source/60preset candidate staged separately;8newpresets pass planner,5scope controls pass. Currenthost snapshot exact (17planned settings,no drift). Matching permittedrollout next. Existing13source releasecandidate unchanged.
 
-Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website links next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
+Monad native/C#/CLI and HTTP3/2+Mongo5/4/isolation pass;1Core/2API/3config/1nativeHTTP/1client checks pass. Website link/clientproof pushed354958e; futurejointbatch/hostedacceptance next. Sei uppercasegenesis parsergap reproduced; investigateencoding beforeenrollment. Existing15sourcecandidate unchanged.
 
 ## Working copies and release state
 
 - Work/build/test only `C:/Source/OASIS-cosmic`, parent **work/cosmic-cql-google-public**; Core same branch, **6d262913e32fb0ae8e5da6277784df41a67223db** pushed/remote-verified. Parent gitlink/manifest match. Unknown root `logs` preserved.
-- Merged parent origin/Development57174def3; Core6bbd015 already ancestor of current taskCorefb43eaa. Documentation conflicts resolved preserving both histories/newer provider status. No provider expansion deployed.
+- Merged parent origin/Development57174def3; Core6bbd015 already ancestor of current taskCore6d26291. Documentation conflicts resolved preserving both histories/newer provider status. No provider expansion deployed.
 - Approved Railway job e107f7e5-fb8b-4cce-854b-46ebad7c8600,parent57174def3,BUILDING. Priorlive68fb8cc4-c603-4d16-a97a-0e5a30e364c2,parent0e688ac9c,SUCCESS. Last full eight-source HTTP acceptance remains parent498e3fd7f/deployment4dbe69d0; no fresh source gate inferred from the later deployment.
 - Frozen parent **work/cosmic-cql-hosted-release79fe887e3** / Core **work/cosmic-cql-sandbox-integration6bbd015** unchanged. Broader earlier local-provider source remains preserved on parent237403a75.
 - Frontend `C:/Source/Web4Site`, task **work/cosmic-cql**. Public main **9b65a88** serves exact committed HTML/JS. Google/Ethereum local demo links are public; Polygon/Arbitrum links are task-staged for the next website batch. **54 client controls pass**; Cosmos/Polkadot/NEAR links task-staged throughe8bf2d3, not public.
