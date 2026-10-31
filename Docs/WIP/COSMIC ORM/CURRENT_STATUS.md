@@ -1,52 +1,52 @@
-# Current COSMIC ORM / CQL status
+# COSMIC ORM / CQL — current status
 
-Updated 31 October 2026 (America/Cancun). Full programme remains incomplete.
+Updated31 October2026. Programme incomplete; priority is actual hosted sandbox breadth.
 
-## Current phase: demo breadth and missing provider integrations
+## Exact next step
 
-- Worktree C:/Source/OASIS-cosmic; parent branch work/cosmic-cql-hosted-release; Core work/cosmic-cql-sandbox-integration. Broad parent work/cosmic-cql-sandbox-integration237403a75 preserved remotely. Never build/write in the original C:/Source/OASIS checkout.
-- Development parent51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3 / Coreff670ec65eb2d6e98ec0858af146eba704752b20; ONODE6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved. Pins/gitlinks/remote pushes verified.
-- Exact Railway WEB4 deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b SUCCESS, health200, running process commit/deployment checked. One consolidated repair batch; no replacement build.
-- Hosted acceptance35/35 HTTP steps, no failures:3 acknowledged saves;9 exact point reads;5 CQL forms per provider (name, description, metadata AND/OR, paging, count); Mongo/SQLite/Neo federation6 physical coffee copies;3 cross-user isolation checks. Two free-plan/pay-as-you-go-disabled sessions.
-- Evidence TestResults/Web4SandboxCqlCurrent/hosted-demo-verification.json SHA2563B3D58D8754395F2EDB1A29015D52651B1294155FCB97517FBBC6B8900DC2DEA. This proves this demo flow, not full EF parity or all failure/placement semantics.
+1. Implement and test **named ActivityPub + Mongo federation**: current HTTP federation admits only the original3 and cannot compile unordered protocol membership sources. Retain per-target authorization, explicit scope, native capabilities and budgets; no point fan-out or fabricated Mongo rows.
+2. Establish2 acknowledged, owner-scoped Mongo demo copies from the public source and add a ready federated preset (5/4 physical copies). Inspect normal metadata encryption/query-key policy before mapping public native keys; do not disable encryption as a workaround.
+3. Bundle the tested CORS operation-header correction with the next verified backend batch, then verify the real browser sees its operation ID. It is committed on the task branch only, not deployed.
+4. Continue hosted Oracle/IPFS/SOLID/Solana/AWS/Azure and remaining breadth. Azure remains pending/free-only, no existing subscription. Deep LINQ terminals/POCO/migrations tooling remain paused.
 
-## Hosted replication blocker repaired
+## Working copies and release ownership
 
-- Mongo queue sequences6/version4 and8/version17 were missing initial SQLite enrollment. Native read-only inspection proved no target current/head/history/matching receipt for either root.
-- Both explicit trusted baseline applications succeeded and durably source-completed, preserving original failure evidence. Ordinary worker drained subsequent obligations; original cohort has3 SQLite +3 Neo Completed obligations and no unfinished SQLite head. Actual original SQLite3 identities/names/owners/version1 checked.
-- Root6:874fe30b-7702-4905-9e5b-ffa93a8621f8; initd1779b77-77bb-4dd4-b558-65985ae62db0. Root8:715eb09e-ce75-4ab3-9f4e-e76c0493281a; initb1c16263-bec5-4bc7-9c7d-5b05ec8da7ee. Never reset/skip queues or replay business saves.
-- Remote protected requests/journals /data/COSMIC/ReplicaRepair/request.json and request-8-reviewed.json (+.application.json/.lock) remain required recovery evidence. Local matching requests under LocalState/COSMIC/HostedReplicaRepairCurrent. Original denied request-8.json preserved separately.
-- Root8 review initially confused record creator with queued writer. Policy denied before journal/submission. Diagnostic now reports payload ActorId separately from CreatedByAvatarId; native regression with differing creator/writer passes. Corrected request retained the SAME initialization operation, no new write identity.
-- Retained-copy/repair evidence TestResults/Web4SandboxCqlCurrent/hosted-retained-copy-verification.json SHA25647B157DE38B3BB1FAD2F17F47FD5DEE2C5838D3D64F63D40CEDDF942C03C8789.
+- Work/build/test only **C:/Source/OASIS-cosmic**, parent **work/cosmic-cql-hosted-release**; Core **work/cosmic-cql-sandbox-integration**. Never mutate/build C:/Source/OASIS.
+- Parent Development6735c4d461614be5ce9010d528b26cb870ae8fff and Core Development6963c50eaec8c4ef042b453a2431443e17ceaed0 are pushed/remote-verified; pins/gitlinks match. ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved.
+- Broad local-provider programme remains on remote parent work/cosmic-cql-sandbox-integration237403a75; the scoped hosted release excludes that accumulated540-file catalogue delta.
+- Web4Site **C:/Source/Web4Site**, branch work/cosmic-cql; public main16553be/Production7455754340 SUCCESS. Existing local demo links remain.
+- Unknown untracked root logs preserved. Never git add -A or force-push. Batch verified Development pushes once/twice daily; second batch fixed a reproduced live query bug.
 
-## Verified repair components
+## What is actually verified live
 
-- Initial baseline primitives on SQLite/Mongo/Neo: native absence/history/receipt fences, atomic graph/receipt, separate fingerprint domain, exact replay and sequential-next-version protection. Mongo receipt-membership migration implemented/tested; Neo receipt audit bounded10000.
-- Authorized source preparation and read-only target outcome inspection implemented; durable metadata journal before submission, exact receipt recovery after lost response, current policy reauthorization and no resubmission after absent uncertain outcome.
-- Mongo source completion compares original operation/payload/attempt/head atomically, preserves original failure evidence and records exact initialization acknowledgement. Shell-only sandbox command --cosmic-repair-baseline uses configured Mongo-to-SQLite route; no public repair endpoint.
--23 shared controls +8 Mongo native cases +1 real Mongo-to-SQLite command scenario pass/no skips.71 API/schema/admission controls pass. Latest command regression TRX SHA2564C35B531535ED2D4768E8EC44815437AA0C25BE64D0EF772526EF0C1781DD33A. Owned native fixtures removed/services stopped.
-- Point-load explicit-provider routing and durable worker barrier diagnostics are included in deployed batch. Legacy HyperDrive untouched.
+- **MongoDB / SQLite / Neo4j**:35/35 authenticated HTTP acceptance steps on baseline deployment1c73a0b5:3 acknowledged saves,9 exact copies,5 query forms per provider,6 physical federated coffee copies and3 cross-user isolation checks.
+- Initial missing SQLite replica baselines repaired through fenced atomic application and exact acknowledgement; ordinary worker drained subsequent obligations. No queue reset/skip/business replay. Broader failure-injection/failover/load-balancing/future-enrollment matrix remains incomplete.
+- **ActivityPub** correction deployment94623078 SUCCESS at6735c4d46: authenticated HTTP and public sandbox browser both return3actual public posts and the2-post subset. Four providers now have verified hosted queries; ActivityPub Mongo pairing/full demo acceptance remains incomplete.
+- First actual ActivityPub In query returned400 CQL_REQUEST_INVALID, operation a3e18ac8-9c55-ef15-e30c-9e7c09aa1dcc. Root cause: HTTP request capture rejected every array despite compiler membership support. Fixed and deployed in6735c4d46. Earlier ad-hoc verifier then incorrectly read result as an array; corrected verification follows the declared result.rows envelope, and identical full-response hashes reconcile that false0 report. Original evidence retained.
+- **41 additional native/local/temporary-hosted demos are not hosted sandbox coverage.** Public catalogue headings39 are not a hosted-provider count. Local Solana browser/native-index and Oracle/IPFS/SOLID/ActivityPub multi-record/Mongo demos were previously verified on the preserved broad branch.
 
-## Fixture and credential ownership
+## Latest verified code and tests
 
-- Current LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json completed=true/pending=null,3 acknowledged records; SHA25668DCBBADB22F5CE3359DE4BE6B256599161307306FB35838C984F6ACE86699B7. Preserve current records/session credentials for demo; do not blindly rerun/reseed.
-- Current sessions500d722c-335e-4c0c-86da-d6c05325ad7e and a50e51b1-220b-43c5-983e-145761a52bcd use separate630-byte Windows DPAPI files in the same protected state folder. No bearer in journals/docs/logs. Eight offline verifier controls pass.
-- Old fixture archived intact at LocalState/COSMIC/HostedSandboxCqlCurrent/Archive/initial-without-session/fixture.json, completed=false: writes/delivery reconciled, owner JWT lost before protected-session support. Original3 private records/9 copies retained for later authorized teardown; never impersonate/replay old owner.
-- Required evidence/resources and lifecycle in ENVIRONMENT_AND_CLEANUP_LEDGER.md. Remote SSH key cosmic-cql-demo-inspection still registered/reusable, not removed; exact paths/fingerprint in ledger. Unknown root logs untouched. No new installs/downloads/restores/environments.
+- Explicit query-only admission fences storage writes before provider/outbox I/O; captured enrollment, read-only activation, configured-source discovery and capability-checked public examples. Defaults/write routes/failover/replication lists preserved.
+- HTTP In produces one bounded native membership AST; no point fan-out or unbounded client scan. Captured literals remain owned after source mutation/disposal.
+- Full transitive API build passes. Final API **427pass/0fail/12environment-dependent skips**, ActivityPub344pass/no skips, protected-session verifier8pass; Node client25pass. These are scoped controls, not universal provider/parity completion.
+- CORS fix:3framework controls pass; current deployed browser shows operation ID not exposed. Correct host policy is prepared for next batch, no cookie/origin/method/request-header expansion.
+- Native/browser evidence: TestResults/HostedCqlIntegrationCurrent/activitypub-hosted-wire-acceptance.json and activitypub-sandbox-{three,two}-posts.png. Native full/subset3/2, two independent normal free sessions; local links preserved.
+- Final API evidence: TestResults/HostedCqlIntegrationCurrent/membership-capture-api.trx. Earlier original failed compile/read evidence retained. Counts/hashes in [integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
+- Concrete host registry stays in production-only CqlV1Providers composition; local demo native integration compiles without importing BootLoader.
 
-## Next demo work
+## Durable state / resources
 
-1. Oracle content pairing now verified:13 compiler controls,21 retained native queries,4 C# +4 HTTP +4 browser presets,2 rejected request shapes. Name/description/metadata/AND-OR counts2/4/4/2; source unchanged, owned Mongo fixture cleaned. Run-ReusableOracleMongoTests.ps1 -Content -Serve -ArchiveCompletedDemo serves5090.
-2. Web4Site CQL tab now published: feature0810238/main dd90f1d. Public https://web4.oasisomniverse.one/web4-sandbox.html has Oracle local catalogue; production deployment7449727369 success/client SHA matches.17client controls and catalogue->native metadata result4copies verified; hosted Oracle remains unconnected.
-3. IPFS scoped native multi-CID profile now verified:23 shared admission +17IPFS controls +1real Kubo/Mongo scenario pass/no skips;3selected native rows,2-row subset,5/4federated copies through SDK/HTTP. Core task0d41300/pin updated, not deployed; current runtime/routing remains unchanged. SOLID now also verified:31 controls +1 real Pod/Mongo scenario,3 native records/5 federated copies, exact owned cleanup confirmed. ActivityPub now verified:10 controls +1 real public Mastodon/Mongo scenario,3 native records/5 federated copies and exact Mongo cleanup. Azure remains pending/free-only; deep LINQ/POCO/migrations deferred.
-4. Broader failure-injection/failover/load-balancing and gap-free future enrollment remain explicit acceptance gaps; this demo flow is not universal HyperDrive completion.
+- **LocalState/COSMIC/HostedSourceRolloutCurrent**: original/candidate configuration protected with Windows DPAPI; durable deployment/configuration/session/query intents and acknowledgements. All3 variables observed; example-only newline conversion independently reconciled, no resubmission. No secrets in Docs/TestResults.
+- Fresh normal free session identity is in sandbox-session.acknowledged.json; its token is session-<id>.dpapi. Original retained baseline session expired; preserve original records and credentials, never impersonate/reseed.
+- Baseline fixture LocalState/COSMIC/HostedSandboxCqlCurrent/fixture.json completed=true/pending=null,3 acknowledged records. Original protected repair requests/journals remain locally and /data/COSMIC/ReplicaRepair remotely.
+- Existing Railway dev project712f50f6-3b7b-46d4-b229-44b49922f16b, WEB4 service5123199a-43c4-4439-9921-e10e2aec7841. No new paid source/service provisioned.
+- Cleanup removed15,310,104,295B of verified disposable test/VS staging output. Latest C free80,437,653,504B. Shared runtimes/cache/native originals preserved; full ownership/lifecycle in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
-## Branch recovery and key commands
+## Commands and recovery
 
-- Broad parent work/cosmic-cql f89cf0085 / published Core69bb8a4 preserve PostgreSQL/SQLServer/Oracle content work excluded from deployment. Broad Core also has a local unpublished conflict-free merge with scoped Core; parent merge attempt was aborted. Do not sweep broad changes into Development.
-- Next exact step: poll existing BUILDING Railway94623078-50c9-4129-9df9-9ee2e61dd834 for parent6735c4d46/Core6963c50 (do not restart); on SUCCESS perform fresh explicit ActivityPub full/subset reads using protected rollout session (check token expiry first), publish matching frontend16553be and verify browser/Mongo pairing/isolation. Use new query-*-after-capture-fix intent/ACK paths; preserve original definitive400 intent. First deployment e71d76cc succeeded and discovery4ready, but actual In query400 revealed capture-array rejection; this does NOT count as hosted provider4.427API controls pass after root fix; original failed read/intent retained. No automatic replay of uncertain operations actual CQL full/subset, browser and Mongo pairing/isolation. Scoped release selects36 named parent files instead of the accumulated540-file local catalogue delta. Broad-branch API suite415passed/0failed/12environment-dependent skips; no native acceptance inferred. Generic server examples and browser discovery are implemented (60 API/shipping +25 client tests pass), pushed as parent51010455d/frontend16553be; not published/deployed. Protected original/candidate rollout configuration is prepared under LocalState/COSMIC/HostedSourceRolloutCurrent, without live changes. Bounded typed In HTTP membership implemented;46 API controls pass (25new+21existing). Host registration/discovery and explicit read-only activation are implemented;100 affected controls pass (64Core+21API+15ActivityPub); not deployed. ActivityPub DNA/BootLoader registration now implemented;10 configuration controls pass, producer builds pass; not deployed, hosted count remains3. See HOSTED_SANDBOX_INTEGRATION_PLAN.md. Only3 hosted providers verified;41 additional native/local/temporary-hosted demos are not hosted sandbox coverage. Milvus local expansion paused. Chroma50controls +5 native phases =55passed/no skips; browser5/4, original3documents/collections/schema preserved across restart/postpair; exact Mongo cleanup/nativeexit0,18002/27039/5133 stopped. Public section39 main d8afd91/Production7454604193 success. See CHROMA_CQL_MVP.md. Subsequent user-requested cleanup removed63 completed test-bin directories4751008965B, including Chroma; native source/cache/obj/evidence preserved, free67154055168B. See COMPLETED_TEST_OUTPUT_CLEANUP_2026-10-31.md. Broader parity/HyperDrive remains incomplete; demo blockers require immediate fixes. Hosted Azure pending/free-only.
-- PostgreSQL16controls/17native/restart/4paired presets; SQLServer17controls/23native/restart/4paired presets verified. Oracle13controls/15read-only probes/21saved-holon queries/restart plus4paired SDK/HTTP/browser content presets verified locally; hosted OCI still unproved.
-- Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1, /m:2 /nr:false /p:UseSharedCompilation=false, reuse caches. No restore unless necessary. Test-CqlReplicaBaselineRepair.ps1 runs explicit reusable Windows native profile after producer builds.
-- Validate pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks. Fetch first; batch verified Development releases once/twice daily. Latest client-only verifier/probe/docs commits need no new Railway build.
-- Logs/TRX only worktree TestResults; persistent credentials/intent/ACK journals only protected LocalState or retained remote volume, never TestResults/Docs.
-- Recovery links: [strict checklist](CQL_PARITY_CHECKLIST.md), [baseline/recovery contract](REPLICA_BASELINE_AND_RECOVERY.md), [release evidence](CQL_SANDBOX_RELEASE_2026-10-30.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md), [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+- Build through Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Reuse existing SDK/assets/cache; no restore unless necessary.
+- Validate committed pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
+- Logs/TRX only worktree TestResults; durable credentials/intent/ACK only protected LocalState or retained remote volume.
+- [Strict parity checklist](CQL_PARITY_CHECKLIST.md): work on red demo rows first; do not harden green rows/cursors without a reproducible bug. Legacy HyperDrive gaps are documentation-only.
+- [Hosted integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md), [after-demo backlog](AFTER_DEMO_BACKLOG.md), [baseline recovery](REPLICA_BASELINE_AND_RECOVERY.md), [previous detailed status](Archive/CURRENT_STATUS_2026-10-31_PRE_HOSTED_ACTIVITYPUB.md).
