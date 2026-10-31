@@ -28,11 +28,18 @@ public sealed class CqlV1Providers : ICqlV1Providers
     }
 
     public HolonManager CreateManager(IOASISStorageProvider provider)
+        => CreateQueryManager(OASISBootLoader.OASISBootLoader.OASISDNA, ProviderManager.Instance);
+
+    internal static HolonManager CreateQueryManager(NextGenSoftware.OASIS.API.DNA.OASISDNA dna, ProviderManager registry)
     {
-        var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
         if (dna?.OASIS?.HyperDriveMode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
             throw new InvalidOperationException("CQL requires Hyperdrive V2.");
-        return new HolonManager(provider, dna, ProviderManager.Instance);
+        // CQL dispatch owns an explicit, already-admitted adapter snapshot.
+        // Supplying it to the storage-manager constructor would register it,
+        // activate it or subscribe persistent events as a constructor side effect.
+        // In particular a read-only representation must never replace or conflict
+        // with a wallet-backed canonical provider of the same enum type.
+        return new HolonManager(null, dna, registry);
     }
 }
 

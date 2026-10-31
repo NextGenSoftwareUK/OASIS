@@ -60,6 +60,17 @@ public class CqlReadSourceProfileTests
     }
 
     [Fact]
+    public void ShippingQueryManagerDoesNotRegisterActivateOrSubscribeAReadRepresentation()
+    {
+        var dna = new NextGenSoftware.OASIS.API.DNA.OASISDNA {
+            OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode = NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2 } };
+        var registry = new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null, dna);
+        _ = CqlV1Providers.CreateQueryManager(dna, registry);
+        Assert.Empty(registry.GetAllRegisteredProviders());
+    }
+
+    [Fact]
     public void DuplicateRepresentationsAndMissingReadContractFailBeforeActivation()
     {
         var source = DispatchProxy.Create<ReadSource, Source>();
