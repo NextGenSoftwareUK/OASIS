@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Queries\\CosmicFederationInputCapture.cs",
+    "Hash": "B105D28EC0A7D116A4287069ECF0F09060CCFB2161CCAE129E67D23054E97927"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\Queries\\CosmicQueryExecutor.cs",
+    "Hash": "8EAF8A2496F9A841636F4B007263685068E05DE93D211552C76DCBCF84B9A851"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\CosmicFederationInputTests.cs",
+    "Hash": "16C3FDFCE6B7C86DD3891082E71185A7B85300C880B14EB5EA09AD8BB7DB8AEA"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "F727BBCC526B7C08798E48718B89130100EBB7AA3BDBC0D53FE59BDCFD69569E"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\bin\\Debug\\netstandard2.1\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "AE05C77AA6AEE72B0FDAC757078C3F8D29CA6AD27B10C3E08C36226B5E7556DF"
+  },
+  {
+    "Path": "C:\\Source\\OASIS\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core.UnitTests\\bin\\Debug\\net10.0\\NextGenSoftware.OASIS.API.Core.dll",
+    "Hash": "F727BBCC526B7C08798E48718B89130100EBB7AA3BDBC0D53FE59BDCFD69569E"
+  }
+]

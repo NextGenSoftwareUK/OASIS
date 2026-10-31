@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void ActivateProvider_InvalidConfigurationCannotClaimActivation()
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
@@ -71,16 +71,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests
             var result = _provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.Result);
+            Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateProvider_AfterRejectedActivationRemainsInactive()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            var activation=_provider.ActivateProvider();
+            Assert.IsTrue(activation.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();

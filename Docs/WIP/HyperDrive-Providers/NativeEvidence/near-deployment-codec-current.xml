@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="shipping SDK entry rejects unowned submission before endpoint/RPC work" time="0.103455" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="actual SDK Borsh/signature binds large nonce and exact UTF8 JSON bytes" time="0.007596" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="account grammar rejects reserved/ambiguous accounts before preparation" time="0.000271" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="actual SDK signature verification for ed25519" time="0.004508" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="actual SDK signature verification for secp256k1" time="0.020345" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="actual SDK signature verification for ml-dsa-65" time="0.247926" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="one prepare freezes admitted intent before awaits and signs exactly once" time="0.002746" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="read-only recovery reconstructs supported action from common signed fields only" time="0.002448" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original protocol" time="0.000793" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original chainId" time="0.000814" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original sender" time="0.000821" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original transactionHash" time="0.000785" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original signature" time="0.000804" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original signDocBase64" time="0.000828" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject changed original signedTransactionBase64" time="0.000707" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="reject trailing Borsh bytes, extra action, mismatched admitted calldata and unsafe scalar shapes" time="0.011423" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="shared transport envelope and base64 limits reject before RPC" time="0.003842" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="network/checkpoint disagreement rejects before persistence or submission" time="0.007882" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="submission waits for persistence callback and retains identity on unknown result" time="0.007834" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="one exact original capability makes only one SDK HTTP attempt, including 503 and repeat calls" time="0.032089" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="ordinary shared native policy delegates once to owned capability and never signs on failure" time="0.000227" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="checked record keeps protocol preflight and passes exact action through same owned capability" time="0.000245" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="checked writes preserve exact escaped C# JSON bytes instead of SDK reserialization" time="0.000140" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="real SDK code-only original fits existing envelope and recovers without signing" time="0.461893" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed protocol" time="0.217219" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed chainId" time="0.214975" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed sender" time="0.313610" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed transactionHash" time="0.315151" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed signature" time="0.330211" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed signDocBase64" time="0.313132" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment rejects changed signedTransactionBase64" time="0.212808" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment enforces exact code and self-account before signing" time="0.000772" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<testcase name="deployment persistence failure never submits; response loss retains original" time="0.437971" classname="test" file="C:\Source\OASIS\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.NEAROASIS\SdkBridge\native-preparation.test.mjs"/>
+	<!-- tests 33 -->
+	<!-- suites 0 -->
+	<!-- pass 33 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 3421.8554 -->
+</testsuites>

@@ -1,111 +1,28 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.UnitTests
 {
+    /// <summary>Offline provider metadata checks. Activation needs a live EOSIO node and is covered by the integration tests.</summary>
     [TestClass]
     public class EOSIOOASISProviderTests
     {
-        private EOSIOOASIS _provider;
+        private EOSIOOASIS _provider = null!;
 
         [TestInitialize]
-        public void Setup()
-        {
-            _provider = new EOSIOOASIS();
-        }
+        public void Setup() => _provider = new EOSIOOASIS("http://127.0.0.1:1", "oasis",
+            "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906", "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3");
 
         [TestMethod]
-        public void ProviderType_ShouldBeEOSIOOASIS()
-        {
-            // Arrange & Act
-            var providerType = _provider.ProviderType;
-
-            // Assert
-            Assert.AreEqual(ProviderType.EOSIOOASIS, providerType);
-        }
+        public void ProviderType_ShouldBeEOSIOOASIS() => Assert.AreEqual(ProviderType.EOSIOOASIS, _provider.ProviderType.Value);
 
         [TestMethod]
-        public void IsProviderActivated_ShouldBeFalseInitially()
-        {
-            // Arrange & Act
-            var isActivated = _provider.IsProviderActivated;
-
-            // Assert
-            Assert.IsFalse(isActivated);
-        }
+        public void IsProviderActivated_ShouldBeFalseInitially() => Assert.IsFalse(_provider.IsProviderActivated);
 
         [TestMethod]
-        public void ProviderName_ShouldBeEOSIOOASIS()
-        {
-            // Arrange & Act
-            var providerName = _provider.ProviderName;
-
-            // Assert
-            Assert.AreEqual("EOSIOOASIS", providerName);
-        }
+        public void ProviderName_ShouldBeEOSIOOASIS() => Assert.AreEqual("EOSIOOASIS", _provider.ProviderName);
 
         [TestMethod]
-        public void ProviderDescription_ShouldNotBeEmpty()
-        {
-            // Arrange & Act
-            var description = _provider.ProviderDescription;
-
-            // Assert
-            Assert.IsNotNull(description);
-            Assert.IsFalse(string.IsNullOrEmpty(description));
-        }
-
-        [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
-        {
-            // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.ActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
-        {
-            // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.DeActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsFalse(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+        public void ProviderDescription_ShouldNotBeEmpty() => Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
     }
 }

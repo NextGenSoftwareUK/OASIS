@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using EOSNewYork.EOSCore;
 using Newtonsoft.Json;
 using NextGenSoftware.Logging;
@@ -220,7 +221,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -251,7 +252,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -427,7 +428,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -453,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -467,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonInfo = OasisJson.Serialize<object>(holon);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatar = _holonRepository.Read(holon.Id).Result;
@@ -497,7 +498,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;
@@ -512,7 +513,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonInfo = OasisJson.Serialize<object>(holon);
 
                 // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
                 var existAvatar = await _holonRepository.Read(holon.Id);
@@ -541,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
             return result;

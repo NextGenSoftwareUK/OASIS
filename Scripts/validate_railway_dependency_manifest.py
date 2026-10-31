@@ -4,11 +4,17 @@
 The Dockerfiles must consume Docker/oasis-dependency-versions.env and must not
 contain their own commit pins. With --require-gitlinks, each private dependency
 pin must also equal the commit recorded by the parent repository.
+With --require-checkouts, local source checkouts must also be initialized,
+clean and at those exact pins (including the two shared sibling repositories).
+With --require-assets, default cached restore roots for the seven API projects
+must match their logical task paths, without equating junction targets.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
 import subprocess
 import sys
@@ -19,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "Docker" / "oasis-dependency-versions.env"
 DOCKERFILES = [ROOT / "Docker" / f"Dockerfile.web{number}" for number in range(4, 11)]
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+PROVIDER_NODE_IMAGE = "node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df"
 GITLINKS = {
     "OASIS_API_CORE_COMMIT": "OASIS Architecture/NextGenSoftware.OASIS.API.Core",
     "OASIS_ONODE_CORE_COMMIT": "ONODE/NextGenSoftware.OASIS.API.ONODE.Core",
@@ -29,6 +36,32 @@ GITLINKS = {
     "HOLONET_ORM_COMMIT": "HoloNET-ORM",
 }
 REQUIRED_COMMITS = {*GITLINKS, "LIBRARIES_COMMIT", "HOLOCHAIN_COMMIT"}
+API_PROJECTS = [
+    "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
+    "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj",
+    *[f"WEB{n}/NextGenSoftware.OASIS.Web{n}.WebAPI/NextGenSoftware.OASIS.Web{n}.WebAPI.csproj" for n in range(6, 11)],
+]
+
+
+def restored_project_failures(project: Path) -> list[str]:
+    """Validate the cached logical restore root without following directory junctions.
+
+    Resolving junctions here would incorrectly equate two graphs whose relative
+    cross-repository references select different parent checkouts. This is a
+    provenance check, not permission to restore, rewrite assets or copy DLLs.
+    """
+    assets = project.parent / "obj" / "project.assets.json"
+    try:
+        data = json.loads(assets.read_text(encoding="utf-8"))
+        restored = data["project"]["restore"]["projectPath"]
+        if not isinstance(restored, str) or not restored or not os.path.isabs(restored):
+            raise ValueError("restore projectPath must be an absolute path")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        return [f"{project}: cannot verify cached restore provenance: {exc}"]
+    # abspath/normcase deliberately do not resolve symlinks/junctions.
+    if os.path.normcase(os.path.abspath(restored)) != os.path.normcase(os.path.abspath(project)):
+        return [f"{project}: cached restore belongs to {restored}; no-restore build is not this source graph"]
+    return []
 
 
 def load_manifest() -> dict[str, str]:
@@ -58,6 +91,31 @@ def gitlink(path: str) -> str:
     return result.stdout.strip()
 
 
+def checkout_failures(path: Path, expected: str | None, label: str) -> list[str]:
+    """Read-only guard: an empty submodule must not resolve to its parent repo."""
+    if not (path / ".git").exists():
+        return [f"{label}: source checkout is not initialized; package fallback is not pinned-source verification"]
+    identity = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel", "HEAD"], cwd=path,
+        text=True, capture_output=True,
+    )
+    lines = identity.stdout.strip().splitlines()
+    if identity.returncode or len(lines) != 2 or Path(lines[0]).resolve() != path.resolve():
+        return [f"{label}: cannot verify this directory's own Git checkout identity"]
+    failures = []
+    if expected is not None and lines[1] != expected:
+        failures.append(f"{label}: checkout HEAD={lines[1]} differs from manifest pin={expected}")
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=normal", "--ignore-submodules=none"],
+        cwd=path, text=True, capture_output=True,
+    )
+    if status.returncode:
+        failures.append(f"{label}: cannot verify source cleanliness")
+    elif status.stdout.strip():
+        failures.append(f"{label}: source has tracked/untracked changes; current build is not immutable-pin evidence")
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -65,7 +123,17 @@ def main() -> int:
         action="store_true",
         help="require private manifest pins to equal the parent repository gitlinks",
     )
+    parser.add_argument(
+        "--require-checkouts", action="store_true",
+        help="also require clean initialized source checkouts at every manifest pin before local release verification",
+    )
+    parser.add_argument(
+        "--require-assets", action="store_true",
+        help="also require seven existing default cached restore roots to match their logical project paths; implies --require-checkouts",
+    )
     args = parser.parse_args()
+    if args.require_assets:
+        args.require_checkouts = True
     failures: list[str] = []
 
     try:
@@ -83,6 +151,15 @@ def main() -> int:
 
     for dockerfile in DOCKERFILES:
         text = dockerfile.read_text(encoding="utf-8")
+        for required in (
+            f"FROM {PROVIDER_NODE_IMAGE} AS provider_node",
+            "COPY --from=provider_node /usr/local/ /usr/local/",
+            "RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish",
+            "COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node",
+            "RUN node --version",
+        ):
+            if required not in text:
+                failures.append(f"{dockerfile.name} is missing SDK packaging instruction: {required}")
         if "Docker/oasis-dependency-versions.env" not in text:
             failures.append(f"{dockerfile.name} does not copy the shared manifest")
         if "clone-pinned-oasis-dependencies.sh /tmp/oasis-dependency-versions.env" not in text:
@@ -90,7 +167,7 @@ def main() -> int:
         if re.search(r"^ARG [A-Z0-9_]+_COMMIT=", text, re.MULTILINE):
             failures.append(f"{dockerfile.name} contains a duplicated commit pin")
 
-    if args.require_gitlinks:
+    if args.require_gitlinks or args.require_checkouts:
         for key, path in GITLINKS.items():
             if key not in values:
                 continue
@@ -105,13 +182,33 @@ def main() -> int:
                     "advance the gitlink and manifest together"
                 )
 
+    if args.require_checkouts:
+        failures.extend(checkout_failures(ROOT, None, "parent repository"))
+        for key, path in GITLINKS.items():
+            if key in values:
+                failures.extend(checkout_failures(ROOT / path, values[key], path))
+        for key, path in (
+            ("LIBRARIES_COMMIT", ROOT.parent / "NextGenSoftware-Libraries"),
+            ("HOLOCHAIN_COMMIT", ROOT.parent / "holochain-client-csharp"),
+        ):
+            if key in values:
+                failures.extend(checkout_failures(path, values[key], path.name))
+
+    if args.require_assets:
+        for project in API_PROJECTS:
+            failures.extend(restored_project_failures(ROOT / project))
+
     if failures:
         print("Railway dependency policy failed:")
         for failure in failures:
             print(f"  - {failure}")
         return 1
 
-    suffix = " and parent gitlinks" if args.require_gitlinks else ""
+    suffix = " and parent gitlinks" if args.require_gitlinks or args.require_checkouts else ""
+    if args.require_checkouts:
+        suffix += " and clean pinned source checkouts"
+    if args.require_assets:
+        suffix += " and matching cached restore roots"
     print(f"Railway dependency manifest, seven Dockerfiles{suffix}: OK")
     return 0
 

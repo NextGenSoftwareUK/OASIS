@@ -54,6 +54,9 @@ public partial class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvid
     private WalletManager _walletManager;
     private readonly Account _oasisSolanaAccount;
     private readonly IRpcClient _rpcClient;
+    private readonly Uri _rpcEndpoint;
+    private readonly System.Net.Http.HttpMessageHandler _nativeFeeReadHandler;
+    private readonly Func<string,CancellationToken,Task<Solnet.Rpc.Models.TransactionMetaSlotInfo>> _transactionReader;
 
     private KeyManager KeyManager
     {
@@ -78,12 +81,21 @@ public partial class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvid
     }
 
     public SolanaOASIS(string hostUri, string privateKey, string publicKey)
+        : this(hostUri, privateKey, publicKey, null) { }
+
+    internal SolanaOASIS(string hostUri, string privateKey, string publicKey,
+        System.Net.Http.HttpMessageHandler nativeFeeReadHandler,
+        Func<string,CancellationToken,Task<Solnet.Rpc.Models.TransactionMetaSlotInfo>> transactionReader = null)
     {
         this.ProviderName = nameof(SolanaOASIS);
         this.ProviderDescription = "Solana Blockchain Provider";
         this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SolanaOASIS);
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
+        this._rpcEndpoint = new Uri(hostUri, UriKind.Absolute);
+        this._nativeFeeReadHandler = nativeFeeReadHandler;
+        this._transactionReader = transactionReader ?? ((signature, cancellationToken) =>
+            Infrastructure.SolanaTransactionReader.ReadAsync(_rpcEndpoint,signature,_nativeFeeReadHandler,cancellationToken));
         this._oasisSolanaAccount = new(privateKey, publicKey);
 
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));

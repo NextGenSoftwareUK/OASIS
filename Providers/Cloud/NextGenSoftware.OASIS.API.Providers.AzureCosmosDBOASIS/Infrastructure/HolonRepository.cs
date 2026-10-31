@@ -2,14 +2,20 @@ using System;
 using Microsoft.Azure.Cosmos;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
-    public class HolonRepository : CosmosDbRepository<IHolon>, IHolonRepository
+    public partial class HolonRepository : CosmosDbRepository<IHolon>, IHolonRepository
     {
         public HolonRepository(ICosmosDbClientFactory factory) : base(factory) { }
 
+        public System.Threading.Tasks.Task<IHolon> UpsertPlannedAsync(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plan)
+            => WriteSnapshotAsync(plan.Snapshot,false,plan);
+
         public override string CollectionName { get; } = "holonItems";
+        protected override Type EntityType => typeof(Holon);
+        protected override IHolon ProjectInput(IHolon entity) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Project<Holon>(entity);
         public override Guid GenerateId(IHolon entity) => Guid.NewGuid();
         public override PartitionKey? ResolvePartitionKey(string entityId) => new PartitionKey(entityId.Split(':')[0]);
     }

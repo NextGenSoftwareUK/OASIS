@@ -1,0 +1,55 @@
+name: Sync Railway dependency pins
+
+# Railway builds the private submodules at the commits in Docker/oasis-dependency-versions.env,
+# not at the parent's gitlinks (see Docs/Devs/RAILWAY_DEPENDENCY_PINS.md). When a push moves a
+# gitlink, this commits the matching pin so a submodule fix can never be merged without shipping.
+on:
+  push:
+    branches: [Development, master]
+
+concurrency:
+  group: sync-railway-pins-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # PRIVATE_SUBMODULE_PAT (the PAT the other sync/promotion workflows push with) so the
+          # fix-up commit can pass branch protection and start the follow-up Railway deploy;
+          # commits made with the default GITHUB_TOKEN do neither. Falls back to GITHUB_TOKEN.
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT || secrets.GITHUB_TOKEN }}
+          submodules: false
+      - name: Check the pins match the gitlinks
+        id: drift
+        run: |
+          if python Scripts/sync_railway_dependency_manifest.py --check; then
+            echo "drift=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drift=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit the corrected pins
+        if: steps.drift.outputs.drift == 'true'
+        run: |
+          python Scripts/sync_railway_dependency_manifest.py
+          python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          git config user.name "railway-pin-sync"
+          git config user.email "railway-pin-sync@users.noreply.github.com"
+          git add Docker/oasis-dependency-versions.env
+          git commit -m "chore(railway): sync dependency pins to the parent gitlinks"
+          # Developers and agents push to this branch directly: rebase and retry on a race.
+          for attempt in 1 2 3 4 5; do
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then exit 0; fi
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            python Scripts/sync_railway_dependency_manifest.py --check && exit 0
+            python Scripts/sync_railway_dependency_manifest.py
+            git add Docker/oasis-dependency-versions.env
+            git commit --amend --no-edit
+          done
+          echo "Could not push the pin sync after 5 attempts" >&2
+          exit 1

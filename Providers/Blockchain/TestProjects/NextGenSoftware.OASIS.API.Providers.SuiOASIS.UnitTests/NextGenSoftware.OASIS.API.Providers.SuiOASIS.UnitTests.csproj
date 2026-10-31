@@ -18,5 +18,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SuiOASIS\NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Fixtures\unlock-readback-failure.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\gas-limit-sdk.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\history-range.mjs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>

@@ -1,0 +1,179 @@
+#Requires -Version 7.0
+param([switch]$Serve,[switch]$IncludeRegression)
+
+$ErrorActionPreference = 'Stop'
+if ($Serve -and $IncludeRegression) { throw 'Choose interactive serve or bounded regression verification.' }
+$taskRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work = Join-Path $taskRoot 'TestResults/CosmicCqlDemo'
+$priorMode = $env:OASIS_CQL_V1_DEMO_MODE
+
+# Reuse the existing native environment. This runner never installs MongoDB,
+# Neo4j, a container or a second SDK, and never resets a retained failed fixture.
+New-Item -ItemType Directory -Force -Path $work | Out-Null
+if (Test-Path -LiteralPath (Join-Path $work 'v1-session.json')) {
+    throw 'A previous demo readiness file remains. Finish or inspect that run before starting another.'
+}
+
+if ($Serve) {
+    if (Get-NetTCPConnection -State Listen -LocalPort 5088 -ErrorAction SilentlyContinue) {
+        throw 'Loopback demo port 5088 is occupied; preserve the current owner.'
+    }
+    Write-Host 'Starting MongoDB, SQLite and Neo4j using the retained native environment.'
+    Write-Host 'After verification, open http://127.0.0.1:5088/demo (or /swagger).'
+    Write-Host 'Use Finish demo in the page for verified settlement and cleanup.'
+}
+
+try {
+    $env:OASIS_CQL_V1_DEMO_MODE = if ($Serve) { 'serve' } else { 'console' }
+
+    & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'CQL v1 three-provider developer demo' -Operation {
+
+        function Get-DemoSourceSnapshot {
+            $roots = @(
+                'Examples/CosmicCqlDemo',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonAccess.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedHolonWriteEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicProtection.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HostedCosmicRecoveryEndpoint.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cosmic',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Recovery.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/GrpcHolonWriteContract.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GraphQL',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/GrpcServices/DataGrpcService.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Protos/data.proto',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonJsonContracts.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/OASISHttpResponseMessage.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISConfigResult.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Save.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.Delete.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.ProviderKey.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/DataController.MetaData.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/OASISControllerBase.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Properties/AssemblyInfo.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs',
+                'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data',
+                'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+                'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+                'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+                'Providers/Storage/Neo4j.Driver.OASIS',
+                'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
+            )
+            @($roots | ForEach-Object {
+                Get-ChildItem -LiteralPath (Join-Path $taskRoot $_) -Recurse -File |
+                    Where-Object {
+                        $_.FullName -notmatch '\\(bin|obj)\\' -and
+                        ($_.Extension -in '.cs', '.csproj', '.props', '.proto', '.snk' -or $_.Name -eq 'windowsZones.xml')
+                    }
+            } | Get-FileHash | Select-Object Path,Hash) | ConvertTo-Json -Compress
+        }
+        $sourceBefore = Get-DemoSourceSnapshot
+
+        # Dependencies are already restored in the retained provider environment.
+        # The reusable runner builds with --no-restore and verifies producer copies.
+        $started = [DateTime]::UtcNow
+        if ($IncludeRegression) {
+            & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Web4
+        } else {
+            & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CqlV1Demo
+        }
+        if ($LASTEXITCODE) { throw 'Native CQL v1 walkthrough failed.' }
+
+        $sourceAfter = Get-DemoSourceSnapshot
+        @{ before=$sourceBefore; after=$sourceAfter; unchanged=($sourceBefore -ceq $sourceAfter) } |
+            ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $work 'v1-source-identities.json')
+        if ($sourceBefore -cne $sourceAfter) { throw 'Demo sources changed during verification.' }
+
+        $proof = Get-Item -LiteralPath (Join-Path $work 'v1-demo-result.json') -ErrorAction Stop
+        if ($proof.LastWriteTimeUtc -lt $started) { throw 'Demo result is stale; no verification claim permitted.' }
+        $report = Get-Content -LiteralPath (Join-Path $work 'v1-demo-result.json') -Raw | ConvertFrom-Json
+        if ($report.saveDemoProvidersVerified -ne 3 -or $report.saveDemoChecks -ne 30 -or $report.generatedIdCommitObservations -ne 3) {
+            throw 'Generated identity / tracking / save-summary native demo proof is incomplete.'
+        }
+        if ($report.processRestartProvidersVerified -ne 3) { throw 'Actual process-interruption recovery proof is incomplete.' }
+        if ($report.hostedReadPolicyProvidersVerified -ne 3 -or $report.hostedReadPolicyRequests -ne 30) { throw 'Shipping authoritative read-policy proof is incomplete.' }
+        if ($report.status -ne 'passed' -or $report.recoveryProvidersVerified -ne 3 -or $report.providers.Count -ne 3 -or $report.walkthroughRequests -ne 138 -or $report.localSdkQueries -ne 681 -or $report.sharingProvidersVerified -ne 3 -or $report.ownedWritesProvidersVerified -ne 3 -or $report.ownedBatchProvidersVerified -ne 3 -or $report.hostedWriteBoundariesVerified -ne 3) {
+            throw 'Three-provider demo proof is incomplete.'
+        }
+        if ($report.shippingRestRequests -ne 78 -or $report.shippingRestProvidersVerified -ne 3 -or $report.settledRestOperations -ne 60) {
+            throw 'Shipping REST/native storage settlement proof is incomplete.'
+        }
+        if ($report.shippingTransportRequests -ne 48 -or $report.shippingTransportProvidersVerified -ne 3 -or $report.settledTransportOperations -ne 48) {
+            throw 'Signed GraphQL/gRPC native storage settlement proof is incomplete.'
+        }
+        if ($report.nativeFederationQueries -ne 14 -or $report.nativeFederationProvidersVerified -ne 3) {
+            throw 'Complete-source SDK federation/native proof is incomplete.'
+        }
+        if ($report.hostedFederationRequests -ne 13 -or $report.hostedFederationProvidersVerified -ne 3 -or
+            $report.settledFederationOperations -ne 12 -or $report.federationProviderAttempts -ne 23) {
+            throw 'Signed three-provider federation policy/materialization/settlement proof is incomplete.'
+        }
+        if ($report.sdkFederationExamples -ne 1 -or $report.demoFederationRequests -ne 1) {
+            throw 'Annotated SDK/HTTP global federation demo verification is incomplete.'
+        }
+        if ($report.hostedCursorRequests -ne 20 -or $report.settledCursorOperations -ne 18 -or
+            $report.cursorProviderAttempts -ne 32 -or $report.cursorDuplicateRejections -ne 2 -or
+            $report.cursorProvidersVerified -ne 3 -or $report.cursorHostRestarts -ne 2 -or
+            $report.cursorKeyRotations -ne 1 -or $report.cursorKeyRevocations -ne 1) {
+            throw 'Signed native cursor paging/claim/restart/key-lifecycle proof is incomplete.'
+        }
+        if ($report.cursorProcessProvidersVerified -ne 3 -or $report.cursorProcessPages -ne 3 -or
+            $report.cursorProcessAttempts -ne 9 -or $report.cursorProcessDuplicateRejections -ne 1) {
+            throw 'Actual cursor process-restart/persisted-key/native settlement proof is incomplete.'
+        }
+        # Interactive presenters may run additional queries before Finish.
+        # Bounded verification retains exact totals; both require all recovery cases.
+        if ($report.settledRecoveryOperations -ne 12 -or
+            (!$Serve -and ($report.settledOperations -ne 526 -or $report.providerAttempts -ne 608)) -or
+            ($Serve -and ($report.settledOperations -lt 526 -or $report.providerAttempts -lt 608))) {
+            throw 'Signed recovery/read-tariff native settlement proof is incomplete.'
+        }
+
+        # Capture the tested producer/consumer identities before releasing the
+        # global build lease. Another task may rebuild Shared immediately after it.
+        $consumer = Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/bin/Debug/net10.0'
+        $producers = @(
+            'OASIS Architecture/NextGenSoftware.OASIS.API.Core',
+            'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+            'Providers/Storage/Neo4j.Driver.OASIS',
+            'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI'
+        )
+        $names = @(
+            'NextGenSoftware.OASIS.API.Core',
+            'NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage',
+            'NextGenSoftware.OASIS.API.Providers.MongoDBOASIS',
+            'NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS',
+            'NextGenSoftware.OASIS.API.Providers.Neo4jOASIS',
+            'Neo4j.Driver',
+            'NextGenSoftware.OASIS.API.ONODE.WebAPI'
+        )
+        $identities = for ($index = 0; $index -lt $names.Count; $index++) {
+            $producer = Join-Path $taskRoot "$($producers[$index])/bin/Debug/net10.0/$($names[$index]).dll"
+            $copy = Join-Path $consumer "$($names[$index]).dll"
+            $expected = (Get-FileHash -LiteralPath $producer -Algorithm SHA256).Hash
+            if ((Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $expected) {
+                throw "Demo consumer differs from tested producer: $producer"
+            }
+            @{ producer = $producer; consumer = $copy; sha256 = $expected }
+        }
+        @{ capturedUtc = [DateTime]::UtcNow.ToString('O'); buildLeaseHeld = $true; identities = @($identities) } |
+            ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'v1-binary-identities.json')
+
+        Write-Host "PASS: all three native providers; $($report.settledOperations) settled operations."
+        Write-Host 'Owned services stopped and fixture removed. Spaced C# walkthrough output:'
+        Write-Host (Join-Path $work 'v1-walkthrough.txt')
+        if (!$Serve) { Get-Content -LiteralPath (Join-Path $work 'v1-walkthrough.txt') }
+    }
+}
+finally {
+    [Environment]::SetEnvironmentVariable('OASIS_CQL_V1_DEMO_MODE', $priorMode)
+}

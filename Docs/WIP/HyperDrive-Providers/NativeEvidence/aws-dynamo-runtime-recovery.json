@@ -1,0 +1,17 @@
+{
+  "version": "3.3.2",
+  "archiveSha256": "667CDE09F96F4785CEDE4D107D8066011E5EECEB5DD4566EA8C74C0D378FE919",
+  "historicalDataRestored": false,
+  "jarSha256": "67ED9662164DC9765FF3ABCA1C2F6F4EDB5F6A92269812450215A679BDC71620",
+  "purpose": "One retained official runtime; original runtime/data absent, historical outcomes unverified",
+  "source": "https://d1ni2b6xgvw0s0.cloudfront.net/v2.x/dynamodb_local_latest.zip",
+  "runtimeBytes": 50824785.0,
+  "date": "2026-10-27T05:46:47.2740313Z",
+  "runtimePath": "C:\\Source\\OASIS-hyperdrive-v2-gaps\\TestResults\\AWSProviderEvidence\\runtime",
+  "archiveRemoved": true,
+  "dataPathExists": false,
+  "containerState": "exited",
+  "containerImage": "6e47503356fe6b0e8f3ba48afc714ed95475d0c32ac97c62b30737af2e8846bd",
+  "freeBytes": 127506747392,
+  "scope": "Runtime-only recovery; old historical store absent, old runner pin deliberately not advanced yet; no native operation/service/start/cloud call"
+}

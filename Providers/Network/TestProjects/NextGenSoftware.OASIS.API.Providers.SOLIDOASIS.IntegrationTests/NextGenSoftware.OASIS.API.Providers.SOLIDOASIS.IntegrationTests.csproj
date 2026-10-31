@@ -10,6 +10,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/ProtocolPointApiHost.cs" Link="Demo/ProtocolPointApiHost.cs" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <Compile Include="../../../Shared/TestSupport/ProtocolPointWeb4Acceptance.cs" Link="TestSupport/ProtocolPointWeb4Acceptance.cs" />
+    <!-- The loopback demo supplies its own registry/shared reads. Production host
+         composition requires the full BootLoader and must stay in the API. -->
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/*.cs"
+             Exclude="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs;../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/DnaCqlSharedReads.cs" Link="Production/Cql/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/Cql*.cs" Link="Production/Models/%(Filename)%(Extension)" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/CqlV1Controller.cs" Link="Production/CqlV1Controller.cs" />
+    <Compile Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/AuthorizeAttribute.cs" Link="Production/AuthorizeAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/SolidPointWalkthrough.cs" Link="Demo/SolidPointWalkthrough.cs" />
+    <Compile Remove="SolidCoreStorageConformanceTests.cs" />
+    <Compile Include="SolidCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
@@ -22,6 +40,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS\NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj" />
+    <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\SolidProviderFactory.cs" Link="Production\SolidProviderFactory.cs" />
   </ItemGroup>
 
   <ItemGroup>

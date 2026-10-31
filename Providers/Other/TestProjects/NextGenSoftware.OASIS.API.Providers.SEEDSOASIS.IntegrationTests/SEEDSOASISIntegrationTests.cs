@@ -1,90 +1,76 @@
-using System;
-using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using Xunit;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
+using TelosProvider = NextGenSoftware.OASIS.API.Providers.TelosOASIS.TelosOASIS;
 
-namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.IntegrationTests;
+
+public class SEEDSOASISIntegrationTests
 {
-    public class SEEDSOASISIntegrationTests
+    private static SEEDSOASIS CreateProvider()
     {
-        [Fact]
-        public async Task FullProviderLifecycle_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var seedsProvider = new SEEDSOASIS();
-
-            // Act & Assert - Activation
-            var activationResult = await seedsProvider.ActivateProviderAsync();
-            Assert.False(activationResult.IsError);
-            Assert.True(activationResult.Result);
-            Assert.Contains("SEEDS provider activated successfully", activationResult.Message);
-
-            // Act & Assert - Deactivation
-            var deactivationResult = await seedsProvider.DeActivateProviderAsync();
-            Assert.False(deactivationResult.IsError);
-            Assert.True(deactivationResult.Result);
-            Assert.Contains("SEEDS provider deactivated successfully", deactivationResult.Message);
-        }
-
-        [Fact]
-        public async Task MultipleActivationDeactivationCycles_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var seedsProvider = new SEEDSOASIS();
-
-            // Act & Assert - Multiple cycles
-            for (int i = 0; i < 3; i++)
-            {
-                var activationResult = await seedsProvider.ActivateProviderAsync();
-                Assert.False(activationResult.IsError);
-                Assert.True(activationResult.Result);
-
-                var deactivationResult = await seedsProvider.DeActivateProviderAsync();
-                Assert.False(deactivationResult.IsError);
-                Assert.True(deactivationResult.Result);
-            }
-        }
-
-        [Fact]
-        public void SEEDSConstants_ShouldBeValid()
-        {
-            // Arrange & Act
-            var seedsProvider = new SEEDSOASIS();
-
-            // Assert
-            Assert.NotNull(SEEDSOASIS.ENDPOINT_TEST);
-            Assert.NotNull(SEEDSOASIS.ENDPOINT_LIVE);
-            Assert.NotNull(SEEDSOASIS.SEEDS_EOSIO_ACCOUNT_TEST);
-            Assert.NotNull(SEEDSOASIS.SEEDS_EOSIO_ACCOUNT_LIVE);
-            Assert.NotNull(SEEDSOASIS.CHAINID_TEST);
-            Assert.NotNull(SEEDSOASIS.CHAINID_LIVE);
-            Assert.NotNull(SEEDSOASIS.PUBLICKEY_TEST);
-            Assert.NotNull(SEEDSOASIS.PUBLICKEY_LIVE);
-            Assert.NotNull(SEEDSOASIS.APIKEY_TEST);
-            Assert.NotNull(SEEDSOASIS.APIKEY_LIVE);
-        }
-
-        [Fact]
-        public void ProviderProperties_ShouldBeConsistent()
-        {
-            // Arrange
-            var seedsProvider = new SEEDSOASIS();
-
-            // Act & Assert
-            Assert.Equal("SEEDSOASIS", seedsProvider.ProviderName);
-            Assert.Equal("SEEDS Provider", seedsProvider.ProviderDescription);
-            Assert.NotNull(seedsProvider.ProviderType);
-            Assert.NotNull(seedsProvider.ProviderCategory);
-        }
-
-        [Fact]
-        public void TelosOASIS_ShouldBeInitialized()
-        {
-            // Arrange
-            var seedsProvider = new SEEDSOASIS();
-
-            // Act & Assert
-            Assert.NotNull(seedsProvider.TelosOASIS);
-        }
+        string endpoint = Require("OASIS_ANTELOPE_ENDPOINT");
+        string account = Require("OASIS_ANTELOPE_ACCOUNT");
+        string chainId = Require("OASIS_ANTELOPE_CHAIN_ID");
+        string privateKey = Require("OASIS_ANTELOPE_PRIVATE_KEY");
+        return new SEEDSOASIS(new TelosProvider(endpoint, account, chainId, privateKey));
     }
+
+    [Fact]
+    public async Task AvatarCrud_UsesInjectedTelosStorageOnOfficialAntelopeNode()
+    {
+        var provider = CreateProvider();
+        var activation = await provider.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
+
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = $"seeds-{Guid.NewGuid():N}",
+            Email = $"seeds-{Guid.NewGuid():N}@oasis.test",
+            FirstName = "Before"
+        };
+        Assert.False((await provider.SaveAvatarAsync(avatar)).IsError);
+        var loaded = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.False(loaded.IsError, loaded.Message);
+        Assert.Equal("Before", loaded.Result.FirstName);
+
+        avatar.FirstName = "After";
+        Assert.False((await provider.SaveAvatarAsync(avatar)).IsError);
+        Assert.Equal("After", (await provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
+        Assert.False((await provider.DeleteAvatarAsync(avatar.Id, false)).IsError);
+    }
+
+    [Fact]
+    public async Task HolonCrud_UsesInjectedTelosStorageOnOfficialAntelopeNode()
+    {
+        var provider = CreateProvider();
+        var activation = await provider.ActivateProviderAsync();
+        Assert.False(activation.IsError, activation.Message);
+
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "Before" };
+        Assert.False((await provider.SaveHolonAsync(holon)).IsError);
+        var loaded = await provider.LoadHolonAsync(holon.Id);
+        Assert.False(loaded.IsError, loaded.Message);
+        Assert.Equal("Before", loaded.Result.Name);
+
+        holon.Name = "After";
+        Assert.False((await provider.SaveHolonAsync(holon)).IsError);
+        Assert.Equal("After", (await provider.LoadHolonAsync(holon.Id)).Result.Name);
+        Assert.False((await provider.DeleteHolonAsync(holon.Id)).IsError);
+    }
+
+    [Fact]
+    public async Task Activation_PropagatesAnUnreachableTelosTransportFailure()
+    {
+        var provider = new SEEDSOASIS(new TelosProvider("http://127.0.0.1:1", "oasis",
+            new string('0', 64), "5KQwrPbwdL6PhXujxW37FSSQ8hK1mXQ6hY7WZg1v9Y4YcVYhJ7x"));
+        var activation = await provider.ActivateProviderAsync();
+        Assert.True(activation.IsError || !activation.Result);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    private static string Require(string name) =>
+        Environment.GetEnvironmentVariable(name) ??
+        throw new InvalidOperationException($"Set {name} to run the official Antelope integration tests.");
 }

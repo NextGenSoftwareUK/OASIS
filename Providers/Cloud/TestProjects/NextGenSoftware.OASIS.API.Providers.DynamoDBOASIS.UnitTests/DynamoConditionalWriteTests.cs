@@ -1,0 +1,196 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+
+namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests;
+
+[TestClass]
+public class DynamoConditionalWriteTests
+{
+    [DataTestMethod][DataRow(0,false)][DataRow(0,true)][DataRow(1,false)][DataRow(1,true)][DataRow(2,false)][DataRow(2,true)]
+    public async Task CurrentRevisionCannotAuthorizeClearingOrReplacingCommittedTombstone(int change,bool synchronous)
+    {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var created=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid(),IsActive=true},Guid.NewGuid()));
+        Assert.IsFalse(created.IsError,created.Exception?.ToString());var current=(Holon)created.Result.Single();
+        var deleted=await provider.ExecuteConditionalHolonWriteAsync(Request(current,Guid.NewGuid(),CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS),ConditionalHolonOperation.SoftDelete));
+        Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());current=(Holon)deleted.Result.Single();
+        var nativeKey="OasisHolons/"+current.Id;var originalJson=client.Rows[nativeKey]["data_json"].S;var revision=CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS);
+        if(change==0){current.IsActive=true;current.DeletedDate=DateTime.MinValue;}else if(change==1)current.DeletedDate=current.DeletedDate.AddTicks(1);else current.DeletedByAvatarId=Guid.NewGuid();
+        var version=current.Version;var versionId=current.VersionId;
+        var request=Request(current,Guid.NewGuid(),revision);var rejected=synchronous?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsTrue(rejected.IsError);Assert.IsFalse(rejected.IsSaved);Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+        Assert.IsInstanceOfType<StorageLifecycleConflictException>(rejected.Exception);Assert.AreEqual(2,client.Writes);Assert.AreEqual(originalJson,client.Rows[nativeKey]["data_json"].S);
+        Assert.AreEqual(version,current.Version);Assert.AreEqual(versionId,current.VersionId);Assert.AreEqual(revision,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS));
+    }
+    [DataTestMethod]
+    [DataRow(ConditionalHolonOperation.Save,false)][DataRow(ConditionalHolonOperation.Save,true)]
+    [DataRow(ConditionalHolonOperation.SoftDelete,false)][DataRow(ConditionalHolonOperation.SoftDelete,true)]
+    [DataRow(ConditionalHolonOperation.HardDelete,false)][DataRow(ConditionalHolonOperation.HardDelete,true)]
+    public async Task SelectedGraphAcknowledgementsCountPersistedNodesAndReceiptRecovery(ConditionalHolonOperation operation,bool synchronous)
+    {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var root=new Holon{Id=Guid.NewGuid(),IsActive=true};var child=new Holon{Id=Guid.NewGuid(),ParentHolonId=root.Id,IsActive=true};
+        child.Children.Add(new Holon{Id=Guid.NewGuid(),ParentHolonId=child.Id,IsActive=true});root.Children.Add(child);
+        ConditionalHolonWriteRequest RequestGraph(Holon current,Guid operationId,ConditionalHolonOperation kind,bool initial)
+            =>new(new ConditionalHolonWrite(operationId,Guid.Empty,ProviderType.DynamoDBOASIS,
+                new[]{current,current.Children.Single(),current.Children.Single().Children.Single()}.Select(row=>new HolonWriteCondition(row.Id,initial?null:CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS)))),kind,new[]{current});
+        if(operation!=ConditionalHolonOperation.Save){var created=await provider.ExecuteConditionalHolonWriteAsync(RequestGraph(root,Guid.NewGuid(),ConditionalHolonOperation.Save,true));Assert.IsFalse(created.IsError,created.Exception?.ToString());root=(Holon)created.Result.Single();}
+        var request=RequestGraph(root,Guid.NewGuid(),operation,operation==ConditionalHolonOperation.Save);
+        var result=synchronous?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());var attempts=client.Writes;
+        var recovered=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.IsFalse(recovered.IsError,recovered.Exception?.ToString());Assert.AreEqual(attempts,client.Writes);
+        foreach(var outcome in new[]{result,recovered}){
+            Assert.AreEqual(operation==ConditionalHolonOperation.Save?3:0,outcome.SavedCount);Assert.AreEqual(operation==ConditionalHolonOperation.Save?0:3,outcome.DeletedCount);
+            Assert.IsTrue(outcome.HasAnyHolonsChanged);var current=outcome.Result.Single();
+            Assert.IsFalse(current.IsNewHolon);Assert.IsFalse(current.Children.Single().IsNewHolon);Assert.IsFalse(current.Children.Single().Children.Single().IsNewHolon);
+        }
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task OrdinaryBatchPublishesCommittedRevisionForNextConditionalWrite(bool synchronous) {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var first=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid()));
+        Assert.IsFalse(first.IsError,first.Exception?.ToString());var row=(Holon)first.Result.Single();
+        var old=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS);row.Name="ordinary batch";
+        var saved=synchronous?provider.SaveHolons(new[]{row},saveChildren:false):await provider.SaveHolonsAsync(new[]{row},saveChildren:false);
+        Assert.IsFalse(saved.IsError,saved.Exception?.ToString());
+        var current=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS);
+        Assert.IsTrue(current.HasValue);Assert.AreNotEqual(old,current,"Batch must publish committed provider revision to original caller.");
+        var next=await provider.ExecuteConditionalHolonWriteAsync(Request(row,Guid.NewGuid(),current));
+        Assert.IsFalse(next.IsError,next.Exception?.ToString());
+    }
+    private sealed class Client:AmazonDynamoDBClient
+    {
+        public Dictionary<string,Dictionary<string,AttributeValue>> Rows=new();
+        public int Writes,Reads;
+        public bool LoseAck,Reject;
+        public Client():base(new BasicAWSCredentials("owned","owned"),new AmazonDynamoDBConfig {
+            ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",MaxErrorRetry=0}){}
+        private static string Key(string table,string id)=>table+"/"+id;
+        public override Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken token=default) {
+            Reads++;token.ThrowIfCancellationRequested();
+            Rows.TryGetValue(Key(request.TableName,request.Key["id"].S),out var item);
+            return Task.FromResult(new GetItemResponse {HttpStatusCode=HttpStatusCode.OK,Item=item??new()});
+        }
+        public override Task<TransactWriteItemsResponse> TransactWriteItemsAsync(TransactWriteItemsRequest request,CancellationToken token=default) {
+            Writes++;Assert.AreEqual(32,request.ClientRequestToken.Length);
+            Assert.IsTrue(request.TransactItems.Count<=100);
+            if(Reject)throw new TransactionCanceledException("owned condition rejection") {
+                CancellationReasons=new(){new(){Code="ConditionalCheckFailed"}}
+            };
+            foreach(var action in request.TransactItems) {
+                if(action.Put!=null)Rows[Key(action.Put.TableName,action.Put.Item["id"].S)]=action.Put.Item;
+                else Rows.Remove(Key(action.Delete.TableName,action.Delete.Key["id"].S));
+            }
+            if(LoseAck)throw new IOException("owned lost acknowledgement");
+            return Task.FromResult(new TransactWriteItemsResponse{HttpStatusCode=HttpStatusCode.OK});
+        }
+        public override Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken token=default) {
+            var key=Key(request.TableName,request.Item["id"].S);Rows.TryGetValue(key,out var old);
+            Rows[key]=request.Item;return Task.FromResult(new PutItemResponse{HttpStatusCode=HttpStatusCode.OK,Attributes=old??new()});
+        }
+    }
+    private static ConditionalHolonWriteRequest Request(Holon holon,Guid op,Guid? revision=null,ConditionalHolonOperation operation=ConditionalHolonOperation.Save)
+        =>new(new ConditionalHolonWrite(op,Guid.Empty,ProviderType.DynamoDBOASIS,
+            new[]{new HolonWriteCondition(holon.Id,revision)}),operation,new[]{holon},false);
+    private static (DynamoDBOASIS Provider,AmazonDynamoDBClient Original) Setup(Client client) {
+        var provider=new DynamoDBOASIS("owned","owned","us-east-1");
+        var field=typeof(DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var original=(AmazonDynamoDBClient)field.GetValue(provider)!;field.SetValue(provider,client);
+        return(provider,original);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task DurableReceiptReplaysWithoutAnotherMutationAndRejectsChangedIntent(bool sync) {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var holon=new Holon{Id=Guid.NewGuid(),Name="original"};var operation=Guid.NewGuid();
+        var request=Request(holon,operation);
+        var first=sync?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(first.IsError,first.Exception?.ToString());Assert.IsTrue(first.IsSaved);
+        var saved=first.Result.Single();Assert.AreEqual(1,saved.Version);Assert.AreNotEqual(Guid.Empty,saved.VersionId);
+        Assert.AreEqual(0,holon.Version);Assert.IsFalse(holon.ProviderUniqueStorageKey.ContainsKey(ProviderType.DynamoDBOASIS));
+        var replay=await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(replay.IsError,replay.Exception?.ToString());Assert.AreEqual(saved.VersionId,replay.Result.Single().VersionId);
+        holon.Name="different";
+        var reused=await provider.ExecuteConditionalHolonWriteAsync(Request(holon,operation));
+        Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",reused.ErrorCode);Assert.AreEqual(1,client.Writes);
+    }
+    [TestMethod]
+    public async Task OversizedSelectedGraphRejectsBeforeAnySdkRead() {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var roots=Enumerable.Range(0,100).Select(_=>new Holon{Id=Guid.NewGuid()}).ToArray();
+        var write=new ConditionalHolonWrite(Guid.NewGuid(),Guid.Empty,ProviderType.DynamoDBOASIS,
+            roots.Select(row=>new HolonWriteCondition(row.Id,null)));
+        var rejected=await provider.ExecuteConditionalHolonWriteAsync(new(write,ConditionalHolonOperation.Save,roots,false));
+        Assert.IsTrue(rejected.IsError);Assert.IsInstanceOfType(rejected.Exception,typeof(ArgumentException));
+        Assert.AreEqual(0,client.Reads);Assert.AreEqual(0,client.Writes);
+    }
+    [TestMethod]
+    public async Task OrdinarySaveRotatesProviderRevisionAndInvalidatesOldAtomicBaseline() {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var first=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid()));
+        Assert.IsFalse(first.IsError,first.Exception?.ToString());
+        var row=(Holon)first.Result.Single();var oldRevision=CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS);
+        row.Name="ordinary replacement";
+        var ordinary=await provider.SaveHolonAsync(row,saveChildren:false);
+        Assert.IsFalse(ordinary.IsError,ordinary.Exception?.ToString());
+        Assert.AreNotEqual(oldRevision,CosmicConcurrency.GetProviderRevisionId(row,ProviderType.DynamoDBOASIS));
+        var rejected=await provider.ExecuteConditionalHolonWriteAsync(Request(row,Guid.NewGuid(),oldRevision));
+        Assert.AreEqual("COSMIC_CONCURRENCY_CONFLICT",rejected.ErrorCode);Assert.AreEqual(1,client.Writes);
+    }
+    [TestMethod]
+    public async Task LostAcknowledgementIsNotAutomaticallyReplayedAndOriginalReceiptCanBeRead() {
+        using var client=new Client{LoseAck=true};var (provider,original)=Setup(client);using var owned=original;
+        var request=Request(new Holon{Id=Guid.NewGuid(),Name="owned"},Guid.NewGuid());
+        var unknown=await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.AreEqual("COSMIC_CONDITIONAL_RECONCILIATION_REQUIRED",unknown.ErrorCode);
+        Assert.IsInstanceOfType(unknown.Exception,typeof(INativeMutationReconciliationRequired));
+        Assert.AreEqual(1,client.Writes);
+        var resolved=await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(resolved.IsError,resolved.Exception?.ToString());Assert.AreEqual(1,client.Writes);
+    }
+    [TestMethod]
+    public async Task NativeConditionRejectionDoesNotBecomeUnknownExecution() {
+        using var client=new Client{Reject=true};var (provider,original)=Setup(client);using var owned=original;
+        var result=await provider.ExecuteConditionalHolonWriteAsync(Request(new Holon{Id=Guid.NewGuid()},Guid.NewGuid()));
+        Assert.AreEqual("COSMIC_CONCURRENCY_CONFLICT",result.ErrorCode);Assert.IsFalse(result.IsSaved);
+        Assert.IsFalse(result.Exception is INativeMutationReconciliationRequired);Assert.AreEqual(0,client.Rows.Count);
+    }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public async Task CapacityAndCancellationRejectBeforeNativeMutation(bool cancellation) {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var holon=new Holon{Id=Guid.NewGuid(),Description=new string('x',410*1024)};
+        var result=await provider.ExecuteConditionalHolonWriteAsync(Request(holon,Guid.NewGuid()),
+            cancellation?new CancellationToken(true):default);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(0,client.Writes);
+        if(cancellation)Assert.AreEqual(0,client.Reads);
+    }
+    [DataTestMethod][DataRow(ConditionalHolonOperation.SoftDelete)][DataRow(ConditionalHolonOperation.HardDelete)]
+    public async Task ReplaceAndDeleteUseProviderRevisionAndRetainOperationReceipt(ConditionalHolonOperation deletion) {
+        using var client=new Client();var (provider,original)=Setup(client);using var owned=original;
+        var holon=new Holon{Id=Guid.NewGuid(),Name="owned"};
+        var first=await provider.ExecuteConditionalHolonWriteAsync(Request(holon,Guid.NewGuid()));
+        var saved=(Holon)first.Result.Single();saved.Name="replacement";
+        var replaced=await provider.ExecuteConditionalHolonWriteAsync(Request(saved,Guid.NewGuid(),CosmicConcurrency.GetProviderRevisionId(saved,ProviderType.DynamoDBOASIS)));
+        Assert.IsFalse(replaced.IsError,replaced.Exception?.ToString());var current=(Holon)replaced.Result.Single();
+        Assert.AreEqual(2,current.Version);
+        var request=Request(current,Guid.NewGuid(),CosmicConcurrency.GetProviderRevisionId(current,ProviderType.DynamoDBOASIS),deletion);
+        var deleted=await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(deleted.IsError,deleted.Exception?.ToString());Assert.IsTrue(deleted.IsDeleted);
+        Assert.IsTrue(deleted.Result.Single().IsDeleted);Assert.AreEqual(3,deleted.Result.Single().Version);
+        var replay=await provider.ExecuteConditionalHolonWriteAsync(request);
+        Assert.IsFalse(replay.IsError,replay.Exception?.ToString());Assert.AreEqual(3,client.Writes);
+    }
+}

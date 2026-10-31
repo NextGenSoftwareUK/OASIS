@@ -295,11 +295,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteAvatarAsync(id, softDelete);
-            return await DeleteAvatarByUsernameAsync(providerKey, softDelete);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => GuidProviderKeyDeletion.DeleteAvatarAsync(providerKey, softDelete, DeleteAvatarAsync);
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 

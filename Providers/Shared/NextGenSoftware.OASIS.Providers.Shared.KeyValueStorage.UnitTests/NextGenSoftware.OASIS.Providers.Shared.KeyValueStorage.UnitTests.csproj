@@ -5,6 +5,9 @@
     <IsTestProject>true</IsTestProject>
     <Nullable>disable</Nullable>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(IncludeNativeStorageConformance)' == 'true'">
+    <DefineConstants>$(DefineConstants);OASIS_NATIVE_STORAGE_CONFORMANCE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
@@ -12,6 +15,12 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+    <Compile Include="../TestSupport/NonStorageConformance.cs" Link="TestSupport/NonStorageConformance.cs" />
+    <Compile Include="../TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
+    <Compile Include="../TestSupport/ImportResultEnvelopeAssertions.cs" Link="TestSupport/ImportResultEnvelopeAssertions.cs" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <ProjectReference Include="../../Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" Condition="'$(IncludeNativeStorageConformance)' == 'true'" />
+    <None Include="..\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" Link="prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

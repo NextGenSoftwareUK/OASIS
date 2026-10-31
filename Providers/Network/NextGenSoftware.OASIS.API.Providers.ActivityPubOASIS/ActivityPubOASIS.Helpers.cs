@@ -22,270 +22,24 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
     public partial class ActivityPubOASIS
     {
 
-        /// <summary>
-        /// Convert OASIS Avatar to ActivityPub JSON format
-        /// </summary>
-        private string ConvertAvatarToActivityPub(IAvatar avatar)
-        {
-            try
-            {
-                // Serialize the complete Avatar object to preserve all properties
-                return JsonSerializer.Serialize(avatar, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                    ""type"": ""Person"",
-                    ""id"": ""{avatar.Id}"",
-                    ""name"": ""{avatar.Username}"",
-                    ""email"": ""{avatar.Email}"",
-                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
-
-        /// <summary>
-        /// Parse ActivityPub JSON content and convert to OASIS Avatar
-        /// </summary>
-        private IAvatar ParseActivityPubToAvatar(string activityPubJson)
-        {
-            try
-            {
-                // Deserialize the complete Avatar object to preserve all properties
-                var avatar = JsonSerializer.Deserialize<Avatar>(activityPubJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-                
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // Return null if parsing fails
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Parse ActivityPub Actor/Person JSON to AvatarDetail. Tries full deserialize first; then maps ActivityPub fields (id, preferredUsername, name, summary).
-        /// Avatar and AvatarDetail are separate; this does not build detail from an Avatar.
-        /// </summary>
-        private IAvatarDetail ParseActivityPubToAvatarDetail(string activityPubJson)
-        {
-            if (string.IsNullOrWhiteSpace(activityPubJson)) return null;
-            try
-            {
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
-                var detail = JsonSerializer.Deserialize<AvatarDetail>(activityPubJson, options);
-                if (detail != null && detail.Id != Guid.Empty) return detail;
-            }
-            catch { /* fallback to Actor mapping */ }
-            try
-            {
-                using var doc = JsonDocument.Parse(activityPubJson);
-                var root = doc.RootElement;
-                var idStr = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
-                var preferredUsername = root.TryGetProperty("preferredUsername", out var pu) ? pu.GetString() : null;
-                var name = root.TryGetProperty("name", out var n) ? n.GetString() : null;
-                var summary = root.TryGetProperty("summary", out var s) ? s.GetString() : null;
-                var email = root.TryGetProperty("email", out var e) ? e.GetString() : null;
-                Guid id;
-                if (!string.IsNullOrEmpty(idStr) && Guid.TryParse(idStr, out id)) { }
-                else
-                {
-                    var input = idStr ?? preferredUsername ?? "activitypub";
-                    using var sha = System.Security.Cryptography.SHA256.Create();
-                    var hash = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
-                    var guidBytes = new byte[16];
-                    Array.Copy(hash, 0, guidBytes, 0, 16);
-                    id = new Guid(guidBytes);
-                }
-                return new AvatarDetail
-                {
-                    Id = id,
-                    Username = preferredUsername ?? name ?? idStr ?? "",
-                    Email = email ?? "",
-                    FirstName = name ?? preferredUsername ?? "",
-                    LastName = "",
-                    Description = summary ?? "",
-                    CreatedDate = default,
-                    ModifiedDate = default
-                };
-            }
-            catch { return null; }
-        }
-
-        /// <summary>
-        /// Convert OASIS AvatarDetail to ActivityPub JSON format
-        /// </summary>
-        private string ConvertAvatarDetailToActivityPub(IAvatarDetail avatarDetail)
-        {
-            try
-            {
-                // Serialize the complete AvatarDetail object to preserve all properties
-                return JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                    ""type"": ""Person"",
-                    ""id"": ""{avatarDetail.Id}"",
-                    ""name"": ""{avatarDetail.Username}"",
-                    ""email"": ""{avatarDetail.Email}"",
-                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
-
-        /// <summary>
-        /// Convert OASIS Holon to ActivityPub JSON format
-        /// </summary>
-        private string ConvertHolonToActivityPub(IHolon holon)
-        {
-            try
-            {
-                // Serialize the complete Holon object to preserve all properties
-                return JsonSerializer.Serialize(holon, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON structure if serialization fails
-                return $@"{{
-                    ""@context"": ""https://www.w3.org/ns/activitystreams"",
-                    ""type"": ""Note"",
-                    ""id"": ""{holon.Id}"",
-                    ""content"": ""{holon.Name}"",
-                    ""published"": ""{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}""
-                }}";
-            }
-        }
-
-        /// <summary>
-        /// Parse ActivityPub JSON content and convert to OASIS Holon
-        /// </summary>
-        private IHolon ParseActivityPubToHolon(string activityPubJson)
-        {
-            try
-            {
-                // Deserialize the complete Holon object to preserve all properties
-                var holon = JsonSerializer.Deserialize<Holon>(activityPubJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-                
-                return holon;
-            }
-            catch (Exception)
-            {
-                // Return null if parsing fails
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Parse ActivityPub JSON content and convert to OASIS Holon collection
-        /// </summary>
-        private IEnumerable<IHolon> ParseActivityPubToHolons(string activityPubJson)
-        {
-            try
-            {
-                // Deserialize the complete Holon collection to preserve all properties
-                var holons = JsonSerializer.Deserialize<IEnumerable<Holon>>(activityPubJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                });
-                
-                return holons;
-            }
-            catch (Exception)
-            {
-                // Return null if parsing fails
-                return null;
-            }
-        }
 
 
 
         public void Dispose()
         {
-            _httpClient?.Dispose();
+            if (_disposed) return;
+            _disposed = true;
+            _isActivated = false;
+            IsProviderActivated = false;
+            _httpClient.Dispose();
+            GC.SuppressFinalize(this);
         }
 
 
 
         // Holon methods
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query ActivityPub for holons by parent ID
-                var queryUrl = $"/api/v1/accounts/{id}/statuses";
-                
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var statuses = JsonSerializer.Deserialize<JsonElement[]>(content);
-                    
-                    var holons = new List<IHolon>();
-                    foreach (var status in statuses)
-                    {
-                        var holon = ParseActivityPubToHolon(status);
-                        if (holon != null)
-                        {
-                            holons.Add(holon);
-                        }
-                    }
-                    
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Holons loaded from ActivityPub successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holons from ActivityPub: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holons from ActivityPub: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RejectProjectionGuid<IEnumerable<IHolon>>());
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -293,21 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            // First load the parent holon to get its ID
-            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
-            if (parentResult.IsError || parentResult.Result == null)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsError = true,
-                    Message = $"Failed to load parent holon by provider key: {parentResult.Message}"
-                };
-            }
-
-            // Then load children using the parent ID
-            return await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => await ReadMastodonChildrenAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -395,68 +135,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            var savedHolons = new List<IHolon>();
-            
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                if (holons == null || !holons.Any())
-                {
-                    response.Result = savedHolons;
-                    response.IsError = false;
-                    response.Message = "No holons to save";
-                    return response;
-                }
-
-                // Save each holon using ActivityPub API
-                foreach (var holon in holons)
-                {
-                    try
-                    {
-                        var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                        if (!saveResult.IsError && saveResult.Result != null)
-                        {
-                            savedHolons.Add(saveResult.Result);
-                        }
-                        else if (!continueOnError)
-                        {
-                            OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
-                            return response;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (!continueOnError)
-                        {
-                            OASISErrorHandling.HandleError(ref response, $"Error saving holon {holon.Id}: {ex.Message}", ex);
-                            return response;
-                        }
-                    }
-                }
-                
-                response.Result = savedHolons;
-                response.IsError = false;
-                response.Message = $"Successfully saved {savedHolons.Count} holons to ActivityPub";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holons to ActivityPub: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => Task.FromResult(RejectPrivateRecordStorage<IEnumerable<IHolon>>());
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
@@ -469,62 +149,90 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             var response = new OASISResult<ISearchResults>();
             try
             {
+                ObjectDisposedException.ThrowIf(_disposed,this);
+                ArgumentNullException.ThrowIfNull(searchParams);
+                if(version!=0)throw new NotSupportedException("Native social search does not expose historical OASIS versions.");
+                if((!searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId!=Guid.Empty) || searchParams.ParentId!=Guid.Empty)
+                    throw new NotSupportedException("Native status search cannot silently ignore an inactive avatar scope or parent scope.");
+                if(searchParams.SearchGroups==null || searchParams.SearchGroups.Count==0)
+                    throw new ArgumentException("Native status search requires text search groups.",nameof(searchParams));
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                searchParams=NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Project<SearchParams>(searchParams);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups.ToArray();
+                foreach(var group in groups){
+                if(group is not ISearchTextGroup textGroup)throw new NotSupportedException("Native status search requires text groups.");
+                if(textGroup.SearchIds || textGroup.SearchProviderKeys || textGroup.AvatarSearchParams!=null || textGroup.HolonSearchParams!=null)
+                    throw new NotSupportedException("Native social search does not implement structured identity field search.");
+                var searchQuery=textGroup.SearchQuery;
+                if(string.IsNullOrWhiteSpace(searchQuery))throw new ArgumentException("Search query cannot be empty.",nameof(searchParams));
+                }
+                if(string.IsNullOrWhiteSpace(_accessToken))throw new UnauthorizedAccessException("Complete native status search requires a user token with read:search authority.");
                 if (!_isActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,ISearchResults>(activateResult);
                     }
                 }
 
-                // Extract search query from searchParams
-                string searchQuery = "";
-                if (searchParams is ISearchTextGroup textGroup)
-                {
-                    searchQuery = textGroup.SearchQuery ?? "";
-                }
-
-                if (string.IsNullOrWhiteSpace(searchQuery))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Search query cannot be empty");
-                    return response;
-                }
-
-                // Use ActivityPub search API
-                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type=statuses";
-                var httpResponse = await _httpClient.GetAsync(apiUrl);
+                Dictionary<Guid,IHolonBase> combined=null;var totalPages=0;
+                foreach(ISearchTextGroup group in groups){
+                var searchQuery=group.SearchQuery;
+                async Task<List<IHolonBase>> ReadDomain(string domain,Func<JsonElement,IHolonBase> project){
+                var records=new List<IHolonBase>();var seen=new HashSet<Guid>();var exhausted=false;
+                // Bounded exhaustive native search: never report the first page or a truncated prefix as complete.
+                for(var page=0;page<100;page++){
+                if(++totalPages>100)throw new System.IO.InvalidDataException("Native compound search exceeded the total 100-page safety bound.");
+                var apiUrl = $"/api/v2/search?q={Uri.EscapeDataString(searchQuery)}&type={domain}&limit=40&offset="+(page*40).ToString(System.Globalization.CultureInfo.InvariantCulture)+(domain=="accounts"?"&resolve=false":"");
+                using var httpResponse = await _httpClient.GetAsync(apiUrl);
                 
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
                     var searchResult = JsonSerializer.Deserialize<JsonElement>(content);
                     
-                    var searchResults = new SearchResults();
-                    
-                    if (searchResult.TryGetProperty("statuses", out var statuses))
+                    if(searchResult.ValueKind!=JsonValueKind.Object || !searchResult.TryGetProperty(domain,out var statuses) || statuses.ValueKind!=JsonValueKind.Array)
+                        throw new System.IO.InvalidDataException("Native search response requires a "+domain+" array.");
+                    if(statuses.GetArrayLength()>40)throw new System.IO.InvalidDataException("Native search page exceeds requested limit.");
+                    if(statuses.GetArrayLength()==0){
+                        exhausted=true;break;
+                    }
                     {
-                        var holons = new List<IHolon>();
                         foreach (var status in statuses.EnumerateArray())
                         {
-                            var holon = ParseActivityPubToHolon(status);
-                            if (holon != null)
-                            {
-                                holons.Add(holon);
-                            }
+                            var record=project(status);
+                            if(record==null || !seen.Add(record.Id))throw new System.IO.InvalidDataException("Native search returned a missing or repeated "+domain+" identity across pages.");
+                            records.Add(record);
                         }
-                        searchResults.SearchResultHolons = holons;
                     }
-                    
-                    response.Result = searchResults;
-                    response.IsError = false;
-                    response.Message = "Search completed successfully in ActivityPub";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to search in ActivityPub: {httpResponse.StatusCode}");
+                    httpResponse.EnsureSuccessStatusCode();
                 }
+                }
+                if(!exhausted)throw new System.IO.InvalidDataException("Native search exceeded the 100-page safety bound; no partial result is published.");
+                return records;
+                }
+                var candidates=new List<IHolonBase>();
+                if(group.SearchAvatars||!group.SearchHolons)candidates.AddRange(await ReadDomain("accounts",account=>ProjectMastodonAccount(ReadMastodonPublicProfile(account))));
+                if(group.SearchHolons||!group.SearchAvatars)candidates.AddRange(await ReadDomain("statuses",status=>ParseActivityPubToHolon(status)));
+                var matches=candidates.Where(value=>group.HolonType is HolonType.Default or HolonType.All||value.HolonType==group.HolonType).ToDictionary(value=>value.Id);
+                // Same left-to-right PreviousSearchGroupOperator semantics as StoredRecordSearch.Matches.
+                if(combined==null)combined=matches;
+                else if(group.PreviousSearchGroupOperator==SearchParamGroupOperator.And){foreach(var id in combined.Keys.Where(id=>!matches.ContainsKey(id)).ToArray())combined.Remove(id);}
+                else{foreach(var entry in matches)combined.TryAdd(entry.Key,entry.Value);}
+                }
+                var selected=combined.Values.Where(value=>(!searchParams.SearchOnlyForCurrentAvatar || (value is IAvatar?value.Id:value.CreatedByAvatarId)==searchParams.AvatarId) && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(value.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                var avatars=selected.OfType<IAvatar>().ToList();var holons=selected.OfType<IHolon>().ToList();
+                if(loadChildren){
+                    for(var index=0;index<holons.Count;index++)holons[index]=await ReadMastodonReplyGraphAsync((Holon)holons[index],recursive,maxChildDepth);
+                }
+                response.Result=new SearchResults{SearchResultHolons=holons,SearchResultAvatars=avatars,NumberOfResults=selected.Count};
+                response.IsLoaded=true;response.LoadedCount=selected.Count;
+                response.Message="Native search exhausted its result pages; results are not a point-in-time snapshot.";
             }
             catch (Exception ex)
             {
@@ -540,24 +248,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         }
 
         // Import/Export methods
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        {
-            // Use SaveHolonsAsync to import holons
-            var saveResult = await SaveHolonsAsync(holons, true, true, 0, 0, true, false);
-            
-            var result = new OASISResult<bool>();
-            if (!saveResult.IsError && saveResult.Result != null)
-            {
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {saveResult.Result.Count()} holons to ActivityPub";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to import holons: {saveResult.Message}");
-            }
-            return result;
-        }
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+            => Task.FromResult(RejectPrivateRecordStorage<bool>());
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
@@ -597,22 +289,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return ExportAllDataForAvatarByUsernameAsync(username, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
-        {
-            // First load the avatar by email to get its ID
-            var avatarResult = await LoadAvatarByEmailAsync(email, version);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsError = true,
-                    Message = $"Failed to load avatar by email: {avatarResult.Message}"
-                };
-            }
-
-            // Then export all data for that avatar
-            return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string email, int version = 0)
+            => Task.FromResult(RejectPrivateEmailLookup<IEnumerable<IHolon>>());
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string email, int version = 0)
         {
@@ -636,43 +314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
         /// Parse ActivityPub status to Holon object
         /// </summary>
         private Holon ParseActivityPubToHolon(JsonElement status)
-        {
-            try
-            {
-                var statusId = status.TryGetProperty("id", out var id) ? id.GetString() : "";
-                var holon = new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{statusId ?? "unknown"}"),
-                    Name = status.TryGetProperty("content", out var content) ? content.GetString() : "ActivityPub Status",
-                    Description = status.TryGetProperty("spoiler_text", out var spoiler) ? spoiler.GetString() : "",
-                    HolonType = HolonType.Holon,
-                    CreatedDate = status.TryGetProperty("created_at", out var createdAt) ? DateTime.Parse(createdAt.GetString()) : DateTime.UtcNow,
-                    ModifiedDate = status.TryGetProperty("updated_at", out var updatedAt) ? DateTime.Parse(updatedAt.GetString()) : DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                // Add metadata from ActivityPub status
-                if (status.TryGetProperty("id", out var idProp))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_id"] = idProp.GetString() };
-                }
-                if (status.TryGetProperty("url", out var url))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_url"] = url.GetString() };
-                }
-                if (status.TryGetProperty("visibility", out var visibility))
-                {
-                        holon.ProviderMetaData[Core.Enums.ProviderType.ActivityPubOASIS] = new Dictionary<string, string> { ["activitypub_visibility"] = visibility.GetString() };
-                }
-
-                return holon;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+            => ProjectMastodonStatus(status);
 
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash

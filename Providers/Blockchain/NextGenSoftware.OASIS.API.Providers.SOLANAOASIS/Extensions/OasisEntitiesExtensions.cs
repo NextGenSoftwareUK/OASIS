@@ -7,17 +7,61 @@ public static class OasisEntitiesExtensions
         if (avatar == null)
             throw new ArgumentNullException(nameof(avatar));
 
-        return new SolanaAvatarDto()
+        return CheckedStorageRecord(new SolanaAvatarDto()
         {
             Email = avatar.Email,
             Id = avatar.Id,
+            VersionId = avatar.VersionId,
+            IsPublic = avatar.IsPublic,
+            CreatedProviderType = avatar.CreatedProviderType?.Value,
+            CreatedOASISType = avatar.CreatedOASISType?.Value,
             Password = avatar.Password,
+            VerificationToken = avatar.VerificationToken,
+            ResetToken = avatar.ResetToken,
+            ResetTokenExpires = avatar.ResetTokenExpires,
+            RefreshToken = avatar.RefreshToken,
+            RefreshTokens = avatar.RefreshTokens ?? new(),
+            ProviderWalletsJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.ProviderWallets ?? new()),
             AvatarId = avatar.AvatarId,
+            Title = avatar.Title,
+            AcceptTerms = avatar.AcceptTerms,
+            PasswordReset = avatar.PasswordReset,
+            Verified = avatar.Verified,
+            LastBeamedIn = avatar.LastBeamedIn,
+            LastBeamedOut = avatar.LastBeamedOut,
+            IsBeamedIn = avatar.IsBeamedIn,
+            DID = avatar.DID,
+            DIDPublicKey = avatar.DIDPublicKey,
+            HerzId = avatar.HerzId,
+            HerzCountryCode = avatar.HerzCountryCode,
+            HerzSequentialNumber = avatar.HerzSequentialNumber,
+            HerzClearanceLevel = avatar.HerzClearanceLevel,
+            HerzVoucherId = avatar.HerzVoucherId,
+            HerzVouchesRemaining = avatar.HerzVouchesRemaining,
+            HerzIdAssignedDate = avatar.HerzIdAssignedDate,
+            HerzVoiceprintId = avatar.HerzVoiceprintId,
+            HerzQeaProfile = avatar.HerzQeaProfile,
+            VoiceprintId = avatar.VoiceprintId,
+            BiometricEnrolled = avatar.BiometricEnrolled,
+            ProviderUsername = avatar.ProviderUsername == null ? null : new Dictionary<ProviderType,string>(avatar.ProviderUsername),
+            CreatedByAvatarId = avatar.CreatedByAvatarId,
+            ModifiedByAvatarId = avatar.ModifiedByAvatarId,
+            DeletedByAvatarId = avatar.DeletedByAvatarId,
+            DeletedDate = avatar.DeletedDate,
+            ParentHolonId = avatar.ParentHolonId,
+            CustomHolonType = avatar.CustomHolonType,
             UserName = avatar.Username,
+            FirstName = avatar.FirstName,
+            LastName = avatar.LastName,
+            CreatedDate = avatar.CreatedDate,
+            ModifiedDate = avatar.ModifiedDate,
+            AvatarType = avatar.AvatarType?.Value.ToString(),
+            Description = avatar.Description,
+            MetaData = avatar.MetaData,
             Version = avatar.Version,
-            IsDeleted = avatar.IsActive,
+            IsDeleted = !avatar.IsActive,
             PreviousVersionId = avatar.PreviousVersionId
-        };
+        },avatar);
     }
 
     public static SolanaAvatarDetailDto GetSolanaAvatarDetailDto(this IAvatarDetail avatarDetail)
@@ -25,22 +69,64 @@ public static class OasisEntitiesExtensions
         if (avatarDetail == null)
             throw new ArgumentNullException(nameof(avatarDetail));
 
-        return new SolanaAvatarDetailDto()
+        return CheckedStorageRecord(new SolanaAvatarDetailDto()
         {
             Address = avatarDetail.Address,
+            CreatedByAvatarId = avatarDetail.CreatedByAvatarId,
+            ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId,
+            DeletedByAvatarId = avatarDetail.DeletedByAvatarId,
+            DeletedDate = avatarDetail.DeletedDate,
+            ParentHolonId = avatarDetail.ParentHolonId,
+            CustomHolonType = avatarDetail.CustomHolonType,
             Id = avatarDetail.Id,
+            VersionId = avatarDetail.VersionId,
+            IsPublic = avatarDetail.IsPublic,
+            CreatedProviderType = avatarDetail.CreatedProviderType?.Value,
+            CreatedOASISType = avatarDetail.CreatedOASISType?.Value,
             Mobile = avatarDetail.Mobile,
             Level = avatarDetail.Level,
             XP = avatarDetail.XP,
             Karma = avatarDetail.Karma,
             Username = avatarDetail.Username,
+            ActiveQuestId = avatarDetail.ActiveQuestId,
+            ActiveObjectiveId = avatarDetail.ActiveObjectiveId,
             Email = avatarDetail.Email,
+            UmaJson = avatarDetail.UmaJson,
+            Portrait = avatarDetail.Portrait,
+            Model3D = avatarDetail.Model3D,
+            FavouriteColour = avatarDetail.FavouriteColour,
+            STARCLIColour = avatarDetail.STARCLIColour,
+            KarmaAkashicRecords = avatarDetail.KarmaAkashicRecords,
+            HeartRateData = avatarDetail.HeartRateData,
+            Omniverse = avatarDetail.Omniverse,
+            Gifts = avatarDetail.Gifts,
+            DimensionLevelIds = avatarDetail.DimensionLevelIds,
+            DimensionLevels = avatarDetail.DimensionLevels,
+            Chakras = avatarDetail.Chakras,
+            Aura = avatarDetail.Aura,
+            Stats = avatarDetail.Stats,
+            GeneKeys = avatarDetail.GeneKeys,
+            HumanDesign = avatarDetail.HumanDesign,
+            Skills = avatarDetail.Skills,
+            Attributes = avatarDetail.Attributes,
+            SuperPowers = avatarDetail.SuperPowers,
+            Spells = avatarDetail.Spells,
+            Achievements = avatarDetail.Achievements,
+            Inventory = avatarDetail.Inventory,
+            ModifiedDate = avatarDetail.ModifiedDate,
+            Description = avatarDetail.Description,
+            Country = avatarDetail.Country,
+            Town = avatarDetail.Town,
+            County = avatarDetail.County,
+            Postcode = avatarDetail.Postcode,
+            Landline = avatarDetail.Landline,
+            MetaData = avatarDetail.MetaData,
             DOB = avatarDetail.DOB,
             CreatedDate = avatarDetail.CreatedDate,
             Version = avatarDetail.Version,
-            IsDeleted = avatarDetail.IsActive,
+            IsDeleted = !avatarDetail.IsActive,
             PreviousVersionId = avatarDetail.PreviousVersionId
-        };
+        },avatarDetail);
     }
 
     public static SolanaHolonDto GetSolanaHolonDto(this IHolon holon)
@@ -48,16 +134,55 @@ public static class OasisEntitiesExtensions
         if (holon == null)
             throw new ArgumentNullException(nameof(holon));
 
-        return new SolanaHolonDto()
+        return CheckedStorageRecord(new SolanaHolonDto()
         {
             Id = holon.Id,
+            VersionId = holon.VersionId,
+            IsPublic = holon.IsPublic,
+            CreatedProviderType = holon.CreatedProviderType?.Value,
+            CreatedOASISType = holon.CreatedOASISType?.Value,
+            Name = holon.Name,
+            Description = holon.Description,
+            ParentHolonId = holon.ParentHolonId,
+            HolonType = holon.HolonType,
+            CustomHolonType = holon.CustomHolonType,
+            ModifiedByAvatarId = holon.ModifiedByAvatarId,
+            DeletedByAvatarId = holon.DeletedByAvatarId,
+            DeletedDate = holon.DeletedDate,
+            CreatedDate = holon.CreatedDate,
+            ModifiedDate = holon.ModifiedDate,
+            MetaData = holon.MetaData,
             ParentMultiverseId = holon.ParentMultiverseId,
             ParentOmniverseId = holon.ParentOmniverseId,
             ParentUniverseId = holon.ParentUniverseId,
+            ParentDimensionId = holon.ParentDimensionId,
+            DimensionLevel = holon.DimensionLevel,
+            SubDimensionLevel = holon.SubDimensionLevel,
+            ParentGalaxyClusterId = holon.ParentGalaxyClusterId,
+            ParentGalaxyId = holon.ParentGalaxyId,
+            ParentSolarSystemId = holon.ParentSolarSystemId,
+            ParentGreatGrandSuperStarId = holon.ParentGreatGrandSuperStarId,
+            ParentGrandSuperStarId = holon.ParentGrandSuperStarId,
+            ParentSuperStarId = holon.ParentSuperStarId,
+            ParentStarId = holon.ParentStarId,
+            ParentPlanetId = holon.ParentPlanetId,
+            ParentMoonId = holon.ParentMoonId,
+            ParentCelestialSpaceId = holon.ParentCelestialSpaceId,
+            ParentCelestialBodyId = holon.ParentCelestialBodyId,
+            ParentZomeId = holon.ParentZomeId,
+            CreatedByAvatarId = holon.CreatedByAvatarId,
             Version = holon.Version,
-            IsDeleted = holon.IsActive,
+            IsActive = holon.IsActive,
+            IsDeleted = !holon.IsActive,
             PreviousVersionId = holon.PreviousVersionId,
-        };
+        },holon);
+    }
+
+    private static T CheckedStorageRecord<T>(T record,IHolonBase source) where T : SolanaBaseDto
+    {
+        if(!record.HasValidCreationOrigin()) throw new SolanaOriginValidationException();
+        SolanaProviderLinkMapping.Capture(record,source);
+        return record;
     }
 
     public static IWeb3NFT ToOasisNft(this GetNftMetadataResult nft) =>

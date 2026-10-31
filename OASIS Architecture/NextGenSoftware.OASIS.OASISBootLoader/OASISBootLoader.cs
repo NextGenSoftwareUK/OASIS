@@ -1,4 +1,4 @@
-﻿//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
 //using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 //using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -31,7 +31,7 @@ using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
@@ -66,8 +66,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "5.0.0";
-        public static string OASISAPIVersion { get; set; } = "5.2.0";
+        public static string OASISRuntimeVersion { get; set; } = "5.3.0";
+        public static string OASISAPIVersion { get; set; } = "5.3.0";
         public static string COSMICVersion { get; set; } = "2.2.2";
         public static string STARODKVersion { get; set; } = "4.0.0";
         public static string STARRuntimeVersion { get; set; } = "4.0.0";

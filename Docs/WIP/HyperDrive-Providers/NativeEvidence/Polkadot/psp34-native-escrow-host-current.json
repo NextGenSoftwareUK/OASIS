@@ -1,0 +1,28 @@
+{
+  "rustGate": 46111,
+  "rustGateExitCode": 0,
+  "rustVersion": "1.88.0",
+  "crateVersion": "0.2.0",
+  "rustHostPassed": 14,
+  "rustHostIgnored": 0,
+  "compileSeconds": 56.99,
+  "sdkControlledPassed": 28,
+  "sdkControlledFailed": 0,
+  "sourceSha256": {
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/Contracts/psp34/lib.rs": "DC75027743B640E8CF4188A7E335E3DBE7511CA0DC4732E0442F96F89EE2954A",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/Contracts/psp34/Cargo.toml": "F3FFBF6791714FB63DAFFF6C626E51125404733857ECD09306AE760CBB793228",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/Contracts/psp34/Cargo.lock": "2E64F00D55AC71B171F80FB7DE9E3CB3D24928FBDE10AB2276CECE43C72EB889",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/oasis-psp34-mutation-codec.mjs": "9BBC1418FD13DA83DF8C98BBCFFCCB08C46FC4996BC75BD95181F7D401D367F0",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/psp34-contract-mutation.mjs": "129F600F51622E4BB343E804E1CD3102B407BA219B2707253507E82922BC52ED",
+    "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/psp34-contract-outcome.mjs": "5E49A812B759137858E1EF5F5E760604D590FD41B7DFE6371550FDB06C32B94F"
+  },
+  "hostBinarySha256": "4BE1689214CADD8209E2BAB08412EE23F47325D68420F310057EF4B63C8C6210",
+  "retainedCargoTargetBytes": 1163241301.0,
+  "retainedCargoTargetFiles": 2763,
+  "removedObsoleteHostBinaryBytes": 31335552,
+  "wasmBuildVerified": false,
+  "nativeDeploymentVerified": false,
+  "csharpEscrowWiringVerified": false,
+  "newEnvironment": false,
+  "downloaded": false
+}

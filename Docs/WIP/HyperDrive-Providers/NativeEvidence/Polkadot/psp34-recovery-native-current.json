@@ -1,0 +1,37 @@
+{
+  "proofs": [
+    {
+      "transactionHash": "0x7aa435f18f23c06989b4969ccfa801d7c96099bcc80cbd60d581c7923c8eb59b",
+      "action": "mint",
+      "actualFeeUnits": "2956551415",
+      "minimumFieldsOnly": true,
+      "finalizedEffectsVerified": true,
+      "sourceOwnerPreconditionRetained": false
+    },
+    {
+      "transactionHash": "0xbeffdad93693ca4a3e0dc7049edf8a87609c17524a579959cfa4fffb738f2494",
+      "action": "transfer",
+      "actualFeeUnits": "2705872816",
+      "minimumFieldsOnly": true,
+      "finalizedEffectsVerified": true,
+      "sourceOwnerPreconditionRetained": false
+    },
+    {
+      "transactionHash": "0x7fe8cf7107b1172f39b09db9f3e5abc276ffd12fea068863f68ed08f9e0ea426",
+      "action": "burn",
+      "actualFeeUnits": "2874961716",
+      "minimumFieldsOnly": true,
+      "finalizedEffectsVerified": true,
+      "sourceOwnerPreconditionRetained": false
+    }
+  ],
+  "submitted": false,
+  "signingKeysUsed": false,
+  "newEnvironment": false,
+  "sourceSha256": {
+    "psp34-contract-mutation.mjs": "8e8f25c8fec170b486013c5556a6c9f4c362c6f635b1dea5c4ea6c6ad85779f8",
+    "psp34-contract-outcome.mjs": "72ceeee64c144e9c764b303359813f64a4f4f3b13b4cb834db7714e81d47f156",
+    "oasis-psp34-mutation-codec.mjs": "12307ac8f40bbdc8dfd266e7bdfd91b246dca1368f94ff227dc76ba5ed6b21d3",
+    "test-local-psp34-recovery.mjs": "08c08c7788cdc7e59544cdfc9085a6a3ab2352a88ce6ec793588f6c3e8cbc241"
+  }
+}

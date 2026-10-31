@@ -31,6 +31,10 @@ Provider adapters require their respective service configuration and credentials
 
 ## Errors and security
 
+Current source uses the shared canonical storage/history/query implementation with mandatory encrypted records and opaque keyed indexes. Configure `OASIS_REDIS_STORAGE_ENCRYPTION_KEY` as canonical Base64 for a separately persisted 32-byte key, or supply the constructor's key resolver. Keep that key with the Redis data and backups; losing it makes private records unreadable. Production constructors never generate or replace it. Connections use the supplied StackExchange.Redis configuration; use appropriate authentication/TLS for your service.
+
+Existing plaintext `avatar:*`, `avatar-detail:*`, `holon:*` and legacy identity/set indexes cause explicit activation refusal; no automatic conversion or alternate reader is provided. Review any existing data before upgrading. Provider keys remain GUIDs, not usernames. History is opt-in through `IsVersionControlEnabled`; absent historical records are errors, never substitutes for current data. Redis's existing default Holon deletion remains soft; `DeleteHolonSoft(..., false)` explicitly hard-deletes through the shared lifecycle owner.
+
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
 
 ## Platform requirements
@@ -46,7 +50,7 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 ## Releases and further documentation
 
-[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/RELEASE_DOCUMENTATION_AUDIT.md)
+[Verified release matrix](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/OASIS_RELEASE_STATUS.md) · [Documentation audit](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/WIP/Release and Status/RELEASE_DOCUMENTATION_AUDIT.md)
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 

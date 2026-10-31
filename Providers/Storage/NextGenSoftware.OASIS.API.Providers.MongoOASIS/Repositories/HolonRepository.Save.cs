@@ -1,0 +1,17 @@
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+
+public partial class HolonRepository
+{
+    internal Task<OASISResult<Holon>> SaveCapturedHolonAsync(Holon holon,bool updating,bool synchronous,
+        bool preserveChildren,PlannedHolonWrite childRoleWrite)
+        => MongoNativeRecordWriter.SaveAsync(_dbContext.Holon,holon,updating,synchronous,preserveChildren,
+            childRoleWrite:childRoleWrite);
+
+    private Task<OASISResult<Holon>> SaveNativeHolonAsync(Holon holon,bool updating,bool synchronous,bool preserveChildren=false)
+        => MongoNativeRecordWriter.SaveAsync(_dbContext.Holon,holon,updating,synchronous,preserveChildren);
+}
