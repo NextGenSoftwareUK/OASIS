@@ -12,6 +12,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 /// No source rows are scanned or evaluated by a managed predicate.</summary>
 public static class Web3CoreCqlCompiler
 {
+    private static readonly CosmicQueryCapabilities UnsupportedCapabilities = new(
+        CosmicQueryFeatures.None, Array.Empty<CosmicQueryFieldCapability>());
+
+    private static bool SupportsAuthority(ProviderType authority)
+        => authority is ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS;
+
+    internal static CosmicQueryCapabilities CapabilitiesFor(ProviderType authority)
+        => SupportsAuthority(authority) ? Capabilities : UnsupportedCapabilities;
+
     public static CosmicQueryCapabilities Capabilities { get; } = new(
         CosmicQueryFeatures.BooleanConstant | CosmicQueryFeatures.Membership | CosmicQueryFeatures.And
             | CosmicQueryFeatures.Or | CosmicQueryFeatures.Paging,
@@ -24,7 +33,7 @@ public static class Web3CoreCqlCompiler
             if (query == null) throw new ArgumentException("A captured query is required.");
             var admitted = Capabilities.Admit(query);
             if (admitted.IsError) return new() { IsError = true, ErrorCount = 1, ErrorCode = admitted.ErrorCode, Message = admitted.Message };
-            if (authority is not (ProviderType.PolygonOASIS or ProviderType.ArbitrumOASIS) || query.ReadAccess?.Authority != authority)
+            if (!SupportsAuthority(authority) || query.ReadAccess?.Authority != authority)
                 return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_ACCESS_INVALID",
                     Message = "A complete server-authorized record catalogue for this exact Polygon/Arbitrum authority is required." };
             Guid Identity(CosmicQueryLiteral literal) => literal.Kind == CosmicQueryScalarKind.Guid

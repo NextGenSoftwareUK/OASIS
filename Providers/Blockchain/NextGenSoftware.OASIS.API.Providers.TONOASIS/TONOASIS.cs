@@ -4,8 +4,9 @@ using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 namespace NextGenSoftware.OASIS.API.Providers.TONOASIS;
 
 /// <summary>
-/// TON integration built on top of TON EVM, allowing us to reuse the standard Web3Core
-/// contract flow (avatars/holons/NFTs) without introducing a new runtime.
+/// Existing EVM adapter labelled TON. This does not implement native TON TVM
+/// storage and must not be advertised as native TON or enrolled in its CQL demo.
+/// Native contract admission is tracked in Docs/WIP/COSMIC ORM/TON_CQL_MVP.md.
 /// </summary>
 public sealed class TONOASIS : Web3CoreOASISBaseProvider,
     IOASISDBStorageProvider,
@@ -18,7 +19,7 @@ public sealed class TONOASIS : Web3CoreOASISBaseProvider,
         : base(hostUri, chainPrivateKey, contractAddress)
     {
         ProviderName = "TONOASIS";
-        ProviderDescription = "TON EVM provider";
+        ProviderDescription = "Unverified EVM adapter; native TON TVM provider integration pending";
         ProviderType = new(Core.Enums.ProviderType.TONOASIS);
         ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
     }
