@@ -7,6 +7,9 @@
 # Official Node runtime pinned to its multi-platform manifest.
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS provider_node
 
+# Native IPFS runtime for explicitly configured sandbox sources. No host download.
+FROM ipfs/kubo:v0.43.1@sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101df18070fa7be48 AS provider_ipfs
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
@@ -54,9 +57,12 @@ RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
+COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
 RUN node --version
+RUN ipfs version --enc=json
 COPY --from=build /app/publish .
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
+COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
