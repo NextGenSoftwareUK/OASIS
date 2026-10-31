@@ -6,6 +6,9 @@ This provider uses the real Oracle.ManagedDataAccess.Core client with indexed lo
 
 ## Configuration and verification
 
+For provider-scoped public read catalogues, query-only host enrollment, supported
+HTTP shapes and remaining demo gates, see the [Oracle CQL host guide](../../../Docs/Devs/ORACLE_CQL_HOST_CONFIGURATION.md).
+
 Hosted query activation uses `ICosmicReadOnlyQueryActivation.ActivateQuerySourceAsync`.
 It opens the configured existing database and reuses canonical schema validation;
 it never provisions or repairs tables. Missing/incompatible schemas fail with
