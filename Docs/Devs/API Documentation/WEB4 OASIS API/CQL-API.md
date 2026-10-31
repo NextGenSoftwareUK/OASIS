@@ -17,6 +17,8 @@ command) is [CQL_WEB4_AND_STAR_CLI.md](../../CQL_WEB4_AND_STAR_CLI.md); the lang
 
 | Method | Route | Does |
 |---|---|---|
+| GET | `/api/data/query-cql/providers?examplesVersion=2` | Enrolled readiness and checked Rows/Federation examples; version1 defaults to leaf-only |
+| POST | `/api/data/query-cql/demo-identities` | Authenticated owner-scoped sample IDs for1–2 native keys; no provider I/O or access grant |
 | POST | `/api/data/query-cql` | Filtered, ordered, paged query |
 | POST | `/api/data/query-cql/indexed` | Query against an indexed alias |
 | POST | `/api/data/query-cql/indexed/scalar` | Scalar over an indexed alias |
