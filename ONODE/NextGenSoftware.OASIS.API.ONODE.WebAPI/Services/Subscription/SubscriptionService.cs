@@ -13,8 +13,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     {
         private readonly ISubscriptionUsageRepository _usageRepository;
         private readonly ISubscriptionBillingRepository _billing;
-        public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository, ISubscriptionBillingRepository billing)
-        { _usageRepository = usageRepository; _billing = billing; }
+        private readonly TimeProvider _clock;
+        public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository, ISubscriptionBillingRepository billing,
+            TimeProvider clock = null)
+        { _usageRepository = usageRepository; _billing = billing; _clock = clock ?? TimeProvider.System; }
 
         public Task<SubscriptionRecord> GetSubscriptionAsync(string userId) => _billing.GetSubscriptionAsync(userId);
         public Task<SubscriptionRecord> GetSubscriptionByStripeCustomerIdAsync(string stripeCustomerId) => _billing.FindSubscriptionAsync(stripeCustomerId, true);
@@ -46,7 +48,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             if (!SubscriptionServiceIdentity.IsService(normalizedService))
                 return Denied(400, "INVALID_CONSUMING_SERVICE", "ConsumingService must be a supported WEB4-WEB10 ledger identity.");
 
-            var now = DateTime.UtcNow;
+            var now = _clock.GetUtcNow().UtcDateTime;
             var usageEvent = new SubscriptionUsageEvent
             {
                 OperationId = request.OperationId,
@@ -99,7 +101,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             if (!Guid.TryParse(userId, out var avatarId)) throw new ArgumentException("Invalid avatar id.", nameof(userId));
             var subscription = await LoadSubscriptionAsync(avatarId) ?? throw new InvalidOperationException("A valid OASIS subscription is required.");
-            var policy = GetUsagePolicy(subscription.PlanId, karma);
+            var policy = SandboxSubscriptionRules.EffectivePolicy(GetUsagePolicy(subscription.PlanId, karma),
+                subscription, _clock.GetUtcNow().UtcDateTime);
             var aggregate = await _usageRepository.GetAggregateAsync(userId, cancellationToken);
             return new SubscriptionUsageSummary
             {
