@@ -156,3 +156,20 @@ retries it. The journal contains identifiers, not tokens or source payloads.
 
 Preparation controls are not proof of live provider availability. Release
 acceptance must separately verify native rows, repeat preparation and isolation.
+
+### Try the hosted ActivityPub + Mongo example
+
+1. Open the [WEB4 sandbox](https://web4.oasisomniverse.one/web4-sandbox.html),
+   click **START DEMO SESSION**, then **CQL Playground**.
+2. Choose **ActivityPubOASIS** and **Public posts + my Mongo records**.
+3. Click **PREPARE MY MONGO RECORDS**, wait for acknowledgement, then **RUN QUERY**.
+   The configured selection returns three native public ActivityPub posts and
+   two private Mongo snapshots, with provider provenance.
+4. Choose **Two-post subset + my Mongo records** and run it to inspect the
+   bounded membership filter across both sources. Public posts can change;
+   the native response owns the actual count.
+
+Repeating preparation reuses unchanged acknowledged snapshots. It does not post
+to ActivityPub. A different visitor has different private records. Public leaf
+examples need no preparation. Separate local examples remain linked below the
+hosted controls. Federation spans moving provider reads, without a global snapshot.

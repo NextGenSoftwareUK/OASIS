@@ -135,3 +135,37 @@ batch and verify actual5/4ActivityPub+Mongo rows and tenant isolation in-browser
 - demo-preparation-api.trx SHA256 4f34dc55673a3b83b93f4b2050bf74165a6bfa61a6ec0312809a58ee60f7c29e.
 - demo-preparation-auth-core.trx SHA256 24c971f16fc12ebba0d359e809550cec184c236383b766f914f46676e18ef732.
 - demo-preparation-client-final.log SHA256 d927ab07712a8180a11024792417c675efd75092a9da6c42c7475f083fde2e88.
+
+### Hosted browser federation and preparation acceptance — 31 October 2026
+
+Core249a223 and parent51fc64f5e are fast-forwarded/pushed/remote-verified on
+Development; no concurrent changes were overwritten. Railway deployment
+14b4e5e7-6646-4e20-b05f-a3025b3819d1 SUCCESS, image
+sha256:45f5ff0ab28241eadb622888f96aef01fa11987d4ddbdc71e4f1ddf56f3d8cb6.
+Frontend main2b46ded, production7456696386 success. Published client bytes match
+both tested scripts exactly. Four configured AP examples are observed, only that
+configuration variable changed, protected prior/candidate values and ACK retained.
+
+Normal browser visitor sandbox-60b2bb72 acknowledged2private Mongo saves. Full
+federation returns5actual rows (AP3/Mongo2), subset4(AP2/Mongo2). Repeated setup
+returns0saved/2existing without new writes. Independent sandbox-46616f4f sees only
+3public AP rows; exact foreign Mongo IDs return0. SQLite and Neo4j each return
+2matching private replicas (ID/name/description/version/owner/metadata). No native
+AP writes, no manual replica repair or business replay. Operation IDs are visible
+in the browser, proving the deployed CORS correction. Owned tabs closed; sample
+avatars/data remain subject to the normal sandbox expiry/cleanup policy, not
+claimed already removed. This is not universal failover/load-balance acceptance.
+
+Raw evidence lives only in TestResults/HostedCqlIntegrationCurrent. Durable
+configuration and acceptance ACK live in LocalState/COSMIC/HostedSourceRolloutCurrent.
+
+- browser-federation-acceptance.json (915B), SHA256 feaa8658d7275aa5158230ca1c144b2648550972455731e56e2359a0f89d431a.
+- browser-preparation-ack.json (256B), SHA256 b65f8c64c6e1f8f1e4cd51edc31fc9581d818d1512422129a1399e0166fd67c7.
+- browser-preparation-repeat.json (148B), SHA256 ca272845d713bdc1d032e4171a9d710a1fb1f003c5952cfd4448b1f88b981832.
+- browser-activitypub-mongo-five.json (15026B), SHA256 e86456888d13346f1249ba0a7fd7128907cd3a48fae814128c113729b228ff09.
+- browser-activitypub-mongo-four.json (11524B), SHA256 8527341c12fc6d77ae4f71327b6cbd47a7d568dc387b0b83a7123c9e0ce38c6f.
+- browser-activitypub-mongo-other-visitor.json (10718B), SHA256 4f5c1f81039c5c58ba9ceffe4d7f3fe9aa9bb1b9e1fd14c3d0cd49b297372f47.
+- browser-private-mongo-isolation.json (468B), SHA256 f25ce206d8d8e73e346dec10da030881b2cc2b1d90c3f56e7c12a18cad3bd171.
+- browser-preparation-sqlite-replicas.json (2144B), SHA256 7a85da2ebc3f0f10838b29e0fbf0f9f659b51b61e544700797d794e9c596a743.
+- browser-preparation-neo4j-replicas.json (2140B), SHA256 f48e587d8891c6154f5850e4639448b435fd318fb7bc394213c3187a0c68d7e5.
+- browser-activitypub-mongo-four.png (86492B), SHA256 876e08bafc765ec5a7c76609d62083392d0efcc3939ede2f66b27111aef7fba6.

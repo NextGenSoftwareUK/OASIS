@@ -6,6 +6,21 @@ Start with the maintained, spaced/commented [C# and HTTP demo](../../../Examples
 CQL captures immutable query intent, plans against explicit eligible provider capabilities, then executes through native adapters and the V2 HolonManager owner.
 Check every OASISResult error/acknowledgement before reading Result. Unsupported semantics and exhausted work limits are errors.
 
+## Live sandbox walkthrough
+
+No installation is needed for the [hosted sandbox](https://web4.oasisomniverse.one/web4-sandbox.html).
+Start a demo session, open CQL Playground, select ActivityPubOASIS and the
+**Public posts + my Mongo records** example. Prepare your private Mongo records,
+then run the query. The verified selection returns 5 physical rows (AP3/Mongo2);
+the subset returns 4(AP2/Mongo2). Public source availability can change.
+
+Inspect the editable JSON, provider provenance and operation ID. Repeat setup
+reuses unchanged records; another visitor cannot read your private copies.
+MongoDB, SQLite and Neo4j expose the existing general query presets. Other
+local examples remain separate until their hosted flow is verified.
+See [preparation and admission](../../Devs/CQL_QUERY_ONLY_ADMISSION.md#visitor-owned-federation-samples)
+and [current evidence](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
+
 ## Reference map
 
 | Topic | Detailed preserved guide |
